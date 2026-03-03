@@ -18,7 +18,6 @@ import { AgentChatSidebar, AGENT_CHAT_SIDEBAR_ID } from './AgentChatSidebar';
 import { AgentChatWrapper } from '../AgentChatWrapper';
 import { takePendingProfileMessageAttachments } from '../profileMessageCache';
 import { usePrivateModePreferences } from '../../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
-import { useChatSynchronization } from '../../../../utils/chat/useChatSynchronization';
 
 /**
  * Delay used before persisting chat messages to DB.
@@ -29,13 +28,6 @@ const SAVE_DEBOUNCE_MS = 600;
  * Delay before showing switching overlay to avoid flashing on fast chat switches.
  */
 const SWITCHING_CHAT_OVERLAY_DELAY_MS = 180;
-
-/**
- * Returns true when chat currently contains at least one incomplete response.
- */
-function hasStreamingMessage(messages: ReadonlyArray<ChatMessage>): boolean {
-    return messages.some((message) => message.isComplete === false);
-}
 
 /**
  * Replaces browser URL without triggering App Router navigation/streaming.
@@ -133,7 +125,6 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const autoExecuteTargetChatIdRef = useRef<string | undefined>(initialForceNewChat ? undefined : initialChatId);
     const draftSaveTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
     const [activeChatDraftMessage, setActiveChatDraftMessage] = useState<string | null>(null);
-    const isLocalStreamingRef = useRef(false);
 
     const guestPersistenceKey = useMemo(
         () => `guest-chat-${encodeURIComponent(agentName)}-${Math.random().toString(36).slice(2)}`,
@@ -230,7 +221,6 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             } = {},
         ) => {
             prepareChatInLocalStorage(chatId, messages);
-            isLocalStreamingRef.current = hasStreamingMessage(messages);
             setActiveChatDraftMessage(options.draftMessage ?? null);
             replaceBrowserUrlWithoutNavigation(buildChatRoute(chatId, Boolean(options.includeInitialMessage)));
         },
@@ -285,7 +275,6 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         if (!shouldUseHistory) {
             setChats([]);
             setIsBootstrapping(false);
-            isLocalStreamingRef.current = false;
             return;
         }
 
@@ -458,7 +447,6 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 return;
             }
 
-            isLocalStreamingRef.current = hasStreamingMessage(messages);
             const chatId = activeChatId;
             chatMessagesCacheRef.current.set(chatId, [...messages]);
             const serializedMessages = JSON.stringify(messages);
@@ -495,37 +483,6 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         },
         [activeChatId, agentName, shouldUseHistory],
     );
-
-    /**
-     * Applies synchronized message snapshots received from the server.
-     */
-    const handleSynchronizedMessagesUpdate = useCallback(
-        (messages: ReadonlyArray<ChatMessage>) => {
-            if (!shouldUseHistory || !activeChatId) {
-                return;
-            }
-
-            if (isLocalStreamingRef.current) {
-                return;
-            }
-
-            const serializedMessages = JSON.stringify(messages);
-            const lastSavedHash = savedMessagesHashesRef.current.get(activeChatId);
-            if (lastSavedHash === serializedMessages) {
-                return;
-            }
-
-            prepareChatInLocalStorage(activeChatId, messages);
-        },
-        [activeChatId, prepareChatInLocalStorage, shouldUseHistory],
-    );
-
-    useChatSynchronization({
-        agentName,
-        chatId: activeChatId,
-        isEnabled: shouldUseHistory,
-        onMessagesUpdate: handleSynchronizedMessagesUpdate,
-    });
 
     /**
      * Persists draft message using debounced save to avoid excessive API calls.

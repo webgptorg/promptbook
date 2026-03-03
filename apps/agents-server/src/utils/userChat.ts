@@ -81,16 +81,6 @@ export type UpdateUserChatMessagesOptions = {
 };
 
 /**
- * Update options for upserting full persisted chat messages.
- */
-export type UpsertUserChatMessagesOptions = {
-    userId: number;
-    agentPermanentId: string;
-    chatId: string;
-    messages: ReadonlyArray<ChatMessage>;
-};
-
-/**
  * Update options for saving chat draft message.
  */
 export type UpdateUserChatDraftOptions = {
@@ -244,34 +234,6 @@ export async function updateUserChatMessages(options: UpdateUserChatMessagesOpti
     }
 
     return mapUserChatRow(data as UserChatRow);
-}
-
-/**
- * Creates or replaces one chat message collection using a stable chat id.
- */
-export async function upsertUserChatMessages(options: UpsertUserChatMessagesOptions): Promise<UserChatRecord> {
-    const { userId, agentPermanentId, chatId, messages } = options;
-    const existingChat = await getUserChat({
-        userId,
-        agentPermanentId,
-        chatId,
-    });
-
-    if (!existingChat) {
-        return createUserChat({
-            userId,
-            agentPermanentId,
-            chatId,
-            messages,
-        });
-    }
-
-    return updateUserChatMessages({
-        userId,
-        agentPermanentId,
-        chatId,
-        messages,
-    });
 }
 
 /**
