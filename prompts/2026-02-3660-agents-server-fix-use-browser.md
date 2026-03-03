@@ -54,17 +54,47 @@
 
 [✨💧] Fix the browser operations
 
--  Agent is able to use the browser when the `REMOTE_BROWSER_URL` is configured and has `USE BROWSER` commitment, but the operations in the browser are not working well
+-   Agent is able to use the browser when the `REMOTE_BROWSER_URL` is configured and has `USE BROWSER` commitment, but the operations in the browser are not working well
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
 
 ![alt text](prompts/screenshots/2026-02-3660-agents-server-fix-use-browser-2.png)
 
+---
+
+[ ] !
+
+[✨💧] Browser tool is failing on Vercel
+
+-   Browser is working on local environment, but it is failing on Vercel server, we need to fix it to be able to use the browser on Vercel server.
+-   We are using remote browser tunnel configured by env `REMOTE_BROWSER_URL`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of the `USE BROWSER` commitment and problem with usage on Vercel before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+```
+# Browser run failed
+
+**URL:** https://www.pavolhejny.com/
+**Session:** agents-server-run-browser-69d734f0-e4f6-496c-9ddb-b3c992b333b3
+**Error:** npm error code ENOENT
+npm error syscall mkdir
+npm error path /home/sbx_user1051
+npm error errno ENOENT
+
+npm error enoent Invalid response body while trying to fetch https://registry.npmjs.org/@playwright%2fcli: ENOENT: no such file or directory, mkdir '/home/sbx_user1051'
+npm error enoent This is related to npm not being able to find a file.
+npm error enoent
+
+npm error Log files were not written due to an error writing to the directory: /home/sbx_user1051/.npm/_logs
+npm error You can rerun the command with `--loglevel=verbose` to see the logs in your terminal
+```
+
+![alt text](prompts/screenshots/2026-02-3660-agents-server-fix-use-browser-3.png)
 
 ---
 
@@ -79,7 +109,6 @@
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
-
 ---
 
 [-]
@@ -93,8 +122,6 @@
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
-
-
 ---
 
 [-]
@@ -107,19 +134,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
-
-
----
-
-[-]
-
-[✨💧] qux
-
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
-
