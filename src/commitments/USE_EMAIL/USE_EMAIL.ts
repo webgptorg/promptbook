@@ -117,7 +117,7 @@ export class UseEmailCommitmentDefinition extends BaseCommitmentDefinition<'USE 
                     - Include subject in \`message.metadata.subject\` (or use legacy \`subject\` argument).
                     - USE EMAIL credentials are read from wallet records (ACCESS_TOKEN, service "${USE_EMAIL_SMTP_WALLET_SERVICE}", key "${USE_EMAIL_SMTP_WALLET_KEY}").
                     - Wallet secret must contain SMTP credentials in JSON format with fields \`host\`, \`port\`, \`secure\`, \`username\`, \`password\`.
-                    - If credentials are missing, ask user to add wallet credentials (or call "request_wallet_record" when WALLET commitment is available).
+                    - If credentials are missing, ask user to add wallet credentials.
                     ${block(senderInstruction)}
                     ${block(extraInstructions)}
                 `,

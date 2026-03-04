@@ -1,3 +1,9 @@
+-   Removed the explicit `WALLET` / `WALLETS` commitment requirement for Agents Server wallet-backed flows:
+    -   `WALLET` and `WALLETS` are no longer registered as commitments, so agents no longer need to declare them explicitly.
+    -   `USE EMAIL` and `USE PROJECT` continue to read credentials from wallet records automatically, which is now the single supported path for wallet access in these flows.
+    -   Removed legacy `WALLET` capability parsing and dropped now-unused Agents Server runtime wiring that only served `WALLET` commitment tool registration.
+    -   Updated commitment guidance text in `USE EMAIL` and `USE PROJECT` to remove references to explicitly adding `WALLET`.
+
 -   Enhanced Agents Server control panel UX for scalability and faster scanning:
     -   Reworked the panel into a progressive disclosure layout with collapsible sections (Feedback, Self-learning, Private mode, Language), reducing visual overload as settings grow.
     -   Kept existing behavior unchanged (including private-mode/self-learning dependency) while surfacing clearer section-level state chips and compact state/action rows.

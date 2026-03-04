@@ -389,19 +389,31 @@ describe('parseAgentSource', () => {
         });
     });
 
-    it('parses WALLET capability', () => {
+    it('ignores deprecated WALLET commitment and keeps USE EMAIL and USE PROJECT capabilities', () => {
         const agentSource = validateBook(
             spaceTrim(`
                 Agent Name
                 WALLET
+                USE EMAIL agent@example.com
+                USE PROJECT https://github.com/example/project
             `),
         );
         const result = parseAgentSource(agentSource);
 
+        expect(result.capabilities).not.toContainEqual(
+            expect.objectContaining({
+                type: 'wallet',
+            }),
+        );
         expect(result.capabilities).toContainEqual({
-            type: 'wallet',
-            label: 'Wallet',
-            iconName: 'Shield',
+            type: 'email',
+            label: 'Email',
+            iconName: 'Mail',
+        });
+        expect(result.capabilities).toContainEqual({
+            type: 'project',
+            label: 'example/project',
+            iconName: 'Code',
         });
     });
 

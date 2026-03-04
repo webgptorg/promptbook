@@ -130,23 +130,28 @@ describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
         expect(requirements._metadata?.useEmailSender).toBe('agent@example.com');
     });
 
-    it('should add wallet tools when WALLET is used', async () => {
+    it('should ignore WALLET and keep wallet-backed tools available through USE EMAIL and USE PROJECT', async () => {
         const agentSource = validateBook(`
             Test Agent
             WALLET Store private credentials for project access
+            USE EMAIL agent@example.com
+            USE PROJECT https://github.com/example/project
         `);
         const requirements = await createAgentModelRequirements(agentSource);
 
         expect(requirements.tools).toEqual(
             expect.arrayContaining([
-                expect.objectContaining({ name: 'retrieve_wallet_records' }),
-                expect.objectContaining({ name: 'store_wallet_record' }),
-                expect.objectContaining({ name: 'update_wallet_record' }),
-                expect.objectContaining({ name: 'delete_wallet_record' }),
-                expect.objectContaining({ name: 'request_wallet_record' }),
+                expect.objectContaining({ name: 'send_email' }),
+                expect.objectContaining({ name: 'project_list_files' }),
             ]),
         );
-        expect(requirements._metadata?.useWallet).toBe('Store private credentials for project access');
+        const toolNames = (requirements.tools || []).map((tool) => tool.name);
+        expect(toolNames).not.toContain('retrieve_wallet_records');
+        expect(toolNames).not.toContain('store_wallet_record');
+        expect(toolNames).not.toContain('update_wallet_record');
+        expect(toolNames).not.toContain('delete_wallet_record');
+        expect(toolNames).not.toContain('request_wallet_record');
+        expect(requirements._metadata?.useWallet).toBeUndefined();
     });
 
     it('should treat `FROM {Void}` as explicit no-parent inheritance', async () => {

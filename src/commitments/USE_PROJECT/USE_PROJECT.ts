@@ -369,7 +369,7 @@ export class UseProjectCommitmentDefinition extends BaseCommitmentDefinition<'US
                       ${block(repositoriesList)}
                     - When a repository is not obvious from context, pass "repository" in tool arguments explicitly.
                     - USE PROJECT credentials are read from wallet records (ACCESS_TOKEN, service "${PROJECT_WALLET_SERVICE}", key "${PROJECT_WALLET_KEY}").
-                    - If credentials are missing, ask the user to connect credentials in host UI and/or add them to wallet (or call "request_wallet_record" when WALLET commitment is available).
+                    - If credentials are missing, ask the user to connect credentials in host UI and/or add them to wallet.
                     ${block(extraInstructions)}
                 `,
             ),

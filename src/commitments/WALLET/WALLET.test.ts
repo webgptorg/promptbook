@@ -1,7 +1,5 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
-import { spaceTrim } from 'spacetrim';
-import { createAgentModelRequirementsWithCommitments } from '../../book-2.0/agent-source/createAgentModelRequirementsWithCommitments';
-import type { string_book } from '../../book-2.0/agent-source/string_book';
+import { createBasicAgentModelRequirements } from '../_base/createEmptyAgentModelRequirements';
 import { TOOL_RUNTIME_CONTEXT_ARGUMENT } from '../_common/toolRuntimeContext';
 import { setWalletToolRuntimeAdapter, WalletCommitmentDefinition, type WalletToolRuntimeAdapter } from './WALLET';
 
@@ -17,13 +15,12 @@ describe('WalletCommitmentDefinition', () => {
         setWalletToolRuntimeAdapter(null);
     });
 
-    it('adds wallet tools and system-message instructions', async () => {
-        const agentSource = spaceTrim(`
-            Wallet Agent
-            WALLET
-        `) as string_book;
-
-        const requirements = await createAgentModelRequirementsWithCommitments(agentSource);
+    it('adds wallet tools and system-message instructions', () => {
+        const commitment = new WalletCommitmentDefinition();
+        const requirements = commitment.applyToAgentModelRequirements(
+            createBasicAgentModelRequirements('wallet-agent'),
+            '',
+        );
 
         expect(requirements.tools).toContainEqual(expect.objectContaining({ name: 'retrieve_wallet_records' }));
         expect(requirements.tools).toContainEqual(expect.objectContaining({ name: 'store_wallet_record' }));
