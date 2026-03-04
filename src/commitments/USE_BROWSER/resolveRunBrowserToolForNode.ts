@@ -1,13 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { ToolFunction } from '../../_packages/types.index';
-
-/**
- * Fallback error used when Agents Server browser runtime is not available.
- */
-const FALLBACK_RUN_BROWSER_ERROR = spaceTrim(`
-    run_browser tool is not available in this environment.
-    This commitment requires the Agents Server browser runtime with Playwright CLI.
-`);
+import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 
 /**
  * Resolves the server-side implementation of the `run_browser` tool for Node.js environments.
@@ -29,7 +22,12 @@ export function resolveRunBrowserToolForNode(): ToolFunction {
         return run_browser as ToolFunction;
     } catch {
         return async () => {
-            throw new Error(FALLBACK_RUN_BROWSER_ERROR);
+            throw new EnvironmentMismatchError(
+                spaceTrim(`
+                    \`run_browser\` tool is not available in this environment.
+                    This commitment requires the Agents Server browser runtime with Playwright CLI.
+                `),
+            );
         };
     }
 }
