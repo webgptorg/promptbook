@@ -329,17 +329,33 @@ function formatSuccessResult(options: {
 function formatErrorResult(options: {
     readonly url: string;
     readonly sessionId: string;
+    readonly mode: RunBrowserExecutionMode;
     readonly error: unknown;
 }): string {
     const { url, sessionId, error } = options;
     const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : null;
+    const remoteBrowserUrl = REMOTE_BROWSER_URL && REMOTE_BROWSER_URL.trim().length ? REMOTE_BROWSER_URL.trim() : 'not configured';
 
     return spaceTrim(`
         # Browser run failed
 
         **URL:** ${url}
         **Session:** ${sessionId}
+        **Mode:** ${formatExecutionMode(options.mode)}
+        **Environment:** Node ${process.version} (${process.platform}/${process.arch})${process.env.NODE_ENV ? ` • ${process.env.NODE_ENV}` : ''}
+        **Remote browser URL:** ${remoteBrowserUrl}
         **Error:** ${errorMessage}
+
+        ${
+            errorStack
+                ? `
+                ## Error details
+
+                ${errorStack}
+            `
+                : ''
+        }
 
         The browser tool could not complete the requested actions.
         Please verify action arguments (selectors/values) or try a simpler interaction sequence.
@@ -392,6 +408,7 @@ export async function run_browser(args: RunBrowserArgs): Promise<string> {
         return formatErrorResult({
             url: initialUrl,
             sessionId,
+            mode,
             error,
         });
     } finally {

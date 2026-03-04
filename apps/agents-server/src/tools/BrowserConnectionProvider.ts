@@ -1,5 +1,7 @@
-import { BrowserContext, chromium } from 'playwright';
+import { BrowserContext, chromium, type LaunchPersistentContextOptions } from 'playwright';
+import { mkdir } from 'fs/promises';
 import { join } from 'path';
+import { tmpdir } from 'os';
 import { locateChrome } from 'locate-app';
 import { REMOTE_BROWSER_URL } from '../../config';
 
@@ -11,6 +13,8 @@ import { REMOTE_BROWSER_URL } from '../../config';
 type BrowserConnectionMode =
     | { readonly type: 'local' }
     | { readonly type: 'remote'; readonly wsEndpoint: string };
+
+const DEFAULT_BROWSER_USER_DATA_DIR = join(tmpdir(), 'promptbook', 'browser', 'user-data');
 
 /**
  * Provides browser context instances with support for both local and remote browser connections.
@@ -175,13 +179,26 @@ export class BrowserConnectionProvider {
             console.info('[BrowserConnectionProvider] Launching local browser context');
         }
 
-        return await chromium.launchPersistentContext(
-            join(process.cwd(), '.promptbook', 'puppeteer', 'user-data'),
-            {
-                executablePath: await locateChrome(),
-                headless: false,
-            },
-        );
+        const userDataDir = join(DEFAULT_BROWSER_USER_DATA_DIR, 'run-browser');
+        await mkdir(userDataDir, { recursive: true });
+
+        const launchOptions: LaunchPersistentContextOptions = {
+            headless: false,
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+        };
+
+        try {
+            const chromePath = await locateChrome();
+            launchOptions.executablePath = chromePath;
+        } catch (error) {
+            if (this.isVerbose) {
+                console.warn('[BrowserConnectionProvider] Could not locate system Chrome; using Playwright bundled Chromium', {
+                    error: error instanceof Error ? error.message : String(error),
+                });
+            }
+        }
+
+        return await chromium.launchPersistentContext(userDataDir, launchOptions);
     }
 
     /**

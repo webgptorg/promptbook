@@ -51,6 +51,9 @@
     -   `run_browser` now automatically respects `REMOTE_BROWSER_URL` through the existing local/remote browser connection resolver used by Agents Server.
     -   Removed the npm/npx runtime dependency path that caused `ENOENT` failures in Vercel server execution environments.
     -   Preserved the tool contract (same actions and markdown result format) while keeping screenshot snapshot artifacts.
+-   Hardened the Agents Server `USE BROWSER` `run_browser` tool to launch reliably on both local and Vercel environments:
+    -   Local launches now reuse a writable temporary user-data dir (with an optional `locateChrome` fallback when system Chrome is available) so Playwright can create its profile even when the repository tree is read-only.
+    -   Error formatting now records the execution mode, Node/platform details, remote-browser configuration, and the original stack trace whenever browser startup fails, making troubleshooting much easier.
 -   Streaming tool calls in the Agents Server chat now render as persistent tool-call chips (spinner-animated while ongoing, flipping to done or ⚠️ error states once resolved) while still honoring TEAM agent metadata and `onToolCallClick` behavior.
 -   Added automatic Agents Server database migration execution on server runtime and unified migration logic:
 
