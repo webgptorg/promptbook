@@ -49,6 +49,10 @@ async function resolveUseProjectGithubTokenWithSource(
         };
     }
 
+    if (!options.userId) {
+        return undefined;
+    }
+
     const githubAppToken = await resolveGithubAppToken(options.userId);
     if (!githubAppToken) {
         return undefined;
@@ -57,6 +61,9 @@ async function resolveUseProjectGithubTokenWithSource(
     await storeUseProjectGithubAppTokenInWallet({
         userId: options.userId,
         token: githubAppToken.token,
+        isUserScoped: false,
+        isGlobal: !options.agentPermanentId,
+        agentPermanentId: options.agentPermanentId || null,
     });
 
     return {

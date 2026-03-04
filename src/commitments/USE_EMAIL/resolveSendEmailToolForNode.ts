@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { ToolFunction } from '../../_packages/types.index';
-import { assertsError } from '../../errors/assertsError';
+import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 
 /**
  * Resolves the server-side implementation of the send_email tool for Node.js environments.
@@ -22,17 +22,20 @@ export function resolveSendEmailToolForNode(): ToolFunction {
 
         return send_email as ToolFunction;
     } catch (error) {
-        assertsError(error);
+        const normalizedError =
+            error instanceof Error
+                ? error
+                : new Error(typeof error === 'string' ? error : JSON.stringify(error ?? 'Unknown error'));
 
         return async () => {
-            throw new Error(
+            throw new EnvironmentMismatchError(
                 spaceTrim(
                     (block) => `
                         \`send_email\` tool is not available in this environment.
                         This commitment requires Agents Server runtime with wallet-backed SMTP sending.
 
-                        ${(error as Error).name}:
-                        ${block((error as Error).message)}
+                        ${normalizedError.name}:
+                        ${block(normalizedError.message)}
                     `,
                 ),
             );

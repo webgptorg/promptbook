@@ -32,6 +32,7 @@ export type PendingWalletRecordRequest = {
     key: string;
     jsonSchema?: unknown;
     message?: string;
+    isUserScoped: boolean;
     isGlobal: boolean;
 };
 
@@ -47,6 +48,7 @@ export type WalletRecordDialogSubmitPayload = {
     secret?: string;
     cookies?: string;
     jsonSchema?: unknown;
+    isUserScoped: boolean;
     isGlobal: boolean;
 };
 
@@ -81,6 +83,7 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
     const [recordType, setRecordType] = useState<WalletRecordType>('ACCESS_TOKEN');
     const [service, setService] = useState('');
     const [key, setKey] = useState('default');
+    const [isUserScoped, setIsUserScoped] = useState(false);
     const [isGlobal, setIsGlobal] = useState(false);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -101,6 +104,7 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
         setRecordType(request.recordType);
         setService(request.service);
         setKey(request.key);
+        setIsUserScoped(request.isUserScoped);
         setIsGlobal(request.isGlobal);
         setUsername('');
         setPassword('');
@@ -191,6 +195,7 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                             secret: recordType === 'ACCESS_TOKEN' ? secret : undefined,
                             cookies: recordType === 'SESSION_COOKIE' ? cookies : undefined,
                             jsonSchema: requestedJsonSchema,
+                            isUserScoped,
                             isGlobal,
                         });
                     } catch (submitError) {
@@ -229,7 +234,7 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                     <div className="space-y-3">
                         <button
                             type="button"
-                            onClick={() => redirectToGithubAppConnect({ isGlobal, githubApp })}
+                            onClick={() => redirectToGithubAppConnect({ isUserScoped, isGlobal, githubApp })}
                             disabled={isSubmitting}
                             className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
                         >
@@ -343,10 +348,24 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                             </label>
                         )}
 
-                        <label className="inline-flex items-center gap-2 text-sm text-gray-700">
-                            <input type="checkbox" checked={isGlobal} onChange={(event) => setIsGlobal(event.target.checked)} />
-                            Store as global wallet record
-                        </label>
+                        <div className="space-y-2">
+                            <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                                <input
+                                    type="checkbox"
+                                    checked={isUserScoped}
+                                    onChange={(event) => setIsUserScoped(event.target.checked)}
+                                />
+                                Scope to current user
+                            </label>
+                            <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                                <input
+                                    type="checkbox"
+                                    checked={!isGlobal}
+                                    onChange={(event) => setIsGlobal(!event.target.checked)}
+                                />
+                                Scope to current agent
+                            </label>
+                        </div>
 
                         <div className="flex justify-end gap-2">
                             <button
@@ -414,6 +433,7 @@ function formatWalletJsonSchemaForDisplay(value: unknown): string | null {
  * Redirects browser to GitHub App connect endpoint.
  */
 function redirectToGithubAppConnect(options: {
+    isUserScoped: boolean;
     isGlobal: boolean;
     githubApp?: WalletRecordDialogGithubAppOptions;
 }): void {
@@ -424,6 +444,7 @@ function redirectToGithubAppConnect(options: {
     const connectUrl = buildGithubAppConnectUrl({
         returnTo,
         isGlobal: effectiveIsGlobal,
+        isUserScoped: options.isUserScoped,
         agentPermanentId: options.githubApp?.agentPermanentId || null,
     });
 

@@ -47,6 +47,8 @@ type EmailWalletCredentialRequiredToolResult = {
     recordType: 'ACCESS_TOKEN';
     service: string;
     key: string;
+    isUserScoped: boolean;
+    isGlobal: boolean;
     jsonSchema: unknown;
     message: string;
 };
@@ -119,6 +121,8 @@ function createEmailWalletCredentialRequiredResult(
         recordType: 'ACCESS_TOKEN',
         service: USE_EMAIL_SMTP_WALLET_SERVICE,
         key: USE_EMAIL_SMTP_WALLET_KEY,
+        isUserScoped: false,
+        isGlobal: false,
         jsonSchema: USE_EMAIL_SMTP_WALLET_SECRET_JSON_SCHEMA,
         message: createUseEmailSmtpWalletMissingCredentialMessage(defaultFromAddress),
     };

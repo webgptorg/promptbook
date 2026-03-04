@@ -25,6 +25,9 @@ export async function GET(request: Request) {
         const url = new URL(request.url);
         const agentPermanentId = url.searchParams.get('agentPermanentId') || undefined;
         const includeGlobal = url.searchParams.get('includeGlobal') !== 'false';
+        const isUserScopedRaw = url.searchParams.get('isUserScoped');
+        const isUserScoped =
+            isUserScopedRaw === 'true' ? true : isUserScopedRaw === 'false' ? false : undefined;
         const search = url.searchParams.get('search') || undefined;
         const recordType = (url.searchParams.get('recordType') as UserWalletRecordType | null) || undefined;
         const service = url.searchParams.get('service') || undefined;
@@ -36,6 +39,7 @@ export async function GET(request: Request) {
             userId: identity.userId,
             agentPermanentId,
             includeGlobal,
+            isUserScoped,
             search,
             recordType,
             service,
@@ -70,6 +74,7 @@ export async function POST(request: Request) {
         const record = await createUserWalletRecord({
             userId: identity.userId,
             agentPermanentId: typeof body.agentPermanentId === 'string' ? body.agentPermanentId : null,
+            isUserScoped: body.isUserScoped === true,
             isGlobal: body.isGlobal === true,
             recordType: body.recordType as CreateUserWalletRecordOptions['recordType'],
             service: typeof body.service === 'string' ? body.service : '',

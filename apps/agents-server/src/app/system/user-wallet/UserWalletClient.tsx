@@ -39,6 +39,7 @@ type UserWalletEntry = {
     createdAt: string;
     updatedAt: string;
     userId: number;
+    isUserScoped: boolean;
     agentPermanentId: string | null;
     recordType: WalletRecordType;
     service: string;
@@ -73,6 +74,7 @@ type WalletRecordValidationOptions = {
     password: string;
     secret: string;
     cookies: string;
+    isUserScoped: boolean;
     isGlobal: boolean;
     agentPermanentId: string;
     jsonSchemaText: string;
@@ -152,6 +154,7 @@ export function UserWalletClient(props: UserWalletClientProps) {
     const [newSecret, setNewSecret] = useState('');
     const [newCookies, setNewCookies] = useState('');
     const [newJsonSchemaText, setNewJsonSchemaText] = useState('');
+    const [newIsUserScoped, setNewIsUserScoped] = useState(false);
     const [newIsGlobal, setNewIsGlobal] = useState(false);
     const [newAgentPermanentId, setNewAgentPermanentId] = useState(agents[0]?.permanentId || '');
 
@@ -164,6 +167,7 @@ export function UserWalletClient(props: UserWalletClientProps) {
     const [editingSecret, setEditingSecret] = useState('');
     const [editingCookies, setEditingCookies] = useState('');
     const [editingJsonSchemaText, setEditingJsonSchemaText] = useState('');
+    const [editingIsUserScoped, setEditingIsUserScoped] = useState(false);
     const [editingIsGlobal, setEditingIsGlobal] = useState(false);
     const [editingAgentPermanentId, setEditingAgentPermanentId] = useState('');
     const [githubAppStatus, setGithubAppStatus] = useState<GithubAppStatusResponse | null>(null);
@@ -181,7 +185,8 @@ export function UserWalletClient(props: UserWalletClientProps) {
             key: USE_PROJECT_GITHUB_WALLET_KEY,
             message:
                 'Connect your GitHub App installation or add a manual token. This token is used by USE PROJECT.',
-            isGlobal: true,
+            isUserScoped: false,
+            isGlobal: false,
         }),
         [],
     );
@@ -289,6 +294,7 @@ export function UserWalletClient(props: UserWalletClientProps) {
                     password: payload.recordType === 'USERNAME_PASSWORD' ? payload.password : undefined,
                     secret: payload.recordType === 'ACCESS_TOKEN' ? payload.secret : undefined,
                     cookies: payload.recordType === 'SESSION_COOKIE' ? payload.cookies : undefined,
+                    isUserScoped: payload.isUserScoped === true,
                     isGlobal: payload.isGlobal,
                     agentPermanentId: payload.isGlobal ? null : payload.agentPermanentId,
                 }),
@@ -316,6 +322,7 @@ export function UserWalletClient(props: UserWalletClientProps) {
             password: newPassword,
             secret: newSecret,
             cookies: newCookies,
+            isUserScoped: newIsUserScoped,
             isGlobal: newIsGlobal,
             agentPermanentId: newAgentPermanentId,
             jsonSchemaText: newJsonSchemaText,
@@ -337,6 +344,7 @@ export function UserWalletClient(props: UserWalletClientProps) {
                 password: newRecordType === 'USERNAME_PASSWORD' ? newPassword : undefined,
                 secret: newRecordType === 'ACCESS_TOKEN' ? newSecret : undefined,
                 cookies: newRecordType === 'SESSION_COOKIE' ? newCookies : undefined,
+                isUserScoped: newIsUserScoped,
                 isGlobal: newIsGlobal,
                 agentPermanentId: newIsGlobal ? null : newAgentPermanentId,
             });
@@ -360,7 +368,7 @@ export function UserWalletClient(props: UserWalletClientProps) {
         async (payload: WalletRecordDialogSubmitPayload) => {
             const resolvedAgentPermanentId = payload.isGlobal ? null : newAgentPermanentId || agents[0]?.permanentId || '';
             if (!payload.isGlobal && !resolvedAgentPermanentId) {
-                throw new Error('Select an agent or enable global scope.');
+                throw new Error('Select an agent or disable agent scope.');
             }
 
             setSaving(true);
@@ -406,6 +414,7 @@ export function UserWalletClient(props: UserWalletClientProps) {
         setEditingSecret(record.secret || '');
         setEditingCookies(record.cookies || '');
         setEditingJsonSchemaText(formatWalletJsonSchemaForTextarea(record.jsonSchema));
+        setEditingIsUserScoped(record.isUserScoped);
         setEditingIsGlobal(record.isGlobal);
         setEditingAgentPermanentId(record.agentPermanentId || agents[0]?.permanentId || '');
     };
@@ -423,6 +432,7 @@ export function UserWalletClient(props: UserWalletClientProps) {
         setEditingSecret('');
         setEditingCookies('');
         setEditingJsonSchemaText('');
+        setEditingIsUserScoped(false);
         setEditingIsGlobal(false);
         setEditingAgentPermanentId('');
     };
@@ -442,6 +452,7 @@ export function UserWalletClient(props: UserWalletClientProps) {
             password: editingPassword,
             secret: editingSecret,
             cookies: editingCookies,
+            isUserScoped: editingIsUserScoped,
             isGlobal: editingIsGlobal,
             agentPermanentId: editingAgentPermanentId,
             jsonSchemaText: editingJsonSchemaText,
@@ -467,6 +478,7 @@ export function UserWalletClient(props: UserWalletClientProps) {
                     password: editingRecordType === 'USERNAME_PASSWORD' ? editingPassword : undefined,
                     secret: editingRecordType === 'ACCESS_TOKEN' ? editingSecret : undefined,
                     cookies: editingRecordType === 'SESSION_COOKIE' ? editingCookies : undefined,
+                    isUserScoped: editingIsUserScoped,
                     isGlobal: editingIsGlobal,
                     agentPermanentId: editingIsGlobal ? null : editingAgentPermanentId,
                 }),
@@ -529,12 +541,14 @@ export function UserWalletClient(props: UserWalletClientProps) {
      */
     const getScopeLabel = (record: UserWalletEntry): string => {
         if (record.isGlobal) {
-            return 'Global';
+            return record.isUserScoped ? 'User' : 'Global';
         }
-        if (!record.agentPermanentId) {
-            return 'Unknown agent';
-        }
-        return agentLabelByPermanentId.get(record.agentPermanentId) || record.agentPermanentId;
+
+        const agentLabel = record.agentPermanentId
+            ? agentLabelByPermanentId.get(record.agentPermanentId) || record.agentPermanentId
+            : 'Unknown agent';
+
+        return record.isUserScoped ? `User + Agent (${agentLabel})` : `Agent (${agentLabel})`;
     };
 
     /**
@@ -718,11 +732,25 @@ export function UserWalletClient(props: UserWalletClientProps) {
                         />
                     </label>
 
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <label className="inline-flex items-center gap-2 text-sm text-gray-700">
-                            <input type="checkbox" checked={newIsGlobal} onChange={(event) => setNewIsGlobal(event.target.checked)} />
-                            Make this record global
-                        </label>
+                    <div className="flex flex-col gap-3">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                                <input
+                                    type="checkbox"
+                                    checked={newIsUserScoped}
+                                    onChange={(event) => setNewIsUserScoped(event.target.checked)}
+                                />
+                                Scope to current user
+                            </label>
+                            <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                                <input
+                                    type="checkbox"
+                                    checked={!newIsGlobal}
+                                    onChange={(event) => setNewIsGlobal(!event.target.checked)}
+                                />
+                                Scope to selected agent
+                            </label>
+                        </div>
 
                         <select
                             value={newAgentPermanentId}
@@ -758,7 +786,7 @@ export function UserWalletClient(props: UserWalletClientProps) {
                             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="ALL">All records</option>
-                            <option value="GLOBAL">Global records</option>
+                            <option value="GLOBAL">Records across all agents</option>
                             {agents.map((agent) => (
                                 <option key={agent.permanentId} value={agent.permanentId}>
                                     {agent.label}
@@ -871,15 +899,25 @@ export function UserWalletClient(props: UserWalletClientProps) {
                                                         className="w-full min-h-[100px] rounded-md border border-gray-300 px-2 py-2 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                     />
 
-                                                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                                        <label className="inline-flex items-center gap-2 text-xs text-gray-600">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={editingIsGlobal}
-                                                                onChange={(event) => setEditingIsGlobal(event.target.checked)}
-                                                            />
-                                                            Global
-                                                        </label>
+                                                    <div className="flex flex-col gap-2">
+                                                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                                            <label className="inline-flex items-center gap-2 text-xs text-gray-600">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={editingIsUserScoped}
+                                                                    onChange={(event) => setEditingIsUserScoped(event.target.checked)}
+                                                                />
+                                                                Scope to user
+                                                            </label>
+                                                            <label className="inline-flex items-center gap-2 text-xs text-gray-600">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={!editingIsGlobal}
+                                                                    onChange={(event) => setEditingIsGlobal(!event.target.checked)}
+                                                                />
+                                                                Scope to agent
+                                                            </label>
+                                                        </div>
                                                         <select
                                                             value={editingAgentPermanentId}
                                                             onChange={(event) => setEditingAgentPermanentId(event.target.value)}

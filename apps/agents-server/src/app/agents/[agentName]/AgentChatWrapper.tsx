@@ -337,6 +337,7 @@ type WalletToolResult = {
         key?: string;
         jsonSchema?: unknown;
         message?: string;
+        isUserScoped?: boolean;
         isGlobal?: boolean;
     };
     recordType?: string;
@@ -344,6 +345,8 @@ type WalletToolResult = {
     key?: string;
     jsonSchema?: unknown;
     message?: string;
+    isUserScoped?: boolean;
+    isGlobal?: boolean;
     repository?: string;
 };
 
@@ -542,7 +545,8 @@ function buildPendingWalletRequest(toolCall: ToolCall): PendingWalletRecordReque
         key: sourceKey,
         jsonSchema: sourceJsonSchema,
         message,
-        isGlobal: requestPayload?.isGlobal === true,
+        isUserScoped: requestPayload?.isUserScoped === true || parsedResult?.isUserScoped === true,
+        isGlobal: requestPayload?.isGlobal === true || parsedResult?.isGlobal === true,
     };
 }
 
@@ -1070,7 +1074,8 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
      */
     const handleWalletRequestSubmit = useCallback(
         async (payload: WalletRecordDialogSubmitPayload) => {
-            const shouldStoreGlobally = payload.isGlobal || !currentAgentPermanentId;
+            const shouldScopeToAgent = !payload.isGlobal && Boolean(currentAgentPermanentId);
+            const isGlobal = !shouldScopeToAgent;
 
             const response = await fetch('/api/user-wallet', {
                 method: 'POST',
@@ -1086,8 +1091,9 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                     secret: payload.secret,
                     cookies: payload.cookies,
                     jsonSchema: payload.jsonSchema,
-                    isGlobal: shouldStoreGlobally,
-                    agentPermanentId: shouldStoreGlobally ? null : currentAgentPermanentId,
+                    isUserScoped: payload.isUserScoped === true,
+                    isGlobal,
+                    agentPermanentId: shouldScopeToAgent ? currentAgentPermanentId : null,
                 }),
             });
 

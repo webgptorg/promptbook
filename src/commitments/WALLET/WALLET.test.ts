@@ -56,6 +56,7 @@ describe('WalletCommitmentDefinition', () => {
                         service: 'github',
                         key: 'use-project-github-token',
                         secret: 'ghp_secret',
+                        isUserScoped: false,
                         isGlobal: false,
                     },
                 ];
@@ -178,5 +179,6 @@ describe('WalletCommitmentDefinition', () => {
         expect(requestResult.status).toBe('requested');
         expect(requestResult.request?.recordType).toBe('ACCESS_TOKEN');
         expect(requestResult.request?.service).toBe('github');
+        expect((requestResult.request as { isUserScoped?: boolean } | undefined)?.isUserScoped).toBe(false);
     });
 });

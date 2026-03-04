@@ -70,12 +70,16 @@ describe('USE PROJECT commitment', () => {
             status?: string;
             service?: string;
             key?: string;
+            isUserScoped?: boolean;
+            isGlobal?: boolean;
         };
 
         expect(result.action).toBe('project-auth');
         expect(result.status).toBe('wallet-credential-required');
         expect(result.service).toBe('github');
         expect(result.key).toBe('use-project-github-token');
+        expect(result.isUserScoped).toBe(false);
+        expect(result.isGlobal).toBe(false);
     });
 
     it('lists project files through GitHub API', async () => {

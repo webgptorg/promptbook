@@ -43,6 +43,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ wa
             secret?: unknown;
             cookies?: unknown;
             jsonSchema?: unknown;
+            isUserScoped?: unknown;
             isGlobal?: unknown;
             agentPermanentId?: unknown;
         };
@@ -58,6 +59,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ wa
             password: typeof body.password === 'string' ? body.password : undefined,
             secret: typeof body.secret === 'string' ? body.secret : undefined,
             cookies: typeof body.cookies === 'string' ? body.cookies : undefined,
+            isUserScoped: body.isUserScoped === true,
             isGlobal: body.isGlobal === true,
             agentPermanentId: typeof body.agentPermanentId === 'string' ? body.agentPermanentId : null,
         });

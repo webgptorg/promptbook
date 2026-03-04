@@ -193,19 +193,16 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         // [▶️] const executionTools = await $provideExecutionToolsForServer();
         const messageSuffix = resolveMessageSuffixFromAgentSource(agentSource);
         const currentUserIdentity = await resolveCurrentUserMemoryIdentity();
-        const projectGithubToken = currentUserIdentity
-            ? await resolveUseProjectGithubToken({
-                  userId: currentUserIdentity.userId,
+        const projectGithubToken = await resolveUseProjectGithubToken({
+            userId: currentUserIdentity?.userId,
+            agentPermanentId: agentId,
+        });
+        const emailSmtpCredential = useEmailConfiguration.isEnabled
+            ? await resolveUseEmailSmtpCredential({
+                  userId: currentUserIdentity?.userId,
                   agentPermanentId: agentId,
               })
             : undefined;
-        const emailSmtpCredential =
-            currentUserIdentity && useEmailConfiguration.isEnabled
-                ? await resolveUseEmailSmtpCredential({
-                      userId: currentUserIdentity.userId,
-                      agentPermanentId: agentId,
-                  })
-                : undefined;
         const disclaimerMarkdown = resolveMetaDisclaimerMarkdownFromAgentSource(agentSource);
 
         if (disclaimerMarkdown) {

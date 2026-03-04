@@ -790,6 +790,7 @@ export type AgentsServerDatabase = {
                     createdAt: string;
                     updatedAt: string;
                     userId: number;
+                    isUserScoped: boolean;
                     agentPermanentId: string | null;
                     recordType: 'USERNAME_PASSWORD' | 'SESSION_COOKIE' | 'ACCESS_TOKEN';
                     service: string;
@@ -807,6 +808,7 @@ export type AgentsServerDatabase = {
                     createdAt?: string;
                     updatedAt?: string;
                     userId: number;
+                    isUserScoped?: boolean;
                     agentPermanentId?: string | null;
                     recordType: 'USERNAME_PASSWORD' | 'SESSION_COOKIE' | 'ACCESS_TOKEN';
                     service: string;
@@ -824,6 +826,7 @@ export type AgentsServerDatabase = {
                     createdAt?: string;
                     updatedAt?: string;
                     userId?: number;
+                    isUserScoped?: boolean;
                     agentPermanentId?: string | null;
                     recordType?: 'USERNAME_PASSWORD' | 'SESSION_COOKIE' | 'ACCESS_TOKEN';
                     service?: string;

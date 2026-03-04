@@ -43,11 +43,13 @@ export async function fetchGithubAppStatus(): Promise<GithubAppStatusResponse> {
 export function buildGithubAppConnectUrl(options: {
     returnTo: string;
     isGlobal: boolean;
+    isUserScoped: boolean;
     agentPermanentId?: string | null;
 }): string {
     const query = new URLSearchParams();
     query.set('returnTo', options.returnTo);
     query.set('scope', options.isGlobal ? 'global' : 'agent');
+    query.set('userScope', options.isUserScoped ? 'true' : 'false');
 
     if (!options.isGlobal && options.agentPermanentId) {
         query.set('agentPermanentId', options.agentPermanentId);

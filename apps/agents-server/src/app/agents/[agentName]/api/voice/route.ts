@@ -90,19 +90,16 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const agentSource = await collection.getAgentSource(agentName);
         const projectRepositories = extractProjectRepositoriesFromAgentSource(agentSource);
         const useEmailConfiguration = extractUseEmailConfigurationFromAgentSource(agentSource);
-        const projectGithubToken = currentUserIdentity
-            ? await resolveUseProjectGithubToken({
-                  userId: currentUserIdentity.userId,
+        const projectGithubToken = await resolveUseProjectGithubToken({
+            userId: currentUserIdentity?.userId,
+            agentPermanentId,
+        });
+        const emailSmtpCredential = useEmailConfiguration.isEnabled
+            ? await resolveUseEmailSmtpCredential({
+                  userId: currentUserIdentity?.userId,
                   agentPermanentId,
               })
             : undefined;
-        const emailSmtpCredential =
-            currentUserIdentity && useEmailConfiguration.isEnabled
-                ? await resolveUseEmailSmtpCredential({
-                      userId: currentUserIdentity.userId,
-                      agentPermanentId,
-                  })
-                : undefined;
         const disclaimerMarkdown = resolveMetaDisclaimerMarkdownFromAgentSource(agentSource);
 
         if (disclaimerMarkdown) {

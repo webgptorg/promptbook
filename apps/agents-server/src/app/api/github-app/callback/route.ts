@@ -64,6 +64,7 @@ export async function GET(request: Request) {
         await storeUseProjectGithubAppTokenInWallet({
             userId: identity.userId,
             token: accessToken.token,
+            isUserScoped: parsedState.isUserScoped,
             isGlobal: parsedState.isGlobal,
             agentPermanentId: parsedState.isGlobal ? null : parsedState.agentPermanentId,
         });

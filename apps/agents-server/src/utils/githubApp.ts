@@ -58,6 +58,7 @@ type GithubAppConfiguration = {
 export type GithubAppConnectionStatePayload = {
     userId: number;
     returnTo: string;
+    isUserScoped: boolean;
     isGlobal: boolean;
     agentPermanentId: string | null;
     issuedAtMs: number;
@@ -100,6 +101,7 @@ export type GithubAppConnectionStatus = {
 export type CreateGithubAppConnectionStateOptions = {
     userId: number;
     returnTo?: string;
+    isUserScoped?: boolean;
     isGlobal?: boolean;
     agentPermanentId?: string | null;
 };
@@ -165,6 +167,7 @@ export async function createGithubAppConnectionState(
     const payload: GithubAppConnectionStatePayload = {
         userId: options.userId,
         returnTo: normalizeGithubAppReturnToPath(options.returnTo),
+        isUserScoped: options.isUserScoped === true,
         isGlobal: options.isGlobal !== false,
         agentPermanentId: options.agentPermanentId?.trim() || null,
         issuedAtMs: Date.now(),
@@ -509,6 +512,7 @@ function parseGithubAppStatePayload(rawPayload: string): GithubAppConnectionStat
         returnTo: normalizeGithubAppReturnToPath(
             typeof payload.returnTo === 'string' ? payload.returnTo : DEFAULT_GITHUB_APP_RETURN_TO_PATH,
         ),
+        isUserScoped: payload.isUserScoped === true,
         isGlobal: payload.isGlobal !== false,
         agentPermanentId:
             typeof payload.agentPermanentId === 'string' && payload.agentPermanentId.trim().length > 0

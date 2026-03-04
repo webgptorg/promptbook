@@ -248,6 +248,8 @@ type ProjectWalletCredentialRequiredToolResult = {
     recordType: 'ACCESS_TOKEN';
     service: string;
     key: string;
+    isUserScoped: boolean;
+    isGlobal: boolean;
     repository?: string;
     message: string;
 };
@@ -941,6 +943,8 @@ function createProjectWalletCredentialRequiredResult(
         recordType: 'ACCESS_TOKEN',
         service: error.service,
         key: error.key,
+        isUserScoped: false,
+        isGlobal: false,
         repository: error.repository,
         message: error.message,
     };

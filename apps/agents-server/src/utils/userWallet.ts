@@ -44,6 +44,7 @@ export type UserWalletRecord = {
     createdAt: string;
     updatedAt: string;
     userId: number;
+    isUserScoped: boolean;
     agentPermanentId: string | null;
     recordType: UserWalletRecordType;
     service: string;
@@ -64,6 +65,7 @@ export type ListUserWalletRecordsOptions = {
     userId: number;
     agentPermanentId?: string;
     includeGlobal?: boolean;
+    isUserScoped?: boolean;
     search?: string;
     recordType?: UserWalletRecordType;
     service?: string;
@@ -77,6 +79,7 @@ export type ListUserWalletRecordsOptions = {
 export type CreateUserWalletRecordOptions = {
     userId: number;
     agentPermanentId?: string | null;
+    isUserScoped?: boolean;
     isGlobal: boolean;
     recordType: UserWalletRecordType;
     service: string;
@@ -115,7 +118,7 @@ export type FindUserWalletByIdOptions = {
  * Token resolution options for USE PROJECT.
  */
 export type ResolveUseProjectGithubTokenOptions = {
-    userId: number;
+    userId?: number;
     agentPermanentId?: string;
 };
 
@@ -123,7 +126,7 @@ export type ResolveUseProjectGithubTokenOptions = {
  * SMTP credential resolution options for USE EMAIL.
  */
 export type ResolveUseEmailSmtpCredentialOptions = {
-    userId: number;
+    userId?: number;
     agentPermanentId?: string;
 };
 
@@ -131,7 +134,17 @@ export type ResolveUseEmailSmtpCredentialOptions = {
  * Lists wallet records filtered by scope and optional query.
  */
 export async function listUserWalletRecords(options: ListUserWalletRecordsOptions): Promise<UserWalletRecord[]> {
-    const { userId, agentPermanentId, includeGlobal = true, search, recordType, service, key, limit } = options;
+    const {
+        userId,
+        agentPermanentId,
+        includeGlobal = true,
+        isUserScoped,
+        search,
+        recordType,
+        service,
+        key,
+        limit,
+    } = options;
     const supabase = $provideSupabaseForServer();
     const tableName = await $getTableName('UserWallet');
 
@@ -146,24 +159,52 @@ export async function listUserWalletRecords(options: ListUserWalletRecordsOption
     } else {
         const scopedRows: UserWalletRow[] = [];
 
-        const { data: agentData, error: agentError } = await supabase
+        const { data: agentUserData, error: agentUserError } = await supabase
             .from(tableName)
             .select('*')
+            .eq('isUserScoped', true)
             .eq('userId', userId)
             .eq('isGlobal', false)
             .eq('agentPermanentId', agentPermanentId)
             .is('deletedAt', null);
 
-        if (agentError) {
-            throw new Error(`Failed to list scoped wallet records: ${agentError.message}`);
+        if (agentUserError) {
+            throw new Error(`Failed to list user-scoped wallet records: ${agentUserError.message}`);
         }
-        scopedRows.push(...((agentData || []) as UserWalletRow[]));
+        scopedRows.push(...((agentUserData || []) as UserWalletRow[]));
+
+        const { data: agentSharedData, error: agentSharedError } = await supabase
+            .from(tableName)
+            .select('*')
+            .eq('isUserScoped', false)
+            .eq('isGlobal', false)
+            .eq('agentPermanentId', agentPermanentId)
+            .is('deletedAt', null);
+
+        if (agentSharedError) {
+            throw new Error(`Failed to list agent-scoped wallet records: ${agentSharedError.message}`);
+        }
+        scopedRows.push(...((agentSharedData || []) as UserWalletRow[]));
 
         if (includeGlobal) {
+            const { data: userGlobalData, error: userGlobalError } = await supabase
+                .from(tableName)
+                .select('*')
+                .eq('isUserScoped', true)
+                .eq('userId', userId)
+                .eq('isGlobal', true)
+                .is('agentPermanentId', null)
+                .is('deletedAt', null);
+
+            if (userGlobalError) {
+                throw new Error(`Failed to list user-global wallet records: ${userGlobalError.message}`);
+            }
+            scopedRows.push(...((userGlobalData || []) as UserWalletRow[]));
+
             const { data: globalData, error: globalError } = await supabase
                 .from(tableName)
                 .select('*')
-                .eq('userId', userId)
+                .eq('isUserScoped', false)
                 .eq('isGlobal', true)
                 .is('agentPermanentId', null)
                 .is('deletedAt', null);
@@ -175,14 +216,22 @@ export async function listUserWalletRecords(options: ListUserWalletRecordsOption
             scopedRows.push(...((globalData || []) as UserWalletRow[]));
         }
 
-        rows = scopedRows;
+        const rowsById = new Map<number, UserWalletRow>();
+        for (const row of scopedRows) {
+            rowsById.set(row.id, row);
+        }
+        rows = [...rowsById.values()];
     }
 
     const normalizedSearch = search?.trim().toLowerCase();
     const normalizedService = service?.trim().toLowerCase();
     const normalizedKey = key?.trim();
+    const hasUserScopeFilter = typeof isUserScoped === 'boolean';
 
     const filteredRows = rows.filter((row) => {
+        if (hasUserScopeFilter && row.isUserScoped !== isUserScoped) {
+            return false;
+        }
         if (recordType && row.recordType !== recordType) {
             return false;
         }
@@ -221,6 +270,7 @@ export async function createUserWalletRecord(options: CreateUserWalletRecordOpti
             userId: options.userId,
             walletId: existing.id,
             agentPermanentId: payload.agentPermanentId ?? null,
+            isUserScoped: payload.isUserScoped ?? false,
             isGlobal: payload.isGlobal ?? false,
             recordType: payload.recordType as UserWalletRecordType,
             service: payload.service,
@@ -317,26 +367,15 @@ export async function findUserWalletRecordById(options: FindUserWalletByIdOption
 }
 
 /**
- * Resolves GitHub token for USE PROJECT from wallet (agent scope first, then global).
+ * Resolves GitHub token for USE PROJECT from wallet using scope priority:
+ * user+agent -> agent-only -> user-only -> server-global.
  */
 export async function resolveUseProjectGithubTokenFromWallet(
     options: ResolveUseProjectGithubTokenOptions,
 ): Promise<string | undefined> {
-    const scoped = await findLatestWalletAccessToken({
+    return resolveWalletAccessTokenFromScopes({
         userId: options.userId,
         agentPermanentId: options.agentPermanentId,
-        isGlobal: false,
-        service: USE_PROJECT_GITHUB_WALLET_SERVICE,
-        key: USE_PROJECT_GITHUB_WALLET_KEY,
-        errorContext: 'project',
-    });
-    if (scoped) {
-        return scoped;
-    }
-
-    return findLatestWalletAccessToken({
-        userId: options.userId,
-        isGlobal: true,
         service: USE_PROJECT_GITHUB_WALLET_SERVICE,
         key: USE_PROJECT_GITHUB_WALLET_KEY,
         errorContext: 'project',
@@ -344,26 +383,15 @@ export async function resolveUseProjectGithubTokenFromWallet(
 }
 
 /**
- * Resolves SMTP credential payload for USE EMAIL from wallet (agent scope first, then global).
+ * Resolves SMTP credential payload for USE EMAIL from wallet using scope priority:
+ * user+agent -> agent-only -> user-only -> server-global.
  */
 export async function resolveUseEmailSmtpCredentialFromWallet(
     options: ResolveUseEmailSmtpCredentialOptions,
 ): Promise<string | undefined> {
-    const scoped = await findLatestWalletAccessToken({
+    return resolveWalletAccessTokenFromScopes({
         userId: options.userId,
         agentPermanentId: options.agentPermanentId,
-        isGlobal: false,
-        service: USE_EMAIL_SMTP_WALLET_SERVICE,
-        key: USE_EMAIL_SMTP_WALLET_KEY,
-        errorContext: 'email SMTP',
-    });
-    if (scoped) {
-        return scoped;
-    }
-
-    return findLatestWalletAccessToken({
-        userId: options.userId,
-        isGlobal: true,
         service: USE_EMAIL_SMTP_WALLET_SERVICE,
         key: USE_EMAIL_SMTP_WALLET_KEY,
         errorContext: 'email SMTP',
@@ -371,20 +399,23 @@ export async function resolveUseEmailSmtpCredentialFromWallet(
 }
 
 /**
- * Stores a GitHub App-generated USE PROJECT token as a global wallet credential.
+ * Stores a GitHub App-generated USE PROJECT token in wallet with configurable scopes.
  */
 export async function storeUseProjectGithubAppTokenInWallet(options: {
     userId: number;
     token: string;
+    isUserScoped?: boolean;
     isGlobal?: boolean;
     agentPermanentId?: string | null;
 }): Promise<UserWalletRecord> {
-    const isGlobal = options.isGlobal !== false;
+    const normalizedAgentPermanentId = options.agentPermanentId?.trim() || null;
+    const isGlobal = options.isGlobal === true || (!normalizedAgentPermanentId && options.isGlobal !== false);
 
     return createUserWalletRecord({
         userId: options.userId,
+        isUserScoped: options.isUserScoped === true,
         isGlobal,
-        agentPermanentId: isGlobal ? null : options.agentPermanentId || null,
+        agentPermanentId: isGlobal ? null : normalizedAgentPermanentId,
         recordType: 'ACCESS_TOKEN',
         service: USE_PROJECT_GITHUB_WALLET_SERVICE,
         key: USE_PROJECT_GITHUB_APP_WALLET_KEY,
@@ -393,22 +424,117 @@ export async function storeUseProjectGithubAppTokenInWallet(options: {
 }
 
 /**
- * Finds latest wallet access token by scope.
+ * Resolves wallet access token from all supported scope combinations.
  */
-async function findLatestWalletAccessToken(options: {
-    userId: number;
+async function resolveWalletAccessTokenFromScopes(options: {
+    userId?: number;
     agentPermanentId?: string;
-    isGlobal: boolean;
     service: string;
     key: string;
     errorContext: string;
+}): Promise<string | undefined> {
+    if (options.agentPermanentId) {
+        const userAndAgentScoped = await findLatestWalletAccessToken({
+            userId: options.userId,
+            isUserScoped: true,
+            isGlobal: false,
+            agentPermanentId: options.agentPermanentId,
+            service: options.service,
+            key: options.key,
+            errorContext: options.errorContext,
+        });
+        if (userAndAgentScoped) {
+            return userAndAgentScoped;
+        }
+
+        const agentScoped = await findLatestWalletAccessToken({
+            userId: options.userId,
+            isUserScoped: false,
+            isGlobal: false,
+            agentPermanentId: options.agentPermanentId,
+            service: options.service,
+            key: options.key,
+            errorContext: options.errorContext,
+        });
+        if (agentScoped) {
+            return agentScoped;
+        }
+    }
+
+    const userScoped = await findLatestWalletAccessToken({
+        userId: options.userId,
+        isUserScoped: true,
+        isGlobal: true,
+        service: options.service,
+        key: options.key,
+        errorContext: options.errorContext,
+    });
+    if (userScoped) {
+        return userScoped;
+    }
+
+    return findLatestWalletAccessToken({
+        userId: options.userId,
+        isUserScoped: false,
+        isGlobal: true,
+        service: options.service,
+        key: options.key,
+        errorContext: options.errorContext,
+    });
+}
+
+/**
+ * Finds latest wallet access token by exact scope.
+ */
+async function findLatestWalletAccessToken(options: {
+    userId?: number;
+    isUserScoped: boolean;
+    isGlobal: boolean;
+    agentPermanentId?: string;
+    service: string;
+    key: string;
+    errorContext: string;
+}): Promise<string | undefined> {
+    if (options.isUserScoped && !options.userId) {
+        return undefined;
+    }
+
+    if (!options.isGlobal && !options.agentPermanentId) {
+        return undefined;
+    }
+
+    if (!options.isUserScoped && options.userId) {
+        const preferredOwnedToken = await fetchLatestWalletAccessToken({
+            ...options,
+            ownerUserId: options.userId,
+        });
+        if (preferredOwnedToken) {
+            return preferredOwnedToken;
+        }
+    }
+
+    return fetchLatestWalletAccessToken(options);
+}
+
+/**
+ * Fetches latest wallet access token using one optional owner-user preference.
+ */
+async function fetchLatestWalletAccessToken(options: {
+    userId?: number;
+    isUserScoped: boolean;
+    isGlobal: boolean;
+    agentPermanentId?: string;
+    service: string;
+    key: string;
+    errorContext: string;
+    ownerUserId?: number;
 }): Promise<string | undefined> {
     const supabase = $provideSupabaseForServer();
     const tableName = await $getTableName('UserWallet');
     let query = supabase
         .from(tableName)
         .select('*')
-        .eq('userId', options.userId)
+        .eq('isUserScoped', options.isUserScoped)
         .eq('recordType', 'ACCESS_TOKEN')
         .eq('service', options.service)
         .eq('key', options.key)
@@ -416,12 +542,16 @@ async function findLatestWalletAccessToken(options: {
         .order('updatedAt', { ascending: false })
         .limit(1);
 
+    if (options.ownerUserId) {
+        query = query.eq('userId', options.ownerUserId);
+    } else if (options.isUserScoped && options.userId) {
+        query = query.eq('userId', options.userId);
+    }
+
     if (options.isGlobal) {
         query = query.eq('isGlobal', true).is('agentPermanentId', null);
-    } else if (options.agentPermanentId) {
-        query = query.eq('isGlobal', false).eq('agentPermanentId', options.agentPermanentId);
     } else {
-        return undefined;
+        query = query.eq('isGlobal', false).eq('agentPermanentId', options.agentPermanentId || '');
     }
 
     const { data, error } = await query.maybeSingle();
@@ -475,6 +605,7 @@ async function findExistingWalletRecord(payload: UserWalletInsert): Promise<User
         .from(tableName)
         .select('*')
         .eq('userId', payload.userId)
+        .eq('isUserScoped', payload.isUserScoped === true)
         .eq('recordType', payload.recordType || '')
         .eq('service', payload.service || '')
         .eq('key', payload.key || '')
@@ -508,6 +639,7 @@ function normalizeWalletPayload(options: CreateUserWalletRecordOptions): UserWal
     }
 
     const key = options.key?.trim() || 'default';
+    const isUserScoped = options.isUserScoped === true;
     const isGlobal = options.isGlobal === true;
     const agentPermanentId = isGlobal ? null : options.agentPermanentId?.trim() || null;
 
@@ -536,6 +668,7 @@ function normalizeWalletPayload(options: CreateUserWalletRecordOptions): UserWal
 
     return {
         userId: options.userId,
+        isUserScoped,
         agentPermanentId,
         isGlobal,
         recordType,
@@ -610,6 +743,7 @@ function mapUserWalletRow(row: UserWalletRow): UserWalletRecord {
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
         userId: row.userId,
+        isUserScoped: row.isUserScoped,
         agentPermanentId: row.agentPermanentId,
         recordType: row.recordType as UserWalletRecordType,
         service: row.service,

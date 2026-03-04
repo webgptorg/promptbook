@@ -23,9 +23,11 @@ export async function GET(request: Request) {
 
     const url = new URL(request.url);
     const requestedScope = url.searchParams.get('scope');
+    const requestedUserScope = url.searchParams.get('userScope');
     const requestedAgentPermanentId = url.searchParams.get('agentPermanentId');
     const returnTo = normalizeGithubAppReturnToPath(url.searchParams.get('returnTo') || undefined);
     const requestedIsGlobal = requestedScope !== 'agent';
+    const requestedIsUserScoped = requestedUserScope === 'true';
     const requestedAgentId = requestedAgentPermanentId?.trim() || null;
     const isGlobal = requestedIsGlobal || !requestedAgentId;
     const agentPermanentId = isGlobal ? null : requestedAgentId;
@@ -34,6 +36,7 @@ export async function GET(request: Request) {
         {
             userId: identity.userId,
             returnTo,
+            isUserScoped: requestedIsUserScoped,
             isGlobal,
             agentPermanentId,
         },

@@ -1,3 +1,13 @@
+-   Reworked Agents Server wallet scoping so credentials can be independently scoped by user and agent (with agent scope now default):
+    -   Added `isUserScoped` to wallet records (migration `2026-03-0130-user-wallet-user-scope.sql`) while keeping existing agent-scope behavior (`isGlobal` / `agentPermanentId`), enabling all combinations:
+        -   User + Agent scope
+        -   User-only scope
+        -   Agent-only scope (new default for agent-driven credential creation/requests)
+        -   Server-global scope (no user scope and no agent scope)
+    -   Updated wallet resolution for `USE PROJECT` and `USE EMAIL` to use scope priority `user+agent -> agent-only -> user-only -> server-global`, including fallback for unauthenticated chats to non-user-scoped credentials.
+    -   Updated wallet APIs, chat wallet request flow, wallet dialogs, and System > User Wallet UI to expose and persist both scope dimensions.
+    -   Updated GitHub App connect/callback state to carry wallet user-scope selection and persist tokens with the selected scope combination.
+
 -   Removed the explicit `WALLET` / `WALLETS` commitment requirement for Agents Server wallet-backed flows:
     -   `WALLET` and `WALLETS` are no longer registered as commitments, so agents no longer need to declare them explicitly.
     -   `USE EMAIL` and `USE PROJECT` continue to read credentials from wallet records automatically, which is now the single supported path for wallet access in these flows.

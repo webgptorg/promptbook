@@ -27,6 +27,7 @@ export type WalletToolRecord = {
     password?: string | null;
     secret?: string | null;
     cookies?: string | null;
+    isUserScoped: boolean;
     isGlobal: boolean;
     createdAt?: string;
     updatedAt?: string;
@@ -147,6 +148,7 @@ type StoreWalletRecordToolArgs = {
     password?: string;
     secret?: string;
     cookies?: string;
+    isUserScoped?: boolean;
     isGlobal?: boolean;
     [key: string]: TODO_any;
 };
@@ -180,6 +182,7 @@ type RequestWalletRecordToolArgs = {
     service?: string;
     key?: string;
     message?: string;
+    isUserScoped?: boolean;
     isGlobal?: boolean;
     [key: string]: TODO_any;
 };
@@ -253,6 +256,7 @@ export class WalletCommitmentDefinition extends BaseCommitmentDefinition<'WALLET
                     - Use "${STORE_WALLET_RECORD_TOOL_NAME}" and "${UPDATE_WALLET_RECORD_TOOL_NAME}" to maintain credentials.
                     - Use "${DELETE_WALLET_RECORD_TOOL_NAME}" to remove invalid credentials.
                     - Use "${REQUEST_WALLET_RECORD_TOOL_NAME}" to request missing credentials via UI popup.
+                    - Scope records by user (\`isUserScoped\`) and/or by agent (\`isGlobal=false\`) as needed.
                     - Never expose raw credentials in chat responses.
                     ${block(extraInstructions)}
                 `,
@@ -322,6 +326,7 @@ function registerWalletTools(tools: Array<{ name: string } & Record<string, TODO
                 password: { type: 'string', description: 'Password for USERNAME_PASSWORD.' },
                 secret: { type: 'string', description: 'Token/API key for ACCESS_TOKEN.' },
                 cookies: { type: 'string', description: 'Cookie header/json for SESSION_COOKIE.' },
+                isUserScoped: { type: 'boolean', description: 'Set true to scope this record to current user.' },
                 isGlobal: { type: 'boolean', description: 'Set true to make this record global.' },
             },
             required: ['recordType', 'service'],
@@ -345,6 +350,7 @@ function registerWalletTools(tools: Array<{ name: string } & Record<string, TODO
                 password: { type: 'string', description: 'Password for USERNAME_PASSWORD.' },
                 secret: { type: 'string', description: 'Token/API key for ACCESS_TOKEN.' },
                 cookies: { type: 'string', description: 'Cookie header/json for SESSION_COOKIE.' },
+                isUserScoped: { type: 'boolean', description: 'Set true to scope this record to current user.' },
                 isGlobal: { type: 'boolean', description: 'Set true to make this record global.' },
             },
             required: ['walletId', 'recordType', 'service'],
@@ -376,6 +382,10 @@ function registerWalletTools(tools: Array<{ name: string } & Record<string, TODO
                 service: { type: 'string', description: 'Service identifier.' },
                 key: { type: 'string', description: 'Logical credential key.' },
                 message: { type: 'string', description: 'Optional UI message for user.' },
+                isUserScoped: {
+                    type: 'boolean',
+                    description: 'Set true when record should be scoped to current user.',
+                },
                 isGlobal: { type: 'boolean', description: 'Set true when record should be global.' },
             },
             required: [],
@@ -428,6 +438,7 @@ function parseWalletRequestArgs(args: RequestWalletRecordToolArgs): {
     service: string;
     key: string;
     message?: string;
+    isUserScoped: boolean;
     isGlobal: boolean;
 } {
     return {
@@ -435,6 +446,7 @@ function parseWalletRequestArgs(args: RequestWalletRecordToolArgs): {
         service: parseWalletService(args.service),
         key: parseWalletKey(args.key),
         message: normalizeOptionalText(args.message),
+        isUserScoped: args.isUserScoped === true,
         isGlobal: args.isGlobal === true,
     };
 }
@@ -562,6 +574,7 @@ function parseWalletPayload(args: StoreWalletRecordToolArgs): WalletToolRecord {
         recordType,
         service: parseWalletService(args.service),
         key: parseWalletKey(args.key),
+        isUserScoped: args.isUserScoped === true,
         isGlobal: args.isGlobal === true,
         ...parseWalletSecrets({
             recordType,

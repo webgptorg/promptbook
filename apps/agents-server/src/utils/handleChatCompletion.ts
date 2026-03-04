@@ -323,19 +323,16 @@ export async function handleChatCompletion(
         const agentHash = computeAgentHash(agentSource);
         const agentId = resolvedAgentContext.parentAgentPermanentId;
         const currentUserIdentity = await resolveCurrentUserMemoryIdentity();
-        const projectGithubToken = currentUserIdentity
-            ? await resolveUseProjectGithubToken({
-                  userId: currentUserIdentity.userId,
+        const projectGithubToken = await resolveUseProjectGithubToken({
+            userId: currentUserIdentity?.userId,
+            agentPermanentId: agentId,
+        });
+        const emailSmtpCredential = useEmailConfiguration.isEnabled
+            ? await resolveUseEmailSmtpCredential({
+                  userId: currentUserIdentity?.userId,
                   agentPermanentId: agentId,
               })
             : undefined;
-        const emailSmtpCredential =
-            currentUserIdentity && useEmailConfiguration.isEnabled
-                ? await resolveUseEmailSmtpCredential({
-                      userId: currentUserIdentity.userId,
-                      agentPermanentId: agentId,
-                  })
-                : undefined;
 
         // Use AgentKitCacheManager for vector store caching
         const agentKitCacheManager = new AgentKitCacheManager({ isVerbose: true });
