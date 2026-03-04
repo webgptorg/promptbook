@@ -1,3 +1,8 @@
+-   Added wallet credential usage chips in Agents Server chat so credential-backed actions visibly disclose safe credential metadata without leaking secrets:
+    -   Reused the existing tool-call chip row below messages to append a dedicated `Credential used` chip whenever `USE EMAIL` or `USE PROJECT` successfully uses wallet credentials.
+    -   Added a user-friendly credential details modal on chip click (credential name, purpose, service, reference key, and action source), intentionally excluding any secret/token values.
+    -   Kept behavior DRY by centralizing credential-chip derivation in shared chat utils and reusing existing chip/modal pipelines.
+
 -   Reworked Agents Server wallet scoping so credentials can be independently scoped by user and agent (with agent scope now default):
     -   Added `isUserScoped` to wallet records (migration `2026-03-0130-user-wallet-user-scope.sql`) while keeping existing agent-scope behavior (`isGlobal` / `agentPermanentId`), enabling all combinations:
         -   User + Agent scope

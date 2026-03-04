@@ -26,6 +26,11 @@ import type { AgentProfileData } from '../utils/loadAgentProfile';
 import type { AgentChipData } from '../AgentChip/AgentChip';
 import { loadAgentProfile, resolveAgentProfileFallback, resolvePreferredAgentLabel } from '../utils/loadAgentProfile';
 import {
+    parseWalletCredentialToolCallResult,
+    type WalletCredentialToolCallResult,
+    WALLET_CREDENTIAL_TOOL_CALL_NAME,
+} from '../utils/walletCredentialToolCall';
+import {
     extractSearchResults,
     getToolCallResultDate,
     getToolCallTimestamp,
@@ -836,6 +841,86 @@ type ToolCallDetailsOptions = {
 };
 
 /**
+ * Renders a friendly wallet-credential usage summary for non-technical users.
+ *
+ * @param credential - Safe credential usage metadata.
+ * @param toolCallDate - Optional timestamp of the action.
+ * @returns Credential details section for the tool modal.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function renderWalletCredentialToolCall(
+    credential: WalletCredentialToolCallResult,
+    toolCallDate: Date | null,
+): ReactElement {
+    const serviceLabel = formatWalletCredentialService(credential.service);
+    const sourceToolLabel = TOOL_TITLES[credential.sourceToolName]?.title || credential.sourceToolName;
+
+    return (
+        <>
+            <header className={styles.toolCallHeader}>
+                <span className={styles.toolCallIcon} aria-hidden="true">
+                    🔐
+                </span>
+                <div className={styles.toolCallHeaderMeta}>
+                    <p className={styles.toolCallModalLabel}>Credential</p>
+                    <h3 className={styles.toolCallTitle}>{credential.credentialName}</h3>
+                    <p className={styles.toolCallSubtitle}>Used securely from your wallet.</p>
+                </div>
+            </header>
+
+            <div className={styles.toolCallGrid}>
+                <section className={styles.toolCallPanel}>
+                    <p className={styles.toolCallPanelTitle}>What it was used for</p>
+                    <p className={styles.toolCallSummary}>{credential.purpose}</p>
+                </section>
+
+                <section className={styles.toolCallPanel}>
+                    <p className={styles.toolCallPanelTitle}>Credential details</p>
+                    <ul className={styles.toolCallList}>
+                        <li className={styles.toolCallItem}>
+                            <span className={styles.toolCallItemLabel}>Service</span>
+                            <span className={styles.toolCallItemValue}>{serviceLabel}</span>
+                        </li>
+                        <li className={styles.toolCallItem}>
+                            <span className={styles.toolCallItemLabel}>Credential reference</span>
+                            <span className={styles.toolCallItemValue}>{credential.key}</span>
+                        </li>
+                        <li className={styles.toolCallItem}>
+                            <span className={styles.toolCallItemLabel}>Used by action</span>
+                            <span className={styles.toolCallItemValue}>{sourceToolLabel}</span>
+                        </li>
+                        {toolCallDate && (
+                            <li className={styles.toolCallItem}>
+                                <span className={styles.toolCallItemLabel}>Time</span>
+                                <span className={styles.toolCallItemValue}>{toolCallDate.toLocaleString()}</span>
+                            </li>
+                        )}
+                    </ul>
+                </section>
+            </div>
+        </>
+    );
+}
+
+/**
+ * Converts internal service identifiers into human-friendly labels.
+ *
+ * @param service - Technical service identifier.
+ * @returns Friendly service label.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function formatWalletCredentialService(service: string): string {
+    const normalizedService = service.trim().toLowerCase();
+    if (normalizedService === 'smtp') {
+        return 'Email (SMTP)';
+    }
+    if (normalizedService === 'github') {
+        return 'GitHub';
+    }
+    return service;
+}
+
+/**
  * Renders the detail view for a single tool call.
  *
  * @param options - Rendering options for the tool call.
@@ -852,6 +937,12 @@ function renderToolCallDetails(options: ToolCallDetailsOptions): ReactElement {
     });
     if (memoryView) {
         return memoryView;
+    }
+
+    const walletCredentialResult =
+        toolCall.name === WALLET_CREDENTIAL_TOOL_CALL_NAME ? parseWalletCredentialToolCallResult(resultRaw) : null;
+    if (walletCredentialResult) {
+        return renderWalletCredentialToolCall(walletCredentialResult, toolCallDate);
     }
 
     const isSearch =

@@ -27,6 +27,7 @@ import { isTeamToolName } from '../utils/createTeamToolNameFromUrl';
 import { getChatMessageTimingDisplay } from '../utils/getChatMessageTimingDisplay';
 import type { ToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
 import { buildToolCallChipText, getToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
+import { createWalletCredentialToolCall } from '../utils/walletCredentialToolCall';
 import {
     dedupeCitationsBySource,
     extractCitationsFromMessage,
@@ -383,6 +384,24 @@ function buildFinalToolCallChips(
                 label,
                 status: hasToolCallErrors(toolCall) ? 'error' : 'done',
                 teamAgentData,
+                isTransitive: false,
+            });
+
+            const walletCredentialToolCall = createWalletCredentialToolCall(toolCall);
+            if (!walletCredentialToolCall) {
+                continue;
+            }
+
+            const walletKey = buildToolCallChipKey(walletCredentialToolCall);
+            const walletChipletInfo = getToolCallChipletInfo(walletCredentialToolCall);
+            const walletLabel = buildToolCallChipText(walletChipletInfo);
+
+            entries.push({
+                key: walletKey,
+                toolCall: walletCredentialToolCall,
+                label: walletLabel,
+                status: 'done',
+                teamAgentData: null,
                 isTransitive: false,
             });
         }
