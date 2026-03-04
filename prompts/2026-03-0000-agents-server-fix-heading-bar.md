@@ -5,10 +5,15 @@
 -   This happens somewhere between desktop and mobile
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
--  Look at the 
+-   Look at the screenshots to see the issue
 -   You are working with the [Agents Server](apps/agents-server)
 
 ![alt text](prompts/screenshots/2026-03-0000-agents-server-fix-heading-bar.png)
+![alt text](prompts/screenshots/2026-03-0000-agents-server-fix-heading-bar-1.png)
+![alt text](prompts/screenshots/2026-03-0000-agents-server-fix-heading-bar-2.png)
+![alt text](prompts/screenshots/2026-03-0000-agents-server-fix-heading-bar-3.png)
+![alt text](prompts/screenshots/2026-03-0000-agents-server-fix-heading-bar-4.png)
+![alt text](prompts/screenshots/2026-03-0000-agents-server-fix-heading-bar-5.png)
 
 ---
 
