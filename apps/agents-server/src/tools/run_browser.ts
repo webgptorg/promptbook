@@ -1,6 +1,10 @@
 import { randomUUID } from 'crypto';
+import { mkdir } from 'fs/promises';
+import { join, relative } from 'path';
+import type { Page } from 'playwright';
 import { spaceTrim } from 'spacetrim';
-import { $execCommand } from '../../../../src/utils/execCommand/$execCommand';
+import { REMOTE_BROWSER_URL } from '../../config';
+import { $provideBrowserForServer } from './$provideBrowserForServer';
 
 /**
  * Default browser session prefix used by the `run_browser` tool.
@@ -8,19 +12,9 @@ import { $execCommand } from '../../../../src/utils/execCommand/$execCommand';
 const RUN_BROWSER_SESSION_PREFIX = 'agents-server-run-browser';
 
 /**
- * Package used for invoking Playwright CLI commands.
+ * Directory where browser snapshot artifacts are stored.
  */
-const PLAYWRIGHT_CLI_PACKAGE = '@playwright/cli';
-
-/**
- * Command used to execute Playwright CLI.
- */
-const PLAYWRIGHT_CLI_COMMAND = 'npx';
-
-/**
- * Timeout for one Playwright CLI command in milliseconds.
- */
-const PLAYWRIGHT_CLI_TIMEOUT_MS = 120000;
+const RUN_BROWSER_SNAPSHOT_DIRECTORY = '.playwright-cli';
 
 /**
  * Default wait duration in milliseconds for `wait` actions.
@@ -92,53 +86,48 @@ type NormalizedRunBrowserAction =
     | { readonly type: 'wait'; readonly milliseconds: number };
 
 /**
- * Creates a dedicated Playwright CLI session id for one tool invocation.
+ * Execution mode used by the browser tool.
+ */
+type RunBrowserExecutionMode = 'local' | 'remote';
+
+/**
+ * Creates a dedicated session id for one tool invocation.
  */
 function createRunBrowserSessionId(): string {
     return `${RUN_BROWSER_SESSION_PREFIX}-${randomUUID()}`;
 }
 
 /**
- * Executes one Playwright CLI command in a named session.
+ * Determines whether the browser tool is running in local or remote mode.
  */
-async function runPlaywrightCli(sessionId: string, args: ReadonlyArray<string>): Promise<string> {
-    return await $execCommand({
-        command: PLAYWRIGHT_CLI_COMMAND,
-        args: ['--no-install', PLAYWRIGHT_CLI_PACKAGE, `-s=${sessionId}`, ...args],
-        timeout: PLAYWRIGHT_CLI_TIMEOUT_MS,
-        isVerbose: false,
-    });
+function resolveExecutionMode(): RunBrowserExecutionMode {
+    return REMOTE_BROWSER_URL && REMOTE_BROWSER_URL.trim().length > 0 ? 'remote' : 'local';
 }
 
 /**
- * Returns first markdown snapshot link path from Playwright CLI output.
+ * Converts the execution mode into a human-readable label.
  */
-function extractSnapshotPath(output: string): string | null {
-    const match = output.match(/\[Snapshot\]\(([^)]+)\)/i);
-    return match?.[1] ?? null;
+function formatExecutionMode(mode: RunBrowserExecutionMode): string {
+    return mode === 'remote' ? 'remote-browser' : 'local-browser';
 }
 
 /**
- * Returns page URL from Playwright CLI output when present.
+ * Returns a POSIX-compatible relative path.
  */
-function extractPageUrl(output: string): string | null {
-    const match = output.match(/- Page URL:\s*(.+)/i);
-    return match?.[1]?.trim() ?? null;
+function toPosixPath(pathname: string): string {
+    return pathname.split('\\').join('/');
 }
 
 /**
- * Returns page title from Playwright CLI output when present.
+ * Opens a new browser page and navigates to the requested URL.
  */
-function extractPageTitle(output: string): string | null {
-    const match = output.match(/- Page Title:\s*(.+)/i);
-    return match?.[1]?.trim() ?? null;
-}
+async function openPageWithUrl(url: string): Promise<Page> {
+    const browserContext = await $provideBrowserForServer();
+    const page = await browserContext.newPage();
 
-/**
- * Opens a headed browser session and navigates to the requested URL.
- */
-async function ensureSessionAndOpenUrl(sessionId: string, url: string): Promise<string> {
-    return await runPlaywrightCli(sessionId, ['open', url, '--headed']);
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
+
+    return page;
 }
 
 /**
@@ -200,36 +189,83 @@ function normalizeAction(action: RunBrowserAction, index: number): NormalizedRun
 }
 
 /**
- * Encodes action payload for safe transport through a single CLI argument.
+ * Executes one normalized browser action on a Playwright page.
  */
-function encodeAction(action: NormalizedRunBrowserAction): string {
-    return Buffer.from(JSON.stringify(action), 'utf8').toString('base64');
+async function executeAction(page: Page, action: NormalizedRunBrowserAction): Promise<void> {
+    switch (action.type) {
+        case 'navigate':
+            await page.goto(action.url, { waitUntil: 'domcontentloaded' });
+            return;
+
+        case 'click':
+            await page.locator(action.selector).first().click();
+            return;
+
+        case 'type':
+            await page.locator(action.selector).first().fill(action.text);
+            return;
+
+        case 'wait':
+            await page.waitForTimeout(action.milliseconds);
+            return;
+
+        case 'scroll':
+            if (action.selector) {
+                await page.locator(action.selector).first().scrollIntoViewIfNeeded();
+            }
+            await page.mouse.wheel(0, action.pixels);
+            return;
+    }
 }
 
 /**
- * Builds Playwright `run-code` snippet for one normalized action.
+ * Captures a screenshot artifact for the current page and returns relative path.
  */
-function createRunCodeForAction(action: NormalizedRunBrowserAction): string {
-    const encodedAction = encodeAction(action);
+async function captureSnapshot(page: Page, sessionId: string): Promise<string | null> {
+    const snapshotDirectoryPath = join(process.cwd(), RUN_BROWSER_SNAPSHOT_DIRECTORY);
+    const snapshotPath = join(snapshotDirectoryPath, `${sessionId}.png`);
 
-    return [
-        `const action=JSON.parse(Buffer.from('${encodedAction}','base64').toString('utf8'));`,
-        `if(action.type==='navigate'){await page.goto(action.url,{waitUntil:'domcontentloaded'});}`,
-        `else if(action.type==='click'){await page.locator(action.selector).first().click();}`,
-        `else if(action.type==='type'){await page.locator(action.selector).first().fill(action.text);}`,
-        `else if(action.type==='wait'){await page.waitForTimeout(action.milliseconds);}`,
-        `else if(action.type==='scroll'){`,
-        `if(action.selector){await page.locator(action.selector).first().scrollIntoViewIfNeeded();}`,
-        `await page.mouse.wheel(0,action.pixels);`,
-        `}`,
-    ].join('');
+    try {
+        await mkdir(snapshotDirectoryPath, { recursive: true });
+        await page.screenshot({ path: snapshotPath, fullPage: true });
+        return toPosixPath(relative(process.cwd(), snapshotPath));
+    } catch (error) {
+        console.error('[run_browser] Failed to capture snapshot', {
+            sessionId,
+            error: error instanceof Error ? error.message : String(error),
+        });
+
+        return null;
+    }
 }
 
 /**
- * Executes one action in Playwright CLI session.
+ * Safely retrieves page title from current browser page.
  */
-async function executeAction(sessionId: string, action: NormalizedRunBrowserAction): Promise<string> {
-    return await runPlaywrightCli(sessionId, ['run-code', createRunCodeForAction(action)]);
+async function getPageTitle(page: Page): Promise<string | null> {
+    try {
+        return await page.title();
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Closes browser page and logs non-fatal cleanup errors.
+ */
+async function cleanupPage(page: Page | null, sessionId: string): Promise<void> {
+    if (!page) {
+        return;
+    }
+
+    try {
+        await page.close();
+    } catch (error) {
+        console.error('[run_browser] Failed to cleanup browser page', {
+            sessionId,
+            error: error instanceof Error ? error.message : String(error),
+        });
+    }
 }
 
 /**
@@ -238,20 +274,20 @@ async function executeAction(sessionId: string, action: NormalizedRunBrowserActi
 function formatSuccessResult(options: {
     readonly initialUrl: string;
     readonly sessionId: string;
+    readonly mode: RunBrowserExecutionMode;
     readonly executedActions: ReadonlyArray<NormalizedRunBrowserAction>;
-    readonly finalOutput: string;
+    readonly finalUrl: string | null;
+    readonly finalTitle: string | null;
     readonly snapshotPath: string | null;
 }): string {
-    const { initialUrl, sessionId, executedActions, finalOutput, snapshotPath } = options;
-    const finalUrl = extractPageUrl(finalOutput);
-    const finalTitle = extractPageTitle(finalOutput);
+    const { initialUrl, sessionId, mode, executedActions, finalUrl, finalTitle, snapshotPath } = options;
 
     return spaceTrim(
         (block) => `
             # Browser run completed
 
             **Session:** ${sessionId}
-            **Mode:** headed
+            **Mode:** ${formatExecutionMode(mode)}
             **Initial URL:** ${initialUrl}
             **Executed actions:** ${executedActions.length}
 
@@ -282,7 +318,7 @@ function formatSuccessResult(options: {
                 `,
             )}
 
-            Note: Browser session has been automatically closed to free up resources.
+            Note: Browser page has been automatically closed to free up resources.
         `,
     );
 }
@@ -311,7 +347,7 @@ function formatErrorResult(options: {
 }
 
 /**
- * Runs interactive browser automation through Playwright CLI in headed mode.
+ * Runs interactive browser automation through Playwright.
  *
  * @param args Tool arguments provided by the model.
  * @returns Markdown summary with final page details and snapshot path.
@@ -319,6 +355,7 @@ function formatErrorResult(options: {
 export async function run_browser(args: RunBrowserArgs): Promise<string> {
     const sessionId = createRunBrowserSessionId();
     const initialUrl = String(args.url || '').trim();
+    const mode = resolveExecutionMode();
 
     if (!initialUrl) {
         return spaceTrim(`
@@ -328,58 +365,36 @@ export async function run_browser(args: RunBrowserArgs): Promise<string> {
         `);
     }
 
-    let sessionOpened = false;
+    let page: Page | null = null;
 
     try {
         const normalizedActions = normalizeActions(args.actions);
-
-        await ensureSessionAndOpenUrl(sessionId, initialUrl);
-        sessionOpened = true;
+        page = await openPageWithUrl(initialUrl);
 
         for (const action of normalizedActions) {
-            await executeAction(sessionId, action);
+            await executeAction(page, action);
         }
 
-        const finalOutput = await runPlaywrightCli(sessionId, ['snapshot']);
-        const snapshotPath = extractSnapshotPath(finalOutput);
-
-        // Clean up the browser session after successful execution
-        await cleanupBrowserSession(sessionId);
+        const snapshotPath = await captureSnapshot(page, sessionId);
+        const finalUrl = page.url();
+        const finalTitle = await getPageTitle(page);
 
         return formatSuccessResult({
             initialUrl,
             sessionId,
+            mode,
             executedActions: normalizedActions,
-            finalOutput,
+            finalUrl,
+            finalTitle,
             snapshotPath,
         });
     } catch (error) {
-        // Only clean up if we actually opened a session
-        if (sessionOpened) {
-            await cleanupBrowserSession(sessionId);
-        }
-
         return formatErrorResult({
             url: initialUrl,
             sessionId,
             error,
         });
-    }
-}
-
-/**
- * Closes a Playwright CLI browser session to free up resources.
- *
- * @param sessionId - The session ID to close
- */
-async function cleanupBrowserSession(sessionId: string): Promise<void> {
-    try {
-        await runPlaywrightCli(sessionId, ['close']);
-    } catch (error) {
-        // Log error but don't throw - cleanup is best effort
-        console.error('[run_browser] Failed to cleanup browser session', {
-            sessionId,
-            error: error instanceof Error ? error.message : String(error),
-        });
+    } finally {
+        await cleanupPage(page, sessionId);
     }
 }
