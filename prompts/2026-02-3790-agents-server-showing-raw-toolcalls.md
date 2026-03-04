@@ -19,16 +19,19 @@
 
 ---
 
-[ ]
+[ ] !
 
 [✨👿] Enhance Design of the advanced tool call popups
 
--   @@@
+-   Allow scrolling the modal when raw payload is too long
+-   Raw payloads should be inside Monaco editor using syntax highlights.
+-   JSONs should be formatted and pretty printed, not just raw minified JSON string.
+-   Name of the tool should be part of the raw payload request
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Do a proper analysis of the current functionality of advanced tool call popups before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-02-3790-agents-server-showing-raw-toolcalls-2.png)
 
 ---
 
@@ -55,4 +58,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-

@@ -43,16 +43,26 @@ IMAP / POP3 credentials
 
 ---
 
-[-]
+[ ] !
 
-[✨😰] foo
+[✨😰] Make Adding the SMPT credentials into the wallet easier
 
--   @@@
+-   Look how `USE PROJECT` commitment is asking the user to add the Github token into the wallet.
+-   Add requested JSON schema alongside the record in the wallet.
+-   Allow to toggle visibility of records in the wallet, simmilar to the toggle visibility of the passwords
+-   Also allow multiline records in the wallet, because the SMTP credentials JSON can be multiline and it is not user friendly to put it into one line, so allow to put it into multiple lines in the wallet for better readability and usability.
+-   Do it overall more user friendly and better from the UX and UI perspective.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Do a proper analysis of the current functionality of the wallet and `USE EMAIL `before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
+-   If you need to do the database migration (for example for the JSON schemas), do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+```
+SMTP credentials are missing in wallet. Add ACCESS_TOKEN record with service "smtp" and key "use-email-smtp-credentials". Put SMTP JSON into Secret, for example: {"host":"smtp.example.com","port":587,"secure":false,"username":"agent@example.com","password":"..."} Default sender from commitment: test@ptbk.io
+```
+
+![alt text](prompts/screenshots/2026-02-3780-agents-server-use-email.png)
 
 ---
 
@@ -66,4 +76,3 @@ IMAP / POP3 credentials
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
