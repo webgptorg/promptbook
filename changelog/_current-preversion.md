@@ -1,3 +1,7 @@
+-   Enhanced Agents Server control panel UX for scalability and faster scanning:
+    -   Reworked the panel into a progressive disclosure layout with collapsible sections (Feedback, Self-learning, Private mode, Language), reducing visual overload as settings grow.
+    -   Kept existing behavior unchanged (including private-mode/self-learning dependency) while surfacing clearer section-level state chips and compact state/action rows.
+    -   Refined dropdown affordances with stronger active button styling, an explicit close action in the panel header, and a cleaner visual hierarchy that remains scroll-friendly on smaller viewports.
 -   Improved Agents Server `USE EMAIL` wallet flow and wallet UX for SMTP credentials:
     -   Added structured SMTP credential schema hints to missing-credential tool results (`send_email` now returns `jsonSchema` together with the wallet request message), so chat wallet prompts can show the expected JSON shape directly.
     -   Added optional `jsonSchema` persistence to `UserWallet` records (new migration `2026-03-0120-user-wallet-json-schema.sql`) and wired the field through wallet APIs, wallet utilities, and DB types.

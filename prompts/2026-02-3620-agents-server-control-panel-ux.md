@@ -14,7 +14,7 @@ Control panel is getting bigger and bigger, and it is important to keep it user-
 
 ---
 
-[ ] !
+[x] ~$0.2521 11 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨🥘] Enhance and simplify UX of the control panel
 
@@ -63,3 +63,4 @@ Control panel is getting bigger and bigger, and it is important to keep it user-
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
