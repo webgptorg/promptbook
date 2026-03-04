@@ -1,3 +1,9 @@
+-   Enhanced Agents Server advanced tool-call popup payload inspection:
+    -   Advanced payload panels now render inside read-only Monaco editors with syntax highlighting instead of plain `<pre>` blocks.
+    -   Raw payload formatting now pretty-prints JSON consistently, including payloads that arrive as minified JSON strings.
+    -   Input payload now includes the tool name (`toolName`) together with arguments so request context is explicit.
+    -   Tool-call modal now allows full modal scrolling for long advanced payload content while keeping section rendering DRY through one shared payload-section pipeline.
+
 -   Added wallet credential usage chips in Agents Server chat so credential-backed actions visibly disclose safe credential metadata without leaking secrets:
     -   Reused the existing tool-call chip row below messages to append a dedicated `Credential used` chip whenever `USE EMAIL` or `USE PROJECT` successfully uses wallet credentials.
     -   Added a user-friendly credential details modal on chip click (credential name, purpose, service, reference key, and action source), intentionally excluding any secret/token values.

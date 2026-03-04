@@ -1713,7 +1713,9 @@
 .toolCallModal {
     max-width: 800px;
     padding: 0;
-    overflow: hidden;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    overflow-x: hidden;
     position: relative;
 }
 
@@ -2498,6 +2500,20 @@
     margin-bottom: 15px;
     max-height: 300px;
     overflow-y: auto;
+}
+
+.toolCallPayloadContainer {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #f8fafc;
+}
+
+.toolCallPayloadEditor :global(.monaco-editor),
+.toolCallPayloadEditor :global(.monaco-editor .overflow-guard),
+.toolCallPayloadEditor :global(.monaco-editor .monaco-scrollable-element),
+.toolCallPayloadEditor :global(.monaco-editor-background) {
+    background: #f8fafc !important;
 }
 
 .toolCallData {

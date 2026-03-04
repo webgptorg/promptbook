@@ -1,5 +1,6 @@
 'use client';
 
+import Editor from '@monaco-editor/react';
 import moment from 'moment';
 import { useEffect, useMemo, useState, type ReactElement } from 'react';
 import { isPseudoAgentUrl } from '../../../book-2.0/agent-source/pseudoAgentReferences';
@@ -1343,6 +1344,107 @@ type AdvancedToolCallDetailsOptions = {
 };
 
 /**
+ * Monaco language identifiers used by advanced payload viewers.
+ *
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+type ToolCallPayloadLanguage = 'json' | 'plaintext';
+
+/**
+ * One payload section rendered in advanced mode.
+ *
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+type AdvancedToolCallPayloadSection = {
+    /**
+     * Stable section identifier used for Monaco model path.
+     */
+    id: string;
+    /**
+     * User-facing panel title.
+     */
+    title: string;
+    /**
+     * Raw payload value to render.
+     */
+    payload: TODO_any;
+};
+
+/**
+ * Payload formatting result for Monaco rendering.
+ *
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+type FormattedToolCallPayload = {
+    /**
+     * Editor language used for syntax highlighting.
+     */
+    language: ToolCallPayloadLanguage;
+    /**
+     * Textual payload content displayed in Monaco.
+     */
+    content: string;
+};
+
+/**
+ * Matches characters unsafe in Monaco in-memory model paths.
+ *
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+const INVALID_MONACO_MODEL_PATH_CHARACTER_PATTERN = /[^a-zA-Z0-9_-]/g;
+
+/**
+ * Line height used for read-only payload Monaco editors.
+ *
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+const TOOL_CALL_PAYLOAD_EDITOR_LINE_HEIGHT_PX = 19;
+
+/**
+ * Minimum Monaco editor height for payload blocks.
+ *
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+const TOOL_CALL_PAYLOAD_EDITOR_MIN_HEIGHT_PX = 114;
+
+/**
+ * Maximum Monaco editor height for payload blocks.
+ *
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+const TOOL_CALL_PAYLOAD_EDITOR_MAX_HEIGHT_PX = 418;
+
+/**
+ * Shared read-only Monaco settings for advanced payload rendering.
+ *
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+const TOOL_CALL_PAYLOAD_EDITOR_OPTIONS = {
+    readOnly: true,
+    minimap: { enabled: false },
+    automaticLayout: true,
+    scrollBeyondLastLine: false,
+    lineNumbers: 'on',
+    lineNumbersMinChars: 3,
+    folding: false,
+    glyphMargin: false,
+    fontFamily: 'Consolas, "Courier New", monospace',
+    fontSize: 13,
+    lineHeight: TOOL_CALL_PAYLOAD_EDITOR_LINE_HEIGHT_PX,
+    overviewRulerLanes: 0,
+    hideCursorInOverviewRuler: true,
+    renderLineHighlight: 'none',
+    contextmenu: false,
+    scrollbar: {
+        vertical: 'auto',
+        horizontal: 'auto',
+        useShadows: false,
+    },
+    domReadOnly: true,
+    wordWrap: 'off',
+} as const;
+
+/**
  * Renders a technical view with raw tool input/output payloads.
  *
  * @param options - Rendering options for advanced mode.
@@ -1354,6 +1456,16 @@ function renderAdvancedToolCallDetails(options: AdvancedToolCallDetailsOptions):
     const toolMetadata = TOOL_TITLES[toolCall.name];
     const headerEmoji = toolMetadata?.emoji || extractLeadingEmoji(chipletInfo.text) || '🛠️';
     const headerTitle = toolTitles?.[toolCall.name] || toolMetadata?.title || chipletInfo.text || toolCall.name;
+    const requestPayload = {
+        toolName: toolCall.name,
+        arguments: toolCall.arguments,
+    };
+    const payloadSections: Array<AdvancedToolCallPayloadSection> = [
+        { id: 'request', title: 'Input payload', payload: requestPayload },
+        { id: 'result', title: 'Output payload', payload: toolCall.result },
+        { id: 'raw-model', title: 'Model payload', payload: toolCall.rawToolCall },
+        { id: 'event', title: 'Full event', payload: toolCall },
+    ];
 
     return (
         <>
@@ -1369,67 +1481,205 @@ function renderAdvancedToolCallDetails(options: AdvancedToolCallDetailsOptions):
             </header>
 
             <div className={styles.toolCallGrid}>
-                <section className={styles.toolCallPanel}>
-                    <p className={styles.toolCallPanelTitle}>Input payload</p>
-                    <div className={styles.toolCallDataContainer}>
-                        <pre className={styles.toolCallData}>{stringifyRawPayload(toolCall.arguments)}</pre>
-                    </div>
-                </section>
-
-                <section className={styles.toolCallPanel}>
-                    <p className={styles.toolCallPanelTitle}>Output payload</p>
-                    <div className={styles.toolCallDataContainer}>
-                        <pre className={styles.toolCallData}>{stringifyRawPayload(toolCall.result)}</pre>
-                    </div>
-                </section>
-
-                <section className={styles.toolCallPanel}>
-                    <p className={styles.toolCallPanelTitle}>Model payload</p>
-                    <div className={styles.toolCallDataContainer}>
-                        <pre className={styles.toolCallData}>{stringifyRawPayload(toolCall.rawToolCall)}</pre>
-                    </div>
-                </section>
-
-                <section className={styles.toolCallPanel}>
-                    <p className={styles.toolCallPanelTitle}>Full event</p>
-                    <div className={styles.toolCallDataContainer}>
-                        <pre className={styles.toolCallData}>{stringifyRawPayload(toolCall)}</pre>
-                    </div>
-                </section>
+                {payloadSections.map((payloadSection) => (
+                    <section key={payloadSection.id} className={styles.toolCallPanel}>
+                        <p className={styles.toolCallPanelTitle}>{payloadSection.title}</p>
+                        {renderAdvancedToolCallPayload({
+                            toolCall,
+                            sectionId: payloadSection.id,
+                            payload: payloadSection.payload,
+                        })}
+                    </section>
+                ))}
             </div>
         </>
     );
 }
 
 /**
- * Converts any tool payload into a raw string for advanced rendering.
+ * Rendering options for one advanced Monaco payload section.
  *
- * @param value - Payload value to stringify.
- * @returns Raw string representation suitable for `<pre/>`.
  * @private internal utility of `<ChatToolCallModal/>`
  */
-function stringifyRawPayload(value: TODO_any): string {
+type RenderAdvancedToolCallPayloadOptions = {
+    /**
+     * Tool call shown in the modal.
+     */
+    toolCall: NonNullable<ChatMessage['toolCalls']>[number];
+    /**
+     * Unique section id used for Monaco model isolation.
+     */
+    sectionId: string;
+    /**
+     * Raw payload for this section.
+     */
+    payload: TODO_any;
+};
+
+/**
+ * Renders one advanced payload block using Monaco with syntax highlighting.
+ *
+ * @param options - Rendering options for one payload section.
+ * @returns Monaco-backed payload renderer.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function renderAdvancedToolCallPayload(options: RenderAdvancedToolCallPayloadOptions): ReactElement {
+    const { toolCall, sectionId, payload } = options;
+    const formattedPayload = formatToolCallPayload(payload);
+    const modelPath = createToolCallPayloadMonacoPath({
+        toolCall,
+        sectionId,
+        language: formattedPayload.language,
+    });
+    const editorHeight = resolveToolCallPayloadEditorHeight(formattedPayload.content);
+
+    return (
+        <div className={styles.toolCallPayloadContainer}>
+            <div className={styles.toolCallPayloadEditor}>
+                <Editor
+                    height={`${editorHeight}px`}
+                    language={formattedPayload.language}
+                    path={modelPath}
+                    value={formattedPayload.content}
+                    theme="vs-light"
+                    options={TOOL_CALL_PAYLOAD_EDITOR_OPTIONS}
+                />
+            </div>
+        </div>
+    );
+}
+
+/**
+ * Resolves Monaco editor height from payload line count with bounded limits.
+ *
+ * @param content - Editor payload content.
+ * @returns Height in pixels.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function resolveToolCallPayloadEditorHeight(content: string): number {
+    const lineCount = content.split(/\r?\n/).length;
+    const estimatedHeight = lineCount * TOOL_CALL_PAYLOAD_EDITOR_LINE_HEIGHT_PX;
+
+    return Math.min(
+        Math.max(estimatedHeight, TOOL_CALL_PAYLOAD_EDITOR_MIN_HEIGHT_PX),
+        TOOL_CALL_PAYLOAD_EDITOR_MAX_HEIGHT_PX,
+    );
+}
+
+/**
+ * Options required to build one Monaco model path for advanced payload rendering.
+ *
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+type CreateToolCallPayloadMonacoPathOptions = {
+    /**
+     * Tool call shown inside the modal.
+     */
+    toolCall: NonNullable<ChatMessage['toolCalls']>[number];
+    /**
+     * Payload section identifier.
+     */
+    sectionId: string;
+    /**
+     * Monaco language used for this payload.
+     */
+    language: ToolCallPayloadLanguage;
+};
+
+/**
+ * Builds a stable Monaco model path so advanced payload editors stay isolated.
+ *
+ * @param options - Path composition inputs.
+ * @returns Stable in-memory Monaco model URI.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function createToolCallPayloadMonacoPath(options: CreateToolCallPayloadMonacoPathOptions): string {
+    const { toolCall, sectionId, language } = options;
+    const stableToolIdentifier = sanitizeMonacoPathPart(
+        `${toolCall.name}-${toolCall.idempotencyKey || toolCall.createdAt || 'event'}`,
+    );
+    const safeSectionId = sanitizeMonacoPathPart(sectionId);
+    const extension = language === 'json' ? 'json' : 'txt';
+
+    return `memory://tool-call-modal/${stableToolIdentifier}-${safeSectionId}.${extension}`;
+}
+
+/**
+ * Normalizes text into a Monaco-safe path segment.
+ *
+ * @param value - Raw segment value.
+ * @returns Monaco-safe segment string.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function sanitizeMonacoPathPart(value: string): string {
+    return value.replace(INVALID_MONACO_MODEL_PATH_CHARACTER_PATTERN, '-');
+}
+
+/**
+ * Attempts to parse a string as JSON payload.
+ *
+ * @param value - Raw string payload.
+ * @returns Parsed payload when string is JSON, otherwise `undefined`.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function tryParseJsonString(value: string): TODO_any | undefined {
+    const trimmedValue = value.trim();
+    if (trimmedValue === '') {
+        return undefined;
+    }
+
+    try {
+        return JSON.parse(trimmedValue);
+    } catch {
+        return undefined;
+    }
+}
+
+/**
+ * Converts raw payloads into Monaco-friendly formatted output.
+ *
+ * JSON objects are pretty printed, and JSON strings are parsed and re-stringified for readability.
+ *
+ * @param value - Raw payload value.
+ * @returns Monaco language + formatted content.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function formatToolCallPayload(value: TODO_any): FormattedToolCallPayload {
     if (value === undefined) {
-        return 'undefined';
+        return { language: 'plaintext', content: 'undefined' };
     }
 
     if (value === null) {
-        return 'null';
+        return { language: 'json', content: 'null' };
     }
 
     if (typeof value === 'string') {
-        return value;
+        const parsedJsonString = tryParseJsonString(value);
+
+        if (parsedJsonString === undefined) {
+            return { language: 'plaintext', content: value };
+        }
+
+        return { language: 'json', content: JSON.stringify(parsedJsonString, null, 2) };
     }
 
-    if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
-        return String(value);
+    if (typeof value === 'number' || typeof value === 'boolean') {
+        return { language: 'json', content: JSON.stringify(value, null, 2) };
+    }
+
+    if (typeof value === 'bigint') {
+        return { language: 'plaintext', content: String(value) };
     }
 
     try {
         const serialized = JSON.stringify(value, null, 2);
-        return serialized === undefined ? String(value) : serialized;
+        if (serialized === undefined) {
+            return { language: 'plaintext', content: String(value) };
+        }
+
+        return { language: 'json', content: serialized };
     } catch {
-        return String(value);
+        return { language: 'plaintext', content: String(value) };
     }
 }
 
