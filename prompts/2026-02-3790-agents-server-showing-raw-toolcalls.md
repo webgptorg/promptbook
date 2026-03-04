@@ -19,9 +19,9 @@
 
 ---
 
-[-]
+[ ]
 
-[✨👿] bar
+[✨👿] Enhance Design of the advanced tool call popups
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
