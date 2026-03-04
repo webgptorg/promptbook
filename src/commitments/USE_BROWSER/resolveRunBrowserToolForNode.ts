@@ -31,9 +31,9 @@ export function resolveRunBrowserToolForNode(): ToolFunction {
                         \`run_browser\` tool is not available in this environment.
                         This commitment requires the Agents Server browser runtime with Playwright CLI.
 
-                        ${error.name}:
-                        ${block(error.message)}
-                `,
+                        ${(error as Error).name}:
+                        ${block((error as Error).message)}
+                    `,
                 ),
             );
         };

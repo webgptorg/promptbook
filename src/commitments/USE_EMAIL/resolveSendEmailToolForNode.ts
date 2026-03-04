@@ -31,8 +31,8 @@ export function resolveSendEmailToolForNode(): ToolFunction {
                         \`send_email\` tool is not available in this environment.
                         This commitment requires Agents Server runtime with wallet-backed SMTP sending.
 
-                        ${error.name}:
-                        ${block(error.message)}
+                        ${(error as Error).name}:
+                        ${block((error as Error).message)}
                     `,
                 ),
             );
