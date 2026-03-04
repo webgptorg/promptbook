@@ -1,6 +1,7 @@
 'use client';
 
 import type { ChatMessage } from '@promptbook-local/types';
+import moment from 'moment';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAgentNaming } from '../../../../components/AgentNaming/AgentNamingContext';
 import { showConfirm } from '../../../../components/AsyncDialogs/asyncDialogs';
@@ -660,20 +661,15 @@ function moveChatToTop(chats: ReadonlyArray<UserChatSummary>, targetChat: UserCh
 }
 
 /**
- * Formats timestamp into a compact localized string.
+ * Formats timestamp into a relative localized string.
  */
 function formatChatTimestamp(timestamp: string): string {
-    const parsed = new Date(timestamp);
-    if (Number.isNaN(parsed.getTime())) {
+    const parsed = moment(timestamp);
+    if (!parsed.isValid()) {
         return timestamp;
     }
 
-    return parsed.toLocaleString(undefined, {
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
+    return parsed.fromNow();
 }
 
 /**

@@ -1,3 +1,8 @@
+-   Enhanced collapsed chat sidebar UX in Agents Server:
+    -   Replaced one-letter collapsed chat chips with compact mini chat cards that show chat title, last preview, and a message-count badge.
+    -   Kept timestamp visibility in both sidebar modes, now using relative time labels (for example `2 hours ago`) via `moment(...).fromNow()`.
+    -   Reduced duplication by preparing one shared sidebar-item model reused by both collapsed and expanded chat list rendering.
+
 -   Enhanced Agents Server advanced tool-call popup payload inspection:
     -   Advanced payload panels now render inside read-only Monaco editors with syntax highlighting instead of plain `<pre>` blocks.
     -   Raw payload formatting now pretty-prints JSON consistently, including payloads that arrive as minified JSON strings.

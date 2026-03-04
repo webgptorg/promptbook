@@ -82,9 +82,13 @@ type SidebarChatItemContent = {
      */
     readonly lastActivity: string;
     /**
-     * Compact initial rendered in avatar-like chips.
+     * Number of messages currently stored in this chat.
      */
-    readonly initial: string;
+    readonly messagesCount: number;
+    /**
+     * Human-friendly message-count label.
+     */
+    readonly messagesCountLabel: string;
     /**
      * Fully descriptive label exposed through title/ARIA attributes.
      */
@@ -92,11 +96,14 @@ type SidebarChatItemContent = {
 };
 
 /**
- * Extracts the first visible character and normalizes it for avatar initials.
+ * Formats message count for compact chat labels.
  */
-function getChatInitial(title: string): string {
-    const firstVisibleCharacter = title.trim().charAt(0);
-    return firstVisibleCharacter ? firstVisibleCharacter.toUpperCase() : '#';
+function formatChatMessagesCount(messagesCount: number, formatText: (text: string) => string): string {
+    if (messagesCount === 1) {
+        return `1 ${formatText('message')}`;
+    }
+
+    return `${messagesCount} ${formatText('messages')}`;
 }
 
 /**
@@ -110,14 +117,16 @@ function resolveSidebarChatItemContent(
     const title = chat.title || formatText('New chat');
     const preview = chat.preview || formatText('No messages yet');
     const lastActivity = formatChatTimestamp(chat.lastMessageAt || chat.updatedAt);
+    const messagesCountLabel = formatChatMessagesCount(chat.messagesCount, formatText);
     const titleWithPreview = chat.preview ? `${title} - ${preview}` : title;
 
     return {
         title,
         preview,
         lastActivity,
-        initial: getChatInitial(title),
-        accessibilityLabel: `${titleWithPreview} (${lastActivity})`,
+        messagesCount: chat.messagesCount,
+        messagesCountLabel,
+        accessibilityLabel: `${titleWithPreview} (${messagesCountLabel}, ${lastActivity})`,
     };
 }
 
@@ -165,6 +174,11 @@ export function AgentChatSidebar({
 
     const emptyStateText = formatText('No chats yet');
     const sidebarToggleLabel = isCollapsed ? formatText('Expand sidebar') : formatText('Collapse sidebar');
+    const sidebarItems = chats.map((chat) => ({
+        chat,
+        isActive: chat.id === activeChatId,
+        content: resolveSidebarChatItemContent(chat, formatText, formatChatTimestamp),
+    }));
 
     return (
         <>
@@ -209,12 +223,10 @@ export function AgentChatSidebar({
                         </button>
 
                         <div className="flex min-h-0 w-full flex-1 flex-col gap-2 overflow-y-auto">
-                            {chats.length === 0 ? (
+                            {sidebarItems.length === 0 ? (
                                 <p className="px-1 text-center text-[11px] text-slate-500">{emptyStateText}</p>
                             ) : (
-                                chats.map((chat) => {
-                                    const content = resolveSidebarChatItemContent(chat, formatText, formatChatTimestamp);
-                                    const isActive = chat.id === activeChatId;
+                                sidebarItems.map(({ chat, content, isActive }) => {
                                     return (
                                         <button
                                             key={chat.id}
@@ -228,15 +240,32 @@ export function AgentChatSidebar({
                                             aria-label={content.accessibilityLabel}
                                             title={content.accessibilityLabel}
                                         >
-                                            <span
-                                                className={`flex h-9 w-9 items-center justify-center rounded-xl border text-xs font-semibold ${
+                                            <div
+                                                className={`w-full rounded-xl border px-1.5 py-1.5 text-left ${
                                                     isActive
-                                                        ? 'border-blue-400 bg-blue-50 text-blue-700'
-                                                        : 'border-slate-200 bg-white text-slate-500'
+                                                        ? 'border-blue-300 bg-white/90 text-blue-700'
+                                                        : 'border-slate-200 bg-white/90 text-slate-600'
                                                 }`}
                                             >
-                                                {content.initial}
-                                            </span>
+                                                <div className="flex items-center justify-between gap-1">
+                                                    <span className="max-w-full truncate text-[10px] font-semibold leading-none">
+                                                        {content.title}
+                                                    </span>
+                                                    <span
+                                                        className={`inline-flex min-w-4 justify-center rounded-full px-1 py-[1px] text-[9px] font-semibold leading-none ${
+                                                            isActive
+                                                                ? 'bg-blue-100 text-blue-700'
+                                                                : 'bg-slate-100 text-slate-500'
+                                                        }`}
+                                                        aria-label={content.messagesCountLabel}
+                                                    >
+                                                        {content.messagesCount}
+                                                    </span>
+                                                </div>
+                                                <div className="mt-1 max-w-full truncate text-[9px] leading-tight text-slate-500">
+                                                    {content.preview}
+                                                </div>
+                                            </div>
                                             <span
                                                 className={`max-w-full truncate text-[10px] font-semibold leading-none ${
                                                     isActive ? 'text-blue-700' : 'text-slate-400'
@@ -267,12 +296,10 @@ export function AgentChatSidebar({
                         </div>
 
                         <div className="flex-1 overflow-y-auto p-2 space-y-2">
-                            {chats.length === 0 ? (
+                            {sidebarItems.length === 0 ? (
                                 <p className="px-2 text-xs text-slate-500">{emptyStateText}</p>
                             ) : (
-                                chats.map((chat) => {
-                                    const content = resolveSidebarChatItemContent(chat, formatText, formatChatTimestamp);
-                                    const isActive = chat.id === activeChatId;
+                                sidebarItems.map(({ chat, content, isActive }) => {
                                     return (
                                         <div
                                             key={chat.id}
