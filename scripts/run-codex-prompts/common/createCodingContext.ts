@@ -46,9 +46,12 @@ export function createCodingContext(): string_prompt {
         -   Keep in mind the DRY _(don't repeat yourself)_ principle.
         -   Keep in mind the SOLID principles
         -   Do a proper analysis of the current functionality before you start implementing.
-        -  Keep small responsibilities of functions and classes, avoid creating big functions or classes that do many things.
-        -  DO only the change described here above DO not add any additional features or make any additional changes that are not described in the prompt.
-            - If you find some critical issue that is not described in the prompt, report it to the file \`./AGENT_REPORT.md\` on the root of the project
+        -   Keep small responsibilities of functions and classes, avoid creating big functions or classes that do many things.
+        -   When throwing errors, throw [branded errors](src/errors) and use \`spaceTrim\` utility to write clear and well-formatted multilie detailed error messages.
+            -   Format errors as markdown, for example \`variabiles\` should be in backticks, important notes can be in bold, etc.
+        -   When writing multiline strings, use \`spaceTrim\` utility
+        -   DO only the change described here above DO not add any additional features or make any additional changes that are not described in the prompt.
+            -   If you find some critical issue that is not described in the prompt, report it to the file \`./AGENT_REPORT.md\` on the root of the project
 
 
         ### The Agents Server menu *(as additional context)*
