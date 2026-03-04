@@ -26,6 +26,7 @@ import { useSelfLearningPreferences } from '../../../components/SelfLearningPref
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { useSoundSystem } from '../../../components/SoundSystemProvider/SoundSystemProvider';
 import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatEffects';
+import { withUserChatSynchronizationParameter } from '../../../utils/chat/userChatSynchronization';
 import { reportClientVersionMismatch } from '../../../utils/clientVersionClient';
 import type { FriendlyErrorMessage } from '../../../utils/errorMessages';
 import { handleChatError } from '../../../utils/errorMessages';
@@ -83,6 +84,10 @@ type AgentChatWrapperProps = {
      * Called once when an auto-execute message becomes eligible for dispatch.
      */
     onAutoExecuteMessageConsumed?: () => void;
+    /**
+     * Active user-chat id used to persist streaming progress server-side.
+     */
+    userChatId?: string;
 };
 
 /**
@@ -621,6 +626,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         chatFailMessage,
         onStartNewChat,
         onAutoExecuteMessageConsumed,
+        userChatId,
     } = props;
 
     const shouldEnableFeedback = isFeedbackEnabled ?? true;
@@ -1114,17 +1120,17 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     }, []);
 
     const promptParameters = useMemo(() => {
-        const parameters: Record<string, unknown> = {
+        const baseParameters: Record<string, unknown> = {
             selfLearningEnabled: effectiveSelfLearningEnabled,
         };
 
         if (userLocationPromptParameter) {
-            parameters[USER_LOCATION_PROMPT_PARAMETER] =
+            baseParameters[USER_LOCATION_PROMPT_PARAMETER] =
                 serializeUserLocationPromptParameter(userLocationPromptParameter);
         }
 
-        return parameters;
-    }, [effectiveSelfLearningEnabled, userLocationPromptParameter]);
+        return withUserChatSynchronizationParameter(baseParameters, userChatId);
+    }, [effectiveSelfLearningEnabled, userChatId, userLocationPromptParameter]);
 
     if (!agent) {
         return <>{/* <- TODO: [🐱‍🚀] <PromptbookLoading /> */}</>;

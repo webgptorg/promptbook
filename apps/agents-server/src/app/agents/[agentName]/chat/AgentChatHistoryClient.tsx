@@ -30,6 +30,11 @@ const SAVE_DEBOUNCE_MS = 600;
 const SWITCHING_CHAT_OVERLAY_DELAY_MS = 180;
 
 /**
+ * Polling interval used for chat synchronization across browser tabs/devices.
+ */
+const CHAT_SYNCHRONIZATION_POLL_INTERVAL_MS = 5_000;
+
+/**
  * Replaces browser URL without triggering App Router navigation/streaming.
  */
 function replaceBrowserUrlWithoutNavigation(nextRelativeUrl: string): void {
@@ -43,6 +48,13 @@ function replaceBrowserUrlWithoutNavigation(nextRelativeUrl: string): void {
     }
 
     window.history.replaceState(window.history.state, '', nextRelativeUrl);
+}
+
+/**
+ * Creates a stable JSON marker used to compare chat-message arrays.
+ */
+function serializeMessagesForComparison(messages: ReadonlyArray<ChatMessage>): string {
+    return JSON.stringify(messages);
 }
 
 /**
@@ -121,6 +133,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const saveTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
     const savedMessagesHashesRef = useRef<Map<string, string>>(new Map());
     const chatMessagesCacheRef = useRef<Map<string, ReadonlyArray<ChatMessage>>>(new Map());
+    const serverChatUpdatedAtByIdRef = useRef<Map<string, string>>(new Map());
     const isSwitchingChatRef = useRef(false);
     const autoExecuteTargetChatIdRef = useRef<string | undefined>(initialForceNewChat ? undefined : initialChatId);
     const draftSaveTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
@@ -257,6 +270,9 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             }
 
             setChats(nextChats);
+            for (const chat of nextChats) {
+                serverChatUpdatedAtByIdRef.current.set(chat.id, chat.updatedAt);
+            }
 
             const shouldKeepInitialAutoMessage =
                 !hasInitialAutoMessageBeenConsumedRef.current &&
@@ -324,6 +340,86 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             activeDraftSaveTimers.clear();
         };
     }, []);
+
+    useEffect(() => {
+        if (!shouldUseHistory || !activeChatId) {
+            return;
+        }
+
+        let isDisposed = false;
+        let isSyncInFlight = false;
+
+        const synchronizeActiveChat = async (): Promise<void> => {
+            if (isDisposed || isSyncInFlight || isSwitchingChatRef.current) {
+                return;
+            }
+
+            isSyncInFlight = true;
+            try {
+                const chatDetail = await fetchUserChat(agentName, activeChatId);
+                if (isDisposed || chatDetail.chat.id !== activeChatId) {
+                    return;
+                }
+
+                const previousUpdatedAt = serverChatUpdatedAtByIdRef.current.get(activeChatId);
+                const isServerNewer = isIsoTimestampNewer(chatDetail.chat.updatedAt, previousUpdatedAt);
+
+                const normalizedMessages = [...chatDetail.messages];
+                const nextMessagesHash = serializeMessagesForComparison(normalizedMessages);
+                const previousMessages = getCachedChatMessages(activeChatId) || [];
+                const previousMessagesHash = serializeMessagesForComparison(previousMessages);
+
+                if (!isServerNewer && nextMessagesHash === previousMessagesHash) {
+                    return;
+                }
+
+                serverChatUpdatedAtByIdRef.current.set(activeChatId, chatDetail.chat.updatedAt);
+
+                if (nextMessagesHash !== previousMessagesHash) {
+                    chatMessagesCacheRef.current.set(activeChatId, normalizedMessages);
+                    savedMessagesHashesRef.current.set(activeChatId, nextMessagesHash);
+
+                    if (ChatPersistence.isAvailable()) {
+                        const persistenceKey = buildUserChatPersistenceKey(activeChatId);
+                        if (normalizedMessages.length > 0) {
+                            ChatPersistence.saveMessages(persistenceKey, normalizedMessages);
+                        } else {
+                            ChatPersistence.clearMessages(persistenceKey);
+                        }
+                    }
+                }
+
+                setChats((previousChats) =>
+                    moveChatToTop(previousChats, chatDetail.chat).map((chat) =>
+                        chat.id === chatDetail.chat.id ? chatDetail.chat : chat,
+                    ),
+                );
+            } catch (error) {
+                if (typeof navigator !== 'undefined' && !navigator.onLine) {
+                    return;
+                }
+                console.warn('[user-chat] Synchronization poll failed', error);
+            } finally {
+                isSyncInFlight = false;
+            }
+        };
+
+        void synchronizeActiveChat();
+        const pollingTimer = setInterval(() => {
+            void synchronizeActiveChat();
+        }, CHAT_SYNCHRONIZATION_POLL_INTERVAL_MS);
+
+        const handleOnline = () => {
+            void synchronizeActiveChat();
+        };
+
+        window.addEventListener('online', handleOnline);
+        return () => {
+            isDisposed = true;
+            clearInterval(pollingTimer);
+            window.removeEventListener('online', handleOnline);
+        };
+    }, [activeChatId, agentName, buildUserChatPersistenceKey, getCachedChatMessages, shouldUseHistory]);
 
     /**
      * Selects one existing chat and hydrates it into local storage.
@@ -393,6 +489,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 createdChat.chat,
                 ...previousChats.filter((existingChat) => existingChat.id !== createdChat.chat.id),
             ]);
+            serverChatUpdatedAtByIdRef.current.set(createdChat.chat.id, createdChat.chat.updatedAt);
             activateChat(createdChat.chat.id, createdChat.messages, {
                 draftMessage: createdChat.draftMessage ?? null,
             });
@@ -430,6 +527,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 }
                 savedMessagesHashesRef.current.delete(chatId);
                 chatMessagesCacheRef.current.delete(chatId);
+                serverChatUpdatedAtByIdRef.current.delete(chatId);
                 await bootstrapChats(activeChatId === chatId ? undefined : activeChatId || undefined);
             } catch (error) {
                 setErrorMessage(error instanceof Error ? error.message : 'Failed to delete chat.');
@@ -465,6 +563,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 void saveUserChatMessages(agentName, chatId, messages)
                     .then((chatDetail) => {
                         savedMessagesHashesRef.current.set(chatId, serializedMessages);
+                        serverChatUpdatedAtByIdRef.current.set(chatDetail.chat.id, chatDetail.chat.updatedAt);
                         setChats((previousChats) =>
                             moveChatToTop(previousChats, chatDetail.chat).map((chat) =>
                                 chat.id === chatDetail.chat.id ? chatDetail.chat : chat,
@@ -595,6 +694,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 chatFailMessage={chatFailMessage}
                 onStartNewChat={handleStartNewChatFromChatSurface}
                 onAutoExecuteMessageConsumed={handleAutoExecuteMessageConsumed}
+                userChatId={activeChatId}
             />
         </div>
     );
@@ -657,6 +757,23 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 function moveChatToTop(chats: ReadonlyArray<UserChatSummary>, targetChat: UserChatSummary): Array<UserChatSummary> {
     const remainingChats = chats.filter((chat) => chat.id !== targetChat.id);
     return [targetChat, ...remainingChats];
+}
+
+/**
+ * Compares two ISO timestamps and returns true when `nextTimestamp` is newer.
+ */
+function isIsoTimestampNewer(nextTimestamp: string, previousTimestamp: string | undefined): boolean {
+    if (!previousTimestamp) {
+        return true;
+    }
+
+    const nextTime = Date.parse(nextTimestamp);
+    const previousTime = Date.parse(previousTimestamp);
+    if (!Number.isFinite(nextTime) || !Number.isFinite(previousTime)) {
+        return nextTimestamp !== previousTimestamp;
+    }
+
+    return nextTime > previousTime;
 }
 
 /**
