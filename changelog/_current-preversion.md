@@ -1,3 +1,7 @@
+-   Fixed Agents Server header-bar overlap on intermediate viewport widths:
+    -   The desktop middle navigation block (search + Documentation/System) now participates in normal flex layout instead of absolute centering, preventing collisions with breadcrumb and profile controls.
+    -   The global search box now appears from wider desktop widths (`xl`) while Documentation/System remain available on `lg`, reducing crowding between desktop and mobile breakpoints.
+
 -   Enhanced collapsed chat sidebar UX in Agents Server:
     -   Replaced one-letter collapsed chat chips with compact mini chat cards that show chat title, last preview, and a message-count badge.
     -   Kept timestamp visibility in both sidebar modes, now using relative time labels (for example `2 hours ago`) via `moment(...).fromNow()`.

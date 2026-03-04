@@ -2330,8 +2330,8 @@ export function Header(props: HeaderProps) {
                 />
             )}
             <div className="relative w-full px-4 h-full">
-                <div className="flex items-center justify-between h-full gap-2 sm:gap-4 lg:gap-6">
-                    <div className="flex-shrink min-w-0 flex-1 lg:flex-initial">
+                <div className="flex h-full items-center gap-2 sm:gap-4 lg:gap-5">
+                    <div className="min-w-0 flex-1">
                         <div className="flex min-w-0 items-center gap-2 sm:gap-3 rounded-2xl border border-gray-200 bg-white/90 px-2 sm:px-3 md:px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm shadow-slate-200/60 backdrop-blur">
                             <div className="relative flex min-w-0 items-center gap-3">
                                 <HeadlessLink
@@ -2595,12 +2595,12 @@ export function Header(props: HeaderProps) {
                         </div>
                     </div>
 
-                    <div className="hidden lg:flex pointer-events-none absolute inset-y-0 left-1/2 z-20 -translate-x-1/2 items-center">
-                        <div className="pointer-events-auto flex items-center gap-5">
-                            <div className="flex-1 min-w-[220px] max-w-[360px]">
+                    <div className="hidden min-w-0 flex-1 items-center justify-center px-2 lg:flex xl:px-4">
+                        <div className="flex min-w-0 items-center gap-4">
+                            <div className="hidden w-[clamp(12rem,20vw,22.5rem)] xl:block">
                                 <HeaderSearchBox className="w-full" />
                             </div>
-                            <nav className="pointer-events-auto flex items-center gap-6">
+                            <nav className="flex items-center gap-4 xl:gap-6">
                                 {menuItems.map((item, index) => {
                                     if (item.type === 'link') {
                                         return (
