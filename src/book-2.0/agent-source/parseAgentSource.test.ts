@@ -357,6 +357,22 @@ describe('parseAgentSource', () => {
         });
     });
 
+    it('parses USE EMAIL capability', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                Agent Name
+                USE EMAIL agent@example.com
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+
+        expect(result.capabilities).toContainEqual({
+            type: 'email',
+            label: 'Email',
+            iconName: 'Mail',
+        });
+    });
+
     it('parses USE PROJECT capability', () => {
         const agentSource = validateBook(
             spaceTrim(`

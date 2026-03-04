@@ -3,7 +3,7 @@ import type { ToolFunction } from '../../_packages/types.index';
 
 const FALLBACK_SEND_EMAIL_ERROR = spaceTrim(`
     send_email tool is not available in this environment.
-    This commitment requires the Agents Server email queue to be configured.
+    This commitment requires Agents Server runtime with wallet-backed SMTP sending.
 `);
 
 /**

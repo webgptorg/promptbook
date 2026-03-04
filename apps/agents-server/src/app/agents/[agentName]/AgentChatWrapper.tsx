@@ -38,10 +38,6 @@ import {
 } from '../../../utils/metaDisclaimerClient';
 import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
 import {
-    USE_PROJECT_GITHUB_WALLET_KEY,
-    USE_PROJECT_GITHUB_WALLET_SERVICE,
-} from '../../../utils/useProjectGithubWalletConstants';
-import {
     serializeUserLocationPromptParameter,
     USER_LOCATION_PROMPT_PARAMETER,
     type UserLocationPromptParameter,
@@ -131,9 +127,9 @@ const GEOLOCATION_REQUEST_TIMEOUT_MS = 15_000;
 const WALLET_REQUESTED_STATUS = 'requested';
 
 /**
- * Project-tool status emitted when wallet credentials are missing.
+ * Tool status emitted when wallet credentials are missing.
  */
-const PROJECT_WALLET_CREDENTIAL_REQUIRED_STATUS = 'wallet-credential-required';
+const WALLET_CREDENTIAL_REQUIRED_STATUS = 'wallet-credential-required';
 
 const TEAM_AGENT_PROFILE_CACHE = new Map<string, AgentChipData>();
 const TEAM_AGENT_PROFILE_REQUESTS = new Map<string, Promise<AgentChipData | null>>();
@@ -477,15 +473,11 @@ function shouldRequestWalletRecord(toolCall: ToolCall): boolean {
 }
 
 /**
- * Returns true when USE PROJECT reports missing wallet credentials.
+ * Returns true when tool result indicates missing wallet credentials.
  */
-function shouldRequestWalletRecordForProject(toolCall: ToolCall): boolean {
-    if (!toolCall.name.startsWith('project_')) {
-        return false;
-    }
-
+function shouldRequestWalletCredential(toolCall: ToolCall): boolean {
     const parsedResult = parseWalletToolResult(toolCall.result);
-    return parsedResult?.status === PROJECT_WALLET_CREDENTIAL_REQUIRED_STATUS;
+    return parsedResult?.status === WALLET_CREDENTIAL_REQUIRED_STATUS;
 }
 
 /**
@@ -534,9 +526,8 @@ function normalizeWalletRecordType(value: unknown): PendingWalletRecordRequest['
 function buildPendingWalletRequest(toolCall: ToolCall): PendingWalletRecordRequest {
     const parsedResult = parseWalletToolResult(toolCall.result);
     const requestPayload = parsedResult?.request;
-
-    const sourceService = requestPayload?.service || parsedResult?.service || USE_PROJECT_GITHUB_WALLET_SERVICE;
-    const sourceKey = requestPayload?.key || parsedResult?.key || USE_PROJECT_GITHUB_WALLET_KEY;
+    const sourceService = requestPayload?.service || parsedResult?.service || 'generic';
+    const sourceKey = requestPayload?.key || parsedResult?.key || 'default';
     const sourceRecordType = requestPayload?.recordType || parsedResult?.recordType || 'ACCESS_TOKEN';
     const sourceMessage = requestPayload?.message || parsedResult?.message;
     const repositoryHint = parsedResult?.repository?.trim();
@@ -985,7 +976,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     const findPendingWalletToolCall = useCallback((messages: ReadonlyArray<ChatMessage>): ToolCall | null => {
         return findNewestMatchingToolCall(
             messages,
-            (toolCall) => shouldRequestWalletRecord(toolCall) || shouldRequestWalletRecordForProject(toolCall),
+            (toolCall) => shouldRequestWalletRecord(toolCall) || shouldRequestWalletCredential(toolCall),
         );
     }, []);
 

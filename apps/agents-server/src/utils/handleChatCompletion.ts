@@ -17,7 +17,9 @@ import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { prepareToolCallsForStreaming } from './toolCallStreaming';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
+import { extractUseEmailConfigurationFromAgentSource } from '@/src/utils/emails/extractUseEmailConfigurationFromAgentSource';
 import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
+import { resolveUseEmailSmtpCredential } from '@/src/utils/resolveUseEmailSmtpCredential';
 import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithubToken';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
 import { Agent, computeAgentHash } from '@promptbook-local/core';
@@ -284,6 +286,9 @@ export async function handleChatCompletion(
         }
         let agentSource: string_book = resolvedAgentContext.resolvedAgentSource;
         const projectRepositories = extractProjectRepositoriesFromAgentSource(resolvedAgentContext.resolvedAgentSource);
+        const useEmailConfiguration = extractUseEmailConfigurationFromAgentSource(
+            resolvedAgentContext.resolvedAgentSource,
+        );
 
         if (!agentSource) {
             return NextResponse.json(
@@ -324,6 +329,13 @@ export async function handleChatCompletion(
                   agentPermanentId: agentId,
               })
             : undefined;
+        const emailSmtpCredential =
+            currentUserIdentity && useEmailConfiguration.isEnabled
+                ? await resolveUseEmailSmtpCredential({
+                      userId: currentUserIdentity.userId,
+                      agentPermanentId: agentId,
+                  })
+                : undefined;
 
         // Use AgentKitCacheManager for vector store caching
         const agentKitCacheManager = new AgentKitCacheManager({ isVerbose: true });
@@ -419,6 +431,8 @@ export async function handleChatCompletion(
             isPrivateModeEnabled,
             projectRepositories,
             projectGithubToken,
+            emailSmtpCredential,
+            emailFromAddress: useEmailConfiguration.senderEmail,
         });
 
         const prompt: ChatPrompt = {

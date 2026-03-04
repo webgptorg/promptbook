@@ -25,6 +25,8 @@ export type ComposePromptParametersWithMemoryContextOptions = {
     isPrivateModeEnabled?: boolean;
     projectRepositories?: string[];
     projectGithubToken?: string;
+    emailSmtpCredential?: string;
+    emailFromAddress?: string;
 };
 
 /**
@@ -41,6 +43,8 @@ export function composePromptParametersWithMemoryContext(
         isPrivateModeEnabled,
         projectRepositories,
         projectGithubToken,
+        emailSmtpCredential,
+        emailFromAddress,
     } = options;
     const normalizedBaseParameters = normalizePromptParameters(baseParameters);
     const runtimeLocationContext = parseUserLocationPromptParameter(
@@ -66,6 +70,11 @@ export function composePromptParametersWithMemoryContext(
         ...(resolvedProjectGithubToken ? { githubToken: resolvedProjectGithubToken } : {}),
         ...(resolvedProjectRepositories.length > 0 ? { repositories: resolvedProjectRepositories } : {}),
     };
+    const mergedEmailRuntimeContext = {
+        ...(existingRuntimeContext.email || {}),
+        ...(normalizeOptionalText(emailSmtpCredential) ? { smtpCredential: normalizeOptionalText(emailSmtpCredential) } : {}),
+        ...(normalizeOptionalText(emailFromAddress) ? { fromAddress: normalizeOptionalText(emailFromAddress) } : {}),
+    };
 
     const mergedRuntimeContext: ToolRuntimeContext = {
         ...existingRuntimeContext,
@@ -84,12 +93,28 @@ export function composePromptParametersWithMemoryContext(
             projectsRuntimeContext.githubToken || projectsRuntimeContext.repositories
                 ? projectsRuntimeContext
                 : undefined,
+        email:
+            mergedEmailRuntimeContext.smtpCredential || mergedEmailRuntimeContext.fromAddress
+                ? mergedEmailRuntimeContext
+                : undefined,
     };
 
     return {
         ...filteredBaseParameters,
         [TOOL_RUNTIME_CONTEXT_PARAMETER]: serializeToolRuntimeContext(mergedRuntimeContext),
     };
+}
+
+/**
+ * Normalizes optional text input.
+ */
+function normalizeOptionalText(value: unknown): string | undefined {
+    if (typeof value !== 'string') {
+        return undefined;
+    }
+
+    const trimmed = value.trim();
+    return trimmed || undefined;
 }
 
 /**

@@ -1,22 +1,38 @@
 import { spaceTrim } from 'spacetrim';
-import { string_javascript_name, TODO_any } from '../../_packages/types.index';
+import { string_javascript_name } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
+import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import { formatOptionalInstructionBlock } from '../_base/formatOptionalInstructionBlock';
+import { parseUseEmailCommitmentContent } from './parseUseEmailCommitmentContent';
 import { sendEmailViaBrowser } from './sendEmailViaBrowser';
 
 /**
- * USE EMAIL commitment definition
+ * Tool name used by USE EMAIL.
  *
- * The `USE EMAIL` commitment enables the agent to send emails.
+ * @private internal USE EMAIL constant
+ */
+const SEND_EMAIL_TOOL_NAME = 'send_email' as string_javascript_name;
+
+/**
+ * Wallet service used for SMTP credentials required by USE EMAIL.
  *
- * Example usage in agent source:
+ * @private internal USE EMAIL constant
+ */
+const USE_EMAIL_SMTP_WALLET_SERVICE = 'smtp';
+
+/**
+ * Wallet key used for SMTP credentials required by USE EMAIL.
  *
- * ```book
- * USE EMAIL
- * USE EMAIL Write always formal and polite emails, always greet.
- * ```
+ * @private internal USE EMAIL constant
+ */
+const USE_EMAIL_SMTP_WALLET_KEY = 'use-email-smtp-credentials';
+
+/**
+ * USE EMAIL commitment definition.
+ *
+ * The `USE EMAIL` commitment enables outbound email sending through the `send_email` tool.
  *
  * @private [🪔] Maybe export the commitments through some package
  */
@@ -32,8 +48,8 @@ export class UseEmailCommitmentDefinition extends BaseCommitmentDefinition<'USE 
     /**
      * Short one-line description of USE EMAIL.
      */
-    public get description(): string {
-        return 'Enable the agent to send emails.';
+    get description(): string {
+        return 'Enable outbound email sending through a wallet-backed SMTP configuration.';
     }
 
     /**
@@ -50,95 +66,59 @@ export class UseEmailCommitmentDefinition extends BaseCommitmentDefinition<'USE 
         return spaceTrim(`
             # USE EMAIL
 
-            Enables the agent to send emails through the email service.
+            Enables the agent to send outbound emails through SMTP.
 
             ## Key aspects
 
-            - The agent can send emails to specified recipients.
-            - Supports multiple recipients, CC, subject, and markdown content.
-            - Emails are queued and sent through configured email providers.
-            - The content following \`USE EMAIL\` can provide additional instructions for email composition (e.g., style, tone, formatting preferences).
+            - The agent sends email via the \`send_email\` tool.
+            - SMTP credentials are expected from wallet records (\`ACCESS_TOKEN\`, service \`smtp\`, key \`use-email-smtp-credentials\`).
+            - Commitment content can optionally begin with a default sender email address:
+              - \`USE EMAIL agent@example.com\`
+            - Remaining commitment content is treated as optional email-writing instructions.
 
             ## Examples
 
             \`\`\`book
-            Email Assistant
-
-            PERSONA You are a helpful assistant who can send emails.
-            USE EMAIL
+            Writing Agent
+            USE EMAIL agent@example.com
+            RULE Write emails to customers according to the instructions from user.
             \`\`\`
 
             \`\`\`book
             Formal Email Assistant
-
-            PERSONA You help with professional communication.
-            USE EMAIL Write always formal and polite emails, always greet.
+            USE EMAIL agent@example.com Keep emails concise and formal.
             \`\`\`
         `);
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
-        const extraInstructions = formatOptionalInstructionBlock('Email instructions', content);
+        const parsedCommitment = parseUseEmailCommitmentContent(content);
+        const extraInstructions = formatOptionalInstructionBlock('Email instructions', parsedCommitment.instructions);
+        const senderInstruction = parsedCommitment.senderEmail
+            ? `- Default sender address from commitment: "${parsedCommitment.senderEmail}".`
+            : '';
+        const updatedTools = addUseEmailTools(requirements.tools || []);
 
-        // Get existing tools array or create new one
-        const existingTools = requirements.tools || [];
-
-        // Add 'send_email' to tools if not already present
-        const updatedTools = existingTools.some((tool) => tool.name === 'send_email')
-            ? existingTools
-            : [
-                  ...existingTools,
-                  {
-                      name: 'send_email',
-                      description: `Send an email to one or more recipients. ${
-                          !content ? '' : `Style instructions: ${content}`
-                      }`,
-                      parameters: {
-                          type: 'object',
-                          properties: {
-                              to: {
-                                  type: 'array',
-                                  items: { type: 'string' },
-                                  description:
-                                      'Array of recipient email addresses (e.g., ["user@example.com", "Jane Doe <jane@example.com>"])',
-                              },
-                              cc: {
-                                  type: 'array',
-                                  items: { type: 'string' },
-                                  description: 'Optional array of CC email addresses',
-                              },
-                              subject: {
-                                  type: 'string',
-                                  description: 'Email subject line',
-                              },
-                              body: {
-                                  type: 'string',
-                                  description: 'Email body content in markdown format',
-                              },
-                          },
-                          required: ['to', 'subject', 'body'],
-                      },
-                  } as TODO_any, // <- TODO: !!!! Remove any
-                  // <- TODO: !!!! define the function in LLM tools
-              ];
-
-        // Return requirements with updated tools and metadata
         return this.appendToSystemMessage(
             {
                 ...requirements,
                 tools: updatedTools,
                 _metadata: {
                     ...requirements._metadata,
-                    useEmail: content || true,
+                    useEmail: true,
+                    ...(parsedCommitment.senderEmail ? { useEmailSender: parsedCommitment.senderEmail } : {}),
                 },
             },
             spaceTrim(
                 (block) => `
                     Email tool:
-                    - You have access to send emails via the tool "send_email".
-                    - Use it when you need to send emails to users or other recipients.
-                    - The email body should be written in markdown format.
-                    - Always ensure the email content is clear, professional, and appropriate.
+                    - Use "${SEND_EMAIL_TOOL_NAME}" to send outbound emails.
+                    - Prefer \`message\` argument compatible with Promptbook \`Message\` type.
+                    - Include subject in \`message.metadata.subject\` (or use legacy \`subject\` argument).
+                    - USE EMAIL credentials are read from wallet records (ACCESS_TOKEN, service "${USE_EMAIL_SMTP_WALLET_SERVICE}", key "${USE_EMAIL_SMTP_WALLET_KEY}").
+                    - Wallet secret must contain SMTP credentials in JSON format with fields \`host\`, \`port\`, \`secure\`, \`username\`, \`password\`.
+                    - If credentials are missing, ask user to add wallet credentials (or call "request_wallet_record" when WALLET commitment is available).
+                    ${block(senderInstruction)}
                     ${block(extraInstructions)}
                 `,
             ),
@@ -150,23 +130,71 @@ export class UseEmailCommitmentDefinition extends BaseCommitmentDefinition<'USE 
      */
     getToolTitles(): Record<string_javascript_name, string> {
         return {
-            send_email: 'Send email',
+            [SEND_EMAIL_TOOL_NAME]: 'Send email',
         };
     }
 
     /**
-     * Gets the `send_email` tool function implementation.
+     * Gets the browser-safe `send_email` implementation.
      *
-     * Note: [??] This function has implementation both for browser and node, this is the proxied one for browser.
+     * Node.js runtime overrides this via `getAllCommitmentsToolFunctionsForNode`.
      */
     getToolFunctions(): Record<string_javascript_name, ToolFunction> {
         return {
-            async send_email(args: { to: string[]; cc?: string[]; subject: string; body: string }): Promise<string> {
-                console.log('!!!! [Tool] send_email called', { args });
-                return await sendEmailViaBrowser(args);
+            async [SEND_EMAIL_TOOL_NAME](args: unknown): Promise<string> {
+                return sendEmailViaBrowser(args as Record<string, unknown>);
             },
         };
     }
+}
+
+/**
+ * Adds USE EMAIL tool definition while keeping already registered tools untouched.
+ *
+ * @private utility of USE EMAIL commitment
+ */
+function addUseEmailTools(existingTools: ReadonlyArray<LlmToolDefinition>): Array<LlmToolDefinition> {
+    if (existingTools.some((tool) => tool.name === SEND_EMAIL_TOOL_NAME)) {
+        return [...existingTools];
+    }
+
+    return [
+        ...existingTools,
+        {
+            name: SEND_EMAIL_TOOL_NAME,
+            description:
+                'Send an outbound email through configured SMTP credentials. Prefer providing Message-like payload in `message`.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    message: {
+                        type: 'object',
+                        description:
+                            'Preferred input payload compatible with Promptbook Message type. Use metadata.subject for subject line.',
+                    },
+                    to: {
+                        type: 'string',
+                        description:
+                            'Legacy alias for recipients (use comma-separated emails or JSON array encoded as string).',
+                    },
+                    cc: {
+                        type: 'string',
+                        description:
+                            'Optional CC recipients (use comma-separated emails or JSON array encoded as string).',
+                    },
+                    subject: {
+                        type: 'string',
+                        description: 'Legacy alias for subject.',
+                    },
+                    body: {
+                        type: 'string',
+                        description: 'Legacy alias for markdown body content.',
+                    },
+                },
+                required: [],
+            },
+        },
+    ];
 }
 
 /**

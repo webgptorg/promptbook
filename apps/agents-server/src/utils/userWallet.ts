@@ -2,6 +2,10 @@ import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import type { AgentsServerDatabase } from '@/src/database/schema';
 import {
+    USE_EMAIL_SMTP_WALLET_KEY,
+    USE_EMAIL_SMTP_WALLET_SERVICE,
+} from './useEmailSmtpWalletConstants';
+import {
     USE_PROJECT_GITHUB_APP_WALLET_KEY,
     USE_PROJECT_GITHUB_WALLET_KEY,
     USE_PROJECT_GITHUB_WALLET_SERVICE,
@@ -104,6 +108,14 @@ export type FindUserWalletByIdOptions = {
  * Token resolution options for USE PROJECT.
  */
 export type ResolveUseProjectGithubTokenOptions = {
+    userId: number;
+    agentPermanentId?: string;
+};
+
+/**
+ * SMTP credential resolution options for USE EMAIL.
+ */
+export type ResolveUseEmailSmtpCredentialOptions = {
     userId: number;
     agentPermanentId?: string;
 };
@@ -305,6 +317,9 @@ export async function resolveUseProjectGithubTokenFromWallet(
         userId: options.userId,
         agentPermanentId: options.agentPermanentId,
         isGlobal: false,
+        service: USE_PROJECT_GITHUB_WALLET_SERVICE,
+        key: USE_PROJECT_GITHUB_WALLET_KEY,
+        errorContext: 'project',
     });
     if (scoped) {
         return scoped;
@@ -313,6 +328,36 @@ export async function resolveUseProjectGithubTokenFromWallet(
     return findLatestWalletAccessToken({
         userId: options.userId,
         isGlobal: true,
+        service: USE_PROJECT_GITHUB_WALLET_SERVICE,
+        key: USE_PROJECT_GITHUB_WALLET_KEY,
+        errorContext: 'project',
+    });
+}
+
+/**
+ * Resolves SMTP credential payload for USE EMAIL from wallet (agent scope first, then global).
+ */
+export async function resolveUseEmailSmtpCredentialFromWallet(
+    options: ResolveUseEmailSmtpCredentialOptions,
+): Promise<string | undefined> {
+    const scoped = await findLatestWalletAccessToken({
+        userId: options.userId,
+        agentPermanentId: options.agentPermanentId,
+        isGlobal: false,
+        service: USE_EMAIL_SMTP_WALLET_SERVICE,
+        key: USE_EMAIL_SMTP_WALLET_KEY,
+        errorContext: 'email SMTP',
+    });
+    if (scoped) {
+        return scoped;
+    }
+
+    return findLatestWalletAccessToken({
+        userId: options.userId,
+        isGlobal: true,
+        service: USE_EMAIL_SMTP_WALLET_SERVICE,
+        key: USE_EMAIL_SMTP_WALLET_KEY,
+        errorContext: 'email SMTP',
     });
 }
 
@@ -345,6 +390,9 @@ async function findLatestWalletAccessToken(options: {
     userId: number;
     agentPermanentId?: string;
     isGlobal: boolean;
+    service: string;
+    key: string;
+    errorContext: string;
 }): Promise<string | undefined> {
     const supabase = $provideSupabaseForServer();
     const tableName = await $getTableName('UserWallet');
@@ -353,8 +401,8 @@ async function findLatestWalletAccessToken(options: {
         .select('*')
         .eq('userId', options.userId)
         .eq('recordType', 'ACCESS_TOKEN')
-        .eq('service', USE_PROJECT_GITHUB_WALLET_SERVICE)
-        .eq('key', USE_PROJECT_GITHUB_WALLET_KEY)
+        .eq('service', options.service)
+        .eq('key', options.key)
         .is('deletedAt', null)
         .order('updatedAt', { ascending: false })
         .limit(1);
@@ -369,7 +417,7 @@ async function findLatestWalletAccessToken(options: {
 
     const { data, error } = await query.maybeSingle();
     if (error) {
-        throw new Error(`Failed to resolve project token from wallet: ${error.message}`);
+        throw new Error(`Failed to resolve ${options.errorContext} token from wallet: ${error.message}`);
     }
 
     const row = data as UserWalletRow | null;

@@ -4,14 +4,14 @@
  * This function proxies requests to the Agents Server API endpoint for email queuing,
  * making it safe to use in browser environments.
  *
- * @param args Email payload containing recipients, subject, and body
+ * @param args Email payload forwarded to the server-side `send_email` tool
  * @param agentsServerUrl The base URL of the agents server (defaults to current origin)
  * @returns Result string from the server-side send_email tool
  *
  * @private internal utility for USE EMAIL commitment
  */
 export async function sendEmailViaBrowser(
-    args: { to: string[]; cc?: string[]; subject: string; body: string },
+    args: Record<string, unknown>,
     agentsServerUrl?: string,
 ): Promise<string> {
     try {

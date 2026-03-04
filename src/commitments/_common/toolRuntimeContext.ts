@@ -50,6 +50,10 @@ export type ToolRuntimeContext = {
         githubToken?: string;
         repositories?: string[];
     };
+    email?: {
+        smtpCredential?: string;
+        fromAddress?: string;
+    };
 };
 
 /**

@@ -23,7 +23,9 @@ import {
     resolveMetaDisclaimerStatusForUser,
 } from '@/src/utils/metaDisclaimer';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
+import { extractUseEmailConfigurationFromAgentSource } from '@/src/utils/emails/extractUseEmailConfigurationFromAgentSource';
 import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
+import { resolveUseEmailSmtpCredential } from '@/src/utils/resolveUseEmailSmtpCredential';
 import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithubToken';
 import {
     createUserChat,
@@ -298,6 +300,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const agentId = resolvedAgentContext.parentAgentPermanentId;
         const resolvedAgentName = resolvedAgentContext.resolvedAgentName;
         const projectRepositories = extractProjectRepositoriesFromAgentSource(agentSource);
+        const useEmailConfiguration = extractUseEmailConfigurationFromAgentSource(agentSource);
         // [▶️] const executionTools = await $provideExecutionToolsForServer();
         const messageSuffix = resolveMessageSuffixFromAgentSource(agentSource);
         const currentUserIdentity = await resolveCurrentUserMemoryIdentity();
@@ -307,6 +310,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                   agentPermanentId: agentId,
               })
             : undefined;
+        const emailSmtpCredential =
+            currentUserIdentity && useEmailConfiguration.isEnabled
+                ? await resolveUseEmailSmtpCredential({
+                      userId: currentUserIdentity.userId,
+                      agentPermanentId: agentId,
+                  })
+                : undefined;
         const disclaimerMarkdown = resolveMetaDisclaimerMarkdownFromAgentSource(agentSource);
 
         if (disclaimerMarkdown) {
@@ -355,6 +365,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             isPrivateModeEnabled,
             projectRepositories,
             projectGithubToken,
+            emailSmtpCredential,
+            emailFromAddress: useEmailConfiguration.senderEmail,
         });
 
         // Use AgentKitCacheManager for vector store caching

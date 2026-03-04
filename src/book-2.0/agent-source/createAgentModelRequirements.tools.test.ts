@@ -118,6 +118,22 @@ describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
         );
     });
 
+    it('should add send_email tool when USE EMAIL is used', async () => {
+        const agentSource = validateBook(`
+            Test Agent
+            USE EMAIL agent@example.com
+        `);
+        const requirements = await createAgentModelRequirements(agentSource);
+
+        expect(requirements.tools).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({ name: 'send_email' }),
+            ]),
+        );
+        expect(requirements._metadata?.useEmail).toBe(true);
+        expect(requirements._metadata?.useEmailSender).toBe('agent@example.com');
+    });
+
     it('should add wallet tools when WALLET is used', async () => {
         const agentSource = validateBook(`
             Test Agent

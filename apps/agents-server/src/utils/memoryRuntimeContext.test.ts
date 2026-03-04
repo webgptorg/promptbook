@@ -70,4 +70,26 @@ describe('composePromptParametersWithMemoryContext', () => {
             githubToken: 'ghp_wallet_token',
         });
     });
+
+    it('embeds email runtime context when SMTP credential and sender are provided', () => {
+        const parameters = composePromptParametersWithMemoryContext({
+            baseParameters: {
+                plain: 'value',
+            },
+            currentUserIdentity: null,
+            agentName: 'Test Agent',
+            emailSmtpCredential:
+                '{"host":"smtp.example.com","port":587,"secure":false,"username":"agent@example.com","password":"secret"}',
+            emailFromAddress: 'agent@example.com',
+        });
+
+        expect(parameters.plain).toBe('value');
+
+        const runtimeContext = JSON.parse(parameters[TOOL_RUNTIME_CONTEXT_PARAMETER]!);
+        expect(runtimeContext.email).toEqual({
+            smtpCredential:
+                '{"host":"smtp.example.com","port":587,"secure":false,"username":"agent@example.com","password":"secret"}',
+            fromAddress: 'agent@example.com',
+        });
+    });
 });

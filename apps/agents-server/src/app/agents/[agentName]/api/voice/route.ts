@@ -7,7 +7,9 @@ import {
     resolveMetaDisclaimerMarkdownFromAgentSource,
     resolveMetaDisclaimerStatusForUser,
 } from '@/src/utils/metaDisclaimer';
+import { extractUseEmailConfigurationFromAgentSource } from '@/src/utils/emails/extractUseEmailConfigurationFromAgentSource';
 import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
+import { resolveUseEmailSmtpCredential } from '@/src/utils/resolveUseEmailSmtpCredential';
 import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithubToken';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
 import { Agent, computeAgentHash } from '@promptbook-local/core';
@@ -87,12 +89,20 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const currentUserIdentity = await resolveCurrentUserMemoryIdentity();
         const agentSource = await collection.getAgentSource(agentName);
         const projectRepositories = extractProjectRepositoriesFromAgentSource(agentSource);
+        const useEmailConfiguration = extractUseEmailConfigurationFromAgentSource(agentSource);
         const projectGithubToken = currentUserIdentity
             ? await resolveUseProjectGithubToken({
                   userId: currentUserIdentity.userId,
                   agentPermanentId,
               })
             : undefined;
+        const emailSmtpCredential =
+            currentUserIdentity && useEmailConfiguration.isEnabled
+                ? await resolveUseEmailSmtpCredential({
+                      userId: currentUserIdentity.userId,
+                      agentPermanentId,
+                  })
+                : undefined;
         const disclaimerMarkdown = resolveMetaDisclaimerMarkdownFromAgentSource(agentSource);
 
         if (disclaimerMarkdown) {
@@ -135,6 +145,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             isPrivateModeEnabled,
             projectRepositories,
             projectGithubToken,
+            emailSmtpCredential,
+            emailFromAddress: useEmailConfiguration.senderEmail,
         });
         const openAiAgentKitExecutionTools = await $provideOpenAiAgentKitExecutionToolsForServer();
         const agent = new Agent({

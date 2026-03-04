@@ -13,29 +13,7 @@ import { send_email } from '../../../tools/send_email';
 export async function POST(request: NextRequest) {
     try {
         const payload = await request.json();
-
-        const to = payload?.to;
-        const cc = payload?.cc;
-        const subject = payload?.subject;
-        const body = payload?.body;
-
-        if (!Array.isArray(to) || to.length === 0) {
-            return NextResponse.json({ error: 'At least one recipient is required' }, { status: 400 });
-        }
-
-        if (cc !== undefined && !Array.isArray(cc)) {
-            return NextResponse.json({ error: 'CC must be an array of email addresses' }, { status: 400 });
-        }
-
-        if (typeof subject !== 'string' || subject.trim() === '') {
-            return NextResponse.json({ error: 'Subject is required' }, { status: 400 });
-        }
-
-        if (typeof body !== 'string' || body.trim() === '') {
-            return NextResponse.json({ error: 'Body is required' }, { status: 400 });
-        }
-
-        const result = await send_email({ to, cc, subject, body });
+        const result = await send_email(payload);
 
         return NextResponse.json(
             {
