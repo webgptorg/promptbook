@@ -1868,44 +1868,31 @@
     color: #a16207;
 }
 
-.toolCallFooter {
+.toolCallModeFooter {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
     gap: 12px;
     padding: 0 32px 24px;
     flex-wrap: wrap;
 }
 
-.toolCallTimestamp {
+.toolCallModeButton {
+    border: 1px solid #cbd5e1;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #0f172a;
+    padding: 8px 16px;
     font-size: 13px;
-    color: #475467;
-}
-
-.toolCallRawDetails {
-    font-size: 13px;
-    color: #2563eb;
-}
-
-.toolCallRawSummary {
-    cursor: pointer;
     font-weight: 600;
-    color: #2563eb;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
 }
 
-.toolCallRawColumns {
-    margin-top: 12px;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 12px;
-}
-
-.toolCallRawColumnTitle {
-    margin: 0 0 8px 0;
-    font-size: 11px;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-    color: #94a3b8;
+.toolCallModeButton:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+    transform: translateY(-1px);
 }
 
 .memoryModalHeader {
@@ -1945,12 +1932,6 @@
     margin: 4px 0 0;
     color: #475467;
     font-size: 14px;
-}
-
-.memoryModalCallTime {
-    margin: 4px 0 0;
-    color: #94a3b8;
-    font-size: 13px;
 }
 
 .memoryModalStatus {
@@ -2524,17 +2505,6 @@
     font-size: 0.85em;
     white-space: pre-wrap;
     word-break: break-word;
-}
-
-.toolCallArgsList {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.toolCallArgsList li {
-    margin-bottom: 5px;
-    font-size: 0.9em;
 }
 
 .toolCallModal .toolCallData {

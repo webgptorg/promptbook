@@ -57,6 +57,13 @@ export type ChatToolCallModalProps = {
 };
 
 /**
+ * View mode available in the tool action modal.
+ *
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+type ToolCallModalViewMode = 'simple' | 'advanced';
+
+/**
  * Modal that renders rich tool call details for chat chiplets.
  *
  * @private component of `<Chat/>`
@@ -65,6 +72,7 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
     const { isOpen, toolCall, onClose, toolTitles, agentParticipant, buttonColor, teamAgentProfiles } = props;
     const [teamProfiles, setTeamProfiles] = useState<Record<string, AgentProfileData>>({});
     const [selectedTeamToolCall, setSelectedTeamToolCall] = useState<TransitiveToolCall | null>(null);
+    const [viewMode, setViewMode] = useState<ToolCallModalViewMode>('simple');
 
     const resultRaw = useMemo(() => (toolCall ? parseToolCallResult(toolCall.result) : null), [toolCall]);
     const teamResult = useMemo(() => parseTeamToolResult(resultRaw), [resultRaw]);
@@ -132,18 +140,28 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
     useEffect(() => {
         if (!isOpen) {
             setSelectedTeamToolCall(null);
+            setViewMode('simple');
             return;
         }
 
         setSelectedTeamToolCall(null);
+        setViewMode('simple');
     }, [isOpen, toolCall]);
 
     if (!isOpen || !toolCall) {
         return null;
     }
 
-    const modalContent = teamResult?.teammate
-        ? (() => {
+    const focusedToolCall = selectedTeamToolCall?.toolCall || toolCall;
+
+    const modalContent =
+        viewMode === 'advanced'
+            ? renderAdvancedToolCallDetails({
+                  toolCall: focusedToolCall,
+                  toolTitles,
+              })
+            : teamResult?.teammate
+              ? (() => {
               const teammateUrl = teamResult.teammate.url || '';
               const baseTime = toolCallDate ? toolCallDate.getTime() : Date.now();
               const teamToolCalls = teamToolCallSummary.toolCalls;
@@ -269,7 +287,7 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
                               <div className={styles.teamToolCallSection}>
                                   {hasTeamToolCalls && (
                                       <div className={styles.teamToolCallGroup}>
-                                          <div className={styles.teamToolCallHeading}>Tool calls</div>
+                                          <div className={styles.teamToolCallHeading}>Actions</div>
                                           <div className={styles.teamToolCallChips}>
                                               {teamToolCalls.map((toolCallEntry, index) => {
                                                   const chipletInfo = getToolCallChipletInfo(toolCallEntry.toolCall);
@@ -313,7 +331,7 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
                                       <div className={styles.teamToolCallDetails}>
                                           <div className={styles.teamToolCallDetailsHeader}>
                                               <span className={styles.teamToolCallDetailsTitle}>
-                                                  Tool call details
+                                                  Action details
                                                   <span className={styles.toolCallOrigin}>
                                                       by {selectedTeamToolCall.origin.label}
                                                   </span>
@@ -342,12 +360,12 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
                   </>
               );
           })()
-        : renderToolCallDetails({
-              toolCall,
-              toolTitles,
-              agentParticipant,
-              buttonColor,
-          });
+              : renderToolCallDetails({
+                    toolCall,
+                    toolTitles,
+                    agentParticipant,
+                    buttonColor,
+                });
 
     return (
         <div
@@ -363,6 +381,17 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
                     <CloseIcon />
                 </button>
                 {modalContent}
+                <div className={styles.toolCallModeFooter}>
+                    <button
+                        type="button"
+                        className={styles.toolCallModeButton}
+                        onClick={() => {
+                            setViewMode((previous) => (previous === 'simple' ? 'advanced' : 'simple'));
+                        }}
+                    >
+                        {viewMode === 'simple' ? 'Advanced' : 'Simple'}
+                    </button>
+                </div>
             </div>
         </div>
     );
@@ -476,10 +505,6 @@ type MemoryToolCallViewOptions = {
      * Parsed tool call result.
      */
     resultRaw: TODO_any;
-    /**
-     * Timestamp when the tool call was issued.
-     */
-    toolCallDate: Date | null;
 };
 
 /**
@@ -509,7 +534,7 @@ const MEMORY_STATUS_CLASS_BY_TONE: Record<MemoryStatusTone, string> = {
  * @private internal utility of `<ChatToolCallModal/>`
  */
 function renderMemoryToolCall(options: MemoryToolCallViewOptions): ReactElement | null {
-    const { toolCall, args, resultRaw, toolCallDate } = options;
+    const { toolCall, args, resultRaw } = options;
     if (toolCall.name !== 'retrieve_user_memory' && toolCall.name !== 'store_user_memory') {
         return null;
     }
@@ -524,11 +549,6 @@ function renderMemoryToolCall(options: MemoryToolCallViewOptions): ReactElement 
     const heroSubtitle = isStoreAction
         ? 'This detail is now stored so future chats will remember it.'
         : 'The agent pulled these facts from the memory vault.';
-    const callTimeLabel =
-        toolCallDate?.toLocaleString(undefined, {
-            dateStyle: 'medium',
-            timeStyle: 'short',
-        }) ?? 'Call time unavailable';
     const statusInfo = buildMemoryStatusInfo(memoryResult.status, memoryResult.action);
     const statusClass = MEMORY_STATUS_CLASS_BY_TONE[statusInfo.tone] || styles.memoryStatusNeutral;
 
@@ -539,7 +559,6 @@ function renderMemoryToolCall(options: MemoryToolCallViewOptions): ReactElement 
                 <div className={styles.memoryModalHeaderText}>
                     <h3 className={styles.memoryModalTitle}>{heroTitle}</h3>
                     <p className={styles.memoryModalSubtitle}>{heroSubtitle}</p>
-                    <p className={styles.memoryModalCallTime}>Call recorded {callTimeLabel}</p>
                 </div>
                 <div className={classNames(styles.memoryModalStatus, statusClass)}>
                     <span className={styles.memoryStatusDot}></span>
@@ -825,7 +844,6 @@ function renderToolCallDetails(options: ToolCallDetailsOptions): ReactElement {
         toolCall,
         args,
         resultRaw,
-        toolCallDate,
     });
     if (memoryView) {
         return memoryView;
@@ -891,16 +909,6 @@ function renderToolCallDetails(options: ToolCallDetailsOptions): ReactElement {
                                     </button>
                                 </div>
                             )}
-                        </div>
-                    </div>
-                    <div className={styles.toolCallDetails}>
-                        <p>
-                            <strong>Result:</strong>
-                        </p>
-                        <div className={styles.toolCallDataContainer}>
-                            <pre className={styles.toolCallData}>
-                                {typeof resultRaw === 'object' ? JSON.stringify(resultRaw, null, 2) : String(resultRaw)}
-                            </pre>
                         </div>
                     </div>
                 </div>
@@ -1093,7 +1101,6 @@ function renderToolCallDetails(options: ToolCallDetailsOptions): ReactElement {
             (emailResult?.from as string | undefined) ||
             (emailResult?.sender as string | undefined) ||
             'Configured sender';
-        const sentAt = toolCallDate ? toolCallDate.toLocaleString() : null;
         const status = typeof emailResult?.status === 'string' ? emailResult.status : null;
 
         return (
@@ -1129,12 +1136,6 @@ function renderToolCallDetails(options: ToolCallDetailsOptions): ReactElement {
                                 <strong>Subject:</strong>
                                 <span>{subject}</span>
                             </div>
-                            {sentAt && (
-                                <div className={styles.emailField}>
-                                    <strong>Sent:</strong>
-                                    <span>{sentAt}</span>
-                                </div>
-                            )}
                             {status && (
                                 <div className={styles.emailField}>
                                     <strong>Status:</strong>
@@ -1149,16 +1150,6 @@ function renderToolCallDetails(options: ToolCallDetailsOptions): ReactElement {
                             </div>
                         </div>
                     </div>
-                    <div className={styles.toolCallDetails}>
-                        <p>
-                            <strong>Result:</strong>
-                        </p>
-                        <div className={styles.toolCallDataContainer}>
-                            <pre className={styles.toolCallData}>
-                                {typeof resultRaw === 'object' ? JSON.stringify(resultRaw, null, 2) : String(resultRaw)}
-                            </pre>
-                        </div>
-                    </div>
                 </div>
             </>
         );
@@ -1168,13 +1159,8 @@ function renderToolCallDetails(options: ToolCallDetailsOptions): ReactElement {
     const toolMetadata = TOOL_TITLES[toolCall.name];
     const headerEmoji = toolMetadata?.emoji || extractLeadingEmoji(chipletInfo.text) || '🛠️';
     const headerTitle = toolTitles?.[toolCall.name] || toolMetadata?.title || chipletInfo.text || toolCall.name;
-    const callTimestamp = toolCallDate
-        ? toolCallDate.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
-        : 'Time unavailable';
-    const relativeTimestamp = toolCallDate ? moment(toolCallDate).fromNow() : null;
     const argumentEntries = buildArgumentEntries(args);
     const resultSummary = buildToolCallResultSummary(resultRaw);
-    const resultKindLabel = describeResultKind(resultRaw);
     const resultCount = getResultItemCount(resultRaw);
     const toolCallIssues = normalizeToolCallIssues(toolCall);
 
@@ -1185,17 +1171,15 @@ function renderToolCallDetails(options: ToolCallDetailsOptions): ReactElement {
                     {headerEmoji}
                 </span>
                 <div className={styles.toolCallHeaderMeta}>
-                    <p className={styles.toolCallModalLabel}>Tool call</p>
+                    <p className={styles.toolCallModalLabel}>Action</p>
                     <h3 className={styles.toolCallTitle}>{headerTitle}</h3>
-                    <p className={styles.toolCallSubtitle}>
-                        {relativeTimestamp ? `Executed ${relativeTimestamp}` : 'Executed just now'} · {callTimestamp}
-                    </p>
+                    <p className={styles.toolCallSubtitle}>Here is what happened.</p>
                 </div>
             </header>
 
             <div className={styles.toolCallGrid}>
                 <section className={styles.toolCallPanel}>
-                    <p className={styles.toolCallPanelTitle}>What the agent requested</p>
+                    <p className={styles.toolCallPanelTitle}>Request</p>
                     {argumentEntries.length > 0 ? (
                         <ul className={styles.toolCallList}>
                             {argumentEntries.map((entry) => (
@@ -1206,27 +1190,24 @@ function renderToolCallDetails(options: ToolCallDetailsOptions): ReactElement {
                             ))}
                         </ul>
                     ) : (
-                        <p className={styles.toolCallEmpty}>No inputs were provided for this tool call.</p>
+                        <p className={styles.toolCallEmpty}>No extra details were needed.</p>
                     )}
                 </section>
 
                 <section className={styles.toolCallPanel}>
-                    <p className={styles.toolCallPanelTitle}>What happened</p>
+                    <p className={styles.toolCallPanelTitle}>Outcome</p>
                     {resultSummary ? (
                         <p className={styles.toolCallSummary}>{resultSummary}</p>
                     ) : (
-                        <p className={styles.toolCallEmpty}>
-                            The tool responded, but no friendly summary is available.
-                        </p>
+                        <p className={styles.toolCallEmpty}>The action finished, but there is no short summary.</p>
                     )}
-                    <div className={styles.toolCallSummaryMeta}>
-                        <span className={styles.toolCallSummaryMetaBadge}>{resultKindLabel}</span>
-                        {typeof resultCount === 'number' && (
+                    {typeof resultCount === 'number' && (
+                        <div className={styles.toolCallSummaryMeta}>
                             <span className={styles.toolCallSummaryMetaBadge}>
                                 Returned {resultCount} {resultCount === 1 ? 'item' : 'items'}
                             </span>
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </section>
             </div>
 
@@ -1245,46 +1226,115 @@ function renderToolCallDetails(options: ToolCallDetailsOptions): ReactElement {
                     ))}
                 </div>
             )}
-
-            <footer className={styles.toolCallFooter}>
-                <span className={styles.toolCallTimestamp}>
-                    {toolCallDate ? `Recorded ${toolCallDate.toLocaleString()}` : 'Timestamp unavailable'}
-                </span>
-
-                <details className={styles.toolCallRawDetails}>
-                    <summary className={styles.toolCallRawSummary}>View raw payload</summary>
-                    <div className={styles.toolCallRawColumns}>
-                        <div className={styles.toolCallRawColumn}>
-                            <h4 className={styles.toolCallRawColumnTitle}>Arguments</h4>
-                            <div className={styles.toolCallDataContainer}>
-                                {argumentEntries.length > 0 ? (
-                                    <ul className={styles.toolCallArgsList}>
-                                        {argumentEntries.map((entry) => (
-                                            <li key={`raw-${entry.label}`}>
-                                                <strong>{entry.label}:</strong> {entry.value}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                ) : (
-                                    <pre className={styles.toolCallData}>No arguments provided.</pre>
-                                )}
-                            </div>
-                        </div>
-                        <div className={styles.toolCallRawColumn}>
-                            <h4 className={styles.toolCallRawColumnTitle}>Result</h4>
-                            <div className={styles.toolCallDataContainer}>
-                                <pre className={styles.toolCallData}>
-                                    {typeof resultRaw === 'object'
-                                        ? JSON.stringify(resultRaw, null, 2)
-                                        : String(resultRaw ?? 'No result')}
-                                </pre>
-                            </div>
-                        </div>
-                    </div>
-                </details>
-            </footer>
         </>
     );
+}
+
+/**
+ * Rendering options for advanced raw payload details.
+ *
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+type AdvancedToolCallDetailsOptions = {
+    /**
+     * Tool call currently selected in the modal.
+     */
+    toolCall: NonNullable<ChatMessage['toolCalls']>[number];
+    /**
+     * Optional mapping of tool titles.
+     */
+    toolTitles?: Record<string, string>;
+};
+
+/**
+ * Renders a technical view with raw tool input/output payloads.
+ *
+ * @param options - Rendering options for advanced mode.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function renderAdvancedToolCallDetails(options: AdvancedToolCallDetailsOptions): ReactElement {
+    const { toolCall, toolTitles } = options;
+    const chipletInfo = getToolCallChipletInfo(toolCall);
+    const toolMetadata = TOOL_TITLES[toolCall.name];
+    const headerEmoji = toolMetadata?.emoji || extractLeadingEmoji(chipletInfo.text) || '🛠️';
+    const headerTitle = toolTitles?.[toolCall.name] || toolMetadata?.title || chipletInfo.text || toolCall.name;
+
+    return (
+        <>
+            <header className={styles.toolCallHeader}>
+                <span className={styles.toolCallIcon} aria-hidden="true">
+                    {headerEmoji}
+                </span>
+                <div className={styles.toolCallHeaderMeta}>
+                    <p className={styles.toolCallModalLabel}>Advanced</p>
+                    <h3 className={styles.toolCallTitle}>{headerTitle}</h3>
+                    <p className={styles.toolCallSubtitle}>{toolCall.name}</p>
+                </div>
+            </header>
+
+            <div className={styles.toolCallGrid}>
+                <section className={styles.toolCallPanel}>
+                    <p className={styles.toolCallPanelTitle}>Input payload</p>
+                    <div className={styles.toolCallDataContainer}>
+                        <pre className={styles.toolCallData}>{stringifyRawPayload(toolCall.arguments)}</pre>
+                    </div>
+                </section>
+
+                <section className={styles.toolCallPanel}>
+                    <p className={styles.toolCallPanelTitle}>Output payload</p>
+                    <div className={styles.toolCallDataContainer}>
+                        <pre className={styles.toolCallData}>{stringifyRawPayload(toolCall.result)}</pre>
+                    </div>
+                </section>
+
+                <section className={styles.toolCallPanel}>
+                    <p className={styles.toolCallPanelTitle}>Model payload</p>
+                    <div className={styles.toolCallDataContainer}>
+                        <pre className={styles.toolCallData}>{stringifyRawPayload(toolCall.rawToolCall)}</pre>
+                    </div>
+                </section>
+
+                <section className={styles.toolCallPanel}>
+                    <p className={styles.toolCallPanelTitle}>Full event</p>
+                    <div className={styles.toolCallDataContainer}>
+                        <pre className={styles.toolCallData}>{stringifyRawPayload(toolCall)}</pre>
+                    </div>
+                </section>
+            </div>
+        </>
+    );
+}
+
+/**
+ * Converts any tool payload into a raw string for advanced rendering.
+ *
+ * @param value - Payload value to stringify.
+ * @returns Raw string representation suitable for `<pre/>`.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function stringifyRawPayload(value: TODO_any): string {
+    if (value === undefined) {
+        return 'undefined';
+    }
+
+    if (value === null) {
+        return 'null';
+    }
+
+    if (typeof value === 'string') {
+        return value;
+    }
+
+    if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
+        return String(value);
+    }
+
+    try {
+        const serialized = JSON.stringify(value, null, 2);
+        return serialized === undefined ? String(value) : serialized;
+    } catch {
+        return String(value);
+    }
 }
 
 /**
@@ -1438,36 +1488,6 @@ function findStringCandidate(value: TODO_any, keys: string[]): string | null {
     }
 
     return null;
-}
-
-/**
- * Describes the kind of result that was returned to guide the summary badge row.
- *
- * @param resultRaw - Tool call result payload.
- * @returns Friendly label describing the result type.
- */
-function describeResultKind(resultRaw: TODO_any): string {
-    if (resultRaw === null || resultRaw === undefined) {
-        return 'No response';
-    }
-
-    if (typeof resultRaw === 'string') {
-        return 'Text response';
-    }
-
-    if (typeof resultRaw === 'number') {
-        return 'Numeric response';
-    }
-
-    if (Array.isArray(resultRaw)) {
-        return 'List response';
-    }
-
-    if (typeof resultRaw === 'object') {
-        return 'Structured response';
-    }
-
-    return 'Unknown response';
 }
 
 /**

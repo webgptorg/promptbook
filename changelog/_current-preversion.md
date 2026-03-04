@@ -1,3 +1,4 @@
+-   Reworked Agents Server chat chip popups to support dual simple/advanced views across tool-backed commitments (`USE BROWSER`, `USE PROJECT`, `KNOWLEDGE`, `USE SEARCH ENGINE`, `TEAM`, etc.): default modal copy is now user-friendly and non-technical (without tool-call/parameter wording and without call timestamps except for time tools), while the new `Advanced` toggle switches to an explicit raw inspector that shows unformatted input payload, output payload, model payload, and full tool event JSON.
 -   Reworked `USE EMAIL` for Agents Server to support wallet-backed outbound SMTP sending:
     -   `USE EMAIL` now understands optional sender declaration (for example `USE EMAIL agent@example.com`) and exposes stronger tool/system guidance for Message-based `send_email` usage.
     -   Added SMTP wallet credential flow (service `smtp`, key `use-email-smtp-credentials`) wired through hidden runtime context in chat, voice, and OpenAI-compatible chat endpoints.
