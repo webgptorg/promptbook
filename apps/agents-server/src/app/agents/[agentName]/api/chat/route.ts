@@ -27,16 +27,10 @@ import { extractUseEmailConfigurationFromAgentSource } from '@/src/utils/emails/
 import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
 import { resolveUseEmailSmtpCredential } from '@/src/utils/resolveUseEmailSmtpCredential';
 import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithubToken';
-import {
-    createUserChat,
-    getUserChat,
-    updateUserChatMessages,
-} from '@/src/utils/userChat';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
-import { extractUserChatSynchronizationPayload } from '@/src/utils/chat/userChatSynchronization';
 import type { ChatMessage } from '@promptbook-local/components';
 import { Agent, computeAgentHash, normalizeChatAttachments, RemoteAgent } from '@promptbook-local/core';
-import type { ToolCall, string_date_iso8601 } from '@promptbook-local/types';
+import type { ToolCall } from '@promptbook-local/types';
 import { $getCurrentDate, serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { ASSISTANT_PREPARATION_TOOL_CALL_NAME } from '../../../../../../../../src/types/ToolCall';
@@ -62,16 +56,6 @@ type ChatRequestBody = {
  * Error name used when a chat stream is cancelled by the client.
  */
 const CHAT_STREAM_ABORTED_ERROR_NAME = 'ChatStreamAbortedError';
-
-/**
- * Interval used to throttle in-progress chat sync writes.
- */
-const USER_CHAT_STREAM_SYNC_THROTTLE_MS = 1_000;
-
-/**
- * Fallback message stored when streaming fails before producing any content.
- */
-const USER_CHAT_STREAM_FAILURE_MESSAGE = 'The response could not be completed due to a server error.';
 
 /**
  * Extracts safe user message content from request payload.
@@ -115,101 +99,6 @@ function createChatStreamAbortedError(): Error {
     error.name = CHAT_STREAM_ABORTED_ERROR_NAME;
     return error;
 }
-
-/**
- * Builds one user chat message row for persistence.
- */
-function createPersistedUserMessage(
-    content: string,
-    attachments: ChatMessage['attachments'],
-    createdAt: string_date_iso8601,
-): ChatMessage {
-    return {
-        id: `user_${Date.now()}`,
-        createdAt,
-        sender: 'USER',
-        content,
-        attachments,
-        isComplete: true,
-    };
-}
-
-/**
- * Builds one placeholder assistant message that will be progressively updated while streaming.
- */
-function createPersistedAssistantMessage(assistantMessageId: string, createdAt: string_date_iso8601): ChatMessage {
-    return {
-        id: assistantMessageId,
-        createdAt,
-        sender: 'AGENT',
-        content: '',
-        isComplete: false,
-    };
-}
-
-/**
- * Ensures the persisted thread includes the latest user prompt as its newest user message.
- */
-function buildPersistedThreadMessages(options: {
-    thread: ReadonlyArray<ChatMessage> | undefined;
-    message: string;
-    attachments: ChatMessage['attachments'];
-    createdAt: string_date_iso8601;
-}): Array<ChatMessage> {
-    const normalizedThread = options.thread ? [...options.thread] : [];
-    const lastMessage = normalizedThread[normalizedThread.length - 1];
-    const isLastMessageUser = typeof lastMessage?.sender === 'string' && lastMessage.sender.toUpperCase() === 'USER';
-    const lastMessageContent = typeof lastMessage?.content === 'string' ? lastMessage.content : '';
-
-    if (isLastMessageUser && lastMessageContent.trim() === options.message.trim()) {
-        return normalizedThread;
-    }
-
-    return [
-        ...normalizedThread,
-        createPersistedUserMessage(options.message, options.attachments, options.createdAt),
-    ];
-}
-
-/**
- * Builds one assistant message snapshot for persisted user-chat synchronization.
- */
-function buildPersistedAssistantMessageUpdate(options: {
-    assistantMessageId: string;
-    assistantMessageStartedAt: string_date_iso8601;
-    content: string;
-    isComplete: boolean;
-    toolCalls?: ReadonlyArray<ToolCall>;
-    generationDurationMs?: number;
-}): ChatMessage {
-    return {
-        id: options.assistantMessageId,
-        createdAt: options.assistantMessageStartedAt,
-        sender: 'AGENT',
-        content: options.content,
-        isComplete: options.isComplete,
-        ongoingToolCalls: options.isComplete ? undefined : options.toolCalls,
-        toolCalls: options.isComplete ? options.toolCalls : undefined,
-        completedToolCalls: options.isComplete ? options.toolCalls : undefined,
-        generationDurationMs: options.generationDurationMs,
-    };
-}
-
-/**
- * Mutable state used while persisting one streaming response into `UserChat`.
- */
-type UserChatSynchronizationState = {
-    userId: number;
-    agentPermanentId: string;
-    chatId: string;
-    assistantMessageId: string;
-    assistantMessageStartedAt: string_date_iso8601;
-    assistantContent: string;
-    assistantToolCalls?: ReadonlyArray<ToolCall>;
-    messages: Array<ChatMessage>;
-    pendingPersist: Promise<void>;
-    lastPersistedAtMs: number;
-};
 
 /**
  * Detects runtime abort errors thrown by web streams/fetch when the client disconnects.
@@ -283,7 +172,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     const message = resolveUserMessageContent(body.message);
     const thread = body.thread ? [...body.thread] : undefined;
     const attachments = normalizeChatAttachments(body.attachments);
-    const { cleanedParameters: incomingParameters, userChatId } = extractUserChatSynchronizationPayload(body.parameters);
+    const rawParameters = body.parameters ?? {};
     const isPrivateModeEnabled = isPrivateModeEnabledFromRequest(request);
     //      <- TODO: [🐱‍🚀] To configuration DEFAULT_INITIAL_HIDDEN_MESSAGE
 
@@ -357,6 +246,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             }
         }
 
+        const incomingParameters =
+            rawParameters && typeof rawParameters === 'object' && !Array.isArray(rawParameters)
+                ? (rawParameters as Record<string, unknown>)
+                : {};
         const promptParameters = composePromptParametersWithMemoryContext({
             baseParameters: incomingParameters,
             currentUserIdentity,
@@ -396,62 +289,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             previousMessageHash: null, // <- TODO: [🧠] How to handle previous message hash?
         });
 
-        const assistantMessageStartedAt = $getCurrentDate();
-        const assistantMessageId = `assistant_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-        let userChatSynchronization: UserChatSynchronizationState | null = null;
-
-        if (!isPrivateModeEnabled && userChatId && currentUserIdentity) {
-            try {
-                const threadMessages = buildPersistedThreadMessages({
-                    thread,
-                    message,
-                    attachments,
-                    createdAt: $getCurrentDate(),
-                });
-                const initialMessages = [
-                    ...threadMessages,
-                    createPersistedAssistantMessage(assistantMessageId, assistantMessageStartedAt),
-                ];
-
-                const existingChat = await getUserChat({
-                    userId: currentUserIdentity.userId,
-                    agentPermanentId: agentId,
-                    chatId: userChatId,
-                });
-
-                if (existingChat) {
-                    await updateUserChatMessages({
-                        userId: currentUserIdentity.userId,
-                        agentPermanentId: agentId,
-                        chatId: userChatId,
-                        messages: initialMessages,
-                    });
-                } else {
-                    await createUserChat({
-                        userId: currentUserIdentity.userId,
-                        agentPermanentId: agentId,
-                        chatId: userChatId,
-                        messages: initialMessages,
-                    });
-                }
-
-                userChatSynchronization = {
-                    userId: currentUserIdentity.userId,
-                    agentPermanentId: agentId,
-                    chatId: userChatId,
-                    assistantMessageId,
-                    assistantMessageStartedAt,
-                    assistantContent: '',
-                    assistantToolCalls: undefined,
-                    messages: initialMessages,
-                    pendingPersist: Promise.resolve(),
-                    lastPersistedAtMs: Date.now(),
-                };
-            } catch (error) {
-                console.warn('[Agent chat stream] Failed to initialize user-chat synchronization', error);
-            }
-        }
-
         const encoder = new TextEncoder();
         const readableStream = new ReadableStream({
             async start(controller) {
@@ -459,7 +296,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                 let keepAliveInterval: ReturnType<typeof setInterval> | undefined;
                 let lastToolCallsFrame: string | null = null;
                 let isStreamClosed = false;
-                const isPersistedUserChatSyncEnabled = userChatSynchronization !== null;
 
                 /**
                  * Clears keep-alive timers and prevents additional writes to the response stream.
@@ -478,111 +314,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                 };
 
                 /**
-                 * Returns true when generation should be cancelled due to client abort.
+                 * Returns true when streaming should stop due to closed connection or aborted request.
                  */
-                const shouldCancelGeneration = (): boolean => {
-                    if (isPersistedUserChatSyncEnabled) {
-                        return false;
-                    }
-
-                    return request.signal.aborted;
+                const isStreamCancelled = (): boolean => {
+                    return isStreamClosed || request.signal.aborted;
                 };
 
                 /**
-                 * Updates the synchronized `UserChat` assistant message and persists it to the database.
-                 */
-                const updateSynchronizedUserChatAssistant = (options: {
-                    content?: string;
-                    toolCalls?: ReadonlyArray<ToolCall>;
-                    isComplete: boolean;
-                    generationDurationMs?: number;
-                    forcePersist?: boolean;
-                }): Promise<void> => {
-                    const synchronizedChat = userChatSynchronization;
-                    if (!synchronizedChat) {
-                        return Promise.resolve();
-                    }
-
-                    if (typeof options.content === 'string') {
-                        synchronizedChat.assistantContent = options.content;
-                    }
-
-                    if (options.toolCalls) {
-                        synchronizedChat.assistantToolCalls = [...options.toolCalls];
-                    }
-
-                    const assistantMessage = buildPersistedAssistantMessageUpdate({
-                        assistantMessageId: synchronizedChat.assistantMessageId,
-                        assistantMessageStartedAt: synchronizedChat.assistantMessageStartedAt,
-                        content: synchronizedChat.assistantContent,
-                        isComplete: options.isComplete,
-                        toolCalls: synchronizedChat.assistantToolCalls,
-                        generationDurationMs: options.generationDurationMs,
-                    });
-
-                    const assistantMessageIndex = synchronizedChat.messages.findIndex(
-                        (message) => message.id === synchronizedChat.assistantMessageId,
-                    );
-                    if (assistantMessageIndex === -1) {
-                        synchronizedChat.messages = [...synchronizedChat.messages, assistantMessage];
-                    } else {
-                        const nextMessages = [...synchronizedChat.messages];
-                        nextMessages[assistantMessageIndex] = assistantMessage;
-                        synchronizedChat.messages = nextMessages;
-                    }
-
-                    const nowMs = Date.now();
-                    const shouldPersistNow =
-                        options.forcePersist ||
-                        nowMs - synchronizedChat.lastPersistedAtMs >= USER_CHAT_STREAM_SYNC_THROTTLE_MS;
-                    if (!shouldPersistNow) {
-                        return synchronizedChat.pendingPersist;
-                    }
-
-                    synchronizedChat.lastPersistedAtMs = nowMs;
-                    const nextMessagesSnapshot = [...synchronizedChat.messages];
-                    const persistenceTask = synchronizedChat.pendingPersist
-                        .catch(() => undefined)
-                        .then(async () => {
-                            await updateUserChatMessages({
-                                userId: synchronizedChat.userId,
-                                agentPermanentId: synchronizedChat.agentPermanentId,
-                                chatId: synchronizedChat.chatId,
-                                messages: nextMessagesSnapshot,
-                            });
-                        })
-                        .catch((error) => {
-                            console.warn('[Agent chat stream] Failed to synchronize user chat', error);
-                        });
-
-                    synchronizedChat.pendingPersist = persistenceTask;
-                    return persistenceTask;
-                };
-
-                /**
-                 * Appends one streamed markdown delta into synchronized user-chat state.
-                 */
-                const appendSynchronizedUserChatDelta = (delta: string): void => {
-                    if (!userChatSynchronization || !delta) {
-                        return;
-                    }
-
-                    userChatSynchronization.assistantContent += delta;
-                    void updateSynchronizedUserChatAssistant({
-                        content: userChatSynchronization.assistantContent,
-                        isComplete: false,
-                    });
-                };
-
-                /**
-                 * Enqueues one markdown chunk while normalizing client disconnects.
+                 * Enqueues one markdown chunk while normalizing client disconnects to cancellation errors.
                  */
                 const enqueueChunk = (chunk: string): void => {
-                    if (isStreamClosed) {
-                        return;
-                    }
-
-                    if (shouldCancelGeneration()) {
+                    if (isStreamCancelled()) {
                         throw createChatStreamAbortedError();
                     }
 
@@ -591,12 +333,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     } catch (error) {
                         if (isAbortLikeError(error) || request.signal.aborted) {
                             markStreamClosed();
-
-                            if (!isPersistedUserChatSyncEnabled) {
-                                throw createChatStreamAbortedError();
-                            }
-
-                            return;
+                            throw createChatStreamAbortedError();
                         }
                         throw error;
                     }
@@ -658,10 +395,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     }
 
                     const preparedToolCalls = prepareToolCallsForStreaming(toolCalls);
-                    void updateSynchronizedUserChatAssistant({
-                        toolCalls: preparedToolCalls,
-                        isComplete: false,
-                    });
                     const frame = createToolCallsStreamFrame(preparedToolCalls);
                     if (frame === lastToolCallsFrame) {
                         return;
@@ -671,7 +404,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     enqueueChunk(frame);
                 };
 
-                if (shouldCancelGeneration()) {
+                if (isStreamCancelled()) {
                     return;
                 }
 
@@ -687,7 +420,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                         if (deltaContent.trim().length > 0) {
                             hasMeaningfulDelta = true;
                         }
-                        appendSynchronizedUserChatDelta(deltaContent);
                         sendTextChunk(deltaContent);
                     },
                     onToolCalls: (toolCalls) => {
@@ -724,7 +456,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                         }), // <- [🦋]
                     });
 
-                    const streamCallOptions = isPersistedUserChatSyncEnabled ? undefined : { signal: request.signal };
                     const response = await agent.callChatModelStream!(
                         {
                             title: `Chat with agent ${
@@ -739,10 +470,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                             attachments,
                         },
                         handleStreamChunk,
-                        streamCallOptions,
+                        { signal: request.signal },
                     );
 
-                    if (shouldCancelGeneration()) {
+                    if (isStreamCancelled()) {
                         throw createChatStreamAbortedError();
                     }
 
@@ -752,7 +483,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     });
 
                     if (normalizedResponse.wasEmpty && !hasMeaningfulDelta) {
-                        appendSynchronizedUserChatDelta(normalizedResponse.content);
                         sendTextChunk(normalizedResponse.content);
                     }
 
@@ -762,25 +492,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     );
                     if (messageSuffixAppendix) {
                         await emulateMessageSuffixStreaming(messageSuffixAppendix, (delta) => {
-                            appendSynchronizedUserChatDelta(delta);
                             sendTextChunk(delta);
                         });
                     }
 
-                    if (shouldCancelGeneration()) {
+                    if (isStreamCancelled()) {
                         throw createChatStreamAbortedError();
                     }
 
                     const responseContentWithSuffix = appendMessageSuffix(normalizedResponse.content, messageSuffix);
-                    const generationDurationMs = Math.max(0, Date.now() - Date.parse(assistantMessageStartedAt));
-
-                    await updateSynchronizedUserChatAssistant({
-                        content: responseContentWithSuffix,
-                        toolCalls: response.toolCalls,
-                        isComplete: true,
-                        generationDurationMs,
-                        forcePersist: true,
-                    });
 
                     // Note: Identify the agent message
                     const agentMessageContent = {
@@ -809,34 +529,19 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
                     closeStream();
                 } catch (error) {
-                    if (!isPersistedUserChatSyncEnabled && isChatStreamCancellationError(error, request.signal)) {
+                    if (isChatStreamCancellationError(error, request.signal)) {
                         markStreamClosed();
                         return;
                     }
 
-                    const fallbackAssistantContent =
-                        userChatSynchronization && userChatSynchronization.assistantContent.trim().length > 0
-                            ? userChatSynchronization.assistantContent
-                            : USER_CHAT_STREAM_FAILURE_MESSAGE;
-                    const generationDurationMs = Math.max(0, Date.now() - Date.parse(assistantMessageStartedAt));
-                    await updateSynchronizedUserChatAssistant({
-                        content: fallbackAssistantContent,
-                        isComplete: true,
-                        generationDurationMs,
-                        forcePersist: true,
-                    });
-
+                    markStreamClosed();
                     try {
                         controller.error(error);
                     } catch (streamError) {
                         console.error('[Agent chat stream] Failed to surface stream error', streamError);
                     }
-                    markStreamClosed();
                 } finally {
                     request.signal.removeEventListener('abort', handleRequestAbort);
-                    if (userChatSynchronization) {
-                        await userChatSynchronization.pendingPersist;
-                    }
                     markStreamClosed();
                 }
             },

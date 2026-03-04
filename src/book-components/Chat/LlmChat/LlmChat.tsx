@@ -150,13 +150,6 @@ function normalizePromptParameters(parameters: Record<string, unknown>): Record<
 }
 
 /**
- * Serializes chat messages into a stable marker for change detection.
- */
-function serializeMessagesForComparison(messages: ReadonlyArray<ChatMessage>): string {
-    return JSON.stringify(messages);
-}
-
-/**
  * LlmChat component that provides chat functionality with LLM integration
  *
  * This component internally manages messages, participants, and task progress,
@@ -230,7 +223,6 @@ export function LlmChat(props: LlmChatProps) {
 
     // Refs to keep latest state for long-lived handlers
     const messagesRef = useRef<ChatMessage[]>([]);
-    const messagesHashRef = useRef<string>(serializeMessagesForComparison(buildInitialMessages()));
     const participantsRef = useRef<ReadonlyArray<ChatParticipant>>([]);
     const handleRetryRef = useRef<() => void>(() => {});
 
@@ -246,7 +238,6 @@ export function LlmChat(props: LlmChatProps) {
             const persistedMessages = ChatPersistence.loadMessages(persistenceKey);
             if (persistedMessages.length > 0) {
                 setMessages(persistedMessages);
-                messagesHashRef.current = serializeMessagesForComparison(persistedMessages);
                 hasUserInteractedRef.current = true; // Persisted conversation exists; allow saving next changes
             }
         }
@@ -258,51 +249,6 @@ export function LlmChat(props: LlmChatProps) {
             ChatPersistence.saveMessages(persistenceKey, messages);
         }
     }, [messages, persistenceKey]);
-
-    // Keep chat state synchronized with localStorage updates from other tabs/devices
-    // (propagated through polling + ChatPersistence events in host applications).
-    useEffect(() => {
-        if (!persistenceKey || !ChatPersistence.isAvailable()) {
-            return;
-        }
-
-        const synchronizeFromPersistence = () => {
-            const persistedMessages = ChatPersistence.loadMessages(persistenceKey);
-            const persistedHash = serializeMessagesForComparison(persistedMessages);
-            if (persistedHash === messagesHashRef.current) {
-                return;
-            }
-
-            messagesHashRef.current = persistedHash;
-            setMessages(persistedMessages);
-            if (persistedMessages.length > 0) {
-                hasUserInteractedRef.current = true;
-            }
-        };
-
-        const unsubscribe = ChatPersistence.subscribeToChanges((changedPersistenceKey) => {
-            if (changedPersistenceKey !== persistenceKey) {
-                return;
-            }
-
-            synchronizeFromPersistence();
-        });
-
-        const storageKey = ChatPersistence.createStorageKey(persistenceKey);
-        const handleStorage = (event: StorageEvent) => {
-            if (event.key !== storageKey) {
-                return;
-            }
-
-            synchronizeFromPersistence();
-        };
-
-        window.addEventListener('storage', handleStorage);
-        return () => {
-            unsubscribe();
-            window.removeEventListener('storage', handleStorage);
-        };
-    }, [persistenceKey]);
 
     // Generate participants from llmTools
     const participants = useMemo<ReadonlyArray<ChatParticipant>>(
@@ -369,7 +315,6 @@ export function LlmChat(props: LlmChatProps) {
     // Keep refs in sync for usage inside long-lived callbacks
     useEffect(() => {
         messagesRef.current = messages;
-        messagesHashRef.current = serializeMessagesForComparison(messages);
     }, [messages]);
 
     useEffect(() => {

@@ -17,14 +17,6 @@ type SerializableChatMessage = Omit<ChatMessage, 'createdAt'> & {
  */
 export class ChatPersistence {
     private static readonly STORAGE_PREFIX = 'promptbook_chat_';
-    private static readonly CHANGE_EVENT_NAME = 'promptbook-chat-persistence-change';
-
-    /**
-     * Builds the full localStorage key for one logical chat persistence id.
-     */
-    static createStorageKey(persistenceKey: string): string {
-        return this.STORAGE_PREFIX + persistenceKey;
-    }
 
     /**
      * Save messages to localStorage under the given key
@@ -42,9 +34,8 @@ export class ChatPersistence {
                 };
             });
 
-            const storageKey = this.createStorageKey(persistenceKey);
+            const storageKey = this.STORAGE_PREFIX + persistenceKey;
             localStorage.setItem(storageKey, JSON.stringify(serializableMessages));
-            this.notifyPersistenceChange(persistenceKey);
         } catch (error) {
             console.warn('Failed to save chat messages to localStorage:', error);
         }
@@ -55,7 +46,7 @@ export class ChatPersistence {
      */
     static loadMessages(persistenceKey: string): ChatMessage[] {
         try {
-            const storageKey = this.createStorageKey(persistenceKey);
+            const storageKey = this.STORAGE_PREFIX + persistenceKey;
             const stored = localStorage.getItem(storageKey);
 
             if (!stored) {
@@ -79,9 +70,8 @@ export class ChatPersistence {
      */
     static clearMessages(persistenceKey: string): void {
         try {
-            const storageKey = this.createStorageKey(persistenceKey);
+            const storageKey = this.STORAGE_PREFIX + persistenceKey;
             localStorage.removeItem(storageKey);
-            this.notifyPersistenceChange(persistenceKey);
         } catch (error) {
             console.warn('Failed to clear chat messages from localStorage:', error);
         }
@@ -99,44 +89,5 @@ export class ChatPersistence {
         } catch {
             return false;
         }
-    }
-
-    /**
-     * Subscribes to same-tab persistence changes emitted by ChatPersistence.
-     */
-    static subscribeToChanges(listener: (persistenceKey: string) => void): () => void {
-        if (typeof window === 'undefined') {
-            return () => {};
-        }
-
-        const eventHandler = (event: Event) => {
-            const customEvent = event as CustomEvent<{ persistenceKey?: string }>;
-            const changedPersistenceKey = customEvent.detail?.persistenceKey;
-            if (!changedPersistenceKey) {
-                return;
-            }
-
-            listener(changedPersistenceKey);
-        };
-
-        window.addEventListener(this.CHANGE_EVENT_NAME, eventHandler);
-        return () => {
-            window.removeEventListener(this.CHANGE_EVENT_NAME, eventHandler);
-        };
-    }
-
-    /**
-     * Dispatches a same-tab event so listeners can react to local persistence writes.
-     */
-    private static notifyPersistenceChange(persistenceKey: string): void {
-        if (typeof window === 'undefined') {
-            return;
-        }
-
-        window.dispatchEvent(
-            new CustomEvent(this.CHANGE_EVENT_NAME, {
-                detail: { persistenceKey },
-            }),
-        );
     }
 }
