@@ -2,7 +2,15 @@
 
 import { WalletRecordDialog, type PendingWalletRecordRequest, type WalletRecordDialogSubmitPayload } from '@/src/components/WalletRecordDialog/WalletRecordDialog';
 import { showConfirm } from '@/src/components/AsyncDialogs/asyncDialogs';
+import { SecretInput } from '@/src/components/SecretInput/SecretInput';
+import { SecretTextarea } from '@/src/components/SecretTextarea/SecretTextarea';
 import { fetchGithubAppStatus, type GithubAppStatusResponse } from '@/src/utils/githubAppClient';
+import {
+    USE_EMAIL_SMTP_WALLET_KEY,
+    USE_EMAIL_SMTP_WALLET_SECRET_JSON_EXAMPLE,
+    USE_EMAIL_SMTP_WALLET_SECRET_JSON_SCHEMA,
+    USE_EMAIL_SMTP_WALLET_SERVICE,
+} from '@/src/utils/useEmailSmtpWalletConstants';
 import {
     USE_PROJECT_GITHUB_WALLET_KEY,
     USE_PROJECT_GITHUB_WALLET_SERVICE,
@@ -35,6 +43,7 @@ type UserWalletEntry = {
     recordType: WalletRecordType;
     service: string;
     key: string;
+    jsonSchema: unknown | null;
     username: string | null;
     password: string | null;
     secret: string | null;
@@ -55,6 +64,75 @@ type UserWalletClientProps = {
 };
 
 /**
+ * Validation payload for one wallet record form.
+ */
+type WalletRecordValidationOptions = {
+    recordType: WalletRecordType;
+    service: string;
+    username: string;
+    password: string;
+    secret: string;
+    cookies: string;
+    isGlobal: boolean;
+    agentPermanentId: string;
+    jsonSchemaText: string;
+};
+
+/**
+ * Pre-formatted SMTP schema text for wallet forms.
+ */
+const USE_EMAIL_SMTP_WALLET_SCHEMA_TEXT = formatWalletJsonSchemaForTextarea(USE_EMAIL_SMTP_WALLET_SECRET_JSON_SCHEMA);
+
+/**
+ * Returns true when record identity matches USE EMAIL SMTP credentials.
+ */
+function isUseEmailSmtpAccessTokenRecord(recordType: WalletRecordType, service: string, key: string): boolean {
+    return (
+        recordType === 'ACCESS_TOKEN' &&
+        service.trim().toLowerCase() === USE_EMAIL_SMTP_WALLET_SERVICE &&
+        key.trim() === USE_EMAIL_SMTP_WALLET_KEY
+    );
+}
+
+/**
+ * Converts one wallet JSON schema object into pretty-printed text.
+ */
+function formatWalletJsonSchemaForTextarea(value: unknown): string {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+        return '';
+    }
+
+    try {
+        return JSON.stringify(value, null, 2);
+    } catch {
+        return '';
+    }
+}
+
+/**
+ * Parses optional wallet JSON schema text into object payload.
+ */
+function parseWalletJsonSchemaFromTextarea(value: string): unknown | undefined {
+    const trimmedValue = value.trim();
+    if (!trimmedValue) {
+        return undefined;
+    }
+
+    let parsedValue: unknown;
+    try {
+        parsedValue = JSON.parse(trimmedValue);
+    } catch {
+        throw new Error('JSON schema must be valid JSON.');
+    }
+
+    if (!parsedValue || typeof parsedValue !== 'object' || Array.isArray(parsedValue)) {
+        throw new Error('JSON schema must be a JSON object.');
+    }
+
+    return parsedValue;
+}
+
+/**
  * User wallet CRUD UI under System menu.
  */
 export function UserWalletClient(props: UserWalletClientProps) {
@@ -73,6 +151,7 @@ export function UserWalletClient(props: UserWalletClientProps) {
     const [newPassword, setNewPassword] = useState('');
     const [newSecret, setNewSecret] = useState('');
     const [newCookies, setNewCookies] = useState('');
+    const [newJsonSchemaText, setNewJsonSchemaText] = useState('');
     const [newIsGlobal, setNewIsGlobal] = useState(false);
     const [newAgentPermanentId, setNewAgentPermanentId] = useState(agents[0]?.permanentId || '');
 
@@ -84,6 +163,7 @@ export function UserWalletClient(props: UserWalletClientProps) {
     const [editingPassword, setEditingPassword] = useState('');
     const [editingSecret, setEditingSecret] = useState('');
     const [editingCookies, setEditingCookies] = useState('');
+    const [editingJsonSchemaText, setEditingJsonSchemaText] = useState('');
     const [editingIsGlobal, setEditingIsGlobal] = useState(false);
     const [editingAgentPermanentId, setEditingAgentPermanentId] = useState('');
     const [githubAppStatus, setGithubAppStatus] = useState<GithubAppStatusResponse | null>(null);
@@ -104,6 +184,14 @@ export function UserWalletClient(props: UserWalletClientProps) {
             isGlobal: true,
         }),
         [],
+    );
+    const isNewSmtpRecord = useMemo(
+        () => isUseEmailSmtpAccessTokenRecord(newRecordType, newService, newKey || 'default'),
+        [newKey, newRecordType, newService],
+    );
+    const isEditingSmtpRecord = useMemo(
+        () => isUseEmailSmtpAccessTokenRecord(editingRecordType, editingService, editingKey || 'default'),
+        [editingKey, editingRecordType, editingService],
     );
 
     /**
@@ -160,16 +248,7 @@ export function UserWalletClient(props: UserWalletClientProps) {
     /**
      * Validates wallet form payload before submission.
      */
-    const validateRecordPayload = (options: {
-        recordType: WalletRecordType;
-        service: string;
-        username: string;
-        password: string;
-        secret: string;
-        cookies: string;
-        isGlobal: boolean;
-        agentPermanentId: string;
-    }): string | null => {
+    const validateRecordPayload = (options: WalletRecordValidationOptions): string | null => {
         if (!options.service.trim()) {
             return 'Service is required.';
         }
@@ -184,6 +263,11 @@ export function UserWalletClient(props: UserWalletClientProps) {
         }
         if (options.recordType === 'ACCESS_TOKEN' && !options.secret.trim()) {
             return 'Secret is required.';
+        }
+        try {
+            parseWalletJsonSchemaFromTextarea(options.jsonSchemaText);
+        } catch (validationError) {
+            return validationError instanceof Error ? validationError.message : 'Invalid JSON schema.';
         }
         return null;
     };
@@ -200,6 +284,7 @@ export function UserWalletClient(props: UserWalletClientProps) {
                     recordType: payload.recordType,
                     service: payload.service,
                     key: payload.key || 'default',
+                    jsonSchema: payload.jsonSchema,
                     username: payload.recordType === 'USERNAME_PASSWORD' ? payload.username : undefined,
                     password: payload.recordType === 'USERNAME_PASSWORD' ? payload.password : undefined,
                     secret: payload.recordType === 'ACCESS_TOKEN' ? payload.secret : undefined,
@@ -233,6 +318,7 @@ export function UserWalletClient(props: UserWalletClientProps) {
             cookies: newCookies,
             isGlobal: newIsGlobal,
             agentPermanentId: newAgentPermanentId,
+            jsonSchemaText: newJsonSchemaText,
         });
         if (validationError) {
             setError(validationError);
@@ -241,10 +327,12 @@ export function UserWalletClient(props: UserWalletClientProps) {
 
         setSaving(true);
         try {
+            const parsedJsonSchema = parseWalletJsonSchemaFromTextarea(newJsonSchemaText);
             await createWalletRecord({
                 recordType: newRecordType,
                 service: newService,
                 key: newKey || 'default',
+                jsonSchema: parsedJsonSchema,
                 username: newRecordType === 'USERNAME_PASSWORD' ? newUsername : undefined,
                 password: newRecordType === 'USERNAME_PASSWORD' ? newPassword : undefined,
                 secret: newRecordType === 'ACCESS_TOKEN' ? newSecret : undefined,
@@ -293,6 +381,19 @@ export function UserWalletClient(props: UserWalletClientProps) {
     );
 
     /**
+     * Applies SMTP defaults to simplify USE EMAIL setup.
+     */
+    const applyUseEmailSmtpTemplate = () => {
+        setNewRecordType('ACCESS_TOKEN');
+        setNewService(USE_EMAIL_SMTP_WALLET_SERVICE);
+        setNewKey(USE_EMAIL_SMTP_WALLET_KEY);
+        setNewJsonSchemaText(USE_EMAIL_SMTP_WALLET_SCHEMA_TEXT);
+        if (!newSecret.trim()) {
+            setNewSecret(USE_EMAIL_SMTP_WALLET_SECRET_JSON_EXAMPLE);
+        }
+    };
+
+    /**
      * Starts editing one wallet row.
      */
     const startEditing = (record: UserWalletEntry) => {
@@ -304,6 +405,7 @@ export function UserWalletClient(props: UserWalletClientProps) {
         setEditingPassword(record.password || '');
         setEditingSecret(record.secret || '');
         setEditingCookies(record.cookies || '');
+        setEditingJsonSchemaText(formatWalletJsonSchemaForTextarea(record.jsonSchema));
         setEditingIsGlobal(record.isGlobal);
         setEditingAgentPermanentId(record.agentPermanentId || agents[0]?.permanentId || '');
     };
@@ -320,6 +422,7 @@ export function UserWalletClient(props: UserWalletClientProps) {
         setEditingPassword('');
         setEditingSecret('');
         setEditingCookies('');
+        setEditingJsonSchemaText('');
         setEditingIsGlobal(false);
         setEditingAgentPermanentId('');
     };
@@ -341,6 +444,7 @@ export function UserWalletClient(props: UserWalletClientProps) {
             cookies: editingCookies,
             isGlobal: editingIsGlobal,
             agentPermanentId: editingAgentPermanentId,
+            jsonSchemaText: editingJsonSchemaText,
         });
         if (validationError) {
             setError(validationError);
@@ -350,6 +454,7 @@ export function UserWalletClient(props: UserWalletClientProps) {
         setSaving(true);
         setError(null);
         try {
+            const parsedJsonSchema = parseWalletJsonSchemaFromTextarea(editingJsonSchemaText);
             const response = await fetch(`/api/user-wallet/${editingId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
@@ -357,6 +462,7 @@ export function UserWalletClient(props: UserWalletClientProps) {
                     recordType: editingRecordType,
                     service: editingService,
                     key: editingKey || 'default',
+                    jsonSchema: parsedJsonSchema,
                     username: editingRecordType === 'USERNAME_PASSWORD' ? editingUsername : undefined,
                     password: editingRecordType === 'USERNAME_PASSWORD' ? editingPassword : undefined,
                     secret: editingRecordType === 'ACCESS_TOKEN' ? editingSecret : undefined,
@@ -440,6 +546,7 @@ export function UserWalletClient(props: UserWalletClientProps) {
         password: string;
         secret: string;
         cookies: string;
+        isSmtpRecord: boolean;
         setUsername: (value: string) => void;
         setPassword: (value: string) => void;
         setSecret: (value: string) => void;
@@ -454,12 +561,10 @@ export function UserWalletClient(props: UserWalletClientProps) {
                         placeholder="Username"
                         className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    <input
-                        type="password"
+                    <SecretInput
                         value={options.password}
                         onChange={(event) => options.setPassword(event.target.value)}
                         placeholder="Password"
-                        className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                 </div>
             );
@@ -467,22 +572,58 @@ export function UserWalletClient(props: UserWalletClientProps) {
 
         if (options.recordType === 'SESSION_COOKIE') {
             return (
-                <textarea
+                <SecretTextarea
                     value={options.cookies}
                     onChange={(event) => options.setCookies(event.target.value)}
-                    className="w-full min-h-[90px] rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="session=abc123; path=/; secure"
+                    textareaClassName="!min-h-[90px]"
                 />
             );
         }
 
         return (
-            <input
-                type="password"
+            <SecretTextarea
                 value={options.secret}
                 onChange={(event) => options.setSecret(event.target.value)}
-                placeholder="Token / API key"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder={options.isSmtpRecord ? USE_EMAIL_SMTP_WALLET_SECRET_JSON_EXAMPLE : 'Token / API key'}
+                helperText={options.isSmtpRecord ? 'Multiline JSON is supported.' : undefined}
+                textareaClassName="!min-h-[110px]"
+            />
+        );
+    };
+
+    /**
+     * Renders one wallet record value with visibility toggle support.
+     */
+    const renderRecordData = (record: UserWalletEntry) => {
+        if (record.recordType === 'USERNAME_PASSWORD') {
+            return (
+                <div className="space-y-2">
+                    <div className="rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-700">
+                        {record.username || '-'}
+                    </div>
+                    <SecretInput value={record.password || ''} readOnly aria-label="Wallet password" inputClassName="h-9 text-xs" />
+                </div>
+            );
+        }
+
+        if (record.recordType === 'SESSION_COOKIE') {
+            return (
+                <SecretTextarea
+                    value={record.cookies || ''}
+                    readOnly
+                    aria-label="Wallet cookies"
+                    textareaClassName="!min-h-[72px] font-mono text-xs leading-5"
+                />
+            );
+        }
+
+        return (
+            <SecretTextarea
+                value={record.secret || ''}
+                readOnly
+                aria-label="Wallet secret"
+                textareaClassName="!min-h-[72px] font-mono text-xs leading-5"
             />
         );
     };
@@ -517,7 +658,16 @@ export function UserWalletClient(props: UserWalletClientProps) {
             </div>
 
             <div className="bg-white shadow rounded-lg p-6 mb-8">
-                <h2 className="text-xl font-semibold mb-4">Create Wallet Record</h2>
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                    <h2 className="text-xl font-semibold">Create Wallet Record</h2>
+                    <button
+                        type="button"
+                        onClick={applyUseEmailSmtpTemplate}
+                        className="rounded-md border border-blue-300 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+                    >
+                        Use SMTP template
+                    </button>
+                </div>
                 <form onSubmit={createRecord} className="space-y-4">
                     <div className="grid gap-3 sm:grid-cols-3">
                         <select
@@ -532,7 +682,7 @@ export function UserWalletClient(props: UserWalletClientProps) {
                         <input
                             value={newService}
                             onChange={(event) => setNewService(event.target.value)}
-                            placeholder="Service (github, facebook...)"
+                            placeholder="Service (github, smtp...)"
                             className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                         <input
@@ -549,11 +699,24 @@ export function UserWalletClient(props: UserWalletClientProps) {
                         password: newPassword,
                         secret: newSecret,
                         cookies: newCookies,
+                        isSmtpRecord: isNewSmtpRecord,
                         setUsername: setNewUsername,
                         setPassword: setNewPassword,
                         setSecret: setNewSecret,
                         setCookies: setNewCookies,
                     })}
+
+                    <label className="block text-sm text-gray-700">
+                        <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            JSON schema (optional)
+                        </span>
+                        <textarea
+                            value={newJsonSchemaText}
+                            onChange={(event) => setNewJsonSchemaText(event.target.value)}
+                            placeholder='{"type":"object","properties":{"token":{"type":"string"}}}'
+                            className="w-full min-h-[120px] rounded-md border border-gray-300 px-3 py-2 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </label>
 
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <label className="inline-flex items-center gap-2 text-sm text-gray-700">
@@ -645,11 +808,24 @@ export function UserWalletClient(props: UserWalletClientProps) {
                         ) : (
                             records.map((record) => {
                                 const isEditing = editingId === record.id;
+                                const schemaPreview = formatWalletJsonSchemaForTextarea(record.jsonSchema);
                                 return (
                                     <tr key={record.id}>
                                         <td className="px-4 py-3 text-sm text-gray-600">{getScopeLabel(record)}</td>
                                         <td className="px-4 py-3 text-sm text-gray-700">{record.recordType}</td>
-                                        <td className="px-4 py-3 text-sm text-gray-700">{record.service} / {record.key}</td>
+                                        <td className="px-4 py-3 text-sm text-gray-700">
+                                            <div>{record.service} / {record.key}</div>
+                                            {schemaPreview && (
+                                                <details className="mt-2 rounded border border-gray-200 bg-gray-50 p-2">
+                                                    <summary className="cursor-pointer text-xs font-medium text-gray-600">
+                                                        JSON schema
+                                                    </summary>
+                                                    <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap break-all font-mono text-xs text-gray-600">
+                                                        {schemaPreview}
+                                                    </pre>
+                                                </details>
+                                            )}
+                                        </td>
                                         <td className="px-4 py-3 text-sm text-gray-700">
                                             {isEditing ? (
                                                 <div className="space-y-2">
@@ -681,11 +857,19 @@ export function UserWalletClient(props: UserWalletClientProps) {
                                                         password: editingPassword,
                                                         secret: editingSecret,
                                                         cookies: editingCookies,
+                                                        isSmtpRecord: isEditingSmtpRecord,
                                                         setUsername: setEditingUsername,
                                                         setPassword: setEditingPassword,
                                                         setSecret: setEditingSecret,
                                                         setCookies: setEditingCookies,
                                                     })}
+
+                                                    <textarea
+                                                        value={editingJsonSchemaText}
+                                                        onChange={(event) => setEditingJsonSchemaText(event.target.value)}
+                                                        placeholder='{"type":"object"}'
+                                                        className="w-full min-h-[100px] rounded-md border border-gray-300 px-2 py-2 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    />
 
                                                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                                         <label className="inline-flex items-center gap-2 text-xs text-gray-600">
@@ -711,15 +895,7 @@ export function UserWalletClient(props: UserWalletClientProps) {
                                                     </div>
                                                 </div>
                                             ) : (
-                                                <span className="whitespace-pre-wrap">
-                                                    {record.recordType === 'USERNAME_PASSWORD'
-                                                        ? `${record.username || ''} / ${record.password ? '••••••••' : ''}`
-                                                        : record.recordType === 'SESSION_COOKIE'
-                                                        ? record.cookies
-                                                        : record.secret
-                                                        ? '••••••••'
-                                                        : ''}
-                                                </span>
+                                                renderRecordData(record)
                                             )}
                                         </td>
                                         <td className="px-4 py-3 text-xs text-gray-500">{new Date(record.updatedAt).toLocaleString()}</td>

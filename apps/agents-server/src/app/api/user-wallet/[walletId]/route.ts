@@ -42,6 +42,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ wa
             password?: unknown;
             secret?: unknown;
             cookies?: unknown;
+            jsonSchema?: unknown;
             isGlobal?: unknown;
             agentPermanentId?: unknown;
         };
@@ -52,6 +53,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ wa
             recordType: body.recordType as 'USERNAME_PASSWORD' | 'SESSION_COOKIE' | 'ACCESS_TOKEN',
             service: typeof body.service === 'string' ? body.service : '',
             key: typeof body.key === 'string' ? body.key : undefined,
+            jsonSchema: body.jsonSchema,
             username: typeof body.username === 'string' ? body.username : undefined,
             password: typeof body.password === 'string' ? body.password : undefined,
             secret: typeof body.secret === 'string' ? body.secret : undefined,

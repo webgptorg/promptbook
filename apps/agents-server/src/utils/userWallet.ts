@@ -32,6 +32,11 @@ type UserWalletRow = AgentsServerDatabase['public']['Tables']['UserWallet']['Row
 type UserWalletInsert = AgentsServerDatabase['public']['Tables']['UserWallet']['Insert'];
 
 /**
+ * JSON schema payload optionally attached to one wallet record.
+ */
+type UserWalletJsonSchema = UserWalletRow['jsonSchema'];
+
+/**
  * Normalized wallet record returned by API and runtime adapters.
  */
 export type UserWalletRecord = {
@@ -43,6 +48,7 @@ export type UserWalletRecord = {
     recordType: UserWalletRecordType;
     service: string;
     key: string;
+    jsonSchema: UserWalletJsonSchema;
     username: string | null;
     password: string | null;
     secret: string | null;
@@ -75,6 +81,7 @@ export type CreateUserWalletRecordOptions = {
     recordType: UserWalletRecordType;
     service: string;
     key?: string;
+    jsonSchema?: unknown;
     username?: string;
     password?: string;
     secret?: string;
@@ -190,6 +197,7 @@ export async function listUserWalletRecords(options: ListUserWalletRecordsOption
         }
 
         const searchable = [row.service, row.key, row.username || '', row.secret || '', row.cookies || '']
+            .concat(row.jsonSchema ? JSON.stringify(row.jsonSchema) : '')
             .join(' ')
             .toLowerCase();
         return searchable.includes(normalizedSearch);
@@ -217,6 +225,7 @@ export async function createUserWalletRecord(options: CreateUserWalletRecordOpti
             recordType: payload.recordType as UserWalletRecordType,
             service: payload.service,
             key: payload.key,
+            jsonSchema: payload.jsonSchema,
             username: payload.username ?? undefined,
             password: payload.password ?? undefined,
             secret: payload.secret ?? undefined,
@@ -511,6 +520,7 @@ function normalizeWalletPayload(options: CreateUserWalletRecordOptions): UserWal
     const password = options.password?.trim() || null;
     const secret = options.secret?.trim() || null;
     const cookies = options.cookies?.trim() || null;
+    const jsonSchema = normalizeWalletJsonSchema(options.jsonSchema);
 
     if (recordType === 'USERNAME_PASSWORD' && (!username || !password)) {
         throw new Error('USERNAME_PASSWORD records require both username and password.');
@@ -531,6 +541,7 @@ function normalizeWalletPayload(options: CreateUserWalletRecordOptions): UserWal
         recordType,
         service,
         key,
+        jsonSchema,
         username,
         password,
         secret,
@@ -558,6 +569,39 @@ function normalizeWalletRecordType(value: unknown): UserWalletRecordType {
 }
 
 /**
+ * Normalizes optional wallet JSON schema payload.
+ */
+function normalizeWalletJsonSchema(value: unknown): UserWalletJsonSchema {
+    if (value === undefined || value === null) {
+        return null;
+    }
+
+    let normalizedValue: unknown = value;
+    if (typeof normalizedValue === 'string') {
+        const trimmedValue = normalizedValue.trim();
+        if (!trimmedValue) {
+            return null;
+        }
+
+        try {
+            normalizedValue = JSON.parse(trimmedValue);
+        } catch {
+            throw new Error('Wallet JSON schema must be valid JSON.');
+        }
+    }
+
+    if (!normalizedValue || typeof normalizedValue !== 'object' || Array.isArray(normalizedValue)) {
+        throw new Error('Wallet JSON schema must be a JSON object.');
+    }
+
+    try {
+        return JSON.parse(JSON.stringify(normalizedValue)) as UserWalletJsonSchema;
+    } catch {
+        throw new Error('Wallet JSON schema must be serializable JSON.');
+    }
+}
+
+/**
  * Maps raw row to normalized wallet record.
  */
 function mapUserWalletRow(row: UserWalletRow): UserWalletRecord {
@@ -570,6 +614,7 @@ function mapUserWalletRow(row: UserWalletRow): UserWalletRecord {
         recordType: row.recordType as UserWalletRecordType,
         service: row.service,
         key: row.key,
+        jsonSchema: row.jsonSchema,
         username: row.username,
         password: row.password,
         secret: row.secret,

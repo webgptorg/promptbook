@@ -5,9 +5,16 @@ import {
     USE_PROJECT_GITHUB_WALLET_KEY,
     USE_PROJECT_GITHUB_WALLET_SERVICE,
 } from '@/src/utils/useProjectGithubWalletConstants';
+import {
+    USE_EMAIL_SMTP_WALLET_KEY,
+    USE_EMAIL_SMTP_WALLET_SECRET_JSON_EXAMPLE,
+    USE_EMAIL_SMTP_WALLET_SERVICE,
+} from '@/src/utils/useEmailSmtpWalletConstants';
 import { Github, KeyRound, Lock, Save, UserRound, X } from 'lucide-react';
 import { useEffect, useId, useMemo, useState } from 'react';
 import { Dialog } from '../Portal/Dialog';
+import { SecretInput } from '../SecretInput/SecretInput';
+import { SecretTextarea } from '../SecretTextarea/SecretTextarea';
 
 /**
  * Wallet record type supported by the dialog.
@@ -23,6 +30,7 @@ export type PendingWalletRecordRequest = {
     recordType: WalletRecordType;
     service: string;
     key: string;
+    jsonSchema?: unknown;
     message?: string;
     isGlobal: boolean;
 };
@@ -38,6 +46,7 @@ export type WalletRecordDialogSubmitPayload = {
     password?: string;
     secret?: string;
     cookies?: string;
+    jsonSchema?: unknown;
     isGlobal: boolean;
 };
 
@@ -103,7 +112,13 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
 
     const canUseGithubAppConnect =
         githubApp?.isConfigured === true && isUseProjectGithubWalletRequest(recordType, service, key);
+    const isUseEmailSmtpWalletRequest = isUseEmailSmtpWalletRequestRecord(recordType, service, key);
     const manualFieldsVisible = !canUseGithubAppConnect || isManualTokenVisible;
+    const requestedJsonSchema = request?.jsonSchema;
+    const requestedJsonSchemaText = useMemo(
+        () => formatWalletJsonSchemaForDisplay(requestedJsonSchema),
+        [requestedJsonSchema],
+    );
 
     const validationError = useMemo(() => {
         if (!manualFieldsVisible) {
@@ -175,6 +190,7 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                             password: recordType === 'USERNAME_PASSWORD' ? password : undefined,
                             secret: recordType === 'ACCESS_TOKEN' ? secret : undefined,
                             cookies: recordType === 'SESSION_COOKIE' ? cookies : undefined,
+                            jsonSchema: requestedJsonSchema,
                             isGlobal,
                         });
                     } catch (submitError) {
@@ -191,6 +207,17 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                 {request.message && (
                     <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
                         {request.message}
+                    </div>
+                )}
+
+                {requestedJsonSchemaText && (
+                    <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
+                        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                            Requested JSON schema
+                        </p>
+                        <pre className="max-h-48 overflow-auto whitespace-pre-wrap break-all rounded bg-white p-2 font-mono text-xs text-gray-700">
+                            {requestedJsonSchemaText}
+                        </pre>
                     </div>
                 )}
 
@@ -280,8 +307,7 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                                         <Lock className="h-3 w-3" />
                                         Password
                                     </span>
-                                    <input
-                                        type="password"
+                                    <SecretInput
                                         value={password}
                                         onChange={(event) => setPassword(event.target.value)}
                                         className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
@@ -292,19 +318,14 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
 
                         {recordType === 'ACCESS_TOKEN' && (
                             <div className="space-y-3">
-                                <label className="text-sm text-gray-700">
-                                    <span className="mb-1 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                        <Lock className="h-3 w-3" />
-                                        Secret
-                                    </span>
-                                    <input
-                                        type="password"
-                                        value={secret}
-                                        onChange={(event) => setSecret(event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
-                                        placeholder="Token / API key"
-                                    />
-                                </label>
+                                <SecretTextarea
+                                    label="Secret"
+                                    value={secret}
+                                    onChange={(event) => setSecret(event.target.value)}
+                                    placeholder={isUseEmailSmtpWalletRequest ? USE_EMAIL_SMTP_WALLET_SECRET_JSON_EXAMPLE : 'Token / API key'}
+                                    helperText={isUseEmailSmtpWalletRequest ? 'Multiline JSON is supported.' : undefined}
+                                    containerClassName="text-sm text-gray-700"
+                                />
                             </div>
                         )}
 
@@ -361,6 +382,32 @@ function isUseProjectGithubWalletRequest(recordType: WalletRecordType, service: 
         service.trim().toLowerCase() === USE_PROJECT_GITHUB_WALLET_SERVICE &&
         key.trim() === USE_PROJECT_GITHUB_WALLET_KEY
     );
+}
+
+/**
+ * Returns true when dialog currently targets USE EMAIL SMTP access token.
+ */
+function isUseEmailSmtpWalletRequestRecord(recordType: WalletRecordType, service: string, key: string): boolean {
+    return (
+        recordType === 'ACCESS_TOKEN' &&
+        service.trim().toLowerCase() === USE_EMAIL_SMTP_WALLET_SERVICE &&
+        key.trim() === USE_EMAIL_SMTP_WALLET_KEY
+    );
+}
+
+/**
+ * Converts requested JSON schema payload into pretty-printed text for UI display.
+ */
+function formatWalletJsonSchemaForDisplay(value: unknown): string | null {
+    if (!value) {
+        return null;
+    }
+
+    try {
+        return JSON.stringify(value, null, 2);
+    } catch {
+        return null;
+    }
 }
 
 /**

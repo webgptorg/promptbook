@@ -74,6 +74,7 @@ export async function POST(request: Request) {
             recordType: body.recordType as CreateUserWalletRecordOptions['recordType'],
             service: typeof body.service === 'string' ? body.service : '',
             key: typeof body.key === 'string' ? body.key : undefined,
+            jsonSchema: body.jsonSchema,
             username: typeof body.username === 'string' ? body.username : undefined,
             password: typeof body.password === 'string' ? body.password : undefined,
             secret: typeof body.secret === 'string' ? body.secret : undefined,

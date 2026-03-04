@@ -1,3 +1,12 @@
+-   Improved Agents Server `USE EMAIL` wallet flow and wallet UX for SMTP credentials:
+    -   Added structured SMTP credential schema hints to missing-credential tool results (`send_email` now returns `jsonSchema` together with the wallet request message), so chat wallet prompts can show the expected JSON shape directly.
+    -   Added optional `jsonSchema` persistence to `UserWallet` records (new migration `2026-03-0120-user-wallet-json-schema.sql`) and wired the field through wallet APIs, wallet utilities, and DB types.
+    -   Updated shared wallet dialog and System > User Wallet UI to better support SMTP JSON secrets:
+        -   Access-token secrets now support multiline entry with visibility toggle.
+        -   Stored wallet record values now have visibility toggles (including multiline secrets/cookies).
+        -   Wallet rows now display attached JSON schema (when present), and create/edit forms support schema input.
+        -   Added a “Use SMTP template” shortcut in wallet creation to prefill SMTP service/key/schema and a multiline JSON example.
+
 -   Fixed Agents Server `USE BROWSER` runtime on Vercel by refactoring `run_browser` to use the shared server browser provider (`$provideBrowserForServer`) instead of spawning `npx @playwright/cli`:
     -   `run_browser` now automatically respects `REMOTE_BROWSER_URL` through the existing local/remote browser connection resolver used by Agents Server.
     -   Removed the npm/npx runtime dependency path that caused `ENOENT` failures in Vercel server execution environments.

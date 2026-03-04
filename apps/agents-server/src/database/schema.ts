@@ -794,6 +794,7 @@ export type AgentsServerDatabase = {
                     recordType: 'USERNAME_PASSWORD' | 'SESSION_COOKIE' | 'ACCESS_TOKEN';
                     service: string;
                     key: string;
+                    jsonSchema: Json | null;
                     username: string | null;
                     password: string | null;
                     secret: string | null;
@@ -810,6 +811,7 @@ export type AgentsServerDatabase = {
                     recordType: 'USERNAME_PASSWORD' | 'SESSION_COOKIE' | 'ACCESS_TOKEN';
                     service: string;
                     key?: string;
+                    jsonSchema?: Json | null;
                     username?: string | null;
                     password?: string | null;
                     secret?: string | null;
@@ -826,6 +828,7 @@ export type AgentsServerDatabase = {
                     recordType?: 'USERNAME_PASSWORD' | 'SESSION_COOKIE' | 'ACCESS_TOKEN';
                     service?: string;
                     key?: string;
+                    jsonSchema?: Json | null;
                     username?: string | null;
                     password?: string | null;
                     secret?: string | null;

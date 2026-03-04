@@ -1,0 +1,19 @@
+Timestamp: 2026-03-04T14:58:05.700Z
+Prompt: prompts/2026-02-3780-agents-server-use-email.md#49
+Prompt file: C:\Users\me\work\ai\promptbook\prompts\2026-02-3780-agents-server-use-email.md
+Prompt section: 3
+Prompt summary: Make Adding the SMPT credentials into the wallet easier
+Runner: OpenAI Codex (gpt-5.3-codex)
+
+CLI output and error:
+Error: fatal: Unable to create 'C:/Users/me/work/ai/promptbook/.git/index.lock': File exists.
+
+Another git process seems to be running in this repository, e.g.
+an editor opened by 'git commit'. Please make sure all processes
+are terminated then try again. If it still fails, a git process
+may have crashed in this repository earlier:
+remove the file manually to continue.
+    at ChildProcess.finishWithCode (C:\Users\me\work\ai\promptbook\src\utils\execCommand\$execCommand.ts:94:29)
+    at ChildProcess.emit (node:events:518:28)
+    at ChildProcess.emit (node:domain:489:12)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)

@@ -335,12 +335,14 @@ type WalletToolResult = {
         recordType?: string;
         service?: string;
         key?: string;
+        jsonSchema?: unknown;
         message?: string;
         isGlobal?: boolean;
     };
     recordType?: string;
     service?: string;
     key?: string;
+    jsonSchema?: unknown;
     message?: string;
     repository?: string;
 };
@@ -524,6 +526,7 @@ function buildPendingWalletRequest(toolCall: ToolCall): PendingWalletRecordReque
     const sourceService = requestPayload?.service || parsedResult?.service || 'generic';
     const sourceKey = requestPayload?.key || parsedResult?.key || 'default';
     const sourceRecordType = requestPayload?.recordType || parsedResult?.recordType || 'ACCESS_TOKEN';
+    const sourceJsonSchema = requestPayload?.jsonSchema || parsedResult?.jsonSchema;
     const sourceMessage = requestPayload?.message || parsedResult?.message;
     const repositoryHint = parsedResult?.repository?.trim();
 
@@ -537,6 +540,7 @@ function buildPendingWalletRequest(toolCall: ToolCall): PendingWalletRecordReque
         recordType: normalizeWalletRecordType(sourceRecordType),
         service: sourceService,
         key: sourceKey,
+        jsonSchema: sourceJsonSchema,
         message,
         isGlobal: requestPayload?.isGlobal === true,
     };
@@ -1081,6 +1085,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                     password: payload.password,
                     secret: payload.secret,
                     cookies: payload.cookies,
+                    jsonSchema: payload.jsonSchema,
                     isGlobal: shouldStoreGlobally,
                     agentPermanentId: shouldStoreGlobally ? null : currentAgentPermanentId,
                 }),

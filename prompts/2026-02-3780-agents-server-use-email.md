@@ -47,7 +47,7 @@ IMAP / POP3 credentials
 
 ---
 
-[ ] !!
+[x] ~$0.5552 24 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨😰] Make Adding the SMPT credentials into the wallet easier
 
@@ -80,3 +80,4 @@ SMTP credentials are missing in wallet. Add ACCESS_TOKEN record with service "sm
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

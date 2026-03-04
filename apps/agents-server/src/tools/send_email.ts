@@ -6,7 +6,12 @@ import { parseEmailAddresses } from '../message-providers/email/_common/utils/pa
 import { SmtpMessageProvider } from '../message-providers/email/smtp/SmtpMessageProvider';
 import { parseUseEmailSmtpCredential } from '../utils/messages/parseUseEmailSmtpCredential';
 import { isSendMessageDeliveryError, sendMessage, type SendMessageResult } from '../utils/messages/sendMessage';
-import { USE_EMAIL_SMTP_WALLET_KEY, USE_EMAIL_SMTP_WALLET_SERVICE } from '../utils/useEmailSmtpWalletConstants';
+import {
+    createUseEmailSmtpWalletMissingCredentialMessage,
+    USE_EMAIL_SMTP_WALLET_KEY,
+    USE_EMAIL_SMTP_WALLET_SECRET_JSON_SCHEMA,
+    USE_EMAIL_SMTP_WALLET_SERVICE,
+} from '../utils/useEmailSmtpWalletConstants';
 
 /**
  * Hidden runtime context shape used by USE EMAIL server tool.
@@ -42,6 +47,7 @@ type EmailWalletCredentialRequiredToolResult = {
     recordType: 'ACCESS_TOKEN';
     service: string;
     key: string;
+    jsonSchema: unknown;
     message: string;
 };
 
@@ -107,23 +113,14 @@ export async function send_email(args: SendEmailToolArgs): Promise<string> {
 function createEmailWalletCredentialRequiredResult(
     defaultFromAddress?: string,
 ): EmailWalletCredentialRequiredToolResult {
-    const fromAddressInstruction = defaultFromAddress ? `\nDefault sender from commitment: ${defaultFromAddress}` : '';
-
     return {
         action: 'email-auth',
         status: 'wallet-credential-required',
         recordType: 'ACCESS_TOKEN',
         service: USE_EMAIL_SMTP_WALLET_SERVICE,
         key: USE_EMAIL_SMTP_WALLET_KEY,
-        message: [
-            'SMTP credentials are missing in wallet.',
-            `Add ACCESS_TOKEN record with service "${USE_EMAIL_SMTP_WALLET_SERVICE}" and key "${USE_EMAIL_SMTP_WALLET_KEY}".`,
-            'Put SMTP JSON into Secret, for example:',
-            '{"host":"smtp.example.com","port":587,"secure":false,"username":"agent@example.com","password":"..."}',
-            fromAddressInstruction,
-        ]
-            .join('\n')
-            .trim(),
+        jsonSchema: USE_EMAIL_SMTP_WALLET_SECRET_JSON_SCHEMA,
+        message: createUseEmailSmtpWalletMissingCredentialMessage(defaultFromAddress),
     };
 }
 
