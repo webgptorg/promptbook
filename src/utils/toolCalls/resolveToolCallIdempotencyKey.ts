@@ -1,6 +1,6 @@
 import type { ToolCall } from '../../types/ToolCall';
 
-const RAW_TOOL_CALL_ID_FIELDS = ['id', 'callId', 'call_id'] as const;
+const RAW_TOOL_CALL_ID_FIELDS = ['callId', 'call_id', 'id'] as const;
 
 /**
  * Builds a deterministic idempotency key for tool calls so the UI can track updates.
