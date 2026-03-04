@@ -1,10 +1,7 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import type { AgentsServerDatabase } from '@/src/database/schema';
-import {
-    USE_EMAIL_SMTP_WALLET_KEY,
-    USE_EMAIL_SMTP_WALLET_SERVICE,
-} from './useEmailSmtpWalletConstants';
+import { USE_EMAIL_SMTP_WALLET_KEY, USE_EMAIL_SMTP_WALLET_SERVICE } from './useEmailSmtpWalletConstants';
 import {
     USE_PROJECT_GITHUB_APP_WALLET_KEY,
     USE_PROJECT_GITHUB_WALLET_KEY,
@@ -14,7 +11,7 @@ import {
 /**
  * Wallet service id used by USE PROJECT for GitHub credentials.
  */
-export { USE_PROJECT_GITHUB_WALLET_SERVICE, USE_PROJECT_GITHUB_WALLET_KEY, USE_PROJECT_GITHUB_APP_WALLET_KEY };
+export { USE_PROJECT_GITHUB_APP_WALLET_KEY, USE_PROJECT_GITHUB_WALLET_KEY, USE_PROJECT_GITHUB_WALLET_SERVICE };
 
 /**
  * Supported wallet record types.
@@ -22,14 +19,14 @@ export { USE_PROJECT_GITHUB_WALLET_SERVICE, USE_PROJECT_GITHUB_WALLET_KEY, USE_P
 export type UserWalletRecordType = 'USERNAME_PASSWORD' | 'SESSION_COOKIE' | 'ACCESS_TOKEN';
 
 /**
- * Database row shape for `UserWallet` table.
+ * Database row shape for `Wallet` table.
  */
-type UserWalletRow = AgentsServerDatabase['public']['Tables']['UserWallet']['Row'];
+type UserWalletRow = AgentsServerDatabase['public']['Tables']['Wallet']['Row'];
 
 /**
- * Input payload for inserting/updating `UserWallet`.
+ * Input payload for inserting/updating `Wallet`.
  */
-type UserWalletInsert = AgentsServerDatabase['public']['Tables']['UserWallet']['Insert'];
+type UserWalletInsert = AgentsServerDatabase['public']['Tables']['Wallet']['Insert'];
 
 /**
  * JSON schema payload optionally attached to one wallet record.
@@ -146,7 +143,7 @@ export async function listUserWalletRecords(options: ListUserWalletRecordsOption
         limit,
     } = options;
     const supabase = $provideSupabaseForServer();
-    const tableName = await $getTableName('UserWallet');
+    const tableName = await $getTableName('Wallet');
 
     let rows: UserWalletRow[] = [];
 
@@ -284,7 +281,7 @@ export async function createUserWalletRecord(options: CreateUserWalletRecordOpti
     }
 
     const supabase = $provideSupabaseForServer();
-    const tableName = await $getTableName('UserWallet');
+    const tableName = await $getTableName('Wallet');
     const now = new Date().toISOString();
     const { data, error } = await supabase
         .from(tableName)
@@ -310,7 +307,7 @@ export async function createUserWalletRecord(options: CreateUserWalletRecordOpti
 export async function updateUserWalletRecord(options: UpdateUserWalletRecordOptions): Promise<UserWalletRecord> {
     const payload = normalizeWalletPayload(options);
     const supabase = $provideSupabaseForServer();
-    const tableName = await $getTableName('UserWallet');
+    const tableName = await $getTableName('Wallet');
 
     const { data, error } = await supabase
         .from(tableName)
@@ -336,7 +333,7 @@ export async function updateUserWalletRecord(options: UpdateUserWalletRecordOpti
  */
 export async function deleteUserWalletRecord(options: DeleteUserWalletRecordOptions): Promise<boolean> {
     const supabase = $provideSupabaseForServer();
-    const tableName = await $getTableName('UserWallet');
+    const tableName = await $getTableName('Wallet');
     const now = new Date().toISOString();
 
     const { data, error } = await supabase
@@ -530,7 +527,7 @@ async function fetchLatestWalletAccessToken(options: {
     ownerUserId?: number;
 }): Promise<string | undefined> {
     const supabase = $provideSupabaseForServer();
-    const tableName = await $getTableName('UserWallet');
+    const tableName = await $getTableName('Wallet');
     let query = supabase
         .from(tableName)
         .select('*')
@@ -569,7 +566,7 @@ async function fetchLatestWalletAccessToken(options: {
  */
 async function findUserWalletRowById(options: FindUserWalletByIdOptions): Promise<UserWalletRow | null> {
     const supabase = $provideSupabaseForServer();
-    const tableName = await $getTableName('UserWallet');
+    const tableName = await $getTableName('Wallet');
 
     const { data, error } = await supabase
         .from(tableName)
@@ -591,7 +588,7 @@ async function findUserWalletRowById(options: FindUserWalletByIdOptions): Promis
  */
 async function findExistingWalletRecord(payload: UserWalletInsert): Promise<UserWalletRow | null> {
     const supabase = $provideSupabaseForServer();
-    const tableName = await $getTableName('UserWallet');
+    const tableName = await $getTableName('Wallet');
 
     let scopedAgentPermanentId: string | null = null;
     if (!payload.isGlobal) {

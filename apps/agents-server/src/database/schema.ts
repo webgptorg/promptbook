@@ -784,7 +784,7 @@ export type AgentsServerDatabase = {
                     },
                 ];
             };
-            UserWallet: {
+            Wallet: {
                 Row: {
                     id: number;
                     createdAt: string;
@@ -841,13 +841,13 @@ export type AgentsServerDatabase = {
                 };
                 Relationships: [
                     {
-                        foreignKeyName: 'UserWallet_userId_fkey';
+                        foreignKeyName: 'Wallet_userId_fkey';
                         columns: ['userId'];
                         referencedRelation: 'User';
                         referencedColumns: ['id'];
                     },
                     {
-                        foreignKeyName: 'UserWallet_agentPermanentId_fkey';
+                        foreignKeyName: 'Wallet_agentPermanentId_fkey';
                         columns: ['agentPermanentId'];
                         referencedRelation: 'Agent';
                         referencedColumns: ['permanentId'];
