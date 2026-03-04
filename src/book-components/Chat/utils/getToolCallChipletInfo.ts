@@ -6,10 +6,7 @@ import {
     parseToolCallArguments,
     parseToolCallResult,
 } from './toolCallParsing';
-import {
-    parseWalletCredentialToolCallResult,
-    WALLET_CREDENTIAL_TOOL_CALL_NAME,
-} from './walletCredentialToolCall';
+import { parseWalletCredentialToolCallResult, WALLET_CREDENTIAL_TOOL_CALL_NAME } from './walletCredentialToolCall';
 
 const MEMORY_CHIP_MAX_LENGTH = 48;
 const MEMORY_CHIP_TRUNCATE_LENGTH = 45;
