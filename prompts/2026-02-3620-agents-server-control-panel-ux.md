@@ -14,15 +14,19 @@ Control panel is getting bigger and bigger, and it is important to keep it user-
 
 ---
 
-[-]
+[ ] !
 
-[✨🥘] brr
+[✨🥘] Enhance and simplify UX of the control panel
 
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+Control panel is getting bigger and bigger, and it is important to keep it user-friendly and intuitive. The design is also a bit outdated, so it would be good to enhance it a bit.
+
+-   Enhance design and UX of the control panel, make it more user-friendly and intuitive
+-   Do a proper analysis of the current functionality of the control panel before you start implementing.
+-   Look at the screenshots to see the current state of the control panel and think about how to enhance it and make it more user-friendly and intuitive.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-02-3620-agents-server-control-panel-ux-1.png)
+![alt text](prompts/screenshots/2026-02-3620-agents-server-control-panel-ux-2.png)
 
 ---
 
@@ -48,3 +52,14 @@ Control panel is getting bigger and bigger, and it is important to keep it user-
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+---
+
+[-]
+
+[✨🥘] brr
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
