@@ -1,8 +1,8 @@
-import { BrowserContext, chromium, type LaunchPersistentContextOptions } from 'playwright';
 import { mkdir } from 'fs/promises';
-import { join } from 'path';
-import { tmpdir } from 'os';
 import { locateChrome } from 'locate-app';
+import { tmpdir } from 'os';
+import { join } from 'path';
+import { BrowserContext, chromium } from 'playwright';
 import { REMOTE_BROWSER_URL } from '../../config';
 
 /**
@@ -10,9 +10,7 @@ import { REMOTE_BROWSER_URL } from '../../config';
  *
  * @private internal type for `BrowserConnectionProvider`
  */
-type BrowserConnectionMode =
-    | { readonly type: 'local' }
-    | { readonly type: 'remote'; readonly wsEndpoint: string };
+type BrowserConnectionMode = { readonly type: 'local' } | { readonly type: 'remote'; readonly wsEndpoint: string };
 
 const DEFAULT_BROWSER_USER_DATA_DIR = join(tmpdir(), 'promptbook', 'browser', 'user-data');
 
@@ -98,9 +96,13 @@ export class BrowserConnectionProvider {
                 });
             }
 
-            await Promise.all(pages.map((page) => page.close().catch((error) => {
-                console.error('[BrowserConnectionProvider] Failed to close page', { error });
-            })));
+            await Promise.all(
+                pages.map((page) =>
+                    page.close().catch((error) => {
+                        console.error('[BrowserConnectionProvider] Failed to close page', { error });
+                    }),
+                ),
+            );
         } catch (error) {
             console.error('[BrowserConnectionProvider] Error closing pages', { error });
         }
@@ -182,7 +184,7 @@ export class BrowserConnectionProvider {
         const userDataDir = join(DEFAULT_BROWSER_USER_DATA_DIR, 'run-browser');
         await mkdir(userDataDir, { recursive: true });
 
-        const launchOptions: LaunchPersistentContextOptions = {
+        const launchOptions: NonNullable<Parameters<typeof chromium.launchPersistentContext>[1]> = {
             headless: false,
             args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
         };
@@ -192,9 +194,12 @@ export class BrowserConnectionProvider {
             launchOptions.executablePath = chromePath;
         } catch (error) {
             if (this.isVerbose) {
-                console.warn('[BrowserConnectionProvider] Could not locate system Chrome; using Playwright bundled Chromium', {
-                    error: error instanceof Error ? error.message : String(error),
-                });
+                console.warn(
+                    '[BrowserConnectionProvider] Could not locate system Chrome; using Playwright bundled Chromium',
+                    {
+                        error: error instanceof Error ? error.message : String(error),
+                    },
+                );
             }
         }
 
