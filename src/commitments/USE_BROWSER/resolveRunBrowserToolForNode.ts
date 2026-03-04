@@ -1,6 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import type { ToolFunction } from '../../_packages/types.index';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
+import { assertsError } from '../../errors/assertsError';
 
 /**
  * Resolves the server-side implementation of the `run_browser` tool for Node.js environments.
@@ -16,17 +17,24 @@ export function resolveRunBrowserToolForNode(): ToolFunction {
         const { run_browser } = require('../../../apps/agents-server/src/tools/run_browser');
 
         if (typeof run_browser !== 'function') {
-            throw new Error('run_browser value is not a function');
+            throw new Error('run_browser value is not a function but ' + typeof run_browser);
         }
 
         return run_browser as ToolFunction;
-    } catch {
+    } catch (error) {
+        assertsError(error);
+
         return async () => {
             throw new EnvironmentMismatchError(
-                spaceTrim(`
-                    \`run_browser\` tool is not available in this environment.
-                    This commitment requires the Agents Server browser runtime with Playwright CLI.
-                `),
+                spaceTrim(
+                    (block) => `
+                        \`run_browser\` tool is not available in this environment.
+                        This commitment requires the Agents Server browser runtime with Playwright CLI.
+
+                        ${error.name}:
+                        ${block(error.message)}
+                `,
+                ),
             );
         };
     }
