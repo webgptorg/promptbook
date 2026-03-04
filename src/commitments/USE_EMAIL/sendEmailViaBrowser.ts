@@ -10,10 +10,7 @@
  *
  * @private internal utility for USE EMAIL commitment
  */
-export async function sendEmailViaBrowser(
-    args: Record<string, unknown>,
-    agentsServerUrl?: string,
-): Promise<string> {
+export async function sendEmailViaBrowser(args: Record<string, unknown>, agentsServerUrl?: string): Promise<string> {
     try {
         const baseUrl = agentsServerUrl || (typeof window !== 'undefined' ? window.location.origin : '');
 

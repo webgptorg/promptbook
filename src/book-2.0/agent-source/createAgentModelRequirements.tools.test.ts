@@ -125,11 +125,7 @@ describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
         `);
         const requirements = await createAgentModelRequirements(agentSource);
 
-        expect(requirements.tools).toEqual(
-            expect.arrayContaining([
-                expect.objectContaining({ name: 'send_email' }),
-            ]),
-        );
+        expect(requirements.tools).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'send_email' })]));
         expect(requirements._metadata?.useEmail).toBe(true);
         expect(requirements._metadata?.useEmailSender).toBe('agent@example.com');
     });
