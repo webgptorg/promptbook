@@ -1,7 +1,8 @@
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { randomUUID } from 'crypto';
 import { mkdir } from 'fs/promises';
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { BrowserContext, Page } from 'playwright';
+import { keepUnused } from '../../../../src/utils/organization/keepUnused';
 import { $provideBrowserForServer } from './$provideBrowserForServer';
 import { run_browser } from './run_browser';
 
@@ -26,11 +27,13 @@ type FillFn = (text: string) => Promise<void>;
 type WheelFn = (x: number, y: number) => Promise<void>;
 
 type LocatorMock = {
-    first: jest.MockedFunction<() => {
-        click: jest.MockedFunction<AsyncVoidFn>;
-        fill: jest.MockedFunction<FillFn>;
-        scrollIntoViewIfNeeded: jest.MockedFunction<AsyncVoidFn>;
-    }>;
+    first: jest.MockedFunction<
+        () => {
+            click: jest.MockedFunction<AsyncVoidFn>;
+            fill: jest.MockedFunction<FillFn>;
+            scrollIntoViewIfNeeded: jest.MockedFunction<AsyncVoidFn>;
+        }
+    >;
 };
 
 type PageMock = Pick<Page, 'goto' | 'locator' | 'waitForTimeout' | 'screenshot' | 'title' | 'close' | 'url'> & {
@@ -51,7 +54,9 @@ function createPageMock(): {
     readonly scrollIntoViewIfNeededMock: jest.MockedFunction<AsyncVoidFn>;
 } {
     const clickMock = jest.fn(async (): Promise<void> => {}) as jest.MockedFunction<AsyncVoidFn>;
-    const fillMock = jest.fn(async (_text: string): Promise<void> => {}) as jest.MockedFunction<FillFn>;
+    const fillMock = jest.fn(async (_text: string): Promise<void> => {
+        keepUnused(_text);
+    }) as jest.MockedFunction<FillFn>;
     const scrollIntoViewIfNeededMock = jest.fn(async (): Promise<void> => {}) as jest.MockedFunction<AsyncVoidFn>;
 
     const locatorMock: LocatorMock = {
@@ -67,7 +72,10 @@ function createPageMock(): {
         locator: jest.fn(() => locatorMock) as unknown as Page['locator'],
         waitForTimeout: jest.fn(async (): Promise<void> => {}) as unknown as Page['waitForTimeout'],
         mouse: {
-            wheel: jest.fn(async (_x: number, _y: number): Promise<void> => {}) as jest.MockedFunction<WheelFn>,
+            wheel: jest.fn(async (_x: number, _y: number): Promise<void> => {
+                keepUnused(_x);
+                keepUnused(_y);
+            }) as jest.MockedFunction<WheelFn>,
         },
         screenshot: jest.fn(async () => Buffer.from('')) as unknown as Page['screenshot'],
         title: jest.fn(async (): Promise<string> => 'Example Domain') as unknown as Page['title'],
