@@ -4,16 +4,9 @@ import type { Message } from '../../../../src/types/Message';
 import type { OutboundEmail } from '../message-providers/email/_common/Email';
 import { parseEmailAddresses } from '../message-providers/email/_common/utils/parseEmailAddresses';
 import { SmtpMessageProvider } from '../message-providers/email/smtp/SmtpMessageProvider';
-import {
-    isSendMessageDeliveryError,
-    sendMessage,
-    type SendMessageResult,
-} from '../utils/messages/sendMessage';
 import { parseUseEmailSmtpCredential } from '../utils/messages/parseUseEmailSmtpCredential';
-import {
-    USE_EMAIL_SMTP_WALLET_KEY,
-    USE_EMAIL_SMTP_WALLET_SERVICE,
-} from '../utils/useEmailSmtpWalletConstants';
+import { isSendMessageDeliveryError, sendMessage, type SendMessageResult } from '../utils/messages/sendMessage';
+import { USE_EMAIL_SMTP_WALLET_KEY, USE_EMAIL_SMTP_WALLET_SERVICE } from '../utils/useEmailSmtpWalletConstants';
 
 /**
  * Hidden runtime context shape used by USE EMAIL server tool.
@@ -111,10 +104,10 @@ export async function send_email(args: SendEmailToolArgs): Promise<string> {
 /**
  * Builds wallet-required result payload for USE EMAIL.
  */
-function createEmailWalletCredentialRequiredResult(defaultFromAddress?: string): EmailWalletCredentialRequiredToolResult {
-    const fromAddressInstruction = defaultFromAddress
-        ? `\nDefault sender from commitment: ${defaultFromAddress}`
-        : '';
+function createEmailWalletCredentialRequiredResult(
+    defaultFromAddress?: string,
+): EmailWalletCredentialRequiredToolResult {
+    const fromAddressInstruction = defaultFromAddress ? `\nDefault sender from commitment: ${defaultFromAddress}` : '';
 
     return {
         action: 'email-auth',
@@ -142,12 +135,18 @@ function buildSendEmailToolResult(
     email: OutboundEmail,
     sendResult: SendMessageResult,
 ): SendEmailToolResult {
+    const recipients = Array.isArray(email.recipients)
+        ? [...email.recipients]
+        : email.recipients
+        ? [email.recipients]
+        : [];
+
     return {
         action: 'send-email',
         status,
         messageId: sendResult.messageId,
         from: email.sender,
-        to: [...email.recipients],
+        to: recipients,
         cc: email.cc.map((address: { fullEmail: string }) => address.fullEmail),
         subject: email.subject,
         attempts: sendResult.attempts,
