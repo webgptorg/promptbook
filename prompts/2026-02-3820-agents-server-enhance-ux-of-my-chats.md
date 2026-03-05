@@ -14,16 +14,18 @@
 
 ---
 
-[-]
+[ ]
 
-[✨💄] brr
+[✨💄] Enhance the collapsed version of my chat's left bar
 
--   @@@
+-   Now the first row of the preview is obstructed by the number of the messages.
+-   Move this number in a circle to the right top of box to make it more visually appealing and not obstructing the preview of the first message in the chat.
+-   Look and appear like the number of the notifications or new messages in the mobile app icon.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![enhance mini version of chat item](prompts/screenshots/2026-02-3820-agents-server-enhance-ux-of-my-chats-2.png)
 
 ---
 
@@ -50,4 +52,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
