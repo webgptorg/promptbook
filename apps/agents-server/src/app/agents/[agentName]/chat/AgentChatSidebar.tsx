@@ -248,7 +248,7 @@ export function AgentChatSidebar({
                                                 }`}
                                             >
                                                 <span
-                                                    className={`absolute -top-1.5 -right-1.5 z-10 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold leading-none shadow-sm ${
+                                                    className={`absolute -top-1.5 -right-1.5 z-[5] inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold leading-none shadow-sm ${
                                                         isActive ? 'bg-blue-500 text-white' : 'bg-slate-400 text-white'
                                                     }`}
                                                     aria-label={content.messagesCountLabel}
