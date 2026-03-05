@@ -241,26 +241,22 @@ export function AgentChatSidebar({
                                             title={content.accessibilityLabel}
                                         >
                                             <div
-                                                className={`w-full rounded-xl border px-1.5 py-1.5 text-left ${
+                                                className={`relative w-full rounded-xl border px-1.5 py-1.5 text-left ${
                                                     isActive
                                                         ? 'border-blue-300 bg-white/90 text-blue-700'
                                                         : 'border-slate-200 bg-white/90 text-slate-600'
                                                 }`}
                                             >
-                                                <div className="flex items-center justify-between gap-1">
-                                                    <span className="max-w-full truncate text-[10px] font-semibold leading-none">
-                                                        {content.title}
-                                                    </span>
-                                                    <span
-                                                        className={`inline-flex min-w-4 justify-center rounded-full px-1 py-[1px] text-[9px] font-semibold leading-none ${
-                                                            isActive
-                                                                ? 'bg-blue-100 text-blue-700'
-                                                                : 'bg-slate-100 text-slate-500'
-                                                        }`}
-                                                        aria-label={content.messagesCountLabel}
-                                                    >
-                                                        {content.messagesCount}
-                                                    </span>
+                                                <span
+                                                    className={`absolute -top-1.5 -right-1.5 z-10 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold leading-none shadow-sm ${
+                                                        isActive ? 'bg-blue-500 text-white' : 'bg-slate-400 text-white'
+                                                    }`}
+                                                    aria-label={content.messagesCountLabel}
+                                                >
+                                                    {content.messagesCount}
+                                                </span>
+                                                <div className="max-w-full truncate text-[10px] font-semibold leading-none">
+                                                    {content.title}
                                                 </div>
                                                 <div className="mt-1 max-w-full truncate text-[9px] leading-tight text-slate-500">
                                                     {content.preview}

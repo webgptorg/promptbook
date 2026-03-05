@@ -14,7 +14,7 @@
 
 ---
 
-[ ]
+[x] Github Copilot `claude-4.6-opus`
 
 [✨💄] Enhance the collapsed version of my chat's left bar
 
