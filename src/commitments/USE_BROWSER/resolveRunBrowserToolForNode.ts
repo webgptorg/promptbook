@@ -1,4 +1,5 @@
 import { spaceTrim } from 'spacetrim';
+import { run_browser } from '../../../apps/agents-server/src/tools/run_browser';
 import type { ToolFunction } from '../../_packages/types.index';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { assertsError } from '../../errors/assertsError';
@@ -14,7 +15,7 @@ import { assertsError } from '../../errors/assertsError';
 export function resolveRunBrowserToolForNode(): ToolFunction {
     try {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { run_browser } = require('../../../apps/agents-server/src/tools/run_browser');
+        // const { run_browser } = require('../../../apps/agents-server/src/tools/run_browser');
 
         if (typeof run_browser !== 'function') {
             throw new Error('run_browser value is not a function but ' + typeof run_browser);
