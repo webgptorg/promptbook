@@ -1,8 +1,16 @@
 'use client';
 
-import { MessageSquarePlusIcon, Trash2Icon, XIcon } from 'lucide-react';
+import { EyeIcon, EyeOffIcon, MessageSquarePlusIcon, Trash2Icon, XIcon } from 'lucide-react';
+import { useState } from 'react';
 import { ArrowIcon } from '../../../../../../../src/book-components/icons/ArrowIcon';
 import type { UserChatSummary } from '../../../../utils/userChatClient';
+
+/**
+ * Maximum number of messages a chat can have to be considered "empty" (just the initial greeting).
+ *
+ * @private internal constant of `<AgentChatSidebar/>`
+ */
+const EMPTY_CHAT_MAX_MESSAGES = 1;
 
 /**
  * HTML ID assigned to the chat sidebar so controls can reference the panel without hardcoding strings.
@@ -172,13 +180,18 @@ export function AgentChatSidebar({
         }
     };
 
+    const [showEmptyChats, setShowEmptyChats] = useState(false);
+
     const emptyStateText = formatText('No chats yet');
     const sidebarToggleLabel = isCollapsed ? formatText('Expand sidebar') : formatText('Collapse sidebar');
-    const sidebarItems = chats.map((chat) => ({
+    const allSidebarItems = chats.map((chat) => ({
         chat,
         isActive: chat.id === activeChatId,
+        isEmpty: chat.messagesCount <= EMPTY_CHAT_MAX_MESSAGES,
         content: resolveSidebarChatItemContent(chat, formatText, formatChatTimestamp),
     }));
+    const emptyChatCount = allSidebarItems.filter((item) => item.isEmpty).length;
+    const sidebarItems = allSidebarItems.filter((item) => showEmptyChats || !item.isEmpty);
 
     return (
         <>
@@ -226,7 +239,7 @@ export function AgentChatSidebar({
                             {sidebarItems.length === 0 ? (
                                 <p className="px-1 text-center text-[11px] text-slate-500">{emptyStateText}</p>
                             ) : (
-                                sidebarItems.map(({ chat, content, isActive }) => {
+                                sidebarItems.map(({ chat, content, isActive, isEmpty }) => {
                                     return (
                                         <button
                                             key={chat.id}
@@ -236,7 +249,7 @@ export function AgentChatSidebar({
                                                 isActive
                                                     ? 'border-blue-300 bg-blue-50 text-blue-700 shadow-sm'
                                                     : 'border-transparent bg-slate-100/80 text-slate-700 hover:border-slate-300 hover:bg-slate-100'
-                                            }`}
+                                            } ${isEmpty && !isActive ? 'opacity-40' : ''}`}
                                             aria-label={content.accessibilityLabel}
                                             title={content.accessibilityLabel}
                                         >
@@ -275,6 +288,25 @@ export function AgentChatSidebar({
                             )}
                         </div>
 
+                        {emptyChatCount > 0 && (
+                            <button
+                                type="button"
+                                onClick={() => setShowEmptyChats((prev) => !prev)}
+                                className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:text-slate-600 hover:bg-slate-100"
+                                title={
+                                    showEmptyChats
+                                        ? formatText('Hide empty chats')
+                                        : `${formatText('Show')} ${emptyChatCount} ${formatText('empty')}`
+                                }
+                            >
+                                {showEmptyChats ? (
+                                    <EyeOffIcon className="h-3.5 w-3.5" />
+                                ) : (
+                                    <EyeIcon className="h-3.5 w-3.5" />
+                                )}
+                            </button>
+                        )}
+
                         <p className="text-[11px] text-slate-400">{formatText('Chats')}</p>
                     </div>
                 ) : (
@@ -295,7 +327,7 @@ export function AgentChatSidebar({
                             {sidebarItems.length === 0 ? (
                                 <p className="px-2 text-xs text-slate-500">{emptyStateText}</p>
                             ) : (
-                                sidebarItems.map(({ chat, content, isActive }) => {
+                                sidebarItems.map(({ chat, content, isActive, isEmpty }) => {
                                     return (
                                         <div
                                             key={chat.id}
@@ -303,7 +335,7 @@ export function AgentChatSidebar({
                                                 isActive
                                                     ? 'border-blue-300 bg-blue-50 shadow-sm'
                                                     : 'border-transparent hover:border-slate-200 hover:bg-slate-100/80'
-                                            }`}
+                                            } ${isEmpty && !isActive ? 'opacity-40' : ''}`}
                                         >
                                             <button
                                                 type="button"
@@ -342,6 +374,28 @@ export function AgentChatSidebar({
                                 })
                             )}
                         </div>
+
+                        {emptyChatCount > 0 && (
+                            <div className="px-2 pb-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowEmptyChats((prev) => !prev)}
+                                    className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs text-slate-400 transition hover:text-slate-600 hover:bg-slate-100"
+                                >
+                                    {showEmptyChats ? (
+                                        <>
+                                            <EyeOffIcon className="h-3.5 w-3.5" />
+                                            {formatText('Hide empty chats')}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <EyeIcon className="h-3.5 w-3.5" />
+                                            {`${formatText('Show')} ${emptyChatCount} ${formatText('empty')}`}
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        )}
                     </>
                 )}
             </aside>
