@@ -237,9 +237,7 @@ export class BrowserConnectionProvider {
                 error,
             });
 
-            // Fall back to local browser on connection failure
-            console.warn('[BrowserConnectionProvider] Falling back to local browser');
-            return await this.createLocalBrowserContext();
+            throw error;
         }
     }
 }

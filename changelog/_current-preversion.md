@@ -1,3 +1,8 @@
+-   Fixed Agents Server remote browser execution on Vercel when `REMOTE_BROWSER_URL` is configured:
+    -   `BrowserConnectionProvider` no longer falls back to launching a local browser when remote Playwright connection fails, so serverless deployments never attempt local Chromium startup in remote mode.
+    -   Added a regression test for remote-mode behavior to ensure failed remote connections do not call `launchPersistentContext`.
+    -   Removed the unused `@playwright/cli` dependency; browser tooling now relies on the Playwright library path only.
+
 -   Fixed Agents Server header-bar overlap on intermediate viewport widths:
     -   The desktop middle navigation block (search + Documentation/System) now participates in normal flex layout instead of absolute centering, preventing collisions with breadcrumb and profile controls.
     -   The global search box now appears from wider desktop widths (`xl`) while Documentation/System remain available on `lg`, reducing crowding between desktop and mobile breakpoints.
