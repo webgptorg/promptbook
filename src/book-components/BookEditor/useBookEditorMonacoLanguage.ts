@@ -12,6 +12,13 @@ type UseBookEditorMonacoLanguageProps = {
 };
 
 /**
+ * Commitments that act as notes and should be visually separated from executable commitments.
+ *
+ * @private function of BookEditorMonaco
+ */
+const NOTE_COMMITMENT_TYPES = ['TODO', 'NOTE', 'NOTES', 'NONCE'] as const;
+
+/**
  * Theme identifier shared by all BookEditor Monaco instances.
  *
  * @private function of BookEditorMonaco
@@ -35,6 +42,28 @@ type MonacoEditorWithBookEditorLanguageState = MonacoEditor & {
 };
 
 /**
+ * Builds a regex that matches one commitment keyword at line start.
+ *
+ * @param commitmentTypes - Commitment keyword list to include.
+ * @returns Compiled regex for Monaco tokenizer rules.
+ * @private function of BookEditorMonaco
+ */
+function createCommitmentRegex(commitmentTypes: ReadonlyArray<string>): RegExp {
+    if (commitmentTypes.length === 0) {
+        return /a^/;
+    }
+
+    const commitmentPatterns = [...commitmentTypes]
+        .sort((a: string, b: string) => b.length - a.length)
+        .map((type: string) => (type === 'META' ? 'META\\s+\\w+' : type.replace(/\s+/, '\\s+')))
+        .join('|');
+
+    return new RegExp(
+        `^\\s*(${commitmentPatterns})(?=\\s|$)`,
+    );
+}
+
+/**
  * Ensures the BookEditor Monaco language, tokenizer, links and completion providers are
  * registered exactly once per Monaco instance, while always re-applying the Book theme.
  *
@@ -52,12 +81,11 @@ export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor): void {
     monaco.languages.register({ id: BookEditorMonacoConstants.BOOK_LANGUAGE_ID });
 
     const commitmentTypes = [...new Set(getAllCommitmentDefinitions().map(({ type }) => type))];
-    const commitmentRegex = new RegExp(
-        `^\\s*(${commitmentTypes
-            .sort((a, b) => b.length - a.length)
-            .map((type) => (type === 'META' ? 'META\\s+\\w+' : type.replace(/\s+/, '\\s+')))
-            .join('|')})(?=\\s|$)`,
-    );
+    const noteCommitmentTypeSet = new Set<string>(NOTE_COMMITMENT_TYPES);
+    const noteCommitmentTypes = commitmentTypes.filter((type) => noteCommitmentTypeSet.has(type.toUpperCase()));
+    const executableCommitmentTypes = commitmentTypes.filter((type) => !noteCommitmentTypeSet.has(type.toUpperCase()));
+    const noteCommitmentRegex = createCommitmentRegex(noteCommitmentTypes);
+    const commitmentRegex = createCommitmentRegex(executableCommitmentTypes);
     const agentReferenceCommitmentRegex = /^\s*(FROM|IMPORT|IMPORTS|TEAM)(?=\s|$)/;
 
     const parameterRegex = /@([a-zA-Z0-9_á-žÁ-Žč-řČ-Řš-žŠ-Žа-яА-ЯёЁ]+)/;
@@ -66,6 +94,7 @@ export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor): void {
     const defaultBodyRules: any = [
         [/^---[-]*$/, ''],
         [/^```.*$/, 'code-block', '@codeblock'],
+        [noteCommitmentRegex, 'note-commitment'],
         [agentReferenceCommitmentRegex, 'commitment', '@agent-reference-body'],
         [commitmentRegex, 'commitment'],
         [parameterRegex, 'parameter'],
@@ -76,6 +105,7 @@ export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor): void {
     const agentReferenceBodyRules: any = [
         [/^---[-]*$/, '', '@body'],
         [/^```.*$/, 'code-block', '@codeblock'],
+        [noteCommitmentRegex, 'note-commitment', '@body'],
         [agentReferenceCommitmentRegex, 'commitment', '@agent-reference-body'],
         [commitmentRegex, 'commitment', '@body'],
         ...BookEditorMonacoTokenization.AGENT_REFERENCE_HIGHLIGHT_REGEXES.map((regex) => [regex, 'agent-reference']),
@@ -152,6 +182,11 @@ export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor): void {
             {
                 token: 'commitment',
                 foreground: PROMPTBOOK_SYNTAX_COLORS.COMMITMENT.toHex(),
+                fontStyle: 'bold',
+            },
+            {
+                token: 'note-commitment',
+                foreground: PROMPTBOOK_SYNTAX_COLORS.NOTE_COMMITMENT.toHex(),
                 fontStyle: 'bold',
             },
             {

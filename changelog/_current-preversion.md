@@ -1,3 +1,7 @@
+-   Updated BookEditor commitment syntax highlighting to visually separate non-executable note commitments:
+    -   `TODO`, `NOTE`, `NOTES`, and `NONCE` now render with a dedicated gray note style instead of the regular commitment color.
+    -   Implemented this through one DRY Monaco token path (`note-commitment`) shared by tokenizer and theme rules.
+
 -   Expanded self-learning sampling to capture full internal execution traces:
     -   Added a new `INTERNAL MESSAGE` commitment and registry support for parsing book-level internal trace records.
     -   Self-learning now stores structured internal trace blocks between `USER MESSAGE` and `AGENT MESSAGE`, including model request/response payloads and tool-call request+result data.

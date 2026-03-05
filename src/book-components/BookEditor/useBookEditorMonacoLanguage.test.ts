@@ -1,4 +1,5 @@
 import { describe, expect, it, jest } from '@jest/globals';
+import { PROMPTBOOK_SYNTAX_COLORS } from '../../config';
 import { ensureBookEditorMonacoLanguage } from './useBookEditorMonacoLanguage';
 
 /**
@@ -86,5 +87,29 @@ describe('ensureBookEditorMonacoLanguage', () => {
 
         expect(first.spies.registerLanguage).toHaveBeenCalledTimes(1);
         expect(second.spies.registerLanguage).toHaveBeenCalledTimes(1);
+    });
+
+    it('registers dedicated note-commitment tokenization and theme rule', () => {
+        const { monaco, spies } = createMonacoLanguageMock();
+
+        ensureBookEditorMonacoLanguage(monaco);
+
+        const monarchConfig = spies.setMonarchTokensProvider.mock.calls[0]?.[1] as {
+            readonly tokenizer: {
+                readonly body: ReadonlyArray<readonly [RegExp, string, string?]>;
+                readonly 'agent-reference-body': ReadonlyArray<readonly [RegExp, string, string?]>;
+            };
+        };
+        const themeConfig = spies.defineTheme.mock.calls[0]?.[1] as {
+            readonly rules: ReadonlyArray<{ readonly token: string; readonly foreground?: string }>;
+        };
+
+        expect(monarchConfig.tokenizer.body.some((rule) => rule[1] === 'note-commitment')).toBe(true);
+        expect(monarchConfig.tokenizer['agent-reference-body'].some((rule) => rule[1] === 'note-commitment')).toBe(
+            true,
+        );
+
+        const noteThemeRule = themeConfig.rules.find((rule) => rule.token === 'note-commitment');
+        expect(noteThemeRule?.foreground).toBe(PROMPTBOOK_SYNTAX_COLORS.NOTE_COMMITMENT.toHex());
     });
 });
