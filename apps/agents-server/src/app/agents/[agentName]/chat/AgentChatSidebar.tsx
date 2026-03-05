@@ -222,7 +222,7 @@ export function AgentChatSidebar({
                             <MessageSquarePlusIcon className="h-5 w-5" />
                         </button>
 
-                        <div className="flex min-h-0 w-full flex-1 flex-col gap-2 overflow-y-auto">
+                        <div className="flex min-h-0 w-full flex-1 flex-col gap-2 overflow-y-auto scrollbar-hidden">
                             {sidebarItems.length === 0 ? (
                                 <p className="px-1 text-center text-[11px] text-slate-500">{emptyStateText}</p>
                             ) : (
@@ -291,7 +291,7 @@ export function AgentChatSidebar({
                             </button>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto p-2 space-y-2">
+                        <div className="flex-1 overflow-y-auto scrollbar-hidden p-2 space-y-2">
                             {sidebarItems.length === 0 ? (
                                 <p className="px-2 text-xs text-slate-500">{emptyStateText}</p>
                             ) : (
