@@ -281,7 +281,8 @@
 
 .PromptbookAgentSeamlessIntegrationContent {
     flex: 1;
-    overflow-y: auto;
+    min-height: 0;
+    overflow: hidden;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -290,15 +291,30 @@
 
 .PromptbookAgentSeamlessIntegrationLoading,
 .PromptbookAgentSeamlessIntegrationError {
+    position: relative;
     flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 26px;
+    padding: 30px;
     text-align: center;
     color: #516178;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
+    overflow: hidden;
+}
+
+.PromptbookAgentSeamlessIntegrationLoading {
+    background: linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%);
+}
+
+.PromptbookAgentSeamlessIntegrationLoadingShimmer {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, rgba(255, 255, 255, 0) 25%, rgba(255, 255, 255, 0.7) 50%, rgba(255, 255, 255, 0) 75%);
+    transform: translateX(-100%);
+    animation: promptbook-agent-loading-shimmer 1.4s ease-in-out infinite;
+    pointer-events: none;
 }
 
 .PromptbookAgentSeamlessIntegrationLoadingSpinner {
@@ -310,10 +326,16 @@
     animation: promptbook-agent-spin 900ms linear infinite;
 }
 
+.PromptbookAgentSeamlessIntegrationLoadingTitle {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #20304c;
+}
+
 .PromptbookAgentSeamlessIntegrationLoadingText {
-    font-size: 0.95rem;
+    font-size: 0.86rem;
     font-weight: 600;
-    color: #41506b;
+    color: #4e6183;
 }
 
 .PromptbookAgentSeamlessIntegrationError {
@@ -336,6 +358,12 @@
 @keyframes promptbook-agent-spin {
     to {
         transform: rotate(360deg);
+    }
+}
+
+@keyframes promptbook-agent-loading-shimmer {
+    to {
+        transform: translateX(100%);
     }
 }
 
@@ -391,7 +419,8 @@
     .PromptbookAgentSeamlessIntegrationWindow,
     .PromptbookAgentSeamlessIntegrationIframe,
     .PromptbookAgentSeamlessIntegrationStatusPending::after,
-    .PromptbookAgentSeamlessIntegrationLoadingSpinner {
+    .PromptbookAgentSeamlessIntegrationLoadingSpinner,
+    .PromptbookAgentSeamlessIntegrationLoadingShimmer {
         animation: none !important;
         transition: none !important;
     }

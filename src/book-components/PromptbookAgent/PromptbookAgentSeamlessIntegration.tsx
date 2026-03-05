@@ -43,6 +43,7 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
     const [internalIsOpen, setInternalIsOpen] = useState(defaultOpen);
     const [headerElement, setHeaderElement] = useState<HTMLDivElement | null>(null);
     const [isIframeLoaded, setIsIframeLoaded] = useState(false);
+    const [isChatConnected, setIsChatConnected] = useState(false);
     const rootElementRef = useRef<HTMLDivElement | null>(null);
     const windowId = useId();
     const isOpen = controlledIsOpen ?? internalIsOpen;
@@ -76,6 +77,11 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
             setIsIframeLoaded(false);
         }
     }, [isOpen]);
+
+    useEffect(() => {
+        setIsIframeLoaded(false);
+        setIsChatConnected(false);
+    }, [agentUrl]);
 
     useEffect(() => {
         if (!isOpen) {
@@ -136,6 +142,7 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
                 const connectedAgent = await RemoteAgent.connect({ agentUrl });
                 if (isMounted) {
                     setAgent(connectedAgent);
+                    setIsChatConnected(true);
                 }
             } catch (err) {
                 console.error('Failed to connect to agent:', err);
@@ -164,9 +171,9 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
     const displayName = agent?.meta.fullname || meta?.fullname || agent?.agentName || 'Chat with Agent';
 
     let connectionStatus: 'connected' | 'pending' | 'error' = 'pending';
-    if (agent) {
+    if (isChatConnected || agent) {
         connectionStatus = 'connected';
-    } else if (error) {
+    } else if (error && !isIframeUsed) {
         connectionStatus = 'error';
     }
     const connectionStatusText =
@@ -241,9 +248,13 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
                             <>
                                 {!isIframeLoaded && (
                                     <div className={styles.PromptbookAgentSeamlessIntegrationLoading}>
+                                        <div className={styles.PromptbookAgentSeamlessIntegrationLoadingShimmer} />
                                         <div className={styles.PromptbookAgentSeamlessIntegrationLoadingSpinner} />
+                                        <div className={styles.PromptbookAgentSeamlessIntegrationLoadingTitle}>
+                                            Preparing your chat
+                                        </div>
                                         <div className={styles.PromptbookAgentSeamlessIntegrationLoadingText}>
-                                            Preparing chat...
+                                            Connecting to {displayName}...
                                         </div>
                                     </div>
                                 )}
@@ -252,7 +263,10 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
                                     className={styles.PromptbookAgentSeamlessIntegrationIframe}
                                     style={{ opacity: isIframeLoaded ? 1 : 0 }}
                                     tabIndex={-1}
-                                    onLoad={() => setIsIframeLoaded(true)}
+                                    onLoad={() => {
+                                        setIsIframeLoaded(true);
+                                        setIsChatConnected(true);
+                                    }}
                                 />
                             </>
                         ) : agent ? (
@@ -283,9 +297,13 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
                             </div>
                         ) : (
                             <div className={styles.PromptbookAgentSeamlessIntegrationLoading}>
+                                <div className={styles.PromptbookAgentSeamlessIntegrationLoadingShimmer} />
                                 <div className={styles.PromptbookAgentSeamlessIntegrationLoadingSpinner} />
+                                <div className={styles.PromptbookAgentSeamlessIntegrationLoadingTitle}>
+                                    Preparing your chat
+                                </div>
                                 <div className={styles.PromptbookAgentSeamlessIntegrationLoadingText}>
-                                    Connecting to agent...
+                                    Connecting to {displayName}...
                                 </div>
                             </div>
                         )}

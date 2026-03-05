@@ -31,6 +31,15 @@ function createEmbedScript(baseUrl: string): string {
             const DEFAULT_WIDGET_COLOR = '#0f6fe6';
             const DEFAULT_WIDGET_TITLE = 'Chat with Agent';
             const WIDGET_Z_INDEX = '2147483647';
+            const OPEN_WIDGET_WIDTH_PX = 380;
+            const OPEN_WIDGET_HEIGHT_PX = 600;
+            const OPEN_WIDGET_BORDER_RADIUS_PX = 20;
+            const OPEN_WIDGET_DESKTOP_OFFSET_PX = 20;
+            const OPEN_WIDGET_MOBILE_OFFSET_PX = 12;
+            const OPEN_WIDGET_MOBILE_BREAKPOINT_PX = 480;
+            const CONNECTION_STATUS_CONNECTED = 'connected';
+            const CONNECTION_STATUS_PENDING = 'pending';
+            const CONNECTION_STATUS_ERROR = 'error';
 
             function parseMeta(rawMeta) {
                 if (!rawMeta) {
@@ -63,8 +72,10 @@ function createEmbedScript(baseUrl: string): string {
                     this.launcherButton = null;
                     this.launcherTitle = null;
                     this.launcherAvatar = null;
+                    this.launcherStatus = null;
                     this.isOpen = false;
                     this.isIframeLoaded = false;
+                    this.connectionStatus = CONNECTION_STATUS_PENDING;
 
                     this.handleLauncherClick = this.handleLauncherClick.bind(this);
                     this.handleDocumentPointerDown = this.handleDocumentPointerDown.bind(this);
@@ -157,6 +168,26 @@ function createEmbedScript(baseUrl: string): string {
                         '    border: 2px solid rgba(255, 255, 255, 0.72);',
                         '    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);',
                         '  }',
+                        '  .status {',
+                        '    position: absolute;',
+                        '    width: 11px;',
+                        '    height: 11px;',
+                        '    border-radius: 50%;',
+                        '    border: 2px solid white;',
+                        '    left: 37px;',
+                        '    bottom: 11px;',
+                        '    z-index: 10;',
+                        '    transition: background-color 180ms ease;',
+                        '  }',
+                        '  .status--connected {',
+                        '    background-color: #16a34a;',
+                        '  }',
+                        '  .status--pending {',
+                        '    background-color: #facc15;',
+                        '  }',
+                        '  .status--error {',
+                        '    background-color: #ef4444;',
+                        '  }',
                         '  .copy { display: flex; flex-direction: column; gap: 2px; min-width: 0; text-align: left; }',
                         '  .label { font-size: 14px; font-weight: 700; line-height: 1; }',
                         '  .title { font-size: 12px; opacity: 0.9; max-width: 170px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }',
@@ -167,6 +198,7 @@ function createEmbedScript(baseUrl: string): string {
                         '</style>',
                         '<button type="button" class="launcher" aria-label="Open chat widget">',
                         '  <span class="avatar" aria-hidden="true"></span>',
+                        '  <span class="status status--pending" aria-hidden="true"></span>',
                         '  <span class="copy">',
                         '    <span class="label">Chat</span>',
                         '    <span class="title"></span>',
@@ -177,12 +209,14 @@ function createEmbedScript(baseUrl: string): string {
                     this.launcherButton = this.shadowRoot.querySelector('.launcher');
                     this.launcherTitle = this.shadowRoot.querySelector('.title');
                     this.launcherAvatar = this.shadowRoot.querySelector('.avatar');
+                    this.launcherStatus = this.shadowRoot.querySelector('.status');
 
                     if (this.launcherButton) {
                         this.launcherButton.addEventListener('click', this.handleLauncherClick);
                     }
 
                     this.applyVisualState();
+                    this.applyConnectionStatus();
                 }
 
                 handleLauncherClick() {
@@ -241,6 +275,7 @@ function createEmbedScript(baseUrl: string): string {
                         this.launcherTitle.textContent = DEFAULT_WIDGET_TITLE;
                         this.launcherAvatar.style.backgroundImage = '';
                         this.launcherButton.style.setProperty('--promptbook-widget-color', DEFAULT_WIDGET_COLOR);
+                        this.setConnectionStatus(CONNECTION_STATUS_PENDING);
                         return;
                     }
 
@@ -261,22 +296,24 @@ function createEmbedScript(baseUrl: string): string {
                         return null;
                     }
 
-                    let embedUrl = '${baseUrl}/embed?agentUrl=' + encodeURIComponent(agentUrl);
+                    const searchParams = new URLSearchParams();
+                    searchParams.set('headless', '');
+                    searchParams.set('agentUrl', agentUrl);
                     if (openOnLoad) {
-                        embedUrl += '&open=1';
+                        searchParams.set('open', '1');
                     }
 
                     const metaAttr = this.getAttribute('meta');
                     if (metaAttr) {
                         const parsedMeta = parseMeta(metaAttr);
                         if (parsedMeta) {
-                            embedUrl += '&meta=' + encodeURIComponent(metaAttr);
+                            searchParams.set('meta', metaAttr);
                         } else {
                             console.error('[🔌] Invalid meta JSON:', metaAttr);
                         }
                     }
 
-                    return embedUrl;
+                    return '${baseUrl}/embed?' + searchParams.toString();
                 }
 
                 ensureIframe(openOnLoad) {
@@ -289,16 +326,17 @@ function createEmbedScript(baseUrl: string): string {
                         return null;
                     }
 
+                    this.setConnectionStatus(CONNECTION_STATUS_PENDING);
                     this.iframe = document.createElement('iframe');
-                    this.iframe.style.border = '1px solid rgba(164, 186, 214, 0.45)';
+                    this.iframe.style.border = '1px solid rgba(15, 23, 42, 0.16)';
                     this.iframe.style.position = 'fixed';
-                    this.iframe.style.bottom = '0';
-                    this.iframe.style.right = '0';
+                    this.iframe.style.bottom = OPEN_WIDGET_DESKTOP_OFFSET_PX + 'px';
+                    this.iframe.style.right = OPEN_WIDGET_DESKTOP_OFFSET_PX + 'px';
                     this.iframe.style.zIndex = WIDGET_Z_INDEX;
                     this.iframe.style.backgroundColor = 'transparent';
-                    this.iframe.style.borderRadius = '22px';
+                    this.iframe.style.borderRadius = OPEN_WIDGET_BORDER_RADIUS_PX + 'px';
                     this.iframe.style.overflow = 'hidden';
-                    this.iframe.style.boxShadow = '0 24px 60px rgba(9, 34, 66, 0.24), 0 8px 22px rgba(9, 34, 66, 0.14)';
+                    this.iframe.style.boxShadow = '0 18px 44px rgba(15, 23, 42, 0.2), 0 4px 14px rgba(15, 23, 42, 0.12)';
                     this.iframe.style.transition =
                         'width 0.24s ease, height 0.24s ease, opacity 0.24s ease, transform 0.24s ease';
                     this.iframe.style.transformOrigin = 'bottom right';
@@ -308,7 +346,12 @@ function createEmbedScript(baseUrl: string): string {
 
                     this.iframe.addEventListener('load', () => {
                         this.isIframeLoaded = true;
+                        this.setConnectionStatus(CONNECTION_STATUS_CONNECTED);
                         this.postOpenStateToIframe(this.isOpen);
+                    });
+                    this.iframe.addEventListener('error', () => {
+                        this.isIframeLoaded = false;
+                        this.setConnectionStatus(CONNECTION_STATUS_ERROR);
                     });
 
                     if (this.shadowRoot) {
@@ -325,6 +368,34 @@ function createEmbedScript(baseUrl: string): string {
                     }
 
                     this.iframe.contentWindow.postMessage({ type: OPEN_MESSAGE_TYPE, isOpen }, '*');
+                }
+
+                resolveWindowOffsetPx() {
+                    if (typeof window === 'undefined') {
+                        return OPEN_WIDGET_DESKTOP_OFFSET_PX;
+                    }
+
+                    return window.innerWidth <= OPEN_WIDGET_MOBILE_BREAKPOINT_PX
+                        ? OPEN_WIDGET_MOBILE_OFFSET_PX
+                        : OPEN_WIDGET_DESKTOP_OFFSET_PX;
+                }
+
+                setConnectionStatus(nextStatus) {
+                    this.connectionStatus = nextStatus;
+                    this.applyConnectionStatus();
+                }
+
+                applyConnectionStatus() {
+                    if (!this.launcherStatus) {
+                        return;
+                    }
+
+                    this.launcherStatus.classList.remove(
+                        'status--connected',
+                        'status--pending',
+                        'status--error',
+                    );
+                    this.launcherStatus.classList.add('status--' + this.connectionStatus);
                 }
 
                 setOpenState(nextIsOpen, options = { syncIframe: true }) {
@@ -354,11 +425,15 @@ function createEmbedScript(baseUrl: string): string {
                         return;
                     }
 
+                    const widgetOffsetPx = this.resolveWindowOffsetPx();
+                    this.iframe.style.bottom = widgetOffsetPx + 'px';
+                    this.iframe.style.right = widgetOffsetPx + 'px';
+
                     if (this.isOpen) {
-                        this.iframe.style.width = '420px';
-                        this.iframe.style.height = '640px';
-                        this.iframe.style.maxHeight = 'calc(80vh + 40px)';
-                        this.iframe.style.maxWidth = 'calc(100vw - 20px)';
+                        this.iframe.style.width = OPEN_WIDGET_WIDTH_PX + 'px';
+                        this.iframe.style.height = OPEN_WIDGET_HEIGHT_PX + 'px';
+                        this.iframe.style.maxHeight = 'calc(100vh - ' + widgetOffsetPx * 2 + 'px)';
+                        this.iframe.style.maxWidth = 'calc(100vw - ' + widgetOffsetPx * 2 + 'px)';
                         this.iframe.style.opacity = '1';
                         this.iframe.style.pointerEvents = 'auto';
                         this.iframe.style.transform = 'scale(1)';
@@ -384,6 +459,8 @@ function createEmbedScript(baseUrl: string): string {
                     }
 
                     if (this.iframe.src !== embedUrl) {
+                        this.isIframeLoaded = false;
+                        this.setConnectionStatus(CONNECTION_STATUS_PENDING);
                         this.iframe.src = embedUrl;
                     }
                 }

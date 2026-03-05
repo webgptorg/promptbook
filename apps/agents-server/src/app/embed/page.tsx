@@ -60,14 +60,22 @@ export default function EmbedPage() {
                 html,
                 body {
                     margin: 0;
+                    width: 100%;
+                    height: 100%;
                     background: transparent !important;
                     overflow: hidden;
+                }
+
+                #__next {
+                    width: 100%;
+                    height: 100%;
                 }
             `}</style>
             <PromptbookAgentIntegration
                 agentUrl={agentUrl}
                 meta={meta}
                 isOpen={isOpen}
+                style={{ right: 0, bottom: 0 }}
                 onOpenChange={(nextIsOpen) => {
                     setIsOpen(nextIsOpen);
                 }}

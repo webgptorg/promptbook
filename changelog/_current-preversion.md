@@ -1,3 +1,11 @@
+-   Improved Agents Server website chat integration widget UX/layout in embedded mode:
+    -   Fixed open-state iframe/widget sizing and offset behavior so the visible chat surface and click bounds stay aligned across desktop/mobile.
+    -   Improved close-on-outside-click behavior by removing hidden clickable dead zones around the opened widget.
+    -   Added launcher connection-state indicator states (pending/connected/error) and ensured connected state is shown as green when chat is connected.
+    -   Refined widget separation from website content with a cleaner border/shadow treatment.
+    -   Enhanced loading-state visuals in the seamless widget and tightened chat-content layout so headless chat keeps the input anchored at the bottom.
+    -   Updated minimal-shell headless chat container sizing to consistently provide full-height chat viewport in embedded/headless mode.
+
 -   Fixed Agents Server remote browser execution on Vercel when `REMOTE_BROWSER_URL` is configured:
     -   `BrowserConnectionProvider` no longer falls back to launching a local browser when remote Playwright connection fails, so serverless deployments never attempt local Chromium startup in remote mode.
     -   Added a regression test for remote-mode behavior to ensure failed remote connections do not call `launchPersistentContext`.

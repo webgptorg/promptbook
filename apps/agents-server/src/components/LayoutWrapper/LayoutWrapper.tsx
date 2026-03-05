@@ -68,6 +68,7 @@ export function LayoutWrapper({
 
     const mainClassName = isChatPage ? 'h-[100dvh] pt-[60px] overflow-hidden' : 'flex-1 pt-[60px]';
     const shouldRenderMinimalShell = isHeaderHidden || isHeadless;
+    const minimalMainClassName = isChatPage ? 'pt-0 h-[100dvh] overflow-hidden' : 'pt-0';
 
     return (
         <ServerLanguageProvider defaultLanguage={defaultServerLanguage}>
@@ -83,7 +84,7 @@ export function LayoutWrapper({
                                 <MenuHoistingProvider>
                                     <MetadataFlagsProvider value={{ isExperimentalPwaAppEnabled }}>
                                         {shouldRenderMinimalShell ? (
-                                            <main className="pt-0">{children}</main>
+                                            <main className={minimalMainClassName}>{children}</main>
                                         ) : (
                                             <div className="flex min-h-screen flex-col">
                                                 <Header
