@@ -3524,6 +3524,110 @@
     margin-bottom: 0;
 }
 
+.browserRunModalHeader {
+    background: linear-gradient(135deg, #f8fafc 0%, #ecfeff 40%, #ecfccb 100%);
+    border-bottom: 1px solid #dbeafe;
+}
+
+.browserRunHeaderText {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.browserRunHeaderLabel {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #475569;
+}
+
+.browserRunMeta {
+    margin-bottom: 18px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px 18px;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+}
+
+.browserRunMediaGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+}
+
+.browserRunMediaCard {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #fff;
+    padding: 12px;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+}
+
+.browserRunMediaCardHeader {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.browserRunMediaTitle {
+    margin: 0;
+    font-size: 14px;
+    color: #0f172a;
+    font-weight: 600;
+}
+
+.browserRunMediaCaption {
+    margin: 0;
+    font-size: 12px;
+    color: #475569;
+    line-height: 1.5;
+}
+
+.browserRunMediaImage,
+.browserRunMediaVideo {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    max-height: 260px;
+    object-fit: contain;
+}
+
+.browserRunActionLog {
+    margin-top: 18px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px 16px;
+    background: #f8fafc;
+}
+
+.browserRunActionLogTitle {
+    margin: 0 0 10px;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #64748b;
+}
+
+.browserRunActionList {
+    margin: 0;
+    padding: 0 0 0 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.browserRunActionItem {
+    color: #0f172a;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
 @media print {
     .Chat {
         background: transparent !important;

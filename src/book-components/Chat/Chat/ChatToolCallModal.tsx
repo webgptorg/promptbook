@@ -35,9 +35,11 @@ import {
     extractSearchResults,
     getToolCallResultDate,
     getToolCallTimestamp,
+    parseRunBrowserToolResult,
     parseTeamToolResult,
     parseToolCallArguments,
     parseToolCallResult,
+    resolveRunBrowserArtifactUrl,
 } from '../utils/toolCallParsing';
 import styles from './Chat.module.css';
 import { buildSelfLearningSummary } from './ChatSelfLearningSummary';
@@ -922,6 +924,120 @@ function formatWalletCredentialService(service: string): string {
 }
 
 /**
+ * Renders a visual replay view for `run_browser` tool calls.
+ *
+ * @param options - Parsed browser tool details needed by the modal.
+ * @returns Visual browser replay content.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function renderRunBrowserToolCall(options: {
+    args: Record<string, TODO_any>;
+    resultRaw: TODO_any;
+}): ReactElement {
+    const { args, resultRaw } = options;
+    const parsedResult = parseRunBrowserToolResult(resultRaw);
+    const initialUrl = parsedResult?.initialUrl || (typeof args.url === 'string' ? args.url : null);
+    const finalUrl = parsedResult?.finalUrl || null;
+    const finalTitle = parsedResult?.finalTitle || null;
+    const artifacts = parsedResult?.artifacts || [];
+    const actions = parsedResult?.actions || [];
+
+    return (
+        <>
+            <div className={classNames(styles.searchModalHeader, styles.browserRunModalHeader)}>
+                <span className={styles.searchModalIcon}>🌐</span>
+                <div className={styles.browserRunHeaderText}>
+                    <span className={styles.browserRunHeaderLabel}>Browser</span>
+                    <h3 className={styles.searchModalQuery}>Session replay</h3>
+                </div>
+            </div>
+
+            <div className={styles.searchModalContent}>
+                {(initialUrl || finalUrl || finalTitle) && (
+                    <div className={styles.browserRunMeta}>
+                        {initialUrl && (
+                            <div className={styles.emailField}>
+                                <strong>Started at:</strong>
+                                <span className={styles.emailRecipients}>
+                                    <a href={initialUrl} target="_blank" rel="noreferrer">
+                                        {initialUrl}
+                                    </a>
+                                </span>
+                            </div>
+                        )}
+                        {finalUrl && (
+                            <div className={styles.emailField}>
+                                <strong>Ended at:</strong>
+                                <span className={styles.emailRecipients}>
+                                    <a href={finalUrl} target="_blank" rel="noreferrer">
+                                        {finalUrl}
+                                    </a>
+                                </span>
+                            </div>
+                        )}
+                        {finalTitle && (
+                            <div className={styles.emailField}>
+                                <strong>Final page:</strong>
+                                <span className={styles.emailRecipients}>{finalTitle}</span>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {artifacts.length > 0 ? (
+                    <div className={styles.browserRunMediaGrid}>
+                        {artifacts.map((artifact, index) => {
+                            const mediaUrl = resolveRunBrowserArtifactUrl(artifact.path);
+                            const mediaKey = `${artifact.path}-${index}`;
+                            const caption = artifact.actionSummary || artifact.label;
+
+                            return (
+                                <article key={mediaKey} className={styles.browserRunMediaCard}>
+                                    <div className={styles.browserRunMediaCardHeader}>
+                                        <h4 className={styles.browserRunMediaTitle}>{artifact.label}</h4>
+                                        {caption && <p className={styles.browserRunMediaCaption}>{caption}</p>}
+                                    </div>
+                                    {artifact.kind === 'video' ? (
+                                        <video
+                                            className={styles.browserRunMediaVideo}
+                                            src={mediaUrl}
+                                            controls={true}
+                                            playsInline={true}
+                                        />
+                                    ) : (
+                                        <img
+                                            className={styles.browserRunMediaImage}
+                                            src={mediaUrl}
+                                            alt={caption || `Browser artifact ${index + 1}`}
+                                            loading="lazy"
+                                        />
+                                    )}
+                                </article>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <div className={styles.noResults}>No browser visuals were captured for this action.</div>
+                )}
+
+                {actions.length > 0 && (
+                    <div className={styles.browserRunActionLog}>
+                        <h4 className={styles.browserRunActionLogTitle}>Actions</h4>
+                        <ol className={styles.browserRunActionList}>
+                            {actions.map((action, index) => (
+                                <li key={`${action.summary}-${index}`} className={styles.browserRunActionItem}>
+                                    {action.summary}
+                                </li>
+                            ))}
+                        </ol>
+                    </div>
+                )}
+            </div>
+        </>
+    );
+}
+
+/**
  * Renders the detail view for a single tool call.
  *
  * @param options - Rendering options for the tool call.
@@ -951,6 +1067,7 @@ function renderToolCallDetails(options: ToolCallDetailsOptions): ReactElement {
     const isTime = toolCall.name === 'get_current_time' || toolCall.name === 'useTime';
     const isEmail = toolCall.name === 'send_email' || toolCall.name === 'useEmail';
     const isPopup = toolCall.name === 'open_popup' || toolCall.name === 'usePopup' || toolCall.name === 'popup';
+    const isRunBrowser = toolCall.name === 'run_browser';
     const isSelfLearning = toolCall.name === 'self-learning';
 
     const { results, rawText } = extractSearchResults(resultRaw);
@@ -1076,6 +1193,13 @@ function renderToolCallDetails(options: ToolCallDetailsOptions): ReactElement {
                 </div>
             </>
         );
+    }
+
+    if (isRunBrowser) {
+        return renderRunBrowserToolCall({
+            args,
+            resultRaw,
+        });
     }
 
     if (isSearch) {

@@ -1,3 +1,8 @@
+-   Enhanced Agents Server `USE BROWSER` chip popup to show visual browser replay instead of technical-only output:
+    -   `run_browser` now captures visual artifacts across the whole session (initial page, post-action snapshots, and final snapshot) and embeds a structured playback JSON payload in the tool result.
+    -   Added a secure `GET /api/browser-artifacts/[artifactName]` endpoint that serves `run_browser` screenshot/video artifacts from server storage.
+    -   Added shared DRY browser-result parsing helpers in chat utils and updated the tool-call modal to render a visual browser timeline (images/videos + action list) for `run_browser` chips.
+
 -   Isolated Monaco editor instances in Agents Server into per-instance Shadow DOM via a shared reusable wrapper:
     -   Added `MonacoEditorWithShadowDom` as a single DRY Monaco wrapper that preserves the same external `@monaco-editor/react` editor API while forcing `useShadowDOM: true`.
     -   Switched `BookEditor` Monaco usage to the wrapper so Book-language editing runs in isolated editor DOM internals.

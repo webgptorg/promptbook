@@ -121,6 +121,8 @@ describe('run_browser tool', () => {
         expect(result).toContain('# Browser run completed');
         expect(result).toContain('**Initial URL:** https://example.com');
         expect(result).toContain('**Executed actions:** 0');
+        expect(result).toContain('"schema": "promptbook/run-browser@1"');
+        expect(result).toContain('agents-server-run-browser-00000000-0000-4000-8000-000000000000-initial.png');
         expect(result).toContain('.playwright-cli/agents-server-run-browser-00000000-0000-4000-8000-000000000000.png');
 
         expect(browserContext.newPage).toHaveBeenCalledTimes(1);
@@ -153,6 +155,8 @@ describe('run_browser tool', () => {
         });
 
         expect(result).toContain('**Executed actions:** 5');
+        expect(result).toContain('After action 1');
+        expect(result).toContain('After action 5');
         expect(page.waitForTimeout).toHaveBeenCalledWith(250);
         expect(fillMock).toHaveBeenCalledWith('Promptbook');
         expect(clickMock).toHaveBeenCalledTimes(1);

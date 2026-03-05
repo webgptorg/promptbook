@@ -17,6 +17,11 @@ const RUN_BROWSER_SESSION_PREFIX = 'agents-server-run-browser';
 const RUN_BROWSER_SNAPSHOT_DIRECTORY = '.playwright-cli';
 
 /**
+ * Schema marker embedded into `run_browser` successful payloads.
+ */
+const RUN_BROWSER_RESULT_SCHEMA = 'promptbook/run-browser@1';
+
+/**
  * Default wait duration in milliseconds for `wait` actions.
  */
 const DEFAULT_WAIT_MS = 1000;
@@ -91,6 +96,56 @@ type NormalizedRunBrowserAction =
 type RunBrowserExecutionMode = 'local' | 'remote';
 
 /**
+ * Browser artifact kind captured during one run.
+ */
+type RunBrowserArtifactKind = 'screenshot' | 'video';
+
+/**
+ * One captured visual artifact with context for replay in UI.
+ */
+type RunBrowserArtifact = {
+    readonly kind: RunBrowserArtifactKind;
+    readonly label: string;
+    readonly path: string;
+    readonly capturedAt: string;
+    readonly url: string | null;
+    readonly title: string | null;
+    readonly actionIndex?: number;
+    readonly actionSummary?: string;
+};
+
+/**
+ * Structured playback payload embedded in successful tool result markdown.
+ */
+type RunBrowserSuccessPayload = {
+    readonly schema: typeof RUN_BROWSER_RESULT_SCHEMA;
+    readonly sessionId: string;
+    readonly mode: RunBrowserExecutionMode;
+    readonly initialUrl: string;
+    readonly finalUrl: string | null;
+    readonly finalTitle: string | null;
+    readonly executedActions: ReadonlyArray<NormalizedRunBrowserAction>;
+    readonly artifacts: ReadonlyArray<RunBrowserArtifact>;
+};
+
+/**
+ * Options for capturing one screenshot artifact.
+ */
+type CaptureSnapshotArtifactOptions = {
+    readonly page: Page;
+    readonly sessionId: string;
+    readonly label: string;
+    readonly fileSuffix?: string;
+    readonly actionIndex?: number;
+    readonly action?: NormalizedRunBrowserAction;
+};
+
+/**
+ * Matches unsupported characters in snapshot file suffixes.
+ */
+const SNAPSHOT_FILE_SUFFIX_UNSAFE_CHARACTER_PATTERN = /[^a-z0-9-]/g;
+
+/**
  * Creates a dedicated session id for one tool invocation.
  */
 function createRunBrowserSessionId(): string {
@@ -116,6 +171,33 @@ function formatExecutionMode(mode: RunBrowserExecutionMode): string {
  */
 function toPosixPath(pathname: string): string {
     return pathname.split('\\').join('/');
+}
+
+/**
+ * Creates one filesystem-safe optional filename suffix for a snapshot.
+ */
+function createSnapshotFileSuffix(rawSuffix?: string): string {
+    if (!rawSuffix) {
+        return '';
+    }
+
+    const normalized = rawSuffix
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(SNAPSHOT_FILE_SUFFIX_UNSAFE_CHARACTER_PATTERN, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+
+    return normalized;
+}
+
+/**
+ * Resolves snapshot filename for one session and optional stage suffix.
+ */
+function resolveSnapshotFilename(sessionId: string, fileSuffix?: string): string {
+    const safeSuffix = createSnapshotFileSuffix(fileSuffix);
+    return safeSuffix ? `${sessionId}-${safeSuffix}.png` : `${sessionId}.png`;
 }
 
 /**
@@ -221,9 +303,9 @@ async function executeAction(page: Page, action: NormalizedRunBrowserAction): Pr
 /**
  * Captures a screenshot artifact for the current page and returns relative path.
  */
-async function captureSnapshot(page: Page, sessionId: string): Promise<string | null> {
+async function captureSnapshot(page: Page, sessionId: string, fileSuffix?: string): Promise<string | null> {
     const snapshotDirectoryPath = join(process.cwd(), RUN_BROWSER_SNAPSHOT_DIRECTORY);
-    const snapshotPath = join(snapshotDirectoryPath, `${sessionId}.png`);
+    const snapshotPath = join(snapshotDirectoryPath, resolveSnapshotFilename(sessionId, fileSuffix));
 
     try {
         await mkdir(snapshotDirectoryPath, { recursive: true });
@@ -236,6 +318,26 @@ async function captureSnapshot(page: Page, sessionId: string): Promise<string | 
         });
 
         return null;
+    }
+}
+
+/**
+ * Creates one user-facing description for an executed browser action.
+ */
+function formatActionSummary(action: NormalizedRunBrowserAction): string {
+    switch (action.type) {
+        case 'navigate':
+            return `Navigate to ${action.url}`;
+        case 'click':
+            return `Click ${action.selector}`;
+        case 'type':
+            return `Type into ${action.selector}`;
+        case 'wait':
+            return `Wait ${action.milliseconds}ms`;
+        case 'scroll':
+            return action.selector
+                ? `Scroll ${action.pixels}px in ${action.selector}`
+                : `Scroll ${action.pixels}px on page`;
     }
 }
 
@@ -269,6 +371,54 @@ async function cleanupPage(page: Page | null, sessionId: string): Promise<void> 
 }
 
 /**
+ * Captures one screenshot artifact and enriches it with page metadata.
+ */
+async function captureSnapshotArtifact(options: CaptureSnapshotArtifactOptions): Promise<RunBrowserArtifact | null> {
+    const { page, sessionId, label, fileSuffix, actionIndex, action } = options;
+    const path = await captureSnapshot(page, sessionId, fileSuffix);
+    if (!path) {
+        return null;
+    }
+
+    const actionSummary = action ? formatActionSummary(action) : undefined;
+
+    return {
+        kind: 'screenshot',
+        label,
+        path,
+        capturedAt: new Date().toISOString(),
+        url: page.url(),
+        title: await getPageTitle(page),
+        actionIndex,
+        actionSummary,
+    };
+}
+
+/**
+ * Produces one structured success payload consumed by the chat UI replay renderer.
+ */
+function createSuccessPayload(options: {
+    readonly sessionId: string;
+    readonly mode: RunBrowserExecutionMode;
+    readonly initialUrl: string;
+    readonly executedActions: ReadonlyArray<NormalizedRunBrowserAction>;
+    readonly finalUrl: string | null;
+    readonly finalTitle: string | null;
+    readonly artifacts: ReadonlyArray<RunBrowserArtifact>;
+}): RunBrowserSuccessPayload {
+    return {
+        schema: RUN_BROWSER_RESULT_SCHEMA,
+        sessionId: options.sessionId,
+        mode: options.mode,
+        initialUrl: options.initialUrl,
+        finalUrl: options.finalUrl,
+        finalTitle: options.finalTitle,
+        executedActions: options.executedActions,
+        artifacts: options.artifacts,
+    };
+}
+
+/**
  * Produces a model-friendly markdown summary from browser execution artifacts.
  */
 function formatSuccessResult(options: {
@@ -279,8 +429,18 @@ function formatSuccessResult(options: {
     readonly finalUrl: string | null;
     readonly finalTitle: string | null;
     readonly snapshotPath: string | null;
+    readonly artifacts: ReadonlyArray<RunBrowserArtifact>;
 }): string {
-    const { initialUrl, sessionId, mode, executedActions, finalUrl, finalTitle, snapshotPath } = options;
+    const { initialUrl, sessionId, mode, executedActions, finalUrl, finalTitle, snapshotPath, artifacts } = options;
+    const successPayload = createSuccessPayload({
+        sessionId,
+        mode,
+        initialUrl,
+        executedActions,
+        finalUrl,
+        finalTitle,
+        artifacts,
+    });
 
     return spaceTrim(
         (block) => `
@@ -297,6 +457,21 @@ function formatSuccessResult(options: {
             - Title: ${finalTitle || 'Unknown'}
 
             ${
+                artifacts.length === 0
+                    ? ''
+                    : `
+                    ## Visual replay
+
+                    ${artifacts
+                        .map((artifact, index) => {
+                            const actionPart = artifact.actionSummary ? ` (${artifact.actionSummary})` : '';
+                            return `- ${index + 1}. ${artifact.label}${actionPart}: ${artifact.path}`;
+                        })
+                        .join('\n')}
+                `
+            }
+
+            ${
                 !snapshotPath
                     ? ''
                     : `
@@ -305,6 +480,12 @@ function formatSuccessResult(options: {
                     ${snapshotPath}
                 `
             }
+
+            ## Playback payload
+
+            \`\`\`json
+            ${JSON.stringify(successPayload, null, 2)}
+            \`\`\`
 
             ${block(
                 executedActions.length === 0
@@ -386,14 +567,47 @@ export async function run_browser(args: RunBrowserArgs): Promise<string> {
     try {
         const normalizedActions = normalizeActions(args.actions);
         page = await openPageWithUrl(initialUrl);
+        const artifacts: Array<RunBrowserArtifact> = [];
 
-        for (const action of normalizedActions) {
+        const initialArtifact = await captureSnapshotArtifact({
+            page,
+            sessionId,
+            label: 'Initial page',
+            fileSuffix: 'initial',
+        });
+        if (initialArtifact) {
+            artifacts.push(initialArtifact);
+        }
+
+        for (const [index, action] of normalizedActions.entries()) {
             await executeAction(page, action);
+
+            const actionArtifact = await captureSnapshotArtifact({
+                page,
+                sessionId,
+                label: `After action ${index + 1}`,
+                fileSuffix: `action-${String(index + 1).padStart(3, '0')}-${action.type}`,
+                actionIndex: index + 1,
+                action,
+            });
+            if (actionArtifact) {
+                artifacts.push(actionArtifact);
+            }
         }
 
         const snapshotPath = await captureSnapshot(page, sessionId);
         const finalUrl = page.url();
         const finalTitle = await getPageTitle(page);
+        if (snapshotPath) {
+            artifacts.push({
+                kind: 'screenshot',
+                label: 'Final page',
+                path: snapshotPath,
+                capturedAt: new Date().toISOString(),
+                url: finalUrl,
+                title: finalTitle,
+            });
+        }
 
         return formatSuccessResult({
             initialUrl,
@@ -403,6 +617,7 @@ export async function run_browser(args: RunBrowserArgs): Promise<string> {
             finalUrl,
             finalTitle,
             snapshotPath,
+            artifacts,
         });
     } catch (error) {
         return formatErrorResult({
