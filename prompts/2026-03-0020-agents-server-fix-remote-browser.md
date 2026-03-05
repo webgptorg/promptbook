@@ -1,6 +1,6 @@
-[ ] !
+[ ] !!
 
-[✨🤮] baz
+[✨🤮] Fix browser usage on Vercel
 
 -   When running locally via `next dev` with `REMOTE_BROWSER_URL` it works
 -   When deployed on Vercel with `REMOTE_BROWSER_URL` it doesn't work:
