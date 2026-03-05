@@ -1,6 +1,5 @@
 # AI Supervize
 
-
 Ať už AI v týmu používáte naplno, jen občas, nebo **vůbec** (a teprve zvažujete, jestli a jak), AI Supervize je praktický program, který vám pomůže udělat z AI **kontrolovaný výkon**, ne náhodnou loterii.
 
 Pomůžeme vám nastavit konkrétní workflow, pravidla a nástroje tak, aby AI:
@@ -29,7 +28,7 @@ Pokud zjistíme, že pro vás AI Supervize není vhodná, **řekneme to rovnou**
 
 ---
 
-## Dvě typické situace (a co s nimi uděláme)
+## Dvě typické situace *(a co s nimi uděláme)*
 
 ### A) **AI zatím nepoužíváte / nejste si jistí**
 
@@ -67,36 +66,36 @@ Pomůžeme vám:
 
 ---
 
-## Co dostanete (deliverables)
+## Co dostanete *(deliverables)*
 
 Po AI Supervizi odcházíte s konkrétními výstupy, které můžete hned používat:
 
-### 1) **AI Adoption Plan (Start / Scale)**
+### 1) AI Adoption Plan (Start / Scale)
 
 -   doporučení, **zda** a **jak** AI zavést (nebo proč zatím ne)
 -   prioritizované use-casy (rychlé výhry vs systémové věci)
 -   rozhodnutí "tooling / modely / režim dat" pro váš kontext
 
-### 2) **AI Development Playbook** (PDF/Notion/MD do repa)
+### 2) AI Development Playbook *(PDF/Notion/MD do repa)*
 
 -   workflow pro tvorbu změn s AI (od požadavku po merge)
 -   pravidla pro práci s AI (kdy delegovat, co kontrolovat, co zakázat)
 -   "Definition of Done" pro AI-pomáhané změny
 -   doporučený proces code review (včetně AI asistence)
 
-### 3) **Tool & Model Matrix**
+### 3) Tool & Model Matrix *(PDF/Notion/MD do repa)*
 
 -   které nástroje a modely použít na jaké úlohy (architektura, refactor, testy, debug, dokumentace...)
 -   jasná pravidla: "co je povolené / zakázané", jak řešit citlivá data
 -   doporučení s ohledem na **náklady** (co se vyplatí, co ne)
 
-### 4) **Repo & PR šablony**
+### 4) Repo & PR šablony *(PDF/Notion/MD do repa)*
 
 -   šablony pro issues / PRD / PR / commit messages
 -   checklisty pro review a release
 -   doporučená branch strategie (Gitflow vs trunk-based podle reality týmu)
 
-### 5) **Implementační plán na 30/60/90 dní**
+### 5) Implementační plán na 30/60/90 dní *(PDF/Notion/MD do repa)*
 
 -   konkrétní backlog položky + priorita + očekávaný dopad
 -   metriky (lead time, doba review, reopen rate, incident rate...)
@@ -205,5 +204,5 @@ _(Zatím nejsme plátci DPH, cena je tedy konečná.)_
 
 ## Jak začít
 
-Napište Jiřímu nebo Pavlovi a domluvíme si úvodní schůzku.  
+Napište nám na jiri@ptbk.io nebo pavol@ptbk.io a domluvíme si úvodní schůzku.  
 Během 2-3 hodin budete vědět, **jestli vám to přinese hodnotu** a co přesně bude další krok.
