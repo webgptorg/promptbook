@@ -930,10 +930,7 @@ function formatWalletCredentialService(service: string): string {
  * @returns Visual browser replay content.
  * @private internal utility of `<ChatToolCallModal/>`
  */
-function renderRunBrowserToolCall(options: {
-    args: Record<string, TODO_any>;
-    resultRaw: TODO_any;
-}): ReactElement {
+function renderRunBrowserToolCall(options: { args: Record<string, TODO_any>; resultRaw: TODO_any }): ReactElement {
     const { args, resultRaw } = options;
     const parsedResult = parseRunBrowserToolResult(resultRaw);
     const initialUrl = parsedResult?.initialUrl || (typeof args.url === 'string' ? args.url : null);

@@ -322,7 +322,10 @@ function resolveRunBrowserArtifactKind(path: string): RunBrowserToolArtifact['ki
  *
  * @private utility of `<Chat/>` component
  */
-function normalizeRunBrowserArtifact(rawArtifact: Record<string, TODO_any>, index: number): RunBrowserToolArtifact | null {
+function normalizeRunBrowserArtifact(
+    rawArtifact: Record<string, TODO_any>,
+    index: number,
+): RunBrowserToolArtifact | null {
     const path = typeof rawArtifact.path === 'string' ? rawArtifact.path.trim() : '';
     if (!path) {
         return null;
@@ -332,7 +335,10 @@ function normalizeRunBrowserArtifact(rawArtifact: Record<string, TODO_any>, inde
         rawArtifact.kind === 'video' || rawArtifact.kind === 'screenshot'
             ? rawArtifact.kind
             : resolveRunBrowserArtifactKind(path.toLowerCase());
-    const label = typeof rawArtifact.label === 'string' && rawArtifact.label.trim() ? rawArtifact.label.trim() : `Step ${index + 1}`;
+    const label =
+        typeof rawArtifact.label === 'string' && rawArtifact.label.trim()
+            ? rawArtifact.label.trim()
+            : `Step ${index + 1}`;
     const actionSummary =
         typeof rawArtifact.actionSummary === 'string' && rawArtifact.actionSummary.trim()
             ? rawArtifact.actionSummary.trim()
@@ -412,7 +418,8 @@ function parseRunBrowserLegacyMarkdown(markdown: string): RunBrowserToolResult |
     const artifacts = uniquePaths.map((path, index): RunBrowserToolArtifact => {
         const normalizedPath = path.trim();
         const suffix = normalizedPath.toLowerCase();
-        const isFinalSnapshot = suffix.endsWith('.png') && !suffix.includes('-initial.') && !suffix.includes('-action-');
+        const isFinalSnapshot =
+            suffix.endsWith('.png') && !suffix.includes('-initial.') && !suffix.includes('-action-');
 
         return {
             kind: resolveRunBrowserArtifactKind(suffix),

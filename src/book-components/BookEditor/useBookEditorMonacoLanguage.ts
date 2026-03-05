@@ -58,9 +58,7 @@ function createCommitmentRegex(commitmentTypes: ReadonlyArray<string>): RegExp {
         .map((type: string) => (type === 'META' ? 'META\\s+\\w+' : type.replace(/\s+/, '\\s+')))
         .join('|');
 
-    return new RegExp(
-        `^\\s*(${commitmentPatterns})(?=\\s|$)`,
-    );
+    return new RegExp(`^\\s*(${commitmentPatterns})(?=\\s|$)`);
 }
 
 /**
