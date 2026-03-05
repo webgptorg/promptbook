@@ -8,6 +8,67 @@ import type { string_date_iso8601, string_model_name } from '../../../types/type
 import { SelfLearningManager } from './SelfLearningManager';
 
 describe('SelfLearningManager', () => {
+    it('stores INTERNAL MESSAGE samplings with model trace and tool calls', async () => {
+        const agentSource = spaceTrim(`
+            # My Agent
+
+            PERSONA A helpful assistant.
+        `) as string_book;
+
+        let updatedSource: string_book = agentSource;
+        const manager = new SelfLearningManager({
+            teacherAgent: null,
+            getAgentSource: () => updatedSource,
+            updateAgentSource: (source: string_book) => {
+                updatedSource = source;
+            },
+        });
+
+        const prompt: Prompt = {
+            title: 'Test prompt',
+            content: 'Search weather in Prague',
+            modelRequirements: { modelVariant: 'CHAT' },
+            parameters: {},
+        };
+
+        const result: ChatPromptResult = {
+            content: 'It is sunny.',
+            modelName: 'agent-model' as string_model_name,
+            timing: {
+                start: '2026-02-24T12:00:00.000Z' as string_date_iso8601,
+                complete: '2026-02-24T12:00:01.000Z' as string_date_iso8601,
+            },
+            usage: UNCERTAIN_USAGE,
+            rawPromptContent: 'Search weather in Prague',
+            rawRequest: {
+                provider: 'openai-compatible',
+                phase: 'request',
+            },
+            rawResponse: {
+                provider: 'openai-compatible',
+                phase: 'response',
+                reasoning: 'Thinking...',
+            },
+            toolCalls: [
+                {
+                    name: 'search',
+                    arguments: '{"q":"weather Prague"}',
+                    result: '[]',
+                },
+            ],
+        };
+
+        await manager.runSelfLearning(prompt, result);
+
+        expect(updatedSource).toContain('USER MESSAGE');
+        expect(updatedSource).toContain('INTERNAL MESSAGE');
+        expect(updatedSource).toContain('"kind": "MODEL_REQUEST"');
+        expect(updatedSource).toContain('"kind": "MODEL_RESPONSE"');
+        expect(updatedSource).toContain('"kind": "TOOL_CALL"');
+        expect(updatedSource).toContain('"name": "search"');
+        expect(updatedSource).toContain('AGENT MESSAGE');
+    });
+
     it('adds INITIAL MESSAGE generation instruction to teacher prompt when it is missing', async () => {
         const agentSource = spaceTrim(`
             # My Agent

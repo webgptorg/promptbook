@@ -1,3 +1,8 @@
+-   Expanded self-learning sampling to capture full internal execution traces:
+    -   Added a new `INTERNAL MESSAGE` commitment and registry support for parsing book-level internal trace records.
+    -   Self-learning now stores structured internal trace blocks between `USER MESSAGE` and `AGENT MESSAGE`, including model request/response payloads and tool-call request+result data.
+    -   Kept runtime prompt behavior unchanged by treating `INTERNAL MESSAGE` as trace-only metadata (not an additional system-message sample line).
+
 -   Enhanced Agents Server `USE BROWSER` chip popup to show visual browser replay instead of technical-only output:
     -   `run_browser` now captures visual artifacts across the whole session (initial page, post-action snapshots, and final snapshot) and embeds a structured playback JSON payload in the tool result.
     -   Added a secure `GET /api/browser-artifacts/[artifactName]` endpoint that serves `run_browser` screenshot/video artifacts from server storage.

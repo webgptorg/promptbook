@@ -75,6 +75,11 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
             continue;
         }
 
+        if (commitment.type === 'INTERNAL MESSAGE') {
+            // INTERNAL MESSAGE stores trace payloads and is intentionally ignored in basic profile samples.
+            continue;
+        }
+
         if (commitment.type === 'AGENT MESSAGE') {
             if (pendingUserMessage !== null) {
                 samples.push({ question: pendingUserMessage, answer: commitment.content });

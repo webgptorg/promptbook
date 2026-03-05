@@ -15,6 +15,7 @@ import { LanguageCommitmentDefinition } from './LANGUAGE/LANGUAGE';
 import { MemoryCommitmentDefinition } from './MEMORY/MEMORY';
 import { AgentMessageCommitmentDefinition } from './MESSAGE/AgentMessageCommitmentDefinition';
 import { InitialMessageCommitmentDefinition } from './MESSAGE/InitialMessageCommitmentDefinition';
+import { InternalMessageCommitmentDefinition } from './MESSAGE/InternalMessageCommitmentDefinition';
 import { MessageCommitmentDefinition } from './MESSAGE/MESSAGE';
 import { UserMessageCommitmentDefinition } from './MESSAGE/UserMessageCommitmentDefinition';
 import { MessageSuffixCommitmentDefinition } from './MESSAGE_SUFFIX/MESSAGE_SUFFIX';
@@ -100,6 +101,7 @@ export const COMMITMENT_REGISTRY = [
     new GoalCommitmentDefinition('GOALS'),
     new InitialMessageCommitmentDefinition(),
     new UserMessageCommitmentDefinition(),
+    new InternalMessageCommitmentDefinition(),
     new AgentMessageCommitmentDefinition(),
     new MessageSuffixCommitmentDefinition(),
     new MessageCommitmentDefinition('MESSAGE'),

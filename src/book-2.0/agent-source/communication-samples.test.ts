@@ -94,4 +94,32 @@ describe('communication samples into system message', () => {
         expect(requirements.systemMessage).toContain('User: One\nAgent: Two');
         expect(requirements.systemMessage).toContain('User: Three\nAgent: Four');
     });
+
+    it('should keep USER and AGENT pairing when INTERNAL MESSAGE is present between them', async () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                Test Agent
+
+                USER MESSAGE
+                Find weather in Prague
+
+                INTERNAL MESSAGE
+                {"kind":"TOOL_CALL","toolCall":{"name":"search","arguments":"{\\"q\\":\\"weather Prague\\"}","result":"[]"}}
+
+                AGENT MESSAGE
+                It is sunny.
+            `),
+        );
+
+        const parsed = parseAgentSource(agentSource);
+        expect(parsed.samples).toHaveLength(1);
+        expect(parsed.samples[0]).toEqual({
+            question: 'Find weather in Prague',
+            answer: 'It is sunny.',
+        });
+
+        const requirements = await createAgentModelRequirementsWithCommitments(agentSource);
+        expect(requirements.systemMessage).toContain('User: Find weather in Prague\nAgent: It is sunny.');
+        expect(requirements.systemMessage).not.toContain('INTERNAL MESSAGE');
+    });
 });

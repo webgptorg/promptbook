@@ -9,6 +9,7 @@ import type { string_book } from '../../../book-2.0/agent-source/string_book';
 import { validateBook } from '../../../book-2.0/agent-source/string_book';
 import type { ChatPromptResult } from '../../../execution/PromptResult';
 import type { Prompt } from '../../../types/Prompt';
+import type { ToolCall } from '../../../types/ToolCall';
 import type { SelfLearningCommitmentTypeCounts, SelfLearningTeacherSummary } from '../../../types/ToolCall';
 import type { string_prompt } from '../../../types/typeAliases';
 import { just } from '../../../utils/organization/just';
@@ -54,6 +55,16 @@ type SelfLearningManagerOptions = {
 type JsonModeResponseFormat = {
     type?: string;
     json_schema?: { schema?: unknown; name?: string };
+};
+
+/**
+ * Structured payload that is stored via `INTERNAL MESSAGE` during self-learning sampling.
+ *
+ * @private type of Agent
+ */
+type InternalLearningMessagePayload = {
+    kind: 'MODEL_REQUEST' | 'MODEL_RESPONSE' | 'TOOL_CALL';
+    [key: string]: unknown;
 };
 
 /**
@@ -144,17 +155,11 @@ export class SelfLearningManager {
             );
         }
 
-        const learningExample = spaceTrim(
-            (block) => `
-
-                USER MESSAGE
-                ${block(userMessageContent)}
-
-                AGENT MESSAGE
-                ${block(formatAgentMessageForJsonMode(result.content, hasJsonSchema))}
-
-            `,
-        );
+        const learningExample = formatSelfLearningSample({
+            userMessageContent,
+            internalMessages: buildInternalLearningMessages(result),
+            agentMessageContent: formatAgentMessageForJsonMode(result.content, hasJsonSchema),
+        });
 
         this.appendToAgentSource('\n\n' + learningExample);
     }
@@ -341,6 +346,152 @@ function tryParseJson(content: string): unknown | null {
     } catch {
         return null;
     }
+}
+
+/**
+ * Builds the full self-learning sample block including USER, INTERNAL, and AGENT messages.
+ *
+ * @param options - Normalized sample parts.
+ * @returns Book-language sample section ready to append into agent source.
+ * @private function of Agent
+ */
+function formatSelfLearningSample(options: {
+    userMessageContent: string;
+    internalMessages: ReadonlyArray<InternalLearningMessagePayload>;
+    agentMessageContent: string;
+}): string {
+    const internalMessagesSection = options.internalMessages
+        .map((internalMessage) => formatInternalLearningMessage(internalMessage))
+        .join('\n\n');
+
+    return spaceTrim(
+        (block) => `
+
+            USER MESSAGE
+            ${block(options.userMessageContent)}
+            ${internalMessagesSection ? `\n${block(internalMessagesSection)}\n` : ''}
+            AGENT MESSAGE
+            ${block(options.agentMessageContent)}
+
+        `,
+    );
+}
+
+/**
+ * Converts one internal payload into an `INTERNAL MESSAGE` commitment block.
+ *
+ * @param internalMessage Internal trace payload.
+ * @returns Book-language INTERNAL MESSAGE block.
+ * @private function of Agent
+ */
+function formatInternalLearningMessage(internalMessage: InternalLearningMessagePayload): string {
+    return spaceTrim(
+        (block) => `
+            INTERNAL MESSAGE
+            ${block(stringifyInternalLearningPayload(internalMessage))}
+        `,
+    );
+}
+
+/**
+ * Builds structured internal trace payloads from one prompt result.
+ *
+ * @param result Final chat result used in self-learning.
+ * @returns Internal payloads that capture request/response/tool-call context.
+ * @private function of Agent
+ */
+function buildInternalLearningMessages(result: ChatPromptResult): Array<InternalLearningMessagePayload> {
+    const internalMessages: Array<InternalLearningMessagePayload> = [
+        {
+            kind: 'MODEL_REQUEST',
+            rawPromptContent: result.rawPromptContent,
+            rawRequest: result.rawRequest,
+        },
+        {
+            kind: 'MODEL_RESPONSE',
+            rawResponse: result.rawResponse,
+            usage: result.usage,
+            timing: result.timing,
+        },
+    ];
+
+    for (const toolCall of result.toolCalls || []) {
+        internalMessages.push({
+            kind: 'TOOL_CALL',
+            toolCall: sanitizeToolCallForLearning(toolCall),
+        });
+    }
+
+    return internalMessages;
+}
+
+/**
+ * Creates a self-learning-safe copy of one tool call.
+ *
+ * @param toolCall Tool call produced during execution.
+ * @returns Sanitized and serializable tool-call payload.
+ * @private function of Agent
+ */
+function sanitizeToolCallForLearning(toolCall: ToolCall): Record<string, unknown> {
+    return {
+        name: toolCall.name,
+        arguments: toolCall.arguments,
+        result: toolCall.result,
+        rawToolCall: toolCall.rawToolCall,
+        createdAt: toolCall.createdAt,
+        errors: toolCall.errors,
+        warnings: toolCall.warnings,
+        idempotencyKey: toolCall.idempotencyKey,
+    };
+}
+
+/**
+ * Serializes one internal payload as pretty JSON while tolerating circular/non-JSON values.
+ *
+ * @param payload Internal payload to serialize.
+ * @returns Pretty JSON string that can be embedded in BOOK.
+ * @private function of Agent
+ */
+function stringifyInternalLearningPayload(payload: unknown): string {
+    const ancestorStack: Array<unknown> = [];
+
+    const serialized = JSON.stringify(
+        payload,
+        function (_key, value) {
+            if (typeof value === 'bigint') {
+                return value.toString();
+            }
+
+            if (typeof value === 'function') {
+                return '[Function]';
+            }
+
+            if (value instanceof Error) {
+                return {
+                    name: value.name,
+                    message: value.message,
+                    stack: value.stack,
+                };
+            }
+
+            if (value !== null && typeof value === 'object') {
+                while (ancestorStack.length > 0 && ancestorStack[ancestorStack.length - 1] !== this) {
+                    ancestorStack.pop();
+                }
+
+                if (ancestorStack.includes(value)) {
+                    return '[Circular]';
+                }
+
+                ancestorStack.push(value);
+            }
+
+            return value;
+        },
+        4,
+    );
+
+    return serialized === undefined ? 'null' : serialized;
 }
 
 /**
