@@ -29,6 +29,27 @@
 
 ---
 
+[ ] !
+
+[✨🌷] Enhance design and behavior of website integration
+
+-   Enhance the design of the chat widget, espetially the opened state
+    -   Fix the width and layout of the opened widget, right now it has several problems:
+        -   Loading state should look better ![alt text](prompts/screenshots/2026-02-3770-agents-server-fix-website-integration-3.png)
+        -   The input field should be always on the bottom no matter how many of few messages are in the chat
+            -   ![alt text](prompts/screenshots/2026-02-3770-agents-server-fix-website-integration-4.png)
+    -   Add some border and slight shadow to separate the widget from the website content
+        -   ![alt text](prompts/screenshots/2026-02-3770-agents-server-fix-website-integration-5.png)
+    -   Minify by clicking outside of the widget, not only on the close button
+    -   Do it UX and UI perfect
+-   On the closed state, change the color of the online indicator to green when the chat is connected.
+    ![alt text](prompts/screenshots/2026-02-3770-agents-server-fix-website-integration-2.png)
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of chat integration before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+---
+
 [-]
 
 [✨🌷] brr
@@ -52,4 +73,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
