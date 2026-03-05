@@ -1,8 +1,8 @@
 'use client';
 
-import Editor from '@monaco-editor/react';
 import { useId, useMemo, useState } from 'react';
 import type { string_book } from '../../../book-2.0/agent-source/string_book';
+import { MonacoEditorWithShadowDom } from '../../_common/MonacoEditorWithShadowDom';
 import { classNames } from '../../_common/react-utils/classNames';
 import { BookEditor } from '../../BookEditor/BookEditor';
 import { downloadFile } from '../utils/downloadFile';
@@ -141,7 +141,7 @@ export function CodeBlock({ code, language, className, onCreateAgent }: CodeBloc
     return (
         <div className={classNames(styles.CodeBlock, className)}>
             {header}
-            <Editor
+            <MonacoEditorWithShadowDom
                 height={`${height}px`}
                 language={normalizedLanguage}
                 path={modelPath}

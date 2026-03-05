@@ -2,7 +2,7 @@
 // <- Note: [👲] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
-import Editor, { useMonaco } from '@monaco-editor/react';
+import { useMonaco } from '@monaco-editor/react';
 import type { editor } from 'monaco-editor';
 import {
     type ChangeEvent,
@@ -16,6 +16,7 @@ import {
     useState,
 } from 'react';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
+import { MonacoEditorWithShadowDom } from '../_common/MonacoEditorWithShadowDom';
 import { classNames } from '../_common/react-utils/classNames';
 import { SaveIcon } from '../icons/SaveIcon';
 import type { BookEditorProps } from './BookEditor';
@@ -503,7 +504,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
                         {...focusOverlayTouchHandlers}
                     />
                 )}
-                <Editor
+                <MonacoEditorWithShadowDom
                     language={BookEditorMonacoConstants.BOOK_LANGUAGE_ID}
                     value={value}
                     beforeMount={handleBeforeMonacoMount}

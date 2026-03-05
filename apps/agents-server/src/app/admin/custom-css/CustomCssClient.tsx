@@ -1,8 +1,8 @@
 'use client';
 
-import Editor from '@monaco-editor/react';
 import type { ChangeEvent } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { MonacoEditorWithShadowDom } from '../../../components/_utils/MonacoEditorWithShadowDom';
 import { useUnsavedChangesGuard } from '../../../components/utils/useUnsavedChangesGuard';
 import {
     createDefaultCustomStylesheetCss,
@@ -522,7 +522,7 @@ export function CustomCssClient() {
                                         />
                                     </div>
 
-                                    <Editor
+                                    <MonacoEditorWithShadowDom
                                         height="520px"
                                         language="css"
                                         theme="vs-light"

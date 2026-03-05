@@ -1,3 +1,8 @@
+-   Isolated Monaco editor instances in Agents Server into per-instance Shadow DOM via a shared reusable wrapper:
+    -   Added `MonacoEditorWithShadowDom` as a single DRY Monaco wrapper that preserves the same external `@monaco-editor/react` editor API while forcing `useShadowDOM: true`.
+    -   Switched `BookEditor` Monaco usage to the wrapper so Book-language editing runs in isolated editor DOM internals.
+    -   Switched other Agents Server Monaco surfaces (custom CSS, custom JavaScript, transpiled code view, chat code blocks, and advanced tool-call payload viewers) to the same wrapper.
+
 -   Improved Agents Server website chat integration widget UX/layout in embedded mode:
     -   Fixed open-state iframe/widget sizing and offset behavior so the visible chat surface and click bounds stay aligned across desktop/mobile.
     -   Improved close-on-outside-click behavior by removing hidden clickable dead zones around the opened widget.

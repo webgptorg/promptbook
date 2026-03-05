@@ -1,9 +1,9 @@
 'use client';
 
-import Editor from '@monaco-editor/react';
 import { AgentBasicInformation, string_url } from '@promptbook-local/types';
 import { ChevronDownIcon, CodeIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
+import { MonacoEditorWithShadowDom } from '../../../../components/_utils/MonacoEditorWithShadowDom';
 import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 
 type Transpiler = {
@@ -187,7 +187,7 @@ export function AgentCodePageClient({ agentName, publicUrl }: AgentCodePageClien
                             )}
                             {transpiledCode ? (
                                 <div className="h-96 border border-gray-200 rounded">
-                                    <Editor
+                                    <MonacoEditorWithShadowDom
                                         value={transpiledCode}
                                         language={getLanguageFromTranspiler(selectedTranspiler?.name)}
                                         options={{

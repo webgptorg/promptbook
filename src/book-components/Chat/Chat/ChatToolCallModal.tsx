@@ -1,6 +1,5 @@
 'use client';
 
-import Editor from '@monaco-editor/react';
 import moment from 'moment';
 import { useEffect, useMemo, useState, type ReactElement } from 'react';
 import { isPseudoAgentUrl } from '../../../book-2.0/agent-source/pseudoAgentReferences';
@@ -10,6 +9,7 @@ import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 import type { WithTake } from '../../../utils/take/interfaces/ITakeChain';
+import { MonacoEditorWithShadowDom } from '../../_common/MonacoEditorWithShadowDom';
 import { classNames } from '../../_common/react-utils/classNames';
 import { BookEditor } from '../../BookEditor/BookEditor';
 import { CloseIcon } from '../../icons/CloseIcon';
@@ -1536,7 +1536,7 @@ function renderAdvancedToolCallPayload(options: RenderAdvancedToolCallPayloadOpt
     return (
         <div className={styles.toolCallPayloadContainer}>
             <div className={styles.toolCallPayloadEditor}>
-                <Editor
+                <MonacoEditorWithShadowDom
                     height={`${editorHeight}px`}
                     language={formattedPayload.language}
                     path={modelPath}
