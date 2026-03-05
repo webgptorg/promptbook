@@ -4,6 +4,7 @@ import type { Message } from '../../../../src/types/Message';
 import type { OutboundEmail } from '../message-providers/email/_common/Email';
 import { parseEmailAddresses } from '../message-providers/email/_common/utils/parseEmailAddresses';
 import { SmtpMessageProvider } from '../message-providers/email/smtp/SmtpMessageProvider';
+import { humanizeOutboundEmail } from '../utils/messages/humanizeOutboundEmail';
 import { parseUseEmailSmtpCredential } from '../utils/messages/parseUseEmailSmtpCredential';
 import { isSendMessageDeliveryError, sendMessage, type SendMessageResult } from '../utils/messages/sendMessage';
 import {
@@ -81,7 +82,7 @@ export async function send_email(args: SendEmailToolArgs): Promise<string> {
     }
 
     const smtpCredential = parseUseEmailSmtpCredential(smtpCredentialRaw);
-    const email = normalizeSendEmailPayload(args, smtpCredential.fromAddress || defaultFromAddress);
+    const email = humanizeOutboundEmail(normalizeSendEmailPayload(args, smtpCredential.fromAddress || defaultFromAddress));
     const smtpProvider = new SmtpMessageProvider({
         host: smtpCredential.host,
         port: smtpCredential.port,

@@ -1,3 +1,8 @@
+-   Humanized AI-generated outbound email text in Agents Server `USE EMAIL` flow:
+    -   Added a shared `humanizeOutboundEmail` utility for email payload cleanup using `humanizeAiText`.
+    -   `send_email` now humanizes outbound email subject and body right before sending, without exposing this behavior to the agent.
+    -   Added a focused unit test covering subject/content cleanup and metadata subject synchronization.
+
 -   Updated BookEditor commitment syntax highlighting to visually separate non-executable note commitments:
     -   `TODO`, `NOTE`, `NOTES`, and `NONCE` now render with a dedicated gray note style instead of the regular commitment color.
     -   Implemented this through one DRY Monaco token path (`note-commitment`) shared by tokenizer and theme rules.
