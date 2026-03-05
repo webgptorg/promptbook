@@ -240,21 +240,21 @@ export function AgentChatSidebar({
                                             aria-label={content.accessibilityLabel}
                                             title={content.accessibilityLabel}
                                         >
+                                            <span
+                                                className={`absolute top-0.5 right-0.5 z-[5] inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold leading-none shadow-sm ${
+                                                    isActive ? 'bg-blue-500 text-white' : 'bg-slate-400 text-white'
+                                                }`}
+                                                aria-label={content.messagesCountLabel}
+                                            >
+                                                {content.messagesCount}
+                                            </span>
                                             <div
-                                                className={`relative w-full rounded-xl border px-1.5 py-1.5 text-left ${
+                                                className={`w-full aspect-square overflow-hidden rounded-xl border px-1.5 py-1.5 text-left ${
                                                     isActive
                                                         ? 'border-blue-300 bg-white/90 text-blue-700'
                                                         : 'border-slate-200 bg-white/90 text-slate-600'
                                                 }`}
                                             >
-                                                <span
-                                                    className={`absolute -top-1.5 -right-1.5 z-[5] inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold leading-none shadow-sm ${
-                                                        isActive ? 'bg-blue-500 text-white' : 'bg-slate-400 text-white'
-                                                    }`}
-                                                    aria-label={content.messagesCountLabel}
-                                                >
-                                                    {content.messagesCount}
-                                                </span>
                                                 <div className="max-w-full truncate text-[10px] font-semibold leading-none">
                                                     {content.title}
                                                 </div>
