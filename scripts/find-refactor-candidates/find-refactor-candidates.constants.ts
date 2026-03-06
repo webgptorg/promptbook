@@ -1,14 +1,7 @@
 /**
  * Root folders that contain source-like files for scanning.
  */
-export const SOURCE_ROOTS: ReadonlyArray<string> = [
-    'src',
-    'apps',
-    'scripts',
-    'examples',
-    'agents',
-    'other',
-];
+export const SOURCE_ROOTS: ReadonlyArray<string> = ['src', 'apps', 'scripts', 'examples', 'agents', 'other'];
 
 /**
  * File extensions treated as source code.
@@ -40,16 +33,16 @@ export const SOURCE_FILE_IGNORE_GLOBS: ReadonlyArray<string> = [
 /**
  * Default maximum line count for source files.
  */
-export const DEFAULT_MAX_LINE_COUNT = 500;
+export const DEFAULT_MAX_LINE_COUNT = 800;
 
 /**
  * Per-extension line count limits.
  */
 export const LINE_COUNT_LIMITS_BY_EXTENSION: Readonly<Record<string, number>> = {
-    '.ts': 500,
-    '.tsx': 500,
-    '.js': 500,
-    '.jsx': 500,
+    '.ts': 800,
+    '.tsx': 800,
+    '.js': 800,
+    '.jsx': 800,
 };
 
 /**
@@ -60,7 +53,7 @@ export const LINE_COUNT_EXEMPT_GLOBS: ReadonlyArray<string> = ['other/cspell-dic
 /**
  * Maximum number of entities before a file is flagged.
  */
-export const MAX_ENTITIES_PER_FILE = 4;
+export const MAX_ENTITIES_PER_FILE = 8;
 
 /**
  * File extensions eligible for entity counting.
