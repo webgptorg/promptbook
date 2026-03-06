@@ -741,14 +741,14 @@
             "focus": true
         },
         {
-            "name": "🏭🩹 Prettify all files (no commit)(⏳)",
+            "name": "🏭🩹 Prettify all files & CRLF -> LF (no commit)(⏳)",
             "commands": ["./scripts/lines-to-lf.sh", "npx ts-node ./scripts/prettify-all/prettify-all.ts"],
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🏭🩹 Prettify all files (+commit)(⏳)",
+            "name": "🏭🩹 Prettify all files & CRLF -> LF (+commit)(⏳)",
             "commands": ["./scripts/lines-to-lf.sh", "npx ts-node ./scripts/prettify-all/prettify-all.ts --commit"],
             "execute": true,
             "onlySingle": true,
