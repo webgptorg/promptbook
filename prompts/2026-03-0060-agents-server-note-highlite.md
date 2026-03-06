@@ -10,6 +10,8 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server) with the ; component and the syntax highlighting of the agent source code
 
+![alt text](prompts/screenshots/2026-03-0060-agents-server-note-highlite.png)
+
 ---
 
 [-]
