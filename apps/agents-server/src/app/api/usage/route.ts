@@ -1,79 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { usageToWorktime } from '@promptbook-local/core';
-import { $getTableName } from '../../../database/$getTableName';
-import { $provideSupabase } from '../../../database/$provideSupabase';
-import type { AgentsServerDatabase } from '../../../database/schema';
-import { buildFolderTree, collectDescendantFolderIds } from '../../../utils/agentOrganization/folderTree';
+import { buildFolderTree } from '../../../utils/agentOrganization/folderTree';
 import { loadAgentOrganizationState } from '../../../utils/agentOrganization/loadAgentOrganizationState';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
-import type {
-    UsageActorType,
-    UsageAnalyticsResponse,
-    UsageCallType,
-    UsageTimeframePreset,
-} from '../../../utils/usageAdmin';
-
-/**
- * One raw chat-history row used by usage analytics.
- */
-type ChatHistoryRow = Pick<
-    AgentsServerDatabase['public']['Tables']['ChatHistory']['Row'],
-    'createdAt' | 'agentName' | 'message' | 'source' | 'apiKey' | 'userAgent' | 'actorType' | 'usage' | 'userId'
->;
-
-/**
- * Aggregated usage metrics tracked for each bucket/group.
- */
-type UsageAggregate = {
-    calls: number;
-    tokens: number;
-    priceUsd: number;
-    duration: number;
-    humanDuration: number;
-};
-
-/**
- * Usage detail entry with recency metadata.
- */
-type UsageAggregateWithLastSeen = UsageAggregate & {
-    lastSeen: string;
-};
-
-/**
- * Numeric usage counts required by `usageToWorktime`.
- */
-type UsageCountsForWorktime = {
-    tokensCount: { value: number; isUncertain?: true };
-    charactersCount: { value: number; isUncertain?: true };
-    wordsCount: { value: number; isUncertain?: true };
-    sentencesCount: { value: number; isUncertain?: true };
-    linesCount: { value: number; isUncertain?: true };
-    paragraphsCount: { value: number; isUncertain?: true };
-    pagesCount: { value: number; isUncertain?: true };
-};
+import type { UsageActorType, UsageAnalyticsResponse, UsageCallType } from '../../../utils/usageAdmin';
+import { UsageDataAccess } from './lib/UsageDataAccess';
+import { UsageLabels } from './lib/UsageLabels';
+import { UsageMetrics } from './lib/UsageMetrics';
+import { UsageNormalization } from './lib/UsageNormalization';
+import { UsageQueries } from './lib/UsageQueries';
+import { UsageScope } from './lib/UsageScope';
+import { UsageTimeline } from './lib/UsageTimeline';
+import type { UsageAggregate } from './UsageAggregate';
+import type { UsageAggregateWithLastSeen } from './UsageAggregateWithLastSeen';
 
 /**
  * Supported call types in UI order.
+ * @private
  */
 const CALL_TYPES: UsageCallType[] = ['WEB_CHAT', 'VOICE_CHAT', 'COMPATIBLE_API'];
 
 /**
  * Supported actor types in UI order.
+ * @private
  */
 const ACTOR_TYPES: UsageActorType[] = ['ANONYMOUS', 'TEAM_MEMBER', 'API_KEY'];
 
 /**
- * Default timeframe preset used when query value is missing/invalid.
- */
-const DEFAULT_TIMEFRAME_PRESET: UsageTimeframePreset = '30d';
-
-/**
- * Query page size used while scanning chat-history rows.
- */
-const CHAT_HISTORY_PAGE_SIZE = 1000;
-
-/**
- * Lists aggregated usage analytics for admins.
+ * @private Lists aggregated usage analytics for admins.
  */
 export async function GET(request: NextRequest) {
     if (!(await isUserAdmin())) {
@@ -82,15 +35,15 @@ export async function GET(request: NextRequest) {
 
     try {
         const searchParams = request.nextUrl.searchParams;
-        const timeframe = resolveTimeframe(searchParams);
+        const timeframe = UsageQueries.resolveTimeframe(searchParams);
         if (!timeframe) {
             return NextResponse.json({ error: 'Invalid timeframe query.' }, { status: 400 });
         }
 
-        const callTypeFilter = parseUsageCallType(searchParams.get('callType'));
-        const actorTypeFilter = parseUsageActorType(searchParams.get('actorType'));
-        const requestedAgentName = normalizeOptionalText(searchParams.get('agentName'));
-        const requestedFolderId = parseOptionalFolderId(searchParams.get('folderId'));
+        const callTypeFilter = UsageQueries.parseUsageCallType(searchParams.get('callType'));
+        const actorTypeFilter = UsageQueries.parseUsageActorType(searchParams.get('actorType'));
+        const requestedAgentName = UsageNormalization.normalizeOptionalText(searchParams.get('agentName'));
+        const requestedFolderId = UsageQueries.parseOptionalFolderId(searchParams.get('folderId'));
         if (searchParams.get('folderId') && requestedFolderId === null) {
             return NextResponse.json({ error: 'Invalid folderId query.' }, { status: 400 });
         }
@@ -102,7 +55,7 @@ export async function GET(request: NextRequest) {
             organizationState.agents.map((agent) => [agent.agentName, agent.folderId] as const),
         );
 
-        const allowedAgentNames = resolveAllowedAgentNames({
+        const allowedAgentNames = UsageScope.resolveAllowedAgentNames({
             requestedAgentName,
             requestedFolderId,
             agents: organizationState.agents,
@@ -132,7 +85,7 @@ export async function GET(request: NextRequest) {
                 timeline: [],
                 breakdownByCallType: CALL_TYPES.map((key) => ({
                     key,
-                    label: callTypeLabel(key),
+                    label: UsageLabels.callTypeLabel(key),
                     calls: 0,
                     tokens: 0,
                     priceUsd: 0,
@@ -141,7 +94,7 @@ export async function GET(request: NextRequest) {
                 })),
                 breakdownByActorType: ACTOR_TYPES.map((key) => ({
                     key,
-                    label: actorTypeLabel(key),
+                    label: UsageLabels.actorTypeLabel(key),
                     calls: 0,
                     tokens: 0,
                     priceUsd: 0,
@@ -158,20 +111,20 @@ export async function GET(request: NextRequest) {
             return NextResponse.json(emptyResponse);
         }
 
-        const rows = await fetchChatHistoryRows({
+        const rows = await UsageDataAccess.fetchChatHistoryRows({
             fromIso: timeframe.from.toISOString(),
             toIso: timeframe.to.toISOString(),
             allowedAgentNames,
         });
 
         const filteredCalls = rows
-            .filter((row) => isUserCallRow(row))
+            .filter((row) => UsageMetrics.isUserCallRow(row))
             .map((row) => {
-                const callType = resolveCallType(row);
-                const actorType = resolveActorType(row);
-                const userAgent = normalizeUserAgent(row.userAgent);
-                const apiKey = normalizeOptionalText(row.apiKey);
-                const { tokens, priceUsd, duration, humanDuration } = extractUsageMetrics(row.usage);
+                const callType = UsageMetrics.resolveCallType(row);
+                const actorType = UsageMetrics.resolveActorType(row);
+                const userAgent = UsageNormalization.normalizeUserAgent(row.userAgent);
+                const apiKey = UsageNormalization.normalizeOptionalText(row.apiKey);
+                const { tokens, priceUsd, duration, humanDuration } = UsageMetrics.extractUsageMetrics(row.usage);
 
                 return {
                     createdAt: row.createdAt,
@@ -197,7 +150,10 @@ export async function GET(request: NextRequest) {
                 return true;
             });
 
-        const bucketSizeMs = resolveTimelineBucketSizeMs(timeframe.from.getTime(), timeframe.to.getTime());
+        const bucketSizeMs = UsageTimeline.resolveTimelineBucketSizeMs(
+            timeframe.from.getTime(),
+            timeframe.to.getTime(),
+        );
         const timelineByBucket = new Map<number, UsageAggregate>();
         const perAgentCounts = new Map<string, UsageAggregate>();
         const perFolderCounts = new Map<number | null, UsageAggregate>();
@@ -213,7 +169,7 @@ export async function GET(request: NextRequest) {
                 continue;
             }
 
-            const bucketKey = floorToBucket(timestamp, bucketSizeMs);
+            const bucketKey = UsageTimeline.floorToBucket(timestamp, bucketSizeMs);
             const usageAggregate = {
                 tokens: call.tokens || 0,
                 priceUsd: call.priceUsd || 0,
@@ -221,16 +177,28 @@ export async function GET(request: NextRequest) {
                 humanDuration: call.humanDuration || 0,
             };
 
-            timelineByBucket.set(bucketKey, sumUsageAggregate(timelineByBucket.get(bucketKey), usageAggregate));
-            perAgentCounts.set(call.agentName, sumUsageAggregate(perAgentCounts.get(call.agentName), usageAggregate));
-            callTypeCounts.set(call.callType, sumUsageAggregate(callTypeCounts.get(call.callType), usageAggregate));
+            timelineByBucket.set(
+                bucketKey,
+                UsageMetrics.sumUsageAggregate(timelineByBucket.get(bucketKey), usageAggregate),
+            );
+            perAgentCounts.set(
+                call.agentName,
+                UsageMetrics.sumUsageAggregate(perAgentCounts.get(call.agentName), usageAggregate),
+            );
+            callTypeCounts.set(
+                call.callType,
+                UsageMetrics.sumUsageAggregate(callTypeCounts.get(call.callType), usageAggregate),
+            );
             actorTypeCounts.set(
                 call.actorType,
-                sumUsageAggregate(actorTypeCounts.get(call.actorType), usageAggregate),
+                UsageMetrics.sumUsageAggregate(actorTypeCounts.get(call.actorType), usageAggregate),
             );
 
             const folderId = agentFolderByName.get(call.agentName) ?? null;
-            perFolderCounts.set(folderId, sumUsageAggregate(perFolderCounts.get(folderId), usageAggregate));
+            perFolderCounts.set(
+                folderId,
+                UsageMetrics.sumUsageAggregate(perFolderCounts.get(folderId), usageAggregate),
+            );
 
             const existingUser = perUserCounts.get(call.userId);
             perUserCounts.set(call.userId, {
@@ -272,12 +240,12 @@ export async function GET(request: NextRequest) {
             });
         }
 
-        const usernamesById = await resolveUsernamesForIds(
+        const usernamesById = await UsageDataAccess.resolveUsernamesForIds(
             [...perUserCounts.keys()].filter((userId): userId is number => typeof userId === 'number'),
         );
-        const apiKeyNotes = await resolveApiKeyNotes([...apiKeyDetails.keys()]);
+        const apiKeyNotes = await UsageDataAccess.resolveApiKeyNotes([...apiKeyDetails.keys()]);
 
-        const timeline = createTimelineSeries({
+        const timeline = UsageTimeline.createTimelineSeries({
             from: timeframe.from.getTime(),
             to: timeframe.to.getTime(),
             bucketSizeMs,
@@ -299,7 +267,7 @@ export async function GET(request: NextRequest) {
         const perUser = [...perUserCounts.entries()]
             .map(([userId, stats]) => ({
                 userId,
-                username: resolveUsageUsername(userId, usernamesById),
+                username: UsageDataAccess.resolveUsageUsername(userId, usernamesById),
                 ...stats,
             }))
             .sort((a, b) => b.calls - a.calls || b.lastSeen.localeCompare(a.lastSeen));
@@ -363,7 +331,7 @@ export async function GET(request: NextRequest) {
                 };
                 return {
                     key,
-                    label: callTypeLabel(key),
+                    label: UsageLabels.callTypeLabel(key),
                     ...stats,
                 };
             }),
@@ -377,7 +345,7 @@ export async function GET(request: NextRequest) {
                 };
                 return {
                     key,
-                    label: actorTypeLabel(key),
+                    label: UsageLabels.actorTypeLabel(key),
                     ...stats,
                 };
             }),
@@ -393,498 +361,4 @@ export async function GET(request: NextRequest) {
         console.error('Usage analytics error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-}
-
-/**
- * Resolves allowed agent names for the selected scope.
- */
-function resolveAllowedAgentNames(options: {
-    requestedAgentName: string | null;
-    requestedFolderId: number | null;
-    agents: Array<{ agentName: string; folderId: number | null }>;
-    childrenByParentId: Map<number | null, number[]>;
-}): Set<string> | null {
-    const { requestedAgentName, requestedFolderId, agents, childrenByParentId } = options;
-
-    if (requestedAgentName) {
-        return new Set([requestedAgentName]);
-    }
-
-    if (requestedFolderId === null) {
-        return null;
-    }
-
-    const descendantIds = new Set(collectDescendantFolderIds(requestedFolderId, childrenByParentId));
-    const inFolder = agents
-        .filter((agent) => agent.folderId !== null && descendantIds.has(agent.folderId))
-        .map((agent) => agent.agentName);
-    return new Set(inFolder);
-}
-
-/**
- * Loads chat history rows in pages to avoid PostgREST row limits.
- */
-async function fetchChatHistoryRows(options: {
-    fromIso: string;
-    toIso: string;
-    allowedAgentNames: Set<string> | null;
-}): Promise<ChatHistoryRow[]> {
-    const { fromIso, toIso, allowedAgentNames } = options;
-    const supabase = $provideSupabase();
-    const tableName = await $getTableName('ChatHistory');
-    const rows: ChatHistoryRow[] = [];
-
-    for (let offset = 0; ; offset += CHAT_HISTORY_PAGE_SIZE) {
-        let query = supabase
-            .from(tableName)
-            .select('createdAt, agentName, message, source, apiKey, userAgent, actorType, usage, userId')
-            .gte('createdAt', fromIso)
-            .lte('createdAt', toIso)
-            .order('createdAt', { ascending: true });
-
-        if (allowedAgentNames !== null) {
-            query = query.in('agentName', [...allowedAgentNames]);
-        }
-
-        const { data, error } = await query.range(offset, offset + CHAT_HISTORY_PAGE_SIZE - 1);
-        if (error) {
-            throw new Error(`Failed to load usage rows: ${error.message}`);
-        }
-
-        const pageRows = (data || []) as ChatHistoryRow[];
-        rows.push(...pageRows);
-
-        if (pageRows.length < CHAT_HISTORY_PAGE_SIZE) {
-            break;
-        }
-    }
-
-    return rows;
-}
-
-/**
- * Resolves API token notes for details table rendering.
- */
-async function resolveApiKeyNotes(apiKeys: string[]): Promise<Map<string, string | null>> {
-    const notes = new Map<string, string | null>();
-    if (apiKeys.length === 0) {
-        return notes;
-    }
-
-    const supabase = $provideSupabase();
-    const tableName = await $getTableName('ApiTokens');
-    const { data, error } = await supabase.from(tableName).select('token, note').in('token', apiKeys);
-
-    if (error) {
-        console.warn('Usage analytics: failed to resolve API token notes.', error);
-        return notes;
-    }
-
-    for (const row of (data || []) as Array<{ token: string; note: string | null }>) {
-        notes.set(row.token, row.note);
-    }
-
-    return notes;
-}
-
-/**
- * Resolves usernames for a set of user ids.
- */
-async function resolveUsernamesForIds(userIds: number[]): Promise<Map<number, string>> {
-    const usernames = new Map<number, string>();
-    if (userIds.length === 0) {
-        return usernames;
-    }
-
-    const supabase = $provideSupabase();
-    const tableName = await $getTableName('User');
-    const { data, error } = await supabase.from(tableName).select('id, username').in('id', userIds);
-
-    if (error) {
-        console.warn('Usage analytics: failed to resolve usernames for usage rows.', error);
-        return usernames;
-    }
-
-    for (const row of (data || []) as Array<{ id: number; username: string }>) {
-        usernames.set(row.id, row.username);
-    }
-
-    return usernames;
-}
-
-/**
- * Resolves the display name used for one usage user bucket.
- */
-function resolveUsageUsername(userId: number | null, usernamesById: Map<number, string>): string {
-    if (userId === null) {
-        return '(unattributed user)';
-    }
-
-    return usernamesById.get(userId) || `User #${userId}`;
-}
-
-/**
- * Parses query parameters into a validated timeframe window.
- */
-function resolveTimeframe(searchParams: URLSearchParams): {
-    preset: UsageTimeframePreset;
-    from: Date;
-    to: Date;
-    serialized: UsageAnalyticsResponse['timeframe'];
-} | null {
-    const preset = parseTimeframePreset(searchParams.get('timeframe'));
-    const now = new Date();
-
-    if (preset === 'custom') {
-        const fromRaw = searchParams.get('from');
-        const toRaw = searchParams.get('to');
-        if (!fromRaw || !toRaw) {
-            return null;
-        }
-
-        const from = new Date(`${fromRaw}T00:00:00.000Z`);
-        const to = new Date(`${toRaw}T23:59:59.999Z`);
-        if (!isFiniteDate(from) || !isFiniteDate(to) || from > to) {
-            return null;
-        }
-
-        return {
-            preset,
-            from,
-            to,
-            serialized: {
-                from: from.toISOString(),
-                to: to.toISOString(),
-                preset,
-            },
-        };
-    }
-
-    const from = new Date(now.getTime() - timeframePresetMs(preset));
-    return {
-        preset,
-        from,
-        to: now,
-        serialized: {
-            from: from.toISOString(),
-            to: now.toISOString(),
-            preset,
-        },
-    };
-}
-
-/**
- * Builds a timeline series with zero-filled buckets.
- */
-function createTimelineSeries(options: {
-    from: number;
-    to: number;
-    bucketSizeMs: number;
-    timelineByBucket: Map<number, UsageAggregate>;
-}): UsageAnalyticsResponse['timeline'] {
-    const { from, to, bucketSizeMs, timelineByBucket } = options;
-    if (to < from) {
-        return [];
-    }
-
-    const points: UsageAnalyticsResponse['timeline'] = [];
-    const start = floorToBucket(from, bucketSizeMs);
-    const end = floorToBucket(to, bucketSizeMs);
-
-    for (let cursor = start; cursor <= end; cursor += bucketSizeMs) {
-        const bucketVal = timelineByBucket.get(cursor);
-        points.push({
-            bucketStart: new Date(cursor).toISOString(),
-            calls: bucketVal?.calls || 0,
-            tokens: bucketVal?.tokens || 0,
-            priceUsd: bucketVal?.priceUsd || 0,
-            duration: bucketVal?.duration || 0,
-            humanDuration: bucketVal?.humanDuration || 0,
-        });
-    }
-
-    return points;
-}
-
-/**
- * Derives call type from one chat-history row.
- */
-function resolveCallType(row: ChatHistoryRow): UsageCallType {
-    if (row.source === 'OPENAI_API_COMPATIBILITY') {
-        return 'COMPATIBLE_API';
-    }
-
-    const isVoiceCall =
-        typeof row.message === 'object' &&
-        row.message !== null &&
-        (row.message as { isVoiceCall?: unknown }).isVoiceCall === true;
-
-    return isVoiceCall ? 'VOICE_CHAT' : 'WEB_CHAT';
-}
-
-/**
- * Resolves actor type from row data with backward-compatible fallback.
- */
-function resolveActorType(row: ChatHistoryRow): UsageActorType {
-    if (row.actorType === 'ANONYMOUS' || row.actorType === 'TEAM_MEMBER' || row.actorType === 'API_KEY') {
-        return row.actorType;
-    }
-
-    if (normalizeOptionalText(row.apiKey)) {
-        return 'API_KEY';
-    }
-
-    if (row.source === 'OPENAI_API_COMPATIBILITY') {
-        return 'TEAM_MEMBER';
-    }
-
-    return 'ANONYMOUS';
-}
-
-/**
- * Returns true when a row represents an incoming user call.
- */
-function isUserCallRow(row: ChatHistoryRow): boolean {
-    if (!row.message || typeof row.message !== 'object') {
-        return false;
-    }
-
-    const role = (row.message as { role?: unknown }).role;
-    return typeof role === 'string' && role.toUpperCase() === 'USER';
-}
-
-/**
- * Picks an adaptive bucket size based on selected timeframe span.
- */
-function resolveTimelineBucketSizeMs(from: number, to: number): number {
-    const spanMs = Math.max(0, to - from);
-    const hourMs = 60 * 60 * 1000;
-    const dayMs = 24 * hourMs;
-
-    if (spanMs <= 2 * dayMs) {
-        return hourMs;
-    }
-    if (spanMs <= 14 * dayMs) {
-        return 6 * hourMs;
-    }
-    return dayMs;
-}
-
-/**
- * Floors timestamp to the nearest bucket boundary.
- */
-function floorToBucket(timestamp: number, bucketSizeMs: number): number {
-    return Math.floor(timestamp / bucketSizeMs) * bucketSizeMs;
-}
-
-/**
- * Parses timeframe preset with default fallback.
- */
-function parseTimeframePreset(value: string | null): UsageTimeframePreset {
-    if (value === '24h' || value === '7d' || value === '30d' || value === '90d' || value === 'custom') {
-        return value;
-    }
-    return DEFAULT_TIMEFRAME_PRESET;
-}
-
-/**
- * Parses call-type filter from query.
- */
-function parseUsageCallType(value: string | null): UsageCallType | null {
-    if (value === 'WEB_CHAT' || value === 'VOICE_CHAT' || value === 'COMPATIBLE_API') {
-        return value;
-    }
-    return null;
-}
-
-/**
- * Parses actor-type filter from query.
- */
-function parseUsageActorType(value: string | null): UsageActorType | null {
-    if (value === 'ANONYMOUS' || value === 'TEAM_MEMBER' || value === 'API_KEY') {
-        return value;
-    }
-    return null;
-}
-
-/**
- * Parses optional folder id query value.
- */
-function parseOptionalFolderId(value: string | null): number | null {
-    if (!value) {
-        return null;
-    }
-
-    const parsed = Number.parseInt(value, 10);
-    if (!Number.isFinite(parsed) || parsed <= 0) {
-        return null;
-    }
-    return parsed;
-}
-
-/**
- * Normalizes optional text query/column values.
- */
-function normalizeOptionalText(value: string | null | undefined): string | null {
-    if (!value) {
-        return null;
-    }
-    const trimmed = value.trim();
-    return trimmed.length > 0 ? trimmed : null;
-}
-
-/**
- * Normalizes user-agent values for grouping.
- */
-function normalizeUserAgent(value: string | null): string {
-    const normalized = normalizeOptionalText(value);
-    return normalized || '(unknown user agent)';
-}
-
-/**
- * JSON-serializable uncertain number payload from usage records.
- */
-type SerializedUncertainNumber = {
-    value?: number;
-    isUncertain?: boolean;
-};
-
-/**
- * Minimal usage payload shape read from chat-history JSON.
- */
-type SerializedUsage = {
-    input?: {
-        tokensCount?: SerializedUncertainNumber;
-        wordsCount?: SerializedUncertainNumber;
-    };
-    output?: {
-        tokensCount?: SerializedUncertainNumber;
-        wordsCount?: SerializedUncertainNumber;
-    };
-    price?: SerializedUncertainNumber;
-    duration?: SerializedUncertainNumber;
-} | null;
-
-/**
- * Converts one usage JSON payload to normalized numeric metrics for analytics.
- */
-function extractUsageMetrics(rawUsage: ChatHistoryRow['usage']): {
-    tokens: number;
-    priceUsd: number;
-    duration: number;
-    humanDuration: number;
-} {
-    const usage = rawUsage as SerializedUsage;
-    const inputWordsCount = readUsageUncertainNumber(usage?.input?.wordsCount);
-    const outputWordsCount = readUsageUncertainNumber(usage?.output?.wordsCount);
-
-    return {
-        tokens: readUsageNumber(usage?.input?.tokensCount) + readUsageNumber(usage?.output?.tokensCount),
-        priceUsd: readUsageNumber(usage?.price),
-        duration: readUsageNumber(usage?.duration),
-        humanDuration: usageToWorktime({
-            input: createUsageCountsForWorktime(inputWordsCount),
-            output: createUsageCountsForWorktime(outputWordsCount),
-        }).value,
-    };
-}
-
-/**
- * Reads a finite usage numeric value with zero fallback.
- */
-function readUsageNumber(value: SerializedUncertainNumber | undefined): number {
-    const numericValue = value?.value;
-    return typeof numericValue === 'number' && Number.isFinite(numericValue) ? numericValue : 0;
-}
-
-/**
- * Reads one uncertain number from serialized usage payload.
- */
-function readUsageUncertainNumber(value: SerializedUncertainNumber | undefined): { value: number; isUncertain?: true } {
-    const numericValue = readUsageNumber(value);
-    return value?.isUncertain ? { value: numericValue, isUncertain: true } : { value: numericValue };
-}
-
-/**
- * Builds a full usage-count object while preserving uncertainty of words count.
- */
-function createUsageCountsForWorktime(wordsCount: { value: number; isUncertain?: true }): UsageCountsForWorktime {
-    return {
-        tokensCount: { value: 0 },
-        charactersCount: { value: 0 },
-        wordsCount,
-        sentencesCount: { value: 0 },
-        linesCount: { value: 0 },
-        paragraphsCount: { value: 0 },
-        pagesCount: { value: 0 },
-    };
-}
-
-/**
- * Adds one call into an aggregate usage bucket.
- */
-function sumUsageAggregate(
-    current: UsageAggregate | undefined,
-    usage: Omit<UsageAggregate, 'calls'>,
-): UsageAggregate {
-    return {
-        calls: (current?.calls || 0) + 1,
-        tokens: (current?.tokens || 0) + usage.tokens,
-        priceUsd: (current?.priceUsd || 0) + usage.priceUsd,
-        duration: (current?.duration || 0) + usage.duration,
-        humanDuration: (current?.humanDuration || 0) + usage.humanDuration,
-    };
-}
-
-/**
- * Maps preset values to time windows in milliseconds.
- */
-function timeframePresetMs(preset: Exclude<UsageTimeframePreset, 'custom'>): number {
-    const hour = 60 * 60 * 1000;
-    const day = 24 * hour;
-
-    if (preset === '24h') {
-        return day;
-    }
-    if (preset === '7d') {
-        return 7 * day;
-    }
-    if (preset === '90d') {
-        return 90 * day;
-    }
-
-    return 30 * day;
-}
-
-/**
- * Checks whether a Date is valid.
- */
-function isFiniteDate(date: Date): boolean {
-    return Number.isFinite(date.getTime());
-}
-
-/**
- * Human label for a call type.
- */
-function callTypeLabel(callType: UsageCallType): string {
-    if (callType === 'VOICE_CHAT') {
-        return 'Voice chat';
-    }
-    if (callType === 'COMPATIBLE_API') {
-        return 'Compatible API';
-    }
-    return 'Web chat';
-}
-
-/**
- * Human label for an actor type.
- */
-function actorTypeLabel(actorType: UsageActorType): string {
-    if (actorType === 'TEAM_MEMBER') {
-        return 'Team member';
-    }
-    if (actorType === 'API_KEY') {
-        return 'API key';
-    }
-    return 'Anonymous';
 }

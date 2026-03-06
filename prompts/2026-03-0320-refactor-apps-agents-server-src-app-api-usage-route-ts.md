@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 17 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🩲] Refactor [`route.ts` file](apps/agents-server/src/app/api/usage/route.ts)
 
