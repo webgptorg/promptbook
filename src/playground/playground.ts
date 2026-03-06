@@ -1,6 +1,7 @@
 #!/usr/bin/env ts-node
 
 import * as dotenv from 'dotenv';
+import https from 'https';
 import localtunnel from 'localtunnel';
 import { chromium } from 'playwright';
 
@@ -42,12 +43,19 @@ async function playground() {
     });
 
     const wsEndpoint = browserServer.wsEndpoint();
+
+    // Detect public IPv4 address and report direct remote browser URL
+    const publicIp = await getPublicIpV4();
+    const directUrl = replaceWsEndpointOrigin(wsEndpoint, `http://${publicIp}:${browserPort}`);
+    console.log('(direct) REMOTE_BROWSER_URL=', directUrl);
+
+    // Also set up localtunnel and report tunneled URL
     const tunnel = await localtunnel({
         port: browserPort,
         subdomain: tunnelSubdomain,
     });
 
-    console.log('REMOTE_BROWSER_URL =', replaceWsEndpointOrigin(wsEndpoint, tunnel.url));
+    console.log('(tunnel) REMOTE_BROWSER_URL=', replaceWsEndpointOrigin(wsEndpoint, tunnel.url));
 
     await forEver();
 
@@ -67,6 +75,21 @@ function replaceWsEndpointOrigin(wsEndpoint: string, publicUrl: string): string 
     wsUrl.host = tunnelUrl.host;
 
     return wsUrl.toString();
+}
+
+/**
+ * Fetches the public IPv4 address of the current device via api.ipify.org.
+ */
+function getPublicIpV4(): Promise<string> {
+    return new Promise((resolve, reject) => {
+        https
+            .get('https://api.ipify.org', (res) => {
+                let data = '';
+                res.on('data', (chunk: Buffer) => (data += chunk.toString()));
+                res.on('end', () => resolve(data.trim()));
+            })
+            .on('error', reject);
+    });
 }
 
 /**
