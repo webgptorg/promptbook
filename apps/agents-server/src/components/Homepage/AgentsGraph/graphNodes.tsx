@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { Edge, NodeProps } from 'reactflow';
+import { useAgentNaming } from '../../AgentNaming/AgentNamingContext';
 import type { AgentNodeData, FolderGroupNodeData, GraphData, ServerGroupNodeData } from './AgentsGraph.types';
 import { EDGE_STYLES } from './graphConstants';
-import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 
 /**
  * Renders an agent node inside the React Flow canvas.

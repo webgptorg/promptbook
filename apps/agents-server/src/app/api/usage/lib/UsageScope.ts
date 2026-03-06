@@ -1,4 +1,4 @@
-import { collectDescendantFolderIds } from '../../../utils/agentOrganization/folderTree';
+import { collectDescendantFolderIds } from '../../../../utils/agentOrganization/folderTree';
 
 /**
  * @private Configuration for agent-scope resolution.
