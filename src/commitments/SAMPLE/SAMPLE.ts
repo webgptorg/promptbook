@@ -81,7 +81,7 @@ export class SampleCommitmentDefinition extends BaseCommitmentDefinition<'SAMPLE
         }
 
         // Add example to the system message
-        const exampleSection = `Example: ${trimmedContent}`;
+        const exampleSection = `Example of the writing style:\n${trimmedContent}`;
 
         return this.appendToSystemMessage(requirements, exampleSection, '\n\n');
     }
