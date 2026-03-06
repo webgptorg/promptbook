@@ -12,6 +12,8 @@ Together with wider context
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 
+![alt text](prompts/screenshots/2026-03-0080-agents-server-copy-toolcall-record.png)
+
 ---
 
 [-]
