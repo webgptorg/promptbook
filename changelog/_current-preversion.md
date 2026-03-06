@@ -1,3 +1,8 @@
+-   Added simple book version history UX for Agents Server autosaved agent sources:
+    -   Added a visible `Version history` entry point directly in the Book editor so admins can open source-history without leaving the editing flow.
+    -   Reworked `/agents/[agentName]/history` into an expandable, Google Docs-inspired saved-version list that shows timestamp, source preview, full saved source content, and one-click restore per version.
+    -   Reused existing `AgentHistory` persistence (no migration needed) and tightened restore by requiring admin access plus permanent-id validation when applying a historical version.
+
 -   Added one-click advanced tool-call report copy in Agents Server chat chips:
     -   Added an advanced-only `Copy report` action to the tool-call popup modal (the simple variant stays unchanged and does not expose technical payloads).
     -   Copied output is Markdown and now includes full advanced payload panels (input/output/model/full event) together with wider diagnostic context (agent source, parsed commitment usage, TEAM transitive context, and raw chat timeline).
