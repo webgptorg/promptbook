@@ -145,7 +145,7 @@
         },
         {
             "name": "🧪🏭🩹 Fullfix checkup (LF => Prettify (+commit) => Test & Test full build) (⏳⏳)",
-            "command": "./scripts/lines-to-lf.sh && npx ts-node ./scripts/prettify-all/prettify-all.ts --commit && npm run test && npx ts-node ./scripts/generate-packages/generate-packages.ts",
+            "command": "./scripts/is-worktree-clean.sh && ./scripts/lines-to-lf.sh && npx ts-node ./scripts/prettify-all/prettify-all.ts --ignore-git-changes --commit && npm run test && npx ts-node ./scripts/generate-packages/generate-packages.ts",
             "execute": true,
             "onlySingle": true,
             "focus": true
@@ -695,7 +695,7 @@
         },
         {
             "name": "🍴🔍 Git list unmerged changes",
-            "commands": ["git branch --no-merged main"],
+            "command": "git branch --no-merged main",
             "execute": true,
             "onlySingle": true,
             "focus": true
