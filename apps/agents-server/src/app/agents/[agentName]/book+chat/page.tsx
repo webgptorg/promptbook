@@ -10,10 +10,7 @@ import { resolveSpeechRecognitionLanguage } from '../../../../../../../src/utils
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
 import { isAgentDeleted } from '../_utils';
-import { generateAgentMetadata } from '../generateAgentMetadata';
 import { AgentBookAndChat } from './AgentBookAndChat';
-
-export const generateMetadata = generateAgentMetadata;
 
 export default async function AgentBookAndChatPage({ params }: { params: Promise<{ agentName: string }> }) {
     const requestHeaders = await headers();

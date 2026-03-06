@@ -10,10 +10,7 @@ import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
 import { PrintHeader } from '../../../../components/PrintHeader/PrintHeader';
 import { resolveAgentRouteTarget } from '../../../../utils/agentRouting/resolveAgentRouteTarget';
 import { getAgentName, getAgentProfile, isAgentDeleted, parseBooleanFlag } from '../_utils';
-import { generateAgentMetadata } from '../generateAgentMetadata';
 import { AgentChatHistoryClient } from './AgentChatHistoryClient';
-
-export const generateMetadata = generateAgentMetadata;
 
 /**
  * Builds canonical standalone chat path while preserving supported query parameters.

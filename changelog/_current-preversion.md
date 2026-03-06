@@ -1,3 +1,8 @@
+-   Unified Agents Server agent-page metadata branding for all `/agents/[agentName]` routes:
+    -   Refactored `apps/agents-server/src/app/agents/[agentName]/layout.tsx` to reuse one shared metadata generator (`generateAgentMetadata`) instead of a separate layout-specific implementation.
+    -   Removed redundant page-level `generateMetadata = generateAgentMetadata` aliases from agent subpages (`book`, `book+chat`, `chat`, `integration`, `system-message`, `website-integration`, `iframe`, and profile page) so metadata branding is inherited from one DRY layout source.
+    -   As a result, agent favicon and related metadata branding are now applied consistently across agent pages through the shared layout metadata pipeline.
+
 -   Humanized AI-generated outbound email text in Agents Server `USE EMAIL` flow:
     -   Added a shared `humanizeOutboundEmail` utility for email payload cleanup using `humanizeAiText`.
     -   `send_email` now humanizes outbound email subject and body right before sending, without exposing this behavior to the agent.

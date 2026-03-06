@@ -20,7 +20,6 @@ import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEf
 import { CodePreview } from '../../../../../../_common/components/CodePreview/CodePreview';
 import { getAgentName, getAgentProfile } from '../_utils';
 import { getAgentLinks } from '../agentLinks';
-import { generateAgentMetadata } from '../generateAgentMetadata';
 import { ApiKeyIntegrationSections } from './ApiKeyIntegrationSections';
 import { PromptbookSdkTabs } from './PromptbookSdkTabs';
 import { WebsiteIntegrationTabs } from './WebsiteIntegrationTabs';
@@ -47,8 +46,6 @@ function parseBooleanMetadataValue(raw: string | null, fallback: boolean): boole
 
     return fallback;
 }
-
-export const generateMetadata = generateAgentMetadata;
 
 /**
  * Props for AgentIntegrationPage.

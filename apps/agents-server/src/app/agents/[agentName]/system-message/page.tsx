@@ -16,10 +16,7 @@ import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agent
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { keepUnused } from '../../../../../../../src/utils/organization/keepUnused';
 import { getAgentName, getAgentProfile } from '../_utils';
-import { generateAgentMetadata } from '../generateAgentMetadata';
 import { SystemMessageBookEditor } from './SystemMessageBookEditor';
-
-export const generateMetadata = generateAgentMetadata;
 
 export default async function AgentSystemMessagePage({ params }: { params: Promise<{ agentName: string }> }) {
     $sideEffect(headers());

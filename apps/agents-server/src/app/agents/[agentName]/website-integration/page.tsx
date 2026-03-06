@@ -9,10 +9,7 @@ import spaceTrim from 'spacetrim';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { just } from '../../../../../../../src/utils/organization/just';
 import { getAgentProfile } from '../_utils';
-import { generateAgentMetadata } from '../generateAgentMetadata';
 import { WebsiteIntegrationTabs } from '../integration/WebsiteIntegrationTabs';
-
-export const generateMetadata = generateAgentMetadata;
 
 /**
  * Renders website integration guidance for a single agent.
