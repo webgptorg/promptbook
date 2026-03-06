@@ -101,7 +101,8 @@ Firmy, které to neudělají, budou za dva roky řešit totéž, jen o tom ješt
 | Roztříštěné AI licence | 15–40 tis. Kč/měs. | 1 platforma | **−60–80 %** |
 
 **Modelový příklad:** Firma, 200 zaměstnanců, mzdové náklady 12 mil. Kč/měsíc. 
-Úspora 5 % = **7,2 mil. Kč ročně.** I konzervativní třetina = **2,4 mil. Kč ročně** – za investici 600 tis. Kč.
+Úspora 5 % = **7,2 mil. Kč ročně.** I konzervativní třetina z těchto 5% = **2,4 mil. Kč ročně**
+za investici 600 tis. Kč. Návratnost do několika měsíců.
 
 ---
 
