@@ -33,16 +33,16 @@ export const SOURCE_FILE_IGNORE_GLOBS: ReadonlyArray<string> = [
 /**
  * Default maximum line count for source files.
  */
-export const DEFAULT_MAX_LINE_COUNT = 1200;
+export const DEFAULT_MAX_LINE_COUNT = 2000;
 
 /**
  * Per-extension line count limits.
  */
 export const LINE_COUNT_LIMITS_BY_EXTENSION: Readonly<Record<string, number>> = {
-    '.ts': 1200,
-    '.tsx': 1200,
-    '.js': 1200,
-    '.jsx': 1200,
+    '.ts': 2000,
+    '.tsx': 2000,
+    '.js': 2000,
+    '.jsx': 2000,
 };
 
 /**
@@ -53,7 +53,7 @@ export const LINE_COUNT_EXEMPT_GLOBS: ReadonlyArray<string> = ['other/cspell-dic
 /**
  * Maximum number of entities before a file is flagged.
  */
-export const MAX_ENTITIES_PER_FILE = 12;
+export const MAX_ENTITIES_PER_FILE = 20;
 
 /**
  * File extensions eligible for entity counting.
