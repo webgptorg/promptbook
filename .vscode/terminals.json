@@ -144,6 +144,13 @@
             "--note": " <- Note: [🔠] Register new apps here "
         },
         {
+            "name": "🧪🏭🩹 Full checkup (LF => Prettify (+commit) => Test & Test full build) (⏳⏳)",
+            "command": "./scripts/lines-to-lf.sh && npx ts-node ./scripts/prettify-all/prettify-all.ts --commit && npm run test && npx ts-node ./scripts/generate-packages/generate-packages.ts",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🧪🧪 Test all (💤)(⏳)",
             "commands": ["npm run test"],
             "execute": false,
@@ -741,15 +748,15 @@
             "focus": true
         },
         {
-            "name": "🏭🩹 Prettify all files & CRLF -> LF (no commit)(⏳)",
-            "commands": ["./scripts/lines-to-lf.sh", "npx ts-node ./scripts/prettify-all/prettify-all.ts"],
+            "name": "🏭🩹 Prettify all files (no commit)(⏳)",
+            "command": "npx ts-node ./scripts/prettify-all/prettify-all.ts",
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🏭🩹 Prettify all files & CRLF -> LF (+commit)(⏳)",
-            "commands": ["./scripts/lines-to-lf.sh", "npx ts-node ./scripts/prettify-all/prettify-all.ts --commit"],
+            "name": "🏭🩹 Prettify all files (+commit)(⏳)",
+            "command": "npx ts-node ./scripts/prettify-all/prettify-all.ts --commit",
             "execute": true,
             "onlySingle": true,
             "focus": true
