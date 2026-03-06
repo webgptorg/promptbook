@@ -198,7 +198,9 @@ function buildPromptContent(candidate: RefactorCandidate, emojiTag: string): str
  * Builds the refactor guidance section for a prompt.
  */
 function buildPromptGuidance(candidate: RefactorCandidate): ReadonlyArray<string> {
-    const guidance: string[] = ['- @@@'];
+    const guidance: string[] = [
+        /* '- @@@' <- TODO: Should be this here? */
+    ];
     const counts = extractReasonCounts(candidate.reasons);
     const densityNote = buildDensityNote(counts);
 
