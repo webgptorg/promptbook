@@ -8,14 +8,9 @@ import {
 import { usePromise } from '@common/hooks/usePromise';
 import { AgentChat, ChatMessage, useSendMessageToLlmChat } from '@promptbook-local/components';
 import { RemoteAgent } from '@promptbook-local/core';
-import type { AgentCapability, AgentChipData, ToolCall } from '@promptbook-local/types';
+import type { ToolCall } from '@promptbook-local/types';
 import { ClientVersionMismatchError } from '@promptbook-local/utils';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import {
-    PSEUDO_AGENT_USER_URL,
-    resolvePseudoAgentKindFromUrl,
-} from '../../../../../../src/book-2.0/agent-source/pseudoAgentReferences';
-import { createTeamToolNameFromUrl } from '../../../../../../src/book-components/Chat/utils/createTeamToolNameFromUrl';
 import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognition/OpenAiSpeechRecognition';
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
 import { useAgentBackground } from '../../../components/AgentProfile/useAgentBackground';
@@ -30,19 +25,17 @@ import { reportClientVersionMismatch } from '../../../utils/clientVersionClient'
 import type { FriendlyErrorMessage } from '../../../utils/errorMessages';
 import { handleChatError } from '../../../utils/errorMessages';
 import { fetchGithubAppStatus, type GithubAppStatusResponse } from '../../../utils/githubAppClient';
-import {
-    acceptMetaDisclaimer,
-    fetchMetaDisclaimerStatus,
-    type MetaDisclaimerStatus,
-} from '../../../utils/metaDisclaimerClient';
 import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
 import {
     serializeUserLocationPromptParameter,
     USER_LOCATION_PROMPT_PARAMETER,
-    type UserLocationPromptParameter,
 } from '../../../utils/userLocationPromptParameter';
 import { MetaDisclaimerDialog } from './MetaDisclaimerDialog';
 import { PseudoUserChatDialog } from './PseudoUserChatDialog';
+import { toolCallUtils } from './toolCallUtils';
+import { useMetaDisclaimer } from './useMetaDisclaimer';
+import { useTeamAgentProfiles } from './useTeamAgentProfiles';
+import { useUserLocationPromptParameter } from './useUserLocationPromptParameter';
 
 type AgentChatWrapperProps = {
     agentName: string;
@@ -82,206 +75,6 @@ type AgentChatWrapperProps = {
 };
 
 /**
- * Tool function name used by USE USER LOCATION.
- */
-const USER_LOCATION_TOOL_NAME = 'get_user_location';
-
-/**
- * Location-tool status that means browser should request geolocation.
- */
-const USER_LOCATION_UNAVAILABLE_STATUS = 'unavailable';
-
-/**
- * Tool function name used by USE PRIVACY.
- */
-const TURN_PRIVACY_ON_TOOL_NAME = 'turn_privacy_on';
-
-/**
- * Privacy-tool status that means UI confirmation is required.
- */
-const PRIVACY_CONFIRMATION_REQUIRED_STATUS = 'confirmation-required';
-
-/**
- * TEAM pseudo-user interaction marker emitted by TEAM commitment tools.
- */
-const PSEUDO_USER_SINGLE_MESSAGE_INTERACTION_KIND = 'PSEUDO_USER_SINGLE_MESSAGE';
-
-/**
- * Geolocation error code for denied permissions.
- */
-const GEOLOCATION_PERMISSION_DENIED_CODE = 1;
-
-/**
- * Timeout used for browser geolocation lookup.
- */
-const GEOLOCATION_REQUEST_TIMEOUT_MS = 15_000;
-
-/**
- * Wallet request status emitted by `request_wallet_record` tool.
- */
-const WALLET_REQUESTED_STATUS = 'requested';
-
-/**
- * Tool status emitted when wallet credentials are missing.
- */
-const WALLET_CREDENTIAL_REQUIRED_STATUS = 'wallet-credential-required';
-
-const TEAM_AGENT_PROFILE_CACHE = new Map<string, AgentChipData>();
-const TEAM_AGENT_PROFILE_REQUESTS = new Map<string, Promise<AgentChipData | null>>();
-
-type TeamCapabilityDescriptor = {
-    agentUrl: string;
-    label?: string;
-    toolName: string;
-};
-
-type TeamAgentProfileDto = {
-    url: string;
-    label?: string;
-    imageUrl?: string;
-};
-
-/**
- * Normalizes teammate URLs so caching keys are stable.
- */
-function normalizeTeamAgentUrl(agentUrl: string): string {
-    return agentUrl.replace(/\/$/, '');
-}
-
-/**
- * Builds a stable public base URL used for placeholder images.
- */
-function resolveTeamAgentPublicUrl(agentUrl: string): string | undefined {
-    try {
-        const parsed = new URL(agentUrl);
-        return `${parsed.origin}/`;
-    } catch {
-        return undefined;
-    }
-}
-
-/**
- * Fetches teammate profile metadata through the server-side proxy to avoid CORS issues.
- */
-async function requestTeamAgentProfile(agentUrl: string): Promise<AgentChipData | null> {
-    const normalizedUrl = normalizeTeamAgentUrl(agentUrl);
-    const cached = TEAM_AGENT_PROFILE_CACHE.get(normalizedUrl);
-    if (cached) {
-        return cached;
-    }
-
-    let pending = TEAM_AGENT_PROFILE_REQUESTS.get(normalizedUrl);
-    if (!pending) {
-        const apiUrl = `/api/team-agent-profile?url=${encodeURIComponent(normalizedUrl)}`;
-        pending = (async (): Promise<AgentChipData | null> => {
-            try {
-                const response = await fetch(apiUrl);
-                if (!response.ok) {
-                    return null;
-                }
-
-                const payload = (await response.json()) as TeamAgentProfileDto;
-                const publicUrl = resolveTeamAgentPublicUrl(normalizedUrl);
-
-                return {
-                    url: payload.url || normalizedUrl,
-                    label: payload.label,
-                    imageUrl: payload.imageUrl,
-                    publicUrl,
-                };
-            } catch (error) {
-                console.warn('[AgentChatWrapper] Failed to load team agent profile', normalizedUrl, error);
-                return null;
-            }
-        })();
-
-        TEAM_AGENT_PROFILE_REQUESTS.set(normalizedUrl, pending);
-    }
-
-    const result = await pending;
-    TEAM_AGENT_PROFILE_REQUESTS.delete(normalizedUrl);
-    if (result) {
-        TEAM_AGENT_PROFILE_CACHE.set(normalizedUrl, result);
-    }
-
-    return result;
-}
-
-/**
- * Hook that resolves team capability metadata into agent chip data used by tool call chips.
- */
-function useTeamAgentProfiles(capabilities?: ReadonlyArray<AgentCapability>): Record<string, AgentChipData> {
-    const descriptors = useMemo<TeamCapabilityDescriptor[]>(() => {
-        if (!capabilities?.length) {
-            return [];
-        }
-
-        return capabilities
-            .filter((capability): capability is AgentCapability & { agentUrl: string } => {
-                return capability.type === 'team' && Boolean(capability.agentUrl);
-            })
-            .map((capability) => ({
-                agentUrl: capability.agentUrl,
-                label: capability.label,
-                toolName: createTeamToolNameFromUrl(capability.agentUrl, capability.label),
-            }));
-    }, [capabilities]);
-
-    const [profiles, setProfiles] = useState<Record<string, AgentChipData>>({});
-
-    useEffect(() => {
-        if (descriptors.length === 0) {
-            setProfiles({});
-            return;
-        }
-
-        const baseline: Record<string, AgentChipData> = {};
-        for (const descriptor of descriptors) {
-            baseline[descriptor.toolName] = {
-                url: normalizeTeamAgentUrl(descriptor.agentUrl),
-                label: descriptor.label,
-                publicUrl: resolveTeamAgentPublicUrl(descriptor.agentUrl),
-            };
-        }
-
-        let isActive = true;
-        setProfiles(baseline);
-
-        const loadProfiles = async () => {
-            const updated = { ...baseline };
-
-            await Promise.all(
-                descriptors.map(async (descriptor) => {
-                    const profile = await requestTeamAgentProfile(descriptor.agentUrl);
-                    if (!profile) {
-                        return;
-                    }
-
-                    updated[descriptor.toolName] = {
-                        ...profile,
-                        label: profile.label || descriptor.label,
-                        url: profile.url || normalizeTeamAgentUrl(descriptor.agentUrl),
-                        publicUrl: profile.publicUrl || resolveTeamAgentPublicUrl(descriptor.agentUrl),
-                    };
-                }),
-            );
-
-            if (isActive) {
-                setProfiles(updated);
-            }
-        };
-
-        void loadProfiles();
-
-        return () => {
-            isActive = false;
-        };
-    }, [descriptors]);
-
-    return profiles;
-}
-
-/**
  * Serializes the auto-execute payload for change detection.
  */
 function serializeAutoExecutePayload(message?: string, attachments?: ChatMessage['attachments']): string {
@@ -297,287 +90,22 @@ function serializeAutoExecutePayload(message?: string, attachments?: ChatMessage
     }
 }
 
+const {
+    buildPendingWalletRequest,
+    createToolCallMarker,
+    findNewestMatchingToolCall,
+    getPseudoUserLabel,
+    getPseudoUserPromptText,
+    shouldRequestBrowserUserLocation,
+    shouldRequestPrivateModeEnable,
+    shouldRequestPseudoUserReply,
+    shouldRequestWalletCredential,
+    shouldRequestWalletRecord,
+} = toolCallUtils;
+
 /**
  * Location tool result payload shape.
  */
-type UserLocationToolResult = {
-    status?: string;
-};
-
-/**
- * Privacy tool result payload shape.
- */
-type PrivacyToolResult = {
-    status?: string;
-};
-
-/**
- * TEAM tool payload shape used to detect pseudo-user prompts.
- */
-type TeamToolResult = {
-    teammate?: {
-        url?: string;
-        label?: string;
-    };
-    request?: string;
-    interaction?: {
-        kind?: string;
-        prompt?: string;
-    };
-};
-
-/**
- * Wallet tool payload shape used to trigger credential popup.
- */
-type WalletToolResult = {
-    status?: string;
-    request?: {
-        recordType?: string;
-        service?: string;
-        key?: string;
-        jsonSchema?: unknown;
-        message?: string;
-        isUserScoped?: boolean;
-        isGlobal?: boolean;
-    };
-    recordType?: string;
-    service?: string;
-    key?: string;
-    jsonSchema?: unknown;
-    message?: string;
-    isUserScoped?: boolean;
-    isGlobal?: boolean;
-    repository?: string;
-};
-
-/**
- * Parses a tool result payload into an object when possible.
- */
-function parseToolResultObject(result: unknown): Record<string, unknown> | null {
-    if (!result) {
-        return null;
-    }
-
-    if (typeof result === 'object') {
-        return result as Record<string, unknown>;
-    }
-
-    if (typeof result !== 'string') {
-        return null;
-    }
-
-    try {
-        const parsed = JSON.parse(result);
-        if (!parsed || typeof parsed !== 'object') {
-            return null;
-        }
-
-        return parsed as Record<string, unknown>;
-    } catch {
-        return null;
-    }
-}
-
-/**
- * Parses location tool result into structured object.
- */
-function parseUserLocationToolResult(result: unknown): UserLocationToolResult | null {
-    return parseToolResultObject(result) as UserLocationToolResult | null;
-}
-
-/**
- * Parses privacy tool result into structured object.
- */
-function parsePrivacyToolResult(result: unknown): PrivacyToolResult | null {
-    return parseToolResultObject(result) as PrivacyToolResult | null;
-}
-
-/**
- * Parses TEAM tool result into structured object.
- */
-function parseTeamToolResult(result: unknown): TeamToolResult | null {
-    return parseToolResultObject(result) as TeamToolResult | null;
-}
-
-/**
- * Parses wallet tool result into structured object.
- */
-function parseWalletToolResult(result: unknown): WalletToolResult | null {
-    return parseToolResultObject(result) as WalletToolResult | null;
-}
-
-/**
- * Builds a stable marker for one tool call so it is handled at most once.
- */
-function createToolCallMarker(toolCall: ToolCall): string {
-    const resultMarker =
-        typeof toolCall.result === 'string' ? toolCall.result : JSON.stringify(toolCall.result ?? null);
-    return `${toolCall.name}|${toolCall.createdAt || ''}|${resultMarker}`;
-}
-
-/**
- * Returns true when this tool call should trigger browser geolocation request.
- */
-function shouldRequestBrowserUserLocation(toolCall: ToolCall): boolean {
-    if (toolCall.name !== USER_LOCATION_TOOL_NAME) {
-        return false;
-    }
-
-    const parsedResult = parseUserLocationToolResult(toolCall.result);
-    return parsedResult?.status === USER_LOCATION_UNAVAILABLE_STATUS;
-}
-
-/**
- * Returns true when this tool call should trigger private mode confirmation in UI.
- */
-function shouldRequestPrivateModeEnable(toolCall: ToolCall): boolean {
-    if (toolCall.name !== TURN_PRIVACY_ON_TOOL_NAME) {
-        return false;
-    }
-
-    const parsedResult = parsePrivacyToolResult(toolCall.result);
-    return parsedResult?.status === PRIVACY_CONFIRMATION_REQUIRED_STATUS;
-}
-
-/**
- * Returns true when this tool call asks the real user for one pseudo-team reply.
- */
-function shouldRequestPseudoUserReply(toolCall: ToolCall): boolean {
-    if (!toolCall.name.startsWith('team_chat_')) {
-        return false;
-    }
-
-    const parsedResult = parseTeamToolResult(toolCall.result);
-    if (!parsedResult?.teammate?.url) {
-        return false;
-    }
-
-    const pseudoAgentKind = resolvePseudoAgentKindFromUrl(parsedResult.teammate.url);
-    if (pseudoAgentKind !== 'USER' && parsedResult.teammate.url !== PSEUDO_AGENT_USER_URL) {
-        return false;
-    }
-
-    return parsedResult.interaction?.kind === PSEUDO_USER_SINGLE_MESSAGE_INTERACTION_KIND;
-}
-
-/**
- * Returns true when wallet-request tool asks the UI to collect credentials.
- */
-function shouldRequestWalletRecord(toolCall: ToolCall): boolean {
-    if (toolCall.name !== 'request_wallet_record') {
-        return false;
-    }
-
-    const parsedResult = parseWalletToolResult(toolCall.result);
-    return parsedResult?.status === WALLET_REQUESTED_STATUS;
-}
-
-/**
- * Returns true when tool result indicates missing wallet credentials.
- */
-function shouldRequestWalletCredential(toolCall: ToolCall): boolean {
-    const parsedResult = parseWalletToolResult(toolCall.result);
-    return parsedResult?.status === WALLET_CREDENTIAL_REQUIRED_STATUS;
-}
-
-/**
- * Extracts pseudo-user prompt text from TEAM tool result.
- */
-function getPseudoUserPromptText(toolCall: ToolCall): string {
-    const parsedResult = parseTeamToolResult(toolCall.result);
-    const interactionPrompt = parsedResult?.interaction?.prompt?.trim();
-    if (interactionPrompt) {
-        return interactionPrompt;
-    }
-
-    const requestPrompt = parsedResult?.request?.trim();
-    if (requestPrompt) {
-        return requestPrompt;
-    }
-
-    return 'The agent is asking for additional details.';
-}
-
-/**
- * Extracts pseudo-user teammate label from TEAM tool result.
- */
-function getPseudoUserLabel(toolCall: ToolCall): string {
-    const parsedResult = parseTeamToolResult(toolCall.result);
-    return parsedResult?.teammate?.label?.trim() || 'User';
-}
-
-/**
- * Normalizes wallet record type to one of supported UI values.
- */
-function normalizeWalletRecordType(value: unknown): PendingWalletRecordRequest['recordType'] {
-    const normalized = typeof value === 'string' ? value.trim().toUpperCase() : '';
-    if (normalized === 'USERNAME_PASSWORD') {
-        return 'USERNAME_PASSWORD';
-    }
-    if (normalized === 'SESSION_COOKIE') {
-        return 'SESSION_COOKIE';
-    }
-    return 'ACCESS_TOKEN';
-}
-
-/**
- * Builds pending wallet request payload from tool call result.
- */
-function buildPendingWalletRequest(toolCall: ToolCall): PendingWalletRecordRequest {
-    const parsedResult = parseWalletToolResult(toolCall.result);
-    const requestPayload = parsedResult?.request;
-    const sourceService = requestPayload?.service || parsedResult?.service || 'generic';
-    const sourceKey = requestPayload?.key || parsedResult?.key || 'default';
-    const sourceRecordType = requestPayload?.recordType || parsedResult?.recordType || 'ACCESS_TOKEN';
-    const sourceJsonSchema = requestPayload?.jsonSchema || parsedResult?.jsonSchema;
-    const sourceMessage = requestPayload?.message || parsedResult?.message;
-    const repositoryHint = parsedResult?.repository?.trim();
-
-    const message = repositoryHint
-        ? `${sourceMessage || 'Credential required.'}\nRepository: ${repositoryHint}`
-        : sourceMessage;
-
-    return {
-        marker: createToolCallMarker(toolCall),
-        sourceToolName: toolCall.name,
-        recordType: normalizeWalletRecordType(sourceRecordType),
-        service: sourceService,
-        key: sourceKey,
-        jsonSchema: sourceJsonSchema,
-        message,
-        isUserScoped: requestPayload?.isUserScoped === true || parsedResult?.isUserScoped === true,
-        isGlobal: requestPayload?.isGlobal === true || parsedResult?.isGlobal === true,
-    };
-}
-
-/**
- * Finds the newest tool call matching the supplied predicate.
- */
-function findNewestMatchingToolCall(
-    messages: ReadonlyArray<ChatMessage>,
-    predicate: (toolCall: ToolCall) => boolean,
-): ToolCall | null {
-    for (let index = messages.length - 1; index >= 0; index--) {
-        const message = messages[index];
-        if (!message) {
-            continue;
-        }
-
-        const toolCalls = message.toolCalls || message.completedToolCalls;
-        if (!toolCalls || toolCalls.length === 0) {
-            continue;
-        }
-
-        for (const toolCall of toolCalls) {
-            if (predicate(toolCall)) {
-                return toolCall;
-            }
-        }
-    }
-
-    return null;
-}
-
 /**
  * Pending pseudo-user interaction extracted from TEAM tool result.
  */
@@ -651,15 +179,17 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     const [currentError, setCurrentError] = useState<FriendlyErrorMessage | null>(null);
     const [retryCallback, setRetryCallback] = useState<(() => void) | null>(null);
     const [chatKey, setChatKey] = useState<number>(0);
-    const [userLocationPromptParameter, setUserLocationPromptParameter] = useState<UserLocationPromptParameter | null>(
-        null,
-    );
-    const [metaDisclaimerStatus, setMetaDisclaimerStatus] = useState<MetaDisclaimerStatus | null>(null);
-    const [isMetaDisclaimerLoading, setIsMetaDisclaimerLoading] = useState(true);
-    const [isMetaDisclaimerAccepting, setIsMetaDisclaimerAccepting] = useState(false);
-    const [metaDisclaimerError, setMetaDisclaimerError] = useState<string | null>(null);
+    const { userLocationPromptParameter, requestBrowserUserLocation } =
+        useUserLocationPromptParameter();
+    const {
+        status: metaDisclaimerStatus,
+        isLoading: isMetaDisclaimerLoading,
+        isAccepting: isMetaDisclaimerAccepting,
+        errorMessage: metaDisclaimerError,
+        reload: loadMetaDisclaimerStatus,
+        accept: handleAcceptMetaDisclaimer,
+    } = useMetaDisclaimer(agentName);
     const sendMessage = useSendMessageToLlmChat();
-    const isLocationRequestInFlightRef = useRef(false);
     const isPrivacyConfirmationInFlightRef = useRef(false);
     const handledLocationToolCallMarkersRef = useRef<Set<string>>(new Set());
     const handledPrivacyToolCallMarkersRef = useRef<Set<string>>(new Set());
@@ -678,27 +208,6 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             ? ((agent as { permanentId?: string }).permanentId as string)
             : undefined;
     }, [agent]);
-
-    /**
-     * Loads disclaimer status for the current user and agent.
-     */
-    const loadMetaDisclaimerStatus = useCallback(async () => {
-        setIsMetaDisclaimerLoading(true);
-        setMetaDisclaimerError(null);
-
-        try {
-            const status = await fetchMetaDisclaimerStatus(agentName);
-            setMetaDisclaimerStatus(status);
-        } catch (error) {
-            setMetaDisclaimerError(error instanceof Error ? error.message : 'Failed to load disclaimer.');
-        } finally {
-            setIsMetaDisclaimerLoading(false);
-        }
-    }, [agentName]);
-
-    useEffect(() => {
-        void loadMetaDisclaimerStatus();
-    }, [loadMetaDisclaimerStatus]);
 
     /**
      * Loads GitHub App availability so wallet popup can offer one-click connect.
@@ -721,23 +230,6 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             isMounted = false;
         };
     }, []);
-
-    /**
-     * Persists disclaimer agreement for the current user and agent.
-     */
-    const handleAcceptMetaDisclaimer = useCallback(async () => {
-        setIsMetaDisclaimerAccepting(true);
-        setMetaDisclaimerError(null);
-
-        try {
-            const acceptedStatus = await acceptMetaDisclaimer(agentName);
-            setMetaDisclaimerStatus(acceptedStatus);
-        } catch (error) {
-            setMetaDisclaimerError(error instanceof Error ? error.message : 'Failed to accept disclaimer.');
-        } finally {
-            setIsMetaDisclaimerAccepting(false);
-        }
-    }, [agentName]);
 
     const isMetaDisclaimerEnabled = metaDisclaimerStatus?.enabled === true;
     const hasAcceptedMetaDisclaimer = isMetaDisclaimerEnabled ? metaDisclaimerStatus?.accepted === true : true;
@@ -882,51 +374,6 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     // Handle reset from error dialog
     const handleReset = useCallback(() => {
         setChatKey((prevKey) => prevKey + 1); // Increment key to force re-mount
-    }, []);
-
-    /**
-     * Requests geolocation from browser and stores it for next prompt calls.
-     */
-    const requestBrowserUserLocation = useCallback(async () => {
-        if (isLocationRequestInFlightRef.current) {
-            return;
-        }
-
-        if (typeof window === 'undefined' || !navigator.geolocation) {
-            setUserLocationPromptParameter({
-                permission: 'unavailable',
-            });
-            return;
-        }
-
-        isLocationRequestInFlightRef.current = true;
-
-        try {
-            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-                navigator.geolocation.getCurrentPosition(resolve, reject, {
-                    enableHighAccuracy: true,
-                    timeout: GEOLOCATION_REQUEST_TIMEOUT_MS,
-                    maximumAge: 0,
-                });
-            });
-
-            setUserLocationPromptParameter({
-                permission: 'granted',
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-                accuracyMeters: position.coords.accuracy,
-                altitudeMeters: position.coords.altitude,
-                headingDegrees: position.coords.heading,
-                speedMetersPerSecond: position.coords.speed,
-                timestamp: new Date(position.timestamp).toISOString(),
-            });
-        } catch (error) {
-            const geolocationError = error as GeolocationPositionError;
-            const permission = geolocationError?.code === GEOLOCATION_PERMISSION_DENIED_CODE ? 'denied' : 'unavailable';
-            setUserLocationPromptParameter({ permission });
-        } finally {
-            isLocationRequestInFlightRef.current = false;
-        }
     }, []);
 
     /**
