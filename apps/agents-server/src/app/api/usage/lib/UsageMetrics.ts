@@ -1,8 +1,8 @@
+import { UsageActorType, UsageCallType } from '@/src/utils/usageAdmin';
 import { usageToWorktime } from '@promptbook-local/core';
-import { UsageNormalization } from './UsageNormalization';
 import type { ChatHistoryRow } from '../ChatHistoryRow';
 import type { UsageAggregate } from '../UsageAggregate';
-import type { UsageActorType, UsageCallType } from '../../../utils/usageAdmin';
+import { UsageNormalization } from './UsageNormalization';
 
 /**
  * @private Helpers that normalize chat history rows into analytics-ready metrics.
@@ -89,10 +89,7 @@ function extractUsageMetrics(rawUsage: ChatHistoryRow['usage']): {
 /**
  * @private Converts partial aggregates into a single bucket total.
  */
-function sumUsageAggregate(
-    current: UsageAggregate | undefined,
-    usage: Omit<UsageAggregate, 'calls'>,
-): UsageAggregate {
+function sumUsageAggregate(current: UsageAggregate | undefined, usage: Omit<UsageAggregate, 'calls'>): UsageAggregate {
     return {
         calls: (current?.calls || 0) + 1,
         tokens: (current?.tokens || 0) + usage.tokens,
