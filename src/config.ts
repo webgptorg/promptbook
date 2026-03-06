@@ -83,6 +83,8 @@ export const PROMPTBOOK_SYNTAX_COLORS = {
     SEPARATOR: Color.fromHex('#cccccc'),
     COMMITMENT: Color.fromHex('#DA0F78'),
     NOTE_COMMITMENT: Color.fromHex('#8080807e'),
+    TODO_COMMITMENT_TEXT: Color.fromHex('#000000'),
+    TODO_COMMITMENT_BACKGROUND: Color.fromHex('#FFEB3B'),
     PARAMETER: Color.fromHex('#8e44ad'),
     CODE_BLOCK: Color.fromHex('#7700ffff'),
 } as const satisfies Record<string_name, Color>;

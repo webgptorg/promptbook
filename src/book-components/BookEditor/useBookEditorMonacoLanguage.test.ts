@@ -89,7 +89,7 @@ describe('ensureBookEditorMonacoLanguage', () => {
         expect(second.spies.registerLanguage).toHaveBeenCalledTimes(1);
     });
 
-    it('registers dedicated note-commitment tokenization and theme rule', () => {
+    it('registers NOTE/TODO commitment tokenization states and dedicated theme rules', () => {
         const { monaco, spies } = createMonacoLanguageMock();
 
         ensureBookEditorMonacoLanguage(monaco);
@@ -98,18 +98,49 @@ describe('ensureBookEditorMonacoLanguage', () => {
             readonly tokenizer: {
                 readonly body: ReadonlyArray<readonly [RegExp, string, string?]>;
                 readonly 'agent-reference-body': ReadonlyArray<readonly [RegExp, string, string?]>;
+                readonly 'note-commitment-body': ReadonlyArray<readonly [RegExp, string, string?]>;
+                readonly 'todo-commitment-body': ReadonlyArray<readonly [RegExp, string, string?]>;
             };
         };
         const themeConfig = spies.defineTheme.mock.calls[0]?.[1] as {
-            readonly rules: ReadonlyArray<{ readonly token: string; readonly foreground?: string }>;
+            readonly rules: ReadonlyArray<{
+                readonly token: string;
+                readonly foreground?: string;
+                readonly background?: string;
+            }>;
         };
 
-        expect(monarchConfig.tokenizer.body.some((rule) => rule[1] === 'note-commitment')).toBe(true);
-        expect(monarchConfig.tokenizer['agent-reference-body'].some((rule) => rule[1] === 'note-commitment')).toBe(
+        expect(
+            monarchConfig.tokenizer.body.some(
+                (rule) => rule[1] === 'note-commitment' && rule[2] === '@note-commitment-body',
+            ),
+        ).toBe(true);
+        expect(
+            monarchConfig.tokenizer.body.some(
+                (rule) => rule[1] === 'todo-commitment' && rule[2] === '@todo-commitment-body',
+            ),
+        ).toBe(true);
+        expect(
+            monarchConfig.tokenizer['agent-reference-body'].some(
+                (rule) => rule[1] === 'note-commitment' && rule[2] === '@note-commitment-body',
+            ),
+        ).toBe(true);
+        expect(
+            monarchConfig.tokenizer['agent-reference-body'].some(
+                (rule) => rule[1] === 'todo-commitment' && rule[2] === '@todo-commitment-body',
+            ),
+        ).toBe(true);
+        expect(monarchConfig.tokenizer['note-commitment-body'].some((rule) => rule[1] === 'note-commitment')).toBe(
+            true,
+        );
+        expect(monarchConfig.tokenizer['todo-commitment-body'].some((rule) => rule[1] === 'todo-commitment')).toBe(
             true,
         );
 
         const noteThemeRule = themeConfig.rules.find((rule) => rule.token === 'note-commitment');
+        const todoThemeRule = themeConfig.rules.find((rule) => rule.token === 'todo-commitment');
         expect(noteThemeRule?.foreground).toBe(PROMPTBOOK_SYNTAX_COLORS.NOTE_COMMITMENT.toHex());
+        expect(todoThemeRule?.foreground).toBe(PROMPTBOOK_SYNTAX_COLORS.TODO_COMMITMENT_TEXT.toHex());
+        expect(todoThemeRule?.background).toBe(PROMPTBOOK_SYNTAX_COLORS.TODO_COMMITMENT_BACKGROUND.toHex());
     });
 });
