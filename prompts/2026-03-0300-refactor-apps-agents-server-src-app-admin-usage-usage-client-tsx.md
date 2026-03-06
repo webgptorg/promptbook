@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.0790 11 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🦨] Refactor [`UsageClient.tsx` file](apps/agents-server/src/app/admin/usage/UsageClient.tsx)
 
