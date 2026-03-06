@@ -14,25 +14,22 @@ import ReactFlow, {
     type ReactFlowInstance,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { showAlert } from '../AsyncDialogs/asyncDialogs';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
-import type { AgentNodeData, AgentsGraphProps, ConnectionType, GraphNode, StoredPositions } from './AgentsGraph.types';
+import { showAlert } from '../AsyncDialogs/asyncDialogs';
+import type {
+    AgentNodeData,
+    AgentsGraphProps,
+    ConnectionType,
+    GraphNode,
+    StoredPositions,
+} from './AgentsGraph/AgentsGraph.types';
 import {
-    parseConnectionTypes,
-    normalizeServerUrl,
     buildGraphData,
-    collectRelatedNodeIds,
     buildGraphSummaryInfo,
-} from './graphData';
-import { buildServerGroups, buildGraphLayoutNodes } from './graphLayout';
-import {
-    AgentGraphNode,
-    ServerGroupNode,
-    FolderGroupNode,
-    applyEdgeHighlighting,
-    buildGraphEdges,
-} from './graphNodes';
-import { GraphSummaryPanel } from './GraphSummaryPanel';
+    collectRelatedNodeIds,
+    normalizeServerUrl,
+    parseConnectionTypes,
+} from './AgentsGraph/graphData';
 import {
     buildAsciiGraph,
     buildGraphFilename,
@@ -43,7 +40,16 @@ import {
     saveStoredPositions,
     shouldExportNode,
     triggerBlobDownload,
-} from './graphExport';
+} from './AgentsGraph/graphExport';
+import { buildGraphLayoutNodes, buildServerGroups } from './AgentsGraph/graphLayout';
+import {
+    AgentGraphNode,
+    FolderGroupNode,
+    ServerGroupNode,
+    applyEdgeHighlighting,
+    buildGraphEdges,
+} from './AgentsGraph/graphNodes';
+import { GraphSummaryPanel } from './AgentsGraph/GraphSummaryPanel';
 
 const GRAPH_MIN_HEIGHT = 480;
 const GRAPH_HEIGHT_OFFSET = 340;
