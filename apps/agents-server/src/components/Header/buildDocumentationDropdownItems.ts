@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { createElement, type ReactNode } from 'react';
 import type { ServerTranslationKey } from '../../languages/ServerTranslationKeys';
 import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
 import type { SubMenuItem } from './HeaderMenuTypes';
@@ -30,11 +30,13 @@ const IMPORTANT_COMMITMENT_TYPE_SET = new Set<string>(IMPORTANT_COMMITMENT_TYPES
  * @private function of Header
  */
 function createDocumentationCommitmentLabel(primary: { type: string }, aliases: string[]): ReactNode {
-    return (
-        <>
-            {primary.type}
-            {aliases.length > 0 && <span className="text-gray-400 font-normal"> / {aliases.join(' / ')}</span>}
-        </>
+    return createElement(
+        'span',
+        null,
+        primary.type,
+        aliases.length > 0
+            ? createElement('span', { className: 'text-gray-400 font-normal' }, ` / ${aliases.join(' / ')}`)
+            : null,
     );
 }
 

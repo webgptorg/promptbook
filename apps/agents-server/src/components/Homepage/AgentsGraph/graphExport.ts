@@ -1,4 +1,4 @@
-import type { GraphData, GraphLink, ServerGroup } from './AgentsGraph.types';
+import type { GraphData, ServerGroup } from './AgentsGraph.types';
 import { EDGE_LABELS } from './graphConstants';
 
 const GRAPH_DOWNLOAD_PREFIX = 'agents-graph';
@@ -55,7 +55,10 @@ export const loadStoredPositions = (storageKey: string): Record<string, { x: num
 /**
  * Persist node positions to local storage.
  */
-export const saveStoredPositions = (storageKey: string, positions: Record<string, { x: number; y: number; parentId: string }>): void => {
+export const saveStoredPositions = (
+    storageKey: string,
+    positions: Record<string, { x: number; y: number; parentId: string }>,
+): void => {
     try {
         window.localStorage.setItem(storageKey, JSON.stringify(positions));
     } catch (error) {

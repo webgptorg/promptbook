@@ -3,12 +3,12 @@ import { collectDescendantFolderIds } from '../../../utils/agentOrganization/fol
 /**
  * @private Configuration for agent-scope resolution.
  */
-interface ResolveAllowedAgentNamesOptions {
+type ResolveAllowedAgentNamesOptions = {
     requestedAgentName: string | null;
     requestedFolderId: number | null;
     agents: Array<{ agentName: string; folderId: number | null }>;
     childrenByParentId: Map<number | null, number[]>;
-}
+};
 
 /**
  * @private Helper that determines which agents are visible for a given filter scope.

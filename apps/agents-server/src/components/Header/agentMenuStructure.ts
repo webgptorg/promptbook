@@ -1,21 +1,13 @@
-import type { ReactNode } from 'react';
-import {
-    FileTextIcon,
-    MessageSquareIcon,
-    NotebookPenIcon,
-    MoreHorizontalIcon,
-} from 'lucide-react';
+import { FileTextIcon, MessageSquareIcon, MoreHorizontalIcon, NotebookPenIcon } from 'lucide-react';
+import { createElement, type ReactNode } from 'react';
+import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
+import { RESERVED_PATHS } from '../../generated/reservedPaths';
+import type { ServerTranslationKey } from '../../languages/ServerTranslationKeys';
+import { buildFolderPath, getFolderPathSegments } from '../../utils/agentOrganization/folderPath';
+import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
 import { FolderAppearanceIcon } from '../FolderAppearance/FolderAppearanceIcon';
 import { AgentNameWithAvatar } from './AgentNameWithAvatar';
-import { buildFolderPath, getFolderPathSegments } from '../../utils/agentOrganization/folderPath';
-import type {
-    AgentOrganizationAgent,
-    AgentOrganizationFolder,
-} from '../../utils/agentOrganization/types';
-import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
-import type { ServerTranslationKey } from '../../languages/ServerTranslationKeys';
 import type { SubMenuItem } from './HeaderMenuTypes';
-import { RESERVED_PATHS } from '../../generated/reservedPaths';
 
 /**
  * @private Defines the available views inside the agent hierarchy.
@@ -61,10 +53,13 @@ const AGENT_MENU_MAX_WIDTH_CLASS = 'max-w-[220px]';
  * @private Computes a navigation-friendly label for folder and agent entries.
  */
 function createIndentedMenuLabel(content: ReactNode, depth: number): ReactNode {
-    return (
-        <span className="flex min-w-0 items-center gap-2" style={{ paddingLeft: `${depth * MENU_DEPTH_PADDING_PX}px` }}>
-            {content}
-        </span>
+    return createElement(
+        'span',
+        {
+            className: 'flex min-w-0 items-center gap-2',
+            style: { paddingLeft: `${depth * MENU_DEPTH_PADDING_PX}px` },
+        },
+        content,
     );
 }
 
@@ -73,15 +68,17 @@ function createIndentedMenuLabel(content: ReactNode, depth: number): ReactNode {
  */
 function createFolderMenuEntryLabel(folder: HeaderAgentMenuFolder, depth: number): ReactNode {
     return createIndentedMenuLabel(
-        <span className="flex min-w-0 items-center gap-2 text-sm font-semibold text-gray-900">
-            <FolderAppearanceIcon
-                icon={folder.icon}
-                color={folder.color}
-                containerClassName="flex h-5 w-5 items-center justify-center rounded-md border"
-                iconClassName="h-3.5 w-3.5"
-            />
-            <span className="truncate">{folder.name}</span>
-        </span>,
+        createElement(
+            'span',
+            { className: 'flex min-w-0 items-center gap-2 text-sm font-semibold text-gray-900' },
+            createElement(FolderAppearanceIcon, {
+                icon: folder.icon,
+                color: folder.color,
+                containerClassName: 'flex h-5 w-5 items-center justify-center rounded-md border',
+                iconClassName: 'h-3.5 w-3.5',
+            }),
+            createElement('span', { className: 'truncate' }, folder.name),
+        ),
         depth,
     );
 }
@@ -91,13 +88,13 @@ function createFolderMenuEntryLabel(folder: HeaderAgentMenuFolder, depth: number
  */
 function createAgentMenuEntryLabel(label: string, avatarUrl: string | null, depth: number): ReactNode {
     return createIndentedMenuLabel(
-        <AgentNameWithAvatar
-            label={label}
-            avatarUrl={avatarUrl}
-            avatarSizeClassName={AGENT_MENU_AVATAR_SIZE_CLASS}
-            textClassName={AGENT_MENU_TEXT_CLASS}
-            maxWidthClassName={AGENT_MENU_MAX_WIDTH_CLASS}
-        />,
+        createElement(AgentNameWithAvatar, {
+            label,
+            avatarUrl,
+            avatarSizeClassName: AGENT_MENU_AVATAR_SIZE_CLASS,
+            textClassName: AGENT_MENU_TEXT_CLASS,
+            maxWidthClassName: AGENT_MENU_MAX_WIDTH_CLASS,
+        }),
         depth,
     );
 }
@@ -568,7 +565,10 @@ export function resolveActiveAgentNavigation(pathname: string | null): ActiveAge
 /**
  * @private Builds the label rendered inside the view dropdown.
  */
-export function createAgentViewLabel(view: AgentHierarchyView, translate: (key: ServerTranslationKey) => string): ReactNode {
+export function createAgentViewLabel(
+    view: AgentHierarchyView,
+    translate: (key: ServerTranslationKey) => string,
+): ReactNode {
     const Icon = AGENT_VIEW_ICON_MAP[view];
     const translationKeyByView: Record<AgentHierarchyView, ServerTranslationKey> = {
         Profile: 'common.profile',
@@ -577,11 +577,11 @@ export function createAgentViewLabel(view: AgentHierarchyView, translate: (key: 
         More: 'common.more',
     };
 
-    return (
-        <span className="flex items-center gap-2">
-            <Icon className="h-4 w-4 text-gray-500" aria-hidden />
-            <span>{translate(translationKeyByView[view])}</span>
-        </span>
+    return createElement(
+        'span',
+        { className: 'flex items-center gap-2' },
+        createElement(Icon, { className: 'h-4 w-4 text-gray-500', 'aria-hidden': true }),
+        createElement('span', null, translate(translationKeyByView[view])),
     );
 }
 

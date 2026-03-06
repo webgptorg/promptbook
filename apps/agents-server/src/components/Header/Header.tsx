@@ -3,30 +3,17 @@
 import promptbookLogoBlueTransparent from '@/public/logo-blue-white-256.png';
 import { logoutAction } from '@/src/app/actions';
 import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
-import {
-    ArrowRight,
-    ChevronDown,
-    ChevronRight,
-    FileTextIcon,
-    FolderIcon,
-    Lock,
-    LogIn,
-    LogOut,
-    MessageSquareIcon,
-    MoreHorizontalIcon,
-    NotebookPenIcon,
-} from 'lucide-react';
+import { ArrowRight, ChevronDown, ChevronRight, FolderIcon, Lock, LogIn, LogOut } from 'lucide-react';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import type { CSSProperties, MouseEvent, ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { HamburgerMenu } from '../../../../../src/book-components/_common/HamburgerMenu/HamburgerMenu';
-import { ArrowIcon } from '../../../../../src/book-components/icons/ArrowIcon';
 import { useMenuHoisting } from '../../../../../src/book-components/_common/MenuHoisting/MenuHoistingContext';
+import { ArrowIcon } from '../../../../../src/book-components/icons/ArrowIcon';
 import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { just } from '../../../../../src/utils/organization/just';
 import { RESERVED_PATHS } from '../../generated/reservedPaths';
-import type { ServerTranslationKey } from '../../languages/ServerTranslationKeys';
 import { buildAgentFolderContext } from '../../utils/agentOrganization/agentFolderContext';
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
 import type { UserInfo } from '../../utils/getCurrentUser';
@@ -46,12 +33,6 @@ import { useNewAgentDialog } from '../NewAgentDialog/useNewAgentDialog';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 import { useUsersAdmin } from '../UsersList/useUsersAdmin';
 import { AgentDirectoryDropdown } from './AgentDirectoryDropdown';
-import { AgentNameWithAvatar } from './AgentNameWithAvatar';
-import { buildDocumentationDropdownItems } from './buildDocumentationDropdownItems';
-import { DropdownSubMenuPortal } from './DropdownSubMenuPortal';
-import { useDropdownPortalContainer } from './useDropdownPortalContainer';
-import { useIsTouchInput } from './useIsTouchInput';
-import { SubMenuItem, MenuItem, OpenSubMenuState } from './HeaderMenuTypes';
 import {
     appendFolderActionNodes,
     buildAgentMenuStructure,
@@ -60,11 +41,18 @@ import {
     createFallbackAgent,
     getAgentNavigationId,
     resolveActiveAgentNavigation,
+    type AgentMenuTreeNode,
     type HeaderAgentMenuAgent,
     type HeaderAgentMenuFolder,
 } from './agentMenuStructure';
+import { AgentNameWithAvatar } from './AgentNameWithAvatar';
+import { buildDocumentationDropdownItems } from './buildDocumentationDropdownItems';
 import { HeaderControlPanelDropdown } from './ControlPanel/ControlPanel';
+import { DropdownSubMenuPortal } from './DropdownSubMenuPortal';
+import { MenuItem, OpenSubMenuState, SubMenuItem } from './HeaderMenuTypes';
 import { HeaderSearchBox } from './HeaderSearchBox';
+import { useDropdownPortalContainer } from './useDropdownPortalContainer';
+import { useIsTouchInput } from './useIsTouchInput';
 
 type HeaderProps = {
     /**
@@ -115,6 +103,74 @@ type HeaderProps = {
 /* TODO: [🐱‍🚀] Make this Agents server native  */
 
 const SUBMENU_CLOSE_DELAY_MS = 240;
+
+/**
+ * @private Reserved pathname segments that cannot be interpreted as agent identifiers.
+ */
+const RESERVED_PATH_SET = new Set<string>(RESERVED_PATHS);
+
+/**
+ * @private Converts context-menu entries to header submenu items.
+ */
+function mapContextMenuItemsToSubMenuItems(contextMenuItems: ReadonlyArray<ContextMenuItem>): SubMenuItem[] {
+    const submenuItems: SubMenuItem[] = [];
+
+    for (const item of contextMenuItems) {
+        if (item.type === 'divider') {
+            if (submenuItems.length > 0) {
+                submenuItems[submenuItems.length - 1].isBordered = true;
+            }
+            continue;
+        }
+
+        if (item.type === 'link') {
+            submenuItems.push({
+                label: item.label,
+                href: item.href,
+            });
+            continue;
+        }
+
+        submenuItems.push({
+            label: item.label,
+            onClick: item.onClick,
+            isBold: item.highlight,
+        });
+    }
+
+    return submenuItems;
+}
+
+/**
+ * @private Flattens the tree structure to submenu items used in mobile header navigation.
+ */
+function createAgentHierarchyMobileItems(nodes: ReadonlyArray<AgentMenuTreeNode>): SubMenuItem[] {
+    return nodes.map((node) => {
+        if (node.type === 'folder') {
+            return {
+                label: node.renderLabel ?? node.label,
+                href: node.href,
+                isBold: true,
+                items: createAgentHierarchyMobileItems(node.children),
+            };
+        }
+
+        if (node.type === 'agent') {
+            return {
+                label: node.renderLabel ?? node.label,
+                href: node.href,
+            };
+        }
+
+        return {
+            label: node.renderLabel ?? node.label,
+            href: node.href,
+            onClick: node.onClick,
+            isBold: node.isBold,
+            isBordered: node.isBordered,
+        };
+    });
+}
 
 /**
  * @private Delay used when the user leaves a header dropdown so it stays open long enough to reach the panel.
@@ -705,7 +761,11 @@ export function Header(props: HeaderProps) {
         await logoutAction();
     };
 
-    const { isPreparingDialog, openNewAgentDialog, dialog: newAgentDialog } = useNewAgentDialog({
+    const {
+        isPreparingDialog,
+        openNewAgentDialog,
+        dialog: newAgentDialog,
+    } = useNewAgentDialog({
         onCreated: ({ permanentId }) => {
             pushWithHeadless(router, `/agents/${encodeURIComponent(permanentId)}`, isHeadless);
         },
@@ -1230,7 +1290,9 @@ export function Header(props: HeaderProps) {
                                                     {t('header.viewAllAgents', { agentsPlural: naming.plural })}
                                                 </HeadlessLink>
                                                 <button
-                                                    onClick={isPreparingDialog ? undefined : () => handleCreateAgent(null)}
+                                                    onClick={
+                                                        isPreparingDialog ? undefined : () => handleCreateAgent(null)
+                                                    }
                                                     className="block w-full rounded-xl px-3 py-2.5 text-left text-sm font-medium text-gray-900 hover:bg-gray-50"
                                                 >
                                                     {isPreparingDialog ? (
@@ -1715,9 +1777,9 @@ export function Header(props: HeaderProps) {
                                         <div className="flex flex-col items-start">
                                             <span className="leading-none">{currentUserDisplayName}</span>
                                             {(currentUser?.isAdmin || isAdmin) && (
-                                                    <span className="text-xs text-blue-600">{t('common.admin')}</span>
-                                                )}
-                                            </div>
+                                                <span className="text-xs text-blue-600">{t('common.admin')}</span>
+                                            )}
+                                        </div>
                                         <ChevronDown className="w-4 h-4 ml-1 opacity-50" />
                                     </button>
 
@@ -1734,9 +1796,7 @@ export function Header(props: HeaderProps) {
                                                     {currentUserDisplayName}
                                                 </p>
                                                 {(currentUser?.isAdmin || isAdmin) && (
-                                                    <p className="text-xs text-blue-600 mt-1">
-                                                        {t('common.admin')}
-                                                    </p>
+                                                    <p className="text-xs text-blue-600 mt-1">{t('common.admin')}</p>
                                                 )}
                                             </div>
 
