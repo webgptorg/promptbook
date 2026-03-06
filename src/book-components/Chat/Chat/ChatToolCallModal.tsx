@@ -93,16 +93,8 @@ const TOOL_CALL_COPY_FEEDBACK_TIMEOUT_MS = 2200;
  * @private component of `<Chat/>`
  */
 export function ChatToolCallModal(props: ChatToolCallModalProps) {
-    const {
-        isOpen,
-        toolCall,
-        onClose,
-        toolTitles,
-        agentParticipant,
-        buttonColor,
-        chatMessages,
-        teamAgentProfiles,
-    } = props;
+    const { isOpen, toolCall, onClose, toolTitles, agentParticipant, buttonColor, chatMessages, teamAgentProfiles } =
+        props;
     const [teamProfiles, setTeamProfiles] = useState<Record<string, AgentProfileData>>({});
     const [selectedTeamToolCall, setSelectedTeamToolCall] = useState<TransitiveToolCall | null>(null);
     const [viewMode, setViewMode] = useState<ToolCallModalViewMode>('simple');

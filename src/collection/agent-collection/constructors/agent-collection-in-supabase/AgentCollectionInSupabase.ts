@@ -504,7 +504,10 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
      *
      * This will update the current agent with the source from the history entry
      */
-    public async restoreAgentFromHistory(historyId: number, options: RestoreAgentFromHistoryOptions = {}): Promise<void> {
+    public async restoreAgentFromHistory(
+        historyId: number,
+        options: RestoreAgentFromHistoryOptions = {},
+    ): Promise<void> {
         const { expectedPermanentId } = options;
 
         // First, get the history entry

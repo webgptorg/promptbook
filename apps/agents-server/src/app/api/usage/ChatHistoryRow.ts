@@ -1,4 +1,4 @@
-﻿import type { AgentsServerDatabase } from '../../../database/schema';
+import type { AgentsServerDatabase } from '../../../database/schema';
 
 /**
  * @private Chat-history row payload as stored in the Agents Server database.
