@@ -7,23 +7,18 @@ import {
     MouseSensor,
     TouchSensor,
     closestCenter,
-    useDroppable,
     useSensor,
     useSensors,
     type DragEndEvent,
     type DragOverEvent,
     type DragStartEvent,
-    type DraggableAttributes,
-    type DraggableSyntheticListeners,
-    type UniqueIdentifier,
 } from '@dnd-kit/core';
-import { SortableContext, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { TODO_any, string_url } from '@promptbook-local/types';
-import { ArrowUp, FolderPlusIcon, Grid, GripVertical, Network, TrashIcon } from 'lucide-react';
+import { FolderPlusIcon, Grid, Network, TrashIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useState, type CSSProperties, type MouseEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react';
 import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import { AddAgentButton } from '../../app/AddAgentButton';
 import type { AgentProfile } from '../../app/agents/[agentName]/AgentProfileWrapper';
@@ -37,11 +32,10 @@ import type {
 import { DEFAULT_AGENT_VISIBILITY, type AgentVisibility } from '../../utils/agentVisibility';
 import { AgentContextMenuPopover, type AgentContextMenuRenamePayload } from '../AgentContextMenu/AgentContextMenu';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
-import { QrCodeModal } from '../AgentProfile/QrCodeModal';
-import { useAgentBackground } from '../AgentProfile/useAgentBackground';
 import { showAlert, showConfirm, showVisibilityDialog } from '../AsyncDialogs/asyncDialogs';
 import { FolderContextMenuPopover } from '../FolderContextMenu/FolderContextMenu';
 import { AgentCard } from './AgentCard';
+import { AgentQrCodeModal } from './AgentQrCodeModal';
 import {
     buildFolderMaps,
     buildFolderPath,
@@ -53,163 +47,19 @@ import {
     sortBySortOrder,
 } from './agentOrganizationUtils';
 import { AgentsGraph } from './AgentsGraph';
-import { FileCard } from './FileCard';
+import { BreadcrumbDropTarget } from './BreadcrumbDropTarget';
+import type { DragItem } from './DragItem';
+import type { DropIndicator } from './DropIndicator';
 import { FolderCard } from './FolderCard';
 import { FolderEditDialog, type FolderEditValues } from './FolderEditDialog';
+import { getDropIntentFromRects } from './getDropIntentFromRects';
 import { HOMEPAGE_AGENT_GRID_CLASS } from './gridLayout';
-
-/**
- * Local agent payload with optional federation metadata.
- */
-type AgentWithVisibility = AgentOrganizationAgent & {
-    serverUrl?: string;
-};
-
-/**
- * Drag metadata for folders and agents.
- */
-type DragItem = {
-    type: 'AGENT' | 'FOLDER';
-    identifier: string;
-    parentId: number | null;
-};
-
-/**
- * Drop placement intent derived from cursor position.
- */
-type DropIntent = 'before' | 'after' | 'inside';
-
-/**
- * Drag metadata for breadcrumb drop targets.
- */
-type BreadcrumbDropTargetData = {
-    type: 'BREADCRUMB';
-    folderId: number | null;
-};
-
-/**
- * Drop indicator metadata for live folder moves.
- */
-type DropIndicator = {
-    id: UniqueIdentifier;
-    intent: DropIntent;
-};
-
-/**
- * Props for the shared drag handle button.
- */
-type DragHandleProps = {
-    /**
-     * Attributes provided by the drag sensor to keep the handle accessible.
-     */
-    readonly attributes: DraggableAttributes;
-    /**
-     * Event listeners that trigger the dragging interaction.
-     */
-    readonly listeners: DraggableSyntheticListeners;
-    /**
-     * Accessible label shown as tooltip and announced by screen readers.
-     */
-    readonly label: string;
-    /**
-     * Optional additional classes to adjust the placement or styling.
-     */
-    readonly className?: string;
-};
-
-/**
- * Renders a floating handle that attaches the draggable listeners.
- */
-function DragHandle({ attributes, listeners, label, className = '' }: DragHandleProps) {
-    return (
-        <button
-            type="button"
-            {...listeners}
-            {...attributes}
-            aria-label={label}
-            title={label}
-            className={`absolute z-20 flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white/90 text-gray-600 shadow-sm transition hover:border-blue-300 hover:text-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white bottom-3 right-3 touch-none ${className}`.trim()}
-        >
-            <GripVertical className="h-4 w-4" aria-hidden="true" />
-        </button>
-    );
-}
-
-/**
- * Media query that matches devices with coarse pointers and no hover capability.
- */
-const TOUCH_INPUT_MEDIA_QUERY = '(hover: none) and (pointer: coarse)';
-
-/**
- * Determines whether the current environment exposes a touch-first or coarse-pointer input surface.
- *
- * @returns True when touch points or the touch media query indicate a touch-centric experience.
- */
-const detectTouchFirstInput = () => {
-    if (typeof window === 'undefined') {
-        return false;
-    }
-    const navigatorWithTouch = window.navigator as Navigator & { msMaxTouchPoints?: number };
-    const hasTouchPoint =
-        ('ontouchstart' in window && window.ontouchstart !== undefined) ||
-        (navigatorWithTouch.maxTouchPoints ?? 0) > 0 ||
-        (navigatorWithTouch.msMaxTouchPoints ?? 0) > 0;
-    const prefersTouchMedia =
-        typeof window.matchMedia === 'function' && window.matchMedia(TOUCH_INPUT_MEDIA_QUERY).matches;
-    return hasTouchPoint || prefersTouchMedia;
-};
-
-/**
- * Tracks whether the current environment prefers touch-first input devices.
- *
- * @returns True when the viewport or device indicates a touch- or coarse-pointer input.
- */
-function useIsTouchInput() {
-    const [isTouchInput, setIsTouchInput] = useState<boolean>(() => detectTouchFirstInput());
-
-    useEffect(() => {
-        const updateTouchInput = () => {
-            setIsTouchInput(detectTouchFirstInput());
-        };
-
-        updateTouchInput();
-
-        if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
-            return;
-        }
-        const mediaQueryList = window.matchMedia(TOUCH_INPUT_MEDIA_QUERY);
-        const legacyMediaQueryList = mediaQueryList as MediaQueryList & {
-            addListener?: (listener: (event: MediaQueryListEvent) => void) => void;
-            removeListener?: (listener: (event: MediaQueryListEvent) => void) => void;
-        };
-        const handleMediaChange = () => {
-            updateTouchInput();
-        };
-
-        if ('addEventListener' in mediaQueryList) {
-            mediaQueryList.addEventListener('change', handleMediaChange);
-            return () => void mediaQueryList.removeEventListener('change', handleMediaChange);
-        }
-        legacyMediaQueryList.addListener?.(handleMediaChange);
-        return () => void legacyMediaQueryList.removeListener?.(handleMediaChange);
-    }, []);
-
-    return isTouchInput;
-}
-
-/**
- * Builds props for card wrappers when full-card drag interaction is enabled.
- *
- * @param shouldAttach - Whether listeners should be attached to the card container.
- * @param attributes - Attributes supplied by the drag sensor.
- * @param listeners - Event listeners supplied by the drag sensor.
- * @returns Props that can be spread onto the card wrapper, or an empty object.
- */
-const buildCardDragProps = (
-    shouldAttach: boolean,
-    attributes: DraggableAttributes,
-    listeners: DraggableSyntheticListeners,
-) => (shouldAttach ? { ...attributes, ...listeners } : {});
+import { ParentFolderCard } from './ParentFolderCard';
+import { SortableAgentCard } from './SortableAgentCard';
+import { SortableFolderCard } from './SortableFolderCard';
+import type { BreadcrumbDropTargetData } from './useBreadcrumbDropTarget';
+import { useFederatedAgents, type AgentWithVisibility } from './useFederatedAgents';
+import { useIsTouchInput } from './useIsTouchInput';
 
 /**
  * State for the agent context menu.
@@ -259,7 +109,6 @@ type FolderEditDialogState = {
 
 const AGENT_DRAG_ID_PREFIX = 'agent:';
 const FOLDER_DRAG_ID_PREFIX = 'folder:';
-const BREADCRUMB_DRAG_ID_PREFIX = 'breadcrumb:';
 const DRAG_START_DISTANCE_PX = 8;
 const TOUCH_DRAG_DELAY_MS = 250;
 const TOUCH_DRAG_TOLERANCE_PX = 6;
@@ -288,417 +137,6 @@ const getAgentDragId = (identifier: string) => buildDragId(AGENT_DRAG_ID_PREFIX,
  * @returns Drag identifier string.
  */
 const getFolderDragId = (folderId: number) => buildDragId(FOLDER_DRAG_ID_PREFIX, String(folderId));
-
-/**
- * Builds a drag identifier for breadcrumb drop targets.
- *
- * @param folderId - Folder id represented by the breadcrumb.
- * @returns Drag identifier string.
- */
-const getBreadcrumbDragId = (folderId: number | null) =>
-    buildDragId(BREADCRUMB_DRAG_ID_PREFIX, folderId === null ? 'root' : String(folderId));
-
-/**
- * Provides droppable state for breadcrumb-style drop targets.
- *
- * @param folderId - Folder id represented by the drop target.
- * @param canOrganize - Whether drag-and-drop organization is enabled.
- * @returns Droppable state for the target.
- */
-function useBreadcrumbDropTarget(folderId: number | null, canOrganize: boolean) {
-    return useDroppable({
-        id: getBreadcrumbDragId(folderId),
-        data: {
-            type: 'BREADCRUMB',
-            folderId,
-        } satisfies BreadcrumbDropTargetData,
-        disabled: !canOrganize,
-    });
-}
-
-/**
- * Determines the drop intent based on active and target rectangles.
- *
- * @param activeRect - Active drag rectangle.
- * @param overRect - Target drop rectangle.
- * @returns Drop intent for inside/before/after placement.
- */
-const getDropIntentFromRects = (activeRect: ClientRect | null, overRect: ClientRect): DropIntent => {
-    if (!activeRect) {
-        return 'inside';
-    }
-    const activeCenterY = activeRect.top + activeRect.height / 2;
-    const insideTop = overRect.top + overRect.height / 4;
-    const insideBottom = overRect.top + (overRect.height * 3) / 4;
-    if (activeCenterY > insideTop && activeCenterY < insideBottom) {
-        return 'inside';
-    }
-    return activeCenterY >= insideBottom ? 'after' : 'before';
-};
-
-/**
- * Props for sortable agent cards.
- */
-type SortableAgentCardProps = {
-    /**
-     * Agent to render.
-     */
-    readonly agent: AgentOrganizationAgent;
-    /**
-     * Base URL of the agents server.
-     */
-    readonly publicUrl: string_url;
-    /**
-     * Whether the current user is an admin.
-     */
-    readonly isAdmin: boolean;
-    /**
-     * Whether drag-and-drop organization is enabled.
-     */
-    readonly canOrganize: boolean;
-    /**
-     * Active drag type for visual indicators.
-     */
-    readonly activeDragType: DragItem['type'] | null;
-    /**
-     * Delete handler for the agent.
-     */
-    readonly onDelete: (agentIdentifier: string) => void;
-    /**
-     * Visibility change request handler for the agent.
-     */
-    readonly onRequestVisibilityChange: (agentIdentifier: string) => void;
-    /**
-     * Context menu handler for the agent.
-     */
-    readonly onContextMenu?: (event: MouseEvent<HTMLDivElement>, agent: AgentOrganizationAgent) => void;
-    /**
-     * Accessible label displayed for the drag handle.
-     */
-    readonly dragHandleLabel: string;
-    /**
-     * Whether the whole card surface should respond to drag interactions.
-     */
-    readonly allowFullCardDrag: boolean;
-};
-
-/**
- * Renders a sortable agent card with drag affordances.
- */
-function SortableAgentCard({
-    agent,
-    publicUrl,
-    isAdmin,
-    canOrganize,
-    activeDragType,
-    onDelete,
-    onRequestVisibilityChange,
-    onContextMenu,
-    dragHandleLabel,
-    allowFullCardDrag,
-}: SortableAgentCardProps) {
-    const agentIdentifier = agent.permanentId || agent.agentName;
-    const dragId = getAgentDragId(agentIdentifier);
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } = useSortable({
-        id: dragId,
-        data: {
-            type: 'AGENT',
-            identifier: agentIdentifier,
-            parentId: agent.folderId ?? null,
-        } satisfies DragItem,
-        disabled: !canOrganize,
-    });
-
-    const style: CSSProperties = {
-        transform: CSS.Transform.toString(transform),
-        transition,
-    };
-    const isDropTarget = isOver && activeDragType === 'AGENT';
-    const dragProps = buildCardDragProps(allowFullCardDrag, attributes, listeners);
-
-    return (
-        <div
-            ref={setNodeRef}
-            style={style}
-            className={`relative ${canOrganize ? 'select-none' : ''} ${isDragging ? 'opacity-0' : ''} ${
-                isDropTarget ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-white' : ''
-            }`}
-            {...dragProps}
-            onContextMenu={(event) => onContextMenu?.(event, agent)}
-        >
-            <AgentCard
-                agent={agent}
-                publicUrl={publicUrl}
-                href={`/agents/${encodeURIComponent(agentIdentifier)}`}
-                isAdmin={isAdmin}
-                onDelete={onDelete}
-                onRequestVisibilityChange={onRequestVisibilityChange}
-                visibility={agent.visibility}
-            />
-            {canOrganize && !allowFullCardDrag && (
-                <DragHandle attributes={attributes} listeners={listeners} label={dragHandleLabel} />
-            )}
-        </div>
-    );
-}
-
-/**
- * Props for sortable folder cards.
- */
-type SortableFolderCardProps = {
-    /**
-     * Folder to render.
-     */
-    readonly folder: AgentOrganizationFolder;
-    /**
-     * Preview agents for the folder.
-     */
-    readonly previewAgents: AgentBasicInformation[];
-    /**
-     * Base URL of the agents server.
-     */
-    readonly publicUrl: string_url;
-    /**
-     * Whether drag-and-drop organization is enabled.
-     */
-    readonly canOrganize: boolean;
-    /**
-     * Active drag type for visual indicators.
-     */
-    readonly activeDragType: DragItem['type'] | null;
-    /**
-     * Current drop indicator state.
-     */
-    readonly dropIndicator: DropIndicator | null;
-    /**
-     * Open handler for the folder.
-     */
-    readonly onOpen: () => void;
-    /**
-     * Rename handler for the folder.
-     */
-    readonly onRename?: () => void;
-    /**
-     * Delete handler for the folder.
-     */
-    readonly onDelete?: () => void;
-    /**
-     * Context menu handler for the folder.
-     */
-    readonly onContextMenu?: (event: MouseEvent<HTMLDivElement>, folder: AgentOrganizationFolder) => void;
-    /**
-     * Accessible label displayed for the drag handle.
-     */
-    readonly dragHandleLabel: string;
-    /**
-     * Whether the whole card surface should respond to drag interactions.
-     */
-    readonly allowFullCardDrag: boolean;
-};
-
-/**
- * Renders a sortable folder card with drop state styling.
- */
-function SortableFolderCard({
-    folder,
-    previewAgents,
-    publicUrl,
-    canOrganize,
-    activeDragType,
-    dropIndicator,
-    onOpen,
-    onRename,
-    onDelete,
-    onContextMenu,
-    dragHandleLabel,
-    allowFullCardDrag,
-}: SortableFolderCardProps) {
-    const dragId = getFolderDragId(folder.id);
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } = useSortable({
-        id: dragId,
-        data: {
-            type: 'FOLDER',
-            identifier: String(folder.id),
-            parentId: folder.parentId ?? null,
-        } satisfies DragItem,
-        disabled: !canOrganize,
-    });
-
-    const style: CSSProperties = {
-        transform: CSS.Transform.toString(transform),
-        transition,
-    };
-    const isDropTarget = isOver && activeDragType === 'AGENT';
-    const isInsideTarget =
-        activeDragType === 'FOLDER' && dropIndicator?.id === dragId && dropIndicator.intent === 'inside';
-    const isReorderTarget =
-        activeDragType === 'FOLDER' && dropIndicator?.id === dragId && dropIndicator.intent !== 'inside';
-    const dropClasses =
-        isInsideTarget || isDropTarget
-            ? 'ring-2 ring-emerald-400 ring-offset-2 ring-offset-white bg-emerald-50/40'
-            : isReorderTarget
-            ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-white'
-            : '';
-    const dragProps = buildCardDragProps(allowFullCardDrag, attributes, listeners);
-
-    return (
-        <div
-            ref={setNodeRef}
-            style={style}
-            className={`relative ${canOrganize ? 'select-none' : ''} ${isDragging ? 'opacity-0' : ''} ${dropClasses}`}
-            {...dragProps}
-            onContextMenu={(event) => onContextMenu?.(event, folder)}
-        >
-            <FolderCard
-                folderName={folder.name}
-                folderIcon={folder.icon}
-                folderColor={folder.color}
-                previewAgents={previewAgents}
-                publicUrl={publicUrl}
-                onOpen={onOpen}
-                onRename={onRename}
-                onDelete={onDelete}
-            />
-            {canOrganize && !allowFullCardDrag && (
-                <DragHandle attributes={attributes} listeners={listeners} label={dragHandleLabel} />
-            )}
-        </div>
-    );
-}
-
-/**
- * Props for breadcrumb drop targets.
- */
-type BreadcrumbDropTargetProps = {
-    /**
-     * Label for the breadcrumb.
-     */
-    readonly label: string;
-    /**
-     * Folder id represented by the breadcrumb.
-     */
-    readonly folderId: number | null;
-    /**
-     * Click handler for navigation.
-     */
-    readonly onClick: () => void;
-    /**
-     * Whether drag-and-drop organization is enabled.
-     */
-    readonly canOrganize: boolean;
-};
-
-/**
- * Renders a breadcrumb button that accepts drag-and-drop.
- */
-function BreadcrumbDropTarget({ label, folderId, onClick, canOrganize }: BreadcrumbDropTargetProps) {
-    const { isOver, setNodeRef } = useBreadcrumbDropTarget(folderId, canOrganize);
-
-    return (
-        <button
-            type="button"
-            ref={setNodeRef}
-            onClick={onClick}
-            className={`transition-colors ${
-                isOver && canOrganize ? 'text-blue-700 bg-blue-50/70 rounded px-1 -mx-1' : 'hover:text-blue-600'
-            }`}
-        >
-            {label}
-        </button>
-    );
-}
-
-/**
- * Props for the parent folder navigation card.
- */
-type ParentFolderCardProps = {
-    /**
-     * Label shown for the parent folder.
-     */
-    readonly label: string;
-    /**
-     * Folder id represented by the parent card.
-     */
-    readonly folderId: number | null;
-    /**
-     * Click handler for navigating to the parent folder.
-     */
-    readonly onOpen: () => void;
-    /**
-     * Whether drag-and-drop organization is enabled.
-     */
-    readonly canOrganize: boolean;
-};
-
-/**
- * Renders a card for navigating to the parent folder with drop support.
- */
-function ParentFolderCard({ label, folderId, onOpen, canOrganize }: ParentFolderCardProps) {
-    const { isOver, setNodeRef } = useBreadcrumbDropTarget(folderId, canOrganize);
-    const isDropTarget = isOver && canOrganize;
-
-    return (
-        <button type="button" ref={setNodeRef} onClick={onOpen} className="block h-full w-full text-left">
-            <FileCard
-                className={`flex h-full items-center gap-3 border-blue-200 bg-blue-50/60 hover:border-blue-300 ${
-                    isDropTarget ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-white' : ''
-                }`}
-            >
-                <div className="flex h-12 w-12 items-center justify-center rounded-md bg-blue-100 border border-blue-200 text-blue-700">
-                    <ArrowUp className="w-5 h-5" />
-                </div>
-                <div className="min-w-0 flex-1">
-                    <p className="text-[11px] uppercase tracking-wide text-blue-700">Parent folder</p>
-                    <h3 className="text-sm font-semibold text-gray-900 truncate" title={label}>
-                        {label}
-                    </h3>
-                </div>
-            </FileCard>
-        </button>
-    );
-}
-
-/**
- * Props for the agent QR code modal wrapper.
- */
-type AgentQrCodeModalProps = {
-    /**
-     * Agent to render the QR code for.
-     */
-    readonly agent: AgentOrganizationAgent;
-    /**
-     * Public URL to the agent page.
-     */
-    readonly agentUrl: string;
-    /**
-     * Agent email address.
-     */
-    readonly agentEmail: string;
-    /**
-     * Close handler for the modal.
-     */
-    readonly onClose: () => void;
-};
-
-/**
- * Renders the agent QR code modal with the correct brand color.
- */
-function AgentQrCodeModal({ agent, agentUrl, agentEmail, onClose }: AgentQrCodeModalProps) {
-    const { brandColorHex } = useAgentBackground(agent.meta.color);
-    const personaDescription = agent.meta.description || agent.personaDescription || '';
-
-    return (
-        <QrCodeModal
-            onClose={onClose}
-            agentName={agent.agentName}
-            meta={agent.meta}
-            personaDescription={personaDescription}
-            agentUrl={agentUrl}
-            agentEmail={agentEmail}
-            brandColorHex={brandColorHex}
-        />
-    );
-}
 
 /**
  * Props for the agents list component.
@@ -764,10 +202,6 @@ export function AgentsList(props: AgentsListProps) {
     const searchParams = useSearchParams();
     const [agents, setAgents] = useState<AgentOrganizationAgent[]>(Array.from(initialAgents));
     const [folders, setFolders] = useState<AgentOrganizationFolder[]>(Array.from(initialFolders));
-    const [federatedAgents, setFederatedAgents] = useState<AgentWithVisibility[]>(initialExternalAgents || []);
-    const [federatedServersStatus, setFederatedServersStatus] = useState<
-        Record<string, { status: 'loading' | 'success' | 'error'; error?: string }>
-    >({});
     const [activeDragItem, setActiveDragItem] = useState<DragItem | null>(null);
     const [dropIndicator, setDropIndicator] = useState<DropIndicator | null>(null);
     const [contextMenuState, setContextMenuState] = useState<AgentContextMenuState | null>(null);
@@ -788,6 +222,11 @@ export function AgentsList(props: AgentsListProps) {
 
     const viewMode = searchParams.get('view') === 'graph' ? 'GRAPH' : 'LIST';
     const showFederatedAgentsInGraph = showFederatedAgents && viewMode === 'GRAPH';
+    const { federatedAgents, federatedServersStatus } = useFederatedAgents(
+        showFederatedAgents,
+        initialExternalAgents,
+        showFederatedAgentsInGraph,
+    );
     const isTouchInput = useIsTouchInput();
     const allowFullCardDrag = canOrganize && viewMode === 'LIST' && !isTouchInput;
     const folderPathSegments = parseFolderPath(searchParams.get('folder'));
@@ -888,81 +327,6 @@ export function AgentsList(props: AgentsListProps) {
         [publicUrlHost],
     );
 
-    useEffect(() => {
-        if (!showFederatedAgents) {
-            setFederatedAgents([]);
-            setFederatedServersStatus({});
-            return;
-        }
-
-        let isCancelled = false;
-
-        const fetchFederatedAgents = async () => {
-            try {
-                const response = await fetch('/api/federated-agents');
-                if (!response.ok) {
-                    return;
-                }
-                const data = await response.json();
-                const federatedServers: string[] = data.federatedServers || [];
-
-                for (const serverUrl of federatedServers) {
-                    if (isCancelled) {
-                        break;
-                    }
-
-                    const normalizedUrl = serverUrl.replace(/\/$/, '');
-
-                    setFederatedServersStatus((prev) => ({
-                        ...prev,
-                        [normalizedUrl]: { status: 'loading' },
-                    }));
-
-                    try {
-                        const agentsResponse = await fetch(`${normalizedUrl}/api/agents`);
-                        if (agentsResponse.ok) {
-                            const agentsData = await agentsResponse.json();
-                            if (isCancelled) {
-                                break;
-                            }
-                            const newFederatedAgents = (agentsData.agents || []).map((agent: AgentWithVisibility) => ({
-                                ...agent,
-                                visibility: 'PUBLIC',
-                                serverUrl: normalizedUrl,
-                            }));
-                            setFederatedAgents((prev) => {
-                                const filteredPrev = prev.filter((a) => a.serverUrl !== normalizedUrl);
-                                return [...filteredPrev, ...newFederatedAgents];
-                            });
-                            setFederatedServersStatus((prev) => ({
-                                ...prev,
-                                [normalizedUrl]: { status: 'success' },
-                            }));
-                        } else {
-                            throw new Error(`Failed to fetch agents (Status: ${agentsResponse.status})`);
-                        }
-                    } catch (error) {
-                        console.error(`Failed to fetch agents from ${serverUrl}`, error);
-                        setFederatedServersStatus((prev) => ({
-                            ...prev,
-                            [normalizedUrl]: {
-                                status: 'error',
-                                error: error instanceof Error ? error.message : 'Unknown error',
-                            },
-                        }));
-                    }
-                }
-            } catch (error) {
-                console.error('Failed to fetch federated servers', error);
-            }
-        };
-
-        fetchFederatedAgents();
-
-        return () => {
-            isCancelled = true;
-        };
-    }, [showFederatedAgentsInGraph, showFederatedAgents]);
     /**
      * Updates the view mode query param.
      *
@@ -1867,6 +1231,7 @@ export function AgentsList(props: AgentsListProps) {
                                 <SortableFolderCard
                                     key={folder.id}
                                     folder={folder}
+                                    dragId={getFolderDragId(folder.id)}
                                     previewAgents={getFolderPreviewAgents(folder.id)}
                                     publicUrl={publicUrl}
                                     canOrganize={canOrganize}
@@ -1882,21 +1247,26 @@ export function AgentsList(props: AgentsListProps) {
                             ))}
                         </SortableContext>
                         <SortableContext items={visibleAgentDragIds} strategy={rectSortingStrategy}>
-                            {visibleAgents.map((agent) => (
-                                <SortableAgentCard
-                                    key={agent.permanentId || agent.agentName}
-                                    agent={agent}
-                                    publicUrl={publicUrl}
-                                    isAdmin={isAdmin}
-                                    canOrganize={canOrganize}
-                                    activeDragType={activeDragItem?.type ?? null}
-                                    onDelete={handleDelete}
-                                    onRequestVisibilityChange={handleRequestAgentVisibilityChange}
-                                    onContextMenu={handleAgentContextMenu}
-                                    dragHandleLabel={dragAgentLabel}
-                                    allowFullCardDrag={allowFullCardDrag}
-                                />
-                            ))}
+                            {visibleAgents.map((agent) => {
+                                const agentIdentifier = agent.permanentId || agent.agentName;
+                                return (
+                                    <SortableAgentCard
+                                        key={agentIdentifier}
+                                        agent={agent}
+                                        dragId={getAgentDragId(agentIdentifier)}
+                                        agentIdentifier={agentIdentifier}
+                                        publicUrl={publicUrl}
+                                        isAdmin={isAdmin}
+                                        canOrganize={canOrganize}
+                                        activeDragType={activeDragItem?.type ?? null}
+                                        onDelete={handleDelete}
+                                        onRequestVisibilityChange={handleRequestAgentVisibilityChange}
+                                        onContextMenu={handleAgentContextMenu}
+                                        dragHandleLabel={dragAgentLabel}
+                                        allowFullCardDrag={allowFullCardDrag}
+                                    />
+                                );
+                            })}
                         </SortableContext>
 
                         {isAdmin && <AddAgentButton currentFolderId={currentFolderId} />}

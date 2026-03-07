@@ -1,3 +1,8 @@
+-   Refactored Agents Server homepage agents list for maintainability without behavior changes:
+    -   Split `apps/agents-server/src/components/Homepage/AgentsList.tsx` into focused SRP modules for drag/drop cards and handles (`SortableAgentCard`, `SortableFolderCard`, `DragHandle`, drag data types), breadcrumb/parent-folder navigation drops (`BreadcrumbDropTarget`, `ParentFolderCard`, `useBreadcrumbDropTarget`), QR presentation (`AgentQrCodeModal`), touch-input detection (`useIsTouchInput`), federated agent loading (`useFederatedAgents`), and drop-intent calculation (`getDropIntentFromRects`).
+    -   Kept `AgentsList` as orchestration for state, routing, dialogs, and list/graph rendering while preserving existing runtime behavior.
+    -   Added private JSDoc annotations on extracted internal entities to match project conventions.
+
 -   Refactored Agents Server homepage graph component for maintainability without behavior changes:
     -   Split `apps/agents-server/src/components/Homepage/AgentsGraph.tsx` into focused SRP modules for graph-domain building (`buildGraphData`), hierarchical layout + persisted positions (`buildGraphLayoutNodes`), edge rendering/highlighting (`buildGraphEdges`), summary rendering (`GraphSummaryPanel`), and React Flow node renderers (`AgentGraphNode`, `ServerGroupNode`, `FolderGroupNode`).
     -   Kept existing graph behavior intact, including connection filtering, server/agent focus URL sync, hover highlighting, export actions (PNG/SVG/ASCII), and draggable node position persistence.
