@@ -1,3 +1,8 @@
+-   Refactored Agents Server wallet utilities for maintainability/readability without behavior changes:
+    -   Split `apps/agents-server/src/utils/userWallet.ts` into focused SRP modules under `apps/agents-server/src/utils/userWallet/` for domain types, row mapping, payload normalization, persistence helpers, CRUD operations, and token-resolution flow.
+    -   Kept `apps/agents-server/src/utils/userWallet.ts` as a thin facade with the same exported API used by wallet routes and credential resolvers.
+    -   Added private JSDoc annotations on extracted internal entities.
+
 -   Refactored Agents Server user-chat persistence utilities for maintainability/readability without behavior changes:
     -   Split `apps/agents-server/src/utils/userChat.ts` into focused SRP modules under `apps/agents-server/src/utils/userChat/` for domain types, row mapping, shared persistence helpers, CRUD operations, and chat-summary creation.
     -   Kept `apps/agents-server/src/utils/userChat.ts` as a thin facade with the same exported API used by user-chat routes.
