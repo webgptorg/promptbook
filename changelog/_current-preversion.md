@@ -1,3 +1,8 @@
+-   Refactored Agents Server homepage graph component for maintainability without behavior changes:
+    -   Split `apps/agents-server/src/components/Homepage/AgentsGraph.tsx` into focused SRP modules for graph-domain building (`buildGraphData`), hierarchical layout + persisted positions (`buildGraphLayoutNodes`), edge rendering/highlighting (`buildGraphEdges`), summary rendering (`GraphSummaryPanel`), and React Flow node renderers (`AgentGraphNode`, `ServerGroupNode`, `FolderGroupNode`).
+    -   Kept existing graph behavior intact, including connection filtering, server/agent focus URL sync, hover highlighting, export actions (PNG/SVG/ASCII), and draggable node position persistence.
+    -   Added private JSDoc annotations on extracted internal entities to match project conventions.
+
 -   Refactored Agents Server header component for maintainability without behavior changes:
     -   Split `apps/agents-server/src/components/Header/Header.tsx` into focused SRP modules for agent hierarchy rendering, documentation dropdown item builders, submenu portal rendering, touch-input detection, and shared menu models/types.
     -   Added new private header modules: `AgentDirectoryDropdown`, `buildDocumentationDropdownItems`, `DropdownSubMenuPortal`, `useIsTouchInput`, `useDropdownPortalContainer`, `SubMenuItem`, `MenuItem`, and `OpenSubMenuState`.
