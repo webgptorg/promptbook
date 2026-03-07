@@ -214,7 +214,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         if (!isPrivateModeEnabled) {
             const newAgentSource = agent.agentSource.value;
             if (newAgentSource !== agentSource) {
-                await collection.updateAgentSource(agentName, newAgentSource);
+                await collection.updateAgentSource(agentPermanentId, newAgentSource);
             }
         }
 

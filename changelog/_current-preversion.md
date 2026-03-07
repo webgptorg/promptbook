@@ -1,3 +1,10 @@
+-   Added simple book version history for Agents Server agent source editing:
+    -   Implemented a Google Docs-inspired history browser at `/agents/[agentName]/history` with a selectable version list, full source preview of the selected version, and one-click restore.
+    -   Added direct history navigation from the book editor and the shared agent context menu (`Book History`) for faster access during autosaved editing.
+    -   Hardened restore flow with admin authorization checks and agent/version consistency validation before applying a restore.
+    -   Fixed agent history persistence reliability by making history writes fail loudly instead of silently ignoring insert errors.
+    -   Added database migration `2026-03-0150-agent-history-backfill.sql` to backfill missing `AgentHistory` rows so every existing agent has at least one history snapshot.
+
 -   Added advanced tool-call report export actions in Agents Server chat chip popup:
     -   The advanced variant of the tool-call modal now includes two one-click actions: `Copy` (clipboard) and `Save` (download `.md` file).
     -   Exported content is generated from one shared DRY markdown-report builder reused by both actions, preventing duplicated formatting logic.

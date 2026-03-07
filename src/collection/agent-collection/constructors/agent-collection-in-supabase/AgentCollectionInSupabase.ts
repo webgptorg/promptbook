@@ -8,7 +8,6 @@ import { NotFoundError } from '../../../../errors/NotFoundError';
 import { UnexpectedError } from '../../../../errors/UnexpectedError';
 import { ZERO_USAGE } from '../../../../execution/utils/usage-constants';
 import type { string_agent_name, string_agent_permanent_id } from '../../../../types/typeAliases';
-import { keepUnused } from '../../../../utils/organization/keepUnused';
 import { spaceTrim } from '../../../../utils/organization/spaceTrim';
 import { TODO_USE } from '../../../../utils/organization/TODO_USE';
 import { $randomBase58 } from '../../../../utils/random/$randomBase58';
@@ -35,6 +34,18 @@ type CreateAgentOptions = {
      * Sort order for the agent within its parent folder.
      */
     readonly sortOrder?: number;
+};
+
+/**
+ * Agent history record returned from Supabase.
+ */
+type AgentHistoryRecord = {
+    id: number;
+    createdAt: string;
+    agentHash: string;
+    previousAgentHash: string | null;
+    agentSource: string;
+    promptbookEngineVersion: string;
 };
 
 /**
@@ -234,7 +245,7 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
             );
         }
 
-        const insertAgentHistoryResult = await this.supabaseClient.from(this.getTableName('AgentHistory')).insert({
+        await this.insertAgentHistoryEntry({
             createdAt: new Date().toISOString(),
             agentName,
             permanentId,
@@ -243,9 +254,6 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
             agentSource,
             promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
         });
-
-        keepUnused(insertAgentHistoryResult);
-        // <- TODO: [🧠] What to do with `insertAgentHistoryResult.error`, ignore? wait?
 
         return { ...agentProfile, permanentId };
     }
@@ -346,7 +354,7 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
             );
         }
 
-        const insertAgentHistoryResult = await this.supabaseClient.from(this.getTableName('AgentHistory')).insert({
+        await this.insertAgentHistoryEntry({
             createdAt: new Date().toISOString(),
             agentName,
             permanentId,
@@ -355,9 +363,6 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
             agentSource,
             promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
         });
-
-        keepUnused(insertAgentHistoryResult);
-        // <- TODO: [🧠] What to do with `insertAgentHistoryResult.error`, ignore? wait?
     }
 
     // TODO: [🐱‍🚀] public async getAgentSourceSubject(permanentId: string_agent_permanent_id): Promise<BehaviorSubject<string_book>>
@@ -414,10 +419,10 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
      */
     public async listAgentHistory(
         permanentId: string_agent_permanent_id,
-    ): Promise<ReadonlyArray<{ id: number; createdAt: string; agentHash: string; promptbookEngineVersion: string }>> {
+    ): Promise<ReadonlyArray<AgentHistoryRecord>> {
         const result = await this.supabaseClient
             .from(this.getTableName('AgentHistory'))
-            .select('id, createdAt, agentHash, promptbookEngineVersion')
+            .select('id, createdAt, agentHash, previousAgentHash, agentSource, promptbookEngineVersion')
             .eq('permanentId', permanentId)
             .order('createdAt', { ascending: false });
 
@@ -433,7 +438,7 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
             );
         }
 
-        return result.data;
+        return result.data as Array<AgentHistoryRecord>;
     }
 
     /**
@@ -464,7 +469,10 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
      *
      * This will update the current agent with the source from the history entry
      */
-    public async restoreAgentFromHistory(historyId: number): Promise<void> {
+    public async restoreAgentFromHistory(
+        historyId: number,
+        expectedPermanentId?: string_agent_permanent_id,
+    ): Promise<void> {
         // First, get the history entry
         const historyResult = await this.supabaseClient
             .from(this.getTableName('AgentHistory'))
@@ -489,6 +497,17 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
         }
 
         const { permanentId, agentSource } = historyResult.data;
+
+        if (expectedPermanentId !== undefined && permanentId !== expectedPermanentId) {
+            throw new UnexpectedError(
+                spaceTrim(`
+                    History entry \`${historyId}\` does not belong to the expected agent.
+
+                    Expected permanentId: \`${expectedPermanentId}\`
+                    Actual permanentId: \`${permanentId}\`
+                `),
+            );
+        }
 
         // Update the agent with the source from the history entry
         await this.updateAgentSource(permanentId as string_agent_permanent_id, agentSource as string_book);
@@ -528,6 +547,28 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
 
         return `${tablePrefix}${tableName}` as TTable;
         // <- TODO: [🏧] DRY
+    }
+
+    /**
+     * Persists one agent-source snapshot in history table.
+     *
+     * @param record - Snapshot payload to insert.
+     */
+    private async insertAgentHistoryEntry(
+        record: AgentsDatabaseSchema['public']['Tables']['AgentHistory']['Insert'],
+    ): Promise<void> {
+        const insertAgentHistoryResult = await this.supabaseClient.from(this.getTableName('AgentHistory')).insert(record);
+        if (insertAgentHistoryResult.error) {
+            throw new DatabaseError(
+                spaceTrim(
+                    (block) => `
+                        Error writing agent history for permanentId "${record.permanentId}" in Supabase:
+
+                        ${block(insertAgentHistoryResult.error.message)}
+                    `,
+                ),
+            );
+        }
     }
 }
 

@@ -6,12 +6,20 @@ import { useState } from 'react';
 import { showAlert, showConfirm } from '../../../../components/AsyncDialogs/asyncDialogs';
 import { restoreAgentVersion } from './actions';
 
+/**
+ * Props for restoring one history entry.
+ */
 type RestoreVersionButtonProps = {
-    agentName: string;
-    historyId: number;
+    readonly agentName: string;
+    readonly historyId: number;
+    readonly label?: string;
+    readonly className?: string;
 };
 
-export function RestoreVersionButton({ agentName, historyId }: RestoreVersionButtonProps) {
+/**
+ * Executes restore action for one history item.
+ */
+export function RestoreVersionButton({ agentName, historyId, label = 'Restore', className }: RestoreVersionButtonProps) {
     const router = useRouter();
     const [isRestoring, setIsRestoring] = useState(false);
 
@@ -46,11 +54,13 @@ export function RestoreVersionButton({ agentName, historyId }: RestoreVersionBut
         <button
             onClick={handleRestore}
             disabled={isRestoring}
-            className="flex items-center gap-2 px-3 py-1 text-sm bg-white border border-gray-300 rounded hover:bg-gray-50 text-gray-700 disabled:opacity-50"
+            className={`flex items-center gap-2 rounded border px-3 py-1 text-sm text-gray-700 transition disabled:opacity-50 ${
+                className || 'border-gray-300 bg-white hover:bg-gray-50'
+            }`}
             title="Restore this version"
         >
             <RefreshCcwIcon className={`w-3 h-3 ${isRestoring ? 'animate-spin' : ''}`} />
-            {isRestoring ? 'Restoring...' : 'Restore'}
+            {isRestoring ? 'Restoring...' : label}
         </button>
     );
 }

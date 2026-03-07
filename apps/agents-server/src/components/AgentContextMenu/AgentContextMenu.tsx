@@ -10,6 +10,7 @@ import {
     ExternalLinkIcon,
     FileTextIcon,
     FolderOpenIcon,
+    HistoryIcon,
     MailIcon,
     MessageCircleQuestionIcon,
     MessageSquareIcon,
@@ -555,6 +556,12 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
             href: editBookLink.href,
             icon: editBookLink.icon,
             label: editBookLink.title,
+        },
+        {
+            type: 'link' as const,
+            href: `/agents/${encodeURIComponent(agentName)}/history`,
+            icon: HistoryIcon,
+            label: formatText('Book History'),
         },
 
         { type: 'divider' as const },
