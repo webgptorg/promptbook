@@ -1,3 +1,9 @@
+-   Added advanced tool-call report export actions in Agents Server chat chip popup:
+    -   The advanced variant of the tool-call modal now includes two one-click actions: `Copy` (clipboard) and `Save` (download `.md` file).
+    -   Exported content is generated from one shared DRY markdown-report builder reused by both actions, preventing duplicated formatting logic.
+    -   The report includes the same advanced technical sections already shown in the modal (`Input payload`, `Output payload`, `Model payload`, and `Full event`) so full context can be shared for troubleshooting.
+    -   The simple modal variant remains unchanged and does not expose these technical export actions.
+
 -   Unified Agents Server agent-page metadata branding for all `/agents/[agentName]` routes:
     -   Refactored `apps/agents-server/src/app/agents/[agentName]/layout.tsx` to reuse one shared metadata generator (`generateAgentMetadata`) instead of a separate layout-specific implementation.
     -   Removed redundant page-level `generateMetadata = generateAgentMetadata` aliases from agent subpages (`book`, `book+chat`, `chat`, `integration`, `system-message`, `website-integration`, `iframe`, and profile page) so metadata branding is inherited from one DRY layout source.

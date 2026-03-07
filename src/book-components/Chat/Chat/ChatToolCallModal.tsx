@@ -1,7 +1,7 @@
 'use client';
 
 import moment from 'moment';
-import { useEffect, useMemo, useState, type ReactElement } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactElement } from 'react';
 import { isPseudoAgentUrl } from '../../../book-2.0/agent-source/pseudoAgentReferences';
 import { validateBook } from '../../../book-2.0/agent-source/string_book';
 import type { string_date_iso8601 } from '../../../types/typeAliases';
@@ -25,6 +25,7 @@ import { collectTeamToolCallSummary, type TransitiveToolCall } from '../utils/co
 import { buildToolCallChipText, getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletInfo';
 import type { AgentProfileData } from '../utils/loadAgentProfile';
 import type { AgentChipData } from '../AgentChip/AgentChip';
+import { downloadFile } from '../utils/downloadFile';
 import { loadAgentProfile, resolveAgentProfileFallback, resolvePreferredAgentLabel } from '../utils/loadAgentProfile';
 import {
     parseWalletCredentialToolCallResult,
@@ -70,6 +71,13 @@ export type ChatToolCallModalProps = {
  * @private internal utility of `<ChatToolCallModal/>`
  */
 type ToolCallModalViewMode = 'simple' | 'advanced';
+
+/**
+ * Advanced report export target.
+ *
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+type ToolCallReportDestination = 'clipboard' | 'file';
 
 /**
  * Modal that renders rich tool call details for chat chiplets.
@@ -155,6 +163,41 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
         setSelectedTeamToolCall(null);
         setViewMode('simple');
     }, [isOpen, toolCall]);
+
+    const focusedToolCallCandidate = selectedTeamToolCall?.toolCall || toolCall;
+    const handleAdvancedToolCallReportExport = useCallback(
+        async (destination: ToolCallReportDestination): Promise<void> => {
+            if (viewMode !== 'advanced' || !focusedToolCallCandidate) {
+                return;
+            }
+
+            const reportMarkdown = createAdvancedToolCallReportMarkdown({
+                toolCall: focusedToolCallCandidate,
+                toolTitles,
+            });
+
+            if (destination === 'file') {
+                downloadFile(
+                    reportMarkdown,
+                    createAdvancedToolCallReportFilename(focusedToolCallCandidate),
+                    'text/markdown',
+                );
+                return;
+            }
+
+            if (!navigator.clipboard?.writeText) {
+                console.error('[ChatToolCallModal] Failed to copy advanced report because Clipboard API is unavailable.');
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(reportMarkdown);
+            } catch (error) {
+                console.error('[ChatToolCallModal] Failed to copy advanced tool call report:', error);
+            }
+        },
+        [focusedToolCallCandidate, toolTitles, viewMode],
+    );
 
     if (!isOpen || !toolCall) {
         return null;
@@ -395,6 +438,28 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
                 </button>
                 {modalContent}
                 <div className={styles.toolCallModeFooter}>
+                    {viewMode === 'advanced' && (
+                        <>
+                            <button
+                                type="button"
+                                className={styles.toolCallModeButton}
+                                onClick={() => {
+                                    void handleAdvancedToolCallReportExport('clipboard');
+                                }}
+                            >
+                                Copy
+                            </button>
+                            <button
+                                type="button"
+                                className={styles.toolCallModeButton}
+                                onClick={() => {
+                                    void handleAdvancedToolCallReportExport('file');
+                                }}
+                            >
+                                Save
+                            </button>
+                        </>
+                    )}
                     <button
                         type="button"
                         className={styles.toolCallModeButton}
@@ -1566,38 +1631,140 @@ const TOOL_CALL_PAYLOAD_EDITOR_OPTIONS = {
 } as const;
 
 /**
+ * Matches characters that are unsafe in generated report filenames.
+ *
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+const TOOL_CALL_REPORT_FILENAME_UNSAFE_CHARACTER_PATTERN = /[^a-zA-Z0-9_-]/g;
+
+/**
+ * Resolves title/subtitle/icon metadata for advanced modal header and report output.
+ *
+ * @param options - Rendering options for advanced mode.
+ * @returns Resolved display metadata for the selected tool call.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function resolveAdvancedToolCallHeader(options: AdvancedToolCallDetailsOptions): {
+    emoji: string;
+    title: string;
+    subtitle: string;
+} {
+    const { toolCall, toolTitles } = options;
+    const chipletInfo = getToolCallChipletInfo(toolCall);
+    const toolMetadata = TOOL_TITLES[toolCall.name];
+
+    return {
+        emoji: toolMetadata?.emoji || extractLeadingEmoji(chipletInfo.text) || '🛠️',
+        title: toolTitles?.[toolCall.name] || toolMetadata?.title || chipletInfo.text || toolCall.name,
+        subtitle: toolCall.name,
+    };
+}
+
+/**
+ * Builds the shared payload sections shown in advanced view and exported reports.
+ *
+ * @param toolCall - Tool call currently selected in the modal.
+ * @returns Ordered list of payload sections.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function createAdvancedToolCallPayloadSections(
+    toolCall: NonNullable<ChatMessage['toolCalls']>[number],
+): Array<AdvancedToolCallPayloadSection> {
+    const requestPayload = {
+        toolName: toolCall.name,
+        arguments: toolCall.arguments,
+    };
+
+    return [
+        { id: 'request', title: 'Input payload', payload: requestPayload },
+        { id: 'result', title: 'Output payload', payload: toolCall.result },
+        { id: 'raw-model', title: 'Model payload', payload: toolCall.rawToolCall },
+        { id: 'event', title: 'Full event', payload: toolCall },
+    ];
+}
+
+/**
+ * Builds a markdown advanced report for one tool call.
+ *
+ * The report includes the same payload sections rendered in the advanced modal,
+ * so copied/saved output always mirrors the visible technical details.
+ *
+ * @param options - Rendering options for advanced mode.
+ * @returns Markdown report content.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function createAdvancedToolCallReportMarkdown(options: AdvancedToolCallDetailsOptions): string {
+    const { toolCall } = options;
+    const header = resolveAdvancedToolCallHeader(options);
+    const payloadSections = createAdvancedToolCallPayloadSections(toolCall);
+    const reportLines: Array<string> = [
+        '# Tool call report',
+        '',
+        `- **Title:** ${header.emoji} ${header.title}`,
+        `- **Tool:** \`${header.subtitle}\``,
+    ];
+
+    if (toolCall.createdAt) {
+        reportLines.push(`- **Created at:** \`${toolCall.createdAt}\``);
+    }
+
+    if (toolCall.idempotencyKey) {
+        reportLines.push(`- **Idempotency key:** \`${toolCall.idempotencyKey}\``);
+    }
+
+    reportLines.push('');
+
+    for (const payloadSection of payloadSections) {
+        const formattedPayload = formatToolCallPayload(payloadSection.payload);
+        const markdownLanguage = formattedPayload.language === 'json' ? 'json' : 'text';
+
+        reportLines.push(`## ${payloadSection.title}`);
+        reportLines.push('');
+        reportLines.push(`~~~${markdownLanguage}`);
+        reportLines.push(formattedPayload.content);
+        reportLines.push('~~~');
+        reportLines.push('');
+    }
+
+    return reportLines.join('\n').trimEnd();
+}
+
+/**
+ * Creates a stable filename for downloaded advanced tool-call reports.
+ *
+ * @param toolCall - Tool call currently selected in the modal.
+ * @returns Safe markdown filename.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function createAdvancedToolCallReportFilename(toolCall: NonNullable<ChatMessage['toolCalls']>[number]): string {
+    const safeToolName = toolCall.name.replace(TOOL_CALL_REPORT_FILENAME_UNSAFE_CHARACTER_PATTERN, '-');
+    const sanitizedToolName = safeToolName.replace(/-+/g, '-').replace(/^-|-$/g, '') || 'tool-call';
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+
+    return `tool-call-report-${sanitizedToolName}-${timestamp}.md`;
+}
+
+/**
  * Renders a technical view with raw tool input/output payloads.
  *
  * @param options - Rendering options for advanced mode.
  * @private internal utility of `<ChatToolCallModal/>`
  */
 function renderAdvancedToolCallDetails(options: AdvancedToolCallDetailsOptions): ReactElement {
-    const { toolCall, toolTitles } = options;
-    const chipletInfo = getToolCallChipletInfo(toolCall);
-    const toolMetadata = TOOL_TITLES[toolCall.name];
-    const headerEmoji = toolMetadata?.emoji || extractLeadingEmoji(chipletInfo.text) || '🛠️';
-    const headerTitle = toolTitles?.[toolCall.name] || toolMetadata?.title || chipletInfo.text || toolCall.name;
-    const requestPayload = {
-        toolName: toolCall.name,
-        arguments: toolCall.arguments,
-    };
-    const payloadSections: Array<AdvancedToolCallPayloadSection> = [
-        { id: 'request', title: 'Input payload', payload: requestPayload },
-        { id: 'result', title: 'Output payload', payload: toolCall.result },
-        { id: 'raw-model', title: 'Model payload', payload: toolCall.rawToolCall },
-        { id: 'event', title: 'Full event', payload: toolCall },
-    ];
+    const { toolCall } = options;
+    const header = resolveAdvancedToolCallHeader(options);
+    const payloadSections = createAdvancedToolCallPayloadSections(toolCall);
 
     return (
         <>
             <header className={styles.toolCallHeader}>
                 <span className={styles.toolCallIcon} aria-hidden="true">
-                    {headerEmoji}
+                    {header.emoji}
                 </span>
                 <div className={styles.toolCallHeaderMeta}>
                     <p className={styles.toolCallModalLabel}>Advanced</p>
-                    <h3 className={styles.toolCallTitle}>{headerTitle}</h3>
-                    <p className={styles.toolCallSubtitle}>{toolCall.name}</p>
+                    <h3 className={styles.toolCallTitle}>{header.title}</h3>
+                    <p className={styles.toolCallSubtitle}>{header.subtitle}</p>
                 </div>
             </header>
 

@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.00 21 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨🕞] Add option to save advanced report from a toolcall popup modal from a chip
 
@@ -56,3 +56,4 @@ Together with wider context
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
