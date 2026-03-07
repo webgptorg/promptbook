@@ -5,27 +5,16 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { showAlert, showConfirm } from '../../../../components/AsyncDialogs/asyncDialogs';
 import { restoreAgentVersion } from './actions';
-import { string_agent_permanent_id } from '@promptbook-local/types';
 
-/**
- * Props accepted by the restore-version action button.
- */
 type RestoreVersionButtonProps = {
     agentName: string;
-    agentPermanentId: string_agent_permanent_id;
     historyId: number;
 };
 
-/**
- * Renders a guarded action that restores one saved history version.
- */
-export function RestoreVersionButton({ agentName, agentPermanentId, historyId }: RestoreVersionButtonProps) {
+export function RestoreVersionButton({ agentName, historyId }: RestoreVersionButtonProps) {
     const router = useRouter();
     const [isRestoring, setIsRestoring] = useState(false);
 
-    /**
-     * Shows confirmation dialog and restores the selected version.
-     */
     const handleRestore = async () => {
         const confirmed = await showConfirm({
             title: 'Restore version',
@@ -39,9 +28,9 @@ export function RestoreVersionButton({ agentName, agentPermanentId, historyId }:
 
         try {
             setIsRestoring(true);
-            await restoreAgentVersion(agentName, agentPermanentId, historyId);
+            await restoreAgentVersion(agentName, historyId);
             router.refresh();
-            router.push(`/agents/${encodeURIComponent(agentName)}/book`);
+            router.push(`/agents/${agentName}`);
         } catch (error) {
             console.error('Failed to restore version:', error);
             await showAlert({

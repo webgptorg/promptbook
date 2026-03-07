@@ -38,26 +38,6 @@ type CreateAgentOptions = {
 };
 
 /**
- * Configuration for listing agent history records.
- */
-type ListAgentHistoryOptions = {
-    /**
-     * Maximum number of history rows to return, newest first.
-     */
-    readonly limit?: number;
-};
-
-/**
- * Optional constraints used when restoring one history record.
- */
-type RestoreAgentFromHistoryOptions = {
-    /**
-     * Permanent id that must match the selected history row.
-     */
-    readonly expectedPermanentId?: string_agent_permanent_id;
-};
-
-/**
  * Agent collection stored in a Supabase table.
  *
  * This class provides a way to manage a collection of agents (pipelines) using Supabase
@@ -434,29 +414,12 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
      */
     public async listAgentHistory(
         permanentId: string_agent_permanent_id,
-        options: ListAgentHistoryOptions = {},
-    ): Promise<
-        ReadonlyArray<{
-            id: number;
-            createdAt: string;
-            agentHash: string;
-            promptbookEngineVersion: string;
-            agentSource: string_book;
-        }>
-    > {
-        const { limit } = options;
-
-        let historyQuery = this.supabaseClient
+    ): Promise<ReadonlyArray<{ id: number; createdAt: string; agentHash: string; promptbookEngineVersion: string }>> {
+        const result = await this.supabaseClient
             .from(this.getTableName('AgentHistory'))
-            .select('id, createdAt, agentHash, promptbookEngineVersion, agentSource')
+            .select('id, createdAt, agentHash, promptbookEngineVersion')
             .eq('permanentId', permanentId)
             .order('createdAt', { ascending: false });
-
-        if (limit !== undefined) {
-            historyQuery = historyQuery.limit(limit);
-        }
-
-        const result = await historyQuery;
 
         if (result.error) {
             throw new DatabaseError(
@@ -470,10 +433,7 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
             );
         }
 
-        return result.data.map((historyItem) => ({
-            ...historyItem,
-            agentSource: historyItem.agentSource as string_book,
-        }));
+        return result.data;
     }
 
     /**
@@ -504,20 +464,13 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
      *
      * This will update the current agent with the source from the history entry
      */
-    public async restoreAgentFromHistory(historyId: number, options: RestoreAgentFromHistoryOptions = {}): Promise<void> {
-        const { expectedPermanentId } = options;
-
+    public async restoreAgentFromHistory(historyId: number): Promise<void> {
         // First, get the history entry
-        let historyQuery = this.supabaseClient
+        const historyResult = await this.supabaseClient
             .from(this.getTableName('AgentHistory'))
             .select('permanentId, agentSource')
-            .eq('id', historyId);
-
-        if (expectedPermanentId) {
-            historyQuery = historyQuery.eq('permanentId', expectedPermanentId);
-        }
-
-        const historyResult = await historyQuery.maybeSingle();
+            .eq('id', historyId)
+            .single();
 
         if (historyResult.error) {
             throw new DatabaseError(
