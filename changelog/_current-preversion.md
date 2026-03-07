@@ -1,3 +1,8 @@
+-   Refactored Agents Server admin usage analytics client for maintainability without behavior changes:
+    -   Split `apps/agents-server/src/app/admin/usage/UsageClient.tsx` into focused SRP modules for filters, analytics panels, timeline chart rendering, formatting helpers, and query builders.
+    -   Kept all existing UI behavior, filtering semantics, URL query synchronization, and analytics fetch behavior intact while reducing file density.
+    -   Added explicit private JSDoc annotations on extracted internal modules to match project conventions.
+
 -   Added simple book version history for Agents Server agent source editing:
     -   Implemented a Google Docs-inspired history browser at `/agents/[agentName]/history` with a selectable version list, full source preview of the selected version, and one-click restore.
     -   Added direct history navigation from the book editor and the shared agent context menu (`Book History`) for faster access during autosaved editing.
