@@ -1,3 +1,9 @@
+-   Improved coding-agent Git automation and Vercel deploy triggering:
+    -   Updated `scripts/run-codex-prompts/git/commitChanges.ts` so each successful coding-agent commit now automatically pushes to Git (uses existing upstream when present, and sets upstream on first push when missing).
+    -   Added explicit upstream/remote resolution and idempotent no-op behavior when there is nothing to push.
+    -   Hardened push failure reporting with actionable hints (auth/permissions, branch protection, diverged history, upstream, connectivity) while keeping the existing prompt fail-log flow.
+    -   Updated `apps/agents-server/vercel.json` `ignoreCommand` to allow deployments for both `hejny` and the coding-agent identity (`Promptbook Coding Agent`) instead of only `hejny`.
+
 -   Refactored Agents Server usage analytics API route for maintainability without behavior changes:
     -   Split `apps/agents-server/src/app/api/usage/route.ts` into focused usage-analytics server modules under `apps/agents-server/src/utils/usageAnalytics` (query parsing, data loading, call metric extraction, and aggregation/response shaping).
     -   Kept API behavior and payload semantics unchanged while reducing route-level density to a thin orchestration handler.
