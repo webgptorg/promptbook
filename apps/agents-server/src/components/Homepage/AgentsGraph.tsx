@@ -16,12 +16,13 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { showAlert } from '../AsyncDialogs/asyncDialogs';
-import type {
-    AgentNodeData,
-    AgentsGraphProps,
-    ConnectionType,
-    GraphNode,
-    StoredPositions,
+import {
+    DEFAULT_CONNECTION_TYPES,
+    type AgentNodeData,
+    type AgentsGraphProps,
+    type ConnectionType,
+    type GraphNode,
+    type StoredPositions,
 } from './AgentsGraph/AgentsGraph.types';
 import {
     buildGraphData,
@@ -199,7 +200,7 @@ export function AgentsGraph(props: AgentsGraphProps) {
         (newFilters: ConnectionType[], newSelectedServer: string | null, newSelectedAgent: string | null) => {
             const params = new URLSearchParams(searchParams.toString());
 
-            if (newFilters.length === CONNECTION_TYPES.length) {
+            if (newFilters.length === DEFAULT_CONNECTION_TYPES.length) {
                 params.delete('connectionTypes');
             } else {
                 params.set('connectionTypes', newFilters.join(','));
