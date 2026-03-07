@@ -1,4 +1,4 @@
-import type { UsageActorType, UsageCallType } from '../../../utils/usageAdmin';
+import { UsageActorType, UsageCallType } from '@/src/utils/usageAdmin';
 
 /**
  * @private Provides human-readable labels for usage breakdowns.
