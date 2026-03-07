@@ -8,8 +8,12 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   Theese chamges should be already recorded in the database, but if you still need to do the database migration, do it
+-   Theese chamges should be already should be recorded in the database in table `AgentHistory`, but it seems broken _(for every agent in `Agent` table there should be one or more records in `AgentHistory`)_
+    -   Do the database migration to save the agent history propperly
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-03-0090-agents-server-book-editor-history.png)
+![alt text](prompts/screenshots/2026-03-0090-agents-server-book-editor-history-1.png)
 
 ---
 
