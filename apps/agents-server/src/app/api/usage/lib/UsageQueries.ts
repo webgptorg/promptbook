@@ -1,9 +1,4 @@
-import type {
-    UsageAnalyticsResponse,
-    UsageActorType,
-    UsageCallType,
-    UsageTimeframePreset,
-} from '../../../utils/usageAdmin';
+import { UsageActorType, UsageAnalyticsResponse, UsageCallType, UsageTimeframePreset } from '@/src/utils/usageAdmin';
 
 const DEFAULT_TIMEFRAME_PRESET: UsageTimeframePreset = '30d';
 
