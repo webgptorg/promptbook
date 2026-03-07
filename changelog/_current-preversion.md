@@ -1,3 +1,90 @@
+-   Refactored Agents Server user-chat persistence utilities for maintainability/readability without behavior changes:
+    -   Split `apps/agents-server/src/utils/userChat.ts` into focused SRP modules under `apps/agents-server/src/utils/userChat/` for domain types, row mapping, shared persistence helpers, CRUD operations, and chat-summary creation.
+    -   Kept `apps/agents-server/src/utils/userChat.ts` as a thin facade with the same exported API used by user-chat routes.
+    -   Added private JSDoc annotations on extracted internal entities.
+
+-   Refactored Agents Server GitHub App utilities for maintainability/readability without behavior changes:
+    -   Split `apps/agents-server/src/utils/githubApp.ts` into focused SRP modules under `apps/agents-server/src/utils/githubApp/`:
+        -   `GithubAppConfiguration` (configuration loading/validation),
+        -   `GithubAppConnectionState` (state creation/parsing/URL normalization),
+        -   `GithubAppConnectionRecord` (UserData persistence/token usability checks),
+        -   `GithubAppInstallationAccessToken` (JWT + installation token exchange),
+        -   `GithubAppService` (status/connect/refresh orchestration).
+    -   Kept `apps/agents-server/src/utils/githubApp.ts` as a thin facade with the same exported API and runtime behavior.
+    -   Added private JSDoc annotations to extracted internal entities.
+
+-   Refactored Agents Server `run_browser` tool for maintainability/readability without behavior changes:
+    -   Split `apps/agents-server/src/tools/run_browser.ts` into focused SRP modules: `RunBrowserArgs`, `runBrowserConstants`, `runBrowserRuntime`, `runBrowserErrorHandling`, `runBrowserWorkflow`, `runBrowserArtifacts`, `runBrowserResultFormatting`, and `runBrowserObservability`.
+    -   Kept `run_browser` as the orchestration entrypoint with the same tool contract, fallback flow, output markdown format, and structured payload semantics.
+    -   Added private JSDoc annotations to extracted internal modules/entities.
+
+-   Refactored Agents Server default server-search providers for maintainability without behavior changes:
+    -   Split `apps/agents-server/src/search/createDefaultServerSearchProviders.ts` into focused provider modules under `apps/agents-server/src/search/createDefaultServerSearchProviders/` (agents, federated agents, folders, conversations, documentation, metadata, users, messages, files, images, and navigation).
+    -   Extracted shared private helpers for provider config, local organization dataset loading, federated fetch/URL normalization, conversation text flattening, profile/snippet formatting, and provider-result sorting/limiting.
+    -   Kept `createDefaultServerSearchProviders.ts` as a thin orchestration entrypoint and added private JSDoc annotations on moved internal entities.
+-   Refactored Agents Server database migration runner for maintainability without behavior changes:
+    -   Split `apps/agents-server/src/database/runDatabaseMigrations.ts` into focused SRP helpers: `migratePrefix`, `acquireMigrationExecutionLock`, `resolveMigrationsDirectory`, and `selectPrefixesForMigration`.
+    -   Kept `runDatabaseMigrations.ts` as the public orchestration layer with unchanged external behavior and runtime flow.
+    -   Added private JSDoc annotations to moved internal entities to align with project conventions.
+
+-   Refactored Agents Server homepage agents list for maintainability without behavior changes:
+    -   Split `apps/agents-server/src/components/Homepage/AgentsList.tsx` into focused SRP modules for drag/drop cards and handles (`SortableAgentCard`, `SortableFolderCard`, `DragHandle`, drag data types), breadcrumb/parent-folder navigation drops (`BreadcrumbDropTarget`, `ParentFolderCard`, `useBreadcrumbDropTarget`), QR presentation (`AgentQrCodeModal`), touch-input detection (`useIsTouchInput`), federated agent loading (`useFederatedAgents`), and drop-intent calculation (`getDropIntentFromRects`).
+    -   Kept `AgentsList` as orchestration for state, routing, dialogs, and list/graph rendering while preserving existing runtime behavior.
+    -   Added private JSDoc annotations on extracted internal entities to match project conventions.
+
+-   Refactored Agents Server homepage graph component for maintainability without behavior changes:
+    -   Split `apps/agents-server/src/components/Homepage/AgentsGraph.tsx` into focused SRP modules for graph-domain building (`buildGraphData`), hierarchical layout + persisted positions (`buildGraphLayoutNodes`), edge rendering/highlighting (`buildGraphEdges`), summary rendering (`GraphSummaryPanel`), and React Flow node renderers (`AgentGraphNode`, `ServerGroupNode`, `FolderGroupNode`).
+    -   Kept existing graph behavior intact, including connection filtering, server/agent focus URL sync, hover highlighting, export actions (PNG/SVG/ASCII), and draggable node position persistence.
+    -   Added private JSDoc annotations on extracted internal entities to match project conventions.
+
+-   Refactored Agents Server header component for maintainability without behavior changes:
+    -   Split `apps/agents-server/src/components/Header/Header.tsx` into focused SRP modules for agent hierarchy rendering, documentation dropdown item builders, submenu portal rendering, touch-input detection, and shared menu models/types.
+    -   Added new private header modules: `AgentDirectoryDropdown`, `buildDocumentationDropdownItems`, `DropdownSubMenuPortal`, `useIsTouchInput`, `useDropdownPortalContainer`, `SubMenuItem`, `MenuItem`, and `OpenSubMenuState`.
+    -   Kept existing header behavior and interaction flows intact while reducing `Header.tsx` size and clarifying responsibility boundaries.
+
+-   Improved Agents Server `run_browser` reliability for remote-browser outages and full-web-scraping fallback:
+    -   Added remote browser connect classification (`REMOTE_BROWSER_UNAVAILABLE`) with structured tool error payloads (`code`, `message`, `isRetryable`, `suggestedNextSteps`, `debug`) instead of raw stack-trace-first failures.
+    -   Added remote connect retries with exponential backoff + jitter (default 2 retries / 3 attempts total), connect timeout support, and abort-aware retry waits in a new shared helper (`apps/agents-server/src/utils/retryWithBackoff.ts`).
+    -   Added best-effort fallback scraping in `run_browser`: when remote browser infrastructure is unavailable, the tool now falls back to server-side `fetch_url_content`, returns `modeUsed: "fallback"`, includes a dynamic-content warning, and returns extracted content.
+    -   Added explicit navigation/action timeout handling in `run_browser` and structured observability logs/metrics tags (`tool=run_browser`, `mode`, `sessionId`) including connect/failure/fallback/error-code counters and timing fields.
+    -   Updated chat tool-call parsing + modal rendering to show structured browser issues clearly, including warning banners and expandable “Show debug details” for `run_browser` failures/fallbacks.
+    -   Added regression coverage for connect outage fallback flow, invalid action validation (no browser call), and navigation failure classification.
+
+-   Added a hidden admin-only Agents Server error simulation page at `/admin/error-simulation` for internal testing:
+    -   Added direct-link-only controls (not listed in the System menu) for intentionally triggering inline error UI, toast-style error UI, and both client/server error-boundary flows.
+    -   Added admin-only API endpoint `/api/admin/error-simulation` with deterministic modes for handled HTTP 500, unhandled server throw, invalid JSON payload, and success sanity checks.
+    -   This enables faster verification of client-side fetch failure handling, server-side error logging behavior, and staging/production monitoring pipelines.
+
+-   Fixed Agents Server agent cloning placement so cloned agents now default to the same folder as the source agent instead of always being created in root.
+
+-   Improved coding-agent Git automation and Vercel deploy triggering:
+    -   Updated `scripts/run-codex-prompts/git/commitChanges.ts` so each successful coding-agent commit now automatically pushes to Git (uses existing upstream when present, and sets upstream on first push when missing).
+    -   Added explicit upstream/remote resolution and idempotent no-op behavior when there is nothing to push.
+    -   Hardened push failure reporting with actionable hints (auth/permissions, branch protection, diverged history, upstream, connectivity) while keeping the existing prompt fail-log flow.
+    -   Updated `apps/agents-server/vercel.json` `ignoreCommand` to allow deployments for both `hejny` and the coding-agent identity (`Promptbook Coding Agent`) instead of only `hejny`.
+
+-   Refactored Agents Server usage analytics API route for maintainability without behavior changes:
+    -   Split `apps/agents-server/src/app/api/usage/route.ts` into focused usage-analytics server modules under `apps/agents-server/src/utils/usageAnalytics` (query parsing, data loading, call metric extraction, and aggregation/response shaping).
+    -   Kept API behavior and payload semantics unchanged while reducing route-level density to a thin orchestration handler.
+    -   Added private JSDoc annotations on extracted internal entities to align with internal conventions.
+
+-   Refactored Agents Server `AgentChatWrapper` for maintainability without behavior changes:
+    -   Split `apps/agents-server/src/app/agents/[agentName]/AgentChatWrapper.tsx` into focused private hooks: `useTeamAgentProfiles`, `useAgentChatMetaDisclaimer`, and `useAgentChatToolInteractions`.
+    -   Kept existing chat behavior intact, including TEAM profile hydration, META DISCLAIMER gating, auto-execute consumption, and tool-driven location/privacy/pseudo-user/wallet interaction flows.
+    -   Added private JSDoc annotations on extracted entities to align with project conventions and package-generation checks.
+
+-   Refactored Agents Server admin usage analytics client for maintainability without behavior changes:
+    -   Split `apps/agents-server/src/app/admin/usage/UsageClient.tsx` into focused SRP modules for filters, analytics panels, timeline chart rendering, formatting helpers, and query builders.
+    -   Kept all existing UI behavior, filtering semantics, URL query synchronization, and analytics fetch behavior intact while reducing file density.
+    -   Added explicit private JSDoc annotations on extracted internal modules to match project conventions.
+
+-   Added simple book version history for Agents Server agent source editing:
+    -   Implemented a Google Docs-inspired history browser at `/agents/[agentName]/history` with a selectable version list, full source preview of the selected version, and one-click restore.
+    -   Added direct history navigation from the book editor and the shared agent context menu (`Book History`) for faster access during autosaved editing.
+    -   Hardened restore flow with admin authorization checks and agent/version consistency validation before applying a restore.
+    -   Fixed agent history persistence reliability by making history writes fail loudly instead of silently ignoring insert errors.
+    -   Added database migration `2026-03-0150-agent-history-backfill.sql` to backfill missing `AgentHistory` rows so every existing agent has at least one history snapshot.
+
 -   Added advanced tool-call report export actions in Agents Server chat chip popup:
     -   The advanced variant of the tool-call modal now includes two one-click actions: `Copy` (clipboard) and `Save` (download `.md` file).
     -   Exported content is generated from one shared DRY markdown-report builder reused by both actions, preventing duplicated formatting logic.
