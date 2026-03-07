@@ -1,4 +1,4 @@
-[x] ~$0.00 23 minutes by OpenAI Codex `gpt-5.3-codex`
+[ ]
 
 [✨☁️] Refactor [`Header.tsx` file](apps/agents-server/src/components/Header/Header.tsx)
 
