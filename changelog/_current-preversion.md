@@ -1,3 +1,8 @@
+-   Refactored Agents Server header component for maintainability without behavior changes:
+    -   Split `apps/agents-server/src/components/Header/Header.tsx` into focused SRP modules for agent hierarchy rendering, documentation dropdown item builders, submenu portal rendering, touch-input detection, and shared menu models/types.
+    -   Added new private header modules: `AgentDirectoryDropdown`, `buildDocumentationDropdownItems`, `DropdownSubMenuPortal`, `useIsTouchInput`, `useDropdownPortalContainer`, `SubMenuItem`, `MenuItem`, and `OpenSubMenuState`.
+    -   Kept existing header behavior and interaction flows intact while reducing `Header.tsx` size and clarifying responsibility boundaries.
+
 -   Improved Agents Server `run_browser` reliability for remote-browser outages and full-web-scraping fallback:
     -   Added remote browser connect classification (`REMOTE_BROWSER_UNAVAILABLE`) with structured tool error payloads (`code`, `message`, `isRetryable`, `suggestedNextSteps`, `debug`) instead of raw stack-trace-first failures.
     -   Added remote connect retries with exponential backoff + jitter (default 2 retries / 3 attempts total), connect timeout support, and abort-aware retry waits in a new shared helper (`apps/agents-server/src/utils/retryWithBackoff.ts`).
