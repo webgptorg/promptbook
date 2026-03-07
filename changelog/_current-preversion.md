@@ -1,3 +1,8 @@
+-   Added a hidden admin-only Agents Server error simulation page at `/admin/error-simulation` for internal testing:
+    -   Added direct-link-only controls (not listed in the System menu) for intentionally triggering inline error UI, toast-style error UI, and both client/server error-boundary flows.
+    -   Added admin-only API endpoint `/api/admin/error-simulation` with deterministic modes for handled HTTP 500, unhandled server throw, invalid JSON payload, and success sanity checks.
+    -   This enables faster verification of client-side fetch failure handling, server-side error logging behavior, and staging/production monitoring pipelines.
+
 -   Fixed Agents Server agent cloning placement so cloned agents now default to the same folder as the source agent instead of always being created in root.
 
 -   Improved coding-agent Git automation and Vercel deploy triggering:
