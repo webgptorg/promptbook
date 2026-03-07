@@ -1,3 +1,8 @@
+-   Refactored Agents Server `AgentChatWrapper` for maintainability without behavior changes:
+    -   Split `apps/agents-server/src/app/agents/[agentName]/AgentChatWrapper.tsx` into focused private hooks: `useTeamAgentProfiles`, `useAgentChatMetaDisclaimer`, and `useAgentChatToolInteractions`.
+    -   Kept existing chat behavior intact, including TEAM profile hydration, META DISCLAIMER gating, auto-execute consumption, and tool-driven location/privacy/pseudo-user/wallet interaction flows.
+    -   Added private JSDoc annotations on extracted entities to align with project conventions and package-generation checks.
+
 -   Refactored Agents Server admin usage analytics client for maintainability without behavior changes:
     -   Split `apps/agents-server/src/app/admin/usage/UsageClient.tsx` into focused SRP modules for filters, analytics panels, timeline chart rendering, formatting helpers, and query builders.
     -   Kept all existing UI behavior, filtering semantics, URL query synchronization, and analytics fetch behavior intact while reducing file density.
