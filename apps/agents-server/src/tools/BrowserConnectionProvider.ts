@@ -4,6 +4,14 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import { BrowserContext, chromium } from 'playwright';
 import { REMOTE_BROWSER_URL } from '../../config';
+import { retryWithBackoff } from '../utils/retryWithBackoff';
+import {
+    extractNetworkErrorCode,
+    getErrorMessage,
+    isRemoteBrowserInfrastructureError,
+    RemoteBrowserUnavailableError,
+    sanitizeRemoteBrowserEndpoint,
+} from './runBrowserErrors';
 
 /**
  * Configuration for browser connection mode.
@@ -13,6 +21,181 @@ import { REMOTE_BROWSER_URL } from '../../config';
 type BrowserConnectionMode = { readonly type: 'local' } | { readonly type: 'remote'; readonly wsEndpoint: string };
 
 const DEFAULT_BROWSER_USER_DATA_DIR = join(tmpdir(), 'promptbook', 'browser', 'user-data');
+
+/**
+ * Default remote browser connect timeout in milliseconds.
+ */
+const DEFAULT_REMOTE_CONNECT_TIMEOUT_MS = 10_000;
+
+/**
+ * Default retry count for remote browser connection establishment.
+ */
+const DEFAULT_REMOTE_CONNECT_RETRIES = 2;
+
+/**
+ * Default initial retry delay for remote browser connection.
+ */
+const DEFAULT_REMOTE_CONNECT_BACKOFF_INITIAL_MS = 250;
+
+/**
+ * Default maximum retry delay for remote browser connection.
+ */
+const DEFAULT_REMOTE_CONNECT_BACKOFF_MAX_MS = 1_000;
+
+/**
+ * Default exponential multiplier for remote browser retry delay.
+ */
+const DEFAULT_REMOTE_CONNECT_BACKOFF_FACTOR = 4;
+
+/**
+ * Default retry jitter ratio for remote browser connection.
+ */
+const DEFAULT_REMOTE_CONNECT_JITTER_RATIO = 0.2;
+
+/**
+ * In-memory metrics counters for remote browser connect attempts.
+ */
+const REMOTE_BROWSER_CONNECT_METRICS = {
+    success: 0,
+    failure: 0,
+};
+
+/**
+ * Runtime options used while acquiring a browser context.
+ *
+ * @private internal type for `BrowserConnectionProvider`
+ */
+export type BrowserContextRequestOptions = {
+    /**
+     * Optional signal to cancel connect retries and waits.
+     */
+    readonly signal?: AbortSignal;
+    /**
+     * Optional browser run session identifier for structured logs.
+     */
+    readonly sessionId?: string;
+};
+
+/**
+ * Constructor options for BrowserConnectionProvider.
+ *
+ * @private internal type for `BrowserConnectionProvider`
+ */
+type BrowserConnectionProviderOptions = {
+    /**
+     * Enable verbose provider-level logs.
+     */
+    readonly isVerbose?: boolean;
+    /**
+     * Connect timeout for one remote Playwright websocket attempt.
+     */
+    readonly remoteConnectTimeoutMs?: number;
+    /**
+     * Number of retries after the initial remote connect attempt.
+     */
+    readonly remoteConnectRetries?: number;
+    /**
+     * Initial retry delay in milliseconds.
+     */
+    readonly remoteConnectBackoffInitialMs?: number;
+    /**
+     * Maximum retry delay in milliseconds.
+     */
+    readonly remoteConnectBackoffMaxMs?: number;
+    /**
+     * Retry delay multiplier.
+     */
+    readonly remoteConnectBackoffFactor?: number;
+    /**
+     * Retry jitter ratio.
+     */
+    readonly remoteConnectJitterRatio?: number;
+    /**
+     * Optional random provider used by retry jitter.
+     */
+    readonly random?: () => number;
+    /**
+     * Optional sleep provider for retry waits.
+     */
+    readonly sleep?: (delayMs: number, signal?: AbortSignal) => Promise<void>;
+};
+
+/**
+ * Reads a positive integer from environment variables with a fallback default.
+ */
+function resolvePositiveIntFromEnv(variableName: string, defaultValue: number): number {
+    const rawValue = process.env[variableName];
+    if (!rawValue || !rawValue.trim()) {
+        return defaultValue;
+    }
+
+    const parsed = Number.parseInt(rawValue.trim(), 10);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+        return defaultValue;
+    }
+
+    return parsed;
+}
+
+/**
+ * Reads a positive number from environment variables with a fallback default.
+ */
+function resolvePositiveNumberFromEnv(variableName: string, defaultValue: number): number {
+    const rawValue = process.env[variableName];
+    if (!rawValue || !rawValue.trim()) {
+        return defaultValue;
+    }
+
+    const parsed = Number.parseFloat(rawValue.trim());
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+        return defaultValue;
+    }
+
+    return parsed;
+}
+
+/**
+ * Reads a non-negative integer from environment variables with a fallback default.
+ */
+function resolveNonNegativeIntFromEnv(variableName: string, defaultValue: number): number {
+    const rawValue = process.env[variableName];
+    if (!rawValue || !rawValue.trim()) {
+        return defaultValue;
+    }
+
+    const parsed = Number.parseInt(rawValue.trim(), 10);
+    if (!Number.isFinite(parsed) || parsed < 0) {
+        return defaultValue;
+    }
+
+    return parsed;
+}
+
+/**
+ * Reads a non-negative number from environment variables with a fallback default.
+ */
+function resolveNonNegativeNumberFromEnv(variableName: string, defaultValue: number): number {
+    const rawValue = process.env[variableName];
+    if (!rawValue || !rawValue.trim()) {
+        return defaultValue;
+    }
+
+    const parsed = Number.parseFloat(rawValue.trim());
+    if (!Number.isFinite(parsed) || parsed < 0) {
+        return defaultValue;
+    }
+
+    return parsed;
+}
+
+/**
+ * Creates one standard abort error.
+ */
+function createAbortError(): Error {
+    const error = new Error('Browser connection request was aborted.');
+    error.name = 'AbortError';
+    return error;
+}
 
 /**
  * Provides browser context instances with support for both local and remote browser connections.
@@ -30,6 +213,14 @@ export class BrowserConnectionProvider {
     private browserContext: BrowserContext | null = null;
     private connectionMode: BrowserConnectionMode | null = null;
     private readonly isVerbose: boolean;
+    private readonly remoteConnectTimeoutMs: number;
+    private readonly remoteConnectRetries: number;
+    private readonly remoteConnectBackoffInitialMs: number;
+    private readonly remoteConnectBackoffMaxMs: number;
+    private readonly remoteConnectBackoffFactor: number;
+    private readonly remoteConnectJitterRatio: number;
+    private readonly random: () => number;
+    private readonly sleep?: (delayMs: number, signal?: AbortSignal) => Promise<void>;
 
     /**
      * Creates a new BrowserConnectionProvider.
@@ -37,8 +228,31 @@ export class BrowserConnectionProvider {
      * @param options - Provider options
      * @param options.isVerbose - Enable verbose logging
      */
-    public constructor(options: { readonly isVerbose?: boolean } = {}) {
+    public constructor(options: BrowserConnectionProviderOptions = {}) {
         this.isVerbose = options.isVerbose ?? false;
+        this.remoteConnectTimeoutMs =
+            options.remoteConnectTimeoutMs ??
+            resolvePositiveIntFromEnv('RUN_BROWSER_CONNECT_TIMEOUT_MS', DEFAULT_REMOTE_CONNECT_TIMEOUT_MS);
+        this.remoteConnectRetries =
+            options.remoteConnectRetries ??
+            resolveNonNegativeIntFromEnv('RUN_BROWSER_CONNECT_RETRIES', DEFAULT_REMOTE_CONNECT_RETRIES);
+        this.remoteConnectBackoffInitialMs =
+            options.remoteConnectBackoffInitialMs ??
+            resolvePositiveIntFromEnv(
+                'RUN_BROWSER_CONNECT_BACKOFF_INITIAL_MS',
+                DEFAULT_REMOTE_CONNECT_BACKOFF_INITIAL_MS,
+            );
+        this.remoteConnectBackoffMaxMs =
+            options.remoteConnectBackoffMaxMs ??
+            resolvePositiveIntFromEnv('RUN_BROWSER_CONNECT_BACKOFF_MAX_MS', DEFAULT_REMOTE_CONNECT_BACKOFF_MAX_MS);
+        this.remoteConnectBackoffFactor =
+            options.remoteConnectBackoffFactor ??
+            resolvePositiveNumberFromEnv('RUN_BROWSER_CONNECT_BACKOFF_FACTOR', DEFAULT_REMOTE_CONNECT_BACKOFF_FACTOR);
+        this.remoteConnectJitterRatio =
+            options.remoteConnectJitterRatio ??
+            resolveNonNegativeNumberFromEnv('RUN_BROWSER_CONNECT_JITTER_RATIO', DEFAULT_REMOTE_CONNECT_JITTER_RATIO);
+        this.random = options.random ?? Math.random;
+        this.sleep = options.sleep;
     }
 
     /**
@@ -49,7 +263,11 @@ export class BrowserConnectionProvider {
      *
      * @returns Browser context instance
      */
-    public async getBrowserContext(): Promise<BrowserContext> {
+    public async getBrowserContext(options: BrowserContextRequestOptions = {}): Promise<BrowserContext> {
+        if (options.signal?.aborted) {
+            throw createAbortError();
+        }
+
         // Check if we have a cached connection that's still valid
         if (this.browserContext !== null && this.isBrowserContextAlive(this.browserContext)) {
             return this.browserContext;
@@ -70,7 +288,7 @@ export class BrowserConnectionProvider {
         if (mode.type === 'local') {
             this.browserContext = await this.createLocalBrowserContext();
         } else {
-            this.browserContext = await this.createRemoteBrowserContext(mode.wsEndpoint);
+            this.browserContext = await this.createRemoteBrowserContext(mode.wsEndpoint, options);
         }
 
         return this.browserContext;
@@ -212,19 +430,73 @@ export class BrowserConnectionProvider {
      * @param wsEndpoint - WebSocket endpoint of the remote Playwright server
      * @returns Remote browser context
      */
-    private async createRemoteBrowserContext(wsEndpoint: string): Promise<BrowserContext> {
+    private async createRemoteBrowserContext(
+        wsEndpoint: string,
+        options: BrowserContextRequestOptions,
+    ): Promise<BrowserContext> {
+        const endpointDebug = sanitizeRemoteBrowserEndpoint(wsEndpoint);
+        const startedAt = Date.now();
+
         if (this.isVerbose) {
             console.info('[BrowserConnectionProvider] Connecting to remote browser', {
-                wsEndpoint,
+                endpoint: endpointDebug,
+                connectTimeoutMs: this.remoteConnectTimeoutMs,
+                retries: this.remoteConnectRetries,
             });
         }
 
+        let attempts = 0;
+
         try {
-            const browser = await chromium.connect(wsEndpoint);
+            const connectResult = await retryWithBackoff(
+                async (attempt) => {
+                    attempts = attempt;
+                    return await chromium.connect(wsEndpoint, {
+                        timeout: this.remoteConnectTimeoutMs,
+                    });
+                },
+                {
+                    retries: this.remoteConnectRetries,
+                    initialDelayMs: this.remoteConnectBackoffInitialMs,
+                    maxDelayMs: this.remoteConnectBackoffMaxMs,
+                    backoffFactor: this.remoteConnectBackoffFactor,
+                    jitterRatio: this.remoteConnectJitterRatio,
+                    signal: options.signal,
+                    shouldRetry: (error) => isRemoteBrowserInfrastructureError(error),
+                    onRetry: ({ attempt, delayMs, error }) => {
+                        console.warn('[run_browser][retry]', {
+                            tool: 'run_browser',
+                            mode: 'remote-browser',
+                            sessionId: options.sessionId || null,
+                            event: 'remote_browser_connect_retry',
+                            attempt,
+                            delayMs,
+                            endpoint: endpointDebug,
+                            errorCode: extractNetworkErrorCode(error),
+                            error: getErrorMessage(error),
+                        });
+                    },
+                    random: this.random,
+                    sleep: this.sleep,
+                },
+            );
+            const browser = connectResult.value;
 
             // For remote connections, we need to create a new context
             // Note: Remote browsers don't support persistent contexts
             const context = await browser.newContext();
+            REMOTE_BROWSER_CONNECT_METRICS.success++;
+
+            console.info('[run_browser][metric]', {
+                tool: 'run_browser',
+                mode: 'remote-browser',
+                sessionId: options.sessionId || null,
+                event: 'remote_browser_connect_success',
+                attempts: connectResult.attempts,
+                connectDurationMs: connectResult.durationMs,
+                endpoint: endpointDebug,
+                counter: REMOTE_BROWSER_CONNECT_METRICS.success,
+            });
 
             if (this.isVerbose) {
                 console.info('[BrowserConnectionProvider] Successfully connected to remote browser');
@@ -232,9 +504,50 @@ export class BrowserConnectionProvider {
 
             return context;
         } catch (error) {
-            console.error('[BrowserConnectionProvider] Failed to connect to remote browser', {
-                wsEndpoint,
-                error,
+            REMOTE_BROWSER_CONNECT_METRICS.failure++;
+            const durationMs = Date.now() - startedAt;
+            const remoteInfraUnavailable = isRemoteBrowserInfrastructureError(error);
+
+            if (remoteInfraUnavailable) {
+                const remoteBrowserUnavailableError = new RemoteBrowserUnavailableError({
+                    message: `Remote browser is unavailable. Could not establish a websocket connection.`,
+                    debug: {
+                        endpoint: endpointDebug,
+                        attempts: Math.max(1, attempts),
+                        connectTimeoutMs: this.remoteConnectTimeoutMs,
+                        durationMs,
+                        networkErrorCode: extractNetworkErrorCode(error),
+                        originalMessage: getErrorMessage(error),
+                    },
+                    cause: error,
+                });
+
+                console.warn('[run_browser][metric]', {
+                    tool: 'run_browser',
+                    mode: 'remote-browser',
+                    sessionId: options.sessionId || null,
+                    event: 'remote_browser_connect_failure',
+                    errorCode: remoteBrowserUnavailableError.code,
+                    attempts: Math.max(1, attempts),
+                    connectDurationMs: durationMs,
+                    endpoint: endpointDebug,
+                    counter: REMOTE_BROWSER_CONNECT_METRICS.failure,
+                });
+
+                throw remoteBrowserUnavailableError;
+            }
+
+            console.error('[run_browser][metric]', {
+                tool: 'run_browser',
+                mode: 'remote-browser',
+                sessionId: options.sessionId || null,
+                event: 'remote_browser_connect_failure',
+                errorCode: 'REMOTE_BROWSER_CONNECT_ERROR',
+                attempts: Math.max(1, attempts),
+                connectDurationMs: durationMs,
+                endpoint: endpointDebug,
+                error: getErrorMessage(error),
+                counter: REMOTE_BROWSER_CONNECT_METRICS.failure,
             });
 
             throw error;

@@ -3551,6 +3551,68 @@
     box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
 }
 
+.browserRunWarning {
+    margin-bottom: 14px;
+    border: 1px solid #fbbf24;
+    border-radius: 12px;
+    background: #fffbeb;
+    color: #92400e;
+    padding: 12px 14px;
+}
+
+.browserRunError {
+    margin-bottom: 14px;
+    border: 1px solid #fca5a5;
+    border-radius: 12px;
+    background: #fef2f2;
+    color: #7f1d1d;
+    padding: 12px 14px;
+}
+
+.browserRunErrorSummary {
+    margin: 0;
+    line-height: 1.5;
+    font-size: 14px;
+}
+
+.browserRunErrorSteps {
+    margin: 8px 0 0;
+    padding-left: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.browserRunDebugDetails {
+    margin-top: 10px;
+}
+
+.browserRunDebugDetails summary {
+    cursor: pointer;
+    color: #7f1d1d;
+    font-weight: 600;
+}
+
+.browserRunDebugDetails pre {
+    margin: 10px 0 0;
+    padding: 10px;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    border-radius: 8px;
+    max-height: 220px;
+    overflow: auto;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.browserRunFallbackContent {
+    margin-bottom: 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+    padding: 14px 16px;
+}
+
 .browserRunMediaGrid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

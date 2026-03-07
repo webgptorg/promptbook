@@ -1,5 +1,5 @@
 import { BrowserContext } from 'playwright';
-import { BrowserConnectionProvider } from './BrowserConnectionProvider';
+import { BrowserConnectionProvider, type BrowserContextRequestOptions } from './BrowserConnectionProvider';
 
 /**
  * Singleton instance of the browser connection provider.
@@ -14,14 +14,15 @@ let browserProvider: BrowserConnectionProvider | null = null;
  * This function supports both local and remote browser connections based on environment configuration.
  * Use REMOTE_BROWSER_URL environment variable to configure a remote Playwright server.
  *
+ * @param options - Optional runtime request options used for cancellation and logging context.
  * @returns Browser context instance
  */
-export async function $provideBrowserForServer(): Promise<BrowserContext> {
+export async function $provideBrowserForServer(options: BrowserContextRequestOptions = {}): Promise<BrowserContext> {
     if (browserProvider === null) {
         browserProvider = new BrowserConnectionProvider({ isVerbose: false });
     }
 
-    return await browserProvider.getBrowserContext();
+    return await browserProvider.getBrowserContext(options);
 }
 
 /**

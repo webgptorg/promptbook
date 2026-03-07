@@ -67,6 +67,19 @@ export type RunBrowserToolAction = {
 };
 
 /**
+ * Structured browser error metadata extracted from `run_browser` payload.
+ *
+ * @private utility of `<Chat/>` component
+ */
+export type RunBrowserToolError = {
+    code: string;
+    message: string;
+    isRetryable: boolean;
+    suggestedNextSteps: Array<string>;
+    debug: Record<string, TODO_any> | null;
+};
+
+/**
  * Parsed `run_browser` tool result normalized for modal rendering.
  *
  * @private utility of `<Chat/>` component
@@ -74,9 +87,13 @@ export type RunBrowserToolAction = {
 export type RunBrowserToolResult = {
     sessionId: string | null;
     mode: string | null;
+    modeUsed: string | null;
     initialUrl: string | null;
     finalUrl: string | null;
     finalTitle: string | null;
+    warning: string | null;
+    fallbackContent: string | null;
+    error: RunBrowserToolError | null;
     artifacts: Array<RunBrowserToolArtifact>;
     actions: Array<RunBrowserToolAction>;
 };
@@ -393,12 +410,38 @@ function parseRunBrowserPayloadObject(payload: TODO_any): RunBrowserToolResult |
               .filter((action): action is RunBrowserToolAction => action !== null)
         : [];
 
+    const errorRecord =
+        payloadRecord.error && typeof payloadRecord.error === 'object' && !Array.isArray(payloadRecord.error)
+            ? (payloadRecord.error as Record<string, TODO_any>)
+            : null;
+    const parsedError: RunBrowserToolError | null = errorRecord
+        ? {
+              code: typeof errorRecord.code === 'string' ? errorRecord.code : 'RUN_BROWSER_UNKNOWN_ERROR',
+              message: typeof errorRecord.message === 'string' ? errorRecord.message : 'Unknown browser tool error',
+              isRetryable: errorRecord.isRetryable === true,
+              suggestedNextSteps: Array.isArray(errorRecord.suggestedNextSteps)
+                  ? errorRecord.suggestedNextSteps
+                        .filter((step): step is string => typeof step === 'string')
+                        .map((step) => step.trim())
+                        .filter(Boolean)
+                  : [],
+              debug:
+                  errorRecord.debug && typeof errorRecord.debug === 'object' && !Array.isArray(errorRecord.debug)
+                      ? (errorRecord.debug as Record<string, TODO_any>)
+                      : null,
+          }
+        : null;
+
     return {
         sessionId: typeof payloadRecord.sessionId === 'string' ? payloadRecord.sessionId : null,
         mode: typeof payloadRecord.mode === 'string' ? payloadRecord.mode : null,
+        modeUsed: typeof payloadRecord.modeUsed === 'string' ? payloadRecord.modeUsed : null,
         initialUrl: typeof payloadRecord.initialUrl === 'string' ? payloadRecord.initialUrl : null,
         finalUrl: typeof payloadRecord.finalUrl === 'string' ? payloadRecord.finalUrl : null,
         finalTitle: typeof payloadRecord.finalTitle === 'string' ? payloadRecord.finalTitle : null,
+        warning: typeof payloadRecord.warning === 'string' ? payloadRecord.warning : null,
+        fallbackContent: null,
+        error: parsedError,
         artifacts,
         actions,
     };
@@ -455,9 +498,13 @@ function parseRunBrowserLegacyMarkdown(markdown: string): RunBrowserToolResult |
 
     const sessionId = readLineValue(/\*\*Session:\*\*\s*(.+)/i);
     const mode = readLineValue(/\*\*Mode:\*\*\s*(.+)/i);
+    const modeUsed = readLineValue(/\*\*Mode used:\*\*\s*(.+)/i);
     const initialUrl = readLineValue(/\*\*Initial URL:\*\*\s*(.+)/i);
     const finalUrl = readLineValue(/- URL:\s*(.+)/i);
     const finalTitle = readLineValue(/- Title:\s*(.+)/i);
+    const warning = readLineValue(/\*\*Warning:\*\*\s*(.+)/i);
+    const fallbackContentMatch = normalized.match(/## Extracted content\s*([\s\S]*?)(?:\n## |\n```json|\nNote:|$)/i);
+    const fallbackContent = fallbackContentMatch?.[1]?.trim() || null;
     const isLikelyBrowserResult =
         normalized.includes('# Browser run completed') || normalized.includes('# Browser run failed');
 
@@ -468,11 +515,43 @@ function parseRunBrowserLegacyMarkdown(markdown: string): RunBrowserToolResult |
     return {
         sessionId,
         mode,
+        modeUsed,
         initialUrl,
         finalUrl,
         finalTitle,
+        warning,
+        fallbackContent,
+        error: null,
         artifacts,
         actions,
+    };
+}
+
+/**
+ * Merges structured JSON payload with markdown-only data such as fallback content.
+ *
+ * @private utility of `<Chat/>` component
+ */
+function mergeRunBrowserToolResult(
+    primary: RunBrowserToolResult,
+    secondary: RunBrowserToolResult | null,
+): RunBrowserToolResult {
+    if (!secondary) {
+        return primary;
+    }
+
+    return {
+        sessionId: primary.sessionId || secondary.sessionId,
+        mode: primary.mode || secondary.mode,
+        modeUsed: primary.modeUsed || secondary.modeUsed,
+        initialUrl: primary.initialUrl || secondary.initialUrl,
+        finalUrl: primary.finalUrl || secondary.finalUrl,
+        finalTitle: primary.finalTitle || secondary.finalTitle,
+        warning: primary.warning || secondary.warning,
+        fallbackContent: primary.fallbackContent || secondary.fallbackContent,
+        error: primary.error || secondary.error,
+        artifacts: primary.artifacts.length > 0 ? primary.artifacts : secondary.artifacts,
+        actions: primary.actions.length > 0 ? primary.actions : secondary.actions,
     };
 }
 
@@ -520,11 +599,13 @@ export function parseRunBrowserToolResult(resultRaw: TODO_any): RunBrowserToolRe
     }
 
     const embeddedJsonPayload = parseRunBrowserEmbeddedJson(resultRaw);
+    const legacyPayload = parseRunBrowserLegacyMarkdown(resultRaw);
+
     if (embeddedJsonPayload) {
-        return embeddedJsonPayload;
+        return mergeRunBrowserToolResult(embeddedJsonPayload, legacyPayload);
     }
 
-    return parseRunBrowserLegacyMarkdown(resultRaw);
+    return legacyPayload;
 }
 
 /**

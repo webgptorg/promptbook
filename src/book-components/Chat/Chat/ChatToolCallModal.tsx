@@ -1001,6 +1001,11 @@ function renderRunBrowserToolCall(options: { args: Record<string, TODO_any>; res
     const initialUrl = parsedResult?.initialUrl || (typeof args.url === 'string' ? args.url : null);
     const finalUrl = parsedResult?.finalUrl || null;
     const finalTitle = parsedResult?.finalTitle || null;
+    const mode = parsedResult?.mode || null;
+    const modeUsed = parsedResult?.modeUsed || null;
+    const warning = parsedResult?.warning || null;
+    const fallbackContent = parsedResult?.fallbackContent || null;
+    const runBrowserError = parsedResult?.error || null;
     const artifacts = parsedResult?.artifacts || [];
     const actions = parsedResult?.actions || [];
 
@@ -1015,7 +1020,7 @@ function renderRunBrowserToolCall(options: { args: Record<string, TODO_any>; res
             </div>
 
             <div className={styles.searchModalContent}>
-                {(initialUrl || finalUrl || finalTitle) && (
+                {(initialUrl || finalUrl || finalTitle || mode || modeUsed) && (
                     <div className={styles.browserRunMeta}>
                         {initialUrl && (
                             <div className={styles.emailField}>
@@ -1043,6 +1048,53 @@ function renderRunBrowserToolCall(options: { args: Record<string, TODO_any>; res
                                 <span className={styles.emailRecipients}>{finalTitle}</span>
                             </div>
                         )}
+                        {mode && (
+                            <div className={styles.emailField}>
+                                <strong>Mode requested:</strong>
+                                <span className={styles.emailRecipients}>{mode}</span>
+                            </div>
+                        )}
+                        {modeUsed && (
+                            <div className={styles.emailField}>
+                                <strong>Mode used:</strong>
+                                <span className={styles.emailRecipients}>{modeUsed}</span>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {warning && (
+                    <div className={styles.browserRunWarning}>
+                        <strong>Warning:</strong> {warning}
+                    </div>
+                )}
+
+                {runBrowserError && (
+                    <div className={styles.browserRunError}>
+                        <h4 className={styles.browserRunActionLogTitle}>Issue</h4>
+                        <p className={styles.browserRunErrorSummary}>
+                            <strong>{runBrowserError.code}</strong>: {runBrowserError.message}
+                        </p>
+                        {runBrowserError.suggestedNextSteps.length > 0 && (
+                            <ul className={styles.browserRunErrorSteps}>
+                                {runBrowserError.suggestedNextSteps.map((step, index) => (
+                                    <li key={`${step}-${index}`}>{step}</li>
+                                ))}
+                            </ul>
+                        )}
+                        {runBrowserError.debug && (
+                            <details className={styles.browserRunDebugDetails}>
+                                <summary>Show debug details</summary>
+                                <pre>{JSON.stringify(runBrowserError.debug, null, 2)}</pre>
+                            </details>
+                        )}
+                    </div>
+                )}
+
+                {fallbackContent && (
+                    <div className={styles.browserRunFallbackContent}>
+                        <h4 className={styles.browserRunActionLogTitle}>Fallback extracted content</h4>
+                        <MarkdownContent className={styles.searchResultsRaw} content={fallbackContent} />
                     </div>
                 )}
 
@@ -1078,9 +1130,9 @@ function renderRunBrowserToolCall(options: { args: Record<string, TODO_any>; res
                             );
                         })}
                     </div>
-                ) : (
+                ) : !fallbackContent ? (
                     <div className={styles.noResults}>No browser visuals were captured for this action.</div>
-                )}
+                ) : null}
 
                 {actions.length > 0 && (
                     <div className={styles.browserRunActionLog}>

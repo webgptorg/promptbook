@@ -1,3 +1,11 @@
+-   Improved Agents Server `run_browser` reliability for remote-browser outages and full-web-scraping fallback:
+    -   Added remote browser connect classification (`REMOTE_BROWSER_UNAVAILABLE`) with structured tool error payloads (`code`, `message`, `isRetryable`, `suggestedNextSteps`, `debug`) instead of raw stack-trace-first failures.
+    -   Added remote connect retries with exponential backoff + jitter (default 2 retries / 3 attempts total), connect timeout support, and abort-aware retry waits in a new shared helper (`apps/agents-server/src/utils/retryWithBackoff.ts`).
+    -   Added best-effort fallback scraping in `run_browser`: when remote browser infrastructure is unavailable, the tool now falls back to server-side `fetch_url_content`, returns `modeUsed: "fallback"`, includes a dynamic-content warning, and returns extracted content.
+    -   Added explicit navigation/action timeout handling in `run_browser` and structured observability logs/metrics tags (`tool=run_browser`, `mode`, `sessionId`) including connect/failure/fallback/error-code counters and timing fields.
+    -   Updated chat tool-call parsing + modal rendering to show structured browser issues clearly, including warning banners and expandable “Show debug details” for `run_browser` failures/fallbacks.
+    -   Added regression coverage for connect outage fallback flow, invalid action validation (no browser call), and navigation failure classification.
+
 -   Added a hidden admin-only Agents Server error simulation page at `/admin/error-simulation` for internal testing:
     -   Added direct-link-only controls (not listed in the System menu) for intentionally triggering inline error UI, toast-style error UI, and both client/server error-boundary flows.
     -   Added admin-only API endpoint `/api/admin/error-simulation` with deterministic modes for handled HTTP 500, unhandled server throw, invalid JSON payload, and success sanity checks.
