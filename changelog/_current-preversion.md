@@ -1,3 +1,8 @@
+-   Refactored Agents Server `run_browser` tool for maintainability/readability without behavior changes:
+    -   Split `apps/agents-server/src/tools/run_browser.ts` into focused SRP modules: `RunBrowserArgs`, `runBrowserConstants`, `runBrowserRuntime`, `runBrowserErrorHandling`, `runBrowserWorkflow`, `runBrowserArtifacts`, `runBrowserResultFormatting`, and `runBrowserObservability`.
+    -   Kept `run_browser` as the orchestration entrypoint with the same tool contract, fallback flow, output markdown format, and structured payload semantics.
+    -   Added private JSDoc annotations to extracted internal modules/entities.
+
 -   Refactored Agents Server default server-search providers for maintainability without behavior changes:
     -   Split `apps/agents-server/src/search/createDefaultServerSearchProviders.ts` into focused provider modules under `apps/agents-server/src/search/createDefaultServerSearchProviders/` (agents, federated agents, folders, conversations, documentation, metadata, users, messages, files, images, and navigation).
     -   Extracted shared private helpers for provider config, local organization dataset loading, federated fetch/URL normalization, conversation text flattening, profile/snippet formatting, and provider-result sorting/limiting.
