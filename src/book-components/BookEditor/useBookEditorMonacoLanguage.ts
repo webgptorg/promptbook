@@ -119,7 +119,9 @@ function createNoteLikeCommitmentStates(commitmentTypes: ReadonlyArray<string>):
     const commitmentTypeSet = new Set(commitmentTypes.map((type) => type.toUpperCase()));
 
     return NOTE_LIKE_COMMITMENT_GROUPS.flatMap((group) => {
-        const matchingCommitmentTypes = group.commitmentTypes.filter((type) => commitmentTypeSet.has(type.toUpperCase()));
+        const matchingCommitmentTypes = group.commitmentTypes.filter((type) =>
+            commitmentTypeSet.has(type.toUpperCase()),
+        );
         if (matchingCommitmentTypes.length === 0) {
             return [];
         }
@@ -167,11 +169,7 @@ function createNoteLikeBodyRules(
     token: NoteLikeCommitmentState['token'],
     commitmentTransitionRules: ReadonlyArray<MonacoTokenizerRule>,
 ): Array<MonacoTokenizerRule> {
-    return [
-        ...commitmentTransitionRules,
-        [/^\s*$/, token],
-        [/.+$/, token],
-    ];
+    return [...commitmentTransitionRules, [/^\s*$/, token], [/.+$/, token]];
 }
 
 /**
@@ -194,7 +192,9 @@ export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor): void {
     const commitmentTypes = [...new Set(getAllCommitmentDefinitions().map(({ type }) => type))];
     const noteLikeCommitmentTypeSet = new Set<string>([...TODO_COMMITMENT_TYPES, ...NOTE_COMMITMENT_TYPES]);
     const noteLikeCommitmentStates = createNoteLikeCommitmentStates(commitmentTypes);
-    const executableCommitmentTypes = commitmentTypes.filter((type) => !noteLikeCommitmentTypeSet.has(type.toUpperCase()));
+    const executableCommitmentTypes = commitmentTypes.filter(
+        (type) => !noteLikeCommitmentTypeSet.has(type.toUpperCase()),
+    );
     const commitmentRegex = createCommitmentRegex(executableCommitmentTypes);
     const agentReferenceCommitmentRegex = /^\s*(FROM|IMPORT|IMPORTS|TEAM)(?=\s|$)/;
     const commitmentTransitionRules = createCommitmentTransitionRules(
