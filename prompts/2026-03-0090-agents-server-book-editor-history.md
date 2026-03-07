@@ -1,4 +1,4 @@
-[x] ~$0.4267 18 minutes by OpenAI Codex `gpt-5.3-codex`
+[ ] !
 
 [✨⤵️] Allow to see the history of the agent source code book
 
@@ -53,4 +53,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
