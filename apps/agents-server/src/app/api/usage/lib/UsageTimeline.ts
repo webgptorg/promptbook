@@ -1,5 +1,5 @@
+import { UsageAnalyticsResponse } from '@/src/utils/usageAdmin';
 import type { UsageAggregate } from '../UsageAggregate';
-import type { UsageAnalyticsResponse } from '../../../utils/usageAdmin';
 
 /**
  * @private Helpers that build the usage timeline for analytics.

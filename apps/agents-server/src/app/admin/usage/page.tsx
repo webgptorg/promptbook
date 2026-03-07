@@ -1,7 +1,3 @@
-import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
-import { loadAgentOrganizationState } from '../../../utils/agentOrganization/loadAgentOrganizationState';
-import { getFolderPathSegments } from '../../../utils/agentOrganization/folderPath';
-import { isUserAdmin } from '../../../utils/isUserAdmin';
 import type {
     UsageActorType,
     UsageAgentOption,
@@ -9,7 +5,11 @@ import type {
     UsageFolderOption,
     UsageMetricMode,
     UsageTimeframePreset,
-} from '../../../utils/usageAdmin';
+} from '@/src/utils/usageAdmin';
+import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
+import { getFolderPathSegments } from '../../../utils/agentOrganization/folderPath';
+import { loadAgentOrganizationState } from '../../../utils/agentOrganization/loadAgentOrganizationState';
+import { isUserAdmin } from '../../../utils/isUserAdmin';
 import { UsageClient } from './UsageClient';
 
 /**
@@ -29,11 +29,7 @@ type AdminUsagePageSearchParams = {
 /**
  * Admin usage analytics page.
  */
-export default async function AdminUsagePage({
-    searchParams,
-}: {
-    searchParams?: Promise<AdminUsagePageSearchParams>;
-}) {
+export default async function AdminUsagePage({ searchParams }: { searchParams?: Promise<AdminUsagePageSearchParams> }) {
     const isAdmin = await isUserAdmin();
     if (!isAdmin) {
         return <ForbiddenPage />;
