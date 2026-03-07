@@ -6,11 +6,8 @@ import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { headers } from 'next/headers';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { isAgentDeleted } from '../_utils';
-import { generateAgentMetadata } from '../generateAgentMetadata';
 import { BookEditorWrapper } from './BookEditorWrapper';
 import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
-
-export const generateMetadata = generateAgentMetadata;
 
 export default async function AgentBookPage({ params }: { params: Promise<{ agentName: string }> }) {
     $sideEffect(headers());

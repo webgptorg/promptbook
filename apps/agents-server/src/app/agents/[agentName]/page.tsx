@@ -20,12 +20,9 @@ import { getAgentFolderContext, getAgentName, getAgentProfile, isAgentDeleted } 
 import { getAgentLinks } from './agentLinks';
 import { AgentProfileChat } from './AgentProfileChat';
 import { AgentProfileWrapper } from './AgentProfileWrapper';
-import { generateAgentMetadata } from './generateAgentMetadata';
 import { ServiceWorkerRegister } from './ServiceWorkerRegister';
 import { getPseudoAgentDescriptor } from '../../../utils/pseudoAgents';
 import { PseudoAgentProfilePage } from './PseudoAgentProfile';
-
-export const generateMetadata = generateAgentMetadata;
 
 /**
  * Builds a local canonical path for an agent while preserving supported query parameters.

@@ -1,46 +1,21 @@
 'use server';
 
 import type { Metadata } from 'next';
-import { getAgentName, getAgentProfile } from './_utils';
-import { resolvePseudoAgentDescriptor } from '../../../utils/pseudoAgents';
+import { generateAgentMetadata } from './generateAgentMetadata';
 
+/**
+ * Generates shared branded metadata for all pages under `/agents/[agentName]`.
+ *
+ * @param params - Dynamic route parameters with `agentName`.
+ * @returns Metadata used by Next.js head rendering.
+ */
 export async function generateMetadata({ params }: { params: Promise<{ agentName: string }> }): Promise<Metadata> {
-    const agentName = await getAgentName(params);
-
-    const pseudoDescriptor = resolvePseudoAgentDescriptor(agentName);
-    if (pseudoDescriptor) {
-        return {
-            title: pseudoDescriptor.descriptor.displayName,
-            description: pseudoDescriptor.descriptor.summary,
-        };
-    }
-
-    try {
-        const agentProfile = await getAgentProfile(agentName);
-
-        const title = agentProfile.meta.fullname || agentProfile.agentName;
-        const description = agentProfile.meta.description || agentProfile.personaDescription || undefined;
-
-        // Use the agent's icon-256.png as the favicon for all agent pages and subpages
-        const iconUrl = `/agents/${encodeURIComponent(agentName)}/images/icon-256.png`;
-
-        return {
-            title,
-            description,
-            icons: {
-                icon: iconUrl,
-                shortcut: iconUrl,
-                apple: iconUrl,
-            },
-        };
-    } catch (error) {
-        console.warn(`Failed to generate metadata for agent ${agentName}`, error);
-        return {
-            title: agentName,
-        };
-    }
+    return generateAgentMetadata({ params });
 }
 
+/**
+ * Shared route layout for all pages under `/agents/[agentName]`.
+ */
 export default async function AgentLayout({
     children,
 }: Readonly<{

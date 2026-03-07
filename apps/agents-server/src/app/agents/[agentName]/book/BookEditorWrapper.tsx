@@ -2,6 +2,8 @@
 
 import { BookEditor } from '@promptbook-local/components';
 import { string_book } from '@promptbook-local/types';
+import { HistoryIcon } from 'lucide-react';
+import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { bookEditorUploadHandler } from '../../../../utils/upload/createBookEditorUploadHandler';
 import { showAlert } from '@/src/components/AsyncDialogs/asyncDialogs';
@@ -441,9 +443,20 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                 onCreate={() => handleCreateReferencedAgent(reference)}
             />
         ));
+    const versionHistoryHref = `/agents/${encodeURIComponent(agentName)}/history`;
 
     return (
         <div className="relative flex h-full min-h-0 flex-col">
+            <div className="absolute right-4 top-4 z-40">
+                <Link
+                    href={versionHistoryHref}
+                    className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
+                >
+                    <HistoryIcon className="h-4 w-4" />
+                    Version history
+                </Link>
+            </div>
+
             {saveStatus !== 'idle' && (
                 <div
                     role="status"

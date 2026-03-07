@@ -561,6 +561,7 @@ export function Chat(props: ChatProps) {
                 toolTitles={toolTitles}
                 agentParticipant={agentParticipant}
                 buttonColor={buttonColor}
+                chatMessages={messages}
                 teamAgentProfiles={teamAgentProfiles}
             />
 

@@ -1,11 +1,31 @@
+-   Added simple book version history UX for Agents Server autosaved agent sources:
+    -   Added a visible `Version history` entry point directly in the Book editor so admins can open source-history without leaving the editing flow.
+    -   Reworked `/agents/[agentName]/history` into an expandable, Google Docs-inspired saved-version list that shows timestamp, source preview, full saved source content, and one-click restore per version.
+    -   Reused existing `AgentHistory` persistence (no migration needed) and tightened restore by requiring admin access plus permanent-id validation when applying a historical version.
+
+-   Added one-click advanced tool-call report copy in Agents Server chat chips:
+    -   Added an advanced-only `Copy report` action to the tool-call popup modal (the simple variant stays unchanged and does not expose technical payloads).
+    -   Copied output is Markdown and now includes full advanced payload panels (input/output/model/full event) together with wider diagnostic context (agent source, parsed commitment usage, TEAM transitive context, and raw chat timeline).
+    -   Kept the implementation DRY by reusing one shared advanced payload-section resolver for both on-screen advanced rendering and report export across all tool-call types (`USE BROWSER`, `USE SEARCH ENGINE`, `USE PROJECT`, `TEAM`, etc.).
+
+-   Unified Agents Server agent-page metadata branding for all `/agents/[agentName]` routes:
+    -   Refactored `apps/agents-server/src/app/agents/[agentName]/layout.tsx` to reuse one shared metadata generator (`generateAgentMetadata`) instead of a separate layout-specific implementation.
+    -   Removed redundant page-level `generateMetadata = generateAgentMetadata` aliases from agent subpages (`book`, `book+chat`, `chat`, `integration`, `system-message`, `website-integration`, `iframe`, and profile page) so metadata branding is inherited from one DRY layout source.
+    -   As a result, agent favicon and related metadata branding are now applied consistently across agent pages through the shared layout metadata pipeline.
+
 -   Humanized AI-generated outbound email text in Agents Server `USE EMAIL` flow:
     -   Added a shared `humanizeOutboundEmail` utility for email payload cleanup using `humanizeAiText`.
     -   `send_email` now humanizes outbound email subject and body right before sending, without exposing this behavior to the agent.
     -   Added a focused unit test covering subject/content cleanup and metadata subject synchronization.
 
+-   Improved BookEditor syntax highlighting for note-like commitments:
+    -   `NOTE`/`NOTES`/`NONCE` now keep the whole commitment block in comment-style gray until the next commitment (not just the keyword).
+    -   `TODO` now uses a dedicated high-visibility style (yellow highlight with black text) for the whole commitment block.
+    -   Refactored Monaco tokenizer transitions into shared helpers so NOTE/TODO block handling stays DRY.
+
 -   Updated BookEditor commitment syntax highlighting to visually separate non-executable note commitments:
-    -   `TODO`, `NOTE`, `NOTES`, and `NONCE` now render with a dedicated gray note style instead of the regular commitment color.
-    -   Implemented this through one DRY Monaco token path (`note-commitment`) shared by tokenizer and theme rules.
+    -   `NOTE`, `NOTES`, and `NONCE` now render with a dedicated gray note style instead of the regular commitment color.
+    -   `TODO` now uses its own highlighted style through shared note-like Monaco tokenizer helpers and theme tokens.
 
 -   Expanded self-learning sampling to capture full internal execution traces:
     -   Added a new `INTERNAL MESSAGE` commitment and registry support for parsing book-level internal trace records.

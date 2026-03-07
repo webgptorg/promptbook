@@ -2,9 +2,6 @@
 
 import { redirect } from 'next/navigation';
 import { getAgentName } from '../_utils';
-import { generateAgentMetadata } from '../generateAgentMetadata';
-
-export const generateMetadata = generateAgentMetadata;
 
 /**
  * Builds legacy `/iframe` redirect target and preserves supported query parameters.
