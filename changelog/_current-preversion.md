@@ -1,3 +1,7 @@
+-   Refactored Agents Server default server-search providers for maintainability without behavior changes:
+    -   Split `apps/agents-server/src/search/createDefaultServerSearchProviders.ts` into focused provider modules under `apps/agents-server/src/search/createDefaultServerSearchProviders/` (agents, federated agents, folders, conversations, documentation, metadata, users, messages, files, images, and navigation).
+    -   Extracted shared private helpers for provider config, local organization dataset loading, federated fetch/URL normalization, conversation text flattening, profile/snippet formatting, and provider-result sorting/limiting.
+    -   Kept `createDefaultServerSearchProviders.ts` as a thin orchestration entrypoint and added private JSDoc annotations on moved internal entities.
 -   Refactored Agents Server database migration runner for maintainability without behavior changes:
     -   Split `apps/agents-server/src/database/runDatabaseMigrations.ts` into focused SRP helpers: `migratePrefix`, `acquireMigrationExecutionLock`, `resolveMigrationsDirectory`, and `selectPrefixesForMigration`.
     -   Kept `runDatabaseMigrations.ts` as the public orchestration layer with unchanged external behavior and runtime flow.
@@ -893,3 +897,4 @@
 -   Updated `openai` from `4.63.0` to `6.18.0` and fixed all resulting type errors.
 -   Resolved `zod` peer dependency conflicts between `@ai-sdk/deepseek` and `@openai/agents` by using `overrides` in `package.json`.
 -   Fixed `node-fetch` declaration issue in `LindatAutomaticTranslator.ts` by using native `URLSearchParams` and removing `node-fetch` import.
+
