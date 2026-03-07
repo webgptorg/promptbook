@@ -1,8 +1,3 @@
--   Added one-click advanced tool-call report copy in Agents Server chat chips:
-    -   Added an advanced-only `Copy report` action to the tool-call popup modal (the simple variant stays unchanged and does not expose technical payloads).
-    -   Copied output is Markdown and now includes full advanced payload panels (input/output/model/full event) together with wider diagnostic context (agent source, parsed commitment usage, TEAM transitive context, and raw chat timeline).
-    -   Kept the implementation DRY by reusing one shared advanced payload-section resolver for both on-screen advanced rendering and report export across all tool-call types (`USE BROWSER`, `USE SEARCH ENGINE`, `USE PROJECT`, `TEAM`, etc.).
-
 -   Unified Agents Server agent-page metadata branding for all `/agents/[agentName]` routes:
     -   Refactored `apps/agents-server/src/app/agents/[agentName]/layout.tsx` to reuse one shared metadata generator (`generateAgentMetadata`) instead of a separate layout-specific implementation.
     -   Removed redundant page-level `generateMetadata = generateAgentMetadata` aliases from agent subpages (`book`, `book+chat`, `chat`, `integration`, `system-message`, `website-integration`, `iframe`, and profile page) so metadata branding is inherited from one DRY layout source.

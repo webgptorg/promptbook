@@ -1,9 +1,8 @@
 'use client';
 
 import moment from 'moment';
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
+import { useEffect, useMemo, useState, type ReactElement } from 'react';
 import { isPseudoAgentUrl } from '../../../book-2.0/agent-source/pseudoAgentReferences';
-import { parseAgentSourceWithCommitments } from '../../../book-2.0/agent-source/parseAgentSourceWithCommitments';
 import { validateBook } from '../../../book-2.0/agent-source/string_book';
 import type { string_date_iso8601 } from '../../../types/typeAliases';
 import { Color } from '../../../utils/color/Color';
@@ -22,11 +21,7 @@ import { MockedChat } from '../MockedChat/MockedChat';
 import { SourceChip } from '../SourceChip';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
-import {
-    collectTeamToolCallSummary,
-    type TeamToolCallSummary,
-    type TransitiveToolCall,
-} from '../utils/collectTeamToolCallSummary';
+import { collectTeamToolCallSummary, type TransitiveToolCall } from '../utils/collectTeamToolCallSummary';
 import { buildToolCallChipText, getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletInfo';
 import type { AgentProfileData } from '../utils/loadAgentProfile';
 import type { AgentChipData } from '../AgentChip/AgentChip';
@@ -64,10 +59,6 @@ export type ChatToolCallModalProps = {
     agentParticipant?: ChatParticipant;
     buttonColor: WithTake<Color>;
     /**
-     * Full chat timeline used when generating advanced debug reports.
-     */
-    chatMessages?: ReadonlyArray<ChatMessage>;
-    /**
      * Optional cached team agent metadata keyed by TEAM tool name.
      */
     teamAgentProfiles?: Record<string, AgentChipData>;
@@ -81,56 +72,20 @@ export type ChatToolCallModalProps = {
 type ToolCallModalViewMode = 'simple' | 'advanced';
 
 /**
- * Delay for resetting copied-state feedback on the advanced copy button.
- *
- * @private internal utility of `<ChatToolCallModal/>`
- */
-const TOOL_CALL_COPY_FEEDBACK_TIMEOUT_MS = 2200;
-
-/**
  * Modal that renders rich tool call details for chat chiplets.
  *
  * @private component of `<Chat/>`
  */
 export function ChatToolCallModal(props: ChatToolCallModalProps) {
-    const {
-        isOpen,
-        toolCall,
-        onClose,
-        toolTitles,
-        agentParticipant,
-        buttonColor,
-        chatMessages,
-        teamAgentProfiles,
-    } = props;
+    const { isOpen, toolCall, onClose, toolTitles, agentParticipant, buttonColor, teamAgentProfiles } = props;
     const [teamProfiles, setTeamProfiles] = useState<Record<string, AgentProfileData>>({});
     const [selectedTeamToolCall, setSelectedTeamToolCall] = useState<TransitiveToolCall | null>(null);
     const [viewMode, setViewMode] = useState<ToolCallModalViewMode>('simple');
-    const [isAdvancedReportCopied, setIsAdvancedReportCopied] = useState(false);
-    const copyFeedbackTimeoutRef = useRef<number | null>(null);
 
     const resultRaw = useMemo(() => (toolCall ? parseToolCallResult(toolCall.result) : null), [toolCall]);
     const teamResult = useMemo(() => parseTeamToolResult(resultRaw), [resultRaw]);
     const toolCallDate = useMemo(() => (toolCall ? getToolCallTimestamp(toolCall) : null), [toolCall]);
     const teamToolCallSummary = useMemo(() => collectTeamToolCallSummary(toolCall ? [toolCall] : []), [toolCall]);
-
-    /**
-     * Clears the timeout that resets copy feedback text.
-     */
-    const clearCopyFeedbackTimeout = useCallback((): void => {
-        if (copyFeedbackTimeoutRef.current === null) {
-            return;
-        }
-
-        window.clearTimeout(copyFeedbackTimeoutRef.current);
-        copyFeedbackTimeoutRef.current = null;
-    }, []);
-
-    useEffect(() => {
-        return () => {
-            clearCopyFeedbackTimeout();
-        };
-    }, [clearCopyFeedbackTimeout]);
 
     useEffect(() => {
         if (!isOpen || !toolCall) {
@@ -194,54 +149,18 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
         if (!isOpen) {
             setSelectedTeamToolCall(null);
             setViewMode('simple');
-            setIsAdvancedReportCopied(false);
-            clearCopyFeedbackTimeout();
             return;
         }
 
         setSelectedTeamToolCall(null);
         setViewMode('simple');
-        setIsAdvancedReportCopied(false);
-        clearCopyFeedbackTimeout();
-    }, [isOpen, toolCall, clearCopyFeedbackTimeout]);
+    }, [isOpen, toolCall]);
 
     if (!isOpen || !toolCall) {
         return null;
     }
 
     const focusedToolCall = selectedTeamToolCall?.toolCall || toolCall;
-    const handleCopyAdvancedReport = useCallback(async (): Promise<void> => {
-        try {
-            const reportMarkdown = buildAdvancedToolCallReportMarkdown({
-                rootToolCall: toolCall,
-                focusedToolCall,
-                toolTitles,
-                agentParticipant,
-                chatMessages,
-                teamToolCallSummary,
-            });
-
-            await copyPlainTextToClipboard(reportMarkdown);
-
-            setIsAdvancedReportCopied(true);
-            clearCopyFeedbackTimeout();
-            copyFeedbackTimeoutRef.current = window.setTimeout(() => {
-                copyFeedbackTimeoutRef.current = null;
-                setIsAdvancedReportCopied(false);
-            }, TOOL_CALL_COPY_FEEDBACK_TIMEOUT_MS);
-        } catch (error) {
-            console.error('[ChatToolCallModal] Failed to copy advanced report.', error);
-            setIsAdvancedReportCopied(false);
-        }
-    }, [
-        agentParticipant,
-        chatMessages,
-        clearCopyFeedbackTimeout,
-        focusedToolCall,
-        teamToolCallSummary,
-        toolCall,
-        toolTitles,
-    ]);
 
     const modalContent =
         viewMode === 'advanced'
@@ -476,17 +395,6 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
                 </button>
                 {modalContent}
                 <div className={styles.toolCallModeFooter}>
-                    {viewMode === 'advanced' && (
-                        <button
-                            type="button"
-                            className={styles.toolCallModeButton}
-                            onClick={() => {
-                                void handleCopyAdvancedReport();
-                            }}
-                        >
-                            {isAdvancedReportCopied ? 'Copied advanced report' : 'Copy advanced report'}
-                        </button>
-                    )}
                     <button
                         type="button"
                         className={styles.toolCallModeButton}
@@ -500,268 +408,6 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
             </div>
         </div>
     );
-}
-
-/**
- * Context required to build a copyable advanced report in Markdown.
- *
- * @private internal utility of `<ChatToolCallModal/>`
- */
-type AdvancedToolCallReportOptions = {
-    /**
-     * Tool call selected directly from the chip row.
-     */
-    rootToolCall: NonNullable<ChatMessage['toolCalls']>[number];
-    /**
-     * Tool call currently focused in modal details.
-     */
-    focusedToolCall: NonNullable<ChatMessage['toolCalls']>[number];
-    /**
-     * Optional mapping of tool titles.
-     */
-    toolTitles?: Record<string, string>;
-    /**
-     * Agent metadata used by the active chat.
-     */
-    agentParticipant?: ChatParticipant;
-    /**
-     * Full chat timeline for wider diagnostic context.
-     */
-    chatMessages?: ReadonlyArray<ChatMessage>;
-    /**
-     * Flattened TEAM tool-call context.
-     */
-    teamToolCallSummary: TeamToolCallSummary;
-};
-
-/**
- * One parsed commitment type count derived from `agentSource`.
- *
- * @private internal utility of `<ChatToolCallModal/>`
- */
-type AgentCommitmentUsage = {
-    /**
-     * Commitment keyword.
-     */
-    type: string;
-    /**
-     * Number of occurrences in the source.
-     */
-    count: number;
-};
-
-/**
- * Copies text into the clipboard with a fallback for older browsers.
- *
- * @param value - Text to copy.
- * @private internal utility of `<ChatToolCallModal/>`
- */
-async function copyPlainTextToClipboard(value: string): Promise<void> {
-    if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(value);
-        return;
-    }
-
-    const temporaryTextarea = document.createElement('textarea');
-    temporaryTextarea.value = value;
-    temporaryTextarea.setAttribute('readonly', 'true');
-    temporaryTextarea.style.position = 'fixed';
-    temporaryTextarea.style.opacity = '0';
-    document.body.appendChild(temporaryTextarea);
-    temporaryTextarea.focus();
-    temporaryTextarea.select();
-
-    const wasCopied = document.execCommand('copy');
-    document.body.removeChild(temporaryTextarea);
-
-    if (!wasCopied) {
-        throw new Error('Clipboard copy failed.');
-    }
-}
-
-/**
- * Builds the full Markdown payload copied from the advanced tool-call modal.
- *
- * @param options - Report composition context.
- * @returns Markdown text containing tool call payloads and wider chat context.
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function buildAdvancedToolCallReportMarkdown(options: AdvancedToolCallReportOptions): string {
-    const { rootToolCall, focusedToolCall, toolTitles, agentParticipant, chatMessages, teamToolCallSummary } = options;
-    const focusedMetadata = resolveToolCallPresentationMetadata({ toolCall: focusedToolCall, toolTitles });
-    const commitmentUsage = collectAgentCommitmentUsage(agentParticipant?.agentSource);
-    const payloadSections = createAdvancedToolCallPayloadSections(focusedToolCall);
-    const reportLines: string[] = [];
-
-    reportLines.push('# Tool Call Advanced Report');
-    reportLines.push('');
-    reportLines.push(`- Generated at: \`${new Date().toISOString()}\``);
-    reportLines.push(`- Focused action: \`${focusedToolCall.name}\``);
-    reportLines.push(`- Root action: \`${rootToolCall.name}\``);
-    if (focusedMetadata.title && focusedMetadata.title !== focusedToolCall.name) {
-        reportLines.push(`- Display title: ${focusedMetadata.emoji} ${focusedMetadata.title}`);
-    }
-    reportLines.push('');
-
-    reportLines.push('## Focused Action Payloads');
-    reportLines.push('');
-    for (const payloadSection of payloadSections) {
-        const formattedPayload = formatToolCallPayload(payloadSection.payload);
-        const markdownLanguage = formattedPayload.language === 'json' ? 'json' : 'text';
-        reportLines.push(`### ${payloadSection.title}`);
-        reportLines.push('');
-        reportLines.push(renderMarkdownCodeBlock(formattedPayload.content, markdownLanguage));
-        reportLines.push('');
-    }
-
-    if (focusedToolCall !== rootToolCall) {
-        reportLines.push('## Root Tool Call Event');
-        reportLines.push('');
-        reportLines.push(renderMarkdownCodeBlock(serializeToPrettyJson(rootToolCall), 'json'));
-        reportLines.push('');
-    }
-
-    reportLines.push('## Agent Context');
-    reportLines.push('');
-    reportLines.push(`- Agent label: ${agentParticipant?.fullname || agentParticipant?.name || 'Unknown'}`);
-    reportLines.push(`- Agent id: \`${agentParticipant?.name || 'Unknown'}\``);
-    reportLines.push('');
-
-    if (commitmentUsage.length > 0) {
-        reportLines.push('### Commitments Used');
-        reportLines.push('');
-        for (const commitment of commitmentUsage) {
-            reportLines.push(`- \`${commitment.type}\` (${commitment.count})`);
-        }
-        reportLines.push('');
-    }
-
-    if (agentParticipant?.agentSource) {
-        reportLines.push('### Agent Source');
-        reportLines.push('');
-        reportLines.push(renderMarkdownCodeBlock(agentParticipant.agentSource, 'book'));
-        reportLines.push('');
-    }
-
-    reportLines.push('## Team Context');
-    reportLines.push('');
-    reportLines.push(`- Team tool calls: ${teamToolCallSummary.toolCalls.length}`);
-    reportLines.push(`- Team citations: ${teamToolCallSummary.citations.length}`);
-    reportLines.push('');
-    if (teamToolCallSummary.toolCalls.length > 0) {
-        reportLines.push('### Team Tool Calls');
-        reportLines.push('');
-        reportLines.push(renderMarkdownCodeBlock(serializeToPrettyJson(teamToolCallSummary.toolCalls), 'json'));
-        reportLines.push('');
-    }
-    if (teamToolCallSummary.citations.length > 0) {
-        reportLines.push('### Team Citations');
-        reportLines.push('');
-        reportLines.push(renderMarkdownCodeBlock(serializeToPrettyJson(teamToolCallSummary.citations), 'json'));
-        reportLines.push('');
-    }
-
-    reportLines.push('## Chat Timeline');
-    reportLines.push('');
-    reportLines.push(
-        renderMarkdownCodeBlock(
-            serializeToPrettyJson(
-                (chatMessages || []).map((message) => ({
-                    sender: message.sender,
-                    createdAt: message.createdAt,
-                    isComplete: message.isComplete,
-                    content: message.content,
-                    toolCalls: message.toolCalls,
-                    completedToolCalls: message.completedToolCalls,
-                    ongoingToolCalls: message.ongoingToolCalls,
-                    citations: message.citations,
-                    attachments: message.attachments,
-                })),
-            ),
-            'json',
-        ),
-    );
-    reportLines.push('');
-
-    return reportLines.join('\n');
-}
-
-/**
- * Parses agent source and returns sorted commitment usage counts.
- *
- * @param agentSource - Optional agent source.
- * @returns Sorted commitment type counters.
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function collectAgentCommitmentUsage(agentSource: ChatParticipant['agentSource'] | undefined): AgentCommitmentUsage[] {
-    if (!agentSource) {
-        return [];
-    }
-
-    try {
-        const parseResult = parseAgentSourceWithCommitments(agentSource);
-        const commitmentUsageMap = new Map<string, number>();
-
-        for (const commitment of parseResult.commitments) {
-            commitmentUsageMap.set(commitment.type, (commitmentUsageMap.get(commitment.type) || 0) + 1);
-        }
-
-        return Array.from(commitmentUsageMap.entries())
-            .map(([type, count]) => ({ type, count }))
-            .sort((a, b) => a.type.localeCompare(b.type));
-    } catch {
-        return [];
-    }
-}
-
-/**
- * Renders content as a fenced Markdown code block while keeping fences safe.
- *
- * @param content - Raw block content.
- * @param language - Optional Markdown language tag.
- * @returns Markdown code-block string.
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function renderMarkdownCodeBlock(content: string, language?: string): string {
-    const fence = resolveMarkdownCodeFence(content);
-    const languageSuffix = language ? language : '';
-
-    return `${fence}${languageSuffix}\n${content}\n${fence}`;
-}
-
-/**
- * Resolves a backtick fence that is always longer than fences found inside content.
- *
- * @param content - Candidate content for Markdown code block.
- * @returns Fence string (3+ backticks).
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function resolveMarkdownCodeFence(content: string): string {
-    const backtickRuns = content.match(/`+/g) || [];
-    const longestRunLength = backtickRuns.reduce((maxLength, run) => Math.max(maxLength, run.length), 0);
-    const fenceLength = Math.max(3, longestRunLength + 1);
-
-    return '`'.repeat(fenceLength);
-}
-
-/**
- * Safely serializes arbitrary values into pretty JSON for report sections.
- *
- * @param value - Value to serialize.
- * @returns JSON text or a string fallback.
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function serializeToPrettyJson(value: TODO_any): string {
-    try {
-        const serialized = JSON.stringify(value, null, 2);
-        if (serialized !== undefined) {
-            return serialized;
-        }
-    } catch {
-        // Fallback below.
-    }
-
-    return String(value);
 }
 
 /**
@@ -1920,83 +1566,6 @@ const TOOL_CALL_PAYLOAD_EDITOR_OPTIONS = {
 } as const;
 
 /**
- * Inputs for resolving tool-call presentation metadata used in advanced mode/reporting.
- *
- * @private internal utility of `<ChatToolCallModal/>`
- */
-type ResolveToolCallPresentationMetadataOptions = {
-    /**
-     * Tool call being rendered.
-     */
-    toolCall: NonNullable<ChatMessage['toolCalls']>[number];
-    /**
-     * Optional mapping of friendly tool titles.
-     */
-    toolTitles?: Record<string, string>;
-};
-
-/**
- * Friendly metadata derived from a tool call for headers and reports.
- *
- * @private internal utility of `<ChatToolCallModal/>`
- */
-type ToolCallPresentationMetadata = {
-    /**
-     * Emoji shown in the modal header.
-     */
-    emoji: string;
-    /**
-     * Human-readable title shown in the header.
-     */
-    title: string;
-};
-
-/**
- * Resolves stable visual metadata (emoji + title) for a tool call.
- *
- * @param options - Resolution options.
- * @returns Friendly metadata used by advanced UI and copied reports.
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function resolveToolCallPresentationMetadata(
-    options: ResolveToolCallPresentationMetadataOptions,
-): ToolCallPresentationMetadata {
-    const { toolCall, toolTitles } = options;
-    const chipletInfo = getToolCallChipletInfo(toolCall);
-    const toolMetadata = TOOL_TITLES[toolCall.name];
-
-    return {
-        emoji: toolMetadata?.emoji || extractLeadingEmoji(chipletInfo.text) || '🛠️',
-        title: toolTitles?.[toolCall.name] || toolMetadata?.title || chipletInfo.text || toolCall.name,
-    };
-}
-
-/**
- * Creates advanced payload panels shared by rendering and markdown export.
- *
- * @param toolCall - Tool call currently focused in modal.
- * @returns Ordered payload sections.
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function createAdvancedToolCallPayloadSections(
-    toolCall: NonNullable<ChatMessage['toolCalls']>[number],
-): Array<AdvancedToolCallPayloadSection> {
-    return [
-        {
-            id: 'request',
-            title: 'Input payload',
-            payload: {
-                toolName: toolCall.name,
-                arguments: toolCall.arguments,
-            },
-        },
-        { id: 'result', title: 'Output payload', payload: toolCall.result },
-        { id: 'raw-model', title: 'Model payload', payload: toolCall.rawToolCall },
-        { id: 'event', title: 'Full event', payload: toolCall },
-    ];
-}
-
-/**
  * Renders a technical view with raw tool input/output payloads.
  *
  * @param options - Rendering options for advanced mode.
@@ -2004,18 +1573,30 @@ function createAdvancedToolCallPayloadSections(
  */
 function renderAdvancedToolCallDetails(options: AdvancedToolCallDetailsOptions): ReactElement {
     const { toolCall, toolTitles } = options;
-    const presentationMetadata = resolveToolCallPresentationMetadata({ toolCall, toolTitles });
-    const payloadSections = createAdvancedToolCallPayloadSections(toolCall);
+    const chipletInfo = getToolCallChipletInfo(toolCall);
+    const toolMetadata = TOOL_TITLES[toolCall.name];
+    const headerEmoji = toolMetadata?.emoji || extractLeadingEmoji(chipletInfo.text) || '🛠️';
+    const headerTitle = toolTitles?.[toolCall.name] || toolMetadata?.title || chipletInfo.text || toolCall.name;
+    const requestPayload = {
+        toolName: toolCall.name,
+        arguments: toolCall.arguments,
+    };
+    const payloadSections: Array<AdvancedToolCallPayloadSection> = [
+        { id: 'request', title: 'Input payload', payload: requestPayload },
+        { id: 'result', title: 'Output payload', payload: toolCall.result },
+        { id: 'raw-model', title: 'Model payload', payload: toolCall.rawToolCall },
+        { id: 'event', title: 'Full event', payload: toolCall },
+    ];
 
     return (
         <>
             <header className={styles.toolCallHeader}>
                 <span className={styles.toolCallIcon} aria-hidden="true">
-                    {presentationMetadata.emoji}
+                    {headerEmoji}
                 </span>
                 <div className={styles.toolCallHeaderMeta}>
                     <p className={styles.toolCallModalLabel}>Advanced</p>
-                    <h3 className={styles.toolCallTitle}>{presentationMetadata.title}</h3>
+                    <h3 className={styles.toolCallTitle}>{headerTitle}</h3>
                     <p className={styles.toolCallSubtitle}>{toolCall.name}</p>
                 </div>
             </header>
