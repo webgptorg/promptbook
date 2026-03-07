@@ -1,3 +1,8 @@
+-   Refactored Agents Server usage analytics API route for maintainability without behavior changes:
+    -   Split `apps/agents-server/src/app/api/usage/route.ts` into focused usage-analytics server modules under `apps/agents-server/src/utils/usageAnalytics` (query parsing, data loading, call metric extraction, and aggregation/response shaping).
+    -   Kept API behavior and payload semantics unchanged while reducing route-level density to a thin orchestration handler.
+    -   Added private JSDoc annotations on extracted internal entities to align with internal conventions.
+
 -   Refactored Agents Server `AgentChatWrapper` for maintainability without behavior changes:
     -   Split `apps/agents-server/src/app/agents/[agentName]/AgentChatWrapper.tsx` into focused private hooks: `useTeamAgentProfiles`, `useAgentChatMetaDisclaimer`, and `useAgentChatToolInteractions`.
     -   Kept existing chat behavior intact, including TEAM profile hydration, META DISCLAIMER gating, auto-execute consumption, and tool-driven location/privacy/pseudo-user/wallet interaction flows.
