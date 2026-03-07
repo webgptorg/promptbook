@@ -1,3 +1,5 @@
+-   Fixed Agents Server agent cloning placement so cloned agents now default to the same folder as the source agent instead of always being created in root.
+
 -   Improved coding-agent Git automation and Vercel deploy triggering:
     -   Updated `scripts/run-codex-prompts/git/commitChanges.ts` so each successful coding-agent commit now automatically pushes to Git (uses existing upstream when present, and sets upstream on first push when missing).
     -   Added explicit upstream/remote resolution and idempotent no-op behavior when there is nothing to push.
