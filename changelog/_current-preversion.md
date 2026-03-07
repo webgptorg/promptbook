@@ -1,3 +1,8 @@
+-   Refactored Agents Server database migration runner for maintainability without behavior changes:
+    -   Split `apps/agents-server/src/database/runDatabaseMigrations.ts` into focused SRP helpers: `migratePrefix`, `acquireMigrationExecutionLock`, `resolveMigrationsDirectory`, and `selectPrefixesForMigration`.
+    -   Kept `runDatabaseMigrations.ts` as the public orchestration layer with unchanged external behavior and runtime flow.
+    -   Added private JSDoc annotations to moved internal entities to align with project conventions.
+
 -   Refactored Agents Server homepage agents list for maintainability without behavior changes:
     -   Split `apps/agents-server/src/components/Homepage/AgentsList.tsx` into focused SRP modules for drag/drop cards and handles (`SortableAgentCard`, `SortableFolderCard`, `DragHandle`, drag data types), breadcrumb/parent-folder navigation drops (`BreadcrumbDropTarget`, `ParentFolderCard`, `useBreadcrumbDropTarget`), QR presentation (`AgentQrCodeModal`), touch-input detection (`useIsTouchInput`), federated agent loading (`useFederatedAgents`), and drop-intent calculation (`getDropIntentFromRects`).
     -   Kept `AgentsList` as orchestration for state, routing, dialogs, and list/graph rendering while preserving existing runtime behavior.
