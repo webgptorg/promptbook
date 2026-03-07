@@ -1,3 +1,13 @@
+-   Refactored Agents Server GitHub App utilities for maintainability/readability without behavior changes:
+    -   Split `apps/agents-server/src/utils/githubApp.ts` into focused SRP modules under `apps/agents-server/src/utils/githubApp/`:
+        -   `GithubAppConfiguration` (configuration loading/validation),
+        -   `GithubAppConnectionState` (state creation/parsing/URL normalization),
+        -   `GithubAppConnectionRecord` (UserData persistence/token usability checks),
+        -   `GithubAppInstallationAccessToken` (JWT + installation token exchange),
+        -   `GithubAppService` (status/connect/refresh orchestration).
+    -   Kept `apps/agents-server/src/utils/githubApp.ts` as a thin facade with the same exported API and runtime behavior.
+    -   Added private JSDoc annotations to extracted internal entities.
+
 -   Refactored Agents Server `run_browser` tool for maintainability/readability without behavior changes:
     -   Split `apps/agents-server/src/tools/run_browser.ts` into focused SRP modules: `RunBrowserArgs`, `runBrowserConstants`, `runBrowserRuntime`, `runBrowserErrorHandling`, `runBrowserWorkflow`, `runBrowserArtifacts`, `runBrowserResultFormatting`, and `runBrowserObservability`.
     -   Kept `run_browser` as the orchestration entrypoint with the same tool contract, fallback flow, output markdown format, and structured payload semantics.
