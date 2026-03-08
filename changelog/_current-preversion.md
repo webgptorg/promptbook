@@ -1,3 +1,8 @@
+-   Refactored `WALLET` commitment internals for maintainability/readability without behavior changes:
+    -   Split `src/commitments/WALLET/WALLET.ts` into focused private modules for runtime adapter contracts/state, tool names, tool schemas, tool-title mapping, runtime-context resolution, argument parsing, disabled-runtime handling, tool-function implementations, system-message composition, and commitment documentation.
+    -   Kept `src/commitments/WALLET/WALLET.ts` as a thin orchestration facade preserving the same external API (`WalletCommitmentDefinition`, `setWalletToolRuntimeAdapter`, and existing exported WALLET types).
+    -   Added explicit private JSDoc annotations on extracted exported internals to align with package-generation checks.
+
 -   Refactored `USE PROJECT` commitment internals for maintainability/readability without behavior changes:
     -   Split `src/commitments/USE_PROJECT/USE_PROJECT.ts` into focused private modules for tool names, tool schemas, tool-title mapping, configured-project normalization, runtime/wallet resolution, GitHub API transport, and tool-function implementations.
     -   Kept `src/commitments/USE_PROJECT/USE_PROJECT.ts` as a thin orchestration facade preserving the same external API (`UseProjectCommitmentDefinition`) and existing tool behavior.
