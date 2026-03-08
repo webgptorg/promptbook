@@ -1,3 +1,7 @@
+-   Refactored `src/types/typeAliases.ts` into focused alias modules while preserving external behavior:
+    -   Extracted semantic type aliases into SRP-oriented files (`string_parameter_name.ts`, `string_sha256.ts`, `string_markdown.ts`, `string_filename.ts`, `string_url.ts`, `string_knowledge_source_content.ts`, `string_person_fullname.ts`, `string_token.ts`, `number_usd.ts`).
+    -   Kept `src/types/typeAliases.ts` as a thin re-export facade to preserve existing import paths and public type names.
+
 -   Refactored `WALLET` commitment internals for maintainability/readability without behavior changes:
     -   Split `src/commitments/WALLET/WALLET.ts` into focused private modules for runtime adapter contracts/state, tool names, tool schemas, tool-title mapping, runtime-context resolution, argument parsing, disabled-runtime handling, tool-function implementations, system-message composition, and commitment documentation.
     -   Kept `src/commitments/WALLET/WALLET.ts` as a thin orchestration facade preserving the same external API (`WalletCommitmentDefinition`, `setWalletToolRuntimeAdapter`, and existing exported WALLET types).
