@@ -4,7 +4,7 @@ import { BookEditor } from '@promptbook-local/components';
 import { string_book } from '@promptbook-local/types';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { bookEditorUploadHandler } from '../../../../utils/upload/createBookEditorUploadHandler';
-import { showAlert } from '@/src/components/AsyncDialogs/asyncDialogs';
+import { showAlert, showConfirm } from '@/src/components/AsyncDialogs/asyncDialogs';
 import type { MissingAgentReference } from '../../../../utils/agentReferenceResolver/createUnresolvedAgentReferenceDiagnostics';
 import { useUnsavedChangesGuard } from '../../../../components/utils/useUnsavedChangesGuard';
 
@@ -60,9 +60,39 @@ type PendingSave = {
 };
 
 /**
- * Minimal server error payload used for save failure messages.
+ * Minimal API error payload used by Book-related endpoints.
  */
-type SaveErrorPayload = {
+type ApiErrorPayload = {
+    message?: string;
+    error?: string;
+};
+
+/**
+ * One book snapshot item returned by the history API.
+ */
+type AgentHistoryEntry = {
+    id: number;
+    createdAt: string;
+    agentName: string;
+    agentHash: string;
+    previousAgentHash: string | null;
+    agentSource: string_book;
+    promptbookEngineVersion: string;
+};
+
+/**
+ * API response returned by `/api/book/history`.
+ */
+type AgentHistoryResponse = {
+    history?: Array<AgentHistoryEntry>;
+};
+
+/**
+ * API response returned when restoring one history snapshot.
+ */
+type RestoreAgentHistoryResponse = {
+    isSuccessful?: boolean;
+    agentSource?: string_book;
     message?: string;
     error?: string;
 };
@@ -99,16 +129,26 @@ function normalizeDiagnosticsPayload(payload: AgentReferenceDiagnosticsResponse)
 }
 
 /**
- * Extracts a human-readable save error from a failed HTTP response.
+ * Normalizes the history payload shape returned by the history API.
  *
- * @param response - Failed save response.
+ * @param payload - Raw history payload.
+ * @returns Always-array history payload.
+ */
+function normalizeHistoryPayload(payload: AgentHistoryResponse): Array<AgentHistoryEntry> {
+    return Array.isArray(payload.history) ? payload.history : [];
+}
+
+/**
+ * Extracts a human-readable API error from a failed HTTP response.
+ *
+ * @param response - Failed API response.
  * @returns Friendly error message for UI.
  */
-async function resolveSaveErrorMessage(response: Response): Promise<string> {
-    const fallbackMessage = `Failed to save: ${response.status} ${response.statusText}`.trim();
+async function resolveApiErrorMessage(response: Response, fallbackMessage: string): Promise<string> {
+    const fallback = `${fallbackMessage}: ${response.status} ${response.statusText}`.trim();
 
     try {
-        const payload = (await response.json()) as SaveErrorPayload;
+        const payload = (await response.json()) as ApiErrorPayload;
         const payloadMessage = payload?.message || payload?.error;
         if (payloadMessage && payloadMessage.trim().length > 0) {
             return payloadMessage.trim();
@@ -117,7 +157,7 @@ async function resolveSaveErrorMessage(response: Response): Promise<string> {
         // Ignore JSON parsing failures and fall back to status-based message.
     }
 
-    return fallbackMessage;
+    return fallback;
 }
 
 // TODO: [🐱‍🚀] Rename to BookEditorSavingWrapper
@@ -136,14 +176,23 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
     const [diagnostics, setDiagnostics] = useState<Array<BookEditorDiagnostic>>([]);
     const [missingAgentReferences, setMissingAgentReferences] = useState<Array<MissingAgentReference>>([]);
     const [creatingReference, setCreatingReference] = useState<string | null>(null);
+    const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+    const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+    const [historyEntries, setHistoryEntries] = useState<Array<AgentHistoryEntry>>([]);
+    const [selectedHistoryId, setSelectedHistoryId] = useState<number | null>(null);
+    const [historyErrorMessage, setHistoryErrorMessage] = useState<string | null>(null);
+    const [isRestoringHistoryVersion, setIsRestoringHistoryVersion] = useState(false);
+    const [historyRefreshVersion, setHistoryRefreshVersion] = useState(0);
 
     // Debounce timer refs so pending jobs can be canceled before scheduling a newer one.
     const debounceTimerRef = useRef<number | null>(null);
     const diagnosticsDebounceTimerRef = useRef<number | null>(null);
     const diagnosticsAbortControllerRef = useRef<AbortController | null>(null);
+    const historyAbortControllerRef = useRef<AbortController | null>(null);
     const pendingSaveRef = useRef<PendingSave | null>(null);
     const isSaveWorkerRunningRef = useRef(false);
     const sourceVersionRef = useRef(0);
+    const isHistoryOpenRef = useRef(false);
 
     /**
      * Flushes queued autosave requests in-order and confirms server-saved versions.
@@ -172,13 +221,16 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                     });
 
                     if (!response.ok) {
-                        throw new Error(await resolveSaveErrorMessage(response));
+                        throw new Error(await resolveApiErrorMessage(response, 'Failed to save'));
                     }
 
                     setLastConfirmedSourceVersion((previousVersion) =>
                         pendingSave.version > previousVersion ? pendingSave.version : previousVersion,
                     );
                     setSaveStatus('saved');
+                    if (isHistoryOpenRef.current) {
+                        setHistoryRefreshVersion((previousVersion) => previousVersion + 1);
+                    }
                 } catch (error) {
                     console.error('Error saving agent source:', error);
                     const errorMessage =
@@ -238,6 +290,59 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
         pendingSaveRef.current = { source: agentSource, version: sourceVersionRef.current };
         void flushSaveQueue();
     }, [agentSource, flushSaveQueue]);
+
+    /**
+     * Loads the complete version history for the current agent.
+     */
+    const requestHistory = useCallback(async () => {
+        historyAbortControllerRef.current?.abort();
+        const abortController = new AbortController();
+        historyAbortControllerRef.current = abortController;
+
+        setIsHistoryLoading(true);
+        setHistoryErrorMessage(null);
+
+        try {
+            const response = await fetch(`/agents/${encodeURIComponent(agentName)}/api/book/history`, {
+                method: 'GET',
+                headers: { Accept: 'application/json' },
+                signal: abortController.signal,
+                cache: 'no-store',
+            });
+
+            if (!response.ok) {
+                throw new Error(await resolveApiErrorMessage(response, 'Failed to load history'));
+            }
+
+            const payload = (await response.json()) as AgentHistoryResponse;
+            const normalizedHistory = normalizeHistoryPayload(payload);
+            setHistoryEntries(normalizedHistory);
+            setSelectedHistoryId((currentHistoryId) => {
+                if (normalizedHistory.length === 0) {
+                    return null;
+                }
+
+                if (currentHistoryId && normalizedHistory.some((item) => item.id === currentHistoryId)) {
+                    return currentHistoryId;
+                }
+
+                return normalizedHistory[0]!.id;
+            });
+        } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') {
+                return;
+            }
+
+            console.error('Failed to load book history:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Failed to load book history.';
+            setHistoryErrorMessage(errorMessage);
+        } finally {
+            if (historyAbortControllerRef.current === abortController) {
+                historyAbortControllerRef.current = null;
+            }
+            setIsHistoryLoading(false);
+        }
+    }, [agentName]);
 
     /**
      * Requests unresolved compact-reference diagnostics from the server.
@@ -305,6 +410,89 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
     }, [requestDiagnostics]);
 
     /**
+     * Restores one selected history snapshot and updates local editor state.
+     *
+     * @param historyId - Identifier of the snapshot to restore.
+     */
+    const restoreHistoryVersion = useCallback(
+        async (historyId: number) => {
+            if (isSaveInFlight) {
+                await showAlert({
+                    title: 'Saving in progress',
+                    message: 'Wait until the current save finishes, then try restoring this version again.',
+                });
+                return;
+            }
+
+            const hasUnsavedLocalChanges =
+                isSaveDebounced || isSaveInFlight || currentSourceVersion !== lastConfirmedSourceVersion;
+            const confirmed = await showConfirm({
+                title: 'Restore version',
+                message: hasUnsavedLocalChanges
+                    ? 'Current local edits are not fully saved yet. Restoring will discard them. Continue?'
+                    : 'Restore this version? The current source will be saved into history automatically.',
+                confirmLabel: 'Restore version',
+                cancelLabel: 'Cancel',
+            }).catch(() => false);
+
+            if (!confirmed) {
+                return;
+            }
+
+            setIsRestoringHistoryVersion(true);
+
+            try {
+                if (debounceTimerRef.current) {
+                    clearTimeout(debounceTimerRef.current);
+                    debounceTimerRef.current = null;
+                }
+
+                pendingSaveRef.current = null;
+                setIsSaveDebounced(false);
+
+                const response = await fetch(`/agents/${encodeURIComponent(agentName)}/api/book/history`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ historyId }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(await resolveApiErrorMessage(response, 'Failed to restore version'));
+                }
+
+                const payload = (await response.json()) as RestoreAgentHistoryResponse;
+                if (typeof payload.agentSource !== 'string') {
+                    throw new Error('History restore endpoint returned an invalid source payload.');
+                }
+
+                const restoredSource = payload.agentSource as string_book;
+                sourceVersionRef.current += 1;
+                const restoredVersion = sourceVersionRef.current;
+
+                setAgentSource(restoredSource);
+                setCurrentSourceVersion(restoredVersion);
+                setLastConfirmedSourceVersion(restoredVersion);
+                setSaveStatus('saved');
+                setSaveErrorMessage(null);
+
+                await requestDiagnostics(restoredSource, { forceRefresh: true });
+                setHistoryRefreshVersion((previousVersion) => previousVersion + 1);
+                setSelectedHistoryId(historyId);
+            } catch (error) {
+                console.error('Failed to restore book history version:', error);
+                const errorMessage = error instanceof Error ? error.message : 'Failed to restore selected version.';
+                await showAlert({
+                    title: 'Restore failed',
+                    message: errorMessage,
+                });
+            } finally {
+                setIsRestoringHistoryVersion(false);
+            }
+        },
+        [agentName, currentSourceVersion, isSaveDebounced, isSaveInFlight, lastConfirmedSourceVersion, requestDiagnostics],
+    );
+
+    /**
      * Updates local state and schedules a save for editor changes.
      */
     const handleChange = (newSource: string_book) => {
@@ -366,6 +554,42 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
     }, [initialAgentSource, requestDiagnostics]);
 
     /**
+     * Mirrors history panel visibility inside a ref so save worker can trigger refreshes.
+     */
+    useEffect(() => {
+        isHistoryOpenRef.current = isHistoryOpen;
+    }, [isHistoryOpen]);
+
+    /**
+     * Loads history whenever the panel opens or a refresh is requested.
+     */
+    useEffect(() => {
+        if (!isHistoryOpen) {
+            return;
+        }
+
+        void requestHistory();
+    }, [historyRefreshVersion, isHistoryOpen, requestHistory]);
+
+    /**
+     * Supports ESC key closing for the history side panel.
+     */
+    useEffect(() => {
+        if (!isHistoryOpen) {
+            return;
+        }
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setIsHistoryOpen(false);
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isHistoryOpen]);
+
+    /**
      * Hides the short-lived success status once the editor is safely in sync.
      */
     useEffect(() => {
@@ -400,6 +624,7 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                 clearTimeout(diagnosticsDebounceTimerRef.current);
             }
             diagnosticsAbortControllerRef.current?.abort();
+            historyAbortControllerRef.current?.abort();
         };
     }, []);
 
@@ -418,20 +643,29 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
     });
 
     const hasMissingReferences = missingAgentReferences.length > 0;
-    const saveStatusToneClassName =
-        saveStatus === 'saved'
-            ? 'bg-green-100 text-green-800'
-            : saveStatus === 'error'
-            ? 'bg-red-100 text-red-800'
-            : 'bg-blue-100 text-blue-800';
+    const selectedHistoryEntry = historyEntries.find((item) => item.id === selectedHistoryId) || null;
     const saveStatusLabel =
         saveStatus === 'pending'
-            ? 'Changes queued for save...'
+            ? 'Save queued'
             : saveStatus === 'saving'
-            ? 'Saving to server...'
-            : saveStatus === 'saved'
-            ? 'Saved on server'
-            : 'Failed to save on server';
+            ? 'Saving...'
+            : saveStatus === 'error'
+            ? 'Save failed'
+            : 'Saved';
+    const saveIndicatorToneClassName =
+        saveStatus === 'error'
+            ? 'border-red-200 bg-red-50 text-red-700'
+            : saveStatus === 'pending' || saveStatus === 'saving'
+            ? 'border-blue-200 bg-blue-50 text-blue-700'
+            : 'border-slate-200 bg-white/95 text-slate-700';
+    const saveIndicatorDotClassName =
+        saveStatus === 'error'
+            ? 'bg-red-500'
+            : saveStatus === 'pending' || saveStatus === 'saving'
+            ? 'bg-blue-500'
+            : 'bg-emerald-500';
+    const canRestoreSelectedHistory =
+        Boolean(selectedHistoryEntry) && !isRestoringHistoryVersion && !isSaveInFlight;
     const renderMissingReferenceCards = () =>
         missingAgentReferences.map((reference) => (
             <MissingAgentReferenceCard
@@ -444,26 +678,158 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
 
     return (
         <div className="relative flex h-full min-h-0 flex-col">
-            {saveStatus !== 'idle' && (
-                <div
+            <div className="pointer-events-none fixed top-5 right-28 z-50">
+                <button
+                    type="button"
                     role="status"
                     aria-live="polite"
-                    className={`fixed top-5 right-28 z-50 max-w-md rounded px-4 py-2 text-sm shadow-md ${saveStatusToneClassName}`}
+                    onClick={() => setIsHistoryOpen(true)}
+                    className={`pointer-events-auto inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs shadow-sm transition-colors hover:opacity-90 ${saveIndicatorToneClassName}`}
+                    title="Open book history"
                 >
-                    <p className="font-semibold">{saveStatusLabel}</p>
-                    {saveStatus === 'error' && (
-                        <div className="mt-1 flex flex-col gap-2 text-xs">
-                            {saveErrorMessage && <p>{saveErrorMessage}</p>}
-                            <p>Navigation is blocked until this source is saved.</p>
-                            <button
-                                type="button"
-                                onClick={retrySaveNow}
-                                className="inline-flex w-fit items-center rounded border border-current px-2 py-1 font-semibold transition-opacity hover:opacity-80"
-                            >
-                                Retry save now
-                            </button>
-                        </div>
+                    {saveStatus === 'saving' ? (
+                        <span className="inline-block h-2.5 w-2.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    ) : (
+                        <span className={`inline-block h-2.5 w-2.5 rounded-full ${saveIndicatorDotClassName}`} />
                     )}
+                    <span>{saveStatusLabel}</span>
+                    <span className="text-[10px] uppercase tracking-wide opacity-70">History</span>
+                </button>
+            </div>
+
+            {isHistoryOpen && (
+                <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/20">
+                    <button
+                        type="button"
+                        aria-label="Close history panel"
+                        className="h-full flex-1 cursor-default"
+                        onClick={() => setIsHistoryOpen(false)}
+                    />
+                    <section
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label="Book version history"
+                        className="flex h-full w-full max-w-[960px] flex-col border-l border-slate-200 bg-white shadow-2xl"
+                    >
+                        <header className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+                            <div>
+                                <p className="text-sm font-semibold text-slate-900">Version history</p>
+                                <p className="text-xs text-slate-500">Saved snapshots of this book source</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setHistoryRefreshVersion((previousVersion) => previousVersion + 1)}
+                                    className="rounded border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                    disabled={isHistoryLoading}
+                                >
+                                    Refresh
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsHistoryOpen(false)}
+                                    className="rounded border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </header>
+
+                        <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+                            <aside className="max-h-64 overflow-auto border-b border-slate-200 md:max-h-none md:w-80 md:border-b-0 md:border-r">
+                                {isHistoryLoading && (
+                                    <p className="px-4 py-3 text-xs text-slate-500">Loading history...</p>
+                                )}
+
+                                {!isHistoryLoading && historyErrorMessage && (
+                                    <p className="px-4 py-3 text-xs text-red-600">{historyErrorMessage}</p>
+                                )}
+
+                                {!isHistoryLoading && !historyErrorMessage && historyEntries.length === 0 && (
+                                    <p className="px-4 py-3 text-xs text-slate-500">No history snapshots found.</p>
+                                )}
+
+                                {!isHistoryLoading &&
+                                    historyEntries.map((entry, index) => {
+                                        const isSelected = selectedHistoryId === entry.id;
+                                        return (
+                                            <button
+                                                key={entry.id}
+                                                type="button"
+                                                onClick={() => setSelectedHistoryId(entry.id)}
+                                                className={`flex w-full flex-col items-start gap-1 border-b border-slate-100 px-4 py-3 text-left text-xs transition-colors ${
+                                                    isSelected ? 'bg-slate-100' : 'hover:bg-slate-50'
+                                                }`}
+                                            >
+                                                <span className="font-semibold text-slate-900">
+                                                    Version {historyEntries.length - index}
+                                                </span>
+                                                <time className="text-slate-500">
+                                                    {new Date(entry.createdAt).toLocaleString()}
+                                                </time>
+                                                <code className="rounded bg-slate-200 px-1 py-0.5 text-[10px] text-slate-700">
+                                                    {entry.agentHash.slice(0, 8)}
+                                                </code>
+                                            </button>
+                                        );
+                                    })}
+                            </aside>
+
+                            <div className="flex min-h-0 flex-1 flex-col">
+                                {selectedHistoryEntry ? (
+                                    <>
+                                        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
+                                            <div className="text-xs text-slate-600">
+                                                <p>
+                                                    Snapshot from{' '}
+                                                    <span className="font-semibold text-slate-900">
+                                                        {new Date(selectedHistoryEntry.createdAt).toLocaleString()}
+                                                    </span>
+                                                </p>
+                                                <p>
+                                                    Hash:{' '}
+                                                    <code className="rounded bg-slate-100 px-1 py-0.5 text-[10px]">
+                                                        {selectedHistoryEntry.agentHash}
+                                                    </code>
+                                                </p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => void restoreHistoryVersion(selectedHistoryEntry.id)}
+                                                disabled={!canRestoreSelectedHistory}
+                                                className="rounded bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-blue-300"
+                                            >
+                                                {isRestoringHistoryVersion ? 'Restoring...' : 'Restore this version'}
+                                            </button>
+                                        </div>
+
+                                        <pre className="min-h-0 flex-1 overflow-auto bg-slate-950 p-4 text-xs leading-relaxed text-slate-100">
+                                            {selectedHistoryEntry.agentSource}
+                                        </pre>
+                                    </>
+                                ) : (
+                                    <div className="flex min-h-0 flex-1 items-center justify-center p-6 text-xs text-slate-500">
+                                        Select a version to inspect its content.
+                                    </div>
+                                )}
+
+                                {saveStatus === 'error' && (
+                                    <div className="flex items-center justify-between gap-3 border-t border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
+                                        <p className="min-w-0 truncate">
+                                            {saveErrorMessage || 'Book save failed. Retry to persist the current source.'}
+                                        </p>
+                                        <button
+                                            type="button"
+                                            onClick={retrySaveNow}
+                                            className="rounded border border-red-300 px-2 py-1 font-semibold hover:bg-red-100"
+                                        >
+                                            Retry save
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </section>
                 </div>
             )}
 

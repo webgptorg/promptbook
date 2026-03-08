@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.3520 30 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨⤵️] Allow to see the history of the agent source code book
 
@@ -122,3 +122,4 @@ create index IF not exists "server_PavolHejny_AgentHistory_agentId_idx" on publi
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

@@ -35,11 +35,11 @@
     -   Added explicit private JSDoc annotations on extracted internal modules to match project conventions.
 
 -   Added simple book version history for Agents Server agent source editing:
-    -   Implemented a Google Docs-inspired history browser at `/agents/[agentName]/history` with a selectable version list, full source preview of the selected version, and one-click restore.
-    -   Added direct history navigation from the book editor and the shared agent context menu (`Book History`) for faster access during autosaved editing.
-    -   Hardened restore flow with admin authorization checks and agent/version consistency validation before applying a restore.
+    -   Connected the autosave status indicator in the Book editor with a Google Docs-inspired history drawer: clicking the indicator now opens a simple version list, full source preview for the selected snapshot, and one-click restore.
+    -   Added Book history API endpoint `/agents/[agentName]/api/book/history` for loading source snapshots and restoring a selected snapshot directly from the editor.
+    -   Hardened restore flow with agent/version consistency validation (`historyId` must belong to the current agent) before applying a restore.
     -   Fixed agent history persistence reliability by making history writes fail loudly instead of silently ignoring insert errors.
-    -   Added database migration `2026-03-0150-agent-history-backfill.sql` to backfill missing `AgentHistory` rows so every existing agent has at least one history snapshot.
+    -   Added database migration `2026-03-0150-agent-history-backfill.sql` to normalize legacy `AgentHistory.agentId` setups to `permanentId` and backfill missing history rows so every existing agent has at least one snapshot.
 
 -   Added advanced tool-call report export actions in Agents Server chat chip popup:
     -   The advanced variant of the tool-call modal now includes two one-click actions: `Copy` (clipboard) and `Save` (download `.md` file).
@@ -873,4 +873,3 @@
 -   Updated `openai` from `4.63.0` to `6.18.0` and fixed all resulting type errors.
 -   Resolved `zod` peer dependency conflicts between `@ai-sdk/deepseek` and `@openai/agents` by using `overrides` in `package.json`.
 -   Fixed `node-fetch` declaration issue in `LindatAutomaticTranslator.ts` by using native `URLSearchParams` and removing `node-fetch` import.
-
