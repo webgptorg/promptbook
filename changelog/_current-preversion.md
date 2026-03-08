@@ -1,3 +1,9 @@
+-   Fixed Agents Server `run_browser` visual replay artifact capture reliability:
+    -   Switched browser artifact filesystem storage to a writable runtime directory (`RUN_BROWSER_ARTIFACT_STORAGE_DIRECTORY` or OS temp fallback) instead of relying on `process.cwd()`, which can be read-only in some deployments.
+    -   Kept replay payload paths stable (`.playwright-cli/...`) so existing chat parsing and replay rendering continue to work without UI contract changes.
+    -   Added screenshot capture fallback from `fullPage: true` to viewport capture (`fullPage: false`) when large pages cannot be captured as full-page screenshots.
+    -   Updated `/api/browser-artifacts/[artifactName]` to resolve files via the shared artifact-storage utility used by `run_browser`.
+
 -   Refactored chat attachment utilities for maintainability/readability without behavior changes:
     -   Split `src/utils/chat/chatAttachments.ts` into focused SRP modules under `src/utils/chat/chatAttachments/` (attachment normalization, metadata/context formatting, content resolving, and message-context appending).
     -   Kept `src/utils/chat/chatAttachments.ts` as a thin facade preserving the same external API (types and helper exports used by `@promptbook/core`).

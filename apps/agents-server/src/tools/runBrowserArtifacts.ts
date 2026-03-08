@@ -1,21 +1,17 @@
 import { mkdir } from 'fs/promises';
-import { join, relative } from 'path';
 import type { Page } from 'playwright';
+import {
+    resolveRunBrowserArtifactFilesystemPath,
+    resolveRunBrowserArtifactPublicPath,
+    resolveRunBrowserArtifactStorageDirectory,
+} from '../utils/runBrowserArtifactStorage';
 import type { CaptureSnapshotArtifactOptions, NormalizedRunBrowserAction, RunBrowserArtifact } from './RunBrowserArgs';
 import { getErrorMessage } from './runBrowserErrors';
-import { runBrowserConstants } from './runBrowserConstants';
 
 /**
  * Matches unsupported characters in snapshot file suffixes.
  */
 const SNAPSHOT_FILE_SUFFIX_UNSAFE_CHARACTER_PATTERN = /[^a-z0-9-]/g;
-
-/**
- * Returns a POSIX-compatible relative path.
- */
-function toPosixPath(pathname: string): string {
-    return pathname.split('\\').join('/');
-}
 
 /**
  * Creates one filesystem-safe optional filename suffix for a snapshot.
@@ -72,16 +68,27 @@ export const runBrowserArtifacts = {
      * Captures a screenshot artifact for the current page and returns relative path.
      */
     async captureSnapshot(page: Page, sessionId: string, fileSuffix?: string): Promise<string | null> {
-        const snapshotDirectoryPath = join(process.cwd(), runBrowserConstants.snapshotDirectory);
-        const snapshotPath = join(snapshotDirectoryPath, resolveSnapshotFilename(sessionId, fileSuffix));
+        const snapshotFilename = resolveSnapshotFilename(sessionId, fileSuffix);
+        const snapshotDirectoryPath = resolveRunBrowserArtifactStorageDirectory();
+        const snapshotPath = resolveRunBrowserArtifactFilesystemPath(snapshotFilename);
 
         try {
             await mkdir(snapshotDirectoryPath, { recursive: true });
-            await page.screenshot({ path: snapshotPath, fullPage: true });
-            return toPosixPath(relative(process.cwd(), snapshotPath));
+            try {
+                await page.screenshot({ path: snapshotPath, fullPage: true });
+            } catch (error) {
+                console.warn('[run_browser] Full-page snapshot failed, retrying viewport-only screenshot', {
+                    sessionId,
+                    snapshotFilename,
+                    error: getErrorMessage(error),
+                });
+                await page.screenshot({ path: snapshotPath, fullPage: false });
+            }
+            return resolveRunBrowserArtifactPublicPath(snapshotFilename);
         } catch (error) {
             console.error('[run_browser] Failed to capture snapshot', {
                 sessionId,
+                snapshotFilename,
                 error: getErrorMessage(error),
             });
 

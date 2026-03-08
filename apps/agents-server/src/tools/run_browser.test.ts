@@ -154,6 +154,31 @@ describe('run_browser tool', () => {
         expect(page.close).toHaveBeenCalledTimes(1);
     });
 
+    it('falls back to viewport screenshot when full-page snapshot fails', async () => {
+        const { page } = createPageMock();
+        const screenshotMock = page.screenshot as unknown as jest.MockedFunction<Page['screenshot']>;
+        screenshotMock
+            .mockImplementationOnce(async () => {
+                throw new Error('Screenshot is too large');
+            })
+            .mockImplementation(async () => Buffer.from(''));
+
+        const browserContext: BrowserContextMock = {
+            newPage: jest.fn(async () => page as unknown as Page),
+        };
+        provideBrowserForServerMock.mockResolvedValue(browserContext as BrowserContext);
+
+        const result = await run_browser({ url: 'https://example.com' });
+
+        expect(result).toContain('# Browser run completed');
+        expect(page.screenshot).toHaveBeenCalledWith(
+            expect.objectContaining({
+                fullPage: false,
+                path: expect.stringContaining('agents-server-run-browser-00000000-0000-4000-8000-000000000000'),
+            }),
+        );
+    });
+
     it('runs actions in sequence before generating final summary', async () => {
         const { page, clickMock, fillMock, scrollIntoViewIfNeededMock } = createPageMock();
         const browserContext: BrowserContextMock = {

@@ -1,17 +1,9 @@
 import { readFile } from 'fs/promises';
-import { relative, resolve } from 'path';
 import { NextResponse } from 'next/server';
-
-/**
- * Local directory used by `run_browser` to store captured artifacts.
- */
-const RUN_BROWSER_ARTIFACT_DIRECTORY = '.playwright-cli';
-
-/**
- * Whitelist for browser artifact filenames produced by `run_browser`.
- */
-const RUN_BROWSER_ARTIFACT_FILENAME_PATTERN =
-    /^agents-server-run-browser-[a-f0-9-]+(?:-[a-z0-9-]+)?\.(png|jpg|jpeg|webm|mp4)$/;
+import {
+    isRunBrowserArtifactFilename,
+    resolveRunBrowserArtifactFilesystemPath,
+} from '../../../../utils/runBrowserArtifactStorage';
 
 /**
  * Resolves MIME type from browser artifact filename.
@@ -36,19 +28,11 @@ function resolveArtifactMimeType(filename: string): string {
  * Validates and resolves absolute path for one artifact filename.
  */
 function resolveArtifactPath(artifactName: string): string | null {
-    if (!RUN_BROWSER_ARTIFACT_FILENAME_PATTERN.test(artifactName)) {
+    if (!isRunBrowserArtifactFilename(artifactName)) {
         return null;
     }
 
-    const artifactsDirectory = resolve(process.cwd(), RUN_BROWSER_ARTIFACT_DIRECTORY);
-    const artifactPath = resolve(artifactsDirectory, artifactName);
-    const relativePath = relative(artifactsDirectory, artifactPath);
-
-    if (!relativePath || relativePath.startsWith('..') || relativePath.includes(':')) {
-        return null;
-    }
-
-    return artifactPath;
+    return resolveRunBrowserArtifactFilesystemPath(artifactName);
 }
 
 /**

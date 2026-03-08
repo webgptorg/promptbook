@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 21 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨🥟] When agent using `run_browser` it should be able to **visually replay** the session and actions made
 
@@ -192,3 +192,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
