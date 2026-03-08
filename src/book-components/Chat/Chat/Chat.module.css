@@ -1590,15 +1590,6 @@
     }
 }
 
-.scrollToBottomContainer .scrollToBottomWrapper:hover {
-    transform: translate(-50%, -160%) scale(1.05);
-}
-
-.scrollToBottomContainer .scrollToBottomWrapper:active {
-    transform: translate(-50%, -160%) scale(0.95);
-    transition: transform 0.1s ease;
-}
-
 .scrollToBottomBadge {
     position: absolute;
     top: -8px;

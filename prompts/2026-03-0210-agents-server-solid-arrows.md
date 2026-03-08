@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.4821 15 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨📱] Solid arrows in Agents Server (sidebar open + scroll-to-bottom)
 
@@ -70,3 +70,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAgentNaming } from '../../../../components/AgentNaming/AgentNamingContext';
 import { showConfirm } from '../../../../components/AsyncDialogs/asyncDialogs';
 import { ChatPersistence } from '../../../../utils/chatPersistenceClient';
+import { SolidArrowButton } from '../../../../../../../src/book-components/icons/SolidArrowButton';
 import {
     createUserChat,
     fetchUserChat,
@@ -633,19 +634,15 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 isMobileSidebarOpen={isMobileSidebarOpen}
                 onCloseMobileSidebar={closeMobileSidebar}
             />
-            <button
-                type="button"
+            <SolidArrowButton
+                direction="right"
                 onClick={openMobileSidebar}
-                className={`fixed left-2 top-1/2 z-40 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-700 shadow-md backdrop-blur transition-all duration-300 ease-in-out md:hidden ${mobileHandleVisibility}`}
+                className={`fixed left-2 top-1/2 z-40 -translate-y-1/2 md:hidden ${mobileHandleVisibility}`}
                 aria-controls={AGENT_CHAT_SIDEBAR_ID}
                 aria-expanded={isMobileSidebarOpen}
                 aria-hidden={isMobileSidebarOpen}
                 aria-label={formatText('Open chats sidebar')}
-            >
-                <span className="text-lg font-semibold leading-none" aria-hidden="true">
-                    &gt;
-                </span>
-            </button>
+            />
             <section className="flex-1 min-w-0 min-h-0 flex flex-col">
                 {chatSurface}
                 {errorBanner}

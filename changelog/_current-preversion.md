@@ -1,3 +1,14 @@
+-   Improved Agents Server chat arrow controls (sidebar toggle and scroll-to-bottom) with one shared solid-arrow UI primitive:
+    -   Added shared `SolidArrowButton` (reusing existing `ArrowIcon`) and wired it into:
+        -   desktop sidebar collapse/expand toggle,
+        -   mobile `Open chats sidebar` affordance,
+        -   chat `scroll to latest` control.
+    -   Unified arrow visual language and interaction states through shared route-level styling tokens in `apps/agents-server/src/app/globals.css` (consistent size, hover, active, and keyboard focus-visible outline).
+    -   Kept existing behaviors unchanged:
+        -   sidebar toggle still updates collapsed state and direction,
+        -   scroll-down control still appears only when not at bottom and preserves smooth scrolling.
+    -   Added light/dark theme parity for the shared arrow controls.
+
 -   Enabled image-reading from chat attachments in Agents Server by forwarding attached images as native multimodal input:
     -   Kept the existing chat flow (`/agents/[agentName]/api/chat` -> AgentKit) and added direct image pass-through in `OpenAiAgentKitExecutionTools` so image attachments are sent as `input_image` parts in the same completion request.
     -   Applied the same conversion for both the current user message and user messages from chat `thread`, so previously attached images remain available in follow-up turns.

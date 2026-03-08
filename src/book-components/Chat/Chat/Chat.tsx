@@ -7,7 +7,7 @@ import { Color } from '../../../utils/color/Color';
 import { humanizeAiText } from '../../../utils/markdown/humanizeAiText';
 import { promptbookifyAiText } from '../../../utils/markdown/promptbookifyAiText';
 import { classNames } from '../../_common/react-utils/classNames';
-import { ArrowIcon } from '../../icons/ArrowIcon';
+import { SolidArrowButton } from '../../icons/SolidArrowButton';
 import { ChatEffectsSystem } from '../effects/ChatEffectsSystem';
 import type { ChatEffectConfig } from '../effects/types/ChatEffectConfig';
 import { useChatActionsOverlap } from '../hooks/useChatActionsOverlap';
@@ -447,15 +447,15 @@ export function Chat(props: ChatProps) {
                     {shouldShowScrollToBottom && (
                         <div className={styles.scrollToBottomContainer}>
                             <div className={styles.scrollToBottomWrapper}>
-                                <button
+                                <SolidArrowButton
                                     data-button-type="custom"
+                                    direction="down"
+                                    iconSize={33}
                                     className={classNames(styles.scrollToBottom, scrollToBottomCssClassName)}
                                     onClick={handleButtonClick(scrollToBottom)}
                                     aria-label={ariaLabel}
                                     title={ariaLabel}
-                                >
-                                    <ArrowIcon direction="down" size={33} />
-                                </button>
+                                />
                                 {badgeLabel && (
                                     <span className={styles.scrollToBottomBadge} aria-live="polite" role="status">
                                         {badgeLabel}

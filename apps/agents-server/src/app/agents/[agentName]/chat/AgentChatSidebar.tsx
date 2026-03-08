@@ -2,7 +2,7 @@
 
 import { EyeIcon, EyeOffIcon, MessageSquarePlusIcon, Trash2Icon, XIcon } from 'lucide-react';
 import { useState } from 'react';
-import { ArrowIcon } from '../../../../../../../src/book-components/icons/ArrowIcon';
+import { SolidArrowButton } from '../../../../../../../src/book-components/icons/SolidArrowButton';
 import type { UserChatSummary } from '../../../../utils/userChatClient';
 
 /**
@@ -213,14 +213,14 @@ export function AgentChatSidebar({
                 </div>
 
                 <div className="hidden md:flex absolute inset-y-0 right-0 z-10 translate-x-1/2 items-center justify-center pointer-events-none">
-                    <button
-                        type="button"
+                    <SolidArrowButton
+                        direction={isCollapsed ? 'right' : 'left'}
                         onClick={onToggleCollapse}
-                        className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-500 shadow transition hover:bg-white focus-visible:outline-offset-2 focus-visible:outline focus-visible:outline-blue-400"
+                        className="pointer-events-auto"
+                        aria-controls={AGENT_CHAT_SIDEBAR_ID}
+                        aria-expanded={!isCollapsed}
                         aria-label={sidebarToggleLabel}
-                    >
-                        <ArrowIcon direction={isCollapsed ? 'right' : 'left'} className="h-4 w-4" />
-                    </button>
+                    />
                 </div>
 
                 {shouldRenderCollapsed ? (
