@@ -1,3 +1,8 @@
+-   Refactored `USE PROJECT` commitment internals for maintainability/readability without behavior changes:
+    -   Split `src/commitments/USE_PROJECT/USE_PROJECT.ts` into focused private modules for tool names, tool schemas, tool-title mapping, configured-project normalization, runtime/wallet resolution, GitHub API transport, and tool-function implementations.
+    -   Kept `src/commitments/USE_PROJECT/USE_PROJECT.ts` as a thin orchestration facade preserving the same external API (`UseProjectCommitmentDefinition`) and existing tool behavior.
+    -   Added explicit private JSDoc annotations on extracted exported internals to align with package-generation checks.
+
 -   Refactored `MEMORY` commitment internals for maintainability/readability without behavior changes:
     -   Split `src/commitments/MEMORY/MEMORY.ts` into focused private modules for runtime adapter wiring, runtime context resolution, disabled-result handling, tool-argument parsing, tool schema construction, system-message block creation, tool-title mapping, tool-function creation, and documentation text.
     -   Kept `src/commitments/MEMORY/MEMORY.ts` as a thin orchestration facade preserving the same external API (`MemoryCommitmentDefinition`, `setMemoryToolRuntimeAdapter`, and existing exported MEMORY types).
