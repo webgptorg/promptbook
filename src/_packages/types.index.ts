@@ -44,7 +44,7 @@ import type { ChatMessage } from '../book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../book-components/Chat/types/ChatParticipant';
 import type { ParsedCitation } from '../book-components/Chat/utils/parseCitationsFromContent';
 import type { MessageButton } from '../book-components/Chat/utils/parseMessageButtons';
-import type { TeamToolResult } from '../book-components/Chat/utils/toolCallParsing';
+import type { TeamToolResult } from '../book-components/Chat/utils/toolCallParsing/TeamToolResult';
 import type { QrCodeOptions } from '../book-components/Qr/useQrCode';
 import type { AgentCollection } from '../collection/agent-collection/AgentCollection';
 import type { AgentCollectionInSupabaseOptions } from '../collection/agent-collection/constructors/agent-collection-in-supabase/AgentCollectionInSupabaseOptions';

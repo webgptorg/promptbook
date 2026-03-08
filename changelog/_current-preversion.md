@@ -1,3 +1,8 @@
+-   Refactored Chat tool-call parsing utilities for maintainability/readability without behavior changes:
+    -   Split `src/book-components/Chat/utils/toolCallParsing.ts` into focused SRP modules under `src/book-components/Chat/utils/toolCallParsing/` (generic tool arg/result parsing, TEAM payload parsing, date extraction, search result extraction, and `run_browser` payload parsing/URL resolution).
+    -   Kept `src/book-components/Chat/utils/toolCallParsing.ts` as a thin facade that re-exports the same API to preserve existing imports and behavior.
+    -   Added explicit private JSDoc annotations on extracted exported entities to align with package-generation checks.
+
 -   Refactored `ChatToolCallModal` internals for maintainability/readability without behavior changes:
     -   Split `src/book-components/Chat/Chat/ChatToolCallModal.tsx` into focused private modules:
         -   `src/book-components/Chat/Chat/renderToolCallDetails.tsx` for simple-mode tool detail rendering and related helpers.
