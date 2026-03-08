@@ -12,16 +12,20 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🌈] bar
+[✨🌈] Allow to copy "A server exception occurred while loading Promptbook Agents Server."
 
--   @@@
+-> When something is failing, it will be a handful to copy the full report with the entire context and what is happening behind the scenes be copyable as Markdown by one click.
+
+-   There should be 2 options:
+    -   Copy - Copy the entire report as markdown to Clipboard
+    -   Save - Download the report as file
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-03-0110-agents-server-admin-test-page-simulate-error.png)
 
 ---
 
@@ -48,4 +52,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
