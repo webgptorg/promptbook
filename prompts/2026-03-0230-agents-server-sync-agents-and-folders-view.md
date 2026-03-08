@@ -2,6 +2,7 @@
 
 [✨📲] Synchronize agents & folders view when navigating
 
+-   *(@@@@ Written by agent)*
 -   When navigating around the Agents Server (root and inside folders), the list view of agents/folders can become stale (e.g., not reflecting the latest state) or desynchronized between tabs. Make sure the agents/folders view is always synchronized with the actual current state.
 -   Treat this primarily as a correctness + UX issue: after any navigation event, the list content and the selected/active folder/agent should match the URL and current server state.
 -   Define and fix the root causes (likely cache invalidation / client state persistence / router transitions / React Query (or similar) stale data) rather than papering over with hard reloads.

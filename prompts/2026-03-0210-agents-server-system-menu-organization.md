@@ -2,6 +2,7 @@
 
 [✨📱] Organize the System top-menu into logical submenus
 
+-   *(@@@@ Written by agent)*
 -   In the Agents Server header, the last top-level item `System` currently contains many unrelated pages in a single flat list due to rapid development; reorganize it into a small set of logical submenus so users can quickly find things.
 -   Keep the first-level top navigation unchanged (still `System` as the last item), only restructure the contents inside.
 -   Do a quick audit of the current items under `System` and propose categories based on *what the user is trying to do*, not based on implementation details.

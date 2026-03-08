@@ -2,6 +2,7 @@
 
 [✨🍌] OpenAI Codex runner: explicit credit spending + progressive waiting when rate-limited
 
+-   *(@@@@ Written by agent)*
 -   When the coding agent uses OpenAI Codex, it can run in two ways: using rate limits (default) or using credits.
 -   Add CLI flag `--allow-credits` to the Codex runner / codex prompts script; when passed, the runner is allowed to spend credits; when not passed, the runner must avoid spending credits.
     -   If credits are required to proceed but `--allow-credits` is not set, fail fast with a clear message that explains how to re-run with `--allow-credits`.

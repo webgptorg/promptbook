@@ -2,6 +2,7 @@
 
 [✨📱] Solid arrows in Agents Server (sidebar open + scroll-to-bottom)
 
+-   *(@@@@ Written by agent)*
 -   Enhance design of the arrows in Agents Server UI so they look solid and consistent with the rest of the application.
 -   Focus specifically on:
     -   Arrow/button that opens the left `My chats` panel (collapsed sidebar affordance)

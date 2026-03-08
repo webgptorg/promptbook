@@ -2,6 +2,7 @@
 
 [✨📱] Allow agents to read images attached to chat messages
 
+-   *(@@@@ Written by agent)*
 -   Users can attach image files to chat messages in the Agents Server UI, but LLM responses currently claim they cannot read images.
 -   When user attaches an image to a chat message, include that image directly in the chat completion request sent to the model (multimodal input), so the model can see it.
 -   This should work by default for every agent, without requiring any special capability toggles, commitments, browser, scraping, or other advanced tools.
@@ -29,6 +30,9 @@
     -   Chat API route(s) that build provider messages @@@
     -   Provider adapter(s) for chat completions @@@
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+
+![alt text](prompts/screenshots/2026-03-0210-agents-server-read-images-in-chat.png)
 
 ---
 

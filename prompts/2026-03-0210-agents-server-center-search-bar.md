@@ -15,6 +15,8 @@
 -   No database migration needed.
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+![alt text](prompts/screenshots/2026-03-0210-agents-server-center-search-bar.png)
+
 ---
 
 [-]

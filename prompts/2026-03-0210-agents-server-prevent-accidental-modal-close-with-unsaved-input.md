@@ -8,7 +8,6 @@
     -   Detects whether modal has unsaved/unsubmitted changes.
     -   Blocks closing by overlay click, ESC, or programmatic close unless user explicitly confirms discarding changes.
     -   Allows closing without confirmation when there are no changes (pristine) or after successful submit.
-    -   Provides a consistent confirmation prompt copy: @@@ (confirm button text) / @@@ (cancel button text) / @@@ (title/body).
 -   Apply this guard to the cloning modal and audit other existing prompt modals with text input to adopt it.
 -   Look for existing patterns in Agents Server where we prevent losing user work:
     -   Before-unload browser close prevention.
@@ -21,6 +20,8 @@
 -   Add/adjust tests: at least one Playwright test covering the clone-agent modal scenario (type name → attempt to close via overlay/ESC → confirm discard → modal closes / cancel discard → modal stays).
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-03-0210-agents-server-prevent-accidental-modal-close-with-unsaved-input.png)
 
 ---
 
