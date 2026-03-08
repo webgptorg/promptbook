@@ -1,24 +1,11 @@
 import type { AgentBasicInformation, AgentCollection, string_book } from '@promptbook-local/types';
-import type { AgentVisibility } from './agentVisibility';
+import type { CreateAgentInput } from '../../../../src/collection/agent-collection/CreateAgentInput';
 import { getDefaultAgentVisibility } from './getDefaultAgentVisibility';
 
 /**
  * Optional placement and visibility overrides for new agent creation.
  */
-type CreateAgentWithDefaultVisibilityOptions = {
-    /**
-     * Folder identifier to place the new agent into.
-     */
-    readonly folderId?: number | null;
-    /**
-     * Sort order within the selected folder.
-     */
-    readonly sortOrder?: number;
-    /**
-     * Explicit visibility override.
-     */
-    readonly visibility?: AgentVisibility;
-};
+export type CreateAgentWithDefaultVisibilityOptions = Omit<CreateAgentInput, 'source'>;
 
 /**
  * Creates an agent while applying metadata-driven default visibility.

@@ -46,6 +46,7 @@ import { UsePopupCommitmentDefinition } from './USE_POPUP/USE_POPUP';
 import { UsePrivacyCommitmentDefinition } from './USE_PRIVACY/USE_PRIVACY';
 import { UseProjectCommitmentDefinition } from './USE_PROJECT/USE_PROJECT';
 import { UseSearchEngineCommitmentDefinition } from './USE_SEARCH_ENGINE/USE_SEARCH_ENGINE';
+import { UseSpawnCommitmentDefinition } from './USE_SPAWN/USE_SPAWN';
 import { UseTimeCommitmentDefinition } from './USE_TIME/USE_TIME';
 import { UseUserLocationCommitmentDefinition } from './USE_USER_LOCATION/USE_USER_LOCATION';
 import { NotYetImplementedCommitmentDefinition } from './_base/NotYetImplementedCommitmentDefinition';
@@ -118,6 +119,7 @@ export const COMMITMENT_REGISTRY = [
     new TeamCommitmentDefinition(),
     new UseBrowserCommitmentDefinition(),
     new UseSearchEngineCommitmentDefinition(),
+    new UseSpawnCommitmentDefinition(),
     new UseTimeCommitmentDefinition(),
     new UseUserLocationCommitmentDefinition(),
     new UseEmailCommitmentDefinition(),

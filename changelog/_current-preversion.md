@@ -1,3 +1,11 @@
+-   Added new `USE SPAWN` commitment for persistent child-agent creation in Agents Server:
+    -   Added `USE SPAWN` commitment with `spawn_agent` tool wiring in Promptbook runtime (browser + node runtime adapters).
+    -   Added strict shared create-agent input contract (`source`, `folderId`, `sortOrder`, `visibility`) with unknown-field rejection and source-size limits.
+    -   Added Agents Server `spawn_agent` tool + `/api/spawn-agent` route that reuse the same manual creation path (`createAgentWithDefaultVisibility`) and return structured results (`status`, `agentId`, `agent` or `error`).
+    -   Added safe-by-default protections for spawn calls: auth check, spawn-depth limit, per-actor rate limiting, and audit logs.
+    -   Added tests for successful spawn, unknown-field validation, permission failure, payload-too-large handling, and quota/rate-limit failures.
+    -   Added example agent source at `agents/examples/spawn-agent.book`.
+
 -   Improved Agents Server `run_browser` reliability for remote-browser outages and full-web-scraping fallback:
     -   Added remote browser connect classification (`REMOTE_BROWSER_UNAVAILABLE`) with structured tool error payloads (`code`, `message`, `isRetryable`, `suggestedNextSteps`, `debug`) instead of raw stack-trace-first failures.
     -   Added remote connect retries with exponential backoff + jitter (default 2 retries / 3 attempts total), connect timeout support, and abort-aware retry waits in a new shared helper (`apps/agents-server/src/utils/retryWithBackoff.ts`).

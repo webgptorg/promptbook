@@ -1,4 +1,4 @@
-[ ]
+[x] ~$1.24 an hour by OpenAI Codex `gpt-5.3-codex`
 
 [✨🥂] USE SPAWN commitment (tool) to create an Agents Server Agent from given source
 

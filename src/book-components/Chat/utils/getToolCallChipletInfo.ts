@@ -67,6 +67,7 @@ export const TOOL_TITLES: Record<string, { title: string; emoji: string }> = {
     get_user_location: { title: 'Checking location', emoji: '📍' },
     send_email: { title: 'Sending email', emoji: '📧' },
     useEmail: { title: 'Sending email', emoji: '📧' },
+    spawn_agent: { title: 'Spawning agent', emoji: '🧬' },
     project_list_files: { title: 'Listing project files', emoji: '🧑‍💻' },
     project_read_file: { title: 'Reading project file', emoji: '🧑‍💻' },
     project_upsert_file: { title: 'Writing project file', emoji: '🧑‍💻' },

@@ -91,5 +91,8 @@ describe('composePromptParametersWithMemoryContext', () => {
                 '{"host":"smtp.example.com","port":587,"secure":false,"username":"agent@example.com","password":"secret"}',
             fromAddress: 'agent@example.com',
         });
+        expect(runtimeContext.spawn).toMatchObject({
+            depth: 0,
+        });
     });
 });

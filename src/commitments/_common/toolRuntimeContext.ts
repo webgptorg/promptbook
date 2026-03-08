@@ -54,6 +54,11 @@ export type ToolRuntimeContext = {
         smtpCredential?: string;
         fromAddress?: string;
     };
+    spawn?: {
+        depth?: number;
+        parentRunId?: string;
+        parentAgentId?: string;
+    };
 };
 
 /**

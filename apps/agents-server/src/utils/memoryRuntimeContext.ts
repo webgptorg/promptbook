@@ -97,6 +97,15 @@ export function composePromptParametersWithMemoryContext(
             mergedEmailRuntimeContext.smtpCredential || mergedEmailRuntimeContext.fromAddress
                 ? mergedEmailRuntimeContext
                 : undefined,
+        spawn: {
+            ...(existingRuntimeContext.spawn || {}),
+            depth:
+                typeof existingRuntimeContext.spawn?.depth === 'number' &&
+                Number.isFinite(existingRuntimeContext.spawn.depth)
+                    ? Math.max(0, Math.floor(existingRuntimeContext.spawn.depth))
+                    : 0,
+            parentAgentId: agentPermanentId || existingRuntimeContext.spawn?.parentAgentId,
+        },
     };
 
     return {
