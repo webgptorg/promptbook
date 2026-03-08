@@ -3,6 +3,36 @@ import type { RunScriptUntilMarkerIdleOptions } from './RunScriptUntilMarkerIdle
 import { toPosixPath } from './toPosixPath';
 
 /**
+ * Maximum number of output characters included in thrown error messages.
+ */
+const OUTPUT_SNIPPET_MAX_CHARS = 8000;
+
+/**
+ * Trims output to a safe size for one thrown error message.
+ */
+function createOutputSnippet(output: string): string {
+    const normalized = output.trim();
+    if (normalized.length <= OUTPUT_SNIPPET_MAX_CHARS) {
+        return normalized;
+    }
+
+    return `${normalized.slice(0, OUTPUT_SNIPPET_MAX_CHARS)}\n\n...[truncated]`;
+}
+
+/**
+ * Builds one command failure message that keeps a useful snippet of CLI output.
+ */
+function buildCommandFailureMessage(scriptPathPosix: string, code: number | null, fullOutput: string): string {
+    const outputSnippet = createOutputSnippet(fullOutput);
+
+    if (!outputSnippet) {
+        return `Command "bash ${scriptPathPosix}" exited with code ${code ?? 'unknown'}`;
+    }
+
+    return `Command "bash ${scriptPathPosix}" exited with code ${code ?? 'unknown'}\n\n${outputSnippet}`;
+}
+
+/**
  * Runs a script until a completion marker is observed and output is idle for a set timeout.
  * Returns the captured output.
  */
@@ -105,7 +135,7 @@ export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdle
                     resolve(fullOutput);
                     return;
                 }
-                reject(new Error(`Command "bash ${scriptPathPosix}" exited with code ${code ?? 'unknown'}`));
+                reject(new Error(buildCommandFailureMessage(scriptPathPosix, code, fullOutput)));
             });
         };
 
@@ -113,12 +143,14 @@ export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdle
         commandProcess.on('exit', handleExit);
         commandProcess.on('disconnect', () => {
             settleOnce(() => {
-                reject(new Error(`Command "bash ${scriptPathPosix}" disconnected`));
+                reject(new Error(buildCommandFailureMessage(scriptPathPosix, null, fullOutput)));
             });
         });
         commandProcess.on('error', (error) => {
             settleOnce(() => {
-                reject(new Error(`Command "bash ${scriptPathPosix}" failed: ${error.message}`));
+                const outputSnippet = createOutputSnippet(fullOutput);
+                const details = outputSnippet ? `\n\n${outputSnippet}` : '';
+                reject(new Error(`Command "bash ${scriptPathPosix}" failed: ${error.message}${details}`));
             });
         });
     });

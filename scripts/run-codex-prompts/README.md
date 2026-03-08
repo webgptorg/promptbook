@@ -27,10 +27,13 @@ npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-code
 --agent <agent-name>          # Select runner: openai-codex, cline, claude-code, opencode, gemini (required for non-dry-run)
 --model <model>               # Model to use (required for openai-codex and gemini)
 --priority <minimum-priority> # Filter prompts by minimum priority level (default: 0)
+--allow-credits               # Allow OpenAI Codex runner to spend credits when limits are exhausted
 --no-wait                     # Skip user prompts between processing
 --ignore-git-changes          # Skip clean working tree check before running prompts
 --no-normalize-line-endings   # Disable per-round CRLF -> LF normalization for changed files
 ```
+
+For `--agent openai-codex`, credits are opt-in. If Codex reports that credits are required and `--allow-credits` is not set, the runner fails fast with a rerun hint.
 
 ### Examples:
 
@@ -40,6 +43,9 @@ ptbk coder run --dry-run
 
 # Run with OpenAI Codex
 ptbk coder run --agent openai-codex --model gpt-5.2-codex
+
+# Run with OpenAI Codex and explicitly allow credit spending
+ptbk coder run --agent openai-codex --model gpt-5.2-codex --allow-credits
 
 # Run with Gemini
 ptbk coder run --agent gemini --model gemini-3-flash-preview --no-wait

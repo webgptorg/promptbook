@@ -7,5 +7,9 @@ export type CodexScriptOptions = {
     model: string;
     sandbox: string;
     askForApproval: string;
+    /**
+     * Allows Codex to spend credits when rate limits are exhausted.
+     */
+    allowCredits: boolean;
     codexCommand: string;
 };

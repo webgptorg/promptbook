@@ -9,10 +9,12 @@ import type { CodexScriptOptions } from './CodexScriptOptions';
 export function buildCodexScript(options: CodexScriptOptions): string {
     const delimiter = 'CODEX_PROMPT';
     const projectPath = toPosixPath(options.projectPath);
+    const loginMethodConfig = options.allowCredits ? '' : '  -c forced_login_method=chatgpt \\';
 
     return spaceTrim(
         (block) => `
             ${options.codexCommand} \\
+              ${loginMethodConfig}
               --ask-for-approval ${options.askForApproval} \\
               exec --model ${options.model} \\
               --local-provider none \\

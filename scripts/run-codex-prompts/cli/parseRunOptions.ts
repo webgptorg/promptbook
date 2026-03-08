@@ -5,7 +5,7 @@ import type { RunOptions } from './RunOptions';
  * CLI usage text for this script.
  */
 const USAGE =
-    'Usage: run-codex-prompts [--dry-run] [--agent <agent-name>] [--model <model>] [--priority <minimum-priority>] [--no-wait] [--ignore-git-changes] [--no-normalize-line-endings]';
+    'Usage: run-codex-prompts [--dry-run] [--agent <agent-name>] [--model <model>] [--priority <minimum-priority>] [--allow-credits] [--no-wait] [--ignore-git-changes] [--no-normalize-line-endings]';
 
 /**
  * Parses CLI arguments into runner options.
@@ -33,6 +33,7 @@ export function parseRunOptions(args: string[]): RunOptions {
     const priority = parsePriority(readOptionValue(args, '--priority'), hasPriorityFlag);
     const ignoreGitChanges = args.includes('--ignore-git-changes');
     const normalizeLineEndings = !args.includes('--no-normalize-line-endings');
+    const allowCredits = args.includes('--allow-credits');
 
     if (!agentName && !dryRun) {
         exitWithUsageError('You must choose an agent using --agent <openai-codex|cline|claude-code|opencode|gemini>');
@@ -43,6 +44,7 @@ export function parseRunOptions(args: string[]): RunOptions {
         waitForUser: !args.includes('--no-wait'),
         ignoreGitChanges,
         normalizeLineEndings,
+        allowCredits,
         agentName,
         model,
         priority,

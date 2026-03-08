@@ -31,6 +31,7 @@ describe('parseRunOptions', () => {
             agentName: 'gemini',
             priority: 0,
             normalizeLineEndings: true,
+            allowCredits: false,
         });
     });
 
@@ -42,6 +43,7 @@ describe('parseRunOptions', () => {
             agentName: undefined,
             priority: 0,
             normalizeLineEndings: true,
+            allowCredits: false,
         });
     });
 
@@ -62,6 +64,7 @@ describe('parseRunOptions', () => {
             waitForUser: false,
             ignoreGitChanges: true,
             normalizeLineEndings: true,
+            allowCredits: false,
             agentName: 'openai-codex',
             model: 'gpt-5.2-codex',
             priority: 3,
@@ -76,6 +79,7 @@ describe('parseRunOptions', () => {
             waitForUser: false,
             priority: 2,
             normalizeLineEndings: true,
+            allowCredits: false,
         });
     });
 
@@ -86,6 +90,17 @@ describe('parseRunOptions', () => {
             dryRun: false,
             agentName: 'gemini',
             normalizeLineEndings: false,
+            allowCredits: false,
+        });
+    });
+
+    it('enables credit spending when --allow-credits is provided', () => {
+        const options = parseRunOptions(['--agent', 'openai-codex', '--allow-credits']);
+
+        expect(options).toMatchObject({
+            dryRun: false,
+            agentName: 'openai-codex',
+            allowCredits: true,
         });
     });
 

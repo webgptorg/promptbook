@@ -15,6 +15,10 @@ export type RunOptions = {
      * Automatically normalize CRLF line endings to LF in files changed during each coding round.
      */
     normalizeLineEndings: boolean;
+    /**
+     * Allows OpenAI Codex runner to spend credits when needed.
+     */
+    allowCredits: boolean;
     agentName?: 'openai-codex' | 'cline' | 'claude-code' | 'opencode' | 'gemini';
     model?: string;
     /**

@@ -139,7 +139,14 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                 model: modelToUse,
                 sandbox: 'danger-full-access',
                 askForApproval: 'never',
+                allowCredits: options.allowCredits,
             });
+
+            if (!options.allowCredits) {
+                console.info(
+                    colors.gray('OpenAI Codex credit spending is disabled. Use `--allow-credits` to explicitly opt in.'),
+                );
+            }
         } else if (agentName === 'cline') {
             runner = new ClineRunner({
                 model: CLINE_MODEL,

@@ -1,3 +1,10 @@
+-   Enhanced OpenAI Codex prompt runner credit/rate-limit handling with explicit credit opt-in and progressive waits:
+    -   Added `--allow-credits` to `ptbk coder run` and `scripts/run-codex-prompts` CLI parsing so credit spending is explicitly enabled by user choice.
+    -   OpenAI Codex runner now fails fast with a clear rerun hint when Codex reports credits are required but `--allow-credits` is not set.
+    -   Added progressive retry waiting for Codex rate-limit/quota failures with increasing intervals (1m, 2m, 5m, 10m, 30m), capped delays, jitter, and clear next-retry timestamp logs.
+    -   Reset retry backoff after each successful Codex call.
+    -   Added shared `ProgressiveBackoff` utility plus focused tests for backoff and Codex failure classification.
+
 -   Reorganized Agents Server `System` header dropdown into user-goal-oriented submenus while preserving existing routes:
     -   Kept top-level navigation unchanged (`System` remains the last top-level item); only dropdown contents were restructured.
     -   Replaced the flat list with logical categories to improve findability:

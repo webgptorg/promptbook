@@ -53,21 +53,28 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
     command.option('--no-wait', 'Skip user prompts between processing', false);
     command.option('--ignore-git-changes', 'Skip clean working tree check before running prompts', false);
     command.option(
+        '--allow-credits',
+        'Allow OpenAI Codex runner to spend credits when rate limits are exhausted',
+        false,
+    );
+    command.option(
         '--no-normalize-line-endings',
         'Disable automatic LF normalization for files changed in each coding round',
     );
 
     command.action(
         handleActionErrors(async (cliOptions) => {
-            const { dryRun, agent, model, priority, wait, ignoreGitChanges, normalizeLineEndings } = cliOptions as {
-                readonly dryRun: boolean;
-                readonly agent?: string;
-                readonly model?: string;
-                readonly priority: number;
-                readonly wait: boolean;
-                readonly ignoreGitChanges: boolean;
-                readonly normalizeLineEndings: boolean;
-            };
+            const { dryRun, agent, model, priority, wait, ignoreGitChanges, allowCredits, normalizeLineEndings } =
+                cliOptions as {
+                    readonly dryRun: boolean;
+                    readonly agent?: string;
+                    readonly model?: string;
+                    readonly priority: number;
+                    readonly wait: boolean;
+                    readonly ignoreGitChanges: boolean;
+                    readonly allowCredits: boolean;
+                    readonly normalizeLineEndings: boolean;
+                };
 
             // Validate agent
             let agentName: 'openai-codex' | 'cline' | 'claude-code' | 'opencode' | 'gemini' | undefined = undefined;
@@ -109,6 +116,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 model,
                 priority,
                 normalizeLineEndings,
+                allowCredits,
             };
 
             // Note: Import the function dynamically to avoid loading heavy dependencies until needed
