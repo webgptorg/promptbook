@@ -35,16 +35,22 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🍾] baz
+[✨🍾] You have implemented [Agent preindexing](prompts/2026-03-0170-agents-server-preindex-agent-on-change.md) but it is not wotking
 
--   @@@
+-   Preindexing should be triggered on agent create/update and book write, but it is not working or at least you are not seeing the expected logs/metrics that indicate it is running.
+-   This is the commit `593f451d64dbde1aa6cddb65e142d5e61ca4f47c`
+-   This is the PRD file `prompts/2026-03-0170-agents-server-preindex-agent-on-change.md`
+-   This is the SQL file created `apps/agents-server/src/database/migrations/2026-03-0160-agent-preparation.sql`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Do a proper analysis of the current functionality of agent preparation and current non-working implementation of preindexing before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
+-   If you need to do the another database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![With preindex (3m 5s to answer)](prompts/screenshots/2026-03-0170-agents-server-preindex-agent-on-change.png)
+![Without preindex (2m 37s to answer)](prompts/screenshots/2026-03-0170-agents-server-preindex-agent-on-change-1.png)
 
 ---
 
@@ -84,4 +90,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
