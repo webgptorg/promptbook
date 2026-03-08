@@ -3,6 +3,8 @@
 [✨✊] Coding script auto-migrate test servers after each prompt + non-destructive checks
 
 -   *(@@@@ Written by agent)*
+-   Only run the auto-migration workflow when the coding script is started with `--auto-migrate`.
+    -   Without `--auto-migrate`, do not run any migrations automatically.
 -   After each prompt is done in the coding script, automatically run database migrations for testing servers.
 -   Do this in a robust way so that we don't end up running migrations concurrently, and so that a migration failure doesn't silently corrupt the next runs.
 -   Add a heuristic “non-destructive migration” check before applying migrations to testing servers.
