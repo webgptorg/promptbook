@@ -1,3 +1,10 @@
+-   Added an alternative Agents Server textarea-first agent page at `/agents/[agentName]/textarea`:
+    -   Added a minimal centered UI with one large textarea that focuses on load.
+    -   Implemented keyboard behavior: `Enter` submits, `Shift+Enter` inserts newline.
+    -   On submit, the textarea clears and forwards the message into the existing standalone chat route (`/chat?message=...&newChat=1`) to reuse the same backend message pipeline and streaming behavior.
+    -   Added a subtle sending state with submit disabling while navigation to chat starts.
+    -   Added a buried discoverability link (`Textarea Entry`) in the agent context menu under agent view actions.
+
 -   Added new `USE SPAWN` commitment for persistent child-agent creation in Agents Server:
     -   Added `USE SPAWN` commitment with `spawn_agent` tool wiring in Promptbook runtime (browser + node runtime adapters).
     -   Added strict shared create-agent input contract (`source`, `folderId`, `sortOrder`, `visibility`) with unknown-field rejection and source-size limits.

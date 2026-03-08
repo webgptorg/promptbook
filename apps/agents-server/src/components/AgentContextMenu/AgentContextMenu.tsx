@@ -552,6 +552,12 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
         },
         {
             type: 'link' as const,
+            href: `/agents/${encodeURIComponent(agentName)}/textarea`,
+            icon: MessageSquareIcon,
+            label: 'Textarea Entry',
+        },
+        {
+            type: 'link' as const,
             href: editBookLink.href,
             icon: editBookLink.icon,
             label: editBookLink.title,

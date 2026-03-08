@@ -64,7 +64,7 @@ export function LayoutWrapper({
     // const isAdminChatPage = pathname?.startsWith('/admin/chat-history') || pathname?.startsWith('/admin/chat-feedback');
     const isChatPage = pathname ? /^\/agents\/[^/]+\/chat$/.test(pathname) : false;
     const isHeaderHidden = false; // pathname?.includes('/chat') && !isAdminChatPage;
-    const isFooterHiddenOnPage = pathname ? /^\/agents\/[^/]+\/(book|chat|book\+chat)$/.test(pathname) : false;
+    const isFooterHiddenOnPage = pathname ? /^\/agents\/[^/]+\/(book|chat|book\+chat|textarea)$/.test(pathname) : false;
 
     const mainClassName = isChatPage ? 'h-[100dvh] pt-[60px] overflow-hidden' : 'flex-1 pt-[60px]';
     const shouldRenderMinimalShell = isHeaderHidden || isHeadless;
