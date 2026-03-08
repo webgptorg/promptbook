@@ -88,6 +88,7 @@
     -   Added a background worker loop (`apps/agents-server/src/utils/agentPreparation.ts`) that coalesces rapid updates with a 30s debounce window, enforces single in-flight preparation per agent row, runs AgentKit pre-indexing, retries with backoff on transient failures, and logs scheduled/started/skipped/completed/failed events with counters.
     -   Wired scheduling centrally by decorating `AgentCollection` writes in `$provideAgentCollectionForServer`, so agent create/update/book-source writes automatically enqueue pre-indexing without blocking save requests.
     -   Updated chat handlers to briefly wait for matching running pre-index jobs before falling back to existing on-demand behavior, minimizing perceived delay when preparation is nearly complete.
+    -   Fixed worker triggering reliability by adding immediate tick kicks, per-prefix wake-up timers at scheduled due times, and due-`SCHEDULED` polling in chat wait so queued pre-index jobs start consistently and produce observable run logs/counters.
 
 -   Improved Agents Server profile-chat initial message handoff to avoid URL length limits while preserving deep links:
     -   Profile chat now stores pending initial message payload (message + attachments) in session storage and navigates to `/chat` without serializing the message into URL query params.

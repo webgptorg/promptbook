@@ -26,6 +26,11 @@ const AGENT_PREPARATION_WORKER_INTERVAL_MS = 5_000;
 const AGENT_PREPARATION_MAX_JOBS_PER_TICK = 2;
 
 /**
+ * Small wake-up buffer used when scheduling one-shot worker kicks.
+ */
+const AGENT_PREPARATION_WAKEUP_BUFFER_MS = 100;
+
+/**
  * Maximum wait for chat routes that decide to wait for a currently running preparation.
  */
 export const AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS = 2_500;
@@ -148,6 +153,11 @@ const ACTIVE_TABLE_PREFIXES = new Set<string>();
 let agentPreparationWorkerInterval: ReturnType<typeof setInterval> | null = null;
 
 /**
+ * One-shot wake-up timeout handles keyed by table prefix.
+ */
+const agentPreparationWakeupTimeoutsByPrefix = new Map<string, ReturnType<typeof setTimeout>>();
+
+/**
  * Guard preventing overlapping worker ticks in one process.
  */
 let isAgentPreparationWorkerTickRunning = false;
@@ -243,11 +253,54 @@ function ensureAgentPreparationWorkerRunning(): void {
 }
 
 /**
+ * Triggers one immediate best-effort worker tick without awaiting completion.
+ */
+function kickAgentPreparationWorkerTick(): void {
+    if (shouldDisableBackgroundWorkerLoop()) {
+        return;
+    }
+
+    void runAgentPreparationWorkerTick();
+}
+
+/**
+ * Schedules one per-prefix wake-up tick near the next expected due timestamp.
+ */
+function scheduleAgentPreparationWakeup(tablePrefix: string, wakeAtIso: string): void {
+    if (shouldDisableBackgroundWorkerLoop()) {
+        return;
+    }
+
+    const wakeAtTimestamp = new Date(wakeAtIso).getTime();
+    if (!Number.isFinite(wakeAtTimestamp)) {
+        kickAgentPreparationWorkerTick();
+        return;
+    }
+
+    const delayMs = Math.max(0, wakeAtTimestamp - Date.now()) + AGENT_PREPARATION_WAKEUP_BUFFER_MS;
+    const normalizedTablePrefix = normalizeTablePrefix(tablePrefix);
+
+    const existingWakeupTimeout = agentPreparationWakeupTimeoutsByPrefix.get(normalizedTablePrefix);
+    if (existingWakeupTimeout) {
+        clearTimeout(existingWakeupTimeout);
+    }
+
+    const wakeupTimeout = setTimeout(() => {
+        agentPreparationWakeupTimeoutsByPrefix.delete(normalizedTablePrefix);
+        void runAgentPreparationWorkerTick();
+    }, delayMs);
+
+    wakeupTimeout.unref?.();
+    agentPreparationWakeupTimeoutsByPrefix.set(normalizedTablePrefix, wakeupTimeout);
+}
+
+/**
  * Registers a prefix for future worker processing and starts the worker loop.
  */
 function registerAgentPreparationPrefix(tablePrefix: string): void {
     ACTIVE_TABLE_PREFIXES.add(normalizeTablePrefix(tablePrefix));
     ensureAgentPreparationWorkerRunning();
+    kickAgentPreparationWorkerTick();
 }
 
 /**
@@ -483,6 +536,7 @@ async function markClaimedAgentPreparationFailed(
         return;
     }
 
+    scheduleAgentPreparationWakeup(tablePrefix, runAfterIso);
     incrementAgentPreparationMetric('failed');
     logAgentPreparation('failed', {
         tablePrefix,
@@ -676,6 +730,8 @@ async function processClaimedAgentPreparationJob(tablePrefix: string, claimedJob
                     jobId: claimedJob.id,
                     error: rescheduleResult.error.message,
                 });
+            } else {
+                scheduleAgentPreparationWakeup(tablePrefix, runAfterIso);
             }
 
             incrementAgentPreparationMetric('skipped');
@@ -840,6 +896,7 @@ export async function scheduleAgentPreparation(options: ScheduleAgentPreparation
             runAfter: runAfterIso,
             mode: 'insert',
         });
+        scheduleAgentPreparationWakeup(tablePrefix, runAfterIso);
 
         return;
     }
@@ -885,6 +942,7 @@ export async function scheduleAgentPreparation(options: ScheduleAgentPreparation
         mode: 'update',
         previousStatus: existingRow.status,
     });
+    scheduleAgentPreparationWakeup(tablePrefix, runAfterIso);
 }
 
 /**
@@ -923,6 +981,18 @@ export async function waitForRunningAgentPreparation(
 
         if (row.status === 'FAILED') {
             return 'failed';
+        }
+
+        if (row.status === 'SCHEDULED') {
+            const runAfterTimestamp = new Date(row.runAfter).getTime();
+            if (Number.isFinite(runAfterTimestamp) && runAfterTimestamp <= now) {
+                kickAgentPreparationWorkerTick();
+                const remainingMs = deadline - now;
+                await sleep(Math.min(pollIntervalMs, Math.max(1, remainingMs)));
+                continue;
+            }
+
+            return 'not_running';
         }
 
         if (row.status !== 'RUNNING') {

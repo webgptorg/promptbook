@@ -35,7 +35,7 @@
 
 ---
 
-[ ]
+[x] ~$0.3300 17 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨🍾] You have implemented [Agent preindexing](prompts/2026-03-0170-agents-server-preindex-agent-on-change.md) but it is not wotking
 
@@ -90,3 +90,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
