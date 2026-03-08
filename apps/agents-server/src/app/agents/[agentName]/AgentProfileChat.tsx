@@ -17,8 +17,9 @@ import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingConte
 import { showAlert } from '../../../components/AsyncDialogs/asyncDialogs';
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
+import { resolveChatMessageValidationIssue } from '../../../utils/chat/validateChatMessageContent';
 import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
-import { setPendingProfileMessageAttachments } from './profileMessageCache';
+import { setPendingProfileMessage } from './profileMessageCache';
 
 /**
  * Props for rendering the profile-page chat preview for one agent.
@@ -229,13 +230,10 @@ export function AgentProfileChat({
     );
 
     const navigateToChat = useCallback(
-        ({ message }: { message?: string }) => {
+        ({ shouldForceNewChat }: { shouldForceNewChat: boolean }) => {
             const queryParams = new URLSearchParams();
-            if (hasMessageContent(message)) {
-                queryParams.set('message', message);
-                if (isHistoryEnabled) {
-                    queryParams.set(FORCE_NEW_CHAT_QUERY_PARAM, '1');
-                }
+            if (shouldForceNewChat && isHistoryEnabled) {
+                queryParams.set(FORCE_NEW_CHAT_QUERY_PARAM, '1');
             }
             const query = queryParams.toString();
             const destination = query ? `${chatRoute}?${query}` : chatRoute;
@@ -247,8 +245,18 @@ export function AgentProfileChat({
 
     const handleMessage = useCallback(
         (message: string, attachments?: ChatMessage['attachments']) => {
-            setPendingProfileMessageAttachments(agentName, attachments);
-            return navigateToChat({ message });
+            const validationIssue = resolveChatMessageValidationIssue(message);
+            if (validationIssue) {
+                throw new Error(validationIssue.message);
+            }
+
+            setPendingProfileMessage(agentName, {
+                message,
+                attachments,
+            });
+            return navigateToChat({
+                shouldForceNewChat: hasMessageContent(message),
+            });
         },
         [agentName, navigateToChat],
     );

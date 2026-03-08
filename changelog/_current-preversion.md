@@ -1,3 +1,9 @@
+-   Improved Agents Server profile-chat initial message handoff to avoid URL length limits while preserving deep links:
+    -   Profile chat now stores pending initial message payload (message + attachments) in session storage and navigates to `/chat` without serializing the message into URL query params.
+    -   Standalone chat now consumes this pending profile payload for one-time auto-execution, while existing shareable `?message=...` deep-link behavior remains supported.
+    -   Added shared chat-message validation utility with a server-enforced max length (`20,000` characters) in `/agents/[agentName]/api/chat`, returning clear validation errors (including `413` for oversized messages).
+    -   Updated remote chat error propagation so non-OK `/api/chat` responses are surfaced as explicit client errors, and validation errors now display their concrete server message in chat error UI.
+
 -   Added automatic per-round LF normalization in `scripts/run-codex-prompts` (`ptbk coder run`):
     -   After each coding round, the script now detects only files changed in that round and normalizes CRLF line endings to LF.
     -   Added safe binary skipping (by known binary extension and NUL-byte detection) to avoid corrupting non-text files.

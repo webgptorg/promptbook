@@ -26,6 +26,39 @@ export type FriendlyErrorMessage = {
 };
 
 /**
+ * Attempts to extract one human-readable detail message from unknown errors.
+ */
+function extractErrorDetailMessage(rawError: unknown): string | null {
+    if (!rawError) {
+        return null;
+    }
+
+    if (rawError instanceof Error) {
+        return rawError.message || null;
+    }
+
+    if (typeof rawError !== 'object' || rawError === null) {
+        return null;
+    }
+
+    const errorObj = rawError as Record<string, unknown>;
+    const nestedError = errorObj.error;
+
+    if (nestedError && typeof nestedError === 'object') {
+        const nestedErrorMessage = (nestedError as Record<string, unknown>).message;
+        if (typeof nestedErrorMessage === 'string' && nestedErrorMessage.trim() !== '') {
+            return nestedErrorMessage;
+        }
+    }
+
+    if (typeof errorObj.message === 'string' && errorObj.message.trim() !== '') {
+        return errorObj.message;
+    }
+
+    return null;
+}
+
+/**
  * Categorize an error based on its properties
  */
 export function categorizeError(error: unknown): ErrorCategory {
@@ -152,13 +185,17 @@ export function getFriendlyErrorMessage(category: ErrorCategory, rawError?: unkn
             };
 
         case 'VALIDATION_ERROR':
+        {
+            const detailMessage = extractErrorDetailMessage(rawError);
             return {
                 title: 'Invalid Request',
                 message:
+                    detailMessage ||
                     'There was an issue with your message. Please try rephrasing it or check if any attachments are valid.',
                 category,
                 canRetry: true,
             };
+        }
 
         case 'RATE_LIMIT_ERROR':
             return {
@@ -188,27 +225,10 @@ export function getFriendlyErrorMessage(category: ErrorCategory, rawError?: unkn
 
         case 'UNKNOWN_ERROR':
         default: {
-            // Try to extract a meaningful message from the raw error
-            let detailMessage = 'An unexpected error occurred. Please try again.';
-
-            if (rawError) {
-                if (rawError instanceof Error && rawError.message) {
-                    detailMessage = `An unexpected error occurred: ${rawError.message}`;
-                } else if (typeof rawError === 'object' && rawError !== null) {
-                    const errorObj = rawError as Record<string, unknown>;
-                    const nestedError = errorObj.error;
-                    if (
-                        nestedError &&
-                        typeof nestedError === 'object' &&
-                        'message' in nestedError &&
-                        typeof nestedError.message === 'string'
-                    ) {
-                        detailMessage = `An unexpected error occurred: ${nestedError.message}`;
-                    } else if ('message' in errorObj && typeof errorObj.message === 'string') {
-                        detailMessage = `An unexpected error occurred: ${errorObj.message}`;
-                    }
-                }
-            }
+            const errorDetail = extractErrorDetailMessage(rawError);
+            const detailMessage = errorDetail
+                ? `An unexpected error occurred: ${errorDetail}`
+                : 'An unexpected error occurred. Please try again.';
 
             return {
                 title: 'Unexpected Error',

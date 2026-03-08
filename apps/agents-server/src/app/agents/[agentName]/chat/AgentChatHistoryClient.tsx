@@ -17,7 +17,7 @@ import {
 } from '../../../../utils/userChatClient';
 import { AgentChatSidebar, AGENT_CHAT_SIDEBAR_ID } from './AgentChatSidebar';
 import { AgentChatWrapper } from '../AgentChatWrapper';
-import { takePendingProfileMessageAttachments } from '../profileMessageCache';
+import { takePendingProfileMessage } from '../profileMessageCache';
 import { usePrivateModePreferences } from '../../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 
 /**
@@ -90,10 +90,12 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const { formatText } = useAgentNaming();
     const { isPrivateModeEnabled } = usePrivateModePreferences();
     const shouldUseHistory = isHistoryEnabled && !isPrivateModeEnabled;
-    const pendingProfileAttachments = useMemo(
-        () => takePendingProfileMessageAttachments(agentName),
+    const pendingProfileMessage = useMemo(
+        () => takePendingProfileMessage(agentName),
         [agentName],
     );
+    const effectiveInitialAutoExecuteMessage = initialAutoExecuteMessage ?? pendingProfileMessage?.message;
+    const effectiveInitialAutoExecuteMessageAttachments = pendingProfileMessage?.attachments;
 
     const [chats, setChats] = useState<Array<UserChatSummary>>([]);
     const [activeChatId, setActiveChatId] = useState<string | null>(null);
@@ -242,7 +244,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
             const shouldCreateFreshChatForInitialMessage =
                 !hasInitialAutoMessageBeenConsumedRef.current &&
-                Boolean(initialAutoExecuteMessage) &&
+                Boolean(effectiveInitialAutoExecuteMessage) &&
                 (initialForceNewChat || !effectivePreferredChatId);
 
             if (!resolvedActiveChatId || shouldCreateFreshChatForInitialMessage) {
@@ -252,7 +254,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 resolvedMessages = createdChat.messages;
                 resolvedDraftMessage = createdChat.draftMessage ?? null;
 
-                if (initialAutoExecuteMessage) {
+                if (effectiveInitialAutoExecuteMessage) {
                     autoExecuteTargetChatIdRef.current = createdChat.chat.id;
                 }
             }
@@ -261,15 +263,15 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
             const shouldKeepInitialAutoMessage =
                 !hasInitialAutoMessageBeenConsumedRef.current &&
-                Boolean(initialAutoExecuteMessage) &&
+                Boolean(effectiveInitialAutoExecuteMessage) &&
                 (!autoExecuteTargetChatIdRef.current || resolvedActiveChatId === autoExecuteTargetChatIdRef.current);
 
             activateChat(resolvedActiveChatId, resolvedMessages, {
-                includeInitialMessage: shouldKeepInitialAutoMessage,
+                includeInitialMessage: Boolean(initialAutoExecuteMessage) && shouldKeepInitialAutoMessage,
                 draftMessage: resolvedDraftMessage,
             });
         },
-        [activateChat, agentName, initialAutoExecuteMessage, initialForceNewChat],
+        [activateChat, agentName, effectiveInitialAutoExecuteMessage, initialAutoExecuteMessage, initialForceNewChat],
     );
 
     useEffect(() => {
@@ -527,10 +529,10 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const autoMessageTargetId = autoExecuteTargetChatIdRef.current;
     const autoExecuteMessage =
         !hasInitialAutoMessageBeenConsumedRef.current &&
-        Boolean(initialAutoExecuteMessage) &&
+        Boolean(effectiveInitialAutoExecuteMessage) &&
         Boolean(activeChatId) &&
         (!autoMessageTargetId || autoMessageTargetId === activeChatId)
-            ? initialAutoExecuteMessage
+            ? effectiveInitialAutoExecuteMessage
             : undefined;
 
     const handleAutoExecuteMessageConsumed = useCallback(() => {
@@ -546,8 +548,8 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                         key={`guest-${guestPersistenceKey}`}
                         agentName={agentName}
                         agentUrl={agentUrl}
-                        autoExecuteMessage={initialAutoExecuteMessage}
-                        autoExecuteMessageAttachments={pendingProfileAttachments}
+                        autoExecuteMessage={effectiveInitialAutoExecuteMessage}
+                        autoExecuteMessageAttachments={effectiveInitialAutoExecuteMessageAttachments}
                         brandColor={brandColor}
                         thinkingMessages={thinkingMessages}
                         speechRecognitionLanguage={speechRecognitionLanguage}
@@ -584,7 +586,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 agentUrl={agentUrl}
                 defaultMessage={activeChatDraftMessage ?? undefined}
                 autoExecuteMessage={autoExecuteMessage}
-                autoExecuteMessageAttachments={pendingProfileAttachments}
+                autoExecuteMessageAttachments={effectiveInitialAutoExecuteMessageAttachments}
                 brandColor={brandColor}
                 thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}

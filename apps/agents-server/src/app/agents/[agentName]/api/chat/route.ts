@@ -15,6 +15,7 @@ import {
     emulateMessageSuffixStreaming,
     resolveMessageSuffixFromAgentSource,
 } from '@/src/utils/chat/messageSuffix';
+import { resolveChatMessageContentForApiRequest } from '@/src/utils/chat/validateChatMessageContent';
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
@@ -58,15 +59,9 @@ type ChatRequestBody = {
 const CHAT_STREAM_ABORTED_ERROR_NAME = 'ChatStreamAbortedError';
 
 /**
- * Extracts safe user message content from request payload.
+ * API error payload shape returned by chat endpoint.
  */
-function resolveUserMessageContent(rawMessage: unknown): string {
-    if (typeof rawMessage === 'string' && rawMessage.trim() !== '') {
-        return rawMessage;
-    }
-
-    return 'Tell me more about yourself.';
-}
+type ChatApiErrorType = 'invalid_request_error' | 'agent_deleted' | 'meta_disclaimer_required';
 
 /**
  * Allow long-running streams: set to platform maximum (seconds)
@@ -128,6 +123,24 @@ function isChatStreamCancellationError(error: unknown, signal: AbortSignal): boo
     return errorLike.name === CHAT_STREAM_ABORTED_ERROR_NAME || isAbortLikeError(error);
 }
 
+/**
+ * Builds a standardized JSON error response used by chat API handlers.
+ */
+function createChatApiErrorResponse(message: string, status: number, type: ChatApiErrorType): Response {
+    return new Response(
+        JSON.stringify({
+            error: {
+                message,
+                type,
+            },
+        }),
+        {
+            status,
+            headers: { 'Content-Type': 'application/json' },
+        },
+    );
+}
+
 export async function OPTIONS(request: Request) {
     keepUnused(request);
 
@@ -154,22 +167,25 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
     // Check if agent is deleted
     if (await isAgentDeleted(deletedCheckAgentIdentifier)) {
-        return new Response(
-            JSON.stringify({
-                error: {
-                    message: 'This agent has been deleted. You can restore it from the Recycle Bin.',
-                    type: 'agent_deleted',
-                },
-            }),
-            {
-                status: 410, // Gone - indicates the resource is no longer available
-                headers: { 'Content-Type': 'application/json' },
-            },
+        return createChatApiErrorResponse(
+            'This agent has been deleted. You can restore it from the Recycle Bin.',
+            410, // Gone - indicates the resource is no longer available
+            'agent_deleted',
         );
     }
 
-    const body = (await request.json()) as ChatRequestBody;
-    const message = resolveUserMessageContent(body.message);
+    const rawBody = (await request.json().catch(() => null)) as unknown;
+    if (!rawBody || typeof rawBody !== 'object' || Array.isArray(rawBody)) {
+        return createChatApiErrorResponse('Invalid request body.', 400, 'invalid_request_error');
+    }
+
+    const body = rawBody as ChatRequestBody;
+    const messageResolution = resolveChatMessageContentForApiRequest(body.message);
+    if (!messageResolution.isValid) {
+        return createChatApiErrorResponse(messageResolution.issue.message, messageResolution.issue.status, 'invalid_request_error');
+    }
+
+    const message = messageResolution.message;
     const thread = body.thread ? [...body.thread] : undefined;
     const attachments = normalizeChatAttachments(body.attachments);
     const rawParameters = body.parameters ?? {};
@@ -207,17 +223,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
         if (disclaimerMarkdown) {
             if (!currentUserIdentity) {
-                return new Response(
-                    JSON.stringify({
-                        error: {
-                            message: 'You must accept the disclaimer before chatting with this agent.',
-                            type: 'meta_disclaimer_required',
-                        },
-                    }),
-                    {
-                        status: 403,
-                        headers: { 'Content-Type': 'application/json' },
-                    },
+                return createChatApiErrorResponse(
+                    'You must accept the disclaimer before chatting with this agent.',
+                    403,
+                    'meta_disclaimer_required',
                 );
             }
 
@@ -228,17 +237,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             });
 
             if (!disclaimerStatus.accepted) {
-                return new Response(
-                    JSON.stringify({
-                        error: {
-                            message: 'You must accept the disclaimer before chatting with this agent.',
-                            type: 'meta_disclaimer_required',
-                        },
-                    }),
-                    {
-                        status: 403,
-                        headers: { 'Content-Type': 'application/json' },
-                    },
+                return createChatApiErrorResponse(
+                    'You must accept the disclaimer before chatting with this agent.',
+                    403,
+                    'meta_disclaimer_required',
                 );
             }
         }

@@ -1,13 +1,14 @@
 /**
- * Utility for temporarily persisting attachments from the profile chat until the
- * standalone chat view loads so the same message can be replayed there.
+ * Utility for temporarily persisting profile-chat payload until the standalone
+ * chat view loads so the same message can be replayed there.
  */
 import type { ChatMessage } from '@promptbook-local/types';
 
 const STORAGE_KEY_PREFIX = 'agents-server:agent-profile-message';
 
 type PendingProfileMessagePayload = {
-    readonly attachments?: ChatMessage['attachments'];
+    message?: string;
+    attachments?: ChatMessage['attachments'];
 };
 
 /**
@@ -18,24 +19,37 @@ function buildStorageKey(agentName: string): string {
 }
 
 /**
- * Stores the provided attachments in sessionStorage or clears the entry when no
- * attachments are supplied.
+ * Returns true when pending message has non-whitespace content.
+ */
+function hasMessageContent(message: string | undefined): message is string {
+    return typeof message === 'string' && message.trim() !== '';
+}
+
+/**
+ * Stores pending profile-chat payload in sessionStorage or clears the entry
+ * when no transferable content is supplied.
  *
  * @private Internal helper used by Agents Server profile routes.
  */
-export function setPendingProfileMessageAttachments(
+export function setPendingProfileMessage(
     agentName: string,
-    attachments?: ChatMessage['attachments'],
+    payload: PendingProfileMessagePayload,
 ): void {
     if (typeof window === 'undefined' || !window.sessionStorage) {
         return;
     }
 
     const storageKey = buildStorageKey(agentName);
+    const normalizedPayload: PendingProfileMessagePayload = {};
+    if (hasMessageContent(payload.message)) {
+        normalizedPayload.message = payload.message;
+    }
+    if (payload.attachments && payload.attachments.length > 0) {
+        normalizedPayload.attachments = payload.attachments;
+    }
 
-    if (attachments && attachments.length > 0) {
-        const payload: PendingProfileMessagePayload = { attachments };
-        window.sessionStorage.setItem(storageKey, JSON.stringify(payload));
+    if (normalizedPayload.message || normalizedPayload.attachments) {
+        window.sessionStorage.setItem(storageKey, JSON.stringify(normalizedPayload));
         return;
     }
 
@@ -43,12 +57,10 @@ export function setPendingProfileMessageAttachments(
 }
 
 /**
- * Reads and removes the pending attachments for the given agent, returning the
- * attachments payload once.
+ * Reads and removes the pending profile-chat payload for the given agent,
+ * returning transferable message data once.
  */
-export function takePendingProfileMessageAttachments(
-    agentName: string,
-): ChatMessage['attachments'] | undefined {
+export function takePendingProfileMessage(agentName: string): PendingProfileMessagePayload | undefined {
     if (typeof window === 'undefined' || !window.sessionStorage) {
         return undefined;
     }
@@ -63,8 +75,16 @@ export function takePendingProfileMessageAttachments(
 
     try {
         const payload = JSON.parse(raw) as PendingProfileMessagePayload;
-        if (payload.attachments && payload.attachments.length > 0) {
-            return payload.attachments;
+        const resolvedPayload: PendingProfileMessagePayload = {};
+        if (hasMessageContent(payload.message)) {
+            resolvedPayload.message = payload.message;
+        }
+        if (Array.isArray(payload.attachments) && payload.attachments.length > 0) {
+            resolvedPayload.attachments = payload.attachments;
+        }
+
+        if (resolvedPayload.message || resolvedPayload.attachments) {
+            return resolvedPayload;
         }
     } catch {
         /* ignore parse errors */

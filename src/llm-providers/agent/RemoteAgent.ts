@@ -54,6 +54,62 @@ type RemoteAgentProfile = {
 };
 
 /**
+ * Error envelope returned by remote agent chat endpoints on non-2xx responses.
+ */
+type RemoteAgentErrorPayload = {
+    error?: {
+        message?: string;
+        type?: string;
+    };
+};
+
+/**
+ * Error object thrown when remote agent HTTP request fails.
+ */
+type RemoteAgentHttpError = Error & {
+    status: number;
+    error?: {
+        message?: string;
+        type?: string;
+    };
+};
+
+/**
+ * Parses one failed remote agent response into a structured error.
+ */
+async function createRemoteAgentHttpError(response: Response): Promise<RemoteAgentHttpError> {
+    const responseBody = await response.text().catch(() => '');
+    let parsedPayload: RemoteAgentErrorPayload | null = null;
+
+    if (responseBody) {
+        try {
+            parsedPayload = JSON.parse(responseBody) as RemoteAgentErrorPayload;
+        } catch {
+            parsedPayload = null;
+        }
+    }
+
+    const payloadMessage =
+        parsedPayload?.error && typeof parsedPayload.error.message === 'string' ? parsedPayload.error.message : undefined;
+    const fallbackMessage = `Remote chat request failed (${response.status} ${response.statusText || 'Unknown error'}).`;
+    const rawResponseMessage = responseBody.trim();
+    const resolvedMessage = payloadMessage || rawResponseMessage || fallbackMessage;
+
+    const error = new Error(resolvedMessage) as RemoteAgentHttpError;
+    error.name = 'RemoteAgentHttpError';
+    error.status = response.status;
+
+    if (parsedPayload?.error) {
+        error.error = {
+            message: parsedPayload.error.message,
+            type: parsedPayload.error.type,
+        };
+    }
+
+    return error;
+}
+
+/**
  * Resolve a remote META IMAGE value into an absolute URL when possible.
  */
 function resolveRemoteImageUrl(
@@ -340,6 +396,10 @@ export class RemoteAgent extends Agent {
         });
         // <- TODO: [🐱‍🚀] What about closed-source agents?
         // <- TODO: [🐱‍🚀] Maybe use promptbookFetch
+
+        if (!bookResponse.ok) {
+            throw await createRemoteAgentHttpError(bookResponse);
+        }
 
         let content = '';
         const toolCalls: Array<NonNullable<ChatPromptResult['toolCalls']>[number]> = [];
