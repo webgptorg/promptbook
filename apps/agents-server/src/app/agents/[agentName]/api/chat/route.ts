@@ -31,6 +31,7 @@ import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithu
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
 import {
     AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS,
+    computePersistedAgentFingerprint,
     resolveAgentCollectionTablePrefix,
     waitForRunningAgentPreparation,
 } from '@/src/utils/agentPreparation';
@@ -271,11 +272,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const baseOpenAiTools = await $provideOpenAiAgentKitExecutionToolsForServer();
 
         const agentHash = computeAgentHash(agentSource);
+        const agentPreparationFingerprint = computePersistedAgentFingerprint(agentSource);
         const tablePrefix = resolveAgentCollectionTablePrefix(collection);
         const preparationWaitResult = await waitForRunningAgentPreparation({
             tablePrefix,
             agentPermanentId: agentId,
-            fingerprint: agentHash,
+            fingerprint: agentPreparationFingerprint,
             timeoutMs: AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS,
         });
         if (preparationWaitResult !== 'not_running') {
@@ -283,6 +285,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                 tablePrefix,
                 agentPermanentId: agentId,
                 agentHash,
+                agentPreparationFingerprint,
                 preparationWaitResult,
             });
         }

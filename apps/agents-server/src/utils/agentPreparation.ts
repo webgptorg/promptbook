@@ -1,6 +1,6 @@
 import { NEXT_PUBLIC_SITE_URL } from '@/config';
-import { AgentCollectionInSupabase } from '@promptbook-local/core';
-import { string_agent_permanent_id, TODO_any } from '@promptbook-local/types';
+import { AgentCollectionInSupabase, computeAgentHash } from '@promptbook-local/core';
+import { string_agent_permanent_id, string_book, TODO_any } from '@promptbook-local/types';
 import { serializeError } from '@promptbook-local/utils';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
@@ -65,6 +65,8 @@ export type AgentPreparationTriggerReason = 'AGENT_CREATED' | 'AGENT_UPDATED';
  */
 type AgentPreparationRow = {
     readonly id: number;
+    readonly createdAt: string;
+    readonly updatedAt: string;
     readonly agentPermanentId: string_agent_permanent_id;
     readonly targetFingerprint: string;
     readonly lastPreparedFingerprint: string | null;
@@ -77,6 +79,33 @@ type AgentPreparationRow = {
     readonly failedAt: string | null;
     readonly retryCount: number;
     readonly lastError: string | null;
+    readonly lastDurationMs: number | null;
+};
+
+/**
+ * High-level preparation state used by server-rendered status badges.
+ */
+export type AgentPreparationState = 'NOT_PREPARED' | 'PREPARING' | 'PREPARED' | 'FAILED';
+
+/**
+ * Read-model returned for one agent preparation status lookup.
+ */
+export type AgentPreparationStatusSnapshot = {
+    readonly state: AgentPreparationState;
+    readonly status: AgentPreparationStatus | 'MISSING';
+    readonly currentFingerprint: string;
+    readonly targetFingerprint: string | null;
+    readonly lastPreparedFingerprint: string | null;
+    readonly isUpToDate: boolean;
+    readonly isPrepared: boolean;
+    readonly scheduledAt: string | null;
+    readonly runAfter: string | null;
+    readonly startedAt: string | null;
+    readonly completedAt: string | null;
+    readonly failedAt: string | null;
+    readonly retryCount: number;
+    readonly lastError: string | null;
+    readonly lastDurationMs: number | null;
 };
 
 /**
@@ -97,6 +126,15 @@ export type ScheduleAgentPreparationOptions = {
     readonly agentPermanentId: string_agent_permanent_id;
     readonly fingerprint: string;
     readonly triggerReason: AgentPreparationTriggerReason;
+};
+
+/**
+ * Options for reading current preparation status of one agent fingerprint.
+ */
+export type ReadAgentPreparationStatusOptions = {
+    readonly tablePrefix: string;
+    readonly agentPermanentId: string_agent_permanent_id;
+    readonly currentFingerprint: string;
 };
 
 /**
@@ -205,6 +243,25 @@ function incrementAgentPreparationMetric(metric: keyof AgentPreparationMetrics):
  */
 async function sleep(delayMs: number): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, delayMs));
+}
+
+/**
+ * Removes `META ID` directives so preparation fingerprints match persisted `Agent.agentHash`.
+ */
+function stripMetaIdLines(agentSource: string_book): string_book {
+    const strippedLines = agentSource
+        .split(/\r?\n/)
+        .filter((line) => !line.trim().startsWith('META ID '));
+
+    return strippedLines.join('\n') as string_book;
+}
+
+/**
+ * Computes the persisted-equivalent fingerprint used for scheduling and status checks.
+ */
+export function computePersistedAgentFingerprint(agentSource: string_book): string {
+    const normalizedSource = stripMetaIdLines(agentSource);
+    return computeAgentHash(normalizedSource);
 }
 
 /**
@@ -961,11 +1018,7 @@ export async function waitForRunningAgentPreparation(
     while (Date.now() <= deadline) {
         const now = Date.now();
 
-        const row = await loadAgentPreparationRowByAgentAndFingerprint(
-            tablePrefix,
-            options.agentPermanentId,
-            options.fingerprint,
-        );
+        const row = await loadAgentPreparationRowByAgentPermanentId(tablePrefix, options.agentPermanentId);
 
         if (!row) {
             return 'not_running';
@@ -1007,28 +1060,90 @@ export async function waitForRunningAgentPreparation(
 }
 
 /**
- * Loads one preparation row for the target agent and fingerprint.
+ * Reads current background-preparation status for one agent and fingerprint.
  */
-async function loadAgentPreparationRowByAgentAndFingerprint(
+export async function readAgentPreparationStatus(
+    options: ReadAgentPreparationStatusOptions,
+): Promise<AgentPreparationStatusSnapshot> {
+    const tablePrefix = normalizeTablePrefix(options.tablePrefix);
+    registerAgentPreparationPrefix(tablePrefix);
+
+    const row = await loadAgentPreparationRowByAgentPermanentId(tablePrefix, options.agentPermanentId);
+    if (!row) {
+        return {
+            state: 'NOT_PREPARED',
+            status: 'MISSING',
+            currentFingerprint: options.currentFingerprint,
+            targetFingerprint: null,
+            lastPreparedFingerprint: null,
+            isUpToDate: false,
+            isPrepared: false,
+            scheduledAt: null,
+            runAfter: null,
+            startedAt: null,
+            completedAt: null,
+            failedAt: null,
+            retryCount: 0,
+            lastError: null,
+            lastDurationMs: null,
+        };
+    }
+
+    const isTargetFingerprintCurrent = row.targetFingerprint === options.currentFingerprint;
+    const isPreparedForCurrentFingerprint =
+        row.status === 'PREPARED' && row.lastPreparedFingerprint === options.currentFingerprint;
+
+    if (row.status === 'SCHEDULED' && isTargetFingerprintCurrent) {
+        const runAfterTimestamp = new Date(row.runAfter).getTime();
+        if (Number.isFinite(runAfterTimestamp) && runAfterTimestamp <= Date.now()) {
+            kickAgentPreparationWorkerTick();
+        }
+    }
+
+    let state: AgentPreparationState = 'NOT_PREPARED';
+    if (isPreparedForCurrentFingerprint) {
+        state = 'PREPARED';
+    } else if (isTargetFingerprintCurrent && (row.status === 'SCHEDULED' || row.status === 'RUNNING')) {
+        state = 'PREPARING';
+    } else if (isTargetFingerprintCurrent && row.status === 'FAILED') {
+        state = 'FAILED';
+    }
+
+    return {
+        state,
+        status: row.status,
+        currentFingerprint: options.currentFingerprint,
+        targetFingerprint: row.targetFingerprint,
+        lastPreparedFingerprint: row.lastPreparedFingerprint,
+        isUpToDate: isPreparedForCurrentFingerprint,
+        isPrepared: isPreparedForCurrentFingerprint,
+        scheduledAt: row.scheduledAt,
+        runAfter: row.runAfter,
+        startedAt: row.startedAt,
+        completedAt: row.completedAt,
+        failedAt: row.failedAt,
+        retryCount: Math.max(0, row.retryCount),
+        lastError: row.lastError,
+        lastDurationMs: row.lastDurationMs,
+    };
+}
+
+/**
+ * Loads one preparation row for the target agent.
+ */
+async function loadAgentPreparationRowByAgentPermanentId(
     tablePrefix: string,
     agentPermanentId: string_agent_permanent_id,
-    fingerprint: string,
 ): Promise<AgentPreparationRow | null> {
     const supabase = $provideSupabaseForServer() as TODO_any;
     const tableName = getAgentPreparationTableName(tablePrefix);
 
-    const result = await supabase
-        .from(tableName)
-        .select('*')
-        .eq('agentPermanentId', agentPermanentId)
-        .eq('targetFingerprint', fingerprint)
-        .limit(1);
+    const result = await supabase.from(tableName).select('*').eq('agentPermanentId', agentPermanentId).limit(1);
 
     if (result.error) {
-        console.error('[pre-index] Failed to load preparation row by agent+fingerprint:', {
+        console.error('[pre-index] Failed to load preparation row by agent id:', {
             tablePrefix,
             agentPermanentId,
-            fingerprint,
             error: result.error.message,
         });
         return null;

@@ -16,8 +16,9 @@ import { getAgentNaming } from '../../../utils/getAgentNaming';
 import { loadChatConfiguration } from '../../../utils/chatConfiguration';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { isPublicAgentVisibility } from '@/src/utils/agentVisibility';
-import { getAgentFolderContext, getAgentName, getAgentProfile, isAgentDeleted } from './_utils';
+import { getAgentFolderContext, getAgentName, getAgentPreparationStatus, getAgentProfile, isAgentDeleted } from './_utils';
 import { getAgentLinks } from './agentLinks';
+import { AgentPreparationStatusBadge } from './AgentPreparationStatusBadge';
 import { AgentProfileChat } from './AgentProfileChat';
 import { AgentProfileWrapper } from './AgentProfileWrapper';
 import { ServiceWorkerRegister } from './ServiceWorkerRegister';
@@ -214,7 +215,7 @@ export default async function AgentPage({
     const historyIdentityAvailable = await ensureChatHistoryIdentity();
     const { headless: headlessParam } = currentSearchParams;
     const isHeadless = headlessParam !== undefined;
-    const { publicUrl } = await $provideServer();
+    const { publicUrl, tablePrefix } = await $provideServer();
     const { isFileAttachmentsEnabled } = await loadChatConfiguration();
     const folderContext = await getAgentFolderContext(canonicalAgentId, isAdmin);
     const agentNaming = await getAgentNaming();
@@ -243,6 +244,7 @@ export default async function AgentPage({
 
     const brandColor = Color.fromSafe(agentProfile.meta.color || PROMPTBOOK_COLOR);
     const brandColorHex = brandColor.then(saturate(-0.5)).toHex();
+    const preparationStatus = await getAgentPreparationStatus(canonicalAgentId, tablePrefix);
 
     const fallbackName = formatAgentNamingText('Agent', agentNaming);
     const fullname = (agentProfile.meta.fullname || agentProfile.agentName || fallbackName) as string;
@@ -277,6 +279,7 @@ export default async function AgentPage({
                 folderContext={folderContext}
                 actions={
                     <>
+                        <AgentPreparationStatusBadge status={preparationStatus} />
                         {getAgentLinks(agentProfile.permanentId || canonicalAgentId, (text) =>
                             formatAgentNamingText(text, agentNaming),
                         )

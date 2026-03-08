@@ -1,3 +1,9 @@
+-   Improved Agents Server background pre-index observability/reliability and surfaced preparation state in agent details:
+    -   Added a profile-page pre-index status badge (`Preparing...`, `Prepared`, `Preparation failed`, `Preparation pending`) with timestamp details (including `Last prepared at ...`) sourced from `AgentPreparation` queue state.
+    -   Added a typed preparation-status read model in `agentPreparation` and derived up-to-date/preparing/failed states by comparing current persisted fingerprint vs. queued/last-prepared fingerprints.
+    -   Unified scheduling/wait fingerprint computation with a shared persisted-equivalent hash helper (`computePersistedAgentFingerprint`, strips `META ID` lines), eliminating hash mismatches between schedule and chat-wait checks.
+    -   Updated chat wait logic to read queue rows by agent (not agent+fingerprint only), correctly reporting `target_changed` cases and kicking due scheduled jobs when status is queried.
+
 -   Improved Agents Server Book editor save/history UX so history feels native and navigable:
     -   Replaced the floating fixed save chip with an in-layout save status bar, preventing overlap with page/header controls while keeping save state continuously visible.
     -   Reworked Book history into a dedicated responsive panel component (`BookEditorHistoryPanel`) that behaves like the existing chat sidebar pattern: docked panel on desktop and slide-over panel with backdrop on mobile.
