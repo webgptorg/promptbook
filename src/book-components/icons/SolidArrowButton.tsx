@@ -53,7 +53,11 @@ export function SolidArrowButton({
 }: SolidArrowButtonProps) {
     return (
         <button type={type} className={classNames(SOLID_ARROW_BUTTON_CLASS_NAME, className)} {...buttonProps}>
-            <ArrowIcon direction={direction} size={iconSize} className={classNames(SOLID_ARROW_ICON_CLASS_NAME, iconClassName)} />
+            <ArrowIcon
+                direction={direction}
+                size={iconSize}
+                className={classNames(SOLID_ARROW_ICON_CLASS_NAME, iconClassName)}
+            />
         </button>
     );
 }

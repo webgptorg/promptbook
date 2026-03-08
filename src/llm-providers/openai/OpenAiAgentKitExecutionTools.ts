@@ -170,9 +170,7 @@ function isImageAttachment(attachment: ChatAttachment): boolean {
         return true;
     }
 
-    const extension =
-        getLowercaseFilenameExtension(attachment.name) ||
-        getUrlPathnameExtension(attachment.url);
+    const extension = getLowercaseFilenameExtension(attachment.name) || getUrlPathnameExtension(attachment.url);
 
     return extension ? IMAGE_ATTACHMENT_EXTENSIONS.has(extension) : false;
 }
