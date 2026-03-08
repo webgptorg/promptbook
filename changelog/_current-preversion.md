@@ -1,3 +1,8 @@
+-   Refactored `MEMORY` commitment internals for maintainability/readability without behavior changes:
+    -   Split `src/commitments/MEMORY/MEMORY.ts` into focused private modules for runtime adapter wiring, runtime context resolution, disabled-result handling, tool-argument parsing, tool schema construction, system-message block creation, tool-title mapping, tool-function creation, and documentation text.
+    -   Kept `src/commitments/MEMORY/MEMORY.ts` as a thin orchestration facade preserving the same external API (`MemoryCommitmentDefinition`, `setMemoryToolRuntimeAdapter`, and existing exported MEMORY types).
+    -   Added explicit private JSDoc annotations on extracted exported internals to align with project conventions and package-generation checks.
+
 -   Refactored Chat tool-call parsing utilities for maintainability/readability without behavior changes:
     -   Split `src/book-components/Chat/utils/toolCallParsing.ts` into focused SRP modules under `src/book-components/Chat/utils/toolCallParsing/` (generic tool arg/result parsing, TEAM payload parsing, date extraction, search result extraction, and `run_browser` payload parsing/URL resolution).
     -   Kept `src/book-components/Chat/utils/toolCallParsing.ts` as a thin facade that re-exports the same API to preserve existing imports and behavior.
