@@ -15,6 +15,7 @@ import { useEffect, useId, useMemo, useState } from 'react';
 import { Dialog } from '../Portal/Dialog';
 import { SecretInput } from '../SecretInput/SecretInput';
 import { SecretTextarea } from '../SecretTextarea/SecretTextarea';
+import { useDirtyModalGuard } from '../utils/useDirtyModalGuard';
 
 /**
  * Wallet record type supported by the dialog.
@@ -123,6 +124,42 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
         () => formatWalletJsonSchemaForDisplay(requestedJsonSchema),
         [requestedJsonSchema],
     );
+    const hasUnsavedChanges = useMemo(() => {
+        if (!isOpen || !request) {
+            return false;
+        }
+
+        if (recordType !== request.recordType) {
+            return true;
+        }
+
+        if (service !== request.service || key !== request.key) {
+            return true;
+        }
+
+        if (isUserScoped !== request.isUserScoped || isGlobal !== request.isGlobal) {
+            return true;
+        }
+
+        return username !== '' || password !== '' || secret !== '' || cookies !== '';
+    }, [
+        cookies,
+        isGlobal,
+        isOpen,
+        isUserScoped,
+        key,
+        password,
+        recordType,
+        request,
+        secret,
+        service,
+        username,
+    ]);
+    const { requestClose } = useDirtyModalGuard({
+        hasUnsavedChanges,
+        isCloseBlocked: isSubmitting,
+        onClose,
+    });
 
     const validationError = useMemo(() => {
         if (!manualFieldsVisible) {
@@ -149,7 +186,7 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
     }
 
     return (
-        <Dialog onClose={isSubmitting ? () => undefined : onClose} className="w-full max-w-xl p-0 overflow-hidden">
+        <Dialog onClose={requestClose} className="w-full max-w-xl p-0 overflow-hidden">
             <div className="border-b border-gray-200 bg-gray-50 px-5 py-4">
                 <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
@@ -163,7 +200,7 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                     </div>
                     <button
                         type="button"
-                        onClick={onClose}
+                        onClick={requestClose}
                         disabled={isSubmitting}
                         className="rounded-md p-1 text-gray-400 transition hover:bg-gray-200 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
                         aria-label="Close"
@@ -370,7 +407,7 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                         <div className="flex justify-end gap-2">
                             <button
                                 type="button"
-                                onClick={onClose}
+                                onClick={requestClose}
                                 disabled={isSubmitting}
                                 className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
                             >

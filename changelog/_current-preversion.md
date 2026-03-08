@@ -1,3 +1,9 @@
+-   Prevented accidental data loss when dismissing text-input modals in Agents Server:
+    -   Added a reusable `useDirtyModalGuard` hook that blocks modal close attempts when unsaved edits exist and asks for explicit discard confirmation.
+    -   Applied the guard to clone-agent prompt (`showPrompt`) so typed clone names are protected against overlay-click and `Escape` dismissal.
+    -   Audited and applied the same guard to other dialog-based text editors/inputs (`NewAgentDialog`, `FolderEditDialog`, `WalletRecordDialog`, `PseudoUserChatDialog`, `LoginDialog`, and `ChangePasswordDialog`).
+    -   Added Playwright coverage for clone prompt flow: type draft name, attempt overlay dismiss and cancel discard (modal stays), then press `Escape` and confirm discard (modal closes).
+
 -   Fixed Agents Server header search alignment in desktop top menu:
     -   Switched the desktop header shell to a dedicated three-slot layout (`left | centered search | right`) so the global search box is visually centered in the header.
     -   Moved desktop Documentation/System menu rendering into the right-side slot with control/user actions, preventing search-position shifts when right-side items (login/profile/control-panel actions) change.

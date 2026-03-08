@@ -1,8 +1,10 @@
 'use client';
 
 import { X } from 'lucide-react';
+import { useState } from 'react';
 import { ChangePasswordForm } from '../ChangePasswordForm/ChangePasswordForm';
 import { Dialog } from '../Portal/Dialog';
+import { useDirtyModalGuard } from '../utils/useDirtyModalGuard';
 
 type ChangePasswordDialogProps = {
     onClose: () => void;
@@ -10,11 +12,16 @@ type ChangePasswordDialogProps = {
 
 export function ChangePasswordDialog(props: ChangePasswordDialogProps) {
     const { onClose } = props;
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const { requestClose } = useDirtyModalGuard({
+        hasUnsavedChanges,
+        onClose,
+    });
 
     return (
-        <Dialog onClose={onClose} className="w-full max-w-md p-6">
+        <Dialog onClose={requestClose} className="w-full max-w-md p-6">
             <button
-                onClick={onClose}
+                onClick={requestClose}
                 className="absolute top-4 right-4 text-gray-400 hover:text-gray-500 transition-colors"
             >
                 <X className="w-5 h-5" />
@@ -26,7 +33,7 @@ export function ChangePasswordDialog(props: ChangePasswordDialogProps) {
                 <p className="text-sm text-gray-500 mt-1">Update your password to keep your account secure</p>
             </div>
 
-            <ChangePasswordForm onSuccess={onClose} />
+            <ChangePasswordForm onSuccess={onClose} onDirtyChange={setHasUnsavedChanges} />
         </Dialog>
     );
 }

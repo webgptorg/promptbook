@@ -41,6 +41,21 @@ async function emulateTouchInput(page: Page) {
 }
 
 /**
+ * Creates a new agent through the homepage dialog and waits for its profile page.
+ *
+ * @param page - Current Playwright page.
+ */
+async function createAgentViaHomepageDialog(page: Page): Promise<void> {
+    const addAgentCard = page.getByText('Add New Agent');
+    await expect(addAgentCard).toBeVisible();
+    await addAgentCard.click();
+
+    await expect(page.getByRole('heading', { name: 'Create New Agent' })).toBeVisible();
+    await page.getByRole('button', { name: 'Create Agent' }).click();
+    await expect(page).toHaveURL(/\/agents\/[^/?#]+$/);
+}
+
+/**
  * Core authentication and navigation integration flows for Agents Server.
  */
 test.describe('Agents Server authentication and navigation', () => {
@@ -95,5 +110,42 @@ test.describe('Agents Server authentication and navigation', () => {
 
         await expect(page).toHaveURL(/\/docs\/PERSONA$/);
         await expect(page.getByRole('heading', { name: 'PERSONA', exact: true })).toBeVisible();
+    });
+
+    test('protects clone prompt against accidental close when the input is dirty', async ({ page }) => {
+        await page.goto('/');
+        await loginAsAdmin(page);
+        await createAgentViaHomepageDialog(page);
+
+        await page.getByRole('button', { name: 'More options' }).click();
+        await page.getByRole('button', { name: 'Clone agent' }).click();
+        const cloneHeading = page.getByRole('heading', { name: 'Clone agent' });
+        const cloneInput = page.getByLabel('Agent name');
+
+        await expect(cloneHeading).toBeVisible();
+        await cloneInput.fill('Clone name draft');
+
+        let dismissedDiscardDialog = false;
+        page.once('dialog', async (dialog) => {
+            dismissedDiscardDialog = true;
+            expect(dialog.type()).toBe('confirm');
+            await dialog.dismiss();
+        });
+
+        await page.mouse.click(8, 8);
+        await expect.poll(() => dismissedDiscardDialog).toBe(true);
+        await expect(cloneHeading).toBeVisible();
+        await expect(cloneInput).toHaveValue('Clone name draft');
+
+        let acceptedDiscardDialog = false;
+        page.once('dialog', async (dialog) => {
+            acceptedDiscardDialog = true;
+            expect(dialog.type()).toBe('confirm');
+            await dialog.accept();
+        });
+
+        await page.keyboard.press('Escape');
+        await expect.poll(() => acceptedDiscardDialog).toBe(true);
+        await expect(cloneHeading).toBeHidden();
     });
 });

@@ -1,30 +1,40 @@
 'use client';
 
 import { Loader2, Lock } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SecretInput } from '@/src/components/SecretInput/SecretInput';
 
 type ChangePasswordFormProps = {
     onSuccess?: () => void;
     className?: string;
+    onDirtyChange?: (hasUnsavedChanges: boolean) => void;
 };
 
 export function ChangePasswordForm(props: ChangePasswordFormProps) {
-    const { onSuccess, className } = props;
+    const { onSuccess, className, onDirtyChange } = props;
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmNewPassword, setConfirmNewPassword] = useState('');
+    const hasUnsavedChanges = currentPassword.length > 0 || newPassword.length > 0 || confirmNewPassword.length > 0;
+
+    useEffect(() => {
+        onDirtyChange?.(hasUnsavedChanges);
+    }, [hasUnsavedChanges, onDirtyChange]);
+
+    useEffect(() => {
+        return () => {
+            onDirtyChange?.(false);
+        };
+    }, [onDirtyChange]);
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setIsLoading(true);
         setError(null);
         setSuccessMessage(null);
-
-        const formData = new FormData(event.currentTarget);
-        const currentPassword = formData.get('currentPassword') as string;
-        const newPassword = formData.get('newPassword') as string;
-        const confirmNewPassword = formData.get('confirmNewPassword') as string;
 
         if (newPassword !== confirmNewPassword) {
             setError('New passwords do not match');
@@ -45,8 +55,9 @@ export function ChangePasswordForm(props: ChangePasswordFormProps) {
 
             if (response.ok) {
                 setSuccessMessage('Password changed successfully');
-                // Reset form
-                event.currentTarget.reset();
+                setCurrentPassword('');
+                setNewPassword('');
+                setConfirmNewPassword('');
                 if (onSuccess) {
                     setTimeout(onSuccess, 1500);
                 }
@@ -68,6 +79,8 @@ export function ChangePasswordForm(props: ChangePasswordFormProps) {
                 name="currentPassword"
                 label="Current Password"
                 placeholder="Enter current password"
+                value={currentPassword}
+                onChange={(event) => setCurrentPassword(event.target.value)}
                 required
                 startIcon={<Lock className="w-4 h-4" />}
             />
@@ -77,6 +90,8 @@ export function ChangePasswordForm(props: ChangePasswordFormProps) {
                 name="newPassword"
                 label="New Password"
                 placeholder="Enter new password"
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
                 required
                 startIcon={<Lock className="w-4 h-4" />}
             />
@@ -86,6 +101,8 @@ export function ChangePasswordForm(props: ChangePasswordFormProps) {
                 name="confirmNewPassword"
                 label="Confirm New Password"
                 placeholder="Confirm new password"
+                value={confirmNewPassword}
+                onChange={(event) => setConfirmNewPassword(event.target.value)}
                 required
                 startIcon={<Lock className="w-4 h-4" />}
             />

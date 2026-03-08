@@ -29,19 +29,26 @@ type LoginFormProps = {
      * @default true
      */
     refreshAfterSuccess?: boolean;
+    /**
+     * Optional callback invoked whenever local form dirty-state changes.
+     */
+    onDirtyChange?: (hasUnsavedChanges: boolean) => void;
 };
 
 /**
  * Renders the login form and handles authentication.
  */
 export function LoginForm(props: LoginFormProps) {
-    const { onSuccess, className, refreshAfterSuccess = true } = props;
+    const { onSuccess, className, refreshAfterSuccess = true, onDirtyChange } = props;
     const { t } = useServerLanguage();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [adminEmail, setAdminEmail] = useState<string>('support@ptbk.io');
     const [isForgottenPasswordOpen, setIsForgottenPasswordOpen] = useState(false);
     const [isRegisterUserOpen, setIsRegisterUserOpen] = useState(false);
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const hasUnsavedChanges = username.length > 0 || password.length > 0;
     const router = useRouter();
 
     useEffect(() => {
@@ -58,6 +65,16 @@ export function LoginForm(props: LoginFormProps) {
                 // Keep default value
             });
     }, []);
+
+    useEffect(() => {
+        onDirtyChange?.(hasUnsavedChanges);
+    }, [hasUnsavedChanges, onDirtyChange]);
+
+    useEffect(() => {
+        return () => {
+            onDirtyChange?.(false);
+        };
+    }, [onDirtyChange]);
 
     /**
      * Handles login form submissions and refreshes data on success.
@@ -111,6 +128,8 @@ export function LoginForm(props: LoginFormProps) {
                         id="username"
                         name="username"
                         type="text"
+                        value={username}
+                        onChange={(event) => setUsername(event.target.value)}
                         required
                         className="block w-full pl-10 h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-promptbook-blue focus:border-transparent disabled:opacity-50"
                         placeholder={t('login.usernamePlaceholder')}
@@ -122,6 +141,8 @@ export function LoginForm(props: LoginFormProps) {
                 <SecretInput
                     id="password"
                     name="password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
                     label={t('login.passwordLabel')}
                     placeholder={t('login.passwordPlaceholder')}
                     required

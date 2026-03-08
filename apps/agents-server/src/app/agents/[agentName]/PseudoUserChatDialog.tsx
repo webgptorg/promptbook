@@ -3,6 +3,7 @@
 import { MessageCircle, SendHorizontal, X } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
 import { Dialog } from '../../../components/Portal/Dialog';
+import { useDirtyModalGuard } from '../../../components/utils/useDirtyModalGuard';
 
 /**
  * Props for pseudo-user chat dialog shown when agent talks to `{User}`.
@@ -53,6 +54,11 @@ export function PseudoUserChatDialog(props: PseudoUserChatDialogProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const inputId = useId();
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+    const { requestClose } = useDirtyModalGuard({
+        hasUnsavedChanges: reply.length > 0,
+        isCloseBlocked: isSubmitting,
+        onClose,
+    });
 
     useEffect(() => {
         if (!isOpen) {
@@ -71,7 +77,7 @@ export function PseudoUserChatDialog(props: PseudoUserChatDialogProps) {
     }
 
     return (
-        <Dialog onClose={isSubmitting ? () => undefined : onClose} className="w-full max-w-xl p-0 overflow-hidden">
+        <Dialog onClose={requestClose} className="w-full max-w-xl p-0 overflow-hidden">
             <div className="border-b border-gray-200 bg-gray-50 px-5 py-4">
                 <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
@@ -85,7 +91,7 @@ export function PseudoUserChatDialog(props: PseudoUserChatDialogProps) {
                     </div>
                     <button
                         type="button"
-                        onClick={onClose}
+                        onClick={requestClose}
                         disabled={isSubmitting}
                         className="rounded-md p-1 text-gray-400 transition hover:bg-gray-200 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
                         aria-label="Close"
@@ -138,7 +144,7 @@ export function PseudoUserChatDialog(props: PseudoUserChatDialogProps) {
                     <div className="flex items-center justify-end gap-2">
                         <button
                             type="button"
-                            onClick={onClose}
+                            onClick={requestClose}
                             disabled={isSubmitting}
                             className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
                         >

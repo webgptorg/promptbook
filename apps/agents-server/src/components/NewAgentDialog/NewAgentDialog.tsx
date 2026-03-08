@@ -8,7 +8,7 @@ import { bookEditorUploadHandler } from '../../utils/upload/createBookEditorUplo
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { Dialog } from '../Portal/Dialog';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
-import { useUnsavedChangesGuard } from '../utils/useUnsavedChangesGuard';
+import { useDirtyModalGuard } from '../utils/useDirtyModalGuard';
 
 /**
  * Props for the NewAgentDialog component.
@@ -28,8 +28,9 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
     const [isCreating, setIsCreating] = useState(false);
     const { formatText } = useAgentNaming();
     const { t } = useServerLanguage();
-    const { confirmBeforeClose } = useUnsavedChangesGuard({
+    const { requestClose } = useDirtyModalGuard({
         hasUnsavedChanges: agentSource !== initialAgentSource,
+        onClose,
     });
     // [✨🧬] const [isInteracted, setIsInteracted] = useState(false);
 
@@ -54,12 +55,8 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
     };
 
     const handleClose = useCallback(() => {
-        if (!confirmBeforeClose()) {
-            return;
-        }
-
-        onClose();
-    }, [confirmBeforeClose, onClose]);
+        requestClose();
+    }, [requestClose]);
 
     return (
         <Dialog onClose={handleClose} className="w-full max-w-4xl h-[80vh] flex flex-col">
