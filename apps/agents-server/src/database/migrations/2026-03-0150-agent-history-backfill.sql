@@ -33,30 +33,72 @@ WHERE ah."permanentId" IS NULL
   AND ah."agentName" = a."agentName";
 
 -- Ensure every agent has at least one history snapshot.
-INSERT INTO "prefix_AgentHistory" (
-    "createdAt",
-    "agentName",
-    "permanentId",
-    "agentHash",
-    "previousAgentHash",
-    "agentSource",
-    "promptbookEngineVersion"
-)
-SELECT
-    COALESCE(a."updatedAt", a."createdAt", now()),
-    a."agentName",
-    a."permanentId",
-    a."agentHash",
-    NULL,
-    a."agentSource",
-    a."promptbookEngineVersion"
-FROM "prefix_Agent" a
-WHERE a."permanentId" IS NOT NULL
-  AND NOT EXISTS (
-      SELECT 1
-      FROM "prefix_AgentHistory" ah
-      WHERE ah."permanentId" = a."permanentId"
-  );
+-- Legacy schemas can still have NOT NULL "agentId", so insert into it when present.
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = current_schema()
+          AND table_name = 'prefix_AgentHistory'
+          AND column_name = 'agentId'
+    ) THEN
+        EXECUTE '
+            INSERT INTO "prefix_AgentHistory" (
+                "createdAt",
+                "agentName",
+                "permanentId",
+                "agentId",
+                "agentHash",
+                "previousAgentHash",
+                "agentSource",
+                "promptbookEngineVersion"
+            )
+            SELECT
+                COALESCE(a."updatedAt", a."createdAt", now()),
+                a."agentName",
+                a."permanentId",
+                a."permanentId",
+                a."agentHash",
+                NULL,
+                a."agentSource",
+                a."promptbookEngineVersion"
+            FROM "prefix_Agent" a
+            WHERE a."permanentId" IS NOT NULL
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM "prefix_AgentHistory" ah
+                  WHERE ah."permanentId" = a."permanentId"
+              )
+        ';
+    ELSE
+        INSERT INTO "prefix_AgentHistory" (
+            "createdAt",
+            "agentName",
+            "permanentId",
+            "agentHash",
+            "previousAgentHash",
+            "agentSource",
+            "promptbookEngineVersion"
+        )
+        SELECT
+            COALESCE(a."updatedAt", a."createdAt", now()),
+            a."agentName",
+            a."permanentId",
+            a."agentHash",
+            NULL,
+            a."agentSource",
+            a."promptbookEngineVersion"
+        FROM "prefix_Agent" a
+        WHERE a."permanentId" IS NOT NULL
+          AND NOT EXISTS (
+              SELECT 1
+              FROM "prefix_AgentHistory" ah
+              WHERE ah."permanentId" = a."permanentId"
+          );
+    END IF;
+END
+$$;
 
 -- Drop old or inconsistent constraints before adding the canonical one.
 ALTER TABLE "prefix_AgentHistory" DROP CONSTRAINT IF EXISTS "prefix_AgentHistory_agentName_fkey";
