@@ -12,10 +12,9 @@
     -   While sending/streaming, disable submit and show subtle sending state (keep design minimal).
 -   Navigation / discoverability:
     -   This page should exist alongside the agent profile page.
-    -   It should be intentionally “buried” in the agent menu (not linked as a primary CTA on the profile).
-    -   URL/route naming and exact placement in menu is @@@ (pick consistent naming with existing routes).
--   Analytics / experiment:
-    -   Add minimal tracking to compare usage of this alternative page vs standard profile/chat entry points (@@@ choose existing tracking mechanism).
+    -   It should be intentionally “buried” in the agent menu
+    -   It is on route `/agents/[agentId]/textarea`
+    -   URL/route naming and exact placement in menu is (pick consistent naming with existing routes).
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)

@@ -1,10 +1,28 @@
 [ ]
 
-[✨🍰] Quick button message placeholders (___) should ask for values before sending
+[✨🍰] Quick button message placeholders (\_\_\_) should ask for values before sending
+
+```book
+David the browser
+
+USE BROWSER
+USE SEARCH ENGINE
+INITIAL MESSAGE
+
+[Test website](?message=Search project of ___)
+
+
+CLOSED
+
+
+
+```
 
 -   Quick buttons in the chat UI can prefill/send a predefined user message to the agent.
+-   They are used in `INITIAL MESSAGE` commitment
 -   When the quick button message contains one or more placeholder tokens written as 3+ underscores in a row (e.g. `___`, `____`, `_____`), clicking the quick button must NOT send the message immediately.
 -   Instead, show a lightweight UI that asks the user to fill in values for each placeholder occurrence and then sends the final interpolated message.
+    - Try to reuse existing UI components and keep it simple and intuitive.
 -   Placeholder parsing rules:
     -   Treat any run of underscores of length >= 3 as a placeholder token.
     -   Each placeholder occurrence is a separate field, even if multiple placeholders have the same underscore length.

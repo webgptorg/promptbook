@@ -1,11 +1,12 @@
 [ ]
 
-[✨🍾] Pre-index agent in background on create/update/book write (debounced)
+[✨🍾] Pre-index agent in background on create/update/book write
 
+-   Make it debounced so that rapid changes do not trigger repeated indexing; ensure only one indexing job per agent+version runs at a time.
 -   Today the agent’s underlying vector store is created on the first chat message to the agent, which adds latency to the first response and worsens UX.
 -   When an agent is created, modified, or its source book/knowledge is written, schedule pre-emptive indexing/preparation of the agent in the background.
 -   Add debounce/coalescing so that frequent edits (auto-save in book editor, rapid agent updates) do not trigger repeated indexing work.
-    -   Debounce window: @@@ (propose initial value, make it configurable)
+    -   Debounce window: 30 seconds after the last change
     -   Coalesce multiple changes into a single latest-index job
 -   Ensure only one indexing job per agent+version (or agent+content hash) runs at a time; avoid stampedes when multiple events fire.
 -   Define/implement a clear “prepared” state for the agent (vector store exists and is up to date with the latest agent/book content).
@@ -31,12 +32,6 @@
     -   Keep in mind the DRY _(don't repeat yourself)_ principle.
     -   Do a proper analysis of the current functionality before you start implementing.
     -   You are working with the [Agents Server](apps/agents-server)
--   Project touchpoints (update as discovered during implementation):
-    -   [apps/agents-server] agent create/update endpoints / actions @@@
-    -   [apps/agents-server] source book persistence + autosave @@@
-    -   [apps/agents-server] vector store/indexing code path currently triggered on first chat @@@
-    -   [apps/agents-server] background jobs/queue utilities @@@
-    -   [changelog](changelog/_current-preversion.md)
 
 ---
 

@@ -14,10 +14,6 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server) (Next.js App Router).
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
--   You are working with:
-    -   [apps/agents-server/src/app/agents/[agentId]/book/... @@@] _(book editor route(s))_
-    -   [src/book-components/BookEditor/BookEditorMonaco.tsx](src/book-components/BookEditor/BookEditorMonaco.tsx)
-    -   Other Monaco editor instances in Agents Server: @@@
 
 ---
 
