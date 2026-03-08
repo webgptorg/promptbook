@@ -1,7 +1,12 @@
 [x] ~$0.6840 24 minutes by OpenAI Codex `gpt-5.3-codex`
 
+---
+
+[ ]
+
 [✨🍾] Pre-index agent in background on create/update/book write
 
+-   **This was already implemented but it is not working** or at least no evidence of it working (logs/metrics) is seen, add some basic visual indication in the agent details view about the preparation status (e.g., "preparing...", "last prepared at...") and ensure the pre-indexing logic is correctly triggered and executed in the background on agent create/update and book write.
 -   Make it debounced so that rapid changes do not trigger repeated indexing; ensure only one indexing job per agent+version runs at a time.
 -   Today the agent’s underlying vector store is created on the first chat message to the agent, which adds latency to the first response and worsens UX.
 -   When an agent is created, modified, or its source book/knowledge is written, schedule pre-emptive indexing/preparation of the agent in the background.
@@ -90,4 +95,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
