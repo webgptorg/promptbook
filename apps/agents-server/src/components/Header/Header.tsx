@@ -22,8 +22,8 @@ import type { CSSProperties, MouseEvent, ReactNode } from 'react';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { HamburgerMenu } from '../../../../../src/book-components/_common/HamburgerMenu/HamburgerMenu';
-import { ArrowIcon } from '../../../../../src/book-components/icons/ArrowIcon';
 import { useMenuHoisting } from '../../../../../src/book-components/_common/MenuHoisting/MenuHoistingContext';
+import { ArrowIcon } from '../../../../../src/book-components/icons/ArrowIcon';
 import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { just } from '../../../../../src/utils/organization/just';
 import { RESERVED_PATHS } from '../../generated/reservedPaths';
@@ -1293,13 +1293,14 @@ function AgentMenuColumn({
                 }
 
                 if (node.type === 'action') {
-                    const baseClassName = `flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm transition-colors ${
-                        node.isBold ? 'font-semibold text-gray-900' : 'text-gray-700'
-                    } ${
-                        isTouchInput
-                            ? 'hover:bg-white active:bg-gray-100'
-                            : 'hover:border-gray-200 hover:bg-gray-50 hover:text-gray-900 border border-transparent'
-                    }`.trim();
+                    const baseClassName =
+                        `flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm transition-colors ${
+                            node.isBold ? 'font-semibold text-gray-900' : 'text-gray-700'
+                        } ${
+                            isTouchInput
+                                ? 'hover:bg-white active:bg-gray-100'
+                                : 'hover:border-gray-200 hover:bg-gray-50 hover:text-gray-900 border border-transparent'
+                        }`.trim();
 
                     if (node.onClick) {
                         return (
@@ -1310,10 +1311,14 @@ function AgentMenuColumn({
                                     void node.onClick?.();
                                     onNavigate();
                                 }}
-                                className={`${baseClassName} w-full text-left ${node.isBordered ? 'mt-1 border-t border-gray-100 pt-3' : ''}`}
+                                className={`${baseClassName} w-full text-left ${
+                                    node.isBordered ? 'mt-1 border-t border-gray-100 pt-3' : ''
+                                }`}
                                 title={node.label}
                             >
-                                <span className="min-w-0">{node.renderLabel ?? <span className="truncate">{node.label}</span>}</span>
+                                <span className="min-w-0">
+                                    {node.renderLabel ?? <span className="truncate">{node.label}</span>}
+                                </span>
                             </button>
                         );
                     }
@@ -1324,10 +1329,14 @@ function AgentMenuColumn({
                                 key={`action-${node.id}`}
                                 href={node.href}
                                 onClick={onNavigate}
-                                className={`${baseClassName} ${node.isBordered ? 'mt-1 border-t border-gray-100 pt-3' : ''}`}
+                                className={`${baseClassName} ${
+                                    node.isBordered ? 'mt-1 border-t border-gray-100 pt-3' : ''
+                                }`}
                                 title={node.label}
                             >
-                                <span className="min-w-0">{node.renderLabel ?? <span className="truncate">{node.label}</span>}</span>
+                                <span className="min-w-0">
+                                    {node.renderLabel ?? <span className="truncate">{node.label}</span>}
+                                </span>
                             </HeadlessLink>
                         );
                     }
@@ -1335,10 +1344,14 @@ function AgentMenuColumn({
                     return (
                         <span
                             key={`action-${node.id}`}
-                            className={`${baseClassName} ${node.isBordered ? 'mt-1 border-t border-gray-100 pt-3' : ''}`}
+                            className={`${baseClassName} ${
+                                node.isBordered ? 'mt-1 border-t border-gray-100 pt-3' : ''
+                            }`}
                             title={node.label}
                         >
-                            <span className="min-w-0">{node.renderLabel ?? <span className="truncate">{node.label}</span>}</span>
+                            <span className="min-w-0">
+                                {node.renderLabel ?? <span className="truncate">{node.label}</span>}
+                            </span>
                         </span>
                     );
                 }
@@ -1976,7 +1989,11 @@ export function Header(props: HeaderProps) {
         await logoutAction();
     };
 
-    const { isPreparingDialog, openNewAgentDialog, dialog: newAgentDialog } = useNewAgentDialog({
+    const {
+        isPreparingDialog,
+        openNewAgentDialog,
+        dialog: newAgentDialog,
+    } = useNewAgentDialog({
         onCreated: ({ permanentId }) => {
             pushWithHeadless(router, `/agents/${encodeURIComponent(permanentId)}`, isHeadless);
         },
@@ -2256,6 +2273,10 @@ export function Header(props: HeaderProps) {
             href: '/admin/search-engine-test',
         },
         {
+            label: 'Error simulation',
+            href: '/admin/error-simulation',
+        },
+        {
             label: t('header.imagesGallery'),
             href: '/admin/images',
         },
@@ -2501,7 +2522,9 @@ export function Header(props: HeaderProps) {
                                                     {t('header.viewAllAgents', { agentsPlural: naming.plural })}
                                                 </HeadlessLink>
                                                 <button
-                                                    onClick={isPreparingDialog ? undefined : () => handleCreateAgent(null)}
+                                                    onClick={
+                                                        isPreparingDialog ? undefined : () => handleCreateAgent(null)
+                                                    }
                                                     className="block w-full rounded-xl px-3 py-2.5 text-left text-sm font-medium text-gray-900 hover:bg-gray-50"
                                                 >
                                                     {isPreparingDialog ? (
@@ -2986,9 +3009,9 @@ export function Header(props: HeaderProps) {
                                         <div className="flex flex-col items-start">
                                             <span className="leading-none">{currentUserDisplayName}</span>
                                             {(currentUser?.isAdmin || isAdmin) && (
-                                                    <span className="text-xs text-blue-600">{t('common.admin')}</span>
-                                                )}
-                                            </div>
+                                                <span className="text-xs text-blue-600">{t('common.admin')}</span>
+                                            )}
+                                        </div>
                                         <ChevronDown className="w-4 h-4 ml-1 opacity-50" />
                                     </button>
 
@@ -3005,9 +3028,7 @@ export function Header(props: HeaderProps) {
                                                     {currentUserDisplayName}
                                                 </p>
                                                 {(currentUser?.isAdmin || isAdmin) && (
-                                                    <p className="text-xs text-blue-600 mt-1">
-                                                        {t('common.admin')}
-                                                    </p>
+                                                    <p className="text-xs text-blue-600 mt-1">{t('common.admin')}</p>
                                                 )}
                                             </div>
 
