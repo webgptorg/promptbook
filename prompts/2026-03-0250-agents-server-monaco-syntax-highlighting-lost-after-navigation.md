@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.3375 18 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨⟹] Fix Monaco syntax highlighting lost after navigating back and forth to book editor
 

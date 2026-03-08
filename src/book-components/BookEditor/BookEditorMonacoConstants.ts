@@ -5,6 +5,7 @@
  */
 export const BookEditorMonacoConstants = {
     BOOK_LANGUAGE_ID: 'book',
+    BOOK_THEME_ID: 'book-theme',
     LINE_HEIGHT: 28,
     CONTENT_PADDING_LEFT: 20,
     VERTICAL_LINE_LEFT: 0,

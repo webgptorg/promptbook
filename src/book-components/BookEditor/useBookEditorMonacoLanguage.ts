@@ -66,13 +66,6 @@ const NOTE_LIKE_COMMITMENT_GROUPS = [
 }>;
 
 /**
- * Theme identifier shared by all BookEditor Monaco instances.
- *
- * @private function of BookEditorMonaco
- */
-const BOOK_EDITOR_THEME_ID = 'book-theme';
-
-/**
  * Internal Monaco flag used to prevent duplicate global language registrations.
  *
  * @private function of BookEditorMonaco
@@ -181,7 +174,7 @@ function createNoteLikeBodyRules(
 export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor): void {
     const monacoWithLanguageState = monaco as MonacoEditorWithBookEditorLanguageState;
     if (monacoWithLanguageState[BOOK_EDITOR_LANGUAGE_INITIALIZED_FLAG]) {
-        monaco.editor.setTheme(BOOK_EDITOR_THEME_ID);
+        monaco.editor.setTheme(BookEditorMonacoConstants.BOOK_THEME_ID);
         return;
     }
 
@@ -289,7 +282,7 @@ export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor): void {
         },
     });
 
-    monaco.editor.defineTheme(BOOK_EDITOR_THEME_ID, {
+    monaco.editor.defineTheme(BookEditorMonacoConstants.BOOK_THEME_ID, {
         base: 'vs',
         inherit: true,
         rules: [
@@ -335,7 +328,42 @@ export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor): void {
         },
     });
 
-    monaco.editor.setTheme(BOOK_EDITOR_THEME_ID);
+    monaco.editor.setTheme(BookEditorMonacoConstants.BOOK_THEME_ID);
+}
+
+/**
+ * Props required to enforce Book Monaco language/theme on one mounted editor.
+ *
+ * @private function of BookEditorMonaco
+ */
+type EnsureBookEditorMonacoLanguageForEditorProps = {
+    readonly monaco: MonacoEditor;
+    readonly monacoEditor: editor.IStandaloneCodeEditor;
+};
+
+/**
+ * Ensures the mounted Monaco editor model uses Book language and Book theme.
+ *
+ * This is resilient when a shared Monaco runtime/theme is changed by another page and the
+ * Book editor tree is restored from App Router cache without a full remount.
+ *
+ * @param props - Monaco runtime and mounted editor instance.
+ * @private function of BookEditorMonaco
+ */
+export function ensureBookEditorMonacoLanguageForEditor(props: EnsureBookEditorMonacoLanguageForEditorProps): void {
+    const { monaco, monacoEditor } = props;
+    ensureBookEditorMonacoLanguage(monaco);
+
+    const model = monacoEditor.getModel();
+    if (!model) {
+        return;
+    }
+
+    if (model.getLanguageId() !== BookEditorMonacoConstants.BOOK_LANGUAGE_ID) {
+        monaco.editor.setModelLanguage(model, BookEditorMonacoConstants.BOOK_LANGUAGE_ID);
+    }
+
+    monaco.editor.setTheme(BookEditorMonacoConstants.BOOK_THEME_ID);
 }
 
 /**

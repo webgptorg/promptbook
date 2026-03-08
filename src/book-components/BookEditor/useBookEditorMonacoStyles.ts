@@ -100,7 +100,9 @@ export function useBookEditorMonacoStyles({
         `;
 
         return () => {
-            // Style intentionally persists to avoid flash of unstyled content when using fast refresh.
+            if (process.env.NODE_ENV === 'production') {
+                style?.remove();
+            }
         };
     }, [instanceClass, scaledLineHeight, scaledContentPaddingLeft, scaledVerticalLineLeft, zoomLevel]);
 }

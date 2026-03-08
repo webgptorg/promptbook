@@ -113,6 +113,25 @@ const DIAGNOSTICS_DEBOUNCE_DELAY_MS = 350;
 const SAVE_SUCCESS_STATUS_VISIBLE_MS = 2000;
 
 /**
+ * Characters that are unsafe inside Monaco in-memory model URI segments.
+ */
+const INVALID_MONACO_MODEL_PATH_CHARACTER_PATTERN = /[^a-zA-Z0-9._-]/g;
+
+/**
+ * Creates a stable Monaco in-memory model path for one agent book.
+ *
+ * Stable model paths let Monaco restore view state (cursor/scroll) after unmount/remount.
+ *
+ * @param nextAgentName - Agent route identifier.
+ * @returns Monaco model URI for the book editor.
+ */
+function createAgentBookMonacoModelPath(nextAgentName: string): string {
+    const safeAgentName = nextAgentName.replace(INVALID_MONACO_MODEL_PATH_CHARACTER_PATTERN, '-');
+    const normalizedAgentName = safeAgentName || 'agent';
+    return `memory://agents-server/book-editor/${normalizedAgentName}.book`;
+}
+
+/**
  * Normalizes diagnostics payload shape returned by the diagnostics API.
  *
  * @param payload - Raw response payload.
@@ -166,6 +185,7 @@ async function resolveApiErrorMessage(response: Response, fallbackMessage: strin
  * Wraps the BookEditor with autosave and file upload support.
  */
 export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorWrapperProps) {
+    const monacoModelPath = createAgentBookMonacoModelPath(agentName);
     const [agentSource, setAgentSource] = useState<string_book>(initialAgentSource);
     const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
     const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
@@ -840,6 +860,7 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                         isBorderRadiusDisabled
                         height={null}
                         value={agentSource}
+                        monacoModelPath={monacoModelPath}
                         onChange={handleChange}
                         onFileUpload={bookEditorUploadHandler}
                         diagnostics={diagnostics}

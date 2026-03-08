@@ -25,7 +25,11 @@ import { BookEditorActionbar } from './BookEditorActionbar';
 import { BookEditorMonacoConstants } from './BookEditorMonacoConstants';
 import { useBookEditorMonacoDecorations } from './useBookEditorMonacoDecorations';
 import { useBookEditorMonacoDiagnostics } from './useBookEditorMonacoDiagnostics';
-import { ensureBookEditorMonacoLanguage, useBookEditorMonacoLanguage } from './useBookEditorMonacoLanguage';
+import {
+    ensureBookEditorMonacoLanguage,
+    ensureBookEditorMonacoLanguageForEditor,
+    useBookEditorMonacoLanguage,
+} from './useBookEditorMonacoLanguage';
 import { useBookEditorMonacoStyles } from './useBookEditorMonacoStyles';
 import { useBookEditorMonacoUploads } from './useBookEditorMonacoUploads';
 import { BookEditorMonacoUploadPanel } from './BookEditorMonacoUploadPanel';
@@ -61,6 +65,44 @@ const CLIPBOARD_RICH_CONTENT_FILENAMES: Record<string, string> = {
  * @private Internal utility of `BookEditorMonaco`.
  */
 const DEFAULT_CLIPBOARD_RICH_CONTENT_FILENAME = 'clipboard-content.txt';
+
+/**
+ * Local storage key that enables BookEditor Monaco lifecycle debug logs in development.
+ *
+ * @private Internal utility of `BookEditorMonaco`.
+ */
+const BOOK_EDITOR_MONACO_DEBUG_STORAGE_KEY = 'promptbook-debug-book-editor-monaco';
+
+/**
+ * Resolves whether verbose BookEditor Monaco lifecycle logs are enabled.
+ *
+ * @private Internal utility of `BookEditorMonaco`.
+ */
+function isBookEditorMonacoDebugEnabled(): boolean {
+    if (process.env.NODE_ENV === 'production' || typeof window === 'undefined') {
+        return false;
+    }
+
+    try {
+        return window.localStorage.getItem(BOOK_EDITOR_MONACO_DEBUG_STORAGE_KEY) === '1';
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Prints one BookEditor Monaco debug line when the dev debug flag is enabled.
+ *
+ * @param message - Human-readable lifecycle message.
+ * @private Internal utility of `BookEditorMonaco`.
+ */
+function logBookEditorMonacoDebug(message: string): void {
+    if (!isBookEditorMonacoDebugEnabled()) {
+        return;
+    }
+
+    console.info(`[BookEditorMonaco] ${message}`);
+}
 
 /**
  * Lists transferable items from a browser `DataTransfer` object.
@@ -235,6 +277,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
         onFullscreenClick,
         isFullscreen,
         zoom = 1,
+        monacoModelPath,
     } = props;
 
     const zoomLevel = zoom;
@@ -280,17 +323,33 @@ export function BookEditorMonaco(props: BookEditorProps) {
         zoomLevel,
     });
 
+    /**
+     * Re-applies Book language + theme to the currently mounted Monaco model.
+     */
+    const reapplyBookLanguageAndTheme = useCallback(
+        (reason: string) => {
+            if (!editor || !monaco) {
+                return;
+            }
+
+            ensureBookEditorMonacoLanguageForEditor({ monaco, monacoEditor: editor });
+            logBookEditorMonacoDebug(`Re-applied Book Monaco language/theme (${reason}).`);
+        },
+        [editor, monaco],
+    );
+
     useEffect(() => {
         setIsTouchDevice(typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches);
     }, []);
 
     useEffect(() => {
-        if (!editor) {
+        if (!editor || !monaco) {
             return;
         }
 
         const focusListener = editor.onDidFocusEditorWidget(() => {
             setIsFocused(true);
+            reapplyBookLanguageAndTheme('focus');
         });
 
         const blurListener = editor.onDidBlurEditorWidget(() => {
@@ -300,7 +359,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
         const saveAction = editor.addAction({
             id: 'save-book',
             label: 'Save',
-            keybindings: [monaco!.KeyMod.CtrlCmd | monaco!.KeyCode.KeyS],
+            keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS],
             run: () => {
                 setIsSavedShown(false);
                 setTimeout(() => setIsSavedShown(true), 0);
@@ -313,7 +372,44 @@ export function BookEditorMonaco(props: BookEditorProps) {
             blurListener.dispose();
             saveAction.dispose();
         };
-    }, [editor, monaco]);
+    }, [editor, monaco, reapplyBookLanguageAndTheme]);
+
+    useEffect(() => {
+        reapplyBookLanguageAndTheme('editor-ready');
+    }, [reapplyBookLanguageAndTheme]);
+
+    useEffect(() => {
+        if (!editor || !monaco) {
+            return;
+        }
+
+        const handlePopState = () => {
+            reapplyBookLanguageAndTheme('history-popstate');
+        };
+        const handlePageShow = () => {
+            reapplyBookLanguageAndTheme('pageshow');
+        };
+        const handleWindowFocus = () => {
+            reapplyBookLanguageAndTheme('window-focus');
+        };
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                reapplyBookLanguageAndTheme('visibility-visible');
+            }
+        };
+
+        window.addEventListener('popstate', handlePopState);
+        window.addEventListener('pageshow', handlePageShow);
+        window.addEventListener('focus', handleWindowFocus);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            window.removeEventListener('popstate', handlePopState);
+            window.removeEventListener('pageshow', handlePageShow);
+            window.removeEventListener('focus', handleWindowFocus);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, [editor, monaco, reapplyBookLanguageAndTheme]);
 
     useEffect(() => {
         if (!isSavedShown) {
@@ -379,6 +475,21 @@ export function BookEditorMonaco(props: BookEditorProps) {
     const handleBeforeMonacoMount = useCallback(
         (beforeMountMonaco: Parameters<typeof ensureBookEditorMonacoLanguage>[0]) => {
             ensureBookEditorMonacoLanguage(beforeMountMonaco);
+        },
+        [],
+    );
+
+    /**
+     * Re-applies Book language/theme once Monaco editor is mounted.
+     */
+    const handleMonacoMount = useCallback(
+        (
+            mountedEditor: editor.IStandaloneCodeEditor,
+            mountedMonaco: Parameters<typeof ensureBookEditorMonacoLanguage>[0],
+        ) => {
+            setEditor(mountedEditor);
+            ensureBookEditorMonacoLanguageForEditor({ monaco: mountedMonaco, monacoEditor: mountedEditor });
+            logBookEditorMonacoDebug('Mounted Monaco editor and re-applied Book language/theme.');
         },
         [],
     );
@@ -506,9 +617,12 @@ export function BookEditorMonaco(props: BookEditorProps) {
                 )}
                 <MonacoEditorWithShadowDom
                     language={BookEditorMonacoConstants.BOOK_LANGUAGE_ID}
+                    theme={BookEditorMonacoConstants.BOOK_THEME_ID}
+                    path={monacoModelPath}
+                    saveViewState={Boolean(monacoModelPath)}
                     value={value}
                     beforeMount={handleBeforeMonacoMount}
-                    onMount={(mountedEditor) => setEditor(mountedEditor)}
+                    onMount={handleMonacoMount}
                     onChange={(newValue) => onChange?.(newValue as string_book)}
                     options={{
                         readOnly: isReadonly,

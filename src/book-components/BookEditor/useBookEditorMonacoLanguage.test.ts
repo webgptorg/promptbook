@@ -1,6 +1,9 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import { PROMPTBOOK_SYNTAX_COLORS } from '../../config';
-import { ensureBookEditorMonacoLanguage } from './useBookEditorMonacoLanguage';
+import {
+    ensureBookEditorMonacoLanguage,
+    ensureBookEditorMonacoLanguageForEditor,
+} from './useBookEditorMonacoLanguage';
 
 /**
  * Monaco argument type accepted by the Book language initializer.
@@ -19,6 +22,7 @@ type MonacoLanguageMock = {
         readonly registerLinkProvider: ReturnType<typeof jest.fn>;
         readonly defineTheme: ReturnType<typeof jest.fn>;
         readonly setTheme: ReturnType<typeof jest.fn>;
+        readonly setModelLanguage: ReturnType<typeof jest.fn>;
     };
 };
 
@@ -32,6 +36,7 @@ function createMonacoLanguageMock(): MonacoLanguageMock {
     const registerLinkProvider = jest.fn(() => ({ dispose: jest.fn() }));
     const defineTheme = jest.fn();
     const setTheme = jest.fn();
+    const setModelLanguage = jest.fn();
 
     const monaco = {
         languages: {
@@ -46,6 +51,7 @@ function createMonacoLanguageMock(): MonacoLanguageMock {
         editor: {
             defineTheme,
             setTheme,
+            setModelLanguage,
         },
         Range: jest.fn(),
     } as unknown as MonacoForBookEditorLanguage;
@@ -59,6 +65,7 @@ function createMonacoLanguageMock(): MonacoLanguageMock {
             registerLinkProvider,
             defineTheme,
             setTheme,
+            setModelLanguage,
         },
     };
 }
@@ -142,5 +149,22 @@ describe('ensureBookEditorMonacoLanguage', () => {
         expect(noteThemeRule?.foreground).toBe(PROMPTBOOK_SYNTAX_COLORS.NOTE_COMMITMENT.toHex());
         expect(todoThemeRule?.foreground).toBe(PROMPTBOOK_SYNTAX_COLORS.TODO_COMMITMENT_TEXT.toHex());
         expect(todoThemeRule?.background).toBe(PROMPTBOOK_SYNTAX_COLORS.TODO_COMMITMENT_BACKGROUND.toHex());
+    });
+
+    it('re-applies Book model language when mounted editor uses a different language', () => {
+        const { monaco, spies } = createMonacoLanguageMock();
+        const monacoEditor = {
+            getModel: () => ({
+                getLanguageId: () => 'plaintext',
+            }),
+        };
+
+        ensureBookEditorMonacoLanguageForEditor({
+            monaco,
+            monacoEditor: monacoEditor as unknown as Parameters<typeof ensureBookEditorMonacoLanguageForEditor>[0]['monacoEditor'],
+        });
+
+        expect(spies.setModelLanguage).toHaveBeenCalledTimes(1);
+        expect(spies.setModelLanguage).toHaveBeenCalledWith(expect.anything(), 'book');
     });
 });

@@ -251,6 +251,15 @@ export type BookEditorProps = {
          */
         readonly roomName: string;
     };
+
+    /**
+     * Stable Monaco model path used to restore cursor/scroll view state across remounts.
+     *
+     * Keep this unique per logical book editor document.
+     *
+     * @private Internal to Promptbook app integrations.
+     */
+    readonly monacoModelPath?: string;
 };
 
 /**
@@ -278,6 +287,7 @@ export function BookEditor(props: BookEditorProps) {
         isAboutButtonShown = true,
         isFullscreenButtonShown = true,
         sync,
+        monacoModelPath,
     } = props;
 
     const [isFullscreen, setIsFullscreen] = useState(false);
@@ -334,6 +344,7 @@ export function BookEditor(props: BookEditorProps) {
                 isFullscreen={isFullscreen}
                 sync={sync}
                 zoom={zoom}
+                monacoModelPath={monacoModelPath}
             />
         </div>
     );

@@ -1,3 +1,13 @@
+-   Fixed intermittent Monaco syntax highlighting loss in Agents Server Book editor after client-side back/forward navigation:
+    -   Book Monaco lifecycle now re-applies Book language + theme to the mounted editor model on mount/focus/navigation visibility events, while keeping language/token providers registered idempotently per Monaco runtime.
+    -   `/agents/[agentName]/book` now uses a stable Monaco model path so cursor/scroll view state is restored after remounts (`saveViewState`) without keeping stale models alive.
+    -   Added an opt-in development debug flag for Monaco lifecycle tracing (`localStorage['promptbook-debug-book-editor-monaco']='1'`).
+    -   Added unit coverage for mounted-editor language re-application in `useBookEditorMonacoLanguage.test.ts`.
+    -   Manual QA checklist:
+        -   Open `/agents/<agentName>/book`, confirm Book commitments are syntax-highlighted.
+        -   Navigate to another route and use browser Back/Forward repeatedly (for example 10x).
+        -   Confirm syntax highlighting remains present, and cursor/scroll position is restored when returning to the editor.
+
 -   Added an admin-only Agents Server backups page at `/admin/backup` with a new System-menu entry (`Backups`) for administrators:
     -   Added one backup action, **Download all books**, which exports a single `.zip` archive.
     -   Added streaming export endpoint `GET /api/admin/backups/books` that returns ZIP bytes as a stream (without buffering the full archive in server memory).
