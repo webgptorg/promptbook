@@ -99,7 +99,7 @@ create index IF not exists "server_PavolHejny_AgentHistory_agentId_idx" on publi
 
 ---
 
-[ ]
+[x] ~$0.2118 7 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨⤵️] Enhance UI and UX of how the agent's state and history are shown
 
@@ -129,3 +129,4 @@ create index IF not exists "server_PavolHejny_AgentHistory_agentId_idx" on publi
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

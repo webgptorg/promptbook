@@ -7,6 +7,7 @@ import { bookEditorUploadHandler } from '../../../../utils/upload/createBookEdit
 import { showAlert, showConfirm } from '@/src/components/AsyncDialogs/asyncDialogs';
 import type { MissingAgentReference } from '../../../../utils/agentReferenceResolver/createUnresolvedAgentReferenceDiagnostics';
 import { useUnsavedChangesGuard } from '../../../../components/utils/useUnsavedChangesGuard';
+import { BookEditorHistoryPanel, type BookEditorHistoryVersionItem } from './BookEditorHistoryPanel';
 
 /**
  * Props for the BookEditorWrapper component.
@@ -47,7 +48,7 @@ type RequestDiagnosticsOptions = {
 };
 
 /**
- * Save status shown by the floating Book editor indicator.
+ * Save status shown in the Book editor status bar.
  */
 type SaveStatus = 'idle' | 'pending' | 'saving' | 'saved' | 'error';
 
@@ -177,6 +178,77 @@ async function resolveApiErrorMessage(response: Response, fallbackMessage: strin
     }
 
     return fallback;
+}
+
+/**
+ * Converts raw history entries into UI-ready version items with explicit version labels.
+ *
+ * @param historyEntries - Snapshots returned by history API ordered from newest to oldest.
+ * @returns Version items consumed by history panel.
+ */
+function buildHistoryVersionItems(
+    historyEntries: ReadonlyArray<AgentHistoryEntry>,
+): Array<BookEditorHistoryVersionItem> {
+    const totalVersions = historyEntries.length;
+    return historyEntries.map((entry, index) => ({
+        id: entry.id,
+        versionLabel: `Version ${totalVersions - index}`,
+        createdAtLabel: new Date(entry.createdAt).toLocaleString(),
+        hash: entry.agentHash,
+        hashPreview: entry.agentHash.slice(0, 8),
+        source: entry.agentSource,
+    }));
+}
+
+/**
+ * Resolves human-visible status label for current save state.
+ *
+ * @param saveStatus - Current state of autosave state machine.
+ * @returns Short status text shown in the Book toolbar.
+ */
+function resolveSaveStatusLabel(saveStatus: SaveStatus): string {
+    if (saveStatus === 'pending') {
+        return 'Save queued';
+    }
+    if (saveStatus === 'saving') {
+        return 'Saving...';
+    }
+    if (saveStatus === 'error') {
+        return 'Save failed';
+    }
+    return 'Saved';
+}
+
+/**
+ * Resolves Tailwind tone classes for save status badge.
+ *
+ * @param saveStatus - Current state of autosave state machine.
+ * @returns Badge classes matching current save state.
+ */
+function resolveSaveStatusToneClasses(saveStatus: SaveStatus): string {
+    if (saveStatus === 'error') {
+        return 'border-red-200 bg-red-50 text-red-700';
+    }
+    if (saveStatus === 'pending' || saveStatus === 'saving') {
+        return 'border-blue-200 bg-blue-50 text-blue-700';
+    }
+    return 'border-emerald-200 bg-emerald-50 text-emerald-700';
+}
+
+/**
+ * Resolves dot color classes for save status badge.
+ *
+ * @param saveStatus - Current state of autosave state machine.
+ * @returns Dot classes matching current save state.
+ */
+function resolveSaveStatusDotClasses(saveStatus: SaveStatus): string {
+    if (saveStatus === 'error') {
+        return 'bg-red-500';
+    }
+    if (saveStatus === 'pending' || saveStatus === 'saving') {
+        return 'bg-blue-500';
+    }
+    return 'bg-emerald-500';
 }
 
 // TODO: [🐱‍🚀] Rename to BookEditorSavingWrapper
@@ -663,29 +735,10 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
     });
 
     const hasMissingReferences = missingAgentReferences.length > 0;
-    const selectedHistoryEntry = historyEntries.find((item) => item.id === selectedHistoryId) || null;
-    const saveStatusLabel =
-        saveStatus === 'pending'
-            ? 'Save queued'
-            : saveStatus === 'saving'
-            ? 'Saving...'
-            : saveStatus === 'error'
-            ? 'Save failed'
-            : 'Saved';
-    const saveIndicatorToneClassName =
-        saveStatus === 'error'
-            ? 'border-red-200 bg-red-50 text-red-700'
-            : saveStatus === 'pending' || saveStatus === 'saving'
-            ? 'border-blue-200 bg-blue-50 text-blue-700'
-            : 'border-slate-200 bg-white/95 text-slate-700';
-    const saveIndicatorDotClassName =
-        saveStatus === 'error'
-            ? 'bg-red-500'
-            : saveStatus === 'pending' || saveStatus === 'saving'
-            ? 'bg-blue-500'
-            : 'bg-emerald-500';
-    const canRestoreSelectedHistory =
-        Boolean(selectedHistoryEntry) && !isRestoringHistoryVersion && !isSaveInFlight;
+    const historyVersions = buildHistoryVersionItems(historyEntries);
+    const saveStatusLabel = resolveSaveStatusLabel(saveStatus);
+    const saveIndicatorToneClassName = resolveSaveStatusToneClasses(saveStatus);
+    const saveIndicatorDotClassName = resolveSaveStatusDotClasses(saveStatus);
     const renderMissingReferenceCards = () =>
         missingAgentReferences.map((reference) => (
             <MissingAgentReferenceCard
@@ -698,187 +751,88 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
 
     return (
         <div className="relative flex h-full min-h-0 flex-col">
-            <div className="pointer-events-none fixed top-5 right-28 z-50">
-                <button
-                    type="button"
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-1">
+                <div
                     role="status"
                     aria-live="polite"
-                    onClick={() => setIsHistoryOpen(true)}
-                    className={`pointer-events-auto inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs shadow-sm transition-colors hover:opacity-90 ${saveIndicatorToneClassName}`}
-                    title="Open book history"
+                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs ${saveIndicatorToneClassName}`}
                 >
                     {saveStatus === 'saving' ? (
                         <span className="inline-block h-2.5 w-2.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
                     ) : (
                         <span className={`inline-block h-2.5 w-2.5 rounded-full ${saveIndicatorDotClassName}`} />
                     )}
-                    <span>{saveStatusLabel}</span>
-                    <span className="text-[10px] uppercase tracking-wide opacity-70">History</span>
-                </button>
-            </div>
-
-            {isHistoryOpen && (
-                <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/20">
+                    <span className="font-semibold">{saveStatusLabel}</span>
+                </div>
+                <div className="flex items-center gap-2">
                     <button
                         type="button"
-                        aria-label="Close history panel"
-                        className="h-full flex-1 cursor-default"
-                        onClick={() => setIsHistoryOpen(false)}
-                    />
-                    <section
-                        role="dialog"
-                        aria-modal="true"
-                        aria-label="Book version history"
-                        className="flex h-full w-full max-w-[960px] flex-col border-l border-slate-200 bg-white shadow-2xl"
+                        onClick={() => setIsHistoryOpen((isCurrentlyOpen) => !isCurrentlyOpen)}
+                        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+                        aria-expanded={isHistoryOpen}
+                        aria-label={isHistoryOpen ? 'Close book history' : 'Open book history'}
                     >
-                        <header className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-                            <div>
-                                <p className="text-sm font-semibold text-slate-900">Version history</p>
-                                <p className="text-xs text-slate-500">Saved snapshots of this book source</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setHistoryRefreshVersion((previousVersion) => previousVersion + 1)}
-                                    className="rounded border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-                                    disabled={isHistoryLoading}
-                                >
-                                    Refresh
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setIsHistoryOpen(false)}
-                                    className="rounded border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-                                >
-                                    Close
-                                </button>
-                            </div>
-                        </header>
+                        {isHistoryOpen ? 'Hide history' : `History (${historyVersions.length})`}
+                    </button>
+                    {saveStatus === 'error' && (
+                        <button
+                            type="button"
+                            onClick={retrySaveNow}
+                            className="rounded-lg border border-red-300 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100"
+                        >
+                            Retry save
+                        </button>
+                    )}
+                </div>
+            </div>
 
-                        <div className="flex min-h-0 flex-1 flex-col md:flex-row">
-                            <aside className="max-h-64 overflow-auto border-b border-slate-200 md:max-h-none md:w-80 md:border-b-0 md:border-r">
-                                {isHistoryLoading && (
-                                    <p className="px-4 py-3 text-xs text-slate-500">Loading history...</p>
-                                )}
-
-                                {!isHistoryLoading && historyErrorMessage && (
-                                    <p className="px-4 py-3 text-xs text-red-600">{historyErrorMessage}</p>
-                                )}
-
-                                {!isHistoryLoading && !historyErrorMessage && historyEntries.length === 0 && (
-                                    <p className="px-4 py-3 text-xs text-slate-500">No history snapshots found.</p>
-                                )}
-
-                                {!isHistoryLoading &&
-                                    historyEntries.map((entry, index) => {
-                                        const isSelected = selectedHistoryId === entry.id;
-                                        return (
-                                            <button
-                                                key={entry.id}
-                                                type="button"
-                                                onClick={() => setSelectedHistoryId(entry.id)}
-                                                className={`flex w-full flex-col items-start gap-1 border-b border-slate-100 px-4 py-3 text-left text-xs transition-colors ${
-                                                    isSelected ? 'bg-slate-100' : 'hover:bg-slate-50'
-                                                }`}
-                                            >
-                                                <span className="font-semibold text-slate-900">
-                                                    Version {historyEntries.length - index}
-                                                </span>
-                                                <time className="text-slate-500">
-                                                    {new Date(entry.createdAt).toLocaleString()}
-                                                </time>
-                                                <code className="rounded bg-slate-200 px-1 py-0.5 text-[10px] text-slate-700">
-                                                    {entry.agentHash.slice(0, 8)}
-                                                </code>
-                                            </button>
-                                        );
-                                    })}
-                            </aside>
-
-                            <div className="flex min-h-0 flex-1 flex-col">
-                                {selectedHistoryEntry ? (
-                                    <>
-                                        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
-                                            <div className="text-xs text-slate-600">
-                                                <p>
-                                                    Snapshot from{' '}
-                                                    <span className="font-semibold text-slate-900">
-                                                        {new Date(selectedHistoryEntry.createdAt).toLocaleString()}
-                                                    </span>
-                                                </p>
-                                                <p>
-                                                    Hash:{' '}
-                                                    <code className="rounded bg-slate-100 px-1 py-0.5 text-[10px]">
-                                                        {selectedHistoryEntry.agentHash}
-                                                    </code>
-                                                </p>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={() => void restoreHistoryVersion(selectedHistoryEntry.id)}
-                                                disabled={!canRestoreSelectedHistory}
-                                                className="rounded bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-blue-300"
-                                            >
-                                                {isRestoringHistoryVersion ? 'Restoring...' : 'Restore this version'}
-                                            </button>
-                                        </div>
-
-                                        <pre className="min-h-0 flex-1 overflow-auto bg-slate-950 p-4 text-xs leading-relaxed text-slate-100">
-                                            {selectedHistoryEntry.agentSource}
-                                        </pre>
-                                    </>
-                                ) : (
-                                    <div className="flex min-h-0 flex-1 items-center justify-center p-6 text-xs text-slate-500">
-                                        Select a version to inspect its content.
-                                    </div>
-                                )}
-
-                                {saveStatus === 'error' && (
-                                    <div className="flex items-center justify-between gap-3 border-t border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
-                                        <p className="min-w-0 truncate">
-                                            {saveErrorMessage || 'Book save failed. Retry to persist the current source.'}
-                                        </p>
-                                        <button
-                                            type="button"
-                                            onClick={retrySaveNow}
-                                            className="rounded border border-red-300 px-2 py-1 font-semibold hover:bg-red-100"
-                                        >
-                                            Retry save
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </section>
+            {saveStatus === 'error' && (
+                <div className="mb-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                    {saveErrorMessage || 'Book save failed. Retry to persist the current source.'}
                 </div>
             )}
 
-            <div className="flex h-full min-h-0 gap-6">
-                <div className="flex-1 min-h-0 min-w-0">
-                    <BookEditor
-                        className="w-full h-full"
-                        isBorderRadiusDisabled
-                        height={null}
-                        value={agentSource}
-                        monacoModelPath={monacoModelPath}
-                        onChange={handleChange}
-                        onFileUpload={bookEditorUploadHandler}
-                        diagnostics={diagnostics}
-                    />
+            <div className="flex min-h-0 flex-1 gap-4">
+                <div className="flex min-h-0 min-w-0 flex-1 gap-6">
+                    <div className="min-h-0 min-w-0 flex-1">
+                        <BookEditor
+                            className="h-full w-full"
+                            isBorderRadiusDisabled
+                            height={null}
+                            value={agentSource}
+                            monacoModelPath={monacoModelPath}
+                            onChange={handleChange}
+                            onFileUpload={bookEditorUploadHandler}
+                            diagnostics={diagnostics}
+                        />
+                    </div>
+
+                    {hasMissingReferences && (
+                        <aside className="hidden w-80 shrink-0 flex-col gap-4 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-lg shadow-slate-900/5 backdrop-blur-md xl:flex">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                Missing referenced agents
+                            </p>
+                            <div className="flex flex-col gap-4">{renderMissingReferenceCards()}</div>
+                        </aside>
+                    )}
                 </div>
 
-                {hasMissingReferences && (
-                    <aside className="hidden w-80 shrink-0 flex-col gap-4 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-lg shadow-slate-900/5 backdrop-blur-md md:flex">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                            Missing referenced agents
-                        </p>
-                        <div className="flex flex-col gap-4">{renderMissingReferenceCards()}</div>
-                    </aside>
-                )}
+                <BookEditorHistoryPanel
+                    isOpen={isHistoryOpen}
+                    isLoading={isHistoryLoading}
+                    errorMessage={historyErrorMessage}
+                    versions={historyVersions}
+                    selectedVersionId={selectedHistoryId}
+                    isRestoring={isRestoringHistoryVersion || isSaveInFlight}
+                    onClose={() => setIsHistoryOpen(false)}
+                    onRefresh={() => setHistoryRefreshVersion((previousVersion) => previousVersion + 1)}
+                    onSelectVersion={(historyId) => setSelectedHistoryId(historyId)}
+                    onRestoreVersion={(historyId) => void restoreHistoryVersion(historyId)}
+                />
             </div>
 
             {hasMissingReferences && (
-                <div className="mt-4 flex flex-col gap-4 px-4 md:hidden">
+                <div className="mt-4 flex flex-col gap-4 px-4 xl:hidden">
                     <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                         Missing referenced agents
                     </p>

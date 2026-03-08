@@ -1,0 +1,220 @@
+'use client';
+
+import { XIcon } from 'lucide-react';
+
+/**
+ * One version item prepared for history panel rendering.
+ */
+export type BookEditorHistoryVersionItem = {
+    /**
+     * History-row identifier.
+     */
+    readonly id: number;
+    /**
+     * Human label for the version number.
+     */
+    readonly versionLabel: string;
+    /**
+     * Human-readable timestamp label.
+     */
+    readonly createdAtLabel: string;
+    /**
+     * Full hash of this snapshot.
+     */
+    readonly hash: string;
+    /**
+     * Short hash preview used in the list.
+     */
+    readonly hashPreview: string;
+    /**
+     * Full snapshot source content.
+     */
+    readonly source: string;
+};
+
+/**
+ * Props for the responsive book history panel.
+ */
+type BookEditorHistoryPanelProps = {
+    /**
+     * Controls panel visibility.
+     */
+    readonly isOpen: boolean;
+    /**
+     * Indicates history list loading state.
+     */
+    readonly isLoading: boolean;
+    /**
+     * Optional loading/error message.
+     */
+    readonly errorMessage: string | null;
+    /**
+     * Versions to show in the history list.
+     */
+    readonly versions: ReadonlyArray<BookEditorHistoryVersionItem>;
+    /**
+     * Currently selected version id.
+     */
+    readonly selectedVersionId: number | null;
+    /**
+     * Indicates one restore operation is running.
+     */
+    readonly isRestoring: boolean;
+    /**
+     * Called when the panel should close.
+     */
+    readonly onClose: () => void;
+    /**
+     * Called to reload the versions list.
+     */
+    readonly onRefresh: () => void;
+    /**
+     * Called when one version item is selected.
+     */
+    readonly onSelectVersion: (versionId: number) => void;
+    /**
+     * Called when one version should be restored.
+     */
+    readonly onRestoreVersion: (versionId: number) => void;
+};
+
+/**
+ * Responsive history panel that mirrors chat-sidebar behavior while splitting versions list and detail view.
+ */
+export function BookEditorHistoryPanel({
+    isOpen,
+    isLoading,
+    errorMessage,
+    versions,
+    selectedVersionId,
+    isRestoring,
+    onClose,
+    onRefresh,
+    onSelectVersion,
+    onRestoreVersion,
+}: BookEditorHistoryPanelProps) {
+    if (!isOpen) {
+        return null;
+    }
+
+    const selectedVersion = versions.find((version) => version.id === selectedVersionId) || null;
+    const canRestoreSelectedVersion = Boolean(selectedVersion) && !isRestoring;
+
+    return (
+        <>
+            <div className="fixed inset-0 z-50 bg-slate-900/30 backdrop-blur-[1px] md:hidden" onClick={onClose} aria-hidden="true" />
+
+            <section
+                role="dialog"
+                aria-modal="true"
+                aria-label="Book version history"
+                className="fixed inset-y-0 right-0 z-[60] flex w-full max-w-[960px] flex-col border-l border-slate-200 bg-white shadow-2xl md:relative md:z-0 md:w-[min(56vw,920px)] md:max-w-none md:rounded-2xl md:border md:shadow-lg"
+            >
+                <header className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+                    <div>
+                        <p className="text-sm font-semibold text-slate-900">Version history</p>
+                        <p className="text-xs text-slate-500">Versions and selected version details</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={onRefresh}
+                            className="rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                            disabled={isLoading}
+                        >
+                            Refresh
+                        </button>
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-300 text-slate-600 transition hover:bg-slate-100 md:hidden"
+                            aria-label="Close history panel"
+                        >
+                            <XIcon className="h-4 w-4" />
+                        </button>
+                    </div>
+                </header>
+
+                <div className="flex min-h-0 flex-1">
+                    <aside className="w-72 shrink-0 border-r border-slate-200 bg-slate-50/70">
+                        <div className="flex h-full min-h-0 flex-col p-2">
+                            <p className="px-2 pb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">Versions</p>
+                            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
+                                {isLoading && <p className="px-2 py-1 text-xs text-slate-500">Loading versions...</p>}
+
+                                {!isLoading && errorMessage && <p className="px-2 py-1 text-xs text-red-600">{errorMessage}</p>}
+
+                                {!isLoading && !errorMessage && versions.length === 0 && (
+                                    <p className="px-2 py-1 text-xs text-slate-500">No history snapshots found.</p>
+                                )}
+
+                                {!isLoading &&
+                                    versions.map((version) => {
+                                        const isSelected = selectedVersionId === version.id;
+                                        return (
+                                            <button
+                                                key={version.id}
+                                                type="button"
+                                                onClick={() => onSelectVersion(version.id)}
+                                                className={`w-full rounded-xl border px-3 py-2 text-left transition ${
+                                                    isSelected
+                                                        ? 'border-blue-300 bg-blue-50 text-blue-800 shadow-sm'
+                                                        : 'border-transparent bg-white/90 text-slate-700 hover:border-slate-300 hover:bg-white'
+                                                }`}
+                                                aria-label={`${version.versionLabel} ${version.createdAtLabel}`}
+                                                title={`${version.versionLabel} ${version.createdAtLabel}`}
+                                            >
+                                                <div className="text-xs font-semibold">{version.versionLabel}</div>
+                                                <div className={`mt-0.5 text-[11px] ${isSelected ? 'text-blue-700' : 'text-slate-500'}`}>
+                                                    {version.createdAtLabel}
+                                                </div>
+                                                <code
+                                                    className={`mt-1 inline-flex rounded px-1.5 py-0.5 text-[10px] ${
+                                                        isSelected ? 'bg-blue-100 text-blue-800' : 'bg-slate-200 text-slate-700'
+                                                    }`}
+                                                >
+                                                    {version.hashPreview}
+                                                </code>
+                                            </button>
+                                        );
+                                    })}
+                            </div>
+                        </div>
+                    </aside>
+
+                    <div className="flex min-h-0 flex-1 flex-col">
+                        {selectedVersion ? (
+                            <>
+                                <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 px-4 py-3">
+                                    <div>
+                                        <p className="text-sm font-semibold text-slate-900">{selectedVersion.versionLabel}</p>
+                                        <p className="text-xs text-slate-500">{selectedVersion.createdAtLabel}</p>
+                                        <code className="mt-1 inline-flex rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-700">
+                                            {selectedVersion.hash}
+                                        </code>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => onRestoreVersion(selectedVersion.id)}
+                                        disabled={!canRestoreSelectedVersion}
+                                        className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-blue-300"
+                                    >
+                                        {isRestoring ? 'Restoring...' : 'Restore version'}
+                                    </button>
+                                </div>
+
+                                <pre className="min-h-0 flex-1 overflow-auto bg-slate-950 p-4 text-xs leading-relaxed text-slate-100">
+                                    {selectedVersion.source}
+                                </pre>
+                            </>
+                        ) : (
+                            <div className="flex min-h-0 flex-1 items-center justify-center p-6 text-xs text-slate-500">
+                                Select one version to inspect its source.
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </section>
+        </>
+    );
+}

@@ -1,3 +1,9 @@
+-   Improved Agents Server Book editor save/history UX so history feels native and navigable:
+    -   Replaced the floating fixed save chip with an in-layout save status bar, preventing overlap with page/header controls while keeping save state continuously visible.
+    -   Reworked Book history into a dedicated responsive panel component (`BookEditorHistoryPanel`) that behaves like the existing chat sidebar pattern: docked panel on desktop and slide-over panel with backdrop on mobile.
+    -   Split history UI into two clearly separated areas, `Versions` list and `Selected version` detail/preview, so version navigation and source inspection are no longer mixed.
+    -   Kept restore/version-loading behavior connected to existing Book history APIs while reducing UI duplication by moving history rendering into one reusable panel component.
+
 -   Prevented accidental data loss when dismissing text-input modals in Agents Server:
     -   Added a reusable `useDirtyModalGuard` hook that blocks modal close attempts when unsaved edits exist and asks for explicit discard confirmation.
     -   Applied the guard to clone-agent prompt (`showPrompt`) so typed clone names are protected against overlay-click and `Escape` dismissal.
