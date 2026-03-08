@@ -2,7 +2,6 @@
 
 [✨📱] Solid arrows in Agents Server (sidebar open + scroll-to-bottom)
 
--   *(@@@@ Written by agent)*
 -   Enhance design of the arrows in Agents Server UI so they look solid and consistent with the rest of the application.
 -   Focus specifically on:
     -   Arrow/button that opens the left `My chats` panel (collapsed sidebar affordance)
@@ -12,7 +11,6 @@
 -   Ensure good accessibility:
     -   Keyboard focus styles consistent with the app
     -   `aria-label` for both buttons
-    -   Hit target size at least @@@ px (confirm standard used in app)
 -   Behaviors to keep:
     -   Sidebar arrow toggles panel open/close and reflects state (orientation change or similar)
     -   Scroll-down arrow appears only when user is not at the bottom; hides when at bottom
@@ -28,6 +26,11 @@
     -   Shared UI components (e.g. `apps/agents-server/src/components/ui/...` or similar)
     -   CSS / Tailwind styles / design tokens used by Agents Server
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![bad looking my chats panel arrow](prompts/screenshots/2026-03-0210-agents-server-solid-arrows.png)
+![good looking my chats panel arrow](prompts/screenshots/2026-03-0210-agents-server-solid-arrows-1.png)
+![good looking my chats panel arrow](prompts/screenshots/2026-03-0210-agents-server-solid-arrows-2.png)
+![bad looking scrolldown arrow](prompts/screenshots/2026-03-0210-agents-server-solid-arrows-3.png)
 
 ---
 

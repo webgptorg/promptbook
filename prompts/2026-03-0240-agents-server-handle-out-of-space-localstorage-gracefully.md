@@ -1,6 +1,6 @@
-[-]
+[ ]
 
-[✨🤽] brr
+[✨🤽] Handle out-of-space localStorage gracefully
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.

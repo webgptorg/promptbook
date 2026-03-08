@@ -86,11 +86,31 @@ create index IF not exists "server_PavolHejny_AgentHistory_agentId_idx" on publi
 
 ---
 
-[-]
+[-] _<- Probbably working_
 
-[✨⤵️] brr
+[✨⤵️] Fix recording of the agent source book history.
 
 -   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   If you need to do the database migration, do it
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
+[ ]
+
+[✨⤵️] Enhance UI and UX of how the agent's state and history are shown
+
+-   History of the agent source book is being recorded, but currently the way how it is show is terrible.
+-   Do theese UI and UX improvements:
+    -   The Saved indicator should not block other UI elements and also should look more natural in the page desig, now it looks like floating foreign element ![alt text](prompts/screenshots/2026-03-0090-agents-server-book-editor-history-2.png)
+    -   When History is opened there is no way to see the versions ![alt text](prompts/screenshots/2026-03-0090-agents-server-book-editor-history-3.png)
+        -   Split the versions and version view
+        -   Show the versions in BookEditor
+        -   Entire panel should behave simmilar to my chats sidepbar panel
+        -   Entire design, UI and feels must feel as part of the Agents Server, not some foreign element, it should be natural to use and navigate through it, not something that looks like an afterthought
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
@@ -109,17 +129,3 @@ create index IF not exists "server_PavolHejny_AgentHistory_agentId_idx" on publi
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
----
-
-[-]
-
-[✨⤵️] brr
-
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
-
