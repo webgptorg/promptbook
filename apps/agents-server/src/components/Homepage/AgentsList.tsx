@@ -17,8 +17,8 @@ import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { TODO_any, string_url } from '@promptbook-local/types';
 import { FolderPlusIcon, Grid, Network, TrashIcon } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import { AddAgentButton } from '../../app/AddAgentButton';
 import type { AgentProfile } from '../../app/agents/[agentName]/AgentProfileWrapper';
@@ -112,6 +112,99 @@ const FOLDER_DRAG_ID_PREFIX = 'folder:';
 const DRAG_START_DISTANCE_PX = 8;
 const TOUCH_DRAG_DELAY_MS = 250;
 const TOUCH_DRAG_TOLERANCE_PX = 6;
+/**
+ * API endpoint used to synchronize the organization snapshot.
+ */
+const AGENT_ORGANIZATION_SYNC_API_PATH = '/api/agent-organization';
+/**
+ * Indicates whether development-only diagnostics should be emitted.
+ */
+const IS_DEVELOPMENT = process.env.NODE_ENV !== 'production';
+
+/**
+ * Reasons used for organization synchronization telemetry.
+ */
+type AgentOrganizationSyncReason =
+    | 'mount'
+    | 'route-change'
+    | 'window-focus'
+    | 'visibility-change'
+    | 'error-recovery'
+    | `mutation:${string}`;
+
+/**
+ * API payload for client synchronization snapshots.
+ */
+type AgentOrganizationSyncPayload = {
+    /**
+     * Indicates whether the snapshot fetch succeeded.
+     */
+    readonly success: boolean;
+    /**
+     * Latest active agents for the current user scope.
+     */
+    readonly agents?: ReadonlyArray<AgentOrganizationAgent>;
+    /**
+     * Latest active folders for the current user scope.
+     */
+    readonly folders?: ReadonlyArray<AgentOrganizationFolder>;
+    /**
+     * Optional error message when sync fails.
+     */
+    readonly error?: string;
+    /**
+     * Server timestamp indicating snapshot freshness.
+     */
+    readonly syncedAt?: string;
+};
+
+/**
+ * Writes synchronization diagnostics in development builds only.
+ *
+ * @param message - Diagnostic message.
+ * @param details - Optional structured payload for debugging.
+ */
+function logOrganizationSyncDebug(message: string, details?: Record<string, unknown>): void {
+    if (!IS_DEVELOPMENT || typeof window === 'undefined') {
+        return;
+    }
+
+    if (details) {
+        console.debug(`[AgentsList sync] ${message}`, details);
+        return;
+    }
+
+    console.debug(`[AgentsList sync] ${message}`);
+}
+
+/**
+ * Creates a deterministic fingerprint for an organization snapshot.
+ *
+ * @param agents - Agents included in the snapshot.
+ * @param folders - Folders included in the snapshot.
+ * @returns Stable fingerprint string used to detect stale local state.
+ */
+function createOrganizationFingerprint(
+    agents: ReadonlyArray<AgentOrganizationAgent>,
+    folders: ReadonlyArray<AgentOrganizationFolder>,
+): string {
+    const agentFingerprint = [...agents]
+        .map(
+            (agent) =>
+                `${agent.permanentId || agent.agentName}:${agent.agentName}:${agent.folderId ?? 'root'}:${agent.sortOrder}:${agent.visibility}`,
+        )
+        .sort()
+        .join('|');
+    const folderFingerprint = [...folders]
+        .map(
+            (folder) =>
+                `${folder.id}:${folder.name}:${folder.parentId ?? 'root'}:${folder.sortOrder}:${folder.icon ?? ''}:${folder.color ?? ''}`,
+        )
+        .sort()
+        .join('|');
+
+    return `${agentFingerprint}::${folderFingerprint}`;
+}
 
 /**
  * Builds a unique drag identifier with a stable prefix.
@@ -198,8 +291,12 @@ export function AgentsList(props: AgentsListProps) {
         showFederatedAgents,
         externalAgents: initialExternalAgents,
     } = props;
+    const pathname = usePathname();
     const router = useRouter();
     const searchParams = useSearchParams();
+    const searchParamsSnapshot = searchParams.toString();
+    const routeSyncKey = `${pathname}?${searchParamsSnapshot}`;
+    const folderQuery = searchParams.get('folder');
     const [agents, setAgents] = useState<AgentOrganizationAgent[]>(Array.from(initialAgents));
     const [folders, setFolders] = useState<AgentOrganizationFolder[]>(Array.from(initialFolders));
     const [activeDragItem, setActiveDragItem] = useState<DragItem | null>(null);
@@ -209,7 +306,94 @@ export function AgentsList(props: AgentsListProps) {
     const [folderEditDialogState, setFolderEditDialogState] = useState<FolderEditDialogState | null>(null);
     const [isFolderEditSubmitting, setIsFolderEditSubmitting] = useState<boolean>(false);
     const [qrCodeAgent, setQrCodeAgent] = useState<AgentOrganizationAgent | null>(null);
+    const [lastSyncedRouteKey, setLastSyncedRouteKey] = useState<string | null>(null);
     const { formatText } = useAgentNaming();
+    const hasMountedRef = useRef(false);
+    const syncAbortControllerRef = useRef<AbortController | null>(null);
+    const agentsRef = useRef<Array<AgentOrganizationAgent>>(Array.from(initialAgents));
+    const foldersRef = useRef<Array<AgentOrganizationFolder>>(Array.from(initialFolders));
+
+    /**
+     * Runs a background synchronization against the canonical organization snapshot.
+     *
+     * @param reason - Synchronization trigger reason.
+     * @param routeKeyAtSync - Route key associated with this request.
+     */
+    const synchronizeOrganizationState = useCallback(
+        async (reason: AgentOrganizationSyncReason, routeKeyAtSync: string = routeSyncKey) => {
+            syncAbortControllerRef.current?.abort();
+            const abortController = new AbortController();
+            syncAbortControllerRef.current = abortController;
+
+            logOrganizationSyncDebug('Starting synchronization request', {
+                reason,
+                routeKey: routeKeyAtSync,
+                previousAgentCount: agentsRef.current.length,
+                previousFolderCount: foldersRef.current.length,
+            });
+
+            try {
+                const response = await fetch(AGENT_ORGANIZATION_SYNC_API_PATH, {
+                    method: 'GET',
+                    cache: 'no-store',
+                    signal: abortController.signal,
+                });
+                const payload = (await response.json().catch(() => ({}))) as AgentOrganizationSyncPayload;
+                if (!response.ok || !payload.success) {
+                    throw new Error(payload.error || 'Failed to synchronize organization state.');
+                }
+
+                if (!Array.isArray(payload.agents) || !Array.isArray(payload.folders)) {
+                    throw new Error('Invalid organization synchronization payload.');
+                }
+
+                const nextAgents = Array.from(payload.agents);
+                const nextFolders = Array.from(payload.folders);
+                const previousFingerprint = createOrganizationFingerprint(agentsRef.current, foldersRef.current);
+                const nextFingerprint = createOrganizationFingerprint(nextAgents, nextFolders);
+
+                if (previousFingerprint !== nextFingerprint) {
+                    logOrganizationSyncDebug('Detected stale local listing snapshot; applying synchronized data', {
+                        reason,
+                        routeKey: routeKeyAtSync,
+                        nextAgentCount: nextAgents.length,
+                        nextFolderCount: nextFolders.length,
+                        syncedAt: payload.syncedAt ?? null,
+                    });
+                    setAgents(nextAgents);
+                    setFolders(nextFolders);
+                }
+
+                setLastSyncedRouteKey(routeKeyAtSync);
+            } catch (error) {
+                if (abortController.signal.aborted) {
+                    return;
+                }
+                logOrganizationSyncDebug('Synchronization request failed', {
+                    reason,
+                    routeKey: routeKeyAtSync,
+                    error: error instanceof Error ? error.message : String(error),
+                });
+            } finally {
+                if (syncAbortControllerRef.current === abortController) {
+                    syncAbortControllerRef.current = null;
+                }
+            }
+        },
+        [routeSyncKey],
+    );
+
+    /**
+     * Requests a post-mutation background synchronization without blocking UI interactions.
+     *
+     * @param mutationName - Mutation label included in diagnostics.
+     */
+    const synchronizeAfterMutation = useCallback(
+        (mutationName: string) => {
+            void synchronizeOrganizationState(`mutation:${mutationName}`);
+        },
+        [synchronizeOrganizationState],
+    );
 
     const normalizedPublicUrl = useMemo(() => (publicUrl.endsWith('/') ? publicUrl : `${publicUrl}/`), [publicUrl]);
     const publicUrlHost = useMemo(() => {
@@ -229,7 +413,7 @@ export function AgentsList(props: AgentsListProps) {
     );
     const isTouchInput = useIsTouchInput();
     const allowFullCardDrag = canOrganize && viewMode === 'LIST' && !isTouchInput;
-    const folderPathSegments = parseFolderPath(searchParams.get('folder'));
+    const folderPathSegments = parseFolderPath(folderQuery);
     const currentFolderId = useMemo(
         () => resolveFolderIdFromPath(folders, folderPathSegments),
         [folders, folderPathSegments],
@@ -265,6 +449,101 @@ export function AgentsList(props: AgentsListProps) {
         setAgents(Array.from(initialAgents));
         setFolders(Array.from(initialFolders));
     }, [initialAgents, initialFolders]);
+
+    /**
+     * Keeps synchronization refs aligned with the latest interactive state.
+     */
+    useEffect(() => {
+        agentsRef.current = agents;
+    }, [agents]);
+
+    /**
+     * Keeps folder synchronization refs aligned with the latest interactive state.
+     */
+    useEffect(() => {
+        foldersRef.current = folders;
+    }, [folders]);
+
+    /**
+     * Synchronizes organization snapshot on initial mount and route query transitions.
+     */
+    useEffect(() => {
+        const reason: AgentOrganizationSyncReason = hasMountedRef.current ? 'route-change' : 'mount';
+        hasMountedRef.current = true;
+        void synchronizeOrganizationState(reason, routeSyncKey);
+    }, [routeSyncKey, synchronizeOrganizationState]);
+
+    /**
+     * Synchronizes when the tab regains focus or visibility after external updates.
+     */
+    useEffect(() => {
+        /**
+         * Handles focus-driven synchronization.
+         */
+        const handleWindowFocus = () => {
+            void synchronizeOrganizationState('window-focus');
+        };
+
+        /**
+         * Handles visibility-driven synchronization.
+         */
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                void synchronizeOrganizationState('visibility-change');
+            }
+        };
+
+        window.addEventListener('focus', handleWindowFocus);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            window.removeEventListener('focus', handleWindowFocus);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, [synchronizeOrganizationState]);
+
+    /**
+     * Aborts in-flight synchronization requests on unmount.
+     */
+    useEffect(() => {
+        return () => {
+            syncAbortControllerRef.current?.abort();
+        };
+    }, []);
+
+    /**
+     * Normalizes stale folder URLs that no longer resolve after synchronization.
+     */
+    useEffect(() => {
+        if (folderPathSegments.length === 0 || currentFolderId !== null) {
+            return;
+        }
+
+        if (lastSyncedRouteKey !== routeSyncKey) {
+            return;
+        }
+
+        const params = new URLSearchParams(searchParamsSnapshot);
+        params.delete('folder');
+        const nextQuery = params.toString();
+
+        logOrganizationSyncDebug('Folder path no longer resolves; normalizing URL to the nearest valid scope', {
+            routeKey: routeSyncKey,
+            previousFolderPath: folderQuery,
+            nextQuery: nextQuery || null,
+        });
+
+        router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+    }, [
+        currentFolderId,
+        folderPathSegments,
+        lastSyncedRouteKey,
+        folderQuery,
+        pathname,
+        routeSyncKey,
+        router,
+        searchParamsSnapshot,
+    ]);
 
     const visibleAgents = useMemo(
         () =>
@@ -379,6 +658,8 @@ export function AgentsList(props: AgentsListProps) {
             const responseBody = await response.json().catch(() => ({}));
             throw new Error(responseBody.error || 'Failed to update organization.');
         }
+
+        synchronizeAfterMutation('organization-update');
     };
 
     /**
@@ -658,6 +939,7 @@ export function AgentsList(props: AgentsListProps) {
                     throw new Error(data.error || 'Failed to create folder.');
                 }
                 setFolders((prev) => [...prev, data.folder as AgentOrganizationFolder]);
+                synchronizeAfterMutation('create-folder');
                 setFolderEditDialogState(null);
                 return;
             }
@@ -684,6 +966,7 @@ export function AgentsList(props: AgentsListProps) {
             const updatedFolder = data.folder as AgentOrganizationFolder;
             const nextFolders = folders.map((item) => (item.id === folderId ? { ...item, ...updatedFolder } : item));
             setFolders(nextFolders);
+            synchronizeAfterMutation('rename-folder');
             if (breadcrumbFolders.some((item) => item.id === folderId)) {
                 navigateToFolder(currentFolderId ?? null, nextFolders);
             }
@@ -747,6 +1030,7 @@ export function AgentsList(props: AgentsListProps) {
 
             setFolders((prev) => prev.filter((item) => !descendantSet.has(item.id)));
             setAgents((prev) => prev.filter((agent) => agent.folderId === null || !descendantSet.has(agent.folderId)));
+            synchronizeAfterMutation('delete-folder');
 
             if (currentFolderId !== null && descendantSet.has(currentFolderId)) {
                 navigateToFolder(null);
@@ -783,6 +1067,7 @@ export function AgentsList(props: AgentsListProps) {
             const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}`, { method: 'DELETE' });
             if (response.ok) {
                 setAgents(agents.filter((a) => a.permanentId !== agent.permanentId && a.agentName !== agent.agentName));
+                synchronizeAfterMutation('delete-agent');
             } else {
                 await showAlert({
                     title: 'Delete failed',
@@ -863,7 +1148,7 @@ export function AgentsList(props: AgentsListProps) {
                             : a,
                     ),
                 );
-                router.refresh();
+                synchronizeAfterMutation('update-agent-visibility');
             } else {
                 await showAlert({
                     title: 'Update failed',
@@ -911,7 +1196,7 @@ export function AgentsList(props: AgentsListProps) {
                         : agent,
                 ),
             );
-            router.refresh();
+            synchronizeAfterMutation('update-folder-visibility');
         } catch (error) {
             await showAlert({
                 title: 'Update failed',
@@ -973,7 +1258,8 @@ export function AgentsList(props: AgentsListProps) {
                 return { ...agent, ...payload.agent };
             }),
         );
-    }, []);
+        synchronizeAfterMutation('rename-agent');
+    }, [synchronizeAfterMutation]);
 
     /**
      * Opens the QR code modal for the active context menu agent.
@@ -1090,7 +1376,7 @@ export function AgentsList(props: AgentsListProps) {
                 title: 'Update failed',
                 message: error instanceof Error ? error.message : 'Failed to update organization.',
             }).catch(() => undefined);
-            router.refresh();
+            void synchronizeOrganizationState('error-recovery');
         }
     };
 

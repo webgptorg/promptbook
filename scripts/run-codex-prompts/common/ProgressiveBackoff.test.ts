@@ -28,6 +28,7 @@ describe('ProgressiveBackoff', () => {
     it('applies deterministic jitter with provided random source', () => {
         const backoff = new ProgressiveBackoff({
             delaysMs: [1000],
+            maxDelayMs: 2000,
             jitterRatio: 0.1,
             random: () => 1,
         });

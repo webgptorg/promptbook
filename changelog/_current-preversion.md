@@ -1,3 +1,18 @@
+-   Fixed Agents Server agents/folders directory synchronization across navigation and tab changes:
+    -   Added `GET /api/agent-organization` to expose the canonical active organization snapshot (agents + folders) for client-side sync, with `no-store` cache headers.
+    -   Updated `AgentsList` to silently re-sync organization state on:
+        -   initial mount,
+        -   route query changes (including folder navigation and browser back/forward),
+        -   window focus and tab visibility return (multi-tab refresh behavior).
+    -   Added post-mutation synchronization triggers for create/rename/delete/move/visibility operations so local optimistic state is reconciled against server truth without hard reloads.
+    -   Added development-only sync diagnostics (`[AgentsList sync] ...`) to surface stale snapshot replacements and invalid folder-path URL normalization.
+    -   Added folder URL normalization after sync so unresolved folder paths are corrected to the nearest valid scope, keeping URL and selected folder view aligned.
+    -   Manual regression test plan:
+        -   Root listing: create, rename, delete, move agents/folders; verify list reflects server state after each operation.
+        -   Folder listing: switch between folders (including browser back/forward) and verify visible items always match the current `?folder=` URL scope.
+        -   Cross-tab: open two tabs on `/`; modify organization in tab A, switch to tab B and verify list refreshes on focus/visibility return.
+        -   Invalid folder URL: navigate to a removed/renamed folder URL and verify view normalizes to a valid scope without broken selected-folder state.
+
 -   Enhanced OpenAI Codex prompt runner credit/rate-limit handling with explicit credit opt-in and progressive waits:
     -   Added `--allow-credits` to `ptbk coder run` and `scripts/run-codex-prompts` CLI parsing so credit spending is explicitly enabled by user choice.
     -   OpenAI Codex runner now fails fast with a clear rerun hint when Codex reports credits are required but `--allow-credits` is not set.
