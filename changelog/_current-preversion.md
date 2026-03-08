@@ -1,3 +1,8 @@
+-   Refactored OpenAI cleanup script for maintainability/readability without behavior changes:
+    -   Split `scripts/delete-openai-resources/delete-openai-resources.ts` into focused private modules for orchestration, OpenAI client/bootstrap, resource listing/mapping, summary printing, confirmation prompting, sequential deletion, and deletion summary/error formatting.
+    -   Kept `scripts/delete-openai-resources/delete-openai-resources.ts` as a thin entrypoint to preserve script behavior and CLI output.
+    -   Added explicit private JSDoc annotations on extracted entities to match project conventions.
+
 -   Refactored Agents Server wallet utility for maintainability/readability without behavior changes:
     -   Split `apps/agents-server/src/utils/userWallet.ts` into focused SRP modules under `apps/agents-server/src/utils/userWallet` (record types, payload normalization, table access, CRUD/listing operations, row mapping, and token-resolution helpers).
     -   Kept `apps/agents-server/src/utils/userWallet.ts` as a thin facade re-exporting the same public API used by routes/tools/components.

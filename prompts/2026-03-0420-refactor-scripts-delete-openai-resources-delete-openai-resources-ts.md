@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.1481 8 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨🍓] Refactor [`delete-openai-resources.ts` file](scripts/delete-openai-resources/delete-openai-resources.ts)
 
