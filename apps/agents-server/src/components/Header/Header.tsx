@@ -867,20 +867,48 @@ export function Header(props: HeaderProps) {
               };
     });
 
-    const userSystemItems: SubMenuItem[] = [
-        ...(currentUser
+    /**
+     * @private Creates one category entry inside the System dropdown when there are items to show.
+     */
+    const createSystemCategory = (label: string, items: ReadonlyArray<SubMenuItem>): SubMenuItem[] =>
+        items.length > 0
             ? [
                   {
-                      label: t('common.profile'),
-                      href: '/system/profile',
-                  } as SubMenuItem,
+                      label,
+                      items: [...items],
+                  },
+              ]
+            : [];
+
+    /**
+     * @private Personal account links available to authenticated users.
+     */
+    const userAccountSystemItems: SubMenuItem[] = currentUser
+        ? [
+              {
+                  label: t('common.profile'),
+                  href: '/system/profile',
+              },
+              {
+                  label: t('header.userMemory'),
+                  href: '/system/user-memory',
+              },
+              {
+                  label: t('header.userWallet'),
+                  href: '/system/user-wallet',
+              },
+          ]
+        : [];
+
+    /**
+     * @private Informational links grouped under the Legal & About category.
+     */
+    const legalAndAboutSystemItems: SubMenuItem[] = [
+        ...(isAdmin
+            ? [
                   {
-                      label: t('header.userMemory'),
-                      href: '/system/user-memory',
-                  } as SubMenuItem,
-                  {
-                      label: t('header.userWallet'),
-                      href: '/system/user-wallet',
+                      label: t('header.versionInfo'),
+                      href: '/admin/about',
                   } as SubMenuItem,
               ]
             : []),
@@ -888,6 +916,14 @@ export function Header(props: HeaderProps) {
             label: t('header.landingPage'),
             href: 'https://ptbk.io/',
         },
+    ];
+
+    /**
+     * @private System menu entries exposed to non-admin users.
+     */
+    const userSystemItems: SubMenuItem[] = [
+        ...createSystemCategory('My Account', userAccountSystemItems),
+        ...createSystemCategory('Legal & About', legalAndAboutSystemItems),
     ];
 
     /**
@@ -912,7 +948,7 @@ export function Header(props: HeaderProps) {
     });
 
     /**
-     * @private System menu entries exposed to admins.
+     * @private Admin user-management links shown inside the Administration section.
      */
     const adminUsersSystemItems: SubMenuItem[] = [
         ...adminUsers.map(
@@ -936,10 +972,9 @@ export function Header(props: HeaderProps) {
     ];
 
     /**
-     * @private System menu entries exposed to admins.
+     * @private Administration-focused actions shown inside the System dropdown.
      */
-    const adminSystemMenuItems: SubMenuItem[] = [
-        ...userSystemItems,
+    const administrationSystemItems: SubMenuItem[] = [
         /*
         Note: [🙍] `/dashboard` page is disabled
 
@@ -955,17 +990,24 @@ export function Header(props: HeaderProps) {
             href: '/admin/models',
         },
         {
-            label: t('header.openApiDocumentation'),
-            href: '/swagger',
-        },
-        {
-            label: t('header.apiTokens'),
-            href: '/admin/api-tokens',
-        },
-        {
             label: t('header.metadata'),
             href: '/admin/metadata',
         },
+        {
+            label: t('header.messagesEmails'),
+            href: '/admin/messages',
+        },
+        {
+            label: 'Backups',
+            href: '/admin/backup',
+            isBordered: true,
+        },
+        {
+            label: t('header.users'),
+            isBold: true,
+            isBordered: true,
+        },
+        ...adminUsersSystemItems,
         {
             label: t('header.customCss'),
             href: '/admin/custom-css',
@@ -975,29 +1017,55 @@ export function Header(props: HeaderProps) {
             href: '/admin/custom-js',
         },
         {
-            label: t('header.chatHistory'),
-            href: '/admin/chat-history',
+            label: t('header.imagesGallery'),
+            href: '/admin/images',
         },
         {
-            label: 'Backups',
-            href: '/admin/backup',
+            label: t('header.files'),
+            href: '/admin/files',
         },
+    ];
+
+    /**
+     * @private Monitoring and analytics links shown inside the System dropdown.
+     */
+    const monitoringAndUsageSystemItems: SubMenuItem[] = [
         {
             label: t('header.usageAnalytics'),
             href: '/admin/usage',
         },
         {
-            label: t('header.messagesEmails'),
-            href: '/admin/messages',
+            label: t('header.chatHistory'),
+            href: '/admin/chat-history',
         },
         ...(isFeedbackEnabled
             ? [
                   {
                       label: t('header.chatFeedback'),
                       href: '/admin/chat-feedback',
-                  },
+                  } as SubMenuItem,
               ]
             : []),
+    ];
+
+    /**
+     * @private API and external integration entry points shown inside the System dropdown.
+     */
+    const integrationsAndKeysSystemItems: SubMenuItem[] = [
+        {
+            label: t('header.apiTokens'),
+            href: '/admin/api-tokens',
+        },
+        {
+            label: t('header.openApiDocumentation'),
+            href: '/swagger',
+        },
+    ];
+
+    /**
+     * @private Developer and debugging tools shown inside the System dropdown.
+     */
+    const developerDebugSystemItems: SubMenuItem[] = [
         {
             label: t('header.browser'),
             href: '/admin/browser-test',
@@ -1019,38 +1087,27 @@ export function Header(props: HeaderProps) {
             label: 'Error simulation',
             href: '/admin/error-simulation',
         },
-        {
-            label: t('header.imagesGallery'),
-            href: '/admin/images',
-        },
-        {
-            label: t('header.files'),
-            href: '/admin/files',
-        },
-        {
-            label: t('header.users'),
-            items: adminUsersSystemItems,
-            isBordered: true,
-        },
-        {
-            label: t('header.versionInfo'),
-            href: '/admin/about',
-        },
         ...(isExperimental
             ? [
                   {
-                      label: t('header.experiments'),
-                      items: [
-                          {
-                              label: t('header.story'),
-                              href: '/experiments/story',
-                              isBold: true,
-                          },
-                      ],
-                      isBordered: true,
+                      label: t('header.story'),
+                      href: '/experiments/story',
+                      isBold: true,
                   } as SubMenuItem,
               ]
             : []),
+    ];
+
+    /**
+     * @private System menu entries exposed to admins.
+     */
+    const adminSystemMenuItems: SubMenuItem[] = [
+        ...createSystemCategory('My Account', userAccountSystemItems),
+        ...createSystemCategory('Administration', administrationSystemItems),
+        ...createSystemCategory('Monitoring & Usage', monitoringAndUsageSystemItems),
+        ...createSystemCategory('Integrations & Keys', integrationsAndKeysSystemItems),
+        ...createSystemCategory('Developer / Debug', developerDebugSystemItems),
+        ...createSystemCategory('Legal & About', legalAndAboutSystemItems),
     ];
 
     const hasMenuAccess = Boolean(currentUser || isAdmin);

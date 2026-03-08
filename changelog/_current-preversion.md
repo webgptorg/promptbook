@@ -1,3 +1,15 @@
+-   Reorganized Agents Server `System` header dropdown into user-goal-oriented submenus while preserving existing routes:
+    -   Kept top-level navigation unchanged (`System` remains the last top-level item); only dropdown contents were restructured.
+    -   Replaced the flat list with logical categories to improve findability:
+        -   `My Account`
+        -   `Administration`
+        -   `Monitoring & Usage`
+        -   `Integrations & Keys`
+        -   `Developer / Debug`
+        -   `Legal & About`
+    -   Preserved existing deep links and destinations (no route redesign); all previous `System` entries remain available exactly once in the new grouped structure.
+    -   Kept interaction simple by using one nested submenu level (`System -> category -> page`) compatible with current desktop and mobile header menu behavior.
+
 -   Improved Agents Server chat arrow controls (sidebar toggle and scroll-to-bottom) with one shared solid-arrow UI primitive:
     -   Added shared `SolidArrowButton` (reusing existing `ArrowIcon`) and wired it into:
         -   desktop sidebar collapse/expand toggle,
