@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ErrorPage as BasicErrorPage } from '../components/ErrorPage/ErrorPage';
 import {
     APPLICATION_ERROR_REPORT_ENDPOINT,
@@ -9,6 +9,8 @@ import {
     type ApplicationErrorReportPayload,
     type ApplicationErrorVariant,
     DEFAULT_APPLICATION_ERROR_SERVER_NAME,
+    createApplicationErrorReportFilename,
+    createApplicationErrorReportMarkdown,
     createApplicationErrorDigest,
     createApplicationErrorHeadline,
     createApplicationErrorReportPayload,
@@ -28,13 +30,56 @@ const troubleshootingSteps = [
     },
     {
         title: 'Share the digest',
-        detail: 'Copy the digest and the timestamp before reporting the problem so operators can match the logs quickly.',
+        detail: 'Copy or save the markdown report before reporting the problem so operators can match logs quickly.',
     },
     {
         title: 'Check the system status',
         detail: 'If the issue keeps happening, contact your admin or hosting team so they can inspect the server logs.',
     },
 ];
+
+/**
+ * Duration in milliseconds before temporary report-action feedback clears.
+ *
+ * @private
+ */
+const REPORT_ACTION_FEEDBACK_DURATION_MS = 2500;
+
+/**
+ * Writes plain text to the user clipboard.
+ *
+ * @param text - Text content to copy.
+ * @throws Error when clipboard API is unavailable.
+ *
+ * @private
+ */
+async function copyPlainTextToClipboard(text: string): Promise<void> {
+    if (!navigator.clipboard?.writeText) {
+        throw new Error('Clipboard API is unavailable.');
+    }
+
+    await navigator.clipboard.writeText(text);
+}
+
+/**
+ * Triggers a browser download for one markdown report.
+ *
+ * @param reportMarkdown - Markdown content to save.
+ * @param filename - Target filename.
+ *
+ * @private
+ */
+function downloadMarkdownReport(reportMarkdown: string, filename: string): void {
+    const reportBlob = new Blob([reportMarkdown], { type: 'text/markdown;charset=utf-8' });
+    const reportUrl = URL.createObjectURL(reportBlob);
+    const anchor = document.createElement('a');
+    anchor.href = reportUrl;
+    anchor.download = filename;
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(reportUrl);
+}
 
 /**
  * Props accepted by shared action controls used across error variants.
@@ -51,6 +96,16 @@ type ApplicationErrorActionsProps = {
      * Digest value displayed for operator correlation.
      */
     digest: string;
+
+    /**
+     * Full markdown report text used by copy/save controls.
+     */
+    reportMarkdown: string;
+
+    /**
+     * Default filename used by the markdown save action.
+     */
+    reportFilename: string;
 
     /**
      * Styling classes for the outer action row.
@@ -71,6 +126,21 @@ type ApplicationErrorActionsProps = {
      * Styling classes for the digest text block.
      */
     digestClassName: string;
+
+    /**
+     * Styling classes for the report copy button.
+     */
+    copyButtonClassName: string;
+
+    /**
+     * Styling classes for the report save button.
+     */
+    saveButtonClassName: string;
+
+    /**
+     * Styling classes for report export feedback text.
+     */
+    reportFeedbackClassName: string;
 };
 
 /**
@@ -83,11 +153,70 @@ type ApplicationErrorActionsProps = {
 function ApplicationErrorActions({
     reset,
     digest,
+    reportMarkdown,
+    reportFilename,
     containerClassName,
     retryButtonClassName,
     homeButtonClassName,
     digestClassName,
+    copyButtonClassName,
+    saveButtonClassName,
+    reportFeedbackClassName,
 }: ApplicationErrorActionsProps) {
+    const [reportFeedback, setReportFeedback] = useState<string | null>(null);
+    const reportFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    /**
+     * Renders short-lived action feedback under report controls.
+     *
+     * @param feedback - Human-friendly feedback label.
+     */
+    const showReportFeedback = (feedback: string): void => {
+        if (reportFeedbackTimeoutRef.current !== null) {
+            clearTimeout(reportFeedbackTimeoutRef.current);
+            reportFeedbackTimeoutRef.current = null;
+        }
+
+        setReportFeedback(feedback);
+        reportFeedbackTimeoutRef.current = setTimeout(() => {
+            setReportFeedback(null);
+            reportFeedbackTimeoutRef.current = null;
+        }, REPORT_ACTION_FEEDBACK_DURATION_MS);
+    };
+
+    /**
+     * Clears pending report-feedback timers when controls unmount.
+     */
+    useEffect(() => {
+        return () => {
+            if (reportFeedbackTimeoutRef.current !== null) {
+                clearTimeout(reportFeedbackTimeoutRef.current);
+                reportFeedbackTimeoutRef.current = null;
+            }
+        };
+    }, []);
+
+    /**
+     * Copies the full markdown report to clipboard.
+     */
+    const handleCopyReport = async (): Promise<void> => {
+        try {
+            await copyPlainTextToClipboard(reportMarkdown);
+            showReportFeedback('Report copied to clipboard.');
+        } catch (error) {
+            const detail = error instanceof Error ? error.message : String(error);
+            showReportFeedback(`Copy failed: ${detail}`);
+        }
+    };
+
+    /**
+     * Saves the full markdown report as a local file.
+     */
+    const handleSaveReport = (): void => {
+        downloadMarkdownReport(reportMarkdown, reportFilename);
+        showReportFeedback(`Saved report as ${reportFilename}.`);
+    };
+
     return (
         <div className={containerClassName}>
             <button type="button" onClick={() => reset()} className={retryButtonClassName}>
@@ -96,9 +225,20 @@ function ApplicationErrorActions({
             <Link href="/" className={homeButtonClassName}>
                 Go to homepage
             </Link>
+            <button type="button" onClick={() => void handleCopyReport()} className={copyButtonClassName}>
+                Copy
+            </button>
+            <button type="button" onClick={handleSaveReport} className={saveButtonClassName}>
+                Save
+            </button>
             <div className={digestClassName}>
                 Digest: <span className="text-current">{digest}</span>
             </div>
+            {reportFeedback ? (
+                <p className={reportFeedbackClassName} role="status" aria-live="polite">
+                    {reportFeedback}
+                </p>
+            ) : null}
         </div>
     );
 }
@@ -125,6 +265,16 @@ type SimpleApplicationErrorViewProps = {
     digest: string;
 
     /**
+     * Full markdown report text used by copy/save controls.
+     */
+    reportMarkdown: string;
+
+    /**
+     * Default filename used by the markdown save action.
+     */
+    reportFilename: string;
+
+    /**
      * Callback that retries the failed route transition.
      */
     reset: () => void;
@@ -137,17 +287,29 @@ type SimpleApplicationErrorViewProps = {
  *
  * @private
  */
-function SimpleApplicationErrorView({ headline, description, digest, reset }: SimpleApplicationErrorViewProps) {
+function SimpleApplicationErrorView({
+    headline,
+    description,
+    digest,
+    reportMarkdown,
+    reportFilename,
+    reset,
+}: SimpleApplicationErrorViewProps) {
     return (
         <BasicErrorPage title="Application error" message={headline}>
             <p className="mb-5 text-center text-sm text-gray-600">{description}</p>
             <ApplicationErrorActions
                 reset={reset}
                 digest={digest}
+                reportMarkdown={reportMarkdown}
+                reportFilename={reportFilename}
                 containerClassName="flex flex-col items-center gap-3"
                 retryButtonClassName="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
                 homeButtonClassName="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
                 digestClassName="text-xs font-mono text-gray-500"
+                copyButtonClassName="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
+                saveButtonClassName="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
+                reportFeedbackClassName="text-xs text-gray-600"
             />
         </BasicErrorPage>
     );
@@ -175,6 +337,16 @@ type AdvancedApplicationErrorViewProps = {
     digest: string;
 
     /**
+     * Full markdown report text used by copy/save controls.
+     */
+    reportMarkdown: string;
+
+    /**
+     * Default filename used by the markdown save action.
+     */
+    reportFilename: string;
+
+    /**
      * Callback that retries the failed route transition.
      */
     reset: () => void;
@@ -187,7 +359,14 @@ type AdvancedApplicationErrorViewProps = {
  *
  * @private
  */
-function AdvancedApplicationErrorView({ headline, description, digest, reset }: AdvancedApplicationErrorViewProps) {
+function AdvancedApplicationErrorView({
+    headline,
+    description,
+    digest,
+    reportMarkdown,
+    reportFilename,
+    reset,
+}: AdvancedApplicationErrorViewProps) {
     return (
         <div className="min-h-screen w-full bg-slate-950 text-white flex items-center justify-center px-4 py-12">
             <div className="w-full max-w-5xl space-y-8 rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900/80 via-slate-900/60 to-slate-950/90 p-8 shadow-[0_20px_80px_rgba(15,23,42,0.65)] backdrop-blur">
@@ -204,10 +383,15 @@ function AdvancedApplicationErrorView({ headline, description, digest, reset }: 
                 <ApplicationErrorActions
                     reset={reset}
                     digest={digest}
+                    reportMarkdown={reportMarkdown}
+                    reportFilename={reportFilename}
                     containerClassName="flex flex-wrap items-center gap-3"
                     retryButtonClassName="inline-flex items-center justify-center rounded-2xl bg-indigo-500 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white transition hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-300"
                     homeButtonClassName="inline-flex items-center justify-center rounded-2xl border border-white/30 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white transition hover:border-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                     digestClassName="ml-auto text-xs font-mono text-slate-300"
+                    copyButtonClassName="inline-flex items-center justify-center rounded-2xl border border-white/30 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white transition hover:border-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                    saveButtonClassName="inline-flex items-center justify-center rounded-2xl border border-white/30 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white transition hover:border-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                    reportFeedbackClassName="w-full text-xs text-slate-300"
                 />
                 <div className="grid gap-4 sm:grid-cols-3">
                     {troubleshootingSteps.map((step) => (
@@ -268,31 +452,59 @@ export default function ApplicationErrorPage({ error, reset }: { error: Applicat
     const serverName = process.env.NEXT_PUBLIC_SERVER_NAME ?? DEFAULT_APPLICATION_ERROR_SERVER_NAME;
     const headline = createApplicationErrorHeadline(serverName);
     const description = describeApplicationError(error, serverName);
+    const [pageUrl, setPageUrl] = useState<string | undefined>(undefined);
+    const reportPayload = useMemo(
+        () => createApplicationErrorReportPayload(error, digest, serverName, variant, pageUrl),
+        [digest, error, pageUrl, serverName, variant],
+    );
+    const reportMarkdown = useMemo(
+        () => createApplicationErrorReportMarkdown(reportPayload, headline, description),
+        [description, headline, reportPayload],
+    );
+    const reportFilename = useMemo(() => createApplicationErrorReportFilename(reportPayload), [reportPayload]);
     const lastReportedErrorRef = useRef<ApplicationBoundaryError | null>(null);
 
     useEffect(() => {
+        setPageUrl(window.location.href);
+    }, []);
+
+    useEffect(() => {
+        if (!pageUrl) {
+            return;
+        }
+
         if (lastReportedErrorRef.current === error) {
             return;
         }
 
         lastReportedErrorRef.current = error;
 
-        const reportPayload = createApplicationErrorReportPayload(
-            error,
-            digest,
-            serverName,
-            variant,
-            window.location.href,
-        );
-
         void reportApplicationError(reportPayload).catch((reportingError) => {
             console.error('Failed to report application error to Sentry forwarding endpoint.', reportingError);
         });
-    }, [digest, error, serverName, variant]);
+    }, [error, pageUrl, reportPayload]);
 
     if (variant === 'simple') {
-        return <SimpleApplicationErrorView headline={headline} description={description} digest={digest} reset={reset} />;
+        return (
+            <SimpleApplicationErrorView
+                headline={headline}
+                description={description}
+                digest={digest}
+                reportMarkdown={reportMarkdown}
+                reportFilename={reportFilename}
+                reset={reset}
+            />
+        );
     }
 
-    return <AdvancedApplicationErrorView headline={headline} description={description} digest={digest} reset={reset} />;
+    return (
+        <AdvancedApplicationErrorView
+            headline={headline}
+            description={description}
+            digest={digest}
+            reportMarkdown={reportMarkdown}
+            reportFilename={reportFilename}
+            reset={reset}
+        />
+    );
 }

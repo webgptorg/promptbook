@@ -24,6 +24,16 @@ export const DEFAULT_APPLICATION_ERROR_SERVER_NAME = 'Promptbook Agents Server';
 export const DEFAULT_APPLICATION_ERROR_VARIANT: ApplicationErrorVariant = 'advanced';
 
 /**
+ * Prefix used for downloaded application error report filenames.
+ */
+const APPLICATION_ERROR_REPORT_FILENAME_PREFIX = 'application-error-report';
+
+/**
+ * File extension used by exported application error reports.
+ */
+const APPLICATION_ERROR_REPORT_FILENAME_EXTENSION = '.md';
+
+/**
  * Raw text used when an exception does not include a stack or message.
  */
 const UNKNOWN_ERROR_HASH_SOURCE = 'unknown error';
@@ -42,6 +52,31 @@ const DECIMAL_BASE = 10;
  * Length of the digest string rendered in the UI.
  */
 const DIGEST_LENGTH = 10;
+
+/**
+ * Marker shown in markdown reports when optional values are missing.
+ */
+const MISSING_REPORT_VALUE_MARKDOWN = '_Unavailable_';
+
+/**
+ * Regex used to normalize report filenames to filesystem-friendly segments.
+ */
+const NON_FILENAME_CHARACTERS_PATTERN = /[^a-z0-9-]+/g;
+
+/**
+ * Regex used to merge repeated filename separators.
+ */
+const REPEATED_DASH_PATTERN = /-+/g;
+
+/**
+ * Regex used to trim separators from filename edges.
+ */
+const EDGE_DASH_PATTERN = /^-+|-+$/g;
+
+/**
+ * Regex used to sanitize code fence boundaries inside markdown blocks.
+ */
+const CODE_FENCE_PATTERN = /```/g;
 
 /**
  * Shape sent from the app error boundary to server-side Sentry forwarding.
@@ -178,4 +213,127 @@ export function createApplicationErrorReportPayload(
         pageUrl,
         reportedAt: new Date().toISOString(),
     };
+}
+
+/**
+ * Normalizes one value for safe inclusion inside markdown fenced code blocks.
+ *
+ * @param value - Raw text value.
+ * @returns Sanitized text that cannot prematurely terminate the fence.
+ */
+function sanitizeForCodeFence(value: string): string {
+    return value.replace(CODE_FENCE_PATTERN, '\\`\\`\\`');
+}
+
+/**
+ * Formats optional report values into consistent markdown output.
+ *
+ * @param value - Optional text value.
+ * @returns Markdown-safe text or an explicit missing marker.
+ */
+function formatOptionalReportValue(value: string | undefined): string {
+    const trimmed = value?.trim();
+    return trimmed ? trimmed : MISSING_REPORT_VALUE_MARKDOWN;
+}
+
+/**
+ * Converts arbitrary deployment names into filesystem-safe filename segments.
+ *
+ * @param value - Raw deployment/server name.
+ * @returns Normalized lowercase segment without unsafe characters.
+ */
+function normalizeFilenameSegment(value: string): string {
+    const normalized = value
+        .trim()
+        .toLowerCase()
+        .replace(/[\s_]+/g, '-')
+        .replace(NON_FILENAME_CHARACTERS_PATTERN, '-')
+        .replace(REPEATED_DASH_PATTERN, '-')
+        .replace(EDGE_DASH_PATTERN, '');
+
+    return normalized || 'server';
+}
+
+/**
+ * Converts ISO timestamps into filesystem-safe sortable identifiers.
+ *
+ * @param reportedAt - Browser-side report timestamp.
+ * @returns Safe timestamp segment usable inside filenames.
+ */
+function createFilenameTimestamp(reportedAt: string): string {
+    const parsedTimestamp = new Date(reportedAt);
+    const isoTimestamp = Number.isNaN(parsedTimestamp.getTime()) ? new Date().toISOString() : parsedTimestamp.toISOString();
+
+    return isoTimestamp.replace(/[:.]/g, '-');
+}
+
+/**
+ * Builds the markdown report text shown to users for copy/download actions.
+ *
+ * @param report - Structured browser report payload.
+ * @param headline - User-facing title shown on the error page.
+ * @param description - User-facing explanation shown on the error page.
+ * @returns Markdown report with both friendly and low-level diagnostic context.
+ */
+export function createApplicationErrorReportMarkdown(
+    report: ApplicationErrorReportPayload,
+    headline: string,
+    description: string,
+): string {
+    const payloadJson = JSON.stringify(report, null, 2);
+    const errorMessage = formatOptionalReportValue(report.errorMessage);
+    const errorStack = formatOptionalReportValue(report.errorStack);
+    const pageUrl = formatOptionalReportValue(report.pageUrl);
+    const nextDigest = formatOptionalReportValue(report.nextDigest);
+
+    return [
+        '# Application Error Report',
+        '',
+        '## Human Summary',
+        sanitizeForCodeFence(headline.trim()),
+        '',
+        sanitizeForCodeFence(description.trim()),
+        '',
+        '## Correlation',
+        `- Server: \`${sanitizeForCodeFence(report.serverName)}\``,
+        `- Variant: \`${sanitizeForCodeFence(report.variant)}\``,
+        `- Digest: \`${sanitizeForCodeFence(report.digest)}\``,
+        `- Next.js digest: \`${sanitizeForCodeFence(nextDigest)}\``,
+        `- Reported at (UTC): \`${sanitizeForCodeFence(report.reportedAt)}\``,
+        '',
+        '## Request Context',
+        `- Page URL: \`${sanitizeForCodeFence(pageUrl)}\``,
+        '',
+        '## Exception',
+        `- Name: \`${sanitizeForCodeFence(report.errorName)}\``,
+        '',
+        '### Message',
+        '```text',
+        sanitizeForCodeFence(errorMessage),
+        '```',
+        '',
+        '### Stack Trace',
+        '```text',
+        sanitizeForCodeFence(errorStack),
+        '```',
+        '',
+        '## Raw Report Payload',
+        '```json',
+        sanitizeForCodeFence(payloadJson),
+        '```',
+        '',
+    ].join('\n');
+}
+
+/**
+ * Creates a deterministic markdown filename for downloadable error reports.
+ *
+ * @param report - Structured browser report payload.
+ * @returns Filesystem-safe filename ending with `.md`.
+ */
+export function createApplicationErrorReportFilename(report: ApplicationErrorReportPayload): string {
+    const serverSegment = normalizeFilenameSegment(report.serverName);
+    const timestampSegment = createFilenameTimestamp(report.reportedAt);
+
+    return `${APPLICATION_ERROR_REPORT_FILENAME_PREFIX}-${serverSegment}-${timestampSegment}${APPLICATION_ERROR_REPORT_FILENAME_EXTENSION}`;
 }

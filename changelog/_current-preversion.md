@@ -1,3 +1,8 @@
+-   Improved Agents Server global application-error boundary report export:
+    -   Added one-click `Copy` action that copies the full application error report as Markdown from the error screen.
+    -   Added one-click `Save` action that downloads the same Markdown report as a `.md` file.
+    -   Added shared report-generation utilities in `applicationErrorHandling` so Sentry forwarding and UI export use one canonical payload shape (DRY).
+
 -   Fixed Agents Server `run_browser` visual replay artifact capture reliability:
     -   Switched browser artifact filesystem storage to a writable runtime directory (`RUN_BROWSER_ARTIFACT_STORAGE_DIRECTORY` or OS temp fallback) instead of relying on `process.cwd()`, which can be read-only in some deployments.
     -   Kept replay payload paths stable (`.playwright-cli/...`) so existing chat parsing and replay rendering continue to work without UI contract changes.
