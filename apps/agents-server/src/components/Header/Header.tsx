@@ -2240,6 +2240,10 @@ export function Header(props: HeaderProps) {
             href: '/admin/chat-history',
         },
         {
+            label: 'Backups',
+            href: '/admin/backup',
+        },
+        {
             label: t('header.usageAnalytics'),
             href: '/admin/usage',
         },

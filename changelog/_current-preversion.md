@@ -1,3 +1,10 @@
+-   Added an admin-only Agents Server backups page at `/admin/backup` with a new System-menu entry (`Backups`) for administrators:
+    -   Added one backup action, **Download all books**, which exports a single `.zip` archive.
+    -   Added streaming export endpoint `GET /api/admin/backups/books` that returns ZIP bytes as a stream (without buffering the full archive in server memory).
+    -   The ZIP now includes all books from the Agents Server using canonical persisted book source (`Agent.agentSource`) and mirrors the folder hierarchy from `AgentFolder`.
+    -   Added deterministic filesystem-safe folder/file path sanitization for ZIP entries, plus deterministic filename collision handling using `--book-{id}` suffixes when needed.
+    -   Added a top-level archive directory (`promptbook-backup-YYYY-MM-DD/`) so extraction does not spill files into the current directory.
+
 -   Added debounced background agent pre-indexing/preparation in Agents Server to reduce first-chat latency after edits:
     -   Added DB-backed preparation queue/state table (`2026-03-0160-agent-preparation.sql`) with per-agent fingerprint tracking, status lifecycle (`SCHEDULED`/`RUNNING`/`PREPARED`/`FAILED`), retry metadata, and timestamps.
     -   Added a background worker loop (`apps/agents-server/src/utils/agentPreparation.ts`) that coalesces rapid updates with a 30s debounce window, enforces single in-flight preparation per agent row, runs AgentKit pre-indexing, retries with backoff on transient failures, and logs scheduled/started/skipped/completed/failed events with counters.
