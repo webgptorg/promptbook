@@ -1,3 +1,11 @@
+-   Refactored `ChatToolCallModal` internals for maintainability/readability without behavior changes:
+    -   Split `src/book-components/Chat/Chat/ChatToolCallModal.tsx` into focused private modules:
+        -   `src/book-components/Chat/Chat/renderToolCallDetails.tsx` for simple-mode tool detail rendering and related helpers.
+        -   `src/book-components/Chat/Chat/renderAdvancedToolCallDetails.tsx` for advanced payload rendering and markdown report export helpers.
+        -   `src/book-components/Chat/Chat/TeamToolCallModalContent.tsx` for TEAM conversation/action/source rendering.
+    -   Kept `ChatToolCallModal.tsx` as a thin orchestration layer for modal state, team-profile hydration, mode switching, and export action wiring.
+    -   Added private JSDoc annotations on newly extracted exported entities to align with internal conventions.
+
 -   Refactored OpenAI cleanup script for maintainability/readability without behavior changes:
     -   Split `scripts/delete-openai-resources/delete-openai-resources.ts` into focused private modules for orchestration, OpenAI client/bootstrap, resource listing/mapping, summary printing, confirmation prompting, sequential deletion, and deletion summary/error formatting.
     -   Kept `scripts/delete-openai-resources/delete-openai-resources.ts` as a thin entrypoint to preserve script behavior and CLI output.

@@ -1,0 +1,1352 @@
+import moment from 'moment';
+import { type ReactElement } from 'react';
+import { validateBook } from '../../../book-2.0/agent-source/string_book';
+import { Color } from '../../../utils/color/Color';
+import { textColor } from '../../../utils/color/operators/furthest';
+import type { TODO_any } from '../../../utils/organization/TODO_any';
+import type { WithTake } from '../../../utils/take/interfaces/ITakeChain';
+import { classNames } from '../../_common/react-utils/classNames';
+import { BookEditor } from '../../BookEditor/BookEditor';
+import { EmailIcon } from '../../icons/EmailIcon';
+import { TeacherIcon } from '../../icons/TeacherIcon';
+import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
+import type { ChatMessage } from '../types/ChatMessage';
+import type { ChatParticipant } from '../types/ChatParticipant';
+import { getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletInfo';
+import {
+    parseWalletCredentialToolCallResult,
+    type WalletCredentialToolCallResult,
+    WALLET_CREDENTIAL_TOOL_CALL_NAME,
+} from '../utils/walletCredentialToolCall';
+import {
+    extractSearchResults,
+    getToolCallResultDate,
+    getToolCallTimestamp,
+    parseRunBrowserToolResult,
+    parseToolCallArguments,
+    parseToolCallResult,
+    resolveRunBrowserArtifactUrl,
+} from '../utils/toolCallParsing';
+import styles from './Chat.module.css';
+import { buildSelfLearningSummary } from './ChatSelfLearningSummary';
+import { SelfLearningAvatar } from './ChatToolCallModalComponents';
+import { ClockIcon } from './ClockIcon';
+
+/**
+ * Metadata for a single memory record returned by MEMORY tools.
+ *
+ * @private function of ChatToolCallModal
+ */
+type MemoryRecord = {
+    /**
+     * Unique identifier for the memory entry.
+     */
+    id?: string;
+    /**
+     * Stored memory text.
+     */
+    content?: string;
+    /**
+     * Indicates if the memory is shared across agents.
+     */
+    isGlobal?: boolean;
+    /**
+     * ISO timestamp when the memory was created.
+     */
+    createdAt?: string;
+    /**
+     * ISO timestamp when the memory was last updated.
+     */
+    updatedAt?: string;
+};
+
+/**
+ * Possible status labels returned by MEMORY tool calls.
+ *
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+type MemoryStatusValue = 'stored' | 'ok' | 'disabled' | 'error' | string;
+
+/**
+ * Visual tone used to style memory status badges.
+ *
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+type MemoryStatusTone = 'success' | 'warning' | 'error' | 'neutral';
+
+/**
+ * Visual metadata describing how a memory status should appear.
+ *
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+type MemoryStatusInfo = {
+    /**
+     * Friendly label shown next to the status badge.
+     */
+    label: string;
+    /**
+     * Visual tone driving the badge styling.
+     */
+    tone: MemoryStatusTone;
+};
+
+/**
+ * Normalized payload derived from the raw MEMORY tool result.
+ *
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+type MemoryToolResult = {
+    /**
+     * Tool action that produced the payload.
+     */
+    action: 'store' | 'retrieve';
+    /**
+     * Reported status string for the action.
+     */
+    status: MemoryStatusValue;
+    /**
+     * Optional user-friendly message describing the result.
+     */
+    message?: string;
+    /**
+     * Query text used to retrieve memories.
+     */
+    query?: string;
+    /**
+     * Record returned after storing a memory.
+     */
+    memory?: MemoryRecord;
+    /**
+     * Records returned after retrieving memories.
+     */
+    memories?: MemoryRecord[];
+};
+
+/**
+ * Rendering options for the memory-specific tool call view.
+ *
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+type MemoryToolCallViewOptions = {
+    /**
+     * Raw tool call payload.
+     */
+    toolCall: NonNullable<ChatMessage['toolCalls']>[number];
+    /**
+     * Resolved tool call arguments.
+     */
+    args: Record<string, TODO_any>;
+    /**
+     * Parsed tool call result.
+     */
+    resultRaw: TODO_any;
+};
+
+/**
+ * Maximum number of memory cards rendered inside the modal at once.
+ *
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+const MEMORY_DISPLAY_LIMIT = 3;
+
+/**
+ * CSS classes mapped by memory status tone.
+ *
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+const MEMORY_STATUS_CLASS_BY_TONE: Record<MemoryStatusTone, string> = {
+    success: styles.memoryStatusSuccess,
+    warning: styles.memoryStatusWarning,
+    error: styles.memoryStatusError,
+    neutral: styles.memoryStatusNeutral,
+};
+
+/**
+ * Renders a friendly memory summary screen when a MEMORY tool call is selected.
+ *
+ * @param options - View fragments required to render the memory modal.
+ * @returns Memory-specific modal JSX or `null` when the tool is unrelated.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function renderMemoryToolCall(options: MemoryToolCallViewOptions): ReactElement | null {
+    const { toolCall, args, resultRaw } = options;
+    if (toolCall.name !== 'retrieve_user_memory' && toolCall.name !== 'store_user_memory') {
+        return null;
+    }
+
+    const isStoreAction = toolCall.name === 'store_user_memory';
+    const memoryResult = buildMemoryToolResult(resultRaw, isStoreAction ? 'store' : 'retrieve');
+    if (!memoryResult) {
+        return null;
+    }
+
+    const heroTitle = isStoreAction ? 'Memory saved' : 'Memories retrieved';
+    const heroSubtitle = isStoreAction
+        ? 'This detail is now stored so future chats will remember it.'
+        : 'The agent pulled these facts from the memory vault.';
+    const statusInfo = buildMemoryStatusInfo(memoryResult.status, memoryResult.action);
+    const statusClass = MEMORY_STATUS_CLASS_BY_TONE[statusInfo.tone] || styles.memoryStatusNeutral;
+
+    return (
+        <>
+            <div className={styles.memoryModalHeader}>
+                <div className={styles.memoryModalIcon}>🧠</div>
+                <div className={styles.memoryModalHeaderText}>
+                    <h3 className={styles.memoryModalTitle}>{heroTitle}</h3>
+                    <p className={styles.memoryModalSubtitle}>{heroSubtitle}</p>
+                </div>
+                <div className={classNames(styles.memoryModalStatus, statusClass)}>
+                    <span className={styles.memoryStatusDot}></span>
+                    {statusInfo.label}
+                </div>
+            </div>
+
+            <div className={styles.memoryModalContent}>
+                {memoryResult.message && <p className={styles.memoryMessage}>{memoryResult.message}</p>}
+
+                {isStoreAction
+                    ? renderMemoryStoreSection({ memoryResult, args })
+                    : renderMemoryRetrieveSection({ memoryResult, args })}
+            </div>
+        </>
+    );
+}
+
+/**
+ * Renders the stored memory detail pane.
+ *
+ * @param options - Store action payload and arguments.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function renderMemoryStoreSection(options: {
+    memoryResult: MemoryToolResult;
+    args: Record<string, TODO_any>;
+}): ReactElement {
+    const { memoryResult, args } = options;
+    const storedScope = memoryResult.memory?.isGlobal ?? (typeof args.isGlobal === 'boolean' ? args.isGlobal : false);
+    const scopeLabel = storedScope ? 'Global memory' : 'Personal memory';
+    const scopeBadge = storedScope ? 'Global' : 'Personal';
+    const storedContent =
+        memoryResult.memory?.content?.trim() || (typeof args.content === 'string' ? args.content.trim() : '');
+    const timestamp =
+        formatMemoryTimestamp(memoryResult.memory?.updatedAt) ?? formatMemoryTimestamp(memoryResult.memory?.createdAt);
+
+    return (
+        <div className={styles.memoryStoreSection}>
+            <div className={styles.memoryMetaRow}>
+                <span className={styles.memoryMetaLabel}>Scope</span>
+                <span className={styles.memoryMetaValue}>{scopeLabel}</span>
+            </div>
+
+            <div className={styles.memoryCard}>
+                <div className={styles.memoryCardContent}>
+                    {storedContent || 'No memory content was provided for this call.'}
+                </div>
+                <div className={styles.memoryCardMeta}>
+                    <span className={styles.memoryScopeBadge}>{scopeBadge}</span>
+                    {timestamp && <span>{timestamp}</span>}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+/**
+ * Renders the retrieved memories list.
+ *
+ * @param options - Retrieve action payload and arguments.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function renderMemoryRetrieveSection(options: {
+    memoryResult: MemoryToolResult;
+    args: Record<string, TODO_any>;
+}): ReactElement {
+    const { memoryResult, args } = options;
+    const queryLabel = memoryResult.query?.trim() || (typeof args.query === 'string' ? args.query.trim() : '');
+    const memories = (memoryResult.memories || [])
+        .map((entry) => entry && normalizeMemoryRecord(entry))
+        .filter((entry): entry is MemoryRecord => Boolean(entry && entry.content && entry.content.trim().length > 0));
+    const displayedMemories = memories.slice(0, MEMORY_DISPLAY_LIMIT);
+    const extraCount = memories.length - displayedMemories.length;
+
+    return (
+        <div className={styles.memoryRetrieveSection}>
+            {queryLabel && (
+                <div className={styles.memoryMetaRow}>
+                    <span className={styles.memoryMetaLabel}>Search</span>
+                    <span className={styles.memoryMetaValue}>&ldquo;{queryLabel}&rdquo;</span>
+                </div>
+            )}
+            <div className={styles.memoryMetaRow}>
+                <span className={styles.memoryMetaLabel}>Matches</span>
+                <span className={styles.memoryMetaValue}>{memories.length}</span>
+            </div>
+
+            {memories.length === 0 ? (
+                <div className={styles.memoryEmptyState}>
+                    {memoryResult.message ||
+                        (queryLabel
+                            ? `No memories match “${queryLabel}”.`
+                            : 'No memories were available for this conversation.')}
+                </div>
+            ) : (
+                <>
+                    <div className={styles.memoryList}>
+                        {displayedMemories.map((memory, index) => {
+                            const timestamp =
+                                formatMemoryTimestamp(memory.updatedAt) ?? formatMemoryTimestamp(memory.createdAt);
+
+                            return (
+                                <div key={memory.id || `${memory.content}-${index}`} className={styles.memoryCard}>
+                                    <div className={styles.memoryCardContent}>{memory.content}</div>
+                                    <div className={styles.memoryCardMeta}>
+                                        <span className={styles.memoryScopeBadge}>
+                                            {memory.isGlobal ? 'Global' : 'Personal'}
+                                        </span>
+                                        {timestamp && <span>{timestamp}</span>}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                    {extraCount > 0 && (
+                        <div className={styles.memoryListFooter}>
+                            {extraCount} more {extraCount === 1 ? 'memory' : 'memories'} available.
+                        </div>
+                    )}
+                </>
+            )}
+        </div>
+    );
+}
+
+/**
+ * Transforms the raw tool result (or fallback data) into a normalized memory payload.
+ *
+ * @param raw - Raw data returned by the tool call.
+ * @param fallbackAction - Action to assume when the payload does not declare one.
+ * @returns Normalized memory details or `null` when no payload exists.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function buildMemoryToolResult(raw: TODO_any, fallbackAction: 'store' | 'retrieve'): MemoryToolResult | null {
+    if (raw && typeof raw === 'object') {
+        const normalizedMemories = Array.isArray(raw.memories)
+            ? raw.memories
+                  .map((entry: TODO_any) => entry && normalizeMemoryRecord(entry))
+                  .filter((entry: MemoryRecord | null): entry is MemoryRecord => Boolean(entry))
+            : [];
+
+        const normalizedMemory = raw.memory ? normalizeMemoryRecord(raw.memory) ?? undefined : undefined;
+
+        return {
+            action: raw.action === 'store' ? 'store' : fallbackAction,
+            status:
+                (typeof raw.status === 'string' ? raw.status : undefined) ??
+                (fallbackAction === 'store' ? 'stored' : 'ok'),
+            message: typeof raw.message === 'string' ? raw.message : undefined,
+            query: typeof raw.query === 'string' ? raw.query : undefined,
+            memory: normalizedMemory,
+            memories: normalizedMemories.length > 0 ? normalizedMemories : undefined,
+        };
+    }
+
+    if (typeof raw === 'string') {
+        return {
+            action: fallbackAction,
+            status: 'error',
+            message: raw,
+        };
+    }
+
+    return {
+        action: fallbackAction,
+        status: fallbackAction === 'store' ? 'stored' : 'ok',
+    };
+}
+
+/**
+ * Normalizes a memory record payload.
+ *
+ * @param entry - Input record from the memory tool.
+ * @returns Normalized record or `null` when the entry is invalid.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function normalizeMemoryRecord(entry: TODO_any): MemoryRecord | null {
+    if (!entry || typeof entry !== 'object') {
+        return null;
+    }
+
+    return {
+        id: typeof entry.id === 'string' ? entry.id : undefined,
+        content: typeof entry.content === 'string' ? entry.content.trim() : undefined,
+        isGlobal: entry.isGlobal === true,
+        createdAt: typeof entry.createdAt === 'string' ? entry.createdAt : undefined,
+        updatedAt: typeof entry.updatedAt === 'string' ? entry.updatedAt : undefined,
+    };
+}
+
+/**
+ * Builds friendly status text and tone for memory actions.
+ *
+ * @param status - Raw status string returned by the tool.
+ * @param action - Optional action to better describe neutral statuses.
+ * @returns Label and tone for badge styling.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function buildMemoryStatusInfo(status: MemoryStatusValue, action: 'store' | 'retrieve'): MemoryStatusInfo {
+    const normalized = (status || (action === 'store' ? 'stored' : 'ok')).toString().toLowerCase();
+
+    if (normalized === 'stored') {
+        return { label: 'Saved', tone: 'success' };
+    }
+
+    if (normalized === 'ok') {
+        return { label: 'Loaded', tone: 'success' };
+    }
+
+    if (normalized === 'disabled') {
+        return { label: 'Memory disabled', tone: 'warning' };
+    }
+
+    if (normalized === 'error') {
+        return { label: 'Something went wrong', tone: 'error' };
+    }
+
+    return {
+        label: action === 'store' ? 'Memory saved' : 'Memory retrieved',
+        tone: 'neutral',
+    };
+}
+
+/**
+ * Formats ISO timestamps returned by memory records.
+ *
+ * @param value - Potential ISO timestamp string.
+ * @returns Formatted label or `null` when the timestamp is invalid.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function formatMemoryTimestamp(value?: string): string | null {
+    if (!value) {
+        return null;
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+        return null;
+    }
+
+    return parsed.toLocaleString(undefined, {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+    });
+}
+
+/**
+ * Options for rendering a tool call detail view.
+ *
+ * @private utility of `<ChatToolCallModal/>`
+ */
+type ToolCallDetailsOptions = {
+    /**
+     * Tool call to render.
+     */
+    toolCall: NonNullable<ChatMessage['toolCalls']>[number];
+    /**
+     * Optional mapping of tool titles.
+     */
+    toolTitles?: Record<string, string>;
+    /**
+     * Agent participant metadata for avatar details.
+     */
+    agentParticipant?: ChatParticipant;
+    /**
+     * Chat button color for fallback styling.
+     */
+    buttonColor: WithTake<Color>;
+};
+
+/**
+ * Renders a friendly wallet-credential usage summary for non-technical users.
+ *
+ * @param credential - Safe credential usage metadata.
+ * @param toolCallDate - Optional timestamp of the action.
+ * @returns Credential details section for the tool modal.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function renderWalletCredentialToolCall(
+    credential: WalletCredentialToolCallResult,
+    toolCallDate: Date | null,
+): ReactElement {
+    const serviceLabel = formatWalletCredentialService(credential.service);
+    const sourceToolLabel = TOOL_TITLES[credential.sourceToolName]?.title || credential.sourceToolName;
+
+    return (
+        <>
+            <header className={styles.toolCallHeader}>
+                <span className={styles.toolCallIcon} aria-hidden="true">
+                    🔐
+                </span>
+                <div className={styles.toolCallHeaderMeta}>
+                    <p className={styles.toolCallModalLabel}>Credential</p>
+                    <h3 className={styles.toolCallTitle}>{credential.credentialName}</h3>
+                    <p className={styles.toolCallSubtitle}>Used securely from your wallet.</p>
+                </div>
+            </header>
+
+            <div className={styles.toolCallGrid}>
+                <section className={styles.toolCallPanel}>
+                    <p className={styles.toolCallPanelTitle}>What it was used for</p>
+                    <p className={styles.toolCallSummary}>{credential.purpose}</p>
+                </section>
+
+                <section className={styles.toolCallPanel}>
+                    <p className={styles.toolCallPanelTitle}>Credential details</p>
+                    <ul className={styles.toolCallList}>
+                        <li className={styles.toolCallItem}>
+                            <span className={styles.toolCallItemLabel}>Service</span>
+                            <span className={styles.toolCallItemValue}>{serviceLabel}</span>
+                        </li>
+                        <li className={styles.toolCallItem}>
+                            <span className={styles.toolCallItemLabel}>Credential reference</span>
+                            <span className={styles.toolCallItemValue}>{credential.key}</span>
+                        </li>
+                        <li className={styles.toolCallItem}>
+                            <span className={styles.toolCallItemLabel}>Used by action</span>
+                            <span className={styles.toolCallItemValue}>{sourceToolLabel}</span>
+                        </li>
+                        {toolCallDate && (
+                            <li className={styles.toolCallItem}>
+                                <span className={styles.toolCallItemLabel}>Time</span>
+                                <span className={styles.toolCallItemValue}>{toolCallDate.toLocaleString()}</span>
+                            </li>
+                        )}
+                    </ul>
+                </section>
+            </div>
+        </>
+    );
+}
+
+/**
+ * Converts internal service identifiers into human-friendly labels.
+ *
+ * @param service - Technical service identifier.
+ * @returns Friendly service label.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function formatWalletCredentialService(service: string): string {
+    const normalizedService = service.trim().toLowerCase();
+    if (normalizedService === 'smtp') {
+        return 'Email (SMTP)';
+    }
+    if (normalizedService === 'github') {
+        return 'GitHub';
+    }
+    return service;
+}
+
+/**
+ * Renders a visual replay view for `run_browser` tool calls.
+ *
+ * @param options - Parsed browser tool details needed by the modal.
+ * @returns Visual browser replay content.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function renderRunBrowserToolCall(options: { args: Record<string, TODO_any>; resultRaw: TODO_any }): ReactElement {
+    const { args, resultRaw } = options;
+    const parsedResult = parseRunBrowserToolResult(resultRaw);
+    const initialUrl = parsedResult?.initialUrl || (typeof args.url === 'string' ? args.url : null);
+    const finalUrl = parsedResult?.finalUrl || null;
+    const finalTitle = parsedResult?.finalTitle || null;
+    const mode = parsedResult?.mode || null;
+    const modeUsed = parsedResult?.modeUsed || null;
+    const warning = parsedResult?.warning || null;
+    const fallbackContent = parsedResult?.fallbackContent || null;
+    const runBrowserError = parsedResult?.error || null;
+    const artifacts = parsedResult?.artifacts || [];
+    const actions = parsedResult?.actions || [];
+
+    return (
+        <>
+            <div className={classNames(styles.searchModalHeader, styles.browserRunModalHeader)}>
+                <span className={styles.searchModalIcon}>🌐</span>
+                <div className={styles.browserRunHeaderText}>
+                    <span className={styles.browserRunHeaderLabel}>Browser</span>
+                    <h3 className={styles.searchModalQuery}>Session replay</h3>
+                </div>
+            </div>
+
+            <div className={styles.searchModalContent}>
+                {(initialUrl || finalUrl || finalTitle || mode || modeUsed) && (
+                    <div className={styles.browserRunMeta}>
+                        {initialUrl && (
+                            <div className={styles.emailField}>
+                                <strong>Started at:</strong>
+                                <span className={styles.emailRecipients}>
+                                    <a href={initialUrl} target="_blank" rel="noreferrer">
+                                        {initialUrl}
+                                    </a>
+                                </span>
+                            </div>
+                        )}
+                        {finalUrl && (
+                            <div className={styles.emailField}>
+                                <strong>Ended at:</strong>
+                                <span className={styles.emailRecipients}>
+                                    <a href={finalUrl} target="_blank" rel="noreferrer">
+                                        {finalUrl}
+                                    </a>
+                                </span>
+                            </div>
+                        )}
+                        {finalTitle && (
+                            <div className={styles.emailField}>
+                                <strong>Final page:</strong>
+                                <span className={styles.emailRecipients}>{finalTitle}</span>
+                            </div>
+                        )}
+                        {mode && (
+                            <div className={styles.emailField}>
+                                <strong>Mode requested:</strong>
+                                <span className={styles.emailRecipients}>{mode}</span>
+                            </div>
+                        )}
+                        {modeUsed && (
+                            <div className={styles.emailField}>
+                                <strong>Mode used:</strong>
+                                <span className={styles.emailRecipients}>{modeUsed}</span>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {warning && (
+                    <div className={styles.browserRunWarning}>
+                        <strong>Warning:</strong> {warning}
+                    </div>
+                )}
+
+                {runBrowserError && (
+                    <div className={styles.browserRunError}>
+                        <h4 className={styles.browserRunActionLogTitle}>Issue</h4>
+                        <p className={styles.browserRunErrorSummary}>
+                            <strong>{runBrowserError.code}</strong>: {runBrowserError.message}
+                        </p>
+                        {runBrowserError.suggestedNextSteps.length > 0 && (
+                            <ul className={styles.browserRunErrorSteps}>
+                                {runBrowserError.suggestedNextSteps.map((step, index) => (
+                                    <li key={`${step}-${index}`}>{step}</li>
+                                ))}
+                            </ul>
+                        )}
+                        {runBrowserError.debug && (
+                            <details className={styles.browserRunDebugDetails}>
+                                <summary>Show debug details</summary>
+                                <pre>{JSON.stringify(runBrowserError.debug, null, 2)}</pre>
+                            </details>
+                        )}
+                    </div>
+                )}
+
+                {fallbackContent && (
+                    <div className={styles.browserRunFallbackContent}>
+                        <h4 className={styles.browserRunActionLogTitle}>Fallback extracted content</h4>
+                        <MarkdownContent className={styles.searchResultsRaw} content={fallbackContent} />
+                    </div>
+                )}
+
+                {artifacts.length > 0 ? (
+                    <div className={styles.browserRunMediaGrid}>
+                        {artifacts.map((artifact, index) => {
+                            const mediaUrl = resolveRunBrowserArtifactUrl(artifact.path);
+                            const mediaKey = `${artifact.path}-${index}`;
+                            const caption = artifact.actionSummary || artifact.label;
+
+                            return (
+                                <article key={mediaKey} className={styles.browserRunMediaCard}>
+                                    <div className={styles.browserRunMediaCardHeader}>
+                                        <h4 className={styles.browserRunMediaTitle}>{artifact.label}</h4>
+                                        {caption && <p className={styles.browserRunMediaCaption}>{caption}</p>}
+                                    </div>
+                                    {artifact.kind === 'video' ? (
+                                        <video
+                                            className={styles.browserRunMediaVideo}
+                                            src={mediaUrl}
+                                            controls={true}
+                                            playsInline={true}
+                                        />
+                                    ) : (
+                                        <img
+                                            className={styles.browserRunMediaImage}
+                                            src={mediaUrl}
+                                            alt={caption || `Browser artifact ${index + 1}`}
+                                            loading="lazy"
+                                        />
+                                    )}
+                                </article>
+                            );
+                        })}
+                    </div>
+                ) : !fallbackContent ? (
+                    <div className={styles.noResults}>No browser visuals were captured for this action.</div>
+                ) : null}
+
+                {actions.length > 0 && (
+                    <div className={styles.browserRunActionLog}>
+                        <h4 className={styles.browserRunActionLogTitle}>Actions</h4>
+                        <ol className={styles.browserRunActionList}>
+                            {actions.map((action, index) => (
+                                <li key={`${action.summary}-${index}`} className={styles.browserRunActionItem}>
+                                    {action.summary}
+                                </li>
+                            ))}
+                        </ol>
+                    </div>
+                )}
+            </div>
+        </>
+    );
+}
+
+/**
+ * Renders the detail view for a single tool call.
+ *
+ * @param options - Rendering options for the tool call.
+ * @private function of ChatToolCallModal
+ */
+export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactElement {
+    const { toolCall, toolTitles, agentParticipant, buttonColor } = options;
+    const resultRaw = parseToolCallResult(toolCall.result);
+    const args = parseToolCallArguments(toolCall);
+    const toolCallDate = getToolCallTimestamp(toolCall);
+    const memoryView = renderMemoryToolCall({
+        toolCall,
+        args,
+        resultRaw,
+    });
+    if (memoryView) {
+        return memoryView;
+    }
+
+    const walletCredentialResult =
+        toolCall.name === WALLET_CREDENTIAL_TOOL_CALL_NAME ? parseWalletCredentialToolCallResult(resultRaw) : null;
+    if (walletCredentialResult) {
+        return renderWalletCredentialToolCall(walletCredentialResult, toolCallDate);
+    }
+
+    const isSearch =
+        toolCall.name === 'web_search' || toolCall.name === 'useSearchEngine' || toolCall.name === 'search';
+    const isTime = toolCall.name === 'get_current_time' || toolCall.name === 'useTime';
+    const isEmail = toolCall.name === 'send_email' || toolCall.name === 'useEmail';
+    const isPopup = toolCall.name === 'open_popup' || toolCall.name === 'usePopup' || toolCall.name === 'popup';
+    const isRunBrowser = toolCall.name === 'run_browser';
+    const isSelfLearning = toolCall.name === 'self-learning';
+
+    const { results, rawText } = extractSearchResults(resultRaw);
+    const hasResults = results.length > 0;
+    const hasRawText = !hasResults && !!rawText && rawText.trim().length > 0;
+
+    if (isPopup) {
+        const url = args.url || (typeof resultRaw === 'string' && resultRaw.includes('http') ? resultRaw : null);
+
+        return (
+            <>
+                <div className={classNames(styles.searchModalHeader, styles.emailModalHeader)}>
+                    <span className={styles.searchModalIcon}>🪟</span>
+                    <div className={styles.emailHeaderText}>
+                        <span className={styles.emailHeaderLabel}>Popup</span>
+                        <h3 className={styles.searchModalQuery}>Open Website</h3>
+                    </div>
+                </div>
+
+                <div className={styles.searchModalContent}>
+                    <div className={styles.emailContainer}>
+                        <div className={styles.emailMetadata}>
+                            <div className={styles.emailField}>
+                                <strong>URL:</strong>
+                                <span className={styles.emailRecipients}>
+                                    {url ? (
+                                        <a href={url} target="_blank" rel="noreferrer">
+                                            {url}
+                                        </a>
+                                    ) : (
+                                        'No URL provided'
+                                    )}
+                                </span>
+                            </div>
+                        </div>
+                        <div className={styles.emailBody}>
+                            <p>The agent wants to open a popup window with the URL above.</p>
+                            {url && (
+                                <div style={{ marginTop: '20px' }}>
+                                    <button
+                                        type="button"
+                                        className={styles.messageButton}
+                                        onClick={() => window.open(url, '_blank')}
+                                        style={{
+                                            backgroundColor: buttonColor.toHex(),
+                                            color: buttonColor.then(textColor).toHex(),
+                                            padding: '10px 20px',
+                                            borderRadius: '8px',
+                                            fontWeight: 'bold',
+                                        }}
+                                    >
+                                        Open Popup Now
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </>
+        );
+    }
+
+    if (isSelfLearning) {
+        const summary = buildSelfLearningSummary(toolCall, resultRaw);
+        const agentLabel = String(agentParticipant?.fullname || agentParticipant?.name || 'Agent');
+        const agentAvatarColor = Color.fromSafe(agentParticipant?.color || buttonColor).toHex();
+        const commitmentsHeight = summary.commitmentsLineCount
+            ? Math.min(Math.max(summary.commitmentsLineCount * 26, 140), 320)
+            : 0;
+
+        return (
+            <>
+                <div className={classNames(styles.searchModalHeader, styles.selfLearningModalHeader)}>
+                    <div className={styles.selfLearningAvatarGroup}>
+                        <SelfLearningAvatar
+                            label={agentLabel}
+                            avatarSrc={agentParticipant?.avatarSrc}
+                            fallbackColor={agentAvatarColor}
+                        />
+                        <SelfLearningAvatar label="Teacher" className={styles.selfLearningTeacher}>
+                            <TeacherIcon size={18} />
+                        </SelfLearningAvatar>
+                    </div>
+                    <div className={styles.selfLearningHeaderText}>
+                        <h3 className={styles.selfLearningTitle}>Learned commitments</h3>
+                    </div>
+                </div>
+
+                <div className={styles.searchModalContent}>
+                    {(summary.samplesLabel || summary.updatedLabel) && (
+                        <div className={styles.selfLearningMetaRow}>
+                            {summary.samplesLabel && (
+                                <span className={styles.selfLearningMetaChip}>{summary.samplesLabel}</span>
+                            )}
+                            {summary.updatedLabel && (
+                                <span className={styles.selfLearningMeta}>Updated {summary.updatedLabel}</span>
+                            )}
+                        </div>
+                    )}
+                    <div className={styles.selfLearningCommitments}>
+                        <span className={styles.selfLearningCommitmentsLabel}>Teacher updates</span>
+                        {summary.commitments.length > 0 ? (
+                            <div className={styles.selfLearningBookEditor}>
+                                <BookEditor
+                                    value={validateBook(summary.commitmentsText)}
+                                    isReadonly={true}
+                                    height={commitmentsHeight}
+                                    isUploadButtonShown={false}
+                                    isCameraButtonShown={false}
+                                    isDownloadButtonShown={false}
+                                    isAboutButtonShown={false}
+                                    isFullscreenButtonShown={false}
+                                />
+                            </div>
+                        ) : (
+                            <div className={styles.selfLearningEmpty}>
+                                {summary.hasTeacherCommitments
+                                    ? 'Commitments were added, but details were not provided.'
+                                    : 'No new commitments were added.'}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </>
+        );
+    }
+
+    if (isRunBrowser) {
+        return renderRunBrowserToolCall({
+            args,
+            resultRaw,
+        });
+    }
+
+    if (isSearch) {
+        return (
+            <>
+                <div className={styles.searchModalHeader}>
+                    <span className={styles.searchModalIcon}>🔎</span>
+                    <h3 className={styles.searchModalQuery}>{args.query || args.searchText || 'Search Results'}</h3>
+                </div>
+
+                <div className={styles.searchModalContent}>
+                    {hasResults ? (
+                        <div className={styles.searchResultsList}>
+                            {(results as Array<TODO_any>).map((item, i) => (
+                                <div key={i} className={styles.searchResultItem}>
+                                    <div className={styles.searchResultUrl}>
+                                        {item.url && (
+                                            <a href={item.url} target="_blank" rel="noreferrer">
+                                                {item.url}
+                                            </a>
+                                        )}
+                                    </div>
+                                    <h4 className={styles.searchResultTitle}>
+                                        {item.url ? (
+                                            <a href={item.url} target="_blank" rel="noreferrer">
+                                                {item.title || 'Untitled'}
+                                            </a>
+                                        ) : (
+                                            item.title || 'Untitled'
+                                        )}
+                                    </h4>
+                                    <p className={styles.searchResultSnippet}>{item.snippet || item.content || ''}</p>
+                                </div>
+                            ))}
+                        </div>
+                    ) : hasRawText ? (
+                        <MarkdownContent className={styles.searchResultsRaw} content={rawText!} />
+                    ) : (
+                        <div className={styles.noResults}>
+                            {resultRaw ? 'No search results found.' : 'Search results are not available.'}
+                        </div>
+                    )}
+                </div>
+            </>
+        );
+    }
+
+    if (isTime) {
+        const timeResultDate = getToolCallResultDate(resultRaw);
+        const displayDate = timeResultDate || toolCallDate;
+        const isValidDate = !!displayDate && !isNaN(displayDate.getTime());
+        const relativeLabel = toolCallDate ? `called ${moment(toolCallDate).fromNow()}` : null;
+
+        return (
+            <>
+                <div className={styles.searchModalHeader}>
+                    <span className={styles.searchModalIcon}>⏰</span>
+                    <h3 className={styles.searchModalQuery}>Time at call</h3>
+                </div>
+
+                <div className={styles.searchModalContent}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '20px',
+                            padding: '20px',
+                        }}
+                    >
+                        {isValidDate && displayDate && <ClockIcon date={displayDate} size={150} />}
+                        <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontSize: '2em', fontWeight: 'bold' }}>
+                                {isValidDate && displayDate
+                                    ? displayDate.toLocaleTimeString([], {
+                                          hour: '2-digit',
+                                          minute: '2-digit',
+                                      })
+                                    : 'Unknown time'}
+                            </div>
+                            <div style={{ color: '#666' }}>
+                                {isValidDate && displayDate ? displayDate.toLocaleDateString() : 'Unknown date'}
+                            </div>
+                            {relativeLabel && (
+                                <div style={{ fontSize: '0.9em', color: '#888', marginTop: '5px' }}>
+                                    ({relativeLabel})
+                                </div>
+                            )}
+                            {args.timezone && (
+                                <div style={{ fontSize: '0.9em', color: '#888', marginTop: '5px' }}>
+                                    Timezone: {args.timezone}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    <div className={styles.toolCallDetails}>
+                        <p>
+                            <strong>Timestamp of call:</strong>
+                        </p>
+                        <div className={styles.toolCallDataContainer}>
+                            <pre className={styles.toolCallData}>
+                                {toolCallDate ? toolCallDate.toLocaleString() : 'Unknown'}
+                            </pre>
+                        </div>
+                    </div>
+                </div>
+            </>
+        );
+    }
+
+    if (isEmail) {
+        const to = args.to || [];
+        const cc = args.cc || [];
+        const subject = args.subject || 'No subject';
+        const body = args.body || '';
+        const recipients = Array.isArray(to) ? to : [to];
+        const ccRecipients = Array.isArray(cc) ? cc : [];
+        const emailResult = resultRaw && typeof resultRaw === 'object' ? (resultRaw as Record<string, TODO_any>) : null;
+        const from =
+            (emailResult?.from as string | undefined) ||
+            (emailResult?.sender as string | undefined) ||
+            'Configured sender';
+        const status = typeof emailResult?.status === 'string' ? emailResult.status : null;
+
+        return (
+            <>
+                <div className={classNames(styles.searchModalHeader, styles.emailModalHeader)}>
+                    <span className={styles.searchModalIcon}>
+                        <EmailIcon size={26} />
+                    </span>
+                    <div className={styles.emailHeaderText}>
+                        <span className={styles.emailHeaderLabel}>Email</span>
+                        <h3 className={styles.searchModalQuery}>{subject}</h3>
+                    </div>
+                </div>
+
+                <div className={styles.searchModalContent}>
+                    <div className={styles.emailContainer}>
+                        <div className={styles.emailMetadata}>
+                            <div className={styles.emailField}>
+                                <strong>From:</strong>
+                                <span className={styles.emailRecipients}>{from}</span>
+                            </div>
+                            <div className={styles.emailField}>
+                                <strong>To:</strong>
+                                <span className={styles.emailRecipients}>{recipients.join(', ')}</span>
+                            </div>
+                            {ccRecipients.length > 0 && (
+                                <div className={styles.emailField}>
+                                    <strong>CC:</strong>
+                                    <span className={styles.emailRecipients}>{ccRecipients.join(', ')}</span>
+                                </div>
+                            )}
+                            <div className={styles.emailField}>
+                                <strong>Subject:</strong>
+                                <span>{subject}</span>
+                            </div>
+                            {status && (
+                                <div className={styles.emailField}>
+                                    <strong>Status:</strong>
+                                    <span className={styles.emailStatus}>{status}</span>
+                                </div>
+                            )}
+                        </div>
+                        <div className={styles.emailBody}>
+                            <strong>Message:</strong>
+                            <div className={styles.emailBodyContent}>
+                                <MarkdownContent content={body} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </>
+        );
+    }
+
+    const chipletInfo = getToolCallChipletInfo(toolCall);
+    const toolMetadata = TOOL_TITLES[toolCall.name];
+    const headerEmoji = toolMetadata?.emoji || extractLeadingEmoji(chipletInfo.text) || '🛠️';
+    const headerTitle = toolTitles?.[toolCall.name] || toolMetadata?.title || chipletInfo.text || toolCall.name;
+    const argumentEntries = buildArgumentEntries(args);
+    const resultSummary = buildToolCallResultSummary(resultRaw);
+    const resultCount = getResultItemCount(resultRaw);
+    const toolCallIssues = normalizeToolCallIssues(toolCall);
+
+    return (
+        <>
+            <header className={styles.toolCallHeader}>
+                <span className={styles.toolCallIcon} aria-hidden="true">
+                    {headerEmoji}
+                </span>
+                <div className={styles.toolCallHeaderMeta}>
+                    <p className={styles.toolCallModalLabel}>Action</p>
+                    <h3 className={styles.toolCallTitle}>{headerTitle}</h3>
+                    <p className={styles.toolCallSubtitle}>Here is what happened.</p>
+                </div>
+            </header>
+
+            <div className={styles.toolCallGrid}>
+                <section className={styles.toolCallPanel}>
+                    <p className={styles.toolCallPanelTitle}>Request</p>
+                    {argumentEntries.length > 0 ? (
+                        <ul className={styles.toolCallList}>
+                            {argumentEntries.map((entry) => (
+                                <li key={entry.label} className={styles.toolCallItem}>
+                                    <span className={styles.toolCallItemLabel}>{entry.label}</span>
+                                    <span className={styles.toolCallItemValue}>{entry.value}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <p className={styles.toolCallEmpty}>No extra details were needed.</p>
+                    )}
+                </section>
+
+                <section className={styles.toolCallPanel}>
+                    <p className={styles.toolCallPanelTitle}>Outcome</p>
+                    {resultSummary ? (
+                        <p className={styles.toolCallSummary}>{resultSummary}</p>
+                    ) : (
+                        <p className={styles.toolCallEmpty}>The action finished, but there is no short summary.</p>
+                    )}
+                    {typeof resultCount === 'number' && (
+                        <div className={styles.toolCallSummaryMeta}>
+                            <span className={styles.toolCallSummaryMetaBadge}>
+                                Returned {resultCount} {resultCount === 1 ? 'item' : 'items'}
+                            </span>
+                        </div>
+                    )}
+                </section>
+            </div>
+
+            {toolCallIssues.length > 0 && (
+                <div className={styles.toolCallIssues}>
+                    {toolCallIssues.map((issue, index) => (
+                        <span
+                            key={`${issue.type}-${index}`}
+                            className={classNames(
+                                styles.toolCallIssueBadge,
+                                issue.type === 'warning' ? styles.toolCallIssueWarning : styles.toolCallIssueError,
+                            )}
+                        >
+                            <strong>{issue.label}</strong>: {issue.message}
+                        </span>
+                    ))}
+                </div>
+            )}
+        </>
+    );
+}
+
+type ToolCallArgumentEntry = {
+    /**
+     * Human-friendly label derived from the raw argument key.
+     */
+    label: string;
+    /**
+     * Stringified argument value tailored for display.
+     */
+    value: string;
+};
+
+/**
+ * Represents an error or warning surfaced inside the modal footer.
+ *
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+type ToolCallIssue = {
+    type: 'error' | 'warning';
+    label: string;
+    message: string;
+};
+
+/**
+ * Builds a list of argument entries for the friendly summary view.
+ *
+ * @param args - Parsed tool call arguments.
+ * @returns Array of display-ready argument entries.
+ */
+function buildArgumentEntries(args: Record<string, TODO_any>): Array<ToolCallArgumentEntry> {
+    return Object.entries(args).map(([key, value]) => ({
+        label: formatArgumentLabel(key),
+        value: formatArgumentValue(value),
+    }));
+}
+
+/**
+ * Normalizes a tool call argument key into human-readable text.
+ *
+ * @param key - Raw argument key.
+ * @returns Humanized label.
+ */
+function formatArgumentLabel(key: string): string {
+    const replaced = key.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2');
+    return replaced.charAt(0).toUpperCase() + replaced.slice(1);
+}
+
+/**
+ * Converts a value into a display-friendly string without exposing raw JSON.
+ *
+ * @param value - Arbitrary tool call argument value.
+ * @returns Friendly string.
+ */
+function formatArgumentValue(value: TODO_any): string {
+    if (value === null || value === undefined) {
+        return 'Not provided';
+    }
+
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+        const text = String(value);
+        return text === '' ? 'Empty string' : text;
+    }
+
+    if (Array.isArray(value)) {
+        const items = value.map((entry) => formatArgumentValue(entry)).filter(Boolean);
+        return items.length > 0 ? items.join(', ') : '[array]';
+    }
+
+    if (typeof value === 'object') {
+        const entries = Object.entries(value as Record<string, TODO_any>)
+            .map(([childKey, childValue]) => `${childKey}: ${formatArgumentValue(childValue)}`)
+            .filter(Boolean);
+
+        if (entries.length > 0) {
+            const joined = entries.join('; ');
+            return joined.length > 80 ? `${joined.slice(0, 80)}…` : joined;
+        }
+
+        const solo = JSON.stringify(value);
+        return solo.length > 80 ? `${solo.slice(0, 80)}…` : solo;
+    }
+
+    return String(value);
+}
+
+/**
+ * Extracts a short natural-language summary from the raw tool call result.
+ *
+ * @param resultRaw - Decoded tool call result.
+ * @returns Friendly summary or `null` when nothing suitable is found.
+ */
+function buildToolCallResultSummary(resultRaw: TODO_any): string | null {
+    if (!resultRaw) {
+        return null;
+    }
+
+    if (typeof resultRaw === 'string' && resultRaw.trim()) {
+        return resultRaw.trim();
+    }
+
+    const candidate = findStringCandidate(resultRaw, [
+        'summary',
+        'text',
+        'content',
+        'description',
+        'message',
+        'result',
+    ]);
+
+    if (candidate) {
+        return candidate;
+    }
+
+    if (Array.isArray(resultRaw) && resultRaw.length > 0) {
+        const firstEntry = resultRaw[0];
+        if (typeof firstEntry === 'string' && firstEntry.trim()) {
+            return firstEntry.trim();
+        }
+        const nested = findStringCandidate(firstEntry, ['title', 'snippet', 'summary']);
+        if (nested) {
+            return nested;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Searches for the first non-empty string field inside an object.
+ *
+ * @param value - Object to scan.
+ * @param keys - Keys to try in order.
+ * @returns First matching string or `null`.
+ */
+function findStringCandidate(value: TODO_any, keys: string[]): string | null {
+    if (!value || typeof value !== 'object') {
+        return null;
+    }
+
+    for (const key of keys) {
+        const candidate = (value as Record<string, TODO_any>)[key];
+        if (typeof candidate === 'string' && candidate.trim()) {
+            return candidate.trim();
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Counts items returned by the tool call when the payload is iterable.
+ *
+ * @param resultRaw - Tool call result payload.
+ * @returns Item count or `null` when the result is not a collection.
+ */
+function getResultItemCount(resultRaw: TODO_any): number | null {
+    if (Array.isArray(resultRaw)) {
+        return resultRaw.length;
+    }
+
+    if (resultRaw && typeof resultRaw === 'object') {
+        const candidates = ['results', 'items', 'data'];
+        for (const key of candidates) {
+            const candidate = (resultRaw as Record<string, TODO_any>)[key];
+            if (Array.isArray(candidate)) {
+                return candidate.length;
+            }
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Normalizes raw tool call errors and warnings for display badges.
+ *
+ * @param toolCall - Tool call payload to inspect.
+ * @returns Array of structured issues.
+ */
+function normalizeToolCallIssues(toolCall: NonNullable<ChatMessage['toolCalls']>[number]): Array<ToolCallIssue> {
+    const warnings = (toolCall.warnings || []).map((value) => ({
+        type: 'warning' as const,
+        label: 'Warning',
+        message: formatIssueValue(value),
+    }));
+
+    const errors = (toolCall.errors || []).map((value) => ({
+        type: 'error' as const,
+        label: 'Error',
+        message: formatIssueValue(value),
+    }));
+
+    return [...warnings, ...errors];
+}
+
+/**
+ * Formats an error/warning payload into a single-line string.
+ *
+ * @param value - Raw issue payload.
+ * @returns String suitable for badge display.
+ */
+function formatIssueValue(value: TODO_any): string {
+    if (typeof value === 'string' && value.trim()) {
+        return value.trim();
+    }
+
+    if (typeof value === 'object' && value !== null) {
+        const json = JSON.stringify(value);
+        return json.length > 120 ? `${json.slice(0, 120)}…` : json;
+    }
+
+    return String(value ?? 'Unknown issue');
+}
+
+/**
+ * Grabs the leading emoji (if present) from a chiplet label for fallback icons.
+ *
+ * @param text - Chiplet label text.
+ * @returns First character or `null` when empty.
+ */
+function extractLeadingEmoji(text?: string): string | null {
+    if (!text) {
+        return null;
+    }
+
+    const trimmed = text.trim();
+    return trimmed ? trimmed[0]! : null;
+}
