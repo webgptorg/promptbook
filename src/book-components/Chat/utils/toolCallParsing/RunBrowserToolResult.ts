@@ -52,4 +52,3 @@ export type RunBrowserToolResult = {
     artifacts: Array<RunBrowserToolArtifact>;
     actions: Array<RunBrowserToolAction>;
 };
-

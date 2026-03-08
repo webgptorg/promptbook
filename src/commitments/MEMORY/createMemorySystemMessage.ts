@@ -15,7 +15,9 @@ export function createMemorySystemMessage(extraInstructions: string): string {
             - Use "${MemoryToolNames.retrieve}" to load relevant memory before answering.
             - Use "${MemoryToolNames.store}" to save stable user-specific facts that improve future help.
             - Use "${MemoryToolNames.update}" to refresh an existing memory when the content changes.
-            - Use "${MemoryToolNames.delete}" to delete memories that are no longer accurate (deletions are soft and hidden from future queries).
+            - Use "${
+                MemoryToolNames.delete
+            }" to delete memories that are no longer accurate (deletions are soft and hidden from future queries).
             - Store concise memory items and avoid duplicates.
             - Never claim memory was saved or loaded unless the tool confirms it.
             ${block(extraInstructions)}

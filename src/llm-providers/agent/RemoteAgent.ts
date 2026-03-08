@@ -90,8 +90,12 @@ async function createRemoteAgentHttpError(response: Response): Promise<RemoteAge
     }
 
     const payloadMessage =
-        parsedPayload?.error && typeof parsedPayload.error.message === 'string' ? parsedPayload.error.message : undefined;
-    const fallbackMessage = `Remote chat request failed (${response.status} ${response.statusText || 'Unknown error'}).`;
+        parsedPayload?.error && typeof parsedPayload.error.message === 'string'
+            ? parsedPayload.error.message
+            : undefined;
+    const fallbackMessage = `Remote chat request failed (${response.status} ${
+        response.statusText || 'Unknown error'
+    }).`;
     const rawResponseMessage = responseBody.trim();
     const resolvedMessage = payloadMessage || rawResponseMessage || fallbackMessage;
 

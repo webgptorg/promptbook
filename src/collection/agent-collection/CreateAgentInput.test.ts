@@ -1,10 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { LimitReachedError } from '../../errors/LimitReachedError';
 import { ParseError } from '../../errors/ParseError';
-import {
-    CREATE_AGENT_INPUT_SOURCE_MAX_LENGTH,
-    parseCreateAgentInput,
-} from './CreateAgentInput';
+import { CREATE_AGENT_INPUT_SOURCE_MAX_LENGTH, parseCreateAgentInput } from './CreateAgentInput';
 
 describe('parseCreateAgentInput', () => {
     it('parses valid create-agent payload', () => {

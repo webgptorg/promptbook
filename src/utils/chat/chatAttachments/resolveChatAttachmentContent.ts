@@ -1,8 +1,4 @@
-import type {
-    ChatAttachment,
-    ResolveChatAttachmentOptions,
-    ResolvedChatAttachmentContent,
-} from '../chatAttachments';
+import type { ChatAttachment, ResolveChatAttachmentOptions, ResolvedChatAttachmentContent } from '../chatAttachments';
 import { isUrlOnPrivateNetwork } from '../../validators/url/isUrlOnPrivateNetwork';
 
 /**

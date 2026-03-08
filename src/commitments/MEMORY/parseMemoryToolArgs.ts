@@ -70,7 +70,8 @@ export const parseMemoryToolArgs = {
      */
     retrieve(args: RetrieveMemoryToolArgs): ParsedRetrieveMemoryArgs {
         const query = typeof args.query === 'string' ? args.query.trim() : undefined;
-        const limit = typeof args.limit === 'number' && Number.isFinite(args.limit) ? Math.floor(args.limit) : undefined;
+        const limit =
+            typeof args.limit === 'number' && Number.isFinite(args.limit) ? Math.floor(args.limit) : undefined;
 
         return {
             query: query && query.length > 0 ? query : undefined,

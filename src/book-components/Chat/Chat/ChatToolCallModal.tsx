@@ -106,19 +106,21 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
         }
 
         let isMounted = true;
-        const profileLoader = loadAgentProfile({ url: teammateUrl, label: teamResult.teammate?.label }).then((profile) => {
-            if (!isMounted) {
-                return;
-            }
-
-            setTeamProfiles((previous) => {
-                const existing = previous[teammateUrl];
-                if (existing && existing.label === profile.label && existing.imageUrl === profile.imageUrl) {
-                    return previous;
+        const profileLoader = loadAgentProfile({ url: teammateUrl, label: teamResult.teammate?.label }).then(
+            (profile) => {
+                if (!isMounted) {
+                    return;
                 }
-                return { ...previous, [teammateUrl]: profile };
-            });
-        });
+
+                setTeamProfiles((previous) => {
+                    const existing = previous[teammateUrl];
+                    if (existing && existing.label === profile.label && existing.imageUrl === profile.imageUrl) {
+                        return previous;
+                    }
+                    return { ...previous, [teammateUrl]: profile };
+                });
+            },
+        );
 
         return () => {
             isMounted = false;
@@ -150,12 +152,18 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
             });
 
             if (destination === 'file') {
-                downloadFile(reportMarkdown, createAdvancedToolCallReportFilename(focusedToolCallCandidate), 'text/markdown');
+                downloadFile(
+                    reportMarkdown,
+                    createAdvancedToolCallReportFilename(focusedToolCallCandidate),
+                    'text/markdown',
+                );
                 return;
             }
 
             if (!navigator.clipboard?.writeText) {
-                console.error('[ChatToolCallModal] Failed to copy advanced report because Clipboard API is unavailable.');
+                console.error(
+                    '[ChatToolCallModal] Failed to copy advanced report because Clipboard API is unavailable.',
+                );
                 return;
             }
 
@@ -175,34 +183,34 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
     const focusedToolCall = selectedTeamToolCall?.toolCall || toolCall;
 
     const modalContent =
-        viewMode === 'advanced'
-            ? renderAdvancedToolCallDetails({
-                  toolCall: focusedToolCall,
-                  toolTitles,
-              })
-            : teamResult?.teammate
-              ? (
-                    <TeamToolCallModalContent
-                        teamResult={teamResult}
-                        toolCallDate={toolCallDate}
-                        teamToolCallSummary={teamToolCallSummary}
-                        selectedTeamToolCall={selectedTeamToolCall}
-                        onSelectTeamToolCall={setSelectedTeamToolCall}
-                        onClearSelectedTeamToolCall={() => {
-                            setSelectedTeamToolCall(null);
-                        }}
-                        teamProfiles={teamProfiles}
-                        toolTitles={toolTitles}
-                        agentParticipant={agentParticipant}
-                        buttonColor={buttonColor}
-                    />
-                )
-              : renderToolCallDetails({
-                    toolCall,
-                    toolTitles,
-                    agentParticipant,
-                    buttonColor,
-                });
+        viewMode === 'advanced' ? (
+            renderAdvancedToolCallDetails({
+                toolCall: focusedToolCall,
+                toolTitles,
+            })
+        ) : teamResult?.teammate ? (
+            <TeamToolCallModalContent
+                teamResult={teamResult}
+                toolCallDate={toolCallDate}
+                teamToolCallSummary={teamToolCallSummary}
+                selectedTeamToolCall={selectedTeamToolCall}
+                onSelectTeamToolCall={setSelectedTeamToolCall}
+                onClearSelectedTeamToolCall={() => {
+                    setSelectedTeamToolCall(null);
+                }}
+                teamProfiles={teamProfiles}
+                toolTitles={toolTitles}
+                agentParticipant={agentParticipant}
+                buttonColor={buttonColor}
+            />
+        ) : (
+            renderToolCallDetails({
+                toolCall,
+                toolTitles,
+                agentParticipant,
+                buttonColor,
+            })
+        );
 
     return (
         <div

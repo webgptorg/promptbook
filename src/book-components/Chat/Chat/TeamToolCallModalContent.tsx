@@ -107,14 +107,17 @@ export function TeamToolCallModalContent(options: TeamToolCallModalContentOption
 
     const resolvedAgentLabel = resolvePreferredAgentLabel([agentParticipant?.fullname, agentName], agentName);
     const resolvedAgentAvatar = agentParticipant?.avatarSrc || null;
-    const resolvedAgentHeaderColor = agentParticipant?.color ? Color.fromSafe(agentParticipant.color).toHex() : '#64748b';
+    const resolvedAgentHeaderColor = agentParticipant?.color
+        ? Color.fromSafe(agentParticipant.color).toHex()
+        : '#64748b';
 
     const resolvedTeammateLabel = resolvePreferredAgentLabel(
         [teammateConversationName, teammateProfile?.label, teammateFallbackProfile.label],
         teammateFallbackProfile.label,
     );
     const resolvedTeammateAvatar = teammateProfile?.imageUrl || teammateFallbackProfile.imageUrl || null;
-    const teammateLink = teammateUrl && teammateUrl !== 'VOID' && !isPseudoAgentUrl(teammateUrl) ? teammateUrl : undefined;
+    const teammateLink =
+        teammateUrl && teammateUrl !== 'VOID' && !isPseudoAgentUrl(teammateUrl) ? teammateUrl : undefined;
 
     const participants = [
         {
@@ -189,7 +192,9 @@ export function TeamToolCallModalContent(options: TeamToolCallModalContentOption
                                                 }}
                                             >
                                                 <span>{chipletText}</span>
-                                                <span className={styles.toolCallOrigin}>by {toolCallEntry.origin.label}</span>
+                                                <span className={styles.toolCallOrigin}>
+                                                    by {toolCallEntry.origin.label}
+                                                </span>
                                             </button>
                                         );
                                     })}
@@ -217,7 +222,9 @@ export function TeamToolCallModalContent(options: TeamToolCallModalContentOption
                                 <div className={styles.teamToolCallDetailsHeader}>
                                     <span className={styles.teamToolCallDetailsTitle}>
                                         Action details
-                                        <span className={styles.toolCallOrigin}>by {selectedTeamToolCall.origin.label}</span>
+                                        <span className={styles.toolCallOrigin}>
+                                            by {selectedTeamToolCall.origin.label}
+                                        </span>
                                     </span>
                                     <button
                                         type="button"

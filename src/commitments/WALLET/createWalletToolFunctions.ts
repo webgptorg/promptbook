@@ -1,6 +1,9 @@
 import type { string_javascript_name } from '../../_packages/types.index';
 import type { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
-import { getWalletToolRuntimeAdapterOrDisabledResult, resolveWalletDisabledMessage } from './getWalletToolRuntimeAdapterOrDisabledResult';
+import {
+    getWalletToolRuntimeAdapterOrDisabledResult,
+    resolveWalletDisabledMessage,
+} from './getWalletToolRuntimeAdapterOrDisabledResult';
 import { parseWalletToolArgs } from './parseWalletToolArgs';
 import { resolveWalletRuntimeContext } from './resolveWalletRuntimeContext';
 import type {

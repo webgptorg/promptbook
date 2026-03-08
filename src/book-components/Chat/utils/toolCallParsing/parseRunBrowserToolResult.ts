@@ -393,4 +393,3 @@ export function parseRunBrowserToolResult(resultRaw: TODO_any): RunBrowserToolRe
 
     return legacyPayload;
 }
-

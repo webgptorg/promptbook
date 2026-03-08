@@ -31,4 +31,3 @@ export function getToolCallResultDate(result: ToolCall['result']): Date | null {
 
     return null;
 }
-

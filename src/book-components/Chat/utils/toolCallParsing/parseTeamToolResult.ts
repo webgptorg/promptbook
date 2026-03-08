@@ -20,4 +20,3 @@ export function parseTeamToolResult(resultRaw: TODO_any): TeamToolResult | null 
 
     return resultRaw as TeamToolResult;
 }
-

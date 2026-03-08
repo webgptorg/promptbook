@@ -15,4 +15,3 @@ export function getToolCallTimestamp(toolCall: Pick<ToolCall, 'createdAt'>): Dat
     const date = new Date(toolCall.createdAt);
     return Number.isNaN(date.getTime()) ? null : date;
 }
-

@@ -84,7 +84,9 @@ export class UseSpawnCommitmentDefinition extends BaseCommitmentDefinition<'USE 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
         const extraInstructions = formatOptionalInstructionBlock('Spawn instructions', content);
         const existingTools = requirements.tools || [];
-        const tools: ReadonlyArray<LlmToolDefinition> = existingTools.some((tool) => tool.name === SPAWN_AGENT_TOOL_NAME)
+        const tools: ReadonlyArray<LlmToolDefinition> = existingTools.some(
+            (tool) => tool.name === SPAWN_AGENT_TOOL_NAME,
+        )
             ? existingTools
             : [
                   ...existingTools,

@@ -19,4 +19,3 @@ export function parseToolCallResult(result: ToolCall['result']): TODO_any {
         return result;
     }
 }
-

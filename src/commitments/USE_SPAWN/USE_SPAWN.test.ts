@@ -14,6 +14,8 @@ describe('createAgentModelRequirementsWithCommitments with USE SPAWN', () => {
         expect(spawnTool).toBeDefined();
         expect(spawnTool?.parameters.additionalProperties).toBe(false);
         expect(spawnTool?.parameters.required).toEqual(['source']);
-        expect(requirements.systemMessage).toContain('Use "spawn_agent" only when user asks to create a persistent new agent.');
+        expect(requirements.systemMessage).toContain(
+            'Use "spawn_agent" only when user asks to create a persistent new agent.',
+        );
     });
 });

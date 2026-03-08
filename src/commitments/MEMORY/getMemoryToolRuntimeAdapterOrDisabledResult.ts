@@ -59,7 +59,12 @@ function createDisabledMemoryResult(action: MemoryToolAction, message: string): 
  */
 type MemoryToolRuntimeAdapterResolution = {
     adapter: MemoryToolRuntimeAdapter | null;
-    disabledResult: RetrieveMemoryToolResult | StoreMemoryToolResult | UpdateMemoryToolResult | DeleteMemoryToolResult | null;
+    disabledResult:
+        | RetrieveMemoryToolResult
+        | StoreMemoryToolResult
+        | UpdateMemoryToolResult
+        | DeleteMemoryToolResult
+        | null;
 };
 
 /**

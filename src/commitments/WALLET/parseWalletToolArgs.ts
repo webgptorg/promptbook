@@ -176,7 +176,8 @@ export const parseWalletToolArgs = {
      * Parses retrieve arguments.
      */
     retrieve(args: RetrieveWalletRecordsToolArgs): ParsedRetrieveWalletRecordsArgs {
-        const limit = typeof args.limit === 'number' && Number.isFinite(args.limit) ? Math.floor(args.limit) : undefined;
+        const limit =
+            typeof args.limit === 'number' && Number.isFinite(args.limit) ? Math.floor(args.limit) : undefined;
 
         return {
             query: normalizeOptionalText(args.query),

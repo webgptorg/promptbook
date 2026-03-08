@@ -1,9 +1,6 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import { PROMPTBOOK_SYNTAX_COLORS } from '../../config';
-import {
-    ensureBookEditorMonacoLanguage,
-    ensureBookEditorMonacoLanguageForEditor,
-} from './useBookEditorMonacoLanguage';
+import { ensureBookEditorMonacoLanguage, ensureBookEditorMonacoLanguageForEditor } from './useBookEditorMonacoLanguage';
 
 /**
  * Monaco argument type accepted by the Book language initializer.
@@ -161,7 +158,9 @@ describe('ensureBookEditorMonacoLanguage', () => {
 
         ensureBookEditorMonacoLanguageForEditor({
             monaco,
-            monacoEditor: monacoEditor as unknown as Parameters<typeof ensureBookEditorMonacoLanguageForEditor>[0]['monacoEditor'],
+            monacoEditor: monacoEditor as unknown as Parameters<
+                typeof ensureBookEditorMonacoLanguageForEditor
+            >[0]['monacoEditor'],
         });
 
         expect(spies.setModelLanguage).toHaveBeenCalledTimes(1);

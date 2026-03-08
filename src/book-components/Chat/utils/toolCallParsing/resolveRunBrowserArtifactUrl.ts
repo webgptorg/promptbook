@@ -34,4 +34,3 @@ export function resolveRunBrowserArtifactUrl(pathOrUrl: string): string {
 
     return normalizedPath;
 }
-

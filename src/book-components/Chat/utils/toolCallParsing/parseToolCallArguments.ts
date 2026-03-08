@@ -24,4 +24,3 @@ export function parseToolCallArguments(toolCall: Pick<ToolCall, 'arguments'>): R
 
     return toolCall.arguments;
 }
-

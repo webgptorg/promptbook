@@ -7,9 +7,7 @@ import { WalletToolNames } from './WalletToolNames';
  *
  * @private function of WalletCommitmentDefinition
  */
-export function createWalletTools(
-    existingTools: ReadonlyArray<LlmToolDefinition> | undefined,
-): LlmToolDefinition[] {
+export function createWalletTools(existingTools: ReadonlyArray<LlmToolDefinition> | undefined): LlmToolDefinition[] {
     const tools: LlmToolDefinition[] = [...(existingTools || [])];
 
     addWalletToolIfMissing(tools, {

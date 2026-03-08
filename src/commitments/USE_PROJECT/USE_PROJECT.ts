@@ -8,10 +8,7 @@ import { createUseProjectToolFunctions } from './createUseProjectToolFunctions';
 import { createUseProjectTools } from './createUseProjectTools';
 import { getUseProjectToolTitles } from './getUseProjectToolTitles';
 import { normalizeConfiguredProjects } from './normalizeConfiguredProjects';
-import {
-    parseUseProjectCommitmentContent,
-    type GitHubRepositoryReference,
-} from './projectReference';
+import { parseUseProjectCommitmentContent, type GitHubRepositoryReference } from './projectReference';
 import { UseProjectWallet } from './UseProjectWallet';
 
 /**
@@ -100,7 +97,9 @@ export class UseProjectCommitmentDefinition extends BaseCommitmentDefinition<'US
                     - Configured repositories:
                       ${block(repositoriesList)}
                     - When a repository is not obvious from context, pass "repository" in tool arguments explicitly.
-                    - USE PROJECT credentials are read from wallet records (ACCESS_TOKEN, service "${UseProjectWallet.service}", key "${UseProjectWallet.key}").
+                    - USE PROJECT credentials are read from wallet records (ACCESS_TOKEN, service "${
+                        UseProjectWallet.service
+                    }", key "${UseProjectWallet.key}").
                     - If credentials are missing, ask the user to connect credentials in host UI and/or add them to wallet.
                     ${block(extraInstructions)}
                 `,

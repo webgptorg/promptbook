@@ -197,4 +197,3 @@ export function extractSearchResults(resultRaw: TODO_any): SearchResultsExtracti
 
     return { results: [], rawText: null };
 }
-

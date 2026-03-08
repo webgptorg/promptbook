@@ -9,10 +9,7 @@
  *
  * @private internal utility for USE SPAWN commitment
  */
-export async function spawnAgentViaBrowser(
-    args: Record<string, unknown>,
-    agentsServerUrl?: string,
-): Promise<string> {
+export async function spawnAgentViaBrowser(args: Record<string, unknown>, agentsServerUrl?: string): Promise<string> {
     try {
         const baseUrl = agentsServerUrl || (typeof window !== 'undefined' ? window.location.origin : '');
 
