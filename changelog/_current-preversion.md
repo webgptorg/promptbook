@@ -1,3 +1,8 @@
+-   Refactored Agents Server wallet utility for maintainability/readability without behavior changes:
+    -   Split `apps/agents-server/src/utils/userWallet.ts` into focused SRP modules under `apps/agents-server/src/utils/userWallet` (record types, payload normalization, table access, CRUD/listing operations, row mapping, and token-resolution helpers).
+    -   Kept `apps/agents-server/src/utils/userWallet.ts` as a thin facade re-exporting the same public API used by routes/tools/components.
+    -   Added explicit private JSDoc annotations on extracted internal entities to match project conventions.
+
 -   Refactored Agents Server header component for maintainability/readability without behavior changes:
     -   Split `apps/agents-server/src/components/Header/Header.tsx` into focused private modules:
         -   `buildAgentMenuStructure.tsx` (agent hierarchy data builders + related header menu components/helpers)
