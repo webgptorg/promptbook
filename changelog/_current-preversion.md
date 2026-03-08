@@ -1,3 +1,8 @@
+-   Enabled image-reading from chat attachments in Agents Server by forwarding attached images as native multimodal input:
+    -   Kept the existing chat flow (`/agents/[agentName]/api/chat` -> AgentKit) and added direct image pass-through in `OpenAiAgentKitExecutionTools` so image attachments are sent as `input_image` parts in the same completion request.
+    -   Applied the same conversion for both the current user message and user messages from chat `thread`, so previously attached images remain available in follow-up turns.
+    -   Kept behavior simple and default-on for all agents: no new capability toggles, commitments, or extra vision tool layer.
+
 -   Improved Agents Server background pre-index observability/reliability and surfaced preparation state in agent details:
     -   Added a profile-page pre-index status badge (`Preparing...`, `Prepared`, `Preparation failed`, `Preparation pending`) with timestamp details (including `Last prepared at ...`) sourced from `AgentPreparation` queue state.
     -   Added a typed preparation-status read model in `agentPreparation` and derived up-to-date/preparing/failed states by comparing current persisted fingerprint vs. queued/last-prepared fingerprints.
