@@ -1,3 +1,9 @@
+-   Added debounced background agent pre-indexing/preparation in Agents Server to reduce first-chat latency after edits:
+    -   Added DB-backed preparation queue/state table (`2026-03-0160-agent-preparation.sql`) with per-agent fingerprint tracking, status lifecycle (`SCHEDULED`/`RUNNING`/`PREPARED`/`FAILED`), retry metadata, and timestamps.
+    -   Added a background worker loop (`apps/agents-server/src/utils/agentPreparation.ts`) that coalesces rapid updates with a 30s debounce window, enforces single in-flight preparation per agent row, runs AgentKit pre-indexing, retries with backoff on transient failures, and logs scheduled/started/skipped/completed/failed events with counters.
+    -   Wired scheduling centrally by decorating `AgentCollection` writes in `$provideAgentCollectionForServer`, so agent create/update/book-source writes automatically enqueue pre-indexing without blocking save requests.
+    -   Updated chat handlers to briefly wait for matching running pre-index jobs before falling back to existing on-demand behavior, minimizing perceived delay when preparation is nearly complete.
+
 -   Improved Agents Server profile-chat initial message handoff to avoid URL length limits while preserving deep links:
     -   Profile chat now stores pending initial message payload (message + attachments) in session storage and navigates to `/chat` without serializing the message into URL query params.
     -   Standalone chat now consumes this pending profile payload for one-time auto-execution, while existing shareable `?message=...` deep-link behavior remains supported.

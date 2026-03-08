@@ -5,6 +5,7 @@ import { AgentCollection } from '@promptbook-local/types';
 import { just } from '../../../../src/utils/organization/just';
 import { $provideSupabaseForServer } from '../database/$provideSupabaseForServer';
 import { $provideServer } from './$provideServer';
+import { attachAgentPreparationScheduling } from '../utils/attachAgentPreparationScheduling';
 
 /**
  * Cache of provided agent collection
@@ -45,10 +46,13 @@ export async function $provideAgentCollectionForServer(): Promise<AgentCollectio
     const supabase = $provideSupabaseForServer();
     const { tablePrefix } = await $provideServer();
 
-    agentCollection = new AgentCollectionInSupabase(supabase, {
+    const providedCollection = new AgentCollectionInSupabase(supabase, {
         isVerbose,
         tablePrefix,
     });
+    attachAgentPreparationScheduling(providedCollection, { tablePrefix });
+
+    agentCollection = providedCollection;
 
     return agentCollection;
 }

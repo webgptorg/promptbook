@@ -29,6 +29,11 @@ import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/
 import { resolveUseEmailSmtpCredential } from '@/src/utils/resolveUseEmailSmtpCredential';
 import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithubToken';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
+import {
+    AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS,
+    resolveAgentCollectionTablePrefix,
+    waitForRunningAgentPreparation,
+} from '@/src/utils/agentPreparation';
 import type { ChatMessage } from '@promptbook-local/components';
 import { Agent, computeAgentHash, normalizeChatAttachments, RemoteAgent } from '@promptbook-local/core';
 import type { ToolCall } from '@promptbook-local/types';
@@ -266,6 +271,21 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const baseOpenAiTools = await $provideOpenAiAgentKitExecutionToolsForServer();
 
         const agentHash = computeAgentHash(agentSource);
+        const tablePrefix = resolveAgentCollectionTablePrefix(collection);
+        const preparationWaitResult = await waitForRunningAgentPreparation({
+            tablePrefix,
+            agentPermanentId: agentId,
+            fingerprint: agentHash,
+            timeoutMs: AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS,
+        });
+        if (preparationWaitResult !== 'not_running') {
+            console.info('[pre-index]', 'chat_wait_result', {
+                tablePrefix,
+                agentPermanentId: agentId,
+                agentHash,
+                preparationWaitResult,
+            });
+        }
 
         // Note: Identify the user message
         const userMessageContent = {

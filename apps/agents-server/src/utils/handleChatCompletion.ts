@@ -43,6 +43,11 @@ import { HTTP_STATUS_CODES } from '../constants';
 import { AgentKitCacheManager } from './cache/AgentKitCacheManager';
 import { respondIfClientVersionIsOutdated } from './clientVersionGuard';
 import { validateApiKey } from './validateApiKey';
+import {
+    AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS,
+    resolveAgentCollectionTablePrefix,
+    waitForRunningAgentPreparation,
+} from './agentPreparation';
 
 /**
  * Falls back to the estimated value when the original token count is unknown.
@@ -322,6 +327,21 @@ export async function handleChatCompletion(
 
         const agentHash = computeAgentHash(agentSource);
         const agentId = resolvedAgentContext.parentAgentPermanentId;
+        const tablePrefix = resolveAgentCollectionTablePrefix(collection);
+        const preparationWaitResult = await waitForRunningAgentPreparation({
+            tablePrefix,
+            agentPermanentId: agentId,
+            fingerprint: agentHash,
+            timeoutMs: AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS,
+        });
+        if (preparationWaitResult !== 'not_running') {
+            console.info('[pre-index]', 'openai_chat_wait_result', {
+                tablePrefix,
+                agentPermanentId: agentId,
+                agentHash,
+                preparationWaitResult,
+            });
+        }
         const currentUserIdentity = await resolveCurrentUserMemoryIdentity();
         const projectGithubToken = await resolveUseProjectGithubToken({
             userId: currentUserIdentity?.userId,
