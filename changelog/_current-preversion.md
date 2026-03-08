@@ -1,3 +1,8 @@
+-   Refactored chat attachment utilities for maintainability/readability without behavior changes:
+    -   Split `src/utils/chat/chatAttachments.ts` into focused SRP modules under `src/utils/chat/chatAttachments/` (attachment normalization, metadata/context formatting, content resolving, and message-context appending).
+    -   Kept `src/utils/chat/chatAttachments.ts` as a thin facade preserving the same external API (types and helper exports used by `@promptbook/core`).
+    -   Added explicit private/public JSDoc annotations on extracted exported entities to align with package-generation checks and naming-discrepancy constraints.
+
 -   Refactored `src/types/typeAliases.ts` into focused alias modules while preserving external behavior:
     -   Extracted semantic type aliases into SRP-oriented files (`string_parameter_name.ts`, `string_sha256.ts`, `string_markdown.ts`, `string_filename.ts`, `string_url.ts`, `string_knowledge_source_content.ts`, `string_person_fullname.ts`, `string_token.ts`, `number_usd.ts`).
     -   Kept `src/types/typeAliases.ts` as a thin re-export facade to preserve existing import paths and public type names.
