@@ -6,6 +6,11 @@ import { just } from '../../../src/utils/organization/just';
 import type { RunOptions } from '../cli/RunOptions';
 import { parseRunOptions } from '../cli/parseRunOptions';
 import { CliProgressDisplay } from '../common/cliProgressDisplay';
+import {
+    captureChangedFilesSnapshot,
+    normalizeLineEndingsInFilesChangedSinceSnapshot,
+    type ChangedFilesSnapshot,
+} from '../common/normalizeLineEndingsInChangedFiles';
 import { printCommitMessage } from '../common/printCommitMessage';
 import { waitForEnter } from '../common/waitForEnter';
 import { checkPause, listenForPause } from '../common/waitForPause';
@@ -220,6 +225,10 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             console.info(colors.blue(`Processing ${promptLabel}`));
 
             const promptExecutionStartedDate = moment();
+            const roundChangedFilesSnapshot = options.normalizeLineEndings
+                ? await captureChangedFilesSnapshot(process.cwd())
+                : undefined;
+
             try {
                 const result = await runner.runPrompt({
                     prompt: codexPrompt,
@@ -236,6 +245,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                     promptExecutionStartedDate,
                 );
                 await writePromptFile(nextPrompt.file);
+                await normalizeLineEndingsForCurrentRound(options, roundChangedFilesSnapshot);
 
                 if (options.waitForUser) {
                     printCommitMessage(commitMessage);
@@ -259,11 +269,38 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                     modelName: runnerMetadata.modelName,
                     error,
                 });
+                await normalizeLineEndingsForCurrentRound(options, roundChangedFilesSnapshot);
 
                 throw error;
             }
         }
     } finally {
         progressDisplay?.stop();
+    }
+}
+
+/**
+ * Normalizes line endings in files modified during the current coding round.
+ */
+async function normalizeLineEndingsForCurrentRound(
+    options: RunOptions,
+    roundChangedFilesSnapshot?: ChangedFilesSnapshot,
+): Promise<void> {
+    if (!options.normalizeLineEndings || !roundChangedFilesSnapshot) {
+        return;
+    }
+
+    try {
+        const result = await normalizeLineEndingsInFilesChangedSinceSnapshot({
+            projectPath: process.cwd(),
+            snapshot: roundChangedFilesSnapshot,
+        });
+
+        if (result.normalizedFiles > 0) {
+            console.info(colors.gray(`Normalized line endings to LF in ${result.normalizedFiles} changed file(s).`));
+        }
+    } catch (error) {
+        const details = error instanceof Error ? error.message : String(error);
+        console.warn(colors.yellow(`Automatic line-ending normalization failed: ${details}`));
     }
 }

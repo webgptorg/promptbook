@@ -29,6 +29,7 @@ npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-code
 --priority <minimum-priority> # Filter prompts by minimum priority level (default: 0)
 --no-wait                     # Skip user prompts between processing
 --ignore-git-changes          # Skip clean working tree check before running prompts
+--no-normalize-line-endings   # Disable per-round CRLF -> LF normalization for changed files
 ```
 
 ### Examples:

@@ -1,3 +1,8 @@
+-   Added automatic per-round LF normalization in `scripts/run-codex-prompts` (`ptbk coder run`):
+    -   After each coding round, the script now detects only files changed in that round and normalizes CRLF line endings to LF.
+    -   Added safe binary skipping (by known binary extension and NUL-byte detection) to avoid corrupting non-text files.
+    -   Added `--no-normalize-line-endings` as a debugging escape hatch (default behavior remains enabled).
+
 -   Added an alternative Agents Server textarea-first agent page at `/agents/[agentName]/textarea`:
     -   Added a minimal centered UI with one large textarea that focuses on load.
     -   Implemented keyboard behavior: `Enter` submits, `Shift+Enter` inserts newline.

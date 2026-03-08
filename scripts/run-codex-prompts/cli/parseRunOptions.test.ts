@@ -30,6 +30,7 @@ describe('parseRunOptions', () => {
             dryRun: false,
             agentName: 'gemini',
             priority: 0,
+            normalizeLineEndings: true,
         });
     });
 
@@ -40,6 +41,7 @@ describe('parseRunOptions', () => {
             dryRun: true,
             agentName: undefined,
             priority: 0,
+            normalizeLineEndings: true,
         });
     });
 
@@ -59,6 +61,7 @@ describe('parseRunOptions', () => {
             dryRun: false,
             waitForUser: false,
             ignoreGitChanges: true,
+            normalizeLineEndings: true,
             agentName: 'openai-codex',
             model: 'gpt-5.2-codex',
             priority: 3,
@@ -72,6 +75,17 @@ describe('parseRunOptions', () => {
             dryRun: true,
             waitForUser: false,
             priority: 2,
+            normalizeLineEndings: true,
+        });
+    });
+
+    it('allows disabling automatic line-ending normalization', () => {
+        const options = parseRunOptions(['--agent', 'gemini', '--no-normalize-line-endings']);
+
+        expect(options).toMatchObject({
+            dryRun: false,
+            agentName: 'gemini',
+            normalizeLineEndings: false,
         });
     });
 

@@ -11,6 +11,10 @@ export type RunOptions = {
      * Skip the clean working tree check before running prompts.
      */
     ignoreGitChanges: boolean;
+    /**
+     * Automatically normalize CRLF line endings to LF in files changed during each coding round.
+     */
+    normalizeLineEndings: boolean;
     agentName?: 'openai-codex' | 'cline' | 'claude-code' | 'opencode' | 'gemini';
     model?: string;
     /**

@@ -52,16 +52,21 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
     command.option('--priority <minimum-priority>', 'Filter prompts by minimum priority level', parseIntOption, 0);
     command.option('--no-wait', 'Skip user prompts between processing', false);
     command.option('--ignore-git-changes', 'Skip clean working tree check before running prompts', false);
+    command.option(
+        '--no-normalize-line-endings',
+        'Disable automatic LF normalization for files changed in each coding round',
+    );
 
     command.action(
         handleActionErrors(async (cliOptions) => {
-            const { dryRun, agent, model, priority, wait, ignoreGitChanges } = cliOptions as {
+            const { dryRun, agent, model, priority, wait, ignoreGitChanges, normalizeLineEndings } = cliOptions as {
                 readonly dryRun: boolean;
                 readonly agent?: string;
                 readonly model?: string;
                 readonly priority: number;
                 readonly wait: boolean;
                 readonly ignoreGitChanges: boolean;
+                readonly normalizeLineEndings: boolean;
             };
 
             // Validate agent
@@ -103,6 +108,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 agentName,
                 model,
                 priority,
+                normalizeLineEndings,
             };
 
             // Note: Import the function dynamically to avoid loading heavy dependencies until needed
