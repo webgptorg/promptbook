@@ -1,3 +1,8 @@
+-   Fixed Agents Server header search alignment in desktop top menu:
+    -   Switched the desktop header shell to a dedicated three-slot layout (`left | centered search | right`) so the global search box is visually centered in the header.
+    -   Moved desktop Documentation/System menu rendering into the right-side slot with control/user actions, preventing search-position shifts when right-side items (login/profile/control-panel actions) change.
+    -   Kept existing search input sizing and mobile menu search behavior unchanged.
+
 -   Improved Agents Server global application-error boundary report export:
     -   Added one-click `Copy` action that copies the full application error report as Markdown from the error screen.
     -   Added one-click `Save` action that downloads the same Markdown report as a `.md` file.

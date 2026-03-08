@@ -1076,6 +1076,315 @@ export function Header(props: HeaderProps) {
         ...(shouldShowSystemMenu ? [buildSystemMenuItem(systemMenuEntries)] : []),
     ];
 
+
+    /**
+     * Renders desktop top-level navigation entries shown to the right of the centered search slot.
+     */
+    const renderDesktopTopMenuNavigation = () => (
+        <nav className="hidden lg:flex items-center gap-4 xl:gap-6">
+            {menuItems.map((item, index) => {
+                if (item.type === 'link') {
+                    return (
+                        <HeadlessLink
+                            key={index}
+                            href={item.href}
+                            className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                        >
+                            {item.label}
+                        </HeadlessLink>
+                    );
+                }
+
+                if (item.type === 'dropdown') {
+                    const dropdownItems = item.items ?? [];
+                    const closeDropdown = () => {
+                        cancelMenuClose(item.id);
+                        item.setIsOpen(false);
+                        setOpenSubMenu(null);
+                        setDesktopExpandedSubMenus({});
+                    };
+                    const toggleDropdown = () => {
+                        cancelMenuClose(item.id);
+                        item.setIsOpen(!item.isOpen);
+                        if (item.isOpen) {
+                            setOpenSubMenu(null);
+                            setDesktopExpandedSubMenus({});
+                        }
+                    };
+
+                    const renderDropdownLink = (
+                        linkItem: SubMenuItem,
+                        keySuffix: string,
+                        className: string,
+                    ) => {
+                        if (linkItem.onClick) {
+                            return (
+                                <button
+                                    key={keySuffix}
+                                    onClick={linkItem.onClick}
+                                    className={`${className} w-full text-left`}
+                                >
+                                    {linkItem.label}
+                                </button>
+                            );
+                        }
+
+                        if (linkItem.href) {
+                            return (
+                                <HeadlessLink
+                                    key={keySuffix}
+                                    href={linkItem.href}
+                                    className={className}
+                                    onClick={() => closeDropdown()}
+                                >
+                                    {linkItem.label}
+                                </HeadlessLink>
+                            );
+                        }
+
+                        return (
+                            <span key={keySuffix} className={className}>
+                                {linkItem.label}
+                            </span>
+                        );
+                    };
+
+                    /**
+                     * Renders nested dropdown branches for touch-first desktop navigation.
+                     */
+                    const renderTouchNestedDropdownItems = (
+                        nestedItems: ReadonlyArray<SubMenuItem>,
+                        keyPrefix: string,
+                        depth = 0,
+                    ): ReactNode => (
+                        <div
+                            className={`grid auto-rows-min gap-1 ${
+                                depth > 0 ? 'mt-1 border-l border-gray-200 pl-2' : ''
+                            }`}
+                        >
+                            {nestedItems.map((nestedItem, nestedIndex) => {
+                                const nestedKey = `${keyPrefix}-${nestedIndex}`;
+                                const hasNestedChildren = Boolean(
+                                    nestedItem.items && nestedItem.items.length > 0,
+                                );
+                                const borderClass = nestedItem.isBordered
+                                    ? 'border-b border-gray-100 pb-1'
+                                    : '';
+                                const leafClassName = `block rounded-lg px-3 py-2 text-sm ${
+                                    nestedItem.isBold
+                                        ? 'font-medium text-gray-900'
+                                        : 'text-gray-700'
+                                } hover:bg-white hover:text-gray-900 transition-colors ${borderClass}`;
+
+                                if (!hasNestedChildren) {
+                                    return renderDropdownLink(nestedItem, nestedKey, leafClassName);
+                                }
+
+                                const isNestedOpen = Boolean(desktopExpandedSubMenus[nestedKey]);
+                                return (
+                                    <div key={nestedKey} className={borderClass}>
+                                        <button
+                                            type="button"
+                                            onClick={() => toggleDesktopSubMenu(nestedKey)}
+                                            className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-medium text-gray-700 transition-colors hover:bg-white hover:text-gray-900"
+                                        >
+                                            <span>{nestedItem.label}</span>
+                                            <ChevronDown
+                                                className={`h-3 w-3 text-gray-400 transition-transform ${
+                                                    isNestedOpen ? 'rotate-180' : ''
+                                                }`}
+                                            />
+                                        </button>
+                                        {isNestedOpen &&
+                                            renderTouchNestedDropdownItems(
+                                                nestedItem.items || [],
+                                                nestedKey,
+                                                depth + 1,
+                                            )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    );
+
+                    const renderDropdownItems = () =>
+                        dropdownItems.map((subItem, subIndex) => {
+                            const borderClass = subItem.isBordered
+                                ? 'border-b border-gray-100'
+                                : '';
+                            const baseClassName = `mx-1 block rounded-lg px-3 py-2.5 text-sm ${
+                                subItem.isBold ? 'font-medium text-gray-900' : 'text-gray-600'
+                            } hover:bg-gray-50 hover:text-gray-900 transition-colors ${borderClass}`;
+
+                            if (subItem.items && subItem.items.length > 0) {
+                                const submenuKey = `${item.id}-dropdown-${subIndex}`;
+                                const isSubMenuOpen =
+                                    !isTouchInput && openSubMenu?.key === submenuKey;
+                                const isTapSubMenuOpen = Boolean(
+                                    desktopExpandedSubMenus[submenuKey],
+                                );
+                                const childItems = subItem.items!;
+                                return (
+                                    <div
+                                        key={submenuKey}
+                                        className={`relative mx-1 rounded-lg ${borderClass}`}
+                                        onMouseEnter={(event) => {
+                                            if (isTouchInput) {
+                                                return;
+                                            }
+                                            handleSubMenuMouseEnter(submenuKey, childItems, event);
+                                            cancelMenuClose(item.id);
+                                        }}
+                                        onMouseLeave={() => {
+                                            if (isTouchInput) {
+                                                return;
+                                            }
+                                            handleSubMenuMouseLeave(submenuKey);
+                                        }}
+                                    >
+                                        <button
+                                            type="button"
+                                            className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm ${
+                                                subItem.isBold
+                                                    ? 'font-medium text-gray-900'
+                                                    : 'text-gray-600'
+                                            } hover:bg-gray-50 hover:text-gray-900 transition-colors`}
+                                            onClick={(event) => {
+                                                cancelMenuClose(item.id);
+                                                if (isTouchInput) {
+                                                    toggleDesktopSubMenu(submenuKey);
+                                                    return;
+                                                }
+                                                const rect = (
+                                                    event.currentTarget.parentElement ??
+                                                    event.currentTarget
+                                                ).getBoundingClientRect();
+                                                setOpenSubMenu((current) =>
+                                                    current?.key === submenuKey
+                                                        ? null
+                                                        : {
+                                                              key: submenuKey,
+                                                              rect,
+                                                              items: childItems,
+                                                          },
+                                                );
+                                            }}
+                                        >
+                                            <span>{subItem.label}</span>
+                                            <ChevronRight
+                                                className={`h-3 w-3 text-gray-400 transition-transform ${
+                                                    isTouchInput && isTapSubMenuOpen
+                                                        ? 'rotate-90'
+                                                        : ''
+                                                }`}
+                                            />
+                                        </button>
+
+                                        {isTouchInput && isTapSubMenuOpen && (
+                                            <div className="mx-1 mb-2 rounded-xl border border-gray-100 bg-gradient-to-b from-white to-gray-50/80 p-2">
+                                                {renderTouchNestedDropdownItems(
+                                                    childItems,
+                                                    submenuKey,
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {isSubMenuOpen && openSubMenu && (
+                                            <DropdownSubMenuPortal
+                                                anchorRect={openSubMenu.rect}
+                                                container={dropdownPortalContainer}
+                                                onMouseEnter={() => {
+                                                    keepSubMenuOpen();
+                                                    cancelMenuClose(item.id);
+                                                }}
+                                                onMouseLeave={() => {
+                                                    handleSubMenuPortalLeave();
+                                                    scheduleMenuClose(item.id, () =>
+                                                        item.setIsOpen(false),
+                                                    );
+                                                }}
+                                            >
+                                                <div className="pointer-events-auto max-h-[70vh] w-[min(320px,calc(100vw-4rem))] overflow-y-auto rounded-xl border border-gray-100 bg-white/95 p-2 shadow-xl shadow-slate-900/10 backdrop-blur">
+                                                    <div className="grid auto-rows-min gap-1 sm:grid-cols-2">
+                                                        {childItems.map((child, childIndex) =>
+                                                            renderDropdownLink(
+                                                                child,
+                                                                `${submenuKey}-portal-child-${childIndex}`,
+                                                                'block rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors',
+                                                            ),
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </DropdownSubMenuPortal>
+                                        )}
+                                    </div>
+                                );
+                            }
+
+                            return renderDropdownLink(
+                                subItem,
+                                `dropdown-${subIndex}`,
+                                baseClassName,
+                            );
+                        });
+
+                    return (
+                        <div
+                            key={index}
+                            className="relative"
+                            onMouseEnter={() => {
+                                cancelMenuClose(item.id);
+                                if (!isTouchInput) {
+                                    item.setIsOpen(true);
+                                }
+                            }}
+                            onMouseLeave={() =>
+                                scheduleMenuClose(item.id, () => item.setIsOpen(false))
+                            }
+                        >
+                            <button
+                                className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                                onClick={toggleDropdown}
+                                onMouseEnter={() => {
+                                    cancelMenuClose(item.id);
+                                    if (!isTouchInput) {
+                                        item.setIsOpen(true);
+                                    }
+                                }}
+                                onBlur={() =>
+                                    scheduleMenuClose(item.id, () => item.setIsOpen(false))
+                                }
+                            >
+                                {item.label}
+                                <ChevronDown className="w-4 h-4" />
+                            </button>
+
+                            {item.isOpen && (
+                                <div
+                                    className="absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-2xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 backdrop-blur"
+                                    onMouseEnter={() => cancelMenuClose(item.id)}
+                                    onMouseLeave={() =>
+                                        scheduleMenuClose(item.id, () => item.setIsOpen(false))
+                                    }
+                                >
+                                    {item.renderMenu ? (
+                                        <div className="relative">{item.renderMenu()}</div>
+                                    ) : (
+                                        <div className="max-h-[80vh] overflow-y-auto overflow-x-visible">
+                                            {renderDropdownItems()}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    );
+                }
+
+                return null;
+            })}
+        </nav>
+    );
+
     return (
         <header
             ref={headerRef}
@@ -1094,7 +1403,7 @@ export function Header(props: HeaderProps) {
                 />
             )}
             <div className="relative w-full px-4 h-full">
-                <div className="flex h-full items-center gap-2 sm:gap-4 lg:gap-5">
+                <div className="flex h-full items-center gap-2 sm:gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-5">
                     <div className="min-w-0 flex-1">
                         <div className="flex min-w-0 items-center gap-2 sm:gap-3 rounded-2xl border border-gray-200 bg-white/90 px-2 sm:px-3 md:px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm shadow-slate-200/60 backdrop-blur">
                             <div className="relative flex min-w-0 items-center gap-3">
@@ -1361,318 +1670,16 @@ export function Header(props: HeaderProps) {
                         </div>
                     </div>
 
-                    <div className="hidden min-w-0 flex-1 items-center justify-center px-2 lg:flex xl:px-4">
-                        <div className="flex min-w-0 items-center gap-4">
-                            <div className="hidden w-[clamp(12rem,20vw,22.5rem)] xl:block">
-                                <HeaderSearchBox className="w-full" />
-                            </div>
-                            <nav className="flex items-center gap-4 xl:gap-6">
-                                {menuItems.map((item, index) => {
-                                    if (item.type === 'link') {
-                                        return (
-                                            <HeadlessLink
-                                                key={index}
-                                                href={item.href}
-                                                className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                                            >
-                                                {item.label}
-                                            </HeadlessLink>
-                                        );
-                                    }
-
-                                    if (item.type === 'dropdown') {
-                                        const dropdownItems = item.items ?? [];
-                                        const closeDropdown = () => {
-                                            cancelMenuClose(item.id);
-                                            item.setIsOpen(false);
-                                            setOpenSubMenu(null);
-                                            setDesktopExpandedSubMenus({});
-                                        };
-                                        const toggleDropdown = () => {
-                                            cancelMenuClose(item.id);
-                                            item.setIsOpen(!item.isOpen);
-                                            if (item.isOpen) {
-                                                setOpenSubMenu(null);
-                                                setDesktopExpandedSubMenus({});
-                                            }
-                                        };
-
-                                        const renderDropdownLink = (
-                                            linkItem: SubMenuItem,
-                                            keySuffix: string,
-                                            className: string,
-                                        ) => {
-                                            if (linkItem.onClick) {
-                                                return (
-                                                    <button
-                                                        key={keySuffix}
-                                                        onClick={linkItem.onClick}
-                                                        className={`${className} w-full text-left`}
-                                                    >
-                                                        {linkItem.label}
-                                                    </button>
-                                                );
-                                            }
-
-                                            if (linkItem.href) {
-                                                return (
-                                                    <HeadlessLink
-                                                        key={keySuffix}
-                                                        href={linkItem.href}
-                                                        className={className}
-                                                        onClick={() => closeDropdown()}
-                                                    >
-                                                        {linkItem.label}
-                                                    </HeadlessLink>
-                                                );
-                                            }
-
-                                            return (
-                                                <span key={keySuffix} className={className}>
-                                                    {linkItem.label}
-                                                </span>
-                                            );
-                                        };
-
-                                        /**
-                                         * Renders nested dropdown branches for touch-first desktop navigation.
-                                         */
-                                        const renderTouchNestedDropdownItems = (
-                                            nestedItems: ReadonlyArray<SubMenuItem>,
-                                            keyPrefix: string,
-                                            depth = 0,
-                                        ): ReactNode => (
-                                            <div
-                                                className={`grid auto-rows-min gap-1 ${
-                                                    depth > 0 ? 'mt-1 border-l border-gray-200 pl-2' : ''
-                                                }`}
-                                            >
-                                                {nestedItems.map((nestedItem, nestedIndex) => {
-                                                    const nestedKey = `${keyPrefix}-${nestedIndex}`;
-                                                    const hasNestedChildren = Boolean(
-                                                        nestedItem.items && nestedItem.items.length > 0,
-                                                    );
-                                                    const borderClass = nestedItem.isBordered
-                                                        ? 'border-b border-gray-100 pb-1'
-                                                        : '';
-                                                    const leafClassName = `block rounded-lg px-3 py-2 text-sm ${
-                                                        nestedItem.isBold
-                                                            ? 'font-medium text-gray-900'
-                                                            : 'text-gray-700'
-                                                    } hover:bg-white hover:text-gray-900 transition-colors ${borderClass}`;
-
-                                                    if (!hasNestedChildren) {
-                                                        return renderDropdownLink(nestedItem, nestedKey, leafClassName);
-                                                    }
-
-                                                    const isNestedOpen = Boolean(desktopExpandedSubMenus[nestedKey]);
-                                                    return (
-                                                        <div key={nestedKey} className={borderClass}>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => toggleDesktopSubMenu(nestedKey)}
-                                                                className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-medium text-gray-700 transition-colors hover:bg-white hover:text-gray-900"
-                                                            >
-                                                                <span>{nestedItem.label}</span>
-                                                                <ChevronDown
-                                                                    className={`h-3 w-3 text-gray-400 transition-transform ${
-                                                                        isNestedOpen ? 'rotate-180' : ''
-                                                                    }`}
-                                                                />
-                                                            </button>
-                                                            {isNestedOpen &&
-                                                                renderTouchNestedDropdownItems(
-                                                                    nestedItem.items || [],
-                                                                    nestedKey,
-                                                                    depth + 1,
-                                                                )}
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        );
-
-                                        const renderDropdownItems = () =>
-                                            dropdownItems.map((subItem, subIndex) => {
-                                                const borderClass = subItem.isBordered
-                                                    ? 'border-b border-gray-100'
-                                                    : '';
-                                                const baseClassName = `mx-1 block rounded-lg px-3 py-2.5 text-sm ${
-                                                    subItem.isBold ? 'font-medium text-gray-900' : 'text-gray-600'
-                                                } hover:bg-gray-50 hover:text-gray-900 transition-colors ${borderClass}`;
-
-                                                if (subItem.items && subItem.items.length > 0) {
-                                                    const submenuKey = `${item.id}-dropdown-${subIndex}`;
-                                                    const isSubMenuOpen =
-                                                        !isTouchInput && openSubMenu?.key === submenuKey;
-                                                    const isTapSubMenuOpen = Boolean(
-                                                        desktopExpandedSubMenus[submenuKey],
-                                                    );
-                                                    const childItems = subItem.items!;
-                                                    return (
-                                                        <div
-                                                            key={submenuKey}
-                                                            className={`relative mx-1 rounded-lg ${borderClass}`}
-                                                            onMouseEnter={(event) => {
-                                                                if (isTouchInput) {
-                                                                    return;
-                                                                }
-                                                                handleSubMenuMouseEnter(submenuKey, childItems, event);
-                                                                cancelMenuClose(item.id);
-                                                            }}
-                                                            onMouseLeave={() => {
-                                                                if (isTouchInput) {
-                                                                    return;
-                                                                }
-                                                                handleSubMenuMouseLeave(submenuKey);
-                                                            }}
-                                                        >
-                                                            <button
-                                                                type="button"
-                                                                className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm ${
-                                                                    subItem.isBold
-                                                                        ? 'font-medium text-gray-900'
-                                                                        : 'text-gray-600'
-                                                                } hover:bg-gray-50 hover:text-gray-900 transition-colors`}
-                                                                onClick={(event) => {
-                                                                    cancelMenuClose(item.id);
-                                                                    if (isTouchInput) {
-                                                                        toggleDesktopSubMenu(submenuKey);
-                                                                        return;
-                                                                    }
-                                                                    const rect = (
-                                                                        event.currentTarget.parentElement ??
-                                                                        event.currentTarget
-                                                                    ).getBoundingClientRect();
-                                                                    setOpenSubMenu((current) =>
-                                                                        current?.key === submenuKey
-                                                                            ? null
-                                                                            : {
-                                                                                  key: submenuKey,
-                                                                                  rect,
-                                                                                  items: childItems,
-                                                                              },
-                                                                    );
-                                                                }}
-                                                            >
-                                                                <span>{subItem.label}</span>
-                                                                <ChevronRight
-                                                                    className={`h-3 w-3 text-gray-400 transition-transform ${
-                                                                        isTouchInput && isTapSubMenuOpen
-                                                                            ? 'rotate-90'
-                                                                            : ''
-                                                                    }`}
-                                                                />
-                                                            </button>
-
-                                                            {isTouchInput && isTapSubMenuOpen && (
-                                                                <div className="mx-1 mb-2 rounded-xl border border-gray-100 bg-gradient-to-b from-white to-gray-50/80 p-2">
-                                                                    {renderTouchNestedDropdownItems(
-                                                                        childItems,
-                                                                        submenuKey,
-                                                                    )}
-                                                                </div>
-                                                            )}
-
-                                                            {isSubMenuOpen && openSubMenu && (
-                                                                <DropdownSubMenuPortal
-                                                                    anchorRect={openSubMenu.rect}
-                                                                    container={dropdownPortalContainer}
-                                                                    onMouseEnter={() => {
-                                                                        keepSubMenuOpen();
-                                                                        cancelMenuClose(item.id);
-                                                                    }}
-                                                                    onMouseLeave={() => {
-                                                                        handleSubMenuPortalLeave();
-                                                                        scheduleMenuClose(item.id, () =>
-                                                                            item.setIsOpen(false),
-                                                                        );
-                                                                    }}
-                                                                >
-                                                                    <div className="pointer-events-auto max-h-[70vh] w-[min(320px,calc(100vw-4rem))] overflow-y-auto rounded-xl border border-gray-100 bg-white/95 p-2 shadow-xl shadow-slate-900/10 backdrop-blur">
-                                                                        <div className="grid auto-rows-min gap-1 sm:grid-cols-2">
-                                                                            {childItems.map((child, childIndex) =>
-                                                                                renderDropdownLink(
-                                                                                    child,
-                                                                                    `${submenuKey}-portal-child-${childIndex}`,
-                                                                                    'block rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors',
-                                                                                ),
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-                                                                </DropdownSubMenuPortal>
-                                                            )}
-                                                        </div>
-                                                    );
-                                                }
-
-                                                return renderDropdownLink(
-                                                    subItem,
-                                                    `dropdown-${subIndex}`,
-                                                    baseClassName,
-                                                );
-                                            });
-
-                                        return (
-                                            <div
-                                                key={index}
-                                                className="relative"
-                                                onMouseEnter={() => {
-                                                    cancelMenuClose(item.id);
-                                                    if (!isTouchInput) {
-                                                        item.setIsOpen(true);
-                                                    }
-                                                }}
-                                                onMouseLeave={() =>
-                                                    scheduleMenuClose(item.id, () => item.setIsOpen(false))
-                                                }
-                                            >
-                                                <button
-                                                    className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                                                    onClick={toggleDropdown}
-                                                    onMouseEnter={() => {
-                                                        cancelMenuClose(item.id);
-                                                        if (!isTouchInput) {
-                                                            item.setIsOpen(true);
-                                                        }
-                                                    }}
-                                                    onBlur={() =>
-                                                        scheduleMenuClose(item.id, () => item.setIsOpen(false))
-                                                    }
-                                                >
-                                                    {item.label}
-                                                    <ChevronDown className="w-4 h-4" />
-                                                </button>
-
-                                                {item.isOpen && (
-                                                    <div
-                                                        className="absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-2xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 backdrop-blur"
-                                                        onMouseEnter={() => cancelMenuClose(item.id)}
-                                                        onMouseLeave={() =>
-                                                            scheduleMenuClose(item.id, () => item.setIsOpen(false))
-                                                        }
-                                                    >
-                                                        {item.renderMenu ? (
-                                                            <div className="relative">{item.renderMenu()}</div>
-                                                        ) : (
-                                                            <div className="max-h-[80vh] overflow-y-auto overflow-x-visible">
-                                                                {renderDropdownItems()}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        );
-                                    }
-
-                                    return null;
-                                })}
-                            </nav>
+                    <div className="hidden items-center justify-center px-2 lg:flex xl:px-4">
+                        <div className="hidden w-[clamp(12rem,20vw,22.5rem)] xl:block">
+                            <HeaderSearchBox className="w-full" />
                         </div>
                     </div>
 
+
                     {/* CTA Button & Mobile Menu Toggle */}
-                    <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-shrink-0">
+                    <div className="ml-auto flex items-center gap-2 sm:gap-3 md:gap-4 flex-shrink-0 lg:ml-0 lg:justify-self-end">
+                        {renderDesktopTopMenuNavigation()}
                         {menuHoisting && menuHoisting.menu.length > 0 && (
                             <div className="hidden lg:flex items-center gap-2 border-r border-gray-200 pr-4 mr-2">
                                 {menuHoisting.menu.map((item, index) => (
