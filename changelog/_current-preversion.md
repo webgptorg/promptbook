@@ -1,3 +1,13 @@
+-   Refactored Agents Server header component for maintainability/readability without behavior changes:
+    -   Split `apps/agents-server/src/components/Header/Header.tsx` into focused private modules:
+        -   `buildAgentMenuStructure.tsx` (agent hierarchy data builders + related header menu components/helpers)
+        -   `buildDocumentationDropdownItems.tsx` (documentation dropdown item composition)
+        -   `DropdownSubMenuPortal.tsx` (floating submenu portal rendering)
+        -   `useHeaderTouchInput.ts` and `useHeaderDropdownPortalContainer.ts` (touch detection and portal container hooks)
+        -   `SubMenuItem.ts` (shared submenu item type)
+    -   Kept external header behavior unchanged while reducing `Header.tsx` responsibilities and line count.
+    -   Added private JSDoc annotations on extracted entities to align with internal conventions.
+
 -   Fixed intermittent Monaco syntax highlighting loss in Agents Server Book editor after client-side back/forward navigation:
     -   Book Monaco lifecycle now re-applies Book language + theme to the mounted editor model on mount/focus/navigation visibility events, while keeping language/token providers registered idempotently per Monaco runtime.
     -   `/agents/[agentName]/book` now uses a stable Monaco model path so cursor/scroll view state is restored after remounts (`saveViewState`) without keeping stale models alive.
