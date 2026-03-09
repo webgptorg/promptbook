@@ -3,6 +3,7 @@
 import { $provideServer } from '@/src/tools/$provideServer';
 import { formatAgentNamingText } from '@/src/utils/agentNaming';
 import { getAgentNaming } from '@/src/utils/getAgentNaming';
+import { PromptbookAgentIntegration } from '@promptbook-local/components';
 import { headers } from 'next/headers';
 import spaceTrim from 'spacetrim';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
@@ -67,6 +68,20 @@ export default async function WebsiteIntegrationAgentPage({ params }: { params: 
             </p>
 
             <WebsiteIntegrationTabs reactCode={reactCode} htmlCode={htmlCode} />
+            {just(false) && (
+                <PromptbookAgentIntegration
+                    // formfactor="profile"
+                    agentUrl={agentUrl}
+                    meta={meta}
+                    style={
+                        {
+                            // width: '400px',
+                            // height: '600px',
+                            // outline: `2px solid red`
+                        }
+                    }
+                />
+            )}
             {htmlCode}
             {just(true) && <div dangerouslySetInnerHTML={{ __html: htmlCode }} />}
             {just(true) && <div dangerouslySetInnerHTML={{ __html: `<h1>Test</h1>` }} />}
