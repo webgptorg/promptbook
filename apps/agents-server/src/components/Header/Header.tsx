@@ -3,7 +3,22 @@
 import promptbookLogoBlueTransparent from '@/public/logo-blue-white-256.png';
 import { logoutAction } from '@/src/app/actions';
 import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
-import { ArrowRight, ChevronDown, ChevronRight, FolderIcon, Lock, LogIn, LogOut } from 'lucide-react';
+import {
+    ArrowRight,
+    BarChart3,
+    ChevronDown,
+    ChevronRight,
+    Code2,
+    FolderIcon,
+    Globe2,
+    KeyRound,
+    Lock,
+    LogIn,
+    LogOut,
+    Settings2,
+    UserRound,
+    type LucideIcon,
+} from 'lucide-react';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import type { CSSProperties, MouseEvent, ReactNode } from 'react';
@@ -143,6 +158,43 @@ const HEADER_DROPDOWN_CLOSE_DELAY_MS = 280;
  * Horizontal indentation applied for each nested submenu level in mobile navigation.
  */
 const MOBILE_SUBMENU_INDENT_PX = 14;
+
+/**
+ * Supported category names inside the System dropdown.
+ */
+type SystemCategoryLabel =
+    | 'My Account'
+    | 'Administration'
+    | 'Monitoring & Usage'
+    | 'Integrations & Keys'
+    | 'Developer / Debug'
+    | 'Legal & About';
+
+/**
+ * Default icon used for each System dropdown category.
+ */
+const SYSTEM_CATEGORY_ICON_MAP: Record<SystemCategoryLabel, LucideIcon> = {
+    'My Account': UserRound,
+    Administration: Settings2,
+    'Monitoring & Usage': BarChart3,
+    'Integrations & Keys': KeyRound,
+    'Developer / Debug': Code2,
+    'Legal & About': Globe2,
+};
+
+/**
+ * Propagates one fallback icon to submenu entries that do not specify their own icon.
+ */
+function applyFallbackSubMenuIcon(items: ReadonlyArray<SubMenuItem>, fallbackIcon: LucideIcon): SubMenuItem[] {
+    return items.map((item) => {
+        const resolvedIcon = item.icon ?? fallbackIcon;
+        return {
+            ...item,
+            icon: resolvedIcon,
+            items: item.items ? applyFallbackSubMenuIcon(item.items, resolvedIcon) : item.items,
+        };
+    });
+}
 
 /**
  * Reserved top-level routes that cannot be interpreted as an agent alias.
@@ -378,6 +430,24 @@ export function Header(props: HeaderProps) {
     });
 
     /**
+     * Renders one submenu label with a consistent optional leading icon.
+     */
+    const renderSubMenuItemLabel = (item: SubMenuItem): ReactNode => {
+        const ItemIcon = item.icon;
+
+        if (!ItemIcon) {
+            return item.label;
+        }
+
+        return (
+            <span className="flex min-w-0 items-center gap-2">
+                <ItemIcon className="h-4 w-4 shrink-0 text-gray-500" aria-hidden />
+                <span className="min-w-0">{item.label}</span>
+            </span>
+        );
+    };
+
+    /**
      * Renders one leaf mobile menu item as link, action button, or plain label.
      */
     const renderMobileMenuLeafItem = (
@@ -398,7 +468,7 @@ export function Header(props: HeaderProps) {
                         setIsMenuOpen(false);
                     }}
                 >
-                    {item.label}
+                    {renderSubMenuItemLabel(item)}
                 </button>
             );
         }
@@ -412,14 +482,14 @@ export function Header(props: HeaderProps) {
                     style={style}
                     onClick={() => setIsMenuOpen(false)}
                 >
-                    {item.label}
+                    {renderSubMenuItemLabel(item)}
                 </HeadlessLink>
             );
         }
 
         return (
             <span key={itemKey} className={className} style={createMobileMenuItemPaddingStyle(depth)}>
-                {item.label}
+                {renderSubMenuItemLabel(item)}
             </span>
         );
     };
@@ -458,7 +528,7 @@ export function Header(props: HeaderProps) {
                                 style={indentationStyle}
                                 onClick={() => toggleMobileSubMenu(itemKey)}
                             >
-                                <span className="min-w-0 flex-1">{item.label}</span>
+                                <span className="min-w-0 flex-1">{renderSubMenuItemLabel(item)}</span>
                                 <ChevronDown
                                     className={`w-4 h-4 flex-shrink-0 transition-transform duration-200 ${
                                         isSubMenuOpen ? 'rotate-180' : ''
@@ -497,7 +567,7 @@ export function Header(props: HeaderProps) {
                                 closeAgentViewDropdown();
                             }}
                         >
-                            {item.label}
+                            {renderSubMenuItemLabel(item)}
                         </button>
                     );
                 }
@@ -510,14 +580,14 @@ export function Header(props: HeaderProps) {
                             className={baseClassName}
                             onClick={closeAgentViewDropdown}
                         >
-                            {item.label}
+                            {renderSubMenuItemLabel(item)}
                         </HeadlessLink>
                     );
                 }
 
                 return (
                     <span key={itemKey} className={baseClassName}>
-                        {item.label}
+                        {renderSubMenuItemLabel(item)}
                     </span>
                 );
             }
@@ -531,7 +601,7 @@ export function Header(props: HeaderProps) {
                         className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900 ${paddingClass}`}
                         onClick={() => toggleDesktopSubMenu(itemKey)}
                     >
-                        <span>{item.label}</span>
+                        <span className="min-w-0 flex-1">{renderSubMenuItemLabel(item)}</span>
                         <ChevronDown
                             className={`h-3 w-3 text-gray-400 transition-transform ${
                                 isSubMenuOpen ? 'rotate-180' : ''
@@ -868,15 +938,23 @@ export function Header(props: HeaderProps) {
     /**
      * @private Creates one category entry inside the System dropdown when there are items to show.
      */
-    const createSystemCategory = (label: string, items: ReadonlyArray<SubMenuItem>): SubMenuItem[] =>
-        items.length > 0
-            ? [
-                  {
-                      label,
-                      items: [...items],
-                  },
-              ]
-            : [];
+    const createSystemCategory = (
+        label: SystemCategoryLabel,
+        items: ReadonlyArray<SubMenuItem>,
+    ): SubMenuItem[] => {
+        if (items.length === 0) {
+            return [];
+        }
+
+        const categoryIcon = SYSTEM_CATEGORY_ICON_MAP[label];
+        return [
+            {
+                label,
+                icon: categoryIcon,
+                items: applyFallbackSubMenuIcon(items, categoryIcon),
+            },
+        ];
+    };
 
     /**
      * @private Personal account links available to authenticated users.
@@ -1155,7 +1233,7 @@ export function Header(props: HeaderProps) {
                                     onClick={linkItem.onClick}
                                     className={`${className} w-full text-left`}
                                 >
-                                    {linkItem.label}
+                                    {renderSubMenuItemLabel(linkItem)}
                                 </button>
                             );
                         }
@@ -1168,14 +1246,14 @@ export function Header(props: HeaderProps) {
                                     className={className}
                                     onClick={() => closeDropdown()}
                                 >
-                                    {linkItem.label}
+                                    {renderSubMenuItemLabel(linkItem)}
                                 </HeadlessLink>
                             );
                         }
 
                         return (
                             <span key={keySuffix} className={className}>
-                                {linkItem.label}
+                                {renderSubMenuItemLabel(linkItem)}
                             </span>
                         );
                     };
@@ -1219,7 +1297,9 @@ export function Header(props: HeaderProps) {
                                             onClick={() => toggleDesktopSubMenu(nestedKey)}
                                             className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-medium text-gray-700 transition-colors hover:bg-white hover:text-gray-900"
                                         >
-                                            <span>{nestedItem.label}</span>
+                                            <span className="min-w-0 flex-1">
+                                                {renderSubMenuItemLabel(nestedItem)}
+                                            </span>
                                             <ChevronDown
                                                 className={`h-3 w-3 text-gray-400 transition-transform ${
                                                     isNestedOpen ? 'rotate-180' : ''
@@ -1301,7 +1381,9 @@ export function Header(props: HeaderProps) {
                                                 );
                                             }}
                                         >
-                                            <span>{subItem.label}</span>
+                                            <span className="min-w-0 flex-1">
+                                                {renderSubMenuItemLabel(subItem)}
+                                            </span>
                                             <ChevronRight
                                                 className={`h-3 w-3 text-gray-400 transition-transform ${
                                                     isTouchInput && isTapSubMenuOpen
@@ -1336,7 +1418,7 @@ export function Header(props: HeaderProps) {
                                                 }}
                                             >
                                                 <div className="pointer-events-auto max-h-[70vh] w-[min(320px,calc(100vw-4rem))] overflow-y-auto rounded-xl border border-gray-100 bg-white/95 p-2 shadow-xl shadow-slate-900/10 backdrop-blur">
-                                                    <div className="grid auto-rows-min gap-1 sm:grid-cols-2">
+                                                    <div className="flex flex-col gap-1">
                                                         {childItems.map((child, childIndex) =>
                                                             renderDropdownLink(
                                                                 child,

@@ -14,10 +14,10 @@
             - button "Switch server" [ref=e13] [cursor=pointer]:
               - img [ref=e14]
           - img [ref=e16]
-          - button "Sebastian Gray avatar Sebastian Gray" [ref=e20] [cursor=pointer]:
+          - button "Sophia Black avatar Sophia Black" [ref=e20] [cursor=pointer]:
             - generic [ref=e21]:
-              - img "Sebastian Gray avatar" [ref=e23]
-              - generic [ref=e24]: Sebastian Gray
+              - img "Sophia Black avatar" [ref=e23]
+              - generic [ref=e24]: Sophia Black
             - img [ref=e25]
           - img [ref=e27]
           - button "Profile" [ref=e31] [cursor=pointer]:
@@ -121,5 +121,5 @@
             - text: All rights reserved.
             - text: Made with ❤️ in the Czech Republic.
           - paragraph [ref=e129]: Promptbook engine version 0.111.0-11
-  - alert [ref=e130]: Sebastian Gray
+  - alert [ref=e130]: Sophia Black
 ```

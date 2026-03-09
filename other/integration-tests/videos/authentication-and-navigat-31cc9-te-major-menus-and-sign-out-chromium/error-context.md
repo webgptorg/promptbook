@@ -35,152 +35,164 @@
                 - img [ref=e42]
               - generic [ref=e45]:
                 - button "My Account" [active] [ref=e47] [cursor=pointer]:
-                  - generic [ref=e48]: My Account
-                  - img [ref=e49]
-                - button "Administration" [ref=e52] [cursor=pointer]:
-                  - generic [ref=e53]: Administration
+                  - generic [ref=e49]:
+                    - img [ref=e50]
+                    - generic [ref=e53]: My Account
                   - img [ref=e54]
-                - button "Monitoring & Usage" [ref=e57] [cursor=pointer]:
-                  - generic [ref=e58]: Monitoring & Usage
-                  - img [ref=e59]
-                - button "Integrations & Keys" [ref=e62] [cursor=pointer]:
-                  - generic [ref=e63]: Integrations & Keys
+                - button "Administration" [ref=e57] [cursor=pointer]:
+                  - generic [ref=e59]:
+                    - img [ref=e60]
+                    - generic [ref=e63]: Administration
                   - img [ref=e64]
-                - button "Developer / Debug" [ref=e67] [cursor=pointer]:
-                  - generic [ref=e68]: Developer / Debug
-                  - img [ref=e69]
-                - button "Legal & About" [ref=e72] [cursor=pointer]:
-                  - generic [ref=e73]: Legal & About
-                  - img [ref=e74]
-          - button "Open global control panel" [ref=e77] [cursor=pointer]:
-            - img [ref=e78]
-            - generic [ref=e81]: Control panel
-          - button "A admin Admin" [ref=e84] [cursor=pointer]:
-            - generic [ref=e86]: A
-            - generic [ref=e87]:
-              - generic [ref=e88]: admin
-              - generic [ref=e89]: Admin
-            - img [ref=e90]
-    - main [ref=e92]:
-      - generic [ref=e94]:
-        - generic [ref=e95]:
-          - generic [ref=e96]:
-            - generic [ref=e97]: 📚
-            - generic [ref=e98]: Documentation
-          - generic [ref=e99]:
-            - button "Print / Save as PDF" [ref=e100] [cursor=pointer]:
-              - img [ref=e101]
+                - button "Monitoring & Usage" [ref=e67] [cursor=pointer]:
+                  - generic [ref=e69]:
+                    - img [ref=e70]
+                    - generic [ref=e72]: Monitoring & Usage
+                  - img [ref=e73]
+                - button "Integrations & Keys" [ref=e76] [cursor=pointer]:
+                  - generic [ref=e78]:
+                    - img [ref=e79]
+                    - generic [ref=e82]: Integrations & Keys
+                  - img [ref=e83]
+                - button "Developer / Debug" [ref=e86] [cursor=pointer]:
+                  - generic [ref=e88]:
+                    - img [ref=e89]
+                    - generic [ref=e93]: Developer / Debug
+                  - img [ref=e94]
+                - button "Legal & About" [ref=e97] [cursor=pointer]:
+                  - generic [ref=e99]:
+                    - img [ref=e100]
+                    - generic [ref=e105]: Legal & About
+                  - img [ref=e106]
+          - button "Open global control panel" [ref=e109] [cursor=pointer]:
+            - img [ref=e110]
+            - generic [ref=e113]: Control panel
+          - button "A admin Admin" [ref=e116] [cursor=pointer]:
+            - generic [ref=e118]: A
+            - generic [ref=e119]:
+              - generic [ref=e120]: admin
+              - generic [ref=e121]: Admin
+            - img [ref=e122]
+    - main [ref=e124]:
+      - generic [ref=e126]:
+        - generic [ref=e127]:
+          - generic [ref=e128]:
+            - generic [ref=e129]: 📚
+            - generic [ref=e130]: Documentation
+          - generic [ref=e131]:
+            - button "Print / Save as PDF" [ref=e132] [cursor=pointer]:
+              - img [ref=e133]
               - text: Print / Save as PDF
-            - link "Download Markdown" [ref=e105] [cursor=pointer]:
+            - link "Download Markdown" [ref=e137] [cursor=pointer]:
               - /url: /api/docs/book.md
-              - img [ref=e106]
+              - img [ref=e138]
               - text: Download Markdown
-        - generic [ref=e109]:
-          - generic [ref=e110]:
-            - generic [ref=e111]:
-              - heading "👤PERSONA/ PERSONAE" [level=1] [ref=e112]:
+        - generic [ref=e141]:
+          - generic [ref=e142]:
+            - generic [ref=e143]:
+              - heading "👤PERSONA/ PERSONAE" [level=1] [ref=e144]:
                 - text: 👤PERSONA
-                - generic [ref=e113]: / PERSONAE
-              - generic [ref=e114]: Commitment
-            - paragraph [ref=e115]: "Define who the agent is: background, expertise, and personality."
-          - article [ref=e117]:
-            - generic [ref=e118]:
-              - heading "PERSONA" [level=1] [ref=e119]
-              - paragraph [ref=e120]: Defines who the agent is, their background, expertise, and personality traits.
-              - heading "Key aspects" [level=2] [ref=e121]
-              - list [ref=e122]:
-                - listitem [ref=e123]:
+                - generic [ref=e145]: / PERSONAE
+              - generic [ref=e146]: Commitment
+            - paragraph [ref=e147]: "Define who the agent is: background, expertise, and personality."
+          - article [ref=e149]:
+            - generic [ref=e150]:
+              - heading "PERSONA" [level=1] [ref=e151]
+              - paragraph [ref=e152]: Defines who the agent is, their background, expertise, and personality traits.
+              - heading "Key aspects" [level=2] [ref=e153]
+              - list [ref=e154]:
+                - listitem [ref=e155]:
                   - text: Multiple
-                  - code [ref=e124]: PERSONA
+                  - code [ref=e156]: PERSONA
                   - text: and
-                  - code [ref=e125]: PERSONAE
+                  - code [ref=e157]: PERSONAE
                   - text: commitments are merged together.
-                - listitem [ref=e126]: Both terms work identically and can be used interchangeably.
-                - listitem [ref=e127]: If they are in conflict, the last one takes precedence.
-                - listitem [ref=e128]: You can write persona content in multiple lines.
-              - heading "Examples" [level=2] [ref=e129]
-              - generic [ref=e132]:
-                - generic [ref=e133]:
-                  - generic [ref=e134]: book
-                  - generic [ref=e135]:
-                    - button "Copy" [ref=e136] [cursor=pointer]
-                    - button "Download" [ref=e137] [cursor=pointer]
-                - code [ref=e150]:
-                  - generic [ref=e151]:
-                    - textbox "Editor content" [ref=e152]
-                    - textbox [ref=e153]
-                    - generic [ref=e166]:
-                      - generic [ref=e168]: Programming Assistant
-                      - generic [ref=e171]: PERSONA You are a helpful programming assistant with expertise in TypeScript and React
-                      - generic [ref=e173]: PERSONA You have deep knowledge of modern web development practices
-    - contentinfo [ref=e175]:
-      - generic [ref=e176]:
-        - generic [ref=e177]:
-          - generic [ref=e178]:
-            - heading "Promptbook" [level=3] [ref=e179]
-            - paragraph [ref=e180]: Turn your company's scattered knowledge into AI ready books
-          - generic [ref=e181]:
-            - heading "Product" [level=3] [ref=e182]
-            - list [ref=e183]:
-              - listitem [ref=e184]:
-                - link "Get started" [ref=e185] [cursor=pointer]:
+                - listitem [ref=e158]: Both terms work identically and can be used interchangeably.
+                - listitem [ref=e159]: If they are in conflict, the last one takes precedence.
+                - listitem [ref=e160]: You can write persona content in multiple lines.
+              - heading "Examples" [level=2] [ref=e161]
+              - generic [ref=e164]:
+                - generic [ref=e165]:
+                  - generic [ref=e166]: book
+                  - generic [ref=e167]:
+                    - button "Copy" [ref=e168] [cursor=pointer]
+                    - button "Download" [ref=e169] [cursor=pointer]
+                - code [ref=e182]:
+                  - generic [ref=e183]:
+                    - textbox "Editor content" [ref=e184]
+                    - textbox [ref=e185]
+                    - generic [ref=e198]:
+                      - generic [ref=e200]: Programming Assistant
+                      - generic [ref=e203]: PERSONA You are a helpful programming assistant with expertise in TypeScript and React
+                      - generic [ref=e205]: PERSONA You have deep knowledge of modern web development practices
+    - contentinfo [ref=e207]:
+      - generic [ref=e208]:
+        - generic [ref=e209]:
+          - generic [ref=e210]:
+            - heading "Promptbook" [level=3] [ref=e211]
+            - paragraph [ref=e212]: Turn your company's scattered knowledge into AI ready books
+          - generic [ref=e213]:
+            - heading "Product" [level=3] [ref=e214]
+            - list [ref=e215]:
+              - listitem [ref=e216]:
+                - link "Get started" [ref=e217] [cursor=pointer]:
                   - /url: /get-started
-              - listitem [ref=e186]:
-                - link "Manifest" [ref=e187] [cursor=pointer]:
+              - listitem [ref=e218]:
+                - link "Manifest" [ref=e219] [cursor=pointer]:
                   - /url: /manifest
-              - listitem [ref=e188]:
-                - link "Documentation" [ref=e189] [cursor=pointer]:
+              - listitem [ref=e220]:
+                - link "Documentation" [ref=e221] [cursor=pointer]:
                   - /url: https://github.com/webgptorg/promptbook
-              - listitem [ref=e190]:
-                - link "Terms of Service" [ref=e191] [cursor=pointer]:
+              - listitem [ref=e222]:
+                - link "Terms of Service" [ref=e223] [cursor=pointer]:
                   - /url: /terms
-              - listitem [ref=e192]:
-                - link "Privacy Policy" [ref=e193] [cursor=pointer]:
+              - listitem [ref=e224]:
+                - link "Privacy Policy" [ref=e225] [cursor=pointer]:
                   - /url: /privacy
-          - generic [ref=e194]:
-            - heading "Company" [level=3] [ref=e195]
-            - list [ref=e196]:
-              - listitem [ref=e197]:
-                - link "AI Web, LLC" [ref=e198] [cursor=pointer]:
+          - generic [ref=e226]:
+            - heading "Company" [level=3] [ref=e227]
+            - list [ref=e228]:
+              - listitem [ref=e229]:
+                - link "AI Web, LLC" [ref=e230] [cursor=pointer]:
                   - /url: https://or-justice-cz.translate.goog/ias/ui/rejstrik-firma.vysledky?subjektId=1223693&typ=UPLNY&_x_tr_sl=cs&_x_tr_tl=en&_x_tr_hl=en-US&_x_tr_pto=wapp
-              - listitem [ref=e199]:
-                - link "About Us" [ref=e200] [cursor=pointer]:
+              - listitem [ref=e231]:
+                - link "About Us" [ref=e232] [cursor=pointer]:
                   - /url: https://ptbk.io/#about-us
-              - listitem [ref=e201]:
-                - link "Blog" [ref=e202] [cursor=pointer]:
+              - listitem [ref=e233]:
+                - link "Blog" [ref=e234] [cursor=pointer]:
                   - /url: https://ptbk.io/blog
-              - listitem [ref=e203]:
-                - link "Logos & Branding" [ref=e204] [cursor=pointer]:
+              - listitem [ref=e235]:
+                - link "Logos & Branding" [ref=e236] [cursor=pointer]:
                   - /url: /design
-          - generic [ref=e205]:
-            - heading "Connect" [level=3] [ref=e206]
-            - list [ref=e207]:
-              - listitem [ref=e208]:
-                - link "GitHub" [ref=e209] [cursor=pointer]:
+          - generic [ref=e237]:
+            - heading "Connect" [level=3] [ref=e238]
+            - list [ref=e239]:
+              - listitem [ref=e240]:
+                - link "GitHub" [ref=e241] [cursor=pointer]:
                   - /url: https://github.com/webgptorg/promptbook
-              - listitem [ref=e210]:
-                - link "LinkedIn" [ref=e211] [cursor=pointer]:
+              - listitem [ref=e242]:
+                - link "LinkedIn" [ref=e243] [cursor=pointer]:
                   - /url: https://linkedin.com/company/promptbook
-              - listitem [ref=e212]:
-                - link "Discord" [ref=e213] [cursor=pointer]:
+              - listitem [ref=e244]:
+                - link "Discord" [ref=e245] [cursor=pointer]:
                   - /url: https://discord.gg/x3QWNaa89N
-              - listitem [ref=e214]:
-                - link "More" [ref=e215] [cursor=pointer]:
+              - listitem [ref=e246]:
+                - link "More" [ref=e247] [cursor=pointer]:
                   - /url: /contact
-          - generic [ref=e216]:
-            - heading "Links" [level=3] [ref=e217]
-            - list [ref=e218]:
-              - listitem [ref=e219]:
-                - 'link "Federated: core.ptbk.io" [ref=e220] [cursor=pointer]':
+          - generic [ref=e248]:
+            - heading "Links" [level=3] [ref=e249]
+            - list [ref=e250]:
+              - listitem [ref=e251]:
+                - 'link "Federated: core.ptbk.io" [ref=e252] [cursor=pointer]':
                   - /url: https://core.ptbk.io/
-        - generic [ref=e221]:
-          - paragraph [ref=e222]:
+        - generic [ref=e253]:
+          - paragraph [ref=e254]:
             - text: © 2026 Promptbook
             - text: All rights reserved.
             - text: Made with ❤️ in the Czech Republic.
-          - paragraph [ref=e223]: Promptbook engine version 0.111.0-11
-  - alert [ref=e224]
-  - generic [ref=e225]:
+          - paragraph [ref=e255]: Promptbook engine version 0.111.0-11
+  - alert [ref=e256]
+  - generic [ref=e257]:
     - alert
     - alert
 ```

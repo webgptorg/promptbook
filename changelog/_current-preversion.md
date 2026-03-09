@@ -1,3 +1,8 @@
+-   Improved Agents Server `System` dropdown submenu organization and scanability:
+    -   Changed floating 3rd-level submenu panels to a single vertical stack (removed two-column child layout) to improve readability.
+    -   Added category icons to both 2nd-level category entries and 3rd-level items under `System`.
+    -   Refactored System-category construction to one shared icon-propagation path so all submenu branches reuse the same DRY logic.
+
 -   Simplified Agents Server `System > Administration` user navigation:
     -   Removed per-user entries from the Administration menu to prevent unusable long dropdowns on larger user bases.
     -   Kept a single `Users` menu item that links to `/admin/users`, where the full user list and user management actions are handled.
