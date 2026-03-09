@@ -1,3 +1,11 @@
+-   Added optional post-prompt testing-server auto-migration workflow to Coding Agent script:
+    -   Added `--auto-migrate` flag to `ptbk coder run` / `run-codex-prompts` so migrations run only when explicitly enabled.
+    -   After each successfully completed prompt round (including commit), the coding script now runs Agents Server DB migrations for testing prefixes equivalent to:
+        -   `npx tsx ./src/database/migrate.ts --only=local0_,server_CoreTest_,server_S6_,server_S7_,server_S8_,server_S9_,server_S10_,server_S11_,server_S12_,server_S13_,server_PavolHejny_,server_Praha13Test_,server_ChutooTest_,server_NeonMedia_`
+    -   Added in-process serialization for auto-migration calls and reused existing DB advisory lock behavior from shared migration runner to avoid concurrent migration execution.
+    -   Added regex-based non-destructive SQL heuristic guard for pending migrations (`DROP TABLE`, `ALTER TABLE ... DROP COLUMN`, `TRUNCATE`, `DELETE FROM ...` without `WHERE`), with explicit override flag `--allow-destructive-auto-migrate`.
+    -   Auto-migration now fails fast on guardrail/migration errors, preventing silent continuation into next prompt rounds.
+
 -   Fixed Agents Server agents/folders directory synchronization across navigation and tab changes:
     -   Added `GET /api/agent-organization` to expose the canonical active organization snapshot (agents + folders) for client-side sync, with `no-store` cache headers.
     -   Updated `AgentsList` to silently re-sync organization state on:

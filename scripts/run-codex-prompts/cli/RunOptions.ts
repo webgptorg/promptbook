@@ -19,6 +19,14 @@ export type RunOptions = {
      * Allows OpenAI Codex runner to spend credits when needed.
      */
     allowCredits: boolean;
+    /**
+     * Enables automatic migration of testing servers after each successfully completed prompt.
+     */
+    autoMigrate: boolean;
+    /**
+     * Allows auto-migration workflow to continue even when heuristic SQL safety checks detect destructive statements.
+     */
+    allowDestructiveAutoMigrate: boolean;
     agentName?: 'openai-codex' | 'cline' | 'claude-code' | 'opencode' | 'gemini';
     model?: string;
     /**

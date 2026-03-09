@@ -61,10 +61,29 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
         '--no-normalize-line-endings',
         'Disable automatic LF normalization for files changed in each coding round',
     );
+    command.option(
+        '--auto-migrate',
+        'Run testing-server database migrations automatically after each successfully processed prompt',
+    );
+    command.option(
+        '--allow-destructive-auto-migrate',
+        'Allow auto-migrate even when heuristic SQL safety check flags destructive pending migrations',
+    );
 
     command.action(
         handleActionErrors(async (cliOptions) => {
-            const { dryRun, agent, model, priority, wait, ignoreGitChanges, allowCredits, normalizeLineEndings } =
+            const {
+                dryRun,
+                agent,
+                model,
+                priority,
+                wait,
+                ignoreGitChanges,
+                allowCredits,
+                normalizeLineEndings,
+                autoMigrate,
+                allowDestructiveAutoMigrate,
+            } =
                 cliOptions as {
                     readonly dryRun: boolean;
                     readonly agent?: string;
@@ -74,6 +93,8 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                     readonly ignoreGitChanges: boolean;
                     readonly allowCredits: boolean;
                     readonly normalizeLineEndings: boolean;
+                    readonly autoMigrate: boolean;
+                    readonly allowDestructiveAutoMigrate: boolean;
                 };
 
             // Validate agent
@@ -117,6 +138,8 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 priority,
                 normalizeLineEndings,
                 allowCredits,
+                autoMigrate,
+                allowDestructiveAutoMigrate,
             };
 
             // Note: Import the function dynamically to avoid loading heavy dependencies until needed

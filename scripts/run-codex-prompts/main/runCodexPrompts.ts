@@ -1,6 +1,8 @@
 import colors from 'colors';
 import moment from 'moment';
 import { join } from 'path';
+import spaceTrim from 'spacetrim';
+import { DatabaseError } from '../../../src/errors/DatabaseError';
 import { OPENAI_MODELS } from '../../../src/llm-providers/openai/openai-models';
 import { just } from '../../../src/utils/organization/just';
 import type { RunOptions } from '../cli/RunOptions';
@@ -16,6 +18,7 @@ import { waitForEnter } from '../common/waitForEnter';
 import { checkPause, listenForPause } from '../common/waitForPause';
 import { commitChanges } from '../git/commitChanges';
 import { ensureWorkingTreeClean } from '../git/ensureWorkingTreeClean';
+import { runAutoMigrateTestingServers } from '../migrations/runAutoMigrateTestingServers';
 import { buildCodexPrompt } from '../prompts/buildCodexPrompt';
 import { buildCommitMessage } from '../prompts/buildCommitMessage';
 import { buildPromptLabelForDisplay } from '../prompts/buildPromptLabelForDisplay';
@@ -89,6 +92,15 @@ function getRunnerMetadata(options: RunOptions, actualModel?: string): RunnerMet
  */
 export async function runCodexPrompts(providedOptions?: RunOptions): Promise<void> {
     const options = providedOptions ?? parseRunOptions(process.argv.slice(2));
+
+    if (options.allowDestructiveAutoMigrate && !options.autoMigrate) {
+        throw new DatabaseError(
+            spaceTrim(`
+                Flag \`--allow-destructive-auto-migrate\` requires \`--auto-migrate\`.
+            `),
+        );
+    }
+
     const runStartDate = moment();
     const progressDisplay = options.dryRun ? undefined : new CliProgressDisplay(runStartDate);
     listenForPause();
@@ -260,6 +272,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                 }
 
                 await commitChanges(commitMessage);
+                await runPostPromptAutoMigrationIfEnabled(options);
             } catch (error) {
                 markPromptFailed(
                     nextPrompt.file,
@@ -284,6 +297,20 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
     } finally {
         progressDisplay?.stop();
     }
+}
+
+/**
+ * Runs post-prompt testing-server auto-migration when enabled.
+ */
+async function runPostPromptAutoMigrationIfEnabled(options: RunOptions): Promise<void> {
+    if (!options.autoMigrate) {
+        return;
+    }
+
+    await runAutoMigrateTestingServers({
+        allowDestructiveAutoMigrate: options.allowDestructiveAutoMigrate,
+        logger: console,
+    });
 }
 
 /**

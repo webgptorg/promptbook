@@ -28,6 +28,8 @@ npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-code
 --model <model>               # Model to use (required for openai-codex and gemini)
 --priority <minimum-priority> # Filter prompts by minimum priority level (default: 0)
 --allow-credits               # Allow OpenAI Codex runner to spend credits when limits are exhausted
+--auto-migrate                # Run testing-server DB migrations after each successful prompt
+--allow-destructive-auto-migrate # Override destructive SQL heuristic guard in auto-migrate mode
 --no-wait                     # Skip user prompts between processing
 --ignore-git-changes          # Skip clean working tree check before running prompts
 --no-normalize-line-endings   # Disable per-round CRLF -> LF normalization for changed files
@@ -55,6 +57,9 @@ ptbk coder run --agent claude-code --no-wait
 
 # Run with priority filter
 ptbk coder run --agent openai-codex --model gpt-5.2-codex --priority 1
+
+# Run with automatic testing-server migrations after each prompt
+ptbk coder run --agent openai-codex --model gpt-5.2-codex --auto-migrate
 ```
 
 ## Agent identity configuration

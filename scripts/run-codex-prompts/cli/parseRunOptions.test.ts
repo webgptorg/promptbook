@@ -32,6 +32,8 @@ describe('parseRunOptions', () => {
             priority: 0,
             normalizeLineEndings: true,
             allowCredits: false,
+            autoMigrate: false,
+            allowDestructiveAutoMigrate: false,
         });
     });
 
@@ -44,6 +46,8 @@ describe('parseRunOptions', () => {
             priority: 0,
             normalizeLineEndings: true,
             allowCredits: false,
+            autoMigrate: false,
+            allowDestructiveAutoMigrate: false,
         });
     });
 
@@ -65,6 +69,8 @@ describe('parseRunOptions', () => {
             ignoreGitChanges: true,
             normalizeLineEndings: true,
             allowCredits: false,
+            autoMigrate: false,
+            allowDestructiveAutoMigrate: false,
             agentName: 'openai-codex',
             model: 'gpt-5.2-codex',
             priority: 3,
@@ -80,6 +86,8 @@ describe('parseRunOptions', () => {
             priority: 2,
             normalizeLineEndings: true,
             allowCredits: false,
+            autoMigrate: false,
+            allowDestructiveAutoMigrate: false,
         });
     });
 
@@ -91,6 +99,8 @@ describe('parseRunOptions', () => {
             agentName: 'gemini',
             normalizeLineEndings: false,
             allowCredits: false,
+            autoMigrate: false,
+            allowDestructiveAutoMigrate: false,
         });
     });
 
@@ -101,6 +111,35 @@ describe('parseRunOptions', () => {
             dryRun: false,
             agentName: 'openai-codex',
             allowCredits: true,
+            autoMigrate: false,
+            allowDestructiveAutoMigrate: false,
+        });
+    });
+
+    it('enables automatic testing-server migrations when --auto-migrate is provided', () => {
+        const options = parseRunOptions(['--agent', 'openai-codex', '--auto-migrate']);
+
+        expect(options).toMatchObject({
+            dryRun: false,
+            agentName: 'openai-codex',
+            autoMigrate: true,
+            allowDestructiveAutoMigrate: false,
+        });
+    });
+
+    it('allows destructive migration override when explicitly requested', () => {
+        const options = parseRunOptions([
+            '--agent',
+            'openai-codex',
+            '--auto-migrate',
+            '--allow-destructive-auto-migrate',
+        ]);
+
+        expect(options).toMatchObject({
+            dryRun: false,
+            agentName: 'openai-codex',
+            autoMigrate: true,
+            allowDestructiveAutoMigrate: true,
         });
     });
 
