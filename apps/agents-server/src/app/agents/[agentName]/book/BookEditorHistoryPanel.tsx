@@ -23,6 +23,10 @@ export type BookEditorHistoryVersionItem = {
      */
     readonly id: number;
     /**
+     * Optional human-readable name assigned to this version.
+     */
+    readonly versionName: string | null;
+    /**
      * Human label for the version number.
      */
     readonly versionLabel: string;
@@ -73,6 +77,14 @@ type BookEditorHistoryPanelProps = {
      */
     readonly isRestoring: boolean;
     /**
+     * Whether only named versions should be shown.
+     */
+    readonly isNamedOnly: boolean;
+    /**
+     * Current case-insensitive history-name search query.
+     */
+    readonly nameQuery: string;
+    /**
      * Called when the panel should close.
      */
     readonly onClose: () => void;
@@ -80,6 +92,22 @@ type BookEditorHistoryPanelProps = {
      * Called to reload the versions list.
      */
     readonly onRefresh: () => void;
+    /**
+     * Called to save the current source as a named version.
+     */
+    readonly onSaveNamedVersion: () => void;
+    /**
+     * Disables the named-save action while conflicting operation runs.
+     */
+    readonly isSaveNamedVersionDisabled: boolean;
+    /**
+     * Called when "named only" filter changes.
+     */
+    readonly onNamedOnlyChange: (isNamedOnly: boolean) => void;
+    /**
+     * Called when name-search query changes.
+     */
+    readonly onNameQueryChange: (nameQuery: string) => void;
     /**
      * Called when one version item is selected.
      */
@@ -100,8 +128,14 @@ export function BookEditorHistoryPanel({
     versions,
     selectedVersionId,
     isRestoring,
+    isNamedOnly,
+    nameQuery,
     onClose,
     onRefresh,
+    onSaveNamedVersion,
+    isSaveNamedVersionDisabled,
+    onNamedOnlyChange,
+    onNameQueryChange,
     onSelectVersion,
     onRestoreVersion,
 }: BookEditorHistoryPanelProps) {
@@ -130,6 +164,14 @@ export function BookEditorHistoryPanel({
                     <div className="flex items-center gap-2">
                         <button
                             type="button"
+                            onClick={onSaveNamedVersion}
+                            className="rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
+                            disabled={isSaveNamedVersionDisabled}
+                        >
+                            Save named version
+                        </button>
+                        <button
+                            type="button"
                             onClick={onRefresh}
                             className="rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
                             disabled={isLoading}
@@ -151,18 +193,38 @@ export function BookEditorHistoryPanel({
                     <aside className="w-72 shrink-0 border-r border-slate-200 bg-slate-50/70">
                         <div className="flex h-full min-h-0 flex-col p-2">
                             <p className="px-2 pb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">Versions</p>
+                            <div className="space-y-2 px-2 pb-2">
+                                <input
+                                    value={nameQuery}
+                                    onChange={(event) => onNameQueryChange(event.target.value)}
+                                    placeholder="Search by version name"
+                                    className="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-xs text-slate-800 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                />
+                                <label className="inline-flex items-center gap-2 text-xs text-slate-600">
+                                    <input
+                                        type="checkbox"
+                                        checked={isNamedOnly}
+                                        onChange={(event) => onNamedOnlyChange(event.target.checked)}
+                                        className="h-3.5 w-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                    />
+                                    Named only
+                                </label>
+                            </div>
                             <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
                                 {isLoading && <p className="px-2 py-1 text-xs text-slate-500">Loading versions...</p>}
 
                                 {!isLoading && errorMessage && <p className="px-2 py-1 text-xs text-red-600">{errorMessage}</p>}
 
                                 {!isLoading && !errorMessage && versions.length === 0 && (
-                                    <p className="px-2 py-1 text-xs text-slate-500">No history snapshots found.</p>
+                                    <p className="px-2 py-1 text-xs text-slate-500">
+                                        No history snapshots match current filters.
+                                    </p>
                                 )}
 
                                 {!isLoading &&
                                     versions.map((version) => {
                                         const isSelected = selectedVersionId === version.id;
+                                        const versionTitle = version.versionName || version.versionLabel;
                                         return (
                                             <button
                                                 key={version.id}
@@ -173,13 +235,20 @@ export function BookEditorHistoryPanel({
                                                         ? 'border-blue-300 bg-blue-50 text-blue-800 shadow-sm'
                                                         : 'border-transparent bg-white/90 text-slate-700 hover:border-slate-300 hover:bg-white'
                                                 }`}
-                                                aria-label={`${version.versionLabel} ${version.createdAtLabel}`}
-                                                title={`${version.versionLabel} ${version.createdAtLabel}`}
+                                                aria-label={`${versionTitle} ${version.createdAtLabel}`}
+                                                title={`${versionTitle} ${version.createdAtLabel}`}
                                             >
-                                                <div className="text-xs font-semibold">{version.versionLabel}</div>
+                                                <div className="text-xs font-semibold">{versionTitle}</div>
                                                 <div className={`mt-0.5 text-[11px] ${isSelected ? 'text-blue-700' : 'text-slate-500'}`}>
                                                     {version.createdAtLabel}
                                                 </div>
+                                                {version.versionName && (
+                                                    <div
+                                                        className={`mt-0.5 text-[10px] ${isSelected ? 'text-blue-700' : 'text-slate-500'}`}
+                                                    >
+                                                        {version.versionLabel}
+                                                    </div>
+                                                )}
                                                 <code
                                                     className={`mt-1 inline-flex rounded px-1.5 py-0.5 text-[10px] ${
                                                         isSelected ? 'bg-blue-100 text-blue-800' : 'bg-slate-200 text-slate-700'
@@ -199,8 +268,13 @@ export function BookEditorHistoryPanel({
                             <>
                                 <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 px-4 py-3">
                                     <div>
-                                        <p className="text-sm font-semibold text-slate-900">{selectedVersion.versionLabel}</p>
+                                        <p className="text-sm font-semibold text-slate-900">
+                                            {selectedVersion.versionName || selectedVersion.versionLabel}
+                                        </p>
                                         <p className="text-xs text-slate-500">{selectedVersion.createdAtLabel}</p>
+                                        {selectedVersion.versionName && (
+                                            <p className="text-[11px] text-slate-500">{selectedVersion.versionLabel}</p>
+                                        )}
                                         <code className="mt-1 inline-flex rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-700">
                                             {selectedVersion.hash}
                                         </code>

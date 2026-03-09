@@ -13,6 +13,21 @@ import {
 } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
 
 /**
+ * Normalizes optional history version name received from request.
+ *
+ * @param versionName - Raw query parameter value.
+ * @returns Trimmed non-empty version name, otherwise `null`.
+ */
+function normalizeHistoryVersionName(versionName: string | null): string | null {
+    if (typeof versionName !== 'string') {
+        return null;
+    }
+
+    const normalizedVersionName = versionName.trim();
+    return normalizedVersionName.length > 0 ? normalizedVersionName : null;
+}
+
+/**
  * @@@
  *
  * Note: [🕺] This route gives the agent source *(with resolved inheritance)*
@@ -89,13 +104,15 @@ export async function PUT(request: Request, { params }: { params: Promise<{ agen
         if (parseBookScopedAgentIdentifier(agentName)) {
             throw new Error('Embedded in-book agents cannot be updated directly. Edit the parent agent book instead.');
         }
+        const requestUrl = new URL(request.url);
+        const versionName = normalizeHistoryVersionName(requestUrl.searchParams.get('versionName'));
         let agentSourceUnchecked = await request.text();
         agentSourceUnchecked = spaceTrim(agentSourceUnchecked);
         let agentSource = validateBook(agentSourceUnchecked);
         agentSource = padBook(agentSource);
 
         const agentId = await collection.getAgentPermanentId(agentName);
-        await collection.updateAgentSource(agentId, agentSource);
+        await collection.updateAgentSource(agentId, agentSource, { versionName });
         // <- TODO: [🐱‍🚀] Properly type as string_book
 
         return new Response(

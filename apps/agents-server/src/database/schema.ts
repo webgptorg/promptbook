@@ -225,6 +225,7 @@ export type AgentsServerDatabase = {
                     previousAgentHash: string | null;
                     agentSource: string;
                     promptbookEngineVersion: string;
+                    versionName: string | null;
                 };
                 Insert: {
                     id?: number;
@@ -235,6 +236,7 @@ export type AgentsServerDatabase = {
                     previousAgentHash?: string | null;
                     agentSource: string;
                     promptbookEngineVersion: string;
+                    versionName?: string | null;
                 };
                 Update: {
                     id?: number;
@@ -245,6 +247,7 @@ export type AgentsServerDatabase = {
                     previousAgentHash?: string | null;
                     agentSource?: string;
                     promptbookEngineVersion?: string;
+                    versionName?: string | null;
                 };
                 Relationships: [
                     {

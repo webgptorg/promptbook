@@ -37,6 +37,31 @@ type CreateAgentOptions = {
 };
 
 /**
+ * Optional controls for persisting one source update.
+ */
+type UpdateAgentSourceOptions = {
+    /**
+     * Optional human-readable history milestone name saved with the snapshot.
+     */
+    readonly versionName?: string | null;
+};
+
+/**
+ * Normalizes optional history version name before persistence.
+ *
+ * @param versionName - Raw input value.
+ * @returns Trimmed non-empty name, otherwise `null`.
+ */
+function normalizeHistoryVersionName(versionName: string | null | undefined): string | null {
+    if (typeof versionName !== 'string') {
+        return null;
+    }
+
+    const normalizedVersionName = versionName.trim();
+    return normalizedVersionName.length > 0 ? normalizedVersionName : null;
+}
+
+/**
  * One saved Agent history row without the full source payload.
  */
 type AgentHistoryMetadata = {
@@ -46,6 +71,7 @@ type AgentHistoryMetadata = {
     readonly agentHash: string;
     readonly previousAgentHash: string | null;
     readonly promptbookEngineVersion: string;
+    readonly versionName: string | null;
 };
 
 /**
@@ -260,6 +286,7 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
             previousAgentHash: null,
             agentSource,
             promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+            versionName: null,
         });
 
         return { ...agentProfile, permanentId };
@@ -268,7 +295,11 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
     /**
      * Updates an existing agent in the collection
      */
-    public async updateAgentSource(permanentId: string_agent_permanent_id, agentSource: string_book): Promise<void> {
+    public async updateAgentSource(
+        permanentId: string_agent_permanent_id,
+        agentSource: string_book,
+        options: UpdateAgentSourceOptions = {},
+    ): Promise<void> {
         const selectPreviousAgentResult = await this.supabaseClient
             .from(this.getTableName('Agent'))
             .select('agentHash,agentName,permanentId')
@@ -369,6 +400,7 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
             previousAgentHash,
             agentSource,
             promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+            versionName: normalizeHistoryVersionName(options.versionName),
         });
     }
 
@@ -581,7 +613,7 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
         if (includeSource) {
             const result = await this.supabaseClient
                 .from(this.getTableName('AgentHistory'))
-                .select('id,createdAt,agentName,agentHash,previousAgentHash,agentSource,promptbookEngineVersion')
+                .select('id,createdAt,agentName,agentHash,previousAgentHash,agentSource,promptbookEngineVersion,versionName')
                 .eq('permanentId', permanentId)
                 .order('createdAt', { ascending: false });
 
@@ -602,7 +634,7 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
 
         const result = await this.supabaseClient
             .from(this.getTableName('AgentHistory'))
-            .select('id,createdAt,agentName,agentHash,previousAgentHash,promptbookEngineVersion')
+            .select('id,createdAt,agentName,agentHash,previousAgentHash,promptbookEngineVersion,versionName')
             .eq('permanentId', permanentId)
             .order('createdAt', { ascending: false });
 

@@ -13,3 +13,8 @@
 - `npm run test-app-agents-server` now passes, but still emits recurring server-side runtime errors during build/start:
   - `ReferenceError: window is not defined` from Next.js server chunks, including stack frames resolving to `app/agents/[agentName]/website-integration/page.js`.
   - These appear as `unhandledRejection` logs while tests continue, indicating a latent SSR/client-boundary issue not addressed in this scoped E2E-fix task.
+
+- `npm run test-app-agents-server` failed again in `test-e2e` in this run:
+  - Repeated `ReferenceError: window is not defined` during web-server startup/runtime.
+  - Follow-up environment/runtime noise appears (missing seeded agents like `manifest` / `get-started`, and missing optional provider package `@promptbook/anthropic-claude` for avatar generation).
+  - This failure was observed while implementing Book history version naming; no direct code path in this task touches `website-integration` SSR/runtime.

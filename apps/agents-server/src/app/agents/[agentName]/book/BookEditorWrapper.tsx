@@ -5,7 +5,7 @@ import { string_book } from '@promptbook-local/types';
 import { AlertTriangleIcon, CheckCircle2Icon, Clock3Icon, HistoryIcon, Loader2Icon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { bookEditorUploadHandler } from '../../../../utils/upload/createBookEditorUploadHandler';
-import { showAlert, showConfirm } from '@/src/components/AsyncDialogs/asyncDialogs';
+import { showAlert, showConfirm, showPrompt } from '@/src/components/AsyncDialogs/asyncDialogs';
 import type { MissingAgentReference } from '../../../../utils/agentReferenceResolver/createUnresolvedAgentReferenceDiagnostics';
 import { useUnsavedChangesGuard } from '../../../../components/utils/useUnsavedChangesGuard';
 import { SaveFailureNotice } from '../../../../components/SaveFailureNotice/SaveFailureNotice';
@@ -60,6 +60,7 @@ type SaveStatus = 'idle' | 'pending' | 'saving' | 'saved' | 'error';
 type PendingSave = {
     readonly source: string_book;
     readonly version: number;
+    readonly versionName: string | null;
 };
 
 /**
@@ -81,6 +82,7 @@ type AgentHistoryEntry = {
     previousAgentHash: string | null;
     agentSource: string_book;
     promptbookEngineVersion: string;
+    versionName?: string | null;
 };
 
 /**
@@ -161,6 +163,37 @@ function normalizeHistoryPayload(payload: AgentHistoryResponse): Array<AgentHist
 }
 
 /**
+ * Normalizes optional history version name.
+ *
+ * @param versionName - Raw value from API/user input.
+ * @returns Trimmed non-empty version name, otherwise `null`.
+ */
+function normalizeHistoryVersionName(versionName: string | null | undefined): string | null {
+    if (typeof versionName !== 'string') {
+        return null;
+    }
+
+    const normalizedVersionName = versionName.trim();
+    return normalizedVersionName.length > 0 ? normalizedVersionName : null;
+}
+
+/**
+ * Builds save endpoint URL and appends optional `versionName` query param.
+ *
+ * @param agentName - Current agent route identifier.
+ * @param versionName - Optional name for the history snapshot.
+ * @returns Relative save URL for the current agent.
+ */
+function createAgentBookSaveUrl(agentName: string, versionName: string | null): string {
+    const baseUrl = `/agents/${encodeURIComponent(agentName)}/api/book`;
+    if (!versionName) {
+        return baseUrl;
+    }
+
+    return `${baseUrl}?versionName=${encodeURIComponent(versionName)}`;
+}
+
+/**
  * Extracts a human-readable API error from a failed HTTP response.
  *
  * @param response - Failed API response.
@@ -194,12 +227,43 @@ function buildHistoryVersionItems(
     const totalVersions = historyEntries.length;
     return historyEntries.map((entry, index) => ({
         id: entry.id,
+        versionName: normalizeHistoryVersionName(entry.versionName),
         versionLabel: `Version ${totalVersions - index}`,
         createdAtLabel: new Date(entry.createdAt).toLocaleString(),
         hash: entry.agentHash,
         hashPreview: entry.agentHash.slice(0, 8),
         source: entry.agentSource,
     }));
+}
+
+/**
+ * Filters history items by optional "named only" and case-insensitive name query.
+ *
+ * @param versions - Version items ready for rendering.
+ * @param options - Optional named/search filters.
+ * @returns Filtered version items preserving original order.
+ */
+function filterHistoryVersionItems(
+    versions: ReadonlyArray<BookEditorHistoryVersionItem>,
+    options: {
+        readonly namedOnly: boolean;
+        readonly nameQuery: string;
+    },
+): Array<BookEditorHistoryVersionItem> {
+    const normalizedNameQuery = options.nameQuery.trim().toLowerCase();
+
+    return versions.filter((version) => {
+        if (options.namedOnly && !version.versionName) {
+            return false;
+        }
+
+        if (normalizedNameQuery.length === 0) {
+            return true;
+        }
+
+        const normalizedVersionName = (version.versionName || '').toLowerCase();
+        return normalizedVersionName.includes(normalizedNameQuery);
+    });
 }
 
 /**
@@ -266,6 +330,8 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
     const [selectedHistoryId, setSelectedHistoryId] = useState<number | null>(null);
     const [historyErrorMessage, setHistoryErrorMessage] = useState<string | null>(null);
     const [isRestoringHistoryVersion, setIsRestoringHistoryVersion] = useState(false);
+    const [historyNameQuery, setHistoryNameQuery] = useState('');
+    const [isNamedHistoryOnly, setIsNamedHistoryOnly] = useState(false);
     const [historyRefreshVersion, setHistoryRefreshVersion] = useState(0);
 
     // Debounce timer refs so pending jobs can be canceled before scheduling a newer one.
@@ -298,7 +364,7 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                 setSaveErrorMessage(null);
 
                 try {
-                    const response = await fetch(`/agents/${encodeURIComponent(agentName)}/api/book`, {
+                    const response = await fetch(createAgentBookSaveUrl(agentName, pendingSave.versionName), {
                         method: 'PUT',
                         headers: { 'Content-Type': 'text/plain' },
                         body: pendingSave.source,
@@ -333,8 +399,8 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
      * Queues the newest source revision for persistence and starts save worker.
      */
     const enqueueSave = useCallback(
-        (source: string_book, version: number) => {
-            pendingSaveRef.current = { source, version };
+        (source: string_book, version: number, versionName: string | null = null) => {
+            pendingSaveRef.current = { source, version, versionName };
             setIsSaveDebounced(false);
             void flushSaveQueue();
         },
@@ -355,7 +421,7 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
 
             debounceTimerRef.current = window.setTimeout(() => {
                 debounceTimerRef.current = null;
-                enqueueSave(nextSource, version);
+                enqueueSave(nextSource, version, null);
             }, SAVE_DEBOUNCE_DELAY_MS);
         },
         [enqueueSave],
@@ -371,9 +437,47 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
         }
 
         setIsSaveDebounced(false);
-        pendingSaveRef.current = { source: agentSource, version: sourceVersionRef.current };
+        pendingSaveRef.current = { source: agentSource, version: sourceVersionRef.current, versionName: null };
         void flushSaveQueue();
     }, [agentSource, flushSaveQueue]);
+
+    /**
+     * Prompts for a version name and saves the current source as a named snapshot.
+     */
+    const saveNamedVersion = useCallback(async () => {
+        if (isRestoringHistoryVersion) {
+            return;
+        }
+
+        const promptValue = await showPrompt({
+            title: 'Save named version',
+            message: 'Name this snapshot so you can quickly find it in history later.',
+            confirmLabel: 'Save version',
+            cancelLabel: 'Cancel',
+            placeholder: 'For example: Baseline prompt before TEAM refactor',
+            inputLabel: 'Version name',
+        }).catch(() => null);
+
+        if (promptValue === null) {
+            return;
+        }
+
+        const versionName = normalizeHistoryVersionName(promptValue);
+        if (!versionName) {
+            await showAlert({
+                title: 'Version name required',
+                message: 'Enter a non-empty name to save a named version.',
+            });
+            return;
+        }
+
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+            debounceTimerRef.current = null;
+        }
+
+        enqueueSave(agentSource, sourceVersionRef.current, versionName);
+    }, [agentSource, enqueueSave, isRestoringHistoryVersion]);
 
     /**
      * Loads the complete version history for the current agent.
@@ -727,7 +831,32 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
     });
 
     const hasMissingReferences = missingAgentReferences.length > 0;
-    const historyVersions = buildHistoryVersionItems(historyEntries);
+    const historyVersions = useMemo(() => buildHistoryVersionItems(historyEntries), [historyEntries]);
+    const filteredHistoryVersions = useMemo(
+        () =>
+            filterHistoryVersionItems(historyVersions, {
+                namedOnly: isNamedHistoryOnly,
+                nameQuery: historyNameQuery,
+            }),
+        [historyNameQuery, historyVersions, isNamedHistoryOnly],
+    );
+
+    /**
+     * Keeps selected history row valid after list filtering changes.
+     */
+    useEffect(() => {
+        if (filteredHistoryVersions.length === 0) {
+            setSelectedHistoryId(null);
+            return;
+        }
+
+        if (selectedHistoryId && filteredHistoryVersions.some((version) => version.id === selectedHistoryId)) {
+            return;
+        }
+
+        setSelectedHistoryId(filteredHistoryVersions[0]!.id);
+    }, [filteredHistoryVersions, selectedHistoryId]);
+
     const saveStatusLabel = resolveSaveStatusLabel(saveStatus);
     const toggleHistoryPanel = useCallback(() => {
         setIsHistoryOpen((isCurrentlyOpen) => !isCurrentlyOpen);
@@ -819,11 +948,17 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                     isOpen={isHistoryOpen}
                     isLoading={isHistoryLoading}
                     errorMessage={historyErrorMessage}
-                    versions={historyVersions}
+                    versions={filteredHistoryVersions}
                     selectedVersionId={selectedHistoryId}
                     isRestoring={isRestoringHistoryVersion || isSaveInFlight}
+                    isNamedOnly={isNamedHistoryOnly}
+                    nameQuery={historyNameQuery}
+                    onNamedOnlyChange={setIsNamedHistoryOnly}
+                    onNameQueryChange={setHistoryNameQuery}
                     onClose={() => setIsHistoryOpen(false)}
                     onRefresh={() => setHistoryRefreshVersion((previousVersion) => previousVersion + 1)}
+                    onSaveNamedVersion={() => void saveNamedVersion()}
+                    isSaveNamedVersionDisabled={isRestoringHistoryVersion || isSaveInFlight}
                     onSelectVersion={(historyId) => setSelectedHistoryId(historyId)}
                     onRestoreVersion={(historyId) => void restoreHistoryVersion(historyId)}
                 />

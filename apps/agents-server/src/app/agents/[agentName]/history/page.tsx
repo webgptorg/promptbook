@@ -55,8 +55,11 @@ export default async function AgentHistoryPage({ params }: { params: Promise<{ a
                                             {new Date(item.createdAt).toLocaleString()}
                                         </time>
                                         <h3 className="text-lg font-semibold text-gray-900">
-                                            Version {history.length - index}
+                                            {item.versionName || `Version ${history.length - index}`}
                                         </h3>
+                                        {item.versionName && (
+                                            <p className="text-xs text-gray-500">Version {history.length - index}</p>
+                                        )}
                                         <p className="text-sm text-gray-500">
                                             Hash:{' '}
                                             <code className="bg-gray-100 px-1 rounded">

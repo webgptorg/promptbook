@@ -66,8 +66,12 @@ export function attachAgentPreparationScheduling(
     };
 
     const originalUpdateAgentSource = collection.updateAgentSource.bind(collection);
-    collection.updateAgentSource = async (permanentId: string_agent_permanent_id, agentSource: string_book) => {
-        await originalUpdateAgentSource(permanentId, agentSource);
+    collection.updateAgentSource = async (
+        permanentId: string_agent_permanent_id,
+        agentSource: string_book,
+        options?: { readonly versionName?: string | null },
+    ) => {
+        await originalUpdateAgentSource(permanentId, agentSource, options);
 
         const fingerprint = computePersistedAgentFingerprint(agentSource);
         await scheduleAgentPreparation({

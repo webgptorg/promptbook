@@ -1,3 +1,10 @@
+-   Added named Book history milestones in Agents Server editor:
+    -   Added optional `versionName` persistence for `AgentHistory` snapshots with migration `2026-03-0170-agent-history-version-name.sql`.
+    -   Extended Book save API and collection history snapshots so saving can include a human-readable version name while preserving existing autosave behavior.
+    -   Added `Save named version` action in `/agents/[agentName]/book` history panel (Google Docs-style milestone naming during save).
+    -   Updated history list/detail UI to display custom version names (fallback to numeric `Version N` for unnamed snapshots).
+    -   Added history-panel filters for `Named only` and case-insensitive search by version name.
+
 -   Improved Agents Server Book history/save controls in the Book editor header menu:
     -   Removed the extra in-page secondary status/history bar from `/agents/[agentName]/book` and moved these controls into the normal top menu via existing menu-hoisting.
     -   Extended shared `BookEditor` actionbar hoisting with integration-provided extra menu items, so page-specific controls (save state + history toggle) compose with existing editor actions without duplicating hoisting logic.
