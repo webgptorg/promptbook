@@ -1,3 +1,9 @@
+-   Fixed Agents Server chat history persistence reliability and save-failure visibility:
+    -   Stabilized anonymous chat identity for all `/agents/[agentName]/api/user-chats` client calls by attaching a persistent `x-anonymous-username` header, preventing cross-request identity drift that could cause chats to appear unsaved after refresh.
+    -   Added keepalive-enabled flush of pending debounced chat saves/draft saves on page unload (`pagehide` / `beforeunload`) to reduce refresh-time data loss.
+    -   Added explicit in-chat save-failure warning with retry action when chat message or draft persistence fails.
+    -   Added shared reusable `SaveFailureNotice` component and reused it in both chat save-failure and Book editor save-failure UI to keep warning style/behavior DRY and consistent.
+
 -   Improved Agents Server Book editor save/history UX so history feels native and navigable:
     -   Replaced the floating fixed save chip with an in-layout save status bar, preventing overlap with page/header controls while keeping save state continuously visible.
     -   Reworked Book history into a dedicated responsive panel component (`BookEditorHistoryPanel`) that behaves like the existing chat sidebar pattern: docked panel on desktop and slide-over panel with backdrop on mobile.

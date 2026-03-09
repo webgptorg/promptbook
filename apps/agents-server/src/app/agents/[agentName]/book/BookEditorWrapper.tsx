@@ -7,6 +7,7 @@ import { bookEditorUploadHandler } from '../../../../utils/upload/createBookEdit
 import { showAlert, showConfirm } from '@/src/components/AsyncDialogs/asyncDialogs';
 import type { MissingAgentReference } from '../../../../utils/agentReferenceResolver/createUnresolvedAgentReferenceDiagnostics';
 import { useUnsavedChangesGuard } from '../../../../components/utils/useUnsavedChangesGuard';
+import { SaveFailureNotice } from '../../../../components/SaveFailureNotice/SaveFailureNotice';
 import { BookEditorHistoryPanel, type BookEditorHistoryVersionItem } from './BookEditorHistoryPanel';
 
 /**
@@ -774,22 +775,15 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                     >
                         {isHistoryOpen ? 'Hide history' : `History (${historyVersions.length})`}
                     </button>
-                    {saveStatus === 'error' && (
-                        <button
-                            type="button"
-                            onClick={retrySaveNow}
-                            className="rounded-lg border border-red-300 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100"
-                        >
-                            Retry save
-                        </button>
-                    )}
                 </div>
             </div>
 
             {saveStatus === 'error' && (
-                <div className="mb-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-                    {saveErrorMessage || 'Book save failed. Retry to persist the current source.'}
-                </div>
+                <SaveFailureNotice
+                    className="mb-3"
+                    message={saveErrorMessage || 'Book save failed. Retry to persist the current source.'}
+                    onRetry={retrySaveNow}
+                />
             )}
 
             <div className="flex min-h-0 flex-1 gap-4">

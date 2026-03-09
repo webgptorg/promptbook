@@ -5,6 +5,7 @@ import moment from 'moment';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAgentNaming } from '../../../../components/AgentNaming/AgentNamingContext';
 import { showConfirm } from '../../../../components/AsyncDialogs/asyncDialogs';
+import { SaveFailureNotice } from '../../../../components/SaveFailureNotice/SaveFailureNotice';
 import { ChatPersistence } from '../../../../utils/chatPersistenceClient';
 import { SolidArrowButton } from '../../../../../../../src/book-components/icons/SolidArrowButton';
 import {
@@ -30,6 +31,26 @@ const SAVE_DEBOUNCE_MS = 600;
  * Delay before showing switching overlay to avoid flashing on fast chat switches.
  */
 const SWITCHING_CHAT_OVERLAY_DELAY_MS = 180;
+
+/**
+ * Fallback message shown when persisting chat messages fails.
+ */
+const DEFAULT_CHAT_SAVE_FAILURE_MESSAGE = 'Chat save failed. Retry to persist the current conversation.';
+
+/**
+ * Fallback message shown when persisting chat draft fails.
+ */
+const DEFAULT_CHAT_DRAFT_SAVE_FAILURE_MESSAGE = 'Chat draft save failed. Retry to persist the current draft.';
+
+/**
+ * Optional settings for immediate chat persistence helpers.
+ */
+type PersistChatChangesOptions = {
+    /**
+     * Enables keepalive requests for page-unload saves.
+     */
+    keepalive?: boolean;
+};
 
 /**
  * Replaces browser URL without triggering App Router navigation/streaming.
@@ -105,6 +126,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const [isCreatingChat, setIsCreatingChat] = useState(false);
     const [isSwitchingChat, setIsSwitchingChat] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [saveFailureMessage, setSaveFailureMessage] = useState<string | null>(null);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
     const toggleSidebarCollapsed = useCallback(() => {
@@ -129,6 +151,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const autoExecuteTargetChatIdRef = useRef<string | undefined>(initialForceNewChat ? undefined : initialChatId);
     const draftSaveTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
     const [activeChatDraftMessage, setActiveChatDraftMessage] = useState<string | null>(null);
+    const chatDraftCacheRef = useRef<Map<string, string | null>>(new Map());
 
     const guestPersistenceKey = useMemo(
         () => `guest-chat-${encodeURIComponent(agentName)}-${Math.random().toString(36).slice(2)}`,
@@ -225,7 +248,9 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             } = {},
         ) => {
             prepareChatInLocalStorage(chatId, messages);
-            setActiveChatDraftMessage(options.draftMessage ?? null);
+            const nextDraftMessage = options.draftMessage ?? null;
+            chatDraftCacheRef.current.set(chatId, nextDraftMessage);
+            setActiveChatDraftMessage(nextDraftMessage);
             replaceBrowserUrlWithoutNavigation(buildChatRoute(chatId, Boolean(options.includeInitialMessage)));
         },
         [buildChatRoute, prepareChatInLocalStorage],
@@ -275,9 +300,119 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         [activateChat, agentName, effectiveInitialAutoExecuteMessage, initialAutoExecuteMessage, initialForceNewChat],
     );
 
+    /**
+     * Persists one chat message array immediately and updates sidebar summary.
+     */
+    const persistChatMessagesNow = useCallback(
+        async (
+            chatId: string,
+            messages: ReadonlyArray<ChatMessage>,
+            serializedMessages: string,
+            options: PersistChatChangesOptions = {},
+        ): Promise<void> => {
+            const chatDetail = await saveUserChatMessages(agentName, chatId, messages, {
+                keepalive: options.keepalive,
+            });
+
+            savedMessagesHashesRef.current.set(chatId, serializedMessages);
+            setSaveFailureMessage(null);
+            setChats((previousChats) =>
+                moveChatToTop(previousChats, chatDetail.chat).map((chat) =>
+                    chat.id === chatDetail.chat.id ? chatDetail.chat : chat,
+                ),
+            );
+        },
+        [agentName],
+    );
+
+    /**
+     * Persists one chat draft message immediately.
+     */
+    const persistChatDraftNow = useCallback(
+        async (chatId: string, draftMessage: string | null, options: PersistChatChangesOptions = {}): Promise<void> => {
+            await saveUserChatDraft(agentName, chatId, draftMessage, {
+                keepalive: options.keepalive,
+            });
+            setSaveFailureMessage(null);
+        },
+        [agentName],
+    );
+
+    /**
+     * Flushes pending debounced message saves and draft saves.
+     */
+    const flushPendingPersistenceTimers = useCallback(
+        (options: PersistChatChangesOptions = {}) => {
+            for (const [chatId, timer] of saveTimersRef.current) {
+                clearTimeout(timer);
+                saveTimersRef.current.delete(chatId);
+
+                const messages = chatMessagesCacheRef.current.get(chatId);
+                if (!messages) {
+                    continue;
+                }
+
+                const serializedMessages = JSON.stringify(messages);
+                if (savedMessagesHashesRef.current.get(chatId) === serializedMessages) {
+                    continue;
+                }
+
+                void persistChatMessagesNow(chatId, messages, serializedMessages, options).catch((error) => {
+                    console.error('[user-chat] Failed to flush pending chat messages', error);
+                    setSaveFailureMessage(error instanceof Error ? error.message : DEFAULT_CHAT_SAVE_FAILURE_MESSAGE);
+                });
+            }
+
+            for (const [chatId, timer] of draftSaveTimersRef.current) {
+                clearTimeout(timer);
+                draftSaveTimersRef.current.delete(chatId);
+
+                const draftMessage = chatDraftCacheRef.current.get(chatId) ?? null;
+                void persistChatDraftNow(chatId, draftMessage, options).catch((error) => {
+                    console.error('[user-chat] Failed to flush pending chat draft', error);
+                    setSaveFailureMessage(
+                        error instanceof Error ? error.message : DEFAULT_CHAT_DRAFT_SAVE_FAILURE_MESSAGE,
+                    );
+                });
+            }
+        },
+        [persistChatDraftNow, persistChatMessagesNow],
+    );
+
+    /**
+     * Retries persisting current active chat after a save failure.
+     */
+    const handleRetrySave = useCallback(() => {
+        if (!shouldUseHistory || !activeChatId) {
+            return;
+        }
+
+        setSaveFailureMessage(null);
+        const activeMessages = chatMessagesCacheRef.current.get(activeChatId) || [];
+        const serializedMessages = JSON.stringify(activeMessages);
+        const activeDraftMessage = chatDraftCacheRef.current.get(activeChatId) ?? null;
+        const pendingRequests: Array<Promise<void>> = [];
+
+        if (savedMessagesHashesRef.current.get(activeChatId) !== serializedMessages) {
+            pendingRequests.push(persistChatMessagesNow(activeChatId, activeMessages, serializedMessages));
+        }
+
+        pendingRequests.push(persistChatDraftNow(activeChatId, activeDraftMessage));
+
+        if (pendingRequests.length === 0) {
+            return;
+        }
+
+        void Promise.all(pendingRequests).catch((error) => {
+            console.error('[user-chat] Failed to retry chat save', error);
+            setSaveFailureMessage(error instanceof Error ? error.message : DEFAULT_CHAT_SAVE_FAILURE_MESSAGE);
+        });
+    }, [activeChatId, persistChatDraftNow, persistChatMessagesNow, shouldUseHistory]);
+
     useEffect(() => {
         if (!shouldUseHistory) {
             setChats([]);
+            setSaveFailureMessage(null);
             setIsBootstrapping(false);
             return;
         }
@@ -287,6 +422,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         async function bootstrap(): Promise<void> {
             setIsBootstrapping(true);
             setErrorMessage(null);
+            setSaveFailureMessage(null);
 
             try {
                 await bootstrapChats(initialChatId);
@@ -313,21 +449,23 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     }, [initialChatId, initialForceNewChat]);
 
     useEffect(() => {
-        const activeSaveTimers = saveTimersRef.current;
-        const activeDraftSaveTimers = draftSaveTimersRef.current;
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const flushWithKeepalive = () => {
+            flushPendingPersistenceTimers({ keepalive: true });
+        };
+
+        window.addEventListener('pagehide', flushWithKeepalive);
+        window.addEventListener('beforeunload', flushWithKeepalive);
 
         return () => {
-            for (const timer of activeSaveTimers.values()) {
-                clearTimeout(timer);
-            }
-            activeSaveTimers.clear();
-
-            for (const timer of activeDraftSaveTimers.values()) {
-                clearTimeout(timer);
-            }
-            activeDraftSaveTimers.clear();
+            window.removeEventListener('pagehide', flushWithKeepalive);
+            window.removeEventListener('beforeunload', flushWithKeepalive);
+            flushPendingPersistenceTimers();
         };
-    }, []);
+    }, [flushPendingPersistenceTimers]);
 
     /**
      * Selects one existing chat and hydrates it into local storage.
@@ -432,8 +570,14 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                     clearTimeout(existingTimer);
                     saveTimersRef.current.delete(chatId);
                 }
+                const existingDraftTimer = draftSaveTimersRef.current.get(chatId);
+                if (existingDraftTimer) {
+                    clearTimeout(existingDraftTimer);
+                    draftSaveTimersRef.current.delete(chatId);
+                }
                 savedMessagesHashesRef.current.delete(chatId);
                 chatMessagesCacheRef.current.delete(chatId);
+                chatDraftCacheRef.current.delete(chatId);
                 await bootstrapChats(activeChatId === chatId ? undefined : activeChatId || undefined);
             } catch (error) {
                 setErrorMessage(error instanceof Error ? error.message : 'Failed to delete chat.');
@@ -466,17 +610,10 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             }
 
             const nextTimer = setTimeout(() => {
-                void saveUserChatMessages(agentName, chatId, messages)
-                    .then((chatDetail) => {
-                        savedMessagesHashesRef.current.set(chatId, serializedMessages);
-                        setChats((previousChats) =>
-                            moveChatToTop(previousChats, chatDetail.chat).map((chat) =>
-                                chat.id === chatDetail.chat.id ? chatDetail.chat : chat,
-                            ),
-                        );
-                    })
+                void persistChatMessagesNow(chatId, messages, serializedMessages)
                     .catch((error) => {
                         console.error('[user-chat] Failed to persist chat messages', error);
+                        setSaveFailureMessage(error instanceof Error ? error.message : DEFAULT_CHAT_SAVE_FAILURE_MESSAGE);
                     })
                     .finally(() => {
                         saveTimersRef.current.delete(chatId);
@@ -485,7 +622,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
             saveTimersRef.current.set(chatId, nextTimer);
         },
-        [activeChatId, agentName, shouldUseHistory],
+        [activeChatId, persistChatMessagesNow, shouldUseHistory],
     );
 
     /**
@@ -499,6 +636,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
             const chatId = activeChatId;
             setActiveChatDraftMessage(draftMessage);
+            chatDraftCacheRef.current.set(chatId, draftMessage || null);
 
             const existingTimer = draftSaveTimersRef.current.get(chatId);
             if (existingTimer) {
@@ -506,9 +644,12 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             }
 
             const nextTimer = setTimeout(() => {
-                void saveUserChatDraft(agentName, chatId, draftMessage || null)
+                void persistChatDraftNow(chatId, draftMessage || null)
                     .catch((error) => {
                         console.error('[user-chat] Failed to persist draft message', error);
+                        setSaveFailureMessage(
+                            error instanceof Error ? error.message : DEFAULT_CHAT_DRAFT_SAVE_FAILURE_MESSAGE,
+                        );
                     })
                     .finally(() => {
                         draftSaveTimersRef.current.delete(chatId);
@@ -517,7 +658,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
             draftSaveTimersRef.current.set(chatId, nextTimer);
         },
-        [activeChatId, agentName, shouldUseHistory],
+        [activeChatId, persistChatDraftNow, shouldUseHistory],
     );
 
     /**
@@ -606,12 +747,16 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const errorBanner = errorMessage ? (
         <div className="border-t border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{errorMessage}</div>
     ) : null;
+    const saveFailureBanner = saveFailureMessage ? (
+        <SaveFailureNotice className="m-3" message={saveFailureMessage} onRetry={handleRetrySave} />
+    ) : null;
 
     if (isHeadlessMode) {
         return (
             <div className="w-full h-full flex min-h-0 bg-slate-50/80">
                 <section className="flex-1 min-w-0 min-h-0 flex flex-col">
                     {chatSurface}
+                    {saveFailureBanner}
                     {errorBanner}
                 </section>
             </div>
@@ -645,6 +790,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             />
             <section className="flex-1 min-w-0 min-h-0 flex flex-col">
                 {chatSurface}
+                {saveFailureBanner}
                 {errorBanner}
             </section>
         </div>
