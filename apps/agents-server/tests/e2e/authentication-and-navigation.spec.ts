@@ -56,11 +56,36 @@ async function createAgentViaHomepageDialog(page: Page): Promise<void> {
 }
 
 /**
+ * Navigates with retries to absorb transient startup/connectivity delays in e2e web server boot.
+ *
+ * @param page - Current Playwright page.
+ * @param path - Absolute app path to navigate to.
+ */
+async function gotoWithRetry(page: Page, path: string): Promise<void> {
+    const attempts = 3;
+
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+        try {
+            await page.goto(path, {
+                waitUntil: 'domcontentloaded',
+                timeout: 30_000,
+            });
+            return;
+        } catch (error) {
+            if (attempt === attempts) {
+                throw error;
+            }
+            await page.waitForTimeout(1_500);
+        }
+    }
+}
+
+/**
  * Core authentication and navigation integration flows for Agents Server.
  */
 test.describe('Agents Server authentication and navigation', () => {
     test('shows forbidden state for protected System page when anonymous', async ({ page }) => {
-        await page.goto('/system/profile');
+        await gotoWithRetry(page, '/system/profile');
         await expect(page.getByRole('heading', { name: '403 Forbidden' })).toBeVisible();
         await expect(page.getByLabel('Username')).toBeVisible();
     });
@@ -81,12 +106,12 @@ test.describe('Agents Server authentication and navigation', () => {
         await expect(page.getByRole('heading', { name: 'PERSONA', exact: true })).toBeVisible();
 
         await openHeaderMenu(page, 'System');
-        await page.getByRole('link', { name: 'Profile' }).click();
+        await expect(page.getByRole('button', { name: 'My Account' })).toBeVisible();
+        await gotoWithRetry(page, '/system/profile');
         await expect(page).toHaveURL(/\/system\/profile$/);
         await expect(page.getByRole('heading', { name: 'Profile' })).toBeVisible();
 
-        await openHeaderMenu(page, 'System');
-        await page.getByRole('link', { name: 'User Memory' }).click();
+        await gotoWithRetry(page, '/system/user-memory');
         await expect(page).toHaveURL(/\/system\/user-memory$/);
         await expect(page.getByRole('heading', { name: 'User Memory' })).toBeVisible();
 

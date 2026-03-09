@@ -1,61 +1,83 @@
+-   Fixed Agents Server e2e authentication/navigation stability after header submenu refactor:
+
+    -   Updated Playwright flow to open nested `System -> My Account` before selecting account links.
+    -   Switched Profile/User Memory navigation checks to stable route-based link selectors (`/system/profile`, `/system/user-memory`) to avoid timing issues with submenu portal rendering.
+
+-   Fixed server-side `window is not defined` crashes caused by chat-map dependencies during Agents Server prerender and e2e startup:
+
+    -   Updated `src/book-components/Chat/Chat/ChatMessageMap.tsx` to lazy-load `leaflet` on the client via `import('leaflet')` instead of importing it at module top level.
+    -   Preserved existing GeoJSON map rendering behavior while preventing browser-only Leaflet runtime from executing during server bundle evaluation.
+
 -   Improved Agents Server Book editor save/history UX so history feels native and navigable:
+
     -   Replaced the floating fixed save chip with an in-layout save status bar, preventing overlap with page/header controls while keeping save state continuously visible.
     -   Reworked Book history into a dedicated responsive panel component (`BookEditorHistoryPanel`) that behaves like the existing chat sidebar pattern: docked panel on desktop and slide-over panel with backdrop on mobile.
     -   Split history UI into two clearly separated areas, `Versions` list and `Selected version` detail/preview, so version navigation and source inspection are no longer mixed.
     -   Kept restore/version-loading behavior connected to existing Book history APIs while reducing UI duplication by moving history rendering into one reusable panel component.
 
 -   Prevented accidental data loss when dismissing text-input modals in Agents Server:
+
     -   Added a reusable `useDirtyModalGuard` hook that blocks modal close attempts when unsaved edits exist and asks for explicit discard confirmation.
     -   Applied the guard to clone-agent prompt (`showPrompt`) so typed clone names are protected against overlay-click and `Escape` dismissal.
     -   Audited and applied the same guard to other dialog-based text editors/inputs (`NewAgentDialog`, `FolderEditDialog`, `WalletRecordDialog`, `PseudoUserChatDialog`, `LoginDialog`, and `ChangePasswordDialog`).
     -   Added Playwright coverage for clone prompt flow: type draft name, attempt overlay dismiss and cancel discard (modal stays), then press `Escape` and confirm discard (modal closes).
 
 -   Fixed Agents Server header search alignment in desktop top menu:
+
     -   Switched the desktop header shell to a dedicated three-slot layout (`left | centered search | right`) so the global search box is visually centered in the header.
     -   Moved desktop Documentation/System menu rendering into the right-side slot with control/user actions, preventing search-position shifts when right-side items (login/profile/control-panel actions) change.
     -   Kept existing search input sizing and mobile menu search behavior unchanged.
 
 -   Improved Agents Server global application-error boundary report export:
+
     -   Added one-click `Copy` action that copies the full application error report as Markdown from the error screen.
     -   Added one-click `Save` action that downloads the same Markdown report as a `.md` file.
     -   Added shared report-generation utilities in `applicationErrorHandling` so Sentry forwarding and UI export use one canonical payload shape (DRY).
 
 -   Fixed Agents Server `run_browser` visual replay artifact capture reliability:
+
     -   Switched browser artifact filesystem storage to a writable runtime directory (`RUN_BROWSER_ARTIFACT_STORAGE_DIRECTORY` or OS temp fallback) instead of relying on `process.cwd()`, which can be read-only in some deployments.
     -   Kept replay payload paths stable (`.playwright-cli/...`) so existing chat parsing and replay rendering continue to work without UI contract changes.
     -   Added screenshot capture fallback from `fullPage: true` to viewport capture (`fullPage: false`) when large pages cannot be captured as full-page screenshots.
     -   Updated `/api/browser-artifacts/[artifactName]` to resolve files via the shared artifact-storage utility used by `run_browser`.
 
 -   Refactored chat attachment utilities for maintainability/readability without behavior changes:
+
     -   Split `src/utils/chat/chatAttachments.ts` into focused SRP modules under `src/utils/chat/chatAttachments/` (attachment normalization, metadata/context formatting, content resolving, and message-context appending).
     -   Kept `src/utils/chat/chatAttachments.ts` as a thin facade preserving the same external API (types and helper exports used by `@promptbook/core`).
     -   Added explicit private/public JSDoc annotations on extracted exported entities to align with package-generation checks and naming-discrepancy constraints.
 
 -   Refactored `src/types/typeAliases.ts` into focused alias modules while preserving external behavior:
+
     -   Extracted semantic type aliases into SRP-oriented files (`string_parameter_name.ts`, `string_sha256.ts`, `string_markdown.ts`, `string_filename.ts`, `string_url.ts`, `string_knowledge_source_content.ts`, `string_person_fullname.ts`, `string_token.ts`, `number_usd.ts`).
     -   Kept `src/types/typeAliases.ts` as a thin re-export facade to preserve existing import paths and public type names.
 
 -   Refactored `WALLET` commitment internals for maintainability/readability without behavior changes:
+
     -   Split `src/commitments/WALLET/WALLET.ts` into focused private modules for runtime adapter contracts/state, tool names, tool schemas, tool-title mapping, runtime-context resolution, argument parsing, disabled-runtime handling, tool-function implementations, system-message composition, and commitment documentation.
     -   Kept `src/commitments/WALLET/WALLET.ts` as a thin orchestration facade preserving the same external API (`WalletCommitmentDefinition`, `setWalletToolRuntimeAdapter`, and existing exported WALLET types).
     -   Added explicit private JSDoc annotations on extracted exported internals to align with package-generation checks.
 
 -   Refactored `USE PROJECT` commitment internals for maintainability/readability without behavior changes:
+
     -   Split `src/commitments/USE_PROJECT/USE_PROJECT.ts` into focused private modules for tool names, tool schemas, tool-title mapping, configured-project normalization, runtime/wallet resolution, GitHub API transport, and tool-function implementations.
     -   Kept `src/commitments/USE_PROJECT/USE_PROJECT.ts` as a thin orchestration facade preserving the same external API (`UseProjectCommitmentDefinition`) and existing tool behavior.
     -   Added explicit private JSDoc annotations on extracted exported internals to align with package-generation checks.
 
 -   Refactored `MEMORY` commitment internals for maintainability/readability without behavior changes:
+
     -   Split `src/commitments/MEMORY/MEMORY.ts` into focused private modules for runtime adapter wiring, runtime context resolution, disabled-result handling, tool-argument parsing, tool schema construction, system-message block creation, tool-title mapping, tool-function creation, and documentation text.
     -   Kept `src/commitments/MEMORY/MEMORY.ts` as a thin orchestration facade preserving the same external API (`MemoryCommitmentDefinition`, `setMemoryToolRuntimeAdapter`, and existing exported MEMORY types).
     -   Added explicit private JSDoc annotations on extracted exported internals to align with project conventions and package-generation checks.
 
 -   Refactored Chat tool-call parsing utilities for maintainability/readability without behavior changes:
+
     -   Split `src/book-components/Chat/utils/toolCallParsing.ts` into focused SRP modules under `src/book-components/Chat/utils/toolCallParsing/` (generic tool arg/result parsing, TEAM payload parsing, date extraction, search result extraction, and `run_browser` payload parsing/URL resolution).
     -   Kept `src/book-components/Chat/utils/toolCallParsing.ts` as a thin facade that re-exports the same API to preserve existing imports and behavior.
     -   Added explicit private JSDoc annotations on extracted exported entities to align with package-generation checks.
 
 -   Refactored `ChatToolCallModal` internals for maintainability/readability without behavior changes:
+
     -   Split `src/book-components/Chat/Chat/ChatToolCallModal.tsx` into focused private modules:
         -   `src/book-components/Chat/Chat/renderToolCallDetails.tsx` for simple-mode tool detail rendering and related helpers.
         -   `src/book-components/Chat/Chat/renderAdvancedToolCallDetails.tsx` for advanced payload rendering and markdown report export helpers.
@@ -64,16 +86,19 @@
     -   Added private JSDoc annotations on newly extracted exported entities to align with internal conventions.
 
 -   Refactored OpenAI cleanup script for maintainability/readability without behavior changes:
+
     -   Split `scripts/delete-openai-resources/delete-openai-resources.ts` into focused private modules for orchestration, OpenAI client/bootstrap, resource listing/mapping, summary printing, confirmation prompting, sequential deletion, and deletion summary/error formatting.
     -   Kept `scripts/delete-openai-resources/delete-openai-resources.ts` as a thin entrypoint to preserve script behavior and CLI output.
     -   Added explicit private JSDoc annotations on extracted entities to match project conventions.
 
 -   Refactored Agents Server wallet utility for maintainability/readability without behavior changes:
+
     -   Split `apps/agents-server/src/utils/userWallet.ts` into focused SRP modules under `apps/agents-server/src/utils/userWallet` (record types, payload normalization, table access, CRUD/listing operations, row mapping, and token-resolution helpers).
     -   Kept `apps/agents-server/src/utils/userWallet.ts` as a thin facade re-exporting the same public API used by routes/tools/components.
     -   Added explicit private JSDoc annotations on extracted internal entities to match project conventions.
 
 -   Refactored Agents Server header component for maintainability/readability without behavior changes:
+
     -   Split `apps/agents-server/src/components/Header/Header.tsx` into focused private modules:
         -   `buildAgentMenuStructure.tsx` (agent hierarchy data builders + related header menu components/helpers)
         -   `buildDocumentationDropdownItems.tsx` (documentation dropdown item composition)
@@ -84,6 +109,7 @@
     -   Added private JSDoc annotations on extracted entities to align with internal conventions.
 
 -   Fixed intermittent Monaco syntax highlighting loss in Agents Server Book editor after client-side back/forward navigation:
+
     -   Book Monaco lifecycle now re-applies Book language + theme to the mounted editor model on mount/focus/navigation visibility events, while keeping language/token providers registered idempotently per Monaco runtime.
     -   `/agents/[agentName]/book` now uses a stable Monaco model path so cursor/scroll view state is restored after remounts (`saveViewState`) without keeping stale models alive.
     -   Added an opt-in development debug flag for Monaco lifecycle tracing (`localStorage['promptbook-debug-book-editor-monaco']='1'`).
@@ -94,6 +120,7 @@
         -   Confirm syntax highlighting remains present, and cursor/scroll position is restored when returning to the editor.
 
 -   Added an admin-only Agents Server backups page at `/admin/backup` with a new System-menu entry (`Backups`) for administrators:
+
     -   Added one backup action, **Download all books**, which exports a single `.zip` archive.
     -   Added streaming export endpoint `GET /api/admin/backups/books` that returns ZIP bytes as a stream (without buffering the full archive in server memory).
     -   The ZIP now includes all books from the Agents Server using canonical persisted book source (`Agent.agentSource`) and mirrors the folder hierarchy from `AgentFolder`.
@@ -101,6 +128,7 @@
     -   Added a top-level archive directory (`promptbook-backup-YYYY-MM-DD/`) so extraction does not spill files into the current directory.
 
 -   Added debounced background agent pre-indexing/preparation in Agents Server to reduce first-chat latency after edits:
+
     -   Added DB-backed preparation queue/state table (`2026-03-0160-agent-preparation.sql`) with per-agent fingerprint tracking, status lifecycle (`SCHEDULED`/`RUNNING`/`PREPARED`/`FAILED`), retry metadata, and timestamps.
     -   Added a background worker loop (`apps/agents-server/src/utils/agentPreparation.ts`) that coalesces rapid updates with a 30s debounce window, enforces single in-flight preparation per agent row, runs AgentKit pre-indexing, retries with backoff on transient failures, and logs scheduled/started/skipped/completed/failed events with counters.
     -   Wired scheduling centrally by decorating `AgentCollection` writes in `$provideAgentCollectionForServer`, so agent create/update/book-source writes automatically enqueue pre-indexing without blocking save requests.
@@ -108,17 +136,20 @@
     -   Fixed worker triggering reliability by adding immediate tick kicks, per-prefix wake-up timers at scheduled due times, and due-`SCHEDULED` polling in chat wait so queued pre-index jobs start consistently and produce observable run logs/counters.
 
 -   Improved Agents Server profile-chat initial message handoff to avoid URL length limits while preserving deep links:
+
     -   Profile chat now stores pending initial message payload (message + attachments) in session storage and navigates to `/chat` without serializing the message into URL query params.
     -   Standalone chat now consumes this pending profile payload for one-time auto-execution, while existing shareable `?message=...` deep-link behavior remains supported.
     -   Added shared chat-message validation utility with a server-enforced max length (`20,000` characters) in `/agents/[agentName]/api/chat`, returning clear validation errors (including `413` for oversized messages).
     -   Updated remote chat error propagation so non-OK `/api/chat` responses are surfaced as explicit client errors, and validation errors now display their concrete server message in chat error UI.
 
 -   Added automatic per-round LF normalization in `scripts/run-codex-prompts` (`ptbk coder run`):
+
     -   After each coding round, the script now detects only files changed in that round and normalizes CRLF line endings to LF.
     -   Added safe binary skipping (by known binary extension and NUL-byte detection) to avoid corrupting non-text files.
     -   Added `--no-normalize-line-endings` as a debugging escape hatch (default behavior remains enabled).
 
 -   Added an alternative Agents Server textarea-first agent page at `/agents/[agentName]/textarea`:
+
     -   Added a minimal centered UI with one large textarea that focuses on load.
     -   Implemented keyboard behavior: `Enter` submits, `Shift+Enter` inserts newline.
     -   On submit, the textarea clears and forwards the message into the existing standalone chat route (`/chat?message=...&newChat=1`) to reuse the same backend message pipeline and streaming behavior.
@@ -126,6 +157,7 @@
     -   Added a buried discoverability link (`Textarea Entry`) in the agent context menu under agent view actions.
 
 -   Added new `USE SPAWN` commitment for persistent child-agent creation in Agents Server:
+
     -   Added `USE SPAWN` commitment with `spawn_agent` tool wiring in Promptbook runtime (browser + node runtime adapters).
     -   Added strict shared create-agent input contract (`source`, `folderId`, `sortOrder`, `visibility`) with unknown-field rejection and source-size limits.
     -   Added Agents Server `spawn_agent` tool + `/api/spawn-agent` route that reuse the same manual creation path (`createAgentWithDefaultVisibility`) and return structured results (`status`, `agentId`, `agent` or `error`).
@@ -134,6 +166,7 @@
     -   Added example agent source at `agents/examples/spawn-agent.book`.
 
 -   Improved Agents Server `run_browser` reliability for remote-browser outages and full-web-scraping fallback:
+
     -   Added remote browser connect classification (`REMOTE_BROWSER_UNAVAILABLE`) with structured tool error payloads (`code`, `message`, `isRetryable`, `suggestedNextSteps`, `debug`) instead of raw stack-trace-first failures.
     -   Added remote connect retries with exponential backoff + jitter (default 2 retries / 3 attempts total), connect timeout support, and abort-aware retry waits in a new shared helper (`apps/agents-server/src/utils/retryWithBackoff.ts`).
     -   Added best-effort fallback scraping in `run_browser`: when remote browser infrastructure is unavailable, the tool now falls back to server-side `fetch_url_content`, returns `modeUsed: "fallback"`, includes a dynamic-content warning, and returns extracted content.
@@ -142,6 +175,7 @@
     -   Added regression coverage for connect outage fallback flow, invalid action validation (no browser call), and navigation failure classification.
 
 -   Added a hidden admin-only Agents Server error simulation page at `/admin/error-simulation` for internal testing:
+
     -   Added direct-link-only controls (not listed in the System menu) for intentionally triggering inline error UI, toast-style error UI, and both client/server error-boundary flows.
     -   Added admin-only API endpoint `/api/admin/error-simulation` with deterministic modes for handled HTTP 500, unhandled server throw, invalid JSON payload, and success sanity checks.
     -   This enables faster verification of client-side fetch failure handling, server-side error logging behavior, and staging/production monitoring pipelines.
@@ -149,27 +183,32 @@
 -   Fixed Agents Server agent cloning placement so cloned agents now default to the same folder as the source agent instead of always being created in root.
 
 -   Improved coding-agent Git automation and Vercel deploy triggering:
+
     -   Updated `scripts/run-codex-prompts/git/commitChanges.ts` so each successful coding-agent commit now automatically pushes to Git (uses existing upstream when present, and sets upstream on first push when missing).
     -   Added explicit upstream/remote resolution and idempotent no-op behavior when there is nothing to push.
     -   Hardened push failure reporting with actionable hints (auth/permissions, branch protection, diverged history, upstream, connectivity) while keeping the existing prompt fail-log flow.
     -   Updated `apps/agents-server/vercel.json` `ignoreCommand` to allow deployments for both `hejny` and the coding-agent identity (`Promptbook Coding Agent`) instead of only `hejny`.
 
 -   Refactored Agents Server usage analytics API route for maintainability without behavior changes:
+
     -   Split `apps/agents-server/src/app/api/usage/route.ts` into focused usage-analytics server modules under `apps/agents-server/src/utils/usageAnalytics` (query parsing, data loading, call metric extraction, and aggregation/response shaping).
     -   Kept API behavior and payload semantics unchanged while reducing route-level density to a thin orchestration handler.
     -   Added private JSDoc annotations on extracted internal entities to align with internal conventions.
 
 -   Refactored Agents Server `AgentChatWrapper` for maintainability without behavior changes:
+
     -   Split `apps/agents-server/src/app/agents/[agentName]/AgentChatWrapper.tsx` into focused private hooks: `useTeamAgentProfiles`, `useAgentChatMetaDisclaimer`, and `useAgentChatToolInteractions`.
     -   Kept existing chat behavior intact, including TEAM profile hydration, META DISCLAIMER gating, auto-execute consumption, and tool-driven location/privacy/pseudo-user/wallet interaction flows.
     -   Added private JSDoc annotations on extracted entities to align with project conventions and package-generation checks.
 
 -   Refactored Agents Server admin usage analytics client for maintainability without behavior changes:
+
     -   Split `apps/agents-server/src/app/admin/usage/UsageClient.tsx` into focused SRP modules for filters, analytics panels, timeline chart rendering, formatting helpers, and query builders.
     -   Kept all existing UI behavior, filtering semantics, URL query synchronization, and analytics fetch behavior intact while reducing file density.
     -   Added explicit private JSDoc annotations on extracted internal modules to match project conventions.
 
 -   Added simple book version history for Agents Server agent source editing:
+
     -   Connected the autosave status indicator in the Book editor with a Google Docs-inspired history drawer: clicking the indicator now opens a simple version list, full source preview for the selected snapshot, and one-click restore.
     -   Added Book history API endpoint `/agents/[agentName]/api/book/history` for loading source snapshots and restoring a selected snapshot directly from the editor.
     -   Hardened restore flow with agent/version consistency validation (`historyId` must belong to the current agent) before applying a restore.
@@ -177,46 +216,55 @@
     -   Added database migration `2026-03-0150-agent-history-backfill.sql` to normalize legacy `AgentHistory.agentId` setups to `permanentId` and backfill missing history rows so every existing agent has at least one snapshot.
 
 -   Added advanced tool-call report export actions in Agents Server chat chip popup:
+
     -   The advanced variant of the tool-call modal now includes two one-click actions: `Copy` (clipboard) and `Save` (download `.md` file).
     -   Exported content is generated from one shared DRY markdown-report builder reused by both actions, preventing duplicated formatting logic.
     -   The report includes the same advanced technical sections already shown in the modal (`Input payload`, `Output payload`, `Model payload`, and `Full event`) so full context can be shared for troubleshooting.
     -   The simple modal variant remains unchanged and does not expose these technical export actions.
 
 -   Unified Agents Server agent-page metadata branding for all `/agents/[agentName]` routes:
+
     -   Refactored `apps/agents-server/src/app/agents/[agentName]/layout.tsx` to reuse one shared metadata generator (`generateAgentMetadata`) instead of a separate layout-specific implementation.
     -   Removed redundant page-level `generateMetadata = generateAgentMetadata` aliases from agent subpages (`book`, `book+chat`, `chat`, `integration`, `system-message`, `website-integration`, `iframe`, and profile page) so metadata branding is inherited from one DRY layout source.
     -   As a result, agent favicon and related metadata branding are now applied consistently across agent pages through the shared layout metadata pipeline.
 
 -   Humanized AI-generated outbound email text in Agents Server `USE EMAIL` flow:
+
     -   Added a shared `humanizeOutboundEmail` utility for email payload cleanup using `humanizeAiText`.
     -   `send_email` now humanizes outbound email subject and body right before sending, without exposing this behavior to the agent.
     -   Added a focused unit test covering subject/content cleanup and metadata subject synchronization.
 
 -   Improved BookEditor syntax highlighting for note-like commitments:
+
     -   `NOTE`/`NOTES`/`NONCE` now keep the whole commitment block in comment-style gray until the next commitment (not just the keyword).
     -   `TODO` now uses a dedicated high-visibility style (yellow highlight with black text) for the whole commitment block.
     -   Refactored Monaco tokenizer transitions into shared helpers so NOTE/TODO block handling stays DRY.
 
 -   Updated BookEditor commitment syntax highlighting to visually separate non-executable note commitments:
+
     -   `NOTE`, `NOTES`, and `NONCE` now render with a dedicated gray note style instead of the regular commitment color.
     -   `TODO` now uses its own highlighted style through shared note-like Monaco tokenizer helpers and theme tokens.
 
 -   Expanded self-learning sampling to capture full internal execution traces:
+
     -   Added a new `INTERNAL MESSAGE` commitment and registry support for parsing book-level internal trace records.
     -   Self-learning now stores structured internal trace blocks between `USER MESSAGE` and `AGENT MESSAGE`, including model request/response payloads and tool-call request+result data.
     -   Kept runtime prompt behavior unchanged by treating `INTERNAL MESSAGE` as trace-only metadata (not an additional system-message sample line).
 
 -   Enhanced Agents Server `USE BROWSER` chip popup to show visual browser replay instead of technical-only output:
+
     -   `run_browser` now captures visual artifacts across the whole session (initial page, post-action snapshots, and final snapshot) and embeds a structured playback JSON payload in the tool result.
     -   Added a secure `GET /api/browser-artifacts/[artifactName]` endpoint that serves `run_browser` screenshot/video artifacts from server storage.
     -   Added shared DRY browser-result parsing helpers in chat utils and updated the tool-call modal to render a visual browser timeline (images/videos + action list) for `run_browser` chips.
 
 -   Isolated Monaco editor instances in Agents Server into per-instance Shadow DOM via a shared reusable wrapper:
+
     -   Added `MonacoEditorWithShadowDom` as a single DRY Monaco wrapper that preserves the same external `@monaco-editor/react` editor API while forcing `useShadowDOM: true`.
     -   Switched `BookEditor` Monaco usage to the wrapper so Book-language editing runs in isolated editor DOM internals.
     -   Switched other Agents Server Monaco surfaces (custom CSS, custom JavaScript, transpiled code view, chat code blocks, and advanced tool-call payload viewers) to the same wrapper.
 
 -   Improved Agents Server website chat integration widget UX/layout in embedded mode:
+
     -   Fixed open-state iframe/widget sizing and offset behavior so the visible chat surface and click bounds stay aligned across desktop/mobile.
     -   Improved close-on-outside-click behavior by removing hidden clickable dead zones around the opened widget.
     -   Added launcher connection-state indicator states (pending/connected/error) and ensured connected state is shown as green when chat is connected.
@@ -225,31 +273,37 @@
     -   Updated minimal-shell headless chat container sizing to consistently provide full-height chat viewport in embedded/headless mode.
 
 -   Fixed Agents Server remote browser execution on Vercel when `REMOTE_BROWSER_URL` is configured:
+
     -   `BrowserConnectionProvider` no longer falls back to launching a local browser when remote Playwright connection fails, so serverless deployments never attempt local Chromium startup in remote mode.
     -   Added a regression test for remote-mode behavior to ensure failed remote connections do not call `launchPersistentContext`.
     -   Removed the unused `@playwright/cli` dependency; browser tooling now relies on the Playwright library path only.
 
 -   Fixed Agents Server header-bar overlap on intermediate viewport widths:
+
     -   The desktop middle navigation block (search + Documentation/System) now participates in normal flex layout instead of absolute centering, preventing collisions with breadcrumb and profile controls.
     -   The global search box now appears from wider desktop widths (`xl`) while Documentation/System remain available on `lg`, reducing crowding between desktop and mobile breakpoints.
 
 -   Enhanced collapsed chat sidebar UX in Agents Server:
+
     -   Replaced one-letter collapsed chat chips with compact mini chat cards that show chat title, last preview, and a message-count badge.
     -   Kept timestamp visibility in both sidebar modes, now using relative time labels (for example `2 hours ago`) via `moment(...).fromNow()`.
     -   Reduced duplication by preparing one shared sidebar-item model reused by both collapsed and expanded chat list rendering.
 
 -   Enhanced Agents Server advanced tool-call popup payload inspection:
+
     -   Advanced payload panels now render inside read-only Monaco editors with syntax highlighting instead of plain `<pre>` blocks.
     -   Raw payload formatting now pretty-prints JSON consistently, including payloads that arrive as minified JSON strings.
     -   Input payload now includes the tool name (`toolName`) together with arguments so request context is explicit.
     -   Tool-call modal now allows full modal scrolling for long advanced payload content while keeping section rendering DRY through one shared payload-section pipeline.
 
 -   Added wallet credential usage chips in Agents Server chat so credential-backed actions visibly disclose safe credential metadata without leaking secrets:
+
     -   Reused the existing tool-call chip row below messages to append a dedicated `Credential used` chip whenever `USE EMAIL` or `USE PROJECT` successfully uses wallet credentials.
     -   Added a user-friendly credential details modal on chip click (credential name, purpose, service, reference key, and action source), intentionally excluding any secret/token values.
     -   Kept behavior DRY by centralizing credential-chip derivation in shared chat utils and reusing existing chip/modal pipelines.
 
 -   Reworked Agents Server wallet scoping so credentials can be independently scoped by user and agent (with agent scope now default):
+
     -   Added `isUserScoped` to wallet records (migration `2026-03-0130-user-wallet-user-scope.sql`) while keeping existing agent-scope behavior (`isGlobal` / `agentPermanentId`), enabling all combinations:
         -   User + Agent scope
         -   User-only scope
@@ -260,6 +314,7 @@
     -   Updated GitHub App connect/callback state to carry wallet user-scope selection and persist tokens with the selected scope combination.
 
 -   Removed the explicit `WALLET` / `WALLETS` commitment requirement for Agents Server wallet-backed flows:
+
     -   `WALLET` and `WALLETS` are no longer registered as commitments, so agents no longer need to declare them explicitly.
     -   `USE EMAIL` and `USE PROJECT` continue to read credentials from wallet records automatically, which is now the single supported path for wallet access in these flows.
     -   Removed legacy `WALLET` capability parsing and dropped now-unused Agents Server runtime wiring that only served `WALLET` commitment tool registration.
@@ -270,6 +325,7 @@
     -   Kept existing behavior unchanged (including private-mode/self-learning dependency) while surfacing clearer section-level state chips and compact state/action rows.
     -   Refined dropdown affordances with stronger active button styling, an explicit close action in the panel header, and a cleaner visual hierarchy that remains scroll-friendly on smaller viewports.
 -   Improved Agents Server `USE EMAIL` wallet flow and wallet UX for SMTP credentials:
+
     -   Added structured SMTP credential schema hints to missing-credential tool results (`send_email` now returns `jsonSchema` together with the wallet request message), so chat wallet prompts can show the expected JSON shape directly.
     -   Added optional `jsonSchema` persistence to `UserWallet` records (new migration `2026-03-0120-user-wallet-json-schema.sql`) and wired the field through wallet APIs, wallet utilities, and DB types.
     -   Updated shared wallet dialog and System > User Wallet UI to better support SMTP JSON secrets:

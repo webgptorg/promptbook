@@ -11,3 +11,16 @@ export async function openHeaderMenu(page: Page, menuLabel: string): Promise<voi
     await expect(menuButton).toBeVisible();
     await menuButton.click();
 }
+
+/**
+ * Opens a first-level submenu branch inside an already-open header dropdown.
+ *
+ * @param page - Current Playwright page.
+ * @param branchLabel - Visible branch label shown in the dropdown.
+ */
+export async function openHeaderSubMenu(page: Page, branchLabel: string): Promise<void> {
+    const branchButton = page.getByRole('button', { name: branchLabel });
+    await expect(branchButton).toBeVisible();
+    await branchButton.hover();
+    await branchButton.click();
+}

@@ -41,7 +41,7 @@ export async function loginAsAdmin(page: Page): Promise<void> {
  * @param page - Current Playwright page.
  */
 export async function logoutFromHeader(page: Page): Promise<void> {
-    await page.getByRole('button', { name: /admin/i }).click();
+    await page.getByRole('button', { name: /^A\s+admin\s+Admin$/ }).click();
     await page.getByRole('button', { name: 'Log out' }).click();
     await expect(page.getByRole('banner').getByRole('button', { name: 'Log in' })).toBeVisible();
 }
