@@ -1,3 +1,8 @@
+-   Enhanced Agents Server `/agents/[agentName]/textarea` page design:
+    -   Hid the global header for the textarea route to provide a focused writing surface.
+    -   Added a centered agent identity block above the textarea with circular profile image and agent name.
+    -   Reused the same agent background generator as the profile page (`/agents/[agentName]`) so textarea and profile share identical branded background styling.
+
 -   Added named Book history milestones in Agents Server editor:
     -   Added optional `versionName` persistence for `AgentHistory` snapshots with migration `2026-03-0170-agent-history-version-name.sql`.
     -   Extended Book save API and collection history snapshots so saving can include a human-readable version name while preserving existing autosave behavior.

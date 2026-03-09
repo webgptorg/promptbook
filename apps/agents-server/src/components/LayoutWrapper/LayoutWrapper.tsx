@@ -63,7 +63,8 @@ export function LayoutWrapper({
     const isHeadless = searchParams.has('headless');
     // const isAdminChatPage = pathname?.startsWith('/admin/chat-history') || pathname?.startsWith('/admin/chat-feedback');
     const isChatPage = pathname ? /^\/agents\/[^/]+\/chat$/.test(pathname) : false;
-    const isHeaderHidden = false; // pathname?.includes('/chat') && !isAdminChatPage;
+    const isTextareaPage = pathname ? /^\/agents\/[^/]+\/textarea$/.test(pathname) : false;
+    const isHeaderHidden = isTextareaPage;
     const isFooterHiddenOnPage = pathname ? /^\/agents\/[^/]+\/(book|chat|book\+chat|textarea)$/.test(pathname) : false;
 
     const mainClassName = isChatPage ? 'h-[100dvh] pt-[60px] overflow-hidden' : 'flex-1 pt-[60px]';

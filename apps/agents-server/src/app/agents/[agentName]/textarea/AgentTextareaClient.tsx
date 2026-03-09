@@ -2,6 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
+import { AgentProfileImage } from '../../../../components/AgentProfile/AgentProfileImage';
+import { useAgentBackground } from '../../../../components/AgentProfile/useAgentBackground';
 import { useAgentNaming } from '../../../../components/AgentNaming/AgentNamingContext';
 
 /**
@@ -12,6 +14,21 @@ type AgentTextareaClientProps = {
      * Canonical agent identifier used to resolve chat route targets.
      */
     readonly agentName: string;
+
+    /**
+     * Human-friendly agent name rendered above the textarea.
+     */
+    readonly agentDisplayName: string;
+
+    /**
+     * Agent avatar URL rendered in a circular frame above the textarea.
+     */
+    readonly agentAvatarSrc: string;
+
+    /**
+     * Optional agent brand color used for profile-like page background.
+     */
+    readonly agentBrandColor?: string;
 };
 
 /**
@@ -42,12 +59,18 @@ function buildChatMessageRoute(agentName: string, messageContent: string): strin
 /**
  * Minimal centered textarea surface that forwards prompts to the standard chat page.
  */
-export function AgentTextareaClient({ agentName }: AgentTextareaClientProps) {
+export function AgentTextareaClient({
+    agentName,
+    agentDisplayName,
+    agentAvatarSrc,
+    agentBrandColor,
+}: AgentTextareaClientProps) {
     const router = useRouter();
     const { formatText } = useAgentNaming();
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
     const [messageContent, setMessageContent] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const { backgroundImage } = useAgentBackground(agentBrandColor);
 
     const normalizedMessage = useMemo(() => resolveMessageToSend(messageContent), [messageContent]);
     const isSubmitDisabled = isSubmitting || normalizedMessage === null;
@@ -100,9 +123,23 @@ export function AgentTextareaClient({ agentName }: AgentTextareaClientProps) {
     );
 
     return (
-        <main className="flex min-h-[calc(100dvh-60px)] w-full items-center justify-center px-4 py-10">
+        <main
+            className="relative flex min-h-screen w-full items-center justify-center overflow-hidden px-4 py-10"
+            style={{
+                background: `url("${backgroundImage}")`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+            }}
+        >
             <form onSubmit={handleSubmit} className="w-full max-w-3xl">
-                <div className="rounded-3xl border border-slate-200 bg-white/95 p-4 shadow-sm">
+                <div className="mb-6 flex flex-col items-center text-center">
+                    <div className="h-24 w-24 overflow-hidden rounded-full border border-white/80 bg-white/60 shadow-lg">
+                        <AgentProfileImage src={agentAvatarSrc} alt={agentDisplayName} className="h-full w-full" />
+                    </div>
+                    <h1 className="mt-4 text-2xl font-bold tracking-tight text-slate-900">{agentDisplayName}</h1>
+                </div>
+
+                <div className="rounded-3xl border border-slate-200 bg-white/95 p-4 shadow-sm backdrop-blur-sm">
                     <textarea
                         ref={textareaRef}
                         rows={12}

@@ -1,0 +1,125 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e5]:
+        - generic [ref=e7]:
+          - generic [ref=e8]:
+            - link "Promptbook Agents Server Promptbook Agents Server" [ref=e9] [cursor=pointer]:
+              - /url: /
+              - img "Promptbook Agents Server" [ref=e10]
+              - generic [ref=e11]: Promptbook Agents Server
+            - button "Switch server" [ref=e13] [cursor=pointer]:
+              - img [ref=e14]
+          - img [ref=e16]
+          - button "Sebastian Gray avatar Sebastian Gray" [ref=e20] [cursor=pointer]:
+            - generic [ref=e21]:
+              - img "Sebastian Gray avatar" [ref=e23]
+              - generic [ref=e24]: Sebastian Gray
+            - img [ref=e25]
+          - img [ref=e27]
+          - button "Profile" [ref=e31] [cursor=pointer]:
+            - generic [ref=e32]:
+              - img [ref=e33]
+              - generic [ref=e36]: Profile
+            - img [ref=e37]
+        - generic [ref=e41]:
+          - generic [ref=e42]: Global search
+          - generic [ref=e43]:
+            - img
+            - combobox "Global search" [ref=e44]
+        - generic [ref=e45]:
+          - navigation [ref=e46]:
+            - button "Documentation" [ref=e48] [cursor=pointer]:
+              - text: Documentation
+              - img [ref=e49]
+            - button "System" [ref=e52] [cursor=pointer]:
+              - text: System
+              - img [ref=e53]
+          - button "Open global control panel" [ref=e56] [cursor=pointer]:
+            - img [ref=e57]
+            - generic [ref=e60]: Control panel
+          - button "A admin Admin" [ref=e63] [cursor=pointer]:
+            - generic [ref=e65]: A
+            - generic [ref=e66]:
+              - generic [ref=e67]: admin
+              - generic [ref=e68]: Admin
+            - img [ref=e69]
+    - main [ref=e71]:
+      - generic [ref=e73]:
+        - heading "Agent Not Found :(" [level=1] [ref=e74]
+        - paragraph [ref=e75]: The agent you are looking for does not exist, but you can create your own!
+        - link "Home" [ref=e77] [cursor=pointer]:
+          - /url: /
+          - img [ref=e78]
+          - text: Home
+    - contentinfo [ref=e81]:
+      - generic [ref=e82]:
+        - generic [ref=e83]:
+          - generic [ref=e84]:
+            - heading "Promptbook" [level=3] [ref=e85]
+            - paragraph [ref=e86]: Turn your company's scattered knowledge into AI ready books
+          - generic [ref=e87]:
+            - heading "Product" [level=3] [ref=e88]
+            - list [ref=e89]:
+              - listitem [ref=e90]:
+                - link "Get started" [ref=e91] [cursor=pointer]:
+                  - /url: /get-started
+              - listitem [ref=e92]:
+                - link "Manifest" [ref=e93] [cursor=pointer]:
+                  - /url: /manifest
+              - listitem [ref=e94]:
+                - link "Documentation" [ref=e95] [cursor=pointer]:
+                  - /url: https://github.com/webgptorg/promptbook
+              - listitem [ref=e96]:
+                - link "Terms of Service" [ref=e97] [cursor=pointer]:
+                  - /url: /terms
+              - listitem [ref=e98]:
+                - link "Privacy Policy" [ref=e99] [cursor=pointer]:
+                  - /url: /privacy
+          - generic [ref=e100]:
+            - heading "Company" [level=3] [ref=e101]
+            - list [ref=e102]:
+              - listitem [ref=e103]:
+                - link "AI Web, LLC" [ref=e104] [cursor=pointer]:
+                  - /url: https://or-justice-cz.translate.goog/ias/ui/rejstrik-firma.vysledky?subjektId=1223693&typ=UPLNY&_x_tr_sl=cs&_x_tr_tl=en&_x_tr_hl=en-US&_x_tr_pto=wapp
+              - listitem [ref=e105]:
+                - link "About Us" [ref=e106] [cursor=pointer]:
+                  - /url: https://ptbk.io/#about-us
+              - listitem [ref=e107]:
+                - link "Blog" [ref=e108] [cursor=pointer]:
+                  - /url: https://ptbk.io/blog
+              - listitem [ref=e109]:
+                - link "Logos & Branding" [ref=e110] [cursor=pointer]:
+                  - /url: /design
+          - generic [ref=e111]:
+            - heading "Connect" [level=3] [ref=e112]
+            - list [ref=e113]:
+              - listitem [ref=e114]:
+                - link "GitHub" [ref=e115] [cursor=pointer]:
+                  - /url: https://github.com/webgptorg/promptbook
+              - listitem [ref=e116]:
+                - link "LinkedIn" [ref=e117] [cursor=pointer]:
+                  - /url: https://linkedin.com/company/promptbook
+              - listitem [ref=e118]:
+                - link "Discord" [ref=e119] [cursor=pointer]:
+                  - /url: https://discord.gg/x3QWNaa89N
+              - listitem [ref=e120]:
+                - link "More" [ref=e121] [cursor=pointer]:
+                  - /url: /contact
+          - generic [ref=e122]:
+            - heading "Links" [level=3] [ref=e123]
+            - list [ref=e124]:
+              - listitem [ref=e125]:
+                - 'link "Federated: core.ptbk.io" [ref=e126] [cursor=pointer]':
+                  - /url: https://core.ptbk.io/
+        - generic [ref=e127]:
+          - paragraph [ref=e128]:
+            - text: © 2026 Promptbook
+            - text: All rights reserved.
+            - text: Made with ❤️ in the Czech Republic.
+          - paragraph [ref=e129]: Promptbook engine version 0.111.0-11
+  - alert [ref=e130]: Sebastian Gray
+```

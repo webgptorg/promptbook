@@ -1,8 +1,12 @@
 'use server';
 
 import { notFound, redirect } from 'next/navigation';
+import { $provideServer } from '@/src/tools/$provideServer';
+import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
+import { formatAgentNamingText } from '../../../../utils/agentNaming';
 import { resolveAgentRouteTarget } from '../../../../utils/agentRouting/resolveAgentRouteTarget';
-import { getAgentName } from '../_utils';
+import { getAgentNaming } from '../../../../utils/getAgentNaming';
+import { getAgentName, getAgentProfile } from '../_utils';
 import { AgentTextareaClient } from './AgentTextareaClient';
 
 /**
@@ -41,5 +45,23 @@ export default async function AgentTextareaPage({ params }: { params: Promise<{ 
         redirect(buildCanonicalAgentTextareaPath(canonicalAgentId));
     }
 
-    return <AgentTextareaClient agentName={canonicalAgentId} />;
+    const [{ publicUrl }, agentProfile, agentNaming] = await Promise.all([
+        $provideServer(),
+        getAgentProfile(canonicalAgentId),
+        getAgentNaming(),
+    ]);
+    const fallbackAgentName = formatAgentNamingText('Agent', agentNaming);
+    const agentDisplayName = (agentProfile.meta.fullname || agentProfile.agentName || fallbackAgentName) as string;
+    const fallbackAvatarPath = `/agents/${encodeURIComponent(agentProfile.permanentId || canonicalAgentId)}/images/default-avatar.png`;
+    const agentAvatarSrc =
+        resolveAgentAvatarImageUrl({ agent: agentProfile, baseUrl: publicUrl.href }) || fallbackAvatarPath;
+
+    return (
+        <AgentTextareaClient
+            agentName={canonicalAgentId}
+            agentDisplayName={agentDisplayName}
+            agentAvatarSrc={agentAvatarSrc}
+            agentBrandColor={agentProfile.meta.color}
+        />
+    );
 }
