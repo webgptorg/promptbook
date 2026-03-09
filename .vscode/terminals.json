@@ -165,6 +165,13 @@
             "focus": false
         },
         {
+            "name": "🧪 Test Agents Server (💤)",
+            "command": "npm run test-app-agents-server",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
             "name": "🧪 Test Types (💤)",
             "command": "npm run test-types",
             "execute": false,
