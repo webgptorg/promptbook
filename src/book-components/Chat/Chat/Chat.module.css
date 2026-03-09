@@ -92,6 +92,16 @@
         600px,
         calc(100% - var(--chat-message-avatar-size) - var(--chat-message-avatar-gap))
     );
+    --chat-input-visible-lines: 3;
+    --chat-input-font-size: 15px;
+    --chat-input-line-height: 1.5;
+    --chat-input-padding-y: 10px;
+    --chat-input-padding-x: 12px;
+    --chat-input-action-size: 40px;
+    --chat-input-textarea-height: calc(
+        var(--chat-input-visible-lines) * var(--chat-input-font-size) * var(--chat-input-line-height) +
+            (2 * var(--chat-input-padding-y))
+    );
     /* <- TODO: [🧠][🎱] Better, define other fonts */
 }
 
@@ -1204,7 +1214,7 @@
 /* Input container for textarea and buttons */
 .inputContainer {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     gap: 8px;
     min-width: 0;
     background: #ffffff;
@@ -1228,8 +1238,8 @@
 
 /* Attachment button */
 .attachmentButton {
-    width: 40px;
-    height: 40px;
+    width: var(--chat-input-action-size);
+    height: var(--chat-input-action-size);
     border: none;
     background: transparent;
     color: #64748b;
@@ -1240,7 +1250,7 @@
     cursor: pointer;
     transition: all 0.2s ease;
     flex-shrink: 0;
-    margin-bottom: 2px;
+    margin: 0;
 }
 
 .attachmentButton:hover:not(:disabled) {
@@ -1255,8 +1265,8 @@
 
 /* Voice Button */
 .voiceButton {
-    width: 40px;
-    height: 40px;
+    width: var(--chat-input-action-size);
+    height: var(--chat-input-action-size);
     border: none;
     background: transparent;
     color: #64748b;
@@ -1267,7 +1277,7 @@
     cursor: pointer;
     transition: all 0.2s ease;
     flex-shrink: 0;
-    margin-bottom: 2px;
+    margin: 0;
 }
 
 .voiceButton:hover:not(:disabled) {
@@ -1453,16 +1463,20 @@
 /* Chat input field */
 .chatMainFlow .chatInput textarea {
     flex: 1;
-    padding: 10px 12px;
+    padding: var(--chat-input-padding-y) var(--chat-input-padding-x);
     margin: 0;
     border: none;
     outline: none;
     background: transparent;
     color: #0f172a;
     min-width: 0;
-    max-height: 200px;
-    font-size: 15px;
-    line-height: 1.5;
+    height: var(--chat-input-textarea-height);
+    min-height: var(--chat-input-textarea-height);
+    max-height: var(--chat-input-textarea-height);
+    font-size: var(--chat-input-font-size);
+    line-height: var(--chat-input-line-height);
+    box-sizing: border-box;
+    overflow-y: auto;
     resize: none;
     appearance: none;
     -webkit-appearance: none;
@@ -1487,9 +1501,9 @@
 
 /* Chat send button */
 .chatMainFlow .chatInput button[data-button-type='call-to-action'] {
-    width: 40px;
-    height: 40px;
-    margin: 0 0 2px 0 !important;
+    width: var(--chat-input-action-size);
+    height: var(--chat-input-action-size);
+    margin: 0 !important;
     padding: 0 !important;
 
     border: none;
@@ -3125,6 +3139,10 @@
             calc(100% - var(--chat-message-avatar-size) - var(--chat-message-avatar-gap))
         );
         --chat-message-avatar-gap: 10px;
+        --chat-input-font-size: 16px;
+        --chat-input-padding-y: 14px;
+        --chat-input-padding-x: 18px;
+        --chat-input-action-size: 44px;
     }
 
     .actions {
@@ -3168,17 +3186,6 @@
         max-width: calc(100% - 28px);
         font-size: 11px;
         padding: 7px 11px;
-    }
-
-    .chatMainFlow .chatInput textarea {
-        font-size: 16px;
-        padding: 14px 18px;
-        border-radius: 22px;
-    }
-
-    .chatMainFlow .chatInput button {
-        width: 44px;
-        height: 44px;
     }
 
     .scrollToBottom {
@@ -3282,6 +3289,9 @@
             calc(100% - var(--chat-message-avatar-size) - var(--chat-message-avatar-gap))
         );
         --chat-message-avatar-gap: 8px;
+        --chat-input-padding-y: 12px;
+        --chat-input-padding-x: 16px;
+        --chat-input-action-size: 40px;
     }
 
     .actions {
@@ -3319,17 +3329,6 @@
         right: 10px;
         bottom: 72px;
         max-width: calc(100% - 20px);
-    }
-
-    .chatMainFlow .chatInput textarea {
-        padding: 12px 16px;
-        border-radius: 20px;
-        font-size: 16px;
-    }
-
-    .chatMainFlow .chatInput button {
-        width: 40px;
-        height: 40px;
     }
 
     .chatButton {

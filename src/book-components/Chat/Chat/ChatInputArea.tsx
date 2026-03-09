@@ -19,7 +19,6 @@ import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
 import { grayscale } from '../../../utils/color/operators/grayscale';
 import { lighten } from '../../../utils/color/operators/lighten';
-import { countLines } from '../../../utils/expectation-counters/countLines';
 import { resolveSpeechRecognitionLanguage } from '../../../utils/language/getBrowserPreferredSpeechRecognitionLanguage';
 import type { WithTake } from '../../../utils/take/interfaces/ITakeChain';
 import { classNames } from '../../_common/react-utils/classNames';
@@ -387,6 +386,7 @@ export function ChatInputArea(props: ChatInputAreaProps) {
 
             textareaElement.value = '';
             setUploadedFiles([]);
+            onChange?.('');
 
             if (wasTextareaFocused) {
                 textareaElement.focus();
@@ -467,16 +467,6 @@ export function ChatInputArea(props: ChatInputAreaProps) {
                         textareaRef.current = element;
                     }}
                     onPaste={handlePaste}
-                    style={{
-                        height:
-                            Math.max(
-                                countLines(textareaRef.current?.value || defaultMessage || ''),
-                                (textareaRef.current?.value || defaultMessage || '').split(/\r?\n/).length,
-                                3,
-                            ) *
-                                25 +
-                            10,
-                    }}
                     defaultValue={defaultMessage}
                     placeholder={placeholderMessageContent || 'Write a message...'}
                     onKeyDown={(event) => {

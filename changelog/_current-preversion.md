@@ -1,3 +1,8 @@
+-   Fixed shared `<Chat/>` composer textarea height consistency across chat states:
+    -   Replaced JS-driven textarea height calculation with deterministic CSS variables in `Chat.module.css` so `Write a message...` keeps a stable height in empty and non-empty threads.
+    -   Unified composer sizing across breakpoints via shared input tokens (`font size`, `line height`, `padding`, `action button size`) to keep vertical alignment and placeholder baseline consistent on mobile and desktop.
+    -   Updated `ChatInputArea` send flow to call `onChange('')` after clearing the textarea so persisted draft state cannot keep stale layout-affecting content.
+
 -   Added optional post-prompt testing-server auto-migration workflow to Coding Agent script:
     -   Added `--auto-migrate` flag to `ptbk coder run` / `run-codex-prompts` so migrations run only when explicitly enabled.
     -   After each successfully completed prompt round (including commit), the coding script now runs Agents Server DB migrations for testing prefixes equivalent to:
