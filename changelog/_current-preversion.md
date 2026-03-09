@@ -1,3 +1,9 @@
+-   Deduplicated Agents Server credential chips per assistant message:
+    -   Chat now shows at most one credential chip per credential type/scope within one assistant message instead of repeating one chip per tool call.
+    -   Added stable credential-chip deduplication by credential identity (`service` + credential key), so repeated USE PROJECT calls in one message collapse into one GitHub credential chip.
+    -   Updated credential chip copy to short, consistent labels (`GitHub credentials used`, `SMTP credentials used`).
+    -   Extended credential-chip modal details to show one or multiple source actions (`Used by action` / `Used by actions`) without exposing secrets.
+
 -   Added canonical standalone Book language documentation route in Agents Server:
     -   Added new canonical route `/api/docs/book-language.md` that returns one generated markdown document for Book 2.0 agent language.
     -   Refactored `/api/docs/book.md` to reuse the same shared markdown generator output (backward-compatible alias, no duplicated docs logic).

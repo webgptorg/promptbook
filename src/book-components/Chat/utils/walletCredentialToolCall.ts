@@ -20,6 +20,7 @@ export type WalletCredentialToolCallResult = {
     service: string;
     key: string;
     sourceToolName: string;
+    sourceToolNames?: Array<string>;
 };
 
 /**
@@ -53,6 +54,13 @@ const USE_PROJECT_TOOL_NAMES = new Set([
 const WALLET_CREDENTIAL_REQUIRED_STATUS = 'wallet-credential-required';
 
 /**
+ * Prefix used for synthetic idempotency keys produced by message-level credential deduplication.
+ *
+ * @private internal constant
+ */
+const WALLET_CREDENTIAL_DEDUPLICATION_IDEMPOTENCY_PREFIX = 'wallet-credential';
+
+/**
  * Parses credential-chip result payload from a tool result.
  *
  * @param result - Raw tool result payload.
@@ -75,12 +83,18 @@ export function parseWalletCredentialToolCallResult(result: unknown): WalletCred
         return null;
     }
 
+    const sourceToolNames = normalizeSourceToolNames(
+        Array.isArray(candidate.sourceToolNames) ? candidate.sourceToolNames : undefined,
+        candidate.sourceToolName,
+    );
+
     return {
         credentialName: candidate.credentialName,
         purpose: candidate.purpose,
         service: candidate.service,
         key: candidate.key,
         sourceToolName: candidate.sourceToolName,
+        ...(sourceToolNames.length > 0 ? { sourceToolNames } : {}),
     };
 }
 
@@ -94,6 +108,99 @@ export function parseWalletCredentialToolCallResult(result: unknown): WalletCred
  * @private internal helper for chat message chip composition
  */
 export function createWalletCredentialToolCall(toolCall: ToolCall): ToolCall | null {
+    const parsedResult = createWalletCredentialToolCallResult(toolCall);
+    if (!parsedResult) {
+        return null;
+    }
+
+    const baseIdempotencyKey = toolCall.idempotencyKey || resolveToolCallIdempotencyKey(toolCall);
+
+    return createWalletCredentialToolCallFromResult({
+        parsedResult,
+        sourceToolCall: toolCall,
+        idempotencyKey: `${WALLET_CREDENTIAL_TOOL_CALL_NAME}:${baseIdempotencyKey}`,
+    });
+}
+
+/**
+ * Builds deduplicated credential chip tool calls for one assistant message.
+ *
+ * Tool calls are grouped by stable credential identity (`service` + credential key), so one message shows one chip per
+ * credential type/scope while keeping safe details for modal display.
+ *
+ * @param toolCalls - Completed tool calls in one assistant message.
+ * @returns Deduplicated synthetic credential chip tool calls.
+ * @private internal helper for chat message chip composition
+ */
+export function createDeduplicatedWalletCredentialToolCalls(
+    toolCalls: ReadonlyArray<ToolCall> | undefined,
+): Array<ToolCall> {
+    if (!toolCalls || toolCalls.length === 0) {
+        return [];
+    }
+
+    const deduplicatedByCredential = new Map<
+        string,
+        {
+            parsedResult: WalletCredentialToolCallResult;
+            sourceToolCall: ToolCall;
+        }
+    >();
+
+    for (const toolCall of toolCalls) {
+        const parsedResult = createWalletCredentialToolCallResult(toolCall);
+        if (!parsedResult) {
+            continue;
+        }
+
+        const deduplicationKey = createWalletCredentialDeduplicationKey(parsedResult);
+        const existing = deduplicatedByCredential.get(deduplicationKey);
+
+        if (!existing) {
+            deduplicatedByCredential.set(deduplicationKey, {
+                parsedResult,
+                sourceToolCall: toolCall,
+            });
+            continue;
+        }
+
+        const mergedSourceToolNames = normalizeSourceToolNames(
+            [...(existing.parsedResult.sourceToolNames || []), ...(parsedResult.sourceToolNames || [])],
+            existing.parsedResult.sourceToolName,
+        );
+
+        deduplicatedByCredential.set(deduplicationKey, {
+            parsedResult: {
+                ...existing.parsedResult,
+                sourceToolName: mergedSourceToolNames[0] || existing.parsedResult.sourceToolName,
+                ...(mergedSourceToolNames.length > 0 ? { sourceToolNames: mergedSourceToolNames } : {}),
+            },
+            sourceToolCall: existing.sourceToolCall,
+        });
+    }
+
+    const deduplicatedToolCalls: Array<ToolCall> = [];
+    for (const [deduplicationKey, entry] of deduplicatedByCredential.entries()) {
+        deduplicatedToolCalls.push(
+            createWalletCredentialToolCallFromResult({
+                parsedResult: entry.parsedResult,
+                sourceToolCall: entry.sourceToolCall,
+                idempotencyKey: `${WALLET_CREDENTIAL_TOOL_CALL_NAME}:${WALLET_CREDENTIAL_DEDUPLICATION_IDEMPOTENCY_PREFIX}:${deduplicationKey}`,
+            }),
+        );
+    }
+
+    return deduplicatedToolCalls;
+}
+
+/**
+ * Builds structured credential-chip payload for one tool call when credentials were used.
+ *
+ * @param toolCall - Original tool call.
+ * @returns Parsed credential metadata or `null`.
+ * @private internal helper reused by credential chip creators
+ */
+function createWalletCredentialToolCallResult(toolCall: ToolCall): WalletCredentialToolCallResult | null {
     const isUseEmailTool = toolCall.name === 'send_email' || toolCall.name === 'useEmail';
     const isUseProjectTool = USE_PROJECT_TOOL_NAMES.has(toolCall.name);
 
@@ -105,37 +212,108 @@ export function createWalletCredentialToolCall(toolCall: ToolCall): ToolCall | n
         return null;
     }
 
-    const parsedResult: WalletCredentialToolCallResult = isUseEmailTool
+    const sourceToolName = toolCall.name;
+    return isUseEmailTool
         ? {
-              credentialName: 'Email SMTP credential',
-              purpose: 'Authenticates the configured mailbox so the agent can send email.',
+              credentialName: 'SMTP credentials used',
+              purpose: 'Authenticates the configured mailbox so the agent can send email actions.',
               service: 'smtp',
               key: 'use-email-smtp-credentials',
-              sourceToolName: toolCall.name,
+              sourceToolName,
+              sourceToolNames: [sourceToolName],
           }
         : {
-              credentialName: 'GitHub project credential',
+              credentialName: 'GitHub credentials used',
               purpose: 'Authenticates access to the configured GitHub repository for project actions.',
               service: 'github',
               key: 'use-project-github-token',
-              sourceToolName: toolCall.name,
+              sourceToolName,
+              sourceToolNames: [sourceToolName],
           };
+}
 
-    const baseIdempotencyKey = toolCall.idempotencyKey || resolveToolCallIdempotencyKey(toolCall);
-
+/**
+ * Creates one synthetic wallet-credential tool call from prepared metadata.
+ *
+ * @param options - Prepared credential metadata and origin.
+ * @returns Synthetic wallet-credential tool call.
+ * @private internal helper for credential chip creation
+ */
+function createWalletCredentialToolCallFromResult(options: {
+    parsedResult: WalletCredentialToolCallResult;
+    sourceToolCall: ToolCall;
+    idempotencyKey: string;
+}): ToolCall {
+    const { parsedResult, sourceToolCall, idempotencyKey } = options;
     return {
         name: WALLET_CREDENTIAL_TOOL_CALL_NAME,
         arguments: {
-            sourceToolName: toolCall.name,
+            sourceToolName: parsedResult.sourceToolName,
+            sourceToolNames: parsedResult.sourceToolNames || [parsedResult.sourceToolName],
         },
         result: parsedResult,
-        createdAt: toolCall.createdAt,
-        idempotencyKey: `${WALLET_CREDENTIAL_TOOL_CALL_NAME}:${baseIdempotencyKey}`,
+        createdAt: sourceToolCall.createdAt,
+        idempotencyKey,
         rawToolCall: {
             kind: WALLET_CREDENTIAL_TOOL_CALL_NAME,
-            sourceToolCall: toolCall.rawToolCall || null,
+            sourceToolCall: sourceToolCall.rawToolCall || null,
         },
     };
+}
+
+/**
+ * Builds a stable deduplication key for credential usage inside one message.
+ *
+ * @param result - Credential metadata to group by.
+ * @returns Stable key based on credential service and scope key.
+ * @private internal helper
+ */
+function createWalletCredentialDeduplicationKey(result: Pick<WalletCredentialToolCallResult, 'service' | 'key'>): string {
+    return `${normalizeDeduplicationSegment(result.service)}:${normalizeDeduplicationSegment(result.key)}`;
+}
+
+/**
+ * Normalizes one segment used in deduplication keys.
+ *
+ * @param value - Raw deduplication key segment.
+ * @returns Normalized segment.
+ * @private internal helper
+ */
+function normalizeDeduplicationSegment(value: string): string {
+    return value.trim().toLowerCase();
+}
+
+/**
+ * Builds a de-duplicated ordered list of source tool names.
+ *
+ * @param sourceToolNames - Optional source tool names.
+ * @param fallbackSourceToolName - Fallback source tool name.
+ * @returns Normalized source tool names list.
+ * @private internal helper
+ */
+function normalizeSourceToolNames(
+    sourceToolNames: ReadonlyArray<unknown> | undefined,
+    fallbackSourceToolName: string,
+): Array<string> {
+    const normalizedSourceToolNames = new Set<string>();
+    for (const sourceToolName of sourceToolNames || []) {
+        if (typeof sourceToolName !== 'string') {
+            continue;
+        }
+
+        const trimmedSourceToolName = sourceToolName.trim();
+        if (!trimmedSourceToolName) {
+            continue;
+        }
+
+        normalizedSourceToolNames.add(trimmedSourceToolName);
+    }
+
+    if (normalizedSourceToolNames.size === 0 && fallbackSourceToolName.trim()) {
+        normalizedSourceToolNames.add(fallbackSourceToolName.trim());
+    }
+
+    return Array.from(normalizedSourceToolNames.values());
 }
 
 /**

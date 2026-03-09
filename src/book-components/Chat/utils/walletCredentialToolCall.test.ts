@@ -2,6 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import type { ToolCall } from '../../../types/ToolCall';
 import { buildToolCallChipText, getToolCallChipletInfo } from './getToolCallChipletInfo';
 import {
+    createDeduplicatedWalletCredentialToolCalls,
     createWalletCredentialToolCall,
     parseWalletCredentialToolCallResult,
     WALLET_CREDENTIAL_TOOL_CALL_NAME,
@@ -34,10 +35,11 @@ describe('createWalletCredentialToolCall', () => {
                 name: WALLET_CREDENTIAL_TOOL_CALL_NAME,
                 idempotencyKey: `${WALLET_CREDENTIAL_TOOL_CALL_NAME}:mail-1`,
                 result: expect.objectContaining({
-                    credentialName: 'Email SMTP credential',
+                    credentialName: 'SMTP credentials used',
                     service: 'smtp',
                     key: 'use-email-smtp-credentials',
                     sourceToolName: 'send_email',
+                    sourceToolNames: ['send_email'],
                 }),
             }),
         );
@@ -58,10 +60,11 @@ describe('createWalletCredentialToolCall', () => {
             expect.objectContaining({
                 name: WALLET_CREDENTIAL_TOOL_CALL_NAME,
                 result: expect.objectContaining({
-                    credentialName: 'GitHub project credential',
+                    credentialName: 'GitHub credentials used',
                     service: 'github',
                     key: 'use-project-github-token',
                     sourceToolName: 'project_list_files',
+                    sourceToolNames: ['project_list_files'],
                 }),
             }),
         );
@@ -94,18 +97,20 @@ describe('parseWalletCredentialToolCallResult', () => {
     it('parses valid credential payloads', () => {
         expect(
             parseWalletCredentialToolCallResult({
-                credentialName: 'Email SMTP credential',
+                credentialName: 'SMTP credentials used',
                 purpose: 'Authenticates mailbox',
                 service: 'smtp',
                 key: 'use-email-smtp-credentials',
                 sourceToolName: 'send_email',
+                sourceToolNames: ['send_email'],
             }),
         ).toEqual({
-            credentialName: 'Email SMTP credential',
+            credentialName: 'SMTP credentials used',
             purpose: 'Authenticates mailbox',
             service: 'smtp',
             key: 'use-email-smtp-credentials',
             sourceToolName: 'send_email',
+            sourceToolNames: ['send_email'],
         });
     });
 
@@ -115,12 +120,55 @@ describe('parseWalletCredentialToolCallResult', () => {
     });
 });
 
+describe('createDeduplicatedWalletCredentialToolCalls', () => {
+    it('returns one credential chip per credential type in one message', () => {
+        const deduplicatedToolCalls = createDeduplicatedWalletCredentialToolCalls([
+            createToolCall({
+                name: 'project_list_files',
+                result: JSON.stringify({ ok: true }),
+                idempotencyKey: 'project-1',
+            }),
+            createToolCall({
+                name: 'project_read_file',
+                result: JSON.stringify({ ok: true }),
+                idempotencyKey: 'project-2',
+            }),
+            createToolCall({
+                name: 'send_email',
+                result: JSON.stringify({ status: 'sent' }),
+                idempotencyKey: 'email-1',
+            }),
+        ]);
+
+        expect(deduplicatedToolCalls).toHaveLength(2);
+
+        const parsedResults = deduplicatedToolCalls
+            .map((toolCall) => parseWalletCredentialToolCallResult(toolCall.result))
+            .filter((result): result is NonNullable<typeof result> => result !== null);
+
+        expect(parsedResults).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    credentialName: 'GitHub credentials used',
+                    service: 'github',
+                    sourceToolNames: ['project_list_files', 'project_read_file'],
+                }),
+                expect.objectContaining({
+                    credentialName: 'SMTP credentials used',
+                    service: 'smtp',
+                    sourceToolNames: ['send_email'],
+                }),
+            ]),
+        );
+    });
+});
+
 describe('wallet credential chip label', () => {
     it('renders a friendly chip label from synthetic credential tool calls', () => {
         const credentialToolCall = createToolCall({
             name: WALLET_CREDENTIAL_TOOL_CALL_NAME,
             result: {
-                credentialName: 'GitHub project credential',
+                credentialName: 'GitHub credentials used',
                 purpose: 'Authenticates repository access',
                 service: 'github',
                 key: 'use-project-github-token',
@@ -129,6 +177,6 @@ describe('wallet credential chip label', () => {
         });
 
         const chipletInfo = getToolCallChipletInfo(credentialToolCall);
-        expect(buildToolCallChipText(chipletInfo)).toBe('🔐 GitHub project credential');
+        expect(buildToolCallChipText(chipletInfo)).toBe('🔐 GitHub credentials used');
     });
 });

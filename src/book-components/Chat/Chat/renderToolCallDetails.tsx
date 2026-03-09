@@ -478,7 +478,11 @@ function renderWalletCredentialToolCall(
     toolCallDate: Date | null,
 ): ReactElement {
     const serviceLabel = formatWalletCredentialService(credential.service);
-    const sourceToolLabel = TOOL_TITLES[credential.sourceToolName]?.title || credential.sourceToolName;
+    const sourceToolNames = normalizeWalletCredentialSourceToolNames(credential);
+    const sourceToolLabels = sourceToolNames.map(
+        (sourceToolName) => TOOL_TITLES[sourceToolName]?.title || sourceToolName,
+    );
+    const usedByLabel = sourceToolLabels.length > 1 ? 'Used by actions' : 'Used by action';
 
     return (
         <>
@@ -511,8 +515,8 @@ function renderWalletCredentialToolCall(
                             <span className={styles.toolCallItemValue}>{credential.key}</span>
                         </li>
                         <li className={styles.toolCallItem}>
-                            <span className={styles.toolCallItemLabel}>Used by action</span>
-                            <span className={styles.toolCallItemValue}>{sourceToolLabel}</span>
+                            <span className={styles.toolCallItemLabel}>{usedByLabel}</span>
+                            <span className={styles.toolCallItemValue}>{sourceToolLabels.join(', ')}</span>
                         </li>
                         {toolCallDate && (
                             <li className={styles.toolCallItem}>
@@ -525,6 +529,36 @@ function renderWalletCredentialToolCall(
             </div>
         </>
     );
+}
+
+/**
+ * Normalizes source tool names attached to a wallet credential chip.
+ *
+ * @param credential - Credential payload from the synthetic wallet tool call.
+ * @returns Ordered unique source tool names.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function normalizeWalletCredentialSourceToolNames(credential: WalletCredentialToolCallResult): Array<string> {
+    const normalizedNames = new Set<string>();
+    const sourceToolNames =
+        Array.isArray(credential.sourceToolNames) && credential.sourceToolNames.length > 0
+            ? credential.sourceToolNames
+            : [credential.sourceToolName];
+
+    for (const sourceToolName of sourceToolNames) {
+        if (typeof sourceToolName !== 'string') {
+            continue;
+        }
+
+        const trimmedSourceToolName = sourceToolName.trim();
+        if (!trimmedSourceToolName) {
+            continue;
+        }
+
+        normalizedNames.add(trimmedSourceToolName);
+    }
+
+    return Array.from(normalizedNames.values());
 }
 
 /**
