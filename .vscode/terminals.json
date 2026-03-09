@@ -158,14 +158,14 @@
             "focus": false
         },
         {
-            "name": "🧪 Test Unit (💤)",
+            "name": "🧪 Test Unit (💤)(⏳)",
             "command": "npm run test-unit",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "🧪 Test Agents Server (💤)",
+            "name": "🧪 Test Agents Server (💤)(⏳)",
             "command": "npm run test-app-agents-server",
             "execute": false,
             "onlySingle": false,
@@ -276,8 +276,15 @@
             "focus": true
         },
         {
-            "name": "🏭📦 Generate packages",
+            "name": "🏭📦 Generate packages (Skip bundler)",
             "command": "npx ts-node ./scripts/generate-packages/generate-packages.ts --skip-bundler",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🏭📦 Generate packages (⏳)",
+            "command": "npx ts-node ./scripts/generate-packages/generate-packages.ts",
             "execute": true,
             "onlySingle": true,
             "focus": true
