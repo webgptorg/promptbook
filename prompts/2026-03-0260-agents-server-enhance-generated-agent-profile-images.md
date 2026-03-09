@@ -1,10 +1,26 @@
 [ ]
 
-[✨🍪] Enhance generated agent profile images (use NanoBadana + higher variability)
+[✨🍪] Use NanoBanana instead of Dalle to generate agent profile images
 
--   *(@@@@ Written by agent)*
+-   @@@ Wait for Google API invalidation
+-   Use Google NanoBanana as the image generator for default/generated agent profile images (not OpenAI DALL-E).
+-   NanoBanana is already in progress but probbably not yet fully integrated, so the implementation will likely involve finishing the integration
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   If you need to do the database migration, do it
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
+[ ]
+
+[✨🍪] Enhance generated agent profile images _(use NanoBanana + higher variability)_
+
+-   @@@ Maybe not needed / done by Agent
 -   Generated agent profile images are currently "good enough" but too uniform (often cartoonish/fantasy/fancy). Improve the quality and make the generated style vary more depending on the agent purpose (professional/business vs fun/game/etc.).
--   Use NanoBadana as the image generator for default/generated agent profile images (not OpenAI DALL*E).
+-   Use Google NanoBanana as the image generator for default/generated agent profile images (not OpenAI DALL-E).
+-   NanoBanana is already in progress but probbably not yet fully integrated, so the implementation will likely involve finishing the integration
 -   Keep explicit agent profile images unchanged:
     -   If a profile image is explicitly set (by commitment / meta image / user upload), always use it and never overwrite it with generated defaults.
     -   Only generate when no explicit profile image is present.
@@ -38,12 +54,17 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Touchpoints/files to inspect and likely update:
-    -   Image generation pipeline used for agent profile images (current DALL*E integration): @@@
+    -   Image generation pipeline used for agent profile images (current DALL\*E integration): @@@
     -   Agent profile image storage / retrieval (DB + blob storage): @@@
     -   UI surfaces that display avatars (chat bubbles, agent profile page): @@@
     -   Configuration for LLM/image providers (env + provider factory): @@@
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+
+![alt text](prompts/screenshots/2026-03-0260-agents-server-enhance-generated-agent-profile-images.png)
+![alt text](prompts/screenshots/2026-03-0260-agents-server-enhance-generated-agent-profile-images-1.png)
+![alt text](prompts/screenshots/2026-03-0260-agents-server-enhance-generated-agent-profile-images-2.png)
 
 ---
 
