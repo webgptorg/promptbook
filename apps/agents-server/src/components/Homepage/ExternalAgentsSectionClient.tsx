@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import type { AgentsByServer } from '../../utils/AgentsByServer';
 import { AgentCard } from './AgentCard';
+import { AgentCardsLoadingSkeleton } from '../Skeleton/AgentCardsLoadingSkeleton';
 import { Section } from './Section';
 import { HOMEPAGE_AGENT_GRID_CLASS } from './gridLayout';
 import { string_url } from '@promptbook-local/types';
@@ -26,6 +27,11 @@ type ExternalAgentsSectionClientProps = {
      */
     readonly publicUrl: string_url
 };
+
+/**
+ * Number of skeleton cards shown while one federated server section loads.
+ */
+const FEDERATED_SERVER_LOADING_CARD_COUNT = 4;
 
 export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientProps) {
     const { publicUrl } = props;
@@ -134,9 +140,13 @@ export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientPr
 
     if (initialLoading) {
         return (
-            <div className="mt-8 flex items-center justify-center py-8 text-sm text-gray-500">
-                <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-                {formatText('Loading federated agents…')}
+            <div className="mt-8" role="status" aria-live="polite" aria-busy="true" aria-label="Loading federated agents">
+                <Section
+                    title={formatText('Federated agents')}
+                    gridClassName={HOMEPAGE_AGENT_GRID_CLASS}
+                >
+                    <AgentCardsLoadingSkeleton cardCount={FEDERATED_SERVER_LOADING_CARD_COUNT} />
+                </Section>
             </div>
         );
     }
@@ -166,10 +176,7 @@ export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientPr
                             title={`${formatText('Agents from')} ${hostname} (...)`}
                             gridClassName={HOMEPAGE_AGENT_GRID_CLASS}
                         >
-                            <div className="flex items-center justify-center py-8 text-sm text-gray-500">
-                                <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-                                Loading...
-                            </div>
+                            <AgentCardsLoadingSkeleton cardCount={FEDERATED_SERVER_LOADING_CARD_COUNT} />
                         </Section>
                     );
                 }

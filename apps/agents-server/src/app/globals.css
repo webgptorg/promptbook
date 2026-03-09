@@ -237,67 +237,54 @@ textarea:focus-visible {
     animation: spin 1s linear infinite;
 }
 
-/* Route transition loading indicator */
-.route-loading {
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-    pointer-events: none;
-}
-
-.route-loading-bar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 3px;
-    width: 100%;
-    background: linear-gradient(90deg, #38bdf8, #6366f1, #f59e0b);
-    animation: route-loading-bar 1.2s ease-in-out infinite;
-}
-
-.route-loading-label {
-    position: absolute;
-    top: 10px;
-    right: 12px;
-    padding: 4px 10px;
-    border-radius: 999px;
-    background: rgba(15, 23, 42, 0.85);
-    color: #f8fafc;
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.25);
-    animation: route-loading-pulse 1.2s ease-in-out infinite;
-}
-
-@keyframes route-loading-bar {
+/* Shared skeleton loading blocks */
+@keyframes skeleton-shimmer {
     0% {
-        transform: translateX(-100%) scaleX(0.3);
-        opacity: 0.6;
-    }
-    50% {
-        transform: translateX(0) scaleX(0.7);
-        opacity: 1;
+        transform: translateX(-100%);
     }
     100% {
-        transform: translateX(100%) scaleX(0.3);
-        opacity: 0.6;
+        transform: translateX(100%);
     }
 }
 
-@keyframes route-loading-pulse {
-    0%,
-    100% {
-        opacity: 0.7;
+.skeleton-block {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgba(226, 232, 240, 0.95), rgba(248, 250, 252, 0.95));
+}
+
+.skeleton-block::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        100deg,
+        transparent 10%,
+        rgba(255, 255, 255, 0.7) 42%,
+        rgba(255, 255, 255, 0.35) 52%,
+        transparent 85%
+    );
+    animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+@media (prefers-color-scheme: dark) {
+    .skeleton-block {
+        background: linear-gradient(135deg, rgba(51, 65, 85, 0.95), rgba(30, 41, 59, 0.95));
     }
-    50% {
-        opacity: 1;
+
+    .skeleton-block::after {
+        background: linear-gradient(
+            100deg,
+            transparent 10%,
+            rgba(148, 163, 184, 0.38) 42%,
+            rgba(226, 232, 240, 0.14) 54%,
+            transparent 85%
+        );
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .route-loading-bar,
-    .route-loading-label {
+    .skeleton-block::after {
         animation: none;
     }
 }

@@ -1,11 +1,8 @@
+import { HomepageLoadingSkeleton } from '../components/Skeleton/HomepageLoadingSkeleton';
+
 /**
- * Renders a global loading indicator while route segments are streaming.
+ * Renders a route-level skeleton while root route segments stream.
  */
 export default function Loading() {
-    return (
-        <div className="route-loading" role="status" aria-live="polite" aria-busy="true">
-            <div className="route-loading-bar" />
-            <span className="route-loading-label">Loading...</span>
-        </div>
-    );
+    return <HomepageLoadingSkeleton />;
 }

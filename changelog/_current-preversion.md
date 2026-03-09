@@ -1,3 +1,16 @@
+-   Improved Agents Server loading UX by replacing large text/spinner placeholders with shared skeleton layouts:
+    -   Added reusable skeleton system under `apps/agents-server/src/components/Skeleton` (base shimmer block + chat thread/sidebar, profile, homepage card grid, and graph placeholders) to keep loading states DRY.
+    -   Replaced root route loading (`apps/agents-server/src/app/loading.tsx`) with a full homepage/list-style skeleton.
+    -   Added route-segment skeletons for agent profile and standalone chat (`/agents/[agentName]` and `/agents/[agentName]/chat`) via dedicated `loading.tsx` files.
+    -   Updated chat history page loading:
+        -   Initial bootstrap now shows a full chat layout skeleton instead of centered `Loading chats...` text.
+        -   Chat switching now overlays thread bubble skeletons instead of `Loading chat...` text.
+        -   Sidebar now shows row skeletons while chat list snapshots are loading/refetching.
+    -   Updated chat wrapper to render a thread skeleton while remote agent connection is still resolving, removing blank/unstyled waiting states during chat transitions.
+    -   Updated federated-agent sections on homepage to use card skeletons instead of spinner/text placeholders during initial and per-server loading.
+    -   Added graph canvas placeholder overlay in `AgentsGraph` so graph view keeps a stable container while React Flow initializes.
+    -   Added internal loading consistency guideline at `apps/agents-server/src/components/Skeleton/LOADING_GUIDELINE.md` (when to use skeleton vs spinner vs optimistic UI).
+
 -   Fixed Agents Server E2E navigation flow for nested `System` menu:
     -   Updated `authentication-and-navigation` Playwright test to expand the `My Account` submenu before clicking `Profile` and `User Memory`.
     -   This aligns the test with the current categorized System dropdown structure and removes the timeout on the missing direct `Profile` link.

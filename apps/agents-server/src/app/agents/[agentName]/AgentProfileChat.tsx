@@ -303,18 +303,14 @@ export function AgentProfileChat({
     const handleFileUpload = useCallback(async (file: File) => chatFileUploadHandler(file), []);
 
     const initialMessage = useMemo(() => {
-        if (!agent) {
-            return 'Loading...';
-        }
         const fallbackName = formatText('an AI Agent');
-        return (
-            agent.initialMessage ||
-            spaceTrim(`
-                Hello! I am ${fullname || agentName || fallbackName}.
-                
-                [Hello](?message=Hello, can you tell me about yourself?)
-            `)
-        );
+        const fallbackInitialMessage = spaceTrim(`
+            Hello! I am ${fullname || agentName || fallbackName}.
+            
+            [Hello](?message=Hello, can you tell me about yourself?)
+        `);
+
+        return agent?.initialMessage || fallbackInitialMessage;
     }, [agent, fullname, agentName, formatText]);
 
     // If agent is deleted, show banner instead of chat

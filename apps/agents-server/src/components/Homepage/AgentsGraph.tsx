@@ -18,6 +18,7 @@ import 'reactflow/dist/style.css';
 import type { AgentOrganizationFolder } from '../../utils/agentOrganization/types';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { showAlert } from '../AsyncDialogs/asyncDialogs';
+import { GraphLoadingSkeleton } from '../Skeleton/GraphLoadingSkeleton';
 import { AgentGraphNode } from './AgentGraphNode';
 import { FolderGroupNode } from './FolderGroupNode';
 import { GraphSummaryPanel } from './GraphSummaryPanel';
@@ -157,6 +158,7 @@ export function AgentsGraph(props: AgentsGraphProps) {
         searchParams.get('selectedAgent') || null,
     );
     const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+    const [isGraphCanvasReady, setIsGraphCanvasReady] = useState(false);
     const storedPositionsRef = useRef<StoredPositions>({});
     const reactFlowInstanceRef = useRef<ReactFlowInstance | null>(null);
     const graphWrapperRef = useRef<HTMLDivElement | null>(null);
@@ -626,7 +628,11 @@ export function AgentsGraph(props: AgentsGraphProps) {
                 {graphData.nodes.length === 0 ? (
                     <div className="flex justify-center py-12 text-gray-500">{formatText('No agents to show in graph.')}</div>
                 ) : (
-                    <div ref={graphWrapperRef} className="agents-graph-canvas h-full w-full" role="presentation">
+                    <div
+                        ref={graphWrapperRef}
+                        className={`agents-graph-canvas h-full w-full ${isGraphCanvasReady ? 'opacity-100' : 'opacity-0'}`}
+                        role="presentation"
+                    >
                         <ReactFlow
                             nodes={displayedNodes}
                             edges={displayedEdges}
@@ -638,6 +644,7 @@ export function AgentsGraph(props: AgentsGraphProps) {
                             onNodeDragStop={handleNodeDragStop}
                             onInit={(instance) => {
                                 reactFlowInstanceRef.current = instance;
+                                setIsGraphCanvasReady(true);
                             }}
                             fitView
                             panOnScroll
@@ -672,6 +679,12 @@ export function AgentsGraph(props: AgentsGraphProps) {
                             />
                             <Controls position="bottom-right" />
                         </ReactFlow>
+                    </div>
+                )}
+
+                {!isGraphCanvasReady && graphData.nodes.length > 0 && (
+                    <div className="absolute inset-0 z-20">
+                        <GraphLoadingSkeleton isInset />
                     </div>
                 )}
 

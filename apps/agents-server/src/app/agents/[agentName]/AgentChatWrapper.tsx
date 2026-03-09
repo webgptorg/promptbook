@@ -12,6 +12,7 @@ import { useAgentBackground } from '../../../components/AgentProfile/useAgentBac
 import { ChatErrorDialog } from '../../../components/ChatErrorDialog';
 import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { useSelfLearningPreferences } from '../../../components/SelfLearningPreferences/SelfLearningPreferencesProvider';
+import { ChatThreadLoadingSkeleton } from '../../../components/Skeleton/ChatThreadLoadingSkeleton';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { useSoundSystem } from '../../../components/SoundSystemProvider/SoundSystemProvider';
 import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatEffects';
@@ -306,7 +307,11 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     }, [effectiveSelfLearningEnabled, userLocationPromptParameter]);
 
     if (!agent) {
-        return <>{/* <- TODO: [🐱‍🚀] <PromptbookLoading /> */}</>;
+        return (
+            <div className="h-full w-full rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/45">
+                <ChatThreadLoadingSkeleton />
+            </div>
+        );
     }
 
     return (

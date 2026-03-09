@@ -6,6 +6,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAgentNaming } from '../../../../components/AgentNaming/AgentNamingContext';
 import { showConfirm } from '../../../../components/AsyncDialogs/asyncDialogs';
 import { SaveFailureNotice } from '../../../../components/SaveFailureNotice/SaveFailureNotice';
+import { AgentChatLoadingSkeleton } from '../../../../components/Skeleton/AgentChatLoadingSkeleton';
+import { ChatThreadLoadingSkeleton } from '../../../../components/Skeleton/ChatThreadLoadingSkeleton';
 import { ChatPersistence } from '../../../../utils/chatPersistenceClient';
 import { SolidArrowButton } from '../../../../../../../src/book-components/icons/SolidArrowButton';
 import {
@@ -123,6 +125,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const [activeChatId, setActiveChatId] = useState<string | null>(null);
     const [activeChatMountKey, setActiveChatMountKey] = useState(0);
     const [isBootstrapping, setIsBootstrapping] = useState(shouldUseHistory);
+    const [isChatListLoading, setIsChatListLoading] = useState(shouldUseHistory);
     const [isCreatingChat, setIsCreatingChat] = useState(false);
     const [isSwitchingChat, setIsSwitchingChat] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -414,6 +417,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             setChats([]);
             setSaveFailureMessage(null);
             setIsBootstrapping(false);
+            setIsChatListLoading(false);
             return;
         }
 
@@ -421,6 +425,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
         async function bootstrap(): Promise<void> {
             setIsBootstrapping(true);
+            setIsChatListLoading(true);
             setErrorMessage(null);
             setSaveFailureMessage(null);
 
@@ -433,6 +438,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             } finally {
                 if (!isDisposed) {
                     setIsBootstrapping(false);
+                    setIsChatListLoading(false);
                 }
             }
         }
@@ -564,6 +570,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             setErrorMessage(null);
 
             try {
+                setIsChatListLoading(true);
                 await removeUserChat(agentName, chatId);
                 const existingTimer = saveTimersRef.current.get(chatId);
                 if (existingTimer) {
@@ -581,6 +588,8 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 await bootstrapChats(activeChatId === chatId ? undefined : activeChatId || undefined);
             } catch (error) {
                 setErrorMessage(error instanceof Error ? error.message : 'Failed to delete chat.');
+            } finally {
+                setIsChatListLoading(false);
             }
         },
         [activeChatId, agentName, bootstrapChats, formatText],
@@ -707,18 +716,14 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     }
 
     if (isBootstrapping || !activeChatId) {
-        return (
-            <div className="w-full h-full flex items-center justify-center text-sm text-slate-600">
-                {formatText('Loading chats...')}
-            </div>
-        );
+        return <AgentChatLoadingSkeleton showSidebar={!isHeadlessMode} isSidebarCollapsed={effectiveIsSidebarCollapsed} />;
     }
 
     const chatSurface = (
         <div className="relative flex-1 min-h-0">
             {isSwitchingChat && (
-                <div className="absolute inset-0 z-20 bg-white/60 backdrop-blur-[1px] flex items-center justify-center text-sm text-slate-700">
-                    {formatText('Loading chat...')}
+                <div className="absolute inset-0 z-20 border-y border-slate-200/70 bg-white/85 backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-950/80">
+                    <ChatThreadLoadingSkeleton />
                 </div>
             )}
 
@@ -769,6 +774,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 chats={chats}
                 activeChatId={activeChatId}
                 isCreatingChat={isCreatingChat}
+                isLoadingChats={isChatListLoading}
                 formatText={formatText}
                 formatChatTimestamp={formatChatTimestamp}
                 onSelectChat={handleSelectChatFromSidebar}
