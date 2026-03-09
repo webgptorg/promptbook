@@ -23,15 +23,32 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🥮] brr
+[✨🥮] Enhance design of `/agents/[agentId]/textarea` page
 
--   @@@
+-   Do several improvements:
+    1. The textarea page shouldn’t have header
+    2. Above the textarea, add a profile image of agent in a circle and the name of the agent below it, both centered.
+    3. The background of the page should be same as `/agents/[agentId]/` of that agent
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
+
+![alt text](prompts/screenshots/2026-03-0140-agents-server-alternative-agent-profile-simple-chat.png)
+
+---
+
+[ ]
+
+[✨🥮] Create commitment `META INPUT PLACEHOLDER`
+
+-   This commitment sets textarea placeholder in a chat
+-   This should be used both in `/agents/[agentId]/`, `/agents/[agentId]/chat` and `/agents/[agentId]/textarea`
+-   By default, the placeholder should be `Write a message...`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
@@ -46,17 +63,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
----
-
-[-]
-
-[✨🥮] brr
-
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
-
