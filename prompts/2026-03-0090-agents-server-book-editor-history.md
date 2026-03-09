@@ -119,6 +119,36 @@ create index IF not exists "server_PavolHejny_AgentHistory_agentId_idx" on publi
 
 ---
 
+[ ]
+
+[✨⤵️] Enhance UX of how the agent's state and history are shown
+
+-   Showing of the history of the agent source book works, but the UI is not good:
+-   Do theese changes:
+    1.  Remove very ugly secondary bar, and hoist the save status and history button in the normal menu via the hosting mechanism.
+        -   ![alt text](prompts/screenshots/2026-03-0090-agents-server-book-editor-history-4.png)
+    2.  Use <BookEditor> in read-only mode to show the version in history
+        -   ![alt text](prompts/screenshots/2026-03-0090-agents-server-book-editor-history-5.png)
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of Agent history and saving before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+---
+
+[ ]
+
+[✨⤵️] Allow to name the version of the agent source book
+
+-   Allow to filter just named versions
+-   Allow to search in the versions by the name
+-   Get inspiration by looking at how Google docs is doing it, you can name the version when you are saving it in the history, and then you can see the name of the version in the history list, it is very useful when you want to save some important milestones in the development of the agent, so you can easily go back to it later.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of Agent history and saving before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   If you need to do the database migration, do it
+
+---
+
 [-]
 
 [✨⤵️] brr
@@ -129,4 +159,3 @@ create index IF not exists "server_PavolHejny_AgentHistory_agentId_idx" on publi
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
