@@ -32,6 +32,11 @@ const AUDIO_WAVE_MIME_TYPE = 'audio/wav';
 const SILENCE_AUTO_STOP_DELAY_MS = 1200;
 
 /**
+ * Whisper mode keeps recording slightly longer before deciding user has stopped speaking.
+ */
+const WHISPER_MODE_SILENCE_AUTO_STOP_DELAY_MS = 2000;
+
+/**
  * Guard against stopping too early while the user is just starting to speak.
  */
 const MINIMUM_RECORDING_DURATION_BEFORE_AUTO_STOP_MS = 350;
@@ -50,6 +55,11 @@ const AMBIENT_NOISE_SMOOTHING_FACTOR = 0.05;
  * Multiplier that turns ambient noise into a speaking threshold.
  */
 const VOICE_LEVEL_MULTIPLIER = 1.8;
+
+/**
+ * Lower speech threshold used in whisper mode.
+ */
+const WHISPER_MODE_VOICE_LEVEL_MULTIPLIER = 1.25;
 
 /**
  * Center value for unsigned 8-bit PCM samples returned by Web Audio analyser buffers.
@@ -78,6 +88,8 @@ export class OpenAiSpeechRecognition implements SpeechRecognition {
     private recordingStartedAt = 0;
     private lastSpeechDetectedAt = 0;
     private ambientNoiseLevel = MINIMUM_VOICE_LEVEL;
+    private voiceLevelMultiplier = VOICE_LEVEL_MULTIPLIER;
+    private silenceAutoStopDelayMs = SILENCE_AUTO_STOP_DELAY_MS;
 
     public get state(): SpeechRecognitionState {
         return this._state;
@@ -130,12 +142,22 @@ export class OpenAiSpeechRecognition implements SpeechRecognition {
             this.recordingStartedAt = Date.now();
             this.lastSpeechDetectedAt = this.recordingStartedAt;
             this.ambientNoiseLevel = MINIMUM_VOICE_LEVEL;
+            this.voiceLevelMultiplier = options.whisperMode
+                ? WHISPER_MODE_VOICE_LEVEL_MULTIPLIER
+                : VOICE_LEVEL_MULTIPLIER;
+            this.silenceAutoStopDelayMs = options.whisperMode
+                ? WHISPER_MODE_SILENCE_AUTO_STOP_DELAY_MS
+                : SILENCE_AUTO_STOP_DELAY_MS;
             this.emit({ type: 'START' });
             this.startSilenceDetection();
         } catch (error) {
             this.releaseRecordingResources();
             this._state = 'ERROR';
-            this.emit({ type: 'ERROR', message: (error as Error).message });
+            this.emit({
+                type: 'ERROR',
+                message: (error as Error).message,
+                code: resolveSpeechRecognitionErrorCode(error),
+            });
         }
     }
 
@@ -165,7 +187,11 @@ export class OpenAiSpeechRecognition implements SpeechRecognition {
         } catch (error) {
             this.releaseRecordingResources();
             this._state = 'ERROR';
-            this.emit({ type: 'ERROR', message: (error as Error).message });
+            this.emit({
+                type: 'ERROR',
+                message: (error as Error).message,
+                code: resolveSpeechRecognitionErrorCode(error),
+            });
         }
     }
 
@@ -205,7 +231,11 @@ export class OpenAiSpeechRecognition implements SpeechRecognition {
             this.emit({ type: 'STOP' });
         } catch (error) {
             this._state = 'ERROR';
-            this.emit({ type: 'ERROR', message: (error as Error).message });
+            this.emit({
+                type: 'ERROR',
+                message: (error as Error).message,
+                code: resolveSpeechRecognitionErrorCode(error),
+            });
         }
     }
 
@@ -262,7 +292,7 @@ export class OpenAiSpeechRecognition implements SpeechRecognition {
             const silenceDuration = now - this.lastSpeechDetectedAt;
             if (
                 recordingDuration >= MINIMUM_RECORDING_DURATION_BEFORE_AUTO_STOP_MS &&
-                silenceDuration >= SILENCE_AUTO_STOP_DELAY_MS
+                silenceDuration >= this.silenceAutoStopDelayMs
             ) {
                 this.$stop();
                 return;
@@ -312,7 +342,7 @@ export class OpenAiSpeechRecognition implements SpeechRecognition {
      * Returns an adaptive speech threshold based on recently observed ambient noise.
      */
     private resolveAdaptiveVoiceThreshold(): number {
-        return Math.max(MINIMUM_VOICE_LEVEL, this.ambientNoiseLevel * VOICE_LEVEL_MULTIPLIER);
+        return Math.max(MINIMUM_VOICE_LEVEL, this.ambientNoiseLevel * this.voiceLevelMultiplier);
     }
 
     /**
@@ -349,6 +379,8 @@ export class OpenAiSpeechRecognition implements SpeechRecognition {
         this.recordingStartedAt = 0;
         this.lastSpeechDetectedAt = 0;
         this.ambientNoiseLevel = MINIMUM_VOICE_LEVEL;
+        this.voiceLevelMultiplier = VOICE_LEVEL_MULTIPLIER;
+        this.silenceAutoStopDelayMs = SILENCE_AUTO_STOP_DELAY_MS;
         this.pendingStopDuringStart = false;
     }
 
@@ -418,4 +450,27 @@ function resolveSpeechRecognitionLanguageTagForOpenAi(language?: string): string
     }
 
     return primary.toLowerCase();
+}
+
+/**
+ * Maps unknown recorder or browser errors into speech-recognition error codes.
+ *
+ * @param error Unknown browser/runtime error.
+ * @returns Stable speech-recognition code.
+ * @private internal helper of `OpenAiSpeechRecognition`
+ */
+function resolveSpeechRecognitionErrorCode(error: unknown): 'permission-denied' | 'audio-capture' | 'unknown' {
+    const errorName = `${(error as Error | undefined)?.name || ''}`.toLowerCase();
+    const errorMessage = `${(error as Error | undefined)?.message || ''}`.toLowerCase();
+    const haystack = `${errorName} ${errorMessage}`;
+
+    if (haystack.includes('notallowederror') || haystack.includes('permission')) {
+        return 'permission-denied';
+    }
+
+    if (haystack.includes('notfounderror') || haystack.includes('audio-capture') || haystack.includes('microphone')) {
+        return 'audio-capture';
+    }
+
+    return 'unknown';
 }

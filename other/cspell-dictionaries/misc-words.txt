@@ -467,3 +467,5 @@ alive
 alives
 opencode
 ipify
+notallowederror
+notfounderror

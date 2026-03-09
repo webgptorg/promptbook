@@ -1,6 +1,18 @@
 import type { string_language } from './typeAliases';
 
 /**
+ * Stable speech-recognition error codes consumed by UI and telemetry.
+ */
+export type SpeechRecognitionErrorCode =
+    | 'permission-denied'
+    | 'audio-capture'
+    | 'network'
+    | 'no-speech'
+    | 'aborted'
+    | 'unsupported-browser'
+    | 'unknown';
+
+/**
  * Interface for speech-to-text recognition
  *
  * @🚉 fully serializable as JSON
@@ -42,6 +54,11 @@ export type SpeechRecognitionStartOptions = {
      * @default true
      */
     readonly interimResults?: boolean;
+
+    /**
+     * Enables a more sensitive profile for quiet speech.
+     */
+    readonly whisperMode?: boolean;
 };
 
 /**
@@ -67,6 +84,10 @@ export type SpeechRecognitionEvent =
     | {
           readonly type: 'ERROR';
           readonly message: string;
+          readonly code?: SpeechRecognitionErrorCode;
+          readonly providerId?: string;
+          readonly canRetry?: boolean;
+          readonly canOpenBrowserSettings?: boolean;
       }
     | {
           readonly type: 'STOP';

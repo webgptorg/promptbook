@@ -1,3 +1,18 @@
+-   Enhanced Agents Server chat dictation UX with failover speech-to-text providers (Wispr Flow-inspired):
+    -   Added a new speech-to-text provider abstraction in Agents Server with shared interface (`isSupported`, `start`, `stop`, `abort`, optional diagnostics) and provider-priority failover orchestration.
+    -   Added OpenAI Whisper proxy provider + browser Web Speech provider fallback under the shared abstraction, and wired both through one DRY factory used by profile chat and full chat surfaces.
+    -   Added automatic failover behaviors: init-error fallback to next provider, stall watchdog (no partials while audio is non-silent) with one restart attempt, then provider failover.
+    -   Added dictation telemetry hooks (console + optional endpoint forwarding) capturing provider selection, init timing, first partial timing, final timing, and error codes (no audio payload stored).
+    -   Upgraded chat input dictation UX:
+        -   single mic control with clear states (`idle`, `listening`, `processing`, `error`, `disabled` permission),
+        -   live interim transcript panel while listening,
+        -   quick backtrack (undo last dictated chunk),
+        -   replace-selection dictation behavior,
+        -   editable transcript correction loop that learns local custom-word replacements in localStorage,
+        -   configurable lightweight refinements (auto punctuation/capitalization, filler-word removal, list command formatting),
+        -   whisper mode toggle.
+    -   Improved permission-denied handling with actionable recovery UI (`Retry microphone`, browser settings deep-link when available) and stop-fallback safeguards against stuck listening state.
+
 -   Deduplicated Agents Server credential chips per assistant message:
     -   Chat now shows at most one credential chip per credential type/scope within one assistant message instead of repeating one chip per tool call.
     -   Added stable credential-chip deduplication by credential identity (`service` + credential key), so repeated USE PROJECT calls in one message collapse into one GitHub credential chip.

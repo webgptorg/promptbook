@@ -14,7 +14,7 @@ import {
 } from 'react';
 import spaceTrim from 'spacetrim';
 import { USER_CHAT_COLOR } from '../../../config';
-import { SpeechRecognitionEvent, SpeechRecognitionState } from '../../../types/SpeechRecognition';
+import type { SpeechRecognitionEvent, SpeechRecognitionErrorCode } from '../../../types/SpeechRecognition';
 import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
 import { grayscale } from '../../../utils/color/operators/grayscale';
@@ -29,6 +29,34 @@ import { SendIcon } from '../../icons/SendIcon';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import styles from './Chat.module.css';
 import type { ChatProps, ChatSoundSystem } from './ChatProps';
+
+/**
+ * Key used to persist dictation refinement preferences.
+ *
+ * @private component of `<Chat/>`
+ */
+const DICTATION_PREFERENCES_STORAGE_KEY = 'promptbook-chat-dictation-preferences';
+
+/**
+ * Key used to persist user speech-correction dictionary.
+ *
+ * @private component of `<Chat/>`
+ */
+const DICTATION_DICTIONARY_STORAGE_KEY = 'promptbook-chat-dictation-dictionary';
+
+/**
+ * Maximum number of learned dictionary replacements retained in local storage.
+ *
+ * @private component of `<Chat/>`
+ */
+const MAX_DICTATION_DICTIONARY_ENTRIES = 200;
+
+/**
+ * Grace timeout after stop request to prevent a stuck listening state.
+ *
+ * @private component of `<Chat/>`
+ */
+const STOP_LISTENING_FALLBACK_TIMEOUT_MS = 3000;
 
 /**
  * Wrapper for consistent button-click sound handling.
@@ -74,6 +102,58 @@ export type ChatInputAreaProps = {
 };
 
 /**
+ * Voice settings available for lightweight transcript refinement.
+ *
+ * @private component of `<Chat/>`
+ */
+type DictationRefinementSettings = {
+    readonly autoPunctuation: boolean;
+    readonly autoCapitalization: boolean;
+    readonly removeFillerWords: boolean;
+    readonly formatLists: boolean;
+    readonly whisperMode: boolean;
+};
+
+/**
+ * Fallback refinement settings when user has no saved preferences.
+ *
+ * @private component of `<Chat/>`
+ */
+const DEFAULT_DICTATION_SETTINGS: DictationRefinementSettings = {
+    autoPunctuation: true,
+    autoCapitalization: true,
+    removeFillerWords: false,
+    formatLists: true,
+    whisperMode: false,
+};
+
+/**
+ * Runtime voice UI states shown on the primary microphone control.
+ *
+ * @private component of `<Chat/>`
+ */
+type DictationUiState = 'idle' | 'listening' | 'processing' | 'error' | 'disabled';
+
+/**
+ * Captured metadata for one finalized dictated chunk.
+ *
+ * @private component of `<Chat/>`
+ */
+type DictationChunk = {
+    readonly id: string;
+    readonly beforeValue: string;
+    readonly finalText: string;
+    readonly start: number;
+};
+
+/**
+ * Dictionary map of corrected lower-case token to preferred token.
+ *
+ * @private component of `<Chat/>`
+ */
+type DictationDictionary = Readonly<Record<string, string>>;
+
+/**
  * Visual tone used by the floating speech-status bubble.
  *
  * @private component of `<Chat/>`
@@ -113,36 +193,36 @@ type SpeechRecognitionUiDescriptor = {
  *
  * @private component of `<Chat/>`
  */
-const SPEECH_RECOGNITION_UI_DESCRIPTORS: Record<SpeechRecognitionState, SpeechRecognitionUiDescriptor> = {
-    IDLE: {
-        buttonTitle: 'Start voice input',
+const SPEECH_RECOGNITION_UI_DESCRIPTORS: Record<DictationUiState, SpeechRecognitionUiDescriptor> = {
+    idle: {
+        buttonTitle: 'Start dictation',
         isButtonActive: false,
         isButtonDisabled: false,
     },
-    STARTING: {
-        buttonTitle: 'Starting microphone...',
-        bubbleText: 'Starting microphone...',
-        bubbleTone: 'neutral',
-        isButtonActive: true,
-        isButtonDisabled: true,
-    },
-    RECORDING: {
-        buttonTitle: 'Stop recording',
-        bubbleText: 'Listening... Speak now.',
+    listening: {
+        buttonTitle: 'Stop dictation',
+        bubbleText: 'Listening...',
         bubbleTone: 'recording',
         isButtonActive: true,
         isButtonDisabled: false,
     },
-    TRANSCRIBING: {
-        buttonTitle: 'Transcribing...',
-        bubbleText: 'Transcribing your speech...',
+    processing: {
+        buttonTitle: 'Processing dictated speech...',
+        bubbleText: 'Processing speech...',
         bubbleTone: 'processing',
         isButtonActive: true,
-        isButtonDisabled: true,
+        isButtonDisabled: false,
     },
-    ERROR: {
-        buttonTitle: 'Speech recognition failed. Tap to retry.',
-        bubbleText: 'Speech recognition failed. Tap the microphone to retry.',
+    error: {
+        buttonTitle: 'Dictation failed. Tap to retry.',
+        bubbleText: 'Dictation failed. Tap microphone to retry.',
+        bubbleTone: 'error',
+        isButtonActive: false,
+        isButtonDisabled: false,
+    },
+    disabled: {
+        buttonTitle: 'Microphone permission blocked. Tap to re-request.',
+        bubbleText: 'Microphone permission is blocked.',
         bubbleTone: 'error',
         isButtonActive: false,
         isButtonDisabled: false,
@@ -156,8 +236,341 @@ const SPEECH_RECOGNITION_UI_DESCRIPTORS: Record<SpeechRecognitionState, SpeechRe
  * @returns Voice-control UI descriptor.
  * @private component of `<Chat/>`
  */
-function resolveSpeechRecognitionUiDescriptor(state: SpeechRecognitionState): SpeechRecognitionUiDescriptor {
+function resolveSpeechRecognitionUiDescriptor(state: DictationUiState): SpeechRecognitionUiDescriptor {
     return SPEECH_RECOGNITION_UI_DESCRIPTORS[state];
+}
+
+/**
+ * Escape helper for dynamic RegExp creation.
+ *
+ * @private component of `<Chat/>`
+ */
+function escapeRegExp(value: string): string {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Normalizes free-form transcript whitespace.
+ *
+ * @private component of `<Chat/>`
+ */
+function normalizeDictationWhitespace(text: string): string {
+    return text
+        .replace(/[ \t]+/g, ' ')
+        .replace(/\s+\n/g, '\n')
+        .replace(/\n\s+/g, '\n')
+        .trim();
+}
+
+/**
+ * Applies learned dictionary replacements to one transcript chunk.
+ *
+ * @private component of `<Chat/>`
+ */
+function applyDictationDictionary(text: string, dictionary: DictationDictionary): string {
+    let nextText = text;
+
+    for (const [source, target] of Object.entries(dictionary)) {
+        if (!source || !target) {
+            continue;
+        }
+
+        const sourcePattern = new RegExp(`\\b${escapeRegExp(source)}\\b`, 'gi');
+        nextText = nextText.replace(sourcePattern, target);
+    }
+
+    return nextText;
+}
+
+/**
+ * Applies spoken formatting commands such as "new line" and "bullet".
+ *
+ * @private component of `<Chat/>`
+ */
+function applyDictationFormattingCommands(text: string): string {
+    return text
+        .replace(/\bnew\s+line\b/gi, '\n')
+        .replace(/\bnewline\b/gi, '\n')
+        .replace(/\bbullet\b/gi, '\n- ')
+        .replace(/\bnumbered\s+list\b/gi, '\n1. ');
+}
+
+/**
+ * Removes filler words to keep dictated text concise.
+ *
+ * @private component of `<Chat/>`
+ */
+function removeDictationFillers(text: string): string {
+    const stripped = text.replace(/\b(um+|uh+|like)\b/gi, '');
+    return normalizeDictationWhitespace(stripped);
+}
+
+/**
+ * Capitalizes sentence starts in one transcript chunk.
+ *
+ * @private component of `<Chat/>`
+ */
+function autoCapitalizeDictationText(text: string): string {
+    return text.replace(/(^|[\n.!?]\s*)([a-z])/g, (_match, prefix: string, letter: string) => {
+        return `${prefix}${letter.toUpperCase()}`;
+    });
+}
+
+/**
+ * Ensures final dictated chunk ends with punctuation when appropriate.
+ *
+ * @private component of `<Chat/>`
+ */
+function applyDictationPunctuation(text: string): string {
+    const trimmed = text.trim();
+    if (!trimmed) {
+        return trimmed;
+    }
+
+    if (/[.!?:;]$/.test(trimmed) || trimmed.endsWith('\n')) {
+        return trimmed;
+    }
+
+    return `${trimmed}.`;
+}
+
+/**
+ * Applies refinement settings and dictionary corrections to one final chunk.
+ *
+ * @private component of `<Chat/>`
+ */
+function refineFinalDictationChunk(
+    rawChunk: string,
+    settings: DictationRefinementSettings,
+    dictionary: DictationDictionary,
+): string {
+    let refined = normalizeDictationWhitespace(rawChunk);
+
+    if (!refined) {
+        return '';
+    }
+
+    refined = applyDictationDictionary(refined, dictionary);
+
+    if (settings.formatLists) {
+        refined = applyDictationFormattingCommands(refined);
+    }
+
+    if (settings.removeFillerWords) {
+        refined = removeDictationFillers(refined);
+    }
+
+    if (settings.autoCapitalization) {
+        refined = autoCapitalizeDictationText(refined);
+    }
+
+    if (settings.autoPunctuation) {
+        refined = applyDictationPunctuation(refined);
+    }
+
+    return normalizeDictationWhitespace(refined);
+}
+
+/**
+ * Produces insertion metadata for one dictated chunk.
+ *
+ * @private component of `<Chat/>`
+ */
+function insertDictationChunk(params: {
+    readonly currentValue: string;
+    readonly dictatedText: string;
+    readonly selectionStart: number;
+    readonly selectionEnd: number;
+    readonly shouldReplaceSelection: boolean;
+}): { nextValue: string; start: number; caret: number } {
+    const { currentValue, dictatedText, selectionStart, selectionEnd, shouldReplaceSelection } = params;
+
+    const replaceStart = shouldReplaceSelection ? selectionStart : selectionStart;
+    const replaceEnd = shouldReplaceSelection ? selectionEnd : selectionStart;
+
+    const prefix = currentValue.slice(0, replaceStart);
+    const suffix = currentValue.slice(replaceEnd);
+
+    const previousCharacter = prefix.slice(-1);
+    const needsLeadingSpace = Boolean(
+        prefix &&
+            previousCharacter &&
+            !/\s/.test(previousCharacter) &&
+            !dictatedText.startsWith('\n') &&
+            !/^[,.;:!?)]/.test(dictatedText),
+    );
+
+    const inserted = `${needsLeadingSpace ? ' ' : ''}${dictatedText}`;
+    const nextValue = `${prefix}${inserted}${suffix}`;
+    const start = replaceStart + (needsLeadingSpace ? 1 : 0);
+    const caret = prefix.length + inserted.length;
+
+    return {
+        nextValue,
+        start,
+        caret,
+    };
+}
+
+/**
+ * Replaces last occurrence of one chunk inside text.
+ *
+ * @private component of `<Chat/>`
+ */
+function replaceLastOccurrence(text: string, search: string, replacement: string): string {
+    if (!search) {
+        return text;
+    }
+
+    const index = text.lastIndexOf(search);
+    if (index < 0) {
+        return text;
+    }
+
+    return `${text.slice(0, index)}${replacement}${text.slice(index + search.length)}`;
+}
+
+/**
+ * Learns correction pairs from user-edited transcript chunk.
+ *
+ * @private component of `<Chat/>`
+ */
+function learnDictationDictionary(
+    previousChunk: string,
+    correctedChunk: string,
+    previousDictionary: DictationDictionary,
+): DictationDictionary {
+    const nextDictionary: Record<string, string> = { ...previousDictionary };
+
+    const previousWords = previousChunk.split(/\s+/).filter(Boolean);
+    const correctedWords = correctedChunk.split(/\s+/).filter(Boolean);
+
+    if (previousWords.length === correctedWords.length && previousWords.length > 0) {
+        for (let index = 0; index < previousWords.length; index++) {
+            const previousWord = previousWords[index];
+            const correctedWord = correctedWords[index];
+
+            if (!previousWord || !correctedWord) {
+                continue;
+            }
+
+            if (previousWord.toLowerCase() !== correctedWord.toLowerCase()) {
+                nextDictionary[previousWord.toLowerCase()] = correctedWord;
+            }
+        }
+    }
+
+    const dictionaryEntries = Object.entries(nextDictionary).slice(-MAX_DICTATION_DICTIONARY_ENTRIES);
+    return Object.fromEntries(dictionaryEntries);
+}
+
+/**
+ * Safely loads dictation preferences from local storage.
+ *
+ * @private component of `<Chat/>`
+ */
+function loadDictationPreferences(): DictationRefinementSettings {
+    if (typeof window === 'undefined') {
+        return DEFAULT_DICTATION_SETTINGS;
+    }
+
+    try {
+        const rawValue = window.localStorage.getItem(DICTATION_PREFERENCES_STORAGE_KEY);
+        if (!rawValue) {
+            return DEFAULT_DICTATION_SETTINGS;
+        }
+
+        const parsedValue = JSON.parse(rawValue) as Partial<DictationRefinementSettings>;
+        return {
+            autoPunctuation: parsedValue.autoPunctuation ?? DEFAULT_DICTATION_SETTINGS.autoPunctuation,
+            autoCapitalization: parsedValue.autoCapitalization ?? DEFAULT_DICTATION_SETTINGS.autoCapitalization,
+            removeFillerWords: parsedValue.removeFillerWords ?? DEFAULT_DICTATION_SETTINGS.removeFillerWords,
+            formatLists: parsedValue.formatLists ?? DEFAULT_DICTATION_SETTINGS.formatLists,
+            whisperMode: parsedValue.whisperMode ?? DEFAULT_DICTATION_SETTINGS.whisperMode,
+        };
+    } catch {
+        return DEFAULT_DICTATION_SETTINGS;
+    }
+}
+
+/**
+ * Safely loads learned dictation dictionary from local storage.
+ *
+ * @private component of `<Chat/>`
+ */
+function loadDictationDictionary(): DictationDictionary {
+    if (typeof window === 'undefined') {
+        return {};
+    }
+
+    try {
+        const rawValue = window.localStorage.getItem(DICTATION_DICTIONARY_STORAGE_KEY);
+        if (!rawValue) {
+            return {};
+        }
+
+        const parsedValue = JSON.parse(rawValue) as DictationDictionary;
+        return parsedValue || {};
+    } catch {
+        return {};
+    }
+}
+
+/**
+ * Persists dictation preferences.
+ *
+ * @private component of `<Chat/>`
+ */
+function saveDictationPreferences(value: DictationRefinementSettings): void {
+    if (typeof window === 'undefined') {
+        return;
+    }
+
+    try {
+        window.localStorage.setItem(DICTATION_PREFERENCES_STORAGE_KEY, JSON.stringify(value));
+    } catch {
+        // Persisting preferences is best-effort.
+    }
+}
+
+/**
+ * Persists learned dictation dictionary.
+ *
+ * @private component of `<Chat/>`
+ */
+function saveDictationDictionary(value: DictationDictionary): void {
+    if (typeof window === 'undefined') {
+        return;
+    }
+
+    try {
+        window.localStorage.setItem(DICTATION_DICTIONARY_STORAGE_KEY, JSON.stringify(value));
+    } catch {
+        // Persisting dictionary is best-effort.
+    }
+}
+
+/**
+ * Resolves browser-specific microphone settings URL when available.
+ *
+ * @private component of `<Chat/>`
+ */
+function resolveMicrophoneSettingsUrl(): string | undefined {
+    if (typeof navigator === 'undefined') {
+        return undefined;
+    }
+
+    const userAgent = navigator.userAgent.toLowerCase();
+
+    if (userAgent.includes('chrome') || userAgent.includes('edg')) {
+        return 'chrome://settings/content/microphone';
+    }
+
+    if (userAgent.includes('firefox')) {
+        return 'about:preferences#privacy';
+    }
+
+    return undefined;
 }
 
 /**
@@ -185,18 +598,72 @@ export function ChatInputArea(props: ChatInputAreaProps) {
     } = props;
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const pendingStopFallbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const replaceSelectionOnNextFinalRef = useRef(false);
+    const [messageContent, setMessageContent] = useState(defaultMessage || '');
+    const messageContentRef = useRef(messageContent);
     const [uploadedFiles, setUploadedFiles] = useState<Array<ChatInputUploadedFile>>([]);
     const [isDragOver, setIsDragOver] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
-    const [speechRecognitionState, setSpeechRecognitionState] = useState<SpeechRecognitionState>('IDLE');
+    const [dictationUiState, setDictationUiState] = useState<DictationUiState>('idle');
+    const [dictationInterimText, setDictationInterimText] = useState('');
+    const [dictationError, setDictationError] = useState<{ code?: SpeechRecognitionErrorCode; message: string } | null>(
+        null,
+    );
+    const [dictationLastFinalChunk, setDictationLastFinalChunk] = useState('');
+    const [dictationEditableChunk, setDictationEditableChunk] = useState('');
+    const [dictationChunks, setDictationChunks] = useState<Array<DictationChunk>>([]);
+    const [isDictationPanelExpanded, setIsDictationPanelExpanded] = useState(false);
+    const [dictationSettings, setDictationSettings] = useState<DictationRefinementSettings>(() =>
+        loadDictationPreferences(),
+    );
+    const [dictationDictionary, setDictationDictionary] = useState<DictationDictionary>(() => loadDictationDictionary());
     const speechRecognitionUiDescriptor = useMemo(
-        () => resolveSpeechRecognitionUiDescriptor(speechRecognitionState),
-        [speechRecognitionState],
+        () => resolveSpeechRecognitionUiDescriptor(dictationUiState),
+        [dictationUiState],
     );
     const resolvedSpeechRecognitionLanguage = useMemo(
         () => resolveSpeechRecognitionLanguage({ overrideLanguage: speechRecognitionLanguage }),
         [speechRecognitionLanguage],
     );
+    const isBrowserSpeechFallbackSupported = useMemo(() => {
+        if (typeof window === 'undefined') {
+            return false;
+        }
+
+        const webSpeechWindow = window as Window & {
+            readonly SpeechRecognition?: unknown;
+            readonly webkitSpeechRecognition?: unknown;
+        };
+
+        return Boolean(webSpeechWindow.SpeechRecognition || webSpeechWindow.webkitSpeechRecognition);
+    }, []);
+    const microphoneSettingsUrl = useMemo(() => resolveMicrophoneSettingsUrl(), []);
+
+    const clearPendingStopFallback = useCallback(() => {
+        if (!pendingStopFallbackRef.current) {
+            return;
+        }
+
+        clearTimeout(pendingStopFallbackRef.current);
+        pendingStopFallbackRef.current = null;
+    }, []);
+
+    useEffect(() => {
+        messageContentRef.current = messageContent;
+    }, [messageContent]);
+
+    useEffect(() => {
+        setMessageContent(defaultMessage || '');
+    }, [defaultMessage]);
+
+    useEffect(() => {
+        saveDictationPreferences(dictationSettings);
+    }, [dictationSettings]);
+
+    useEffect(() => {
+        saveDictationDictionary(dictationDictionary);
+    }, [dictationDictionary]);
 
     useEffect(
         (/* Focus textarea on page load */) => {
@@ -213,6 +680,56 @@ export function ChatInputArea(props: ChatInputAreaProps) {
         [textareaRef, isMobile, isFocusedOnLoad],
     );
 
+    const handleDictationFinalResult = useCallback(
+        (rawText: string) => {
+            const textarea = textareaRef.current;
+            if (!textarea) {
+                return;
+            }
+
+            const refinedText = refineFinalDictationChunk(rawText, dictationSettings, dictationDictionary);
+            if (!refinedText) {
+                return;
+            }
+
+            const selectionStart = textarea.selectionStart ?? messageContentRef.current.length;
+            const selectionEnd = textarea.selectionEnd ?? selectionStart;
+            const insertion = insertDictationChunk({
+                currentValue: messageContentRef.current,
+                dictatedText: refinedText,
+                selectionStart,
+                selectionEnd,
+                shouldReplaceSelection: replaceSelectionOnNextFinalRef.current,
+            });
+
+            replaceSelectionOnNextFinalRef.current = false;
+            setDictationInterimText('');
+            setDictationError(null);
+            setDictationUiState('listening');
+            setMessageContent(insertion.nextValue);
+            onChange?.(insertion.nextValue);
+
+            setDictationChunks((previous) => [
+                ...previous,
+                {
+                    id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+                    beforeValue: messageContentRef.current,
+                    finalText: refinedText,
+                    start: insertion.start,
+                },
+            ]);
+            setDictationLastFinalChunk(refinedText);
+            setDictationEditableChunk(refinedText);
+            setIsDictationPanelExpanded(true);
+
+            requestAnimationFrame(() => {
+                textarea.focus();
+                textarea.setSelectionRange(insertion.caret, insertion.caret);
+            });
+        },
+        [dictationSettings, dictationDictionary, onChange],
+    );
+
     useEffect(() => {
         if (!speechRecognition) {
             return;
@@ -220,53 +737,176 @@ export function ChatInputArea(props: ChatInputAreaProps) {
 
         const unsubscribe = speechRecognition.subscribe((event: SpeechRecognitionEvent) => {
             if (event.type === 'START') {
-                setSpeechRecognitionState('RECORDING');
-            } else if (event.type === 'TRANSCRIBING') {
-                setSpeechRecognitionState('TRANSCRIBING');
-            } else if (event.type === 'RESULT') {
-                if (textareaRef.current) {
-                    const textarea = textareaRef.current;
-                    const currentValue = textarea.value;
-                    const separator =
-                        currentValue && !currentValue.endsWith(' ') && !currentValue.endsWith('\n') ? ' ' : '';
-                    textarea.value += separator + event.text;
+                clearPendingStopFallback();
+                setDictationUiState('listening');
+                setDictationError(null);
+                return;
+            }
 
-                    if (onChange) {
-                        onChange(textarea.value);
-                    }
+            if (event.type === 'TRANSCRIBING') {
+                setDictationUiState('processing');
+                return;
+            }
+
+            if (event.type === 'RESULT') {
+                if (event.isFinal) {
+                    handleDictationFinalResult(event.text);
+                } else {
+                    setDictationInterimText(event.text);
+                    setIsDictationPanelExpanded(true);
                 }
-            } else if (event.type === 'ERROR') {
-                setSpeechRecognitionState('ERROR');
-                alert(`Speech recognition error: ${event.message}`);
-            } else if (event.type === 'STOP') {
-                setSpeechRecognitionState('IDLE');
+                return;
+            }
+
+            if (event.type === 'ERROR') {
+                clearPendingStopFallback();
+                setDictationError({
+                    code: event.code,
+                    message: event.message,
+                });
+                setDictationUiState(event.code === 'permission-denied' ? 'disabled' : 'error');
+                setIsDictationPanelExpanded(true);
+                return;
+            }
+
+            if (event.type === 'STOP') {
+                clearPendingStopFallback();
+                setDictationUiState((currentState) => (currentState === 'disabled' ? currentState : 'idle'));
+                setDictationInterimText('');
             }
         });
 
         return () => {
+            clearPendingStopFallback();
             unsubscribe();
         };
-    }, [speechRecognition, onChange]);
+    }, [speechRecognition, handleDictationFinalResult, clearPendingStopFallback]);
 
     useEffect(() => {
         return () => {
+            clearPendingStopFallback();
             speechRecognition?.$stop();
         };
-    }, [speechRecognition]);
+    }, [speechRecognition, clearPendingStopFallback]);
 
     const handleToggleVoiceInput = useCallback(() => {
         if (!speechRecognition) {
             return;
         }
 
-        if (speechRecognition.state === 'IDLE' || speechRecognition.state === 'ERROR') {
-            setSpeechRecognitionState('STARTING');
-            speechRecognition.$start({ language: resolvedSpeechRecognitionLanguage });
-        } else {
-            setSpeechRecognitionState('TRANSCRIBING');
+        if (dictationUiState === 'listening' || dictationUiState === 'processing') {
+            setDictationUiState('processing');
             speechRecognition.$stop();
+            clearPendingStopFallback();
+            pendingStopFallbackRef.current = setTimeout(() => {
+                setDictationUiState('idle');
+                setDictationInterimText('');
+            }, STOP_LISTENING_FALLBACK_TIMEOUT_MS);
+            return;
         }
-    }, [speechRecognition, resolvedSpeechRecognitionLanguage]);
+
+        const textarea = textareaRef.current;
+        if (textarea) {
+            const selectionStart = textarea.selectionStart ?? 0;
+            const selectionEnd = textarea.selectionEnd ?? selectionStart;
+            replaceSelectionOnNextFinalRef.current = selectionStart !== selectionEnd;
+        }
+
+        setDictationError(null);
+        setDictationInterimText('');
+        setDictationUiState('listening');
+        speechRecognition.$start({
+            language: resolvedSpeechRecognitionLanguage,
+            interimResults: true,
+            whisperMode: dictationSettings.whisperMode,
+        });
+    }, [speechRecognition, dictationUiState, resolvedSpeechRecognitionLanguage, clearPendingStopFallback, dictationSettings]);
+
+    const handleBacktrackLastChunk = useCallback(() => {
+        const previousChunks = [...dictationChunks];
+        const lastChunk = previousChunks.pop();
+
+        if (!lastChunk) {
+            return;
+        }
+
+        setDictationChunks(previousChunks);
+        setMessageContent(lastChunk.beforeValue);
+        onChange?.(lastChunk.beforeValue);
+
+        const previousFinalChunk = previousChunks[previousChunks.length - 1]?.finalText || '';
+        setDictationLastFinalChunk(previousFinalChunk);
+        setDictationEditableChunk(previousFinalChunk);
+
+        requestAnimationFrame(() => {
+            const textarea = textareaRef.current;
+            if (!textarea) {
+                return;
+            }
+
+            textarea.focus();
+            textarea.setSelectionRange(lastChunk.start, lastChunk.start);
+        });
+    }, [dictationChunks, onChange]);
+
+    const handleApplyCorrection = useCallback(() => {
+        const correctedChunk = normalizeDictationWhitespace(dictationEditableChunk);
+        const previousChunk = dictationLastFinalChunk;
+
+        if (!correctedChunk || !previousChunk || correctedChunk === previousChunk) {
+            return;
+        }
+
+        const nextMessageContent = replaceLastOccurrence(messageContentRef.current, previousChunk, correctedChunk);
+        setMessageContent(nextMessageContent);
+        onChange?.(nextMessageContent);
+        setDictationLastFinalChunk(correctedChunk);
+
+        setDictationChunks((previousChunks) => {
+            if (previousChunks.length === 0) {
+                return previousChunks;
+            }
+
+            const nextChunks = [...previousChunks];
+            const lastChunk = nextChunks[nextChunks.length - 1];
+            if (!lastChunk) {
+                return previousChunks;
+            }
+
+            nextChunks[nextChunks.length - 1] = {
+                ...lastChunk,
+                finalText: correctedChunk,
+            };
+
+            return nextChunks;
+        });
+
+        const learnedDictionary = learnDictationDictionary(previousChunk, correctedChunk, dictationDictionary);
+        setDictationDictionary(learnedDictionary);
+    }, [dictationEditableChunk, dictationLastFinalChunk, onChange, dictationDictionary]);
+
+    const handleRetryPermissionRequest = useCallback(() => {
+        setDictationError(null);
+        setDictationUiState('idle');
+        handleToggleVoiceInput();
+    }, [handleToggleVoiceInput]);
+
+    const handleOpenBrowserSettings = useCallback(() => {
+        if (!microphoneSettingsUrl) {
+            return;
+        }
+
+        window.open(microphoneSettingsUrl, '_blank', 'noopener,noreferrer');
+    }, [microphoneSettingsUrl]);
+
+    const handleTextInputChange = useCallback(
+        (event: ChangeEvent<HTMLTextAreaElement>) => {
+            const nextContent = event.target.value;
+            setMessageContent(nextContent);
+            onChange?.(nextContent);
+        },
+        [onChange],
+    );
 
     const handleFileUpload = useCallback(
         async (files: FileList | File[]) => {
@@ -369,7 +1009,6 @@ export function ChatInputArea(props: ChatInputAreaProps) {
         const wasTextareaFocused = document.activeElement === textareaElement;
 
         try {
-            const messageContent = textareaElement.value;
             const attachments = uploadedFiles.map((uploadedFile) => ({
                 name: uploadedFile.file.name,
                 type: uploadedFile.file.type,
@@ -384,7 +1023,7 @@ export function ChatInputArea(props: ChatInputAreaProps) {
                 /* not await */ soundSystem.play('message_send');
             }
 
-            textareaElement.value = '';
+            setMessageContent('');
             setUploadedFiles([]);
             onChange?.('');
 
@@ -409,7 +1048,7 @@ export function ChatInputArea(props: ChatInputAreaProps) {
             console.error(error);
             alert(error.message);
         }
-    }, [onMessage, uploadedFiles, soundSystem]);
+    }, [onMessage, uploadedFiles, soundSystem, messageContent, onChange]);
 
     if (!onMessage) {
         return null;
@@ -418,6 +1057,14 @@ export function ChatInputArea(props: ChatInputAreaProps) {
     const myColor = participants.find((participant) => participant.isMe)?.color || USER_CHAT_COLOR;
     const inputBgColor = Color.from(myColor).then(lighten(0.4)).then(grayscale(0.7));
     const inputTextColor = inputBgColor.then(textColor);
+    const shouldShowDictationPanel = Boolean(
+        speechRecognition &&
+            (isDictationPanelExpanded ||
+                dictationUiState !== 'idle' ||
+                Boolean(dictationInterimText) ||
+                Boolean(dictationError) ||
+                Boolean(dictationLastFinalChunk)),
+    );
 
     return (
         <div
@@ -467,8 +1114,9 @@ export function ChatInputArea(props: ChatInputAreaProps) {
                         textareaRef.current = element;
                     }}
                     onPaste={handlePaste}
-                    defaultValue={defaultMessage}
+                    value={messageContent}
                     placeholder={placeholderMessageContent || 'Write a message...'}
+                    onChange={handleTextInputChange}
                     onKeyDown={(event) => {
                         if (event.shiftKey) {
                             return;
@@ -479,13 +1127,6 @@ export function ChatInputArea(props: ChatInputAreaProps) {
 
                         event.preventDefault();
                         /* not await */ handleSend();
-                    }}
-                    onKeyUp={() => {
-                        if (!onChange) {
-                            return;
-                        }
-
-                        onChange(textareaRef.current?.value || '');
                     }}
                 />
 
@@ -558,7 +1199,7 @@ export function ChatInputArea(props: ChatInputAreaProps) {
             </div>
 
             {speechRecognition && speechRecognitionUiDescriptor.bubbleText && (
-                <div
+                <button
                     className={classNames(
                         styles.speechStatusBubble,
                         speechRecognitionUiDescriptor.bubbleTone === 'recording' && styles.speechStatusBubbleRecording,
@@ -567,11 +1208,155 @@ export function ChatInputArea(props: ChatInputAreaProps) {
                         speechRecognitionUiDescriptor.bubbleTone === 'error' && styles.speechStatusBubbleError,
                     )}
                     aria-live="polite"
-                    role="status"
+                    type="button"
+                    onClick={() => setIsDictationPanelExpanded((value) => !value)}
                 >
                     <span className={styles.speechStatusBubbleDot} aria-hidden="true" />
                     <span>{speechRecognitionUiDescriptor.bubbleText}</span>
-                </div>
+                </button>
+            )}
+
+            {shouldShowDictationPanel && (
+                <section className={styles.dictationPanel} aria-live="polite">
+                    <div className={styles.dictationPanelHeader}>
+                        <span className={styles.dictationPanelTitle}>Dictation</span>
+                        <button
+                            type="button"
+                            className={styles.dictationPanelToggle}
+                            onClick={() => setIsDictationPanelExpanded((value) => !value)}
+                        >
+                            {isDictationPanelExpanded ? 'Hide details' : 'Show details'}
+                        </button>
+                    </div>
+
+                    {dictationInterimText && (
+                        <button
+                            type="button"
+                            className={styles.dictationInterimTranscript}
+                            onClick={() => setIsDictationPanelExpanded(true)}
+                        >
+                            {dictationInterimText}
+                        </button>
+                    )}
+
+                    {dictationError && (
+                        <div className={styles.dictationErrorPanel}>
+                            <span>{dictationError.message}</span>
+                            <div className={styles.dictationErrorActions}>
+                                <button type="button" onClick={handleRetryPermissionRequest}>
+                                    Retry microphone
+                                </button>
+                                {dictationError.code === 'permission-denied' && microphoneSettingsUrl && (
+                                    <button type="button" onClick={handleOpenBrowserSettings}>
+                                        Open browser settings
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {(isDictationPanelExpanded || Boolean(dictationLastFinalChunk)) && (
+                        <>
+                            {dictationLastFinalChunk && (
+                                <div className={styles.dictationCorrectionPanel}>
+                                    <label className={styles.dictationCorrectionLabel}>Edit last transcript chunk</label>
+                                    <textarea
+                                        className={styles.dictationCorrectionTextarea}
+                                        value={dictationEditableChunk}
+                                        onChange={(event) => setDictationEditableChunk(event.target.value)}
+                                    />
+                                    <div className={styles.dictationCorrectionActions}>
+                                        <button type="button" onClick={handleApplyCorrection}>
+                                            Apply correction
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleBacktrackLastChunk}
+                                            disabled={dictationChunks.length === 0}
+                                        >
+                                            Backtrack
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className={styles.dictationSettingsPanel}>
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        checked={dictationSettings.autoPunctuation}
+                                        onChange={(event) =>
+                                            setDictationSettings((previous) => ({
+                                                ...previous,
+                                                autoPunctuation: event.target.checked,
+                                            }))
+                                        }
+                                    />
+                                    Auto punctuation
+                                </label>
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        checked={dictationSettings.autoCapitalization}
+                                        onChange={(event) =>
+                                            setDictationSettings((previous) => ({
+                                                ...previous,
+                                                autoCapitalization: event.target.checked,
+                                            }))
+                                        }
+                                    />
+                                    Auto capitalization
+                                </label>
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        checked={dictationSettings.removeFillerWords}
+                                        onChange={(event) =>
+                                            setDictationSettings((previous) => ({
+                                                ...previous,
+                                                removeFillerWords: event.target.checked,
+                                            }))
+                                        }
+                                    />
+                                    Remove fillers (um, uh, like)
+                                </label>
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        checked={dictationSettings.formatLists}
+                                        onChange={(event) =>
+                                            setDictationSettings((previous) => ({
+                                                ...previous,
+                                                formatLists: event.target.checked,
+                                            }))
+                                        }
+                                    />
+                                    Format list commands
+                                </label>
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        checked={dictationSettings.whisperMode}
+                                        onChange={(event) =>
+                                            setDictationSettings((previous) => ({
+                                                ...previous,
+                                                whisperMode: event.target.checked,
+                                            }))
+                                        }
+                                    />
+                                    Whisper mode
+                                </label>
+                            </div>
+
+                            <p className={styles.dictationFallbackNote}>
+                                Browser fallback:{' '}
+                                {isBrowserSpeechFallbackSupported
+                                    ? 'available (Web Speech API)'
+                                    : 'not available in this browser'}
+                            </p>
+                        </>
+                    )}
+                </section>
             )}
 
             {isUploading && (

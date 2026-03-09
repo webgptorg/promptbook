@@ -7,7 +7,6 @@ import { string_book, type ChatMessage } from '@promptbook-local/types';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import spaceTrim from 'spacetrim';
-import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognition/OpenAiSpeechRecognition';
 import { string_agent_url, string_color } from '../../../../../../src/types/typeAliases';
 import { $getCurrentDate } from '../../../../../../src/utils/misc/$getCurrentDate';
 import { keepUnused } from '../../../../../../src/utils/organization/keepUnused';
@@ -18,6 +17,7 @@ import { showAlert } from '../../../components/AsyncDialogs/asyncDialogs';
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { resolveChatMessageValidationIssue } from '../../../utils/chat/validateChatMessageContent';
+import { createDefaultSpeechRecognition } from '../../../utils/speech-to-text/createDefaultSpeechRecognition';
 import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
 import { setPendingProfileMessage } from './profileMessageCache';
 
@@ -276,9 +276,8 @@ export function AgentProfileChat({
         if (typeof window === 'undefined' || !isSpeechFeaturesEnabled) {
             return undefined;
         }
-        // Note: [🧠] We could have a mechanism to check if OPENAI_API_KEY is set on the server
-        //       For now, we always provide OpenAiSpeechRecognition which uses proxy
-        return new OpenAiSpeechRecognition();
+
+        return createDefaultSpeechRecognition();
     }, [isSpeechFeaturesEnabled]);
 
     const handleCreateAgent = useCallback(

@@ -6,7 +6,6 @@ import { AgentChat, ChatMessage, useSendMessageToLlmChat } from '@promptbook-loc
 import { RemoteAgent } from '@promptbook-local/core';
 import { ClientVersionMismatchError } from '@promptbook-local/utils';
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognition/OpenAiSpeechRecognition';
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
 import { useAgentBackground } from '../../../components/AgentProfile/useAgentBackground';
 import { ChatErrorDialog } from '../../../components/ChatErrorDialog';
@@ -21,6 +20,7 @@ import { reportClientVersionMismatch } from '../../../utils/clientVersionClient'
 import type { FriendlyErrorMessage } from '../../../utils/errorMessages';
 import { handleChatError } from '../../../utils/errorMessages';
 import { fetchGithubAppStatus, type GithubAppStatusResponse } from '../../../utils/githubAppClient';
+import { createDefaultSpeechRecognition } from '../../../utils/speech-to-text/createDefaultSpeechRecognition';
 import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
 import { serializeUserLocationPromptParameter, USER_LOCATION_PROMPT_PARAMETER } from '../../../utils/userLocationPromptParameter';
 import { MetaDisclaimerDialog } from './MetaDisclaimerDialog';
@@ -232,9 +232,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             return undefined;
         }
 
-        // Note: [🧠] We could have a mechanism to check if OPENAI_API_KEY is set on the server
-        //       For now, we always provide OpenAiSpeechRecognition which uses proxy
-        return new OpenAiSpeechRecognition();
+        return createDefaultSpeechRecognition();
     }, [isSpeechFeaturesEnabled]);
 
     const effectConfigs = useMemo(() => createDefaultChatEffects(), []);
