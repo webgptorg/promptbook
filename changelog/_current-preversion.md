@@ -1,3 +1,8 @@
+-   Improved Agents Server Book history/save controls in the Book editor header menu:
+    -   Removed the extra in-page secondary status/history bar from `/agents/[agentName]/book` and moved these controls into the normal top menu via existing menu-hoisting.
+    -   Extended shared `BookEditor` actionbar hoisting with integration-provided extra menu items, so page-specific controls (save state + history toggle) compose with existing editor actions without duplicating hoisting logic.
+    -   Updated Book history detail view to render selected snapshots using `<BookEditor isReadonly />` instead of raw `<pre>` source, reusing editor rendering/highlighting while disabling actionbar buttons for the read-only preview instance.
+
 -   Improved Agents Server loading UX by replacing large text/spinner placeholders with shared skeleton layouts:
     -   Added reusable skeleton system under `apps/agents-server/src/components/Skeleton` (base shimmer block + chat thread/sidebar, profile, homepage card grid, and graph placeholders) to keep loading states DRY.
     -   Replaced root route loading (`apps/agents-server/src/app/loading.tsx`) with a full homepage/list-style skeleton.

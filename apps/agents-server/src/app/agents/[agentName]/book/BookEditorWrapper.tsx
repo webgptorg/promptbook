@@ -2,7 +2,8 @@
 
 import { BookEditor } from '@promptbook-local/components';
 import { string_book } from '@promptbook-local/types';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { AlertTriangleIcon, CheckCircle2Icon, Clock3Icon, HistoryIcon, Loader2Icon } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { bookEditorUploadHandler } from '../../../../utils/upload/createBookEditorUploadHandler';
 import { showAlert, showConfirm } from '@/src/components/AsyncDialogs/asyncDialogs';
 import type { MissingAgentReference } from '../../../../utils/agentReferenceResolver/createUnresolvedAgentReferenceDiagnostics';
@@ -221,35 +222,25 @@ function resolveSaveStatusLabel(saveStatus: SaveStatus): string {
 }
 
 /**
- * Resolves Tailwind tone classes for save status badge.
+ * Resolves save-status icon displayed in hoisted menu controls.
  *
  * @param saveStatus - Current state of autosave state machine.
- * @returns Badge classes matching current save state.
+ * @returns Icon for the current save state.
  */
-function resolveSaveStatusToneClasses(saveStatus: SaveStatus): string {
-    if (saveStatus === 'error') {
-        return 'border-red-200 bg-red-50 text-red-700';
+function resolveSaveStatusMenuIcon(saveStatus: SaveStatus) {
+    if (saveStatus === 'saving') {
+        return <Loader2Icon className="h-4 w-4 animate-spin text-blue-600" />;
     }
-    if (saveStatus === 'pending' || saveStatus === 'saving') {
-        return 'border-blue-200 bg-blue-50 text-blue-700';
-    }
-    return 'border-emerald-200 bg-emerald-50 text-emerald-700';
-}
 
-/**
- * Resolves dot color classes for save status badge.
- *
- * @param saveStatus - Current state of autosave state machine.
- * @returns Dot classes matching current save state.
- */
-function resolveSaveStatusDotClasses(saveStatus: SaveStatus): string {
+    if (saveStatus === 'pending') {
+        return <Clock3Icon className="h-4 w-4 text-blue-600" />;
+    }
+
     if (saveStatus === 'error') {
-        return 'bg-red-500';
+        return <AlertTriangleIcon className="h-4 w-4 text-red-600" />;
     }
-    if (saveStatus === 'pending' || saveStatus === 'saving') {
-        return 'bg-blue-500';
-    }
-    return 'bg-emerald-500';
+
+    return <CheckCircle2Icon className="h-4 w-4 text-emerald-600" />;
 }
 
 // TODO: [🐱‍🚀] Rename to BookEditorSavingWrapper
@@ -738,8 +729,46 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
     const hasMissingReferences = missingAgentReferences.length > 0;
     const historyVersions = buildHistoryVersionItems(historyEntries);
     const saveStatusLabel = resolveSaveStatusLabel(saveStatus);
-    const saveIndicatorToneClassName = resolveSaveStatusToneClasses(saveStatus);
-    const saveIndicatorDotClassName = resolveSaveStatusDotClasses(saveStatus);
+    const toggleHistoryPanel = useCallback(() => {
+        setIsHistoryOpen((isCurrentlyOpen) => !isCurrentlyOpen);
+    }, []);
+    const handleSaveStatusMenuClick = useCallback(() => {
+        if (saveStatus === 'error') {
+            retrySaveNow();
+        }
+    }, [retrySaveNow, saveStatus]);
+    const hoistedMenuItems = useMemo(
+        () => [
+            {
+                key: 'book-save-status',
+                icon: resolveSaveStatusMenuIcon(saveStatus),
+                name:
+                    saveStatus === 'error'
+                        ? `${saveStatusLabel}: ${saveErrorMessage || 'Click to retry save.'}`
+                        : `Book status: ${saveStatusLabel}`,
+                onClick: handleSaveStatusMenuClick,
+                isActive: saveStatus === 'pending' || saveStatus === 'saving' || saveStatus === 'error',
+            },
+            {
+                key: 'book-history-toggle',
+                icon: <HistoryIcon className="h-4 w-4" />,
+                name: isHistoryOpen
+                    ? `Hide history (${historyVersions.length})`
+                    : `Show history (${historyVersions.length})`,
+                onClick: toggleHistoryPanel,
+                isActive: isHistoryOpen,
+            },
+        ],
+        [
+            handleSaveStatusMenuClick,
+            historyVersions.length,
+            isHistoryOpen,
+            saveErrorMessage,
+            saveStatus,
+            saveStatusLabel,
+            toggleHistoryPanel,
+        ],
+    );
     const renderMissingReferenceCards = () =>
         missingAgentReferences.map((reference) => (
             <MissingAgentReferenceCard
@@ -752,32 +781,6 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
 
     return (
         <div className="relative flex h-full min-h-0 flex-col">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-1">
-                <div
-                    role="status"
-                    aria-live="polite"
-                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs ${saveIndicatorToneClassName}`}
-                >
-                    {saveStatus === 'saving' ? (
-                        <span className="inline-block h-2.5 w-2.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                    ) : (
-                        <span className={`inline-block h-2.5 w-2.5 rounded-full ${saveIndicatorDotClassName}`} />
-                    )}
-                    <span className="font-semibold">{saveStatusLabel}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <button
-                        type="button"
-                        onClick={() => setIsHistoryOpen((isCurrentlyOpen) => !isCurrentlyOpen)}
-                        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
-                        aria-expanded={isHistoryOpen}
-                        aria-label={isHistoryOpen ? 'Close book history' : 'Open book history'}
-                    >
-                        {isHistoryOpen ? 'Hide history' : `History (${historyVersions.length})`}
-                    </button>
-                </div>
-            </div>
-
             {saveStatus === 'error' && (
                 <SaveFailureNotice
                     className="mb-3"
@@ -798,6 +801,7 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                             onChange={handleChange}
                             onFileUpload={bookEditorUploadHandler}
                             diagnostics={diagnostics}
+                            hoistedMenuItems={hoistedMenuItems}
                         />
                     </div>
 

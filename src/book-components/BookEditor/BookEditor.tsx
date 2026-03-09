@@ -16,6 +16,7 @@ import type {
 } from '../../types/typeAliases';
 import { countLines } from '../../utils/expectation-counters/countLines';
 import { classNames } from '../_common/react-utils/classNames';
+import type { HoistedMenuItem } from '../_common/MenuHoisting/MenuHoistingContext';
 import styles from './BookEditor.module.css';
 import { BookEditorMonaco } from './BookEditorMonaco';
 
@@ -260,6 +261,13 @@ export type BookEditorProps = {
      * @private Internal to Promptbook app integrations.
      */
     readonly monacoModelPath?: string;
+
+    /**
+     * Additional actions merged into the BookEditor actionbar and hoisted header menu.
+     *
+     * @private Internal to Promptbook app integrations.
+     */
+    readonly hoistedMenuItems?: ReadonlyArray<HoistedMenuItem>;
 };
 
 /**
@@ -288,6 +296,7 @@ export function BookEditor(props: BookEditorProps) {
         isFullscreenButtonShown = true,
         sync,
         monacoModelPath,
+        hoistedMenuItems,
     } = props;
 
     const [isFullscreen, setIsFullscreen] = useState(false);
@@ -345,6 +354,7 @@ export function BookEditor(props: BookEditorProps) {
                 sync={sync}
                 zoom={zoom}
                 monacoModelPath={monacoModelPath}
+                hoistedMenuItems={hoistedMenuItems}
             />
         </div>
     );

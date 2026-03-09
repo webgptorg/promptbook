@@ -278,6 +278,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
         isFullscreen,
         zoom = 1,
         monacoModelPath,
+        hoistedMenuItems,
     } = props;
 
     const zoomLevel = zoom;
@@ -532,6 +533,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
     };
 
     const isActionBarVisible =
+        Boolean(hoistedMenuItems && hoistedMenuItems.length > 0) ||
         isUploadButtonShown ||
         isCameraButtonShown ||
         isDownloadButtonShown ||
@@ -560,6 +562,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
                         onUploadDocument: handleUploadDocument,
                         onTakePhoto: handleTakePhoto,
                         isFullscreen,
+                        hoistedMenuItems,
                     }}
                 />
             )}

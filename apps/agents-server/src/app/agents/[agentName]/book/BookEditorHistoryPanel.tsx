@@ -1,6 +1,18 @@
 'use client';
 
+import { BookEditor } from '@promptbook-local/components';
+import type { string_book } from '@promptbook-local/types';
 import { XIcon } from 'lucide-react';
+
+/**
+ * Builds stable Monaco model path for one history preview item.
+ *
+ * @param versionId - Agent history row id.
+ * @returns In-memory Monaco model path dedicated to history preview.
+ */
+function createHistoryMonacoModelPath(versionId: number): string {
+    return `memory://agents-server/book-history/${versionId}.book`;
+}
 
 /**
  * One version item prepared for history panel rendering.
@@ -29,7 +41,7 @@ export type BookEditorHistoryVersionItem = {
     /**
      * Full snapshot source content.
      */
-    readonly source: string;
+    readonly source: string_book;
 };
 
 /**
@@ -203,9 +215,22 @@ export function BookEditorHistoryPanel({
                                     </button>
                                 </div>
 
-                                <pre className="min-h-0 flex-1 overflow-auto bg-slate-950 p-4 text-xs leading-relaxed text-slate-100">
-                                    {selectedVersion.source}
-                                </pre>
+                                <div className="min-h-0 flex-1 overflow-hidden border-t border-slate-200 bg-slate-100 p-3">
+                                    <BookEditor
+                                        key={selectedVersion.id}
+                                        className="h-full w-full"
+                                        isBorderRadiusDisabled
+                                        height={null}
+                                        value={selectedVersion.source}
+                                        monacoModelPath={createHistoryMonacoModelPath(selectedVersion.id)}
+                                        isReadonly
+                                        isUploadButtonShown={false}
+                                        isCameraButtonShown={false}
+                                        isDownloadButtonShown={false}
+                                        isAboutButtonShown={false}
+                                        isFullscreenButtonShown={false}
+                                    />
+                                </div>
                             </>
                         ) : (
                             <div className="flex min-h-0 flex-1 items-center justify-center p-6 text-xs text-slate-500">

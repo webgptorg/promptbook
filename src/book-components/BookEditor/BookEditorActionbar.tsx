@@ -30,6 +30,7 @@ type BookEditorActionbarProps = {
     onUploadDocument?: () => void;
     onTakePhoto?: () => void;
     isFullscreen?: boolean;
+    hoistedMenuItems?: ReadonlyArray<HoistedMenuItem>;
 };
 
 /**
@@ -48,6 +49,7 @@ export function BookEditorActionbar(props: BookEditorActionbarProps) {
         onUploadDocument,
         onTakePhoto,
         isFullscreen,
+        hoistedMenuItems,
     } = props;
     const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
     const menuHoisting = useMenuHoisting();
@@ -64,7 +66,7 @@ export function BookEditorActionbar(props: BookEditorActionbarProps) {
     }, []);
 
     const actions = useMemo(() => {
-        const _actions: HoistedMenuItem[] = [];
+        const _actions: HoistedMenuItem[] = [...(hoistedMenuItems || [])];
 
         if (isUploadButtonShown && onUploadDocument) {
             _actions.push({
@@ -107,6 +109,7 @@ export function BookEditorActionbar(props: BookEditorActionbarProps) {
         }
         return _actions;
     }, [
+        hoistedMenuItems,
         isUploadButtonShown,
         onUploadDocument,
         isCameraButtonShown,
