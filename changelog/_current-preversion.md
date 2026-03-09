@@ -1,3 +1,8 @@
+-   Simplified Agents Server `System > Administration` user navigation:
+    -   Removed per-user entries from the Administration menu to prevent unusable long dropdowns on larger user bases.
+    -   Kept a single `Users` menu item that links to `/admin/users`, where the full user list and user management actions are handled.
+    -   Removed duplicated user-management shortcuts from the header dropdown so user administration remains centralized in one place (DRY).
+
 -   Added new `META INPUT PLACEHOLDER` commitment and wired it into Agents Server chat inputs:
     -   Added core commitment definition `META INPUT PLACEHOLDER` and parser support so agent metadata now resolves `meta.inputPlaceholder` from book source.
     -   Added shared Agents Server placeholder resolver utility with default fallback `Write a message...` to keep placeholder behavior DRY.

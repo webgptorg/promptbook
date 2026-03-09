@@ -30,7 +30,6 @@ import { showAlert, showLoginDialog } from '../AsyncDialogs/asyncDialogs';
 import { ChangePasswordDialog } from '../ChangePasswordDialog/ChangePasswordDialog';
 import { useNewAgentDialog } from '../NewAgentDialog/useNewAgentDialog';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
-import { useUsersAdmin } from '../UsersList/useUsersAdmin';
 import { DropdownSubMenuPortal } from './DropdownSubMenuPortal';
 import {
     AgentDirectoryDropdown,
@@ -548,7 +547,6 @@ export function Header(props: HeaderProps) {
             );
         });
 
-    const { users: adminUsers } = useUsersAdmin();
     const agentMenuStructure = useMemo(() => buildAgentMenuStructure(agents, agentFolders), [agents, agentFolders]);
     const agentFolderById = useMemo(
         () => new Map(agentFolders.map((folder) => [folder.id, folder as HeaderAgentMenuFolder])),
@@ -948,30 +946,6 @@ export function Header(props: HeaderProps) {
     });
 
     /**
-     * @private Admin user-management links shown inside the Administration section.
-     */
-    const adminUsersSystemItems: SubMenuItem[] = [
-        ...adminUsers.map(
-            (user) =>
-                ({
-                    label: user.username,
-                    href: `/admin/users/${encodeURIComponent(user.username)}`,
-                } as SubMenuItem),
-        ),
-        {
-            label: t('header.viewAllUsers'),
-            href: '/admin/users',
-            isBold: true,
-            isBordered: true,
-        } as SubMenuItem,
-        {
-            label: t('header.createNewUser'),
-            href: '/admin/users#create-user',
-            isBold: true,
-        } as SubMenuItem,
-    ];
-
-    /**
      * @private Administration-focused actions shown inside the System dropdown.
      */
     const administrationSystemItems: SubMenuItem[] = [
@@ -1004,10 +978,10 @@ export function Header(props: HeaderProps) {
         },
         {
             label: t('header.users'),
+            href: '/admin/users',
             isBold: true,
             isBordered: true,
         },
-        ...adminUsersSystemItems,
         {
             label: t('header.customCss'),
             href: '/admin/custom-css',
