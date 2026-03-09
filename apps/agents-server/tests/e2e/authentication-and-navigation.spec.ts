@@ -56,6 +56,18 @@ async function createAgentViaHomepageDialog(page: Page): Promise<void> {
 }
 
 /**
+ * Opens the `System` menu and expands the `My Account` category.
+ *
+ * @param page - Current Playwright page.
+ */
+async function openSystemMyAccountMenu(page: Page): Promise<void> {
+    await openHeaderMenu(page, 'System');
+    const myAccountButton = page.getByRole('button', { name: 'My Account' });
+    await expect(myAccountButton).toBeVisible();
+    await myAccountButton.click();
+}
+
+/**
  * Core authentication and navigation integration flows for Agents Server.
  */
 test.describe('Agents Server authentication and navigation', () => {
@@ -80,12 +92,12 @@ test.describe('Agents Server authentication and navigation', () => {
         await page.goto('/docs/PERSONA');
         await expect(page.getByRole('heading', { name: 'PERSONA', exact: true })).toBeVisible();
 
-        await openHeaderMenu(page, 'System');
+        await openSystemMyAccountMenu(page);
         await page.getByRole('link', { name: 'Profile' }).click();
         await expect(page).toHaveURL(/\/system\/profile$/);
         await expect(page.getByRole('heading', { name: 'Profile' })).toBeVisible();
 
-        await openHeaderMenu(page, 'System');
+        await openSystemMyAccountMenu(page);
         await page.getByRole('link', { name: 'User Memory' }).click();
         await expect(page).toHaveURL(/\/system\/user-memory$/);
         await expect(page.getByRole('heading', { name: 'User Memory' })).toBeVisible();

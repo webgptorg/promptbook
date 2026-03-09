@@ -1,3 +1,7 @@
+-   Fixed Agents Server E2E navigation flow for nested `System` menu:
+    -   Updated `authentication-and-navigation` Playwright test to expand the `My Account` submenu before clicking `Profile` and `User Memory`.
+    -   This aligns the test with the current categorized System dropdown structure and removes the timeout on the missing direct `Profile` link.
+
 -   Fixed Agents Server chat history persistence reliability and save-failure visibility:
     -   Stabilized anonymous chat identity for all `/agents/[agentName]/api/user-chats` client calls by attaching a persistent `x-anonymous-username` header, preventing cross-request identity drift that could cause chats to appear unsaved after refresh.
     -   Added keepalive-enabled flush of pending debounced chat saves/draft saves on page unload (`pagehide` / `beforeunload`) to reduce refresh-time data loss.
