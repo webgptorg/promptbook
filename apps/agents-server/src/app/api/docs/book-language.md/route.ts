@@ -11,9 +11,10 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 /**
- * Backward-compatible route for historical `/api/docs/book.md` links.
+ * Canonical standalone Book language documentation route.
  *
- * The output is shared with the canonical `/api/docs/book-language.md` route.
+ * Returns a single generated markdown document suitable for copy-paste into
+ * external tools or sharing with developers as a complete learning material.
  */
 export async function GET() {
     return createBookLanguageDocumentationMarkdownResponse();

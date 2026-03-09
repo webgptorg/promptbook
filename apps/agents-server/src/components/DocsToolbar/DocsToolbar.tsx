@@ -23,8 +23,8 @@ export function DocsToolbar() {
                 </button>
 
                 <Link
-                    href="/api/docs/book.md"
-                    download="book.md"
+                    href="/api/docs/book-language.md"
+                    download="book-language.md"
                     target="_blank"
                     className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                     title="Download raw Markdown documentation"

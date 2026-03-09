@@ -1,4 +1,4 @@
-[ ]
+[x] ~$1.01 26 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨🍪] Book language documentation: expose as one up-to-date standalone markdown via Agents Server route
 
@@ -39,3 +39,4 @@
     -   Unfortunatelly in the examples there is mostly Book 1.0, so here you have some good examples of Book 2.0 - `C:/Users/me/Downloads/promptbook-backup-2026-03-08/promptbook-backup-2026-03-08`
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

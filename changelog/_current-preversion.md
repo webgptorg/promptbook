@@ -1,3 +1,15 @@
+-   Added canonical standalone Book language documentation route in Agents Server:
+    -   Added new canonical route `/api/docs/book-language.md` that returns one generated markdown document for Book 2.0 agent language.
+    -   Refactored `/api/docs/book.md` to reuse the same shared markdown generator output (backward-compatible alias, no duplicated docs logic).
+    -   Added shared source-of-truth Book language documentation generator under `apps/agents-server/src/utils/bookLanguageDocumentation`, combining:
+        -   conceptual Book 2.0 guide sections,
+        -   structured end-to-end examples (goal + full source + walkthrough),
+        -   dynamically generated full commitment catalog from live commitment definitions (including parser regex schemas and commitment docs).
+    -   Added explicit response headers for standalone markdown docs:
+        -   `Content-Type: text/markdown; charset=utf-8`
+        -   `Cache-Control: no-store, max-age=0` (always freshest)
+    -   Updated Documentation toolbar download button to canonical `/api/docs/book-language.md`.
+
 -   Improved Agents Server `System` dropdown submenu organization and scanability:
     -   Changed floating 3rd-level submenu panels to a single vertical stack (removed two-column child layout) to improve readability.
     -   Added category icons to both 2nd-level category entries and 3rd-level items under `System`.
