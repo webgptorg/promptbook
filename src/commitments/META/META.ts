@@ -12,6 +12,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * - META DOMAIN: Sets the canonical custom domain/host of the agent
  * - META TITLE: Sets the agent's display title
  * - META DESCRIPTION: Sets the agent's description
+ * - META INPUT PLACEHOLDER: Sets chat input placeholder text
  * - META [ANYTHING]: Any other meta information in uppercase format
  *
  * These commitments are special because they don't affect the system message,
@@ -25,6 +26,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * META DOMAIN my-agent.com
  * META TITLE Professional Assistant
  * META DESCRIPTION An AI assistant specialized in business tasks
+ * META INPUT PLACEHOLDER Write a message...
  * META AUTHOR John Doe
  * META VERSION 1.0
  * ```
@@ -66,6 +68,7 @@ export class MetaCommitmentDefinition extends BaseCommitmentDefinition<`META${st
             - **META DOMAIN** - Sets the canonical custom domain/host of the agent
             - **META TITLE** - Sets the agent's display title
             - **META DESCRIPTION** - Sets the agent's description
+            - **META INPUT PLACEHOLDER** - Sets chat input placeholder text
             - **META [ANYTHING]** - Any other meta information in uppercase format
 
             ## Key aspects

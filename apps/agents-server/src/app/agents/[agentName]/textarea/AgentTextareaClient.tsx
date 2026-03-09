@@ -29,6 +29,11 @@ type AgentTextareaClientProps = {
      * Optional agent brand color used for profile-like page background.
      */
     readonly agentBrandColor?: string;
+
+    /**
+     * Placeholder rendered in the textarea input.
+     */
+    readonly inputPlaceholder: string;
 };
 
 /**
@@ -64,6 +69,7 @@ export function AgentTextareaClient({
     agentDisplayName,
     agentAvatarSrc,
     agentBrandColor,
+    inputPlaceholder,
 }: AgentTextareaClientProps) {
     const router = useRouter();
     const { formatText } = useAgentNaming();
@@ -147,7 +153,7 @@ export function AgentTextareaClient({
                         onChange={(event) => setMessageContent(event.target.value)}
                         onKeyDown={handleTextareaKeyDown}
                         disabled={isSubmitting}
-                        placeholder={formatText('Write your message to the agent...')}
+                        placeholder={inputPlaceholder}
                         className="w-full resize-y rounded-2xl border border-slate-200 bg-white p-4 text-base text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
                     />
                     <div className="mt-3 flex items-center justify-between text-xs text-slate-500">

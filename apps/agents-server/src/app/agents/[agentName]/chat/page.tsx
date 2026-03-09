@@ -2,6 +2,7 @@
 import { loadChatConfiguration } from '@/src/utils/chatConfiguration';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { getThinkingMessages } from '@/src/utils/thinkingMessages';
+import { resolveAgentChatInputPlaceholder } from '@/src/utils/agentChatInputPlaceholder';
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { resolveSpeechRecognitionLanguage } from '../../../../../../../src/utils/language/getBrowserPreferredSpeechRecognitionLanguage';
@@ -93,6 +94,7 @@ export default async function AgentChatPage({
     const historyIdentityAvailable = await ensureChatHistoryIdentity();
     const { chatFailMessage, isFileAttachmentsEnabled, isFeedbackEnabled } = await loadChatConfiguration();
     const agentDisplayName = agentProfile.meta.fullname || agentProfile.agentName || canonicalAgentId;
+    const inputPlaceholder = resolveAgentChatInputPlaceholder(agentProfile.meta.inputPlaceholder);
 
     return (
         <main className={`w-full h-full overflow-hidden relative agent-chat-route-surface print-export-chat-surface`}>
@@ -104,6 +106,7 @@ export default async function AgentChatPage({
                 initialChatId={chat}
                 initialForceNewChat={parseBooleanFlag(newChat)}
                 brandColor={agentProfile.meta.color}
+                inputPlaceholder={inputPlaceholder}
                 thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}
                 isHistoryEnabled={historyIdentityAvailable}

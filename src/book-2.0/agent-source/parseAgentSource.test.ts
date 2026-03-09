@@ -252,6 +252,20 @@ describe('parseAgentSource', () => {
         );
     });
 
+    it('parses META INPUT PLACEHOLDER and allows override', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                Helper Agent
+                META INPUT PLACEHOLDER Start typing your request...
+                META INPUT PLACEHOLDER
+                Ask me anything about your tasks
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+
+        expect(result.meta.inputPlaceholder).toBe('Ask me anything about your tasks');
+    });
+
     it('parses MESSAGE SUFFIX with multiline markdown content', () => {
         const agentSource = validateBook(
             spaceTrim(`

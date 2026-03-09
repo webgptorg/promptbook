@@ -28,6 +28,7 @@ type AgentProfileChatProps = {
     agentUrl: string_agent_url;
     agentName: string;
     fullname: string;
+    inputPlaceholder: string;
     brandColorHex: string_color;
     avatarSrc: string;
     isDeleted?: boolean;
@@ -144,6 +145,7 @@ export function AgentProfileChat({
     agentUrl,
     agentName,
     fullname,
+    inputPlaceholder,
     brandColorHex,
     avatarSrc,
     isDeleted = false,
@@ -378,6 +380,7 @@ export function AgentProfileChat({
                         className="h-full w-full rounded-[28px] bg-transparent"
                         buttonColor={brandColorHex}
                         style={{ background: 'transparent' }}
+                        placeholderMessageContent={inputPlaceholder}
                         speechRecognition={speechRecognition}
                         speechRecognitionLanguage={speechRecognitionLanguage}
                         isSpeechPlaybackEnabled={isSpeechFeaturesEnabled}

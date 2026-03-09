@@ -15,6 +15,7 @@ import { useSelfLearningPreferences } from '../../../components/SelfLearningPref
 import { ChatThreadLoadingSkeleton } from '../../../components/Skeleton/ChatThreadLoadingSkeleton';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { useSoundSystem } from '../../../components/SoundSystemProvider/SoundSystemProvider';
+import { resolveAgentChatInputPlaceholder } from '../../../utils/agentChatInputPlaceholder';
 import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatEffects';
 import { reportClientVersionMismatch } from '../../../utils/clientVersionClient';
 import type { FriendlyErrorMessage } from '../../../utils/errorMessages';
@@ -34,6 +35,7 @@ import { useTeamAgentProfiles } from './useTeamAgentProfiles';
 type AgentChatWrapperProps = {
     agentName: string;
     agentUrl: string_agent_url;
+    inputPlaceholder?: string;
     defaultMessage?: string;
     autoExecuteMessage?: string;
     autoExecuteMessageAttachments?: ChatMessage['attachments'];
@@ -77,6 +79,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     const {
         agentName,
         agentUrl,
+        inputPlaceholder,
         defaultMessage,
         autoExecuteMessage,
         autoExecuteMessageAttachments,
@@ -92,6 +95,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         onStartNewChat,
         onAutoExecuteMessageConsumed,
     } = props;
+    const effectiveInputPlaceholder = resolveAgentChatInputPlaceholder(inputPlaceholder);
 
     const shouldEnableFeedback = isFeedbackEnabled ?? true;
     const { backgroundImage, brandColorHex, brandColorLightHex, brandColorDarkHex } = useAgentBackground(brandColor);
@@ -321,6 +325,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 className={`w-full h-full`}
                 style={chatBackgroundStyle}
                 agent={agent}
+                placeholderMessageContent={effectiveInputPlaceholder}
                 onFeedback={shouldEnableFeedback ? handleFeedback : undefined}
                 onFileUpload={allowFileAttachments ? handleFileUpload : undefined}
                 onError={handleError}

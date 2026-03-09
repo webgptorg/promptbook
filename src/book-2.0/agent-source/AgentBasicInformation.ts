@@ -119,6 +119,7 @@ export type AgentBasicInformation = {
         fullname?: string;
         description?: string;
         disclaimer?: string;
+        inputPlaceholder?: string;
         messageSuffix?: string;
         image?: string_url_image;
         domain?: string;

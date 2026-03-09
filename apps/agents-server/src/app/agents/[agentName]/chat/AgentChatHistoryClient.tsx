@@ -77,6 +77,7 @@ type AgentChatHistoryClientProps = {
     agentName: string;
     agentUrl: string;
     brandColor?: string;
+    inputPlaceholder: string;
     thinkingMessages?: ReadonlyArray<string>;
     speechRecognitionLanguage?: string;
     initialChatId?: string;
@@ -100,6 +101,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         agentName,
         agentUrl,
         brandColor,
+        inputPlaceholder,
         thinkingMessages,
         speechRecognitionLanguage,
         initialChatId,
@@ -702,6 +704,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                         autoExecuteMessage={effectiveInitialAutoExecuteMessage}
                         autoExecuteMessageAttachments={effectiveInitialAutoExecuteMessageAttachments}
                         brandColor={brandColor}
+                        inputPlaceholder={inputPlaceholder}
                         thinkingMessages={thinkingMessages}
                         speechRecognitionLanguage={speechRecognitionLanguage}
                         persistenceKey={guestPersistenceKey}
@@ -735,6 +738,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 autoExecuteMessage={autoExecuteMessage}
                 autoExecuteMessageAttachments={effectiveInitialAutoExecuteMessageAttachments}
                 brandColor={brandColor}
+                inputPlaceholder={inputPlaceholder}
                 thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}
                 persistenceKey={buildUserChatPersistenceKey(activeChatId)}

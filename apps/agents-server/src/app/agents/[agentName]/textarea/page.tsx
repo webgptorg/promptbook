@@ -4,6 +4,7 @@ import { notFound, redirect } from 'next/navigation';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { formatAgentNamingText } from '../../../../utils/agentNaming';
+import { resolveAgentChatInputPlaceholder } from '../../../../utils/agentChatInputPlaceholder';
 import { resolveAgentRouteTarget } from '../../../../utils/agentRouting/resolveAgentRouteTarget';
 import { getAgentNaming } from '../../../../utils/getAgentNaming';
 import { getAgentName, getAgentProfile } from '../_utils';
@@ -52,6 +53,7 @@ export default async function AgentTextareaPage({ params }: { params: Promise<{ 
     ]);
     const fallbackAgentName = formatAgentNamingText('Agent', agentNaming);
     const agentDisplayName = (agentProfile.meta.fullname || agentProfile.agentName || fallbackAgentName) as string;
+    const inputPlaceholder = resolveAgentChatInputPlaceholder(agentProfile.meta.inputPlaceholder);
     const fallbackAvatarPath = `/agents/${encodeURIComponent(agentProfile.permanentId || canonicalAgentId)}/images/default-avatar.png`;
     const agentAvatarSrc =
         resolveAgentAvatarImageUrl({ agent: agentProfile, baseUrl: publicUrl.href }) || fallbackAvatarPath;
@@ -62,6 +64,7 @@ export default async function AgentTextareaPage({ params }: { params: Promise<{ 
             agentDisplayName={agentDisplayName}
             agentAvatarSrc={agentAvatarSrc}
             agentBrandColor={agentProfile.meta.color}
+            inputPlaceholder={inputPlaceholder}
         />
     );
 }

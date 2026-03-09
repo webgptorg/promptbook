@@ -1,3 +1,11 @@
+-   Added new `META INPUT PLACEHOLDER` commitment and wired it into Agents Server chat inputs:
+    -   Added core commitment definition `META INPUT PLACEHOLDER` and parser support so agent metadata now resolves `meta.inputPlaceholder` from book source.
+    -   Added shared Agents Server placeholder resolver utility with default fallback `Write a message...` to keep placeholder behavior DRY.
+    -   Applied the same resolved placeholder to all required agent chat entry points:
+        -   `/agents/[agentName]/` profile chat preview
+        -   `/agents/[agentName]/chat` standalone chat
+        -   `/agents/[agentName]/textarea` textarea-first chat page
+
 -   Enhanced Agents Server `/agents/[agentName]/textarea` page design:
     -   Hid the global header for the textarea route to provide a focused writing surface.
     -   Added a centered agent identity block above the textarea with circular profile image and agent name.

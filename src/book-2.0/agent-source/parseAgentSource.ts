@@ -340,6 +340,11 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
             continue;
         }
 
+        if (commitment.type === 'META INPUT PLACEHOLDER') {
+            meta.inputPlaceholder = spaceTrim(commitment.content);
+            continue;
+        }
+
         if (commitment.type === 'MESSAGE SUFFIX') {
             meta.messageSuffix = commitment.content;
             continue;

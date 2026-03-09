@@ -14,6 +14,7 @@ import { formatAgentNamingText } from '../../../utils/agentNaming';
 import { resolveAgentRouteTarget } from '../../../utils/agentRouting/resolveAgentRouteTarget';
 import { getAgentNaming } from '../../../utils/getAgentNaming';
 import { loadChatConfiguration } from '../../../utils/chatConfiguration';
+import { resolveAgentChatInputPlaceholder } from '../../../utils/agentChatInputPlaceholder';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { isPublicAgentVisibility } from '@/src/utils/agentVisibility';
 import { getAgentFolderContext, getAgentName, getAgentProfile, isAgentDeleted } from './_utils';
@@ -246,6 +247,7 @@ export default async function AgentPage({
 
     const fallbackName = formatAgentNamingText('Agent', agentNaming);
     const fullname = (agentProfile.meta.fullname || agentProfile.agentName || fallbackName) as string;
+    const inputPlaceholder = resolveAgentChatInputPlaceholder(agentProfile.meta.inputPlaceholder);
     const isDeleted = await isAgentDeleted(canonicalAgentId);
     const fallbackAvatarPath = `/agents/${encodeURIComponent(agentProfile.permanentId || canonicalAgentId)}/images/default-avatar.png`;
     const avatarSrc = resolveAgentAvatarImageUrl({ agent: agentProfile, baseUrl: publicUrl.href }) || fallbackAvatarPath;
@@ -302,6 +304,7 @@ export default async function AgentPage({
                     agentUrl={agentUrl}
                     agentName={canonicalAgentId}
                     fullname={fullname}
+                    inputPlaceholder={inputPlaceholder}
                     brandColorHex={brandColorHex}
                     avatarSrc={avatarSrc}
                     isDeleted={isDeleted}
