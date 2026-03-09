@@ -1,5 +1,6 @@
+import { computeAgentHash } from '@promptbook-local/core';
 import { AgentCollection, string_agent_permanent_id, string_book } from '@promptbook-local/types';
-import { computePersistedAgentFingerprint, scheduleAgentPreparation } from './agentPreparation';
+import { scheduleAgentPreparation } from './agentPreparation';
 
 /**
  * Marker key used to prevent double-decoration of the same collection instance.
@@ -12,6 +13,25 @@ const AGENT_PREPARATION_DECORATED_FLAG = '__agentPreparationDecorated';
 type DecoratableAgentCollection = AgentCollection & {
     [AGENT_PREPARATION_DECORATED_FLAG]?: boolean;
 };
+
+/**
+ * Removes META ID lines before fingerprinting so hashes match persisted AgentCollection behavior.
+ */
+function stripMetaIdLines(agentSource: string_book): string_book {
+    const strippedLines = agentSource
+        .split(/\r?\n/)
+        .filter((line) => !line.trim().startsWith('META ID '));
+
+    return strippedLines.join('\n') as string_book;
+}
+
+/**
+ * Computes persisted-equivalent source fingerprint used by pre-index scheduling.
+ */
+function computePersistedAgentFingerprint(agentSource: string_book): string {
+    const normalizedSource = stripMetaIdLines(agentSource);
+    return computeAgentHash(normalizedSource);
+}
 
 /**
  * Decorates AgentCollection create/update writes to schedule debounced background pre-indexing.

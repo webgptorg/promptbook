@@ -8,8 +8,6 @@ import {
 } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { resolveAgentProfileWithInheritance } from '@/src/utils/resolveAgentProfileWithInheritance';
-import { readAgentPreparationStatus, type AgentPreparationStatusSnapshot } from '@/src/utils/agentPreparation';
-import { string_agent_permanent_id } from '@promptbook-local/types';
 import type { AgentsServerDatabase } from '../../../database/schema';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
 import { buildAgentFolderContext, type AgentFolderContext } from '../../../utils/agentOrganization/agentFolderContext';
@@ -24,11 +22,6 @@ type AgentRow = AgentsServerDatabase['public']['Tables']['Agent']['Row'];
  * Database folder row shape used for folder navigation.
  */
 type AgentFolderRow = AgentsServerDatabase['public']['Tables']['AgentFolder']['Row'];
-
-/**
- * Agent row fields required to derive preparation status.
- */
-type AgentPreparationLookupRow = Pick<AgentRow, 'permanentId' | 'agentHash'>;
 
 export const AGENT_ACTIONS = ['Emails', 'Web chat', 'Read documents', 'Browser', 'WhatsApp', '<Coding/>'];
 
@@ -68,45 +61,6 @@ export async function getAgentProfile(agentName: string) {
     }
 
     return { ...agentProfile, visibility: agentResult.data.visibility };
-}
-
-/**
- * Loads the current pre-index preparation state for one agent detail page.
- *
- * @param agentName - Agent route identifier (name or permanent id, including book-scoped ids).
- * @param tablePrefix - Supabase table prefix for the active server namespace.
- * @returns Derived preparation status snapshot, or `null` when the agent row is unavailable.
- */
-export async function getAgentPreparationStatus(
-    agentName: string,
-    tablePrefix: string,
-): Promise<AgentPreparationStatusSnapshot | null> {
-    const supabase = $provideSupabaseForServer();
-    const parsedBookScopedAgentIdentifier = parseBookScopedAgentIdentifier(agentName);
-    const targetAgentIdentifier = parsedBookScopedAgentIdentifier?.parentAgentIdentifier || agentName;
-    const agentTable = await $getTableName('Agent');
-
-    const agentResult = await supabase
-        .from(agentTable)
-        .select('permanentId,agentHash')
-        .or(buildAgentNameOrIdFilter(targetAgentIdentifier))
-        .order('createdAt', { ascending: true })
-        .limit(1);
-
-    if (agentResult.error || !agentResult.data || agentResult.data.length === 0) {
-        return null;
-    }
-
-    const row = agentResult.data[0] as AgentPreparationLookupRow;
-    if (!row.permanentId) {
-        return null;
-    }
-
-    return readAgentPreparationStatus({
-        tablePrefix,
-        agentPermanentId: row.permanentId as string_agent_permanent_id,
-        currentFingerprint: row.agentHash,
-    });
 }
 
 export async function isAgentDeleted(agentName: string): Promise<boolean> {

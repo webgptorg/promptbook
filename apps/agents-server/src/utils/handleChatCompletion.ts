@@ -45,7 +45,6 @@ import { respondIfClientVersionIsOutdated } from './clientVersionGuard';
 import { validateApiKey } from './validateApiKey';
 import {
     AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS,
-    computePersistedAgentFingerprint,
     resolveAgentCollectionTablePrefix,
     waitForRunningAgentPreparation,
 } from './agentPreparation';
@@ -291,7 +290,6 @@ export async function handleChatCompletion(
             );
         }
         let agentSource: string_book = resolvedAgentContext.resolvedAgentSource;
-        const agentPreparationFingerprint = computePersistedAgentFingerprint(agentSource);
         const projectRepositories = extractProjectRepositoriesFromAgentSource(resolvedAgentContext.resolvedAgentSource);
         const useEmailConfiguration = extractUseEmailConfigurationFromAgentSource(
             resolvedAgentContext.resolvedAgentSource,
@@ -333,7 +331,7 @@ export async function handleChatCompletion(
         const preparationWaitResult = await waitForRunningAgentPreparation({
             tablePrefix,
             agentPermanentId: agentId,
-            fingerprint: agentPreparationFingerprint,
+            fingerprint: agentHash,
             timeoutMs: AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS,
         });
         if (preparationWaitResult !== 'not_running') {
@@ -341,7 +339,6 @@ export async function handleChatCompletion(
                 tablePrefix,
                 agentPermanentId: agentId,
                 agentHash,
-                agentPreparationFingerprint,
                 preparationWaitResult,
             });
         }
