@@ -10,16 +10,20 @@
 -   Reuse the existing UI/components used by the book editor save error (do not create a new bespoke component for chat).
 -   Replace current chat save-failure UI with this floating notification (and remove any in-layout error banners that cause layout shift).
 -   Provide an API that can be used from anywhere in the Agents Server UI, for example:
-    -   `notifyError(message, { actionLabel, onAction })`
-    -   `notifyWarning(...)`
-    -   `notifyInfo(...)`
-    -   `notifySuccess(...)`
+    -   `notifyError(message, { details, actionLabel, onAction })`
+    -   `notifyWarning(message, { details, ... })`
+    -   `notifyInfo(message, { details, ... })`
+    -   `notifySuccess(message, { details, ... })`
 -   Notifications should support:
-    -   Auto-dismiss (with sane defaults; errors can be sticky by default if you think it’s better) @@@
-    -   Manual dismiss (close button)
+    -   Manual dismiss (close button “X” in right corner)
+    -   No auto-dismiss by default (especially for errors; user must close)
     -   Optional action button (e.g. “Retry save”)
-    -   Stacking multiple notifications
-    -   Not duplicating identical notifications too aggressively (basic dedup / coalescing) @@@
+    -   Stacking multiple notifications (a list, newest on top) without overlapping input / messages @@@
+    -   (Optional) Not duplicating identical notifications too aggressively (basic dedup / coalescing) @@@
+-   Interaction + debugging:
+    -   Clicking a notification (any type) logs/report it into the browser console (similar spirit to clicking on chat messages)
+    -   Keep the “X” close button behavior separate (clicking X should not trigger the console report)
+    -   Log should include notification type, message, and `details` (if provided) @@@
 -   Ensure notifications are rendered in a portal above the app (so they work across pages), but style/placement should be consistent with the book editor (top right).
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
@@ -29,6 +33,7 @@
     -   [SaveFailureNotice](apps/agents-server/src/components/SaveFailureNotice/SaveFailureNotice.tsx)
     -   Chat page/components that currently render save errors inside layout @@@
     -   [Portal](apps/agents-server/src/components/Portal)
+    -   Chat message click-to-console behavior (take inspiration / reuse util if exists) @@@
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
