@@ -64,7 +64,24 @@ async function openSystemMyAccountMenu(page: Page): Promise<void> {
     await openHeaderMenu(page, 'System');
     const myAccountButton = page.getByRole('button', { name: 'My Account' });
     await expect(myAccountButton).toBeVisible();
-    await myAccountButton.click();
+    await myAccountButton.hover();
+}
+
+/**
+ * Clicks one link inside the `System > My Account` nested submenu.
+ *
+ * @param page - Current Playwright page.
+ * @param linkName - Visible text of the destination link.
+ */
+async function clickSystemMyAccountLink(page: Page, linkName: string): Promise<void> {
+    await openSystemMyAccountMenu(page);
+
+    const nestedMenuPortal = page.locator('[data-header-dropdown-portal="true"]');
+    await expect(nestedMenuPortal).toBeAttached();
+
+    const nestedLink = nestedMenuPortal.getByRole('link', { name: linkName });
+    await expect(nestedLink).toBeVisible();
+    await nestedLink.click();
 }
 
 /**
@@ -92,13 +109,11 @@ test.describe('Agents Server authentication and navigation', () => {
         await page.goto('/docs/PERSONA');
         await expect(page.getByRole('heading', { name: 'PERSONA', exact: true })).toBeVisible();
 
-        await openSystemMyAccountMenu(page);
-        await page.getByRole('link', { name: 'Profile' }).click();
+        await clickSystemMyAccountLink(page, 'Profile');
         await expect(page).toHaveURL(/\/system\/profile$/);
         await expect(page.getByRole('heading', { name: 'Profile' })).toBeVisible();
 
-        await openSystemMyAccountMenu(page);
-        await page.getByRole('link', { name: 'User Memory' }).click();
+        await clickSystemMyAccountLink(page, 'User Memory');
         await expect(page).toHaveURL(/\/system\/user-memory$/);
         await expect(page.getByRole('heading', { name: 'User Memory' })).toBeVisible();
 

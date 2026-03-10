@@ -18,3 +18,10 @@
   - Repeated `ReferenceError: window is not defined` during web-server startup/runtime.
   - Follow-up environment/runtime noise appears (missing seeded agents like `manifest` / `get-started`, and missing optional provider package `@promptbook/anthropic-claude` for avatar generation).
   - This failure was observed while implementing Book history version naming; no direct code path in this task touches `website-integration` SSR/runtime.
+
+## 2026-03-10
+
+- While validating the E2E navigation fix, full `npm run test-e2e` still showed unrelated instability:
+  - `api-authorization.spec.ts` timed out on `page.goto('/')` with in-page `Application error` (`Loading chunk ... failed`).
+  - `authentication-and-navigation.spec.ts` clone-flow test timed out waiting for `More options`; failure snapshot showed `Agent Not Found` after agent creation.
+  - The run also logged recurrent `ReferenceError: window is not defined` server runtime errors and missing optional avatar provider package noise (`@promptbook/anthropic-claude`), suggesting broader app/runtime flakiness outside this scoped test-selector fix.

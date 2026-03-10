@@ -1,3 +1,8 @@
+-   Hardened Agents Server E2E `System` submenu navigation against desktop floating-menu timing:
+
+    -   Updated `authentication-and-navigation` helpers to open `My Account` via hover (desktop behavior) and click nested links from the `[data-header-dropdown-portal]` container.
+    -   This removes flaky direct link lookups for `Profile` and `User Memory` when those links are rendered in the floating third-level panel.
+
 -   Switched Agents Server generated agent default avatars to OpenAI DALL·E 3:
 
     -   Updated `/agents/[agentName]/images/default-avatar.png` generation route to request `modelName: 'dall-e-3'` instead of Gemini for agent avatar image creation.

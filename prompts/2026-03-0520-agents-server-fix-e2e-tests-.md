@@ -2,7 +2,7 @@
 
 ---
 
-[ ]
+[x] ~$0.3887 23 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨✦] Fix E2E tests for the Agents Server
 
@@ -1063,3 +1063,4 @@ Server authentication and navigation › allows admin to sign in, navigate major
 ```
 
 -   You are working with the [Agents Server](apps/agents-server)
+
