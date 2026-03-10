@@ -59,7 +59,7 @@ export function ChatThreadLoadingSkeleton({
                 </div>
             </div>
             {withComposer && (
-                <div className="border-t border-slate-200/70 bg-white/70 p-4 dark:border-slate-700/70 dark:bg-slate-950/40">
+                <div className="border-t border-slate-200/70 bg-white/70 p-4">
                     <Skeleton className="h-12 w-full rounded-full" />
                 </div>
             )}

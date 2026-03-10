@@ -25,7 +25,7 @@ export function AgentProfileLoadingSkeleton({ isHeadless = false }: AgentProfile
             aria-busy="true"
             aria-label="Loading agent profile"
         >
-            <div className="absolute inset-0 bg-gradient-to-br from-sky-100 via-white to-indigo-100 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900" />
+            <div className="absolute inset-0 bg-gradient-to-br from-sky-100 via-white to-indigo-100" />
             {!isHeadless && (
                 <div className="absolute right-4 top-4 z-20">
                     <Skeleton className="h-10 w-10 rounded-full" />
@@ -48,8 +48,8 @@ export function AgentProfileLoadingSkeleton({ isHeadless = false }: AgentProfile
                     </div>
                 </div>
                 <div className="w-full md:col-start-2">
-                    <div className="relative h-[calc(100dvh-300px)] min-h-[350px] rounded-[32px] border border-white/40 bg-white/70 p-4 shadow-2xl backdrop-blur-2xl md:h-[500px] md:min-h-[420px] dark:border-slate-700/70 dark:bg-slate-900/45">
-                        <ChatThreadLoadingSkeleton withComposer className="rounded-[24px] border border-white/40 bg-white/75 dark:border-slate-700/70 dark:bg-slate-950/50" />
+                    <div className="relative h-[calc(100dvh-300px)] min-h-[350px] rounded-[32px] border border-white/40 bg-white/70 p-4 shadow-2xl backdrop-blur-2xl md:h-[500px] md:min-h-[420px]">
+                        <ChatThreadLoadingSkeleton withComposer className="rounded-[24px] border border-white/40 bg-white/75" />
                     </div>
                 </div>
                 {!isHeadless && (
@@ -59,7 +59,7 @@ export function AgentProfileLoadingSkeleton({ isHeadless = false }: AgentProfile
                     </div>
                 )}
             </div>
-            <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-slate-200/50 to-transparent dark:from-slate-950/80" />
+            <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-slate-200/50 to-transparent" />
         </div>
     );
 }

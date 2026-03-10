@@ -310,7 +310,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
 
     if (!agent) {
         return (
-            <div className="h-full w-full rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/45">
+            <div className="h-full w-full rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm">
                 <ChatThreadLoadingSkeleton />
             </div>
         );

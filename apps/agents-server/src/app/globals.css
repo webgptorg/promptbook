@@ -267,22 +267,6 @@ textarea:focus-visible {
     animation: skeleton-shimmer 1.4s ease-in-out infinite;
 }
 
-@media (prefers-color-scheme: dark) {
-    .skeleton-block {
-        background: linear-gradient(135deg, rgba(51, 65, 85, 0.95), rgba(30, 41, 59, 0.95));
-    }
-
-    .skeleton-block::after {
-        background: linear-gradient(
-            100deg,
-            transparent 10%,
-            rgba(148, 163, 184, 0.38) 42%,
-            rgba(226, 232, 240, 0.14) 54%,
-            transparent 85%
-        );
-    }
-}
-
 @media (prefers-reduced-motion: reduce) {
     .skeleton-block::after {
         animation: none;

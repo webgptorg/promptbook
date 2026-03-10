@@ -25,7 +25,7 @@ export function ChatListLoadingSkeleton({ rowCount = 6, isCollapsed = false }: C
             <div className="flex min-h-0 flex-1 flex-col items-center gap-2 px-2 py-3" aria-hidden="true">
                 {rows.map((rowIndex) => (
                     <div key={rowIndex} className="flex w-full justify-center">
-                        <Skeleton className="h-11 w-11 rounded-2xl border border-slate-200/70 dark:border-slate-700/70" />
+                        <Skeleton className="h-11 w-11 rounded-2xl border border-slate-200/70" />
                     </div>
                 ))}
             </div>
@@ -35,7 +35,7 @@ export function ChatListLoadingSkeleton({ rowCount = 6, isCollapsed = false }: C
     return (
         <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden p-2" aria-hidden="true">
             {rows.map((rowIndex) => (
-                <div key={rowIndex} className="rounded-xl border border-slate-200/70 bg-white/70 p-3 dark:border-slate-700/70 dark:bg-slate-900/40">
+                <div key={rowIndex} className="rounded-xl border border-slate-200/70 bg-white/70 p-3">
                     <Skeleton className="h-3 w-2/3 rounded-md" />
                     <Skeleton className="mt-2 h-2.5 w-full rounded-md" />
                     <Skeleton className="mt-1.5 h-2.5 w-4/5 rounded-md" />

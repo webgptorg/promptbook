@@ -1,3 +1,8 @@
+-   Fixed Agents Server skeleton loading visuals to always render in light mode:
+    -   Removed dark-scheme overrides from the shared `.skeleton-block` shimmer styles in `apps/agents-server/src/app/globals.css`.
+    -   Updated all reusable skeleton layout components under `apps/agents-server/src/components/Skeleton` to use light-only surfaces.
+    -   Updated chat loading overlays/wrappers that host `ChatThreadLoadingSkeleton` so transitional loading states also remain light.
+
 -   Enhanced Agents Server chat dictation UX with failover speech-to-text providers (Wispr Flow-inspired):
     -   Added a new speech-to-text provider abstraction in Agents Server with shared interface (`isSupported`, `start`, `stop`, `abort`, optional diagnostics) and provider-priority failover orchestration.
     -   Added OpenAI Whisper proxy provider + browser Web Speech provider fallback under the shared abstraction, and wired both through one DRY factory used by profile chat and full chat surfaces.

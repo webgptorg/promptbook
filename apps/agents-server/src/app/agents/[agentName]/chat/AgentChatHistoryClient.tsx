@@ -725,7 +725,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const chatSurface = (
         <div className="relative flex-1 min-h-0">
             {isSwitchingChat && (
-                <div className="absolute inset-0 z-20 border-y border-slate-200/70 bg-white/85 backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-950/80">
+                <div className="absolute inset-0 z-20 border-y border-slate-200/70 bg-white/85 backdrop-blur-sm">
                     <ChatThreadLoadingSkeleton />
                 </div>
             )}

@@ -28,7 +28,7 @@ export function AgentCardsLoadingSkeleton({ cardCount = 6, className = '' }: Age
             {cards.map((cardIndex) => (
                 <div
                     key={cardIndex}
-                    className="rounded-2xl border border-slate-200/70 bg-white/80 p-4 shadow-sm dark:border-slate-700/70 dark:bg-slate-900/50"
+                    className="rounded-2xl border border-slate-200/70 bg-white/80 p-4 shadow-sm"
                 >
                     <div className="flex items-center gap-3">
                         <Skeleton className="h-12 w-12 rounded-xl" />

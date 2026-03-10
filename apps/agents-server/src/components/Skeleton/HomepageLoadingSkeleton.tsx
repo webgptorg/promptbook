@@ -17,7 +17,7 @@ type HomepageLoadingSkeletonProps = {
  */
 export function HomepageLoadingSkeleton({ showGraphPlaceholder = true }: HomepageLoadingSkeletonProps) {
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
             <div
                 className="container mx-auto px-4 py-16"
                 role="status"
@@ -26,7 +26,7 @@ export function HomepageLoadingSkeleton({ showGraphPlaceholder = true }: Homepag
                 aria-label="Loading home"
             >
                 <div className="space-y-8">
-                    <div className="rounded-2xl border border-slate-200/70 bg-white/80 p-6 shadow-sm dark:border-slate-700/70 dark:bg-slate-900/45">
+                    <div className="rounded-2xl border border-slate-200/70 bg-white/80 p-6 shadow-sm">
                         <Skeleton className="h-8 w-1/2 rounded-xl" />
                         <Skeleton className="mt-3 h-4 w-3/4 rounded-lg" />
                     </div>

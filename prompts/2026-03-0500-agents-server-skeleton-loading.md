@@ -22,7 +22,7 @@
 
 ---
 
-[ ]
+[x] ~$0.4040 15 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨🌓] Skeleton loading across the Agents server app should be in light mode
 
@@ -54,3 +54,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
