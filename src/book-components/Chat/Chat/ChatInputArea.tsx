@@ -617,7 +617,9 @@ export function ChatInputArea(props: ChatInputAreaProps) {
     const [dictationSettings, setDictationSettings] = useState<DictationRefinementSettings>(() =>
         loadDictationPreferences(),
     );
-    const [dictationDictionary, setDictationDictionary] = useState<DictationDictionary>(() => loadDictationDictionary());
+    const [dictationDictionary, setDictationDictionary] = useState<DictationDictionary>(() =>
+        loadDictationDictionary(),
+    );
     const speechRecognitionUiDescriptor = useMemo(
         () => resolveSpeechRecognitionUiDescriptor(dictationUiState),
         [dictationUiState],
@@ -820,7 +822,13 @@ export function ChatInputArea(props: ChatInputAreaProps) {
             interimResults: true,
             whisperMode: dictationSettings.whisperMode,
         });
-    }, [speechRecognition, dictationUiState, resolvedSpeechRecognitionLanguage, clearPendingStopFallback, dictationSettings]);
+    }, [
+        speechRecognition,
+        dictationUiState,
+        resolvedSpeechRecognitionLanguage,
+        clearPendingStopFallback,
+        dictationSettings,
+    ]);
 
     const handleBacktrackLastChunk = useCallback(() => {
         const previousChunks = [...dictationChunks];
@@ -1259,7 +1267,9 @@ export function ChatInputArea(props: ChatInputAreaProps) {
                         <>
                             {dictationLastFinalChunk && (
                                 <div className={styles.dictationCorrectionPanel}>
-                                    <label className={styles.dictationCorrectionLabel}>Edit last transcript chunk</label>
+                                    <label className={styles.dictationCorrectionLabel}>
+                                        Edit last transcript chunk
+                                    </label>
                                     <textarea
                                         className={styles.dictationCorrectionTextarea}
                                         value={dictationEditableChunk}

@@ -83,19 +83,18 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 normalizeLineEndings,
                 autoMigrate,
                 allowDestructiveAutoMigrate,
-            } =
-                cliOptions as {
-                    readonly dryRun: boolean;
-                    readonly agent?: string;
-                    readonly model?: string;
-                    readonly priority: number;
-                    readonly wait: boolean;
-                    readonly ignoreGitChanges: boolean;
-                    readonly allowCredits: boolean;
-                    readonly normalizeLineEndings: boolean;
-                    readonly autoMigrate: boolean;
-                    readonly allowDestructiveAutoMigrate: boolean;
-                };
+            } = cliOptions as {
+                readonly dryRun: boolean;
+                readonly agent?: string;
+                readonly model?: string;
+                readonly priority: number;
+                readonly wait: boolean;
+                readonly ignoreGitChanges: boolean;
+                readonly allowCredits: boolean;
+                readonly normalizeLineEndings: boolean;
+                readonly autoMigrate: boolean;
+                readonly allowDestructiveAutoMigrate: boolean;
+            };
 
             // Validate agent
             let agentName: 'openai-codex' | 'cline' | 'claude-code' | 'opencode' | 'gemini' | undefined = undefined;

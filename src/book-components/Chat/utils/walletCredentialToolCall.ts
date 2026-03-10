@@ -268,7 +268,9 @@ function createWalletCredentialToolCallFromResult(options: {
  * @returns Stable key based on credential service and scope key.
  * @private internal helper
  */
-function createWalletCredentialDeduplicationKey(result: Pick<WalletCredentialToolCallResult, 'service' | 'key'>): string {
+function createWalletCredentialDeduplicationKey(
+    result: Pick<WalletCredentialToolCallResult, 'service' | 'key'>,
+): string {
     return `${normalizeDeduplicationSegment(result.service)}:${normalizeDeduplicationSegment(result.key)}`;
 }
 

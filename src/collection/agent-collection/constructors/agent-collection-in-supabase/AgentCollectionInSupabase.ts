@@ -613,7 +613,9 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
         if (includeSource) {
             const result = await this.supabaseClient
                 .from(this.getTableName('AgentHistory'))
-                .select('id,createdAt,agentName,agentHash,previousAgentHash,agentSource,promptbookEngineVersion,versionName')
+                .select(
+                    'id,createdAt,agentName,agentHash,previousAgentHash,agentSource,promptbookEngineVersion,versionName',
+                )
                 .eq('permanentId', permanentId)
                 .order('createdAt', { ascending: false });
 
