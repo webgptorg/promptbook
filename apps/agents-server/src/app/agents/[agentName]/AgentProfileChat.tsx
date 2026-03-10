@@ -50,9 +50,19 @@ type DocumentWithViewTransition = Document & {
 const FORCE_NEW_CHAT_QUERY_PARAM = 'newChat';
 
 /**
- * Maximum number of existing chats surfaced as quick buttons on the profile view.
+ * Number of chat rows visible before scrolling in the profile quick-access panel.
  */
-const MAX_PROFILE_EXISTING_CHATS = 3;
+const PROFILE_VISIBLE_CHAT_ROWS = 3;
+
+/**
+ * Approximate single-row height used to keep initial list viewport at three visible rows.
+ */
+const PROFILE_CHAT_ROW_HEIGHT_PX = 96;
+
+/**
+ * Vertical gap between chat rows in the profile quick-access list.
+ */
+const PROFILE_CHAT_ROW_GAP_PX = 12;
 
 /**
  * Describes a relative time unit used when expressing chat timestamps.
@@ -206,11 +216,7 @@ export function AgentProfileChat({
         };
     }, [agentName, isHistoryEnabled, isPrivateModeEnabled]);
 
-    const visibleExistingChats = useMemo(
-        () => existingChats.slice(0, MAX_PROFILE_EXISTING_CHATS),
-        [existingChats],
-    );
-    const hasVisibleExistingChats = !isPrivateModeEnabled && visibleExistingChats.length > 0;
+    const hasExistingChats = !isPrivateModeEnabled && existingChats.length > 0;
 
     /**
      * Navigates to the provided destination while coordinating the view transition state.
@@ -334,9 +340,9 @@ export function AgentProfileChat({
             {isPrivateModeEnabled ? (
                 <PrivateModeChatPanel formatText={formatText} brandColorHex={brandColorHex} />
             ) : (
-                hasVisibleExistingChats && (
+                hasExistingChats && (
                     <ExistingChatsPanel
-                        chats={visibleExistingChats}
+                        chats={existingChats}
                         formatText={formatText}
                         onOpenChat={(chatId) => void handleContinueChat(chatId)}
                         brandColorHex={brandColorHex}
@@ -444,6 +450,10 @@ function PrivateModeChatPanel({ formatText, brandColorHex }: PrivateModeChatPane
  * @private Profile chat helper.
  */
 function ExistingChatsPanel({ chats, formatText, onOpenChat, brandColorHex }: ExistingChatsPanelProps) {
+    const scrollViewportHeight =
+        PROFILE_VISIBLE_CHAT_ROWS * PROFILE_CHAT_ROW_HEIGHT_PX +
+        (PROFILE_VISIBLE_CHAT_ROWS - 1) * PROFILE_CHAT_ROW_GAP_PX;
+
     return (
         <section className="relative w-full overflow-hidden rounded-[28px] border border-white/50 bg-white/80 shadow-2xl shadow-slate-900/20 backdrop-blur-3xl">
             <div
@@ -459,7 +469,7 @@ function ExistingChatsPanel({ chats, formatText, onOpenChat, brandColorHex }: Ex
                     </p>
                     <p className="text-sm font-semibold text-slate-900">{formatText('Pick up where you left off')}</p>
                 </div>
-                <div className="mt-4 space-y-3">
+                <div className="mt-4 space-y-3 overflow-y-auto pr-1" style={{ maxHeight: `${scrollViewportHeight}px` }}>
                     {chats.map((chat) => {
                         const updatedAtDate = new Date(chat.updatedAt);
                         const isValidTimestamp = !Number.isNaN(updatedAtDate.getTime());
@@ -478,7 +488,7 @@ function ExistingChatsPanel({ chats, formatText, onOpenChat, brandColorHex }: Ex
                                 type="button"
                                 onClick={() => onOpenChat(chat.id)}
                                 title={titleWithPreview}
-                                className="flex w-full flex-col gap-2 rounded-2xl border border-slate-200/70 bg-white/90 px-4 py-3 text-left shadow-sm shadow-slate-900/10 transition duration-150 hover:border-slate-400 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500/80"
+                                className="flex w-full flex-col gap-2 rounded-2xl border border-slate-200/70 bg-white/90 px-4 py-3 text-left shadow-sm shadow-slate-900/10 transition duration-150 hover:border-slate-400 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500/80 min-h-[96px]"
                             >
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="flex min-w-0 items-center gap-2">

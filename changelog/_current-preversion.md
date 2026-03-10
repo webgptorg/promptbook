@@ -1,3 +1,8 @@
+-   Improved Agents Server profile-page `My chats` panel to show full chat history with scrolling:
+
+    -   Updated `/agents/[agentName]` profile chat preview to render all available chats instead of truncating to three.
+    -   Kept the panel height constrained to approximately three visible chat rows and enabled vertical scrolling to access older chats.
+
 -   Hardened Agents Server E2E `System` submenu navigation against desktop floating-menu timing:
 
     -   Updated `authentication-and-navigation` helpers to open `My Account` via hover (desktop behavior) and click nested links from the `[data-header-dropdown-portal]` container.
