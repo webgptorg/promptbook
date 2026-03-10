@@ -17,11 +17,48 @@ type SerializableChatMessage = Omit<ChatMessage, 'createdAt'> & {
  */
 export class ChatPersistence {
     private static readonly STORAGE_PREFIX = 'promptbook_chat_';
+    /**
+     * In-memory fallback storage used when browser storage is unavailable or throws.
+     */
+    private static readonly MEMORY_STORAGE = new Map<string, string>();
+
+    /**
+     * Builds normalized storage key for one persistence scope.
+     */
+    private static resolveStorageKey(persistenceKey: string): string {
+        return this.STORAGE_PREFIX + persistenceKey;
+    }
+
+    /**
+     * Stores serialized payload in the in-memory fallback store.
+     */
+    private static saveToMemoryStorage(storageKey: string, serializedMessages: string): void {
+        this.MEMORY_STORAGE.set(storageKey, serializedMessages);
+    }
+
+    /**
+     * Resolves serialized payload from localStorage and falls back to in-memory storage.
+     */
+    private static loadSerializedMessages(storageKey: string): string | null {
+        try {
+            const localStorageValue = localStorage.getItem(storageKey);
+            if (localStorageValue !== null) {
+                this.saveToMemoryStorage(storageKey, localStorageValue);
+                return localStorageValue;
+            }
+        } catch (error) {
+            console.warn('Failed to load chat messages from localStorage:', error);
+        }
+
+        return this.MEMORY_STORAGE.get(storageKey) || null;
+    }
 
     /**
      * Save messages to localStorage under the given key
      */
     static saveMessages(persistenceKey: string, messages: ReadonlyArray<ChatMessage>): void {
+        const storageKey = this.resolveStorageKey(persistenceKey);
+
         try {
             const serializableMessages: SerializableChatMessage[] = messages.map((message) => {
                 const createdAtValue = (message as { createdAt?: string | Date }).createdAt;
@@ -34,8 +71,9 @@ export class ChatPersistence {
                 };
             });
 
-            const storageKey = this.STORAGE_PREFIX + persistenceKey;
-            localStorage.setItem(storageKey, JSON.stringify(serializableMessages));
+            const serializedMessages = JSON.stringify(serializableMessages);
+            this.saveToMemoryStorage(storageKey, serializedMessages);
+            localStorage.setItem(storageKey, serializedMessages);
         } catch (error) {
             console.warn('Failed to save chat messages to localStorage:', error);
         }
@@ -46,8 +84,8 @@ export class ChatPersistence {
      */
     static loadMessages(persistenceKey: string): ChatMessage[] {
         try {
-            const storageKey = this.STORAGE_PREFIX + persistenceKey;
-            const stored = localStorage.getItem(storageKey);
+            const storageKey = this.resolveStorageKey(persistenceKey);
+            const stored = this.loadSerializedMessages(storageKey);
 
             if (!stored) {
                 return [];
@@ -69,8 +107,10 @@ export class ChatPersistence {
      * Clear messages from localStorage for the given key
      */
     static clearMessages(persistenceKey: string): void {
+        const storageKey = this.resolveStorageKey(persistenceKey);
+        this.MEMORY_STORAGE.delete(storageKey);
+
         try {
-            const storageKey = this.STORAGE_PREFIX + persistenceKey;
             localStorage.removeItem(storageKey);
         } catch (error) {
             console.warn('Failed to clear chat messages from localStorage:', error);
@@ -81,13 +121,17 @@ export class ChatPersistence {
      * Check if localStorage is available
      */
     static isAvailable(): boolean {
+        if (typeof window === 'undefined') {
+            return false;
+        }
+
         try {
             const testKey = '__promptbook_storage_test__';
             localStorage.setItem(testKey, 'test');
             localStorage.removeItem(testKey);
             return true;
         } catch {
-            return false;
+            return true;
         }
     }
 }

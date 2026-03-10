@@ -1,3 +1,9 @@
+-   Fixed Agents Server loading of existing chats when browser storage is unavailable or full:
+
+    -   Hardened shared `ChatPersistence` with an in-memory fallback that mirrors serialized chat payloads whenever `localStorage` is blocked, unavailable, or over quota.
+    -   Updated chat persistence availability semantics so chat hydration still works in browser sessions even when durable storage writes fail.
+    -   Added unit coverage for fallback behavior to ensure previously saved server chats can still hydrate into `/agents/[agentName]/chat` instead of opening as an empty fresh chat.
+
 -   Improved Agents Server profile-page `My chats` panel to show full chat history with scrolling:
 
     -   Updated `/agents/[agentName]` profile chat preview to render all available chats instead of truncating to three.
