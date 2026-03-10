@@ -10,7 +10,6 @@ import spaceTrim from 'spacetrim';
 import { string_agent_url, string_color } from '../../../../../../src/types/typeAliases';
 import { $getCurrentDate } from '../../../../../../src/utils/misc/$getCurrentDate';
 import { keepUnused } from '../../../../../../src/utils/organization/keepUnused';
-import { fetchUserChats, type UserChatSummary } from '../../../utils/userChatClient';
 import { $createAgentFromBookAction } from '../../../app/actions';
 import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
 import { showAlert } from '../../../components/AsyncDialogs/asyncDialogs';
@@ -19,6 +18,7 @@ import { usePrivateModePreferences } from '../../../components/PrivateModePrefer
 import { resolveChatMessageValidationIssue } from '../../../utils/chat/validateChatMessageContent';
 import { createDefaultSpeechRecognition } from '../../../utils/speech-to-text/createDefaultSpeechRecognition';
 import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
+import { fetchUserChats, type UserChatSummary } from '../../../utils/userChatClient';
 import { setPendingProfileMessage } from './profileMessageCache';
 
 /**
@@ -432,7 +432,9 @@ function PrivateModeChatPanel({ formatText, brandColorHex }: PrivateModeChatPane
                 </div>
                 <p className="text-sm font-semibold text-slate-900">{formatText('This chat is private')}</p>
                 <p className="text-xs text-slate-500">
-                    {formatText('Messages are kept local, and nothing is stored or learned while private mode is active.')}
+                    {formatText(
+                        'Messages are kept local, and nothing is stored or learned while private mode is active.',
+                    )}
                 </p>
                 <div className="mt-4 rounded-2xl border border-blue-100 bg-white/90 p-3 text-xs font-medium text-slate-600">
                     {formatText(
