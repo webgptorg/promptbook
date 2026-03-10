@@ -232,7 +232,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 }
             }
 
-            savedMessagesHashesRef.current.set(chatId, JSON.stringify(normalizedMessages));
+            savedMessagesHashesRef.current.set(chatId, serializePersistableChatMessages(normalizedMessages));
             chatMessagesCacheRef.current.set(chatId, normalizedMessages);
             setActiveChatId(chatId);
             setActiveChatMountKey((value) => value + 1);
@@ -312,14 +312,13 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         async (
             chatId: string,
             messages: ReadonlyArray<ChatMessage>,
-            serializedMessages: string,
             options: PersistChatChangesOptions = {},
         ): Promise<void> => {
-            const chatDetail = await saveUserChatMessages(agentName, chatId, messages, {
+            const chatDetail = await saveUserChatMessages(agentName, chatId, resolvePersistableChatMessages(messages), {
                 keepalive: options.keepalive,
             });
 
-            savedMessagesHashesRef.current.set(chatId, serializedMessages);
+            savedMessagesHashesRef.current.set(chatId, serializePersistableChatMessages(chatDetail.messages));
             setSaveFailureMessage(null);
             setChats((previousChats) =>
                 moveChatToTop(previousChats, chatDetail.chat).map((chat) =>
@@ -357,12 +356,12 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                     continue;
                 }
 
-                const serializedMessages = JSON.stringify(messages);
+                const serializedMessages = serializePersistableChatMessages(messages);
                 if (savedMessagesHashesRef.current.get(chatId) === serializedMessages) {
                     continue;
                 }
 
-                void persistChatMessagesNow(chatId, messages, serializedMessages, options).catch((error) => {
+                void persistChatMessagesNow(chatId, messages, options).catch((error) => {
                     console.error('[user-chat] Failed to flush pending chat messages', error);
                     setSaveFailureMessage(error instanceof Error ? error.message : DEFAULT_CHAT_SAVE_FAILURE_MESSAGE);
                 });
@@ -394,12 +393,12 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
         setSaveFailureMessage(null);
         const activeMessages = chatMessagesCacheRef.current.get(activeChatId) || [];
-        const serializedMessages = JSON.stringify(activeMessages);
+        const serializedMessages = serializePersistableChatMessages(activeMessages);
         const activeDraftMessage = chatDraftCacheRef.current.get(activeChatId) ?? null;
         const pendingRequests: Array<Promise<void>> = [];
 
         if (savedMessagesHashesRef.current.get(activeChatId) !== serializedMessages) {
-            pendingRequests.push(persistChatMessagesNow(activeChatId, activeMessages, serializedMessages));
+            pendingRequests.push(persistChatMessagesNow(activeChatId, activeMessages));
         }
 
         pendingRequests.push(persistChatDraftNow(activeChatId, activeDraftMessage));
@@ -607,8 +606,9 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             }
 
             const chatId = activeChatId;
-            chatMessagesCacheRef.current.set(chatId, [...messages]);
-            const serializedMessages = JSON.stringify(messages);
+            const normalizedMessages = [...messages];
+            chatMessagesCacheRef.current.set(chatId, normalizedMessages);
+            const serializedMessages = serializePersistableChatMessages(normalizedMessages);
             const lastSavedHash = savedMessagesHashesRef.current.get(chatId);
 
             if (lastSavedHash === serializedMessages) {
@@ -621,7 +621,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             }
 
             const nextTimer = setTimeout(() => {
-                void persistChatMessagesNow(chatId, messages, serializedMessages)
+                void persistChatMessagesNow(chatId, normalizedMessages)
                     .catch((error) => {
                         console.error('[user-chat] Failed to persist chat messages', error);
                         setSaveFailureMessage(error instanceof Error ? error.message : DEFAULT_CHAT_SAVE_FAILURE_MESSAGE);
@@ -805,6 +805,23 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             </section>
         </div>
     );
+}
+
+/**
+ * Filters chat messages to variants that are safe to persist on the server.
+ *
+ * Incomplete streaming placeholders are excluded so older in-flight snapshots
+ * cannot overwrite finalized assistant responses.
+ */
+function resolvePersistableChatMessages(messages: ReadonlyArray<ChatMessage>): Array<ChatMessage> {
+    return messages.filter((message) => message.isComplete !== false);
+}
+
+/**
+ * Serializes only persistable chat messages for save deduplication.
+ */
+function serializePersistableChatMessages(messages: ReadonlyArray<ChatMessage>): string {
+    return JSON.stringify(resolvePersistableChatMessages(messages));
 }
 
 /**

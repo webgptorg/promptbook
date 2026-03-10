@@ -1,3 +1,9 @@
+-   Fixed Agents Server chat history durability when switching chats or refreshing:
+    -   Hardened `UserChat` message saves with optimistic retry + append-only merge semantics in `updateUserChatMessages`, preventing late/stale saves from overwriting newer chat history.
+    -   Updated chat persistence on `/agents/[agentName]/chat` to save only stable complete messages, reducing race conditions from in-progress streaming snapshots.
+    -   Kept chat save-failure warning UX shared with Book editor via the existing reusable `SaveFailureNotice` component (DRY).
+    -   Adjusted chat sidebar filtering so active/empty chats do not disappear from the list by default.
+
 -   Fixed Agents Server skeleton loading visuals to always render in light mode:
     -   Removed dark-scheme overrides from the shared `.skeleton-block` shimmer styles in `apps/agents-server/src/app/globals.css`.
     -   Updated all reusable skeleton layout components under `apps/agents-server/src/components/Skeleton` to use light-only surfaces.

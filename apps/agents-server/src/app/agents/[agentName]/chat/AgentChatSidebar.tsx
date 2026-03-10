@@ -186,7 +186,7 @@ export function AgentChatSidebar({
         }
     };
 
-    const [showEmptyChats, setShowEmptyChats] = useState(false);
+    const [showEmptyChats, setShowEmptyChats] = useState(true);
 
     const emptyStateText = formatText('No chats yet');
     const sidebarToggleLabel = isCollapsed ? formatText('Expand sidebar') : formatText('Collapse sidebar');
@@ -197,7 +197,7 @@ export function AgentChatSidebar({
         content: resolveSidebarChatItemContent(chat, formatText, formatChatTimestamp),
     }));
     const emptyChatCount = allSidebarItems.filter((item) => item.isEmpty).length;
-    const sidebarItems = allSidebarItems.filter((item) => showEmptyChats || !item.isEmpty);
+    const sidebarItems = allSidebarItems.filter((item) => showEmptyChats || !item.isEmpty || item.isActive);
 
     return (
         <>
