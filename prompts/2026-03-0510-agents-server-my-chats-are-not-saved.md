@@ -25,16 +25,17 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🧒] bar
+[✨🧒] Fix loading of my previous chats
 
--   @@@
+-   I have some previous chats with the agent, they are saved and shown in my chats panel BUT when I try to load them, they are not loaded, I see just empty fresh chat without any history
+-   But in a panel I clearly see that the chat is existing and I see number of messages in it, but when I click on it, I see just empty chat
+-   Every chat has its own id `https://pavol-hejny.ptbk.io/agents/5XnBA2HmrLNazF/chat?chat=NhK39CyRyguBxT`, the `NhK39CyRyguBxT` is the id of the chat
+-   Chats are append-only, once they are created, they should not be changed or deleted, just adding new messages, and they should be stored in the database
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -61,4 +62,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
