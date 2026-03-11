@@ -2,7 +2,6 @@
 
 [✨🚗] Floating notifications in Agents Server (chat + unified system)
 
--   *(@@@@ Written by agent)*
 -   Currently, when some save action fails in chat (for example “couldn't be saved”), the error UI is rendered inside the chat layout and breaks the overall layout.
 -   Introduce one shared notification system for user-facing messages of types: error, warning, info, success.
 -   Notifications must be “floatable” (overlay) and must not affect layout of the chat (no pushing / resizing of message list, input, etc.).
@@ -18,23 +17,24 @@
     -   Manual dismiss (close button “X” in right corner)
     -   No auto-dismiss by default (especially for errors; user must close)
     -   Optional action button (e.g. “Retry save”)
-    -   Stacking multiple notifications (a list, newest on top) without overlapping input / messages @@@
-    -   (Optional) Not duplicating identical notifications too aggressively (basic dedup / coalescing) @@@
+    -   Stacking multiple notifications (a list, newest on top) without overlapping
 -   Interaction + debugging:
     -   Clicking a notification (any type) logs/report it into the browser console (similar spirit to clicking on chat messages)
     -   Keep the “X” close button behavior separate (clicking X should not trigger the console report)
-    -   Log should include notification type, message, and `details` (if provided) @@@
+    -   Log should be verbose, in a group and include notification type, message, and `details`,...
 -   Ensure notifications are rendered in a portal above the app (so they work across pages), but style/placement should be consistent with the book editor (top right).
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   You are working with:
-    -   Notification UI currently used in book editor save-failure (reuse it) @@@
+    -   Notification UI currently used in book editor save-failure (reuse it, bacause in book editor it is already floating and has somehow desired design/UX)
     -   [SaveFailureNotice](apps/agents-server/src/components/SaveFailureNotice/SaveFailureNotice.tsx)
-    -   Chat page/components that currently render save errors inside layout @@@
+    -   Chat page/components that currently render save errors inside layout (look at the screenshots for reference)
     -   [Portal](apps/agents-server/src/components/Portal)
-    -   Chat message click-to-console behavior (take inspiration / reuse util if exists) @@@
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-03-0560-agents-server-floating-notifications.png)
+![alt text](prompts/screenshots/2026-03-0560-agents-server-floating-notifications-1.png)
 
 ---
 
