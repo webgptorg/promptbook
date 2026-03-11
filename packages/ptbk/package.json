@@ -89,14 +89,5 @@
     },
     "overrides": {
         "zod": "$zod"
-    },
-    "peerDependencies": {
-        "@promptbook/core": "0.111.0-11"
-    },
-    "dependencies": {
-        "promptbook": "0.111.0-11"
-    },
-    "bin": {
-        "ptbk": "bin/promptbook-cli-proxy.js"
     }
 }
