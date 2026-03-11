@@ -6,8 +6,8 @@ dotenv.config({ path: '.env' });
 
 import colors from 'colors';
 import commander from 'commander';
-import JSZip from 'jszip';
 import { mkdir, stat, writeFile } from 'fs/promises';
+import JSZip from 'jszip';
 import { basename, join, resolve } from 'path';
 import { Client } from 'pg';
 import { DatabaseError } from '../../src/errors/DatabaseError';
@@ -316,7 +316,8 @@ async function backupSupabase(options: BackupSupabaseRuntimeOptions): Promise<vo
     console.info(colors.bgBlue('🚀 Starting Supabase PostgreSQL backup'));
     console.info(colors.cyan(`🛰️ Server: ${serverDescription}`));
     console.info(colors.cyan(`📚 Schemas: ${options.schemaNames.join(', ')}`));
-    console.info(colors.cyan(`📦 Output: ${normalizePathForLogs(outputFilePath)}`));
+    console.info(colors.cyan(`📂 Directory: ${normalizePathForLogs(options.outputDirectory)}`));
+    console.info(colors.cyan(`📁 File: ${normalizePathForLogs(outputFilePath)}`));
 
     const client = new Client({
         connectionString: options.connectionString,
@@ -344,7 +345,9 @@ async function backupSupabase(options: BackupSupabaseRuntimeOptions): Promise<vo
             console.info(`📄 Exporting ${tableIdentifierForLogs}`);
             const sqlFileContent = await createTableSqlFileContent(client, tableReference);
             zip.file(
-                `${sanitizePathSegment(tableReference.schemaName)}/${sanitizePathSegment(tableReference.tableName)}.sql`,
+                `${sanitizePathSegment(tableReference.schemaName)}/${sanitizePathSegment(
+                    tableReference.tableName,
+                )}.sql`,
                 sqlFileContent,
             );
         }
@@ -359,8 +362,8 @@ async function backupSupabase(options: BackupSupabaseRuntimeOptions): Promise<vo
 
         const outputStat = await stat(outputFilePath);
         console.info(colors.bgGreen('✅ Supabase backup completed'));
+        console.info(colors.cyan(`📂 Directory: ${normalizePathForLogs(options.outputDirectory)}`));
         console.info(colors.green(`📁 File: ${normalizePathForLogs(outputFilePath)}`));
-        console.info(colors.green(`📊 Size: ${formatFileSize(outputStat.size)}`));
         console.info(colors.green(`🧾 Tables: ${tableReferences.length}`));
     } catch (error) {
         throw createBackupError(error);
@@ -500,7 +503,10 @@ function resolveDatabaseNameFromConnectionString(connectionString: string): stri
  * @param schemaNames Schemas selected for backup.
  * @returns Ordered table references.
  */
-async function fetchTableReferences(client: Client, schemaNames: ReadonlyArray<string>): Promise<Array<TableReference>> {
+async function fetchTableReferences(
+    client: Client,
+    schemaNames: ReadonlyArray<string>,
+): Promise<Array<TableReference>> {
     const { rows } = await client.query<TableReference>(
         `
             SELECT
@@ -546,10 +552,14 @@ async function createTableSqlFileContent(client: Client, tableReference: TableRe
         .map((tableRow) => serializeCsvRow(tableColumns.map((column) => tableRow[column.columnName] ?? null)))
         .join('\n');
 
-    const sequenceDefinitionSql = tableSequences.map((tableSequence) => renderTableSequence(tableReference, tableSequence)).join('\n');
+    const sequenceDefinitionSql = tableSequences
+        .map((tableSequence) => renderTableSequence(tableReference, tableSequence))
+        .join('\n');
     const createTableSql = renderCreateTableStatement(tableReference, tableColumns, tableConstraints);
     const indexSql = tableIndexes.map((tableIndex) => appendStatementSemicolon(tableIndex.indexDefinition)).join('\n');
-    const triggerSql = tableTriggers.map((tableTrigger) => appendStatementSemicolon(tableTrigger.triggerDefinition)).join('\n');
+    const triggerSql = tableTriggers
+        .map((tableTrigger) => appendStatementSemicolon(tableTrigger.triggerDefinition))
+        .join('\n');
     const sequenceSetValueSql = tableSequences
         .filter((tableSequence) => tableSequence.lastValue !== null)
         .map((tableSequence) =>
@@ -664,10 +674,7 @@ async function fetchTableConstraints(client: Client, tableReference: TableRefere
  * @param tableReference Table being exported.
  * @returns Set of index names to skip from standalone index export.
  */
-async function fetchConstraintBackedIndexNames(
-    client: Client,
-    tableReference: TableReference,
-): Promise<Set<string>> {
+async function fetchConstraintBackedIndexNames(client: Client, tableReference: TableReference): Promise<Set<string>> {
     const { rows } = await client.query<{ readonly indexName: string }>(
         `
             SELECT
@@ -746,10 +753,7 @@ async function fetchTableTriggers(client: Client, tableReference: TableReference
  * @param tableReference Table being exported.
  * @returns Ordered primary key column names.
  */
-async function fetchTablePrimaryKeyColumns(
-    client: Client,
-    tableReference: TableReference,
-): Promise<Array<string>> {
+async function fetchTablePrimaryKeyColumns(client: Client, tableReference: TableReference): Promise<Array<string>> {
     const { rows } = await client.query<{ readonly columnName: string }>(
         `
             SELECT
@@ -791,7 +795,10 @@ async function fetchTableRowsAsText(
     tablePrimaryKeyColumns: ReadonlyArray<string>,
 ): Promise<Array<Record<string, string | null>>> {
     const selectedColumnsSql = tableColumns
-        .map((tableColumn) => `${quoteIdentifier(tableColumn.columnName)}::text AS ${quoteIdentifier(tableColumn.columnName)}`)
+        .map(
+            (tableColumn) =>
+                `${quoteIdentifier(tableColumn.columnName)}::text AS ${quoteIdentifier(tableColumn.columnName)}`,
+        )
         .join(', ');
     const orderBySql =
         tablePrimaryKeyColumns.length > 0
@@ -829,7 +836,10 @@ async function fetchTableSequences(
             continue;
         }
 
-        const sequenceReference = parseNextvalSequenceReference(tableColumn.defaultExpression, tableReference.schemaName);
+        const sequenceReference = parseNextvalSequenceReference(
+            tableColumn.defaultExpression,
+            tableReference.schemaName,
+        );
         if (!sequenceReference) {
             continue;
         }
@@ -840,7 +850,11 @@ async function fetchTableSequences(
         }
         dedupe.add(sequenceKey);
 
-        const sequenceMetadata = await fetchSequenceMetadata(client, sequenceReference.sequenceSchemaName, sequenceReference.sequenceName);
+        const sequenceMetadata = await fetchSequenceMetadata(
+            client,
+            sequenceReference.sequenceSchemaName,
+            sequenceReference.sequenceName,
+        );
         sequences.push({
             ...sequenceMetadata,
             owningColumnName: tableColumn.columnName,
@@ -962,7 +976,9 @@ function renderCreateTableStatement(
         (tableConstraint) =>
             `CONSTRAINT ${quoteIdentifier(tableConstraint.constraintName)} ${tableConstraint.constraintDefinition}`,
     );
-    const statementItems = [...columnDefinitions, ...constraintDefinitions].map((statementItem) => `    ${statementItem}`);
+    const statementItems = [...columnDefinitions, ...constraintDefinitions].map(
+        (statementItem) => `    ${statementItem}`,
+    );
 
     return spaceTrim(`
         CREATE TABLE IF NOT EXISTS ${tableIdentifier} (
