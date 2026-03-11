@@ -1620,7 +1620,7 @@ export function Header(props: HeaderProps) {
                                 )}
                             </div>
 
-                            <ArrowIcon direction="right" className="h-3 w-3 sm:h-4 sm:w-4 text-gray-300" />
+                            <ArrowIcon direction="right" className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
 
                             {isAdmin ? (
                                 <div
@@ -1731,7 +1731,7 @@ export function Header(props: HeaderProps) {
 
                             {activeAgentView && activeAgentViewItems.length > 0 && (
                                 <>
-                                    <ArrowIcon direction="right" className="hidden sm:block h-4 w-4 text-gray-300" />
+                                    <ArrowIcon direction="right" className="hidden sm:block h-4 w-4 text-gray-500" />
                                     <div
                                         className="relative hidden sm:block"
                                         onMouseEnter={() => {
@@ -1995,7 +1995,7 @@ export function Header(props: HeaderProps) {
 
                                 <div className="mt-6 flex flex-col items-center gap-4 w-full">
                                     <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
-                                        <ArrowIcon direction="right" className="h-4 w-4 text-gray-300" />
+                                        <ArrowIcon direction="right" className="h-4 w-4 text-gray-500" />
                                         {isAdmin ? (
                                             <button
                                                 className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-100 active:bg-gray-200 transition-all duration-150"
@@ -2050,7 +2050,7 @@ export function Header(props: HeaderProps) {
                                     {activeAgentView && activeAgentViewItems.length > 0 && (
                                         <div className="w-full max-w-[90vw] flex flex-col gap-1">
                                             <div className="flex items-center justify-center gap-2 text-sm font-medium text-gray-700">
-                                                <ArrowIcon direction="right" className="h-4 w-4 text-gray-300" />
+                                                <ArrowIcon direction="right" className="h-4 w-4 text-gray-500" />
                                                 <button
                                                     className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold text-gray-900 hover:bg-gray-100 transition"
                                                     onClick={() => setIsMobileAgentViewOpen(!isMobileAgentViewOpen)}

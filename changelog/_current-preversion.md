@@ -1,3 +1,5 @@
+-   Fixed Agents Server chat breadcrumb separators in the header to use the same icon color as the surrounding navigation icons, so the arrows no longer appear faded compared with the agent/view icons.
+
 -   Improved Agents Server page-load performance and perceived responsiveness without changing behavior:
 
     -   Added request-scoped caching for repeated server reads used by the app shell and agent routes (`$provideServer`, metadata, session/current-user/admin checks, agent route/profile helpers), reducing duplicate database and server-registry work within one request.
