@@ -1,3 +1,12 @@
+-   Added a new Supabase PostgreSQL backup CLI script at `scripts/backup-supabase/backup-supabase.ts`:
+
+    -   Uses `commander` and existing project-style Postgres connection handling (`POSTGRES_URL` / `DATABASE_URL`) without using `pg_dump`.
+    -   Exports selected schemas (default `public`, configurable via `--schemas`) and includes both schema + data for all discovered tables.
+    -   Produces one compressed ZIP backup file with one SQL file per table (for example `public/Agent.sql`), including table DDL, COPY data, indexes, triggers, and serial-sequence state.
+    -   Supports configurable output location and filename pattern via `--output-dir` and `--filename-pattern` with `%timestamp%`, `%date%`, `%time%`, and `%database%` tokens.
+    -   Adds safe backup logs with masked server description (no password logging), target output path, table progress, and final file size.
+    -   Registered a terminal-runner command in `.vscode/terminals.json` to run backups instantly with default output path `other/backup`.
+
 -   Fixed noisy Agents Server chat-history save failures and improved missing-chat diagnostics:
 
     -   Added scoped user-chat diagnostics (`USER_CHAT_NOT_FOUND`, `USER_CHAT_SCOPE_USER_MISMATCH`, `USER_CHAT_SCOPE_AGENT_MISMATCH`, etc.) for `/agents/[agentName]/api/user-chats/[chatId]` message/draft updates.

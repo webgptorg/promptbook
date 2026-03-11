@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.9747 17 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [🗄️💿] Backup Supabase locally (all tables) via script
 
@@ -25,3 +25,4 @@
 -   Out of scope:
     -   Automated scheduled backups/cron.
     -   Backing up Supabase Storage buckets (files) (could be separate follow-up PRD).
+

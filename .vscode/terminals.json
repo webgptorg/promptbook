@@ -70,6 +70,16 @@
             "focus": true
         },
         {
+            "--note": "Description: Backup remote Supabase PostgreSQL schema+data into one ZIP (no pg_dump). Example args: --schemas public,auth --output-dir other/backup --filename-pattern %timestamp%.sql.zip"
+        },
+        {
+            "name": "🎭👨‍💻🟣💾 Backup Supabase Postgres (other/backup)",
+            "command": "npx ts-node ./scripts/backup-supabase/backup-supabase.ts --output-dir other/backup --schemas public --filename-pattern %timestamp%.sql.zip",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "👨‍💻🟣 Run ptbk start-pipelines-server",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
