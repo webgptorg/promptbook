@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { updateUserChatDraft } from '@/src/utils/userChat';
+import { UserChatScopeError } from '@/src/utils/userChat/UserChatScopeError';
 import { resolveUserChatScope } from '../../resolveUserChatScope';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 
@@ -42,9 +43,28 @@ export async function PATCH(
 
         return NextResponse.json({ success: true });
     } catch (error) {
+        if (error instanceof UserChatScopeError) {
+            const status =
+                error.code === 'USER_CHAT_SCOPE_DIAGNOSTICS_FAILED' || error.code === 'USER_CHAT_SCOPE_INCONSISTENT'
+                    ? 500
+                    : 404;
+
+            return NextResponse.json(
+                {
+                    error: error.message,
+                    code: error.code,
+                    details: error.details,
+                },
+                { status },
+            );
+        }
+
         return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Failed to update chat draft.' },
-            { status: 400 },
+            {
+                error: error instanceof Error ? error.message : 'Failed to update chat draft.',
+                code: 'USER_CHAT_DRAFT_UPDATE_FAILED',
+            },
+            { status: 500 },
         );
     }
 }

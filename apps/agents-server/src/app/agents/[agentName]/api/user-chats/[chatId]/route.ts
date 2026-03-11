@@ -6,6 +6,7 @@ import {
     getUserChat,
     updateUserChatMessages,
 } from '@/src/utils/userChat';
+import { UserChatScopeError } from '@/src/utils/userChat/UserChatScopeError';
 import { resolveUserChatScope } from '../resolveUserChatScope';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 
@@ -98,9 +99,28 @@ export async function PATCH(
             messages: updatedChat.messages,
         });
     } catch (error) {
+        if (error instanceof UserChatScopeError) {
+            const status =
+                error.code === 'USER_CHAT_SCOPE_DIAGNOSTICS_FAILED' || error.code === 'USER_CHAT_SCOPE_INCONSISTENT'
+                    ? 500
+                    : 404;
+
+            return NextResponse.json(
+                {
+                    error: error.message,
+                    code: error.code,
+                    details: error.details,
+                },
+                { status },
+            );
+        }
+
         return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Failed to update chat.' },
-            { status: 400 },
+            {
+                error: error instanceof Error ? error.message : 'Failed to update chat.',
+                code: 'USER_CHAT_UPDATE_FAILED',
+            },
+            { status: 500 },
         );
     }
 }

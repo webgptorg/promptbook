@@ -17,6 +17,7 @@ import {
     removeUserChat,
     saveUserChatMessages,
     saveUserChatDraft,
+    UserChatApiError,
     UserChatSummary,
 } from '../../../../utils/userChatClient';
 import { AgentChatSidebar, AGENT_CHAT_SIDEBAR_ID } from './AgentChatSidebar';
@@ -160,6 +161,9 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const draftSaveTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
     const [activeChatDraftMessage, setActiveChatDraftMessage] = useState<string | null>(null);
     const chatDraftCacheRef = useRef<Map<string, string | null>>(new Map());
+    const failedMessagesHashesRef = useRef<Map<string, string>>(new Map());
+    const failedDraftValuesRef = useRef<Map<string, string | null>>(new Map());
+    const isMissingChatRecoveryInFlightRef = useRef(false);
     const retrySaveActionRef = useRef<() => void>(() => {});
 
     const guestPersistenceKey = useMemo(
@@ -237,6 +241,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             }
 
             savedMessagesHashesRef.current.set(chatId, serializePersistableChatMessages(normalizedMessages));
+            failedMessagesHashesRef.current.delete(chatId);
             chatMessagesCacheRef.current.set(chatId, normalizedMessages);
             setActiveChatId(chatId);
             setActiveChatMountKey((value) => value + 1);
@@ -259,6 +264,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             prepareChatInLocalStorage(chatId, messages);
             const nextDraftMessage = options.draftMessage ?? null;
             chatDraftCacheRef.current.set(chatId, nextDraftMessage);
+            failedDraftValuesRef.current.delete(chatId);
             setActiveChatDraftMessage(nextDraftMessage);
             replaceBrowserUrlWithoutNavigation(buildChatRoute(chatId, Boolean(options.includeInitialMessage)));
         },
@@ -323,6 +329,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             });
 
             savedMessagesHashesRef.current.set(chatId, serializePersistableChatMessages(chatDetail.messages));
+            failedMessagesHashesRef.current.delete(chatId);
             setChats((previousChats) =>
                 moveChatToTop(previousChats, chatDetail.chat).map((chat) =>
                     chat.id === chatDetail.chat.id ? chatDetail.chat : chat,
@@ -340,6 +347,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             await saveUserChatDraft(agentName, chatId, draftMessage, {
                 keepalive: options.keepalive,
             });
+            failedDraftValuesRef.current.delete(chatId);
         },
         [agentName],
     );
@@ -358,9 +366,11 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         const pendingRequests: Array<Promise<void>> = [];
 
         if (savedMessagesHashesRef.current.get(activeChatId) !== serializedMessages) {
+            failedMessagesHashesRef.current.delete(activeChatId);
             pendingRequests.push(persistChatMessagesNow(activeChatId, activeMessages));
         }
 
+        failedDraftValuesRef.current.delete(activeChatId);
         pendingRequests.push(persistChatDraftNow(activeChatId, activeDraftMessage));
 
         if (pendingRequests.length === 0) {
@@ -368,39 +378,86 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         }
 
         void Promise.all(pendingRequests).catch((error) => {
+            failedMessagesHashesRef.current.set(activeChatId, serializedMessages);
+            failedDraftValuesRef.current.set(activeChatId, activeDraftMessage);
+
+            if (isMissingScopedChatSaveError(error)) {
+                void bootstrapChats(undefined);
+                return;
+            }
+
             console.error('[user-chat] Failed to retry chat save', error);
             notifyError(resolveErrorMessage(error, DEFAULT_CHAT_SAVE_FAILURE_MESSAGE), {
                 details: {
                     source: 'AgentChatHistoryClient.retrySaveNow',
                     agentName,
                     activeChatId,
-                    error,
+                    error: serializeNotificationError(error),
                 },
                 actionLabel: RETRY_CHAT_SAVE_ACTION_LABEL,
                 onAction: () => retrySaveActionRef.current(),
             });
         });
-    }, [activeChatId, agentName, persistChatDraftNow, persistChatMessagesNow, shouldUseHistory]);
+    }, [activeChatId, agentName, bootstrapChats, persistChatDraftNow, persistChatMessagesNow, shouldUseHistory]);
     retrySaveActionRef.current = retrySaveNow;
+
+    /**
+     * Re-syncs local chat state when server reports that active chat scope is missing.
+     */
+    const recoverFromMissingScopedChat = useCallback(
+        async (chatId: string | null): Promise<boolean> => {
+            if (!chatId || chatId !== activeChatId || !shouldUseHistory) {
+                return false;
+            }
+
+            if (isMissingChatRecoveryInFlightRef.current) {
+                return true;
+            }
+
+            isMissingChatRecoveryInFlightRef.current = true;
+
+            try {
+                await bootstrapChats(undefined);
+                return true;
+            } catch (recoveryError) {
+                console.error('[user-chat] Failed to recover from missing scoped chat', recoveryError);
+                return false;
+            } finally {
+                isMissingChatRecoveryInFlightRef.current = false;
+            }
+        },
+        [activeChatId, bootstrapChats, shouldUseHistory],
+    );
 
     /**
      * Emits standardized save-failure notifications with a retry action.
      */
     const notifyChatSaveFailure = useCallback(
         (error: unknown, fallbackMessage: string, source: string, chatId: string | null): void => {
+            if (isMissingScopedChatSaveError(error)) {
+                if (chatId) {
+                    const attemptedMessages = chatMessagesCacheRef.current.get(chatId) || [];
+                    failedMessagesHashesRef.current.set(chatId, serializePersistableChatMessages(attemptedMessages));
+                    failedDraftValuesRef.current.set(chatId, chatDraftCacheRef.current.get(chatId) ?? null);
+                }
+
+                void recoverFromMissingScopedChat(chatId);
+                return;
+            }
+
             notifyError(resolveErrorMessage(error, fallbackMessage), {
                 details: {
                     source,
                     agentName,
                     activeChatId,
                     chatId,
-                    error,
+                    error: serializeNotificationError(error),
                 },
                 actionLabel: RETRY_CHAT_SAVE_ACTION_LABEL,
                 onAction: () => retrySaveActionRef.current(),
             });
         },
-        [activeChatId, agentName],
+        [activeChatId, agentName, recoverFromMissingScopedChat],
     );
 
     /**
@@ -423,6 +480,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 }
 
                 void persistChatMessagesNow(chatId, messages, options).catch((error) => {
+                    failedMessagesHashesRef.current.set(chatId, serializedMessages);
                     console.error('[user-chat] Failed to flush pending chat messages', error);
                     notifyChatSaveFailure(
                         error,
@@ -439,6 +497,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
                 const draftMessage = chatDraftCacheRef.current.get(chatId) ?? null;
                 void persistChatDraftNow(chatId, draftMessage, options).catch((error) => {
+                    failedDraftValuesRef.current.set(chatId, draftMessage);
                     console.error('[user-chat] Failed to flush pending chat draft', error);
                     notifyChatSaveFailure(
                         error,
@@ -637,6 +696,8 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 savedMessagesHashesRef.current.delete(chatId);
                 chatMessagesCacheRef.current.delete(chatId);
                 chatDraftCacheRef.current.delete(chatId);
+                failedMessagesHashesRef.current.delete(chatId);
+                failedDraftValuesRef.current.delete(chatId);
                 await bootstrapChats(activeChatId === chatId ? undefined : activeChatId || undefined);
             } catch (error) {
                 notifyError(resolveErrorMessage(error, 'Failed to delete chat.'), {
@@ -668,8 +729,13 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             chatMessagesCacheRef.current.set(chatId, normalizedMessages);
             const serializedMessages = serializePersistableChatMessages(normalizedMessages);
             const lastSavedHash = savedMessagesHashesRef.current.get(chatId);
+            const lastFailedHash = failedMessagesHashesRef.current.get(chatId);
 
             if (lastSavedHash === serializedMessages) {
+                return;
+            }
+
+            if (lastFailedHash === serializedMessages) {
                 return;
             }
 
@@ -681,6 +747,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             const nextTimer = setTimeout(() => {
                 void persistChatMessagesNow(chatId, normalizedMessages)
                     .catch((error) => {
+                        failedMessagesHashesRef.current.set(chatId, serializedMessages);
                         console.error('[user-chat] Failed to persist chat messages', error);
                         notifyChatSaveFailure(
                             error,
@@ -710,7 +777,13 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
             const chatId = activeChatId;
             setActiveChatDraftMessage(draftMessage);
-            chatDraftCacheRef.current.set(chatId, draftMessage || null);
+            const normalizedDraftMessage = draftMessage || null;
+            chatDraftCacheRef.current.set(chatId, normalizedDraftMessage);
+            const lastFailedDraftValue = failedDraftValuesRef.current.get(chatId);
+
+            if (lastFailedDraftValue === normalizedDraftMessage) {
+                return;
+            }
 
             const existingTimer = draftSaveTimersRef.current.get(chatId);
             if (existingTimer) {
@@ -718,8 +791,9 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             }
 
             const nextTimer = setTimeout(() => {
-                void persistChatDraftNow(chatId, draftMessage || null)
+                void persistChatDraftNow(chatId, normalizedDraftMessage)
                     .catch((error) => {
+                        failedDraftValuesRef.current.set(chatId, normalizedDraftMessage);
                         console.error('[user-chat] Failed to persist draft message', error);
                         notifyChatSaveFailure(
                             error,
@@ -865,6 +939,64 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
  */
 function resolveErrorMessage(error: unknown, fallbackMessage: string): string {
     return error instanceof Error ? error.message : fallbackMessage;
+}
+
+/**
+ * Converts unknown error values to stable notification-friendly JSON payload.
+ */
+function serializeNotificationError(error: unknown): unknown {
+    if (!(error instanceof Error)) {
+        return error;
+    }
+
+    const serializedError: {
+        name: string;
+        message: string;
+        stack?: string;
+        status?: number;
+        code?: string | null;
+        url?: string;
+        details?: unknown;
+    } = {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+    };
+
+    if (error instanceof UserChatApiError) {
+        serializedError.status = error.status;
+        serializedError.code = error.code;
+        serializedError.url = error.url;
+        serializedError.details = error.details;
+    }
+
+    return serializedError;
+}
+
+/**
+ * Returns true when save failure indicates missing/incompatible chat scope.
+ */
+function isMissingScopedChatSaveError(error: unknown): boolean {
+    if (error instanceof UserChatApiError) {
+        if (
+            error.code === 'USER_CHAT_NOT_FOUND' ||
+            error.code === 'USER_CHAT_SCOPE_AGENT_MISMATCH' ||
+            error.code === 'USER_CHAT_SCOPE_USER_MISMATCH' ||
+            error.code === 'USER_CHAT_SCOPE_INCONSISTENT'
+        ) {
+            return true;
+        }
+
+        if (error.status === 404) {
+            return /chat/i.test(error.message);
+        }
+    }
+
+    if (error instanceof Error) {
+        return /User chat ".+" was not found\./i.test(error.message);
+    }
+
+    return false;
 }
 
 /**

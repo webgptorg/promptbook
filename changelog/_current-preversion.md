@@ -1,3 +1,11 @@
+-   Fixed noisy Agents Server chat-history save failures and improved missing-chat diagnostics:
+
+    -   Added scoped user-chat diagnostics (`USER_CHAT_NOT_FOUND`, `USER_CHAT_SCOPE_USER_MISMATCH`, `USER_CHAT_SCOPE_AGENT_MISMATCH`, etc.) for `/agents/[agentName]/api/user-chats/[chatId]` message/draft updates.
+    -   API PATCH endpoints now return structured error payloads (`error`, `code`, `details`) and use `404` for missing/scope-mismatch chats vs `500` for diagnostic/database failures.
+    -   Improved client-side user-chat API error handling with rich metadata (`status`, `code`, `details`, `url`) to make notification debugging actionable.
+    -   Stopped repeated failing save loops by remembering last failed message hash/draft value and skipping identical auto-retries until content changes or user presses retry.
+    -   Added automatic chat-state resync when save fails due to missing scoped chat, so transient/stale scoped-chat errors no longer spam user-facing notifications.
+
 -   Added shared floating notification system in Agents Server and migrated chat save failures to it:
 
     -   Added a global portal-based notification stack (`top-right`, newest first) with shared API helpers:

@@ -1,6 +1,7 @@
 import { Json } from '@/src/database/schema';
 import type { UpdateUserChatMessagesOptions, UserChatRecord } from './UserChatRecord';
 import type { UserChatRow } from './UserChatRow';
+import { createMissingUserChatScopeError } from './createMissingUserChatScopeError';
 import { mapUserChatRow } from './mapUserChatRow';
 import { provideUserChatTable } from './provideUserChatTable';
 import { normalizeMessagesInput, resolveLastMessageAt } from './resolveLastMessageAt';
@@ -42,7 +43,12 @@ export async function updateUserChatMessages(
         }
 
         if (!currentData) {
-            throw new Error(`User chat "${chatId}" was not found.`);
+            throw await createMissingUserChatScopeError(userChatTable, {
+                operation: 'update_messages',
+                userId,
+                agentPermanentId,
+                chatId,
+            });
         }
 
         const currentChat = mapUserChatRow(currentData as UserChatRow);

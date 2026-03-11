@@ -1,5 +1,6 @@
 import type { UpdateUserChatDraftOptions, UserChatRecord } from './UserChatRecord';
 import type { UserChatRow } from './UserChatRow';
+import { createMissingUserChatScopeError } from './createMissingUserChatScopeError';
 import { mapUserChatRow } from './mapUserChatRow';
 import { provideUserChatTable } from './provideUserChatTable';
 
@@ -27,7 +28,12 @@ export async function updateUserChatDraft(options: UpdateUserChatDraftOptions): 
     }
 
     if (!data) {
-        throw new Error(`User chat "${chatId}" was not found.`);
+        throw await createMissingUserChatScopeError(userChatTable, {
+            operation: 'update_draft',
+            userId,
+            agentPermanentId,
+            chatId,
+        });
     }
 
     return mapUserChatRow(data as UserChatRow);

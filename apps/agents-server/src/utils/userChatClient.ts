@@ -43,6 +43,60 @@ export type UserChatSaveRequestOptions = {
 };
 
 /**
+ * Structured payload returned by user-chat API errors.
+ */
+type UserChatApiErrorPayload = {
+    error?: unknown;
+    code?: unknown;
+    details?: unknown;
+};
+
+/**
+ * Error thrown for failed user-chat API requests with status/code/details metadata.
+ */
+export class UserChatApiError extends Error {
+    /**
+     * HTTP status returned by the API endpoint.
+     */
+    public readonly status: number;
+
+    /**
+     * Optional machine-readable API code.
+     */
+    public readonly code: string | null;
+
+    /**
+     * Optional structured API details payload.
+     */
+    public readonly details: unknown;
+
+    /**
+     * API URL that produced the error response.
+     */
+    public readonly url: string;
+
+    /**
+     * Creates one user-chat API error value.
+     */
+    public constructor(
+        message: string,
+        options: {
+            status: number;
+            code: string | null;
+            details: unknown;
+            url: string;
+        },
+    ) {
+        super(message);
+        this.name = 'UserChatApiError';
+        this.status = options.status;
+        this.code = options.code;
+        this.details = options.details;
+        this.url = options.url;
+    }
+}
+
+/**
  * Cached anonymous username resolved in current browser tab.
  */
 let cachedAnonymousUsername: string | null | undefined;
@@ -159,12 +213,51 @@ function createUserChatRequestHeaders(initialHeaders?: HeadersInit): Headers {
 }
 
 /**
+ * Normalizes unknown API payload to one structured error payload object.
+ */
+function normalizeUserChatApiErrorPayload(payload: unknown): UserChatApiErrorPayload {
+    if (!payload || typeof payload !== 'object') {
+        return {};
+    }
+
+    return payload as UserChatApiErrorPayload;
+}
+
+/**
+ * Resolves best-effort user-facing error message from API payload.
+ */
+function resolveUserChatApiErrorMessage(payload: UserChatApiErrorPayload, fallbackMessage: string): string {
+    if (typeof payload.error === 'string' && payload.error.trim().length > 0) {
+        return payload.error;
+    }
+
+    return fallbackMessage;
+}
+
+/**
+ * Resolves best-effort machine-readable API error code.
+ */
+function resolveUserChatApiErrorCode(payload: UserChatApiErrorPayload): string | null {
+    if (typeof payload.code === 'string' && payload.code.trim().length > 0) {
+        return payload.code;
+    }
+
+    return null;
+}
+
+/**
  * Resolves friendly error from failed user-chat API response.
  */
-async function resolveUserChatApiError(response: Response, fallbackMessage: string): Promise<Error> {
-    const payload = await response.json().catch(() => ({}));
-    const payloadError = typeof payload.error === 'string' ? payload.error : null;
-    return new Error(payloadError || fallbackMessage);
+async function resolveUserChatApiError(response: Response, fallbackMessage: string): Promise<UserChatApiError> {
+    const rawPayload = await response.json().catch(() => ({}));
+    const payload = normalizeUserChatApiErrorPayload(rawPayload);
+
+    return new UserChatApiError(resolveUserChatApiErrorMessage(payload, fallbackMessage), {
+        status: response.status,
+        code: resolveUserChatApiErrorCode(payload),
+        details: payload.details,
+        url: response.url,
+    });
 }
 
 /**
