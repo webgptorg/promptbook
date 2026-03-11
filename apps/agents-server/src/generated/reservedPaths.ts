@@ -13,7 +13,6 @@ export const RESERVED_PATHS: readonly string[] = [
     "_next",
     "admin",
     "agents",
-    "ai-supervize",
     "api",
     "dashboard",
     "docs",
