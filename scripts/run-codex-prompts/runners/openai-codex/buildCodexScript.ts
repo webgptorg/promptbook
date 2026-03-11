@@ -10,11 +10,13 @@ export function buildCodexScript(options: CodexScriptOptions): string {
     const delimiter = 'CODEX_PROMPT';
     const projectPath = toPosixPath(options.projectPath);
     const loginMethodConfig = options.allowCredits ? '' : '  -c forced_login_method=chatgpt \\';
+    const modelReasoningEffortConfig = '  -c model_reasoning_effort="xhigh" \\';
 
     return spaceTrim(
         (block) => `
             ${options.codexCommand} \\
               ${loginMethodConfig}
+              ${modelReasoningEffortConfig}
               --ask-for-approval ${options.askForApproval} \\
               exec --model ${options.model} \\
               --local-provider none \\
