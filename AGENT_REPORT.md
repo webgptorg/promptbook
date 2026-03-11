@@ -25,3 +25,10 @@
   - `api-authorization.spec.ts` timed out on `page.goto('/')` with in-page `Application error` (`Loading chunk ... failed`).
   - `authentication-and-navigation.spec.ts` clone-flow test timed out waiting for `More options`; failure snapshot showed `Agent Not Found` after agent creation.
   - The run also logged recurrent `ReferenceError: window is not defined` server runtime errors and missing optional avatar provider package noise (`@promptbook/anthropic-claude`), suggesting broader app/runtime flakiness outside this scoped test-selector fix.
+
+## 2026-03-11
+
+- `npm run lint` in `apps/agents-server` fails before checking this task's changed files due an unrelated parsing error:
+  - File: `apps/agents-server/src/app/ai-supervize/page.tsx`
+  - Error: `Parsing error: Unexpected token. Did you mean {'>'} or &gt;` (reported at line 185:69)
+  - This issue appears unrelated to the user-chat fix in this task and was not modified here.

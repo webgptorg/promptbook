@@ -39,7 +39,7 @@
 
 ---
 
-[ ] !!!!!!
+[x] ~$0.00 17 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨🧒] Fix loading of my chats
 
@@ -97,3 +97,4 @@ installHook.js:1 [user-chat] Failed to persist chat messages Error: User chat "n
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

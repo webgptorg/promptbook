@@ -1,3 +1,14 @@
+-   Added new Czech landing subpage `/ai-supervize` in Agents Server:
+
+    -   Implemented a dedicated marketing page for AI Supervize focused on CTO/CEO/Tech Lead audience in Czech software companies.
+    -   Added full structured content for offer scope, target situations, deliverables, process, security, pricing, contacts, and CTA.
+    -   Registered `ai-supervize` as a reserved path (via generated `reservedPaths`) so middleware serves the page directly instead of redirecting to `/agents/[agentName]`.
+
+-   Fixed Agents Server user-chat loading/saving scope drift for anonymous users:
+
+    -   Updated anonymous identity cookie resolution to treat a valid `x-anonymous-username` header as authoritative for the current request and synchronize the cookie to the same value.
+    -   This keeps `/agents/[agentName]/api/user-chats` read/write operations on the same `userId`, so existing chats load correctly by ID, `User chat "... was not found."` no longer blinks during normal usage, and repeated failed save retries are avoided.
+
 -   Fixed Agents Server loading of existing chats when browser storage is unavailable or full:
 
     -   Hardened shared `ChatPersistence` with an in-memory fallback that mirrors serialized chat payloads whenever `localStorage` is blocked, unavailable, or over quota.
