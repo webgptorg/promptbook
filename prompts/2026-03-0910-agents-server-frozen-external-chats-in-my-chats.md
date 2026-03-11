@@ -1,0 +1,65 @@
+[ ]
+
+[🧊📡] Frozen chats from API & team members visible in My Chats
+
+-   *(@@@@ Written by agent)*
+-   Problem: Chats can be initiated to an Agent from multiple channels (Agents Server web UI, OpenAI-compatible API, “team member” internal tooling, and future channels like email/Telegram). Today, the web UI mainly shows chats created from the web UI; chats created via other channels are missing or not clearly distinguished.
+-   Goal: Make all agent chats discoverable from the web UI, while keeping proper access control and making it clear which channel created the chat.
+-   Definitions:
+    -   “Web UI chat” = chat initiated from Agents Server web application by a logged-in user.
+    -   “External chat” = chat initiated via non-web channel (OpenAI-compatible API key, team member/internal, future channels).
+    -   “Frozen chat” = chat is view-only in the web UI (no sending messages from UI), used as an audit/replay of what the agent saw in that channel.
+-   Requirements (backend/data):
+    -   Store a `source` (or `channel`) attribute on `Chat` (or equivalent model) to indicate origin.
+        -   Proposed enum: `WEB_UI | API | TEAM | OTHER` (extensible).
+        -   Also store `sourceKeyId` / `apiKeyId` / `teamMemberId` when applicable (to support filtering and audit).
+    -   Ensure chats created via OpenAI-compatible routes and team member tooling always create/persist a `Chat` record and `ChatMessage` records in DB (not just ephemeral runtime), so they appear in listings.
+    -   Access control:
+        -   Regular user: only see their own `WEB_UI` chats (and optionally also their own API chats if the API key is owned by that user @@@).
+        -   Admin: can optionally see external chats (API/team/other) across the server.
+-   Requirements (My Chats panel UI/UX):
+    -   Add a small Settings/Filters panel in the My Chats area (near the existing “Show empty chats” toggle).
+    -   Provide two toggles:
+        -   “Show empty chats” (existing; keep).
+        -   “Show external chats” (new; visible only to admins).
+    -   External chats must be visually distinguishable in the list (chip/icon/label), e.g. “API”, “TEAM”.
+    -   Clicking an external chat opens it in a read-only mode:
+        -   Message input disabled/hidden.
+        -   Show a banner: “Frozen chat from @@@ (API key/team member). View-only.”
+        -   Allow copying messages and downloading/exporting chat (existing download features should work).
+    -   For web UI chats nothing changes: full interactive chat.
+-   Requirements (chat page behavior):
+    -   Add a `readOnly` decision based on `chat.source` and current user role.
+        -   `WEB_UI`: interactive.
+        -   `API/TEAM/OTHER`: frozen in UI (read-only) by default.
+        -   @@@ Decide if admins can “take over” and continue the chat in UI (probably NO for now to preserve meaning of channel).
+-   Filtering/sorting:
+    -   Chats list sorting should not break when mixing sources; keep existing “most recent activity” behavior.
+    -   Empty chat definition: chat with zero user/assistant messages vs only system/init message @@@.
+-   Migration:
+    -   DB migration to add `source` (+ optional foreign keys) to existing chats.
+    -   Backfill existing records:
+        -   Existing chats from UI should become `WEB_UI`.
+        -   Existing chats created from API/team routes (if detectable) should become `API/TEAM`; otherwise `OTHER`.
+-   API & contracts:
+    -   Update chat listing endpoint(s) to support `includeEmpty` and `includeExternal` (admin-only) flags.
+    -   Ensure OpenAI-compatible API chat creation path sets `source=API`.
+    -   Ensure team member chat creation path sets `source=TEAM`.
+-   Analytics/logging:
+    -   Track counts of chats per source (optional) @@@.
+-   Security/privacy:
+    -   External chats may contain sensitive data; default admin-only visibility.
+    -   Ensure `apiKeyId`/identifiers are not leaked to non-admin users.
+-   Acceptance criteria:
+    -   When an API client starts chatting with an agent via OpenAI-compatible endpoint, a chat is created in DB and appears in My Chats for admins when “Show external chats” is enabled.
+    -   When a team member starts an internal chat, it appears similarly.
+    -   External chats open as frozen/read-only and cannot be messaged from the web UI.
+    -   Web UI chats remain unchanged.
+    -   Regular users cannot see external chats.
+-   Work areas / files:
+    -   You are working with the [Agents Server](apps/agents-server)
+    -   Chat persistence & API routes: @@@ (search in `apps/agents-server/src` for chat controllers/routers)
+    -   My Chats UI panel and its toggles: @@@
+    -   Chat view component (disable input / read-only banner): @@@
+    -   Database schema/migrations for `Chat` model: @@@
+    -   Add the changes into the [changelog](changelog/_current-preversion.md)
