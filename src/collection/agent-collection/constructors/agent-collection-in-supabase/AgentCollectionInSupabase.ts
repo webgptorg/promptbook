@@ -44,10 +44,6 @@ type UpdateAgentSourceOptions = {
      * Optional human-readable history milestone name saved with the snapshot.
      */
     readonly versionName?: string | null;
-    /**
-     * Optional existing history snapshot row reused for progressive updates.
-     */
-    readonly historySnapshotId?: number;
 };
 
 /**
@@ -303,7 +299,7 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
         permanentId: string_agent_permanent_id,
         agentSource: string_book,
         options: UpdateAgentSourceOptions = {},
-    ): Promise<number> {
+    ): Promise<void> {
         const selectPreviousAgentResult = await this.supabaseClient
             .from(this.getTableName('Agent'))
             .select('agentHash,agentName,permanentId')
@@ -396,7 +392,7 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
             );
         }
 
-        const historySnapshotPayload = {
+        await this.insertAgentHistoryRow({
             createdAt: new Date().toISOString(),
             agentName,
             permanentId,
@@ -405,21 +401,7 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
             agentSource,
             promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
             versionName: normalizeHistoryVersionName(options.versionName),
-        } satisfies AgentsDatabaseSchema['public']['Tables']['AgentHistory']['Insert'];
-
-        if (options.historySnapshotId !== undefined) {
-            await this.updateAgentHistoryRow(options.historySnapshotId, {
-                agentName,
-                permanentId,
-                agentHash,
-                agentSource,
-                promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-                versionName: normalizeHistoryVersionName(options.versionName),
-            });
-            return options.historySnapshotId;
-        }
-
-        return await this.insertAgentHistoryRow(historySnapshotPayload);
+        });
     }
 
     // TODO: [🐱‍🚀] public async getAgentSourceSubject(permanentId: string_agent_permanent_id): Promise<BehaviorSubject<string_book>>
@@ -601,12 +583,8 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
      */
     private async insertAgentHistoryRow(
         historyRow: AgentsDatabaseSchema['public']['Tables']['AgentHistory']['Insert'],
-    ): Promise<number> {
-        const insertResult = await this.supabaseClient
-            .from(this.getTableName('AgentHistory'))
-            .insert(historyRow)
-            .select('id')
-            .single();
+    ): Promise<void> {
+        const insertResult = await this.supabaseClient.from(this.getTableName('AgentHistory')).insert(historyRow);
 
         if (insertResult.error) {
             throw new DatabaseError(
@@ -615,39 +593,6 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
                         Error creating agent history snapshot for "${historyRow.permanentId}" in Supabase:
 
                         ${block(insertResult.error.message)}
-                    `,
-                ),
-            );
-        }
-
-        return insertResult.data.id;
-    }
-
-    /**
-     * Updates one existing history row in place for a long-running logical save operation.
-     *
-     * @param historySnapshotId - Identifier of the history row to update.
-     * @param historyRow - Latest snapshot values that should replace the existing row payload.
-     */
-    private async updateAgentHistoryRow(
-        historySnapshotId: number,
-        historyRow: AgentsDatabaseSchema['public']['Tables']['AgentHistory']['Update'],
-    ): Promise<void> {
-        const updateResult = await this.supabaseClient
-            .from(this.getTableName('AgentHistory'))
-            .update(historyRow)
-            .eq('id', historySnapshotId)
-            .eq('permanentId', historyRow.permanentId || '')
-            .select('id')
-            .single();
-
-        if (updateResult.error) {
-            throw new DatabaseError(
-                spaceTrim(
-                    (block) => `
-                        Error updating agent history snapshot "${historySnapshotId}" in Supabase:
-
-                        ${block(updateResult.error.message)}
                     `,
                 ),
             );

@@ -1,9 +1,3 @@
--   Materialized self-learning avatars into Agents Server books so generated `META IMAGE` values become stable source commitments instead of silently drifting with later persona/source changes:
-
-    -   Added progressive self-learning source persistence that reuses one `AgentHistory` snapshot across the whole run, naming it `self-learning` only after the final update is finished.
-    -   Taught self-learning to insert a stable early avatar URL handle into the source, keep incremental book updates visible while learning continues, and then perform one final source update after image generation completes.
-    -   Derived a stable 2-3 color palette from the finalized avatar image, persisted it as `META COLOR`, and reused the same default-avatar generation/storage pipeline for both normal avatar requests and self-learning materialization.
-
 -   Replaced Agents Server `SERVERS` environment-based server registry with a global `_Server` database table:
 
     -   Added migration `2026-03-0190-server-registry.sql` creating `_Server` with server name, environment group (`PRODUCTION` / `PREVIEW`), Vercel domain, table prefix, and timestamps.

@@ -3,11 +3,6 @@ import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { Updatable } from '../../types/Updatable';
 import { Agent } from './Agent';
-import type {
-    PersistSelfLearningAgentSourceUpdate,
-    SelfLearningBackgroundTaskScheduler,
-    SelfLearningMetaImageMaterializer,
-} from './self-learning/SelfLearningHooks';
 
 /**
  * Options for creating an Agent
@@ -42,19 +37,4 @@ export type AgentOptions = CommonToolsOptions & {
      * Note: If provided, the agent can do full self-learning from the teacher agent during its operation.
      */
     teacherAgent: Agent | null;
-
-    /**
-     * Optional callback that persists incremental self-learning source updates.
-     */
-    persistSelfLearningAgentSourceUpdate?: PersistSelfLearningAgentSourceUpdate;
-
-    /**
-     * Optional hook that can materialize `META IMAGE` during self-learning.
-     */
-    materializeSelfLearningMetaImage?: SelfLearningMetaImageMaterializer;
-
-    /**
-     * Optional scheduler used when self-learning wants to finish work after the main response completes.
-     */
-    scheduleSelfLearningBackgroundTask?: SelfLearningBackgroundTaskScheduler;
 };
