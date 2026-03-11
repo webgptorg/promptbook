@@ -1,3 +1,13 @@
+-   Added OpenAPI-backed management endpoints to Agents Server for owner-scoped agent administration:
+
+    -   Added a generated OpenAPI 3 management spec at `/openapi.json` and interactive Swagger UI at `/swagger`, both available on every Agents Server instance and secured with the existing API-key bearer auth.
+    -   Added versioned management routes under `/api/v1` for agents (`GET/POST/PATCH/DELETE`), folders (`GET/POST/PATCH/DELETE` + move agent), authenticated user metadata (`/api/v1/me`), and instance metadata (`/api/v1/instance`).
+    -   Reused the existing OpenAI-compatible API token mechanism for management authentication and exposed the active user API keys inside Swagger similarly to the integration page.
+    -   Added owner/tenant scoping for `Agent`, `AgentFolder`, and `ApiTokens`, including migration `2026-03-0200-management-api-ownership.sql`, so API keys can manage only resources owned by their resolved user.
+    -   Reused the existing Agents Server search matcher for `GET /api/v1/agents` list/search/sort behavior and returned stable profile/chat/integration links in management responses.
+    -   Added configurable management API CORS origins metadata and kept the OpenAI-compatible chat/completions routes unchanged.
+    -   Added Agents Server E2E coverage for OpenAPI docs, Swagger auth, and the first-release owner-scoped CRUD management flow.
+
 -   Replaced Agents Server `SERVERS` environment-based server registry with a global `_Server` database table:
 
     -   Added migration `2026-03-0190-server-registry.sql` creating `_Server` with server name, environment group (`PRODUCTION` / `PREVIEW`), Vercel domain, table prefix, and timestamps.

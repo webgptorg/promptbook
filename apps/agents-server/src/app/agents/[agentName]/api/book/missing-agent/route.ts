@@ -9,6 +9,7 @@ import { $invalidateProvidedAgentReferenceResolverCache } from '@/src/utils/agen
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { buildAgentNameOrIdFilter } from '@/src/utils/agentIdentifier';
 import { createAgentWithDefaultVisibility } from '@/src/utils/createAgentWithDefaultVisibility';
+import { resolveCurrentUserIdentity } from '@/src/utils/currentUserIdentity';
 
 /**
  * Request payload accepted by the referenced agent creation endpoint.
@@ -99,8 +100,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                 : null;
 
         const agentSource = $generateBookBoilerplate({ agentName: candidate });
+        const currentUserIdentity = await resolveCurrentUserIdentity();
         const newAgent = await createAgentWithDefaultVisibility(collection, agentSource, {
             folderId,
+            userId: currentUserIdentity?.userId,
         });
         $invalidateProvidedAgentReferenceResolverCache();
 

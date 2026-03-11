@@ -42,6 +42,7 @@ export type LocalOrganizationSearchDataset = {
  */
 export async function loadLocalOrganizationSearchDataset(options: {
     includePrivate: boolean;
+    userId?: number;
 }): Promise<LocalOrganizationSearchDataset> {
     const supabase = $provideSupabaseForServer();
     const agentTable = await $getTableName('Agent');
@@ -57,6 +58,11 @@ export async function loadLocalOrganizationSearchDataset(options: {
     }
 
     const folderQuery = supabase.from(folderTable).select('id, name, parentId').is('deletedAt', null);
+
+    if (typeof options.userId === 'number') {
+        (agentQuery as unknown as { eq(column: string, value: number): void }).eq('userId', options.userId);
+        (folderQuery as unknown as { eq(column: string, value: number): void }).eq('userId', options.userId);
+    }
 
     const [agentResult, folderResult] = await Promise.all([agentQuery, folderQuery]);
 

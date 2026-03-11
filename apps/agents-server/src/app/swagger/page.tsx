@@ -1,14 +1,10 @@
-'use client';
+import { isUserAdmin } from '@/src/utils/isUserAdmin';
+import { SwaggerPageClient } from './SwaggerPageClient';
 
-import dynamic from 'next/dynamic';
-import 'swagger-ui-react/swagger-ui.css';
-
-const SwaggerUI = dynamic(() => import('swagger-ui-react'), { ssr: false });
-
-export default function SwaggerPage() {
-  return (
-    <div className="swagger-container bg-white min-h-screen">
-      <SwaggerUI url="/swagger.json" />
-    </div>
-  );
+/**
+ * Hosts the interactive Swagger UI backed by the runtime-generated `/openapi.json` document.
+ */
+export default async function SwaggerPage() {
+    const admin = await isUserAdmin();
+    return <SwaggerPageClient isAdmin={admin} />;
 }

@@ -23,6 +23,7 @@ export const RESERVED_PATHS: readonly string[] = [
     "humans.txt",
     "logo-blue-white-256.png",
     "manifest.webmanifest",
+    "openapi.json",
     "recycle-bin",
     "restricted",
     "robots.txt",
@@ -33,7 +34,6 @@ export const RESERVED_PATHS: readonly string[] = [
     "story",
     "sw.js",
     "swagger",
-    "swagger.json",
     "system",
     "test"
 ] as const;

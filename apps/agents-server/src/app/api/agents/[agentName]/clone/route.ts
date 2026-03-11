@@ -2,6 +2,7 @@ import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { createAgentWithDefaultVisibility } from '@/src/utils/createAgentWithDefaultVisibility';
+import { resolveCurrentUserIdentity } from '@/src/utils/currentUserIdentity';
 import { NotFoundError } from '@promptbook-local/core';
 import { TODO_any } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
@@ -54,6 +55,7 @@ async function resolveSourceAgentFolderId(agentPermanentId: string_agent_permane
 export async function POST(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     const { agentName } = await params;
     const collection = await $provideAgentCollectionForServer();
+    const currentUserIdentity = await resolveCurrentUserIdentity();
 
     try {
         const requestBody = (await request.json().catch(() => ({}))) as { name?: unknown };
@@ -94,6 +96,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
         const newAgent = await createAgentWithDefaultVisibility(collection, newSource, {
             folderId: sourceFolderId,
+            userId: currentUserIdentity?.userId,
         });
 
         return NextResponse.json(newAgent);

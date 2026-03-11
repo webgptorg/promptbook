@@ -48,6 +48,22 @@ const tables = new Map([
 ]);
 
 /**
+ * Returns the next numeric primary key for one in-memory table.
+ *
+ * @param {string} tableName
+ * @returns {number}
+ */
+function getNextNumericId(tableName) {
+    const tableRows = getTableRows(tableName);
+    const currentMax = tableRows.reduce((max, row) => {
+        const rowId = typeof row.id === 'number' ? row.id : 0;
+        return Math.max(max, rowId);
+    }, 0);
+
+    return currentMax + 1;
+}
+
+/**
  * Sends a JSON response with a stable content type.
  *
  * @param {import('http').ServerResponse} response
@@ -132,11 +148,12 @@ function applyProjectionAndOrdering(rows, searchParams) {
 
     const orderClause = searchParams.get('order');
     if (orderClause) {
-        const [columnName] = orderClause.split('.');
+        const [columnName, direction] = orderClause.split('.');
         projectedRows = [...projectedRows].sort((leftRow, rightRow) => {
             const leftValue = leftRow[columnName];
             const rightValue = rightRow[columnName];
-            return String(leftValue ?? '').localeCompare(String(rightValue ?? ''));
+            const comparison = String(leftValue ?? '').localeCompare(String(rightValue ?? ''));
+            return direction === 'desc' ? -comparison : comparison;
         });
     }
 
@@ -182,6 +199,31 @@ function matchesRowFilters(row, searchParams) {
             columnName === 'limit' ||
             columnName === 'offset'
         ) {
+            continue;
+        }
+
+        if (columnName === 'or') {
+            const normalizedOrClause =
+                rawClause.startsWith('(') && rawClause.endsWith(')') ? rawClause.slice(1, -1) : rawClause;
+            const orClauses = normalizedOrClause
+                .split(',')
+                .map((clause) => clause.trim())
+                .filter((clause) => clause.length > 0);
+            const isAnyClauseMatching = orClauses.some((clause) => {
+                const match = /^([^.]*)\.(.*)$/.exec(clause);
+                if (!match) {
+                    return false;
+                }
+
+                const [, orColumnName, orRawClause] = match;
+                const clauseParams = new URLSearchParams([[orColumnName, orRawClause]]);
+                return matchesRowFilters(row, clauseParams);
+            });
+
+            if (!isAnyClauseMatching) {
+                return false;
+            }
+
             continue;
         }
 
@@ -335,7 +377,23 @@ async function handleRestRequest(request, response, requestUrl) {
     if (method === 'POST') {
         const body = await parseJsonBody(request);
         const payloadRows = Array.isArray(body) ? body : body ? [body] : [];
-        const insertedRows = payloadRows.map((payloadRow) => ({ ...payloadRow }));
+        const insertedRows = payloadRows.map((payloadRow) => {
+            const nextRow = { ...payloadRow };
+
+            if (nextRow.id === undefined) {
+                nextRow.id = getNextNumericId(tableName);
+            }
+
+            if (nextRow.createdAt === undefined) {
+                nextRow.createdAt = new Date().toISOString();
+            }
+
+            if (nextRow.updatedAt === undefined && tableName !== 'Agent') {
+                nextRow.updatedAt = new Date().toISOString();
+            }
+
+            return nextRow;
+        });
         tableRows.push(...insertedRows);
 
         const responseRows = applyProjectionAndOrdering(insertedRows, requestUrl.searchParams);

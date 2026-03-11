@@ -198,6 +198,12 @@ export const metadataDefaults = [
         type: 'TEXT_SINGLE_LINE',
     },
     {
+        key: 'MANAGEMENT_API_CORS_ORIGINS',
+        value: '*',
+        note: 'Allowed origins for browser-based management API clients and OpenAPI fetches. Use `*` or a comma separated list of exact origins.',
+        type: 'TEXT',
+    },
+    {
         key: 'GITHUB_APP_ID',
         value: '',
         note: 'Numeric GitHub App ID (found in the app settings).',

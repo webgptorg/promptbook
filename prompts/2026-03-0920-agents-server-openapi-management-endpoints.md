@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 2 hours by OpenAI Codex `gpt-5.4`
 
 [🧩🗝️] OpenAPI management endpoints for Agents Server
 
@@ -56,3 +56,4 @@
     -   `/swagger` renders interactive docs with all endpoints, secured by API key.
     -   A third-party client can: create agent, update its name/source, list agents, delete agent, and fetch its share/chat links.
     -   OpenAPI spec matches runtime behavior
+

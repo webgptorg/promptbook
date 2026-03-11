@@ -120,7 +120,15 @@ export const NEXT_PUBLIC_VERCEL_GIT_PULL_REQUEST_ID = config.get('NEXT_PUBLIC_VE
  * This remains the fallback/default prefix used before `_Server` contains records
  * or for local development requests.
  */
-export const SUPABASE_TABLE_PREFIX = config.get('SUPABASE_TABLE_PREFIX').default('').value;
+const rawSupabaseTablePrefix = config.get('SUPABASE_TABLE_PREFIX').value;
+
+/**
+ * Supabase table prefix
+ *
+ * This remains the fallback/default prefix used before `_Server` contains records
+ * or for local development requests.
+ */
+export const SUPABASE_TABLE_PREFIX = typeof rawSupabaseTablePrefix === 'string' ? rawSupabaseTablePrefix : '';
 
 /**
  * WebSocket endpoint URL for remote Playwright browser server (e.g., ws://browser-server:3000).
@@ -129,4 +137,13 @@ export const SUPABASE_TABLE_PREFIX = config.get('SUPABASE_TABLE_PREFIX').default
  * This is useful for environments like Vercel where running a full browser locally is not possible.
  * Leave empty to use local browser mode.
  */
-export const REMOTE_BROWSER_URL = config.get('REMOTE_BROWSER_URL').default('').value;
+const rawRemoteBrowserUrl = config.get('REMOTE_BROWSER_URL').value;
+
+/**
+ * WebSocket endpoint URL for remote Playwright browser server (e.g., ws://browser-server:3000).
+ *
+ * When set, browser automation will connect to this remote server instead of launching a local browser.
+ * This is useful for environments like Vercel where running a full browser locally is not possible.
+ * Leave empty to use local browser mode.
+ */
+export const REMOTE_BROWSER_URL = typeof rawRemoteBrowserUrl === 'string' ? rawRemoteBrowserUrl : '';

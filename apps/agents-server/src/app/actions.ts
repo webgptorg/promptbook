@@ -8,6 +8,7 @@ import { getMetadata } from '../database/getMetadata';
 import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
 import { authenticateUser } from '../utils/authenticateUser';
 import { createAgentWithDefaultVisibility } from '../utils/createAgentWithDefaultVisibility';
+import { resolveCurrentUserIdentity } from '../utils/currentUserIdentity';
 import { isUserAdmin } from '../utils/isUserAdmin';
 import { clearSession, setSession } from '../utils/session';
 
@@ -25,8 +26,11 @@ export async function $createAgentAction(): Promise<{ agentName: string_agent_na
     const collection = await $provideAgentCollectionForServer();
     const namePool = (await getMetadata('NAME_POOL')) || 'ENGLISH';
     const agentSource = $generateBookBoilerplate({ namePool });
+    const currentUserIdentity = await resolveCurrentUserIdentity();
 
-    const { agentName, permanentId } = await createAgentWithDefaultVisibility(collection, agentSource);
+    const { agentName, permanentId } = await createAgentWithDefaultVisibility(collection, agentSource, {
+        userId: currentUserIdentity?.userId,
+    });
 
     return { agentName, permanentId };
 }
@@ -58,8 +62,12 @@ export async function $createAgentFromBookAction(
     }
 
     const collection = await $provideAgentCollectionForServer();
+    const currentUserIdentity = await resolveCurrentUserIdentity();
     const createOptions = folderId === undefined ? undefined : { folderId };
-    const { agentName, permanentId } = await createAgentWithDefaultVisibility(collection, bookContent, createOptions);
+    const { agentName, permanentId } = await createAgentWithDefaultVisibility(collection, bookContent, {
+        ...createOptions,
+        userId: currentUserIdentity?.userId,
+    });
 
     return { agentName, permanentId };
 }
