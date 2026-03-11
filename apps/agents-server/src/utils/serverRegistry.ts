@@ -72,12 +72,10 @@ let cachedServerRegistryClient: SupabaseClient | null = null;
 /**
  * Shared server-registry lookup cache.
  */
-let cachedServerRegistry:
-    | {
-          readonly loadedAt: number;
-          readonly serversPromise: Promise<Array<ServerRecord>>;
-      }
-    | null = null;
+let cachedServerRegistry: {
+    readonly loadedAt: number;
+    readonly serversPromise: Promise<Array<ServerRecord>>;
+} | null = null;
 
 /**
  * Loads normalized server rows from the global `_Server` registry table.
@@ -208,12 +206,36 @@ export function parseServerRecord(rawRow: Record<string, unknown>, label = 'row'
     const updatedAt = typeof rawRow.updatedAt === 'string' ? rawRow.updatedAt : '';
     const id = typeof rawRow.id === 'number' ? rawRow.id : Number(rawRow.id);
 
-    if (!name || !hasTablePrefix || !createdAt || !updatedAt || !Number.isFinite(id)) {
+    if (!name || !hasTablePrefix /*|| !createdAt || !updatedAt ||*/ || !Number.isFinite(id)) {
         throw new DatabaseError(
             spaceTrim(`
                 Invalid \`${SERVER_REGISTRY_TABLE_NAME}\` ${label}.
 
                 Fields \`id\`, \`name\`, \`tablePrefix\`, \`createdAt\`, and \`updatedAt\` are required.
+
+                ${
+                    !Number.isFinite(id)
+                        ? '❌ Field `id` is missing or not a valid number.'
+                        : `✔ Field \`id\` is valid "${id}".`
+                }
+                ${!name ? '❌ Field `name` is missing or empty.' : `✔ Field \`name\` is valid "${name}".`}
+                ${
+                    !hasTablePrefix
+                        ? '❌ Field `tablePrefix` is missing or empty.'
+                        : `✔ Field \`tablePrefix\` is valid "${tablePrefix}".`
+                }
+                ${
+                    !createdAt
+                        ? '❌ Field `createdAt` is missing or empty.'
+                        : `✔ Field \`createdAt\` is valid "${createdAt}".`
+                }
+                ${
+                    !updatedAt
+                        ? '❌ Field `updatedAt` is missing or empty.'
+                        : `✔ Field \`updatedAt\` is valid "${updatedAt}".`
+                }
+
+
             `),
         );
     }
