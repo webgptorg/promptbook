@@ -115,6 +115,32 @@ export type UserChatSummary = {
 };
 
 /**
+ * Active durable job linked to the currently open chat.
+ */
+export type UserChatJob = {
+    id: string;
+    createdAt: string;
+    updatedAt: string;
+    chatId: string;
+    userId: number;
+    agentPermanentId: string;
+    userMessageId: string;
+    assistantMessageId: string;
+    clientMessageId: string;
+    status: 'QUEUED' | 'RUNNING';
+    parameters: Record<string, unknown>;
+    queuedAt: string;
+    startedAt: string | null;
+    completedAt: string | null;
+    cancelRequestedAt: string | null;
+    lastHeartbeatAt: string | null;
+    leaseExpiresAt: string | null;
+    attemptCount: number;
+    provider: string | null;
+    failureReason: string | null;
+};
+
+/**
  * API payload for list endpoint.
  */
 export type UserChatsSnapshot = {
@@ -122,6 +148,7 @@ export type UserChatsSnapshot = {
     activeChatId: string | null;
     activeMessages: Array<ChatMessage>;
     activeDraftMessage?: string | null;
+    activeJobs: Array<UserChatJob>;
 };
 
 /**
@@ -131,6 +158,14 @@ export type UserChatDetail = {
     chat: UserChatSummary;
     messages: Array<ChatMessage>;
     draftMessage?: string | null;
+    activeJobs: Array<UserChatJob>;
+};
+
+/**
+ * API payload returned after enqueueing one durable turn.
+ */
+export type UserChatEnqueueResult = UserChatDetail & {
+    job: UserChatJob;
 };
 
 /**
@@ -155,6 +190,13 @@ function generateBase58Suffix(length: number): string {
     }
 
     return Array.from(randomValues, (value) => BASE58_ALPHABET[value % BASE58_ALPHABET.length]).join('');
+}
+
+/**
+ * Creates one stable client-generated deduplication key for durable message sends.
+ */
+export function createUserChatClientMessageId(): string {
+    return generateBase58Suffix(18);
 }
 
 /**
@@ -315,6 +357,54 @@ export async function fetchUserChat(agentName: string, chatId: string): Promise<
 
     if (!response.ok) {
         throw await resolveUserChatApiError(response, 'Failed to load chat.');
+    }
+
+    return (await response.json()) as UserChatDetail;
+}
+
+/**
+ * Enqueues one user-authored message for durable server-side processing.
+ */
+export async function sendUserChatMessage(
+    agentName: string,
+    chatId: string,
+    payload: {
+        clientMessageId: string;
+        message: string;
+        attachments?: ChatMessage['attachments'];
+        parameters?: Record<string, unknown>;
+    },
+): Promise<UserChatEnqueueResult> {
+    const response = await fetch(
+        `/agents/${encodeURIComponent(agentName)}/api/user-chats/${encodeURIComponent(chatId)}/messages`,
+        {
+            method: 'POST',
+            headers: createUserChatRequestHeaders({ 'Content-Type': 'application/json' }),
+            body: JSON.stringify(payload),
+        },
+    );
+
+    if (!response.ok) {
+        throw await resolveUserChatApiError(response, 'Failed to send chat message.');
+    }
+
+    return (await response.json()) as UserChatEnqueueResult;
+}
+
+/**
+ * Requests cancellation for one active durable chat job.
+ */
+export async function cancelUserChatJob(agentName: string, chatId: string, jobId: string): Promise<UserChatDetail> {
+    const response = await fetch(
+        `/agents/${encodeURIComponent(agentName)}/api/user-chats/${encodeURIComponent(chatId)}/jobs/${encodeURIComponent(jobId)}/cancel`,
+        {
+            method: 'POST',
+            headers: createUserChatRequestHeaders(),
+        },
+    );
+
+    if (!response.ok) {
+        throw await resolveUserChatApiError(response, 'Failed to cancel chat job.');
     }
 
     return (await response.json()) as UserChatDetail;

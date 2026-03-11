@@ -12,7 +12,7 @@ export type UserChatScopeErrorCode =
  * Structured debug details attached to user-chat scope errors.
  */
 export type UserChatScopeErrorDetails = {
-    operation: 'update_messages' | 'update_draft';
+    operation: 'update_messages' | 'update_draft' | 'mutate_chat';
     requestedScope: {
         userId: number;
         agentPermanentId: string;

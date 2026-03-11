@@ -471,6 +471,94 @@ export type AgentsServerDatabase = {
                     },
                 ];
             };
+            UserChatJob: {
+                Row: {
+                    id: string;
+                    createdAt: string;
+                    updatedAt: string;
+                    chatId: string;
+                    userId: number;
+                    agentPermanentId: string;
+                    userMessageId: string;
+                    assistantMessageId: string;
+                    clientMessageId: string;
+                    status: 'QUEUED' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+                    parameters: Json;
+                    queuedAt: string;
+                    startedAt: string | null;
+                    completedAt: string | null;
+                    cancelRequestedAt: string | null;
+                    lastHeartbeatAt: string | null;
+                    leaseExpiresAt: string | null;
+                    attemptCount: number;
+                    provider: string | null;
+                    failureReason: string | null;
+                };
+                Insert: {
+                    id: string;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    chatId: string;
+                    userId: number;
+                    agentPermanentId: string;
+                    userMessageId: string;
+                    assistantMessageId: string;
+                    clientMessageId: string;
+                    status: 'QUEUED' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+                    parameters?: Json;
+                    queuedAt?: string;
+                    startedAt?: string | null;
+                    completedAt?: string | null;
+                    cancelRequestedAt?: string | null;
+                    lastHeartbeatAt?: string | null;
+                    leaseExpiresAt?: string | null;
+                    attemptCount?: number;
+                    provider?: string | null;
+                    failureReason?: string | null;
+                };
+                Update: {
+                    id?: string;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    chatId?: string;
+                    userId?: number;
+                    agentPermanentId?: string;
+                    userMessageId?: string;
+                    assistantMessageId?: string;
+                    clientMessageId?: string;
+                    status?: 'QUEUED' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+                    parameters?: Json;
+                    queuedAt?: string;
+                    startedAt?: string | null;
+                    completedAt?: string | null;
+                    cancelRequestedAt?: string | null;
+                    lastHeartbeatAt?: string | null;
+                    leaseExpiresAt?: string | null;
+                    attemptCount?: number;
+                    provider?: string | null;
+                    failureReason?: string | null;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: 'UserChatJob_chatId_fkey';
+                        columns: ['chatId'];
+                        referencedRelation: 'UserChat';
+                        referencedColumns: ['id'];
+                    },
+                    {
+                        foreignKeyName: 'UserChatJob_userId_fkey';
+                        columns: ['userId'];
+                        referencedRelation: 'User';
+                        referencedColumns: ['id'];
+                    },
+                    {
+                        foreignKeyName: 'UserChatJob_agentPermanentId_fkey';
+                        columns: ['agentPermanentId'];
+                        referencedRelation: 'Agent';
+                        referencedColumns: ['permanentId'];
+                    },
+                ];
+            };
             LlmCache: {
                 Row: {
                     id: number;

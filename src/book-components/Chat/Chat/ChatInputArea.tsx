@@ -1031,6 +1031,11 @@ export function ChatInputArea(props: ChatInputAreaProps) {
                 /* not await */ soundSystem.play('message_send');
             }
 
+            await (onMessage as unknown as (
+                message: string,
+                attachments: Array<{ name: string; type: string; url: string }>,
+            ) => Promise<void>)(messageContent, attachments);
+
             setMessageContent('');
             setUploadedFiles([]);
             onChange?.('');
@@ -1038,16 +1043,6 @@ export function ChatInputArea(props: ChatInputAreaProps) {
             if (wasTextareaFocused) {
                 textareaElement.focus();
             }
-
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (onMessage as any)(messageContent, attachments).catch((error: unknown) => {
-                console.error(error);
-                if (error instanceof Error) {
-                    alert(error.message);
-                } else {
-                    alert(String(error));
-                }
-            });
         } catch (error) {
             if (!(error instanceof Error)) {
                 throw error;

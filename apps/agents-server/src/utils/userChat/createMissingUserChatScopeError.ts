@@ -7,7 +7,7 @@ import type { UserChatRow } from './UserChatRow';
  * Input used to diagnose one missing scoped user-chat row.
  */
 export type MissingUserChatScopeErrorOptions = {
-    operation: 'update_messages' | 'update_draft';
+    operation: 'update_messages' | 'update_draft' | 'mutate_chat';
     userId: number;
     agentPermanentId: string;
     chatId: string;

@@ -1,6 +1,12 @@
 import type { ChatMessage } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
-import { createUserChat, createUserChatSummary, listUserChats } from '@/src/utils/userChat';
+import {
+    createUserChat,
+    createUserChatDetailPayload,
+    createUserChatSummary,
+    listUserChatJobs,
+    listUserChats,
+} from '@/src/utils/userChat';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import { resolveUserChatScope } from './resolveUserChatScope';
 
@@ -40,6 +46,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
             activeChatId: activeChat?.id || null,
             activeMessages: activeChat?.messages || [],
             activeDraftMessage: activeChat?.draftMessage || null,
+            activeJobs: activeChat
+                ? await listUserChatJobs({
+                      userId: activeChat.userId,
+                      agentPermanentId: activeChat.agentPermanentId,
+                      chatId: activeChat.id,
+                      onlyActive: true,
+                  })
+                : [],
         });
     } catch (error) {
         return NextResponse.json(
@@ -82,14 +96,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             messages,
         });
 
-        return NextResponse.json(
-            {
-                chat: createUserChatSummary(chat),
-                messages: chat.messages,
-                draftMessage: chat.draftMessage,
-            },
-            { status: 201 },
-        );
+        return NextResponse.json(await createUserChatDetailPayload(chat), { status: 201 });
     } catch (error) {
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Failed to create chat.' },

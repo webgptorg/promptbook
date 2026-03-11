@@ -1,3 +1,13 @@
+-   Reworked Agents Server standalone chat into a server-owned durable conversation model:
+
+    -   Added durable `UserChatJob` persistence with linked `chatId`, `messageId`, `assistantMessageId`, `clientMessageId`, job lease/heartbeat fields, cancellation timestamps, provider/failure metadata, and migration `2026-03-0180-user-chat-jobs.sql`.
+    -   Added canonical chat-turn enqueueing API (`/agents/[agentName]/api/user-chats/[chatId]/messages`) with server-side idempotency via `clientMessageId`, immediate user-message + assistant-placeholder persistence, and background worker triggering detached from the browser request lifecycle.
+    -   Added internal durable worker route (`/api/internal/user-chat-jobs/run`) that claims queued jobs, recovers expired leases, executes chat turns server-side, heartbeats running work, progressively persists assistant output into `UserChat.messages`, and records final `completed` / `failed` / `cancelled` states.
+    -   Added active-job reporting and cancellation support to user-chat APIs so reconnecting devices can load canonical history plus queued/running jobs and request cancellation of in-flight turns.
+    -   Rewrote `/agents/[agentName]/chat` history mode to poll canonical server state instead of browser-owned local chat snapshots, keeping the same `chatId` synchronized across devices and after refresh/reconnect.
+    -   Extended shared chat messages with durable lifecycle metadata (`queued`, `running`, `completed`, `failed`, `cancelled`) and updated chat UI to render lifecycle badges/errors consistently.
+    -   Updated shared chat input sending so async send handlers clear the composer only after a successful server acknowledgement, preserving input for retries when durable message submission fails.
+
 -   Fixed Agents Server duplicated `INITIAL MESSAGE` entries in chat history when switching chats or refreshing:
 
     -   Added a stable seeded initial-message ID in `AgentChat` so user-chat append-only merge treats rehydrated initial messages as one logical message.

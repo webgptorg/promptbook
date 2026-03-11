@@ -6,62 +6,63 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAgentNaming } from '../../../../components/AgentNaming/AgentNamingContext';
 import { showConfirm } from '../../../../components/AsyncDialogs/asyncDialogs';
 import { notifyError } from '../../../../components/Notifications/notifications';
+import { usePrivateModePreferences } from '../../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { AgentChatLoadingSkeleton } from '../../../../components/Skeleton/AgentChatLoadingSkeleton';
-import { ChatThreadLoadingSkeleton } from '../../../../components/Skeleton/ChatThreadLoadingSkeleton';
-import { ChatPersistence } from '../../../../utils/chatPersistenceClient';
 import { SolidArrowButton } from '../../../../../../../src/book-components/icons/SolidArrowButton';
 import {
+    cancelUserChatJob,
     createUserChat,
-    fetchUserChat,
+    createUserChatClientMessageId,
     fetchUserChats,
     removeUserChat,
-    saveUserChatMessages,
     saveUserChatDraft,
-    UserChatApiError,
-    UserChatSummary,
+    sendUserChatMessage,
+    type UserChatDetail,
+    type UserChatEnqueueResult,
+    type UserChatJob,
+    type UserChatSummary,
 } from '../../../../utils/userChatClient';
-import { AgentChatSidebar, AGENT_CHAT_SIDEBAR_ID } from './AgentChatSidebar';
 import { AgentChatWrapper } from '../AgentChatWrapper';
 import { takePendingProfileMessage } from '../profileMessageCache';
-import { usePrivateModePreferences } from '../../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
+import { AgentChatSidebar, AGENT_CHAT_SIDEBAR_ID } from './AgentChatSidebar';
+import { CanonicalAgentChatPanel } from './CanonicalAgentChatPanel';
 
 /**
- * Delay used before persisting chat messages to DB.
+ * Poll interval used while the active chat has queued/running jobs.
+ */
+const ACTIVE_CHAT_POLL_INTERVAL_MS = 1_500;
+
+/**
+ * Poll interval used while the active chat is idle.
+ */
+const IDLE_CHAT_POLL_INTERVAL_MS = 8_000;
+
+/**
+ * Debounce window for draft persistence.
  */
 const SAVE_DEBOUNCE_MS = 600;
 
 /**
- * Delay before showing switching overlay to avoid flashing on fast chat switches.
+ * Props for the full chat page with per-user durable history.
  */
-const SWITCHING_CHAT_OVERLAY_DELAY_MS = 180;
-
-/**
- * Fallback message shown when persisting chat messages fails.
- */
-const DEFAULT_CHAT_SAVE_FAILURE_MESSAGE = 'Chat save failed. Retry to persist the current conversation.';
-
-/**
- * Fallback message shown when persisting chat draft fails.
- */
-const DEFAULT_CHAT_DRAFT_SAVE_FAILURE_MESSAGE = 'Chat draft save failed. Retry to persist the current draft.';
-
-/**
- * Label used by chat save-failure notification action.
- */
-const RETRY_CHAT_SAVE_ACTION_LABEL = 'Retry save';
-
-/**
- * Optional settings for immediate chat persistence helpers.
- */
-type PersistChatChangesOptions = {
-    /**
-     * Enables keepalive requests for page-unload saves.
-     */
-    keepalive?: boolean;
+type AgentChatHistoryClientProps = {
+    agentName: string;
+    agentUrl: string;
+    brandColor?: string;
+    inputPlaceholder: string;
+    speechRecognitionLanguage?: string;
+    initialChatId?: string;
+    initialAutoExecuteMessage?: string;
+    initialForceNewChat?: boolean;
+    initialAgentMessage?: string | null;
+    isHistoryEnabled: boolean;
+    areFileAttachmentsEnabled: boolean;
+    isFeedbackEnabled: boolean;
+    isHeadlessMode?: boolean;
 };
 
 /**
- * Replaces browser URL without triggering App Router navigation/streaming.
+ * Replaces browser URL without triggering App Router navigation.
  */
 function replaceBrowserUrlWithoutNavigation(nextRelativeUrl: string): void {
     if (typeof window === 'undefined') {
@@ -77,30 +78,7 @@ function replaceBrowserUrlWithoutNavigation(nextRelativeUrl: string): void {
 }
 
 /**
- * Props for user-chat enabled full chat page.
- */
-type AgentChatHistoryClientProps = {
-    agentName: string;
-    agentUrl: string;
-    brandColor?: string;
-    inputPlaceholder: string;
-    thinkingMessages?: ReadonlyArray<string>;
-    speechRecognitionLanguage?: string;
-    initialChatId?: string;
-    initialAutoExecuteMessage?: string;
-    initialForceNewChat?: boolean;
-    isHistoryEnabled: boolean;
-    chatFailMessage?: string;
-    areFileAttachmentsEnabled: boolean;
-    isFeedbackEnabled: boolean;
-    /**
-     * Controls embed/headless mode where chat-selection sidebar is hidden.
-     */
-    isHeadlessMode?: boolean;
-};
-
-/**
- * Full chat page client with per-user chat history.
+ * Full chat page client with canonical server-owned conversation state.
  */
 export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const {
@@ -108,13 +86,12 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         agentUrl,
         brandColor,
         inputPlaceholder,
-        thinkingMessages,
         speechRecognitionLanguage,
         initialChatId,
         initialAutoExecuteMessage,
         initialForceNewChat = false,
+        initialAgentMessage,
         isHistoryEnabled,
-        chatFailMessage,
         areFileAttachmentsEnabled,
         isFeedbackEnabled,
         isHeadlessMode = false,
@@ -122,22 +99,36 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const { formatText } = useAgentNaming();
     const { isPrivateModeEnabled } = usePrivateModePreferences();
     const shouldUseHistory = isHistoryEnabled && !isPrivateModeEnabled;
-    const pendingProfileMessage = useMemo(
-        () => takePendingProfileMessage(agentName),
-        [agentName],
-    );
+    const pendingProfileMessage = useMemo(() => takePendingProfileMessage(agentName), [agentName]);
     const effectiveInitialAutoExecuteMessage = initialAutoExecuteMessage ?? pendingProfileMessage?.message;
     const effectiveInitialAutoExecuteMessageAttachments = pendingProfileMessage?.attachments;
-
     const [chats, setChats] = useState<Array<UserChatSummary>>([]);
     const [activeChatId, setActiveChatId] = useState<string | null>(null);
-    const [activeChatMountKey, setActiveChatMountKey] = useState(0);
+    const [activeMessages, setActiveMessages] = useState<Array<ChatMessage>>([]);
+    const [activeJobs, setActiveJobs] = useState<Array<UserChatJob>>([]);
+    const [activeChatDraftMessage, setActiveChatDraftMessage] = useState('');
     const [isBootstrapping, setIsBootstrapping] = useState(shouldUseHistory);
     const [isChatListLoading, setIsChatListLoading] = useState(shouldUseHistory);
     const [isCreatingChat, setIsCreatingChat] = useState(false);
-    const [isSwitchingChat, setIsSwitchingChat] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+    const hasInitialAutoMessageBeenConsumedRef = useRef(false);
+    const autoExecuteTargetChatIdRef = useRef<string | undefined>(initialForceNewChat ? undefined : initialChatId);
+    const activeChatIdRef = useRef<string | null>(null);
+    const activeChatDraftMessageRef = useRef('');
+    const activeDraftDirtyRef = useRef(false);
+    const draftSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const isRefreshingRef = useRef(false);
+    const failedSendRef = useRef<{ signature: string; clientMessageId: string } | null>(null);
+
+    useEffect(() => {
+        activeChatIdRef.current = activeChatId;
+    }, [activeChatId]);
+
+    useEffect(() => {
+        activeChatDraftMessageRef.current = activeChatDraftMessage;
+    }, [activeChatDraftMessage]);
+
     const toggleSidebarCollapsed = useCallback(() => {
         setIsSidebarCollapsed((value) => !value);
     }, []);
@@ -152,33 +143,6 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         : 'opacity-100 pointer-events-auto';
     const effectiveIsSidebarCollapsed = isMobileSidebarOpen ? false : isSidebarCollapsed;
 
-    const hasInitialAutoMessageBeenConsumedRef = useRef(false);
-    const saveTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
-    const savedMessagesHashesRef = useRef<Map<string, string>>(new Map());
-    const chatMessagesCacheRef = useRef<Map<string, ReadonlyArray<ChatMessage>>>(new Map());
-    const isSwitchingChatRef = useRef(false);
-    const autoExecuteTargetChatIdRef = useRef<string | undefined>(initialForceNewChat ? undefined : initialChatId);
-    const draftSaveTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
-    const [activeChatDraftMessage, setActiveChatDraftMessage] = useState<string | null>(null);
-    const chatDraftCacheRef = useRef<Map<string, string | null>>(new Map());
-    const failedMessagesHashesRef = useRef<Map<string, string>>(new Map());
-    const failedDraftValuesRef = useRef<Map<string, string | null>>(new Map());
-    const isMissingChatRecoveryInFlightRef = useRef(false);
-    const retrySaveActionRef = useRef<() => void>(() => {});
-
-    const guestPersistenceKey = useMemo(
-        () => `guest-chat-${encodeURIComponent(agentName)}-${Math.random().toString(36).slice(2)}`,
-        [agentName],
-    );
-
-    /**
-     * Builds local storage key used by `<AgentChat/>`.
-     */
-    const buildUserChatPersistenceKey = useCallback(
-        (chatId: string) => `user-chat-${encodeURIComponent(agentName)}-${chatId}`,
-        [agentName],
-    );
-
     /**
      * Builds canonical route for one selected chat.
      */
@@ -187,8 +151,8 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             const params = new URLSearchParams();
             params.set('chat', chatId);
 
-            if (includeInitialMessage && initialAutoExecuteMessage) {
-                params.set('message', initialAutoExecuteMessage);
+            if (includeInitialMessage && effectiveInitialAutoExecuteMessage) {
+                params.set('message', effectiveInitialAutoExecuteMessage);
             }
 
             if (isHeadlessMode) {
@@ -197,323 +161,189 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
             return `/agents/${encodeURIComponent(agentName)}/chat?${params.toString()}`;
         },
-        [agentName, initialAutoExecuteMessage, isHeadlessMode],
+        [agentName, effectiveInitialAutoExecuteMessage, isHeadlessMode],
     );
 
     /**
-     * Resolves cached messages for one chat from memory cache or local storage.
+     * Applies one canonical chat detail payload to local state.
      */
-    const getCachedChatMessages = useCallback(
-        (chatId: string): ReadonlyArray<ChatMessage> | undefined => {
-            if (chatMessagesCacheRef.current.has(chatId)) {
-                return chatMessagesCacheRef.current.get(chatId);
-            }
-
-            if (!ChatPersistence.isAvailable()) {
-                return undefined;
-            }
-
-            const persistedMessages = ChatPersistence.loadMessages(buildUserChatPersistenceKey(chatId));
-            if (persistedMessages.length === 0) {
-                return undefined;
-            }
-
-            chatMessagesCacheRef.current.set(chatId, persistedMessages);
-            return persistedMessages;
-        },
-        [buildUserChatPersistenceKey],
-    );
-
-    /**
-     * Seeds local storage for selected chat and forces chat remount.
-     */
-    const prepareChatInLocalStorage = useCallback(
-        (chatId: string, messages: ReadonlyArray<ChatMessage>) => {
-            const normalizedMessages = [...messages];
-            const persistenceKey = buildUserChatPersistenceKey(chatId);
-
-            if (ChatPersistence.isAvailable()) {
-                if (normalizedMessages.length > 0) {
-                    ChatPersistence.saveMessages(persistenceKey, normalizedMessages);
-                } else {
-                    ChatPersistence.clearMessages(persistenceKey);
-                }
-            }
-
-            savedMessagesHashesRef.current.set(chatId, serializePersistableChatMessages(normalizedMessages));
-            failedMessagesHashesRef.current.delete(chatId);
-            chatMessagesCacheRef.current.set(chatId, normalizedMessages);
-            setActiveChatId(chatId);
-            setActiveChatMountKey((value) => value + 1);
-        },
-        [buildUserChatPersistenceKey],
-    );
-
-    /**
-     * Activates one chat in UI and updates URL query without triggering route refresh.
-     */
-    const activateChat = useCallback(
+    const applyChatDetail = useCallback(
         (
-            chatId: string,
-            messages: ReadonlyArray<ChatMessage>,
+            chatDetail: UserChatDetail | UserChatEnqueueResult,
             options: {
+                preserveDirtyDraft?: boolean;
                 includeInitialMessage?: boolean;
-                draftMessage?: string | null;
             } = {},
         ) => {
-            prepareChatInLocalStorage(chatId, messages);
-            const nextDraftMessage = options.draftMessage ?? null;
-            chatDraftCacheRef.current.set(chatId, nextDraftMessage);
-            failedDraftValuesRef.current.delete(chatId);
-            setActiveChatDraftMessage(nextDraftMessage);
-            replaceBrowserUrlWithoutNavigation(buildChatRoute(chatId, Boolean(options.includeInitialMessage)));
+            setActiveChatId(chatDetail.chat.id);
+            setActiveMessages([...chatDetail.messages]);
+            setActiveJobs([...chatDetail.activeJobs]);
+            setChats((previousChats) => replaceChatInList(previousChats, chatDetail.chat));
+
+            const shouldPreserveDirtyDraft =
+                options.preserveDirtyDraft === true &&
+                activeDraftDirtyRef.current &&
+                activeChatIdRef.current === chatDetail.chat.id;
+
+            if (!shouldPreserveDirtyDraft) {
+                const nextDraftMessage = chatDetail.draftMessage || '';
+                activeDraftDirtyRef.current = false;
+                setActiveChatDraftMessage(nextDraftMessage);
+            }
+
+            replaceBrowserUrlWithoutNavigation(
+                buildChatRoute(chatDetail.chat.id, Boolean(options.includeInitialMessage)),
+            );
         },
-        [buildChatRoute, prepareChatInLocalStorage],
+        [buildChatRoute],
     );
 
     /**
-     * Fetches user-chat snapshot and ensures at least one active chat.
+     * Applies one list snapshot to the currently selected chat.
+     */
+    const applySnapshot = useCallback(
+        (
+            snapshot: Awaited<ReturnType<typeof fetchUserChats>>,
+            options: {
+                preserveDirtyDraft?: boolean;
+                includeInitialMessage?: boolean;
+            } = {},
+        ) => {
+            setChats(snapshot.chats);
+            if (!snapshot.activeChatId) {
+                setActiveChatId(null);
+                setActiveMessages([]);
+                setActiveJobs([]);
+                setActiveChatDraftMessage('');
+                activeDraftDirtyRef.current = false;
+                return;
+            }
+
+            setActiveChatId(snapshot.activeChatId);
+            setActiveMessages([...snapshot.activeMessages]);
+            setActiveJobs([...snapshot.activeJobs]);
+
+            const shouldPreserveDirtyDraft =
+                options.preserveDirtyDraft === true &&
+                activeDraftDirtyRef.current &&
+                activeChatIdRef.current === snapshot.activeChatId;
+
+            if (!shouldPreserveDirtyDraft) {
+                const nextDraftMessage = snapshot.activeDraftMessage || '';
+                activeDraftDirtyRef.current = false;
+                setActiveChatDraftMessage(nextDraftMessage);
+            }
+
+            replaceBrowserUrlWithoutNavigation(
+                buildChatRoute(snapshot.activeChatId, Boolean(options.includeInitialMessage)),
+            );
+        },
+        [buildChatRoute],
+    );
+
+    /**
+     * Persists the current active draft immediately.
+     */
+    const flushActiveDraft = useCallback(
+        async (options: { keepalive?: boolean } = {}): Promise<void> => {
+            const currentActiveChatId = activeChatIdRef.current;
+            if (!shouldUseHistory || !currentActiveChatId || !activeDraftDirtyRef.current) {
+                return;
+            }
+
+            const draftValue = activeChatDraftMessageRef.current || null;
+            if (draftSaveTimerRef.current) {
+                clearTimeout(draftSaveTimerRef.current);
+                draftSaveTimerRef.current = null;
+            }
+
+            await saveUserChatDraft(agentName, currentActiveChatId, draftValue, {
+                keepalive: options.keepalive,
+            });
+            activeDraftDirtyRef.current = false;
+        },
+        [agentName, shouldUseHistory],
+    );
+
+    /**
+     * Bootstraps chats and guarantees an active chat when history is enabled.
      */
     const bootstrapChats = useCallback(
         async (preferredChatId?: string) => {
             const effectivePreferredChatId = initialForceNewChat ? undefined : preferredChatId;
             const snapshot = await fetchUserChats(agentName, effectivePreferredChatId);
-            let nextChats = snapshot.chats;
-            let resolvedActiveChatId = snapshot.activeChatId;
-            let resolvedMessages = snapshot.activeMessages;
-            let resolvedDraftMessage = snapshot.activeDraftMessage ?? null;
-
             const shouldCreateFreshChatForInitialMessage =
                 !hasInitialAutoMessageBeenConsumedRef.current &&
                 Boolean(effectiveInitialAutoExecuteMessage) &&
                 (initialForceNewChat || !effectivePreferredChatId);
 
-            if (!resolvedActiveChatId || shouldCreateFreshChatForInitialMessage) {
+            if (!snapshot.activeChatId || shouldCreateFreshChatForInitialMessage) {
                 const createdChat = await createUserChat(agentName);
-                nextChats = [createdChat.chat, ...nextChats.filter((chat) => chat.id !== createdChat.chat.id)];
-                resolvedActiveChatId = createdChat.chat.id;
-                resolvedMessages = createdChat.messages;
-                resolvedDraftMessage = createdChat.draftMessage ?? null;
-
                 if (effectiveInitialAutoExecuteMessage) {
                     autoExecuteTargetChatIdRef.current = createdChat.chat.id;
                 }
-            }
 
-            setChats(nextChats);
+                applyChatDetail(createdChat, {
+                    includeInitialMessage: Boolean(effectiveInitialAutoExecuteMessage),
+                });
+                setChats([
+                    createdChat.chat,
+                    ...snapshot.chats.filter((chat) => chat.id !== createdChat.chat.id),
+                ]);
+                return;
+            }
 
             const shouldKeepInitialAutoMessage =
                 !hasInitialAutoMessageBeenConsumedRef.current &&
                 Boolean(effectiveInitialAutoExecuteMessage) &&
-                (!autoExecuteTargetChatIdRef.current || resolvedActiveChatId === autoExecuteTargetChatIdRef.current);
+                (!autoExecuteTargetChatIdRef.current || autoExecuteTargetChatIdRef.current === snapshot.activeChatId);
 
-            activateChat(resolvedActiveChatId, resolvedMessages, {
-                includeInitialMessage: Boolean(initialAutoExecuteMessage) && shouldKeepInitialAutoMessage,
-                draftMessage: resolvedDraftMessage,
+            applySnapshot(snapshot, {
+                includeInitialMessage: shouldKeepInitialAutoMessage,
             });
         },
-        [activateChat, agentName, effectiveInitialAutoExecuteMessage, initialAutoExecuteMessage, initialForceNewChat],
+        [
+            agentName,
+            applyChatDetail,
+            applySnapshot,
+            effectiveInitialAutoExecuteMessage,
+            initialForceNewChat,
+        ],
     );
 
     /**
-     * Persists one chat message array immediately and updates sidebar summary.
+     * Refreshes the canonical state of the currently selected chat.
      */
-    const persistChatMessagesNow = useCallback(
-        async (
-            chatId: string,
-            messages: ReadonlyArray<ChatMessage>,
-            options: PersistChatChangesOptions = {},
-        ): Promise<void> => {
-            const chatDetail = await saveUserChatMessages(agentName, chatId, resolvePersistableChatMessages(messages), {
-                keepalive: options.keepalive,
-            });
-
-            savedMessagesHashesRef.current.set(chatId, serializePersistableChatMessages(chatDetail.messages));
-            failedMessagesHashesRef.current.delete(chatId);
-            setChats((previousChats) =>
-                moveChatToTop(previousChats, chatDetail.chat).map((chat) =>
-                    chat.id === chatDetail.chat.id ? chatDetail.chat : chat,
-                ),
-            );
-        },
-        [agentName],
-    );
-
-    /**
-     * Persists one chat draft message immediately.
-     */
-    const persistChatDraftNow = useCallback(
-        async (chatId: string, draftMessage: string | null, options: PersistChatChangesOptions = {}): Promise<void> => {
-            await saveUserChatDraft(agentName, chatId, draftMessage, {
-                keepalive: options.keepalive,
-            });
-            failedDraftValuesRef.current.delete(chatId);
-        },
-        [agentName],
-    );
-
-    /**
-     * Retries persisting current active chat after a save failure.
-     */
-    const retrySaveNow = useCallback(() => {
-        if (!shouldUseHistory || !activeChatId) {
-            return;
-        }
-
-        const activeMessages = chatMessagesCacheRef.current.get(activeChatId) || [];
-        const serializedMessages = serializePersistableChatMessages(activeMessages);
-        const activeDraftMessage = chatDraftCacheRef.current.get(activeChatId) ?? null;
-        const pendingRequests: Array<Promise<void>> = [];
-
-        if (savedMessagesHashesRef.current.get(activeChatId) !== serializedMessages) {
-            failedMessagesHashesRef.current.delete(activeChatId);
-            pendingRequests.push(persistChatMessagesNow(activeChatId, activeMessages));
-        }
-
-        failedDraftValuesRef.current.delete(activeChatId);
-        pendingRequests.push(persistChatDraftNow(activeChatId, activeDraftMessage));
-
-        if (pendingRequests.length === 0) {
-            return;
-        }
-
-        void Promise.all(pendingRequests).catch((error) => {
-            failedMessagesHashesRef.current.set(activeChatId, serializedMessages);
-            failedDraftValuesRef.current.set(activeChatId, activeDraftMessage);
-
-            if (isMissingScopedChatSaveError(error)) {
-                void bootstrapChats(undefined);
+    const refreshActiveChat = useCallback(
+        async (options: { preserveDirtyDraft?: boolean } = { preserveDirtyDraft: true }) => {
+            const currentActiveChatId = activeChatIdRef.current;
+            if (!shouldUseHistory || !currentActiveChatId || isRefreshingRef.current) {
                 return;
             }
 
-            console.error('[user-chat] Failed to retry chat save', error);
-            notifyError(resolveErrorMessage(error, DEFAULT_CHAT_SAVE_FAILURE_MESSAGE), {
-                details: {
-                    source: 'AgentChatHistoryClient.retrySaveNow',
-                    agentName,
-                    activeChatId,
-                    error: serializeNotificationError(error),
-                },
-                actionLabel: RETRY_CHAT_SAVE_ACTION_LABEL,
-                onAction: () => retrySaveActionRef.current(),
-            });
-        });
-    }, [activeChatId, agentName, bootstrapChats, persistChatDraftNow, persistChatMessagesNow, shouldUseHistory]);
-    retrySaveActionRef.current = retrySaveNow;
-
-    /**
-     * Re-syncs local chat state when server reports that active chat scope is missing.
-     */
-    const recoverFromMissingScopedChat = useCallback(
-        async (chatId: string | null): Promise<boolean> => {
-            if (!chatId || chatId !== activeChatId || !shouldUseHistory) {
-                return false;
-            }
-
-            if (isMissingChatRecoveryInFlightRef.current) {
-                return true;
-            }
-
-            isMissingChatRecoveryInFlightRef.current = true;
-
+            isRefreshingRef.current = true;
             try {
-                await bootstrapChats(undefined);
-                return true;
-            } catch (recoveryError) {
-                console.error('[user-chat] Failed to recover from missing scoped chat', recoveryError);
-                return false;
+                const snapshot = await fetchUserChats(agentName, currentActiveChatId);
+                if (!snapshot.activeChatId) {
+                    await bootstrapChats(undefined);
+                    return;
+                }
+
+                applySnapshot(snapshot, options);
             } finally {
-                isMissingChatRecoveryInFlightRef.current = false;
+                isRefreshingRef.current = false;
             }
         },
-        [activeChatId, bootstrapChats, shouldUseHistory],
-    );
-
-    /**
-     * Emits standardized save-failure notifications with a retry action.
-     */
-    const notifyChatSaveFailure = useCallback(
-        (error: unknown, fallbackMessage: string, source: string, chatId: string | null): void => {
-            if (isMissingScopedChatSaveError(error)) {
-                if (chatId) {
-                    const attemptedMessages = chatMessagesCacheRef.current.get(chatId) || [];
-                    failedMessagesHashesRef.current.set(chatId, serializePersistableChatMessages(attemptedMessages));
-                    failedDraftValuesRef.current.set(chatId, chatDraftCacheRef.current.get(chatId) ?? null);
-                }
-
-                void recoverFromMissingScopedChat(chatId);
-                return;
-            }
-
-            notifyError(resolveErrorMessage(error, fallbackMessage), {
-                details: {
-                    source,
-                    agentName,
-                    activeChatId,
-                    chatId,
-                    error: serializeNotificationError(error),
-                },
-                actionLabel: RETRY_CHAT_SAVE_ACTION_LABEL,
-                onAction: () => retrySaveActionRef.current(),
-            });
-        },
-        [activeChatId, agentName, recoverFromMissingScopedChat],
-    );
-
-    /**
-     * Flushes pending debounced message saves and draft saves.
-     */
-    const flushPendingPersistenceTimers = useCallback(
-        (options: PersistChatChangesOptions = {}) => {
-            for (const [chatId, timer] of saveTimersRef.current) {
-                clearTimeout(timer);
-                saveTimersRef.current.delete(chatId);
-
-                const messages = chatMessagesCacheRef.current.get(chatId);
-                if (!messages) {
-                    continue;
-                }
-
-                const serializedMessages = serializePersistableChatMessages(messages);
-                if (savedMessagesHashesRef.current.get(chatId) === serializedMessages) {
-                    continue;
-                }
-
-                void persistChatMessagesNow(chatId, messages, options).catch((error) => {
-                    failedMessagesHashesRef.current.set(chatId, serializedMessages);
-                    console.error('[user-chat] Failed to flush pending chat messages', error);
-                    notifyChatSaveFailure(
-                        error,
-                        DEFAULT_CHAT_SAVE_FAILURE_MESSAGE,
-                        'AgentChatHistoryClient.flushPendingPersistenceTimers.messages',
-                        chatId,
-                    );
-                });
-            }
-
-            for (const [chatId, timer] of draftSaveTimersRef.current) {
-                clearTimeout(timer);
-                draftSaveTimersRef.current.delete(chatId);
-
-                const draftMessage = chatDraftCacheRef.current.get(chatId) ?? null;
-                void persistChatDraftNow(chatId, draftMessage, options).catch((error) => {
-                    failedDraftValuesRef.current.set(chatId, draftMessage);
-                    console.error('[user-chat] Failed to flush pending chat draft', error);
-                    notifyChatSaveFailure(
-                        error,
-                        DEFAULT_CHAT_DRAFT_SAVE_FAILURE_MESSAGE,
-                        'AgentChatHistoryClient.flushPendingPersistenceTimers.draft',
-                        chatId,
-                    );
-                });
-            }
-        },
-        [notifyChatSaveFailure, persistChatDraftNow, persistChatMessagesNow],
+        [agentName, applySnapshot, bootstrapChats, shouldUseHistory],
     );
 
     useEffect(() => {
         if (!shouldUseHistory) {
             setChats([]);
+            setActiveChatId(null);
+            setActiveMessages([]);
+            setActiveJobs([]);
+            setActiveChatDraftMessage('');
             setIsBootstrapping(false);
             setIsChatListLoading(false);
             return;
@@ -529,14 +359,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 await bootstrapChats(initialChatId);
             } catch (error) {
                 if (!isDisposed) {
-                    notifyError(resolveErrorMessage(error, 'Failed to load chats.'), {
-                        details: {
-                            source: 'AgentChatHistoryClient.bootstrap',
-                            agentName,
-                            initialChatId: initialChatId || null,
-                            error,
-                        },
-                    });
+                    notifyError(resolveErrorMessage(error, 'Failed to load chats.'));
                 }
             } finally {
                 if (!isDisposed) {
@@ -551,19 +374,19 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         return () => {
             isDisposed = true;
         };
-    }, [agentName, bootstrapChats, initialChatId, shouldUseHistory]);
+    }, [bootstrapChats, initialChatId, shouldUseHistory]);
 
     useEffect(() => {
         autoExecuteTargetChatIdRef.current = initialForceNewChat ? undefined : initialChatId;
     }, [initialChatId, initialForceNewChat]);
 
     useEffect(() => {
-        if (typeof window === 'undefined') {
+        if (!shouldUseHistory || typeof window === 'undefined') {
             return;
         }
 
         const flushWithKeepalive = () => {
-            flushPendingPersistenceTimers({ keepalive: true });
+            void flushActiveDraft({ keepalive: true });
         };
 
         window.addEventListener('pagehide', flushWithKeepalive);
@@ -572,55 +395,58 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         return () => {
             window.removeEventListener('pagehide', flushWithKeepalive);
             window.removeEventListener('beforeunload', flushWithKeepalive);
-            flushPendingPersistenceTimers();
+            void flushActiveDraft();
         };
-    }, [flushPendingPersistenceTimers]);
+    }, [flushActiveDraft, shouldUseHistory]);
+
+    useEffect(() => {
+        if (!shouldUseHistory || !activeChatId) {
+            return;
+        }
+
+        const pollIntervalMs = activeJobs.length > 0 ? ACTIVE_CHAT_POLL_INTERVAL_MS : IDLE_CHAT_POLL_INTERVAL_MS;
+        const runRefresh = () => {
+            if (typeof document !== 'undefined' && document.hidden) {
+                return;
+            }
+
+            void refreshActiveChat({ preserveDirtyDraft: true });
+        };
+
+        const interval = window.setInterval(runRefresh, pollIntervalMs);
+        const handleVisibilityChange = () => {
+            if (typeof document !== 'undefined' && !document.hidden) {
+                runRefresh();
+            }
+        };
+        const handleFocus = () => {
+            runRefresh();
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('focus', handleFocus);
+
+        return () => {
+            window.clearInterval(interval);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('focus', handleFocus);
+        };
+    }, [activeChatId, activeJobs.length, refreshActiveChat, shouldUseHistory]);
 
     /**
-     * Selects one existing chat and hydrates it into local storage.
+     * Selects one existing chat.
      */
     const handleSelectChat = useCallback(
         async (chatId: string) => {
-            if (chatId === activeChatId || isSwitchingChatRef.current) {
+            if (chatId === activeChatIdRef.current) {
                 return;
             }
 
-            const cachedMessages = getCachedChatMessages(chatId);
-            if (cachedMessages) {
-                activateChat(chatId, cachedMessages);
-                return;
-            }
-
-            isSwitchingChatRef.current = true;
-            let hasShownSwitchingOverlay = false;
-            const switchingOverlayTimer = setTimeout(() => {
-                hasShownSwitchingOverlay = true;
-                setIsSwitchingChat(true);
-            }, SWITCHING_CHAT_OVERLAY_DELAY_MS);
-
-            try {
-                const chatDetail = await fetchUserChat(agentName, chatId);
-                activateChat(chatId, chatDetail.messages, {
-                    draftMessage: chatDetail.draftMessage ?? null,
-                });
-            } catch (error) {
-                notifyError(resolveErrorMessage(error, 'Failed to load chat.'), {
-                    details: {
-                        source: 'AgentChatHistoryClient.handleSelectChat',
-                        agentName,
-                        chatId,
-                        error,
-                    },
-                });
-            } finally {
-                isSwitchingChatRef.current = false;
-                clearTimeout(switchingOverlayTimer);
-                if (hasShownSwitchingOverlay) {
-                    setIsSwitchingChat(false);
-                }
-            }
+            await flushActiveDraft();
+            const snapshot = await fetchUserChats(agentName, chatId);
+            applySnapshot(snapshot);
         },
-        [activeChatId, activateChat, agentName, getCachedChatMessages],
+        [agentName, applySnapshot, flushActiveDraft],
     );
 
     const handleSelectChatFromSidebar = useCallback(
@@ -640,32 +466,19 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         }
 
         setIsCreatingChat(true);
-
         try {
+            await flushActiveDraft();
             const createdChat = await createUserChat(agentName);
-
-            setChats((previousChats) => [
-                createdChat.chat,
-                ...previousChats.filter((existingChat) => existingChat.id !== createdChat.chat.id),
-            ]);
-            activateChat(createdChat.chat.id, createdChat.messages, {
-                draftMessage: createdChat.draftMessage ?? null,
-            });
+            applyChatDetail(createdChat);
         } catch (error) {
-            notifyError(resolveErrorMessage(error, 'Failed to create chat.'), {
-                details: {
-                    source: 'AgentChatHistoryClient.handleCreateChat',
-                    agentName,
-                    error,
-                },
-            });
+            notifyError(resolveErrorMessage(error, 'Failed to create chat.'));
         } finally {
             setIsCreatingChat(false);
         }
-    }, [activateChat, agentName, isCreatingChat]);
+    }, [agentName, applyChatDetail, flushActiveDraft, isCreatingChat]);
 
     /**
-     * Deletes one chat and resolves next active chat.
+     * Deletes one chat and refreshes the canonical snapshot.
      */
     const handleDeleteChat = useCallback(
         async (chatId: string) => {
@@ -683,148 +496,132 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             try {
                 setIsChatListLoading(true);
                 await removeUserChat(agentName, chatId);
-                const existingTimer = saveTimersRef.current.get(chatId);
-                if (existingTimer) {
-                    clearTimeout(existingTimer);
-                    saveTimersRef.current.delete(chatId);
+                if (activeChatIdRef.current === chatId) {
+                    await bootstrapChats(undefined);
+                } else {
+                    await refreshActiveChat({ preserveDirtyDraft: true });
                 }
-                const existingDraftTimer = draftSaveTimersRef.current.get(chatId);
-                if (existingDraftTimer) {
-                    clearTimeout(existingDraftTimer);
-                    draftSaveTimersRef.current.delete(chatId);
-                }
-                savedMessagesHashesRef.current.delete(chatId);
-                chatMessagesCacheRef.current.delete(chatId);
-                chatDraftCacheRef.current.delete(chatId);
-                failedMessagesHashesRef.current.delete(chatId);
-                failedDraftValuesRef.current.delete(chatId);
-                await bootstrapChats(activeChatId === chatId ? undefined : activeChatId || undefined);
             } catch (error) {
-                notifyError(resolveErrorMessage(error, 'Failed to delete chat.'), {
-                    details: {
-                        source: 'AgentChatHistoryClient.handleDeleteChat',
-                        agentName,
-                        chatId,
-                        error,
-                    },
-                });
+                notifyError(resolveErrorMessage(error, 'Failed to delete chat.'));
             } finally {
                 setIsChatListLoading(false);
             }
         },
-        [activeChatId, agentName, bootstrapChats, formatText],
+        [agentName, bootstrapChats, formatText, refreshActiveChat],
     );
 
     /**
-     * Cancels one pending debounced message save timer.
-     */
-    const cancelPendingMessageSave = useCallback((chatId: string): void => {
-        const existingTimer = saveTimersRef.current.get(chatId);
-        if (!existingTimer) {
-            return;
-        }
-
-        clearTimeout(existingTimer);
-        saveTimersRef.current.delete(chatId);
-    }, []);
-
-    /**
-     * Persists updated chat messages using debounced full JSON replacement.
-     */
-    const handleMessagesChange = useCallback(
-        (messages: ReadonlyArray<ChatMessage>) => {
-            if (!shouldUseHistory || !activeChatId) {
-                return;
-            }
-
-            const chatId = activeChatId;
-            const normalizedMessages = [...messages];
-            chatMessagesCacheRef.current.set(chatId, normalizedMessages);
-            const serializedMessages = serializePersistableChatMessages(normalizedMessages);
-            const lastSavedHash = savedMessagesHashesRef.current.get(chatId);
-            const lastFailedHash = failedMessagesHashesRef.current.get(chatId);
-
-            if (lastSavedHash === serializedMessages || lastFailedHash === serializedMessages) {
-                cancelPendingMessageSave(chatId);
-                return;
-            }
-
-            cancelPendingMessageSave(chatId);
-
-            const nextTimer = setTimeout(() => {
-                void persistChatMessagesNow(chatId, normalizedMessages)
-                    .catch((error) => {
-                        failedMessagesHashesRef.current.set(chatId, serializedMessages);
-                        console.error('[user-chat] Failed to persist chat messages', error);
-                        notifyChatSaveFailure(
-                            error,
-                            DEFAULT_CHAT_SAVE_FAILURE_MESSAGE,
-                            'AgentChatHistoryClient.handleMessagesChange',
-                            chatId,
-                        );
-                    })
-                    .finally(() => {
-                        saveTimersRef.current.delete(chatId);
-                    });
-            }, SAVE_DEBOUNCE_MS);
-
-            saveTimersRef.current.set(chatId, nextTimer);
-        },
-        [activeChatId, cancelPendingMessageSave, notifyChatSaveFailure, persistChatMessagesNow, shouldUseHistory],
-    );
-
-    /**
-     * Persists draft message using debounced save to avoid excessive API calls.
+     * Persists draft text after a short debounce.
      */
     const handleDraftMessageChange = useCallback(
         (draftMessage: string) => {
-            if (!shouldUseHistory || !activeChatId) {
+            if (!shouldUseHistory || !activeChatIdRef.current) {
                 return;
             }
 
-            const chatId = activeChatId;
             setActiveChatDraftMessage(draftMessage);
-            const normalizedDraftMessage = draftMessage || null;
-            chatDraftCacheRef.current.set(chatId, normalizedDraftMessage);
-            const lastFailedDraftValue = failedDraftValuesRef.current.get(chatId);
+            activeDraftDirtyRef.current = true;
 
-            if (lastFailedDraftValue === normalizedDraftMessage) {
-                return;
+            if (draftSaveTimerRef.current) {
+                clearTimeout(draftSaveTimerRef.current);
             }
 
-            const existingTimer = draftSaveTimersRef.current.get(chatId);
-            if (existingTimer) {
-                clearTimeout(existingTimer);
-            }
-
-            const nextTimer = setTimeout(() => {
-                void persistChatDraftNow(chatId, normalizedDraftMessage)
-                    .catch((error) => {
-                        failedDraftValuesRef.current.set(chatId, normalizedDraftMessage);
-                        console.error('[user-chat] Failed to persist draft message', error);
-                        notifyChatSaveFailure(
-                            error,
-                            DEFAULT_CHAT_DRAFT_SAVE_FAILURE_MESSAGE,
-                            'AgentChatHistoryClient.handleDraftMessageChange',
-                            chatId,
-                        );
-                    })
-                    .finally(() => {
-                        draftSaveTimersRef.current.delete(chatId);
-                    });
+            draftSaveTimerRef.current = setTimeout(() => {
+                void flushActiveDraft().catch((error) => {
+                    notifyError(resolveErrorMessage(error, 'Failed to save chat draft.'));
+                });
             }, SAVE_DEBOUNCE_MS);
-
-            draftSaveTimersRef.current.set(chatId, nextTimer);
         },
-        [activeChatId, notifyChatSaveFailure, persistChatDraftNow, shouldUseHistory],
+        [flushActiveDraft, shouldUseHistory],
     );
 
     /**
-     * Handles in-chat "New chat" action by creating and activating a fresh chat entry.
+     * Submits one user-authored chat turn for durable server-side execution.
+     */
+    const handleSubmitUserTurn = useCallback(
+        async (payload: {
+            message: string;
+            attachments?: ChatMessage['attachments'];
+            parameters?: Record<string, unknown>;
+        }) => {
+            const currentActiveChatId = activeChatIdRef.current;
+            if (!shouldUseHistory || !currentActiveChatId) {
+                throw new Error('No active chat selected.');
+            }
+
+            const signature = JSON.stringify({
+                message: payload.message,
+                attachments: payload.attachments || [],
+            });
+            const clientMessageId =
+                failedSendRef.current?.signature === signature
+                    ? failedSendRef.current.clientMessageId
+                    : createUserChatClientMessageId();
+
+            try {
+                const result = await sendUserChatMessage(agentName, currentActiveChatId, {
+                    clientMessageId,
+                    message: payload.message,
+                    attachments: payload.attachments,
+                    parameters: payload.parameters,
+                });
+
+                failedSendRef.current = null;
+                activeDraftDirtyRef.current = false;
+                setActiveChatDraftMessage('');
+                applyChatDetail(result, {
+                    preserveDirtyDraft: false,
+                });
+            } catch (error) {
+                failedSendRef.current = {
+                    signature,
+                    clientMessageId,
+                };
+                throw error;
+            }
+        },
+        [agentName, applyChatDetail, shouldUseHistory],
+    );
+
+    /**
+     * Requests cancellation for one active durable job.
+     */
+    const handleCancelActiveJob = useCallback(
+        async (jobId: string) => {
+            const currentActiveChatId = activeChatIdRef.current;
+            if (!currentActiveChatId) {
+                return;
+            }
+
+            const chatDetail = await cancelUserChatJob(agentName, currentActiveChatId, jobId);
+            applyChatDetail(chatDetail, {
+                preserveDirtyDraft: true,
+            });
+        },
+        [agentName, applyChatDetail],
+    );
+
+    /**
+     * Handles in-chat "New chat" action.
      */
     const handleStartNewChatFromChatSurface = useCallback(async () => {
         await handleCreateChat();
     }, [handleCreateChat]);
+
+    /**
+     * Marks the initial auto-execute payload as consumed and removes it from the URL.
+     */
+    const handleAutoExecuteMessageConsumed = useCallback(() => {
+        hasInitialAutoMessageBeenConsumedRef.current = true;
+
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const nextUrl = new URL(window.location.href);
+        nextUrl.searchParams.delete('message');
+        window.history.replaceState(window.history.state, '', `${nextUrl.pathname}${nextUrl.search}`);
+    }, []);
 
     const autoMessageTargetId = autoExecuteTargetChatIdRef.current;
     const autoExecuteMessage =
@@ -835,29 +632,23 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             ? effectiveInitialAutoExecuteMessage
             : undefined;
 
-    const handleAutoExecuteMessageConsumed = useCallback(() => {
-        hasInitialAutoMessageBeenConsumedRef.current = true;
-    }, []);
-
     if (!shouldUseHistory) {
         return (
             <div className="w-full h-full flex flex-col">
                 <PrivateModeHistoryBanner formatText={formatText} />
                 <div className="flex-1">
                     <AgentChatWrapper
-                        key={`guest-${guestPersistenceKey}`}
+                        key={`guest-${agentName}`}
                         agentName={agentName}
                         agentUrl={agentUrl}
                         autoExecuteMessage={effectiveInitialAutoExecuteMessage}
                         autoExecuteMessageAttachments={effectiveInitialAutoExecuteMessageAttachments}
                         brandColor={brandColor}
                         inputPlaceholder={inputPlaceholder}
-                        thinkingMessages={thinkingMessages}
                         speechRecognitionLanguage={speechRecognitionLanguage}
-                        persistenceKey={guestPersistenceKey}
+                        persistenceKey={`guest-chat-${encodeURIComponent(agentName)}`}
                         areFileAttachmentsEnabled={areFileAttachmentsEnabled}
                         isFeedbackEnabled={isFeedbackEnabled}
-                        chatFailMessage={chatFailMessage}
                         onAutoExecuteMessageConsumed={handleAutoExecuteMessageConsumed}
                     />
                 </div>
@@ -871,30 +662,24 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
     const chatSurface = (
         <div className="relative flex-1 min-h-0">
-            {isSwitchingChat && (
-                <div className="absolute inset-0 z-20 border-y border-slate-200/70 bg-white/85 backdrop-blur-sm">
-                    <ChatThreadLoadingSkeleton />
-                </div>
-            )}
-
-            <AgentChatWrapper
-                key={`${activeChatId}:${activeChatMountKey}`}
+            <CanonicalAgentChatPanel
                 agentName={agentName}
                 agentUrl={agentUrl}
-                defaultMessage={activeChatDraftMessage ?? undefined}
-                autoExecuteMessage={autoExecuteMessage}
-                autoExecuteMessageAttachments={effectiveInitialAutoExecuteMessageAttachments}
                 brandColor={brandColor}
                 inputPlaceholder={inputPlaceholder}
-                thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}
-                persistenceKey={buildUserChatPersistenceKey(activeChatId)}
-                onMessagesChange={handleMessagesChange}
-                onInputTextChange={handleDraftMessageChange}
+                initialAgentMessage={initialAgentMessage}
+                messages={activeMessages}
+                draftMessage={activeChatDraftMessage}
+                autoExecuteMessage={autoExecuteMessage}
+                autoExecuteMessageAttachments={effectiveInitialAutoExecuteMessageAttachments}
                 areFileAttachmentsEnabled={areFileAttachmentsEnabled}
                 isFeedbackEnabled={isFeedbackEnabled}
-                chatFailMessage={chatFailMessage}
+                activeJobs={activeJobs}
+                onDraftMessageChange={handleDraftMessageChange}
+                onSubmitUserTurn={handleSubmitUserTurn}
                 onStartNewChat={handleStartNewChatFromChatSurface}
+                onCancelActiveJob={handleCancelActiveJob}
                 onAutoExecuteMessageConsumed={handleAutoExecuteMessageConsumed}
             />
         </div>
@@ -934,99 +719,25 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 aria-hidden={isMobileSidebarOpen}
                 aria-label={formatText('Open chats sidebar')}
             />
-            <section className="flex-1 min-w-0 min-h-0 flex flex-col">
-                {chatSurface}
-            </section>
+            <section className="flex-1 min-w-0 min-h-0 flex flex-col">{chatSurface}</section>
         </div>
     );
 }
 
 /**
- * Resolves one unknown error value to a user-facing message.
+ * Resolves one unknown error to a user-facing message.
  */
 function resolveErrorMessage(error: unknown, fallbackMessage: string): string {
     return error instanceof Error ? error.message : fallbackMessage;
 }
 
 /**
- * Converts unknown error values to stable notification-friendly JSON payload.
+ * Moves one chat summary to the top of the sidebar list.
  */
-function serializeNotificationError(error: unknown): unknown {
-    if (!(error instanceof Error)) {
-        return error;
-    }
-
-    const serializedError: {
-        name: string;
-        message: string;
-        stack?: string;
-        status?: number;
-        code?: string | null;
-        url?: string;
-        details?: unknown;
-    } = {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-    };
-
-    if (error instanceof UserChatApiError) {
-        serializedError.status = error.status;
-        serializedError.code = error.code;
-        serializedError.url = error.url;
-        serializedError.details = error.details;
-    }
-
-    return serializedError;
-}
-
-/**
- * Returns true when save failure indicates missing/incompatible chat scope.
- */
-function isMissingScopedChatSaveError(error: unknown): boolean {
-    if (error instanceof UserChatApiError) {
-        if (
-            error.code === 'USER_CHAT_NOT_FOUND' ||
-            error.code === 'USER_CHAT_SCOPE_AGENT_MISMATCH' ||
-            error.code === 'USER_CHAT_SCOPE_USER_MISMATCH' ||
-            error.code === 'USER_CHAT_SCOPE_INCONSISTENT'
-        ) {
-            return true;
-        }
-
-        if (error.status === 404) {
-            return /chat/i.test(error.message);
-        }
-    }
-
-    if (error instanceof Error) {
-        return /User chat ".+" was not found\./i.test(error.message);
-    }
-
-    return false;
-}
-
-/**
- * Filters chat messages to variants that are safe to persist on the server.
- *
- * Incomplete streaming placeholders are excluded so older in-flight snapshots
- * cannot overwrite finalized assistant responses.
- */
-function resolvePersistableChatMessages(messages: ReadonlyArray<ChatMessage>): Array<ChatMessage> {
-    return messages.filter((message) => message.isComplete !== false);
-}
-
-/**
- * Serializes only persistable chat messages for save deduplication.
- */
-function serializePersistableChatMessages(messages: ReadonlyArray<ChatMessage>): string {
-    return JSON.stringify(resolvePersistableChatMessages(messages));
-}
-
-/**
- * Moves one chat summary to the top of list while preserving other items.
- */
-function moveChatToTop(chats: ReadonlyArray<UserChatSummary>, targetChat: UserChatSummary): Array<UserChatSummary> {
+function replaceChatInList(
+    chats: ReadonlyArray<UserChatSummary>,
+    targetChat: UserChatSummary,
+): Array<UserChatSummary> {
     const remainingChats = chats.filter((chat) => chat.id !== targetChat.id);
     return [targetChat, ...remainingChats];
 }

@@ -1,17 +1,6 @@
-import { Json } from '@/src/database/schema';
 import type { UpdateUserChatMessagesOptions, UserChatRecord } from './UserChatRecord';
-import type { UserChatRow } from './UserChatRow';
-import { createMissingUserChatScopeError } from './createMissingUserChatScopeError';
-import { mapUserChatRow } from './mapUserChatRow';
-import { provideUserChatTable } from './provideUserChatTable';
+import { mutateUserChat } from './mutateUserChat';
 import { normalizeMessagesInput, resolveLastMessageAt } from './resolveLastMessageAt';
-
-/**
- * Maximum number of optimistic retries when concurrent updates race.
- *
- * @private function of `userChat`
- */
-const UPDATE_USER_CHAT_MAX_ATTEMPTS = 5;
 
 /**
  * One persisted chat message entry.
@@ -28,56 +17,20 @@ export async function updateUserChatMessages(
 ): Promise<UserChatRecord> {
     const { userId, agentPermanentId, chatId } = options;
     const incomingMessages = normalizeMessagesInput(options.messages);
-    const userChatTable = await provideUserChatTable();
+    return mutateUserChat({
+        userId,
+        agentPermanentId,
+        chatId,
+        mutate: (currentChat) => {
+            const mergedMessages = mergeUserChatMessagesAppendOnly(currentChat.messages, incomingMessages);
+            const now = new Date().toISOString();
 
-    for (let attempt = 0; attempt < UPDATE_USER_CHAT_MAX_ATTEMPTS; attempt++) {
-        const { data: currentData, error: currentError } = await userChatTable
-            .select('*')
-            .eq('id', chatId)
-            .eq('userId', userId)
-            .eq('agentPermanentId', agentPermanentId)
-            .maybeSingle();
-
-        if (currentError) {
-            throw new Error(`Failed to load user chat "${chatId}" before update: ${currentError.message}`);
-        }
-
-        if (!currentData) {
-            throw await createMissingUserChatScopeError(userChatTable, {
-                operation: 'update_messages',
-                userId,
-                agentPermanentId,
-                chatId,
-            });
-        }
-
-        const currentChat = mapUserChatRow(currentData as UserChatRow);
-        const mergedMessages = mergeUserChatMessagesAppendOnly(currentChat.messages, incomingMessages);
-        const now = new Date().toISOString();
-
-        const { data: updatedData, error: updateError } = await userChatTable
-            .update({
-                updatedAt: now,
+            return {
+                messages: mergedMessages,
                 lastMessageAt: resolveLastMessageAt(mergedMessages, now),
-                messages: mergedMessages as unknown as Json,
-            })
-            .eq('id', chatId)
-            .eq('userId', userId)
-            .eq('agentPermanentId', agentPermanentId)
-            .eq('updatedAt', currentChat.updatedAt)
-            .select('*')
-            .maybeSingle();
-
-        if (updateError) {
-            throw new Error(`Failed to update user chat "${chatId}": ${updateError.message}`);
-        }
-
-        if (updatedData) {
-            return mapUserChatRow(updatedData as UserChatRow);
-        }
-    }
-
-    throw new Error(`Failed to update user chat "${chatId}" due to concurrent updates.`);
+            };
+        },
+    });
 }
 
 /**

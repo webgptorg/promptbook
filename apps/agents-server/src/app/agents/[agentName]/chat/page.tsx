@@ -1,7 +1,6 @@
 'use server';
 import { loadChatConfiguration } from '@/src/utils/chatConfiguration';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
-import { getThinkingMessages } from '@/src/utils/thinkingMessages';
 import { resolveAgentChatInputPlaceholder } from '@/src/utils/agentChatInputPlaceholder';
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
@@ -87,12 +86,11 @@ export default async function AgentChatPage({
     }
 
     const agentUrl = `/agents/${encodeURIComponent(canonicalAgentId)}`;
-    const thinkingMessages = await getThinkingMessages();
     const speechRecognitionLanguage = resolveSpeechRecognitionLanguage({
         acceptLanguageHeader: requestHeaders.get('accept-language'),
     });
     const historyIdentityAvailable = await ensureChatHistoryIdentity();
-    const { chatFailMessage, isFileAttachmentsEnabled, isFeedbackEnabled } = await loadChatConfiguration();
+    const { isFileAttachmentsEnabled, isFeedbackEnabled } = await loadChatConfiguration();
     const agentDisplayName = agentProfile.meta.fullname || agentProfile.agentName || canonicalAgentId;
     const inputPlaceholder = resolveAgentChatInputPlaceholder(agentProfile.meta.inputPlaceholder);
 
@@ -105,12 +103,11 @@ export default async function AgentChatPage({
                 initialAutoExecuteMessage={message}
                 initialChatId={chat}
                 initialForceNewChat={parseBooleanFlag(newChat)}
+                initialAgentMessage={agentProfile.initialMessage}
                 brandColor={agentProfile.meta.color}
                 inputPlaceholder={inputPlaceholder}
-                thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}
                 isHistoryEnabled={historyIdentityAvailable}
-                chatFailMessage={chatFailMessage ?? undefined}
                 areFileAttachmentsEnabled={isFileAttachmentsEnabled}
                 isFeedbackEnabled={isFeedbackEnabled}
                 isHeadlessMode={isHeadless}

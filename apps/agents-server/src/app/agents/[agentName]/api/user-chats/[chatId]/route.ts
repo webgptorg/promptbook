@@ -1,7 +1,7 @@
 import type { ChatMessage } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
 import {
-    createUserChatSummary,
+    createUserChatDetailPayload,
     deleteUserChat,
     getUserChat,
     updateUserChatMessages,
@@ -45,11 +45,7 @@ export async function GET(
             return NextResponse.json({ error: 'Chat not found.' }, { status: 404 });
         }
 
-        return NextResponse.json({
-            chat: createUserChatSummary(chat),
-            messages: chat.messages,
-            draftMessage: chat.draftMessage,
-        });
+        return NextResponse.json(await createUserChatDetailPayload(chat));
     } catch (error) {
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Failed to load chat.' },
@@ -94,10 +90,7 @@ export async function PATCH(
             messages: body.messages as Array<ChatMessage>,
         });
 
-        return NextResponse.json({
-            chat: createUserChatSummary(updatedChat),
-            messages: updatedChat.messages,
-        });
+        return NextResponse.json(await createUserChatDetailPayload(updatedChat));
     } catch (error) {
         if (error instanceof UserChatScopeError) {
             const status =

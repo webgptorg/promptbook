@@ -311,6 +311,28 @@ type ToolCallChipEntry = {
 };
 
 /**
+ * Resolves the compact lifecycle badge label rendered below durable chat messages.
+ *
+ * @private internal helper of `<ChatMessageItem/>`
+ */
+function resolveMessageLifecycleLabel(lifecycleState: ChatMessage['lifecycleState']): string | null {
+    switch (lifecycleState) {
+        case 'queued':
+            return 'Queued';
+        case 'running':
+            return 'Running';
+        case 'failed':
+            return 'Failed';
+        case 'cancelled':
+            return 'Cancelled';
+        case 'completed':
+            return 'Completed';
+        default:
+            return null;
+    }
+}
+
+/**
  * Builds a stable key used for rendering a tool call chip.
  *
  * @private internal helper of `<ChatMessageItem/>`
@@ -652,6 +674,8 @@ export const ChatMessageItem = memo(
         const isMe = participant?.isMe;
         const timingDisplay = getChatMessageTimingDisplay(message);
         const shouldShowTiming = Boolean(isComplete && timingDisplay);
+        const lifecycleBadgeLabel = resolveMessageLifecycleLabel(message.lifecycleState);
+        const shouldShowMessageMeta = Boolean(shouldShowTiming || lifecycleBadgeLabel);
         const shouldShowParticipantLabel = (participants || []).some((entry) => entry.name === 'TEAMMATE');
         const participantLabel = participant?.fullname || participant?.name;
         const color = Color.fromSafe(
@@ -1248,15 +1272,25 @@ export const ChatMessageItem = memo(
                             </div>
                         )}
                     </div>
-                    {shouldShowTiming && timingDisplay && (
-                        <div className={styles.messageMeta} title={timingDisplay.fullLabel}>
-                            <span className={styles.messageTimestamp}>{timingDisplay.timeLabel}</span>
-                            {!isMe && timingDisplay.durationLabel && (
-                                <span className={styles.messageDuration}>
-                                    ({timingDisplay.durationLabel} to answer)
-                                </span>
+                    {shouldShowMessageMeta && (
+                        <div className={styles.messageMeta} title={shouldShowTiming && timingDisplay ? timingDisplay.fullLabel : undefined}>
+                            {lifecycleBadgeLabel && (
+                                <span className={styles.messageLifecycleBadge}>{lifecycleBadgeLabel}</span>
+                            )}
+                            {shouldShowTiming && timingDisplay && (
+                                <>
+                                    <span className={styles.messageTimestamp}>{timingDisplay.timeLabel}</span>
+                                    {!isMe && timingDisplay.durationLabel && (
+                                        <span className={styles.messageDuration}>
+                                            ({timingDisplay.durationLabel} to answer)
+                                        </span>
+                                    )}
+                                </>
                             )}
                         </div>
+                    )}
+                    {message.lifecycleError && (
+                        <div className={styles.messageLifecycleError}>{message.lifecycleError}</div>
                     )}
                 </div>
             </div>
@@ -1276,6 +1310,22 @@ export const ChatMessageItem = memo(
         }
 
         if (prev.message.generationDurationMs !== next.message.generationDurationMs) {
+            return false;
+        }
+
+        if (prev.message.lifecycleState !== next.message.lifecycleState) {
+            return false;
+        }
+
+        if (prev.message.lifecycleError !== next.message.lifecycleError) {
+            return false;
+        }
+
+        if (prev.message.clientMessageId !== next.message.clientMessageId) {
+            return false;
+        }
+
+        if (prev.message.jobId !== next.message.jobId) {
             return false;
         }
 
