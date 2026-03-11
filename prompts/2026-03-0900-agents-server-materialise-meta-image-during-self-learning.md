@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.9109 an hour by OpenAI Codex `gpt-5.4`
 
 [🎭🖼️] Materialize `META IMAGE` during self-learning (fix avatar appearance, long-running learning, derive colors)
 
@@ -74,3 +74,4 @@
 
     -   @@@ Confirm which WebGPT mechanism to import for extracting colors (package name / source file / license constraints).
     -   @@@ Decide whether to store colors as hex strings, CSS variables, or structured object; and whether 2 vs 3 is deterministic.
+

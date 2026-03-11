@@ -10,9 +10,9 @@ import {
 import { after, NextResponse } from 'next/server';
 
 /**
- * Allows one worker invocation to run for the platform maximum.
+ * Allows one durable worker invocation to run longer than the default route budget.
  */
-export const maxDuration = 300;
+export const maxDuration = 900;
 
 /**
  * Claims and processes one durable user-chat job in a background-safe route.

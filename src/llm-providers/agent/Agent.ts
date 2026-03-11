@@ -175,6 +175,9 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
             teacherAgent: options.teacherAgent,
             getAgentSource: () => this.agentSource.value,
             updateAgentSource: (source) => this.agentSource.next(source),
+            persistAgentSourceUpdate: options.persistSelfLearningAgentSourceUpdate,
+            materializeMetaImage: options.materializeSelfLearningMetaImage,
+            scheduleBackgroundTask: options.scheduleSelfLearningBackgroundTask,
         });
         this.agentSource.subscribe((source) => {
             this.updateAgentSource(source);

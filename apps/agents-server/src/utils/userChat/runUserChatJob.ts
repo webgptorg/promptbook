@@ -11,6 +11,8 @@ import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
 import { resolveUseEmailSmtpCredential } from '@/src/utils/resolveUseEmailSmtpCredential';
 import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithubToken';
+import { createSelfLearningMetaImageMaterializer } from '@/src/utils/selfLearning/createSelfLearningMetaImageMaterializer';
+import { createSelfLearningAgentSourcePersistence } from '@/src/utils/selfLearning/createSelfLearningAgentSourcePersistence';
 import {
     AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS,
     resolveAgentCollectionTablePrefix,
@@ -140,6 +142,12 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
         },
     );
     const provider = agentKitResult.tools.title;
+    const selfLearningPersistence = !resolvedAgentContext.isBookScopedAgent
+        ? createSelfLearningAgentSourcePersistence({
+              collection,
+              agentPermanentId,
+          })
+        : null;
     const agent = new Agent({
         isVerbose: true,
         assistantPreparationMode: 'external',
@@ -150,6 +158,8 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
         teacherAgent: await RemoteAgent.connect({
             agentUrl: await getWellKnownAgentUrl('TEACHER'),
         }),
+        persistSelfLearningAgentSourceUpdate: selfLearningPersistence?.persistAgentSourceUpdate,
+        materializeSelfLearningMetaImage: selfLearningPersistence ? createSelfLearningMetaImageMaterializer() : undefined,
     });
     const startedAt = Date.now();
     let latestContent = '';
@@ -263,13 +273,7 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
             provider,
             generationDurationMs,
         });
-
-        if (!resolvedAgentContext.isBookScopedAgent) {
-            const newAgentSource = agent.agentSource.value;
-            if (newAgentSource !== agentSource) {
-                await collection.updateAgentSource(agentPermanentId, newAgentSource);
-            }
-        }
+        await selfLearningPersistence?.waitForPendingSelfLearningPersistence();
 
         console.info('[user-chat-job] completed', {
             chatId: job.chatId,

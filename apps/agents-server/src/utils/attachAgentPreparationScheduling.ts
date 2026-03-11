@@ -69,9 +69,9 @@ export function attachAgentPreparationScheduling(
     collection.updateAgentSource = async (
         permanentId: string_agent_permanent_id,
         agentSource: string_book,
-        options?: { readonly versionName?: string | null },
+        options?: { readonly versionName?: string | null; readonly historySnapshotId?: number },
     ) => {
-        await originalUpdateAgentSource(permanentId, agentSource, options);
+        const historySnapshotId = await originalUpdateAgentSource(permanentId, agentSource, options);
 
         const fingerprint = computePersistedAgentFingerprint(agentSource);
         await scheduleAgentPreparation({
@@ -80,6 +80,8 @@ export function attachAgentPreparationScheduling(
             fingerprint,
             triggerReason: 'AGENT_UPDATED',
         });
+
+        return historySnapshotId;
     };
 
     decoratableCollection[AGENT_PREPARATION_DECORATED_FLAG] = true;

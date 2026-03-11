@@ -13,6 +13,12 @@ import type { ToolCall } from '../../../types/ToolCall';
 import type { SelfLearningCommitmentTypeCounts, SelfLearningTeacherSummary } from '../../../types/ToolCall';
 import type { string_prompt } from '../../../types/typeAliases';
 import { just } from '../../../utils/organization/just';
+import type {
+    PersistSelfLearningAgentSourceUpdate,
+    SelfLearningBackgroundTaskScheduler,
+    SelfLearningMetaImageMaterializer,
+    SelfLearningPersistenceOptions,
+} from './SelfLearningHooks';
 
 /**
  * Mutable commitment breakdown used while building self-learning summaries.
@@ -45,6 +51,9 @@ type SelfLearningManagerOptions = {
     teacherAgent: SelfLearningTeacherAgent | null;
     getAgentSource: () => string_book;
     updateAgentSource: (source: string_book) => void;
+    persistAgentSourceUpdate?: PersistSelfLearningAgentSourceUpdate;
+    materializeMetaImage?: SelfLearningMetaImageMaterializer;
+    scheduleBackgroundTask?: SelfLearningBackgroundTaskScheduler;
 };
 
 /**
@@ -92,19 +101,24 @@ export class SelfLearningManager {
             await this.appendNonce();
         }
 
-        this.appendSample(prompt, result);
+        await this.appendSample(prompt, result);
 
+        let teacherSummary: SelfLearningTeacherSummary | null = null;
         if (this.teacherAgent === null) {
-            return null;
+            teacherSummary = null;
+        } else {
+            try {
+                teacherSummary = await this.callTeacher(prompt, result);
+            } catch (error) {
+                console.error(colors.bgCyan('[Self-learning]') + colors.red(' Failed to learn from teacher agent'));
+                console.error(error);
+                teacherSummary = buildTeacherSummary('', true);
+            }
         }
 
-        try {
-            return await this.callTeacher(prompt, result);
-        } catch (error) {
-            console.error(colors.bgCyan('[Self-learning]') + colors.red(' Failed to learn from teacher agent'));
-            console.error(error);
-            return buildTeacherSummary('', true);
-        }
+        await this.finishSelfLearning();
+
+        return teacherSummary;
     }
 
     /**
@@ -117,7 +131,7 @@ export class SelfLearningManager {
         console.info(colors.bgCyan('[Self-learning]') + colors.cyan(' Nonce'));
 
         const nonce = `NONCE ${await linguisticHash(Math.random().toString())}`;
-        this.appendToAgentSource('\n\n---\n\n' + nonce);
+        await this.appendToAgentSource('\n\n---\n\n' + nonce);
     }
 
     /**
@@ -125,7 +139,7 @@ export class SelfLearningManager {
      *
      * @private helper of Agent
      */
-    private appendSample(prompt: Prompt, result: ChatPromptResult): void {
+    private async appendSample(prompt: Prompt, result: ChatPromptResult): Promise<void> {
         console.info(colors.bgCyan('[Self-learning]') + colors.cyan(' Sampling'));
 
         // Extract response format info if available (for JSON schema)
@@ -161,7 +175,7 @@ export class SelfLearningManager {
             agentMessageContent: formatAgentMessageForJsonMode(result.content, hasJsonSchema),
         });
 
-        this.appendToAgentSource('\n\n' + learningExample);
+        await this.appendToAgentSource('\n\n' + learningExample);
     }
 
     /**
@@ -269,9 +283,72 @@ export class SelfLearningManager {
             return buildTeacherSummary('', true);
         }
 
-        this.appendToAgentSource('\n\n' + teacherCommitments);
+        await this.appendToAgentSource('\n\n' + teacherCommitments);
 
         return buildTeacherSummary(teacherCommitments, true);
+    }
+
+    /**
+     * Completes persistence for the current self-learning run and optionally hands off long-running avatar work.
+     *
+     * @private helper of Agent
+     */
+    private async finishSelfLearning(): Promise<void> {
+        const materializationResult = await this.options.materializeMetaImage?.({
+            getAgentSource: this.options.getAgentSource,
+            applyAgentSourceUpdate: (source, options) => this.applyAgentSourceUpdate(source, options),
+        });
+        const backgroundTask = materializationResult?.backgroundTask;
+
+        if (!backgroundTask) {
+            await this.persistCurrentAgentSource({ isFinal: true });
+            return;
+        }
+
+        if (this.options.scheduleBackgroundTask) {
+            this.options.scheduleBackgroundTask(backgroundTask);
+            return;
+        }
+
+        await backgroundTask;
+    }
+
+    /**
+     * Updates the in-memory agent source and optionally persists the same source externally.
+     *
+     * @private helper of Agent
+     */
+    private async applyAgentSourceUpdate(
+        source: string_book,
+        options: SelfLearningPersistenceOptions = { isFinal: false },
+    ): Promise<void> {
+        this.options.updateAgentSource(source);
+        await this.persistAgentSourceUpdate(source, options);
+    }
+
+    /**
+     * Persists the current source state when an external persistence hook is configured.
+     *
+     * @private helper of Agent
+     */
+    private async persistCurrentAgentSource(options: SelfLearningPersistenceOptions): Promise<void> {
+        await this.persistAgentSourceUpdate(this.options.getAgentSource(), options);
+    }
+
+    /**
+     * Persists one source update when the caller supplied a persistence hook.
+     *
+     * @private helper of Agent
+     */
+    private async persistAgentSourceUpdate(
+        source: string_book,
+        options: SelfLearningPersistenceOptions,
+    ): Promise<void> {
+        if (!this.options.persistAgentSourceUpdate) {
+            return;
+        }
+
+        await this.options.persistAgentSourceUpdate(source, options);
     }
 
     /**
@@ -280,10 +357,10 @@ export class SelfLearningManager {
      * @param section Fragment that should be appended
      * @private helper of Agent
      */
-    private appendToAgentSource(section: string): void {
+    private async appendToAgentSource(section: string): Promise<void> {
         const currentSource = this.options.getAgentSource();
         const newSource = padBook(validateBook(spaceTrim(currentSource) + section));
-        this.options.updateAgentSource(newSource as string_book);
+        await this.applyAgentSourceUpdate(newSource as string_book);
     }
 }
 

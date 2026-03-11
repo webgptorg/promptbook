@@ -28,6 +28,8 @@ import { extractUseEmailConfigurationFromAgentSource } from '@/src/utils/emails/
 import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
 import { resolveUseEmailSmtpCredential } from '@/src/utils/resolveUseEmailSmtpCredential';
 import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithubToken';
+import { createSelfLearningMetaImageMaterializer } from '@/src/utils/selfLearning/createSelfLearningMetaImageMaterializer';
+import { createSelfLearningAgentSourcePersistence } from '@/src/utils/selfLearning/createSelfLearningAgentSourcePersistence';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
 import {
     AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS,
@@ -38,6 +40,7 @@ import type { ChatMessage } from '@promptbook-local/components';
 import { Agent, computeAgentHash, normalizeChatAttachments, RemoteAgent } from '@promptbook-local/core';
 import type { ToolCall } from '@promptbook-local/types';
 import { $getCurrentDate, serializeError } from '@promptbook-local/utils';
+import { after } from 'next/server';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { ASSISTANT_PREPARATION_TOOL_CALL_NAME } from '../../../../../../../../src/types/ToolCall';
 import { encodeChatStreamWhitespaceForTransport } from '../../../../../../../../src/utils/chat/encodeChatStreamWhitespaceForTransport';
@@ -307,6 +310,34 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             message: userMessageContent,
             previousMessageHash: null, // <- TODO: [🧠] How to handle previous message hash?
         });
+        const selfLearningPersistence =
+            !isPrivateModeEnabled && !resolvedAgentContext.isBookScopedAgent
+                ? createSelfLearningAgentSourcePersistence({
+                      collection,
+                      agentPermanentId: agentId,
+                  })
+                : null;
+        const backgroundSelfLearningTasks: Array<Promise<void>> = [];
+
+        after(async () => {
+            const backgroundTaskResults = await Promise.allSettled(backgroundSelfLearningTasks);
+
+            for (const taskResult of backgroundTaskResults) {
+                if (taskResult.status === 'rejected') {
+                    console.error('[self-learning] Background task failed', taskResult.reason);
+                }
+            }
+
+            if (!selfLearningPersistence) {
+                return;
+            }
+
+            try {
+                await selfLearningPersistence.waitForPendingSelfLearningPersistence();
+            } catch (error) {
+                console.error('[self-learning] Failed to persist background source updates', error);
+            }
+        });
 
         const encoder = new TextEncoder();
         const readableStream = new ReadableStream({
@@ -473,6 +504,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                         teacherAgent: await RemoteAgent.connect({
                             agentUrl: await getWellKnownAgentUrl('TEACHER'),
                         }), // <- [🦋]
+                        persistSelfLearningAgentSourceUpdate: selfLearningPersistence?.persistAgentSourceUpdate,
+                        materializeSelfLearningMetaImage: selfLearningPersistence
+                            ? createSelfLearningMetaImageMaterializer()
+                            : undefined,
+                        scheduleSelfLearningBackgroundTask: (task) => {
+                            backgroundSelfLearningTasks.push(task);
+                        },
                     });
 
                     const response = await agent.callChatModelStream!(
@@ -533,14 +571,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                         previousMessageHash: userMessageHash,
                         usage: response.usage,
                     });
-
-                    // Note: [🐱‍🚀] Save the learned data
-                    if (!isPrivateModeEnabled && !resolvedAgentContext.isBookScopedAgent) {
-                        const newAgentSource = agent.agentSource.value;
-                        if (newAgentSource !== agentSource) {
-                            await collection.updateAgentSource(agentId, newAgentSource);
-                        }
-                    }
 
                     if (response.toolCalls && response.toolCalls.length > 0) {
                         emitToolCalls(response.toolCalls);
