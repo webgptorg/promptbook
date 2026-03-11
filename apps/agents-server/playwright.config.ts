@@ -27,7 +27,6 @@ const APP_URL = `http://127.0.0.1:${APP_PORT}`;
 const APP_E2E_ENV = {
     ADMIN_PASSWORD: 'e2e-admin-password',
     NEXT_PUBLIC_SITE_URL: APP_URL,
-    SERVERS: `127.0.0.1:${APP_PORT}`,
     SUPABASE_TABLE_PREFIX: '',
     NEXT_PUBLIC_SUPABASE_URL: MOCK_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY:
@@ -87,6 +86,10 @@ const config = defineConfig({
             env: {
                 ...process.env,
                 E2E_SUPABASE_PORT: String(MOCK_SUPABASE_PORT),
+                E2E_SERVER_NAME: 'local-e2e',
+                E2E_SERVER_ENVIRONMENT: 'PREVIEW',
+                E2E_SERVER_DOMAIN: `127.0.0.1:${APP_PORT}`,
+                E2E_SERVER_TABLE_PREFIX: '',
             },
         },
         {

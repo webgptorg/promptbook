@@ -53,24 +53,6 @@ export async function validateApiKey(request: NextRequest): Promise<ApiKeyValida
         };
     }
 
-    /*
-    Note: [🐔] This code was commented out because results of it are unused
-    
-    // Determine the table prefix based on the host
-    const host = request.headers.get('host');
-    let tablePrefix = SUPABASE_TABLE_PREFIX;
-
-    
-    if (host && SERVERS && SERVERS.length > 0) {
-        if (SERVERS.some((server) => server === host)) {
-            let serverName = host;
-            serverName = serverName.replace(/\.ptbk\.io$/, '');
-            serverName = normalizeTo_PascalCase(serverName);
-            tablePrefix = `server_${serverName}_`;
-        }
-    }
-    */
-
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 

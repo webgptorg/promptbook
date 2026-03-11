@@ -14,21 +14,22 @@ dotenv.config();
 async function migrate(): Promise<void> {
     console.info(colors.bgBlue('🚀 Starting database migration'));
 
-    const runtimeConfiguration = resolveDatabaseMigrationRuntimeConfiguration(console);
+    const runtimeConfiguration = await resolveDatabaseMigrationRuntimeConfiguration(console);
     if (!runtimeConfiguration) {
         return;
     }
 
-    const onlyPrefixes = parseOnlyPrefixesFromCliArguments(process.argv.slice(2));
-    if (onlyPrefixes !== null) {
-        console.info(colors.cyan(`🎯 Running migrations only for: ${onlyPrefixes.join(', ')}`));
+    const onlyTargets = parseOnlyMigrationTargetsFromCliArguments(process.argv.slice(2));
+    if (onlyTargets !== null) {
+        console.info(colors.cyan(`🎯 Running migrations only for: ${onlyTargets.join(', ')}`));
     }
 
     try {
         await runDatabaseMigrations({
             prefixes: runtimeConfiguration.prefixes,
+            registeredServers: runtimeConfiguration.registeredServers,
             connectionString: runtimeConfiguration.connectionString,
-            onlyPrefixes,
+            onlyTargets,
             appliedBy: DATABASE_MIGRATION_APPLIED_BY.MANUAL,
             logger: console,
             logSqlStatements: true,
@@ -44,27 +45,35 @@ async function migrate(): Promise<void> {
 /**
  * Parses optional `--only` flag from CLI arguments.
  *
- * @param args CLI arguments.
- * @returns Selected prefix list or `null` when not provided.
+ * Targets may reference `production`, `preview`, registered server names, or raw table prefixes.
+ *
+ * @param args - CLI arguments.
+ * @returns Selected migration targets or `null` when not provided.
  */
-function parseOnlyPrefixesFromCliArguments(args: ReadonlyArray<string>): Array<string> | null {
+function parseOnlyMigrationTargetsFromCliArguments(args: ReadonlyArray<string>): Array<string> | null {
     for (let index = 0; index < args.length; index++) {
         const arg = args[index];
         if (arg === '--only' && args[index + 1]) {
-            return args[index + 1]
-                .split(',')
-                .map((prefix) => prefix.trim())
-                .filter((prefix) => prefix !== '');
+            return parseMigrationTargets(args[index + 1]);
         }
         if (arg?.startsWith('--only=')) {
-            return arg
-                .substring('--only='.length)
-                .split(',')
-                .map((prefix) => prefix.trim())
-                .filter((prefix) => prefix !== '');
+            return parseMigrationTargets(arg.substring('--only='.length));
         }
     }
     return null;
+}
+
+/**
+ * Splits one comma-separated `--only` value into ordered tokens.
+ *
+ * @param rawTargets - Raw CLI value.
+ * @returns Parsed non-empty tokens.
+ */
+function parseMigrationTargets(rawTargets: string): Array<string> {
+    return rawTargets
+        .split(',')
+        .map((target) => target.trim())
+        .filter((target) => target !== '');
 }
 
 migrate();

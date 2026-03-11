@@ -1,47 +1,80 @@
-import { NEXT_PUBLIC_SITE_URL, SERVERS, SUPABASE_TABLE_PREFIX } from '@/config';
+import { NEXT_PUBLIC_SITE_URL, SUPABASE_TABLE_PREFIX } from '@/config';
 import { headers } from 'next/headers';
-import { buildServerTablePrefix } from '../utils/serverTablePrefix';
+import { listRegisteredServersUsingServiceRole, resolveRegisteredServerByHost } from '../utils/serverRegistry';
 
-export async function $provideServer() {
-    let resolvedServer: { publicUrl: URL; tablePrefix: string };
-    if (!SERVERS) {
-        resolvedServer = {
-            publicUrl: NEXT_PUBLIC_SITE_URL || new URL(`https://${(await headers()).get('host') || 'localhost:4440'}`),
+/**
+ * Resolved server routing context for the current request.
+ */
+type ProvidedServer = {
+    /**
+     * Public URL that should represent the current server.
+     */
+    readonly publicUrl: URL;
+    /**
+     * Table prefix used for the current server namespace.
+     */
+    readonly tablePrefix: string;
+};
+
+/**
+ * Resolves the current server from request headers and the global `_Server` registry.
+ *
+ * Falls back to `SUPABASE_TABLE_PREFIX` only when no servers are registered
+ * or when the request is clearly local development traffic.
+ *
+ * @returns Server routing context for the current request.
+ */
+export async function $provideServer(): Promise<ProvidedServer> {
+    const headersList = await headers();
+    const requestHost = headersList.get('host');
+    const xPromptbookServer = headersList.get('x-promptbook-server');
+    const registeredServers = await listRegisteredServersUsingServiceRole();
+
+    if (registeredServers.length === 0 || isLocalDevelopmentHost(requestHost)) {
+        return {
+            publicUrl: resolveFallbackPublicUrl(requestHost),
             tablePrefix: SUPABASE_TABLE_PREFIX,
         };
-        // !!!! await ensureAutomaticDatabaseMigrationsForPrefix(resolvedServer.tablePrefix);
-        return resolvedServer;
     }
 
-    const headersList = await headers();
-    let host = headersList.get('host');
-    const xPromptbookServer = headersList.get('x-promptbook-server');
+    const resolvedServer =
+        resolveRegisteredServerByHost(requestHost, registeredServers) ||
+        resolveRegisteredServerByHost(xPromptbookServer, registeredServers);
 
-    if (host === null) {
-        throw new Error('Host header is missing');
+    if (!resolvedServer) {
+        throw new Error(`Server with host "${requestHost}" is not registered in _Server`);
     }
 
-    // If host is not in known servers, check if we have a context header from middleware
-    if (!SERVERS.some((server) => server === host)) {
-        if (xPromptbookServer && SERVERS.some((server) => server === xPromptbookServer)) {
-            host = xPromptbookServer;
-        } else if (host.startsWith('127.0.0.1') || host.startsWith('localhost')) {
-            // Allow localhost for development/prerendering
-            resolvedServer = {
-                publicUrl: NEXT_PUBLIC_SITE_URL || new URL(`https://${host}`),
-                tablePrefix: SUPABASE_TABLE_PREFIX,
-            };
-            // !!!! await ensureAutomaticDatabaseMigrationsForPrefix(resolvedServer.tablePrefix);
-            return resolvedServer;
-        } else {
-            throw new Error(`Server with host "${host}" is not configured in SERVERS`);
-        }
-    }
-
-    resolvedServer = {
-        publicUrl: new URL(`https://${host}`),
-        tablePrefix: buildServerTablePrefix(host),
+    return {
+        publicUrl: new URL(`https://${resolvedServer.domain}`),
+        tablePrefix: resolvedServer.tablePrefix,
     };
-    // !!!! await ensureAutomaticDatabaseMigrationsForPrefix(resolvedServer.tablePrefix);
-    return resolvedServer;
+}
+
+/**
+ * Builds the fallback public URL used before `_Server` is populated or for localhost requests.
+ *
+ * @param host - Current request host.
+ * @returns Public URL for the fallback/default server.
+ */
+function resolveFallbackPublicUrl(host: string | null): URL {
+    if (NEXT_PUBLIC_SITE_URL) {
+        return NEXT_PUBLIC_SITE_URL;
+    }
+
+    return new URL(`https://${host || 'localhost:4440'}`);
+}
+
+/**
+ * Checks whether the current request is a localhost-style development request.
+ *
+ * @param host - Raw request host.
+ * @returns `true` when the host points to localhost or loopback.
+ */
+function isLocalDevelopmentHost(host: string | null): boolean {
+    if (!host) {
+        return false;
+    }
+
+    return host.startsWith('127.0.0.1') || host.startsWith('localhost');
 }

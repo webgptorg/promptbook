@@ -25,7 +25,7 @@ This document explains how to configure GitHub App authentication in Agents Serv
 
 ## 2. Configure Agents Server metadata
 
-GitHub App configuration now lives in **Metadata** so you can customize it per server listed in `SERVERS`.
+GitHub App configuration now lives in **Metadata** so you can customize it per server registered in the global `_Server` table.
 
 1. Open Agents Server → **System → Metadata**.
 2. Click **Add metadata entry** (or edit existing values) and configure the following keys:

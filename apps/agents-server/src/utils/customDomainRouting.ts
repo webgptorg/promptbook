@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { normalizeDomainForMatching } from '../../../../src/utils/validators/url/normalizeDomainForMatching';
-import { buildServerTablePrefix } from './serverTablePrefix';
+import { type ServerRecord } from './serverRegistry';
 
 /**
  * Prefix used when generating HTTP URL variants for host matching.
@@ -79,11 +79,14 @@ export function createCustomDomainOrFilter(host: string): string | null {
     return filters.length > 0 ? filters.join(',') : null;
 }
 
+/**
+ * Result of resolving one custom domain to an actual server-owned agent.
+ */
 export type CustomDomainResolution = {
     /**
-     * Host of the server that holds the agent matching the custom domain.
+     * Server that owns the agent matching the custom domain.
      */
-    serverHost: string;
+    server: ServerRecord;
 
     /**
      * Name of the agent that should be served for the custom domain.
@@ -96,33 +99,27 @@ export type CustomDomainResolution = {
  *
  * @param host - The incoming request host header.
  * @param supabase - Supabase client instance.
- * @param servers - List of configured server hosts (`SERVERS`).
+ * @param servers - Registered servers from `_Server`.
  * @returns Resolution data or `null` when no matching agent was found.
- * @private Utility used by middleware for custom domain routing.
  */
 export async function resolveCustomDomainAgent(
     host: string,
     supabase: SupabaseClient,
-    servers: readonly string[],
+    servers: ReadonlyArray<ServerRecord>,
 ): Promise<CustomDomainResolution | null> {
     const orFilter = createCustomDomainOrFilter(host);
     if (!orFilter) {
         return null;
     }
 
-    for (const serverHost of servers) {
+    for (const server of servers) {
         try {
-            const tableName = `${buildServerTablePrefix(serverHost)}Agent`;
-            const { data } = await supabase
-                .from(tableName)
-                .select('agentName')
-                .or(orFilter)
-                .limit(1)
-                .maybeSingle();
+            const tableName = `${server.tablePrefix}Agent`;
+            const { data } = await supabase.from(tableName).select('agentName').or(orFilter).limit(1).maybeSingle();
 
             if (data && typeof data.agentName === 'string') {
                 return {
-                    serverHost,
+                    server,
                     agentName: data.agentName,
                 };
             }

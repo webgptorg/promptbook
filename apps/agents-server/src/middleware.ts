@@ -1,11 +1,11 @@
 import { TODO_any } from '@promptbook-local/types';
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
-import { SERVERS, SUPABASE_TABLE_PREFIX } from '../config';
+import { SUPABASE_TABLE_PREFIX } from '../config';
 import { RESERVED_PATHS } from './generated/reservedPaths';
 import { resolveCustomDomainAgent, type CustomDomainResolution } from './utils/customDomainRouting';
 import { isIpAllowed } from './utils/isIpAllowed';
-import { buildServerTablePrefix } from './utils/serverTablePrefix';
+import { listRegisteredServers, resolveRegisteredServerByHost } from './utils/serverRegistry';
 
 export async function middleware(req: NextRequest) {
     // 1. Get client IP
@@ -37,33 +37,30 @@ export async function middleware(req: NextRequest) {
               })
             : null;
 
-    const configuredServers = SERVERS ?? [];
-    const hasConfiguredServers = configuredServers.length > 0;
-    const hostIsRegisteredServer =
-        hasConfiguredServers && host ? configuredServers.some((server) => server === host) : false;
+    const registeredServers = supabase ? await listRegisteredServers(supabase) : [];
+    const hasRegisteredServers = registeredServers.length > 0;
+    const registeredServer = resolveRegisteredServerByHost(host, registeredServers);
     let customDomainResolution: CustomDomainResolution | null = null;
-    let effectiveServerHost: string | null = null;
+    let effectiveTablePrefix: string | null = null;
 
-    if (hostIsRegisteredServer && host) {
-        effectiveServerHost = host;
-    } else if (host && hasConfiguredServers && supabase) {
+    if (registeredServer) {
+        effectiveTablePrefix = registeredServer.tablePrefix;
+    } else if (host && hasRegisteredServers && supabase) {
         try {
-            customDomainResolution = await resolveCustomDomainAgent(host, supabase, configuredServers);
+            customDomainResolution = await resolveCustomDomainAgent(host, supabase, registeredServers);
             if (customDomainResolution) {
-                effectiveServerHost = customDomainResolution.serverHost;
+                effectiveTablePrefix = customDomainResolution.server.tablePrefix;
             }
         } catch (error) {
             console.error('Error resolving custom domain host in middleware:', error);
         }
-    } else if (!hasConfiguredServers && host) {
-        effectiveServerHost = host;
+    } else if (!hasRegisteredServers && host) {
+        effectiveTablePrefix = SUPABASE_TABLE_PREFIX;
     }
 
     const tablePrefixForRequest =
-        hasConfiguredServers && effectiveServerHost
-            ? buildServerTablePrefix(effectiveServerHost)
-            : SUPABASE_TABLE_PREFIX;
-    const canQueryServerTables = Boolean(supabase && (!hasConfiguredServers || effectiveServerHost));
+        hasRegisteredServers && effectiveTablePrefix !== null ? effectiveTablePrefix : SUPABASE_TABLE_PREFIX;
+    const canQueryServerTables = Boolean(supabase && (!hasRegisteredServers || effectiveTablePrefix !== null));
 
     if (supabase && canQueryServerTables) {
         try {
@@ -204,7 +201,7 @@ export async function middleware(req: NextRequest) {
         url.pathname = `/${customDomainResolution.agentName}`;
 
         const requestHeaders = new Headers(req.headers);
-        requestHeaders.set('x-promptbook-server', customDomainResolution.serverHost);
+        requestHeaders.set('x-promptbook-server', customDomainResolution.server.domain);
 
         return NextResponse.rewrite(url, {
             request: {

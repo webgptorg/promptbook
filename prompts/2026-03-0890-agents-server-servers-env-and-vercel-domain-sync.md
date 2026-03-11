@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 40 minutes by OpenAI Codex `gpt-5.4`
 
 [🗄️🌐] Change env variable `SERVERS` to `_Server` database table
 
@@ -30,3 +30,4 @@
 -   You are working with migration tooling and scripts
 -   You are working with Vercel API for domain management
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

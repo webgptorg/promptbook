@@ -70,6 +70,25 @@
             "focus": true
         },
         {
+            "--note": "Description: Sync `_Server` rows to Vercel project domains. Use `--dry-run` for preview and `--delete-removed` to actually remove stale project domains."
+        },
+        {
+            "name": "🎭👨‍💻🟣☁️ Sync Agents server Vercel domains (dry-run)",
+            "cwd": "./apps/agents-server/",
+            "command": "npx tsx ./scripts/sync-vercel-domains.ts --dry-run",
+            "execute": false,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🎭👨‍💻🟣☁️ Sync Agents server Vercel domains",
+            "cwd": "./apps/agents-server/",
+            "command": "npx tsx ./scripts/sync-vercel-domains.ts",
+            "execute": false,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "--note": "Description: Backup remote Supabase PostgreSQL schema+data into one ZIP (no pg_dump). Example args: --schemas public,auth --output-dir other/backup --filename-pattern %timestamp%.sql.zip"
         },
         {

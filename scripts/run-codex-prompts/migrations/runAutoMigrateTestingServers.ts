@@ -6,10 +6,11 @@ import spaceTrim from 'spacetrim';
 import { readMigrationFiles, resolveMigrationsDirectory } from '../../../apps/agents-server/src/database/resolveMigrationsDirectory';
 import {
     DATABASE_MIGRATION_APPLIED_BY,
-    resolveDatabaseMigrationConnectionStringFromEnvironment,
+    resolveDatabaseMigrationRuntimeConfiguration,
     runDatabaseMigrations,
     type DatabaseMigrationLogger,
 } from '../../../apps/agents-server/src/database/runDatabaseMigrations';
+import { selectPrefixesForMigration } from '../../../apps/agents-server/src/database/selectPrefixesForMigration';
 import { DatabaseError } from '../../../src/errors/DatabaseError';
 import {
     DESTRUCTIVE_SQL_RULE,
@@ -18,29 +19,14 @@ import {
 } from './detectDestructiveSqlStatements';
 
 /**
- * Prefixes for testing servers that should be migrated by coding-script auto-migration.
+ * Migration targets for testing servers that should be migrated by coding-script auto-migration.
  */
-const TESTING_SERVER_MIGRATION_PREFIXES = [
-    'local0_',
-    'server_CoreTest_',
-    'server_S6_',
-    'server_S7_',
-    'server_S8_',
-    'server_S9_',
-    'server_S10_',
-    'server_S11_',
-    'server_S12_',
-    'server_S13_',
-    'server_PavolHejny_',
-    'server_Praha13Test_',
-    'server_ChutooTest_',
-    'server_NeonMedia_',
-] as const;
+const TESTING_SERVER_MIGRATION_TARGETS = ['preview'] as const;
 
 /**
  * CLI-like `--only` value used in logs for easier parity with `terminals.json` migration command.
  */
-const TESTING_SERVER_MIGRATION_ONLY_VALUE = TESTING_SERVER_MIGRATION_PREFIXES.join(',');
+const TESTING_SERVER_MIGRATION_ONLY_VALUE = TESTING_SERVER_MIGRATION_TARGETS.join(',');
 
 /**
  * Maximum length of SQL snippet preview shown in safety errors.
@@ -118,21 +104,24 @@ export async function runAutoMigrateTestingServers(options: RunAutoMigrateTestin
  */
 async function runAutoMigrateTestingServersImmediately(options: RunAutoMigrateTestingServersOptions): Promise<void> {
     const logger = options.logger ?? console;
-    const connectionString = resolveDatabaseMigrationConnectionStringFromEnvironment();
+    const runtimeConfiguration = await resolveDatabaseMigrationRuntimeConfiguration(logger);
 
-    if (!connectionString) {
-        throw new DatabaseError(
-            spaceTrim(`
-                Cannot run coding-script auto-migrations because \`POSTGRES_URL\` / \`DATABASE_URL\` is missing.
-            `),
-        );
+    if (!runtimeConfiguration) {
+        return;
     }
+
+    const testingServerMigrationPrefixes = selectPrefixesForMigration(
+        runtimeConfiguration.prefixes,
+        runtimeConfiguration.registeredServers,
+        TESTING_SERVER_MIGRATION_TARGETS,
+    );
 
     const migrationsDirectory = resolveMigrationsDirectory();
     const migrationFiles = readMigrationFiles(migrationsDirectory);
     const pendingMigrationsByPrefix = await listPendingMigrationsByPrefix({
-        connectionString,
+        connectionString: runtimeConfiguration.connectionString,
         migrationFiles,
+        prefixes: testingServerMigrationPrefixes,
     });
     const destructiveFindings = collectDestructivePendingMigrationFindings({
         pendingMigrationsByPrefix,
@@ -158,9 +147,10 @@ async function runAutoMigrateTestingServersImmediately(options: RunAutoMigrateTe
     );
 
     await runDatabaseMigrations({
-        prefixes: TESTING_SERVER_MIGRATION_PREFIXES,
-        onlyPrefixes: TESTING_SERVER_MIGRATION_PREFIXES,
-        connectionString,
+        prefixes: runtimeConfiguration.prefixes,
+        registeredServers: runtimeConfiguration.registeredServers,
+        onlyTargets: TESTING_SERVER_MIGRATION_TARGETS,
+        connectionString: runtimeConfiguration.connectionString,
         appliedBy: DATABASE_MIGRATION_APPLIED_BY.AUTOMATIC,
         logger,
         logSqlStatements: true,
@@ -178,6 +168,7 @@ async function runAutoMigrateTestingServersImmediately(options: RunAutoMigrateTe
 async function listPendingMigrationsByPrefix(options: {
     readonly connectionString: string;
     readonly migrationFiles: ReadonlyArray<string>;
+    readonly prefixes: ReadonlyArray<string>;
 }): Promise<Array<PendingMigrationByPrefix>> {
     const client = new Client({
         connectionString: options.connectionString,
@@ -189,7 +180,7 @@ async function listPendingMigrationsByPrefix(options: {
     try {
         await client.connect();
 
-        for (const prefix of TESTING_SERVER_MIGRATION_PREFIXES) {
+        for (const prefix of options.prefixes) {
             const pendingMigrationFiles = await listPendingMigrationFilesForPrefix({
                 client,
                 prefix,

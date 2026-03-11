@@ -1,3 +1,11 @@
+-   Replaced Agents Server `SERVERS` environment-based server registry with a global `_Server` database table:
+
+    -   Added migration `2026-03-0190-server-registry.sql` creating `_Server` with server name, environment group (`PRODUCTION` / `PREVIEW`), Vercel domain, table prefix, and timestamps.
+    -   Refactored Agents Server request routing, custom-domain resolution, and admin diagnostics to resolve active servers from `_Server` instead of the removed `SERVERS` env variable.
+    -   Reworked database migration selection so `--only` now supports `_Server` environment groups (`production`, `preview`), registered server names, and raw table prefixes while loading available prefixes from `_Server`.
+    -   Updated the coding-script testing-server auto-migrator to select preview servers from `_Server` instead of a hard-coded prefix list.
+    -   Added `apps/agents-server/scripts/sync-vercel-domains.ts`, a dry-run-capable Vercel domain sync script with structured JSON logs for CI, and registered it in `.vscode/terminals.json`.
+
 -   Added a branded Agents Server `500 / Internal Server Error` experience for App Router failures:
 
     -   Extracted the existing application-error boundary UI into a shared component so unexpected render failures reuse one consistent branded page.

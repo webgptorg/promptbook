@@ -25,6 +25,20 @@ const OBJECT_ACCEPT_HEADER = 'application/vnd.pgrst.object+json';
  * In-memory table store used by the mocked Supabase API.
  */
 const tables = new Map([
+    [
+        '_Server',
+        [
+            {
+                id: 1,
+                name: process.env.E2E_SERVER_NAME || 'local-e2e',
+                environment: process.env.E2E_SERVER_ENVIRONMENT || 'PREVIEW',
+                domain: process.env.E2E_SERVER_DOMAIN || '127.0.0.1',
+                tablePrefix: process.env.E2E_SERVER_TABLE_PREFIX || '',
+                createdAt: '2026-03-11T00:00:00.000Z',
+                updatedAt: '2026-03-11T00:00:00.000Z',
+            },
+        ],
+    ],
     ['Metadata', []],
     ['Agent', []],
     ['AgentFolder', []],
