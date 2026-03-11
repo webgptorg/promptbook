@@ -1,3 +1,9 @@
+-   Added a branded Agents Server `500 / Internal Server Error` experience for App Router failures:
+
+    -   Extracted the existing application-error boundary UI into a shared component so unexpected render failures reuse one consistent branded page.
+    -   Updated the visible error-state copy to clearly present `500 / Internal Server Error` instead of a generic application-error label.
+    -   Added `apps/agents-server/src/app/global-error.tsx` so root-layout and top-level render failures on Vercel no longer fall back to the default plain Next.js/Vercel error page.
+
 -   Reworked Agents Server standalone chat into a server-owned durable conversation model:
 
     -   Added durable `UserChatJob` persistence with linked `chatId`, `messageId`, `assistantMessageId`, `clientMessageId`, job lease/heartbeat fields, cancellation timestamps, provider/failure metadata, and migration `2026-03-0180-user-chat-jobs.sql`.

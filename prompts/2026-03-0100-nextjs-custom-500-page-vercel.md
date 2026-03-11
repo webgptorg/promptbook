@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.2441 15 minutes by OpenAI Codex `gpt-5.4`
 
 [🧯🌩️] Custom 500 page in Next.js on Vercel
 
@@ -9,3 +9,4 @@
     -   Get inspiration from existing Aplication error when wrapping React error boundary, and also from our 404 page.
 
 ![alt text](prompts/screenshots/2026-03-0100-nextjs-custom-500-page-vercel.png)
+

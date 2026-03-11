@@ -1,0 +1,540 @@
+'use client';
+
+import Link from 'next/link';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+    APPLICATION_ERROR_REPORT_ENDPOINT,
+    type ApplicationBoundaryError,
+    type ApplicationErrorReportPayload,
+    type ApplicationErrorVariant,
+    DEFAULT_APPLICATION_ERROR_SERVER_NAME,
+    createApplicationErrorReportFilename,
+    createApplicationErrorReportMarkdown,
+    createApplicationErrorDigest,
+    createApplicationErrorHeadline,
+    createApplicationErrorReportPayload,
+    describeApplicationError,
+    resolveApplicationErrorVariant,
+} from '../../utils/errorReporting/applicationErrorHandling';
+import { ErrorPage as BasicErrorPage } from '../ErrorPage/ErrorPage';
+
+/**
+ * User-facing title rendered in the compact 500 page variant.
+ */
+const INTERNAL_SERVER_ERROR_TITLE = '500 / Internal Server Error';
+
+/**
+ * Numeric status badge rendered in the advanced 500 page hero.
+ */
+const INTERNAL_SERVER_ERROR_CODE = '500';
+
+/**
+ * User-facing label rendered next to the numeric status badge.
+ */
+const INTERNAL_SERVER_ERROR_LABEL = 'Internal Server Error';
+
+/**
+ * Suggestions shown in the advanced error variant to help users recover.
+ *
+ * @private
+ */
+const troubleshootingSteps = [
+    {
+        title: 'Refresh the route',
+        detail: 'Try "Try again" so the last navigation runs with fresh cookies, network state, and session data.',
+    },
+    {
+        title: 'Share the digest',
+        detail: 'Copy or save the markdown report before reporting the problem so operators can match logs quickly.',
+    },
+    {
+        title: 'Check the system status',
+        detail: 'If the issue keeps happening, contact your admin or hosting team so they can inspect the server logs.',
+    },
+] as const;
+
+/**
+ * Duration in milliseconds before temporary report-action feedback clears.
+ *
+ * @private
+ */
+const REPORT_ACTION_FEEDBACK_DURATION_MS = 2500;
+
+/**
+ * Writes plain text to the user clipboard.
+ *
+ * @param text - Text content to copy.
+ * @throws Error when clipboard API is unavailable.
+ *
+ * @private
+ */
+async function copyPlainTextToClipboard(text: string): Promise<void> {
+    if (!navigator.clipboard?.writeText) {
+        throw new Error('Clipboard API is unavailable.');
+    }
+
+    await navigator.clipboard.writeText(text);
+}
+
+/**
+ * Triggers a browser download for one markdown report.
+ *
+ * @param reportMarkdown - Markdown content to save.
+ * @param filename - Target filename.
+ *
+ * @private
+ */
+function downloadMarkdownReport(reportMarkdown: string, filename: string): void {
+    const reportBlob = new Blob([reportMarkdown], { type: 'text/markdown;charset=utf-8' });
+    const reportUrl = URL.createObjectURL(reportBlob);
+    const anchor = document.createElement('a');
+    anchor.href = reportUrl;
+    anchor.download = filename;
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(reportUrl);
+}
+
+/**
+ * Props accepted by shared action controls used across error variants.
+ *
+ * @private
+ */
+type ApplicationErrorActionsProps = {
+    /**
+     * Callback that retries the failed route transition.
+     */
+    reset: () => void;
+
+    /**
+     * Digest value displayed for operator correlation.
+     */
+    digest: string;
+
+    /**
+     * Full markdown report text used by copy/save controls.
+     */
+    reportMarkdown: string;
+
+    /**
+     * Default filename used by the markdown save action.
+     */
+    reportFilename: string;
+
+    /**
+     * Styling classes for the outer action row.
+     */
+    containerClassName: string;
+
+    /**
+     * Styling classes for the primary retry button.
+     */
+    retryButtonClassName: string;
+
+    /**
+     * Styling classes for the secondary homepage link.
+     */
+    homeButtonClassName: string;
+
+    /**
+     * Styling classes for the digest text block.
+     */
+    digestClassName: string;
+
+    /**
+     * Styling classes for the report copy button.
+     */
+    copyButtonClassName: string;
+
+    /**
+     * Styling classes for the report save button.
+     */
+    saveButtonClassName: string;
+
+    /**
+     * Styling classes for report export feedback text.
+     */
+    reportFeedbackClassName: string;
+};
+
+/**
+ * Shared primary/secondary actions rendered in both simple and advanced variants.
+ *
+ * @param props - Action rendering props.
+ *
+ * @private
+ */
+function ApplicationErrorActions({
+    reset,
+    digest,
+    reportMarkdown,
+    reportFilename,
+    containerClassName,
+    retryButtonClassName,
+    homeButtonClassName,
+    digestClassName,
+    copyButtonClassName,
+    saveButtonClassName,
+    reportFeedbackClassName,
+}: ApplicationErrorActionsProps) {
+    const [reportFeedback, setReportFeedback] = useState<string | null>(null);
+    const reportFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    /**
+     * Renders short-lived action feedback under report controls.
+     *
+     * @param feedback - Human-friendly feedback label.
+     */
+    const showReportFeedback = (feedback: string): void => {
+        if (reportFeedbackTimeoutRef.current !== null) {
+            clearTimeout(reportFeedbackTimeoutRef.current);
+            reportFeedbackTimeoutRef.current = null;
+        }
+
+        setReportFeedback(feedback);
+        reportFeedbackTimeoutRef.current = setTimeout(() => {
+            setReportFeedback(null);
+            reportFeedbackTimeoutRef.current = null;
+        }, REPORT_ACTION_FEEDBACK_DURATION_MS);
+    };
+
+    /**
+     * Clears pending report-feedback timers when controls unmount.
+     */
+    useEffect(() => {
+        return () => {
+            if (reportFeedbackTimeoutRef.current !== null) {
+                clearTimeout(reportFeedbackTimeoutRef.current);
+                reportFeedbackTimeoutRef.current = null;
+            }
+        };
+    }, []);
+
+    /**
+     * Copies the full markdown report to clipboard.
+     */
+    const handleCopyReport = async (): Promise<void> => {
+        try {
+            await copyPlainTextToClipboard(reportMarkdown);
+            showReportFeedback('Report copied to clipboard.');
+        } catch (error) {
+            const detail = error instanceof Error ? error.message : String(error);
+            showReportFeedback(`Copy failed: ${detail}`);
+        }
+    };
+
+    /**
+     * Saves the full markdown report as a local file.
+     */
+    const handleSaveReport = (): void => {
+        downloadMarkdownReport(reportMarkdown, reportFilename);
+        showReportFeedback(`Saved report as ${reportFilename}.`);
+    };
+
+    return (
+        <div className={containerClassName}>
+            <button type="button" onClick={() => reset()} className={retryButtonClassName}>
+                Try again
+            </button>
+            <Link href="/" className={homeButtonClassName}>
+                Go to homepage
+            </Link>
+            <button type="button" onClick={() => void handleCopyReport()} className={copyButtonClassName}>
+                Copy
+            </button>
+            <button type="button" onClick={handleSaveReport} className={saveButtonClassName}>
+                Save
+            </button>
+            <div className={digestClassName}>
+                Digest: <span className="text-current">{digest}</span>
+            </div>
+            {reportFeedback ? (
+                <p className={reportFeedbackClassName} role="status" aria-live="polite">
+                    {reportFeedback}
+                </p>
+            ) : null}
+        </div>
+    );
+}
+
+/**
+ * Props accepted by the simple error variant renderer.
+ *
+ * @private
+ */
+type SimpleApplicationErrorViewProps = {
+    /**
+     * Primary headline shared with advanced mode.
+     */
+    headline: string;
+
+    /**
+     * Friendly paragraph explaining what happened.
+     */
+    description: string;
+
+    /**
+     * Digest value displayed for support correlation.
+     */
+    digest: string;
+
+    /**
+     * Full markdown report text used by copy/save controls.
+     */
+    reportMarkdown: string;
+
+    /**
+     * Default filename used by the markdown save action.
+     */
+    reportFilename: string;
+
+    /**
+     * Callback that retries the failed route transition.
+     */
+    reset: () => void;
+};
+
+/**
+ * Compact application error presentation for lightweight deployments.
+ *
+ * @param props - Display props for the simple variant.
+ *
+ * @private
+ */
+function SimpleApplicationErrorView({
+    headline,
+    description,
+    digest,
+    reportMarkdown,
+    reportFilename,
+    reset,
+}: SimpleApplicationErrorViewProps) {
+    return (
+        <BasicErrorPage title={INTERNAL_SERVER_ERROR_TITLE} message={headline}>
+            <p className="mb-5 text-center text-sm text-gray-600">{description}</p>
+            <ApplicationErrorActions
+                reset={reset}
+                digest={digest}
+                reportMarkdown={reportMarkdown}
+                reportFilename={reportFilename}
+                containerClassName="flex flex-col items-center gap-3"
+                retryButtonClassName="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+                homeButtonClassName="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
+                digestClassName="text-xs font-mono text-gray-500"
+                copyButtonClassName="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
+                saveButtonClassName="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
+                reportFeedbackClassName="text-xs text-gray-600"
+            />
+        </BasicErrorPage>
+    );
+}
+
+/**
+ * Props accepted by the advanced error variant renderer.
+ *
+ * @private
+ */
+type AdvancedApplicationErrorViewProps = {
+    /**
+     * Primary headline shared with simple mode.
+     */
+    headline: string;
+
+    /**
+     * Friendly paragraph explaining what happened.
+     */
+    description: string;
+
+    /**
+     * Digest value displayed for support correlation.
+     */
+    digest: string;
+
+    /**
+     * Full markdown report text used by copy/save controls.
+     */
+    reportMarkdown: string;
+
+    /**
+     * Default filename used by the markdown save action.
+     */
+    reportFilename: string;
+
+    /**
+     * Callback that retries the failed route transition.
+     */
+    reset: () => void;
+};
+
+/**
+ * Full-screen detailed error presentation for troubleshooting-heavy environments.
+ *
+ * @param props - Display props for the advanced variant.
+ *
+ * @private
+ */
+function AdvancedApplicationErrorView({
+    headline,
+    description,
+    digest,
+    reportMarkdown,
+    reportFilename,
+    reset,
+}: AdvancedApplicationErrorViewProps) {
+    return (
+        <div className="min-h-screen w-full bg-slate-950 px-4 py-12 text-white">
+            <div className="mx-auto flex w-full max-w-5xl flex-col justify-center gap-8 rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900/85 via-slate-900/70 to-slate-950/95 p-8 shadow-[0_20px_80px_rgba(15,23,42,0.65)] backdrop-blur sm:p-10">
+                <div className="space-y-4">
+                    <div className="flex flex-wrap items-center gap-3 text-sm uppercase tracking-[0.32em] text-indigo-200">
+                        <span className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-indigo-300/40 bg-indigo-400/10 text-lg font-semibold text-white">
+                            {INTERNAL_SERVER_ERROR_CODE}
+                        </span>
+                        <span>{INTERNAL_SERVER_ERROR_LABEL}</span>
+                    </div>
+                    <div className="space-y-3">
+                        <h1 className="text-3xl font-semibold leading-tight text-white sm:text-4xl">{headline}</h1>
+                        <p className="text-lg text-slate-200 sm:text-xl">{description}</p>
+                    </div>
+                </div>
+                <ApplicationErrorActions
+                    reset={reset}
+                    digest={digest}
+                    reportMarkdown={reportMarkdown}
+                    reportFilename={reportFilename}
+                    containerClassName="flex flex-wrap items-center gap-3"
+                    retryButtonClassName="inline-flex items-center justify-center rounded-2xl bg-indigo-500 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white transition hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-300"
+                    homeButtonClassName="inline-flex items-center justify-center rounded-2xl border border-white/30 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white transition hover:border-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                    digestClassName="ml-auto text-xs font-mono text-slate-300"
+                    copyButtonClassName="inline-flex items-center justify-center rounded-2xl border border-white/30 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white transition hover:border-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                    saveButtonClassName="inline-flex items-center justify-center rounded-2xl border border-white/30 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white transition hover:border-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                    reportFeedbackClassName="w-full text-xs text-slate-300"
+                />
+                <div className="grid gap-4 sm:grid-cols-3">
+                    {troubleshootingSteps.map((step) => (
+                        <article
+                            key={step.title}
+                            className="rounded-2xl border border-white/5 bg-white/5 p-4 shadow-inner shadow-black/40"
+                        >
+                            <p className="text-sm font-semibold uppercase tracking-wider text-indigo-200">{step.title}</p>
+                            <p className="mt-2 text-sm text-slate-200">{step.detail}</p>
+                        </article>
+                    ))}
+                </div>
+                <p className="text-xs text-slate-400">
+                    Our team already receives this report in Sentry, but feel free to include the digest when reporting
+                    the issue so the logs can be correlated quickly.
+                </p>
+            </div>
+        </div>
+    );
+}
+
+/**
+ * Sends an application error payload to the server-side Sentry forwarding endpoint.
+ *
+ * @param payload - Serialized browser-side application error details.
+ *
+ * @private
+ */
+async function reportApplicationError(payload: ApplicationErrorReportPayload): Promise<void> {
+    const response = await fetch(APPLICATION_ERROR_REPORT_ENDPOINT, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+        keepalive: true,
+    });
+
+    if (!response.ok) {
+        const responseBody = await response.text();
+        throw new Error(`Failed to report application error (${response.status}): ${responseBody}`);
+    }
+}
+
+/**
+ * Props accepted by the reusable app-router error page component.
+ */
+type ApplicationErrorPageProps = {
+    /**
+     * The Next.js boundary payload.
+     */
+    error: ApplicationBoundaryError;
+
+    /**
+     * Callback that retries the failed navigation.
+     */
+    reset: () => void;
+};
+
+/**
+ * Branded error page rendered by Next.js app-router boundaries for unhandled exceptions.
+ *
+ * @param props - Boundary payload and reset callback.
+ * @returns Shared branded `500 / Internal Server Error` experience.
+ */
+export function ApplicationErrorPage({ error, reset }: ApplicationErrorPageProps) {
+    const variant: ApplicationErrorVariant = resolveApplicationErrorVariant(
+        process.env.NEXT_PUBLIC_APPLICATION_ERROR_VARIANT,
+    );
+    const digest = createApplicationErrorDigest(error);
+    const serverName = process.env.NEXT_PUBLIC_SERVER_NAME ?? DEFAULT_APPLICATION_ERROR_SERVER_NAME;
+    const headline = createApplicationErrorHeadline(serverName);
+    const description = describeApplicationError(error, serverName);
+    const [pageUrl, setPageUrl] = useState<string | undefined>(undefined);
+    const reportPayload = useMemo(
+        () => createApplicationErrorReportPayload(error, digest, serverName, variant, pageUrl),
+        [digest, error, pageUrl, serverName, variant],
+    );
+    const reportMarkdown = useMemo(
+        () => createApplicationErrorReportMarkdown(reportPayload, headline, description),
+        [description, headline, reportPayload],
+    );
+    const reportFilename = useMemo(() => createApplicationErrorReportFilename(reportPayload), [reportPayload]);
+    const lastReportedErrorRef = useRef<ApplicationBoundaryError | null>(null);
+
+    useEffect(() => {
+        setPageUrl(window.location.href);
+    }, []);
+
+    useEffect(() => {
+        if (!pageUrl) {
+            return;
+        }
+
+        if (lastReportedErrorRef.current === error) {
+            return;
+        }
+
+        lastReportedErrorRef.current = error;
+
+        void reportApplicationError(reportPayload).catch((reportingError) => {
+            console.error('Failed to report application error to Sentry forwarding endpoint.', reportingError);
+        });
+    }, [error, pageUrl, reportPayload]);
+
+    if (variant === 'simple') {
+        return (
+            <SimpleApplicationErrorView
+                headline={headline}
+                description={description}
+                digest={digest}
+                reportMarkdown={reportMarkdown}
+                reportFilename={reportFilename}
+                reset={reset}
+            />
+        );
+    }
+
+    return (
+        <AdvancedApplicationErrorView
+            headline={headline}
+            description={description}
+            digest={digest}
+            reportMarkdown={reportMarkdown}
+            reportFilename={reportFilename}
+            reset={reset}
+        />
+    );
+}
