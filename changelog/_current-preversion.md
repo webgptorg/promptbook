@@ -13,12 +13,6 @@
     -   Mounted the notification provider once in `LayoutWrapper` so notifications can be triggered from anywhere in Agents Server UI without layout shift.
     -   Removed in-layout chat error/save-failure banners from `/agents/[agentName]/chat` and replaced them with floating notifications to avoid chat layout reflow/resizing.
 
--   Added new Czech landing subpage `/ai-supervize` in Agents Server:
-
-    -   Implemented a dedicated marketing page for AI Supervize focused on CTO/CEO/Tech Lead audience in Czech software companies.
-    -   Added full structured content for offer scope, target situations, deliverables, process, security, pricing, contacts, and CTA.
-    -   Registered `ai-supervize` as a reserved path (via generated `reservedPaths`) so middleware serves the page directly instead of redirecting to `/agents/[agentName]`.
-
 -   Fixed Agents Server user-chat loading/saving scope drift for anonymous users:
 
     -   Updated anonymous identity cookie resolution to treat a valid `x-anonymous-username` header as authoritative for the current request and synchronize the cookie to the same value.
