@@ -1,3 +1,8 @@
+-   Fixed Agents Server duplicated `INITIAL MESSAGE` entries in chat history when switching chats or refreshing:
+
+    -   Added a stable seeded initial-message ID in `AgentChat` so user-chat append-only merge treats rehydrated initial messages as one logical message.
+    -   Updated `/agents/[agentName]/chat` debounced message persistence to cancel stale pending saves once hydrated content matches the latest saved snapshot, preventing transient pre-hydration initial-message writes.
+
 -   Added a new Supabase PostgreSQL backup CLI script at `scripts/backup-supabase/backup-supabase.ts`:
 
     -   Uses `commander` and existing project-style Postgres connection handling (`POSTGRES_URL` / `DATABASE_URL`) without using `pg_dump`.

@@ -14,6 +14,11 @@ import { LlmChat } from '../LlmChat/LlmChat';
 import type { AgentChatProps } from './AgentChatProps';
 
 /**
+ * Stable identifier for the seeded initial agent message.
+ */
+const AGENT_CHAT_INITIAL_MESSAGE_ID = 'agent-initial-message';
+
+/**
  * AgentChat component that provides chat functionality with LLM integration
  *
  * This component internally manages messages, participants, and task progress,
@@ -42,6 +47,7 @@ export function AgentChat(props: AgentChatProps) {
                 initialMessages={[
                     {
                         // channel: 'PROMPTBOOK_CHAT',
+                        id: AGENT_CHAT_INITIAL_MESSAGE_ID,
                         sender: 'AGENT',
                         content:
                             agent.initialMessage ||

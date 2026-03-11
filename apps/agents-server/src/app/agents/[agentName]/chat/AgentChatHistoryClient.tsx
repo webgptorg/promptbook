@@ -716,6 +716,19 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     );
 
     /**
+     * Cancels one pending debounced message save timer.
+     */
+    const cancelPendingMessageSave = useCallback((chatId: string): void => {
+        const existingTimer = saveTimersRef.current.get(chatId);
+        if (!existingTimer) {
+            return;
+        }
+
+        clearTimeout(existingTimer);
+        saveTimersRef.current.delete(chatId);
+    }, []);
+
+    /**
      * Persists updated chat messages using debounced full JSON replacement.
      */
     const handleMessagesChange = useCallback(
@@ -731,18 +744,12 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             const lastSavedHash = savedMessagesHashesRef.current.get(chatId);
             const lastFailedHash = failedMessagesHashesRef.current.get(chatId);
 
-            if (lastSavedHash === serializedMessages) {
+            if (lastSavedHash === serializedMessages || lastFailedHash === serializedMessages) {
+                cancelPendingMessageSave(chatId);
                 return;
             }
 
-            if (lastFailedHash === serializedMessages) {
-                return;
-            }
-
-            const existingTimer = saveTimersRef.current.get(chatId);
-            if (existingTimer) {
-                clearTimeout(existingTimer);
-            }
+            cancelPendingMessageSave(chatId);
 
             const nextTimer = setTimeout(() => {
                 void persistChatMessagesNow(chatId, normalizedMessages)
@@ -763,7 +770,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
             saveTimersRef.current.set(chatId, nextTimer);
         },
-        [activeChatId, notifyChatSaveFailure, persistChatMessagesNow, shouldUseHistory],
+        [activeChatId, cancelPendingMessageSave, notifyChatSaveFailure, persistChatMessagesNow, shouldUseHistory],
     );
 
     /**

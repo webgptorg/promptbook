@@ -139,6 +139,7 @@ describe('AgentChat', () => {
 
         const firstMessage = initialMessages[0];
         expect(firstMessage?.sender).toBe('AGENT');
+        expect(firstMessage?.id).toBe('agent-initial-message');
         expect(firstMessage?.content).toContain('GreeterBot'); // <- TODO: [🕛]
     });
 
