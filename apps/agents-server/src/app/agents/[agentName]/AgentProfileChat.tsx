@@ -24,7 +24,7 @@ import { setPendingProfileMessage } from './profileMessageCache';
 /**
  * Props for rendering the profile-page chat preview for one agent.
  */
-type AgentProfileChatProps = {
+export type AgentProfileChatProps = {
     agentUrl: string_agent_url;
     agentName: string;
     fullname: string;

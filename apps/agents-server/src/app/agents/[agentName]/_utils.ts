@@ -8,6 +8,7 @@ import {
 } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { resolveAgentProfileWithInheritance } from '@/src/utils/resolveAgentProfileWithInheritance';
+import { cache } from 'react';
 import type { AgentsServerDatabase } from '../../../database/schema';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
 import { buildAgentFolderContext, type AgentFolderContext } from '../../../utils/agentOrganization/agentFolderContext';
@@ -30,7 +31,13 @@ export async function getAgentName(params: Promise<{ agentName: string }>) {
     return decodeURIComponent(agentName);
 }
 
-export async function getAgentProfile(agentName: string) {
+/**
+ * Resolves the full agent profile for the current request.
+ *
+ * @param agentName - Agent identifier coming from the route.
+ * @returns Resolved agent profile with visibility.
+ */
+const getCachedAgentProfile = cache(async (agentName: string) => {
     const collection = await $provideAgentCollectionForServer();
     const { publicUrl } = await $provideServer();
     const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
@@ -61,9 +68,25 @@ export async function getAgentProfile(agentName: string) {
     }
 
     return { ...agentProfile, visibility: agentResult.data.visibility };
+});
+
+/**
+ * Resolves the full agent profile for the current request.
+ *
+ * @param agentName - Agent identifier coming from the route.
+ * @returns Resolved agent profile with visibility.
+ */
+export async function getAgentProfile(agentName: string) {
+    return getCachedAgentProfile(agentName);
 }
 
-export async function isAgentDeleted(agentName: string): Promise<boolean> {
+/**
+ * Checks whether the requested agent is soft-deleted.
+ *
+ * @param agentName - Agent identifier coming from the route.
+ * @returns Whether the resolved agent row is deleted.
+ */
+const getCachedIsAgentDeleted = cache(async (agentName: string): Promise<boolean> => {
     const supabase = $provideSupabaseForServer();
     const parsedBookScopedAgentIdentifier = parseBookScopedAgentIdentifier(agentName);
     const targetAgentIdentifier = parsedBookScopedAgentIdentifier?.parentAgentIdentifier || agentName;
@@ -79,6 +102,16 @@ export async function isAgentDeleted(agentName: string): Promise<boolean> {
     }
 
     return result.data[0]!.deletedAt !== null;
+});
+
+/**
+ * Checks whether the requested agent is soft-deleted.
+ *
+ * @param agentName - Agent identifier coming from the route.
+ * @returns Whether the resolved agent row is deleted.
+ */
+export async function isAgentDeleted(agentName: string): Promise<boolean> {
+    return getCachedIsAgentDeleted(agentName);
 }
 
 /**
@@ -88,10 +121,10 @@ export async function isAgentDeleted(agentName: string): Promise<boolean> {
  * @param isAdmin - Whether the current user has admin access.
  * @returns Folder context for the agent or null when unavailable.
  */
-export async function getAgentFolderContext(
+const getCachedAgentFolderContext = cache(async (
     agentName: string,
     isAdmin: boolean,
-): Promise<AgentFolderContext | null> {
+): Promise<AgentFolderContext | null> => {
     const parsedBookScopedAgentIdentifier = parseBookScopedAgentIdentifier(agentName);
     const targetAgentIdentifier = parsedBookScopedAgentIdentifier?.parentAgentIdentifier || agentName;
     const supabase = $provideSupabaseForServer();
@@ -133,6 +166,20 @@ export async function getAgentFolderContext(
     }
 
     return buildAgentFolderContext(folderId, folderById);
+});
+
+/**
+ * Resolves the folder navigation context for the agent profile menu.
+ *
+ * @param agentName - Agent name or permanent id to look up.
+ * @param isAdmin - Whether the current user has admin access.
+ * @returns Folder context for the agent or null when unavailable.
+ */
+export async function getAgentFolderContext(
+    agentName: string,
+    isAdmin: boolean,
+): Promise<AgentFolderContext | null> {
+    return getCachedAgentFolderContext(agentName, isAdmin);
 }
 
 /**

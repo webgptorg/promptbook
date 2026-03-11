@@ -1,5 +1,6 @@
 import { NEXT_PUBLIC_SITE_URL, SUPABASE_TABLE_PREFIX } from '@/config';
 import { headers } from 'next/headers';
+import { cache } from 'react';
 import { listRegisteredServersUsingServiceRole, resolveRegisteredServerByHost } from '../utils/serverRegistry';
 
 /**
@@ -24,7 +25,7 @@ type ProvidedServer = {
  *
  * @returns Server routing context for the current request.
  */
-export async function $provideServer(): Promise<ProvidedServer> {
+const getCachedProvidedServer = cache(async (): Promise<ProvidedServer> => {
     const headersList = await headers();
     const requestHost = headersList.get('host');
     const xPromptbookServer = headersList.get('x-promptbook-server');
@@ -49,6 +50,15 @@ export async function $provideServer(): Promise<ProvidedServer> {
         publicUrl: new URL(`https://${resolvedServer.domain}`),
         tablePrefix: resolvedServer.tablePrefix,
     };
+});
+
+/**
+ * Resolves the current server routing context.
+ *
+ * @returns Server routing context for the current request.
+ */
+export async function $provideServer(): Promise<ProvidedServer> {
+    return getCachedProvidedServer();
 }
 
 /**

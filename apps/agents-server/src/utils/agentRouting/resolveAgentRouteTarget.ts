@@ -6,6 +6,7 @@ import { parseBookScopedAgentIdentifier } from '../agentReferenceResolver/bookSc
 import { resolvePseudoAgentDescriptor } from '../pseudoAgents';
 import { normalizeAgentName } from '../../../../../src/_packages/core.index';
 import type { PseudoAgentKind } from '../../../../../src/book-2.0/agent-source/pseudoAgentReferences';
+import { cache } from 'react';
 
 /**
  * Prefix used by canonical agent URLs in the application.
@@ -60,7 +61,7 @@ export type AgentRouteTarget = LocalAgentRouteTarget | RemoteAgentRouteTarget | 
  * @param rawReference - Raw decoded route parameter value.
  * @returns Canonical local/remote route target or `null` when the reference cannot be resolved.
  */
-export async function resolveAgentRouteTarget(rawReference: string): Promise<AgentRouteTarget | null> {
+const getCachedAgentRouteTarget = cache(async (rawReference: string): Promise<AgentRouteTarget | null> => {
     const parsedBookScopedAgentIdentifier = parseBookScopedAgentIdentifier(rawReference);
     if (parsedBookScopedAgentIdentifier) {
         const { publicUrl } = await $provideServer();
@@ -133,6 +134,16 @@ export async function resolveAgentRouteTarget(rawReference: string): Promise<Age
         canonicalAgentId,
         canonicalUrl: `${localServerUrl}${AGENT_PATH_PREFIX}${encodeURIComponent(canonicalAgentId)}`,
     };
+});
+
+/**
+ * Resolves any incoming `/agents/:agentId` token into a canonical target URL.
+ *
+ * @param rawReference - Raw decoded route parameter value.
+ * @returns Canonical local/remote route target or `null` when the reference cannot be resolved.
+ */
+export async function resolveAgentRouteTarget(rawReference: string): Promise<AgentRouteTarget | null> {
+    return getCachedAgentRouteTarget(rawReference);
 }
 
 /**

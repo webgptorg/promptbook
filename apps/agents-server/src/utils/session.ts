@@ -1,5 +1,6 @@
 import { createHmac } from 'crypto';
 import { cookies } from 'next/headers';
+import { cache } from 'react';
 
 const SESSION_COOKIE_NAME = 'sessionToken';
 const SECRET_KEY = process.env.ADMIN_PASSWORD || 'default-secret-key-change-me';
@@ -28,7 +29,12 @@ export async function clearSession() {
     (await cookies()).delete('adminToken');
 }
 
-export async function getSession(): Promise<SessionUser | null> {
+/**
+ * Resolves and verifies the session cookie for the current request.
+ *
+ * @returns Signed session payload or `null` when the request is anonymous.
+ */
+const getCachedSession = cache(async (): Promise<SessionUser | null> => {
     const cookieStore = await cookies();
     const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
@@ -47,4 +53,13 @@ export async function getSession(): Promise<SessionUser | null> {
     } catch {
         return null;
     }
+});
+
+/**
+ * Returns the authenticated session for the current request.
+ *
+ * @returns Signed session payload or `null` when the request is anonymous.
+ */
+export async function getSession(): Promise<SessionUser | null> {
+    return getCachedSession();
 }

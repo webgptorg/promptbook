@@ -1,3 +1,13 @@
+-   Improved Agents Server page-load performance and perceived responsiveness without changing behavior:
+
+    -   Added request-scoped caching for repeated server reads used by the app shell and agent routes (`$provideServer`, metadata, session/current-user/admin checks, agent route/profile helpers), reducing duplicate database and server-registry work within one request.
+    -   Parallelized home/profile/chat/root-layout data loading so independent awaits no longer serialize the initial server render.
+    -   Time-boxed and revalidated federated-server logo lookups so slow remote metadata endpoints no longer hold back the page shell on every request.
+    -   Deferred the homepage graph and interaction-only homepage overlays into separate client chunks, and lazy-loaded the profile-page chat preview behind a visual fallback to improve both actual and perceived loading.
+    -   Measured production-build bundle impact:
+        -   `/agents/[agentName]` first-load JS reduced from about `1.0 MB` to about `142 kB`
+        -   `/` first-load JS reduced from about `1.13 MB` to about `1.07 MB`
+
 -   Added OpenAPI-backed management endpoints to Agents Server for owner-scoped agent administration:
 
     -   Added a generated OpenAPI 3 management spec at `/openapi.json` and interactive Swagger UI at `/swagger`, both available on every Agents Server instance and secured with the existing API-key bearer auth.

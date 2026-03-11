@@ -30,8 +30,10 @@ export type HomePageAgentsResult = {
  * Loads agents for the home/dashboard pages with visibility filtering applied.
  */
 export async function getHomePageAgents(): Promise<HomePageAgentsResult> {
-    const { agents, folders, currentUser } = await loadAgentOrganizationState({ status: 'ACTIVE' });
-    const homepageMessage = await getMetadata('HOMEPAGE_MESSAGE');
+    const [{ agents, folders, currentUser }, homepageMessage] = await Promise.all([
+        loadAgentOrganizationState({ status: 'ACTIVE' }),
+        getMetadata('HOMEPAGE_MESSAGE'),
+    ]);
 
     return { agents, folders, currentUser, homepageMessage };
 }

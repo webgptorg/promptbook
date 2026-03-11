@@ -21,11 +21,12 @@ type HomePageProps = {
 export default async function HomePage(props: HomePageProps) {
     $sideEffect(/* Note: [??] This will ensure dynamic rendering of page and avoid Next.js pre-render */ headers());
 
-    const { publicUrl } = await $provideServer();
-    const isAdmin = await isUserAdmin(); /* <- TODO: [??] Here should be user permissions */
-    const { agents, folders, homepageMessage, currentUser } = await getHomePageAgents();
-
-    const searchParams = await props.searchParams;
+    const [{ publicUrl }, isAdmin, { agents, folders, homepageMessage, currentUser }, searchParams] = await Promise.all([
+        $provideServer(),
+        isUserAdmin(), /* <- TODO: [??] Here should be user permissions */
+        getHomePageAgents(),
+        props.searchParams,
+    ]);
     const isGraphView = searchParams?.view === 'graph';
     const isSubfolderView = getIsSubfolderView(searchParams);
 

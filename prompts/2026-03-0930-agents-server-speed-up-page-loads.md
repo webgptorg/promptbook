@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 24 minutes by OpenAI Codex `gpt-5.4`
 
 [🐢⚡] Speed up Agents Server page loads + perceived performance
 
@@ -7,3 +7,4 @@
 -   Out of scope (unless found necessary during audit): full rewrite, switching frameworks, major redesign.
 -   Implementation should be incremental and safe; each change should be measurable and reversible.
 -   You are working with the [Agents Server](apps/agents-server)
+

@@ -1,6 +1,7 @@
 import { $getTableName } from './$getTableName';
 import { $provideSupabase } from './$provideSupabase';
 import { metadataDefaults } from './metadataDefaults';
+import { cache } from 'react';
 
 /**
  * Precomputed map of default metadata values to avoid re-iterating the defaults array.
@@ -8,6 +9,26 @@ import { metadataDefaults } from './metadataDefaults';
  * @private Internal helper for metadata lookups in `apps/agents-server`.
  */
 const metadataDefaultsMap = new Map<string, string>(metadataDefaults.map((metadata) => [metadata.key, metadata.value]));
+
+/**
+ * Loads the full metadata table once per request so callers can cheaply project subsets.
+ *
+ * @returns Map of metadata keys to stored values.
+ *
+ * @private Internal helper for batched metadata lookups in `apps/agents-server`.
+ */
+const loadAllMetadataValues = cache(async (): Promise<Map<string, string | null>> => {
+    const supabase = $provideSupabase();
+    const table = await $getTableName('Metadata');
+    const { data } = await supabase.from(table).select('key, value');
+
+    const loadedMap = new Map<string, string | null>();
+    for (const row of data ?? []) {
+        loadedMap.set(row.key, row.value);
+    }
+
+    return loadedMap;
+});
 
 /**
  * Get metadata value by key
@@ -40,15 +61,7 @@ export async function getMetadataMap(keys: readonly string[]): Promise<Record<st
         return {};
     }
 
-    const supabase = $provideSupabase();
-    const table = await $getTableName('Metadata');
-
-    const { data } = await supabase.from(table).select('key, value').in('key', uniqueKeys);
-
-    const loadedMap = new Map<string, string | null>();
-    for (const row of data ?? []) {
-        loadedMap.set(row.key, row.value);
-    }
+    const loadedMap = await loadAllMetadataValues();
 
     const metadataRecord: Record<string, string | null> = {};
     for (const key of uniqueKeys) {

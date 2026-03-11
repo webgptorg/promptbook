@@ -16,6 +16,7 @@ import {
 import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { TODO_any, string_url } from '@promptbook-local/types';
 import { FolderPlusIcon, Grid, Network, TrashIcon } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
@@ -30,12 +31,11 @@ import type {
     AgentOrganizationUpdatePayload,
 } from '../../utils/agentOrganization/types';
 import { DEFAULT_AGENT_VISIBILITY, type AgentVisibility } from '../../utils/agentVisibility';
-import { AgentContextMenuPopover, type AgentContextMenuRenamePayload } from '../AgentContextMenu/AgentContextMenu';
+import type { AgentContextMenuRenamePayload } from '../AgentContextMenu/AgentContextMenu';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { showAlert, showConfirm, showVisibilityDialog } from '../AsyncDialogs/asyncDialogs';
-import { FolderContextMenuPopover } from '../FolderContextMenu/FolderContextMenu';
+import { GraphLoadingSkeleton } from '../Skeleton/GraphLoadingSkeleton';
 import { AgentCard } from './AgentCard';
-import { AgentQrCodeModal } from './AgentQrCodeModal';
 import {
     buildFolderMaps,
     buildFolderPath,
@@ -46,12 +46,11 @@ import {
     resolveFolderIdFromPath,
     sortBySortOrder,
 } from './agentOrganizationUtils';
-import { AgentsGraph } from './AgentsGraph';
 import { BreadcrumbDropTarget } from './BreadcrumbDropTarget';
 import type { DragItem } from './DragItem';
 import type { DropIndicator } from './DropIndicator';
 import { FolderCard } from './FolderCard';
-import { FolderEditDialog, type FolderEditValues } from './FolderEditDialog';
+import type { FolderEditValues } from './FolderEditDialog';
 import { getDropIntentFromRects } from './getDropIntentFromRects';
 import { HOMEPAGE_AGENT_GRID_CLASS } from './gridLayout';
 import { ParentFolderCard } from './ParentFolderCard';
@@ -112,6 +111,52 @@ const FOLDER_DRAG_ID_PREFIX = 'folder:';
 const DRAG_START_DISTANCE_PX = 8;
 const TOUCH_DRAG_DELAY_MS = 250;
 const TOUCH_DRAG_TOLERANCE_PX = 6;
+
+/**
+ * Deferred graph chunk loaded only when the graph view is active.
+ */
+const DeferredAgentsGraph = dynamic(() => import('./AgentsGraph').then((mod) => mod.AgentsGraph), {
+    ssr: false,
+    loading: () => <GraphLoadingSkeleton />,
+});
+
+/**
+ * Deferred agent context menu so directory browsing does not eagerly hydrate interaction-only code.
+ */
+const DeferredAgentContextMenuPopover = dynamic(
+    () => import('../AgentContextMenu/AgentContextMenu').then((mod) => mod.AgentContextMenuPopover),
+    {
+        ssr: false,
+        loading: () => null,
+    },
+);
+
+/**
+ * Deferred folder context menu so directory browsing does not eagerly hydrate interaction-only code.
+ */
+const DeferredFolderContextMenuPopover = dynamic(
+    () => import('../FolderContextMenu/FolderContextMenu').then((mod) => mod.FolderContextMenuPopover),
+    {
+        ssr: false,
+        loading: () => null,
+    },
+);
+
+/**
+ * Deferred folder editor dialog used only after explicit user actions.
+ */
+const DeferredFolderEditDialog = dynamic(() => import('./FolderEditDialog').then((mod) => mod.FolderEditDialog), {
+    ssr: false,
+    loading: () => null,
+});
+
+/**
+ * Deferred QR-code dialog used only after explicit user actions.
+ */
+const DeferredAgentQrCodeModal = dynamic(() => import('./AgentQrCodeModal').then((mod) => mod.AgentQrCodeModal), {
+    ssr: false,
+    loading: () => null,
+});
 /**
  * API endpoint used to synchronize the organization snapshot.
  */
@@ -1594,7 +1639,7 @@ export function AgentsList(props: AgentsListProps) {
                 </DndContext>
             ) : (
                 <div className="w-full">
-                    <AgentsGraph
+                    <DeferredAgentsGraph
                         agents={agents.map((a) => ({ ...a, serverUrl: publicUrl.replace(/\/$/, '') }))}
                         federatedAgents={federatedAgents}
                         federatedServersStatus={federatedServersStatus}
@@ -1604,7 +1649,7 @@ export function AgentsList(props: AgentsListProps) {
                 </div>
             )}
             {folderEditDialogState && (
-                <FolderEditDialog
+                <DeferredFolderEditDialog
                     isOpen={Boolean(folderEditDialogState)}
                     mode={folderEditDialogState.mode}
                     initialValues={folderEditDialogState.initialValues}
@@ -1614,7 +1659,7 @@ export function AgentsList(props: AgentsListProps) {
                 />
             )}
             {contextMenuAgent && (
-                <AgentContextMenuPopover
+                <DeferredAgentContextMenuPopover
                     agent={contextMenuAgent as AgentProfile}
                     isOpen={Boolean(contextMenuState)}
                     anchorPoint={contextMenuState?.anchorPoint ?? null}
@@ -1632,7 +1677,7 @@ export function AgentsList(props: AgentsListProps) {
                 />
             )}
             {contextMenuFolder && (
-                <FolderContextMenuPopover
+                <DeferredFolderContextMenuPopover
                     folder={contextMenuFolder}
                     isOpen={Boolean(folderContextMenuState)}
                     anchorPoint={folderContextMenuState?.anchorPoint ?? null}
@@ -1646,7 +1691,7 @@ export function AgentsList(props: AgentsListProps) {
                 />
             )}
             {qrCodeAgent && (
-                <AgentQrCodeModal
+                <DeferredAgentQrCodeModal
                     agent={qrCodeAgent}
                     agentUrl={qrCodeAgentUrl}
                     agentEmail={qrCodeAgentEmail}

@@ -37,9 +37,134 @@ const poppins = Poppins({
     variable: '--font-poppins',
 });
 
+/**
+ * Footer link shape consumed by the root layout.
+ */
+type LayoutFooterLink = {
+    title: string;
+    url: string;
+};
+
+/**
+ * Federated server descriptor consumed by the header and footer.
+ */
+type LayoutFederatedServer = LayoutFooterLink & {
+    logoUrl: string | null;
+};
+
+/**
+ * Timeout used when probing federated server metadata for header logos.
+ */
+const FEDERATED_SERVER_METADATA_TIMEOUT_MS = 1_500;
+
+/**
+ * Revalidation window for federated server logo metadata fetches.
+ */
+const FEDERATED_SERVER_METADATA_REVALIDATE_SECONDS = 300;
+
+/**
+ * Parses footer links stored in metadata, falling back to an empty list on invalid JSON.
+ *
+ * @param rawFooterLinks - Raw FOOTER_LINKS metadata value.
+ * @returns Footer link definitions safe to pass to the client shell.
+ */
+function parseFooterLinks(rawFooterLinks: string | null): LayoutFooterLink[] {
+    try {
+        const parsedFooterLinks = JSON.parse(rawFooterLinks || '[]');
+        if (!Array.isArray(parsedFooterLinks)) {
+            return [];
+        }
+
+        return parsedFooterLinks.filter(
+            (link): link is LayoutFooterLink =>
+                typeof link === 'object' &&
+                link !== null &&
+                typeof (link as { title?: unknown }).title === 'string' &&
+                typeof (link as { url?: unknown }).url === 'string',
+        );
+    } catch (error) {
+        console.error('Failed to parse FOOTER_LINKS', error);
+        return [];
+    }
+}
+
+/**
+ * Loads one federated server logo without letting a slow remote server block the whole page.
+ *
+ * @param serverUrl - Base URL of the federated server.
+ * @returns Server logo URL or `null` when unavailable.
+ */
+async function fetchFederatedServerLogoUrl(serverUrl: string): Promise<string | null> {
+    try {
+        const response = await fetch(`${serverUrl}/api/metadata`, {
+            next: { revalidate: FEDERATED_SERVER_METADATA_REVALIDATE_SECONDS },
+            signal: AbortSignal.timeout(FEDERATED_SERVER_METADATA_TIMEOUT_MS),
+        });
+
+        if (!response.ok) {
+            return null;
+        }
+
+        const metadata = (await response.json()) as Record<string, unknown>;
+        return typeof metadata.SERVER_LOGO_URL === 'string' && metadata.SERVER_LOGO_URL !== ''
+            ? metadata.SERVER_LOGO_URL
+            : null;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Resolves federated server entries only when they are visible for the current request.
+ *
+ * @param options - Visibility and identity options for federated server loading.
+ * @returns Federated server descriptors for header/footer navigation.
+ */
+async function getLayoutFederatedServers(options: {
+    currentUser: Awaited<ReturnType<typeof getCurrentUser>>;
+    showFederatedServersPublicly: boolean;
+}): Promise<LayoutFederatedServer[]> {
+    const { currentUser, showFederatedServersPublicly } = options;
+    if (!currentUser && !showFederatedServersPublicly) {
+        return [];
+    }
+
+    try {
+        const federatedServerUrls = await getFederatedServers({ excludeHiddenCoreServer: true });
+        return Promise.all(
+            federatedServerUrls.map(async (url) => ({
+                title: `Federated: ${new URL(url).hostname}`,
+                url,
+                logoUrl: await fetchFederatedServerLogoUrl(url),
+            })),
+        );
+    } catch (error) {
+        console.error('Failed to fetch federated servers for layout', error);
+        return [];
+    }
+}
+
+/**
+ * Resolves optional layout text assets while keeping the shell resilient to non-critical failures.
+ *
+ * @param label - Human-readable asset label for logging.
+ * @param loader - Async loader returning the asset content.
+ * @returns Loaded text or an empty string when loading fails.
+ */
+async function resolveOptionalLayoutText(label: string, loader: () => Promise<string>): Promise<string> {
+    try {
+        return await loader();
+    } catch (error) {
+        console.error(`Failed to load ${label}`, error);
+        return '';
+    }
+}
+
 export async function generateMetadata(): Promise<Metadata> {
-    const { publicUrl } = await $provideServer();
-    const metadata = await getMetadataMap(['SERVER_NAME', 'SERVER_DESCRIPTION', 'SERVER_FAVICON_URL']);
+    const [{ publicUrl }, metadata] = await Promise.all([
+        $provideServer(),
+        getMetadataMap(['SERVER_NAME', 'SERVER_DESCRIPTION', 'SERVER_FAVICON_URL']),
+    ]);
     const serverName = metadata.SERVER_NAME || 'Promptbook Agents Server';
     const serverDescription = metadata.SERVER_DESCRIPTION || 'Agents server powered by Promptbook';
     const serverFaviconUrl = metadata.SERVER_FAVICON_URL || faviconLogoImage.src;
@@ -85,9 +210,7 @@ export default async function RootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    const isAdmin = await isUserAdmin();
-    const currentUser = await getCurrentUser();
-    const layoutMetadata = await getMetadataMap([
+    const layoutMetadataPromise = getMetadataMap([
         'SERVER_NAME',
         'SERVER_LOGO_URL',
         'IS_FOOTER_SHOWN',
@@ -98,82 +221,69 @@ export default async function RootLayout({
         'IS_EXPERIMENTAL_PWA_APP_ENABLED',
         SERVER_LANGUAGE_METADATA_KEY,
     ]);
+    const currentUserPromise = getCurrentUser();
+    const isAdminPromise = isUserAdmin();
+    const agentNamingPromise = getAgentNaming();
+    const organizationStatePromise = isAdminPromise.then((isAdmin) =>
+        isAdmin ? loadAgentOrganizationState({ status: 'ACTIVE', includePrivate: true }) : null,
+    );
+    const chatPreferencesPromise = getDefaultChatPreferences();
+    const customStylesheetCssPromise = resolveOptionalLayoutText(
+        'custom stylesheet CSS',
+        getAggregatedCustomStylesheetCss,
+    );
+    const customJavascriptPromise = resolveOptionalLayoutText(
+        'custom JavaScript',
+        getCustomJavascriptWithIntegrations,
+    );
+    const cookieStorePromise = cookies();
+    const federatedServersPromise = Promise.all([layoutMetadataPromise, currentUserPromise]).then(
+        ([layoutMetadata, currentUser]) =>
+            getLayoutFederatedServers({
+                currentUser,
+                showFederatedServersPublicly: (layoutMetadata.SHOW_FEDERATED_SERVERS_PUBLICLY ?? 'false') === 'true',
+            }),
+    );
+    const footerLinksPromise = Promise.all([layoutMetadataPromise, federatedServersPromise]).then(
+        ([layoutMetadata, federatedServers]) =>
+            [...parseFooterLinks(layoutMetadata.FOOTER_LINKS), ...federatedServers.map(({ title, url }) => ({ title, url }))],
+    );
+
+    const [
+        isAdmin,
+        currentUser,
+        layoutMetadata,
+        agentNaming,
+        organizationState,
+        chatPreferences,
+        customStylesheetCss,
+        customJavascript,
+        cookieStore,
+        federatedServers,
+        footerLinks,
+    ] = await Promise.all([
+        isAdminPromise,
+        currentUserPromise,
+        layoutMetadataPromise,
+        agentNamingPromise,
+        organizationStatePromise,
+        chatPreferencesPromise,
+        customStylesheetCssPromise,
+        customJavascriptPromise,
+        cookieStorePromise,
+        federatedServersPromise,
+        footerLinksPromise,
+    ]);
+
     const serverName = layoutMetadata.SERVER_NAME || 'Promptbook Agents Server';
     const serverLogoUrl = layoutMetadata.SERVER_LOGO_URL || null;
     const isFooterShown = (layoutMetadata.IS_FOOTER_SHOWN ?? 'true') === 'true';
-    const agentNaming = await getAgentNaming();
-
-    let footerLinks = [];
-    try {
-        const footerLinksString = layoutMetadata.FOOTER_LINKS || '[]';
-        footerLinks = JSON.parse(footerLinksString);
-    } catch (error) {
-        console.error('Failed to parse FOOTER_LINKS', error);
-    }
-
-    // Fetch federated servers and add to footerLinks (only if user is authenticated or SHOW_FEDERATED_SERVERS_PUBLICLY is true)
-    let federatedServers: Array<{ url: string; title: string; logoUrl: string | null }> = [];
-    try {
-        const showFederatedServersPublicly = (layoutMetadata.SHOW_FEDERATED_SERVERS_PUBLICLY ?? 'false') === 'true';
-
-        // Only show federated servers in footer if user is authenticated or if SHOW_FEDERATED_SERVERS_PUBLICLY is true
-        if (currentUser || showFederatedServersPublicly) {
-            const federatedServersUrls = await getFederatedServers({ excludeHiddenCoreServer: true });
-            federatedServers = await Promise.all(
-                federatedServersUrls.map(async (url: string) => {
-                    let logoUrl: string | null = null;
-                    try {
-                        // Try to fetch logo from metadata endpoint if available
-                        const res = await fetch(`${url}/api/metadata`);
-                        if (res.ok) {
-                            const meta = await res.json();
-                            logoUrl = meta.SERVER_LOGO_URL || null;
-                        }
-                    } catch {
-                        logoUrl = null;
-                    }
-                    return {
-                        title: `Federated: ${new URL(url).hostname}`,
-                        url,
-                        logoUrl,
-                    };
-                }),
-            );
-            footerLinks = [...footerLinks, ...federatedServers];
-        }
-    } catch (error) {
-        console.error('Failed to fetch federated servers for footer', error);
-    }
-
-    let agents: AgentOrganizationAgent[] = [];
-    let agentFolders: AgentOrganizationFolder[] = [];
-    if (isAdmin) {
-        const organizationState = await loadAgentOrganizationState({ status: 'ACTIVE', includePrivate: true });
-        agents = organizationState.agents;
-        agentFolders = organizationState.folders;
-    }
-
-    const chatPreferences = await getDefaultChatPreferences();
+    const agents: AgentOrganizationAgent[] = organizationState?.agents || [];
+    const agentFolders: AgentOrganizationFolder[] = organizationState?.folders || [];
     const isExperimental = (layoutMetadata.IS_EXPERIMENTAL_APP ?? 'false') === 'true';
     const isFeedbackEnabled = (layoutMetadata.IS_FEEDBACK_ENABLED ?? 'true') === 'true';
     const isExperimentalPwaAppEnabled = (layoutMetadata.IS_EXPERIMENTAL_PWA_APP_ENABLED ?? 'true') === 'true';
-    let customStylesheetCss = '';
-    let customJavascript = '';
-
-    try {
-        customStylesheetCss = await getAggregatedCustomStylesheetCss();
-    } catch (error) {
-        console.error('Failed to load custom stylesheet CSS', error);
-    }
-
-    try {
-        customJavascript = await getCustomJavascriptWithIntegrations();
-    } catch (error) {
-        console.error('Failed to load custom JavaScript', error);
-    }
-
     const safeCustomJavascript = customJavascript.replace(/<\/script>/gi, '<\\/script>');
-    const cookieStore = await cookies();
     const cookieLanguage = cookieStore.get(SERVER_LANGUAGE_COOKIE_NAME)?.value || null;
     const serverLanguage = resolveServerLanguageCode(cookieLanguage || layoutMetadata[SERVER_LANGUAGE_METADATA_KEY]);
 

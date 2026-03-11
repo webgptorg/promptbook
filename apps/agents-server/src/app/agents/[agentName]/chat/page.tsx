@@ -49,10 +49,9 @@ export default async function AgentChatPage({
     params: Promise<{ agentName: string }>;
     searchParams: Promise<{ headless?: string; message?: string; chat?: string; newChat?: string }>;
 }) {
-    const requestHeaders = await headers();
+    const requestHeadersPromise = headers();
+    const [agentName, currentSearchParams, requestHeaders] = await Promise.all([getAgentName(params), searchParams, requestHeadersPromise]);
     $sideEffect(requestHeaders);
-    const agentName = await getAgentName(params);
-    const currentSearchParams = await searchParams;
     const { headless, message, chat, newChat } = currentSearchParams;
 
     const routeTarget = await resolveAgentRouteTarget(agentName);
@@ -73,8 +72,12 @@ export default async function AgentChatPage({
         redirect(buildCanonicalAgentChatPath(canonicalAgentId, currentSearchParams));
     }
 
-    const isDeleted = await isAgentDeleted(canonicalAgentId);
-    const agentProfile = await getAgentProfile(canonicalAgentId);
+    const isDeletedPromise = isAgentDeleted(canonicalAgentId);
+    const agentProfilePromise = getAgentProfile(canonicalAgentId);
+    const historyIdentityAvailablePromise = ensureChatHistoryIdentity();
+    const chatConfigurationPromise = loadChatConfiguration();
+
+    const isDeleted = await isDeletedPromise;
     const isHeadless = headless !== undefined;
 
     if (isDeleted) {
@@ -89,8 +92,11 @@ export default async function AgentChatPage({
     const speechRecognitionLanguage = resolveSpeechRecognitionLanguage({
         acceptLanguageHeader: requestHeaders.get('accept-language'),
     });
-    const historyIdentityAvailable = await ensureChatHistoryIdentity();
-    const { isFileAttachmentsEnabled, isFeedbackEnabled } = await loadChatConfiguration();
+    const [agentProfile, historyIdentityAvailable, { isFileAttachmentsEnabled, isFeedbackEnabled }] = await Promise.all([
+        agentProfilePromise,
+        historyIdentityAvailablePromise,
+        chatConfigurationPromise,
+    ]);
     const agentDisplayName = agentProfile.meta.fullname || agentProfile.agentName || canonicalAgentId;
     const inputPlaceholder = resolveAgentChatInputPlaceholder(agentProfile.meta.inputPlaceholder);
 

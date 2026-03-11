@@ -19,8 +19,8 @@ import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { isPublicAgentVisibility } from '@/src/utils/agentVisibility';
 import { getAgentFolderContext, getAgentName, getAgentProfile, isAgentDeleted } from './_utils';
 import { getAgentLinks } from './agentLinks';
-import { AgentProfileChat } from './AgentProfileChat';
 import { AgentProfileWrapper } from './AgentProfileWrapper';
+import { DeferredAgentProfileChat } from './DeferredAgentProfileChat';
 import { ServiceWorkerRegister } from './ServiceWorkerRegister';
 import { getPseudoAgentDescriptor } from '../../../utils/pseudoAgents';
 import { PseudoAgentProfilePage } from './PseudoAgentProfile';
@@ -169,8 +169,7 @@ export default async function AgentPage({
     params: Promise<{ agentName: string }>;
     searchParams: Promise<{ headless?: string; chat?: string; message?: string; newChat?: string }>;
 }) {
-    const agentName = await getAgentName(params);
-    const currentSearchParams = await searchParams;
+    const [agentName, currentSearchParams] = await Promise.all([getAgentName(params), searchParams]);
     const routeTarget = await resolveAgentRouteTarget(agentName);
     if (routeTarget === null) {
         notFound();
@@ -207,22 +206,35 @@ export default async function AgentPage({
         redirect(buildCanonicalAgentChatPath(canonicalAgentId, currentSearchParams));
     }
 
-    const requestHeaders = await headers();
+    const requestHeadersPromise = headers();
+    const isAdminPromise = isUserAdmin();
+    const historyIdentityAvailablePromise = ensureChatHistoryIdentity();
+    const providedServerPromise = $provideServer();
+    const chatConfigurationPromise = loadChatConfiguration();
+    const agentNamingPromise = getAgentNaming();
+    const agentProfilePromise = getAgentProfile(canonicalAgentId);
+    const isDeletedPromise = isAgentDeleted(canonicalAgentId);
+    const folderContextPromise = isAdminPromise.then((isAdmin) => getAgentFolderContext(canonicalAgentId, isAdmin));
+
+    const [requestHeaders, isAdmin, historyIdentityAvailable, { publicUrl }, { isFileAttachmentsEnabled }, folderContext, agentNaming] =
+        await Promise.all([
+            requestHeadersPromise,
+            isAdminPromise,
+            historyIdentityAvailablePromise,
+            providedServerPromise,
+            chatConfigurationPromise,
+            folderContextPromise,
+            agentNamingPromise,
+        ]);
     const speechRecognitionLanguage = resolveSpeechRecognitionLanguage({
         acceptLanguageHeader: requestHeaders.get('accept-language'),
     });
-    const isAdmin = await isUserAdmin();
-    const historyIdentityAvailable = await ensureChatHistoryIdentity();
     const { headless: headlessParam } = currentSearchParams;
     const isHeadless = headlessParam !== undefined;
-    const { publicUrl } = await $provideServer();
-    const { isFileAttachmentsEnabled } = await loadChatConfiguration();
-    const folderContext = await getAgentFolderContext(canonicalAgentId, isAdmin);
-    const agentNaming = await getAgentNaming();
 
     let agentProfile;
     try {
-        agentProfile = await getAgentProfile(canonicalAgentId);
+        agentProfile = await agentProfilePromise;
     } catch (error) {
         if (
             error instanceof NotFoundError ||
@@ -248,7 +260,7 @@ export default async function AgentPage({
     const fallbackName = formatAgentNamingText('Agent', agentNaming);
     const fullname = (agentProfile.meta.fullname || agentProfile.agentName || fallbackName) as string;
     const inputPlaceholder = resolveAgentChatInputPlaceholder(agentProfile.meta.inputPlaceholder);
-    const isDeleted = await isAgentDeleted(canonicalAgentId);
+    const isDeleted = await isDeletedPromise;
     const fallbackAvatarPath = `/agents/${encodeURIComponent(agentProfile.permanentId || canonicalAgentId)}/images/default-avatar.png`;
     const avatarSrc = resolveAgentAvatarImageUrl({ agent: agentProfile, baseUrl: publicUrl.href }) || fallbackAvatarPath;
     const publicAgentProfileStructuredData = createPublicAgentProfileStructuredData({
@@ -298,9 +310,9 @@ export default async function AgentPage({
                             ))}
                     </>
                 }
-            >
+                >
                 {isDeleted && <DeletedAgentBanner />}
-                <AgentProfileChat
+                <DeferredAgentProfileChat
                     agentUrl={agentUrl}
                     agentName={canonicalAgentId}
                     fullname={fullname}
