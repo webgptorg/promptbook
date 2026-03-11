@@ -182,8 +182,8 @@ export default function AiSupervizePage() {
                                 <BulletList items={targetRoles} />
                             </div>
                             <p className="mt-4 text-slate-700">
-                                Pomahame tymum jit z AI nepouzivame -> bezpecny start a jasna pravidla, nebo z AI
-                                pouzivame ad-hoc -> systematicky vykon.
+                                Pomahame tymum jit z AI nepouzivame -&gt; bezpecny start a jasna pravidla, nebo z AI
+                                pouzivame ad-hoc -&gt; systematicky vykon.
                             </p>
                         </article>
 

@@ -11,6 +11,7 @@ import { ClientVersionMismatchListener } from '../ClientVersion/ClientVersionMis
 import { Footer, type FooterLink } from '../Footer/Footer';
 import { Header } from '../Header/Header';
 import { MetadataFlagsProvider } from '../MetadataFlags/MetadataFlagsContext';
+import { NotificationsProvider } from '../Notifications/NotificationsProvider';
 import { PrivateModePreferencesProvider } from '../PrivateModePreferences/PrivateModePreferencesProvider';
 import { ServerLanguageProvider } from '../ServerLanguage/ServerLanguageProvider';
 import { SelfLearningPreferencesProvider } from '../SelfLearningPreferences/SelfLearningPreferencesProvider';
@@ -81,32 +82,34 @@ export function LayoutWrapper({
                                 initialIsSoundsOn={defaultIsSoundsOn}
                                 initialIsVibrationOn={defaultIsVibrationOn}
                             >
-                                <ClientVersionMismatchListener />
-                                <MenuHoistingProvider>
-                                    <MetadataFlagsProvider value={{ isExperimentalPwaAppEnabled }}>
-                                        {shouldRenderMinimalShell ? (
-                                            <main className={minimalMainClassName}>{children}</main>
-                                        ) : (
-                                            <div className="flex min-h-screen flex-col">
-                                                <Header
-                                                    isAdmin={isAdmin}
-                                                    currentUser={currentUser}
-                                                    serverName={serverName}
-                                                    serverLogoUrl={serverLogoUrl}
-                                                    agents={agents}
-                                                    agentFolders={agentFolders}
-                                                    federatedServers={federatedServers}
-                                                    isExperimental={isExperimental}
-                                                    isFeedbackEnabled={isFeedbackEnabled}
-                                                />
-                                                <main className={mainClassName}>{children}</main>
-                                                {isFooterShown && !isFooterHiddenOnPage && (
-                                                    <Footer extraLinks={footerLinks} />
-                                                )}
-                                            </div>
-                                        )}
-                                    </MetadataFlagsProvider>
-                                </MenuHoistingProvider>
+                                <NotificationsProvider>
+                                    <ClientVersionMismatchListener />
+                                    <MenuHoistingProvider>
+                                        <MetadataFlagsProvider value={{ isExperimentalPwaAppEnabled }}>
+                                            {shouldRenderMinimalShell ? (
+                                                <main className={minimalMainClassName}>{children}</main>
+                                            ) : (
+                                                <div className="flex min-h-screen flex-col">
+                                                    <Header
+                                                        isAdmin={isAdmin}
+                                                        currentUser={currentUser}
+                                                        serverName={serverName}
+                                                        serverLogoUrl={serverLogoUrl}
+                                                        agents={agents}
+                                                        agentFolders={agentFolders}
+                                                        federatedServers={federatedServers}
+                                                        isExperimental={isExperimental}
+                                                        isFeedbackEnabled={isFeedbackEnabled}
+                                                    />
+                                                    <main className={mainClassName}>{children}</main>
+                                                    {isFooterShown && !isFooterHiddenOnPage && (
+                                                        <Footer extraLinks={footerLinks} />
+                                                    )}
+                                                </div>
+                                            )}
+                                        </MetadataFlagsProvider>
+                                    </MenuHoistingProvider>
+                                </NotificationsProvider>
                             </SoundSystemProvider>
                         </SelfLearningPreferencesProvider>
                     </PrivateModePreferencesProvider>

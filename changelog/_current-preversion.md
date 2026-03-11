@@ -1,3 +1,18 @@
+-   Added shared floating notification system in Agents Server and migrated chat save failures to it:
+
+    -   Added a global portal-based notification stack (`top-right`, newest first) with shared API helpers:
+        -   `notifyError(message, { details, actionLabel, onAction })`
+        -   `notifyWarning(message, { details, actionLabel, onAction })`
+        -   `notifyInfo(message, { details, actionLabel, onAction })`
+        -   `notifySuccess(message, { details, actionLabel, onAction })`
+    -   Reused and extended the existing `SaveFailureNotice` UI (Book editor save-failure design) for all notification variants (`error`, `warning`, `info`, `success`) with:
+        -   manual dismiss (`X`) and no auto-dismiss,
+        -   optional action button,
+        -   optional details preview.
+    -   Added click-to-report debug behavior for notifications (verbose grouped console report with type/message/details/action metadata), while keeping dismiss button clicks separate from report logging.
+    -   Mounted the notification provider once in `LayoutWrapper` so notifications can be triggered from anywhere in Agents Server UI without layout shift.
+    -   Removed in-layout chat error/save-failure banners from `/agents/[agentName]/chat` and replaced them with floating notifications to avoid chat layout reflow/resizing.
+
 -   Added new Czech landing subpage `/ai-supervize` in Agents Server:
 
     -   Implemented a dedicated marketing page for AI Supervize focused on CTO/CEO/Tech Lead audience in Czech software companies.
