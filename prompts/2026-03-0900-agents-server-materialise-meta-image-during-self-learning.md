@@ -1,4 +1,4 @@
-[ ]
+[!]
 
 [🎭🖼️] Materialize `META IMAGE` during self-learning (fix avatar appearance, long-running learning, derive colors)
 
