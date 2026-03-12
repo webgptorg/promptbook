@@ -238,8 +238,9 @@ export function TaskManagerClient() {
                 <div>
                     <h1 className="text-3xl font-light text-gray-900">Task manager</h1>
                     <p className="mt-1 max-w-3xl text-sm text-gray-500">
-                        Admin-only operational view of durable background chat work across all users. This dashboard
-                        shows queue and worker state, not chat transcript content.
+                        Admin-only operational view of durable background chat work across all users, including chat
+                        completions and scheduled timeout wake-ups. This dashboard shows queue and worker state, not
+                        chat transcript content.
                     </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
@@ -666,7 +667,15 @@ function renderTaskInfoBlock(rows: Array<{ label: string; value: string; seconda
  * Formats a durable task kind for display.
  */
 function formatTaskKind(kind: AdminChatTaskRecord['kind']): string {
-    return kind === 'CHAT_COMPLETION' ? 'Chat completion' : kind;
+    if (kind === 'CHAT_COMPLETION') {
+        return 'Chat completion';
+    }
+
+    if (kind === 'CHAT_TIMEOUT') {
+        return 'Chat timeout';
+    }
+
+    return kind;
 }
 
 /**

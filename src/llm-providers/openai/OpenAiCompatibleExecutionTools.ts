@@ -4,6 +4,7 @@ import type { ClientOptions } from 'openai';
 import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
 import { API_REQUEST_TIMEOUT, CONNECTION_RETRIES_LIMIT, DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
+import { parseToolExecutionEnvelope } from '../../commitments/_common/toolExecutionEnvelope';
 import { assertsError } from '../../errors/assertsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { AvailableModel } from '../../execution/AvailableModel';
@@ -437,6 +438,8 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                             : [executionTools.script];
 
                         let functionResponse: string;
+                        let assistantVisibleFunctionResponse: string;
+                        let toolResult: TODO_any;
                         let errors: Array<TODO_any> | undefined;
 
                         try {
@@ -450,22 +453,31 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                                 }),
                                 parameters: prompt.parameters,
                             });
+                            const toolExecutionEnvelope = parseToolExecutionEnvelope(functionResponse);
+                            assistantVisibleFunctionResponse =
+                                toolExecutionEnvelope?.assistantMessage || functionResponse;
+                            toolResult =
+                                toolExecutionEnvelope !== null && toolExecutionEnvelope !== undefined
+                                    ? toolExecutionEnvelope.toolResult
+                                    : functionResponse;
                         } catch (error) {
                             assertsError(error);
                             functionResponse = `Error: ${error.message}`;
+                            assistantVisibleFunctionResponse = functionResponse;
+                            toolResult = functionResponse;
                             errors = [serializeError(error)];
                         }
 
                         messages.push({
                             role: 'tool',
                             tool_call_id: toolCall.id,
-                            content: functionResponse,
+                            content: assistantVisibleFunctionResponse,
                         });
 
                         toolCalls.push({
                             name: functionName,
                             arguments: functionArgs,
-                            result: functionResponse,
+                            result: toolResult,
                             rawToolCall: toolCall,
                             createdAt: calledAt,
                             errors,

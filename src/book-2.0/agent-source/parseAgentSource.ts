@@ -124,6 +124,15 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
             continue;
         }
 
+        if (commitment.type === 'USE TIMEOUT') {
+            capabilities.push({
+                type: 'timeout',
+                label: 'Timers',
+                iconName: 'Clock',
+            });
+            continue;
+        }
+
         if (commitment.type === 'USE USER LOCATION') {
             capabilities.push({
                 type: 'user-location',

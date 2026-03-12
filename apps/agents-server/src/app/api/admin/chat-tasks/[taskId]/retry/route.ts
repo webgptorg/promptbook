@@ -1,5 +1,6 @@
 import { after, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
+import { getUserChatTimeoutById, kickUserChatTimeoutWorkerTick, retryUserChatTimeout } from '@/src/utils/userChatTimeout';
 import { getUserChatJobById, retryUserChatJob, triggerUserChatJobWorker } from '@/src/utils/userChat';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
 
@@ -23,11 +24,40 @@ export async function POST(request: Request, { params }: { params: Promise<{ tas
         const actor = (await getCurrentUser())?.username || 'admin';
         const job = await getUserChatJobById(taskId);
 
-        if (!job) {
+        if (job) {
+            if (job.status !== 'FAILED') {
+                return NextResponse.json({ error: 'Only failed tasks can be retried.' }, { status: 409 });
+            }
+
+            console.info('[admin-chat-task] retry', {
+                actor,
+                taskId,
+                reason,
+                kind: 'CHAT_COMPLETION',
+                previousAttemptCount: job.attemptCount,
+            });
+
+            const retriedJob = await retryUserChatJob(taskId);
+            if (!retriedJob) {
+                return NextResponse.json({ error: 'Task could not be retried.' }, { status: 409 });
+            }
+
+            after(() =>
+                triggerUserChatJobWorker({
+                    origin: new URL(request.url).origin,
+                    preferredJobId: retriedJob.id,
+                }).catch((error) => console.error('[admin-chat-task] failed to wake worker after retry', error)),
+            );
+
+            return NextResponse.json({ ok: true });
+        }
+
+        const timeout = await getUserChatTimeoutById(taskId);
+        if (!timeout) {
             return NextResponse.json({ error: 'Task not found.' }, { status: 404 });
         }
 
-        if (job.status !== 'FAILED') {
+        if (timeout.status !== 'FAILED') {
             return NextResponse.json({ error: 'Only failed tasks can be retried.' }, { status: 409 });
         }
 
@@ -35,20 +65,16 @@ export async function POST(request: Request, { params }: { params: Promise<{ tas
             actor,
             taskId,
             reason,
-            previousAttemptCount: job.attemptCount,
+            kind: 'CHAT_TIMEOUT',
+            previousAttemptCount: timeout.attemptCount,
         });
 
-        const retriedJob = await retryUserChatJob(taskId);
-        if (!retriedJob) {
+        const retriedTimeout = await retryUserChatTimeout(taskId);
+        if (!retriedTimeout) {
             return NextResponse.json({ error: 'Task could not be retried.' }, { status: 409 });
         }
 
-        after(() =>
-            triggerUserChatJobWorker({
-                origin: new URL(request.url).origin,
-                preferredJobId: retriedJob.id,
-            }).catch((error) => console.error('[admin-chat-task] failed to wake worker after retry', error)),
-        );
+        kickUserChatTimeoutWorkerTick();
 
         return NextResponse.json({ ok: true });
     } catch (error) {

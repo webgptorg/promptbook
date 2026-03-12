@@ -3,6 +3,7 @@
 import { OpenAiAssistantExecutionTools } from '@promptbook-local/openai';
 import { getAllCommitmentsToolFunctionsForNode } from '../../../../src/commitments/_common/getAllCommitmentsToolFunctionsForNode';
 import { JavascriptExecutionTools } from '../../../../src/scripting/javascript/JavascriptExecutionTools';
+import { configureTimeoutToolRuntimeAdapterForServer } from './configureTimeoutToolRuntimeAdapterForServer';
 
 /**
  * Cache of provided OpenAiAssistantExecutionTools
@@ -15,6 +16,8 @@ let llmExecutionTools: null | OpenAiAssistantExecutionTools = null;
  * [🐱‍🚀]
  */
 export async function $provideOpenAiAssistantExecutionToolsForServer(): Promise<OpenAiAssistantExecutionTools> {
+    configureTimeoutToolRuntimeAdapterForServer();
+
     // TODO: [🐱‍🚀] [🌕] DRY
     const isVerbose = true; // <- TODO: [🐱‍🚀] Pass
 

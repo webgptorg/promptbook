@@ -22,7 +22,7 @@ import { PseudoUserChatDialog } from '../PseudoUserChatDialog';
 import { useAgentChatMetaDisclaimer } from '../useAgentChatMetaDisclaimer';
 import { useAgentChatToolInteractions } from '../useAgentChatToolInteractions';
 import { useTeamAgentProfiles } from '../useTeamAgentProfiles';
-import type { UserChatJob } from '../../../../utils/userChatClient';
+import type { UserChatJob, UserChatTimeout } from '../../../../utils/userChatClient';
 
 /**
  * Props accepted by the canonical server-backed chat panel.
@@ -42,6 +42,7 @@ type CanonicalAgentChatPanelProps = {
     areFileAttachmentsEnabled: boolean;
     isFeedbackEnabled: boolean;
     activeJobs: ReadonlyArray<UserChatJob>;
+    activeTimeouts: ReadonlyArray<UserChatTimeout>;
     onDraftMessageChange: (message: string) => void;
     onSubmitUserTurn: (payload: {
         message: string;
@@ -50,6 +51,7 @@ type CanonicalAgentChatPanelProps = {
     }) => Promise<void>;
     onStartNewChat?: () => Promise<void> | void;
     onCancelActiveJob?: (jobId: string) => Promise<void> | void;
+    onCancelActiveTimeout?: (timeoutId: string) => Promise<void> | void;
     onAutoExecuteMessageConsumed?: () => void;
     extraActions?: ReactNode;
 };
@@ -62,6 +64,14 @@ function serializeAutoExecutePayload(message?: string, attachments?: ChatMessage
     const normalizedAttachments = attachments && attachments.length > 0 ? JSON.stringify(attachments) : '';
     return `${normalizedMessage}|${normalizedAttachments}`;
 }
+
+/**
+ * Formatter used for compact timeout date/time labels.
+ */
+const ACTIVE_TIMEOUT_DATE_TIME_FORMATTER = new Intl.DateTimeFormat(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+});
 
 /**
  * Returns true when the UI should show a transient thinking message instead of an empty assistant placeholder.
@@ -92,6 +102,59 @@ function resolveThinkingMessageVariant(messageId: string | number, thinkingMessa
 }
 
 /**
+ * Formats one timeout timestamp for display.
+ */
+function formatTimeoutDateTime(value: string): string {
+    const parsedValue = new Date(value);
+    return Number.isNaN(parsedValue.getTime()) ? value : ACTIVE_TIMEOUT_DATE_TIME_FORMATTER.format(parsedValue);
+}
+
+/**
+ * Formats one timeout duration in compact human-readable form.
+ */
+function formatTimeoutDuration(durationMs: number): string {
+    if (!Number.isFinite(durationMs) || durationMs < 0) {
+        return '—';
+    }
+
+    const totalSeconds = Math.floor(durationMs / 1000);
+    const days = Math.floor(totalSeconds / 86_400);
+    const hours = Math.floor((totalSeconds % 86_400) / 3_600);
+    const minutes = Math.floor((totalSeconds % 3_600) / 60);
+    const seconds = totalSeconds % 60;
+    const parts: Array<string> = [];
+
+    if (days > 0) {
+        parts.push(`${days}d`);
+    }
+    if (hours > 0) {
+        parts.push(`${hours}h`);
+    }
+    if (minutes > 0) {
+        parts.push(`${minutes}m`);
+    }
+    if (seconds > 0 || parts.length === 0) {
+        parts.push(`${seconds}s`);
+    }
+
+    return parts.join(' ');
+}
+
+/**
+ * Formats remaining time until the timeout becomes due.
+ */
+function formatTimeoutRemainingTime(dueAt: string, currentTimestamp: number): string {
+    const dueTimestamp = new Date(dueAt).getTime();
+
+    if (!Number.isFinite(dueTimestamp)) {
+        return '—';
+    }
+
+    const remainingMs = dueTimestamp - currentTimestamp;
+    return remainingMs <= 0 ? 'Due now' : formatTimeoutDuration(remainingMs);
+}
+
+/**
  * Renders the full canonical chat surface while delegating message execution to the server.
  */
 export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
@@ -110,10 +173,12 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
         areFileAttachmentsEnabled,
         isFeedbackEnabled,
         activeJobs,
+        activeTimeouts,
         onDraftMessageChange,
         onSubmitUserTurn,
         onStartNewChat,
         onCancelActiveJob,
+        onCancelActiveTimeout,
         onAutoExecuteMessageConsumed,
         extraActions,
     } = props;
@@ -163,6 +228,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
     const lastAutoExecutePayloadRef = useRef<string | undefined>(
         serializeAutoExecutePayload(autoExecuteMessage, autoExecuteMessageAttachments),
     );
+    const [currentTimestamp, setCurrentTimestamp] = useState(() => Date.now());
 
     useEffect(() => {
         let isMounted = true;
@@ -182,6 +248,20 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
             isMounted = false;
         };
     }, []);
+
+    useEffect(() => {
+        if (activeTimeouts.length === 0) {
+            return;
+        }
+
+        const interval = window.setInterval(() => {
+            setCurrentTimestamp(Date.now());
+        }, 1_000);
+
+        return () => {
+            window.clearInterval(interval);
+        };
+    }, [activeTimeouts.length]);
 
     const {
         isMetaDisclaimerAccepting,
@@ -398,6 +478,67 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
     return (
         <>
             <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm">
+                {activeTimeouts.length > 0 && (
+                    <div className="border-b border-slate-200/70 bg-white/80 px-4 py-3 backdrop-blur-sm">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-800">
+                                Active timers {activeTimeouts.length}
+                            </span>
+                            <span className="text-xs text-slate-500">
+                                Thread-scoped timers stay attached to this chat until they fire or are cancelled.
+                            </span>
+                        </div>
+                        <div className="mt-3 flex gap-3 overflow-x-auto pb-1">
+                            {activeTimeouts.map((timeout) => (
+                                <article
+                                    key={timeout.timeoutId}
+                                    className="min-w-[260px] rounded-2xl border border-slate-200 bg-white/90 p-3 text-sm shadow-sm"
+                                >
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div>
+                                            <div className="font-semibold text-slate-900">
+                                                {timeout.message || 'Scheduled timeout'}
+                                            </div>
+                                            <div className="mt-1 break-all font-mono text-[11px] text-slate-500">
+                                                {timeout.timeoutId}
+                                            </div>
+                                        </div>
+                                        {onCancelActiveTimeout && (
+                                            <button
+                                                type="button"
+                                                className="rounded-full border border-slate-300/80 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-700 transition hover:border-slate-400 hover:text-slate-900 disabled:cursor-default disabled:opacity-50"
+                                                onClick={() => {
+                                                    void onCancelActiveTimeout(timeout.timeoutId);
+                                                }}
+                                                disabled={Boolean(timeout.cancelRequestedAt)}
+                                            >
+                                                {timeout.cancelRequestedAt ? 'Cancelling' : 'Cancel'}
+                                            </button>
+                                        )}
+                                    </div>
+                                    <dl className="mt-3 space-y-1 text-[12px] text-slate-600">
+                                        <div className="flex items-center justify-between gap-3">
+                                            <dt>Due</dt>
+                                            <dd className="text-right">{formatTimeoutDateTime(timeout.dueAt)}</dd>
+                                        </div>
+                                        <div className="flex items-center justify-between gap-3">
+                                            <dt>Remaining</dt>
+                                            <dd className="text-right">{formatTimeoutRemainingTime(timeout.dueAt, currentTimestamp)}</dd>
+                                        </div>
+                                        <div className="flex items-center justify-between gap-3">
+                                            <dt>Created</dt>
+                                            <dd className="text-right">{formatTimeoutDateTime(timeout.createdAt)}</dd>
+                                        </div>
+                                        <div className="flex items-center justify-between gap-3">
+                                            <dt>Duration</dt>
+                                            <dd className="text-right">{formatTimeoutDuration(timeout.durationMs)}</dd>
+                                        </div>
+                                    </dl>
+                                </article>
+                            ))}
+                        </div>
+                    </div>
+                )}
                 <Chat
                     className="h-full min-h-0 w-full"
                     style={chatBackgroundStyle}

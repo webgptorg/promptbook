@@ -22,6 +22,7 @@ export type ComposePromptParametersWithMemoryContextOptions = {
     currentUserIdentity: ResolvedCurrentUserMemoryIdentity | null;
     agentPermanentId?: string;
     agentName: string;
+    chatId?: string;
     isPrivateModeEnabled?: boolean;
     projectRepositories?: string[];
     projectGithubToken?: string;
@@ -40,6 +41,7 @@ export function composePromptParametersWithMemoryContext(
         currentUserIdentity,
         agentPermanentId,
         agentName,
+        chatId,
         isPrivateModeEnabled,
         projectRepositories,
         projectGithubToken,
@@ -55,9 +57,10 @@ export function composePromptParametersWithMemoryContext(
     );
     const resolvedProjectGithubToken = projectGithubToken?.trim() || projectGithubTokenFromPrompt;
     const filteredBaseParameters = excludeInternalRuntimeParameters(normalizedBaseParameters);
+    const promptParametersForChatContext = excludeToolRuntimeContextParameter(normalizedBaseParameters);
 
     const existingRuntimeContext =
-        parseToolRuntimeContext(filteredBaseParameters[TOOL_RUNTIME_CONTEXT_PARAMETER]) || {};
+        parseToolRuntimeContext(normalizedBaseParameters[TOOL_RUNTIME_CONTEXT_PARAMETER]) || {};
     const resolvedProjectRepositories =
         projectRepositories === undefined
             ? normalizeProjectRepositories(existingRuntimeContext.projects?.repositories)
@@ -106,6 +109,17 @@ export function composePromptParametersWithMemoryContext(
                     : 0,
             parentAgentId: agentPermanentId || existingRuntimeContext.spawn?.parentAgentId,
         },
+        chat:
+            chatId || existingRuntimeContext.chat?.chatId
+                ? {
+                      ...(existingRuntimeContext.chat || {}),
+                      chatId: chatId || existingRuntimeContext.chat?.chatId,
+                      userId: currentUserIdentity?.userId || existingRuntimeContext.chat?.userId,
+                      agentId: agentPermanentId || existingRuntimeContext.chat?.agentId,
+                      agentName: agentName || existingRuntimeContext.chat?.agentName,
+                      parameters: promptParametersForChatContext,
+                  }
+                : existingRuntimeContext.chat,
     };
 
     return {
@@ -153,8 +167,19 @@ function normalizePromptParameters(parameters: Record<string, unknown>): Record<
  */
 function excludeInternalRuntimeParameters(parameters: Record<string, string>): Record<string, string> {
     const filteredEntries = Object.entries(parameters).filter(
-        ([key]) => key !== USER_LOCATION_PROMPT_PARAMETER && key !== PROJECT_GITHUB_TOKEN_PROMPT_PARAMETER,
+        ([key]) =>
+            key !== USER_LOCATION_PROMPT_PARAMETER &&
+            key !== PROJECT_GITHUB_TOKEN_PROMPT_PARAMETER &&
+            key !== TOOL_RUNTIME_CONTEXT_PARAMETER,
     );
+    return Object.fromEntries(filteredEntries);
+}
+
+/**
+ * Removes the serialized runtime-context transport parameter while keeping user-facing prompt parameters intact.
+ */
+function excludeToolRuntimeContextParameter(parameters: Record<string, string>): Record<string, string> {
+    const filteredEntries = Object.entries(parameters).filter(([key]) => key !== TOOL_RUNTIME_CONTEXT_PARAMETER);
     return Object.fromEntries(filteredEntries);
 }
 

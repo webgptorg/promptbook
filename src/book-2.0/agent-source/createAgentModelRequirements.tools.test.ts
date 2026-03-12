@@ -130,6 +130,22 @@ describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
         expect(requirements._metadata?.useEmailSender).toBe('agent@example.com');
     });
 
+    it('should add timeout tools when USE TIMEOUT is used', async () => {
+        const agentSource = validateBook(`
+            Test Agent
+            USE TIMEOUT
+        `);
+        const requirements = await createAgentModelRequirements(agentSource);
+
+        expect(requirements.tools).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({ name: 'set_timeout' }),
+                expect.objectContaining({ name: 'cancel_timeout' }),
+            ]),
+        );
+        expect(requirements._metadata?.useTimeout).toBe(true);
+    });
+
     it('should ignore WALLET and keep wallet-backed tools available through USE EMAIL and USE PROJECT', async () => {
         const agentSource = validateBook(`
             Test Agent

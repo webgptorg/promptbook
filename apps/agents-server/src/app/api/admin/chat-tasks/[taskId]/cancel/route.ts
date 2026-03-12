@@ -1,5 +1,6 @@
 import { after, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
+import { cancelScheduledUserChatTimeout, getUserChatTimeoutById } from '@/src/utils/userChatTimeout';
 import {
     getUserChatJobById,
     persistUserChatJobTerminalState,
@@ -28,11 +29,50 @@ export async function POST(request: Request, { params }: { params: Promise<{ tas
         const actor = (await getCurrentUser())?.username || 'admin';
         const job = await getUserChatJobById(taskId);
 
-        if (!job) {
+        if (job) {
+            if (job.status === 'COMPLETED' || job.status === 'FAILED' || job.status === 'CANCELLED') {
+                return NextResponse.json({ error: 'Task is already finished.' }, { status: 409 });
+            }
+
+            console.info('[admin-chat-task] cancel', {
+                actor,
+                taskId,
+                reason,
+                kind: 'CHAT_COMPLETION',
+                status: job.status,
+            });
+
+            const cancellationRequestedJob = await requestUserChatJobCancellation(taskId);
+            if (!cancellationRequestedJob) {
+                return NextResponse.json({ error: 'Task could not be cancelled.' }, { status: 409 });
+            }
+
+            if (job.status === 'QUEUED') {
+                await persistUserChatJobTerminalState({
+                    job: cancellationRequestedJob,
+                    status: 'CANCELLED',
+                    failureReason: 'Chat generation was cancelled by an administrator before it started.',
+                });
+            } else {
+                after(() =>
+                    triggerUserChatJobWorker({
+                        origin: new URL(request.url).origin,
+                        preferredJobId: taskId,
+                    }).catch((error) =>
+                        console.error('[admin-chat-task] failed to wake worker after cancellation request', error),
+                    ),
+                );
+            }
+
+            return NextResponse.json({ ok: true });
+        }
+
+        const timeout = await getUserChatTimeoutById(taskId);
+        if (!timeout) {
             return NextResponse.json({ error: 'Task not found.' }, { status: 404 });
         }
 
-        if (job.status === 'COMPLETED' || job.status === 'FAILED' || job.status === 'CANCELLED') {
+        if (timeout.status === 'COMPLETED' || timeout.status === 'FAILED' || timeout.status === 'CANCELLED') {
             return NextResponse.json({ error: 'Task is already finished.' }, { status: 409 });
         }
 
@@ -40,29 +80,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ tas
             actor,
             taskId,
             reason,
-            status: job.status,
+            kind: 'CHAT_TIMEOUT',
+            status: timeout.status,
         });
 
-        const cancellationRequestedJob = await requestUserChatJobCancellation(taskId);
-        if (!cancellationRequestedJob) {
+        const cancelledTimeout = await cancelScheduledUserChatTimeout(taskId);
+        if (!cancelledTimeout) {
             return NextResponse.json({ error: 'Task could not be cancelled.' }, { status: 409 });
-        }
-
-        if (job.status === 'QUEUED') {
-            await persistUserChatJobTerminalState({
-                job: cancellationRequestedJob,
-                status: 'CANCELLED',
-                failureReason: 'Chat generation was cancelled by an administrator before it started.',
-            });
-        } else {
-            after(() =>
-                triggerUserChatJobWorker({
-                    origin: new URL(request.url).origin,
-                    preferredJobId: taskId,
-                }).catch((error) =>
-                    console.error('[admin-chat-task] failed to wake worker after cancellation request', error),
-                ),
-            );
         }
 
         return NextResponse.json({ ok: true });

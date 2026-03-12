@@ -355,6 +355,22 @@ describe('parseAgentSource', () => {
         });
     });
 
+    it('parses USE TIMEOUT capability', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                Agent Name
+                USE TIMEOUT
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+
+        expect(result.capabilities).toContainEqual({
+            type: 'timeout',
+            label: 'Timers',
+            iconName: 'Clock',
+        });
+    });
+
     it('parses USE PRIVACY capability', () => {
         const agentSource = validateBook(
             spaceTrim(`

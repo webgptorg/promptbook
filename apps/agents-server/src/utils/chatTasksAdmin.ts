@@ -12,7 +12,7 @@ export type AdminChatTaskView = 'active' | 'running' | 'queued' | 'failed' | 'al
  *
  * @private internal admin utility of Agents Server
  */
-export type AdminChatTaskKind = 'CHAT_COMPLETION';
+export type AdminChatTaskKind = 'CHAT_COMPLETION' | 'CHAT_TIMEOUT';
 
 /**
  * One row shown in the admin task-manager table.

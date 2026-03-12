@@ -1,6 +1,8 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideClientSql } from '@/src/database/$provideClientSql';
 import { recoverExpiredRunningUserChatJobs } from '@/src/utils/userChat/recoverExpiredRunningUserChatJobs';
+import { ensureUserChatTimeoutWorkerBootstrapped } from '@/src/utils/userChatTimeout/ensureUserChatTimeoutWorkerBootstrapped';
+import { recoverExpiredRunningUserChatTimeouts } from '@/src/utils/userChatTimeout';
 import type { UserChatJobStatus } from './userChat/UserChatJobRecord';
 import type {
     AdminChatTaskCounters,
@@ -84,7 +86,7 @@ type ParsedAdminChatTaskQuery = {
  */
 type AdminChatTaskSqlRow = {
     id: string;
-    kind: 'CHAT_COMPLETION';
+    kind: 'CHAT_COMPLETION' | 'CHAT_TIMEOUT';
     status: UserChatJobStatus;
     createdAt: string;
     queuedAt: string;
@@ -132,40 +134,33 @@ export async function getAdminChatTasksResponse(
         };
     }
 
+    ensureUserChatTimeoutWorkerBootstrapped();
     await recoverExpiredRunningUserChatJobs();
+    await recoverExpiredRunningUserChatTimeouts();
 
     const sql = await $provideClientSql();
     const userChatJobTable = quoteIdentifier(await $getTableName('UserChatJob'));
+    const userChatTimeoutTable = quoteIdentifier(await resolvePrefixedTableName('UserChatTimeout'));
     const userTable = quoteIdentifier(await $getTableName('User'));
     const agentTable = quoteIdentifier(await $getTableName('Agent'));
+    const baseTaskQuery = createAdminChatTaskBaseQuery({
+        userChatJobTable,
+        userChatTimeoutTable,
+        userTable,
+        agentTable,
+    });
     const listQueryParts = createAdminChatTaskListQueryParts(parsedQuery);
     const listRows = await sql.raw<Array<AdminChatTaskSqlRow>>(
         `
+            WITH tasks AS (
+                ${baseTaskQuery}
+            )
             SELECT
-                job."id" AS "id",
-                'CHAT_COMPLETION'::text AS "kind",
-                job."status" AS "status",
-                job."createdAt" AS "createdAt",
-                job."queuedAt" AS "queuedAt",
-                job."startedAt" AS "startedAt",
-                job."updatedAt" AS "updatedAt",
-                job."completedAt" AS "finishedAt",
-                job."cancelRequestedAt" AS "cancelRequestedAt",
-                job."lastHeartbeatAt" AS "lastHeartbeatAt",
-                job."leaseExpiresAt" AS "leaseExpiresAt",
-                job."attemptCount" AS "attemptCount",
-                job."failureReason" AS "lastErrorSummary",
-                job."userId" AS "userId",
-                "user"."username" AS "username",
-                job."agentPermanentId" AS "agentPermanentId",
-                agent."agentName" AS "agentName",
-                job."chatId" AS "chatId",
+                task.*,
                 COUNT(*) OVER() AS "totalCount"
-            FROM ${userChatJobTable} job
-            LEFT JOIN ${userTable} "user" ON "user"."id" = job."userId"
-            LEFT JOIN ${agentTable} agent ON agent."permanentId" = job."agentPermanentId"
+            FROM tasks task
             ${listQueryParts.whereClause}
-            ORDER BY ${createAdminChatTaskOrderBySql(parsedQuery.view)}
+            ORDER BY ${createAdminChatTaskOrderBySql(parsedQuery.view, 'task')}
             LIMIT $${listQueryParts.limitPlaceholder}
             OFFSET $${listQueryParts.offsetPlaceholder}
         `,
@@ -173,18 +168,21 @@ export async function getAdminChatTasksResponse(
     );
     const counterRows = await sql.raw<Array<AdminChatTaskCountersSqlRow>>(
         `
+            WITH tasks AS (
+                ${baseTaskQuery}
+            )
             SELECT
                 COUNT(*) FILTER (WHERE "status" = 'RUNNING') AS "runningCount",
                 COUNT(*) FILTER (WHERE "status" = 'QUEUED') AS "queuedCount",
                 COUNT(*) FILTER (
                     WHERE "status" = 'FAILED'
-                      AND "completedAt" >= CURRENT_TIMESTAMP - INTERVAL '24 hours'
+                      AND "finishedAt" >= CURRENT_TIMESTAMP - INTERVAL '24 hours'
                 ) AS "failedLast24hCount",
                 CASE
                     WHEN MIN("queuedAt") FILTER (WHERE "status" = 'QUEUED') IS NULL THEN NULL
                     ELSE EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - MIN("queuedAt") FILTER (WHERE "status" = 'QUEUED'))) * 1000
                 END AS "oldestQueuedAgeMs"
-            FROM ${userChatJobTable}
+            FROM tasks
         `,
     );
 
@@ -283,8 +281,8 @@ function createAdminChatTaskListQueryParts(query: ParsedAdminChatTaskQuery): {
     const values: Array<string | number> = [];
     const whereParts: Array<string> = [];
 
-    appendAdminChatTaskViewClause(query, values, whereParts);
-    appendAdminChatTaskSearchClause(query.search, values, whereParts);
+    appendAdminChatTaskViewClause(query, values, whereParts, 'task');
+    appendAdminChatTaskSearchClause(query.search, values, whereParts, 'task');
 
     values.push(query.pageSize);
     values.push((query.page - 1) * query.pageSize);
@@ -306,25 +304,26 @@ function appendAdminChatTaskViewClause(
     query: ParsedAdminChatTaskQuery,
     values: Array<string | number>,
     whereParts: Array<string>,
+    alias: string,
 ): void {
     switch (query.view) {
         case 'running':
-            whereParts.push(`job."status" = 'RUNNING'`);
+            whereParts.push(`${alias}."status" = 'RUNNING'`);
             return;
         case 'queued':
-            whereParts.push(`job."status" = 'QUEUED'`);
+            whereParts.push(`${alias}."status" = 'QUEUED'`);
             return;
         case 'failed':
-            whereParts.push(`job."status" = 'FAILED'`);
-            whereParts.push(`job."completedAt" >= CURRENT_TIMESTAMP - INTERVAL '24 hours'`);
+            whereParts.push(`${alias}."status" = 'FAILED'`);
+            whereParts.push(`${alias}."finishedAt" >= CURRENT_TIMESTAMP - INTERVAL '24 hours'`);
             return;
         case 'all':
             values.push(query.timeWindowHours);
-            whereParts.push(`job."updatedAt" >= CURRENT_TIMESTAMP - ($${values.length} * INTERVAL '1 hour')`);
+            whereParts.push(`${alias}."updatedAt" >= CURRENT_TIMESTAMP - ($${values.length} * INTERVAL '1 hour')`);
             return;
         case 'active':
         default:
-            whereParts.push(`job."status" IN ('QUEUED', 'RUNNING')`);
+            whereParts.push(`${alias}."status" IN ('QUEUED', 'RUNNING')`);
     }
 }
 
@@ -337,6 +336,7 @@ function appendAdminChatTaskSearchClause(
     search: string,
     values: Array<string | number>,
     whereParts: Array<string>,
+    alias: string,
 ): void {
     if (!search) {
         return;
@@ -352,19 +352,19 @@ function appendAdminChatTaskSearchClause(
     const containsPlaceholder = values.length;
 
     const searchParts = [
-        `job."id" = $${exactPlaceholder}`,
-        `job."id" LIKE $${prefixPlaceholder}`,
-        `job."chatId" = $${exactPlaceholder}`,
-        `job."chatId" LIKE $${prefixPlaceholder}`,
-        `job."agentPermanentId" = $${exactPlaceholder}`,
-        `job."agentPermanentId" LIKE $${prefixPlaceholder}`,
-        `COALESCE(agent."agentName", '') ILIKE $${containsPlaceholder}`,
-        `COALESCE("user"."username", '') ILIKE $${containsPlaceholder}`,
+        `${alias}."id" = $${exactPlaceholder}`,
+        `${alias}."id" LIKE $${prefixPlaceholder}`,
+        `${alias}."chatId" = $${exactPlaceholder}`,
+        `${alias}."chatId" LIKE $${prefixPlaceholder}`,
+        `${alias}."agentPermanentId" = $${exactPlaceholder}`,
+        `${alias}."agentPermanentId" LIKE $${prefixPlaceholder}`,
+        `COALESCE(${alias}."agentName", '') ILIKE $${containsPlaceholder}`,
+        `COALESCE(${alias}."username", '') ILIKE $${containsPlaceholder}`,
     ];
 
     if (/^\d+$/.test(search)) {
         values.push(Number.parseInt(search, 10));
-        searchParts.push(`job."userId" = $${values.length}`);
+        searchParts.push(`${alias}."userId" = $${values.length}`);
     }
 
     whereParts.push(`(${searchParts.join(' OR ')})`);
@@ -375,34 +375,34 @@ function appendAdminChatTaskSearchClause(
  *
  * @private internal admin utility of Agents Server
  */
-function createAdminChatTaskOrderBySql(view: AdminChatTaskView): string {
+function createAdminChatTaskOrderBySql(view: AdminChatTaskView, alias: string): string {
     switch (view) {
         case 'running':
-            return `job."startedAt" DESC NULLS LAST, job."createdAt" DESC, job."id" DESC`;
+            return `${alias}."startedAt" DESC NULLS LAST, ${alias}."createdAt" DESC, ${alias}."id" DESC`;
         case 'queued':
-            return `job."createdAt" DESC, job."id" DESC`;
+            return `${alias}."createdAt" DESC, ${alias}."id" DESC`;
         case 'failed':
-            return `job."completedAt" DESC NULLS LAST, job."updatedAt" DESC, job."id" DESC`;
+            return `${alias}."finishedAt" DESC NULLS LAST, ${alias}."updatedAt" DESC, ${alias}."id" DESC`;
         case 'all':
-            return `job."updatedAt" DESC, job."createdAt" DESC, job."id" DESC`;
+            return `${alias}."updatedAt" DESC, ${alias}."createdAt" DESC, ${alias}."id" DESC`;
         case 'active':
         default:
             return `
                 CASE
-                    WHEN job."status" = 'RUNNING' THEN 0
-                    WHEN job."status" = 'QUEUED' THEN 1
+                    WHEN ${alias}."status" = 'RUNNING' THEN 0
+                    WHEN ${alias}."status" = 'QUEUED' THEN 1
                     ELSE 2
                 END ASC,
                 CASE
-                    WHEN job."status" = 'RUNNING' THEN job."startedAt"
+                    WHEN ${alias}."status" = 'RUNNING' THEN ${alias}."startedAt"
                     ELSE NULL
                 END DESC NULLS LAST,
                 CASE
-                    WHEN job."status" = 'QUEUED' THEN job."createdAt"
+                    WHEN ${alias}."status" = 'QUEUED' THEN ${alias}."createdAt"
                     ELSE NULL
                 END DESC NULLS LAST,
-                job."updatedAt" DESC,
-                job."id" DESC
+                ${alias}."updatedAt" DESC,
+                ${alias}."id" DESC
             `;
     }
 }
@@ -435,7 +435,7 @@ function mapAdminChatTaskSqlRow(row: AdminChatTaskSqlRow): AdminChatTaskRecord {
         agentName: row.agentName,
         chatId: row.chatId,
         workerId: null,
-        queueName: 'user-chat-jobs',
+        queueName: row.kind === 'CHAT_TIMEOUT' ? 'user-chat-timeouts' : 'user-chat-jobs',
     };
 }
 
@@ -496,4 +496,77 @@ function resolveNullableSqlNumber(value: string | number | null | undefined): nu
  */
 function quoteIdentifier(identifier: string): string {
     return `"${identifier.replace(/"/g, '""')}"`;
+}
+
+/**
+ * Builds the shared union query that surfaces durable chat jobs and timeouts as one admin task stream.
+ *
+ * @private internal admin utility of Agents Server
+ */
+function createAdminChatTaskBaseQuery(options: {
+    userChatJobTable: string;
+    userChatTimeoutTable: string;
+    userTable: string;
+    agentTable: string;
+}): string {
+    return `
+        SELECT
+            job."id" AS "id",
+            'CHAT_COMPLETION'::text AS "kind",
+            job."status" AS "status",
+            job."createdAt" AS "createdAt",
+            job."queuedAt" AS "queuedAt",
+            job."startedAt" AS "startedAt",
+            job."updatedAt" AS "updatedAt",
+            job."completedAt" AS "finishedAt",
+            job."cancelRequestedAt" AS "cancelRequestedAt",
+            job."lastHeartbeatAt" AS "lastHeartbeatAt",
+            job."leaseExpiresAt" AS "leaseExpiresAt",
+            job."attemptCount" AS "attemptCount",
+            job."failureReason" AS "lastErrorSummary",
+            job."userId" AS "userId",
+            "user"."username" AS "username",
+            job."agentPermanentId" AS "agentPermanentId",
+            agent."agentName" AS "agentName",
+            job."chatId" AS "chatId"
+        FROM ${options.userChatJobTable} job
+        LEFT JOIN ${options.userTable} "user" ON "user"."id" = job."userId"
+        LEFT JOIN ${options.agentTable} agent ON agent."permanentId" = job."agentPermanentId"
+
+        UNION ALL
+
+        SELECT
+            timeout."id" AS "id",
+            'CHAT_TIMEOUT'::text AS "kind",
+            timeout."status" AS "status",
+            timeout."createdAt" AS "createdAt",
+            timeout."queuedAt" AS "queuedAt",
+            timeout."startedAt" AS "startedAt",
+            timeout."updatedAt" AS "updatedAt",
+            timeout."completedAt" AS "finishedAt",
+            timeout."cancelRequestedAt" AS "cancelRequestedAt",
+            NULL::TIMESTAMP WITH TIME ZONE AS "lastHeartbeatAt",
+            timeout."leaseExpiresAt" AS "leaseExpiresAt",
+            timeout."attemptCount" AS "attemptCount",
+            timeout."failureReason" AS "lastErrorSummary",
+            timeout."userId" AS "userId",
+            "user"."username" AS "username",
+            timeout."agentPermanentId" AS "agentPermanentId",
+            agent."agentName" AS "agentName",
+            timeout."chatId" AS "chatId"
+        FROM ${options.userChatTimeoutTable} timeout
+        LEFT JOIN ${options.userTable} "user" ON "user"."id" = timeout."userId"
+        LEFT JOIN ${options.agentTable} agent ON agent."permanentId" = timeout."agentPermanentId"
+    `;
+}
+
+/**
+ * Resolves one prefixed table name using the runtime-configured Supabase prefix.
+ *
+ * @private internal admin utility of Agents Server
+ */
+async function resolvePrefixedTableName(tableName: string): Promise<string> {
+    const prefixedUserTable = await $getTableName('User');
+    const tablePrefix = prefixedUserTable.slice(0, prefixedUserTable.length - 'User'.length);
+    return `${tablePrefix}${tableName}`;
 }

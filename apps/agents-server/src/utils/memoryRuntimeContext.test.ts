@@ -95,4 +95,34 @@ describe('composePromptParametersWithMemoryContext', () => {
             depth: 0,
         });
     });
+
+    it('embeds scoped chat runtime context for thread-bound tools', () => {
+        const parameters = composePromptParametersWithMemoryContext({
+            baseParameters: {
+                plain: 'value',
+            },
+            currentUserIdentity: {
+                userId: 42,
+                user: {
+                    username: 'tester',
+                    isAdmin: false,
+                    profileImageUrl: null,
+                },
+            },
+            agentPermanentId: 'agent-timeout',
+            agentName: 'Timeout Agent',
+            chatId: 'chat-123',
+        });
+
+        const runtimeContext = JSON.parse(parameters[TOOL_RUNTIME_CONTEXT_PARAMETER]!);
+        expect(runtimeContext.chat).toEqual({
+            chatId: 'chat-123',
+            userId: 42,
+            agentId: 'agent-timeout',
+            agentName: 'Timeout Agent',
+            parameters: {
+                plain: 'value',
+            },
+        });
+    });
 });

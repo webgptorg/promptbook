@@ -12,6 +12,7 @@ import { ChatThreadLoadingSkeleton } from '../../../../components/Skeleton/ChatT
 import { SolidArrowButton } from '../../../../../../../src/book-components/icons/SolidArrowButton';
 import {
     cancelUserChatJob,
+    cancelUserChatTimeout,
     createUserChat,
     createUserChatClientMessageId,
     fetchUserChats,
@@ -23,6 +24,7 @@ import {
     type UserChatEnqueueResult,
     type UserChatJob,
     type UserChatSummary,
+    type UserChatTimeout,
 } from '../../../../utils/userChatClient';
 import { AgentChatWrapper } from '../AgentChatWrapper';
 import { takePendingProfileMessage } from '../profileMessageCache';
@@ -133,6 +135,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const [activeChatId, setActiveChatId] = useState<string | null>(null);
     const [activeMessages, setActiveMessages] = useState<Array<ChatMessage>>([]);
     const [activeJobs, setActiveJobs] = useState<Array<UserChatJob>>([]);
+    const [activeTimeouts, setActiveTimeouts] = useState<Array<UserChatTimeout>>([]);
     const [activeChatDraftMessage, setActiveChatDraftMessage] = useState('');
     const [isBootstrapping, setIsBootstrapping] = useState(shouldUseHistory);
     const [isChatListLoading, setIsChatListLoading] = useState(shouldUseHistory);
@@ -292,6 +295,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             if (options.clearChatContent === true || chatId === null) {
                 setActiveMessages([]);
                 setActiveJobs([]);
+                setActiveTimeouts([]);
                 setActiveChatDraftMessage('');
                 activeDraftDirtyRef.current = false;
             }
@@ -367,6 +371,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             });
             setActiveMessages([...chatDetail.messages]);
             setActiveJobs([...chatDetail.activeJobs]);
+            setActiveTimeouts([...chatDetail.activeTimeouts]);
 
             const shouldPreserveDirtyDraft =
                 options.preserveDirtyDraft === true &&
@@ -461,6 +466,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             });
             setActiveMessages([...snapshot.activeMessages]);
             setActiveJobs([...snapshot.activeJobs]);
+            setActiveTimeouts([...snapshot.activeTimeouts]);
 
             const shouldPreserveDirtyDraft =
                 options.preserveDirtyDraft === true &&
@@ -1016,6 +1022,26 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     );
 
     /**
+     * Requests cancellation for one active durable timeout.
+     */
+    const handleCancelActiveTimeout = useCallback(
+        async (timeoutId: string) => {
+            const currentActiveChatId = activeChatIdRef.current;
+            if (!currentActiveChatId) {
+                return;
+            }
+
+            const chatDetail = await cancelUserChatTimeout(agentName, currentActiveChatId, timeoutId);
+            applyChatDetail(chatDetail, {
+                expectedChatId: currentActiveChatId,
+                preserveDirtyDraft: true,
+                reason: 'cancel_active_timeout',
+            });
+        },
+        [agentName, applyChatDetail],
+    );
+
+    /**
      * Handles in-chat "New chat" action.
      */
     const handleStartNewChatFromChatSurface = useCallback(async () => {
@@ -1097,10 +1123,12 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                     areFileAttachmentsEnabled={areFileAttachmentsEnabled}
                     isFeedbackEnabled={isFeedbackEnabled}
                     activeJobs={activeJobs}
+                    activeTimeouts={activeTimeouts}
                     onDraftMessageChange={handleDraftMessageChange}
                     onSubmitUserTurn={handleSubmitUserTurn}
                     onStartNewChat={handleStartNewChatFromChatSurface}
                     onCancelActiveJob={handleCancelActiveJob}
+                    onCancelActiveTimeout={handleCancelActiveTimeout}
                     onAutoExecuteMessageConsumed={handleAutoExecuteMessageConsumed}
                 />
             )}

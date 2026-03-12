@@ -103,6 +103,7 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
         },
         agentPermanentId,
         agentName: resolvedAgentName,
+        chatId: job.chatId,
         isPrivateModeEnabled: false,
         projectRepositories,
         projectGithubToken,

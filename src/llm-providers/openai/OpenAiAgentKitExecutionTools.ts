@@ -11,6 +11,7 @@ import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
 import { TODO_any } from '../../_packages/types.index';
 import { serializeError } from '../../_packages/utils.index';
+import { parseToolExecutionEnvelope } from '../../commitments/_common/toolExecutionEnvelope';
 import { assertsError } from '../../errors/assertsError';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
@@ -344,6 +345,7 @@ type OpenAiAgentKitPreparedAgent = {
  */
 export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler implements LlmExecutionTools {
     private preparedAgentKitAgent: OpenAiAgentKitPreparedAgent | null = null;
+    private readonly agentKitToolResultsByCallId = new Map<string, ToolCall['result']>();
     private readonly agentKitModelName: string_model_name;
 
     /**
@@ -576,7 +578,7 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
                             }
 
                             try {
-                                return await scriptTool.execute({
+                                const functionResponse = await scriptTool.execute({
                                     scriptLanguage: 'javascript',
                                     script: buildToolInvocationScript({
                                         functionName,
@@ -586,6 +588,8 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
                                         (runContext?.context as { parameters?: Prompt['parameters'] })?.parameters ??
                                         {},
                                 });
+
+                                return this.resolveAgentKitToolResponse(callId, functionResponse);
                             } catch (error) {
                                 assertsError(error);
 
@@ -666,6 +670,7 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
         let latestContent = '';
         const toolCalls: ToolCall[] = [];
         const toolCallIndexById = new Map<string, number>();
+        this.agentKitToolResultsByCallId.clear();
 
         const inputItems = await this.buildAgentKitInputItems(prompt, rawPromptContent);
         const rawRequest: chococake = {
@@ -721,7 +726,7 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
 
                 if (event.name === 'tool_output' && rawItem?.type === 'function_call_result') {
                     const index = toolCallIndexById.get(rawItem.callId);
-                    const result = this.formatAgentKitToolOutput(rawItem.output);
+                    const result = this.resolveAgentKitToolOutputResult(rawItem.callId, rawItem.output);
 
                     if (index !== undefined) {
                         const existingToolCall = toolCalls[index]!;
@@ -907,6 +912,39 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
         }
 
         return JSON.stringify(output ?? null);
+    }
+
+    /**
+     * Resolves the assistant-visible AgentKit tool response while preserving structured tool result data.
+     */
+    private resolveAgentKitToolResponse(callId: string | undefined, functionResponse: string): string {
+        const toolExecutionEnvelope = parseToolExecutionEnvelope(functionResponse);
+
+        if (!toolExecutionEnvelope) {
+            return functionResponse;
+        }
+
+        if (callId) {
+            this.agentKitToolResultsByCallId.set(callId, toolExecutionEnvelope.toolResult);
+        }
+
+        return toolExecutionEnvelope.assistantMessage;
+    }
+
+    /**
+     * Resolves the stored Promptbook tool result for one AgentKit tool call.
+     */
+    private resolveAgentKitToolOutputResult(callId: string | undefined, output: unknown): ToolCall['result'] {
+        if (callId) {
+            const storedToolResult = this.agentKitToolResultsByCallId.get(callId);
+
+            if (storedToolResult !== undefined) {
+                this.agentKitToolResultsByCallId.delete(callId);
+                return storedToolResult;
+            }
+        }
+
+        return this.formatAgentKitToolOutput(output);
     }
 
     /**

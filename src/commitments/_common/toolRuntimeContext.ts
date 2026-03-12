@@ -59,6 +59,13 @@ export type ToolRuntimeContext = {
         parentRunId?: string;
         parentAgentId?: string;
     };
+    chat?: {
+        chatId?: string;
+        userId?: number;
+        agentId?: string;
+        agentName?: string;
+        parameters?: Record<string, string>;
+    };
 };
 
 /**

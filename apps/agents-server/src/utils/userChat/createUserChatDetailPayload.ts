@@ -1,4 +1,5 @@
 import type { UserChatRecord } from './UserChatRecord';
+import { listUserChatTimeouts } from '../userChatTimeout/userChatTimeoutStore';
 import { createUserChatSummary } from './createUserChatSummary';
 import { getUserChat } from './getUserChat';
 import { listUserChatJobs } from './listUserChatJobs';
@@ -12,6 +13,7 @@ export async function createUserChatDetailPayload(chat: UserChatRecord): Promise
     messages: UserChatRecord['messages'];
     draftMessage: string | null;
     activeJobs: Awaited<ReturnType<typeof listUserChatJobs>>;
+    activeTimeouts: Awaited<ReturnType<typeof listUserChatTimeouts>>;
 }> {
     let currentChat = chat;
     let activeJobs = await listUserChatJobs({
@@ -45,10 +47,18 @@ export async function createUserChatDetailPayload(chat: UserChatRecord): Promise
         });
     }
 
+    const activeTimeouts = await listUserChatTimeouts({
+        userId: currentChat.userId,
+        agentPermanentId: currentChat.agentPermanentId,
+        chatId: currentChat.id,
+        onlyActive: true,
+    });
+
     return {
         chat: createUserChatSummary(currentChat),
         messages: currentChat.messages,
         draftMessage: currentChat.draftMessage,
         activeJobs,
+        activeTimeouts,
     };
 }

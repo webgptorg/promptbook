@@ -221,6 +221,12 @@ function createUserChatDetailSignature(
             status: job.status,
             cancelRequestedAt: job.cancelRequestedAt,
         })),
+        activeTimeouts: payload.activeTimeouts.map((timeout) => ({
+            id: timeout.id,
+            status: timeout.status,
+            dueAt: timeout.dueAt,
+            cancelRequestedAt: timeout.cancelRequestedAt,
+        })),
     });
 }
 

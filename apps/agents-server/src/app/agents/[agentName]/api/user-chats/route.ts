@@ -48,6 +48,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
             activeMessages: activeChatDetail?.messages || [],
             activeDraftMessage: activeChatDetail?.draftMessage || null,
             activeJobs: activeChatDetail?.activeJobs || [],
+            activeTimeouts: activeChatDetail?.activeTimeouts || [],
         });
     } catch (error) {
         return NextResponse.json(

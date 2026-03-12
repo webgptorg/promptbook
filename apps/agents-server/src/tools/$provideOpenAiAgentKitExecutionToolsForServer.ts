@@ -8,6 +8,7 @@ import {
 } from '../../../../src/commitments/MEMORY/MEMORY';
 import { OpenAiAgentKitExecutionTools } from '../../../../src/llm-providers/openai/OpenAiAgentKitExecutionTools';
 import { JavascriptExecutionTools } from '../../../../src/scripting/javascript/JavascriptExecutionTools';
+import { configureTimeoutToolRuntimeAdapterForServer } from './configureTimeoutToolRuntimeAdapterForServer';
 import {
     createUserMemory,
     deleteUserMemory,
@@ -203,6 +204,7 @@ function createMemoryRuntimeAdapter() {
  */
 export async function $provideOpenAiAgentKitExecutionToolsForServer(): Promise<OpenAiAgentKitExecutionTools> {
     setMemoryToolRuntimeAdapter(createMemoryRuntimeAdapter());
+    configureTimeoutToolRuntimeAdapterForServer();
 
     const isVerbose = true; // <- TODO: [🤰] Pass
 

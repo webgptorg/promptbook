@@ -153,6 +153,31 @@ export type UserChatJob = {
 };
 
 /**
+ * Active durable timeout linked to the currently open chat.
+ */
+export type UserChatTimeout = {
+    id: string;
+    timeoutId: string;
+    createdAt: string;
+    updatedAt: string;
+    chatId: string;
+    userId: number;
+    agentPermanentId: string;
+    status: 'QUEUED' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+    message: string | null;
+    parameters: Record<string, unknown>;
+    durationMs: number;
+    dueAt: string;
+    queuedAt: string;
+    startedAt: string | null;
+    completedAt: string | null;
+    cancelRequestedAt: string | null;
+    leaseExpiresAt: string | null;
+    attemptCount: number;
+    failureReason: string | null;
+};
+
+/**
  * API payload for list endpoint.
  */
 export type UserChatsSnapshot = {
@@ -161,6 +186,7 @@ export type UserChatsSnapshot = {
     activeMessages: Array<ChatMessage>;
     activeDraftMessage?: string | null;
     activeJobs: Array<UserChatJob>;
+    activeTimeouts: Array<UserChatTimeout>;
 };
 
 /**
@@ -171,6 +197,7 @@ export type UserChatDetail = {
     messages: Array<ChatMessage>;
     draftMessage?: string | null;
     activeJobs: Array<UserChatJob>;
+    activeTimeouts: Array<UserChatTimeout>;
 };
 
 /**
@@ -487,6 +514,29 @@ export async function cancelUserChatJob(agentName: string, chatId: string, jobId
 
     if (!response.ok) {
         throw await resolveUserChatApiError(response, 'Failed to cancel chat job.');
+    }
+
+    return (await response.json()) as UserChatDetail;
+}
+
+/**
+ * Requests cancellation for one active durable chat timeout.
+ */
+export async function cancelUserChatTimeout(
+    agentName: string,
+    chatId: string,
+    timeoutId: string,
+): Promise<UserChatDetail> {
+    const response = await fetch(
+        `/agents/${encodeURIComponent(agentName)}/api/user-chats/${encodeURIComponent(chatId)}/timeouts/${encodeURIComponent(timeoutId)}/cancel`,
+        {
+            method: 'POST',
+            headers: createUserChatRequestHeaders(),
+        },
+    );
+
+    if (!response.ok) {
+        throw await resolveUserChatApiError(response, 'Failed to cancel chat timeout.');
     }
 
     return (await response.json()) as UserChatDetail;

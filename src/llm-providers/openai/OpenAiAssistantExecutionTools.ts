@@ -3,6 +3,7 @@ import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
 import { TODO_any } from '../../_packages/types.index';
 import { serializeError } from '../../_packages/utils.index';
+import { parseToolExecutionEnvelope } from '../../commitments/_common/toolExecutionEnvelope';
 import { assertsError } from '../../errors/assertsError';
 import { NotAllowed } from '../../errors/NotAllowed';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
@@ -273,6 +274,8 @@ export class OpenAiAssistantExecutionTools extends OpenAiVectorStoreHandler impl
                                 : [executionTools.script];
 
                             let functionResponse: string;
+                            let assistantVisibleFunctionResponse: string;
+                            let toolResult: TODO_any;
                             let errors: Array<ReturnType<typeof serializeError>> | undefined;
 
                             try {
@@ -286,9 +289,16 @@ export class OpenAiAssistantExecutionTools extends OpenAiVectorStoreHandler impl
                                     }),
                                     parameters: prompt.parameters,
                                 });
+                                const toolExecutionEnvelope = parseToolExecutionEnvelope(functionResponse);
+                                assistantVisibleFunctionResponse =
+                                    toolExecutionEnvelope?.assistantMessage || functionResponse;
+                                toolResult =
+                                    toolExecutionEnvelope !== null && toolExecutionEnvelope !== undefined
+                                        ? toolExecutionEnvelope.toolResult
+                                        : functionResponse;
 
                                 if (this.options.isVerbose) {
-                                    console.info(`✅ Tool ${functionName} executed:`, functionResponse);
+                                    console.info(`✅ Tool ${functionName} executed:`, assistantVisibleFunctionResponse);
                                 }
                             } catch (error) {
                                 assertsError(error);
@@ -306,19 +316,21 @@ export class OpenAiAssistantExecutionTools extends OpenAiVectorStoreHandler impl
 
                                     `,
                                 );
+                                assistantVisibleFunctionResponse = functionResponse;
+                                toolResult = functionResponse;
                                 console.error(colors.bgRed(`❌ Error executing tool ${functionName}:`));
                                 console.error(error);
                             }
 
                             toolOutputs.push({
                                 tool_call_id: toolCall.id,
-                                output: functionResponse,
+                                output: assistantVisibleFunctionResponse,
                             });
 
                             completedToolCalls.push({
                                 name: functionName,
                                 arguments: toolCall.function.arguments,
-                                result: functionResponse,
+                                result: toolResult,
                                 rawToolCall: toolCall,
                                 createdAt: toolCall.id ? toolCallStartedAt.get(toolCall.id) || calledAt : calledAt,
                                 errors,

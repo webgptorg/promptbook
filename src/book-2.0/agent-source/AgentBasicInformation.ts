@@ -48,6 +48,7 @@ export type AgentCapability = {
         | 'browser'
         | 'search-engine'
         | 'knowledge'
+        | 'timeout'
         | 'time'
         | 'user-location'
         | 'inheritance'

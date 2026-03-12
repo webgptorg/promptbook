@@ -1060,6 +1060,10 @@ export function Header(props: HeaderProps) {
             href: '/admin/metadata',
         },
         {
+            label: 'Tool limits',
+            href: '/admin/tool-limits',
+        },
+        {
             label: t('header.messagesEmails'),
             href: '/admin/messages',
         },

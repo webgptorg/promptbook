@@ -4,6 +4,7 @@ import { DEFAULT_THINKING_MESSAGES } from '../../../../src/utils/DEFAULT_THINKIN
 import { SERVER_LANGUAGE_METADATA_KEY } from '../languages/ServerLanguageRegistry';
 import { MetadataType } from '../constants/metadataTypes';
 import { ANALYTICS_METADATA_KEYS, getAnalyticsMetadataDefinition } from '../constants/analyticsMetadata';
+import { DEFAULT_TOOL_USAGE_LIMITS, TOOL_USAGE_LIMITS_METADATA_KEY } from '../constants/toolUsageLimits';
 
 /**
  * Default metadata entries produced from the analytics configuration definitions.
@@ -48,6 +49,12 @@ export const metadataDefaults = [
         key: 'THINKING_MESSAGES',
         value: DEFAULT_THINKING_MESSAGES.join(' / '),
         note: 'Slash-delimited variants used for the thinking placeholder message (e.g. Thinking...).',
+        type: 'TEXT',
+    },
+    {
+        key: TOOL_USAGE_LIMITS_METADATA_KEY,
+        value: JSON.stringify(DEFAULT_TOOL_USAGE_LIMITS),
+        note: 'JSON configuration for tool-specific usage limits. Currently supports thread-scoped `timeout` timers.',
         type: 'TEXT',
     },
     {
