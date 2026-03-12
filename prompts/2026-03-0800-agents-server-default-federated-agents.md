@@ -2,48 +2,18 @@
 
 [🌐🧬] Default federated agents cloned from Core server
 
--   *(@@@@ Written by agent)*
 -   Each Agents Server should ship with pre-created example agents to showcase Promptbook capabilities.
--   Start with federated agents: in local DB they behave as normal editable agents, but their initial content is cloned from the Core server.
--   Define “Core server” as a special case of federated server which contains canonical boilerplate agents (in its root directory).
+-   There is a core server special case of federated server which contains special agent, in folder `default` will be canonical boilerplate agents.
 -   When a new server registers to Core (or otherwise completes federation handshake), it should ensure that all default agents from Core boilerplate exist locally; if missing, create them by cloning.
 -   On subsequent registrations/sync events, if Core adds new default boilerplate agents, they should also be cloned locally (only missing ones; do not overwrite existing local edits).
 -   Agent identity/matching must use normalized name (same normalization rules as elsewhere in Promptbook) and be stable across servers.
--   The clone operation should preserve:
-    -   normalizedName (used as the idempotency key)
-    -   human name/title/description
-    -   promptbook source / book content
-    -   default avatar/image if present in Core boilerplate
-    -   initial folder placement: root directory (no folder) on the local server (mirrors Core root).
 -   The clone operation must not:
-    -   overwrite an existing local agent with same normalizedName
+    -   overwrite an existing local agent with same normalized name
     -   delete local agents when Core removes/renames boilerplate agents
     -   modify local agent if user edited it
 -   Make the sync idempotent and safe to run concurrently (e.g. on multiple server startup nodes): use DB constraints/transactions.
--   Track provenance:
-    -   store which server the agent was cloned from (Core server URL/id)
-    -   store clonedFromNormalizedName / clonedFromAgentId if applicable
-    -   store clonedAt timestamp
-    -   store “isDefaultExampleAgent” flag to allow UI to label these agents and allow future bulk management.
--   Add a minimal UI hint (non-blocking): show “Example (from Core)” chip/badge on agent profile and/or in agents list for agents with isDefaultExampleAgent=true.
--   Federation lifecycle trigger points (implementation choice, but must be deterministic):
-    -   after successful registration handshake
-    -   and/or on server start when federation is already configured
-    -   and/or periodic background job @@@
 -   Error handling:
-    -   if Core is unreachable during registration, registration should still succeed but log/record that defaults could not be synced, and retry later @@@
-    -   surface sync status in server admin logs / dashboard @@@
--   Telemetry/logging: record which defaults were created vs skipped.
--   Security:
-    -   Only clone from trusted Core server configured in federation settings.
-    -   Validate/limit size of cloned content to prevent abuse @@@
--   Tests:
-    -   unit test normalization-based matching
-    -   integration test idempotent clone (run twice -> no duplicates)
-    -   integration test “Core adds new default” -> new agent appears locally
-    -   integration test “local edit exists” -> not overwritten
+    -   if Core is unreachable, just do not clone missing agents for now, but do not fail, just error to console
 -   You are working with the [Agents Server](apps/agents-server)
--   You are working with federation/core registration flow @@@ (where the handshake is implemented)
--   You are working with agent creation/storage code @@@
--   You are working with normalization utilities @@@
+-   You can (but not necessarily) create a database migration if needed
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
