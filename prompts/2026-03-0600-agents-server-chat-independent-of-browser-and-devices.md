@@ -28,16 +28,18 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🚐] foo
+[✨🚐] You have implemented chats that are running on the background, but there are several minor issues
 
--   @@@
+-   You have implemented this in `60b78a4f1c2d8a6790c5b2def86b6197db1bc9b7`
+-   You have broken chat streaming, the agent response is not streaming, it should be streamed to all the clients that are looking on the same chat, but still independently running on the background
+-   Show loading messages from `THINKING_MESSAGES`
+-   Chat messages are often finished but still in `RUNNING` state pending indefinitely
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Do a proper analysis of the current functionality and the commit `60b78a4f1c2d8a6790c5b2def86b6197db1bc9b7` before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -64,4 +66,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
