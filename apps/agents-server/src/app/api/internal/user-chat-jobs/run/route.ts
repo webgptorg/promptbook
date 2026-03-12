@@ -7,6 +7,7 @@ import {
     runUserChatJob,
     triggerUserChatJobWorker,
 } from '@/src/utils/userChat';
+import { EXPIRED_RUNNING_USER_CHAT_JOB_FAILURE_REASON } from '@/src/utils/userChat/userChatJobState';
 import { after, NextResponse } from 'next/server';
 
 /**
@@ -97,7 +98,7 @@ async function recoverExpiredRunningJobs(): Promise<void> {
         await persistUserChatJobTerminalState({
             job: expiredJob,
             status: 'FAILED',
-            failureReason: 'Background worker lease expired before the chat turn finished.',
+            failureReason: EXPIRED_RUNNING_USER_CHAT_JOB_FAILURE_REASON,
         }).catch(async (error) => {
             console.error('[user-chat-job] stale job recovery failed', {
                 chatId: expiredJob.chatId,
@@ -109,7 +110,7 @@ async function recoverExpiredRunningJobs(): Promise<void> {
             await finalizeUserChatJob({
                 jobId: expiredJob.id,
                 status: 'FAILED',
-                failureReason: 'Background worker lease expired before the chat turn finished.',
+                failureReason: EXPIRED_RUNNING_USER_CHAT_JOB_FAILURE_REASON,
             });
         });
     }

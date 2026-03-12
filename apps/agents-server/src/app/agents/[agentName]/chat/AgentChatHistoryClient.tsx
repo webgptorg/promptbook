@@ -17,6 +17,7 @@ import {
     removeUserChat,
     saveUserChatDraft,
     sendUserChatMessage,
+    streamUserChat,
     type UserChatDetail,
     type UserChatEnqueueResult,
     type UserChatJob,
@@ -28,14 +29,19 @@ import { AgentChatSidebar, AGENT_CHAT_SIDEBAR_ID } from './AgentChatSidebar';
 import { CanonicalAgentChatPanel } from './CanonicalAgentChatPanel';
 
 /**
- * Poll interval used while the active chat has queued/running jobs.
+ * Reconnect delay after one canonical chat-stream disconnect.
  */
-const ACTIVE_CHAT_POLL_INTERVAL_MS = 1_500;
+const USER_CHAT_STREAM_RECONNECT_DELAY_MS = 1_500;
 
 /**
- * Poll interval used while the active chat is idle.
+ * Background refresh cadence used when the live stream is temporarily disconnected.
  */
-const IDLE_CHAT_POLL_INTERVAL_MS = 8_000;
+const DISCONNECTED_CHAT_REFRESH_INTERVAL_MS = 4_000;
+
+/**
+ * Periodic sidebar/list refresh cadence while the active chat stream is healthy.
+ */
+const CHAT_LIST_REFRESH_INTERVAL_MS = 20_000;
 
 /**
  * Debounce window for draft persistence.
@@ -50,6 +56,7 @@ type AgentChatHistoryClientProps = {
     agentUrl: string;
     brandColor?: string;
     inputPlaceholder: string;
+    thinkingMessages?: ReadonlyArray<string>;
     speechRecognitionLanguage?: string;
     initialChatId?: string;
     initialAutoExecuteMessage?: string;
@@ -86,6 +93,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         agentUrl,
         brandColor,
         inputPlaceholder,
+        thinkingMessages,
         speechRecognitionLanguage,
         initialChatId,
         initialAutoExecuteMessage,
@@ -109,6 +117,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const [activeChatDraftMessage, setActiveChatDraftMessage] = useState('');
     const [isBootstrapping, setIsBootstrapping] = useState(shouldUseHistory);
     const [isChatListLoading, setIsChatListLoading] = useState(shouldUseHistory);
+    const [isActiveChatStreamConnected, setIsActiveChatStreamConnected] = useState(false);
     const [isCreatingChat, setIsCreatingChat] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -344,6 +353,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             setActiveMessages([]);
             setActiveJobs([]);
             setActiveChatDraftMessage('');
+            setIsActiveChatStreamConnected(false);
             setIsBootstrapping(false);
             setIsChatListLoading(false);
             return;
@@ -401,10 +411,80 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
     useEffect(() => {
         if (!shouldUseHistory || !activeChatId) {
+            setIsActiveChatStreamConnected(false);
             return;
         }
 
-        const pollIntervalMs = activeJobs.length > 0 ? ACTIVE_CHAT_POLL_INTERVAL_MS : IDLE_CHAT_POLL_INTERVAL_MS;
+        let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+        let isDisposed = false;
+        const abortController = new AbortController();
+
+        /**
+         * Opens the canonical chat stream and keeps reconnecting while the current chat stays selected.
+         */
+        const connectStream = async (): Promise<void> => {
+            setIsActiveChatStreamConnected(false);
+
+            try {
+                await streamUserChat(agentName, activeChatId, {
+                    signal: abortController.signal,
+                    onSnapshot: (chatDetail) => {
+                        if (activeChatIdRef.current !== activeChatId) {
+                            return;
+                        }
+
+                        setIsActiveChatStreamConnected(true);
+                        applyChatDetail(chatDetail, {
+                            preserveDirtyDraft: true,
+                        });
+                    },
+                });
+            } catch (error) {
+                if (abortController.signal.aborted || isDisposed) {
+                    return;
+                }
+
+                console.error('[user-chat] Failed to keep canonical chat stream open', {
+                    agentName,
+                    chatId: activeChatId,
+                    error,
+                });
+
+                setIsActiveChatStreamConnected(false);
+                void refreshActiveChat({ preserveDirtyDraft: true }).catch(() => undefined);
+            }
+
+            if (abortController.signal.aborted || isDisposed) {
+                return;
+            }
+
+            reconnectTimer = setTimeout(() => {
+                void connectStream();
+            }, USER_CHAT_STREAM_RECONNECT_DELAY_MS);
+        };
+
+        void connectStream();
+
+        return () => {
+            isDisposed = true;
+            setIsActiveChatStreamConnected(false);
+
+            if (reconnectTimer) {
+                clearTimeout(reconnectTimer);
+            }
+
+            abortController.abort();
+        };
+    }, [activeChatId, agentName, applyChatDetail, refreshActiveChat, shouldUseHistory]);
+
+    useEffect(() => {
+        if (!shouldUseHistory || !activeChatId) {
+            return;
+        }
+
+        const pollIntervalMs = isActiveChatStreamConnected
+            ? CHAT_LIST_REFRESH_INTERVAL_MS
+            : DISCONNECTED_CHAT_REFRESH_INTERVAL_MS;
         const runRefresh = () => {
             if (typeof document !== 'undefined' && document.hidden) {
                 return;
@@ -431,7 +511,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             window.removeEventListener('focus', handleFocus);
         };
-    }, [activeChatId, activeJobs.length, refreshActiveChat, shouldUseHistory]);
+    }, [activeChatId, isActiveChatStreamConnected, refreshActiveChat, shouldUseHistory]);
 
     /**
      * Selects one existing chat.
@@ -645,6 +725,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                         autoExecuteMessageAttachments={effectiveInitialAutoExecuteMessageAttachments}
                         brandColor={brandColor}
                         inputPlaceholder={inputPlaceholder}
+                        thinkingMessages={thinkingMessages}
                         speechRecognitionLanguage={speechRecognitionLanguage}
                         persistenceKey={`guest-chat-${encodeURIComponent(agentName)}`}
                         areFileAttachmentsEnabled={areFileAttachmentsEnabled}
@@ -667,6 +748,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 agentUrl={agentUrl}
                 brandColor={brandColor}
                 inputPlaceholder={inputPlaceholder}
+                thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}
                 initialAgentMessage={initialAgentMessage}
                 messages={activeMessages}

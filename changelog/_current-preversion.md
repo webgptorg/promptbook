@@ -50,6 +50,9 @@
     -   Rewrote `/agents/[agentName]/chat` history mode to poll canonical server state instead of browser-owned local chat snapshots, keeping the same `chatId` synchronized across devices and after refresh/reconnect.
     -   Extended shared chat messages with durable lifecycle metadata (`queued`, `running`, `completed`, `failed`, `cancelled`) and updated chat UI to render lifecycle badges/errors consistently.
     -   Updated shared chat input sending so async send handlers clear the composer only after a successful server acknowledgement, preserving input for retries when durable message submission fails.
+    -   Restored live canonical streaming for durable chats by adding `/agents/[agentName]/api/user-chats/[chatId]/stream` and reconnecting the chat page to that stream, so all open viewers of the same `chatId` now receive progressive assistant updates while the background worker keeps running independently.
+    -   Restored loading-state copy from `THINKING_MESSAGES` for empty queued/running assistant placeholders, so background turns no longer render as blank bubbles before the first persisted token arrives.
+    -   Added server-side active-job reconciliation when reading canonical chat detail, so jobs whose assistant message is already terminal or whose worker lease expired no longer stay stuck in `RUNNING`/pending forever.
 
 -   Fixed Agents Server duplicated `INITIAL MESSAGE` entries in chat history when switching chats or refreshing:
 

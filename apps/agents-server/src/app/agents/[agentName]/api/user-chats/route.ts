@@ -4,7 +4,6 @@ import {
     createUserChat,
     createUserChatDetailPayload,
     createUserChatSummary,
-    listUserChatJobs,
     listUserChats,
 } from '@/src/utils/userChat';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
@@ -40,20 +39,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
             (requestedChatId ? chats.find((chat) => chat.id === requestedChatId) : null) ||
             chats[0] ||
             null;
+        const activeChatDetail = activeChat ? await createUserChatDetailPayload(activeChat) : null;
+        const chatSummaries = chats.map(createUserChatSummary);
 
         return NextResponse.json({
-            chats: chats.map(createUserChatSummary),
-            activeChatId: activeChat?.id || null,
-            activeMessages: activeChat?.messages || [],
-            activeDraftMessage: activeChat?.draftMessage || null,
-            activeJobs: activeChat
-                ? await listUserChatJobs({
-                      userId: activeChat.userId,
-                      agentPermanentId: activeChat.agentPermanentId,
-                      chatId: activeChat.id,
-                      onlyActive: true,
-                  })
-                : [],
+            chats: activeChatDetail ? replaceChatSummary(chatSummaries, activeChatDetail.chat) : chatSummaries,
+            activeChatId: activeChatDetail?.chat.id || null,
+            activeMessages: activeChatDetail?.messages || [],
+            activeDraftMessage: activeChatDetail?.draftMessage || null,
+            activeJobs: activeChatDetail?.activeJobs || [],
         });
     } catch (error) {
         return NextResponse.json(
@@ -115,4 +109,14 @@ function normalizeOptionalString(value: string | null | undefined): string | und
 
     const normalized = value.trim();
     return normalized.length > 0 ? normalized : undefined;
+}
+
+/**
+ * Replaces one summary inside the list with a refreshed canonical version.
+ */
+function replaceChatSummary(
+    chats: ReadonlyArray<ReturnType<typeof createUserChatSummary>>,
+    refreshedChat: ReturnType<typeof createUserChatSummary>,
+): Array<ReturnType<typeof createUserChatSummary>> {
+    return chats.map((chat) => (chat.id === refreshedChat.id ? refreshedChat : chat));
 }

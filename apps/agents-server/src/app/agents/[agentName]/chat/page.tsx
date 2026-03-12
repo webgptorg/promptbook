@@ -2,6 +2,7 @@
 import { loadChatConfiguration } from '@/src/utils/chatConfiguration';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { resolveAgentChatInputPlaceholder } from '@/src/utils/agentChatInputPlaceholder';
+import { getThinkingMessages } from '@/src/utils/thinkingMessages';
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { resolveSpeechRecognitionLanguage } from '../../../../../../../src/utils/language/getBrowserPreferredSpeechRecognitionLanguage';
@@ -76,6 +77,7 @@ export default async function AgentChatPage({
     const agentProfilePromise = getAgentProfile(canonicalAgentId);
     const historyIdentityAvailablePromise = ensureChatHistoryIdentity();
     const chatConfigurationPromise = loadChatConfiguration();
+    const thinkingMessagesPromise = getThinkingMessages();
 
     const isDeleted = await isDeletedPromise;
     const isHeadless = headless !== undefined;
@@ -92,10 +94,12 @@ export default async function AgentChatPage({
     const speechRecognitionLanguage = resolveSpeechRecognitionLanguage({
         acceptLanguageHeader: requestHeaders.get('accept-language'),
     });
-    const [agentProfile, historyIdentityAvailable, { isFileAttachmentsEnabled, isFeedbackEnabled }] = await Promise.all([
+    const [agentProfile, historyIdentityAvailable, { isFileAttachmentsEnabled, isFeedbackEnabled }, thinkingMessages] =
+        await Promise.all([
         agentProfilePromise,
         historyIdentityAvailablePromise,
         chatConfigurationPromise,
+        thinkingMessagesPromise,
     ]);
     const agentDisplayName = agentProfile.meta.fullname || agentProfile.agentName || canonicalAgentId;
     const inputPlaceholder = resolveAgentChatInputPlaceholder(agentProfile.meta.inputPlaceholder);
@@ -112,6 +116,7 @@ export default async function AgentChatPage({
                 initialAgentMessage={agentProfile.initialMessage}
                 brandColor={agentProfile.meta.color}
                 inputPlaceholder={inputPlaceholder}
+                thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}
                 isHistoryEnabled={historyIdentityAvailable}
                 areFileAttachmentsEnabled={isFileAttachmentsEnabled}

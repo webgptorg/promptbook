@@ -32,6 +32,7 @@ type CanonicalAgentChatPanelProps = {
     agentUrl: string;
     brandColor?: string;
     inputPlaceholder: string;
+    thinkingMessages?: ReadonlyArray<string>;
     speechRecognitionLanguage?: string;
     initialAgentMessage?: string | null;
     messages: ReadonlyArray<ChatMessage>;
@@ -63,6 +64,34 @@ function serializeAutoExecutePayload(message?: string, attachments?: ChatMessage
 }
 
 /**
+ * Returns true when the UI should show a transient thinking message instead of an empty assistant placeholder.
+ */
+function shouldShowThinkingMessage(message: ChatMessage): boolean {
+    return (
+        message.sender !== 'USER' &&
+        message.isComplete === false &&
+        (message.lifecycleState === 'queued' || message.lifecycleState === 'running') &&
+        message.content.trim().length === 0
+    );
+}
+
+/**
+ * Resolves one deterministic thinking-message variant for a message id so multiple viewers of the same chat stay aligned.
+ */
+function resolveThinkingMessageVariant(messageId: string | number, thinkingMessages: ReadonlyArray<string>): string {
+    if (thinkingMessages.length === 0) {
+        return 'Thinking...';
+    }
+
+    let hash = 0;
+    for (const character of String(messageId)) {
+        hash = (hash * 31 + character.charCodeAt(0)) >>> 0;
+    }
+
+    return thinkingMessages[hash % thinkingMessages.length] || thinkingMessages[0] || 'Thinking...';
+}
+
+/**
  * Renders the full canonical chat surface while delegating message execution to the server.
  */
 export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
@@ -71,6 +100,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
         agentUrl,
         brandColor,
         inputPlaceholder,
+        thinkingMessages,
         speechRecognitionLanguage,
         initialAgentMessage,
         messages,
@@ -118,6 +148,10 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
             : agentName;
     }, [agent, agentName]);
     const effectConfigs = useMemo(() => createDefaultChatEffects(), []);
+    const normalizedThinkingMessages = useMemo(() => {
+        const normalized = (thinkingMessages || []).map((message) => message.trim()).filter(Boolean);
+        return normalized.length > 0 ? normalized : ['Thinking...'];
+    }, [thinkingMessages]);
     const speechRecognition = useMemo(() => {
         if (typeof window === 'undefined' || !(agent?.isVoiceTtsSttEnabled ?? false)) {
             return undefined;
@@ -307,9 +341,18 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
                 createdAt: messages[0]?.createdAt,
                 isComplete: true,
             },
-            ...messages,
+            ...messages.map((message) => {
+                if (!shouldShowThinkingMessage(message)) {
+                    return message;
+                }
+
+                return {
+                    ...message,
+                    content: resolveThinkingMessageVariant(message.id || 'thinking-message', normalizedThinkingMessages),
+                };
+            }),
         ],
-        [initialMessage, messages],
+        [initialMessage, messages, normalizedThinkingMessages],
     );
 
     const participants = useMemo(
