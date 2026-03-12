@@ -19,6 +19,10 @@ export type ResolvedChatAttachmentContent = {
     readonly content: string | null;
     readonly isTruncated: boolean;
     readonly reason: string | null;
+    readonly encodingUsed: string | null;
+    readonly encodingConfidence: number | null;
+    readonly warnings: ReadonlyArray<string>;
+    readonly wasBinary: boolean;
 };
 
 /**
@@ -33,6 +37,13 @@ export type ResolveChatAttachmentOptions = {
      * @default false
      */
     readonly allowLocalhost?: boolean;
+
+    /**
+     * Forces text decoding even when the attachment looks binary.
+     *
+     * @default false
+     */
+    readonly forceText?: boolean;
 };
 
 export { normalizeChatAttachments } from './chatAttachments/normalizeChatAttachments';

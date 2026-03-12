@@ -1,5 +1,8 @@
 import type { string_javascript_name } from '../../_packages/types.index';
 import type { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
+import { decodeAttachmentAsText, DEFAULT_ATTACHMENT_TEXT_DECODE_BYTES } from '../../utils/files/decodeAttachmentAsText';
+import { extensionToMimeType } from '../../utils/files/extensionToMimeType';
+import { getFileExtension } from '../../utils/files/getFileExtension';
 import {
     callGitHubApi,
     type UseProjectGitHubContentsItem,
@@ -23,6 +26,13 @@ import { UseProjectToolNames } from './UseProjectToolNames';
 const MAX_PROJECT_FILE_CONTENT_CHARACTERS = 40000;
 
 /**
+ * Max bytes decoded from `project_read_file` before falling back to a truncated prefix.
+ *
+ * @private constant of createUseProjectToolFunctions
+ */
+const MAX_PROJECT_FILE_CONTENT_BYTES = DEFAULT_ATTACHMENT_TEXT_DECODE_BYTES;
+
+/**
  * Arguments accepted by `project_list_files`.
  *
  * @private type of createUseProjectToolFunctions
@@ -42,6 +52,7 @@ type ProjectReadFileToolArgs = UseProjectToolArgsBase & {
     ref?: string;
     startLine?: number;
     endLine?: number;
+    forceText?: boolean;
 };
 
 /**
@@ -152,12 +163,49 @@ export function createUseProjectToolFunctions(): Record<string_javascript_name, 
                     throw new Error(`Path "${normalizedPath}" is not a readable text file.`);
                 }
 
-                const decodedContent = decodeBase64Text(payload.content);
+                const decodedBytes = decodeBase64Bytes(payload.content);
+                const decoded = decodeAttachmentAsText(
+                    {
+                        bytes: decodedBytes,
+                        filename: normalizedPath,
+                        mimeType: extensionToMimeType(getFileExtension(normalizedPath) || ''),
+                    },
+                    {
+                        maxBytes: MAX_PROJECT_FILE_CONTENT_BYTES,
+                        forceText: args.forceText === true,
+                    },
+                );
+
+                if (decoded.wasBinary) {
+                    return JSON.stringify({
+                        repository: repositoryReference.url,
+                        path: normalizedPath,
+                        ref: query.ref,
+                        sha: payload.sha,
+                        size: payload.size,
+                        wasBinary: true,
+                        wasTruncated: decoded.isTruncated,
+                        encodingUsed: decoded.encodingUsed,
+                        confidence: decoded.confidence ?? null,
+                        warnings: decoded.warnings,
+                        content: null,
+                    });
+                }
+
+                const decodeWarnings = [...decoded.warnings];
+                const decodedContent = decoded.text;
                 const lineRangedContent = applyOptionalLineRange(decodedContent, args.startLine, args.endLine);
-                const wasTruncated = lineRangedContent.length > MAX_PROJECT_FILE_CONTENT_CHARACTERS;
-                const contentToReturn = wasTruncated
+                const wasCharacterTruncated = lineRangedContent.length > MAX_PROJECT_FILE_CONTENT_CHARACTERS;
+                const contentToReturn = wasCharacterTruncated
                     ? `${lineRangedContent.slice(0, MAX_PROJECT_FILE_CONTENT_CHARACTERS)}\n\n[...truncated...]`
                     : lineRangedContent;
+
+                const wasTruncated = decoded.isTruncated || wasCharacterTruncated;
+                if (wasCharacterTruncated) {
+                    decodeWarnings.push(
+                        `Returned content was truncated to ${MAX_PROJECT_FILE_CONTENT_CHARACTERS} characters.`,
+                    );
+                }
 
                 return JSON.stringify({
                     repository: repositoryReference.url,
@@ -165,7 +213,11 @@ export function createUseProjectToolFunctions(): Record<string_javascript_name, 
                     ref: query.ref,
                     sha: payload.sha,
                     size: payload.size,
+                    wasBinary: false,
                     wasTruncated,
+                    encodingUsed: decoded.encodingUsed,
+                    confidence: decoded.confidence ?? null,
+                    warnings: decodeWarnings,
                     content: contentToReturn,
                 });
             });
@@ -431,20 +483,19 @@ function encodeGitHubPath(path: string): string {
 }
 
 /**
- * Decodes Base64 payload into UTF-8 text.
+ * Decodes Base64 payload into raw bytes.
  *
  * @private function of createUseProjectToolFunctions
  */
-function decodeBase64Text(base64Content: string): string {
+function decodeBase64Bytes(base64Content: string): Uint8Array {
     const normalized = base64Content.replace(/\s+/g, '');
     if (typeof Buffer !== 'undefined') {
-        return Buffer.from(normalized, 'base64').toString('utf8');
+        return Buffer.from(normalized, 'base64');
     }
 
     if (typeof atob === 'function') {
         const binary = atob(normalized);
-        const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
-        return new TextDecoder().decode(bytes);
+        return Uint8Array.from(binary, (character) => character.charCodeAt(0));
     }
 
     throw new Error('Base64 decoding is not available in this runtime.');

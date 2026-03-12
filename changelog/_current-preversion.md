@@ -1,3 +1,10 @@
+-   Hardened Agents Server file reading for attached text files with unknown extensions or encodings:
+
+    -   Added a shared byte-to-text decoding pipeline used by attachment inlining and `project_read_file`, with BOM detection, simple binary-vs-text heuristics, fallback single-byte encodings (`windows-1250`, `windows-1252`, `iso-8859-1`), bounded prefix decoding for oversized files, and explicit decode metadata (`encodingUsed`, confidence, warnings, `wasBinary`).
+    -   Updated chat attachment content extraction so text-like uploads are decoded by bytes instead of brittle extension allowlists, which now lets agents read raw text from files like `.srt`, `.vtt`, `.ass`, or unknown extensions even when storage reports a generic MIME type.
+    -   Binary attachments now stay blocked from inline prompt injection with clear warnings instead of garbage text, while subtitle/text attachments encoded as UTF-16 BOM or guessed legacy encodings are surfaced to the model together with decoding warnings.
+    -   Extended `project_read_file` with shared decoding metadata and a `forceText` option so agent tool calls can explicitly inspect binary-looking files as best-effort text when needed.
+
 -   Fixed Agents Server chat breadcrumb separators in the header to use the same icon color as the surrounding navigation icons, so the arrows no longer appear faded compared with the agent/view icons.
 
 -   Improved Agents Server page-load performance and perceived responsiveness without changing behavior:

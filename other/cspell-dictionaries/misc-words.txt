@@ -58,6 +58,8 @@ aviailable
 doublecheck
 xyzt
 swriter
+WEBVTT
+subrip
 witch
 strins
 comfiguration

@@ -22,20 +22,40 @@ const CHAT_ATTACHMENT_CONTENT_INSTRUCTION =
  */
 function formatResolvedChatAttachmentContent(contentResolution: ResolvedChatAttachmentContent): string {
     const attachmentLabel = `${contentResolution.attachment.name} (${contentResolution.attachment.type})`;
+    const decodingLine =
+        contentResolution.encodingUsed !== null
+            ? `Decoding: ${contentResolution.encodingUsed}${
+                  contentResolution.encodingConfidence !== null
+                      ? ` (confidence ${contentResolution.encodingConfidence.toFixed(2)})`
+                      : ''
+              }`
+            : null;
+    const warningsLine =
+        contentResolution.warnings.length > 0 ? `Warnings: ${contentResolution.warnings.join(' | ')}` : null;
 
     if (!contentResolution.content) {
         const reason = contentResolution.reason || 'content unavailable';
-        return `- ${attachmentLabel}: ${reason}. URL: ${contentResolution.attachment.url}`;
+        return [
+            `- ${attachmentLabel}: ${reason}. URL: ${contentResolution.attachment.url}`,
+            decodingLine,
+            warningsLine,
+        ]
+            .filter(Boolean)
+            .join('\n');
     }
 
     const truncatedLabel = contentResolution.isTruncated ? ' [truncated]' : '';
     return [
         `File: ${attachmentLabel}${truncatedLabel}`,
         `URL: ${contentResolution.attachment.url}`,
+        decodingLine,
+        warningsLine,
         '```text',
         contentResolution.content,
         '```',
-    ].join('\n');
+    ]
+        .filter(Boolean)
+        .join('\n');
 }
 
 /**

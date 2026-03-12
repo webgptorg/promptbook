@@ -9,6 +9,31 @@ import {
     resolveChatAttachmentContents,
 } from './chatAttachments';
 
+/**
+ * Stable Windows-1250 sample text fixture used to verify guessed decoding metadata.
+ */
+const WINDOWS_1250_SAMPLE_TEXT = 'Příliš žluťoučký kůň';
+
+/**
+ * Stable Windows-1250 bytes for `WINDOWS_1250_SAMPLE_TEXT`.
+ */
+const WINDOWS_1250_SAMPLE_BYTES = Uint8Array.from([
+    80, 248, 237, 108, 105, 154, 32, 158, 108, 117, 157, 111, 117, 232, 107, 253, 32, 107, 249, 242,
+]);
+
+/**
+ * Minimal PNG header fixture used to verify binary detection.
+ */
+const PNG_SAMPLE_BYTES = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d]);
+
+/**
+ * Encodes UTF-16LE text with BOM for subtitle fixtures.
+ */
+function encodeUtf16LeWithBom(text: string): Uint8Array {
+    const body = Buffer.from(text, 'utf16le');
+    return Uint8Array.from([0xff, 0xfe, ...body]);
+}
+
 describe('chatAttachments helpers', () => {
     afterEach(() => {
         jest.restoreAllMocks();
@@ -111,22 +136,23 @@ describe('chatAttachments helpers', () => {
         expect(fetchSpy).toHaveBeenCalledWith('https://cdn.acme.org/files/report.txt', expect.any(Object));
         expect(message).toContain('Attached file contents:');
         expect(message).toContain('Quarterly revenue: 124000 USD');
+        expect(message).toContain('Decoding: utf-8');
     });
 
-    it('keeps URL metadata and reports unsupported inline content types', async () => {
+    it('decodes unknown-extension text attachments even when MIME type is generic', async () => {
         const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue(
-            new Response('%PDF-1.7', {
+            new Response('WEBVTT\n\n00:00:00.000 --> 00:00:02.000\nHello\n', {
                 headers: {
-                    'content-type': 'application/pdf',
+                    'content-type': 'application/octet-stream',
                 },
             }),
         );
 
         const resolvedContents = await resolveChatAttachmentContents([
             {
-                name: 'scan.pdf',
-                type: 'application/pdf',
-                url: 'https://cdn.acme.org/files/scan.pdf',
+                name: 'captions.foo',
+                type: 'application/octet-stream',
+                url: 'https://cdn.acme.org/files/captions.foo',
             },
         ]);
 
@@ -134,8 +160,77 @@ describe('chatAttachments helpers', () => {
 
         expect(fetchSpy).toHaveBeenCalledTimes(1);
         expect(contentContext).toContain('Attached file contents:');
-        expect(contentContext).toContain('unsupported content type for inline text');
-        expect(contentContext).toContain('https://cdn.acme.org/files/scan.pdf');
+        expect(contentContext).toContain('Hello');
+        expect(contentContext).toContain('Decoding: utf-8');
+        expect(contentContext).toContain('https://cdn.acme.org/files/captions.foo');
+    });
+
+    it('decodes UTF-16LE subtitle attachments with BOM', async () => {
+        const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue(
+            new Response(encodeUtf16LeWithBom('1\r\n00:00:00,000 --> 00:00:01,500\r\nAhoj\r\n'), {
+                headers: {
+                    'content-type': 'application/octet-stream',
+                },
+            }),
+        );
+
+        const message = await appendChatAttachmentContextWithContent('Summarize the subtitles.', [
+            {
+                name: 'episode.srt',
+                type: 'application/octet-stream',
+                url: 'https://cdn.acme.org/files/episode.srt',
+            },
+        ]);
+
+        expect(fetchSpy).toHaveBeenCalledTimes(1);
+        expect(message).toContain('Ahoj');
+        expect(message).toContain('Decoding: utf-16le');
+    });
+
+    it('reports binary attachments without returning garbage text', async () => {
+        const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue(
+            new Response(PNG_SAMPLE_BYTES, {
+                headers: {
+                    'content-type': 'image/png',
+                },
+            }),
+        );
+
+        const resolvedContents = await resolveChatAttachmentContents([
+            {
+                name: 'diagram.png',
+                type: 'image/png',
+                url: 'https://cdn.acme.org/files/diagram.png',
+            },
+        ]);
+
+        const contentContext = formatChatAttachmentContentContext(resolvedContents);
+
+        expect(fetchSpy).toHaveBeenCalledTimes(1);
+        expect(contentContext).toContain('file appears to be binary and was not inlined as text');
+        expect(contentContext).toContain('Warnings: File content looks binary, so text decoding was skipped.');
+    });
+
+    it('includes guessed-encoding warnings when fallback decoding is used', async () => {
+        const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue(
+            new Response(WINDOWS_1250_SAMPLE_BYTES, {
+                headers: {
+                    'content-type': 'text/plain',
+                },
+            }) as really_any,
+        );
+
+        const message = await appendChatAttachmentContextWithContent('Read this note.', [
+            {
+                name: 'note.txt',
+                type: 'text/plain',
+                url: 'https://cdn.acme.org/files/note.txt',
+            },
+        ]);
+
+        expect(fetchSpy).toHaveBeenCalledTimes(1);
+        expect(message).toContain(WINDOWS_1250_SAMPLE_TEXT);
+        expect(message).toContain('Encoding was guessed as `windows-1250`.');
     });
 
     it('does not download private-network attachment URLs by default', async () => {

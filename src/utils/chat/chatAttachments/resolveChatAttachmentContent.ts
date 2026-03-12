@@ -1,4 +1,5 @@
 import type { ChatAttachment, ResolveChatAttachmentOptions, ResolvedChatAttachmentContent } from '../chatAttachments';
+import { decodeAttachmentAsText, DEFAULT_ATTACHMENT_TEXT_DECODE_BYTES } from '../../files/decodeAttachmentAsText';
 import { isUrlOnPrivateNetwork } from '../../validators/url/isUrlOnPrivateNetwork';
 
 /**
@@ -9,169 +10,63 @@ import { isUrlOnPrivateNetwork } from '../../validators/url/isUrlOnPrivateNetwor
 const CHAT_ATTACHMENT_FETCH_TIMEOUT_MS = 10_000;
 
 /**
- * Maximum number of bytes downloaded for a single attachment.
+ * Maximum number of bytes inspected per attachment before the payload is truncated.
  *
  * @private function of resolveChatAttachmentContent
  */
-const CHAT_ATTACHMENT_MAX_DOWNLOAD_BYTES = 2_000_000;
+const CHAT_ATTACHMENT_MAX_DECODE_BYTES = DEFAULT_ATTACHMENT_TEXT_DECODE_BYTES;
 
 /**
- * MIME types that are treated as inline text for prompt context.
+ * Reads only a bounded prefix of a response body so large files do not blow up prompt construction.
  *
  * @private function of resolveChatAttachmentContent
  */
-const TEXT_ATTACHMENT_MIME_TYPES = new Set<string>([
-    'application/json',
-    'application/ld+json',
-    'application/javascript',
-    'application/x-javascript',
-    'application/xml',
-    'application/xhtml+xml',
-    'application/x-www-form-urlencoded',
-    'application/yaml',
-    'application/x-yaml',
-    'application/toml',
-    'application/sql',
-    'application/rtf',
-]);
-
-/**
- * File extensions that are treated as inline text when MIME type is ambiguous.
- *
- * @private function of resolveChatAttachmentContent
- */
-const TEXT_ATTACHMENT_EXTENSIONS = new Set<string>([
-    'txt',
-    'md',
-    'markdown',
-    'book',
-    'json',
-    'jsonl',
-    'csv',
-    'tsv',
-    'xml',
-    'yaml',
-    'yml',
-    'toml',
-    'ini',
-    'log',
-    'js',
-    'mjs',
-    'cjs',
-    'ts',
-    'tsx',
-    'jsx',
-    'css',
-    'scss',
-    'less',
-    'html',
-    'htm',
-    'sql',
-    'py',
-    'java',
-    'c',
-    'cpp',
-    'cs',
-    'go',
-    'rs',
-    'php',
-    'rb',
-    'sh',
-    'bat',
-    'ps1',
-    'env',
-    'conf',
-    'cfg',
-    'properties',
-    'gitignore',
-    'dockerfile',
-    'makefile',
-]);
-
-/**
- * Returns one lowercase extension from a filename, or null when not available.
- *
- * @private function of resolveChatAttachmentContent
- */
-function getAttachmentExtension(fileName: string): string | null {
-    const normalizedFileName = fileName.trim().toLowerCase();
-    const dotIndex = normalizedFileName.lastIndexOf('.');
-
-    if (dotIndex <= 0 || dotIndex === normalizedFileName.length - 1) {
-        return null;
+async function readResponseBytes(
+    response: Response,
+    maxBytes: number,
+): Promise<{
+    readonly bytes: Uint8Array;
+}> {
+    if (!response.body) {
+        const bytes = new Uint8Array(await response.arrayBuffer());
+        return {
+            bytes: bytes.byteLength > maxBytes ? bytes.subarray(0, maxBytes + 1) : bytes,
+        };
     }
 
-    return normalizedFileName.slice(dotIndex + 1);
-}
+    const reader = response.body.getReader();
+    const chunks: Array<Uint8Array> = [];
+    let totalLength = 0;
+    const maxCaptureBytes = maxBytes + 1;
 
-/**
- * Returns one lowercase extension derived from attachment URL pathname.
- *
- * @private function of resolveChatAttachmentContent
- */
-function deriveAttachmentExtensionFromUrl(url: string): string | null {
     try {
-        const parsedUrl = new URL(url);
-        const pathnameSegments = parsedUrl.pathname.split('/').filter(Boolean);
-        const encodedFileName = pathnameSegments[pathnameSegments.length - 1];
+        while (totalLength < maxCaptureBytes) {
+            const { done, value } = await reader.read();
+            if (done) {
+                break;
+            }
 
-        if (!encodedFileName) {
-            return null;
+            if (!value || value.byteLength === 0) {
+                continue;
+            }
+
+            const remainingBytes = maxCaptureBytes - totalLength;
+            const chunk = value.byteLength > remainingBytes ? value.subarray(0, remainingBytes) : value;
+            chunks.push(chunk);
+            totalLength += chunk.byteLength;
         }
-
-        const decodedFileName = decodeURIComponent(encodedFileName);
-        return getAttachmentExtension(decodedFileName);
-    } catch {
-        return null;
-    }
-}
-
-/**
- * Removes optional charset/parameters from MIME values.
- *
- * @private function of resolveChatAttachmentContent
- */
-function normalizeMimeType(mimeType: string): string {
-    const semicolonIndex = mimeType.indexOf(';');
-    const rawMimeType = semicolonIndex === -1 ? mimeType : mimeType.slice(0, semicolonIndex);
-    return rawMimeType.trim().toLowerCase();
-}
-
-/**
- * Returns true when the MIME type is considered textual.
- *
- * @private function of resolveChatAttachmentContent
- */
-function isTextLikeMimeType(mimeType: string): boolean {
-    const normalizedMimeType = normalizeMimeType(mimeType);
-    return normalizedMimeType.startsWith('text/') || TEXT_ATTACHMENT_MIME_TYPES.has(normalizedMimeType);
-}
-
-/**
- * Returns true when attachment content should be downloaded and inlined as text.
- *
- * @private function of resolveChatAttachmentContent
- */
-function isTextLikeAttachment(attachment: ChatAttachment, mimeTypeFromResponse: string | null): boolean {
-    if (mimeTypeFromResponse && isTextLikeMimeType(mimeTypeFromResponse)) {
-        return true;
+    } finally {
+        await reader.cancel().catch(() => {});
     }
 
-    if (isTextLikeMimeType(attachment.type)) {
-        return true;
+    const bytes = new Uint8Array(totalLength);
+    let offset = 0;
+    for (const chunk of chunks) {
+        bytes.set(chunk, offset);
+        offset += chunk.byteLength;
     }
 
-    const extension = deriveAttachmentExtensionFromUrl(attachment.url) || getAttachmentExtension(attachment.name);
-    return extension ? TEXT_ATTACHMENT_EXTENSIONS.has(extension) : false;
-}
-
-/**
- * Trims attachment payload and removes null bytes to keep prompt context readable.
- *
- * @private function of resolveChatAttachmentContent
- */
-function sanitizeAttachmentInlineText(content: string): string {
-    return content.replaceAll('\u0000', '').trim();
+    return { bytes };
 }
 
 /**
@@ -201,12 +96,20 @@ function truncateAttachmentInlineText(
  *
  * @private function of resolveChatAttachmentContent
  */
-function createAttachmentContentFailure(attachment: ChatAttachment, reason: string): ResolvedChatAttachmentContent {
+function createAttachmentContentFailure(
+    attachment: ChatAttachment,
+    reason: string,
+    options: Partial<ResolvedChatAttachmentContent> = {},
+): ResolvedChatAttachmentContent {
     return {
         attachment,
         content: null,
         isTruncated: false,
         reason,
+        encodingUsed: options.encodingUsed ?? null,
+        encodingConfidence: options.encodingConfidence ?? null,
+        warnings: options.warnings ?? [],
+        wasBinary: options.wasBinary ?? false,
     };
 }
 
@@ -224,7 +127,7 @@ export async function resolveChatAttachmentContent(
     maxInlineCharacters: number,
     options: ResolveChatAttachmentOptions = {},
 ): Promise<ResolvedChatAttachmentContent> {
-    const { allowLocalhost = false } = options;
+    const { allowLocalhost = false, forceText = false } = options;
 
     if (maxInlineCharacters <= 0) {
         return createAttachmentContentFailure(attachment, 'inline content limit reached');
@@ -249,30 +152,50 @@ export async function resolveChatAttachmentContent(
             );
         }
 
-        const mimeTypeFromResponse = response.headers.get('content-type');
-        if (!isTextLikeAttachment(attachment, mimeTypeFromResponse)) {
-            return createAttachmentContentFailure(attachment, 'unsupported content type for inline text');
-        }
-
-        const contentLengthHeader = response.headers.get('content-length');
-        if (contentLengthHeader) {
-            const contentLength = Number.parseInt(contentLengthHeader, 10);
-            if (!Number.isNaN(contentLength) && contentLength > CHAT_ATTACHMENT_MAX_DOWNLOAD_BYTES) {
-                return createAttachmentContentFailure(attachment, 'file is too large for inline context');
-            }
-        }
-
-        const textContent = sanitizeAttachmentInlineText(await response.text());
-        if (textContent === '') {
+        const { bytes } = await readResponseBytes(response, CHAT_ATTACHMENT_MAX_DECODE_BYTES);
+        if (bytes.byteLength === 0) {
             return createAttachmentContentFailure(attachment, 'file is empty');
         }
 
-        const truncatedContent = truncateAttachmentInlineText(textContent, maxInlineCharacters);
+        const decoded = decodeAttachmentAsText(
+            {
+                bytes,
+                filename: attachment.name,
+                mimeType: response.headers.get('content-type') || attachment.type,
+            },
+            {
+                maxBytes: CHAT_ATTACHMENT_MAX_DECODE_BYTES,
+                forceText,
+            },
+        );
+
+        if (decoded.wasBinary) {
+            return createAttachmentContentFailure(attachment, 'file appears to be binary and was not inlined as text', {
+                encodingUsed: decoded.encodingUsed,
+                encodingConfidence: decoded.confidence ?? null,
+                warnings: decoded.warnings,
+                wasBinary: true,
+            });
+        }
+
+        if (decoded.text === '') {
+            return createAttachmentContentFailure(attachment, 'file is empty', {
+                encodingUsed: decoded.encodingUsed,
+                encodingConfidence: decoded.confidence ?? null,
+                warnings: decoded.warnings,
+            });
+        }
+
+        const truncatedContent = truncateAttachmentInlineText(decoded.text, maxInlineCharacters);
         return {
             attachment,
             content: truncatedContent.content,
-            isTruncated: truncatedContent.isTruncated,
+            isTruncated: decoded.isTruncated || truncatedContent.isTruncated,
             reason: null,
+            encodingUsed: decoded.encodingUsed,
+            encodingConfidence: decoded.confidence ?? null,
+            warnings: decoded.warnings,
+            wasBinary: false,
         };
     } catch (error) {
         if (controller.signal.aborted) {

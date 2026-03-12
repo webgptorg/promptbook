@@ -74,6 +74,10 @@ export function createUseProjectTools(existingTools: ReadonlyArray<LlmToolDefini
                     type: 'integer',
                     description: 'Optional last line number (1-based) for partial reads.',
                 },
+                forceText: {
+                    type: 'boolean',
+                    description: 'Force best-effort text decoding even when the file looks binary.',
+                },
             },
             required: ['path'],
         },
