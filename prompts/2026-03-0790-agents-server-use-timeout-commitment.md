@@ -78,16 +78,23 @@ CLOSED
 
 ---
 
-[-]
+[ ]
 
-[✨🧂] brr
+[✨🧂] Ehnance how timeouts are shown in the chat
 
--   @@@
+-   `USE TIMEOUT` commitment is working perfectly, but the UI for showing the active timeouts is awful
+-   When there is no active timeout, there should be no indication in the UI
+-   When there is one active timeout, there should be a small badge/button on top-right corner of the chat simmilar to "New chat" and "Save" buttons with clock icon and timer "49m" (do not show seconds until 3 minutes remaining, then show "2m 59s", "2m 58s", etc. and when there is less than 1 minute remaining show "59s", "58s", etc.) Same with larger timeouts, for example "1h 49m", "2h 3m", etc. Do not show the exact due time, but only the remaining time in a user-friendly format.
+-   When there are multiple active timeouts, show the most recent one (the one with the closest due time) in the badge/button, but when I click on it, it should show a list of all active timeouts for this chat with their remaining time and a cancel button for each timeout. The list can be a dropdown or a modal, but it should be easy to see all active timeouts and their remaining time.
+-   But overall, the UI should be clean and not too intrusive, it should not take too much space or distract from the chat messages, but still be easily accessible and visible when there are active timeouts but not dominant things in the UI.
+-   Also indicate running timeouts in the my chats left sidebar, it should be clear that that chat is "living"
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Try to reuse existing UI components and styles as much as possible and fit into the current design system, and patterns of the Agents Server UI.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+-   You are not changing the functionality of the timeouts, just the UI for showing the active timeouts and their remaining time, so you are not changing the backend or how the timeouts work, just how they are shown in the UI.
+
+![alt text](prompts/screenshots/2026-03-0790-agents-server-use-timeout-commitment.png)
 
 ---
 
@@ -101,4 +108,3 @@ CLOSED
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
