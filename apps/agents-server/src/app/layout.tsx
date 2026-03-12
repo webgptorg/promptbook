@@ -19,6 +19,7 @@ import { getCurrentUser } from '../utils/getCurrentUser';
 import { getDefaultChatPreferences } from '../utils/chatPreferences';
 import { getFederatedServers } from '../utils/getFederatedServers';
 import { isUserAdmin } from '../utils/isUserAdmin';
+import { isUserGlobalAdmin } from '../utils/isUserGlobalAdmin';
 import './globals.css';
 
 const barlowCondensed = Barlow_Condensed({
@@ -223,6 +224,7 @@ export default async function RootLayout({
     ]);
     const currentUserPromise = getCurrentUser();
     const isAdminPromise = isUserAdmin();
+    const isGlobalAdminPromise = isUserGlobalAdmin();
     const agentNamingPromise = getAgentNaming();
     const organizationStatePromise = isAdminPromise.then((isAdmin) =>
         isAdmin ? loadAgentOrganizationState({ status: 'ACTIVE', includePrivate: true }) : null,
@@ -251,6 +253,7 @@ export default async function RootLayout({
 
     const [
         isAdmin,
+        isGlobalAdmin,
         currentUser,
         layoutMetadata,
         agentNaming,
@@ -263,6 +266,7 @@ export default async function RootLayout({
         footerLinks,
     ] = await Promise.all([
         isAdminPromise,
+        isGlobalAdminPromise,
         currentUserPromise,
         layoutMetadataPromise,
         agentNamingPromise,
@@ -294,6 +298,7 @@ export default async function RootLayout({
                 {customStylesheetCss && <style id="agents-server-custom-css">{customStylesheetCss}</style>}
                 <LayoutWrapper
                     isAdmin={isAdmin}
+                    isGlobalAdmin={isGlobalAdmin}
                     currentUser={currentUser}
                     serverName={serverName}
                     serverLogoUrl={serverLogoUrl}

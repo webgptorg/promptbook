@@ -59,6 +59,7 @@ header.userMemory: Uživatelská paměť
 header.userWallet: Uživatelská peněženka
 header.viewAllUsers: Zobrazit všechny uživatele
 header.createNewUser: Vytvořit nového uživatele
+header.servers: Servery
 header.models: Modely
 header.openApiDocumentation: Dokumentace OpenAPI
 header.apiTokens: API tokeny

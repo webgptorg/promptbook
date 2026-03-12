@@ -59,6 +59,7 @@ header.userMemory: User Memory
 header.userWallet: User Wallet
 header.viewAllUsers: View all users
 header.createNewUser: Create new user
+header.servers: Servers
 header.models: Models
 header.openApiDocumentation: OpenAPI Documentation
 header.apiTokens: API Tokens

@@ -1,3 +1,12 @@
+-   Added a global-admin-only `System > Servers` area to Agents Server for same-instance server management:
+
+    -   Added `/admin/servers` with inline `_Server` registry editing for server name, environment, domain, and table prefix, plus per-row details, open, switch, save, and migrate/update actions.
+    -   Restricted the new area to the environment-backed `admin` authenticated via `ADMIN_PASSWORD`, keeping normal `User`-table admins unchanged for all other admin features.
+    -   Added session-backed same-instance server switching so the global admin can temporarily work against another registered server prefix from the same deployment.
+    -   Added a multi-step create-server wizard that creates a `_Server` row, runs the existing migration pipeline for the new prefix, seeds bootstrap users and metadata, and rolls everything back on failure.
+    -   Added SQL-dump download support for failed server bootstrap transactions with recovery guidance pointing administrators to `support@ptbk.io`.
+    -   Added current-server-only deletion from `_Server` with explicit confirmation while intentionally leaving prefixed tables untouched.
+
 -   Fixed Agents Server chat viewport height so mobile browser chrome changes no longer leave white space below the composer:
 
     -   Replaced the standalone chat route's fixed `100dvh` shell with a shared visible-viewport height variable that falls back through `100dvh`, `100svh`, and `100vh`, then is refined from `window.visualViewport.height` (or `window.innerHeight` when needed).

@@ -21,6 +21,7 @@ import { ViewportHeightController } from '../ViewportHeightController/ViewportHe
 type LayoutWrapperProps = {
     children: React.ReactNode;
     isAdmin: boolean;
+    isGlobalAdmin: boolean;
     currentUser: UserInfo | null;
     serverName: string;
     serverLogoUrl: string | null;
@@ -44,6 +45,7 @@ type LayoutWrapperProps = {
 export function LayoutWrapper({
     children,
     isAdmin,
+    isGlobalAdmin,
     currentUser,
     serverName,
     serverLogoUrl,
@@ -94,6 +96,7 @@ export function LayoutWrapper({
                                                 <div className="agents-server-app-shell flex flex-col">
                                                     <Header
                                                         isAdmin={isAdmin}
+                                                        isGlobalAdmin={isGlobalAdmin}
                                                         currentUser={currentUser}
                                                         serverName={serverName}
                                                         serverLogoUrl={serverLogoUrl}

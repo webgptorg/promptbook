@@ -63,6 +63,7 @@ export const SERVER_TRANSLATION_KEYS = [
     "header.userWallet",
     "header.viewAllUsers",
     "header.createNewUser",
+    "header.servers",
     "header.models",
     "header.openApiDocumentation",
     "header.apiTokens",

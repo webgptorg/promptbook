@@ -72,6 +72,10 @@ type HeaderProps = {
      * Is the user an admin
      */
     isAdmin?: boolean;
+    /**
+     * Whether the current admin is the environment-backed super-admin.
+     */
+    isGlobalAdmin?: boolean;
 
     /**
      * Current user info (if logged in)
@@ -204,6 +208,7 @@ const RESERVED_PATH_SET = new Set<string>(RESERVED_PATHS);
 export function Header(props: HeaderProps) {
     const {
         isAdmin = false,
+        isGlobalAdmin = false,
         currentUser = null,
         serverName,
         serverLogoUrl,
@@ -1037,6 +1042,15 @@ export function Header(props: HeaderProps) {
             isBordered: true,
         } as SubMenuItem,
         */
+        ...(isGlobalAdmin
+            ? [
+                  {
+                      label: t('header.servers'),
+                      href: '/admin/servers',
+                      isBold: true,
+                  } as SubMenuItem,
+              ]
+            : []),
         {
             label: t('header.models'),
             href: '/admin/models',

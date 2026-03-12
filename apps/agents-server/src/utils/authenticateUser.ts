@@ -6,12 +6,13 @@ import { verifyPassword } from './auth';
 export type AuthenticatedUser = {
     username: string;
     isAdmin: boolean;
+    isGlobalAdmin?: boolean;
 };
 
 export async function authenticateUser(username: string, password: string): Promise<AuthenticatedUser | null> {
     // 1. Check if it's the environment admin
     if (username === 'admin' && process.env.ADMIN_PASSWORD && password === process.env.ADMIN_PASSWORD) {
-        return { username: 'admin', isAdmin: true };
+        return { username: 'admin', isAdmin: true, isGlobalAdmin: true };
     }
 
     // 2. Check DB users
@@ -34,7 +35,7 @@ export async function authenticateUser(username: string, password: string): Prom
             return null;
         }
 
-        return { username: userRow.username, isAdmin: userRow.isAdmin };
+        return { username: userRow.username, isAdmin: userRow.isAdmin, isGlobalAdmin: false };
     } catch (error) {
         console.error('Authentication error:', error);
         return null;

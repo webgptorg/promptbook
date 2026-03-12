@@ -1,12 +1,18 @@
 import { NEXT_PUBLIC_SITE_URL, SUPABASE_TABLE_PREFIX } from '@/config';
 import { headers } from 'next/headers';
 import { cache } from 'react';
-import { listRegisteredServersUsingServiceRole, resolveRegisteredServerByHost } from '../utils/serverRegistry';
+import { getSession } from '../utils/session';
+import { createServerPublicUrl, listRegisteredServersUsingServiceRole } from '../utils/serverRegistry';
+import { resolveServerSelection } from '../utils/serverSelection';
 
 /**
  * Resolved server routing context for the current request.
  */
 type ProvidedServer = {
+    /**
+     * Registered server id when the request points to one.
+     */
+    readonly id: number | null;
     /**
      * Public URL that should represent the current server.
      */
@@ -29,25 +35,32 @@ const getCachedProvidedServer = cache(async (): Promise<ProvidedServer> => {
     const headersList = await headers();
     const requestHost = headersList.get('host');
     const xPromptbookServer = headersList.get('x-promptbook-server');
+    const session = await getSession();
     const registeredServers = await listRegisteredServersUsingServiceRole();
 
     if (registeredServers.length === 0 || isLocalDevelopmentHost(requestHost)) {
         return {
+            id: null,
             publicUrl: resolveFallbackPublicUrl(requestHost),
             tablePrefix: SUPABASE_TABLE_PREFIX,
         };
     }
 
-    const resolvedServer =
-        resolveRegisteredServerByHost(requestHost, registeredServers) ||
-        resolveRegisteredServerByHost(xPromptbookServer, registeredServers);
+    const { currentServer: resolvedServer } = resolveServerSelection({
+        host: requestHost,
+        forwardedServerHost: xPromptbookServer,
+        registeredServers,
+        activeServerId: session?.activeServerId,
+        allowOverride: session?.isGlobalAdmin === true,
+    });
 
     if (!resolvedServer) {
         throw new Error(`Server with host "${requestHost}" is not registered in _Server`);
     }
 
     return {
-        publicUrl: new URL(`https://${resolvedServer.domain}`),
+        id: resolvedServer.id,
+        publicUrl: createServerPublicUrl(resolvedServer.domain),
         tablePrefix: resolvedServer.tablePrefix,
     };
 });

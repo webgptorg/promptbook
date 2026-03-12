@@ -78,6 +78,13 @@ let cachedServerRegistry: {
 } | null = null;
 
 /**
+ * Clears the in-memory `_Server` registry cache so subsequent reads hit the database.
+ */
+export function invalidateRegisteredServersCache(): void {
+    cachedServerRegistry = null;
+}
+
+/**
  * Loads normalized server rows from the global `_Server` registry table.
  *
  * @param supabase - Supabase client with read access to `_Server`.
@@ -165,6 +172,28 @@ export function resolveRegisteredServerByHost(
     }
 
     return servers.find((server) => normalizeServerDomain(server.domain) === normalizedHost) ?? null;
+}
+
+/**
+ * Creates the canonical public URL used to open one registered server.
+ *
+ * Localhost-style domains use `http`, while all other hosts use `https`.
+ *
+ * @param domain - Registered server domain.
+ * @returns Public URL for the server.
+ */
+export function createServerPublicUrl(domain: string): URL {
+    const normalizedDomain = normalizeServerDomain(domain);
+    if (!normalizedDomain) {
+        throw new DatabaseError(
+            spaceTrim(`
+                Cannot create a public URL for an invalid server domain.
+            `),
+        );
+    }
+
+    const protocol = normalizedDomain.startsWith('localhost') || normalizedDomain.startsWith('127.0.0.1') ? 'http' : 'https';
+    return new URL(`${protocol}://${normalizedDomain}`);
 }
 
 /**
@@ -266,7 +295,7 @@ export function isServerEnvironment(value: string): value is ServerEnvironment {
  *
  * @returns Shared untyped Supabase client.
  */
-function getServerRegistryClient(): SupabaseClient {
+export function getServerRegistryClient(): SupabaseClient {
     if (cachedServerRegistryClient) {
         return cachedServerRegistryClient;
     }
@@ -314,7 +343,7 @@ function isMissingServerRegistryError(error: { code?: string; message?: string }
  * @param rawDomain - Raw database or request-host value.
  * @returns Normalized host or `host:port`, or `null` when invalid.
  */
-function normalizeServerDomain(rawDomain: string): string | null {
+export function normalizeServerDomain(rawDomain: string): string | null {
     const trimmedDomain = rawDomain.trim();
     if (!trimmedDomain) {
         return null;

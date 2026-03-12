@@ -8,7 +8,7 @@ import type { DatabaseMigrationAppliedBy, DatabaseMigrationLogger } from './runD
  *
  * @private function of runDatabaseMigrations
  */
-type MigratePrefixOptions = {
+export type MigratePrefixOptions = {
     /**
      * Prefix to migrate.
      */
@@ -64,13 +64,13 @@ type EnsureMigrationsTableSchemaOptions = {
 };
 
 /**
- * Runs migrations for one prefix in a single transaction.
+ * Applies pending migrations for one prefix inside the current transaction.
  *
  * @param options Prefix migration options.
  * @returns Number of newly applied migrations.
  * @private function of runDatabaseMigrations
  */
-export async function migratePrefix(options: MigratePrefixOptions): Promise<number> {
+export async function applyPendingMigrationsForPrefix(options: MigratePrefixOptions): Promise<number> {
     const migrationsTableName = `${options.prefix}Migrations`;
     const migrationsTableIdentifier = quoteIdentifier(migrationsTableName);
 
@@ -86,37 +86,48 @@ export async function migratePrefix(options: MigratePrefixOptions): Promise<numb
     const appliedMigrations = new Set(rows.map((row) => row.filename));
 
     let appliedCount = 0;
-    await options.client.query('BEGIN');
-    try {
-        for (const migrationFile of options.migrationFiles) {
-            if (appliedMigrations.has(migrationFile)) {
-                continue;
-            }
-
-            const migrationFilePath = path.join(options.migrationsDirectory, migrationFile);
-            options.logger.info(`  🔼 Applying ${migrationFilePath.split('\\').join('/')}...`);
-
-            const sql = fs.readFileSync(migrationFilePath, 'utf-8').replace(/prefix_/g, options.prefix);
-            if (options.logSqlStatements) {
-                options.logger.info(sql);
-            }
-
-            await options.client.query(sql);
-            await options.client.query(
-                `INSERT INTO ${migrationsTableIdentifier} ("filename", "appliedBy") VALUES ($1, $2)`,
-                [migrationFile, options.appliedBy],
-            );
-            appliedCount++;
-            options.logger.info(`  ✅ Applied ${migrationFile}`);
+    for (const migrationFile of options.migrationFiles) {
+        if (appliedMigrations.has(migrationFile)) {
+            continue;
         }
 
+        const migrationFilePath = path.join(options.migrationsDirectory, migrationFile);
+        options.logger.info(`  🔼 Applying ${migrationFilePath.split('\\').join('/')}...`);
+
+        const sql = fs.readFileSync(migrationFilePath, 'utf-8').replace(/prefix_/g, options.prefix);
+        if (options.logSqlStatements) {
+            options.logger.info(sql);
+        }
+
+        await options.client.query(sql);
+        await options.client.query(
+            `INSERT INTO ${migrationsTableIdentifier} ("filename", "appliedBy") VALUES ($1, $2)`,
+            [migrationFile, options.appliedBy],
+        );
+        appliedCount++;
+        options.logger.info(`  ✅ Applied ${migrationFile}`);
+    }
+
+    return appliedCount;
+}
+
+/**
+ * Runs migrations for one prefix in a single transaction.
+ *
+ * @param options Prefix migration options.
+ * @returns Number of newly applied migrations.
+ * @private function of runDatabaseMigrations
+ */
+export async function migratePrefix(options: MigratePrefixOptions): Promise<number> {
+    await options.client.query('BEGIN');
+    try {
+        const appliedCount = await applyPendingMigrationsForPrefix(options);
         await options.client.query('COMMIT');
+        return appliedCount;
     } catch (error) {
         await safeRollbackTransaction(options.client, options.logger, options.prefix);
         throw error;
     }
-
-    return appliedCount;
 }
 
 /**
