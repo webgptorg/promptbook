@@ -16,6 +16,7 @@ import { PrivateModePreferencesProvider } from '../PrivateModePreferences/Privat
 import { ServerLanguageProvider } from '../ServerLanguage/ServerLanguageProvider';
 import { SelfLearningPreferencesProvider } from '../SelfLearningPreferences/SelfLearningPreferencesProvider';
 import { SoundSystemProvider } from '../SoundSystemProvider/SoundSystemProvider';
+import { ViewportHeightController } from '../ViewportHeightController/ViewportHeightController';
 
 type LayoutWrapperProps = {
     children: React.ReactNode;
@@ -68,9 +69,9 @@ export function LayoutWrapper({
     const isHeaderHidden = isTextareaPage;
     const isFooterHiddenOnPage = pathname ? /^\/agents\/[^/]+\/(book|chat|book\+chat|textarea)$/.test(pathname) : false;
 
-    const mainClassName = isChatPage ? 'h-[100dvh] pt-[60px] overflow-hidden' : 'flex-1 pt-[60px]';
+    const mainClassName = isChatPage ? 'agents-server-chat-main' : 'flex-1 pt-[60px]';
     const shouldRenderMinimalShell = isHeaderHidden || isHeadless;
-    const minimalMainClassName = isChatPage ? 'pt-0 h-[100dvh] overflow-hidden' : 'pt-0';
+    const minimalMainClassName = isChatPage ? 'agents-server-chat-main agents-server-chat-main-minimal' : 'pt-0';
 
     return (
         <ServerLanguageProvider defaultLanguage={defaultServerLanguage}>
@@ -84,12 +85,13 @@ export function LayoutWrapper({
                             >
                                 <NotificationsProvider>
                                     <ClientVersionMismatchListener />
+                                    <ViewportHeightController />
                                     <MenuHoistingProvider>
                                         <MetadataFlagsProvider value={{ isExperimentalPwaAppEnabled }}>
                                             {shouldRenderMinimalShell ? (
                                                 <main className={minimalMainClassName}>{children}</main>
                                             ) : (
-                                                <div className="flex min-h-screen flex-col">
+                                                <div className="agents-server-app-shell flex flex-col">
                                                     <Header
                                                         isAdmin={isAdmin}
                                                         currentUser={currentUser}

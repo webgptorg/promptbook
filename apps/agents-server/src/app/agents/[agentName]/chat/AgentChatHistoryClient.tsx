@@ -1048,9 +1048,9 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
     if (!shouldUseHistory) {
         return (
-            <div className="w-full h-full flex flex-col">
+            <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
                 <PrivateModeHistoryBanner formatText={formatText} />
-                <div className="flex-1">
+                <div className="flex min-h-0 flex-1 overflow-hidden">
                     <AgentChatWrapper
                         key={`guest-${agentName}`}
                         agentName={agentName}
@@ -1076,9 +1076,9 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     }
 
     const chatSurface = (
-        <div className="relative flex-1 min-h-0">
+        <div className="relative flex min-h-0 flex-1 overflow-hidden">
             {isActiveChatLoading ? (
-                <div className="h-full w-full rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm">
+                <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm">
                     <ChatThreadLoadingSkeleton />
                 </div>
             ) : (
@@ -1109,14 +1109,14 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
     if (isHeadlessMode) {
         return (
-            <div className="w-full h-full flex min-h-0 bg-slate-50/80">
-                <section className="flex-1 min-w-0 min-h-0 flex flex-col">{chatSurface}</section>
+            <div className="flex h-full min-h-0 w-full overflow-hidden bg-slate-50/80">
+                <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">{chatSurface}</section>
             </div>
         );
     }
 
     return (
-        <div className="w-full h-full flex min-h-0 bg-slate-50/80">
+        <div className="flex h-full min-h-0 w-full overflow-hidden bg-slate-50/80">
             <AgentChatSidebar
                 chats={chats}
                 activeChatId={activeChatId}
@@ -1141,7 +1141,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 aria-hidden={isMobileSidebarOpen}
                 aria-label={formatText('Open chats sidebar')}
             />
-            <section className="flex-1 min-w-0 min-h-0 flex flex-col">{chatSurface}</section>
+            <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">{chatSurface}</section>
         </div>
     );
 }

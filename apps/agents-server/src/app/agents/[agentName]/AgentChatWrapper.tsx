@@ -310,7 +310,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
 
     if (!agent) {
         return (
-            <div className="h-full w-full rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm">
+            <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm">
                 <ChatThreadLoadingSkeleton />
             </div>
         );
@@ -320,7 +320,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         <>
             <AgentChat
                 key={chatKey}
-                className={`w-full h-full`}
+                className={`h-full min-h-0 w-full`}
                 style={chatBackgroundStyle}
                 agent={agent}
                 placeholderMessageContent={effectiveInputPlaceholder}

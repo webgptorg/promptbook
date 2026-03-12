@@ -1,3 +1,9 @@
+-   Fixed Agents Server chat viewport height so mobile browser chrome changes no longer leave white space below the composer:
+
+    -   Replaced the standalone chat route's fixed `100dvh` shell with a shared visible-viewport height variable that falls back through `100dvh`, `100svh`, and `100vh`, then is refined from `window.visualViewport.height` (or `window.innerHeight` when needed).
+    -   Tightened the Agents Server chat containers and shared chat layout so the transcript remains the only scrolling region, while the composer stays pinned to the bottom and respects `safe-area-inset-bottom`.
+    -   Added a small unit check for visible-viewport height resolution and a manual QA checklist in `apps/agents-server/CHAT_VIEWPORT_HEIGHT_QA.md` covering iOS Safari, Android Chrome, and desktop resize behavior.
+
 -   Added an admin task-manager dashboard for durable Agents Server chat jobs:
 
     -   Added new admin page `/admin/task-manager` and linked it from `System > Monitoring & Usage` so administrators can inspect server-wide queued/running/failed background chat work in one place without exposing chat transcript content.

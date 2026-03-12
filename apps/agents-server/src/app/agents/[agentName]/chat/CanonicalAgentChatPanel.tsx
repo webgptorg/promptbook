@@ -397,9 +397,9 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
 
     return (
         <>
-            <div className="h-full w-full rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm">
+            <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm">
                 <Chat
-                    className="w-full h-full"
+                    className="h-full min-h-0 w-full"
                     style={chatBackgroundStyle}
                     title={`Chat with ${agent?.meta.fullname || agent?.agentName || agentName}`}
                     messages={renderedMessages}

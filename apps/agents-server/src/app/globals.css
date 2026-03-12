@@ -73,6 +73,20 @@
 :root {
     --background: #ffffff;
     --foreground: #171717;
+    --agents-server-app-height: 100vh;
+    --agents-server-header-height: 64px;
+}
+
+@supports (height: 100svh) {
+    :root {
+        --agents-server-app-height: 100svh;
+    }
+}
+
+@supports (height: 100dvh) {
+    :root {
+        --agents-server-app-height: 100dvh;
+    }
 }
 
 @media (prefers-color-scheme: dark) {
@@ -86,6 +100,7 @@ body {
     background: var(--background);
     color: var(--foreground);
     font-family: var(--font-barlow-condensed), 'OpenMojiColor', 'OpenMojiBlack', Arial, Helvetica, sans-serif;
+    min-height: var(--agents-server-app-height);
 }
 
 /*
@@ -96,6 +111,7 @@ html,
 body {
     width: 100%;
     max-width: 100%;
+    min-height: 100%;
     overflow-x: hidden;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
@@ -108,6 +124,34 @@ body {
     width: 100%;
     max-width: 100%;
     min-width: 0;
+}
+
+.agents-server-app-shell {
+    min-height: var(--agents-server-app-height);
+}
+
+.agents-server-chat-main {
+    width: 100%;
+    height: var(--agents-server-app-height);
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    overflow: hidden;
+    padding-top: var(--agents-server-header-height);
+}
+
+.agents-server-chat-main-minimal {
+    padding-top: 0;
+}
+
+.agents-server-chat-route {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 @media (max-width: 768px) {

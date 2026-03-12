@@ -105,7 +105,7 @@ export default async function AgentChatPage({
     const inputPlaceholder = resolveAgentChatInputPlaceholder(agentProfile.meta.inputPlaceholder);
 
     return (
-        <main className={`w-full h-full overflow-hidden relative agent-chat-route-surface print-export-chat-surface`}>
+        <main className={`agents-server-chat-route relative agent-chat-route-surface print-export-chat-surface`}>
             <PrintHeader title={`Chat with ${agentDisplayName}`} />
             <AgentChatHistoryClient
                 agentName={canonicalAgentId}

@@ -1,4 +1,4 @@
-[ ]
+[x] ~$1.75 30 minutes by OpenAI Codex `gpt-5.4`
 
 [📏🧼] Fix chat viewport height to remove bottom whitespace
 
@@ -20,3 +20,4 @@
 -   You are working with:
     -   [Agents Server](apps/agents-server) chat page
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
