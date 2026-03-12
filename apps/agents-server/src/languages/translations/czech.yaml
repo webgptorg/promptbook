@@ -67,6 +67,7 @@ header.customCss: Vlastní CSS
 header.customJs: Vlastní JS
 header.chatHistory: Historie chatů
 header.usageAnalytics: Analýza využití
+header.taskManager: Správce úloh
 header.messagesEmails: Zprávy a e-maily
 header.chatFeedback: Zpětná vazba chatu
 header.browser: Prohlížeč

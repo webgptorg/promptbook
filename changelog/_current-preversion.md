@@ -1,3 +1,11 @@
+-   Added an admin task-manager dashboard for durable Agents Server chat jobs:
+
+    -   Added new admin page `/admin/task-manager` and linked it from `System > Monitoring & Usage` so administrators can inspect server-wide queued/running/failed background chat work in one place without exposing chat transcript content.
+    -   Added admin API endpoints for paginated task listing plus guarded cancel/retry actions, all protected by server-side admin authorization and requiring a non-empty human reason for destructive operations.
+    -   Surfaced per-task operational metadata including task id, kind, status, timestamps, queue/runtime timing, attempt and retry counts, last failure summary, owning user, agent, chat reference, and queue identity.
+    -   Added top-level operational counters (running, queued, failed last 24h, oldest queued age), active/running/queued/failed/all filters, fast identifier search, configurable polling, manual refresh, and stuck-task highlighting for long-running work.
+    -   Added dedicated database indexes to keep the new running/failed/all-task admin queries performant against the durable `UserChatJob` table.
+
 -   Fixed Agents Server chat history selection races so explicit user actions now win over stale background updates:
 
     -   Reworked `/agents/[agentName]/chat` history navigation to treat `New chat` and history clicks as last-write-wins explicit intents, rejecting stale refetch/stream completions instead of letting them re-open an older chat.

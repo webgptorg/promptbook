@@ -67,6 +67,7 @@ header.customCss: Custom CSS
 header.customJs: Custom JS
 header.chatHistory: Chat history
 header.usageAnalytics: Usage analytics
+header.taskManager: Task manager
 header.messagesEmails: Messages & Emails
 header.chatFeedback: Chat feedback
 header.browser: Browser

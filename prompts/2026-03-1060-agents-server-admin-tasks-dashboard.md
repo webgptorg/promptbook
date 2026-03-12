@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 an hour by OpenAI Codex `gpt-5.4`
 
 [🧰🧾] Admin dashboard for running chat tasks (server task manager)
 
@@ -44,3 +44,4 @@
 -   Files/areas likely involved:
     -   [Agents Server](apps/agents-server)
     -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

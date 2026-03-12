@@ -1087,6 +1087,10 @@ export function Header(props: HeaderProps) {
             href: '/admin/usage',
         },
         {
+            label: t('header.taskManager'),
+            href: '/admin/task-manager',
+        },
+        {
             label: t('header.chatHistory'),
             href: '/admin/chat-history',
         },

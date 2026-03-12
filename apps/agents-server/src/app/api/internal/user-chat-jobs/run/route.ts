@@ -1,13 +1,12 @@
 import {
     claimNextQueuedUserChatJob,
     finalizeUserChatJob,
-    listExpiredRunningUserChatJobs,
     persistUserChatJobTerminalState,
+    recoverExpiredRunningUserChatJobs,
     resolveUserChatWorkerInternalToken,
     runUserChatJob,
     triggerUserChatJobWorker,
 } from '@/src/utils/userChat';
-import { EXPIRED_RUNNING_USER_CHAT_JOB_FAILURE_REASON } from '@/src/utils/userChat/userChatJobState';
 import { after, NextResponse } from 'next/server';
 
 /**
@@ -30,7 +29,7 @@ export async function POST(request: Request) {
     const preferredJobId = typeof body.preferredJobId === 'string' ? body.preferredJobId : undefined;
 
     try {
-        await recoverExpiredRunningJobs();
+        await recoverExpiredRunningUserChatJobs();
 
         const claimedJob = await claimNextQueuedUserChatJob({ preferredJobId });
         if (!claimedJob) {
@@ -62,7 +61,11 @@ export async function POST(request: Request) {
             });
         }
 
-        after(() => triggerUserChatJobWorker({ origin }).catch((error) => console.error('[user-chat-job] requeue failed', error)));
+        after(() =>
+            triggerUserChatJobWorker({ origin }).catch((error) =>
+                console.error('[user-chat-job] requeue failed', error),
+            ),
+        );
 
         return NextResponse.json({ ok: true });
     } catch (error) {
@@ -84,34 +87,4 @@ export async function POST(request: Request) {
 function isAuthorizedUserChatWorkerRequest(request: Request): boolean {
     const token = request.headers.get('x-user-chat-worker-token');
     return token === resolveUserChatWorkerInternalToken();
-}
-
-/**
- * Marks running jobs with expired leases as failed so queued work can continue.
- *
- * @private route helper
- */
-async function recoverExpiredRunningJobs(): Promise<void> {
-    const expiredJobs = await listExpiredRunningUserChatJobs();
-
-    for (const expiredJob of expiredJobs) {
-        await persistUserChatJobTerminalState({
-            job: expiredJob,
-            status: 'FAILED',
-            failureReason: EXPIRED_RUNNING_USER_CHAT_JOB_FAILURE_REASON,
-        }).catch(async (error) => {
-            console.error('[user-chat-job] stale job recovery failed', {
-                chatId: expiredJob.chatId,
-                messageId: expiredJob.userMessageId,
-                jobId: expiredJob.id,
-                error,
-            });
-
-            await finalizeUserChatJob({
-                jobId: expiredJob.id,
-                status: 'FAILED',
-                failureReason: EXPIRED_RUNNING_USER_CHAT_JOB_FAILURE_REASON,
-            });
-        });
-    }
 }
