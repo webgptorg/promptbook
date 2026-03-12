@@ -46,16 +46,27 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🥇] baz
+[✨🥇] Enhance servers dashboard /admin/servers
 
--   @@@
+-   Do several improvements to the servers dashboard:
+    1. Registered servers should have one-column layout, Server details are completelly unnecessary because all the information about the server is already visible in the table
+    2. Registered servers should be shown in more table-like layout to easily distinguish different servers and their details and columns should be aligned
+    3. Format the dates in moment.js
+    4. Remove the Swich button and completely remove the ability to switch between servers via the state in the session - domain should determine the server
+    5. Change button "open" to "switch" and do not open the server in the new tab, also do not navigate to the homepage but to the dashboard of the server on that server
+    6. Create server should be opened in some modal after clicking on a button "Create new server"
+    7. Remove texts "Global-admin management of same-instance servers stored in \_Server. This area can create new isolated prefixes, switch the current server context, and run migrations without touching federated-server routing.", "Route: /admin/servers", "Manage `_Server`", "Edit server name, environment, domain, and table prefix. The internal `id` stays hidden." from the top of the page, it is not needed
+    8. Change text "\_Server" to "servers" across the page, it is more user-friendly and less technical, do not expose the technical details about the implementation in the UI
+    9. When I have changes in the table or form, do not allow to refresh the page or navigate away without confirmation, because I can lose the changes, add a confirmation dialog "You have unsaved changes, are you sure you want to leave this page?" when I try to refresh or navigate away with unsaved changes
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-03-0570-agents-server-servers-dashboard-spawn-servers.png)
+![alt text](prompts/screenshots/2026-03-0570-agents-server-servers-dashboard-spawn-servers-1.png)
 
 ---
 
@@ -82,4 +93,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
