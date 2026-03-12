@@ -2,7 +2,7 @@
 
 [🧭💬] Agents Server: New Chat should always open the new chat (no focus hijack) + remove browser confirm
 
--   *(@@@@ Written by agent)*
+
 -   Problem: Clicking **New Chat** sometimes creates a new chat briefly, then UI “blinks” back to the previously open chat; the newly created chat appears in history but is not navigable/selectable (stuck).
 -   Goal: Make chat navigation deterministic and always respect the user’s intent (if user clicks New Chat, they must end up in that new chat; if user clicks a chat in history, they must end up in that chat) and remove the blocking native browser confirmation from the New Chat flow.
 -   Principles:
@@ -53,11 +53,4 @@
     -   Manual repro checklist: slow network throttling, rapid clicking, multiple chats with reordering.
 
 -   You are working with the [Agents Server](apps/agents-server)
--   Relevant places to look (@@@ refine after code reading):
-    -   Chat UI and routing in `apps/agents-server/src/app/**` (or pages/router equivalent)
-    -   Chat sidebar/history list component (selection + reorder logic)
-    -   New Chat button handler
-    -   Any `window.confirm` usage
-    -   Any state management for selected chat id (React state/store/query cache)
-    -   Playwright tests in `apps/agents-server/tests/**`
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
