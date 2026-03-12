@@ -113,6 +113,7 @@ export function Chat(props: ChatProps) {
         onChange,
         onMessage,
         onReset,
+        resetRequiresConfirmation = true,
         onFeedback,
         onFileUpload,
         speechRecognition,
@@ -484,6 +485,7 @@ export function Chat(props: ChatProps) {
                         participants={participants}
                         title={title}
                         onReset={onReset}
+                        resetRequiresConfirmation={resetRequiresConfirmation}
                         onUseTemplate={onUseTemplate}
                         extraActions={extraActions}
                         saveFormats={saveFormats}

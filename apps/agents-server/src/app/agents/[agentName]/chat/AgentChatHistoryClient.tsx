@@ -8,6 +8,7 @@ import { showConfirm } from '../../../../components/AsyncDialogs/asyncDialogs';
 import { notifyError } from '../../../../components/Notifications/notifications';
 import { usePrivateModePreferences } from '../../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { AgentChatLoadingSkeleton } from '../../../../components/Skeleton/AgentChatLoadingSkeleton';
+import { ChatThreadLoadingSkeleton } from '../../../../components/Skeleton/ChatThreadLoadingSkeleton';
 import { SolidArrowButton } from '../../../../../../../src/book-components/icons/SolidArrowButton';
 import {
     cancelUserChatJob,
@@ -69,6 +70,24 @@ type AgentChatHistoryClientProps = {
 };
 
 /**
+ * One explicit chat-selection intent issued by the user-facing chat history UI.
+ */
+type ChatSelectionIntent = {
+    /**
+     * Monotonic sequence that allows stale async completions to be ignored.
+     */
+    sequence: number;
+    /**
+     * Human-readable kind used in dev-only instrumentation.
+     */
+    kind: 'BOOTSTRAP' | 'OPEN_CHAT' | 'NEW_CHAT' | 'DELETE_CHAT';
+    /**
+     * Optional chat id targeted by the intent.
+     */
+    targetChatId: string | null;
+};
+
+/**
  * Replaces browser URL without triggering App Router navigation.
  */
 function replaceBrowserUrlWithoutNavigation(nextRelativeUrl: string): void {
@@ -117,6 +136,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const [activeChatDraftMessage, setActiveChatDraftMessage] = useState('');
     const [isBootstrapping, setIsBootstrapping] = useState(shouldUseHistory);
     const [isChatListLoading, setIsChatListLoading] = useState(shouldUseHistory);
+    const [isActiveChatLoading, setIsActiveChatLoading] = useState(false);
     const [isActiveChatStreamConnected, setIsActiveChatStreamConnected] = useState(false);
     const [isCreatingChat, setIsCreatingChat] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
@@ -129,6 +149,11 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const draftSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isRefreshingRef = useRef(false);
     const failedSendRef = useRef<{ signature: string; clientMessageId: string } | null>(null);
+    const selectionIntentRef = useRef<ChatSelectionIntent>({
+        sequence: 0,
+        kind: 'BOOTSTRAP',
+        targetChatId: initialForceNewChat ? null : initialChatId || null,
+    });
 
     useEffect(() => {
         activeChatIdRef.current = activeChatId;
@@ -137,6 +162,25 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     useEffect(() => {
         activeChatDraftMessageRef.current = activeChatDraftMessage;
     }, [activeChatDraftMessage]);
+
+    /**
+     * Emits one dev-only instrumentation event for chat-selection debugging.
+     */
+    const logChatSelection = useCallback(
+        (event: string, payload: Record<string, unknown> = {}) => {
+            if (process.env.NODE_ENV === 'production') {
+                return;
+            }
+
+            console.debug('[agents-server:user-chat]', {
+                agentName,
+                event,
+                activeChatId: activeChatIdRef.current,
+                ...payload,
+            });
+        },
+        [agentName],
+    );
 
     const toggleSidebarCollapsed = useCallback(() => {
         setIsSidebarCollapsed((value) => !value);
@@ -174,25 +218,160 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     );
 
     /**
+     * Records one explicit selection intent so older async completions can be discarded.
+     */
+    const issueSelectionIntent = useCallback(
+        (kind: ChatSelectionIntent['kind'], targetChatId: string | null = null): number => {
+            const nextSequence = selectionIntentRef.current.sequence + 1;
+            selectionIntentRef.current = {
+                sequence: nextSequence,
+                kind,
+                targetChatId,
+            };
+
+            logChatSelection('selection_intent', {
+                sequence: nextSequence,
+                kind,
+                targetChatId,
+            });
+
+            return nextSequence;
+        },
+        [logChatSelection],
+    );
+
+    /**
+     * Returns true when the provided intent sequence still matches the latest explicit intent.
+     */
+    const isSelectionIntentCurrent = useCallback(
+        (sequence: number): boolean => selectionIntentRef.current.sequence === sequence,
+        [],
+    );
+
+    /**
+     * Replaces the browser URL for the active chat while logging route mutations in development.
+     */
+    const replaceActiveChatRoute = useCallback(
+        (chatId: string, options: { includeInitialMessage?: boolean; reason: string }) => {
+            if (typeof window === 'undefined') {
+                return;
+            }
+
+            const nextRelativeUrl = buildChatRoute(chatId, Boolean(options.includeInitialMessage));
+            const currentRelativeUrl = `${window.location.pathname}${window.location.search}`;
+
+            if (currentRelativeUrl !== nextRelativeUrl) {
+                logChatSelection('route_change', {
+                    reason: options.reason,
+                    from: currentRelativeUrl,
+                    to: nextRelativeUrl,
+                    chatId,
+                });
+            }
+
+            replaceBrowserUrlWithoutNavigation(nextRelativeUrl);
+        },
+        [buildChatRoute, logChatSelection],
+    );
+
+    /**
+     * Synchronizes the locally selected chat id immediately so stale streams cannot re-activate an older chat.
+     */
+    const syncActiveChatSelection = useCallback(
+        (
+            chatId: string | null,
+            options: {
+                clearChatContent?: boolean;
+                includeInitialMessage?: boolean;
+                reason: string;
+            },
+        ) => {
+            activeChatIdRef.current = chatId;
+            setActiveChatId(chatId);
+
+            if (options.clearChatContent === true || chatId === null) {
+                setActiveMessages([]);
+                setActiveJobs([]);
+                setActiveChatDraftMessage('');
+                activeDraftDirtyRef.current = false;
+            }
+
+            if (chatId) {
+                replaceActiveChatRoute(chatId, {
+                    includeInitialMessage: options.includeInitialMessage,
+                    reason: options.reason,
+                });
+            }
+
+            logChatSelection('selection_sync', {
+                reason: options.reason,
+                chatId,
+                clearChatContent: options.clearChatContent === true,
+            });
+        },
+        [logChatSelection, replaceActiveChatRoute],
+    );
+
+    /**
      * Applies one canonical chat detail payload to local state.
      */
     const applyChatDetail = useCallback(
         (
             chatDetail: UserChatDetail | UserChatEnqueueResult,
             options: {
+                allowSelectionAdoption?: boolean;
+                expectedChatId?: string;
+                intentSequence?: number;
                 preserveDirtyDraft?: boolean;
                 includeInitialMessage?: boolean;
+                reason?: string;
             } = {},
-        ) => {
-            setActiveChatId(chatDetail.chat.id);
+        ): boolean => {
+            const reason = options.reason || 'detail-update';
+
+            if (options.intentSequence !== undefined && !isSelectionIntentCurrent(options.intentSequence)) {
+                logChatSelection('selection_skip_detail_stale_intent', {
+                    reason,
+                    expectedChatId: options.expectedChatId || null,
+                    resolvedChatId: chatDetail.chat.id,
+                    intentSequence: options.intentSequence,
+                    currentIntentSequence: selectionIntentRef.current.sequence,
+                });
+                return false;
+            }
+
+            if (options.expectedChatId && chatDetail.chat.id !== options.expectedChatId) {
+                logChatSelection('selection_skip_detail_chat_mismatch', {
+                    reason,
+                    expectedChatId: options.expectedChatId,
+                    resolvedChatId: chatDetail.chat.id,
+                });
+                return false;
+            }
+
+            const currentSelectedChatId = activeChatIdRef.current;
+            if (options.allowSelectionAdoption !== true && currentSelectedChatId !== chatDetail.chat.id) {
+                logChatSelection('selection_skip_detail_selection_mismatch', {
+                    reason,
+                    expectedChatId: currentSelectedChatId,
+                    resolvedChatId: chatDetail.chat.id,
+                });
+                setChats((previousChats) => replaceChatInList(previousChats, chatDetail.chat));
+                return false;
+            }
+
+            setChats((previousChats) => replaceChatInList(previousChats, chatDetail.chat));
+            syncActiveChatSelection(chatDetail.chat.id, {
+                includeInitialMessage: options.includeInitialMessage,
+                reason,
+            });
             setActiveMessages([...chatDetail.messages]);
             setActiveJobs([...chatDetail.activeJobs]);
-            setChats((previousChats) => replaceChatInList(previousChats, chatDetail.chat));
 
             const shouldPreserveDirtyDraft =
                 options.preserveDirtyDraft === true &&
                 activeDraftDirtyRef.current &&
-                activeChatIdRef.current === chatDetail.chat.id;
+                currentSelectedChatId === chatDetail.chat.id;
 
             if (!shouldPreserveDirtyDraft) {
                 const nextDraftMessage = chatDetail.draftMessage || '';
@@ -200,11 +379,16 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 setActiveChatDraftMessage(nextDraftMessage);
             }
 
-            replaceBrowserUrlWithoutNavigation(
-                buildChatRoute(chatDetail.chat.id, Boolean(options.includeInitialMessage)),
-            );
+            setIsActiveChatLoading(false);
+
+            logChatSelection('selection_apply_detail', {
+                reason,
+                chatId: chatDetail.chat.id,
+            });
+
+            return true;
         },
-        [buildChatRoute],
+        [isSelectionIntentCurrent, logChatSelection, syncActiveChatSelection],
     );
 
     /**
@@ -214,28 +398,74 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         (
             snapshot: Awaited<ReturnType<typeof fetchUserChats>>,
             options: {
+                allowSelectionAdoption?: boolean;
+                expectedChatId?: string;
+                intentSequence?: number;
                 preserveDirtyDraft?: boolean;
                 includeInitialMessage?: boolean;
+                reason?: string;
             } = {},
-        ) => {
+        ): boolean => {
+            const reason = options.reason || 'snapshot-update';
             setChats(snapshot.chats);
             if (!snapshot.activeChatId) {
-                setActiveChatId(null);
-                setActiveMessages([]);
-                setActiveJobs([]);
-                setActiveChatDraftMessage('');
-                activeDraftDirtyRef.current = false;
-                return;
+                if (options.allowSelectionAdoption !== true) {
+                    logChatSelection('selection_skip_snapshot_missing_active_chat', {
+                        reason,
+                        expectedChatId: options.expectedChatId || activeChatIdRef.current,
+                    });
+                    return false;
+                }
+
+                syncActiveChatSelection(null, {
+                    clearChatContent: true,
+                    reason,
+                });
+                setIsActiveChatLoading(false);
+                return true;
             }
 
-            setActiveChatId(snapshot.activeChatId);
+            if (options.intentSequence !== undefined && !isSelectionIntentCurrent(options.intentSequence)) {
+                logChatSelection('selection_skip_snapshot_stale_intent', {
+                    reason,
+                    expectedChatId: options.expectedChatId || snapshot.activeChatId,
+                    resolvedChatId: snapshot.activeChatId,
+                    intentSequence: options.intentSequence,
+                    currentIntentSequence: selectionIntentRef.current.sequence,
+                });
+                return false;
+            }
+
+            if (options.expectedChatId && snapshot.activeChatId !== options.expectedChatId) {
+                logChatSelection('selection_skip_snapshot_chat_mismatch', {
+                    reason,
+                    expectedChatId: options.expectedChatId,
+                    resolvedChatId: snapshot.activeChatId,
+                });
+                return false;
+            }
+
+            const currentSelectedChatId = activeChatIdRef.current;
+            if (options.allowSelectionAdoption !== true && currentSelectedChatId !== snapshot.activeChatId) {
+                logChatSelection('selection_skip_snapshot_selection_mismatch', {
+                    reason,
+                    expectedChatId: currentSelectedChatId,
+                    resolvedChatId: snapshot.activeChatId,
+                });
+                return false;
+            }
+
+            syncActiveChatSelection(snapshot.activeChatId, {
+                includeInitialMessage: options.includeInitialMessage,
+                reason,
+            });
             setActiveMessages([...snapshot.activeMessages]);
             setActiveJobs([...snapshot.activeJobs]);
 
             const shouldPreserveDirtyDraft =
                 options.preserveDirtyDraft === true &&
                 activeDraftDirtyRef.current &&
-                activeChatIdRef.current === snapshot.activeChatId;
+                currentSelectedChatId === snapshot.activeChatId;
 
             if (!shouldPreserveDirtyDraft) {
                 const nextDraftMessage = snapshot.activeDraftMessage || '';
@@ -243,11 +473,16 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 setActiveChatDraftMessage(nextDraftMessage);
             }
 
-            replaceBrowserUrlWithoutNavigation(
-                buildChatRoute(snapshot.activeChatId, Boolean(options.includeInitialMessage)),
-            );
+            setIsActiveChatLoading(false);
+
+            logChatSelection('selection_apply_snapshot', {
+                reason,
+                chatId: snapshot.activeChatId,
+            });
+
+            return true;
         },
-        [buildChatRoute],
+        [isSelectionIntentCurrent, logChatSelection, syncActiveChatSelection],
     );
 
     /**
@@ -280,6 +515,11 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const bootstrapChats = useCallback(
         async (preferredChatId?: string) => {
             const effectivePreferredChatId = initialForceNewChat ? undefined : preferredChatId;
+            const intentSequence = issueSelectionIntent('BOOTSTRAP', effectivePreferredChatId || null);
+            logChatSelection('bootstrap_start', {
+                preferredChatId: effectivePreferredChatId || null,
+                intentSequence,
+            });
             const snapshot = await fetchUserChats(agentName, effectivePreferredChatId);
             const shouldCreateFreshChatForInitialMessage =
                 !hasInitialAutoMessageBeenConsumedRef.current &&
@@ -293,7 +533,10 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 }
 
                 applyChatDetail(createdChat, {
+                    allowSelectionAdoption: true,
                     includeInitialMessage: Boolean(effectiveInitialAutoExecuteMessage),
+                    intentSequence,
+                    reason: 'bootstrap_create_chat',
                 });
                 setChats([
                     createdChat.chat,
@@ -308,7 +551,11 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 (!autoExecuteTargetChatIdRef.current || autoExecuteTargetChatIdRef.current === snapshot.activeChatId);
 
             applySnapshot(snapshot, {
+                allowSelectionAdoption: true,
+                expectedChatId: effectivePreferredChatId,
                 includeInitialMessage: shouldKeepInitialAutoMessage,
+                intentSequence,
+                reason: 'bootstrap_snapshot',
             });
         },
         [
@@ -317,6 +564,8 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             applySnapshot,
             effectiveInitialAutoExecuteMessage,
             initialForceNewChat,
+            issueSelectionIntent,
+            logChatSelection,
         ],
     );
 
@@ -334,28 +583,36 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             try {
                 const snapshot = await fetchUserChats(agentName, currentActiveChatId);
                 if (!snapshot.activeChatId) {
+                    logChatSelection('refresh_missing_active_chat', {
+                        chatId: currentActiveChatId,
+                    });
                     await bootstrapChats(undefined);
                     return;
                 }
 
-                applySnapshot(snapshot, options);
+                applySnapshot(snapshot, {
+                    expectedChatId: currentActiveChatId,
+                    preserveDirtyDraft: options.preserveDirtyDraft,
+                    reason: 'refresh_active_chat',
+                });
             } finally {
                 isRefreshingRef.current = false;
             }
         },
-        [agentName, applySnapshot, bootstrapChats, shouldUseHistory],
+        [agentName, applySnapshot, bootstrapChats, logChatSelection, shouldUseHistory],
     );
 
     useEffect(() => {
         if (!shouldUseHistory) {
             setChats([]);
-            setActiveChatId(null);
-            setActiveMessages([]);
-            setActiveJobs([]);
-            setActiveChatDraftMessage('');
+            syncActiveChatSelection(null, {
+                clearChatContent: true,
+                reason: 'history_disabled',
+            });
             setIsActiveChatStreamConnected(false);
             setIsBootstrapping(false);
             setIsChatListLoading(false);
+            setIsActiveChatLoading(false);
             return;
         }
 
@@ -384,7 +641,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         return () => {
             isDisposed = true;
         };
-    }, [bootstrapChats, initialChatId, shouldUseHistory]);
+    }, [bootstrapChats, initialChatId, shouldUseHistory, syncActiveChatSelection]);
 
     useEffect(() => {
         autoExecuteTargetChatIdRef.current = initialForceNewChat ? undefined : initialChatId;
@@ -435,7 +692,9 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
                         setIsActiveChatStreamConnected(true);
                         applyChatDetail(chatDetail, {
+                            expectedChatId: activeChatId,
                             preserveDirtyDraft: true,
+                            reason: 'stream_snapshot',
                         });
                     },
                 });
@@ -518,15 +777,51 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
      */
     const handleSelectChat = useCallback(
         async (chatId: string) => {
-            if (chatId === activeChatIdRef.current) {
+            if (chatId === activeChatIdRef.current && !isActiveChatLoading) {
                 return;
             }
 
+            const intentSequence = issueSelectionIntent('OPEN_CHAT', chatId);
+            logChatSelection('open_chat_click', {
+                chatId,
+                intentSequence,
+            });
             await flushActiveDraft();
-            const snapshot = await fetchUserChats(agentName, chatId);
-            applySnapshot(snapshot);
+            if (!isSelectionIntentCurrent(intentSequence)) {
+                logChatSelection('open_chat_cancelled_stale_intent', {
+                    chatId,
+                    intentSequence,
+                });
+                return;
+            }
+
+            setIsActiveChatLoading(true);
+            syncActiveChatSelection(chatId, {
+                clearChatContent: true,
+                reason: 'open_chat_click',
+            });
+            try {
+                const snapshot = await fetchUserChats(agentName, chatId);
+                applySnapshot(snapshot, {
+                    expectedChatId: chatId,
+                    intentSequence,
+                    reason: 'open_chat_snapshot',
+                });
+            } catch (error) {
+                setIsActiveChatLoading(false);
+                notifyError(resolveErrorMessage(error, 'Failed to open chat.'));
+            }
         },
-        [agentName, applySnapshot, flushActiveDraft],
+        [
+            agentName,
+            applySnapshot,
+            flushActiveDraft,
+            isActiveChatLoading,
+            isSelectionIntentCurrent,
+            issueSelectionIntent,
+            logChatSelection,
+            syncActiveChatSelection,
+        ],
     );
 
     const handleSelectChatFromSidebar = useCallback(
@@ -545,17 +840,51 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             return;
         }
 
+        const intentSequence = issueSelectionIntent('NEW_CHAT');
+        logChatSelection('new_chat_click', {
+            intentSequence,
+        });
         setIsCreatingChat(true);
         try {
+            logChatSelection('create_chat_start', {
+                intentSequence,
+            });
             await flushActiveDraft();
+            if (!isSelectionIntentCurrent(intentSequence)) {
+                logChatSelection('create_chat_cancelled_stale_intent', {
+                    intentSequence,
+                });
+                return;
+            }
+
             const createdChat = await createUserChat(agentName);
-            applyChatDetail(createdChat);
+            logChatSelection('create_chat_success', {
+                intentSequence,
+                chatId: createdChat.chat.id,
+            });
+            applyChatDetail(createdChat, {
+                allowSelectionAdoption: true,
+                intentSequence,
+                reason: 'create_chat_success',
+            });
         } catch (error) {
+            logChatSelection('create_chat_fail', {
+                intentSequence,
+                error: error instanceof Error ? error.message : String(error),
+            });
             notifyError(resolveErrorMessage(error, 'Failed to create chat.'));
         } finally {
             setIsCreatingChat(false);
         }
-    }, [agentName, applyChatDetail, flushActiveDraft, isCreatingChat]);
+    }, [
+        agentName,
+        applyChatDetail,
+        flushActiveDraft,
+        isCreatingChat,
+        isSelectionIntentCurrent,
+        issueSelectionIntent,
+        logChatSelection,
+    ]);
 
     /**
      * Deletes one chat and refreshes the canonical snapshot.
@@ -577,6 +906,8 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 setIsChatListLoading(true);
                 await removeUserChat(agentName, chatId);
                 if (activeChatIdRef.current === chatId) {
+                    issueSelectionIntent('DELETE_CHAT', null);
+                    setIsActiveChatLoading(true);
                     await bootstrapChats(undefined);
                 } else {
                     await refreshActiveChat({ preserveDirtyDraft: true });
@@ -587,7 +918,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 setIsChatListLoading(false);
             }
         },
-        [agentName, bootstrapChats, formatText, refreshActiveChat],
+        [agentName, bootstrapChats, formatText, issueSelectionIntent, refreshActiveChat],
     );
 
     /**
@@ -651,6 +982,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 setActiveChatDraftMessage('');
                 applyChatDetail(result, {
                     preserveDirtyDraft: false,
+                    reason: 'send_user_turn',
                 });
             } catch (error) {
                 failedSendRef.current = {
@@ -675,7 +1007,9 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
             const chatDetail = await cancelUserChatJob(agentName, currentActiveChatId, jobId);
             applyChatDetail(chatDetail, {
+                expectedChatId: currentActiveChatId,
                 preserveDirtyDraft: true,
+                reason: 'cancel_active_job',
             });
         },
         [agentName, applyChatDetail],
@@ -743,27 +1077,33 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
     const chatSurface = (
         <div className="relative flex-1 min-h-0">
-            <CanonicalAgentChatPanel
-                agentName={agentName}
-                agentUrl={agentUrl}
-                brandColor={brandColor}
-                inputPlaceholder={inputPlaceholder}
-                thinkingMessages={thinkingMessages}
-                speechRecognitionLanguage={speechRecognitionLanguage}
-                initialAgentMessage={initialAgentMessage}
-                messages={activeMessages}
-                draftMessage={activeChatDraftMessage}
-                autoExecuteMessage={autoExecuteMessage}
-                autoExecuteMessageAttachments={effectiveInitialAutoExecuteMessageAttachments}
-                areFileAttachmentsEnabled={areFileAttachmentsEnabled}
-                isFeedbackEnabled={isFeedbackEnabled}
-                activeJobs={activeJobs}
-                onDraftMessageChange={handleDraftMessageChange}
-                onSubmitUserTurn={handleSubmitUserTurn}
-                onStartNewChat={handleStartNewChatFromChatSurface}
-                onCancelActiveJob={handleCancelActiveJob}
-                onAutoExecuteMessageConsumed={handleAutoExecuteMessageConsumed}
-            />
+            {isActiveChatLoading ? (
+                <div className="h-full w-full rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm">
+                    <ChatThreadLoadingSkeleton />
+                </div>
+            ) : (
+                <CanonicalAgentChatPanel
+                    agentName={agentName}
+                    agentUrl={agentUrl}
+                    brandColor={brandColor}
+                    inputPlaceholder={inputPlaceholder}
+                    thinkingMessages={thinkingMessages}
+                    speechRecognitionLanguage={speechRecognitionLanguage}
+                    initialAgentMessage={initialAgentMessage}
+                    messages={activeMessages}
+                    draftMessage={activeChatDraftMessage}
+                    autoExecuteMessage={autoExecuteMessage}
+                    autoExecuteMessageAttachments={effectiveInitialAutoExecuteMessageAttachments}
+                    areFileAttachmentsEnabled={areFileAttachmentsEnabled}
+                    isFeedbackEnabled={isFeedbackEnabled}
+                    activeJobs={activeJobs}
+                    onDraftMessageChange={handleDraftMessageChange}
+                    onSubmitUserTurn={handleSubmitUserTurn}
+                    onStartNewChat={handleStartNewChatFromChatSurface}
+                    onCancelActiveJob={handleCancelActiveJob}
+                    onAutoExecuteMessageConsumed={handleAutoExecuteMessageConsumed}
+                />
+            )}
         </div>
     );
 

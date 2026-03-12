@@ -95,6 +95,13 @@ export type ChatProps = {
     onReset?(): Promisable<void>;
 
     /**
+     * Controls whether the reset button asks for native browser confirmation before calling `onReset`.
+     *
+     * @default true
+     */
+    readonly resetRequiresConfirmation?: boolean;
+
+    /**
      * Determines whether the voice recognition button is rendered
      */
     readonly isVoiceRecognitionButtonShown?: boolean;

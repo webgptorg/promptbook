@@ -1,3 +1,10 @@
+-   Fixed Agents Server chat history selection races so explicit user actions now win over stale background updates:
+
+    -   Reworked `/agents/[agentName]/chat` history navigation to treat `New chat` and history clicks as last-write-wins explicit intents, rejecting stale refetch/stream completions instead of letting them re-open an older chat.
+    -   Synchronized selected-chat refs before async completions apply, which removes the “stuck new chat” / blink-back state caused by delayed refreshes or older chat streams finishing after the user switched chats.
+    -   Removed the native browser `confirm(...)` from Agents Server `New chat` actions by letting delegated resets bypass the shared chat toolbar confirmation.
+    -   Added Playwright regression coverage for delayed stale refresh vs `New chat` and delayed earlier selection vs later selection.
+
 -   Hardened Agents Server file reading for attached text files with unknown extensions or encodings:
 
     -   Added a shared byte-to-text decoding pipeline used by attachment inlining and `project_read_file`, with BOM detection, simple binary-vs-text heuristics, fallback single-byte encodings (`windows-1250`, `windows-1252`, `iso-8859-1`), bounded prefix decoding for oversized files, and explicit decode metadata (`encodingUsed`, confidence, warnings, `wasBinary`).

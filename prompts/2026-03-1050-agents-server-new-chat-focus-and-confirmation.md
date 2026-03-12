@@ -1,4 +1,4 @@
-[ ]
+[x] ~$1.32 37 minutes by OpenAI Codex `gpt-5.4`
 
 [🧭💬] Agents Server: New Chat should always open the new chat (no focus hijack) + remove browser confirm
 
@@ -54,3 +54,4 @@
 
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

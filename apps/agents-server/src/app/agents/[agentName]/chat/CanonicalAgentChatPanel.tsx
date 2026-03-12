@@ -408,6 +408,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
                     onMessage={handleManualMessage as unknown as (message: string) => Promise<void>}
                     onChange={onDraftMessageChange}
                     onReset={onStartNewChat}
+                    resetRequiresConfirmation={false}
                     onFeedback={isFeedbackEnabled ? handleFeedback : undefined}
                     onFileUpload={areFileAttachmentsEnabled ? handleFileUpload : undefined}
                     participants={participants}

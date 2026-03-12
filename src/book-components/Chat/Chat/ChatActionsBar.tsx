@@ -26,6 +26,7 @@ export type ChatActionsBarProps = {
     participants: ReadonlyArray<ChatParticipant>;
     title: string;
     onReset?: () => Promisable<void>;
+    resetRequiresConfirmation?: boolean;
     onUseTemplate?: () => void;
     extraActions?: ReactNode;
     saveFormats?: Array<string_chat_format_name>;
@@ -53,6 +54,7 @@ export function ChatActionsBar(props: ChatActionsBarProps) {
         participants,
         title,
         onReset,
+        resetRequiresConfirmation = true,
         onUseTemplate,
         extraActions,
         saveFormats,
@@ -127,11 +129,11 @@ export function ChatActionsBar(props: ChatActionsBarProps) {
                 <button
                     className={classNames(styles.chatButton)}
                     onClick={onButtonClick(() => {
-                        if (!confirm(`Do you really want to reset the chat?`)) {
+                        if (resetRequiresConfirmation && !confirm(`Do you really want to reset the chat?`)) {
                             return;
                         }
 
-                        onReset();
+                        void onReset();
                     })}
                 >
                     <ResetIcon />

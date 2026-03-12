@@ -702,6 +702,7 @@ export function LlmChat(props: LlmChatProps) {
                 onMessage={handleMessage}
                 onChange={onInputTextChange}
                 onReset={handleReset}
+                resetRequiresConfirmation={resetMode !== 'delegate'}
                 extraActions={streamingStopAction}
                 isVoiceCalling={isVoiceCalling}
             />

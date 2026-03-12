@@ -252,6 +252,28 @@ describe('LlmChat', () => {
         expect(typeof props.sendMessage?._attach).toBe('function');
     });
 
+    it('should disable native reset confirmation when reset is delegated', async () => {
+        const container = document.createElement('div');
+        document.body.appendChild(container);
+
+        await act(async () => {
+            const root = createRoot(container);
+            root.render(
+                <LlmChat
+                    title="Delegated reset"
+                    llmTools={mockLlmTools}
+                    onReset={async () => {}}
+                    resetMode="delegate"
+                    visual="STANDALONE"
+                />,
+            );
+        });
+
+        const capturedProps = (globalThis as { __lastChatProps?: CapturedChatProps }).__lastChatProps;
+        expect(capturedProps).toBeDefined();
+        expect(capturedProps?.resetRequiresConfirmation).toBe(false);
+    });
+
     it('should re-seed initialMessages after reset (New chat)', async () => {
         const initialMessages: ChatMessage[] = [
             {
