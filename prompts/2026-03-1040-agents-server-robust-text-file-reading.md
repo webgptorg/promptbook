@@ -2,7 +2,6 @@
 
 [🎞️📄] Agents server: robust reading of text files with unknown extensions/encodings
 
--   *(@@@@ Written by agent)*
 -   Problem: Agents can read files, but when user attaches a “text file” with uncommon extension (e.g. subtitle files like `.srt`, `.vtt`, `.ass`, or various domain-specific text formats), the system may treat it as unsupported/binary and refuse or provide garbage output.
 -   Goal: Make agents able to read arbitrary attached files as text whenever the content is textual, regardless of filename extension; also handle non‑UTF8 encodings gracefully.
 -   Non-goal: Parsing/semantic understanding of every subtitle format; we just need reliable text extraction (raw text). Format-specific parsing can be added later.
@@ -23,7 +22,6 @@
     -   If fallback is used, return `warnings` that encoding was guessed.
     -   Preserve line endings as-is; do not normalize unless required for downstream safety.
 -   Size limits / performance:
-    -   Define max bytes to decode to text `@@@` (e.g. 2–10 MB) to avoid memory spikes.
     -   If above limit, decode first N bytes and append `…[TRUNCATED]…` with warnings.
 -   Security:
     -   Never execute or “open” file formats; only decode bytes.
@@ -41,12 +39,7 @@
     -   Attaching a truly binary file (e.g. `.png`) does not return garbage; it is detected as binary and returns a clear error or `wasBinary=true` with guidance.
 
 -   Developer notes / implementation:
-    -   Use a battle-tested encoding library (e.g. `iconv-lite` or similar) `@@@`.
     -   Add unit tests for detection + decoding (include fixtures for a few encodings).
 
 -   You are working with the [Agents Server](apps/agents-server)
--   Touchpoints (expected):
-    -   `apps/agents-server` file upload/attachment handling `@@@`
-    -   `apps/agents-server` tool implementation that reads file contents for the agent `@@@`
-    -   Shared util for decoding bytes to text (best placed in `packages/*` or `apps/agents-server/src/utils/*`) `@@@`
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
