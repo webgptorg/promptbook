@@ -2,7 +2,6 @@
 
 [📏🧼] Fix chat viewport height to remove bottom whitespace
 
--   *(@@@@ Written by agent)*
 -   On the agent chat page in [Agents Server](apps/agents-server) there is an issue where the chat layout sometimes leaves an ugly white space below the message composer (textarea), reducing the available height for the chat messages.
 -   This typically happens on mobile browsers (especially iOS Safari / Android Chrome) when the URL/search bar is shown/hidden, because the effective viewport height changes.
 -   Goal: the chat should always use space efficiently (messages area expands to maximum available size) regardless of fullscreen / not fullscreen and regardless of whether the browser URL bar is expanded/collapsed.
@@ -19,8 +18,5 @@
     -   Works on iOS Safari, Android Chrome, and desktop browsers.
 -   Add a small automated check / story (if feasible) or at least a manual QA checklist for: iOS Safari (with address bar visible/hidden), Android Chrome (address bar visible/hidden), desktop resize.
 -   You are working with:
-    -   [Agents Server](apps/agents-server)
-    -   Chat page/layout component(s) @@@
-    -   Global styles / layout CSS @@@
-    -   Potential helper for CSS viewport sizing @@@
+    -   [Agents Server](apps/agents-server) chat page
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
