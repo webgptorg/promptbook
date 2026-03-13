@@ -8,6 +8,7 @@ import type { UserInfo } from '../../utils/getCurrentUser';
 import { AgentNamingProvider } from '../AgentNaming/AgentNamingContext';
 import { AsyncDialogsProvider } from '../AsyncDialogs/AsyncDialogsProvider';
 import { ClientVersionMismatchListener } from '../ClientVersion/ClientVersionMismatchListener';
+import { ChatEnterBehaviorPreferencesProvider } from '../ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
 import { Footer, type FooterLink } from '../Footer/Footer';
 import { Header } from '../Header/Header';
 import { MetadataFlagsProvider } from '../MetadataFlags/MetadataFlagsContext';
@@ -86,34 +87,36 @@ export function LayoutWrapper({
                                 initialIsVibrationOn={defaultIsVibrationOn}
                             >
                                 <NotificationsProvider>
-                                    <ClientVersionMismatchListener />
-                                    <ViewportHeightController />
-                                    <MenuHoistingProvider>
-                                        <MetadataFlagsProvider value={{ isExperimentalPwaAppEnabled }}>
-                                            {shouldRenderMinimalShell ? (
-                                                <main className={minimalMainClassName}>{children}</main>
-                                            ) : (
-                                                <div className="agents-server-app-shell flex flex-col">
-                                                    <Header
-                                                        isAdmin={isAdmin}
-                                                        isGlobalAdmin={isGlobalAdmin}
-                                                        currentUser={currentUser}
-                                                        serverName={serverName}
-                                                        serverLogoUrl={serverLogoUrl}
-                                                        agents={agents}
-                                                        agentFolders={agentFolders}
-                                                        federatedServers={federatedServers}
-                                                        isExperimental={isExperimental}
-                                                        isFeedbackEnabled={isFeedbackEnabled}
-                                                    />
-                                                    <main className={mainClassName}>{children}</main>
-                                                    {isFooterShown && !isFooterHiddenOnPage && (
-                                                        <Footer extraLinks={footerLinks} />
-                                                    )}
-                                                </div>
-                                            )}
-                                        </MetadataFlagsProvider>
-                                    </MenuHoistingProvider>
+                                    <ChatEnterBehaviorPreferencesProvider>
+                                        <ClientVersionMismatchListener />
+                                        <ViewportHeightController />
+                                        <MenuHoistingProvider>
+                                            <MetadataFlagsProvider value={{ isExperimentalPwaAppEnabled }}>
+                                                {shouldRenderMinimalShell ? (
+                                                    <main className={minimalMainClassName}>{children}</main>
+                                                ) : (
+                                                    <div className="agents-server-app-shell flex flex-col">
+                                                        <Header
+                                                            isAdmin={isAdmin}
+                                                            isGlobalAdmin={isGlobalAdmin}
+                                                            currentUser={currentUser}
+                                                            serverName={serverName}
+                                                            serverLogoUrl={serverLogoUrl}
+                                                            agents={agents}
+                                                            agentFolders={agentFolders}
+                                                            federatedServers={federatedServers}
+                                                            isExperimental={isExperimental}
+                                                            isFeedbackEnabled={isFeedbackEnabled}
+                                                        />
+                                                        <main className={mainClassName}>{children}</main>
+                                                        {isFooterShown && !isFooterHiddenOnPage && (
+                                                            <Footer extraLinks={footerLinks} />
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </MetadataFlagsProvider>
+                                        </MenuHoistingProvider>
+                                    </ChatEnterBehaviorPreferencesProvider>
                                 </NotificationsProvider>
                             </SoundSystemProvider>
                         </SelfLearningPreferencesProvider>

@@ -119,6 +119,8 @@ export function Chat(props: ChatProps) {
         speechRecognition,
         placeholderMessageContent,
         defaultMessage,
+        enterBehavior,
+        resolveEnterBehavior,
         children,
         className,
         style,
@@ -539,6 +541,8 @@ export function Chat(props: ChatProps) {
                             speechRecognition={speechRecognition}
                             speechRecognitionLanguage={speechRecognitionLanguage}
                             defaultMessage={defaultMessage}
+                            enterBehavior={enterBehavior}
+                            resolveEnterBehavior={resolveEnterBehavior}
                             placeholderMessageContent={placeholderMessageContent}
                             isFocusedOnLoad={isFocusedOnLoad}
                             isMobile={isMobileFromHook}

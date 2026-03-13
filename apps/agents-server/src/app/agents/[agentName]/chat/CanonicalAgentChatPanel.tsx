@@ -8,6 +8,7 @@ import { RemoteAgent } from '@promptbook-local/core';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import spaceTrim from 'spacetrim';
 import { useAgentBackground } from '../../../../components/AgentProfile/useAgentBackground';
+import { useChatEnterBehaviorPreferences } from '../../../../components/ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
 import { usePrivateModePreferences } from '../../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { useSelfLearningPreferences } from '../../../../components/SelfLearningPreferences/SelfLearningPreferencesProvider';
 import { useServerLanguage } from '../../../../components/ServerLanguage/ServerLanguageProvider';
@@ -149,6 +150,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
     const { value: agent } = usePromise(agentPromise, [agentPromise]);
     const teamAgentProfiles = useTeamAgentProfiles(agent?.capabilities);
     const { soundSystem } = useSoundSystem();
+    const { enterBehavior, resolveEnterBehavior } = useChatEnterBehaviorPreferences();
     const { isSelfLearningEnabled } = useSelfLearningPreferences();
     const { isPrivateModeEnabled, setIsPrivateModeEnabled } = usePrivateModePreferences();
     const { t } = useServerLanguage();
@@ -445,6 +447,8 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
                     soundSystem={soundSystem}
                     speechRecognition={speechRecognition}
                     speechRecognitionLanguage={speechRecognitionLanguage}
+                    enterBehavior={enterBehavior}
+                    resolveEnterBehavior={resolveEnterBehavior}
                     isSpeechPlaybackEnabled={agent?.isVoiceTtsSttEnabled ?? false}
                     elevenLabsVoiceId={agent?.meta.voice}
                     teamAgentProfiles={teamAgentProfiles}

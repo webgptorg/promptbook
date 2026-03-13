@@ -1,4 +1,4 @@
-[ ]
+[x] ~$4.04 an hour by OpenAI Codex `gpt-5.4`
 
 [✨🐲] Chat input keybindings (Enter vs Ctrl+Enter) + first-run onboarding
 
@@ -74,3 +74,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

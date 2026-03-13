@@ -8,6 +8,7 @@ import { ClientVersionMismatchError } from '@promptbook-local/utils';
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
 import { useAgentBackground } from '../../../components/AgentProfile/useAgentBackground';
+import { useChatEnterBehaviorPreferences } from '../../../components/ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
 import { ChatErrorDialog } from '../../../components/ChatErrorDialog';
 import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { useSelfLearningPreferences } from '../../../components/SelfLearningPreferences/SelfLearningPreferencesProvider';
@@ -237,6 +238,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
 
     const effectConfigs = useMemo(() => createDefaultChatEffects(), []);
     const { soundSystem } = useSoundSystem();
+    const { enterBehavior, resolveEnterBehavior } = useChatEnterBehaviorPreferences();
     const { isSelfLearningEnabled } = useSelfLearningPreferences();
     const { isPrivateModeEnabled, setIsPrivateModeEnabled } = usePrivateModePreferences();
     const { t } = useServerLanguage();
@@ -340,6 +342,8 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 soundSystem={soundSystem}
                 thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}
+                enterBehavior={enterBehavior}
+                resolveEnterBehavior={resolveEnterBehavior}
                 isSpeechPlaybackEnabled={isSpeechFeaturesEnabled}
                 chatFailMessage={chatFailMessage}
                 promptParameters={promptParameters}

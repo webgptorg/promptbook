@@ -13,6 +13,7 @@ import { keepUnused } from '../../../../../../src/utils/organization/keepUnused'
 import { $createAgentFromBookAction } from '../../../app/actions';
 import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
 import { showAlert } from '../../../components/AsyncDialogs/asyncDialogs';
+import { useChatEnterBehaviorPreferences } from '../../../components/ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { resolveChatMessageValidationIssue } from '../../../utils/chat/validateChatMessageContent';
@@ -168,6 +169,7 @@ export function AgentProfileChat({
     const [isNavigatingToChat, setIsNavigatingToChat] = useState(false);
     const [existingChats, setExistingChats] = useState<Array<UserChatSummary>>([]);
     const { formatText } = useAgentNaming();
+    const { enterBehavior, resolveEnterBehavior } = useChatEnterBehaviorPreferences();
     const { isPrivateModeEnabled } = usePrivateModePreferences();
     const allowFileAttachments = areFileAttachmentsEnabled;
 
@@ -388,6 +390,8 @@ export function AgentProfileChat({
                         placeholderMessageContent={inputPlaceholder}
                         speechRecognition={speechRecognition}
                         speechRecognitionLanguage={speechRecognitionLanguage}
+                        enterBehavior={enterBehavior}
+                        resolveEnterBehavior={resolveEnterBehavior}
                         isSpeechPlaybackEnabled={isSpeechFeaturesEnabled}
                         visual={'STANDALONE'}
                     />

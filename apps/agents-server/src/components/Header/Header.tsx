@@ -962,24 +962,31 @@ export function Header(props: HeaderProps) {
     };
 
     /**
-     * @private Personal account links available to authenticated users.
+     * @private Personal settings available for every browser user, with account-only links added when authenticated.
      */
-    const userAccountSystemItems: SubMenuItem[] = currentUser
-        ? [
-              {
-                  label: t('common.profile'),
-                  href: '/system/profile',
-              },
-              {
-                  label: t('header.userMemory'),
-                  href: '/system/user-memory',
-              },
-              {
-                  label: t('header.userWallet'),
-                  href: '/system/user-wallet',
-              },
-          ]
-        : [];
+    const userAccountSystemItems: SubMenuItem[] = [
+        {
+            label: 'Settings',
+            href: '/system/settings',
+            isBold: true,
+        },
+        ...(currentUser
+            ? [
+                  {
+                      label: t('common.profile'),
+                      href: '/system/profile',
+                  },
+                  {
+                      label: t('header.userMemory'),
+                      href: '/system/user-memory',
+                  },
+                  {
+                      label: t('header.userWallet'),
+                      href: '/system/user-wallet',
+                  },
+              ]
+            : []),
+    ];
 
     /**
      * @private Informational links grouped under the Legal & About category.
@@ -1186,7 +1193,7 @@ export function Header(props: HeaderProps) {
 
     const hasMenuAccess = Boolean(currentUser || isAdmin);
     const systemMenuEntries = isAdmin ? adminSystemMenuItems : userSystemItems;
-    const shouldShowSystemMenu = hasMenuAccess && systemMenuEntries.length > 0;
+    const shouldShowSystemMenu = systemMenuEntries.length > 0;
 
     // Menu items configuration (DRY principle)
     const menuItems: MenuItem[] = [

@@ -1,3 +1,10 @@
+-   Added configurable chat Enter/Ctrl+Enter keybindings across Agents Server chat surfaces:
+
+    -   Extended the shared `<Chat/>` composer with reusable `enterBehavior` / lazy `resolveEnterBehavior` support so plain `Enter` and `Ctrl+Enter` can be inverted without coupling the component to Agents Server persistence.
+    -   Added first-run non-blocking keybinding onboarding in Agents Server that appears on the first plain `Enter` when no preference is stored, keeps textarea focus intact for continued typing, and can be dismissed with `Not now` for the rest of the browser session.
+    -   Persisted chat keybinding preference in the existing `UserData` mechanism for both signed-in and anonymous browser-tied users, and added a dedicated `/system/settings` page with visual keycap selection cards under the main System menu.
+    -   Wired the same behavior into canonical chat, profile chat, and textarea-based chat entry points so Enter handling stays consistent across current and future `<Chat/>` usages in Agents Server.
+
 -   Added frozen external chats to Agents Server `My chats` with admin-only visibility and source labels:
 
     -   Added durable `UserChat.source` persistence plus migration `2026-03-0240-user-chat-source.sql` so web UI, OpenAI-compatible API, and team-member chats are stored with their origin.

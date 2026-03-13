@@ -10,6 +10,7 @@ import {
     type ChangeEvent,
     type ClipboardEvent,
     type DragEvent,
+    type KeyboardEvent as ReactKeyboardEvent,
     type MouseEvent,
 } from 'react';
 import spaceTrim from 'spacetrim';
@@ -90,6 +91,8 @@ export type ChatInputAreaProps = {
     speechRecognition?: ChatProps['speechRecognition'];
     speechRecognitionLanguage?: ChatProps['speechRecognitionLanguage'];
     defaultMessage?: string;
+    enterBehavior?: ChatProps['enterBehavior'];
+    resolveEnterBehavior?: ChatProps['resolveEnterBehavior'];
     placeholderMessageContent?: string;
     isFocusedOnLoad?: boolean;
     isMobile: boolean;
@@ -574,6 +577,93 @@ function resolveMicrophoneSettingsUrl(): string | undefined {
 }
 
 /**
+ * Snapshot of composer state captured before one deferred Enter decision.
+ *
+ * @private component of `<Chat/>`
+ */
+type PendingEnterIntentSnapshot = {
+    readonly value: string;
+    readonly selectionStart: number;
+    readonly selectionEnd: number;
+    readonly attachmentIds: ReadonlyArray<string>;
+};
+
+/**
+ * Inverts the primary Enter behavior for the `Ctrl+Enter` secondary binding.
+ *
+ * @private component of `<Chat/>`
+ */
+function invertChatEnterBehavior(
+    enterBehavior: NonNullable<ChatProps['enterBehavior']>,
+): NonNullable<ChatProps['enterBehavior']> {
+    return enterBehavior === 'SEND' ? 'NEWLINE' : 'SEND';
+}
+
+/**
+ * Resolves the effective action for one Enter key press.
+ *
+ * @private component of `<Chat/>`
+ */
+function resolveChatEnterAction(
+    enterBehavior: NonNullable<ChatProps['enterBehavior']>,
+    isCtrlPressed: boolean,
+): NonNullable<ChatProps['enterBehavior']> {
+    return isCtrlPressed ? invertChatEnterBehavior(enterBehavior) : enterBehavior;
+}
+
+/**
+ * Returns true when the browser is still composing IME text.
+ *
+ * @private component of `<Chat/>`
+ */
+function isKeyboardEventComposing(event: ReactKeyboardEvent<HTMLTextAreaElement>): boolean {
+    const nativeKeyboardEvent = event.nativeEvent as globalThis.KeyboardEvent & {
+        readonly isComposing?: boolean;
+        readonly keyCode?: number;
+    };
+
+    return nativeKeyboardEvent.isComposing === true || nativeKeyboardEvent.keyCode === 229;
+}
+
+/**
+ * Inserts plain text into a textarea value at the current selection.
+ *
+ * @private component of `<Chat/>`
+ */
+function insertTextAtSelection(params: {
+    readonly currentValue: string;
+    readonly insertedText: string;
+    readonly selectionStart: number;
+    readonly selectionEnd: number;
+}): { nextValue: string; caret: number } {
+    const { currentValue, insertedText, selectionStart, selectionEnd } = params;
+    const nextValue =
+        currentValue.slice(0, selectionStart) + insertedText + currentValue.slice(selectionEnd);
+    const caret = selectionStart + insertedText.length;
+
+    return {
+        nextValue,
+        caret,
+    };
+}
+
+/**
+ * Compares attachment id snapshots captured around a deferred Enter resolution.
+ *
+ * @private component of `<Chat/>`
+ */
+function areAttachmentSnapshotsEqual(
+    firstAttachmentIds: ReadonlyArray<string>,
+    secondAttachmentIds: ReadonlyArray<string>,
+): boolean {
+    if (firstAttachmentIds.length !== secondAttachmentIds.length) {
+        return false;
+    }
+
+    return firstAttachmentIds.every((attachmentId, index) => attachmentId === secondAttachmentIds[index]);
+}
+
+/**
  * Renders the chat input area with text, file upload, and voice controls.
  *
  * @private component of `<Chat/>`
@@ -586,6 +676,8 @@ export function ChatInputArea(props: ChatInputAreaProps) {
         speechRecognition,
         speechRecognitionLanguage,
         defaultMessage,
+        enterBehavior,
+        resolveEnterBehavior,
         placeholderMessageContent,
         isFocusedOnLoad,
         isMobile,
@@ -603,8 +695,10 @@ export function ChatInputArea(props: ChatInputAreaProps) {
     const [messageContent, setMessageContent] = useState(defaultMessage || '');
     const messageContentRef = useRef(messageContent);
     const [uploadedFiles, setUploadedFiles] = useState<Array<ChatInputUploadedFile>>([]);
+    const uploadedFilesRef = useRef(uploadedFiles);
     const [isDragOver, setIsDragOver] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+    const isResolvingEnterBehaviorRef = useRef(false);
     const [dictationUiState, setDictationUiState] = useState<DictationUiState>('idle');
     const [dictationInterimText, setDictationInterimText] = useState('');
     const [dictationError, setDictationError] = useState<{ code?: SpeechRecognitionErrorCode; message: string } | null>(
@@ -654,6 +748,10 @@ export function ChatInputArea(props: ChatInputAreaProps) {
     useEffect(() => {
         messageContentRef.current = messageContent;
     }, [messageContent]);
+
+    useEffect(() => {
+        uploadedFilesRef.current = uploadedFiles;
+    }, [uploadedFiles]);
 
     useEffect(() => {
         setMessageContent(defaultMessage || '');
@@ -1003,6 +1101,33 @@ export function ChatInputArea(props: ChatInputAreaProps) {
         setUploadedFiles((previous) => previous.filter((file) => file.id !== fileId));
     }, []);
 
+    const handleInsertNewline = useCallback(
+        (selectionStart?: number, selectionEnd?: number) => {
+            const textareaElement = textareaRef.current;
+            if (!textareaElement) {
+                return;
+            }
+
+            const resolvedSelectionStart = selectionStart ?? textareaElement.selectionStart ?? messageContentRef.current.length;
+            const resolvedSelectionEnd = selectionEnd ?? textareaElement.selectionEnd ?? resolvedSelectionStart;
+            const insertion = insertTextAtSelection({
+                currentValue: messageContentRef.current,
+                insertedText: '\n',
+                selectionStart: resolvedSelectionStart,
+                selectionEnd: resolvedSelectionEnd,
+            });
+
+            setMessageContent(insertion.nextValue);
+            onChange?.(insertion.nextValue);
+
+            requestAnimationFrame(() => {
+                textareaElement.focus();
+                textareaElement.setSelectionRange(insertion.caret, insertion.caret);
+            });
+        },
+        [onChange],
+    );
+
     const handleSend = useCallback(async () => {
         if (!onMessage) {
             throw new Error(`Can not find onMessage callback`);
@@ -1054,6 +1179,93 @@ export function ChatInputArea(props: ChatInputAreaProps) {
             alert(error.message);
         }
     }, [onMessage, uploadedFiles, soundSystem, messageContent, onChange]);
+
+    const handleComposerKeyDown = useCallback(
+        (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
+            if (event.key !== 'Enter') {
+                return;
+            }
+
+            if (isKeyboardEventComposing(event)) {
+                return;
+            }
+
+            if (event.shiftKey) {
+                return;
+            }
+
+            if (!enterBehavior && !event.ctrlKey && resolveEnterBehavior) {
+                event.preventDefault();
+
+                if (isResolvingEnterBehaviorRef.current) {
+                    return;
+                }
+
+                const textareaElement = textareaRef.current;
+                if (!textareaElement) {
+                    return;
+                }
+
+                const snapshot: PendingEnterIntentSnapshot = {
+                    value: messageContentRef.current,
+                    selectionStart: textareaElement.selectionStart ?? messageContentRef.current.length,
+                    selectionEnd: textareaElement.selectionEnd ?? textareaElement.selectionStart ?? messageContentRef.current.length,
+                    attachmentIds: uploadedFilesRef.current.map((uploadedFile) => uploadedFile.id),
+                };
+
+                isResolvingEnterBehaviorRef.current = true;
+
+                void (async () => {
+                    try {
+                        const resolvedBehavior = await resolveEnterBehavior();
+                        if (!resolvedBehavior) {
+                            return;
+                        }
+
+                        const hasSameMessageContent = messageContentRef.current === snapshot.value;
+                        const hasSameAttachments = areAttachmentSnapshotsEqual(
+                            snapshot.attachmentIds,
+                            uploadedFilesRef.current.map((uploadedFile) => uploadedFile.id),
+                        );
+
+                        if (!hasSameMessageContent || !hasSameAttachments) {
+                            return;
+                        }
+
+                        const resolvedAction = resolveChatEnterAction(resolvedBehavior, false);
+
+                        if (resolvedAction === 'SEND') {
+                            const hasTextToSend = spaceTrim(snapshot.value) !== '' || snapshot.attachmentIds.length > 0;
+                            if (!hasTextToSend) {
+                                return;
+                            }
+
+                            await handleSend();
+                            return;
+                        }
+
+                        handleInsertNewline(snapshot.selectionStart, snapshot.selectionEnd);
+                    } finally {
+                        isResolvingEnterBehaviorRef.current = false;
+                    }
+                })();
+
+                return;
+            }
+
+            const effectiveEnterBehavior = enterBehavior || 'SEND';
+            const resolvedAction = resolveChatEnterAction(effectiveEnterBehavior, event.ctrlKey);
+            event.preventDefault();
+
+            if (resolvedAction === 'SEND') {
+                /* not await */ handleSend();
+                return;
+            }
+
+            handleInsertNewline();
+        },
+        [enterBehavior, handleInsertNewline, handleSend, resolveEnterBehavior],
+    );
 
     if (!onMessage) {
         return null;
@@ -1122,17 +1334,7 @@ export function ChatInputArea(props: ChatInputAreaProps) {
                     value={messageContent}
                     placeholder={placeholderMessageContent || 'Write a message...'}
                     onChange={handleTextInputChange}
-                    onKeyDown={(event) => {
-                        if (event.shiftKey) {
-                            return;
-                        }
-                        if (event.key !== 'Enter') {
-                            return;
-                        }
-
-                        event.preventDefault();
-                        /* not await */ handleSend();
-                    }}
+                    onKeyDown={handleComposerKeyDown}
                 />
 
                 {onFileUpload && (

@@ -51,6 +51,22 @@ export type ChatSoundSystem = {
 };
 
 /**
+ * Supported primary Enter-key behaviors for the chat composer.
+ *
+ * @private internal helper of `<Chat/>`
+ */
+type ChatEnterBehavior = 'SEND' | 'NEWLINE';
+
+/**
+ * Async resolver used when the host app wants to decide Enter behavior lazily.
+ *
+ * Returning `null` / `undefined` keeps the current composer text unchanged.
+ *
+ * @private internal helper of `<Chat/>`
+ */
+type ChatEnterBehaviorResolver = () => Promisable<ChatEnterBehavior | null | undefined>;
+
+/**
  * @public exported from `@promptbook/components`
  */
 export type ChatProps = {
@@ -143,6 +159,26 @@ export type ChatProps = {
      * Optional preset message in chat
      */
     readonly defaultMessage?: string;
+
+    /**
+     * Determines which action the plain `Enter` key triggers in the composer.
+     *
+     * `Ctrl+Enter` automatically performs the inverse action.
+     * `Shift+Enter` always inserts a new line.
+     *
+     * @default 'SEND'
+     */
+    readonly enterBehavior?: ChatEnterBehavior;
+
+    /**
+     * Optional async hook used when `enterBehavior` is not known yet.
+     *
+     * It is invoked after the user presses plain `Enter` and can resolve to the
+     * preferred behavior without coupling `<Chat/>` to any specific persistence UI.
+     *
+     * Returning `null` / `undefined` leaves the text unchanged.
+     */
+    readonly resolveEnterBehavior?: ChatEnterBehaviorResolver;
 
     /**
      * List of tasks that are currently in progress that should be displayed
