@@ -12,7 +12,6 @@
     -   Provide a clear (and default) “Not now” / dismiss option; if dismissed, do not re-prompt within the same browser session.
 -   Persist this setting in the existing user-data mechanism in Agents Server, including for ad-hoc/anonymous users tied to the browser.
     -   Reuse the current persistence mechanism of storing user data
-    -   Include migration/default behavior for existing users: default to current behavior (`Enter` sends) unless existing behavior differs (@@@ confirm desired default).
 -   The reusable Chat component must not own persistence; instead it must receive behavior via props.
     -   Introduce a prop `enterBehavior: 'SEND' | 'NEWLINE'`, plus support for the secondary binding (`Ctrl+Enter` inverse).
     -   Ensure the component can be used outside Agents Server with zero dependency on Agents Server user settings.
