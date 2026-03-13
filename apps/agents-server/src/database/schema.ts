@@ -433,6 +433,7 @@ export type AgentsServerDatabase = {
                     lastMessageAt: string | null;
                     userId: number;
                     agentPermanentId: string;
+                    source: 'WEB_UI' | 'OPENAI_API' | 'TEAM_MEMBER';
                     messages: Json;
                     draftMessage: string | null;
                 };
@@ -443,6 +444,7 @@ export type AgentsServerDatabase = {
                     lastMessageAt?: string | null;
                     userId: number;
                     agentPermanentId: string;
+                    source?: 'WEB_UI' | 'OPENAI_API' | 'TEAM_MEMBER';
                     messages?: Json;
                     draftMessage?: string | null;
                 };
@@ -453,6 +455,7 @@ export type AgentsServerDatabase = {
                     lastMessageAt?: string | null;
                     userId?: number;
                     agentPermanentId?: string;
+                    source?: 'WEB_UI' | 'OPENAI_API' | 'TEAM_MEMBER';
                     messages?: Json;
                     draftMessage?: string | null;
                 };

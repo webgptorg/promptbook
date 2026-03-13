@@ -2,6 +2,7 @@ import { Json } from '@/src/database/schema';
 import type { ChatMessage } from '@promptbook-local/types';
 import type { UserChatRecord } from './UserChatRecord';
 import type { UserChatRow } from './UserChatRow';
+import { USER_CHAT_SOURCES } from './UserChatSource';
 
 /**
  * Maps one raw database row into a typed chat record.
@@ -16,6 +17,7 @@ export function mapUserChatRow(row: UserChatRow): UserChatRecord {
         lastMessageAt: row.lastMessageAt,
         userId: row.userId,
         agentPermanentId: row.agentPermanentId,
+        source: row.source || USER_CHAT_SOURCES.WEB_UI,
         messages: normalizeStoredMessages(row.messages),
         draftMessage: row.draftMessage,
     };

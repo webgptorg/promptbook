@@ -4,6 +4,7 @@ import {
     createUserChatDetailPayload,
     deleteUserChat,
     getUserChat,
+    isFrozenUserChatSource,
     updateUserChatMessages,
 } from '@/src/utils/userChat';
 import { UserChatScopeError } from '@/src/utils/userChat/UserChatScopeError';
@@ -37,6 +38,7 @@ export async function GET(
     try {
         const chat = await getUserChat({
             userId: scopeResult.scope.userId,
+            viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
             agentPermanentId: scopeResult.scope.agentPermanentId,
             chatId,
         });
@@ -78,6 +80,21 @@ export async function PATCH(
     }
 
     try {
+        const existingChat = await getUserChat({
+            userId: scopeResult.scope.userId,
+            viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
+            agentPermanentId: scopeResult.scope.agentPermanentId,
+            chatId,
+        });
+
+        if (!existingChat) {
+            return NextResponse.json({ error: 'Chat not found.' }, { status: 404 });
+        }
+
+        if (isFrozenUserChatSource(existingChat.source)) {
+            return NextResponse.json({ error: 'Frozen chats are view-only in the web UI.' }, { status: 403 });
+        }
+
         const body = (await request.json().catch(() => ({}))) as { messages?: unknown };
         if (!Array.isArray(body.messages)) {
             return NextResponse.json({ error: 'messages must be an array.' }, { status: 400 });
@@ -144,6 +161,21 @@ export async function DELETE(
     }
 
     try {
+        const existingChat = await getUserChat({
+            userId: scopeResult.scope.userId,
+            viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
+            agentPermanentId: scopeResult.scope.agentPermanentId,
+            chatId,
+        });
+
+        if (!existingChat) {
+            return NextResponse.json({ error: 'Chat not found.' }, { status: 404 });
+        }
+
+        if (isFrozenUserChatSource(existingChat.source)) {
+            return NextResponse.json({ error: 'Frozen chats are view-only in the web UI.' }, { status: 403 });
+        }
+
         const wasDeleted = await deleteUserChat({
             userId: scopeResult.scope.userId,
             agentPermanentId: scopeResult.scope.agentPermanentId,

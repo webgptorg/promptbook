@@ -1,5 +1,5 @@
 import { CHAT_STREAM_KEEP_ALIVE_INTERVAL_MS } from '@/src/constants/streaming';
-import { createUserChatDetailPayload, getUserChat } from '@/src/utils/userChat';
+import { createUserChatDetailPayload, getUserChat, isFrozenUserChatSource } from '@/src/utils/userChat';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import { NextResponse } from 'next/server';
 import { resolveUserChatScope } from '../../resolveUserChatScope';
@@ -57,6 +57,7 @@ export async function GET(
 
     const chat = await getUserChat({
         userId: scopeResult.scope.userId,
+        viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
         agentPermanentId: scopeResult.scope.agentPermanentId,
         chatId,
     });
@@ -123,6 +124,7 @@ export async function GET(
             const emitLatestSnapshot = async (): Promise<boolean> => {
                 const currentChat = await getUserChat({
                     userId: scopeResult.scope.userId,
+                    viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
                     agentPermanentId: scopeResult.scope.agentPermanentId,
                     chatId,
                 });
@@ -142,7 +144,7 @@ export async function GET(
                     }
                 }
 
-                return payload.activeJobs.length > 0;
+                return !isFrozenUserChatSource(payload.chat.source) && payload.activeJobs.length > 0;
             };
 
             /**

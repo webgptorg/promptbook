@@ -5,6 +5,7 @@ import type { UserChatInsert, UserChatRow } from './UserChatRow';
 import { mapUserChatRow } from './mapUserChatRow';
 import { provideUserChatTable } from './provideUserChatTable';
 import { normalizeMessagesInput, resolveLastMessageAt } from './resolveLastMessageAt';
+import { USER_CHAT_SOURCES } from './UserChatSource';
 
 /**
  * Maximum retries for chat-id collision recovery.
@@ -35,6 +36,7 @@ export async function createUserChat(options: CreateUserChatOptions): Promise<Us
     const messages = normalizeMessagesInput(options.messages || []);
     const now = new Date().toISOString();
     const normalizedChatId = normalizeChatId(options.chatId);
+    const source = options.source || USER_CHAT_SOURCES.WEB_UI;
 
     for (let attempt = 0; attempt < CREATE_USER_CHAT_MAX_ATTEMPTS; attempt++) {
         const userChatTable = await provideUserChatTable();
@@ -46,6 +48,7 @@ export async function createUserChat(options: CreateUserChatOptions): Promise<Us
             createdAt: now,
             updatedAt: now,
             lastMessageAt: resolveLastMessageAt(messages, now),
+            source,
             messages: messages as unknown as Json,
         };
 

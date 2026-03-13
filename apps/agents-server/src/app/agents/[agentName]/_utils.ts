@@ -101,7 +101,7 @@ const getCachedIsAgentDeleted = cache(async (agentName: string): Promise<boolean
         return false; // If agent doesn't exist or error, consider not deleted
     }
 
-    return result.data[0]!.deletedAt !== null;
+    return result.data[0]!.deletedAt != null;
 });
 
 /**

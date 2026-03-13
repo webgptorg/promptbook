@@ -1,3 +1,10 @@
+-   Added frozen external chats to Agents Server `My chats` with admin-only visibility and source labels:
+
+    -   Added durable `UserChat.source` persistence plus migration `2026-03-0240-user-chat-source.sql` so web UI, OpenAI-compatible API, and team-member chats are stored with their origin.
+    -   Persisted OpenAI-compatible and internal team-member chats into canonical `UserChat` / `ChatMessage` records instead of leaving them runtime-only, while keeping external chats hidden from regular users by default.
+    -   Extended `My chats` with an admin-only `Show external chats` filter, source chips such as `API` / `TEAM`, and access rules that show admins external chats across the server while normal users still see only their own web chats.
+    -   Made external chats open as frozen view-only transcripts in the web UI, with a source banner, disabled message sending/cancellation, and existing transcript export/copy flows kept intact.
+
 -   Added safe default-agent cloning from the Core Agents Server into each federated Agents Server:
 
     -   Added a background sync that discovers Core boilerplate agents from the public `default` folder subtree and clones only missing local agents matched by normalized name.

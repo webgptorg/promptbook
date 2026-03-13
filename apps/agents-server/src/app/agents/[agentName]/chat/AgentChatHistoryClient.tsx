@@ -66,6 +66,7 @@ type AgentChatHistoryClientProps = {
     initialForceNewChat?: boolean;
     initialAgentMessage?: string | null;
     isHistoryEnabled: boolean;
+    isCurrentUserAdmin: boolean;
     areFileAttachmentsEnabled: boolean;
     isFeedbackEnabled: boolean;
     isHeadlessMode?: boolean;
@@ -121,6 +122,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         initialForceNewChat = false,
         initialAgentMessage,
         isHistoryEnabled,
+        isCurrentUserAdmin,
         areFileAttachmentsEnabled,
         isFeedbackEnabled,
         isHeadlessMode = false,
@@ -144,6 +146,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const [isCreatingChat, setIsCreatingChat] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+    const [showExternalChats, setShowExternalChats] = useState(false);
     const [currentTimestamp, setCurrentTimestamp] = useState(() => Date.now());
     const hasInitialAutoMessageBeenConsumedRef = useRef(false);
     const autoExecuteTargetChatIdRef = useRef<string | undefined>(initialForceNewChat ? undefined : initialChatId);
@@ -199,9 +202,26 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         ? 'opacity-0 pointer-events-none'
         : 'opacity-100 pointer-events-auto';
     const effectiveIsSidebarCollapsed = isMobileSidebarOpen ? false : isSidebarCollapsed;
+    const shouldShowExternalChats = isCurrentUserAdmin && showExternalChats;
+    const activeChatSummary = useMemo(
+        () => chats.find((chat) => chat.id === activeChatId) || null,
+        [activeChatId, chats],
+    );
+    const isActiveChatReadOnly = activeChatSummary?.isReadOnly === true;
     const hasAnyActiveTimeouts = useMemo(
         () => chats.some((chat) => chat.timeoutActivity.count > 0) || activeTimeouts.length > 0,
         [activeTimeouts.length, chats],
+    );
+
+    /**
+     * Loads one canonical snapshot using the current external-chat filter.
+     */
+    const fetchChatSnapshot = useCallback(
+        (chatId?: string) =>
+            fetchUserChats(agentName, chatId, {
+                showExternalChats: shouldShowExternalChats,
+            }),
+        [agentName, shouldShowExternalChats],
     );
 
     /**
@@ -531,7 +551,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 preferredChatId: effectivePreferredChatId || null,
                 intentSequence,
             });
-            const snapshot = await fetchUserChats(agentName, effectivePreferredChatId);
+            const snapshot = await fetchChatSnapshot(effectivePreferredChatId);
             const shouldCreateFreshChatForInitialMessage =
                 !hasInitialAutoMessageBeenConsumedRef.current &&
                 Boolean(effectiveInitialAutoExecuteMessage) &&
@@ -574,6 +594,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             applyChatDetail,
             applySnapshot,
             effectiveInitialAutoExecuteMessage,
+            fetchChatSnapshot,
             initialForceNewChat,
             issueSelectionIntent,
             logChatSelection,
@@ -592,7 +613,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
             isRefreshingRef.current = true;
             try {
-                const snapshot = await fetchUserChats(agentName, currentActiveChatId);
+                const snapshot = await fetchChatSnapshot(currentActiveChatId);
                 if (!snapshot.activeChatId) {
                     logChatSelection('refresh_missing_active_chat', {
                         chatId: currentActiveChatId,
@@ -610,7 +631,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 isRefreshingRef.current = false;
             }
         },
-        [agentName, applySnapshot, bootstrapChats, logChatSelection, shouldUseHistory],
+        [applySnapshot, bootstrapChats, fetchChatSnapshot, logChatSelection, shouldUseHistory],
     );
 
     useEffect(() => {
@@ -692,7 +713,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     }, [flushActiveDraft, shouldUseHistory]);
 
     useEffect(() => {
-        if (!shouldUseHistory || !activeChatId) {
+        if (!shouldUseHistory || !activeChatId || isActiveChatReadOnly) {
             setIsActiveChatStreamConnected(false);
             return;
         }
@@ -759,10 +780,10 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
             abortController.abort();
         };
-    }, [activeChatId, agentName, applyChatDetail, refreshActiveChat, shouldUseHistory]);
+    }, [activeChatId, agentName, applyChatDetail, isActiveChatReadOnly, refreshActiveChat, shouldUseHistory]);
 
     useEffect(() => {
-        if (!shouldUseHistory || !activeChatId) {
+        if (!shouldUseHistory || !activeChatId || isActiveChatReadOnly) {
             return;
         }
 
@@ -795,7 +816,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             window.removeEventListener('focus', handleFocus);
         };
-    }, [activeChatId, isActiveChatStreamConnected, refreshActiveChat, shouldUseHistory]);
+    }, [activeChatId, isActiveChatReadOnly, isActiveChatStreamConnected, refreshActiveChat, shouldUseHistory]);
 
     /**
      * Selects one existing chat.
@@ -826,7 +847,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 reason: 'open_chat_click',
             });
             try {
-                const snapshot = await fetchUserChats(agentName, chatId);
+                const snapshot = await fetchChatSnapshot(chatId);
                 applySnapshot(snapshot, {
                     expectedChatId: chatId,
                     intentSequence,
@@ -838,8 +859,8 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             }
         },
         [
-            agentName,
             applySnapshot,
+            fetchChatSnapshot,
             flushActiveDraft,
             isActiveChatLoading,
             isSelectionIntentCurrent,
@@ -856,6 +877,13 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         },
         [handleSelectChat, closeMobileSidebar],
     );
+
+    /**
+     * Toggles admin-only external chat visibility.
+     */
+    const handleShowExternalChatsChange = useCallback((nextValue: boolean) => {
+        setShowExternalChats(nextValue);
+    }, []);
 
     /**
      * Creates a fresh chat and makes it active.
@@ -1087,6 +1115,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         !hasInitialAutoMessageBeenConsumedRef.current &&
         Boolean(effectiveInitialAutoExecuteMessage) &&
         Boolean(activeChatId) &&
+        !isActiveChatReadOnly &&
         (!autoMessageTargetId || autoMessageTargetId === activeChatId)
             ? effectiveInitialAutoExecuteMessage
             : undefined;
@@ -1135,8 +1164,10 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                     thinkingMessages={thinkingMessages}
                     speechRecognitionLanguage={speechRecognitionLanguage}
                     initialAgentMessage={initialAgentMessage}
+                    isReadOnly={isActiveChatReadOnly}
+                    readOnlySource={activeChatSummary?.source}
                     messages={activeMessages}
-                    draftMessage={activeChatDraftMessage}
+                    draftMessage={isActiveChatReadOnly ? '' : activeChatDraftMessage}
                     autoExecuteMessage={autoExecuteMessage}
                     autoExecuteMessageAttachments={effectiveInitialAutoExecuteMessageAttachments}
                     areFileAttachmentsEnabled={areFileAttachmentsEnabled}
@@ -1146,9 +1177,9 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                     currentTimestamp={currentTimestamp}
                     onDraftMessageChange={handleDraftMessageChange}
                     onSubmitUserTurn={handleSubmitUserTurn}
-                    onStartNewChat={handleStartNewChatFromChatSurface}
-                    onCancelActiveJob={handleCancelActiveJob}
-                    onCancelActiveTimeout={handleCancelActiveTimeout}
+                    onStartNewChat={isActiveChatReadOnly ? undefined : handleStartNewChatFromChatSurface}
+                    onCancelActiveJob={isActiveChatReadOnly ? undefined : handleCancelActiveJob}
+                    onCancelActiveTimeout={isActiveChatReadOnly ? undefined : handleCancelActiveTimeout}
                     onAutoExecuteMessageConsumed={handleAutoExecuteMessageConsumed}
                 />
             )}
@@ -1176,6 +1207,9 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 onSelectChat={handleSelectChatFromSidebar}
                 onCreateChat={handleCreateChat}
                 onDeleteChat={handleDeleteChat}
+                isAdmin={isCurrentUserAdmin}
+                showExternalChats={shouldShowExternalChats}
+                onShowExternalChatsChange={handleShowExternalChatsChange}
                 isCollapsed={effectiveIsSidebarCollapsed}
                 onToggleCollapse={toggleSidebarCollapsed}
                 isMobileSidebarOpen={isMobileSidebarOpen}

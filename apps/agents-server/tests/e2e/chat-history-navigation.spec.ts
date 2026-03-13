@@ -202,8 +202,12 @@ function readChatIdFromUrl(url: string): string | null {
  */
 function isMatchingUserChatSnapshotRequest(url: string, agentName: string, chatId: string): boolean {
     const parsedUrl = new URL(url);
+    const canonicalAgentPath = `/agents/${encodeURIComponent(agentName)}/api/user-chats`;
+    const isUserChatsPath =
+        parsedUrl.pathname === canonicalAgentPath || /^\/agents\/[^/]+\/api\/user-chats$/.test(parsedUrl.pathname);
+
     return (
-        parsedUrl.pathname === `/agents/${encodeURIComponent(agentName)}/api/user-chats` &&
+        isUserChatsPath &&
         parsedUrl.searchParams.get('chat') === chatId
     );
 }

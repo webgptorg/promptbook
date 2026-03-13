@@ -17,6 +17,7 @@ import { fetchGithubAppStatus, type GithubAppStatusResponse } from '../../../../
 import { createDefaultSpeechRecognition } from '../../../../utils/speech-to-text/createDefaultSpeechRecognition';
 import { chatFileUploadHandler } from '../../../../utils/upload/createBookEditorUploadHandler';
 import { serializeUserLocationPromptParameter, USER_LOCATION_PROMPT_PARAMETER } from '../../../../utils/userLocationPromptParameter';
+import { getUserChatSourceBannerLabel, type UserChatSource } from '../../../../utils/userChat/UserChatSource';
 import { MetaDisclaimerDialog } from '../MetaDisclaimerDialog';
 import { PseudoUserChatDialog } from '../PseudoUserChatDialog';
 import { useAgentChatMetaDisclaimer } from '../useAgentChatMetaDisclaimer';
@@ -36,6 +37,8 @@ type CanonicalAgentChatPanelProps = {
     thinkingMessages?: ReadonlyArray<string>;
     speechRecognitionLanguage?: string;
     initialAgentMessage?: string | null;
+    isReadOnly?: boolean;
+    readOnlySource?: UserChatSource;
     messages: ReadonlyArray<ChatMessage>;
     draftMessage?: string;
     autoExecuteMessage?: string;
@@ -107,6 +110,8 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
         thinkingMessages,
         speechRecognitionLanguage,
         initialAgentMessage,
+        isReadOnly = false,
+        readOnlySource,
         messages,
         draftMessage,
         autoExecuteMessage,
@@ -155,6 +160,10 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
             : agentName;
     }, [agent, agentName]);
     const effectConfigs = useMemo(() => createDefaultChatEffects(), []);
+    const frozenChatBannerLabel = useMemo(
+        () => (readOnlySource ? getUserChatSourceBannerLabel(readOnlySource) : null),
+        [readOnlySource],
+    );
     const normalizedThinkingMessages = useMemo(() => {
         const normalized = (thinkingMessages || []).map((message) => message.trim()).filter(Boolean);
         return normalized.length > 0 ? normalized : ['Thinking...'];
@@ -216,12 +225,16 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
 
     const sendPromptbookMessage = useCallback(
         (message: string) => {
+            if (isReadOnly) {
+                return;
+            }
+
             void onSubmitUserTurn({
                 message,
                 parameters: promptParameters,
             });
         },
-        [onSubmitUserTurn, promptParameters],
+        [isReadOnly, onSubmitUserTurn, promptParameters],
     );
 
     const {
@@ -291,13 +304,17 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
 
     const handleManualMessage = useCallback(
         async (message: string, attachments?: ChatMessage['attachments']) => {
+            if (isReadOnly) {
+                return;
+            }
+
             await onSubmitUserTurn({
                 message,
                 attachments,
                 parameters: effectivePromptParameters,
             });
         },
-        [effectivePromptParameters, onSubmitUserTurn],
+        [effectivePromptParameters, isReadOnly, onSubmitUserTurn],
     );
 
     useEffect(() => {
@@ -317,14 +334,15 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
     useEffect(() => {
         const shouldAutoExecute =
             (Boolean(effectiveAutoExecuteMessage) || Boolean(effectiveAutoExecuteMessageAttachments?.length)) &&
-            !hasAutoExecutedRef.current;
+            !hasAutoExecutedRef.current &&
+            !isReadOnly;
         if (!shouldAutoExecute) {
             return;
         }
 
         hasAutoExecutedRef.current = true;
         void handleManualMessage(effectiveAutoExecuteMessage ?? '', effectiveAutoExecuteMessageAttachments);
-    }, [effectiveAutoExecuteMessage, effectiveAutoExecuteMessageAttachments, handleManualMessage]);
+    }, [effectiveAutoExecuteMessage, effectiveAutoExecuteMessageAttachments, handleManualMessage, isReadOnly]);
 
     const initialMessage = useMemo(() => {
         const agentDisplayName = agent?.meta.fullname || agent?.agentName || agentName;
@@ -385,7 +403,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
         () => activeJobs.find((job) => job.status === 'RUNNING') || activeJobs[0] || null,
         [activeJobs],
     );
-    const cancelAction = cancellableJob && onCancelActiveJob && (
+    const cancelAction = !isReadOnly && cancellableJob && onCancelActiveJob && (
         <button
             type="button"
             className="rounded-full border border-slate-300/80 bg-white/80 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-slate-700 shadow-sm transition hover:border-slate-400 hover:text-slate-900 disabled:cursor-default disabled:opacity-50"
@@ -412,12 +430,14 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
                     messages={renderedMessages}
                     defaultMessage={draftMessage}
                     placeholderMessageContent={inputPlaceholder}
-                    onMessage={handleManualMessage as unknown as (message: string) => Promise<void>}
+                    onMessage={
+                        isReadOnly ? undefined : (handleManualMessage as unknown as (message: string) => Promise<void>)
+                    }
                     onChange={onDraftMessageChange}
-                    onReset={onStartNewChat}
+                    onReset={isReadOnly ? undefined : onStartNewChat}
                     resetRequiresConfirmation={false}
-                    onFeedback={isFeedbackEnabled ? handleFeedback : undefined}
-                    onFileUpload={areFileAttachmentsEnabled ? handleFileUpload : undefined}
+                    onFeedback={!isReadOnly && isFeedbackEnabled ? handleFeedback : undefined}
+                    onFileUpload={!isReadOnly && areFileAttachmentsEnabled ? handleFileUpload : undefined}
                     participants={participants}
                     buttonColor={brandColorHex}
                     visual="FULL_PAGE"
@@ -430,16 +450,24 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
                     teamAgentProfiles={teamAgentProfiles}
                     extraActions={
                         <>
-                            <ChatTimeoutButton
-                                activeTimeouts={activeTimeouts}
-                                currentTimestamp={currentTimestamp}
-                                onCancelActiveTimeout={onCancelActiveTimeout}
-                            />
+                            {!isReadOnly && (
+                                <ChatTimeoutButton
+                                    activeTimeouts={activeTimeouts}
+                                    currentTimestamp={currentTimestamp}
+                                    onCancelActiveTimeout={onCancelActiveTimeout}
+                                />
+                            )}
                             {cancelAction}
-                            {extraActions}
+                            {!isReadOnly && extraActions}
                         </>
                     }
-                />
+                >
+                    {isReadOnly && frozenChatBannerLabel && (
+                        <div className="mx-4 mt-4 rounded-2xl border border-amber-200 bg-amber-50/95 px-4 py-3 text-sm font-medium text-amber-900 shadow-sm">
+                            {`Chat from ${frozenChatBannerLabel}. View-only.`}
+                        </div>
+                    )}
+                </Chat>
             </div>
 
             <PseudoUserChatDialog

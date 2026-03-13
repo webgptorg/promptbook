@@ -7,6 +7,7 @@ import {
     createUserChatDetailPayload,
     getUserChat,
     getUserChatJobByClientMessageId,
+    isFrozenUserChatSource,
     triggerUserChatJobWorker,
 } from '@/src/utils/userChat';
 import { normalizeChatAttachments } from '@promptbook-local/core';
@@ -65,12 +66,17 @@ export async function POST(
         const parameters = normalizePromptParameters(body.parameters);
         const existingChat = await getUserChat({
             userId: scopeResult.scope.userId,
+            viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
             agentPermanentId: scopeResult.scope.agentPermanentId,
             chatId,
         });
 
         if (!existingChat) {
             return NextResponse.json({ error: 'Chat not found.' }, { status: 404 });
+        }
+
+        if (isFrozenUserChatSource(existingChat.source)) {
+            return NextResponse.json({ error: 'Frozen chats are view-only in the web UI.' }, { status: 403 });
         }
 
         const existingJob = await getUserChatJobByClientMessageId({

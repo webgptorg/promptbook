@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { updateUserChatDraft } from '@/src/utils/userChat';
+import { getUserChat, isFrozenUserChatSource, updateUserChatDraft } from '@/src/utils/userChat';
 import { UserChatScopeError } from '@/src/utils/userChat/UserChatScopeError';
 import { resolveUserChatScope } from '../../resolveUserChatScope';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
@@ -28,6 +28,21 @@ export async function PATCH(
     }
 
     try {
+        const existingChat = await getUserChat({
+            userId: scopeResult.scope.userId,
+            viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
+            agentPermanentId: scopeResult.scope.agentPermanentId,
+            chatId,
+        });
+
+        if (!existingChat) {
+            return NextResponse.json({ error: 'Chat not found.' }, { status: 404 });
+        }
+
+        if (isFrozenUserChatSource(existingChat.source)) {
+            return NextResponse.json({ error: 'Frozen chats are view-only in the web UI.' }, { status: 403 });
+        }
+
         const body = (await request.json().catch(() => ({}))) as { draftMessage?: string | null };
 
         if (body.draftMessage !== null && typeof body.draftMessage !== 'string') {

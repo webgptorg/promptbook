@@ -4,6 +4,7 @@ import { Clock3Icon, EyeIcon, EyeOffIcon, MessageSquarePlusIcon, Trash2Icon, XIc
 import { useState } from 'react';
 import { SolidArrowButton } from '../../../../../../../src/book-components/icons/SolidArrowButton';
 import { ChatListLoadingSkeleton } from '../../../../components/Skeleton/ChatListLoadingSkeleton';
+import { getUserChatSourceChipLabel } from '../../../../utils/userChat/UserChatSource';
 import type { UserChatSummary } from '../../../../utils/userChatClient';
 import { formatChatTimeoutRemainingTime } from './formatChatTimeoutRemainingTime';
 
@@ -66,6 +67,18 @@ type AgentChatSidebarProps = {
      */
     readonly onDeleteChat: (chatId: string) => void;
     /**
+     * Whether the current viewer can see admin-only chat filters.
+     */
+    readonly isAdmin: boolean;
+    /**
+     * Whether frozen external chats are included in the current list.
+     */
+    readonly showExternalChats: boolean;
+    /**
+     * Toggles admin-only frozen external chat visibility.
+     */
+    readonly onShowExternalChatsChange: (showExternalChats: boolean) => void;
+    /**
      * Controls whether the desktop sidebar is collapsed into a slim strip.
      */
     readonly isCollapsed: boolean;
@@ -116,6 +129,10 @@ type SidebarChatItemContent = {
      */
     readonly timeoutStatusLabel: string | null;
     /**
+     * Compact label that marks external frozen chats.
+     */
+    readonly sourceChipLabel: string | null;
+    /**
      * Fully descriptive label exposed through title/ARIA attributes.
      */
     readonly accessibilityLabel: string;
@@ -165,6 +182,7 @@ function resolveSidebarChatItemContent(
         timeoutLabel === null
             ? null
             : `${formatActiveTimeoutCount(chat.timeoutActivity.count, formatText)}, ${timeoutLabel} remaining`;
+    const sourceChipLabel = getUserChatSourceChipLabel(chat.source);
 
     return {
         title,
@@ -174,6 +192,7 @@ function resolveSidebarChatItemContent(
         messagesCountLabel,
         timeoutLabel,
         timeoutStatusLabel,
+        sourceChipLabel,
         accessibilityLabel: `${titleWithPreview} (${messagesCountLabel}, ${lastActivity}${
             timeoutStatusLabel ? `, ${timeoutStatusLabel}` : ''
         })`,
@@ -196,6 +215,9 @@ export function AgentChatSidebar({
     onSelectChat,
     onCreateChat,
     onDeleteChat,
+    isAdmin,
+    showExternalChats,
+    onShowExternalChatsChange,
     isCollapsed,
     onToggleCollapse,
     isMobileSidebarOpen,
@@ -232,10 +254,12 @@ export function AgentChatSidebar({
         chat,
         isActive: chat.id === activeChatId,
         isEmpty: chat.messagesCount <= EMPTY_CHAT_MAX_MESSAGES,
+        isReadOnly: chat.isReadOnly,
         content: resolveSidebarChatItemContent(chat, formatText, formatChatTimestamp, currentTimestamp),
     }));
     const emptyChatCount = allSidebarItems.filter((item) => item.isEmpty).length;
     const sidebarItems = allSidebarItems.filter((item) => showEmptyChats || !item.isEmpty || item.isActive);
+    const shouldRenderFilters = emptyChatCount > 0 || isAdmin;
 
     return (
         <>
@@ -307,6 +331,11 @@ export function AgentChatSidebar({
                                                         title={content.timeoutStatusLabel || undefined}
                                                     />
                                                 )}
+                                                {content.sourceChipLabel && (
+                                                    <span className="absolute left-1.5 bottom-1.5 z-[5] inline-flex items-center rounded-full bg-slate-900/85 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.18em] text-white shadow-sm">
+                                                        {content.sourceChipLabel}
+                                                    </span>
+                                                )}
                                                 <span
                                                     className={`absolute top-0.5 right-0.5 z-[5] inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold leading-none shadow-sm ${
                                                         isActive ? 'bg-blue-500 text-white' : 'bg-slate-400 text-white'
@@ -347,23 +376,45 @@ export function AgentChatSidebar({
                             </div>
                         )}
 
-                        {emptyChatCount > 0 && !isLoadingChats && (
-                            <button
-                                type="button"
-                                onClick={() => setShowEmptyChats((prev) => !prev)}
-                                className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:text-slate-600 hover:bg-slate-100"
-                                title={
-                                    showEmptyChats
-                                        ? formatText('Hide empty chats')
-                                        : `${formatText('Show')} ${emptyChatCount} ${formatText('empty')}`
-                                }
-                            >
-                                {showEmptyChats ? (
-                                    <EyeOffIcon className="h-3.5 w-3.5" />
-                                ) : (
-                                    <EyeIcon className="h-3.5 w-3.5" />
+                        {shouldRenderFilters && !isLoadingChats && (
+                            <div className="flex flex-col items-center gap-2">
+                                {emptyChatCount > 0 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowEmptyChats((prev) => !prev)}
+                                        className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:text-slate-600 hover:bg-slate-100"
+                                        title={
+                                            showEmptyChats
+                                                ? formatText('Hide empty chats')
+                                                : `${formatText('Show')} ${emptyChatCount} ${formatText('empty')}`
+                                        }
+                                    >
+                                        {showEmptyChats ? (
+                                            <EyeOffIcon className="h-3.5 w-3.5" />
+                                        ) : (
+                                            <EyeIcon className="h-3.5 w-3.5" />
+                                        )}
+                                    </button>
                                 )}
-                            </button>
+                                {isAdmin && (
+                                    <button
+                                        type="button"
+                                        onClick={() => onShowExternalChatsChange(!showExternalChats)}
+                                        className={`inline-flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-[9px] font-bold uppercase tracking-[0.18em] transition ${
+                                            showExternalChats
+                                                ? 'bg-slate-900 text-white'
+                                                : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+                                        }`}
+                                        title={
+                                            showExternalChats
+                                                ? formatText('Hide external chats')
+                                                : formatText('Show external chats')
+                                        }
+                                    >
+                                        EXT
+                                    </button>
+                                )}
+                            </div>
                         )}
 
                         <p className="text-[11px] text-slate-400">{formatText('Chats')}</p>
@@ -398,16 +449,23 @@ export function AgentChatSidebar({
                                                         ? 'border-blue-300 bg-blue-50 shadow-sm'
                                                         : 'border-transparent hover:border-slate-200 hover:bg-slate-100/80'
                                                 } ${isEmpty && !isActive ? 'opacity-40' : ''}`}
-                                            >
-                                                <button
-                                                    type="button"
-                                                    className="w-full text-left px-3 py-3 pr-10"
-                                                    onClick={() => handleChatChoose(chat.id)}
-                                                    aria-label={content.accessibilityLabel}
-                                                    title={content.accessibilityLabel}
                                                 >
-                                                    <div className="text-sm font-medium text-slate-800 truncate">
-                                                        {content.title}
+                                                    <button
+                                                        type="button"
+                                                        className="w-full text-left px-3 py-3 pr-10"
+                                                        onClick={() => handleChatChoose(chat.id)}
+                                                        aria-label={content.accessibilityLabel}
+                                                        title={content.accessibilityLabel}
+                                                    >
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="min-w-0 flex-1 truncate text-sm font-medium text-slate-800">
+                                                            {content.title}
+                                                        </div>
+                                                        {content.sourceChipLabel && (
+                                                            <span className="inline-flex flex-shrink-0 items-center rounded-full bg-slate-900 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white">
+                                                                {content.sourceChipLabel}
+                                                            </span>
+                                                        )}
                                                     </div>
                                                     <div className="text-xs text-slate-500 truncate mt-1">
                                                         {content.preview}
@@ -428,21 +486,23 @@ export function AgentChatSidebar({
                                                         )}
                                                     </div>
                                                 </button>
-                                                <button
-                                                    type="button"
-                                                    className="absolute right-2 top-2 p-1.5 rounded-md text-slate-400 hover:text-red-600 hover:bg-white/90 opacity-0 group-hover:opacity-100 focus-visible:outline-offset-2 focus-visible:outline focus-visible:outline-blue-400"
-                                                    onClick={(event) => {
-                                                        event.preventDefault();
-                                                        event.stopPropagation();
-                                                        onDeleteChat(chat.id);
-                                                        if (isMobileSidebarOpen) {
-                                                            onCloseMobileSidebar();
-                                                        }
-                                                    }}
-                                                    title={formatText('Delete chat')}
-                                                >
-                                                    <Trash2Icon className="h-4 w-4" />
-                                                </button>
+                                                {!chat.isReadOnly && (
+                                                    <button
+                                                        type="button"
+                                                        className="absolute right-2 top-2 p-1.5 rounded-md text-slate-400 hover:text-red-600 hover:bg-white/90 opacity-0 group-hover:opacity-100 focus-visible:outline-offset-2 focus-visible:outline focus-visible:outline-blue-400"
+                                                        onClick={(event) => {
+                                                            event.preventDefault();
+                                                            event.stopPropagation();
+                                                            onDeleteChat(chat.id);
+                                                            if (isMobileSidebarOpen) {
+                                                                onCloseMobileSidebar();
+                                                            }
+                                                        }}
+                                                        title={formatText('Delete chat')}
+                                                    >
+                                                        <Trash2Icon className="h-4 w-4" />
+                                                    </button>
+                                                )}
                                             </div>
                                         );
                                     })
@@ -450,25 +510,49 @@ export function AgentChatSidebar({
                             </div>
                         )}
 
-                        {emptyChatCount > 0 && !isLoadingChats && (
+                        {shouldRenderFilters && !isLoadingChats && (
                             <div className="px-2 pb-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowEmptyChats((prev) => !prev)}
-                                    className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs text-slate-400 transition hover:text-slate-600 hover:bg-slate-100"
-                                >
-                                    {showEmptyChats ? (
-                                        <>
-                                            <EyeOffIcon className="h-3.5 w-3.5" />
-                                            {formatText('Hide empty chats')}
-                                        </>
-                                    ) : (
-                                        <>
-                                            <EyeIcon className="h-3.5 w-3.5" />
-                                            {`${formatText('Show')} ${emptyChatCount} ${formatText('empty')}`}
-                                        </>
-                                    )}
-                                </button>
+                                <div className="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-2">
+                                    <div className="px-1 pb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                                        {formatText('Filters')}
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        {emptyChatCount > 0 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowEmptyChats((prev) => !prev)}
+                                                className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs text-slate-400 transition hover:text-slate-600 hover:bg-slate-100"
+                                            >
+                                                {showEmptyChats ? (
+                                                    <>
+                                                        <EyeOffIcon className="h-3.5 w-3.5" />
+                                                        {formatText('Hide empty chats')}
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <EyeIcon className="h-3.5 w-3.5" />
+                                                        {`${formatText('Show')} ${emptyChatCount} ${formatText('empty')}`}
+                                                    </>
+                                                )}
+                                            </button>
+                                        )}
+                                        {isAdmin && (
+                                            <button
+                                                type="button"
+                                                onClick={() => onShowExternalChatsChange(!showExternalChats)}
+                                                className={`w-full inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs transition ${
+                                                    showExternalChats
+                                                        ? 'bg-slate-900 text-white'
+                                                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                                                }`}
+                                            >
+                                                {showExternalChats
+                                                    ? formatText('Hide external chats')
+                                                    : formatText('Show external chats')}
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </>

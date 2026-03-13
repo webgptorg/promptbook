@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import { cancelScheduledUserChatTimeout, getUserChatTimeout } from '@/src/utils/userChatTimeout';
-import { createUserChatDetailPayload, getUserChat } from '@/src/utils/userChat';
+import { createUserChatDetailPayload, getUserChat, isFrozenUserChatSource } from '@/src/utils/userChat';
 import { resolveUserChatScope } from '../../../../resolveUserChatScope';
 
 /**
@@ -32,12 +32,17 @@ export async function POST(
     try {
         const chat = await getUserChat({
             userId: scopeResult.scope.userId,
+            viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
             agentPermanentId: scopeResult.scope.agentPermanentId,
             chatId,
         });
 
         if (!chat) {
             return NextResponse.json({ error: 'Chat not found.' }, { status: 404 });
+        }
+
+        if (isFrozenUserChatSource(chat.source)) {
+            return NextResponse.json({ error: 'Frozen chats are view-only in the web UI.' }, { status: 403 });
         }
 
         const timeout = await getUserChatTimeout({

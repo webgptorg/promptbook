@@ -17,6 +17,7 @@ export { listUserChats } from './userChat/listUserChats';
 export { listUserChatJobs } from './userChat/listUserChatJobs';
 export { mutateUserChat } from './userChat/mutateUserChat';
 export { persistUserChatJobTerminalState } from './userChat/persistUserChatJobTerminalState';
+export { persistFrozenUserChat } from './userChat/persistFrozenUserChat';
 export { recoverExpiredRunningUserChatJobs } from './userChat/recoverExpiredRunningUserChatJobs';
 export { requestUserChatJobCancellation } from './userChat/requestUserChatJobCancellation';
 export { resolveUserChatWorkerInternalToken } from './userChat/resolveUserChatWorkerInternalToken';
@@ -26,6 +27,13 @@ export { triggerUserChatJobWorker } from './userChat/triggerUserChatJobWorker';
 export { updateUserChatDraft } from './userChat/updateUserChatDraft';
 export { updateUserChatAssistantMessage } from './userChat/updateUserChatAssistantMessage';
 export { updateUserChatMessages } from './userChat/updateUserChatMessages';
+export {
+    getUserChatSourceBannerLabel,
+    getUserChatSourceChipLabel,
+    isFrozenUserChatSource,
+    USER_CHAT_SOURCES,
+} from './userChat/UserChatSource';
+export type { UserChatSource } from './userChat/UserChatSource';
 export type {
     CreateUserChatOptions,
     DeleteUserChatOptions,

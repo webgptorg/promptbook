@@ -7,6 +7,7 @@ import { ensureUserChatTimeoutWorkerBootstrapped } from '@/src/utils/userChatTim
  */
 export type ResolvedUserChatScope = {
     userId: number;
+    viewerIsAdmin: boolean;
     agentPermanentId: string;
 };
 
@@ -36,6 +37,7 @@ export async function resolveUserChatScope(
             ok: true,
             scope: {
                 userId: currentUserIdentity.userId,
+                viewerIsAdmin: currentUserIdentity.isAdmin,
                 agentPermanentId,
             },
         };

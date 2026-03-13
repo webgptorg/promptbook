@@ -1,6 +1,7 @@
 'use client';
 
 import type { ChatMessage } from '@promptbook-local/types';
+import type { UserChatSource } from './userChat/UserChatSource';
 
 /**
  * Header carrying stable anonymous username for user-chat API calls.
@@ -121,6 +122,8 @@ export type UserChatSummary = {
     createdAt: string;
     updatedAt: string;
     lastMessageAt: string | null;
+    source: UserChatSource;
+    isReadOnly: boolean;
     messagesCount: number;
     title: string;
     preview: string;
@@ -191,6 +194,16 @@ export type UserChatsSnapshot = {
     activeDraftMessage?: string | null;
     activeJobs: Array<UserChatJob>;
     activeTimeouts: Array<UserChatTimeout>;
+};
+
+/**
+ * Optional query flags for loading user-chat snapshots.
+ */
+export type FetchUserChatsOptions = {
+    /**
+     * When true, admin users can include frozen external chats in the listing.
+     */
+    showExternalChats?: boolean;
 };
 
 /**
@@ -362,10 +375,17 @@ async function resolveUserChatApiError(response: Response, fallbackMessage: stri
 /**
  * Fetches chats for one agent and includes resolved active chat messages.
  */
-export async function fetchUserChats(agentName: string, chatId?: string): Promise<UserChatsSnapshot> {
+export async function fetchUserChats(
+    agentName: string,
+    chatId?: string,
+    options: FetchUserChatsOptions = {},
+): Promise<UserChatsSnapshot> {
     const query = new URLSearchParams();
     if (chatId) {
         query.set('chat', chatId);
+    }
+    if (options.showExternalChats) {
+        query.set('showExternalChats', 'true');
     }
 
     const queryString = query.toString();
@@ -405,12 +425,26 @@ export async function createUserChat(agentName: string): Promise<UserChatDetail>
 /**
  * Loads a single chat detail by id.
  */
-export async function fetchUserChat(agentName: string, chatId: string): Promise<UserChatDetail> {
-    const response = await fetch(`/agents/${encodeURIComponent(agentName)}/api/user-chats/${encodeURIComponent(chatId)}`, {
-        method: 'GET',
-        cache: 'no-store',
-        headers: createUserChatRequestHeaders(),
-    });
+export async function fetchUserChat(
+    agentName: string,
+    chatId: string,
+    options: FetchUserChatsOptions = {},
+): Promise<UserChatDetail> {
+    const query = new URLSearchParams();
+    if (options.showExternalChats) {
+        query.set('showExternalChats', 'true');
+    }
+
+    const response = await fetch(
+        `/agents/${encodeURIComponent(agentName)}/api/user-chats/${encodeURIComponent(chatId)}${
+            query.size > 0 ? `?${query.toString()}` : ''
+        }`,
+        {
+            method: 'GET',
+            cache: 'no-store',
+            headers: createUserChatRequestHeaders(),
+        },
+    );
 
     if (!response.ok) {
         throw await resolveUserChatApiError(response, 'Failed to load chat.');

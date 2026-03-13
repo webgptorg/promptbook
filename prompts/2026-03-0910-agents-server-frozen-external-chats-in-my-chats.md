@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 an hour by OpenAI Codex `gpt-5.4`
 
 [🧊📡] Frozen chats from API & team members visible in My Chats
 
@@ -41,3 +41,4 @@
     -   My Chats UI panel in the sidebar
     -   Chat view component
     -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

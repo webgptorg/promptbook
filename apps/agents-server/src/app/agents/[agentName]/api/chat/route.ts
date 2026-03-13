@@ -19,6 +19,7 @@ import { resolveChatMessageContentForApiRequest } from '@/src/utils/chat/validat
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
+import { resolveCurrentUserIdentity, type ResolvedCurrentUserIdentity } from '@/src/utils/currentUserIdentity';
 import {
     resolveMetaDisclaimerMarkdownFromAgentSource,
     resolveMetaDisclaimerStatusForUser,
@@ -28,6 +29,7 @@ import { extractUseEmailConfigurationFromAgentSource } from '@/src/utils/emails/
 import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
 import { resolveUseEmailSmtpCredential } from '@/src/utils/resolveUseEmailSmtpCredential';
 import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithubToken';
+import { persistFrozenUserChat, USER_CHAT_SOURCES } from '@/src/utils/userChat';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
 import {
     AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS,
@@ -146,6 +148,57 @@ function createChatApiErrorResponse(message: string, status: number, type: ChatA
     );
 }
 
+/**
+ * Returns true when the current stateless chat request comes from an authenticated internal user.
+ */
+function shouldPersistTeamMemberFrozenChat(identity: ResolvedCurrentUserIdentity | null): boolean {
+    return Boolean(identity && !identity.isAnonymous);
+}
+
+/**
+ * Creates a frozen chat snapshot for one team-member/internal stateless chat request.
+ */
+function createFrozenTeamMemberChatMessages(options: {
+    thread?: ReadonlyArray<ChatMessage>;
+    userMessageContent: string;
+    userAttachments?: ChatMessage['attachments'];
+    assistantContent?: string;
+}): Array<ChatMessage> {
+    const startedAt = Date.now();
+    const normalizedThread = (options.thread || []).map((message, index) => ({
+        ...message,
+        id: message.id || `team-frozen-${index}`,
+        createdAt:
+            message.createdAt ||
+            (new Date(startedAt + index).toISOString() as NonNullable<ChatMessage['createdAt']>),
+    }));
+    const messages = [
+        ...normalizedThread,
+        {
+            id: `team-frozen-${normalizedThread.length}`,
+            sender: 'USER',
+            content: options.userMessageContent,
+            attachments: options.userAttachments,
+            isComplete: true,
+            createdAt: new Date(startedAt + normalizedThread.length).toISOString() as NonNullable<
+                ChatMessage['createdAt']
+            >,
+        } satisfies ChatMessage,
+    ];
+
+    if (options.assistantContent !== undefined) {
+        messages.push({
+            id: `team-frozen-${messages.length}`,
+            sender: 'AGENT',
+            content: options.assistantContent,
+            isComplete: true,
+            createdAt: new Date(startedAt + messages.length).toISOString() as NonNullable<ChatMessage['createdAt']>,
+        } satisfies ChatMessage);
+    }
+
+    return messages;
+}
+
 export async function OPTIONS(request: Request) {
     keepUnused(request);
 
@@ -213,7 +266,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const useEmailConfiguration = extractUseEmailConfigurationFromAgentSource(agentSource);
         // [▶️] const executionTools = await $provideExecutionToolsForServer();
         const messageSuffix = resolveMessageSuffixFromAgentSource(agentSource);
-        const currentUserIdentity = await resolveCurrentUserMemoryIdentity();
+        const [currentUserIdentity, currentRequestIdentity] = await Promise.all([
+            resolveCurrentUserMemoryIdentity(),
+            resolveCurrentUserIdentity(),
+        ]);
         const projectGithubToken = await resolveUseProjectGithubToken({
             userId: currentUserIdentity?.userId,
             agentPermanentId: agentId,
@@ -307,6 +363,24 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             message: userMessageContent,
             previousMessageHash: null, // <- TODO: [🧠] How to handle previous message hash?
         });
+        let persistedFrozenChatId: string | undefined;
+        if (!isPrivateModeEnabled && shouldPersistTeamMemberFrozenChat(currentRequestIdentity)) {
+            const persistedFrozenChat = await persistFrozenUserChat({
+                userId: currentRequestIdentity!.userId,
+                agentPermanentId: agentId,
+                source: USER_CHAT_SOURCES.TEAM_MEMBER,
+                messages: createFrozenTeamMemberChatMessages({
+                    thread,
+                    userMessageContent: message,
+                    userAttachments: attachments,
+                }),
+            }).catch((error) => {
+                console.error('[user-chat] Failed to persist team-member frozen chat', error);
+                return null;
+            });
+
+            persistedFrozenChatId = persistedFrozenChat?.id;
+        }
 
         const encoder = new TextEncoder();
         const readableStream = new ReadableStream({
@@ -533,6 +607,22 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                         previousMessageHash: userMessageHash,
                         usage: response.usage,
                     });
+                    if (!isPrivateModeEnabled && shouldPersistTeamMemberFrozenChat(currentRequestIdentity)) {
+                        await persistFrozenUserChat({
+                            userId: currentRequestIdentity!.userId,
+                            agentPermanentId: agentId,
+                            source: USER_CHAT_SOURCES.TEAM_MEMBER,
+                            chatId: persistedFrozenChatId,
+                            messages: createFrozenTeamMemberChatMessages({
+                                thread,
+                                userMessageContent: message,
+                                userAttachments: attachments,
+                                assistantContent: responseContentWithSuffix,
+                            }),
+                        }).catch((error) => {
+                            console.error('[user-chat] Failed to refresh team-member frozen chat', error);
+                        });
+                    }
 
                     // Note: [🐱‍🚀] Save the learned data
                     if (!isPrivateModeEnabled && !resolvedAgentContext.isBookScopedAgent) {

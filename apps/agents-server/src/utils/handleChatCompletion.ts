@@ -21,6 +21,7 @@ import { extractUseEmailConfigurationFromAgentSource } from '@/src/utils/emails/
 import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
 import { resolveUseEmailSmtpCredential } from '@/src/utils/resolveUseEmailSmtpCredential';
 import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithubToken';
+import { persistFrozenUserChat, USER_CHAT_SOURCES } from '@/src/utils/userChat';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
 import { Agent, computeAgentHash } from '@promptbook-local/core';
 import type {
@@ -114,6 +115,14 @@ function createCompatibilityUsage(
 
 type OpenAIChatToolDefinition = OpenAI.Chat.Completions.ChatCompletionTool & OpenAI.Beta.AssistantTool;
 
+/**
+ * Best-effort OpenAI-compatible message shape used for frozen audit snapshots.
+ */
+type OpenAiCompatibilityMessageLike = {
+    role?: unknown;
+    content?: unknown;
+};
+
 function convertOpenAiTools(rawTools: unknown): Array<LlmToolDefinition> | undefined {
     if (!Array.isArray(rawTools)) {
         return undefined;
@@ -187,6 +196,110 @@ function parseOpenAiToolChoice(value: unknown): OpenAI.Chat.Completions.ChatComp
     }
 
     return value as OpenAI.Chat.Completions.ChatCompletionToolChoiceOption;
+}
+
+/**
+ * Converts arbitrary OpenAI-compatible message content into plain text for frozen chat replay.
+ */
+function normalizeOpenAiCompatibilityMessageContent(value: unknown): string {
+    if (typeof value === 'string') {
+        return value;
+    }
+
+    if (Array.isArray(value)) {
+        return value
+            .map((part) => {
+                if (typeof part === 'string') {
+                    return part;
+                }
+
+                if (!part || typeof part !== 'object') {
+                    return '';
+                }
+
+                const partLike = part as { type?: unknown; text?: unknown; image_url?: unknown };
+                if (typeof partLike.text === 'string') {
+                    return partLike.text;
+                }
+
+                if (typeof partLike.type === 'string' && partLike.type.toLowerCase().includes('image')) {
+                    return '[Image input]';
+                }
+
+                if (partLike.image_url) {
+                    return '[Image input]';
+                }
+
+                return '';
+            })
+            .filter(Boolean)
+            .join('\n');
+    }
+
+    if (value === null || value === undefined) {
+        return '';
+    }
+
+    try {
+        return JSON.stringify(value, null, 2);
+    } catch {
+        return String(value);
+    }
+}
+
+/**
+ * Maps OpenAI-compatible roles to Promptbook chat senders for frozen chat replay.
+ */
+function mapOpenAiCompatibilityRoleToSender(role: unknown): ChatMessage['sender'] {
+    if (typeof role !== 'string') {
+        return 'USER';
+    }
+
+    switch (role) {
+        case 'assistant':
+            return 'AGENT';
+        case 'system':
+            return 'SYSTEM';
+        case 'tool':
+            return 'TOOL';
+        case 'developer':
+            return 'SYSTEM';
+        default:
+            return 'USER';
+    }
+}
+
+/**
+ * Creates a frozen chat transcript from one OpenAI-compatible request snapshot.
+ */
+function createFrozenOpenAiCompatibilityMessages(
+    rawMessages: ReadonlyArray<unknown>,
+    assistantContent?: string,
+): Array<ChatMessage> {
+    const startedAt = Date.now();
+    const messages = rawMessages.map((rawMessage, index) => {
+        const message = rawMessage as OpenAiCompatibilityMessageLike;
+
+        return {
+            id: `openai-frozen-${index}`,
+            sender: mapOpenAiCompatibilityRoleToSender(message.role),
+            content: normalizeOpenAiCompatibilityMessageContent(message.content),
+            isComplete: true,
+            createdAt: new Date(startedAt + index).toISOString() as NonNullable<ChatMessage['createdAt']>,
+        } satisfies ChatMessage;
+    });
+
+    if (assistantContent !== undefined) {
+        messages.push({
+            id: `openai-frozen-${messages.length}`,
+            sender: 'AGENT',
+            content: assistantContent,
+            isComplete: true,
+            createdAt: new Date(startedAt + messages.length).toISOString() as NonNullable<ChatMessage['createdAt']>,
+        } satisfies ChatMessage);
+    }
+
+    return messages;
 }
 
 export async function handleChatCompletion(
@@ -465,6 +578,20 @@ export async function handleChatCompletion(
             thread,
             ...(runtimeTools ? { tools: runtimeTools } : {}),
         };
+        let persistedFrozenChatId: string | undefined;
+        if (!isPrivateModeEnabled && currentUserIdentity?.userId) {
+            const persistedFrozenChat = await persistFrozenUserChat({
+                userId: currentUserIdentity.userId,
+                agentPermanentId: agentId,
+                source: USER_CHAT_SOURCES.OPENAI_API,
+                messages: createFrozenOpenAiCompatibilityMessages(messages),
+            }).catch((error) => {
+                console.error('[user-chat] Failed to persist OpenAI-compatible frozen chat', error);
+                return null;
+            });
+
+            persistedFrozenChatId = persistedFrozenChat?.id;
+        }
         if (stream) {
             const encoder = new TextEncoder();
             const readableStream = new ReadableStream({
@@ -565,6 +692,17 @@ export async function handleChatCompletion(
                             previousMessageHash: userMessageHash,
                             usage: result.usage,
                         });
+                        if (!isPrivateModeEnabled && currentUserIdentity?.userId) {
+                            await persistFrozenUserChat({
+                                userId: currentUserIdentity.userId,
+                                agentPermanentId: agentId,
+                                source: USER_CHAT_SOURCES.OPENAI_API,
+                                chatId: persistedFrozenChatId,
+                                messages: createFrozenOpenAiCompatibilityMessages(messages, responseContentWithSuffix),
+                            }).catch((error) => {
+                                console.error('[user-chat] Failed to refresh OpenAI-compatible frozen chat', error);
+                            });
+                        }
 
                         // Note: [🐱‍🚀] Save the learned data
                         const newAgentSource = agent.agentSource.value;
@@ -624,6 +762,17 @@ export async function handleChatCompletion(
                 previousMessageHash: userMessageHash,
                 usage: result.usage,
             });
+            if (!isPrivateModeEnabled && currentUserIdentity?.userId) {
+                await persistFrozenUserChat({
+                    userId: currentUserIdentity.userId,
+                    agentPermanentId: agentId,
+                    source: USER_CHAT_SOURCES.OPENAI_API,
+                    chatId: persistedFrozenChatId,
+                    messages: createFrozenOpenAiCompatibilityMessages(messages, responseContentWithSuffix),
+                }).catch((error) => {
+                    console.error('[user-chat] Failed to refresh OpenAI-compatible frozen chat', error);
+                });
+            }
 
             // Note: [🐱‍🚀] Save the learned data
             if (!isPrivateModeEnabled) {

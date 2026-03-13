@@ -4,6 +4,7 @@ import {
     createUserChatDetailPayload,
     getUserChat,
     getUserChatJob,
+    isFrozenUserChatSource,
     persistUserChatJobTerminalState,
     requestUserChatJobCancellation,
     triggerUserChatJobWorker,
@@ -46,18 +47,23 @@ export async function POST(
             return NextResponse.json({ error: 'Job not found.' }, { status: 404 });
         }
 
+        const existingChat = await getUserChat({
+            userId: scopeResult.scope.userId,
+            viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
+            agentPermanentId: scopeResult.scope.agentPermanentId,
+            chatId,
+        });
+
+        if (!existingChat) {
+            return NextResponse.json({ error: 'Chat not found.' }, { status: 404 });
+        }
+
+        if (isFrozenUserChatSource(existingChat.source)) {
+            return NextResponse.json({ error: 'Frozen chats are view-only in the web UI.' }, { status: 403 });
+        }
+
         if (job.status === 'COMPLETED' || job.status === 'FAILED' || job.status === 'CANCELLED') {
-            const chat = await getUserChat({
-                userId: scopeResult.scope.userId,
-                agentPermanentId: scopeResult.scope.agentPermanentId,
-                chatId,
-            });
-
-            if (!chat) {
-                return NextResponse.json({ error: 'Chat not found.' }, { status: 404 });
-            }
-
-            return NextResponse.json(await createUserChatDetailPayload(chat));
+            return NextResponse.json(await createUserChatDetailPayload(existingChat));
         }
 
         const cancellationRequestedJob = await requestUserChatJobCancellation(jobId);

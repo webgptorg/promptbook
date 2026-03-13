@@ -5,6 +5,7 @@ import {
     createUserChatDetailPayload,
     createUserChatSummary,
     listUserChats,
+    USER_CHAT_SOURCES,
 } from '@/src/utils/userChat';
 import { listUserChatTimeoutActivities } from '@/src/utils/userChatTimeout/userChatTimeoutStore';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
@@ -31,9 +32,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
     try {
         const requestUrl = new URL(request.url);
         const requestedChatId = normalizeOptionalString(requestUrl.searchParams.get('chat'));
+        const showExternalChats = normalizeBooleanFlag(requestUrl.searchParams.get('showExternalChats'));
         const chats = await listUserChats({
             userId: scopeResult.scope.userId,
+            viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
             agentPermanentId: scopeResult.scope.agentPermanentId,
+            includeExternalChats: showExternalChats,
         });
         const timeoutActivities = await listUserChatTimeoutActivities({
             userId: scopeResult.scope.userId,
@@ -93,6 +97,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const chat = await createUserChat({
             userId: scopeResult.scope.userId,
             agentPermanentId: scopeResult.scope.agentPermanentId,
+            source: USER_CHAT_SOURCES.WEB_UI,
             chatId,
             messages,
         });
@@ -116,6 +121,13 @@ function normalizeOptionalString(value: string | null | undefined): string | und
 
     const normalized = value.trim();
     return normalized.length > 0 ? normalized : undefined;
+}
+
+/**
+ * Parses one permissive boolean query flag.
+ */
+function normalizeBooleanFlag(value: string | null): boolean {
+    return value === '1' || value === 'true' || value === '';
 }
 
 /**

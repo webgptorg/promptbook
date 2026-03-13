@@ -1,6 +1,7 @@
 import type { UserChatRecord, UserChatSummary, UserChatTimeoutActivity } from './UserChatRecord';
 import { shortenText } from '../shortenText';
 import { textToPreviewText } from '../textToPreviewText';
+import { isFrozenUserChatSource } from './UserChatSource';
 
 /**
  * Max title length in chat list.
@@ -50,6 +51,8 @@ export function createUserChatSummary(
         createdAt: chat.createdAt,
         updatedAt: chat.updatedAt,
         lastMessageAt: chat.lastMessageAt,
+        source: chat.source,
+        isReadOnly: isFrozenUserChatSource(chat.source),
         messagesCount: chat.messages.length,
         title: shortenText(titleSource || DEFAULT_CHAT_TITLE, CHAT_TITLE_MAX_LENGTH),
         preview: shortenText(previewSource, CHAT_PREVIEW_MAX_LENGTH),

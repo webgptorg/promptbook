@@ -1,4 +1,5 @@
 import type { ChatMessage } from '@promptbook-local/types';
+import type { UserChatSource } from './UserChatSource';
 
 /**
  * User chat aggregate stored per user and per agent.
@@ -10,6 +11,7 @@ export type UserChatRecord = {
     lastMessageAt: string | null;
     userId: number;
     agentPermanentId: string;
+    source: UserChatSource;
     messages: Array<ChatMessage>;
     draftMessage: string | null;
 };
@@ -30,6 +32,8 @@ export type UserChatSummary = {
     createdAt: string;
     updatedAt: string;
     lastMessageAt: string | null;
+    source: UserChatSource;
+    isReadOnly: boolean;
     messagesCount: number;
     title: string;
     preview: string;
@@ -41,7 +45,9 @@ export type UserChatSummary = {
  */
 export type ListUserChatsOptions = {
     userId: number;
+    viewerIsAdmin: boolean;
     agentPermanentId: string;
+    includeExternalChats?: boolean;
 };
 
 /**
@@ -49,6 +55,7 @@ export type ListUserChatsOptions = {
  */
 export type GetUserChatOptions = {
     userId: number;
+    viewerIsAdmin?: boolean;
     agentPermanentId: string;
     chatId: string;
 };
@@ -59,6 +66,7 @@ export type GetUserChatOptions = {
 export type CreateUserChatOptions = {
     userId: number;
     agentPermanentId: string;
+    source?: UserChatSource;
     chatId?: string;
     messages?: ReadonlyArray<ChatMessage>;
 };
