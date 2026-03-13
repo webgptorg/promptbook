@@ -11,6 +11,12 @@ import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
 import { TODO_any } from '../../_packages/types.index';
 import { serializeError } from '../../_packages/utils.index';
+import {
+    registerToolCallProgressListener,
+    TOOL_PROGRESS_TOKEN_PARAMETER,
+    type ToolCallProgressUpdate,
+    unregisterToolCallProgressListener,
+} from '../../commitments/_common/toolRuntimeContext';
 import { parseToolExecutionEnvelope } from '../../commitments/_common/toolExecutionEnvelope';
 import { assertsError } from '../../errors/assertsError';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
@@ -22,7 +28,7 @@ import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { Prompt } from '../../types/Prompt';
-import type { ToolCall } from '../../types/ToolCall';
+import type { ToolCall, ToolCallLogEntry, ToolCallState } from '../../types/ToolCall';
 import type {
     string_date_iso8601,
     string_markdown,
@@ -42,6 +48,61 @@ import { OpenAiVectorStoreHandler } from './OpenAiVectorStoreHandler';
 import { buildToolInvocationScript } from './utils/buildToolInvocationScript';
 
 const DEFAULT_AGENT_KIT_MODEL_NAME = 'gpt-5.2' as string_model_name;
+
+/**
+ * Creates one structured log entry for streamed tool-call updates.
+ *
+ * @private helper of `OpenAiAgentKitExecutionTools`
+ */
+function createToolCallLogEntry(options: {
+    readonly kind: string;
+    readonly title: string;
+    readonly message: string;
+    readonly level?: ToolCallLogEntry['level'];
+    readonly payload?: unknown;
+}): ToolCallLogEntry {
+    return {
+        createdAt: $getCurrentDate(),
+        kind: options.kind,
+        level: options.level,
+        title: options.title,
+        message: options.message,
+        payload: options.payload,
+    };
+}
+
+/**
+ * Appends one incremental progress update to the currently tracked tool-call snapshot.
+ *
+ * @private helper of `OpenAiAgentKitExecutionTools`
+ */
+function applyToolCallProgressUpdate(toolCall: ToolCall, update: ToolCallProgressUpdate): ToolCall {
+    return {
+        ...toolCall,
+        state: update.state ?? 'PARTIAL',
+        logs: update.log ? [...(toolCall.logs || []), update.log] : toolCall.logs,
+    };
+}
+
+/**
+ * Resolves the final lifecycle state for one AgentKit tool call after execution ends.
+ *
+ * @private helper of `OpenAiAgentKitExecutionTools`
+ */
+function resolveFinalToolCallState(options: {
+    readonly currentState: ToolCallState | undefined;
+    readonly errors: ReadonlyArray<unknown> | undefined;
+}): ToolCallState {
+    if (options.errors && options.errors.length > 0) {
+        return 'ERROR';
+    }
+
+    if (options.currentState === 'ERROR') {
+        return 'ERROR';
+    }
+
+    return 'COMPLETE';
+}
 
 // Type definitions for AgentKit structured output
 
@@ -346,6 +407,7 @@ type OpenAiAgentKitPreparedAgent = {
 export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler implements LlmExecutionTools {
     private preparedAgentKitAgent: OpenAiAgentKitPreparedAgent | null = null;
     private readonly agentKitToolResultsByCallId = new Map<string, ToolCall['result']>();
+    private readonly agentKitToolSnapshotsByCallId = new Map<string, ToolCall>();
     private readonly agentKitModelName: string_model_name;
 
     /**
@@ -568,6 +630,16 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
                             const calledAt = $getCurrentDate();
                             const callId = details?.toolCall?.callId;
                             const functionArgs = input ?? {};
+                            const executionContext =
+                                (runContext?.context as
+                                    | {
+                                          parameters?: Prompt['parameters'];
+                                          onToolProgress?: (chunk: ChatPromptResult) => void;
+                                          rawPromptContent?: string;
+                                          startedAt?: string_date_iso8601;
+                                          modelName?: string_model_name;
+                                      }
+                                    | undefined) ?? undefined;
 
                             if (this.options.isVerbose) {
                                 console.info('[🤰]', 'Executing AgentKit tool', {
@@ -578,22 +650,91 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
                             }
 
                             try {
-                                const functionResponse = await scriptTool.execute({
-                                    scriptLanguage: 'javascript',
-                                    script: buildToolInvocationScript({
-                                        functionName,
-                                        functionArgsExpression: JSON.stringify(functionArgs),
-                                    }),
-                                    parameters:
-                                        (runContext?.context as { parameters?: Prompt['parameters'] })?.parameters ??
-                                        {},
+                                let currentToolCallSnapshot: ToolCall = {
+                                    name: functionName,
+                                    arguments: functionArgs,
+                                    result: '',
+                                    rawToolCall: details?.toolCall,
+                                    createdAt: calledAt,
+                                    state: 'PENDING',
+                                    logs: [
+                                        createToolCallLogEntry({
+                                            kind: 'request',
+                                            title: 'Request prepared',
+                                            message: `Prepared ${functionName} request.`,
+                                            payload: {
+                                                arguments: functionArgs,
+                                            },
+                                        }),
+                                    ],
+                                };
+
+                                const progressListenerToken = registerToolCallProgressListener((update) => {
+                                    currentToolCallSnapshot = applyToolCallProgressUpdate(currentToolCallSnapshot, update);
+
+                                    if (callId) {
+                                        this.agentKitToolSnapshotsByCallId.set(callId, currentToolCallSnapshot);
+                                    }
+
+                                    if (!executionContext?.onToolProgress) {
+                                        return;
+                                    }
+
+                                    executionContext.onToolProgress({
+                                        content: '' as string_markdown,
+                                        modelName: executionContext.modelName || this.agentKitModelName,
+                                        timing: {
+                                            start: executionContext.startedAt || calledAt,
+                                            complete: $getCurrentDate(),
+                                        },
+                                        usage: UNCERTAIN_USAGE,
+                                        rawPromptContent: (executionContext.rawPromptContent || '') as string_prompt,
+                                        rawRequest: null,
+                                        rawResponse: {},
+                                        toolCalls: [currentToolCallSnapshot],
+                                    });
                                 });
+
+                                let functionResponse: string;
+                                try {
+                                    functionResponse = await scriptTool.execute({
+                                        scriptLanguage: 'javascript',
+                                        script: buildToolInvocationScript({
+                                            functionName,
+                                            functionArgsExpression: JSON.stringify(functionArgs),
+                                        }),
+                                        parameters: {
+                                            ...(executionContext?.parameters ?? {}),
+                                            [TOOL_PROGRESS_TOKEN_PARAMETER]: progressListenerToken,
+                                        },
+                                    });
+                                } finally {
+                                    unregisterToolCallProgressListener(progressListenerToken);
+                                }
 
                                 return this.resolveAgentKitToolResponse(callId, functionResponse);
                             } catch (error) {
                                 assertsError(error);
 
                                 const serializedError = serializeError(error as Error);
+                                const failedToolCall: ToolCall = {
+                                    name: functionName,
+                                    arguments: functionArgs,
+                                    result: '',
+                                    rawToolCall: details?.toolCall,
+                                    createdAt: calledAt,
+                                    state: 'ERROR',
+                                    errors: [serializedError],
+                                    logs: [
+                                        createToolCallLogEntry({
+                                            kind: 'error',
+                                            level: 'error',
+                                            title: 'Execution failed',
+                                            message: `${functionName} failed before returning a result.`,
+                                            payload: serializedError,
+                                        }),
+                                    ],
+                                };
                                 const errorMessage = spaceTrim(
                                     (block) => `
 
@@ -610,6 +751,24 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
                                     functionName,
                                     callId,
                                     error: serializedError,
+                                });
+
+                                if (callId) {
+                                    this.agentKitToolSnapshotsByCallId.set(callId, failedToolCall);
+                                }
+
+                                executionContext?.onToolProgress?.({
+                                    content: '' as string_markdown,
+                                    modelName: executionContext.modelName || this.agentKitModelName,
+                                    timing: {
+                                        start: executionContext.startedAt || calledAt,
+                                        complete: $getCurrentDate(),
+                                    },
+                                    usage: UNCERTAIN_USAGE,
+                                    rawPromptContent: (executionContext.rawPromptContent || '') as string_prompt,
+                                    rawRequest: null,
+                                    rawResponse: {},
+                                    toolCalls: [failedToolCall],
                                 });
 
                                 return errorMessage;
@@ -671,6 +830,7 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
         const toolCalls: ToolCall[] = [];
         const toolCallIndexById = new Map<string, number>();
         this.agentKitToolResultsByCallId.clear();
+        this.agentKitToolSnapshotsByCallId.clear();
 
         const inputItems = await this.buildAgentKitInputItems(prompt, rawPromptContent);
         const rawRequest: chococake = {
@@ -680,7 +840,13 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
 
         const streamResult = await run(agentForRun, inputItems, {
             stream: true,
-            context: { parameters: prompt.parameters },
+            context: {
+                parameters: prompt.parameters,
+                onToolProgress: onProgress,
+                rawPromptContent,
+                startedAt: start,
+                modelName: this.agentKitModelName,
+            },
             signal: options.signal,
         });
 
@@ -708,9 +874,21 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
                         arguments: rawItem.arguments,
                         rawToolCall: rawItem,
                         createdAt: $getCurrentDate(),
+                        state: 'PENDING',
+                        logs: [
+                            createToolCallLogEntry({
+                                kind: 'request',
+                                title: 'Request prepared',
+                                message: `Prepared ${String(rawItem.name)} request.`,
+                                payload: {
+                                    arguments: rawItem.arguments,
+                                },
+                            }),
+                        ],
                     };
                     toolCallIndexById.set(rawItem.callId, toolCalls.length);
                     toolCalls.push(toolCall);
+                    this.agentKitToolSnapshotsByCallId.set(rawItem.callId, toolCall);
 
                     onProgress({
                         content: latestContent as string_markdown,
@@ -727,15 +905,32 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
                 if (event.name === 'tool_output' && rawItem?.type === 'function_call_result') {
                     const index = toolCallIndexById.get(rawItem.callId);
                     const result = this.resolveAgentKitToolOutputResult(rawItem.callId, rawItem.output);
+                    const progressToolCall = rawItem.callId
+                        ? this.agentKitToolSnapshotsByCallId.get(rawItem.callId)
+                        : undefined;
 
                     if (index !== undefined) {
                         const existingToolCall = toolCalls[index]!;
                         const completedToolCall: ToolCall = {
                             ...existingToolCall,
+                            ...(progressToolCall || {}),
                             result,
                             rawToolCall: rawItem,
+                            state: resolveFinalToolCallState({
+                                currentState: progressToolCall?.state ?? existingToolCall.state,
+                                errors: progressToolCall?.errors ?? existingToolCall.errors,
+                            }),
+                            logs: [
+                                ...((progressToolCall?.logs || existingToolCall.logs || []) as ReadonlyArray<ToolCallLogEntry>),
+                                createToolCallLogEntry({
+                                    kind: 'result',
+                                    title: 'Execution finished',
+                                    message: `${existingToolCall.name} returned a result.`,
+                                }),
+                            ],
                         };
                         toolCalls[index] = completedToolCall;
+                        this.agentKitToolSnapshotsByCallId.delete(rawItem.callId);
 
                         onProgress({
                             content: latestContent as string_markdown,

@@ -14,9 +14,12 @@ import { useChatActionsOverlap } from '../hooks/useChatActionsOverlap';
 import { useChatAutoScroll } from '../hooks/useChatAutoScroll';
 import { useChatRatings } from '../hooks/useChatRatings';
 import type { ChatMessage } from '../types/ChatMessage';
+import type { ToolCall } from '../../../types/ToolCall';
 import type { id } from '../../../types/typeAliases';
 import type { ParsedCitation } from '../utils/parseCitationsFromContent';
 import { extractCitationsFromMessage } from '../utils/parseCitationsFromContent';
+import { resolveToolCallFromChatMessages } from '../utils/resolveToolCallFromChatMessages';
+import { getToolCallIdentity } from '../../../utils/toolCalls/getToolCallIdentity';
 import { ChatActionsBar } from './ChatActionsBar';
 import { ChatCitationModal } from './ChatCitationModal';
 import { ChatInputArea } from './ChatInputArea';
@@ -42,6 +45,23 @@ type ScrollIndicatorText = {
      * Accessible text describing the action.
      */
     readonly ariaLabel: string;
+};
+
+/**
+ * Stable selection state used by the tool-call details modal.
+ *
+ * @private internal helper of `<Chat/>`
+ */
+type SelectedToolCallState = {
+    /**
+     * Stable identity of the selected tool call.
+     */
+    readonly identity: string;
+
+    /**
+     * Fallback snapshot used before newer streamed state is resolved.
+     */
+    readonly fallbackToolCall: ToolCall;
 };
 
 /**
@@ -285,12 +305,19 @@ export function Chat(props: ChatProps) {
     } = useChatRatings({ messages, onFeedback, isMobile: isMobileFromHook });
 
     const [toolCallModalOpen, setToolCallModalOpen] = useState(false);
-    const [selectedToolCall, setSelectedToolCall] = useState<NonNullable<ChatMessage['toolCalls']>[number] | null>(
-        null,
-    );
+    const [selectedToolCallState, setSelectedToolCallState] = useState<SelectedToolCallState | null>(null);
     const [citationModalOpen, setCitationModalOpen] = useState(false);
     const [selectedCitation, setSelectedCitation] = useState<ParsedCitation | null>(null);
     const [mode] = useState<'LIGHT' | 'DARK'>('LIGHT');
+    const selectedToolCall = useMemo(
+        () =>
+            resolveToolCallFromChatMessages(
+                postprocessedMessages,
+                selectedToolCallState?.identity || null,
+                selectedToolCallState?.fallbackToolCall || null,
+            ),
+        [postprocessedMessages, selectedToolCallState],
+    );
 
     useEffect(() => {
         handleMessagesChange(isStreamingAgentMessage);
@@ -517,7 +544,10 @@ export function Chat(props: ChatProps) {
                         teamAgentProfiles={teamAgentProfiles}
                         soundSystem={soundSystem}
                         onToolCallClick={(toolCall) => {
-                            setSelectedToolCall(toolCall);
+                            setSelectedToolCallState({
+                                identity: getToolCallIdentity(toolCall),
+                                fallbackToolCall: toolCall,
+                            });
                             setToolCallModalOpen(true);
                         }}
                         onCitationClick={(citation) => {
@@ -565,7 +595,11 @@ export function Chat(props: ChatProps) {
             <ChatToolCallModal
                 isOpen={toolCallModalOpen}
                 toolCall={selectedToolCall}
-                onClose={() => setToolCallModalOpen(false)}
+                toolCallIdentity={selectedToolCallState?.identity || null}
+                onClose={() => {
+                    setToolCallModalOpen(false);
+                    setSelectedToolCallState(null);
+                }}
                 toolTitles={toolTitles}
                 agentParticipant={agentParticipant}
                 buttonColor={buttonColor}

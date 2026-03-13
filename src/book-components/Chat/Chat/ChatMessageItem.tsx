@@ -27,6 +27,7 @@ import { isTeamToolName } from '../utils/createTeamToolNameFromUrl';
 import { getChatMessageTimingDisplay } from '../utils/getChatMessageTimingDisplay';
 import type { ToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
 import { buildToolCallChipText, getToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
+import { resolveToolCallState } from '../utils/resolveToolCallState';
 import { createDeduplicatedWalletCredentialToolCalls } from '../utils/walletCredentialToolCall';
 import {
     dedupeCitationsBySource,
@@ -376,12 +377,13 @@ function buildOngoingToolCallChips(
         const chipletInfo = getToolCallChipletInfo(toolCall);
         const label = buildToolCallChipText(chipletInfo);
         const teamAgentData = resolveTeamAgentChipData(toolCall, teammates, chipletInfo, teamAgentProfiles);
+        const toolCallState = resolveToolCallState(toolCall);
 
         entries.set(key, {
             key,
             toolCall,
             label,
-            status: 'ongoing',
+            status: toolCallState === 'ERROR' ? 'error' : toolCallState === 'COMPLETE' ? 'done' : 'ongoing',
             teamAgentData,
             isTransitive: false,
         });
@@ -414,7 +416,7 @@ function buildFinalToolCallChips(
                 key,
                 toolCall,
                 label,
-                status: hasToolCallErrors(toolCall) ? 'error' : 'done',
+                status: resolveToolCallState(toolCall) === 'ERROR' || hasToolCallErrors(toolCall) ? 'error' : 'done',
                 teamAgentData,
                 isTransitive: false,
             });
@@ -451,7 +453,10 @@ function buildFinalToolCallChips(
                 key,
                 toolCall: transitive.toolCall,
                 label,
-                status: hasToolCallErrors(transitive.toolCall) ? 'error' : 'done',
+                status:
+                    resolveToolCallState(transitive.toolCall) === 'ERROR' || hasToolCallErrors(transitive.toolCall)
+                        ? 'error'
+                        : 'done',
                 teamAgentData: agentData,
                 isTransitive: true,
             });
@@ -486,11 +491,11 @@ function renderToolCallChip(
             )}
             onClick={(event) => {
                 event.stopPropagation();
-                if (!isOngoing && onToolCallClick) {
+                if (onToolCallClick) {
                     onToolCallClick(chip.toolCall);
                 }
             }}
-            disabled={isOngoing}
+            aria-busy={isOngoing}
         >
             {chip.teamAgentData && (
                 <AgentChip

@@ -20,7 +20,7 @@ import type {
 import { decodeChatStreamWhitespaceFromTransport } from '../../utils/chat/decodeChatStreamWhitespaceFromTransport';
 import { attachClientVersionHeader } from '../../utils/clientVersion';
 import type { TODO_any } from '../../utils/organization/TODO_any';
-import { getToolCallIdentity } from '../../utils/toolCalls/getToolCallIdentity';
+import { mergeToolCalls } from '../../utils/toolCalls/mergeToolCalls';
 import { resolveToolCallIdempotencyKey } from '../../utils/toolCalls/resolveToolCallIdempotencyKey';
 import { Agent } from './Agent';
 import type { AgentOptions } from './AgentOptions';
@@ -421,28 +421,6 @@ export class RemoteAgent extends Agent {
             };
         };
 
-        const getToolCallKey = (toolCall: NonNullable<ChatPromptResult['toolCalls']>[number]): string => {
-            return getToolCallIdentity(toolCall);
-        };
-
-        const mergeToolCall = (
-            existing: NonNullable<ChatPromptResult['toolCalls']>[number],
-            incoming: NonNullable<ChatPromptResult['toolCalls']>[number],
-        ): NonNullable<ChatPromptResult['toolCalls']>[number] => {
-            const incomingResult = incoming.result;
-            const shouldKeepExistingResult =
-                incomingResult === '' && existing.result !== undefined && existing.result !== '';
-
-            return {
-                ...existing,
-                ...incoming,
-                result: shouldKeepExistingResult ? existing.result : incomingResult ?? existing.result,
-                createdAt: existing.createdAt || incoming.createdAt,
-                errors: incoming.errors ? [...(existing.errors || []), ...incoming.errors] : existing.errors,
-                warnings: incoming.warnings ? [...(existing.warnings || []), ...incoming.warnings] : existing.warnings,
-            };
-        };
-
         const upsertToolCalls = (
             incomingToolCalls: ReadonlyArray<NonNullable<ChatPromptResult['toolCalls']>[number]>,
         ) => {
@@ -459,14 +437,9 @@ export class RemoteAgent extends Agent {
                 if (preparationToolCalls.length > 0) {
                     preparationToolCalls.length = 0;
                 }
-                const key = getToolCallKey(normalized);
-                const existingIndex = toolCalls.findIndex((existing) => getToolCallKey(existing) === key);
-
-                if (existingIndex === -1) {
-                    toolCalls.push(normalized);
-                } else {
-                    toolCalls[existingIndex] = mergeToolCall(toolCalls[existingIndex]!, normalized);
-                }
+                const mergedToolCalls = mergeToolCalls(toolCalls, [normalized]);
+                toolCalls.length = 0;
+                toolCalls.push(...mergedToolCalls);
             }
         };
 

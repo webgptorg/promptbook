@@ -1,4 +1,6 @@
 import {
+    TOOL_PROGRESS_TOKEN_ARGUMENT,
+    TOOL_PROGRESS_TOKEN_PARAMETER,
     TOOL_RUNTIME_CONTEXT_ARGUMENT,
     TOOL_RUNTIME_CONTEXT_PARAMETER,
 } from '../../../commitments/_common/toolRuntimeContext';
@@ -23,6 +25,15 @@ export function buildToolInvocationScript(options: {
 
         if (runtimeContextRaw !== undefined && args && typeof args === 'object' && !Array.isArray(args)) {
             args.${TOOL_RUNTIME_CONTEXT_ARGUMENT} = runtimeContextRaw;
+        }
+
+        const toolProgressTokenRaw =
+            typeof ${TOOL_PROGRESS_TOKEN_PARAMETER} === 'undefined'
+                ? undefined
+                : ${TOOL_PROGRESS_TOKEN_PARAMETER};
+
+        if (toolProgressTokenRaw !== undefined && args && typeof args === 'object' && !Array.isArray(args)) {
+            args.${TOOL_PROGRESS_TOKEN_ARGUMENT} = toolProgressTokenRaw;
         }
 
         return await ${functionName}(args);

@@ -21,6 +21,7 @@ import { prepareToolCallsForStreaming } from '@/src/utils/toolCallStreaming';
 import { Agent, computeAgentHash, RemoteAgent } from '@promptbook-local/core';
 import type { ToolCall } from '@promptbook-local/types';
 import { serializeError } from '@promptbook-local/utils';
+import { mergeToolCalls } from '../../../../../src/utils/toolCalls/mergeToolCalls';
 import { ensureNonEmptyChatContent } from '@/src/utils/chat/ensureNonEmptyChatContent';
 import { appendMessageSuffix, resolveMessageSuffixFromAgentSource } from '@/src/utils/chat/messageSuffix';
 import { getUserChat } from './getUserChat';
@@ -225,7 +226,9 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
             },
             (chunk) => {
                 latestContent = chunk.content ?? latestContent;
-                latestToolCalls = chunk.toolCalls ? prepareToolCallsForStreaming(chunk.toolCalls) : latestToolCalls;
+                latestToolCalls = chunk.toolCalls
+                    ? mergeToolCalls(latestToolCalls, prepareToolCallsForStreaming(chunk.toolCalls))
+                    : latestToolCalls;
 
                 persistQueue = persistQueue.then(async () => {
                     await updateUserChatAssistantMessage({
@@ -258,7 +261,9 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
             normalizedResponse.content,
             resolveMessageSuffixFromAgentSource(agentSource),
         );
-        const finalToolCalls = response.toolCalls ? prepareToolCallsForStreaming(response.toolCalls) : latestToolCalls;
+        const finalToolCalls = response.toolCalls
+            ? mergeToolCalls(latestToolCalls, prepareToolCallsForStreaming(response.toolCalls))
+            : latestToolCalls;
         const generationDurationMs = Date.now() - startedAt;
 
         await persistUserChatJobTerminalState({

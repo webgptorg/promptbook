@@ -30,6 +30,12 @@ import { TeamToolCallModalContent } from './TeamToolCallModalContent';
 export type ChatToolCallModalProps = {
     isOpen: boolean;
     toolCall: NonNullable<ChatMessage['toolCalls']>[number] | null;
+    /**
+     * Stable identity of the selected tool call.
+     *
+     * Used so live streamed snapshots do not reset the current modal view.
+     */
+    toolCallIdentity?: string | null;
     onClose: () => void;
     toolTitles?: Record<string, string>;
     agentParticipant?: ChatParticipant;
@@ -60,7 +66,8 @@ type ToolCallReportDestination = 'clipboard' | 'file';
  * @private component of `<Chat/>`
  */
 export function ChatToolCallModal(props: ChatToolCallModalProps) {
-    const { isOpen, toolCall, onClose, toolTitles, agentParticipant, buttonColor, teamAgentProfiles } = props;
+    const { isOpen, toolCall, toolCallIdentity, onClose, toolTitles, agentParticipant, buttonColor, teamAgentProfiles } =
+        props;
     const [teamProfiles, setTeamProfiles] = useState<Record<string, AgentProfileData>>({});
     const [selectedTeamToolCall, setSelectedTeamToolCall] = useState<TransitiveToolCall | null>(null);
     const [viewMode, setViewMode] = useState<ToolCallModalViewMode>('simple');
@@ -137,7 +144,7 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
 
         setSelectedTeamToolCall(null);
         setViewMode('simple');
-    }, [isOpen, toolCall]);
+    }, [isOpen, toolCallIdentity]);
 
     const focusedToolCallCandidate = selectedTeamToolCall?.toolCall || toolCall;
     const handleAdvancedToolCallReportExport = useCallback(

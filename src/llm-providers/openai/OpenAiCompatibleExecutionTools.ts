@@ -4,6 +4,12 @@ import type { ClientOptions } from 'openai';
 import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
 import { API_REQUEST_TIMEOUT, CONNECTION_RETRIES_LIMIT, DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
+import {
+    registerToolCallProgressListener,
+    TOOL_PROGRESS_TOKEN_PARAMETER,
+    type ToolCallProgressUpdate,
+    unregisterToolCallProgressListener,
+} from '../../commitments/_common/toolRuntimeContext';
 import { parseToolExecutionEnvelope } from '../../commitments/_common/toolExecutionEnvelope';
 import { assertsError } from '../../errors/assertsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
@@ -19,6 +25,7 @@ import type { Usage } from '../../execution/Usage';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { ChatPrompt, Prompt } from '../../types/Prompt';
+import type { ToolCallLogEntry, ToolCallState } from '../../types/ToolCall';
 import type {
     string_date_iso8601,
     string_markdown,
@@ -45,6 +52,7 @@ import { computeOpenAiUsage } from './computeOpenAiUsage';
 import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
 
 type StructuredCloneFunction = <T>(value: T) => T;
+type StreamedToolCall = NonNullable<ChatPromptResult['toolCalls']>[number];
 
 /**
  * Provides access to the structured clone implementation when available.
@@ -77,6 +85,55 @@ function clonePromptPreservingFiles(prompt: Prompt): Prompt {
     }
 
     return clonedPrompt;
+}
+
+/**
+ * Creates one structured log entry for streamed tool-call updates.
+ */
+function createToolCallLogEntry(options: {
+    readonly kind: string;
+    readonly title: string;
+    readonly message: string;
+    readonly level?: ToolCallLogEntry['level'];
+    readonly payload?: unknown;
+}): ToolCallLogEntry {
+    return {
+        createdAt: $getCurrentDate(),
+        kind: options.kind,
+        level: options.level,
+        title: options.title,
+        message: options.message,
+        payload: options.payload,
+    };
+}
+
+/**
+ * Appends one incremental progress update to the currently tracked tool-call snapshot.
+ */
+function applyToolCallProgressUpdate(toolCall: StreamedToolCall, update: ToolCallProgressUpdate): StreamedToolCall {
+    return {
+        ...toolCall,
+        state: update.state ?? 'PARTIAL',
+        logs: update.log ? [...(toolCall.logs || []), update.log] : toolCall.logs,
+    };
+}
+
+/**
+ * Resolves the final lifecycle state for one tool call after execution ends.
+ */
+function resolveFinalToolCallState(options: {
+    readonly currentState: ToolCallState | undefined;
+    readonly errors: ReadonlyArray<unknown> | undefined;
+}): ToolCallState {
+    if (options.errors && options.errors.length > 0) {
+        return 'ERROR';
+    }
+
+    if (options.currentState === 'ERROR') {
+        return 'ERROR';
+    }
+
+    return 'COMPLETE';
 }
 
 /**
@@ -408,6 +465,17 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                                     result: '',
                                     rawToolCall: toolCall,
                                     createdAt: calledAt,
+                                    state: 'PENDING',
+                                    logs: [
+                                        createToolCallLogEntry({
+                                            kind: 'request',
+                                            title: 'Request prepared',
+                                            message: `Prepared ${String((toolCall as TODO_any).function.name)} request.`,
+                                            payload: {
+                                                arguments: (toolCall as TODO_any).function.arguments,
+                                            },
+                                        }),
+                                    ],
                                 };
                             }),
                             rawPromptContent,
@@ -422,6 +490,24 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                         const calledAt = toolCall.id
                             ? toolCallStartedAt.get(toolCall.id) || $getCurrentDate()
                             : $getCurrentDate();
+                        let currentToolCallSnapshot: StreamedToolCall = {
+                            name: functionName,
+                            arguments: functionArgs,
+                            result: '',
+                            rawToolCall: toolCall,
+                            createdAt: calledAt,
+                            state: 'PENDING',
+                            logs: [
+                                createToolCallLogEntry({
+                                    kind: 'request',
+                                    title: 'Request prepared',
+                                    message: `Prepared ${functionName} request.`,
+                                    payload: {
+                                        arguments: functionArgs,
+                                    },
+                                }),
+                            ],
+                        };
 
                         const executionTools = (this.options as OpenAiCompatibleExecutionToolsNonProxiedOptions)
                             .executionTools;
@@ -444,15 +530,41 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
                         try {
                             const scriptTool = scriptTools[0]!; // <- TODO: [🧠] Which script tool to use?
+                            const progressListenerToken = registerToolCallProgressListener((update) => {
+                                currentToolCallSnapshot = applyToolCallProgressUpdate(currentToolCallSnapshot, update);
 
-                            functionResponse = await scriptTool.execute({
-                                scriptLanguage: 'javascript', // <- TODO: [🧠] How to determine script language?
-                                script: buildToolInvocationScript({
-                                    functionName,
-                                    functionArgsExpression: functionArgs,
-                                }),
-                                parameters: prompt.parameters,
+                                if (!onProgress) {
+                                    return;
+                                }
+
+                                onProgress({
+                                    content: responseMessage.content || '',
+                                    modelName: rawResponse.model || modelName,
+                                    timing: { start, complete: $getCurrentDate() },
+                                    usage: totalUsage,
+                                    toolCalls: [currentToolCallSnapshot],
+                                    rawPromptContent,
+                                    rawRequest,
+                                    rawResponse,
+                                });
                             });
+
+                            try {
+                                functionResponse = await scriptTool.execute({
+                                    scriptLanguage: 'javascript', // <- TODO: [🧠] How to determine script language?
+                                    script: buildToolInvocationScript({
+                                        functionName,
+                                        functionArgsExpression: functionArgs,
+                                    }),
+                                    parameters: {
+                                        ...prompt.parameters,
+                                        [TOOL_PROGRESS_TOKEN_PARAMETER]: progressListenerToken,
+                                    },
+                                });
+                            } finally {
+                                unregisterToolCallProgressListener(progressListenerToken);
+                            }
+
                             const toolExecutionEnvelope = parseToolExecutionEnvelope(functionResponse);
                             assistantVisibleFunctionResponse =
                                 toolExecutionEnvelope?.assistantMessage || functionResponse;
@@ -474,14 +586,44 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                             content: assistantVisibleFunctionResponse,
                         });
 
-                        toolCalls.push({
-                            name: functionName,
-                            arguments: functionArgs,
+                        const completedToolCall: StreamedToolCall = {
+                            ...currentToolCallSnapshot,
                             result: toolResult,
                             rawToolCall: toolCall,
                             createdAt: calledAt,
                             errors,
-                        });
+                            state: resolveFinalToolCallState({
+                                currentState: currentToolCallSnapshot.state,
+                                errors,
+                            }),
+                            logs: [
+                                ...(currentToolCallSnapshot.logs || []),
+                                createToolCallLogEntry({
+                                    kind: errors && errors.length > 0 ? 'error' : 'result',
+                                    level: errors && errors.length > 0 ? 'error' : 'info',
+                                    title: errors && errors.length > 0 ? 'Execution failed' : 'Execution finished',
+                                    message:
+                                        errors && errors.length > 0
+                                            ? `${functionName} failed before returning a final result.`
+                                            : `${functionName} returned a result.`,
+                                }),
+                            ],
+                        };
+
+                        toolCalls.push(completedToolCall);
+
+                        if (onProgress) {
+                            onProgress({
+                                content: responseMessage.content || '',
+                                modelName: rawResponse.model || modelName,
+                                timing: { start, complete: $getCurrentDate() },
+                                usage: totalUsage,
+                                toolCalls: [completedToolCall],
+                                rawPromptContent,
+                                rawRequest,
+                                rawResponse,
+                            });
+                        }
                     });
 
                     continue;

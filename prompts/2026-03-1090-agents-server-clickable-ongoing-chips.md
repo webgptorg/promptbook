@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 an hour by OpenAI Codex `gpt-5.4`
 
 [🧩⏳] Clickable ongoing chips in Agents Server chat
 
@@ -46,3 +46,4 @@
 -   Implementation notes / affected parts of the project (update paths as discovered)
     -   You are working with the [Agents Server](apps/agents-server)
     -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

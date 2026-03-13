@@ -1,4 +1,6 @@
 import { fetchUrlContent } from '../../../../src/commitments/USE_BROWSER/fetchUrlContent';
+import { emitToolCallProgressFromToolArgs } from '../../../../src/commitments/_common/toolRuntimeContext';
+import type { string_date_iso8601 } from '../../../../src/types/typeAliases';
 import type { Page } from 'playwright';
 import type { RunBrowserInternalOptions } from './RunBrowserArgs';
 import { runBrowserArtifacts } from './runBrowserArtifacts';
@@ -10,7 +12,42 @@ import { runBrowserRuntime } from './runBrowserRuntime';
 import { runBrowserWorkflow } from './runBrowserWorkflow';
 
 export type { RunBrowserActionType, RunBrowserAction, RunBrowserArgs } from './RunBrowserArgs';
-import type { RunBrowserArgs, RunBrowserArtifact } from './RunBrowserArgs';
+import type { RunBrowserArgs, RunBrowserArtifact, NormalizedRunBrowserAction } from './RunBrowserArgs';
+
+/**
+ * Summarizes one normalized browser action in user-facing language.
+ */
+function formatRunBrowserActionSummary(action: NormalizedRunBrowserAction): string {
+    switch (action.type) {
+        case 'navigate':
+            return `Navigate to ${action.url}`;
+        case 'click':
+            return `Click ${action.selector}`;
+        case 'type':
+            return `Type into ${action.selector}`;
+        case 'wait':
+            return `Wait ${action.milliseconds}ms`;
+        case 'scroll':
+            return action.selector ? `Scroll ${action.pixels}px in ${action.selector}` : `Scroll ${action.pixels}px on page`;
+    }
+}
+
+/**
+ * Emits one incremental browser-tool update when a hidden chat-progress listener is attached.
+ */
+function emitRunBrowserProgress(
+    args: RunBrowserArgs,
+    update: Parameters<typeof emitToolCallProgressFromToolArgs>[1],
+): void {
+    emitToolCallProgressFromToolArgs(args as Record<string, unknown>, update);
+}
+
+/**
+ * Returns the current timestamp in the branded ISO-8601 format used by tool-call logs.
+ */
+function createRunBrowserLogTimestamp(): string_date_iso8601 {
+    return new Date().toISOString() as string_date_iso8601;
+}
 
 /**
  * Executes non-graphical fallback scraping.
@@ -64,6 +101,23 @@ export async function run_browser(args: RunBrowserArgs, internalOptions: RunBrow
         initialNavigationDurationMs = openedPage.initialNavigationDurationMs;
         timeToFirstByteMs = openedPage.timeToFirstByteMs;
 
+        emitRunBrowserProgress(args, {
+            state: 'PARTIAL',
+            log: {
+                createdAt: createRunBrowserLogTimestamp(),
+                kind: 'browser-session',
+                title: 'Browser ready',
+                message: 'Opened the initial page and started the browser session.',
+                payload: {
+                    sessionId,
+                    initialUrl,
+                    connectDurationMs,
+                    initialNavigationDurationMs,
+                    timeToFirstByteMs,
+                },
+            },
+        });
+
         const artifacts: Array<RunBrowserArtifact> = [];
 
         const initialArtifact = await runBrowserArtifacts.captureSnapshotArtifact({
@@ -78,12 +132,41 @@ export async function run_browser(args: RunBrowserArgs, internalOptions: RunBrow
 
         for (const [index, action] of normalizedActions.entries()) {
             runBrowserErrorHandling.assertNotAborted(internalOptions.signal, sessionId);
+            emitRunBrowserProgress(args, {
+                state: 'PARTIAL',
+                log: {
+                    createdAt: createRunBrowserLogTimestamp(),
+                    kind: 'browser-action',
+                    title: `Action ${index + 1} running`,
+                    message: formatRunBrowserActionSummary(action),
+                    payload: {
+                        actionIndex: index + 1,
+                        action,
+                        phase: 'running',
+                    },
+                },
+            });
             await runBrowserWorkflow.executeAction({
                 page,
                 action,
                 actionIndex: index + 1,
                 timeouts: timeoutConfiguration,
                 signal: internalOptions.signal,
+            });
+
+            emitRunBrowserProgress(args, {
+                state: 'PARTIAL',
+                log: {
+                    createdAt: createRunBrowserLogTimestamp(),
+                    kind: 'browser-action',
+                    title: `Action ${index + 1} finished`,
+                    message: formatRunBrowserActionSummary(action),
+                    payload: {
+                        actionIndex: index + 1,
+                        action,
+                        phase: 'complete',
+                    },
+                },
             });
 
             const actionArtifact = await runBrowserArtifacts.captureSnapshotArtifact({
@@ -161,6 +244,21 @@ export async function run_browser(args: RunBrowserArgs, internalOptions: RunBrow
             const fallbackContent = await runFallbackScrape(initialUrl);
             const { fallbackRuns, fallbackRate } = runBrowserObservability.incrementFallbackRunsAndGetMetrics();
 
+            emitRunBrowserProgress(args, {
+                state: 'PARTIAL',
+                log: {
+                    createdAt: createRunBrowserLogTimestamp(),
+                    kind: 'warning',
+                    level: 'warning',
+                    title: 'Fallback enabled',
+                    message: 'Remote browser was unavailable, so fallback scraping was used instead.',
+                    payload: {
+                        errorCode: toolError.code,
+                        initialUrl,
+                    },
+                },
+            });
+
             const payload = runBrowserResultFormatting.createResultPayload({
                 sessionId,
                 mode,
@@ -200,6 +298,21 @@ export async function run_browser(args: RunBrowserArgs, internalOptions: RunBrow
                 requestedActions: Array.isArray(args.actions) ? args.actions.length : 0,
             });
         }
+
+        emitRunBrowserProgress(args, {
+            state: 'ERROR',
+            log: {
+                createdAt: createRunBrowserLogTimestamp(),
+                kind: 'error',
+                level: 'error',
+                title: 'Browser run failed',
+                message: toolError.message,
+                payload: {
+                    code: toolError.code,
+                    debug: toolError.debug,
+                },
+            },
+        });
 
         const payload = runBrowserResultFormatting.createResultPayload({
             sessionId,

@@ -13,6 +13,7 @@ import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletInfo';
+import { resolveToolCallState } from '../utils/resolveToolCallState';
 import {
     parseWalletCredentialToolCallResult,
     type WalletCredentialToolCallResult,
@@ -160,6 +161,183 @@ const MEMORY_STATUS_CLASS_BY_TONE: Record<MemoryStatusTone, string> = {
     error: styles.memoryStatusError,
     neutral: styles.memoryStatusNeutral,
 };
+
+/**
+ * Visual state rendered for one browser action row in the modal.
+ *
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+type BrowserActionRowState = 'pending' | 'running' | 'complete' | 'error';
+
+/**
+ * One browser action row rendered in the simple browser-tool view.
+ *
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+type BrowserActionRow = {
+    /**
+     * Stable row key.
+     */
+    key: string;
+    /**
+     * Human-readable action summary.
+     */
+    label: string;
+    /**
+     * Current action state.
+     */
+    state: BrowserActionRowState;
+};
+
+/**
+ * Maps tool-call state into friendly running copy used by simple modal sections.
+ *
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function resolveToolCallProgressMessage(toolCall: NonNullable<ChatMessage['toolCalls']>[number]): string {
+    switch (resolveToolCallState(toolCall)) {
+        case 'PENDING':
+            return 'The action has started and details are still arriving.';
+        case 'PARTIAL':
+            return 'The action is still running. More details will appear as they arrive.';
+        case 'ERROR':
+            return 'The action stopped with an error. Partial details are still available below.';
+        case 'COMPLETE':
+            return 'The action finished.';
+    }
+}
+
+/**
+ * Renders a shared placeholder card for pending and partial tool-call details.
+ *
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function renderToolCallProgressPlaceholder(options: {
+    title: string;
+    message: string;
+    badgeLabel?: string;
+}): ReactElement {
+    return (
+        <div className={styles.toolCallPendingCard}>
+            <div className={styles.toolCallPendingHeader}>
+                <span className={styles.toolCallPendingTitle}>{options.title}</span>
+                <span className={styles.toolCallPendingBadge}>{options.badgeLabel || 'Running'}</span>
+            </div>
+            <p className={styles.toolCallPendingMessage}>{options.message}</p>
+            <div className={styles.toolCallPendingSkeleton} aria-hidden="true">
+                <span className={styles.toolCallPendingSkeletonLine} />
+                <span className={styles.toolCallPendingSkeletonLine} />
+                <span className={classNames(styles.toolCallPendingSkeletonLine, styles.toolCallPendingSkeletonShort)} />
+            </div>
+        </div>
+    );
+}
+
+/**
+ * Creates a human-readable summary for one requested browser action.
+ *
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function formatRequestedBrowserActionSummary(action: Record<string, TODO_any>, fallbackIndex: number): string {
+    const actionType = typeof action.type === 'string' ? action.type : '';
+
+    switch (actionType) {
+        case 'navigate':
+            return typeof action.value === 'string' && action.value.trim()
+                ? `Navigate to ${action.value.trim()}`
+                : 'Navigate';
+        case 'click':
+            return typeof action.selector === 'string' && action.selector.trim()
+                ? `Click ${action.selector.trim()}`
+                : 'Click';
+        case 'type':
+            return typeof action.selector === 'string' && action.selector.trim()
+                ? `Type into ${action.selector.trim()}`
+                : 'Type text';
+        case 'wait':
+            return typeof action.value === 'number' || typeof action.value === 'string'
+                ? `Wait ${String(action.value)}ms`
+                : 'Wait';
+        case 'scroll':
+            return typeof action.selector === 'string' && action.selector.trim()
+                ? `Scroll ${String(action.value ?? '')} in ${action.selector.trim()}`.trim()
+                : `Scroll ${String(action.value ?? '')}`.trim() || 'Scroll';
+        default:
+            return `Action ${fallbackIndex}`;
+    }
+}
+
+/**
+ * Builds browser action rows from requested args and streamed browser logs.
+ *
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function buildRunBrowserActionRows(options: {
+    args: Record<string, TODO_any>;
+    toolCall: NonNullable<ChatMessage['toolCalls']>[number];
+    parsedActionSummaries: ReadonlyArray<string>;
+}): Array<BrowserActionRow> {
+    const { args, toolCall, parsedActionSummaries } = options;
+    const requestedActions = Array.isArray(args.actions) ? args.actions : [];
+    const rows =
+        requestedActions.length > 0
+            ? requestedActions.map((action, index) => ({
+                  key: `requested-${index + 1}`,
+                  label:
+                      action && typeof action === 'object'
+                          ? formatRequestedBrowserActionSummary(action as Record<string, TODO_any>, index + 1)
+                          : `Action ${index + 1}`,
+                  state: 'pending' as BrowserActionRowState,
+              }))
+            : parsedActionSummaries.map((actionSummary, index) => ({
+                  key: `parsed-${index + 1}`,
+                  label: actionSummary,
+                  state: 'complete' as BrowserActionRowState,
+              }));
+
+    for (const logEntry of toolCall.logs || []) {
+        if (logEntry.kind !== 'browser-action') {
+            continue;
+        }
+
+        const payload =
+            logEntry.payload && typeof logEntry.payload === 'object' && !Array.isArray(logEntry.payload)
+                ? (logEntry.payload as Record<string, TODO_any>)
+                : null;
+        const actionIndex =
+            payload && typeof payload.actionIndex === 'number' && payload.actionIndex > 0 ? payload.actionIndex - 1 : -1;
+        const phase = typeof payload?.phase === 'string' ? payload.phase : null;
+        const nextState: BrowserActionRowState =
+            phase === 'error' ? 'error' : phase === 'complete' ? 'complete' : 'running';
+
+        if (actionIndex >= 0 && rows[actionIndex]) {
+            rows[actionIndex] = {
+                ...rows[actionIndex]!,
+                label: logEntry.message || rows[actionIndex]!.label,
+                state: nextState,
+            };
+            continue;
+        }
+
+        rows.push({
+            key: `logged-${rows.length + 1}`,
+            label: logEntry.message || logEntry.title || `Action ${rows.length + 1}`,
+            state: nextState,
+        });
+    }
+
+    if (resolveToolCallState(toolCall) === 'COMPLETE' && parsedActionSummaries.length > rows.length) {
+        parsedActionSummaries.slice(rows.length).forEach((actionSummary, index) => {
+            rows.push({
+                key: `completed-${rows.length + index + 1}`,
+                label: actionSummary,
+                state: 'complete',
+            });
+        });
+    }
+
+    return rows;
+}
 
 /**
  * Renders a friendly memory summary screen when a MEMORY tool call is selected.
@@ -586,9 +764,14 @@ function formatWalletCredentialService(service: string): string {
  * @returns Visual browser replay content.
  * @private internal utility of `<ChatToolCallModal/>`
  */
-function renderRunBrowserToolCall(options: { args: Record<string, TODO_any>; resultRaw: TODO_any }): ReactElement {
-    const { args, resultRaw } = options;
+function renderRunBrowserToolCall(options: {
+    toolCall: NonNullable<ChatMessage['toolCalls']>[number];
+    args: Record<string, TODO_any>;
+    resultRaw: TODO_any;
+}): ReactElement {
+    const { toolCall, args, resultRaw } = options;
     const parsedResult = parseRunBrowserToolResult(resultRaw);
+    const toolCallState = resolveToolCallState(toolCall);
     const initialUrl = parsedResult?.initialUrl || (typeof args.url === 'string' ? args.url : null);
     const finalUrl = parsedResult?.finalUrl || null;
     const finalTitle = parsedResult?.finalTitle || null;
@@ -599,6 +782,14 @@ function renderRunBrowserToolCall(options: { args: Record<string, TODO_any>; res
     const runBrowserError = parsedResult?.error || null;
     const artifacts = parsedResult?.artifacts || [];
     const actions = parsedResult?.actions || [];
+    const actionRows = buildRunBrowserActionRows({
+        args,
+        toolCall,
+        parsedActionSummaries: actions.map((action) => action.summary),
+    });
+    const browserReadyLog = (toolCall.logs || []).find((logEntry) => logEntry.kind === 'browser-session');
+    const shouldShowProgressPlaceholder =
+        toolCallState !== 'COMPLETE' && !runBrowserError && artifacts.length === 0 && !fallbackContent;
 
     return (
         <>
@@ -607,6 +798,7 @@ function renderRunBrowserToolCall(options: { args: Record<string, TODO_any>; res
                 <div className={styles.browserRunHeaderText}>
                     <span className={styles.browserRunHeaderLabel}>Browser</span>
                     <h3 className={styles.searchModalQuery}>Session replay</h3>
+                    <p className={styles.browserRunHeaderStatus}>{resolveToolCallProgressMessage(toolCall)}</p>
                 </div>
             </div>
 
@@ -651,6 +843,12 @@ function renderRunBrowserToolCall(options: { args: Record<string, TODO_any>; res
                                 <span className={styles.emailRecipients}>{modeUsed}</span>
                             </div>
                         )}
+                    </div>
+                )}
+
+                {browserReadyLog && (
+                    <div className={styles.browserRunStatusBanner}>
+                        <strong>{browserReadyLog.title || 'Browser status'}:</strong> {browserReadyLog.message}
                     </div>
                 )}
 
@@ -721,20 +919,70 @@ function renderRunBrowserToolCall(options: { args: Record<string, TODO_any>; res
                             );
                         })}
                     </div>
+                ) : shouldShowProgressPlaceholder ? (
+                    renderToolCallProgressPlaceholder({
+                        title: 'Visual replay pending',
+                        message: 'The browser session is still running. Screenshots and page state will appear here as they arrive.',
+                    })
                 ) : !fallbackContent ? (
                     <div className={styles.noResults}>No browser visuals were captured for this action.</div>
                 ) : null}
 
-                {actions.length > 0 && (
+                {actionRows.length > 0 && (
                     <div className={styles.browserRunActionLog}>
                         <h4 className={styles.browserRunActionLogTitle}>Actions</h4>
                         <ol className={styles.browserRunActionList}>
-                            {actions.map((action, index) => (
-                                <li key={`${action.summary}-${index}`} className={styles.browserRunActionItem}>
-                                    {action.summary}
+                            {actionRows.map((actionRow) => (
+                                <li
+                                    key={actionRow.key}
+                                    className={classNames(
+                                        styles.browserRunActionItem,
+                                        actionRow.state === 'running' && styles.browserRunActionRunning,
+                                        actionRow.state === 'complete' && styles.browserRunActionComplete,
+                                        actionRow.state === 'error' && styles.browserRunActionError,
+                                        actionRow.state === 'pending' && styles.browserRunActionPending,
+                                    )}
+                                >
+                                    <span
+                                        className={classNames(
+                                            styles.browserRunActionState,
+                                            actionRow.state === 'running' && styles.browserRunActionStateRunning,
+                                            actionRow.state === 'complete' && styles.browserRunActionStateComplete,
+                                            actionRow.state === 'error' && styles.browserRunActionStateError,
+                                        )}
+                                    />
+                                    {actionRow.label}
+                                    {actionRow.state === 'pending' && (
+                                        <span className={styles.browserRunActionMeta}>Pending</span>
+                                    )}
+                                    {actionRow.state === 'running' && (
+                                        <span className={styles.browserRunActionMeta}>Running</span>
+                                    )}
+                                    {actionRow.state === 'complete' && (
+                                        <span className={styles.browserRunActionMeta}>Done</span>
+                                    )}
+                                    {actionRow.state === 'error' && (
+                                        <span className={styles.browserRunActionMeta}>Failed</span>
+                                    )}
                                 </li>
                             ))}
                         </ol>
+                    </div>
+                )}
+
+                {toolCallState !== 'COMPLETE' && actionRows.length === 0 && (
+                    <div className={styles.browserRunActionLog}>
+                        <h4 className={styles.browserRunActionLogTitle}>Actions</h4>
+                        {renderToolCallProgressPlaceholder({
+                            title: 'Actions pending',
+                            message: 'The browser action plan will appear here once the session starts streaming it.',
+                        })}
+                    </div>
+                )}
+
+                {runBrowserError && toolCallState !== 'ERROR' && (
+                    <div className={styles.browserRunStatusBanner}>
+                        <strong>Status:</strong> The browser reported an issue, but the tool call is still streaming final details.
                     </div>
                 )}
             </div>
@@ -753,6 +1001,7 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
     const resultRaw = parseToolCallResult(toolCall.result);
     const args = parseToolCallArguments(toolCall);
     const toolCallDate = getToolCallTimestamp(toolCall);
+    const toolCallState = resolveToolCallState(toolCall);
     const memoryView = renderMemoryToolCall({
         toolCall,
         args,
@@ -903,6 +1152,7 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
 
     if (isRunBrowser) {
         return renderRunBrowserToolCall({
+            toolCall,
             args,
             resultRaw,
         });
@@ -943,6 +1193,31 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
                         </div>
                     ) : hasRawText ? (
                         <MarkdownContent className={styles.searchResultsRaw} content={rawText!} />
+                    ) : toolCallState !== 'COMPLETE' ? (
+                        <>
+                            {renderToolCallProgressPlaceholder({
+                                title: 'Search results pending',
+                                message: resolveToolCallProgressMessage(toolCall),
+                            })}
+                            <div className={styles.toolCallDetailsCard}>
+                                <div className={styles.toolCallDetailsCardRow}>
+                                    <strong>Query</strong>
+                                    <span>{String(args.query || args.searchText || 'Search query is being prepared.')}</span>
+                                </div>
+                                {args.location && (
+                                    <div className={styles.toolCallDetailsCardRow}>
+                                        <strong>Location</strong>
+                                        <span>{String(args.location)}</span>
+                                    </div>
+                                )}
+                                {args.engine && (
+                                    <div className={styles.toolCallDetailsCardRow}>
+                                        <strong>Engine</strong>
+                                        <span>{String(args.engine)}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </>
                     ) : (
                         <div className={styles.noResults}>
                             {resultRaw ? 'No search results found.' : 'Search results are not available.'}
@@ -1090,6 +1365,8 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
     const resultSummary = buildToolCallResultSummary(resultRaw);
     const resultCount = getResultItemCount(resultRaw);
     const toolCallIssues = normalizeToolCallIssues(toolCall);
+    const shouldRenderRunningOutcome = toolCallState !== 'COMPLETE' && !resultSummary;
+    const shouldRenderRunningRequestPlaceholder = toolCallState !== 'COMPLETE' && argumentEntries.length === 0;
 
     return (
         <>
@@ -1100,7 +1377,11 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
                 <div className={styles.toolCallHeaderMeta}>
                     <p className={styles.toolCallModalLabel}>Action</p>
                     <h3 className={styles.toolCallTitle}>{headerTitle}</h3>
-                    <p className={styles.toolCallSubtitle}>Here is what happened.</p>
+                    <p className={styles.toolCallSubtitle}>
+                        {toolCallState === 'COMPLETE'
+                            ? 'Here is what happened.'
+                            : resolveToolCallProgressMessage(toolCall)}
+                    </p>
                 </div>
             </header>
 
@@ -1116,6 +1397,12 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
                                 </li>
                             ))}
                         </ul>
+                    ) : shouldRenderRunningRequestPlaceholder ? (
+                        renderToolCallProgressPlaceholder({
+                            title: 'Request details pending',
+                            message: 'The agent started this action, but the detailed request payload has not arrived yet.',
+                            badgeLabel: 'Pending',
+                        })
                     ) : (
                         <p className={styles.toolCallEmpty}>No extra details were needed.</p>
                     )}
@@ -1125,6 +1412,12 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
                     <p className={styles.toolCallPanelTitle}>Outcome</p>
                     {resultSummary ? (
                         <p className={styles.toolCallSummary}>{resultSummary}</p>
+                    ) : shouldRenderRunningOutcome ? (
+                        renderToolCallProgressPlaceholder({
+                            title: toolCallState === 'ERROR' ? 'Partial outcome available' : 'Outcome pending',
+                            message: resolveToolCallProgressMessage(toolCall),
+                            badgeLabel: toolCallState === 'ERROR' ? 'Error' : 'Running',
+                        })
                     ) : (
                         <p className={styles.toolCallEmpty}>The action finished, but there is no short summary.</p>
                     )}
@@ -1347,6 +1640,14 @@ function normalizeToolCallIssues(toolCall: NonNullable<ChatMessage['toolCalls']>
         label: 'Error',
         message: formatIssueValue(value),
     }));
+
+    if (errors.length === 0 && resolveToolCallState(toolCall) === 'ERROR') {
+        errors.push({
+            type: 'error',
+            label: 'Error',
+            message: 'The tool stopped before finishing successfully.',
+        });
+    }
 
     return [...warnings, ...errors];
 }

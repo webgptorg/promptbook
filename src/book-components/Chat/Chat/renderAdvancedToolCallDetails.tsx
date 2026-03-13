@@ -3,6 +3,7 @@ import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { MonacoEditorWithShadowDom } from '../../_common/MonacoEditorWithShadowDom';
 import type { ChatMessage } from '../types/ChatMessage';
 import { getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletInfo';
+import { resolveToolCallState } from '../utils/resolveToolCallState';
 import styles from './Chat.module.css';
 
 /**
@@ -149,7 +150,9 @@ export function renderAdvancedToolCallDetails(options: AdvancedToolCallDetailsOp
                 <div className={styles.toolCallHeaderMeta}>
                     <p className={styles.toolCallModalLabel}>Advanced</p>
                     <h3 className={styles.toolCallTitle}>{header.title}</h3>
-                    <p className={styles.toolCallSubtitle}>{header.subtitle}</p>
+                    <p className={styles.toolCallSubtitle}>
+                        {header.subtitle} · {resolveToolCallState(toolCall).toLowerCase()}
+                    </p>
                 </div>
             </header>
 
@@ -188,6 +191,7 @@ export function createAdvancedToolCallReportMarkdown(options: AdvancedToolCallDe
         '',
         `- **Title:** ${header.emoji} ${header.title}`,
         `- **Tool:** \`${header.subtitle}\``,
+        `- **State:** \`${resolveToolCallState(toolCall)}\``,
     ];
 
     if (toolCall.createdAt) {
@@ -265,11 +269,13 @@ function createAdvancedToolCallPayloadSections(
 ): Array<AdvancedToolCallPayloadSection> {
     const requestPayload = {
         toolName: toolCall.name,
+        state: resolveToolCallState(toolCall),
         arguments: toolCall.arguments,
     };
 
     return [
         { id: 'request', title: 'Input payload', payload: requestPayload },
+        { id: 'logs', title: 'Streamed logs', payload: toolCall.logs ?? [] },
         { id: 'result', title: 'Output payload', payload: toolCall.result },
         { id: 'raw-model', title: 'Model payload', payload: toolCall.rawToolCall },
         { id: 'event', title: 'Full event', payload: toolCall },

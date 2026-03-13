@@ -2044,6 +2044,100 @@
     font-size: 14px;
 }
 
+.toolCallPendingCard {
+    border: 1px dashed #cbd5e1;
+    border-radius: 14px;
+    padding: 14px;
+    background: linear-gradient(180deg, #f8fbff 0%, #f8fafc 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toolCallPendingHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.toolCallPendingTitle {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.toolCallPendingBadge {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(14, 165, 233, 0.12);
+    color: #0369a1;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.toolCallPendingMessage {
+    margin: 0;
+    color: #475467;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.toolCallPendingSkeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.toolCallPendingSkeletonLine {
+    height: 10px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(226, 232, 240, 0.7), rgba(241, 245, 249, 1), rgba(226, 232, 240, 0.7));
+    background-size: 200% 100%;
+    animation: toolCallPendingSkeletonPulse 1.4s ease-in-out infinite;
+}
+
+.toolCallPendingSkeletonShort {
+    width: 68%;
+}
+
+@keyframes toolCallPendingSkeletonPulse {
+    from {
+        background-position: 100% 50%;
+    }
+    to {
+        background-position: -100% 50%;
+    }
+}
+
+.toolCallDetailsCard {
+    margin-top: 16px;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    overflow: hidden;
+}
+
+.toolCallDetailsCardRow {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: #334155;
+    border-top: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.toolCallDetailsCardRow:first-child {
+    border-top: none;
+}
+
+.toolCallDetailsCardRow strong {
+    color: #0f172a;
+}
+
 .toolCallIssues {
     padding: 0 32px 16px;
     display: flex;
@@ -3734,6 +3828,13 @@
     gap: 2px;
 }
 
+.browserRunHeaderStatus {
+    margin: 0;
+    color: #475467;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
 .browserRunHeaderLabel {
     font-size: 12px;
     letter-spacing: 0.08em;
@@ -3812,6 +3913,17 @@
     padding: 14px 16px;
 }
 
+.browserRunStatusBanner {
+    margin-bottom: 18px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    background: rgba(248, 250, 252, 0.95);
+    color: #334155;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
 .browserRunMediaGrid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -3877,7 +3989,8 @@
 
 .browserRunActionList {
     margin: 0;
-    padding: 0 0 0 18px;
+    padding: 0;
+    list-style: none;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -3887,6 +4000,62 @@
     color: #0f172a;
     font-size: 14px;
     line-height: 1.5;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    background: #fff;
+}
+
+.browserRunActionPending {
+    opacity: 0.82;
+}
+
+.browserRunActionRunning {
+    border-color: rgba(14, 165, 233, 0.35);
+    background: rgba(14, 165, 233, 0.08);
+}
+
+.browserRunActionComplete {
+    border-color: rgba(16, 185, 129, 0.22);
+    background: rgba(16, 185, 129, 0.08);
+}
+
+.browserRunActionError {
+    border-color: rgba(239, 68, 68, 0.24);
+    background: rgba(239, 68, 68, 0.08);
+}
+
+.browserRunActionState {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: #cbd5e1;
+    flex-shrink: 0;
+}
+
+.browserRunActionStateRunning {
+    background: #0ea5e9;
+    box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.14);
+}
+
+.browserRunActionStateComplete {
+    background: #10b981;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12);
+}
+
+.browserRunActionStateError {
+    background: #ef4444;
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12);
+}
+
+.browserRunActionMeta {
+    margin-left: auto;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 600;
 }
 
 @media print {

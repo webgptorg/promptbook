@@ -1,3 +1,10 @@
+-   Improved Agents Server chat tool chips so ongoing actions are inspectable before they finish:
+
+    -   Made spinner-state tool chips clickable immediately and kept them wired to the same shared tool-call modal used for completed chips, instead of splitting ongoing vs finished detail UIs.
+    -   Refactored shared tool-call detail rendering to accept explicit `PENDING` / `PARTIAL` / `COMPLETE` / `ERROR` states plus partial view-model data, so the simple modal can show meaningful placeholders and human-readable progress while results are still streaming.
+    -   Extended advanced tool-call details and streaming tool-call transport to preserve incremental raw logs, request payloads, partial outputs, and mid-flight failures, which keeps advanced mode useful from tool start through completion.
+    -   Added progressive browser/search hydration in chat by merging streamed tool-call snapshots instead of replacing them, including incremental `run_browser` action/session logs so the modal can live-update while the tool is still running.
+
 -   Added Agents Server quick action buttons in chat:
 
     -   Extended chat quick-button parsing to support both `message` buttons (`?message=...`) and browser `action` buttons (`?action=...`) while keeping the existing message-button syntax backward compatible.

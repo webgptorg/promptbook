@@ -3,6 +3,12 @@ import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
 import { TODO_any } from '../../_packages/types.index';
 import { serializeError } from '../../_packages/utils.index';
+import {
+    registerToolCallProgressListener,
+    TOOL_PROGRESS_TOKEN_PARAMETER,
+    type ToolCallProgressUpdate,
+    unregisterToolCallProgressListener,
+} from '../../commitments/_common/toolRuntimeContext';
 import { parseToolExecutionEnvelope } from '../../commitments/_common/toolExecutionEnvelope';
 import { assertsError } from '../../errors/assertsError';
 import { NotAllowed } from '../../errors/NotAllowed';
@@ -15,6 +21,7 @@ import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { Prompt } from '../../types/Prompt';
+import type { ToolCallLogEntry, ToolCallState } from '../../types/ToolCall';
 import type {
     string_date_iso8601,
     string_markdown,
@@ -33,6 +40,63 @@ import { OpenAiVectorStoreHandler } from './OpenAiVectorStoreHandler';
 import { buildToolInvocationScript } from './utils/buildToolInvocationScript';
 import { mapToolsToOpenAi } from './utils/mapToolsToOpenAi';
 import { uploadFilesToOpenAi } from './utils/uploadFilesToOpenAi';
+
+type StreamedToolCall = NonNullable<ChatPromptResult['toolCalls']>[number];
+
+/**
+ * Creates one structured log entry for streamed tool-call updates.
+ *
+ * @private helper of `OpenAiAssistantExecutionTools`
+ */
+function createToolCallLogEntry(options: {
+    readonly kind: string;
+    readonly title: string;
+    readonly message: string;
+    readonly level?: ToolCallLogEntry['level'];
+    readonly payload?: unknown;
+}): ToolCallLogEntry {
+    return {
+        createdAt: $getCurrentDate(),
+        kind: options.kind,
+        level: options.level,
+        title: options.title,
+        message: options.message,
+        payload: options.payload,
+    };
+}
+
+/**
+ * Appends one incremental progress update to the currently tracked tool-call snapshot.
+ *
+ * @private helper of `OpenAiAssistantExecutionTools`
+ */
+function applyToolCallProgressUpdate(toolCall: StreamedToolCall, update: ToolCallProgressUpdate): StreamedToolCall {
+    return {
+        ...toolCall,
+        state: update.state ?? 'PARTIAL',
+        logs: update.log ? [...(toolCall.logs || []), update.log] : toolCall.logs,
+    };
+}
+
+/**
+ * Resolves the final lifecycle state for one tool call after execution ends.
+ *
+ * @private helper of `OpenAiAssistantExecutionTools`
+ */
+function resolveFinalToolCallState(options: {
+    readonly currentState: ToolCallState | undefined;
+    readonly errors: ReadonlyArray<unknown> | undefined;
+}): ToolCallState {
+    if (options.errors && options.errors.length > 0) {
+        return 'ERROR';
+    }
+
+    if (options.currentState === 'ERROR') {
+        return 'ERROR';
+    }
+
+    return 'COMPLETE';
+}
 
 /**
  * Execution Tools for calling OpenAI API Assistants
@@ -250,6 +314,17 @@ export class OpenAiAssistantExecutionTools extends OpenAiVectorStoreHandler impl
                                         result: '',
                                         rawToolCall: toolCall,
                                         createdAt: calledAt,
+                                        state: 'PENDING',
+                                        logs: [
+                                            createToolCallLogEntry({
+                                                kind: 'request',
+                                                title: 'Request prepared',
+                                                message: `Prepared ${functionName} request.`,
+                                                payload: {
+                                                    arguments: toolCall.function.arguments,
+                                                },
+                                            }),
+                                        ],
                                     },
                                 ],
                             });
@@ -277,18 +352,58 @@ export class OpenAiAssistantExecutionTools extends OpenAiVectorStoreHandler impl
                             let assistantVisibleFunctionResponse: string;
                             let toolResult: TODO_any;
                             let errors: Array<ReturnType<typeof serializeError>> | undefined;
+                            let currentToolCallSnapshot: StreamedToolCall = {
+                                name: functionName,
+                                arguments: toolCall.function.arguments,
+                                result: '',
+                                rawToolCall: toolCall,
+                                createdAt: calledAt,
+                                state: 'PENDING',
+                                logs: [
+                                    createToolCallLogEntry({
+                                        kind: 'request',
+                                        title: 'Request prepared',
+                                        message: `Prepared ${functionName} request.`,
+                                        payload: {
+                                            arguments: toolCall.function.arguments,
+                                        },
+                                    }),
+                                ],
+                            };
 
                             try {
                                 const scriptTool = scriptTools[0]!; // <- TODO: [🧠] Which script tool to use?
+                                const progressListenerToken = registerToolCallProgressListener((update) => {
+                                    currentToolCallSnapshot = applyToolCallProgressUpdate(currentToolCallSnapshot, update);
 
-                                functionResponse = await scriptTool.execute({
-                                    scriptLanguage: 'javascript', // <- TODO: [🧠] How to determine script language?
-                                    script: buildToolInvocationScript({
-                                        functionName,
-                                        functionArgsExpression: JSON.stringify(functionArgs),
-                                    }),
-                                    parameters: prompt.parameters,
+                                    onProgress({
+                                        content: '',
+                                        modelName: 'assistant',
+                                        timing: { start, complete: $getCurrentDate() },
+                                        usage: UNCERTAIN_USAGE,
+                                        rawPromptContent,
+                                        rawRequest: null as chococake,
+                                        rawResponse: null as chococake,
+                                        toolCalls: [currentToolCallSnapshot],
+                                    });
                                 });
+
+                                try {
+                                    functionResponse = await scriptTool.execute({
+                                        scriptLanguage: 'javascript', // <- TODO: [🧠] How to determine script language?
+                                        script: buildToolInvocationScript({
+                                            functionName,
+                                            functionArgsExpression: JSON.stringify(functionArgs),
+                                        }),
+                                        parameters: {
+                                            ...prompt.parameters,
+                                            [TOOL_PROGRESS_TOKEN_PARAMETER]: progressListenerToken,
+                                        },
+                                    });
+                                } finally {
+                                    unregisterToolCallProgressListener(progressListenerToken);
+                                }
+
                                 const toolExecutionEnvelope = parseToolExecutionEnvelope(functionResponse);
                                 assistantVisibleFunctionResponse =
                                     toolExecutionEnvelope?.assistantMessage || functionResponse;
@@ -328,12 +443,38 @@ export class OpenAiAssistantExecutionTools extends OpenAiVectorStoreHandler impl
                             });
 
                             completedToolCalls.push({
-                                name: functionName,
-                                arguments: toolCall.function.arguments,
+                                ...currentToolCallSnapshot,
                                 result: toolResult,
                                 rawToolCall: toolCall,
                                 createdAt: toolCall.id ? toolCallStartedAt.get(toolCall.id) || calledAt : calledAt,
                                 errors,
+                                state: resolveFinalToolCallState({
+                                    currentState: currentToolCallSnapshot.state,
+                                    errors,
+                                }),
+                                logs: [
+                                    ...(currentToolCallSnapshot.logs || []),
+                                    createToolCallLogEntry({
+                                        kind: errors && errors.length > 0 ? 'error' : 'result',
+                                        level: errors && errors.length > 0 ? 'error' : 'info',
+                                        title: errors && errors.length > 0 ? 'Execution failed' : 'Execution finished',
+                                        message:
+                                            errors && errors.length > 0
+                                                ? `${functionName} failed before returning a final result.`
+                                                : `${functionName} returned a result.`,
+                                    }),
+                                ],
+                            });
+
+                            onProgress({
+                                content: '',
+                                modelName: 'assistant',
+                                timing: { start, complete: $getCurrentDate() },
+                                usage: UNCERTAIN_USAGE,
+                                rawPromptContent,
+                                rawRequest: null as chococake,
+                                rawResponse: null as chococake,
+                                toolCalls: [completedToolCalls[completedToolCalls.length - 1]!],
                             });
                         }
                     }

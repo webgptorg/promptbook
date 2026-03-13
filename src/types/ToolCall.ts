@@ -2,6 +2,54 @@ import type { TODO_any } from '../utils/organization/TODO_any';
 import type { string_date_iso8601 } from './typeAliases';
 
 /**
+ * Explicit lifecycle state of one tool call snapshot.
+ */
+export type ToolCallState = 'PENDING' | 'PARTIAL' | 'COMPLETE' | 'ERROR';
+
+/**
+ * Severity level attached to one tool-call log entry.
+ */
+export type ToolCallLogLevel = 'info' | 'warning' | 'error';
+
+/**
+ * Incremental log entry emitted while one tool call is running.
+ *
+ * These logs are designed to stream progressively so chat chips can expose
+ * partial details before the final result is available.
+ */
+export type ToolCallLogEntry = {
+    /**
+     * Timestamp when this log entry was observed.
+     */
+    readonly createdAt?: string_date_iso8601;
+
+    /**
+     * Stable machine-friendly log kind such as `request`, `browser-action`, or `result`.
+     */
+    readonly kind?: string;
+
+    /**
+     * Severity level used by UI renderers.
+     */
+    readonly level?: ToolCallLogLevel;
+
+    /**
+     * Short human-readable title for the log row.
+     */
+    readonly title?: string;
+
+    /**
+     * Human-readable message associated with the log row.
+     */
+    readonly message?: string;
+
+    /**
+     * Optional structured payload for advanced/raw inspection.
+     */
+    readonly payload?: TODO_any;
+};
+
+/**
  * Represents a single tool call with its inputs, outputs, and timing.
  *
  * Note: This is fully serializable as JSON.
@@ -28,6 +76,13 @@ export type ToolCall = {
     readonly rawToolCall?: TODO_any;
 
     /**
+     * Explicit lifecycle state of this tool call snapshot.
+     *
+     * When omitted, consumers should infer the state from available result/error data.
+     */
+    readonly state?: ToolCallState;
+
+    /**
      * Idempotency identifier that should not change between partial updates of the same tool call.
      *
      * @public exported from `@promptbook/types`
@@ -48,6 +103,11 @@ export type ToolCall = {
      * Warnings reported during tool execution.
      */
     readonly warnings?: ReadonlyArray<TODO_any>;
+
+    /**
+     * Incremental logs observed while the tool call is running.
+     */
+    readonly logs?: ReadonlyArray<ToolCallLogEntry>;
 };
 
 /**
