@@ -1,3 +1,9 @@
+-   Fixed remote-agent profile loading resilience when connecting to Agents Server URLs that can return redirect-loop style failures (`508 Loop Detected`) on `/agents/<name>/api/profile`:
+
+    -   Hardened `RemoteAgent.connect` profile endpoint resolution to normalize URL paths, avoid malformed `/api/profile` concatenation, and try deterministic fallback profile endpoints when the primary URL fails.
+    -   Persisted the successfully resolved remote agent base URL so subsequent remote calls (`/api/chat`, `/api/voice`) use the same working canonical path.
+    -   Added unit coverage in `RemoteAgent.test.ts` for the loop-detected primary endpoint with fallback profile resolution.
+
 -   Added configurable chat Enter/Ctrl+Enter keybindings across Agents Server chat surfaces:
 
     -   Extended the shared `<Chat/>` composer with reusable `enterBehavior` / lazy `resolveEnterBehavior` support so plain `Enter` and `Ctrl+Enter` can be inverted without coupling the component to Agents Server persistence.
