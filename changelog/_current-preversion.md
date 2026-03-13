@@ -1,3 +1,9 @@
+-   Fixed Agents Server timeout wake-up chats resuming under the wrong server origin:
+
+    -   Made the timeout worker hand off resumed durable chat jobs using the current request-scoped server origin when available instead of always falling back to the deployment-level internal origin.
+    -   Aligned durable `runUserChatJob` agent-context resolution with the active worker request/server origin, so resumed chats use the same local agent URLs and profile resolution path as normal live chat requests.
+    -   Added focused regression coverage for request-scoped vs background origin resolution to prevent `USE TIMEOUT` wake-ups from failing on agent/profile fetch loops after the injected timeout message.
+
 -   Improved Agents Server modal consistency around chat keybindings and related overlays:
 
     -   Reworked the first-run chat keybindings onboarding from a bottom-attached popup into a true modal dialog centered on desktop with a darkened, blurred backdrop, while making it fullscreen on mobile without borders or border radius.

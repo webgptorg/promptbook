@@ -115,7 +115,7 @@ Queued
 
 ---
 
-[ ]
+[x] ~$1.02 16 minutes by OpenAI Codex `gpt-5.4`
 
 [✨🧂] When is time for `USE TIMEOUT` in the chat, it fails, fix it
 
@@ -183,3 +183,4 @@ Failed to fetch remote agent profile: Agent URL: https://core-test.ptbk.io/agent
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

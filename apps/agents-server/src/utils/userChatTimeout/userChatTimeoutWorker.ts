@@ -3,7 +3,7 @@ import type { ChatMessage } from '@promptbook-local/types';
 import { serializeError, spaceTrim } from '@promptbook-local/utils';
 import { $randomBase58 } from '../../../../../src/utils/random/$randomBase58';
 import { getToolUsageLimits } from '../toolUsageLimits';
-import { resolveInternalServerOrigin } from '../resolveInternalServerOrigin';
+import { resolveCurrentOrInternalServerOrigin } from '../resolveCurrentOrInternalServerOrigin';
 import { appendQueuedUserChatTurn } from '../userChat/appendQueuedUserChatTurn';
 import { getUserChat } from '../userChat/getUserChat';
 import { getUserChatJobByClientMessageId } from '../userChat/getUserChatJobByClientMessageId';
@@ -315,7 +315,7 @@ async function processClaimedUserChatTimeout(timeout: UserChatTimeoutRecord): Pr
 
         try {
             await triggerUserChatJobWorker({
-                origin: resolveInternalServerOrigin(),
+                origin: await resolveCurrentOrInternalServerOrigin(),
                 preferredJobId: queuedJob.id,
             });
         } catch (error) {

@@ -4,11 +4,11 @@ import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolv
 import { resolveBookScopedAgentContext } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
 import { AgentKitCacheManager } from '@/src/utils/cache/AgentKitCacheManager';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
-import { resolveInternalServerOrigin } from '@/src/utils/resolveInternalServerOrigin';
 import { extractUseEmailConfigurationFromAgentSource } from '@/src/utils/emails/extractUseEmailConfigurationFromAgentSource';
 import { getUserById } from '@/src/utils/getUserById';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
+import { resolveCurrentOrInternalServerOrigin } from '@/src/utils/resolveCurrentOrInternalServerOrigin';
 import { resolveUseEmailSmtpCredential } from '@/src/utils/resolveUseEmailSmtpCredential';
 import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithubToken';
 import {
@@ -68,12 +68,13 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
     }
 
     const thread = resolvePromptThreadBeforeUserMessage(chat.messages, job.userMessageId);
+    const localServerUrl = await resolveCurrentOrInternalServerOrigin();
     const collection = await $provideAgentCollectionForServer();
     const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
     const resolvedAgentContext = await resolveBookScopedAgentContext({
         collection,
         agentIdentifier: job.agentPermanentId,
-        localServerUrl: resolveInternalServerOrigin(),
+        localServerUrl,
         fallbackResolver: baseAgentReferenceResolver,
     });
     const agentSource = resolvedAgentContext.resolvedAgentSource;
