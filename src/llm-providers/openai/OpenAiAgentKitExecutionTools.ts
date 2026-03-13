@@ -670,7 +670,10 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
                                 };
 
                                 const progressListenerToken = registerToolCallProgressListener((update) => {
-                                    currentToolCallSnapshot = applyToolCallProgressUpdate(currentToolCallSnapshot, update);
+                                    currentToolCallSnapshot = applyToolCallProgressUpdate(
+                                        currentToolCallSnapshot,
+                                        update,
+                                    );
 
                                     if (callId) {
                                         this.agentKitToolSnapshotsByCallId.set(callId, currentToolCallSnapshot);
@@ -921,7 +924,9 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
                                 errors: progressToolCall?.errors ?? existingToolCall.errors,
                             }),
                             logs: [
-                                ...((progressToolCall?.logs || existingToolCall.logs || []) as ReadonlyArray<ToolCallLogEntry>),
+                                ...((progressToolCall?.logs ||
+                                    existingToolCall.logs ||
+                                    []) as ReadonlyArray<ToolCallLogEntry>),
                                 createToolCallLogEntry({
                                     kind: 'result',
                                     title: 'Execution finished',

@@ -374,7 +374,10 @@ export class OpenAiAssistantExecutionTools extends OpenAiVectorStoreHandler impl
                             try {
                                 const scriptTool = scriptTools[0]!; // <- TODO: [🧠] Which script tool to use?
                                 const progressListenerToken = registerToolCallProgressListener((update) => {
-                                    currentToolCallSnapshot = applyToolCallProgressUpdate(currentToolCallSnapshot, update);
+                                    currentToolCallSnapshot = applyToolCallProgressUpdate(
+                                        currentToolCallSnapshot,
+                                        update,
+                                    );
 
                                     onProgress({
                                         content: '',

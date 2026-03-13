@@ -470,7 +470,9 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                                         createToolCallLogEntry({
                                             kind: 'request',
                                             title: 'Request prepared',
-                                            message: `Prepared ${String((toolCall as TODO_any).function.name)} request.`,
+                                            message: `Prepared ${String(
+                                                (toolCall as TODO_any).function.name,
+                                            )} request.`,
                                             payload: {
                                                 arguments: (toolCall as TODO_any).function.arguments,
                                             },

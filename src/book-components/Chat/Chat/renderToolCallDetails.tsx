@@ -305,7 +305,9 @@ function buildRunBrowserActionRows(options: {
                 ? (logEntry.payload as Record<string, TODO_any>)
                 : null;
         const actionIndex =
-            payload && typeof payload.actionIndex === 'number' && payload.actionIndex > 0 ? payload.actionIndex - 1 : -1;
+            payload && typeof payload.actionIndex === 'number' && payload.actionIndex > 0
+                ? payload.actionIndex - 1
+                : -1;
         const phase = typeof payload?.phase === 'string' ? payload.phase : null;
         const nextState: BrowserActionRowState =
             phase === 'error' ? 'error' : phase === 'complete' ? 'complete' : 'running';
@@ -922,7 +924,8 @@ function renderRunBrowserToolCall(options: {
                 ) : shouldShowProgressPlaceholder ? (
                     renderToolCallProgressPlaceholder({
                         title: 'Visual replay pending',
-                        message: 'The browser session is still running. Screenshots and page state will appear here as they arrive.',
+                        message:
+                            'The browser session is still running. Screenshots and page state will appear here as they arrive.',
                     })
                 ) : !fallbackContent ? (
                     <div className={styles.noResults}>No browser visuals were captured for this action.</div>
@@ -982,7 +985,8 @@ function renderRunBrowserToolCall(options: {
 
                 {runBrowserError && toolCallState !== 'ERROR' && (
                     <div className={styles.browserRunStatusBanner}>
-                        <strong>Status:</strong> The browser reported an issue, but the tool call is still streaming final details.
+                        <strong>Status:</strong> The browser reported an issue, but the tool call is still streaming
+                        final details.
                     </div>
                 )}
             </div>
@@ -1202,7 +1206,9 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
                             <div className={styles.toolCallDetailsCard}>
                                 <div className={styles.toolCallDetailsCardRow}>
                                     <strong>Query</strong>
-                                    <span>{String(args.query || args.searchText || 'Search query is being prepared.')}</span>
+                                    <span>
+                                        {String(args.query || args.searchText || 'Search query is being prepared.')}
+                                    </span>
                                 </div>
                                 {args.location && (
                                     <div className={styles.toolCallDetailsCardRow}>
@@ -1400,7 +1406,8 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
                     ) : shouldRenderRunningRequestPlaceholder ? (
                         renderToolCallProgressPlaceholder({
                             title: 'Request details pending',
-                            message: 'The agent started this action, but the detailed request payload has not arrived yet.',
+                            message:
+                                'The agent started this action, but the detailed request payload has not arrived yet.',
                             badgeLabel: 'Pending',
                         })
                     ) : (

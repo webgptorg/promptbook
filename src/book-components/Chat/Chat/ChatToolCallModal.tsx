@@ -66,8 +66,16 @@ type ToolCallReportDestination = 'clipboard' | 'file';
  * @private component of `<Chat/>`
  */
 export function ChatToolCallModal(props: ChatToolCallModalProps) {
-    const { isOpen, toolCall, toolCallIdentity, onClose, toolTitles, agentParticipant, buttonColor, teamAgentProfiles } =
-        props;
+    const {
+        isOpen,
+        toolCall,
+        toolCallIdentity,
+        onClose,
+        toolTitles,
+        agentParticipant,
+        buttonColor,
+        teamAgentProfiles,
+    } = props;
     const [teamProfiles, setTeamProfiles] = useState<Record<string, AgentProfileData>>({});
     const [selectedTeamToolCall, setSelectedTeamToolCall] = useState<TransitiveToolCall | null>(null);
     const [viewMode, setViewMode] = useState<ToolCallModalViewMode>('simple');

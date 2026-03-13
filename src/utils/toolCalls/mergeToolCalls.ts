@@ -75,10 +75,7 @@ function mergeToolCallSnapshot(existingToolCall: ToolCall, incomingToolCall: Too
  * @returns Resolved lifecycle state or `undefined` when neither snapshot provides enough data.
  * @private helper of `mergeToolCalls`
  */
-function resolveMergedToolCallState(
-    existingToolCall: ToolCall,
-    incomingToolCall: ToolCall,
-): ToolCallState | undefined {
+function resolveMergedToolCallState(existingToolCall: ToolCall, incomingToolCall: ToolCall): ToolCallState | undefined {
     return (
         incomingToolCall.state ||
         inferToolCallState(incomingToolCall) ||

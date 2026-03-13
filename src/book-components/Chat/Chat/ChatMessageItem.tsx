@@ -1301,9 +1301,7 @@ export const ChatMessageItem = memo(
                                             void handleActionButtonClick(buttonIndex, button.code);
                                         }}
                                         disabled={button.type === 'action' && pendingActionButtonIndex === buttonIndex}
-                                        title={
-                                            button.type === 'action' ? 'Runs an action in your browser' : undefined
-                                        }
+                                        title={button.type === 'action' ? 'Runs an action in your browser' : undefined}
                                         // <- TODO: [🐱‍🚀] `Color` should work with forma `#ff00ff55` *(with alpha)*
                                     >
                                         <MarkdownContent content={button.text} />
