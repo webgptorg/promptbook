@@ -70,57 +70,6 @@ function createChatPrompt(content: string): Prompt {
 }
 
 describe('RemoteAgent stream parsing', () => {
-    it('falls back to alternate profile endpoint after loop-detected response', async () => {
-        const originalFetch = global.fetch;
-
-        try {
-            const fetchMock = jest.fn<typeof fetch>().mockImplementation(async (input) => {
-                const url = typeof input === 'string' ? input : input.toString();
-
-                if (url === 'https://example.com/agents/test/api/profile') {
-                    return new Response('Loop detected', {
-                        status: 508,
-                        statusText: 'Loop Detected',
-                    });
-                }
-
-                if (url === 'https://example.com/test/api/profile') {
-                    return createJsonResponse({ agentName: 'TestRemoteAgent' });
-                }
-
-                if (url === 'https://example.com/test/api/chat') {
-                    return createStreamingResponse(['hello from fallback endpoint']);
-                }
-
-                throw new Error(`Unexpected fetch URL in test: ${url}`);
-            });
-
-            global.fetch = fetchMock;
-
-            const remoteAgent = await RemoteAgent.connect({
-                agentUrl: 'https://example.com/agents/test' as string_agent_url,
-            });
-
-            const result = await remoteAgent.callChatModelStream(createChatPrompt('hello'), () => {});
-
-            expect(result.content).toBe('hello from fallback endpoint');
-            expect(fetchMock).toHaveBeenCalledWith(
-                'https://example.com/agents/test/api/profile',
-                expect.objectContaining({ headers: expect.any(Object) }),
-            );
-            expect(fetchMock).toHaveBeenCalledWith(
-                'https://example.com/test/api/profile',
-                expect.objectContaining({ headers: expect.any(Object) }),
-            );
-            expect(fetchMock).toHaveBeenCalledWith(
-                'https://example.com/test/api/chat',
-                expect.objectContaining({ method: 'POST' }),
-            );
-        } finally {
-            global.fetch = originalFetch;
-        }
-    });
-
     it('parses a split tool-calls frame and keeps it out of visible content', async () => {
         const originalFetch = global.fetch;
 

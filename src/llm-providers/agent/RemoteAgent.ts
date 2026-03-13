@@ -74,13 +74,6 @@ type RemoteAgentHttpError = Error & {
     };
 };
 
-type RemoteAgentProfileFetchFailure = {
-    profileUrl: string;
-    status?: number;
-    statusText?: string;
-    parseError?: string;
-};
-
 /**
  * Parses one failed remote agent response into a structured error.
  */
@@ -118,136 +111,6 @@ async function createRemoteAgentHttpError(response: Response): Promise<RemoteAge
     }
 
     return error;
-}
-
-/**
- * Removes trailing slashes from URL path while keeping root slash intact.
- */
-function normalizePathname(pathname: string): string {
-    const normalized = pathname.replace(/\/+$/, '');
-    return normalized || '/';
-}
-
-/**
- * Builds candidate profile endpoints for one remote agent URL.
- */
-function buildRemoteAgentProfileUrlCandidates(agentUrl: string_agent_url): Array<string> {
-    const parsed = new URL(agentUrl);
-    const normalizedPathname = normalizePathname(parsed.pathname);
-    const profilePathSuffix = '/api/profile';
-
-    const basePathname = normalizedPathname.endsWith(profilePathSuffix)
-        ? normalizePathname(normalizedPathname.slice(0, -profilePathSuffix.length))
-        : normalizedPathname;
-
-    const candidates = new Set<string>();
-    const withPathname = (pathname: string): string => {
-        const resolved = new URL(parsed.toString());
-        resolved.pathname = pathname;
-        resolved.search = '';
-        resolved.hash = '';
-        return resolved.toString();
-    };
-
-    candidates.add(withPathname(`${basePathname}${profilePathSuffix}`));
-
-    const agentsPrefix = '/agents/';
-    if (basePathname.startsWith(agentsPrefix)) {
-        const maybeAgentSlug = basePathname.slice(agentsPrefix.length);
-        if (maybeAgentSlug !== '' && !maybeAgentSlug.includes('/')) {
-            candidates.add(withPathname(`/${maybeAgentSlug}${profilePathSuffix}`));
-        }
-    }
-
-    return [...candidates];
-}
-
-/**
- * Resolves remote agent base URL from a successfully fetched profile endpoint URL.
- */
-function resolveRemoteAgentBaseUrl(profileUrl: string): string_agent_url {
-    const parsedProfileUrl = new URL(profileUrl);
-    const profilePathSuffix = '/api/profile';
-    const normalizedPathname = normalizePathname(parsedProfileUrl.pathname);
-
-    if (normalizedPathname.endsWith(profilePathSuffix)) {
-        const basePath = normalizePathname(normalizedPathname.slice(0, -profilePathSuffix.length));
-        parsedProfileUrl.pathname = basePath;
-    }
-
-    parsedProfileUrl.search = '';
-    parsedProfileUrl.hash = '';
-
-    return parsedProfileUrl.toString() as string_agent_url;
-}
-
-/**
- * Fetches remote profile using resilient endpoint candidates.
- */
-async function fetchRemoteAgentProfile(options: {
-    agentUrl: string_agent_url;
-}): Promise<{ profile: RemoteAgentProfile; profileUrl: string; resolvedAgentUrl: string_agent_url }> {
-    const failures: Array<RemoteAgentProfileFetchFailure> = [];
-    const profileUrlCandidates = buildRemoteAgentProfileUrlCandidates(options.agentUrl);
-
-    for (const profileUrl of profileUrlCandidates) {
-        const profileResponse = await fetch(profileUrl, {
-            headers: attachClientVersionHeader(),
-        });
-
-        if (!profileResponse.ok) {
-            failures.push({
-                profileUrl,
-                status: profileResponse.status,
-                statusText: profileResponse.statusText,
-            });
-            continue;
-        }
-
-        try {
-            const profile = (await profileResponse.json()) as RemoteAgentProfile;
-
-            return {
-                profile,
-                profileUrl,
-                resolvedAgentUrl: resolveRemoteAgentBaseUrl(profileUrl),
-            };
-        } catch (error) {
-            failures.push({
-                profileUrl,
-                parseError: error instanceof Error ? error.message : 'Unknown profile parse error',
-            });
-        }
-    }
-
-    const failuresReport =
-        failures.length === 0
-            ? 'No profile endpoint candidates were generated.'
-            : failures
-                  .map((failure) => {
-                      const status =
-                          failure.status === undefined
-                              ? 'No HTTP status'
-                              : `${failure.status} ${failure.statusText || ''}`.trim();
-
-                      const parseError = failure.parseError ? `; Parse Error: ${failure.parseError}` : '';
-                      return `${failure.profileUrl} => ${status}${parseError}`;
-                  })
-                  .join('\n');
-
-    throw new Error(
-        spaceTrim(
-            (block) => `
-                Failed to fetch remote agent profile:
-
-                Agent URL:
-                ${options.agentUrl}
-
-                Tried Profile URLs:
-                ${block(failuresReport)}
-            `,
-        ),
-    );
 }
 
 /**
@@ -335,15 +198,37 @@ function buildRemoteAgentSource(profile: RemoteAgentProfile, meta: RemoteAgentPr
  */
 export class RemoteAgent extends Agent {
     public static async connect(options: RemoteAgentOptions) {
-        const { profile, resolvedAgentUrl } = await fetchRemoteAgentProfile({
-            agentUrl: options.agentUrl,
+        const agentProfileUrl = `${options.agentUrl}/api/profile`;
+        const profileResponse = await fetch(agentProfileUrl, {
+            headers: attachClientVersionHeader(),
         });
         // <- TODO: [🐱‍🚀] What about closed-source agents?
         // <- TODO: [🐱‍🚀] Maybe use promptbookFetch
 
+        if (!profileResponse.ok) {
+            throw new Error(
+                spaceTrim(
+                    (block) => `
+                        Failed to fetch remote agent profile:
+
+                        Agent URL:
+                        ${options.agentUrl}
+
+                        Agent Profile URL:
+                        ${agentProfileUrl}
+                        
+                        Http Error:
+                        ${block(profileResponse.statusText)}
+                
+                `,
+                ),
+            );
+        }
+
+        const profile = (await profileResponse.json()) as RemoteAgentProfile;
         const resolvedMeta = {
             ...(profile.meta || {}),
-            image: resolveRemoteImageUrl(profile.meta?.image, resolvedAgentUrl),
+            image: resolveRemoteImageUrl(profile.meta?.image, options.agentUrl),
         };
 
         // Note: We are creating dummy agent source because we don't have the source from the remote agent
@@ -356,7 +241,6 @@ export class RemoteAgent extends Agent {
 
         const remoteAgent = new RemoteAgent({
             ...options,
-            agentUrl: resolvedAgentUrl,
             executionTools: {
                 /* Note: These tools are not used */
                 // ---------------------------------------
