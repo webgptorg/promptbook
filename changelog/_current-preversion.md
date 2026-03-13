@@ -1,3 +1,5 @@
+-   Fixed Agents Server chat action controls to use the same blue accent across `New chat`, `Save`, `Timeouts`, `Cancel`, and the chat sidebar/scroll arrow buttons.
+
 -   Fixed Agents Server timeout wake-up chats resuming under the wrong server origin:
 
     -   Made the timeout worker hand off resumed durable chat jobs using the current request-scoped server origin when available instead of always falling back to the deployment-level internal origin.

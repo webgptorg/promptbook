@@ -322,15 +322,24 @@ textarea:focus-visible {
     view-transition-name: agent-chat-route-surface;
     --agent-chat-arrow-button-size: 46px;
     --agent-chat-arrow-icon-size: 20px;
-    --agent-chat-arrow-border-color: rgba(148, 163, 184, 0.58);
-    --agent-chat-arrow-border-color-hover: rgba(125, 211, 252, 0.82);
-    --agent-chat-arrow-text-color: #334155;
-    --agent-chat-arrow-text-color-hover: #0f172a;
-    --agent-chat-arrow-background: linear-gradient(160deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.92));
-    --agent-chat-arrow-background-hover: linear-gradient(160deg, rgba(255, 255, 255, 0.99), rgba(248, 250, 252, 0.96));
-    --agent-chat-arrow-shadow: 0 10px 24px rgba(15, 23, 42, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.8);
-    --agent-chat-arrow-shadow-hover: 0 14px 28px rgba(15, 23, 42, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.92);
-    --agent-chat-arrow-focus-color: rgba(59, 130, 246, 0.68);
+    --agent-chat-primary-action-border-color: rgba(0, 102, 204, 0.9);
+    --agent-chat-primary-action-border-color-hover: rgba(0, 119, 221, 0.96);
+    --agent-chat-primary-action-text-color: #ffffff;
+    --agent-chat-primary-action-text-color-hover: #ffffff;
+    --agent-chat-primary-action-background: linear-gradient(135deg, #0084ff 0%, #0066cc 100%);
+    --agent-chat-primary-action-background-hover: linear-gradient(135deg, #0099ff 0%, #0077dd 100%);
+    --agent-chat-primary-action-shadow: 0 4px 16px rgba(0, 132, 255, 0.3);
+    --agent-chat-primary-action-shadow-hover: 0 8px 24px rgba(0, 132, 255, 0.4);
+    --agent-chat-primary-action-focus-color: rgba(59, 130, 246, 0.68);
+    --agent-chat-arrow-border-color: var(--agent-chat-primary-action-border-color);
+    --agent-chat-arrow-border-color-hover: var(--agent-chat-primary-action-border-color-hover);
+    --agent-chat-arrow-text-color: var(--agent-chat-primary-action-text-color);
+    --agent-chat-arrow-text-color-hover: var(--agent-chat-primary-action-text-color-hover);
+    --agent-chat-arrow-background: var(--agent-chat-primary-action-background);
+    --agent-chat-arrow-background-hover: var(--agent-chat-primary-action-background-hover);
+    --agent-chat-arrow-shadow: var(--agent-chat-primary-action-shadow);
+    --agent-chat-arrow-shadow-hover: var(--agent-chat-primary-action-shadow-hover);
+    --agent-chat-arrow-focus-color: var(--agent-chat-primary-action-focus-color);
     --agent-chat-scroll-badge-border-color: rgba(148, 163, 184, 0.62);
     --agent-chat-scroll-badge-text-color: #0f172a;
     --agent-chat-scroll-badge-background: linear-gradient(150deg, rgba(248, 250, 252, 0.96), rgba(241, 245, 249, 0.92));
@@ -339,20 +348,60 @@ textarea:focus-visible {
 
 @media (prefers-color-scheme: dark) {
     .agent-chat-route-surface {
-        --agent-chat-arrow-border-color: rgba(100, 116, 139, 0.78);
-        --agent-chat-arrow-border-color-hover: rgba(125, 211, 252, 0.72);
-        --agent-chat-arrow-text-color: #e2e8f0;
-        --agent-chat-arrow-text-color-hover: #f8fafc;
-        --agent-chat-arrow-background: linear-gradient(160deg, rgba(15, 23, 42, 0.94), rgba(30, 41, 59, 0.92));
-        --agent-chat-arrow-background-hover: linear-gradient(160deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.96));
-        --agent-chat-arrow-shadow: 0 14px 32px rgba(2, 6, 23, 0.42), inset 0 1px 0 rgba(148, 163, 184, 0.16);
-        --agent-chat-arrow-shadow-hover: 0 16px 36px rgba(2, 6, 23, 0.52), inset 0 1px 0 rgba(148, 163, 184, 0.22);
-        --agent-chat-arrow-focus-color: rgba(125, 211, 252, 0.66);
+        --agent-chat-primary-action-border-color: rgba(59, 130, 246, 0.9);
+        --agent-chat-primary-action-border-color-hover: rgba(96, 165, 250, 0.96);
+        --agent-chat-primary-action-background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+        --agent-chat-primary-action-background-hover: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        --agent-chat-primary-action-shadow: 0 10px 24px rgba(30, 64, 175, 0.38);
+        --agent-chat-primary-action-shadow-hover: 0 12px 28px rgba(37, 99, 235, 0.46);
+        --agent-chat-primary-action-focus-color: rgba(125, 211, 252, 0.66);
         --agent-chat-scroll-badge-border-color: rgba(125, 211, 252, 0.58);
         --agent-chat-scroll-badge-text-color: #e2e8f0;
         --agent-chat-scroll-badge-background: linear-gradient(150deg, rgba(8, 47, 73, 0.94), rgba(15, 23, 42, 0.92));
         --agent-chat-scroll-badge-caret-background: rgba(8, 47, 73, 0.95);
     }
+}
+
+.agent-chat-route-surface .agent-chat-toolbar-action-button {
+    display: inline-flex;
+    min-height: 40px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border: 1px solid var(--agent-chat-primary-action-border-color);
+    border-radius: 999px;
+    background: var(--agent-chat-primary-action-background);
+    color: var(--agent-chat-primary-action-text-color);
+    box-shadow: var(--agent-chat-primary-action-shadow);
+    backdrop-filter: blur(8px);
+    transition:
+        color 150ms ease,
+        border-color 150ms ease,
+        box-shadow 150ms ease,
+        transform 150ms ease,
+        background 150ms ease;
+}
+
+.agent-chat-route-surface .agent-chat-toolbar-action-button:hover:not(:disabled) {
+    color: var(--agent-chat-primary-action-text-color-hover);
+    border-color: var(--agent-chat-primary-action-border-color-hover);
+    background: var(--agent-chat-primary-action-background-hover);
+    box-shadow: var(--agent-chat-primary-action-shadow-hover);
+    transform: translateY(-1px);
+}
+
+.agent-chat-route-surface .agent-chat-toolbar-action-button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.agent-chat-route-surface .agent-chat-toolbar-action-button:focus-visible {
+    outline: 2px solid var(--agent-chat-primary-action-focus-color);
+    outline-offset: 2px;
+}
+
+.agent-chat-route-surface .agent-chat-toolbar-action-button svg {
+    color: currentColor;
 }
 
 .agent-chat-route-surface .agent-chat-solid-arrow-button,

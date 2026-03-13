@@ -2,7 +2,7 @@
 
 ---
 
-[ ]
+[x] $1.42 17 minutes by OpenAI Codex `gpt-5.4`
 
 [👨‍🎨🎨] Arrows in a chat should have the same color as other icons.
 
@@ -10,3 +10,4 @@
 -   All the buttons in the section "New chat", "Save" should have the same color, the "Cancel" button and "Timeouts"
 
 ![alt text](prompts/screenshots/2026-03-0940-agents-server-arrows-color.png)
+

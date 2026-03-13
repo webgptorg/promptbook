@@ -363,7 +363,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
     const cancelAction = !isReadOnly && cancellableJob && onCancelActiveJob && (
         <button
             type="button"
-            className="rounded-full border border-slate-300/80 bg-white/80 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-slate-700 shadow-sm transition hover:border-slate-400 hover:text-slate-900 disabled:cursor-default disabled:opacity-50"
+            className="agent-chat-toolbar-action-button rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] disabled:cursor-default disabled:opacity-50"
             onClick={() => {
                 void onCancelActiveJob(cancellableJob.id);
             }}

@@ -63,12 +63,12 @@ export function ChatTimeoutButton(props: ChatTimeoutButtonProps) {
         <>
             <button
                 type="button"
-                className="inline-flex min-h-10 items-center gap-2 rounded-full border border-amber-200/80 bg-white/90 px-3.5 py-2 text-sm font-semibold text-slate-700 shadow-sm backdrop-blur-sm transition hover:border-amber-300 hover:bg-white hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400"
+                className="agent-chat-toolbar-action-button inline-flex min-h-10 items-center gap-2 rounded-full px-3.5 py-2 text-sm font-semibold"
                 onClick={() => setIsDialogOpen(true)}
                 aria-label={`${activeTimeoutsLabel}. Nearest timeout ${primaryTimeoutLabel}.`}
                 title={`${activeTimeoutsLabel}. Nearest timeout ${primaryTimeoutLabel}.`}
             >
-                <Clock3Icon className="h-4 w-4 text-amber-600" />
+                <Clock3Icon className="h-4 w-4" />
                 <span>{primaryTimeoutLabel}</span>
             </button>
 
