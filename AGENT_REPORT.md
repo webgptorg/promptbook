@@ -39,3 +39,7 @@
   - `apps/agents-server` `lint` passed and `test-build` completed successfully.
   - The failure happened in the `test-e2e` stage with `Dynamic server usage: Route /admin/error-simulation couldn't be rendered statically because it used \`cookies\``.
   - The logged stack references `/admin/error-simulation` and `/api/api-tokens`, not the chat timeout UI or user-chat timeout code paths changed in this task.
+
+- `npm run test-app-agents-server` also fails in another unrelated `test-e2e` setup path after successful app lint/build:
+  - Next.js reports `Dynamic server usage` while prerendering `/restricted`, with logs mentioning both `headers` and `cookies`.
+  - The stack in this run points into `/admin/servers/page` while the reported failing route is `/restricted`, which suggests a broader prerender/static-generation issue outside the textarea loading change in this task.

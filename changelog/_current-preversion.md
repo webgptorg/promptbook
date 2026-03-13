@@ -1,3 +1,5 @@
+-   Fixed Agents Server `/agents/[agentName]/textarea` route loading to use a dedicated textarea-first skeleton that matches the centered avatar and composer layout, without changing the existing profile or standalone chat skeletons.
+
 -   Added configurable chat Enter/Ctrl+Enter keybindings across Agents Server chat surfaces:
 
     -   Extended the shared `<Chat/>` composer with reusable `enterBehavior` / lazy `resolveEnterBehavior` support so plain `Enter` and `Ctrl+Enter` can be inverted without coupling the component to Agents Server persistence.
