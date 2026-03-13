@@ -1,4 +1,3 @@
-import { NEXT_PUBLIC_SITE_URL } from '@/config';
 import { AgentCollectionInSupabase } from '@promptbook-local/core';
 import { string_agent_permanent_id, TODO_any } from '@promptbook-local/types';
 import { serializeError } from '@promptbook-local/utils';
@@ -8,6 +7,7 @@ import { createServerAgentReferenceResolver } from '@/src/utils/agentReferenceRe
 import { resolveBookScopedAgentContext } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
 import { AgentKitCacheManager } from '@/src/utils/cache/AgentKitCacheManager';
 import { getFederatedServers } from '@/src/utils/getFederatedServers';
+import { resolveInternalServerOrigin } from '@/src/utils/resolveInternalServerOrigin';
 import { retryWithBackoff } from '@/src/utils/retryWithBackoff';
 
 /**
@@ -205,17 +205,6 @@ function incrementAgentPreparationMetric(metric: keyof AgentPreparationMetrics):
  */
 async function sleep(delayMs: number): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, delayMs));
-}
-
-/**
- * Derives the public local server URL used for scoped agent-reference resolution.
- */
-function resolveLocalServerUrl(): string {
-    if (NEXT_PUBLIC_SITE_URL instanceof URL) {
-        return NEXT_PUBLIC_SITE_URL.href.replace(/\/+$/g, '');
-    }
-
-    return 'https://localhost:4440';
 }
 
 /**
@@ -651,7 +640,7 @@ async function createBackgroundAgentReferenceResolver(
     tablePrefix: string,
     collection: AgentCollectionInSupabase,
 ): Promise<Awaited<ReturnType<typeof createServerAgentReferenceResolver>>> {
-    const localServerUrl = resolveLocalServerUrl();
+    const localServerUrl = resolveInternalServerOrigin();
 
     let federatedServers: string[] = [];
     try {
@@ -763,7 +752,7 @@ async function processClaimedAgentPreparationJob(tablePrefix: string, claimedJob
         });
 
         const fallbackAgentReferenceResolver = await createBackgroundAgentReferenceResolver(tablePrefix, collection);
-        const localServerUrl = resolveLocalServerUrl();
+        const localServerUrl = resolveInternalServerOrigin();
         const resolvedAgentContext = await resolveBookScopedAgentContext({
             collection,
             agentIdentifier: claimedJob.agentPermanentId,

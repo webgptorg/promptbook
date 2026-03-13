@@ -22,6 +22,7 @@ export {
     runUserChatTimeoutWorkerTick,
     scheduleThreadScopedUserChatTimeout,
 } from './userChatTimeout/userChatTimeoutWorker';
+export { triggerUserChatTimeoutWorker } from './userChatTimeout/triggerUserChatTimeoutWorker';
 export type {
     CreateUserChatTimeoutOptions,
     GetUserChatTimeoutOptions,

@@ -1,10 +1,10 @@
-import { NEXT_PUBLIC_SITE_URL } from '@/config';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { resolveBookScopedAgentContext } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
 import { AgentKitCacheManager } from '@/src/utils/cache/AgentKitCacheManager';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
+import { resolveInternalServerOrigin } from '@/src/utils/resolveInternalServerOrigin';
 import { extractUseEmailConfigurationFromAgentSource } from '@/src/utils/emails/extractUseEmailConfigurationFromAgentSource';
 import { getUserById } from '@/src/utils/getUserById';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
@@ -73,7 +73,7 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
     const resolvedAgentContext = await resolveBookScopedAgentContext({
         collection,
         agentIdentifier: job.agentPermanentId,
-        localServerUrl: resolveLocalServerOrigin(),
+        localServerUrl: resolveInternalServerOrigin(),
         fallbackResolver: baseAgentReferenceResolver,
     });
     const agentSource = resolvedAgentContext.resolvedAgentSource;
@@ -372,17 +372,4 @@ function resolveUserChatJobFailureReason(error: unknown): string {
     }
 
     return 'Chat generation failed.';
-}
-
-/**
- * Resolves the local/public server origin used for background scoped-agent lookups.
- *
- * @private function of `userChat`
- */
-function resolveLocalServerOrigin(): string {
-    if (NEXT_PUBLIC_SITE_URL instanceof URL) {
-        return NEXT_PUBLIC_SITE_URL.href.replace(/\/+$/g, '');
-    }
-
-    return 'https://localhost:4440';
 }

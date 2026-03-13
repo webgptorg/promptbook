@@ -1,9 +1,9 @@
-import { NEXT_PUBLIC_SITE_URL } from '@/config';
 import { LimitReachedError } from '@promptbook-local/core';
 import type { ChatMessage } from '@promptbook-local/types';
 import { serializeError, spaceTrim } from '@promptbook-local/utils';
 import { $randomBase58 } from '../../../../../src/utils/random/$randomBase58';
 import { getToolUsageLimits } from '../toolUsageLimits';
+import { resolveInternalServerOrigin } from '../resolveInternalServerOrigin';
 import { appendQueuedUserChatTurn } from '../userChat/appendQueuedUserChatTurn';
 import { getUserChat } from '../userChat/getUserChat';
 import { getUserChatJobByClientMessageId } from '../userChat/getUserChatJobByClientMessageId';
@@ -315,7 +315,7 @@ async function processClaimedUserChatTimeout(timeout: UserChatTimeoutRecord): Pr
 
         try {
             await triggerUserChatJobWorker({
-                origin: resolveLocalServerOrigin(),
+                origin: resolveInternalServerOrigin(),
                 preferredJobId: queuedJob.id,
             });
         } catch (error) {
@@ -474,19 +474,6 @@ function createTimeoutClientMessageId(timeoutId: string): string {
 function createStartOfCurrentUtcDayIso(): string {
     const now = new Date();
     return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())).toISOString();
-}
-
-/**
- * Resolves the local/public server origin used for internal worker wake-ups.
- *
- * @private internal utility of userChatTimeout
- */
-function resolveLocalServerOrigin(): string {
-    if (NEXT_PUBLIC_SITE_URL instanceof URL) {
-        return NEXT_PUBLIC_SITE_URL.href.replace(/\/+$/g, '');
-    }
-
-    return 'https://localhost:4440';
 }
 
 /**

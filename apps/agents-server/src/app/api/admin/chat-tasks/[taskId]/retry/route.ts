@@ -1,6 +1,6 @@
 import { after, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
-import { getUserChatTimeoutById, kickUserChatTimeoutWorkerTick, retryUserChatTimeout } from '@/src/utils/userChatTimeout';
+import { getUserChatTimeoutById, retryUserChatTimeout, triggerUserChatTimeoutWorker } from '@/src/utils/userChatTimeout';
 import { getUserChatJobById, retryUserChatJob, triggerUserChatJobWorker } from '@/src/utils/userChat';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
 
@@ -74,7 +74,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ tas
             return NextResponse.json({ error: 'Task could not be retried.' }, { status: 409 });
         }
 
-        kickUserChatTimeoutWorkerTick();
+        after(() =>
+            triggerUserChatTimeoutWorker({
+                origin: new URL(request.url).origin,
+            }).catch((error) => console.error('[admin-chat-task] failed to wake timeout worker after retry', error)),
+        );
 
         return NextResponse.json({ ok: true });
     } catch (error) {

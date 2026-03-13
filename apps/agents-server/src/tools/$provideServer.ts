@@ -1,6 +1,7 @@
 import { NEXT_PUBLIC_SITE_URL, SUPABASE_TABLE_PREFIX } from '@/config';
 import { headers } from 'next/headers';
 import { cache } from 'react';
+import { resolveInternalServerOrigin } from '../utils/resolveInternalServerOrigin';
 import { createServerPublicUrl, listRegisteredServersUsingServiceRole } from '../utils/serverRegistry';
 import { resolveServerSelection } from '../utils/serverSelection';
 
@@ -81,7 +82,11 @@ function resolveFallbackPublicUrl(host: string | null): URL {
         return NEXT_PUBLIC_SITE_URL;
     }
 
-    return new URL(`https://${host || 'localhost:4440'}`);
+    if (host) {
+        return createServerPublicUrl(host);
+    }
+
+    return new URL(resolveInternalServerOrigin());
 }
 
 /**
