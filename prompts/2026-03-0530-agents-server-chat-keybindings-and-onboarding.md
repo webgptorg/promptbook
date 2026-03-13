@@ -5,13 +5,13 @@
 -   In the Agents Server chat input, support both common keybinding modes:
     -   `Enter` sends message, `Ctrl+Enter` inserts newline
     -   `Enter` inserts newline, `Ctrl+Enter` sends message
--   When a user uses the chat for the first time and presses `Enter` (with no stored preference yet), show a non-blocking prompt asking which behavior they want.
-    -   The prompt must **not** interrupt typing: any further keystrokes must still apply to the textarea/input even while the prompt is visible.
-    -   Handle remote browser / automation edge case where `Enter` is pressed and additional characters are typed immediately after; the characters must appear in the input as if no modal/popup captured focus.
+-   When a user uses the chat for the first time and presses `Enter` (with no stored preference yet), show a non-blocking prompt (look on existing popup prompt components in Agents server) asking which behavior they want.
+    -   The prompt must **not** interrupt typing: any further keystrokes must still apply to the textarea/input even while the prompt is visible and chat on the background.
+        -   Handle remote browser / automation edge case where `Enter` is pressed and additional characters are typed immediately after; the characters must appear in the input as if no modal/popup captured focus.
     -   The user decision should take effect for subsequent Enter/Ctrl+Enter presses; the first Enter press that triggered the prompt should follow the newly selected mode if feasible, otherwise keep the text unchanged and require a second Enter to send
-    -   Provide a clear “Not now” / dismiss option; if dismissed, do not re-prompt within the same browser session.
+    -   Provide a clear (and default) “Not now” / dismiss option; if dismissed, do not re-prompt within the same browser session.
 -   Persist this setting in the existing user-data mechanism in Agents Server, including for ad-hoc/anonymous users tied to the browser.
-    -   Reuse the current persistence mechanism (local storage / server user record / whatever is already implemented) rather than introducing a new one.
+    -   Reuse the current persistence mechanism of storing user data
     -   Include migration/default behavior for existing users: default to current behavior (`Enter` sends) unless existing behavior differs (@@@ confirm desired default).
 -   The reusable Chat component must not own persistence; instead it must receive behavior via props.
     -   Introduce a prop `enterBehavior: 'SEND' | 'NEWLINE'`, plus support for the secondary binding (`Ctrl+Enter` inverse).
@@ -24,6 +24,7 @@
     -   Prompt text example: “When you press Enter, should we send the message or add a new line?”
     -   Two primary choices, each showing both bindings.
     -   Include a short hint that the Send button always works.
+    -   The buttons should be visually nice [Ctrl] + [Enter] in some nice visual appealing boxes
 -   Technical considerations:
     -   Do not break IME composition or mobile keyboards (e.g. don’t treat composition Enter as send).
     -   Do not interfere with multiline paste and existing input handling.

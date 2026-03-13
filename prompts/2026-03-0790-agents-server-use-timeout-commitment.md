@@ -65,19 +65,6 @@ CLOSED
 
 ---
 
-[-]
-
-[✨🧂] brr
-
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
-
----
-
 [x] ~$0.7944 27 minutes by OpenAI Codex `gpt-5.4`
 
 [✨🧂] Ehnance how timeouts are shown in the chat
@@ -98,6 +85,36 @@ CLOSED
 
 ---
 
+[ ]
+
+[✨🧂] When is time for `USE TIMEOUT` in the chat, it fails, fix it
+
+-   Commitment `USE TIMEOUT` is working
+-   Setting timeout through the toolcall is working
+-   In the UI it is working
+-   When the timeout is elapsed, the agent is woken up with the injected message, but then it fails
+
+```
+⏱️ Timeout elapsed after 1200000ms.
+timeoutId: tmo_wU8SXmy3cKhPVd
+joke
+
+
+Queued
+⚠️ Scheduled timeout tmo_wU8SXmy3cKhPVd could not be executed: fetch failed
+```
+
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   If you need to do the database migration, do it
+-   If you need to setup Vercel cron job for the background worker, do it
+-   If you need to do some infrastructure setup, do it
+
+![alt text](prompts/screenshots/2026-03-0790-agents-server-use-timeout-commitment-1.png)
+![alt text](prompts/screenshots/2026-03-0790-agents-server-use-timeout-commitment-2.png)
+
+---
+
 [-]
 
 [✨🧂] brr
@@ -109,3 +126,28 @@ CLOSED
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+---
+
+[-]
+
+[✨🧂] brr
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   If you need to do the database migration, do it
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
+[-]
+
+[✨🧂] brr
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   If you need to do the database migration, do it
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
