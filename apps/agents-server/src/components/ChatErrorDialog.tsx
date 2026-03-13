@@ -1,12 +1,29 @@
 'use client';
 
+import { useId } from 'react';
 import type { FriendlyErrorMessage } from '../utils/errorMessages';
+import { Dialog } from './Portal/Dialog';
 
+/**
+ * Props accepted by the reusable chat error dialog.
+ */
 type ChatErrorDialogProps = {
-    error: FriendlyErrorMessage | null;
-    onRetry?: () => void;
-    onReset?: () => void;
-    onDismiss: () => void;
+    /**
+     * Friendly error metadata prepared for display.
+     */
+    readonly error: FriendlyErrorMessage | null;
+    /**
+     * Optional retry callback for recoverable failures.
+     */
+    readonly onRetry?: () => void;
+    /**
+     * Optional reset callback for resettable failures.
+     */
+    readonly onReset?: () => void;
+    /**
+     * Called when the dialog is dismissed.
+     */
+    readonly onDismiss: () => void;
 };
 
 /**
@@ -17,6 +34,9 @@ type ChatErrorDialogProps = {
  * and can be reused across different chat contexts.
  */
 export function ChatErrorDialog({ error, onRetry, onReset, onDismiss }: ChatErrorDialogProps) {
+    const titleId = useId();
+    const descriptionId = useId();
+
     if (!error) {
         return null;
     }
@@ -24,10 +44,15 @@ export function ChatErrorDialog({ error, onRetry, onReset, onDismiss }: ChatErro
     const hasActions = error.canRetry && (onRetry || onReset);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
-                {/* Error Icon and Title */}
-                <div className="flex items-start mb-4">
+        <Dialog
+            onClose={onDismiss}
+            role="alertdialog"
+            ariaLabelledBy={titleId}
+            ariaDescribedBy={descriptionId}
+            className="mx-4 w-full max-w-md p-6"
+        >
+            <div className="space-y-6">
+                <div className="flex items-start gap-3">
                     <div className="flex-shrink-0">
                         <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path
@@ -38,17 +63,16 @@ export function ChatErrorDialog({ error, onRetry, onReset, onDismiss }: ChatErro
                             />
                         </svg>
                     </div>
-                    <div className="ml-3 flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900">{error.title}</h3>
+                    <div className="min-w-0 flex-1">
+                        <h3 id={titleId} className="text-lg font-semibold text-gray-900">
+                            {error.title}
+                        </h3>
+                        <p id={descriptionId} className="mt-1 text-sm text-gray-600">
+                            {error.message}
+                        </p>
                     </div>
                 </div>
 
-                {/* Error Message */}
-                <div className="mb-6">
-                    <p className="text-sm text-gray-600">{error.message}</p>
-                </div>
-
-                {/* Action Buttons */}
                 <div className="flex gap-3">
                     {error.canRetry && onRetry && (
                         <button
@@ -56,7 +80,7 @@ export function ChatErrorDialog({ error, onRetry, onReset, onDismiss }: ChatErro
                                 onDismiss();
                                 onRetry();
                             }}
-                            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                            className="flex-1 rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                         >
                             Retry
                         </button>
@@ -67,7 +91,7 @@ export function ChatErrorDialog({ error, onRetry, onReset, onDismiss }: ChatErro
                                 onDismiss();
                                 onReset();
                             }}
-                            className="flex-1 px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 transition-colors"
+                            className="flex-1 rounded-md bg-yellow-500 px-4 py-2 text-white transition-colors hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2"
                         >
                             Reset
                         </button>
@@ -76,12 +100,12 @@ export function ChatErrorDialog({ error, onRetry, onReset, onDismiss }: ChatErro
                         onClick={onDismiss}
                         className={`${
                             hasActions ? 'flex-1' : 'w-full'
-                        } px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-colors`}
+                        } rounded-md bg-gray-200 px-4 py-2 text-gray-800 transition-colors hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2`}
                     >
                         {hasActions ? 'Cancel' : 'Close'}
                     </button>
                 </div>
             </div>
-        </div>
+        </Dialog>
     );
 }

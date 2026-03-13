@@ -1,3 +1,9 @@
+-   Improved Agents Server modal consistency around chat keybindings and related overlays:
+
+    -   Reworked the first-run chat keybindings onboarding from a bottom-attached popup into a true modal dialog centered on desktop with a darkened, blurred backdrop, while making it fullscreen on mobile without borders or border radius.
+    -   Extended the shared Agents Server `<Dialog/>` shell with reusable backdrop styling, accessibility wiring, and optional non-dismissible behavior so popup/backdrop logic is no longer duplicated across separate dialog implementations.
+    -   Moved the chat keybindings onboarding, chat error dialog, and blocking META DISCLAIMER overlay onto the shared dialog shell to keep popup UI and dismissal behavior aligned.
+
 -   Fixed Agents Server `/agents/[agentName]/textarea` route loading to use a dedicated textarea-first skeleton that matches the centered avatar and composer layout, without changing the existing profile or standalone chat skeletons.
 
 -   Added configurable chat Enter/Ctrl+Enter keybindings across Agents Server chat surfaces:

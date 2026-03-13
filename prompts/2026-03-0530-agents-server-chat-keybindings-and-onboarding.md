@@ -38,7 +38,7 @@
 
 ---
 
-[ ]
+[x] ~$0.3758 18 minutes by OpenAI Codex `gpt-5.4`
 
 [✨🐲] The keybindings popup should be placed better
 
@@ -74,3 +74,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

@@ -19,12 +19,12 @@ import { notifyError } from '../Notifications/notifications';
 import { ChatEnterBehaviorPrompt } from './ChatEnterBehaviorPrompt';
 
 /**
- * Session storage flag that suppresses the first-run keybinding prompt until the tab closes.
+ * Session storage flag that suppresses the first-run keybinding dialog until the tab closes.
  */
 const CHAT_ENTER_BEHAVIOR_PROMPT_DISMISSED_SESSION_KEY = 'agents-server-chat-enter-behavior-prompt-dismissed';
 
 /**
- * Promise resolver signature stored while the non-modal prompt is open.
+ * Promise resolver signature stored while the keybinding dialog is open.
  */
 type ChatEnterBehaviorResolver = (behavior: AgentsServerChatEnterBehavior | null) => void;
 
@@ -54,7 +54,7 @@ type ChatEnterBehaviorPreferencesProviderProps = {
 
 /**
  * Persists chat Enter-key preferences, exposes them to chat surfaces, and owns
- * the first-run non-modal prompt shown when no preference has been chosen yet.
+ * the first-run keybinding dialog shown when no preference has been chosen yet.
  *
  * @private shared helper for the Agents Server UI
  */
@@ -173,7 +173,7 @@ export function ChatEnterBehaviorPreferencesProvider({
     );
 
     /**
-     * Dismisses the prompt for the current tab/session without persisting a choice.
+     * Dismisses the dialog for the current tab/session without persisting a choice.
      */
     const dismissPrompt = useCallback(() => {
         setIsPromptOpen(false);
