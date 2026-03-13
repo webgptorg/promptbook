@@ -453,7 +453,10 @@ function countReplacementCharacters(text: string): number {
  *
  * @private function of decodeAttachmentAsText
  */
-function scoreDecodedText(text: string, encoding: string): {
+function scoreDecodedText(
+    text: string,
+    encoding: string,
+): {
     readonly score: number;
     readonly replacementCount: number;
     readonly controlCount: number;
@@ -498,7 +501,10 @@ function scoreDecodedText(text: string, encoding: string): {
  *
  * @private function of decodeAttachmentAsText
  */
-function decodeWithEncoding(bytes: Uint8Array, encoding: string): {
+function decodeWithEncoding(
+    bytes: Uint8Array,
+    encoding: string,
+): {
     readonly text: string;
     readonly encoding: string;
     readonly score: number;
@@ -660,21 +666,18 @@ export function decodeAttachmentAsText(
         bestCandidate.source === 'bom'
             ? 1
             : bestCandidate.source === 'charset'
-              ? 0.95
-              : bestCandidate.encoding === 'utf-8' &&
-                  bestCandidate.replacementCount === 0 &&
-                  bestCandidate.controlCount === 0
-                ? 0.98
-                : bestCandidate.encoding === 'utf-8'
-                  ? 0.82
-                  : 0.62;
+            ? 0.95
+            : bestCandidate.encoding === 'utf-8' &&
+              bestCandidate.replacementCount === 0 &&
+              bestCandidate.controlCount === 0
+            ? 0.98
+            : bestCandidate.encoding === 'utf-8'
+            ? 0.82
+            : 0.62;
     const scoreMargin = secondBestCandidate ? Math.max(0, secondBestCandidate.score - bestCandidate.score) : 0.2;
     const confidence = Math.max(
         0.2,
-        Math.min(
-            shouldTreatAsBinary && forceText ? 0.45 : 1,
-            baseConfidence + Math.min(0.18, scoreMargin / 2),
-        ),
+        Math.min(shouldTreatAsBinary && forceText ? 0.45 : 1, baseConfidence + Math.min(0.18, scoreMargin / 2)),
     );
 
     if (bestCandidate.source === 'heuristic' && bestCandidate.encoding !== 'utf-8') {

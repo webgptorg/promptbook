@@ -35,11 +35,7 @@ function formatResolvedChatAttachmentContent(contentResolution: ResolvedChatAtta
 
     if (!contentResolution.content) {
         const reason = contentResolution.reason || 'content unavailable';
-        return [
-            `- ${attachmentLabel}: ${reason}. URL: ${contentResolution.attachment.url}`,
-            decodingLine,
-            warningsLine,
-        ]
+        return [`- ${attachmentLabel}: ${reason}. URL: ${contentResolution.attachment.url}`, decodingLine, warningsLine]
             .filter(Boolean)
             .join('\n');
     }

@@ -1031,10 +1031,12 @@ export function ChatInputArea(props: ChatInputAreaProps) {
                 /* not await */ soundSystem.play('message_send');
             }
 
-            await (onMessage as unknown as (
-                message: string,
-                attachments: Array<{ name: string; type: string; url: string }>,
-            ) => Promise<void>)(messageContent, attachments);
+            await (
+                onMessage as unknown as (
+                    message: string,
+                    attachments: Array<{ name: string; type: string; url: string }>,
+                ) => Promise<void>
+            )(messageContent, attachments);
 
             setMessageContent('');
             setUploadedFiles([]);

@@ -63,7 +63,10 @@ export function getTimeoutToolRuntimeAdapterOrDisabledResult(
     if (!adapter) {
         return {
             adapter: null,
-            disabledResult: createDisabledTimeoutResult(action, 'Timeout runtime is not available in this environment.'),
+            disabledResult: createDisabledTimeoutResult(
+                action,
+                'Timeout runtime is not available in this environment.',
+            ),
         };
     }
 

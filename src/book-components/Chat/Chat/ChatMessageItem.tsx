@@ -1273,7 +1273,10 @@ export const ChatMessageItem = memo(
                         )}
                     </div>
                     {shouldShowMessageMeta && (
-                        <div className={styles.messageMeta} title={shouldShowTiming && timingDisplay ? timingDisplay.fullLabel : undefined}>
+                        <div
+                            className={styles.messageMeta}
+                            title={shouldShowTiming && timingDisplay ? timingDisplay.fullLabel : undefined}
+                        >
                             {lifecycleBadgeLabel && (
                                 <span className={styles.messageLifecycleBadge}>{lifecycleBadgeLabel}</span>
                             )}
