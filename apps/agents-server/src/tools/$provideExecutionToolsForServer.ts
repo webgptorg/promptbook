@@ -1,7 +1,8 @@
 'use server';
 
+import { _AnthropicClaudeRegistration } from '@promptbook-local/anthropic-claude';
+import { _AzureOpenAiRegistration } from '@promptbook-local/azure-openai';
 import {
-    cacheLlmTools,
     _AnthropicClaudeMetadataRegistration,
     _AzureOpenAiMetadataRegistration,
     _BoilerplateScraperMetadataRegistration,
@@ -17,9 +18,16 @@ import {
     _OpenAiMetadataRegistration,
     _PdfScraperMetadataRegistration,
     _WebsiteScraperMetadataRegistration,
+    cacheLlmTools,
 } from '@promptbook-local/core';
+import { _DeepseekRegistration } from '@promptbook-local/deepseek';
 import { _GoogleRegistration } from '@promptbook-local/google';
-import { _OpenAiRegistration } from '@promptbook-local/openai';
+import { _OllamaRegistration } from '@promptbook-local/ollama';
+import {
+    _OpenAiAssistantRegistration,
+    _OpenAiCompatibleRegistration,
+    _OpenAiRegistration,
+} from '@promptbook-local/openai';
 import { ExecutionTools, TODO_any } from '@promptbook-local/types';
 import { $provideLlmToolsForCli } from '../../../../src/cli/common/$provideLlmToolsForCli';
 import { $provideExecutablesForNode } from '../../../../src/executables/$provideExecutablesForNode';
@@ -47,8 +55,14 @@ $sideEffect(
     _WebsiteScraperMetadataRegistration,
     // <- TODO: [🐱‍🚀] Export all registrations from one variabile in `@promptbook/core`
 );
+$sideEffect(/* [㊗] */ _AnthropicClaudeRegistration);
+$sideEffect(/* [㊗] */ _AzureOpenAiRegistration);
+$sideEffect(/* [㊗] */ _DeepseekRegistration);
 $sideEffect(/* [㊗] */ _OpenAiRegistration);
+$sideEffect(/* [㊗] */ _OpenAiAssistantRegistration);
+$sideEffect(/* [㊗] */ _OpenAiCompatibleRegistration);
 $sideEffect(/* [㊗] */ _GoogleRegistration);
+$sideEffect(/* [㊗] */ _OllamaRegistration);
 // <- TODO: [🐱‍🚀] Allow to dynamically install required metadata
 
 /**
@@ -115,7 +129,6 @@ export async function $provideExecutionToolsForServer(): Promise<ExecutionTools>
 
     return executionTools;
 }
-
 
 /**
  * TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming

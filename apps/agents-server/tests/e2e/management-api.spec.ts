@@ -1,6 +1,6 @@
+import type { Page } from '@playwright/test';
 import { expect, test } from 'playwright/test';
 import { loginAsAdmin } from './support/auth';
-import type { Page } from '@playwright/test';
 
 /**
  * Request payload accepted by the browser-side management API helper.
@@ -18,28 +18,22 @@ type BrowserApiRequest = {
  * @param request - Browser-side request description.
  * @returns Response status and parsed JSON body.
  */
-async function callManagementApi(
-    page: Page,
-    request: BrowserApiRequest,
-): Promise<{ status: number; body: unknown }> {
-    return page.evaluate(
-        async ({ path, method = 'GET', token, body }) => {
-            const response = await fetch(path, {
-                method,
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-                body: body === undefined ? undefined : JSON.stringify(body),
-            });
+async function callManagementApi(page: Page, request: BrowserApiRequest): Promise<{ status: number; body: unknown }> {
+    return page.evaluate(async ({ path, method = 'GET', token, body }) => {
+        const response = await fetch(path, {
+            method,
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: body === undefined ? undefined : JSON.stringify(body),
+        });
 
-            return {
-                status: response.status,
-                body: (await response.json()) as unknown,
-            };
-        },
-        request,
-    );
+        return {
+            status: response.status,
+            body: (await response.json()) as unknown,
+        };
+    }, request);
 }
 
 /**
@@ -87,7 +81,7 @@ test.describe('Agents Server management API', () => {
         });
 
         await page.goto('/swagger');
-        await expect(page.getByText('Management API Explorer')).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Management API Explorer' })).toBeVisible();
         await expect(page.getByText('Promptbook Agents Server Management API')).toBeVisible();
         await expect(page.locator(`input[value="${apiKey}"]`)).toBeVisible();
 

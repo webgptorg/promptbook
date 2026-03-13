@@ -1,3 +1,8 @@
+-   Fixed Agents Server management API smoke paths during E2E runs:
+
+    -   Registered all server-side configured LLM provider constructors used by bring-your-own-keys execution tools, which stops generated default-avatar requests from crashing when Anthropic Claude, Deepseek, Azure OpenAI, Ollama, or OpenAI-compatible providers are configured.
+    -   Hardened the Swagger management API Playwright assertion to target the visible explorer heading instead of a duplicate hidden text node rendered during page hydration.
+
 -   Improved Agents Server chat tool chips so ongoing actions are inspectable before they finish:
 
     -   Made spinner-state tool chips clickable immediately and kept them wired to the same shared tool-call modal used for completed chips, instead of splitting ongoing vs finished detail UIs.
