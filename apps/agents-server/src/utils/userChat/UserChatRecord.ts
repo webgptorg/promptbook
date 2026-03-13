@@ -15,6 +15,14 @@ export type UserChatRecord = {
 };
 
 /**
+ * Lightweight timeout activity metadata exposed with chat summaries.
+ */
+export type UserChatTimeoutActivity = {
+    count: number;
+    nearestDueAt: string | null;
+};
+
+/**
  * Lightweight item used by chat history lists.
  */
 export type UserChatSummary = {
@@ -25,6 +33,7 @@ export type UserChatSummary = {
     messagesCount: number;
     title: string;
     preview: string;
+    timeoutActivity: UserChatTimeoutActivity;
 };
 
 /**

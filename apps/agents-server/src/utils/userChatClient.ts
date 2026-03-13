@@ -124,6 +124,10 @@ export type UserChatSummary = {
     messagesCount: number;
     title: string;
     preview: string;
+    timeoutActivity: {
+        count: number;
+        nearestDueAt: string | null;
+    };
 };
 
 /**

@@ -1,4 +1,4 @@
-import type { UserChatRecord, UserChatSummary } from './UserChatRecord';
+import type { UserChatRecord, UserChatSummary, UserChatTimeoutActivity } from './UserChatRecord';
 import { shortenText } from '../shortenText';
 import { textToPreviewText } from '../textToPreviewText';
 
@@ -24,9 +24,22 @@ const CHAT_PREVIEW_MAX_LENGTH = 96;
 const DEFAULT_CHAT_TITLE = 'New chat';
 
 /**
+ * Fallback timeout activity metadata used when a chat has no active timeouts.
+ *
+ * @private function of `createUserChatSummary`
+ */
+const EMPTY_TIMEOUT_ACTIVITY: UserChatTimeoutActivity = {
+    count: 0,
+    nearestDueAt: null,
+};
+
+/**
  * Builds chat list metadata from a full record.
  */
-export function createUserChatSummary(chat: UserChatRecord): UserChatSummary {
+export function createUserChatSummary(
+    chat: UserChatRecord,
+    timeoutActivity: UserChatTimeoutActivity = EMPTY_TIMEOUT_ACTIVITY,
+): UserChatSummary {
     const firstUserMessage = chat.messages.find((message) => isUserMessageSender(message.sender));
     const lastMessage = [...chat.messages].reverse().find((message) => textToPreviewText(message.content).length > 0);
     const titleSource = textToPreviewText(firstUserMessage?.content || '');
@@ -40,6 +53,7 @@ export function createUserChatSummary(chat: UserChatRecord): UserChatSummary {
         messagesCount: chat.messages.length,
         title: shortenText(titleSource || DEFAULT_CHAT_TITLE, CHAT_TITLE_MAX_LENGTH),
         preview: shortenText(previewSource, CHAT_PREVIEW_MAX_LENGTH),
+        timeoutActivity,
     };
 }
 

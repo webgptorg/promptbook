@@ -1,4 +1,5 @@
 import type { UserChatRecord } from './UserChatRecord';
+import { createUserChatTimeoutActivity } from '../userChatTimeout/createUserChatTimeoutActivity';
 import { listUserChatTimeouts } from '../userChatTimeout/userChatTimeoutStore';
 import { createUserChatSummary } from './createUserChatSummary';
 import { getUserChat } from './getUserChat';
@@ -55,7 +56,7 @@ export async function createUserChatDetailPayload(chat: UserChatRecord): Promise
     });
 
     return {
-        chat: createUserChatSummary(currentChat),
+        chat: createUserChatSummary(currentChat, createUserChatTimeoutActivity(activeTimeouts)),
         messages: currentChat.messages,
         draftMessage: currentChat.draftMessage,
         activeJobs,

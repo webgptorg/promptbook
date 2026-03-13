@@ -4,6 +4,8 @@ import { $provideClientSql } from '@/src/database/$provideClientSql';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { $randomBase58 } from '../../../../../src/utils/random/$randomBase58';
+import type { UserChatTimeoutActivity } from '../userChat/UserChatRecord';
+import { createUserChatTimeoutActivity } from './createUserChatTimeoutActivity';
 import type {
     CreateUserChatTimeoutOptions,
     GetUserChatTimeoutOptions,
@@ -41,6 +43,13 @@ export const USER_CHAT_TIMEOUT_LEASE_DURATION_MS = 60_000;
  * @private internal utility of userChatTimeout
  */
 const ACTIVE_USER_CHAT_TIMEOUT_STATUSES = ['QUEUED', 'RUNNING'] as const;
+
+/**
+ * Row fragment used when grouping active timeouts by chat without hydrating full timeout records.
+ *
+ * @private internal utility of userChatTimeout
+ */
+type UserChatTimeoutActivityRow = Pick<UserChatTimeoutRow, 'chatId' | 'dueAt'>;
 
 /**
  * Maps one raw timeout row into an app-level record.
@@ -162,6 +171,46 @@ export async function listUserChatTimeouts(options: ListUserChatTimeoutsOptions)
     }
 
     return ((data || []) as Array<UserChatTimeoutRow>).map(mapUserChatTimeoutRow);
+}
+
+/**
+ * Lists lightweight active-timeout metadata keyed by chat id for chat-history sidebars.
+ *
+ * @private internal utility of userChatTimeout
+ */
+export async function listUserChatTimeoutActivities(options: {
+    userId: number;
+    agentPermanentId: string;
+    chatIds: ReadonlyArray<string>;
+}): Promise<Record<string, UserChatTimeoutActivity>> {
+    if (options.chatIds.length === 0) {
+        return {};
+    }
+
+    const userChatTimeoutTable = await provideUserChatTimeoutTable();
+    const uniqueChatIds = [...new Set(options.chatIds)];
+    const { data, error } = await userChatTimeoutTable
+        .select('chatId, dueAt')
+        .in('chatId', uniqueChatIds)
+        .eq('userId', options.userId)
+        .eq('agentPermanentId', options.agentPermanentId)
+        .in('status', ACTIVE_USER_CHAT_TIMEOUT_STATUSES)
+        .order('dueAt', { ascending: true })
+        .order('createdAt', { ascending: true });
+
+    if (error) {
+        throw new Error(`Failed to list timeout activity for user chats: ${error.message}`);
+    }
+
+    const groupedTimeoutsByChatId: Record<string, Array<Pick<UserChatTimeoutActivityRow, 'dueAt'>>> = {};
+
+    for (const row of (data || []) as Array<UserChatTimeoutActivityRow>) {
+        groupedTimeoutsByChatId[row.chatId] = [...(groupedTimeoutsByChatId[row.chatId] || []), { dueAt: row.dueAt }];
+    }
+
+    return Object.fromEntries(
+        uniqueChatIds.map((chatId) => [chatId, createUserChatTimeoutActivity(groupedTimeoutsByChatId[chatId] || [])]),
+    );
 }
 
 /**

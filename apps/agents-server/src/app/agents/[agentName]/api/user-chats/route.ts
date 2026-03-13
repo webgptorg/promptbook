@@ -6,6 +6,7 @@ import {
     createUserChatSummary,
     listUserChats,
 } from '@/src/utils/userChat';
+import { listUserChatTimeoutActivities } from '@/src/utils/userChatTimeout/userChatTimeoutStore';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import { resolveUserChatScope } from './resolveUserChatScope';
 
@@ -34,13 +35,18 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
             userId: scopeResult.scope.userId,
             agentPermanentId: scopeResult.scope.agentPermanentId,
         });
+        const timeoutActivities = await listUserChatTimeoutActivities({
+            userId: scopeResult.scope.userId,
+            agentPermanentId: scopeResult.scope.agentPermanentId,
+            chatIds: chats.map((chat) => chat.id),
+        });
 
         const activeChat =
             (requestedChatId ? chats.find((chat) => chat.id === requestedChatId) : null) ||
             chats[0] ||
             null;
         const activeChatDetail = activeChat ? await createUserChatDetailPayload(activeChat) : null;
-        const chatSummaries = chats.map(createUserChatSummary);
+        const chatSummaries = chats.map((chat) => createUserChatSummary(chat, timeoutActivities[chat.id]));
 
         return NextResponse.json({
             chats: activeChatDetail ? replaceChatSummary(chatSummaries, activeChatDetail.chat) : chatSummaries,

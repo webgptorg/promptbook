@@ -78,7 +78,7 @@ CLOSED
 
 ---
 
-[ ]
+[x] ~$0.7944 27 minutes by OpenAI Codex `gpt-5.4`
 
 [✨🧂] Ehnance how timeouts are shown in the chat
 
@@ -108,3 +108,4 @@ CLOSED
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

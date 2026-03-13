@@ -10,7 +10,7 @@
 
     -   Added a new `USE TIMEOUT` commitment with `set_timeout` / `cancel_timeout` tools so agents can schedule future wake-ups in the same chat thread and continue working later with full prior context.
     -   Added durable `UserChatTimeout` persistence, migration `2026-03-0220-user-chat-timeouts.sql`, a background timeout worker with DB claiming/locking, short best-effort in-process wake-ups, restart recovery, timeout lifecycle logging, and warning messages injected into chats when a timer cannot execute.
-    -   Extended canonical user-chat APIs, transcript streaming, and chat UI to expose active thread timers, show a persistent timer badge/list with due/remaining information, support idempotent user cancellation, and render timeout wake-up messages directly in the transcript.
+    -   Extended canonical user-chat APIs, transcript streaming, and chat UI to expose active thread timers, show a compact action-bar timeout badge with human-friendly remaining-time countdowns, open a clean per-chat timeout list with cancellation controls, surface “living” timeout indicators in the My chats sidebar, and render timeout wake-up messages directly in the transcript.
     -   Added timeout rate-limit configuration (`TOOL_USAGE_LIMITS`) with a dedicated admin page `/admin/tool-limits`, default caps for active timers and daily firings, and runtime enforcement designed to stay extensible to future tool limits.
     -   Extended `/admin/task-manager` so scheduled timeouts appear alongside durable chat jobs and can be inspected, cancelled, and retried from the existing admin operational workflow.
 

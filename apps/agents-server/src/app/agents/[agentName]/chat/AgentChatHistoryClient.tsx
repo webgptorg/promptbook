@@ -144,6 +144,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const [isCreatingChat, setIsCreatingChat] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+    const [currentTimestamp, setCurrentTimestamp] = useState(() => Date.now());
     const hasInitialAutoMessageBeenConsumedRef = useRef(false);
     const autoExecuteTargetChatIdRef = useRef<string | undefined>(initialForceNewChat ? undefined : initialChatId);
     const activeChatIdRef = useRef<string | null>(null);
@@ -198,6 +199,10 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         ? 'opacity-0 pointer-events-none'
         : 'opacity-100 pointer-events-auto';
     const effectiveIsSidebarCollapsed = isMobileSidebarOpen ? false : isSidebarCollapsed;
+    const hasAnyActiveTimeouts = useMemo(
+        () => chats.some((chat) => chat.timeoutActivity.count > 0) || activeTimeouts.length > 0,
+        [activeTimeouts.length, chats],
+    );
 
     /**
      * Builds canonical route for one selected chat.
@@ -652,6 +657,20 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     useEffect(() => {
         autoExecuteTargetChatIdRef.current = initialForceNewChat ? undefined : initialChatId;
     }, [initialChatId, initialForceNewChat]);
+
+    useEffect(() => {
+        if (!hasAnyActiveTimeouts) {
+            return;
+        }
+
+        const interval = window.setInterval(() => {
+            setCurrentTimestamp(Date.now());
+        }, 1_000);
+
+        return () => {
+            window.clearInterval(interval);
+        };
+    }, [hasAnyActiveTimeouts]);
 
     useEffect(() => {
         if (!shouldUseHistory || typeof window === 'undefined') {
@@ -1124,6 +1143,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                     isFeedbackEnabled={isFeedbackEnabled}
                     activeJobs={activeJobs}
                     activeTimeouts={activeTimeouts}
+                    currentTimestamp={currentTimestamp}
                     onDraftMessageChange={handleDraftMessageChange}
                     onSubmitUserTurn={handleSubmitUserTurn}
                     onStartNewChat={handleStartNewChatFromChatSurface}
@@ -1152,6 +1172,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 isLoadingChats={isChatListLoading}
                 formatText={formatText}
                 formatChatTimestamp={formatChatTimestamp}
+                currentTimestamp={currentTimestamp}
                 onSelectChat={handleSelectChatFromSidebar}
                 onCreateChat={handleCreateChat}
                 onDeleteChat={handleDeleteChat}

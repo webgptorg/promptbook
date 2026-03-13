@@ -32,3 +32,10 @@
   - File: `apps/agents-server/src/app/ai-supervize/page.tsx`
   - Error: `Parsing error: Unexpected token. Did you mean {'>'} or &gt;` (reported at line 185:69)
   - This issue appears unrelated to the user-chat fix in this task and was not modified here.
+
+## 2026-03-13
+
+- `npm run test-app-agents-server` fails after the app builds successfully, but the failure appears unrelated to the timeout UI changes in this task:
+  - `apps/agents-server` `lint` passed and `test-build` completed successfully.
+  - The failure happened in the `test-e2e` stage with `Dynamic server usage: Route /admin/error-simulation couldn't be rendered statically because it used \`cookies\``.
+  - The logged stack references `/admin/error-simulation` and `/api/api-tokens`, not the chat timeout UI or user-chat timeout code paths changed in this task.

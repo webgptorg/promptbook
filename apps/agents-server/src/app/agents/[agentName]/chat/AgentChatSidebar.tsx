@@ -1,10 +1,11 @@
 'use client';
 
-import { EyeIcon, EyeOffIcon, MessageSquarePlusIcon, Trash2Icon, XIcon } from 'lucide-react';
+import { Clock3Icon, EyeIcon, EyeOffIcon, MessageSquarePlusIcon, Trash2Icon, XIcon } from 'lucide-react';
 import { useState } from 'react';
 import { SolidArrowButton } from '../../../../../../../src/book-components/icons/SolidArrowButton';
 import { ChatListLoadingSkeleton } from '../../../../components/Skeleton/ChatListLoadingSkeleton';
 import type { UserChatSummary } from '../../../../utils/userChatClient';
+import { formatChatTimeoutRemainingTime } from './formatChatTimeoutRemainingTime';
 
 /**
  * Maximum number of messages a chat can have to be considered "empty" (just the initial greeting).
@@ -48,6 +49,10 @@ type AgentChatSidebarProps = {
      * Timestamp formatter shared with the parent component.
      */
     readonly formatChatTimestamp: (timestamp: string) => string;
+    /**
+     * Current timestamp used for rendering live timeout countdowns.
+     */
+    readonly currentTimestamp: number;
     /**
      * Called when the user selects a chat from the list.
      */
@@ -103,6 +108,14 @@ type SidebarChatItemContent = {
      */
     readonly messagesCountLabel: string;
     /**
+     * Compact timeout label for chats with an active timer.
+     */
+    readonly timeoutLabel: string | null;
+    /**
+     * Describes active timeout activity for assistive labels and tooltips.
+     */
+    readonly timeoutStatusLabel: string | null;
+    /**
      * Fully descriptive label exposed through title/ARIA attributes.
      */
     readonly accessibilityLabel: string;
@@ -120,18 +133,38 @@ function formatChatMessagesCount(messagesCount: number, formatText: (text: strin
 }
 
 /**
+ * Formats active timeout count for compact sidebar descriptions.
+ */
+function formatActiveTimeoutCount(count: number, formatText: (text: string) => string): string {
+    if (count === 1) {
+        return `1 ${formatText('active timeout')}`;
+    }
+
+    return `${count} ${formatText('active timeouts')}`;
+}
+
+/**
  * Resolves one chat summary into reusable display content for sidebar entries.
  */
 function resolveSidebarChatItemContent(
     chat: UserChatSummary,
     formatText: (text: string) => string,
     formatChatTimestamp: (timestamp: string) => string,
+    currentTimestamp: number,
 ): SidebarChatItemContent {
     const title = chat.title || formatText('New chat');
     const preview = chat.preview || formatText('No messages yet');
     const lastActivity = formatChatTimestamp(chat.lastMessageAt || chat.updatedAt);
     const messagesCountLabel = formatChatMessagesCount(chat.messagesCount, formatText);
     const titleWithPreview = chat.preview ? `${title} - ${preview}` : title;
+    const timeoutLabel =
+        chat.timeoutActivity.count > 0 && chat.timeoutActivity.nearestDueAt
+            ? formatChatTimeoutRemainingTime(chat.timeoutActivity.nearestDueAt, currentTimestamp)
+            : null;
+    const timeoutStatusLabel =
+        timeoutLabel === null
+            ? null
+            : `${formatActiveTimeoutCount(chat.timeoutActivity.count, formatText)}, ${timeoutLabel} remaining`;
 
     return {
         title,
@@ -139,7 +172,11 @@ function resolveSidebarChatItemContent(
         lastActivity,
         messagesCount: chat.messagesCount,
         messagesCountLabel,
-        accessibilityLabel: `${titleWithPreview} (${messagesCountLabel}, ${lastActivity})`,
+        timeoutLabel,
+        timeoutStatusLabel,
+        accessibilityLabel: `${titleWithPreview} (${messagesCountLabel}, ${lastActivity}${
+            timeoutStatusLabel ? `, ${timeoutStatusLabel}` : ''
+        })`,
     };
 }
 
@@ -155,6 +192,7 @@ export function AgentChatSidebar({
     isLoadingChats,
     formatText,
     formatChatTimestamp,
+    currentTimestamp,
     onSelectChat,
     onCreateChat,
     onDeleteChat,
@@ -194,7 +232,7 @@ export function AgentChatSidebar({
         chat,
         isActive: chat.id === activeChatId,
         isEmpty: chat.messagesCount <= EMPTY_CHAT_MAX_MESSAGES,
-        content: resolveSidebarChatItemContent(chat, formatText, formatChatTimestamp),
+        content: resolveSidebarChatItemContent(chat, formatText, formatChatTimestamp, currentTimestamp),
     }));
     const emptyChatCount = allSidebarItems.filter((item) => item.isEmpty).length;
     const sidebarItems = allSidebarItems.filter((item) => showEmptyChats || !item.isEmpty || item.isActive);
@@ -262,6 +300,13 @@ export function AgentChatSidebar({
                                                 aria-label={content.accessibilityLabel}
                                                 title={content.accessibilityLabel}
                                             >
+                                                {content.timeoutLabel && (
+                                                    <span
+                                                        className="absolute left-1.5 top-1.5 z-[5] inline-flex h-2.5 w-2.5 animate-pulse rounded-full bg-amber-500 shadow-sm"
+                                                        aria-label={content.timeoutStatusLabel || undefined}
+                                                        title={content.timeoutStatusLabel || undefined}
+                                                    />
+                                                )}
                                                 <span
                                                     className={`absolute top-0.5 right-0.5 z-[5] inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold leading-none shadow-sm ${
                                                         isActive ? 'bg-blue-500 text-white' : 'bg-slate-400 text-white'
@@ -286,10 +331,14 @@ export function AgentChatSidebar({
                                                 </div>
                                                 <span
                                                     className={`max-w-full truncate text-[10px] font-semibold leading-none ${
-                                                        isActive ? 'text-blue-700' : 'text-slate-400'
+                                                        content.timeoutLabel
+                                                            ? 'text-amber-700'
+                                                            : isActive
+                                                              ? 'text-blue-700'
+                                                              : 'text-slate-400'
                                                     }`}
                                                 >
-                                                    {content.lastActivity}
+                                                    {content.timeoutLabel || content.lastActivity}
                                                 </span>
                                             </button>
                                         );
@@ -363,8 +412,20 @@ export function AgentChatSidebar({
                                                     <div className="text-xs text-slate-500 truncate mt-1">
                                                         {content.preview}
                                                     </div>
-                                                    <div className="text-[11px] text-slate-400 mt-2">
-                                                        {content.lastActivity}
+                                                    <div className="mt-2 flex items-center justify-between gap-2">
+                                                        <div className="truncate text-[11px] text-slate-400">
+                                                            {content.lastActivity}
+                                                        </div>
+                                                        {content.timeoutLabel && (
+                                                            <div
+                                                                className="inline-flex flex-shrink-0 items-center gap-1 rounded-full bg-amber-100/95 px-2 py-1 text-[10px] font-semibold text-amber-700"
+                                                                aria-label={content.timeoutStatusLabel || undefined}
+                                                                title={content.timeoutStatusLabel || undefined}
+                                                            >
+                                                                <Clock3Icon className="h-3 w-3" />
+                                                                <span>{content.timeoutLabel}</span>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </button>
                                                 <button
