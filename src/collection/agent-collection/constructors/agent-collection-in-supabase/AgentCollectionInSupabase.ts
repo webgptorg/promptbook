@@ -1,6 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AgentBasicInformation } from '../../../../book-2.0/agent-source/AgentBasicInformation';
-import { parseAgentSource } from '../../../../book-2.0/agent-source/parseAgentSource';
 import type { string_book } from '../../../../book-2.0/agent-source/string_book';
 import { DEFAULT_IS_VERBOSE } from '../../../../config';
 import { DatabaseError } from '../../../../errors/DatabaseError';
@@ -14,6 +13,7 @@ import { $randomBase58 } from '../../../../utils/random/$randomBase58';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
 import { AgentCollectionInSupabaseOptions } from './AgentCollectionInSupabaseOptions';
 import type { AgentsDatabaseSchema } from './AgentsDatabaseSchema';
+import { prepareAgentSourceForPersistence } from './prepareAgentSourceForPersistence';
 
 // import { getTableName } from '../../../../../apps/agents-server/src/database/getTableName';
 // <- TODO: [🐱‍🚀] Prevent imports from `/apps` -> `/src`
@@ -220,21 +220,9 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
         agentSource: string_book,
         options: CreateAgentOptions = {},
     ): Promise<AgentBasicInformation & Required<Pick<AgentBasicInformation, 'permanentId'>>> {
-        let agentProfile = parseAgentSource(agentSource as string_book);
-        //     <- TODO: [🕛]
-
-        // 1. Extract permanentId from the source if present
-        let { permanentId } = agentProfile;
-
-        // 2. Remove META ID from the source
-        const lines = agentSource.split(/\r?\n/);
-        const strippedLines = lines.filter((line) => !line.trim().startsWith('META ID '));
-
-        if (lines.length !== strippedLines.length) {
-            agentSource = strippedLines.join('\n') as string_book;
-            // 3. Re-parse the agent source to get the correct hash and other info
-            agentProfile = parseAgentSource(agentSource as string_book);
-        }
+        const preparedAgentSource = prepareAgentSourceForPersistence(agentSource);
+        const { agentProfile, agentSource: normalizedAgentSource } = preparedAgentSource;
+        let { permanentId } = preparedAgentSource;
 
         const { agentName, agentHash } = agentProfile;
 
@@ -251,7 +239,7 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
             updatedAt: null,
             promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
             usage: ZERO_USAGE,
-            agentSource: agentSource,
+            agentSource: normalizedAgentSource,
         };
 
         if (options.folderId !== undefined) {
@@ -284,7 +272,7 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
             permanentId,
             agentHash,
             previousAgentHash: null,
-            agentSource,
+            agentSource: normalizedAgentSource,
             promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
             versionName: null,
         });
@@ -324,21 +312,9 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
         const previousAgentHash = selectPreviousAgentResult.data.agentHash;
         const previousPermanentId = selectPreviousAgentResult.data.permanentId;
 
-        let agentProfile = parseAgentSource(agentSource as string_book);
-        //     <- TODO: [🕛]
-
-        // 1. Extract permanentId from the source if present
-        let { permanentId: newPermanentId } = agentProfile;
-
-        // 2. Remove META ID from the source
-        const lines = agentSource.split(/\r?\n/);
-        const strippedLines = lines.filter((line) => !line.trim().startsWith('META ID '));
-
-        if (lines.length !== strippedLines.length) {
-            agentSource = strippedLines.join('\n') as string_book;
-            // 3. Re-parse the agent source to get the correct hash and other info
-            agentProfile = parseAgentSource(agentSource as string_book);
-        }
+        const preparedAgentSource = prepareAgentSourceForPersistence(agentSource);
+        const { agentProfile, agentSource: normalizedAgentSource } = preparedAgentSource;
+        let { permanentId: newPermanentId } = preparedAgentSource;
 
         const { agentHash, agentName } = agentProfile;
 
@@ -371,7 +347,7 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
                 agentProfile,
                 updatedAt: new Date().toISOString(),
                 agentHash: agentProfile.agentHash,
-                agentSource,
+                agentSource: normalizedAgentSource,
                 promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
             })
             .eq('permanentId', permanentId);
@@ -398,7 +374,7 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
             permanentId,
             agentHash,
             previousAgentHash,
-            agentSource,
+            agentSource: normalizedAgentSource,
             promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
             versionName: normalizeHistoryVersionName(options.versionName),
         });

@@ -18,6 +18,7 @@ import {
 import { readMigrationFiles, resolveMigrationsDirectory } from '../database/resolveMigrationsDirectory';
 import { getPasswordValidationMessage, hashPassword } from './auth';
 import { buildServerTablePrefix } from './buildServerTablePrefix';
+import { scheduleDefaultFederatedAgentsSync } from './defaultFederatedAgents/scheduleDefaultFederatedAgentsSync';
 import {
     getServerRegistryClient,
     invalidateRegisteredServersCache,
@@ -643,6 +644,10 @@ export async function createManagedServer(input: CreateServerInput): Promise<Cre
         sqlRecorder.addStatement('COMMIT');
 
         invalidateRegisteredServersCache();
+        scheduleDefaultFederatedAgentsSync({
+            tablePrefix: server.tablePrefix,
+            localServerUrl: createServerPublicUrl(server.domain).href,
+        });
 
         return {
             ok: true,

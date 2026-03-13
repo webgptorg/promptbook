@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 32 minutes by OpenAI Codex `gpt-5.4`
 
 [🌐🧬] Default federated agents cloned from Core server
 
@@ -17,3 +17,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   You can (but not necessarily) create a database migration if needed
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

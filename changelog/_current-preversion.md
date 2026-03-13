@@ -1,3 +1,9 @@
+-   Added safe default-agent cloning from the Core Agents Server into each federated Agents Server:
+
+    -   Added a background sync that discovers Core boilerplate agents from the public `default` folder subtree and clones only missing local agents matched by normalized name.
+    -   Made the sync idempotent and cross-node safe with a new per-server `DefaultFederatedAgent` sync table plus transactional locking, while intentionally never overwriting existing local agents or local edits.
+    -   Triggered the sync both for newly created managed servers and during normal server operation, and made Core/network failures non-fatal so unreachable federation only logs an error instead of breaking requests.
+
 -   Enhanced the global-admin Agents Server `/admin/servers` dashboard UX and removed session-based server switching:
 
     -   Reworked the registered servers view into a single-column, table-first layout with aligned columns, inline editing, Moment.js date formatting, and no separate server-details pane.

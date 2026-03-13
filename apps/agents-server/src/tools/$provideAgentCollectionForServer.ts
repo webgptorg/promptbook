@@ -6,6 +6,7 @@ import { just } from '../../../../src/utils/organization/just';
 import { $provideSupabaseForServer } from '../database/$provideSupabaseForServer';
 import { $provideServer } from './$provideServer';
 import { attachAgentPreparationScheduling } from '../utils/attachAgentPreparationScheduling';
+import { scheduleDefaultFederatedAgentsSync } from '../utils/defaultFederatedAgents/scheduleDefaultFederatedAgentsSync';
 
 /**
  * Cache of provided agent collection
@@ -44,13 +45,17 @@ export async function $provideAgentCollectionForServer(): Promise<AgentCollectio
     */
 
     const supabase = $provideSupabaseForServer();
-    const { tablePrefix } = await $provideServer();
+    const { publicUrl, tablePrefix } = await $provideServer();
 
     const providedCollection = new AgentCollectionInSupabase(supabase, {
         isVerbose,
         tablePrefix,
     });
     attachAgentPreparationScheduling(providedCollection, { tablePrefix });
+    scheduleDefaultFederatedAgentsSync({
+        tablePrefix,
+        localServerUrl: publicUrl.href,
+    });
 
     agentCollection = providedCollection;
 
