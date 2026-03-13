@@ -637,8 +637,7 @@ function insertTextAtSelection(params: {
     readonly selectionEnd: number;
 }): { nextValue: string; caret: number } {
     const { currentValue, insertedText, selectionStart, selectionEnd } = params;
-    const nextValue =
-        currentValue.slice(0, selectionStart) + insertedText + currentValue.slice(selectionEnd);
+    const nextValue = currentValue.slice(0, selectionStart) + insertedText + currentValue.slice(selectionEnd);
     const caret = selectionStart + insertedText.length;
 
     return {
@@ -1108,7 +1107,8 @@ export function ChatInputArea(props: ChatInputAreaProps) {
                 return;
             }
 
-            const resolvedSelectionStart = selectionStart ?? textareaElement.selectionStart ?? messageContentRef.current.length;
+            const resolvedSelectionStart =
+                selectionStart ?? textareaElement.selectionStart ?? messageContentRef.current.length;
             const resolvedSelectionEnd = selectionEnd ?? textareaElement.selectionEnd ?? resolvedSelectionStart;
             const insertion = insertTextAtSelection({
                 currentValue: messageContentRef.current,
@@ -1209,7 +1209,10 @@ export function ChatInputArea(props: ChatInputAreaProps) {
                 const snapshot: PendingEnterIntentSnapshot = {
                     value: messageContentRef.current,
                     selectionStart: textareaElement.selectionStart ?? messageContentRef.current.length,
-                    selectionEnd: textareaElement.selectionEnd ?? textareaElement.selectionStart ?? messageContentRef.current.length,
+                    selectionEnd:
+                        textareaElement.selectionEnd ??
+                        textareaElement.selectionStart ??
+                        messageContentRef.current.length,
                     attachmentIds: uploadedFilesRef.current.map((uploadedFile) => uploadedFile.id),
                 };
 
