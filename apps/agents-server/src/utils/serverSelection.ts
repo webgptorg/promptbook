@@ -17,14 +17,6 @@ export type ResolveServerSelectionOptions = {
      * Registered servers available in the current deployment.
      */
     readonly registeredServers: ReadonlyArray<ServerRecord>;
-    /**
-     * Optional same-instance override selected by the global admin.
-     */
-    readonly activeServerId?: number | null | undefined;
-    /**
-     * When true, the active-server override takes priority over host matching.
-     */
-    readonly allowOverride?: boolean;
 };
 
 /**
@@ -36,20 +28,16 @@ export type ResolvedServerSelection = {
      */
     readonly hostServer: ServerRecord | null;
     /**
-     * Effective server used for the current request after applying the optional override.
+     * Effective server used for the current request.
      */
     readonly currentServer: ServerRecord | null;
-    /**
-     * Whether the effective server differs from the host-matched server.
-     */
-    readonly isOverridden: boolean;
 };
 
 /**
  * Resolves the effective same-instance server for one request.
  *
- * Host matching stays the default behavior, while the global-admin override can
- * temporarily point the whole request context to another registered server.
+ * The request host always determines the current server. Forwarded host
+ * headers are used only for custom-domain rewrites.
  *
  * @param options - Selection inputs for the current request.
  * @returns Host-matched and effective server records.
@@ -59,19 +47,8 @@ export function resolveServerSelection(options: ResolveServerSelectionOptions): 
         resolveRegisteredServerByHost(options.host, options.registeredServers) ||
         resolveRegisteredServerByHost(options.forwardedServerHost, options.registeredServers);
 
-    const overrideServer =
-        options.allowOverride && typeof options.activeServerId === 'number'
-            ? options.registeredServers.find((server) => server.id === options.activeServerId) || null
-            : null;
-
-    const currentServer = overrideServer || hostServer;
-
     return {
         hostServer,
-        currentServer,
-        isOverridden:
-            currentServer !== null &&
-            hostServer !== null &&
-            currentServer.id !== hostServer.id,
+        currentServer: hostServer,
     };
 }

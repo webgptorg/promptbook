@@ -1,3 +1,11 @@
+-   Enhanced the global-admin Agents Server `/admin/servers` dashboard UX and removed session-based server switching:
+
+    -   Reworked the registered servers view into a single-column, table-first layout with aligned columns, inline editing, Moment.js date formatting, and no separate server-details pane.
+    -   Removed super-admin session overrides for same-instance server selection so the current server is resolved strictly from the request domain.
+    -   Replaced the old `Open`/session-`Switch` split with one `Switch` action that navigates in the same tab to the selected server’s `/dashboard` page on that server’s own domain, and re-enabled the `/dashboard` route for that flow.
+    -   Moved server creation into a modal opened by `Create new server`, while keeping the existing multi-step wizard and SQL-dump recovery flow.
+    -   Added unsaved-changes protection to `/admin/servers` so dirty table edits or create-server form changes warn before refresh, link navigation, or browser history navigation.
+
 -   Added thread-scoped `USE TIMEOUT` timers to Agents Server durable chats:
 
     -   Added a new `USE TIMEOUT` commitment with `set_timeout` / `cancel_timeout` tools so agents can schedule future wake-ups in the same chat thread and continue working later with full prior context.

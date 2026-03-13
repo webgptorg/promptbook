@@ -1,10 +1,9 @@
 import { headers } from 'next/headers';
-import { getSession } from './session';
 import { listRegisteredServersUsingServiceRole, type ServerRecord } from './serverRegistry';
 import { resolveServerSelection } from './serverSelection';
 
 /**
- * Current server context resolved from host headers plus the optional global-admin override.
+ * Current server context resolved from host headers.
  */
 export type CurrentServerRegistryContext = {
     /**
@@ -12,17 +11,13 @@ export type CurrentServerRegistryContext = {
      */
     readonly currentServer: ServerRecord | null;
     /**
-     * Server matched directly from the request host before applying any override.
+     * Server matched directly from the request host.
      */
     readonly hostServer: ServerRecord | null;
     /**
      * All registered servers known to the current deployment.
      */
     readonly registeredServers: ReadonlyArray<ServerRecord>;
-    /**
-     * Whether the effective server differs from the host-matched server.
-     */
-    readonly isOverridden: boolean;
 };
 
 /**
@@ -31,24 +26,17 @@ export type CurrentServerRegistryContext = {
  * @returns Host-matched and effective server records together with the registry snapshot.
  */
 export async function resolveCurrentServerRegistryContext(): Promise<CurrentServerRegistryContext> {
-    const [headerStore, session, registeredServers] = await Promise.all([
-        headers(),
-        getSession(),
-        listRegisteredServersUsingServiceRole(),
-    ]);
+    const [headerStore, registeredServers] = await Promise.all([headers(), listRegisteredServersUsingServiceRole()]);
 
-    const { currentServer, hostServer, isOverridden } = resolveServerSelection({
+    const { currentServer, hostServer } = resolveServerSelection({
         host: headerStore.get('host'),
         forwardedServerHost: headerStore.get('x-promptbook-server'),
         registeredServers,
-        activeServerId: session?.activeServerId,
-        allowOverride: session?.isGlobalAdmin === true,
     });
 
     return {
         currentServer,
         hostServer,
         registeredServers,
-        isOverridden,
     };
 }

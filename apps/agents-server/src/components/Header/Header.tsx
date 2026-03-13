@@ -1033,7 +1033,7 @@ export function Header(props: HeaderProps) {
      */
     const administrationSystemItems: SubMenuItem[] = [
         /*
-        Note: [🙍] `/dashboard` page is disabled
+        Note: [🙍] `/dashboard` is available but intentionally not linked from the header
 
         {
             label: 'Dashboard',

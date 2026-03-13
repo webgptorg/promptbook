@@ -3,7 +3,7 @@ import { resolveServerSelection } from './serverSelection';
 import { SERVER_ENVIRONMENT, type ServerRecord } from './serverRegistry';
 
 describe('resolveServerSelection', () => {
-    it('returns the host-matched server when no override is active', () => {
+    it('returns the host-matched server', () => {
         const alphaServer = createServerRecord({
             id: 1,
             name: 'alpha',
@@ -25,63 +25,6 @@ describe('resolveServerSelection', () => {
         expect(selection).toEqual({
             hostServer: betaServer,
             currentServer: betaServer,
-            isOverridden: false,
-        });
-    });
-
-    it('applies the selected override when allowed for the global admin session', () => {
-        const alphaServer = createServerRecord({
-            id: 1,
-            name: 'alpha',
-            domain: 'alpha.ptbk.io',
-            tablePrefix: 'server_Alpha_',
-        });
-        const betaServer = createServerRecord({
-            id: 2,
-            name: 'beta',
-            domain: 'beta.ptbk.io',
-            tablePrefix: 'server_Beta_',
-        });
-
-        const selection = resolveServerSelection({
-            host: 'alpha.ptbk.io',
-            registeredServers: [alphaServer, betaServer],
-            activeServerId: betaServer.id,
-            allowOverride: true,
-        });
-
-        expect(selection).toEqual({
-            hostServer: alphaServer,
-            currentServer: betaServer,
-            isOverridden: true,
-        });
-    });
-
-    it('ignores the override when the request is not allowed to use it', () => {
-        const alphaServer = createServerRecord({
-            id: 1,
-            name: 'alpha',
-            domain: 'alpha.ptbk.io',
-            tablePrefix: 'server_Alpha_',
-        });
-        const betaServer = createServerRecord({
-            id: 2,
-            name: 'beta',
-            domain: 'beta.ptbk.io',
-            tablePrefix: 'server_Beta_',
-        });
-
-        const selection = resolveServerSelection({
-            host: 'alpha.ptbk.io',
-            registeredServers: [alphaServer, betaServer],
-            activeServerId: betaServer.id,
-            allowOverride: false,
-        });
-
-        expect(selection).toEqual({
-            hostServer: alphaServer,
-            currentServer: alphaServer,
-            isOverridden: false,
         });
     });
 
@@ -102,7 +45,6 @@ describe('resolveServerSelection', () => {
         expect(selection).toEqual({
             hostServer: forwardedServer,
             currentServer: forwardedServer,
-            isOverridden: false,
         });
     });
 });

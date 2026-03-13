@@ -1,7 +1,6 @@
 import { NEXT_PUBLIC_SITE_URL, SUPABASE_TABLE_PREFIX } from '@/config';
 import { headers } from 'next/headers';
 import { cache } from 'react';
-import { getSession } from '../utils/session';
 import { createServerPublicUrl, listRegisteredServersUsingServiceRole } from '../utils/serverRegistry';
 import { resolveServerSelection } from '../utils/serverSelection';
 
@@ -35,7 +34,6 @@ const getCachedProvidedServer = cache(async (): Promise<ProvidedServer> => {
     const headersList = await headers();
     const requestHost = headersList.get('host');
     const xPromptbookServer = headersList.get('x-promptbook-server');
-    const session = await getSession();
     const registeredServers = await listRegisteredServersUsingServiceRole();
 
     if (registeredServers.length === 0 || isLocalDevelopmentHost(requestHost)) {
@@ -50,8 +48,6 @@ const getCachedProvidedServer = cache(async (): Promise<ProvidedServer> => {
         host: requestHost,
         forwardedServerHost: xPromptbookServer,
         registeredServers,
-        activeServerId: session?.activeServerId,
-        allowOverride: session?.isGlobalAdmin === true,
     });
 
     if (!resolvedServer) {

@@ -77,6 +77,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
                     canOrganize={Boolean(currentUser)}
                     publicUrl={publicUrl.href /* <- [??] */}
                     showFederatedAgents={!isSubfolderView}
+                    isSubfolderView={isSubfolderView}
                 />
 
                 {!isGraphView && !isSubfolderView && (
@@ -130,7 +131,3 @@ export default async function DashboardPage(props: DashboardPageProps) {
         </div>
     );
 }
-
-/**
- * Note: [🙍] `/dashboard` page is disabled
- */

@@ -7,10 +7,9 @@ import {
     resolveManagedServerErrorStatus,
     type CreateServerInput,
 } from '../../../../utils/serverManagement';
-import { setSessionActiveServerId } from '../../../../utils/session';
 
 /**
- * Lists all same-instance servers together with the currently selected server context.
+ * Lists all registered servers together with the server resolved from the current domain.
  *
  * @returns Registry rows visible to the global admin.
  */
@@ -22,8 +21,6 @@ export async function GET() {
         return NextResponse.json({
             servers: context.registeredServers,
             currentServerId: context.currentServer?.id ?? null,
-            hostServerId: context.hostServer?.id ?? null,
-            isOverridden: context.isOverridden,
         });
     } catch (error) {
         return NextResponse.json(
@@ -36,7 +33,7 @@ export async function GET() {
 }
 
 /**
- * Creates a new same-instance server and switches the global-admin session to it on success.
+ * Creates a new same-instance server.
  *
  * @param request - Incoming create-server request.
  * @returns Create result with optional SQL dump on failure.
@@ -59,13 +56,10 @@ export async function POST(request: Request) {
             );
         }
 
-        await setSessionActiveServerId(result.server.id);
-
         return NextResponse.json(
             {
                 server: result.server,
                 publicUrl: result.publicUrl,
-                currentServerId: result.server.id,
             },
             { status: 201 },
         );

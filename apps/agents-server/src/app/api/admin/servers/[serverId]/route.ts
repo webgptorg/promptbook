@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { resolveCurrentServerRegistryContext } from '../../../../../utils/currentServerRegistryContext';
 import { isUserGlobalAdmin } from '../../../../../utils/isUserGlobalAdmin';
+import { createServerPublicUrl } from '../../../../../utils/serverRegistry';
 import {
     assertGlobalAdminAccess,
     deleteManagedServer,
@@ -9,7 +10,6 @@ import {
     updateManagedServer,
     type UpdateServerInput,
 } from '../../../../../utils/serverManagement';
-import { setSessionActiveServerId } from '../../../../../utils/session';
 
 /**
  * Updates editable `_Server` fields for one registered server.
@@ -41,11 +41,11 @@ export async function PATCH(request: Request, context: { params: Promise<{ serve
 }
 
 /**
- * Deletes the currently selected server from `_Server` and switches to a safe fallback context.
+ * Deletes the current server from the registry.
  *
  * @param request - Incoming delete request.
  * @param context - Dynamic route params.
- * @returns Delete summary.
+ * @returns Delete summary with an optional redirect target.
  */
 export async function DELETE(_request: Request, context: { params: Promise<{ serverId: string }> }) {
     try {
@@ -57,12 +57,15 @@ export async function DELETE(_request: Request, context: { params: Promise<{ ser
             serverId: parseManagedServerId(serverId),
             currentServerId: currentContext.currentServer?.id ?? null,
         });
-
-        await setSessionActiveServerId(nextServerId);
+        const nextServer =
+            nextServerId === null
+                ? null
+                : currentContext.registeredServers.find((server) => server.id === nextServerId) ?? null;
+        const redirectUrl = nextServer ? new URL('/admin/servers', createServerPublicUrl(nextServer.domain)).href : null;
 
         return NextResponse.json({
             success: true,
-            currentServerId: nextServerId,
+            redirectUrl,
         });
     } catch (error) {
         return NextResponse.json(

@@ -1,12 +1,16 @@
 'use client';
 
+import moment from 'moment';
 import { upload } from '@vercel/blob/client';
-import { ExternalLink, Loader2, Plus, RefreshCcw, Save, ShieldAlert, Trash2 } from 'lucide-react';
+import { ArrowRightLeft, Loader2, Plus, RefreshCcw, Save, Trash2, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { showAlert, showConfirm, showPrompt } from '../../../components/AsyncDialogs/asyncDialogs';
 import { Card } from '../../../components/Homepage/Card';
 import { Section } from '../../../components/Homepage/Section';
+import { Dialog } from '../../../components/Portal/Dialog';
 import { SecretInput } from '../../../components/SecretInput/SecretInput';
+import { useDirtyModalGuard } from '../../../components/utils/useDirtyModalGuard';
+import { useUnsavedChangesGuard } from '../../../components/utils/useUnsavedChangesGuard';
 import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
 import { buildServerTablePrefix } from '../../../utils/buildServerTablePrefix';
 import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
@@ -54,17 +58,9 @@ type ManagedServersResponse = {
      */
     readonly servers: ReadonlyArray<ManagedServerRow>;
     /**
-     * Currently active server in the super-admin session.
+     * Server resolved from the current request domain.
      */
     readonly currentServerId: number | null;
-    /**
-     * Server matched directly from the current host.
-     */
-    readonly hostServerId: number | null;
-    /**
-     * Whether the current session is viewing a server override.
-     */
-    readonly isOverridden: boolean;
 };
 
 /**
@@ -211,6 +207,37 @@ const SERVER_LANGUAGE_OPTIONS = [
 ] as const;
 
 /**
+ * Feature flags exposed in the create-server wizard.
+ */
+const CREATE_SERVER_FEATURE_FLAGS = [
+    {
+        key: 'isFeedbackEnabled',
+        title: 'Feedback enabled',
+        description: 'Show chat feedback and store feedback records.',
+    },
+    {
+        key: 'isFileAttachmentsEnabled',
+        title: 'File attachments enabled',
+        description: 'Allow chat attachments on the new server.',
+    },
+    {
+        key: 'isExperimentalPwaAppEnabled',
+        title: 'PWA install enabled',
+        description: 'Expose the experimental install-as-app option.',
+    },
+    {
+        key: 'isFooterShown',
+        title: 'Footer shown',
+        description: 'Render the shared footer on public pages.',
+    },
+] as const;
+
+/**
+ * Confirmation text shown before leaving the page with pending edits.
+ */
+const UNSAVED_CHANGES_MESSAGE = 'You have unsaved changes, are you sure you want to leave this page?';
+
+/**
  * Creates an empty extra-user row for the create-server wizard.
  *
  * @returns Fresh extra-user draft.
@@ -281,18 +308,64 @@ function formatDateTime(value: string): string {
         return 'N/A';
     }
 
-    return new Date(value).toLocaleString();
+    const timestamp = moment(value);
+    return timestamp.isValid() ? timestamp.format('YYYY-MM-DD HH:mm:ss') : 'N/A';
 }
 
 /**
- * Builds a public URL for one managed server row.
+ * Builds a public base URL for one managed server row.
  *
- * @param server - Registry row to open.
+ * @param server - Registry row to resolve.
  * @returns Public URL string.
  */
-function createServerUrl(server: Pick<ManagedServerRow, 'domain'>): string {
+function createServerPublicUrl(server: Pick<ManagedServerRow, 'domain'>): string {
     const protocol = server.domain.startsWith('localhost') || server.domain.startsWith('127.0.0.1') ? 'http' : 'https';
     return `${protocol}://${server.domain}`;
+}
+
+/**
+ * Builds the dashboard URL for one managed server row.
+ *
+ * @param server - Registry row to open.
+ * @returns Dashboard URL string.
+ */
+function createServerDashboardUrl(server: Pick<ManagedServerRow, 'domain'>): string {
+    return new URL('/dashboard', createServerPublicUrl(server)).href;
+}
+
+/**
+ * Clones one persisted server row into an editable draft.
+ *
+ * @param server - Persisted registry row.
+ * @returns Editable draft state.
+ */
+function createServerDraftFromRow(server: ManagedServerRow): ServerDraft {
+    return {
+        name: server.name,
+        environment: server.environment,
+        domain: server.domain,
+        tablePrefix: server.tablePrefix,
+    };
+}
+
+/**
+ * Returns whether one draft differs from its persisted server row.
+ *
+ * @param server - Persisted registry row.
+ * @param draft - Editable row draft.
+ * @returns `true` when the draft contains unsaved changes.
+ */
+function isServerDraftDifferent(server: ManagedServerRow, draft: ServerDraft | undefined): boolean {
+    if (!draft) {
+        return false;
+    }
+
+    return (
+        draft.name !== server.name ||
+        draft.environment !== server.environment ||
+        draft.domain !== server.domain ||
+        draft.tablePrefix !== server.tablePrefix
+    );
 }
 
 /**
@@ -372,6 +445,44 @@ function getCreateServerWizardValidationMessage(
 }
 
 /**
+ * Returns whether the create-server wizard contains unsaved values.
+ *
+ * @param wizardState - Current wizard form state.
+ * @returns `true` when any wizard field differs from its initial value.
+ */
+function hasCreateServerWizardChanges(wizardState: CreateServerWizardState): boolean {
+    const initialWizardState = createInitialWizardState();
+
+    if (
+        wizardState.name !== initialWizardState.name ||
+        wizardState.identifier !== initialWizardState.identifier ||
+        wizardState.environment !== initialWizardState.environment ||
+        wizardState.domain !== initialWizardState.domain ||
+        wizardState.iconUrl !== initialWizardState.iconUrl ||
+        wizardState.adminUser.username !== initialWizardState.adminUser.username ||
+        wizardState.adminUser.password !== initialWizardState.adminUser.password ||
+        wizardState.initialSettings.language !== initialWizardState.initialSettings.language ||
+        wizardState.initialSettings.homepageMessage !== initialWizardState.initialSettings.homepageMessage ||
+        wizardState.initialSettings.isFeedbackEnabled !== initialWizardState.initialSettings.isFeedbackEnabled ||
+        wizardState.initialSettings.isFileAttachmentsEnabled !==
+            initialWizardState.initialSettings.isFileAttachmentsEnabled ||
+        wizardState.initialSettings.isExperimentalPwaAppEnabled !==
+            initialWizardState.initialSettings.isExperimentalPwaAppEnabled ||
+        wizardState.initialSettings.isFooterShown !== initialWizardState.initialSettings.isFooterShown
+    ) {
+        return true;
+    }
+
+    if (wizardState.additionalUsers.length !== initialWizardState.additionalUsers.length) {
+        return true;
+    }
+
+    return wizardState.additionalUsers.some(
+        (user) => user.username !== '' || user.password !== '' || user.isAdmin !== false,
+    );
+}
+
+/**
  * Renders a small status badge used in the servers table and details panel.
  *
  * @param props - Badge label and tone.
@@ -402,13 +513,11 @@ export function ServersClient() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [currentServerId, setCurrentServerId] = useState<number | null>(null);
-    const [hostServerId, setHostServerId] = useState<number | null>(null);
-    const [isOverridden, setIsOverridden] = useState(false);
-    const [selectedServerId, setSelectedServerId] = useState<number | null>(null);
     const [savingServerId, setSavingServerId] = useState<number | null>(null);
-    const [switchingServerId, setSwitchingServerId] = useState<number | null>(null);
+    const [navigatingServerId, setNavigatingServerId] = useState<number | null>(null);
     const [migratingServerId, setMigratingServerId] = useState<number | null>(null);
     const [deletingServerId, setDeletingServerId] = useState<number | null>(null);
+    const [isCreateServerDialogOpen, setIsCreateServerDialogOpen] = useState(false);
     const [wizardStep, setWizardStep] = useState(0);
     const [wizardState, setWizardState] = useState<CreateServerWizardState>(createInitialWizardState);
     const [isCreatingServer, setIsCreatingServer] = useState(false);
@@ -424,16 +533,59 @@ export function ServersClient() {
         () => deriveWizardTablePrefix(wizardState.identifier),
         [wizardState.identifier],
     );
-
-    const selectedServer =
-        servers.find((server) => server.id === selectedServerId) ||
-        servers.find((server) => server.id === currentServerId) ||
-        servers[0] ||
-        null;
-    const hostServer = servers.find((server) => server.id === hostServerId) || null;
     const currentServer = servers.find((server) => server.id === currentServerId) || null;
+    const isCreateServerDirty = hasCreateServerWizardChanges(wizardState);
 
-    const loadServers = async (preferredSelectedServerId?: number | null) => {
+    /**
+     * Returns whether the editable row differs from the persisted server row.
+     *
+     * @param server - Persisted server row.
+     * @returns `true` when the row contains unsaved changes.
+     */
+    const isServerDraftDirty = (server: ManagedServerRow): boolean => {
+        return isServerDraftDifferent(server, serverDrafts[server.id]);
+    };
+
+    const hasDirtyServerDrafts = useMemo(
+        () => servers.some((server) => isServerDraftDifferent(server, serverDrafts[server.id])),
+        [serverDrafts, servers],
+    );
+    const hasUnsavedChanges = hasDirtyServerDrafts || (isCreateServerDialogOpen && isCreateServerDirty);
+    const { confirmBeforeNavigation, allowNextNavigation } = useUnsavedChangesGuard({
+        hasUnsavedChanges,
+        preventInAppNavigation: true,
+        message: UNSAVED_CHANGES_MESSAGE,
+    });
+
+    /**
+     * Resets the create-server wizard to a fresh empty state.
+     */
+    const resetCreateServerWizard = () => {
+        setWizardStep(0);
+        setWizardState(createInitialWizardState());
+        setWizardError(null);
+
+        if (iconInputRef.current) {
+            iconInputRef.current.value = '';
+        }
+    };
+
+    /**
+     * Closes the create-server dialog and discards the current wizard state.
+     */
+    const closeCreateServerDialog = () => {
+        resetCreateServerWizard();
+        setIsCreateServerDialogOpen(false);
+    };
+
+    const { requestClose: requestCreateServerDialogClose } = useDirtyModalGuard({
+        hasUnsavedChanges: isCreateServerDirty,
+        isCloseBlocked: isCreatingServer || isUploadingIcon,
+        onClose: closeCreateServerDialog,
+        message: UNSAVED_CHANGES_MESSAGE,
+    });
+
+    const loadServers = async () => {
         try {
             setLoading(true);
             setError(null);
@@ -447,22 +599,9 @@ export function ServersClient() {
 
             setServers([...payload.servers]);
             setCurrentServerId(payload.currentServerId);
-            setHostServerId(payload.hostServerId);
-            setIsOverridden(payload.isOverridden);
             setServerDrafts(
-                Object.fromEntries(
-                    payload.servers.map((server) => [
-                        server.id,
-                        {
-                            name: server.name,
-                            environment: server.environment,
-                            domain: server.domain,
-                            tablePrefix: server.tablePrefix,
-                        },
-                    ]),
-                ),
+                Object.fromEntries(payload.servers.map((server) => [server.id, createServerDraftFromRow(server)])),
             );
-            setSelectedServerId(preferredSelectedServerId ?? payload.currentServerId ?? payload.servers[0]?.id ?? null);
         } catch (loadError) {
             setError(loadError instanceof Error ? loadError.message : 'Failed to load servers.');
         } finally {
@@ -517,7 +656,7 @@ export function ServersClient() {
                 throw new Error(payload.error || 'Failed to save the server.');
             }
 
-            await loadServers(serverId);
+            await loadServers();
         } catch (saveError) {
             setError(saveError instanceof Error ? saveError.message : 'Failed to save the server.');
         } finally {
@@ -526,41 +665,24 @@ export function ServersClient() {
     };
 
     /**
-     * Switches the same-instance server context for the current super-admin session.
+     * Navigates to the selected server on its own domain dashboard.
      *
-     * @param serverId - Target server id.
+     * @param server - Target server row.
      */
-    const handleSwitchServer = async (serverId: number) => {
-        try {
-            setSwitchingServerId(serverId);
-            setError(null);
-
-            const response = await fetch('/api/admin/servers/active', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ serverId }),
-            });
-            const payload = (await response.json()) as { error?: string };
-
-            if (!response.ok) {
-                throw new Error(payload.error || 'Failed to switch the active server.');
-            }
-
-            window.location.assign('/');
-        } catch (switchError) {
-            setError(switchError instanceof Error ? switchError.message : 'Failed to switch the active server.');
-        } finally {
-            setSwitchingServerId(null);
+    const handleSwitchServer = async (server: ManagedServerRow) => {
+        if (!confirmBeforeNavigation()) {
+            return;
         }
-    };
 
-    /**
-     * Opens the selected server in its own public domain.
-     *
-     * @param server - Registry row to open.
-     */
-    const handleOpenServer = (server: ManagedServerRow) => {
-        window.open(createServerUrl(server), '_blank', 'noopener,noreferrer');
+        try {
+            setNavigatingServerId(server.id);
+            setError(null);
+            window.location.assign(createServerDashboardUrl(server));
+        } catch (switchError) {
+            setError(switchError instanceof Error ? switchError.message : 'Failed to switch to the server.');
+        } finally {
+            setNavigatingServerId(null);
+        }
     };
 
     /**
@@ -590,7 +712,7 @@ export function ServersClient() {
                 title: 'Server migrated',
                 message: `Applied ${payload.appliedCount ?? 0} of ${payload.totalMigrationFiles ?? 0} migration files.`,
             }).catch(() => undefined);
-            await loadServers(serverId);
+            await loadServers();
         } catch (migrationError) {
             setError(migrationError instanceof Error ? migrationError.message : 'Failed to run server migrations.');
         } finally {
@@ -599,10 +721,10 @@ export function ServersClient() {
     };
 
     /**
-     * Deletes the currently selected server after two explicit confirmations.
+     * Deletes the current server after two explicit confirmations.
      */
     const handleDeleteCurrentServer = async () => {
-        if (!selectedServer || selectedServer.id !== currentServerId) {
+        if (!currentServer) {
             return;
         }
 
@@ -619,29 +741,35 @@ export function ServersClient() {
 
         const typedName = await showPrompt({
             title: 'Type the server name',
-            message: `Type \`${selectedServer.name}\` to confirm deleting this server. Prefixed tables will stay untouched.`,
+            message: `Type \`${currentServer.name}\` to confirm deleting this server. Existing server data will stay untouched.`,
             confirmLabel: 'Delete this server',
             cancelLabel: 'Cancel',
             inputLabel: 'Server name confirmation',
-            placeholder: selectedServer.name,
+            placeholder: currentServer.name,
         }).catch(() => '');
 
-        if (typedName.trim() !== selectedServer.name) {
+        if (typedName.trim() !== currentServer.name) {
             setError('Server deletion cancelled because the confirmation name did not match.');
             return;
         }
 
         try {
-            setDeletingServerId(selectedServer.id);
+            setDeletingServerId(currentServer.id);
             setError(null);
 
-            const response = await fetch(`/api/admin/servers/${selectedServer.id}`, {
+            const response = await fetch(`/api/admin/servers/${currentServer.id}`, {
                 method: 'DELETE',
             });
-            const payload = (await response.json()) as { error?: string };
+            const payload = (await response.json()) as { error?: string; redirectUrl?: string | null };
 
             if (!response.ok) {
                 throw new Error(payload.error || 'Failed to delete the current server.');
+            }
+
+            if (payload.redirectUrl) {
+                allowNextNavigation();
+                window.location.assign(payload.redirectUrl);
+                return;
             }
 
             await loadServers();
@@ -744,7 +872,8 @@ export function ServersClient() {
                 return;
             }
 
-            window.location.assign('/');
+            closeCreateServerDialog();
+            await loadServers();
         } catch (createError) {
             setWizardError({
                 message: createError instanceof Error ? createError.message : 'Failed to create the server.',
@@ -840,45 +969,21 @@ export function ServersClient() {
         setWizardStep(nextStep);
     };
 
-    /**
-     * Returns whether the editable row differs from the persisted server row.
-     *
-     * @param server - Persisted server row.
-     * @returns `true` when the row contains unsaved changes.
-     */
-    const isServerDraftDirty = (server: ManagedServerRow): boolean => {
-        const draft = serverDrafts[server.id];
-        if (!draft) {
-            return false;
-        }
-
-        return (
-            draft.name !== server.name ||
-            draft.environment !== server.environment ||
-            draft.domain !== server.domain ||
-            draft.tablePrefix !== server.tablePrefix
-        );
-    };
-
     return (
         <div className="container mx-auto space-y-8 px-4 py-8">
-            <div className="mt-20 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-                <div>
-                    <h1 className="text-3xl font-light text-gray-900">Servers</h1>
-                    <p className="mt-1 max-w-3xl text-sm text-gray-500">
-                        Global-admin management of same-instance servers stored in <code>_Server</code>. This area can
-                        create new isolated prefixes, switch the current server context, and run migrations without
-                        touching federated-server routing.
-                    </p>
-                </div>
-                <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
-                    <span className="rounded-full border border-gray-200 bg-white px-3 py-1.5">
-                        Route: <span className="font-mono text-gray-700">/admin/servers</span>
-                    </span>
-                    <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 font-semibold text-amber-700">
-                        Global admin only
-                    </span>
-                </div>
+            <div className="mt-20 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <h1 className="text-3xl font-light text-gray-900">Servers</h1>
+                <button
+                    type="button"
+                    onClick={() => {
+                        resetCreateServerWizard();
+                        setIsCreateServerDialogOpen(true);
+                    }}
+                    className={PRIMARY_BUTTON_CLASS_NAME}
+                >
+                    <Plus className="h-4 w-4" />
+                    Create new server
+                </button>
             </div>
 
             {error ? (
@@ -887,54 +992,11 @@ export function ServersClient() {
                 </Card>
             ) : null}
 
-            {isOverridden && currentServer && hostServer && currentServer.id !== hostServer.id ? (
-                <Card className="border-amber-200 bg-amber-50 hover:border-amber-200 hover:shadow-md">
-                    <div className="flex items-start gap-3">
-                        <ShieldAlert className="mt-0.5 h-5 w-5 text-amber-700" />
-                        <div className="space-y-1 text-sm text-amber-900">
-                            <p className="font-semibold">Current session is overriding the host-matched server.</p>
-                            <p>
-                                This host resolves to <strong>{hostServer.name}</strong>, but the active global-admin
-                                context is currently switched to <strong>{currentServer.name}</strong>.
-                            </p>
-                        </div>
-                    </div>
-                </Card>
-            ) : null}
-
-            <Section title="Overview" gridClassName="grid gap-4 md:grid-cols-3">
-                <Card className="hover:border-gray-200 hover:shadow-md">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-gray-400">Registered servers</div>
-                    <div className="mt-2 text-3xl font-light text-gray-900">{servers.length.toLocaleString()}</div>
-                    <p className="mt-2 text-sm text-gray-500">
-                        One deployment, one database, multiple isolated table prefixes.
-                    </p>
-                </Card>
-                <Card className="hover:border-gray-200 hover:shadow-md">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-gray-400">Current server</div>
-                    <div className="mt-2 text-2xl font-light text-gray-900">{currentServer?.name || 'Not resolved'}</div>
-                    <p className="mt-2 text-sm text-gray-500">{currentServer?.domain || 'No current server is active.'}</p>
-                </Card>
-                <Card className="hover:border-gray-200 hover:shadow-md">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-gray-400">Host-matched server</div>
-                    <div className="mt-2 text-2xl font-light text-gray-900">{hostServer?.name || 'Not resolved'}</div>
-                    <p className="mt-2 text-sm text-gray-500">
-                        {hostServer?.domain || 'This request host does not currently map to a registered server.'}
-                    </p>
-                </Card>
-            </Section>
-
-            <Section
-                title="Registered servers"
-                gridClassName="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]"
-            >
+            <Section title="Registered servers" gridClassName="grid gap-6">
                 <Card className="hover:border-gray-200 hover:shadow-md">
                     <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                         <div>
-                            <h2 className="text-lg font-medium text-gray-900">Manage `_Server`</h2>
-                            <p className="mt-1 text-sm text-gray-500">
-                                Edit server name, environment, domain, and table prefix. The internal `id` stays hidden.
-                            </p>
+                            <h2 className="text-lg font-medium text-gray-900">Registered servers</h2>
                         </div>
                         {loading ? <span className="text-xs font-medium text-blue-600">Refreshing…</span> : null}
                     </div>
@@ -942,18 +1004,27 @@ export function ServersClient() {
                     {loading && servers.length === 0 ? (
                         <div className="py-10 text-center text-sm text-gray-500">Loading registered servers…</div>
                     ) : servers.length === 0 ? (
-                        <div className="py-10 text-center text-sm text-gray-500">
-                            No registered servers found. Use the wizard below to create the first one.
-                        </div>
+                        <div className="py-10 text-center text-sm text-gray-500">No registered servers found yet.</div>
                     ) : (
-                        <div className="mt-4 overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200 text-sm">
+                        <div className="mt-4 overflow-x-auto rounded-xl border border-gray-200">
+                            <table className="min-w-full table-fixed divide-y divide-gray-200 text-sm">
+                                <colgroup>
+                                    <col className="w-[16rem]" />
+                                    <col className="w-[10rem]" />
+                                    <col className="w-[18rem]" />
+                                    <col className="w-[13rem]" />
+                                    <col className="w-[10rem]" />
+                                    <col className="w-[11rem]" />
+                                    <col className="w-[11rem]" />
+                                    <col className="w-[12rem]" />
+                                </colgroup>
                                 <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
                                     <tr>
                                         <th className="px-4 py-3 text-left font-semibold">Name</th>
                                         <th className="px-4 py-3 text-left font-semibold">Environment</th>
                                         <th className="px-4 py-3 text-left font-semibold">Domain</th>
                                         <th className="px-4 py-3 text-left font-semibold">Table prefix</th>
+                                        <th className="px-4 py-3 text-left font-semibold">Status</th>
                                         <th className="px-4 py-3 text-left font-semibold">Created</th>
                                         <th className="px-4 py-3 text-left font-semibold">Updated</th>
                                         <th className="px-4 py-3 text-right font-semibold">Actions</th>
@@ -963,43 +1034,23 @@ export function ServersClient() {
                                     {servers.map((server) => {
                                         const draft = serverDrafts[server.id];
                                         const isCurrent = server.id === currentServerId;
-                                        const isHost = server.id === hostServerId;
-                                        const isSelected = server.id === selectedServer?.id;
                                         const isDirty = isServerDraftDirty(server);
                                         const isSaving = savingServerId === server.id;
-                                        const isSwitching = switchingServerId === server.id;
+                                        const isNavigating = navigatingServerId === server.id;
                                         const isMigrating = migratingServerId === server.id;
 
                                         return (
-                                            <tr
-                                                key={server.id}
-                                                className={
-                                                    isSelected
-                                                        ? 'bg-blue-50/60'
-                                                        : isCurrent
-                                                        ? 'bg-emerald-50/40'
-                                                        : ''
-                                                }
-                                            >
+                                            <tr key={server.id} className={isCurrent ? 'bg-blue-50/40' : 'hover:bg-gray-50'}>
                                                 <td className="px-4 py-3 align-top">
-                                                    <div className="space-y-2">
-                                                        <input
-                                                            type="text"
-                                                            value={draft?.name || ''}
-                                                            onChange={(event) =>
-                                                                updateServerDraft(server.id, 'name', event.target.value)
-                                                            }
-                                                            className={INPUT_CLASS_NAME}
-                                                            aria-label={`Server name for ${server.name}`}
-                                                        />
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {isCurrent ? (
-                                                                <ServerStatusBadge label="Current" tone="green" />
-                                                            ) : null}
-                                                            {isHost ? <ServerStatusBadge label="Host" tone="amber" /> : null}
-                                                            {isDirty ? <ServerStatusBadge label="Unsaved" tone="blue" /> : null}
-                                                        </div>
-                                                    </div>
+                                                    <input
+                                                        type="text"
+                                                        value={draft?.name || ''}
+                                                        onChange={(event) =>
+                                                            updateServerDraft(server.id, 'name', event.target.value)
+                                                        }
+                                                        className={INPUT_CLASS_NAME}
+                                                        aria-label={`Server name for ${server.name}`}
+                                                    />
                                                 </td>
                                                 <td className="px-4 py-3 align-top">
                                                     <select
@@ -1040,21 +1091,27 @@ export function ServersClient() {
                                                         aria-label={`Table prefix for ${server.name}`}
                                                     />
                                                 </td>
-                                                <td className="px-4 py-3 align-top text-xs text-gray-600">
-                                                    {formatDateTime(server.createdAt)}
+                                                <td className="px-4 py-3 align-top">
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {isCurrent ? <ServerStatusBadge label="Current" tone="green" /> : null}
+                                                        {isDirty ? <ServerStatusBadge label="Unsaved" tone="blue" /> : null}
+                                                        {!isCurrent && !isDirty ? (
+                                                            <span className="text-xs text-gray-400">-</span>
+                                                        ) : null}
+                                                    </div>
                                                 </td>
                                                 <td className="px-4 py-3 align-top text-xs text-gray-600">
-                                                    {formatDateTime(server.updatedAt)}
+                                                    <span className="whitespace-nowrap font-mono">
+                                                        {formatDateTime(server.createdAt)}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3 align-top text-xs text-gray-600">
+                                                    <span className="whitespace-nowrap font-mono">
+                                                        {formatDateTime(server.updatedAt)}
+                                                    </span>
                                                 </td>
                                                 <td className="px-4 py-3 align-top">
                                                     <div className="flex flex-wrap justify-end gap-2">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setSelectedServerId(server.id)}
-                                                            className={`${SECONDARY_BUTTON_CLASS_NAME} px-2 py-1 text-xs`}
-                                                        >
-                                                            Details
-                                                        </button>
                                                         <button
                                                             type="button"
                                                             onClick={() => void handleSaveServer(server.id)}
@@ -1083,29 +1140,17 @@ export function ServersClient() {
                                                         </button>
                                                         <button
                                                             type="button"
-                                                            onClick={() => handleOpenServer(server)}
+                                                            onClick={() => void handleSwitchServer(server)}
+                                                            disabled={isNavigating}
                                                             className={`${SECONDARY_BUTTON_CLASS_NAME} px-2 py-1 text-xs`}
                                                         >
-                                                            <ExternalLink className="h-3.5 w-3.5" />
-                                                            Open
+                                                            {isNavigating ? (
+                                                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                                            ) : (
+                                                                <ArrowRightLeft className="h-3.5 w-3.5" />
+                                                            )}
+                                                            Switch
                                                         </button>
-                                                        {isCurrent ? (
-                                                            <span className="inline-flex items-center rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700">
-                                                                Current
-                                                            </span>
-                                                        ) : (
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => void handleSwitchServer(server.id)}
-                                                                disabled={isSwitching}
-                                                                className={`${SECONDARY_BUTTON_CLASS_NAME} px-2 py-1 text-xs`}
-                                                            >
-                                                                {isSwitching ? (
-                                                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                                                ) : null}
-                                                                Switch
-                                                            </button>
-                                                        )}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -1116,134 +1161,29 @@ export function ServersClient() {
                         </div>
                     )}
                 </Card>
-
-                <Card className="hover:border-gray-200 hover:shadow-md">
-                    <div className="space-y-5">
-                        <div>
-                            <h2 className="text-lg font-medium text-gray-900">Server details</h2>
-                            <p className="mt-1 text-sm text-gray-500">
-                                View the selected server, switch to it, or run one-off maintenance actions.
-                            </p>
-                        </div>
-
-                        {!selectedServer ? (
-                            <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-6 text-sm text-gray-500">
-                                Select a server from the list to inspect it here.
-                            </div>
-                        ) : (
-                            <div className="space-y-5">
-                                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                                    <div>
-                                        <h3 className="text-2xl font-light text-gray-900">{selectedServer.name}</h3>
-                                        <p className="mt-1 text-sm text-gray-500">{selectedServer.domain}</p>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2">
-                                        {selectedServer.id === currentServerId ? (
-                                            <ServerStatusBadge label="Current" tone="green" />
-                                        ) : null}
-                                        {selectedServer.id === hostServerId ? (
-                                            <ServerStatusBadge label="Host" tone="amber" />
-                                        ) : null}
-                                        <ServerStatusBadge label={selectedServer.environment} tone="gray" />
-                                    </div>
-                                </div>
-
-                                <dl className="grid gap-3 sm:grid-cols-2">
-                                    <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                                        <dt className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                                            Public URL
-                                        </dt>
-                                        <dd className="mt-1 break-all text-sm text-gray-800">
-                                            {createServerUrl(selectedServer)}
-                                        </dd>
-                                    </div>
-                                    <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                                        <dt className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                                            Table prefix
-                                        </dt>
-                                        <dd className="mt-1 font-mono text-sm text-gray-800">
-                                            {selectedServer.tablePrefix}
-                                        </dd>
-                                    </div>
-                                    <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                                        <dt className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                                            Created
-                                        </dt>
-                                        <dd className="mt-1 text-sm text-gray-800">{formatDateTime(selectedServer.createdAt)}</dd>
-                                    </div>
-                                    <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                                        <dt className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                                            Updated
-                                        </dt>
-                                        <dd className="mt-1 text-sm text-gray-800">{formatDateTime(selectedServer.updatedAt)}</dd>
-                                    </div>
-                                </dl>
-
-                                <div className="flex flex-wrap gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => handleOpenServer(selectedServer)}
-                                        className={SECONDARY_BUTTON_CLASS_NAME}
-                                    >
-                                        <ExternalLink className="h-4 w-4" />
-                                        Open server
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => void handleMigrateServer(selectedServer.id)}
-                                        disabled={migratingServerId === selectedServer.id}
-                                        className={SECONDARY_BUTTON_CLASS_NAME}
-                                    >
-                                        {migratingServerId === selectedServer.id ? (
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                        ) : (
-                                            <RefreshCcw className="h-4 w-4" />
-                                        )}
-                                        Run migrate/update
-                                    </button>
-                                    {selectedServer.id === currentServerId ? (
-                                        <span className="inline-flex items-center rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
-                                            Current server
-                                        </span>
-                                    ) : (
-                                        <button
-                                            type="button"
-                                            onClick={() => void handleSwitchServer(selectedServer.id)}
-                                            disabled={switchingServerId === selectedServer.id}
-                                            className={PRIMARY_BUTTON_CLASS_NAME}
-                                        >
-                                            {switchingServerId === selectedServer.id ? (
-                                                <Loader2 className="h-4 w-4 animate-spin" />
-                                            ) : null}
-                                            Switch to this server
-                                        </button>
-                                    )}
-                                </div>
-
-                                <div className="rounded-lg border border-red-100 bg-red-50 p-4 text-sm text-red-800">
-                                    <p className="font-semibold">Delete policy</p>
-                                    <p className="mt-1">
-                                        Only the current server can be deleted from this page. Deleting removes just the
-                                        <code>_Server</code> row and leaves all prefixed tables untouched.
-                                    </p>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </Card>
             </Section>
 
-            <Section title="Create server" gridClassName="grid gap-6">
-                <Card className="hover:border-gray-200 hover:shadow-md">
-                    <div className="space-y-6">
-                        <div>
-                            <h2 className="text-lg font-medium text-gray-900">Create isolated same-instance server</h2>
-                            <p className="mt-1 text-sm text-gray-500">
-                                The wizard creates the <code>_Server</code> row, runs all prefix migrations, seeds the
-                                initial admin account, and writes metadata in one transaction.
-                            </p>
+            {isCreateServerDialogOpen ? (
+                <Dialog onClose={requestCreateServerDialogClose} className="mx-4 w-full max-w-5xl overflow-hidden">
+                    <div className="max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-6 py-5">
+                            <div>
+                                <h2 className="text-xl font-semibold text-gray-900">Create new server</h2>
+                                <p className="mt-1 text-sm text-gray-500">
+                                    Create a server with its initial users and settings.
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={requestCreateServerDialogClose}
+                                className="rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                                aria-label="Close create server dialog"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
                         </div>
 
+                        <div className="space-y-6 px-6 py-6">
                         <div className="grid gap-3 md:grid-cols-3">
                             {CREATE_SERVER_WIZARD_STEPS.map((step, index) => (
                                 <button
@@ -1654,39 +1594,14 @@ export function ServersClient() {
                                 </div>
 
                                 <div className="grid gap-3 md:grid-cols-2">
-                                    {[
-                                        {
-                                            key: 'isFeedbackEnabled',
-                                            title: 'Feedback enabled',
-                                            description: 'Show chat feedback and store feedback records.',
-                                        },
-                                        {
-                                            key: 'isFileAttachmentsEnabled',
-                                            title: 'File attachments enabled',
-                                            description: 'Allow chat attachments on the new server.',
-                                        },
-                                        {
-                                            key: 'isExperimentalPwaAppEnabled',
-                                            title: 'PWA install enabled',
-                                            description: 'Expose the experimental install-as-app option.',
-                                        },
-                                        {
-                                            key: 'isFooterShown',
-                                            title: 'Footer shown',
-                                            description: 'Render the shared footer on public pages.',
-                                        },
-                                    ].map((flag) => (
+                                    {CREATE_SERVER_FEATURE_FLAGS.map((flag) => (
                                         <label
                                             key={flag.key}
                                             className="flex items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4"
                                         >
                                             <input
                                                 type="checkbox"
-                                                checked={
-                                                    wizardState.initialSettings[
-                                                        flag.key as keyof CreateServerWizardState['initialSettings']
-                                                    ] as boolean
-                                                }
+                                                checked={wizardState.initialSettings[flag.key]}
                                                 onChange={(event) =>
                                                     setWizardState((previous) => ({
                                                         ...previous,
@@ -1710,13 +1625,12 @@ export function ServersClient() {
 
                         <div className="flex flex-col gap-3 border-t border-gray-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
                             <p className="text-xs text-gray-500">
-                                If bootstrap fails, the transaction is rolled back and you can download the SQL dump for
-                                manual recovery.
+                                If setup fails, you can download the SQL dump for manual recovery.
                             </p>
                             <div className="flex flex-wrap justify-end gap-2">
                                 <button
                                     type="button"
-                                    onClick={() => setWizardState(createInitialWizardState())}
+                                    onClick={resetCreateServerWizard}
                                     disabled={isCreatingServer || isUploadingIcon}
                                     className={SECONDARY_BUTTON_CLASS_NAME}
                                 >
@@ -1753,37 +1667,35 @@ export function ServersClient() {
                             </div>
                         </div>
                     </div>
-                </Card>
-            </Section>
+                </div>
+                </Dialog>
+            ) : null}
 
-            {selectedServer && selectedServer.id === currentServerId ? (
+            {currentServer ? (
                 <Section title="Delete current server" gridClassName="grid gap-6">
                     <Card className="border-red-200 bg-red-50 hover:border-red-200 hover:shadow-md">
                         <div className="space-y-4">
                             <div>
-                                <h2 className="text-lg font-medium text-red-900">Delete this server</h2>
+                                <h2 className="text-lg font-medium text-red-900">Delete current server</h2>
                                 <p className="mt-1 text-sm text-red-800">
-                                    This removes <code>_Server</code> row <strong>{selectedServer.name}</strong> and does
-                                    not delete any prefixed tables. You must type the server name to confirm.
+                                    This removes the server registration for <strong>{currentServer.name}</strong>. Existing
+                                    server data stays untouched. You must type the server name to confirm.
                                 </p>
                             </div>
                             <div className="flex flex-wrap items-center gap-3">
                                 <button
                                     type="button"
                                     onClick={() => void handleDeleteCurrentServer()}
-                                    disabled={deletingServerId === selectedServer.id}
+                                    disabled={deletingServerId === currentServer.id}
                                     className={DANGER_BUTTON_CLASS_NAME}
                                 >
-                                    {deletingServerId === selectedServer.id ? (
+                                    {deletingServerId === currentServer.id ? (
                                         <Loader2 className="h-4 w-4 animate-spin" />
                                     ) : (
                                         <Trash2 className="h-4 w-4" />
                                     )}
-                                    Delete this server
+                                    Delete current server
                                 </button>
-                                <span className="text-xs text-red-700">
-                                    You cannot delete another server from another server context.
-                                </span>
                             </div>
                         </div>
                     </Card>

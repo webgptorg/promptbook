@@ -28,10 +28,6 @@ export type SessionUser = {
      * Whether the session belongs to the environment-backed super-admin.
      */
     readonly isGlobalAdmin?: boolean;
-    /**
-     * Optional same-instance server override selected by the super-admin.
-     */
-    readonly activeServerId?: number | null;
 };
 
 /**
@@ -97,30 +93,13 @@ export async function setSession(user: SessionUser) {
     });
 }
 
+/**
+ * Clears the current authenticated session cookie.
+ */
 export async function clearSession() {
     (await cookies()).delete(SESSION_COOKIE_NAME);
     // Also clear legacy adminToken
     (await cookies()).delete('adminToken');
-}
-
-/**
- * Updates the active same-instance server override in the current session.
- *
- * @param activeServerId - Selected server identifier, or `null` to clear the override.
- * @returns Updated session or `null` when the request is anonymous.
- */
-export async function setSessionActiveServerId(activeServerId: number | null): Promise<SessionUser | null> {
-    const currentSession = await getSession();
-    if (!currentSession) {
-        return null;
-    }
-
-    const nextSession: SessionUser = {
-        ...currentSession,
-        activeServerId,
-    };
-    await setSession(nextSession);
-    return nextSession;
 }
 
 /**
