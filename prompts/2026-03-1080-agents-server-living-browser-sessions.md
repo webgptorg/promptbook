@@ -1,0 +1,68 @@
+[ ]
+
+[🧭🪟] Living browser sessions (progressive preview + reuse across messages)
+
+-   *(@@@@ Written by agent)*
+-   Current browser tool calls behave like async “terminal” calls: agent waits for a single final response, but the browser is already closed by the time UI wants to show it; make the browser a *living session* that can stay open, stream state progressively, and be reused across multiple user messages.
+-   Introduce concept **BrowserSession** (server-side) that is independent of message-run lifecycle.
+    -   BrowserSession is started/attached by an agent, has its own lifecycle, and can outlive a single message.
+    -   BrowserSession is closed either explicitly by agent/tool call or automatically by inactivity timeout.
+    -   BrowserSession has metadata: `id`, `agentId`, `chatId` (optional), `createdAt`, `lastActivityAt`, `status` (running/closing/closed/errored), `timeoutAt`, `provider` (@@@ local/remote/playwright/etc), `currentUrl` (best-effort), `title` (best-effort), `lastScreenshot`/`lastFrame` reference.
+-   Tooling / protocol changes
+    -   Add/extend tools so browser control is session-oriented (not one-shot):
+        -   `browser.open({ url?, reuse?: true }) -> { browserSessionId }`
+        -   `browser.act({ browserSessionId, actions: [...] }) -> { ack, eventsStreamId? }`
+        -   `browser.screenshot({ browserSessionId }) -> { image }` (fallback polling)
+        -   `browser.close({ browserSessionId })`
+        -   `browser.list({ agentId? chatId? })` (admin + debugging)
+    -   Progressive events: backend emits **BrowserSessionEvent** (SSE/WebSocket/@@@ existing realtime channel)
+        -   events: `session_opened`, `navigated`, `dom_loaded`, `action_started`, `action_finished`, `console`, `network`, `screenshot_updated`, `error`, `session_closed`.
+        -   Include throttled frame/screenshot updates (e.g. max 1-2 fps or on meaningful changes) to reduce load.
+    -   Backward compatibility: existing “run browser” tool can internally `open + act + close` unless `keepAlive`/`reuse` flag is set.
+-   UI: indicate ongoing browser session
+    -   When an agent has an open BrowserSession, show a global indicator similar to ongoing timers (same area or adjacent): chip “Browser open” + count.
+    -   Clicking indicator opens a modal/popup similar to “browser chip under message” popup, but bound to BrowserSession (not a specific message).
+    -   The popup shows live preview (streamed screenshot/frames) + basic controls: close session, copy URL, open in new tab (@@@), refresh preview.
+    -   If a message used the browser: show a message-level chip that links to the *same* session (and indicates whether session is still open).
+-   Task manager integration (admin/system)
+    -   Treat BrowserSession as its own “running task” type, separate from the message task.
+    -   In Task Manager page (no new page), add a section or filter for “Browser sessions”.
+    -   List all open sessions across agents with: agent, chat (if any), age, last activity, current URL/title, status, and a live preview thumbnail.
+    -   Admin actions: force close session; extend timeout; view logs/events.
+-   Message vs browser task separation
+    -   When an agent message finishes, its message task completes, but the BrowserSession task remains running until timeout/explicit close.
+    -   A subsequent user message in same chat can reuse the existing BrowserSession automatically when agent calls `browser.open({reuse:true})`.
+    -   Provide deterministic reuse rules:
+        -   default reuse scope: per-agent-per-chat (@@@ or global per-agent?)
+        -   allow agent to request a fresh session.
+-   Timeouts & resource management
+    -   Configurable idle timeout (default @@@ minutes). Idle = no actions + no navigation + no user/agent attach.
+    -   Hard max lifetime (default @@@ hours) to prevent leaks.
+    -   Limit concurrent sessions per agent/user/workspace (defaults @@@) + queue or reject with a clear error.
+    -   Persist minimal session state for monitoring; do not persist sensitive page content beyond latest frame unless explicitly enabled.
+-   Security & privacy
+    -   Ensure preview is visible only to authorized viewers (chat participants + admins); respect private mode/anonymous mode rules (@@@).
+    -   Redact/disable previews for certain domains or when credentials are detected (@@@ policy).
+    -   Clearly label that preview may contain sensitive data.
+-   Engineering notes / project touchpoints
+    -   You are working with the [Agents Server](apps/agents-server)
+    -   Backend: browser tooling implementation + realtime events + session store
+    -   Frontend: global indicator chip + session modal + Task Manager integration
+    -   Add the changes into the [changelog](changelog/_current-preversion.md)
+    -   Files to look at (non-exhaustive, adjust to current structure):
+        -   apps/agents-server/src/tools/browser/@@@
+        -   apps/agents-server/src/realtime/@@@
+        -   apps/agents-server/src/tasks/@@@
+        -   apps/agents-server/src/pages/admin/task-manager/@@@
+        -   apps/agents-server/src/components/@@@ (chips/modals)
+-   Acceptance criteria
+    -   A browser session can remain open after a message finishes; user sees persistent “Browser open” indicator.
+    -   Clicking the indicator shows a live preview that keeps updating without requiring a new tool call.
+    -   Admin Task Manager shows all open sessions with live preview; can force-close.
+    -   Second message in same chat can reuse the existing session (no relaunch) and preview continues.
+    -   Session closes automatically after idle timeout and disappears from indicator + task manager.
+-   Open questions
+    -   Should reuse scope be per-agent-per-chat, or per-agent globally (across chats)?
+    -   Which transport is preferred for progressive preview (SSE vs WebSocket) given current architecture?
+    -   Should we stream full video frames or periodic screenshots only?
+    -   What are the default limits/timeouts for sessions?
