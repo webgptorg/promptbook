@@ -1,5 +1,6 @@
 import { parseAgentSource } from '../../../../../src/book-2.0/agent-source/parseAgentSource';
 import type { string_book } from '../../../../../src/book-2.0/agent-source/string_book';
+import { createWordLikeDeltas } from './createWordLikeDeltas';
 
 /**
  * Delay between emitted chunks when suffix streaming is emulated.
@@ -80,13 +81,6 @@ export async function emulateMessageSuffixStreaming(
             await waitFor(MESSAGE_SUFFIX_STREAM_DELAY_MS);
         }
     }
-}
-
-/**
- * Splits text into word-like chunks while preserving whitespace.
- */
-function createWordLikeDeltas(content: string): Array<string> {
-    return content.match(/\S+\s*|\s+/g) || [];
 }
 
 /**

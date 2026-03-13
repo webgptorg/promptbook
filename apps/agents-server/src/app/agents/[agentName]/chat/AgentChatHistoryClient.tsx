@@ -9,6 +9,7 @@ import { notifyError } from '../../../../components/Notifications/notifications'
 import { usePrivateModePreferences } from '../../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { AgentChatLoadingSkeleton } from '../../../../components/Skeleton/AgentChatLoadingSkeleton';
 import { ChatThreadLoadingSkeleton } from '../../../../components/Skeleton/ChatThreadLoadingSkeleton';
+import { useActiveBrowserTab } from '../../../../hooks/useActiveBrowserTab';
 import { SolidArrowButton } from '../../../../../../../src/book-components/icons/SolidArrowButton';
 import {
     cancelUserChatJob,
@@ -129,6 +130,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     } = props;
     const { formatText } = useAgentNaming();
     const { isPrivateModeEnabled } = usePrivateModePreferences();
+    const isActiveBrowserTab = useActiveBrowserTab();
     const shouldUseHistory = isHistoryEnabled && !isPrivateModeEnabled;
     const pendingProfileMessage = useMemo(() => takePendingProfileMessage(agentName), [agentName]);
     const effectiveInitialAutoExecuteMessage = initialAutoExecuteMessage ?? pendingProfileMessage?.message;
@@ -713,7 +715,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     }, [flushActiveDraft, shouldUseHistory]);
 
     useEffect(() => {
-        if (!shouldUseHistory || !activeChatId || isActiveChatReadOnly) {
+        if (!shouldUseHistory || !activeChatId || isActiveChatReadOnly || !isActiveBrowserTab) {
             setIsActiveChatStreamConnected(false);
             return;
         }
@@ -780,7 +782,15 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
             abortController.abort();
         };
-    }, [activeChatId, agentName, applyChatDetail, isActiveChatReadOnly, refreshActiveChat, shouldUseHistory]);
+    }, [
+        activeChatId,
+        agentName,
+        applyChatDetail,
+        isActiveBrowserTab,
+        isActiveChatReadOnly,
+        refreshActiveChat,
+        shouldUseHistory,
+    ]);
 
     useEffect(() => {
         if (!shouldUseHistory || !activeChatId || isActiveChatReadOnly) {

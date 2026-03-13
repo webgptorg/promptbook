@@ -13,6 +13,7 @@ import { usePrivateModePreferences } from '../../../../components/PrivateModePre
 import { useSelfLearningPreferences } from '../../../../components/SelfLearningPreferences/SelfLearningPreferencesProvider';
 import { useServerLanguage } from '../../../../components/ServerLanguage/ServerLanguageProvider';
 import { useSoundSystem } from '../../../../components/SoundSystemProvider/SoundSystemProvider';
+import { useActiveBrowserTab } from '../../../../hooks/useActiveBrowserTab';
 import { createDefaultChatEffects } from '../../../../utils/chat/createDefaultChatEffects';
 import { fetchGithubAppStatus, type GithubAppStatusResponse } from '../../../../utils/githubAppClient';
 import { createDefaultSpeechRecognition } from '../../../../utils/speech-to-text/createDefaultSpeechRecognition';
@@ -26,6 +27,7 @@ import { useAgentChatToolInteractions } from '../useAgentChatToolInteractions';
 import { useTeamAgentProfiles } from '../useTeamAgentProfiles';
 import type { UserChatJob, UserChatTimeout } from '../../../../utils/userChatClient';
 import { ChatTimeoutButton } from './ChatTimeoutButton';
+import { useCanonicalChatMessages } from './useCanonicalChatMessages';
 
 /**
  * Props accepted by the canonical server-backed chat panel.
@@ -69,34 +71,6 @@ function serializeAutoExecutePayload(message?: string, attachments?: ChatMessage
     const normalizedMessage = message ?? '';
     const normalizedAttachments = attachments && attachments.length > 0 ? JSON.stringify(attachments) : '';
     return `${normalizedMessage}|${normalizedAttachments}`;
-}
-
-/**
- * Returns true when the UI should show a transient thinking message instead of an empty assistant placeholder.
- */
-function shouldShowThinkingMessage(message: ChatMessage): boolean {
-    return (
-        message.sender !== 'USER' &&
-        message.isComplete === false &&
-        (message.lifecycleState === 'queued' || message.lifecycleState === 'running') &&
-        message.content.trim().length === 0
-    );
-}
-
-/**
- * Resolves one deterministic thinking-message variant for a message id so multiple viewers of the same chat stay aligned.
- */
-function resolveThinkingMessageVariant(messageId: string | number, thinkingMessages: ReadonlyArray<string>): string {
-    if (thinkingMessages.length === 0) {
-        return 'Thinking...';
-    }
-
-    let hash = 0;
-    for (const character of String(messageId)) {
-        hash = (hash * 31 + character.charCodeAt(0)) >>> 0;
-    }
-
-    return thinkingMessages[hash % thinkingMessages.length] || thinkingMessages[0] || 'Thinking...';
 }
 
 /**
@@ -153,6 +127,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
     const { enterBehavior, resolveEnterBehavior } = useChatEnterBehaviorPreferences();
     const { isSelfLearningEnabled } = useSelfLearningPreferences();
     const { isPrivateModeEnabled, setIsPrivateModeEnabled } = usePrivateModePreferences();
+    const isActiveBrowserTab = useActiveBrowserTab();
     const { t } = useServerLanguage();
     const [githubAppStatus, setGithubAppStatus] = useState<GithubAppStatusResponse | null>(null);
     const effectiveSelfLearningEnabled = isSelfLearningEnabled && !isPrivateModeEnabled;
@@ -166,10 +141,6 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
         () => (readOnlySource ? getUserChatSourceBannerLabel(readOnlySource) : null),
         [readOnlySource],
     );
-    const normalizedThinkingMessages = useMemo(() => {
-        const normalized = (thinkingMessages || []).map((message) => message.trim()).filter(Boolean);
-        return normalized.length > 0 ? normalized : ['Thinking...'];
-    }, [thinkingMessages]);
     const speechRecognition = useMemo(() => {
         if (typeof window === 'undefined' || !(agent?.isVoiceTtsSttEnabled ?? false)) {
             return undefined;
@@ -359,28 +330,12 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
         );
     }, [agent, agentName, initialAgentMessage]);
 
-    const renderedMessages = useMemo<ReadonlyArray<ChatMessage>>(
-        () => [
-            {
-                id: 'canonical-agent-initial-message',
-                sender: 'AGENT',
-                content: initialMessage,
-                createdAt: messages[0]?.createdAt,
-                isComplete: true,
-            },
-            ...messages.map((message) => {
-                if (!shouldShowThinkingMessage(message)) {
-                    return message;
-                }
-
-                return {
-                    ...message,
-                    content: resolveThinkingMessageVariant(message.id || 'thinking-message', normalizedThinkingMessages),
-                };
-            }),
-        ],
-        [initialMessage, messages, normalizedThinkingMessages],
-    );
+    const renderedMessages = useCanonicalChatMessages({
+        initialMessage,
+        messages,
+        thinkingMessages,
+        isActiveBrowserTab,
+    });
 
     const participants = useMemo(
         () => [

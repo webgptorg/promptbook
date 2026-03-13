@@ -6,7 +6,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AgentCapability } from '../../../book-2.0/agent-source/AgentBasicInformation';
 import type { Prompt } from '../../../types/Prompt';
 import type { string_markdown } from '../../../types/typeAliases';
-import { DEFAULT_THINKING_MESSAGES } from '../../../utils/DEFAULT_THINKING_MESSAGES';
 import { $getCurrentDate } from '../../../utils/misc/$getCurrentDate';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
@@ -15,6 +14,11 @@ import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { ChatPersistence } from '../utils/ChatPersistence';
 import { createTeamToolNameFromUrl } from '../utils/createTeamToolNameFromUrl';
+import {
+    getRandomThinkingMessageDelayMs,
+    getRandomThinkingMessageVariant,
+    normalizeThinkingMessageVariants,
+} from '../utils/thinkingMessageVariants';
 import { DEFAULT_CHAT_FAIL_MESSAGE } from './defaults';
 import type { FriendlyErrorMessage } from './FriendlyErrorMessage';
 import type { LlmChatProps } from './LlmChatProps';
@@ -92,40 +96,6 @@ type BackgroundRecoveryPayload = {
  * @private internal helper for LLM chat background resilience
  */
 type HandleMessageFn = (messageContent: string, attachments?: ChatMessage['attachments']) => Promise<void>;
-
-const THINKING_MESSAGE_DELAY_MIN_MS = 1000;
-const THINKING_MESSAGE_DELAY_MAX_MS = 5000;
-
-/**
- * Returns a random duration (in milliseconds) between the configured minimum and maximum
- * thinking message display time.
- */
-function getRandomThinkingDelayMs(): number {
-    const range = THINKING_MESSAGE_DELAY_MAX_MS - THINKING_MESSAGE_DELAY_MIN_MS;
-    return Math.floor(Math.random() * (range + 1)) + THINKING_MESSAGE_DELAY_MIN_MS;
-}
-
-/**
- * Selects a random thinking message variant, preferring one that differs from the previously
- * shown variant when possible.
- *
- * @param variants List of available thinking message variants.
- * @param excludeVariant Message to avoid repeating immediately (optional).
- */
-function getRandomThinkingVariant(variants: ReadonlyArray<string>, excludeVariant?: string): string {
-    if (variants.length === 0) {
-        return '';
-    }
-
-    const candidates =
-        excludeVariant && variants.length > 1 ? variants.filter((variant) => variant !== excludeVariant) : variants;
-
-    if (candidates.length === 0) {
-        return variants[0]!;
-    }
-
-    return candidates[Math.floor(Math.random() * candidates.length)]!;
-}
 
 /**
  * Converts unknown prompt parameter values to string values required by prompt templates.
@@ -270,17 +240,10 @@ export function LlmChat(props: LlmChatProps) {
         [llmTools.profile, llmTools.title, props.participants, userParticipantName, llmParticipantName],
     );
 
-    const thinkingVariants = useMemo<ReadonlyArray<string>>(() => {
-        if (!thinkingMessages) {
-            return DEFAULT_THINKING_MESSAGES;
-        }
-
-        const normalized = thinkingMessages
-            .map((message) => message?.trim())
-            .filter((message): message is string => Boolean(message));
-
-        return normalized.length > 0 ? normalized : DEFAULT_THINKING_MESSAGES;
-    }, [thinkingMessages]);
+    const thinkingVariants = useMemo<ReadonlyArray<string>>(
+        () => normalizeThinkingMessageVariants(thinkingMessages),
+        [thinkingMessages],
+    );
 
     // Load teammates metadata from llmTools
     useEffect(() => {
@@ -352,7 +315,7 @@ export function LlmChat(props: LlmChatProps) {
             };
 
             // Add loading message for assistant
-            const thinkingVariant = getRandomThinkingVariant(thinkingVariants);
+            const thinkingVariant = getRandomThinkingMessageVariant(thinkingVariants);
             const loadingMessage: ChatMessage = {
                 // channel: 'PROMPTBOOK_CHAT',
                 id: `assistant_${Date.now()}`,
@@ -384,7 +347,7 @@ export function LlmChat(props: LlmChatProps) {
                         return;
                     }
 
-                    const nextVariant = getRandomThinkingVariant(thinkingVariants, currentRotationVariant);
+                    const nextVariant = getRandomThinkingMessageVariant(thinkingVariants, currentRotationVariant);
                     currentRotationVariant = nextVariant;
 
                     setMessages((prev) =>
@@ -396,7 +359,7 @@ export function LlmChat(props: LlmChatProps) {
                     );
 
                     scheduleNextThinkingVariant();
-                }, getRandomThinkingDelayMs());
+                }, getRandomThinkingMessageDelayMs());
             };
 
             if (isThinkingRotationActive) {

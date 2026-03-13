@@ -1,13 +1,14 @@
 import { CHAT_STREAM_KEEP_ALIVE_INTERVAL_MS } from '@/src/constants/streaming';
 import { createUserChatDetailPayload, getUserChat, isFrozenUserChatSource } from '@/src/utils/userChat';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
+import type { ChatMessage } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
 import { resolveUserChatScope } from '../../resolveUserChatScope';
 
 /**
  * Faster refresh cadence used while the active chat still has background work in flight.
  */
-const ACTIVE_USER_CHAT_STREAM_POLL_INTERVAL_MS = 700;
+const ACTIVE_USER_CHAT_STREAM_POLL_INTERVAL_MS = 300;
 
 /**
  * Lower refresh cadence used when the active chat is idle.
@@ -218,6 +219,7 @@ function createUserChatDetailSignature(
         chatId: payload.chat.id,
         updatedAt: payload.chat.updatedAt,
         draftMessage: payload.draftMessage || '',
+        messages: payload.messages.map(createUserChatMessageSignature),
         activeJobs: payload.activeJobs.map((job) => ({
             id: job.id,
             status: job.status,
@@ -230,6 +232,47 @@ function createUserChatDetailSignature(
             cancelRequestedAt: timeout.cancelRequestedAt,
         })),
     });
+}
+
+/**
+ * Builds one compact stable signature for a user-visible chat message.
+ */
+function createUserChatMessageSignature(
+    message: Awaited<ReturnType<typeof createUserChatDetailPayload>>['messages'][number],
+): Record<string, unknown> {
+    return {
+        id: message.id ?? null,
+        sender: message.sender,
+        isComplete: message.isComplete,
+        lifecycleState: message.lifecycleState ?? null,
+        lifecycleError: message.lifecycleError ?? null,
+        contentLength: message.content.length,
+        contentHash: createStableTextDigest(message.content),
+        ongoingToolCalls: createToolCallsSignature(message.ongoingToolCalls),
+        completedToolCalls: createToolCallsSignature(message.completedToolCalls),
+        toolCalls: createToolCallsSignature(message.toolCalls),
+    };
+}
+
+/**
+ * Creates one compact stable digest for message text without pulling in heavier hashing helpers.
+ */
+function createStableTextDigest(value: string): string {
+    let hash = 2_166_136_261;
+
+    for (let index = 0; index < value.length; index++) {
+        hash ^= value.charCodeAt(index);
+        hash = Math.imul(hash, 16_777_619);
+    }
+
+    return (hash >>> 0).toString(16);
+}
+
+/**
+ * Serializes optional tool-call arrays for snapshot signature comparisons.
+ */
+function createToolCallsSignature(toolCalls: ChatMessage['toolCalls']): string | null {
+    return toolCalls && toolCalls.length > 0 ? JSON.stringify(toolCalls) : null;
 }
 
 /**

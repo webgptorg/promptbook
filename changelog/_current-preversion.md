@@ -128,6 +128,8 @@
     -   Restored live canonical streaming for durable chats by adding `/agents/[agentName]/api/user-chats/[chatId]/stream` and reconnecting the chat page to that stream, so all open viewers of the same `chatId` now receive progressive assistant updates while the background worker keeps running independently.
     -   Restored loading-state copy from `THINKING_MESSAGES` for empty queued/running assistant placeholders, so background turns no longer render as blank bubbles before the first persisted token arrives.
     -   Added server-side active-job reconciliation when reading canonical chat detail, so jobs whose assistant message is already terminal or whose worker lease expired no longer stay stuck in `RUNNING`/pending forever.
+    -   Tightened canonical chat streaming for durable chats by polling only in visible focused chat tabs, lowering the active refresh cadence, and diffing snapshot signatures against message content/tool-call changes in addition to chat/job metadata.
+    -   Restored browser-side canonical chat UX for focused viewers by reusing the old random `THINKING_MESSAGES` rotation and progressively revealing persisted assistant deltas, which brings back smoother token-like updates and chunk vibration without tying execution back to the browser.
 
 -   Fixed Agents Server duplicated `INITIAL MESSAGE` entries in chat history when switching chats or refreshing:
 
