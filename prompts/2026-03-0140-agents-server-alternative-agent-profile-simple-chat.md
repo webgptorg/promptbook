@@ -53,15 +53,13 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🥮] brr
+[✨🥮] Enhance skeleton loading of `/agents/[agentId]/textarea` page
 
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Skeleton loading of the text area variant page isn't corresponding to the page layout.
+-   Do not break skeleton loading, which is shown correctly in a normal chat `/agents/[agentId]/chat` page and also profile `/agents/[agentId]` page, these skeleton loading are working and do not mess with them.
 -   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
-
+![alt text](prompts/screenshots/2026-03-0140-agents-server-alternative-agent-profile-simple-chat-1.png)
+![alt text](prompts/screenshots/2026-03-0140-agents-server-alternative-agent-profile-simple-chat-2.png)
