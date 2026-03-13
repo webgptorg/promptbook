@@ -115,16 +115,35 @@ Queued
 
 ---
 
-[-]
+[ ]
 
-[✨🧂] brr
+[✨🧂] When is time for `USE TIMEOUT` in the chat, it fails, fix it
 
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Commitment `USE TIMEOUT` is working
+-   Setting timeout through the toolcall is working
+-   In the UI it is working
+-   When the timeout is elapsed, the agent is woken up with the injected message, but then it fails
+
+**In chat:**
+
+```
+⚠️ Scheduled timeout tmo_fBGQTGniVuRV6Z could not be executed: Failed to trigger user chat worker: 500 Internal Server Error
+```
+
+**In task manager logs:**
+
+```
+Failed to fetch remote agent profile: Agent URL: https://core-test.ptbk.io/agents/teacher Agent Profile URL: https://core-test.ptbk.io/agents/teacher/api/profile Http Error: Loop Detected
+```
+
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+-   If you need to setup Vercel cron job for the background worker, do it
+-   If you need to do some infrastructure setup, do it
+
+![alt text](prompts/screenshots/2026-03-0790-agents-server-use-timeout-commitment-3.png)
+![alt text](prompts/screenshots/2026-03-0790-agents-server-use-timeout-commitment-4.png)
 
 ---
 
@@ -152,3 +171,15 @@ Queued
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+---
+
+[-]
+
+[✨🧂] brr
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   If you need to do the database migration, do it
+-   Add the changes into the [changelog](changelog/_current-preversion.md)

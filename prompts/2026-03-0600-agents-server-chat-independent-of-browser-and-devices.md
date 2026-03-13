@@ -43,6 +43,23 @@
 
 ---
 
+[ ]
+
+[✨🚐] You have implemented chats that are running on the background, but the streaming is not working well
+
+-   You have broken chat streaming, the agent response is not streaming, it should be streamed to all the clients that are looking on the same chat, but still independently running on the background
+-   Chats are now independent from the browser - this is awesome
+-   But still, when the user has the browser focus, the streaming and UX of the streaming should work the same as before.
+-   As the chat message is being streamed token by token, there should be the slight vibration as it was before.
+-   The streaming should work for all the clients which have currently focused and opened the tab with that chat
+-   Show loading messages from `THINKING_MESSAGES`, This should be shown from the browser and cycled dynamically and randomly as before
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality and the commit `60b78a4f1c2d8a6790c5b2def86b6197db1bc9b7`, [PRD file](prompts/2026-03-0600-agents-server-chat-independent-of-browser-and-devices.md) before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   If you need to do the database migration, do it
+
+---
+
 [-]
 
 [✨🚐] foo
@@ -66,4 +83,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-

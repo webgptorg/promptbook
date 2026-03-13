@@ -38,16 +38,16 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🐲] qux
+[✨🐲] The keybindings popup should be placed better
 
--   @@@
+-   It should be centered on desktop and placed on top of everything with backdrop of the rest of the page blurred and darkened
+-   On mobile it should be fullscreen on top of everything without border and border radius
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+    -   Look at other modals, popups, prompt dialogs, confirms dialogs and unite the code for doing the popup and backdrop logic and UI and UX
+
+![alt text](prompts/screenshots/2026-03-0530-agents-server-chat-keybindings-and-onboarding.png)
 
 ---
 
@@ -74,4 +74,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-

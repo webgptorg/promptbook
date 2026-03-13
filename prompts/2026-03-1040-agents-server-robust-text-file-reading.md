@@ -24,14 +24,17 @@
 -   Size limits / performance:
     -   If above limit, decode first N bytes and append `…[TRUNCATED]…` with warnings.
 -   Security:
+
     -   Never execute or “open” file formats; only decode bytes.
     -   Keep existing sandbox/permissions behavior unchanged.
 
 -   API/tooling requirements:
+
     -   Update the file-reading capability/tool used by agents so that “read file” routes through this decoding pipeline.
     -   Ensure the agent receives metadata about decoding (encoding used + warnings) alongside content so it can react.
 
 -   Acceptance criteria:
+
     -   Attaching `.srt` file encoded in UTF‑8 works and agent can read full text.
     -   Attaching `.srt` file encoded in UTF‑16LE (with BOM) works.
     -   Attaching a `.txt` file encoded in `windows-1250` works via fallback and includes warning.
@@ -39,8 +42,23 @@
     -   Attaching a truly binary file (e.g. `.png`) does not return garbage; it is detected as binary and returns a clear error or `wasBinary=true` with guidance.
 
 -   Developer notes / implementation:
+
     -   Add unit tests for detection + decoding (include fixtures for a few encodings).
 
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+---
+
+[ ]
+
+[🎞️📄] Promptbook agents can read the files are cropped
+
+-   When a user attaches a file to the agent, the agent can read it, but if the file is large, it gets cropped and the agent only reads the beginning of the file, which is not ideal for text files where important information can be at the end.
+-   I don't know exact limits, but the subtitles file which I gave him was cropped after 12000 characters in UTF-8
+    -   This is the file C:/Users/me/Downloads/captions.sbv
+-   Agents should be able to read the whole file
+-   If it is not possible to read the whole file at once (For example, because of the limit of the maximal context size for the LLM model ), provide the agent with tools to read the file in chunks, for example, by providing the agent with the possibility to specify the byte range to read from the file, and also do regex search, so the agent can read the file in parts and process it accordingly.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
