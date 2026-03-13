@@ -33,7 +33,7 @@ import {
     extractCitationsFromMessage,
     type ParsedCitation,
 } from '../utils/parseCitationsFromContent';
-import { parseMessageButtons } from '../utils/parseMessageButtons';
+import { parseMessageButtons, type MessageButton } from '../utils/parseMessageButtons';
 import {
     getLatestStreamingFeatureBoundary,
     sanitizeStreamingMessageContent,
@@ -52,7 +52,7 @@ import { ImagePromptRenderer } from './ImagePromptRenderer';
  *
  * @private props for internal subcomponent
  */
-type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
+type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'onActionButton' | 'participants'> & {
     message: ChatMessage;
     participant: ChatParticipant | undefined;
     isLastMessage: boolean;
@@ -125,6 +125,16 @@ type TeammateMetadata = {
  * Lookup map of teammate metadata by tool name.
  */
 type TeammatesMap = Record<string, TeammateMetadata>;
+
+/**
+ * One quick button entry paired with its stable index inside the current message.
+ *
+ * @private internal helper of `<ChatMessageItem/>`
+ */
+type RenderableMessageButton = {
+    readonly button: MessageButton;
+    readonly buttonIndex: number;
+};
 
 /**
  * Maximum characters allowed in a single ElevenLabs speech request.
@@ -570,6 +580,7 @@ export const ChatMessageItem = memo(
             participants,
             isLastMessage,
             onMessage,
+            onActionButton,
             setExpandedMessageId,
             isExpanded,
             currentRating,
@@ -731,6 +742,10 @@ export const ChatMessageItem = memo(
         const [isAudioLoading, setIsAudioLoading] = useState(false);
         const [isAudioPlaying, setIsAudioPlaying] = useState(false);
         const [audioError, setAudioError] = useState<string | null>(null);
+        const [pendingActionButtonIndex, setPendingActionButtonIndex] = useState<number | null>(null);
+        const [consumedActionButtonIndexes, setConsumedActionButtonIndexes] = useState<ReadonlySet<number>>(
+            () => new Set(),
+        );
 
         const ongoingToolCallChips = useMemo(
             () => buildOngoingToolCallChips(message.ongoingToolCalls, teammates, teamAgentProfiles),
@@ -742,11 +757,63 @@ export const ChatMessageItem = memo(
         );
         const toolCallChips = isComplete ? finalToolCallChips : ongoingToolCallChips;
         const toolCallChipCount = toolCallChips.length;
-        const shouldShowButtons = isLastMessage && buttons.length > 0 && onMessage;
+        const renderableButtons = useMemo<ReadonlyArray<RenderableMessageButton>>(
+            () =>
+                buttons.reduce<Array<RenderableMessageButton>>((nextButtons, button, buttonIndex) => {
+                    if (button.type === 'message') {
+                        if (onMessage) {
+                            nextButtons.push({ button, buttonIndex });
+                        }
+
+                        return nextButtons;
+                    }
+
+                    if (!onActionButton || consumedActionButtonIndexes.has(buttonIndex)) {
+                        return nextButtons;
+                    }
+
+                    nextButtons.push({ button, buttonIndex });
+                    return nextButtons;
+                }, []),
+            [buttons, consumedActionButtonIndexes, onActionButton, onMessage],
+        );
+        const shouldShowButtons = isLastMessage && renderableButtons.length > 0;
         const trimmedMessageContent = message.content.trim();
         const speechPlaybackEnabled = isSpeechPlaybackEnabled ?? true;
         const shouldShowPlayButton = speechPlaybackEnabled && trimmedMessageContent.length > 0;
         const playButtonTitle = audioError ?? (isAudioPlaying ? 'Pause message playback' : 'Read message aloud');
+
+        /**
+         * Executes one quick action button and marks it consumed after a successful run.
+         *
+         * @param buttonIndex Stable button index inside the parsed message.
+         * @param code JavaScript source generated for the quick action.
+         * @returns Promise resolved when the action finishes.
+         * @private
+         */
+        const handleActionButtonClick = useCallback(
+            async (buttonIndex: number, code: string): Promise<void> => {
+                if (!onActionButton || pendingActionButtonIndex === buttonIndex) {
+                    return;
+                }
+
+                setPendingActionButtonIndex(buttonIndex);
+
+                try {
+                    await onActionButton(code);
+                    setConsumedActionButtonIndexes((previousIndexes) => {
+                        const nextIndexes = new Set(previousIndexes);
+                        nextIndexes.add(buttonIndex);
+                        return nextIndexes;
+                    });
+                } finally {
+                    setPendingActionButtonIndex((currentButtonIndex) =>
+                        currentButtonIndex === buttonIndex ? null : currentButtonIndex,
+                    );
+                }
+            },
+            [onActionButton, pendingActionButtonIndex],
+        );
 
         /**
          * Attaches playback listeners to keep the UI in sync with the audio element.
@@ -1208,16 +1275,30 @@ export const ChatMessageItem = memo(
 
                         {shouldShowButtons && (
                             <div className={styles.messageButtons}>
-                                {buttons.map((button, buttonIndex) => (
+                                {renderableButtons.map(({ button, buttonIndex }) => (
                                     <button
                                         key={buttonIndex}
-                                        className={styles.messageButton}
+                                        type="button"
+                                        className={classNames(
+                                            styles.messageButton,
+                                            button.type === 'action' && styles.actionMessageButton,
+                                        )}
                                         onClick={(event) => {
                                             event.stopPropagation();
-                                            if (onMessage) {
-                                                onMessage(button.message);
+
+                                            if (button.type === 'message') {
+                                                if (onMessage) {
+                                                    void onMessage(button.message);
+                                                }
+                                                return;
                                             }
+
+                                            void handleActionButtonClick(buttonIndex, button.code);
                                         }}
+                                        disabled={button.type === 'action' && pendingActionButtonIndex === buttonIndex}
+                                        title={
+                                            button.type === 'action' ? 'Runs an action in your browser' : undefined
+                                        }
                                         // <- TODO: [🐱‍🚀] `Color` should work with forma `#ff00ff55` *(with alpha)*
                                     >
                                         <MarkdownContent content={button.text} />

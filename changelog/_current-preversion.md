@@ -1,3 +1,9 @@
+-   Added Agents Server quick action buttons in chat:
+
+    -   Extended chat quick-button parsing to support both `message` buttons (`?message=...`) and browser `action` buttons (`?action=...`) while keeping the existing message-button syntax backward compatible.
+    -   Wired Agents Server chat surfaces to execute clicked action-button JavaScript through Promptbook's `JavascriptExecutionTools` in the browser instead of raw `eval`, with execution gated by explicit user clicks.
+    -   Styled action buttons with a distinct dark gray treatment, added hover microcopy (`Runs an action in your browser`), and consumed successful action buttons without duplicating the existing quick-button rendering flow.
+
 -   Improved Agents Server attached-file reading so agents can continue past the inline preview crop:
 
     -   Kept the existing bounded inline attachment preview as a lightweight bootstrap, but added deterministic runtime tools `read_attached_file` and `search_attached_file` so agents can read attached text files in byte-range chunks and regex-search within them when the first preview is truncated.

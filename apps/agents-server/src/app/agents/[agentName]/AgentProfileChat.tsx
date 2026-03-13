@@ -16,6 +16,7 @@ import { showAlert } from '../../../components/AsyncDialogs/asyncDialogs';
 import { useChatEnterBehaviorPreferences } from '../../../components/ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
+import { executeQuickActionButton } from '../../../utils/chat/executeQuickActionButton';
 import { resolveChatMessageValidationIssue } from '../../../utils/chat/validateChatMessageContent';
 import { createDefaultSpeechRecognition } from '../../../utils/speech-to-text/createDefaultSpeechRecognition';
 import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
@@ -380,6 +381,7 @@ export function AgentProfileChat({
                             },
                         ]}
                         onMessage={handleMessage}
+                        onActionButton={executeQuickActionButton}
                         onCreateAgent={handleCreateAgent}
                         onFileUpload={allowFileAttachments ? handleFileUpload : undefined}
                         isSaveButtonEnabled={false}

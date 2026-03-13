@@ -15,6 +15,7 @@ import { useServerLanguage } from '../../../../components/ServerLanguage/ServerL
 import { useSoundSystem } from '../../../../components/SoundSystemProvider/SoundSystemProvider';
 import { useActiveBrowserTab } from '../../../../hooks/useActiveBrowserTab';
 import { createDefaultChatEffects } from '../../../../utils/chat/createDefaultChatEffects';
+import { executeQuickActionButton } from '../../../../utils/chat/executeQuickActionButton';
 import { fetchGithubAppStatus, type GithubAppStatusResponse } from '../../../../utils/githubAppClient';
 import { createDefaultSpeechRecognition } from '../../../../utils/speech-to-text/createDefaultSpeechRecognition';
 import { chatFileUploadHandler } from '../../../../utils/upload/createBookEditorUploadHandler';
@@ -390,6 +391,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
                     onMessage={
                         isReadOnly ? undefined : (handleManualMessage as unknown as (message: string) => Promise<void>)
                     }
+                    onActionButton={executeQuickActionButton}
                     onChange={onDraftMessageChange}
                     onReset={isReadOnly ? undefined : onStartNewChat}
                     resetRequiresConfirmation={false}

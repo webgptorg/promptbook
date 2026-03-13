@@ -21,6 +21,7 @@ import { reportClientVersionMismatch } from '../../../utils/clientVersionClient'
 import type { FriendlyErrorMessage } from '../../../utils/errorMessages';
 import { handleChatError } from '../../../utils/errorMessages';
 import { fetchGithubAppStatus, type GithubAppStatusResponse } from '../../../utils/githubAppClient';
+import { executeQuickActionButton } from '../../../utils/chat/executeQuickActionButton';
 import { createDefaultSpeechRecognition } from '../../../utils/speech-to-text/createDefaultSpeechRecognition';
 import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
 import { serializeUserLocationPromptParameter, USER_LOCATION_PROMPT_PARAMETER } from '../../../utils/userLocationPromptParameter';
@@ -335,6 +336,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 persistenceKey={persistenceKey}
                 onChange={handleMessagesChange}
                 onInputTextChange={onInputTextChange}
+                onActionButton={executeQuickActionButton}
                 sendMessage={sendMessage}
                 speechRecognition={speechRecognition}
                 visual="FULL_PAGE"

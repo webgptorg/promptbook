@@ -103,6 +103,14 @@ export type ChatProps = {
     onMessage?(messageContent: string /* <- TODO: [🍗] Pass here the message object NOT just text */): Promisable<void>;
 
     /**
+     * Called when user clicks a quick action button parsed from message markdown.
+     *
+     * The callback is responsible for running the browser-side action and may reject
+     * to keep the button available for another attempt.
+     */
+    onActionButton?(code: string): Promisable<void>;
+
+    /**
      * Optional callback
      *
      * - When set, button for resetting chat will be shown

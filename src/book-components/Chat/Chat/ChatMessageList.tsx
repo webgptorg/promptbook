@@ -28,6 +28,7 @@ export type ChatMessageListProps = {
     isFeedbackEnabled?: boolean;
     onCopy?: () => void;
     onMessage?: (messageContent: string) => Promisable<void>;
+    onActionButton?: ChatProps['onActionButton'];
     onCreateAgent?: (bookContent: string) => void;
     toolTitles?: Record<string, string>;
     teammates?: ChatProps['teammates'];
@@ -61,6 +62,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
         isFeedbackEnabled,
         onCopy,
         onMessage,
+        onActionButton,
         onCreateAgent,
         toolTitles,
         teammates,
@@ -107,6 +109,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
                         participants={participants}
                         isLastMessage={isLastMessage}
                         onMessage={onMessage}
+                        onActionButton={onActionButton}
                         setExpandedMessageId={setExpandedMessageId}
                         isExpanded={isExpanded}
                         currentRating={currentRating}

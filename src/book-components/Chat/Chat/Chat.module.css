@@ -1070,6 +1070,13 @@
     user-select: none;
 }
 
+.messageButton:disabled {
+    cursor: progress;
+    opacity: 0.72;
+    transform: none;
+    box-shadow: none;
+}
+
 .messageButton:hover {
     background: rgba(0, 132, 255, 0.1);
     border-color: rgba(0, 132, 255, 0.3);
@@ -1077,9 +1084,31 @@
     box-shadow: 0 2px 8px rgba(0, 132, 255, 0.15);
 }
 
+.messageButton:hover:disabled {
+    background: rgba(125, 125, 125, 0.1);
+    border-color: rgba(125, 125, 125, 0.9);
+}
+
 .messageButton:active {
     transform: scale(0.98);
     transition: transform 0.1s ease;
+}
+
+.actionMessageButton {
+    background: rgba(55, 65, 81, 0.92);
+    border-color: rgba(31, 41, 55, 0.95);
+    color: #fff;
+}
+
+.actionMessageButton:hover {
+    background: rgba(31, 41, 55, 0.98);
+    border-color: rgba(17, 24, 39, 0.98);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.32);
+}
+
+.actionMessageButton:hover:disabled {
+    background: rgba(55, 65, 81, 0.92);
+    border-color: rgba(31, 41, 55, 0.95);
 }
 
 /* Remove default markdown styles from button content */

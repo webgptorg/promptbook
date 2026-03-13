@@ -458,6 +458,7 @@ affordance
 affordances
 subtag
 subtags
+renderable
 backgrounded
 latlng
 lat

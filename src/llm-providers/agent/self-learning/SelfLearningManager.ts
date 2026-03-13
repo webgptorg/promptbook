@@ -233,6 +233,7 @@ export class SelfLearningManager {
                             - The agent source does not have an INITIAL MESSAGE defined, generate one.
                             - The INITIAL MESSAGE should be welcoming, informative about the agent capabilities and also should give some quick options to start the conversation with the agent.
                             - The quick option looks like \`[👋 Hello](?message=Hello, how are you?)\`
+                            - A browser action option looks like \`[🖨️ Print](?action=window.print%28%29)\` and runs only after the user clicks it.
                         `)
                         : // <- TODO: !!!!!!!! Is this working as intended
                           '',
