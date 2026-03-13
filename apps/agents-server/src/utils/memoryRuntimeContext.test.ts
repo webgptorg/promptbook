@@ -125,4 +125,34 @@ describe('composePromptParametersWithMemoryContext', () => {
             },
         });
     });
+
+    it('embeds current chat attachments into hidden runtime context without requiring chat id', () => {
+        const parameters = composePromptParametersWithMemoryContext({
+            baseParameters: {},
+            currentUserIdentity: null,
+            agentPermanentId: 'agent-files',
+            agentName: 'Files Agent',
+            chatAttachments: [
+                {
+                    name: 'captions.sbv',
+                    type: 'text/plain',
+                    url: 'https://cdn.example.com/files/captions.sbv',
+                },
+            ],
+        });
+
+        const runtimeContext = JSON.parse(parameters[TOOL_RUNTIME_CONTEXT_PARAMETER]!);
+        expect(runtimeContext.chat).toEqual({
+            agentId: 'agent-files',
+            agentName: 'Files Agent',
+            parameters: {},
+            attachments: [
+                {
+                    name: 'captions.sbv',
+                    type: 'text/plain',
+                    url: 'https://cdn.example.com/files/captions.sbv',
+                },
+            ],
+        });
+    });
 });

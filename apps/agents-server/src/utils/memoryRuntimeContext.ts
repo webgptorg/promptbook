@@ -4,6 +4,8 @@ import {
     TOOL_RUNTIME_CONTEXT_PARAMETER,
     type ToolRuntimeContext,
 } from '../../../../src/commitments/_common/toolRuntimeContext';
+import { normalizeChatAttachments } from '../../../../src/utils/chat/chatAttachments';
+import type { ChatAttachment } from '../../../../src/utils/chat/chatAttachments';
 import {
     parseProjectGithubTokenPromptParameter,
     PROJECT_GITHUB_TOKEN_PROMPT_PARAMETER,
@@ -28,6 +30,7 @@ export type ComposePromptParametersWithMemoryContextOptions = {
     projectGithubToken?: string;
     emailSmtpCredential?: string;
     emailFromAddress?: string;
+    chatAttachments?: ReadonlyArray<ChatAttachment>;
 };
 
 /**
@@ -47,6 +50,7 @@ export function composePromptParametersWithMemoryContext(
         projectGithubToken,
         emailSmtpCredential,
         emailFromAddress,
+        chatAttachments,
     } = options;
     const normalizedBaseParameters = normalizePromptParameters(baseParameters);
     const runtimeLocationContext = parseUserLocationPromptParameter(
@@ -68,6 +72,7 @@ export function composePromptParametersWithMemoryContext(
     const isTeamConversation = existingRuntimeContext.memory?.isTeamConversation === true;
     const isPrivateMode = isPrivateModeEnabled === true;
     const isMemoryEnabled = Boolean(currentUserIdentity && !isTeamConversation && !isPrivateMode);
+    const normalizedChatAttachments = normalizeChatAttachments(chatAttachments);
     const projectsRuntimeContext = {
         ...(existingRuntimeContext.projects || {}),
         ...(resolvedProjectGithubToken ? { githubToken: resolvedProjectGithubToken } : {}),
@@ -110,7 +115,7 @@ export function composePromptParametersWithMemoryContext(
             parentAgentId: agentPermanentId || existingRuntimeContext.spawn?.parentAgentId,
         },
         chat:
-            chatId || existingRuntimeContext.chat?.chatId
+            chatId || existingRuntimeContext.chat?.chatId || normalizedChatAttachments.length > 0
                 ? {
                       ...(existingRuntimeContext.chat || {}),
                       chatId: chatId || existingRuntimeContext.chat?.chatId,
@@ -118,6 +123,10 @@ export function composePromptParametersWithMemoryContext(
                       agentId: agentPermanentId || existingRuntimeContext.chat?.agentId,
                       agentName: agentName || existingRuntimeContext.chat?.agentName,
                       parameters: promptParametersForChatContext,
+                      attachments:
+                          normalizedChatAttachments.length > 0
+                              ? normalizedChatAttachments
+                              : existingRuntimeContext.chat?.attachments,
                   }
                 : existingRuntimeContext.chat,
     };

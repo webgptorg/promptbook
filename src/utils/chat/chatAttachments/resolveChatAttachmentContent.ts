@@ -1,5 +1,6 @@
 import type { ChatAttachment, ResolveChatAttachmentOptions, ResolvedChatAttachmentContent } from '../chatAttachments';
 import { decodeAttachmentAsText, DEFAULT_ATTACHMENT_TEXT_DECODE_BYTES } from '../../files/decodeAttachmentAsText';
+import { readResponseBytes } from '../../files/readResponseBytes';
 import { isUrlOnPrivateNetwork } from '../../validators/url/isUrlOnPrivateNetwork';
 
 /**
@@ -15,59 +16,6 @@ const CHAT_ATTACHMENT_FETCH_TIMEOUT_MS = 10_000;
  * @private function of resolveChatAttachmentContent
  */
 const CHAT_ATTACHMENT_MAX_DECODE_BYTES = DEFAULT_ATTACHMENT_TEXT_DECODE_BYTES;
-
-/**
- * Reads only a bounded prefix of a response body so large files do not blow up prompt construction.
- *
- * @private function of resolveChatAttachmentContent
- */
-async function readResponseBytes(
-    response: Response,
-    maxBytes: number,
-): Promise<{
-    readonly bytes: Uint8Array;
-}> {
-    if (!response.body) {
-        const bytes = new Uint8Array(await response.arrayBuffer());
-        return {
-            bytes: bytes.byteLength > maxBytes ? bytes.subarray(0, maxBytes + 1) : bytes,
-        };
-    }
-
-    const reader = response.body.getReader();
-    const chunks: Array<Uint8Array> = [];
-    let totalLength = 0;
-    const maxCaptureBytes = maxBytes + 1;
-
-    try {
-        while (totalLength < maxCaptureBytes) {
-            const { done, value } = await reader.read();
-            if (done) {
-                break;
-            }
-
-            if (!value || value.byteLength === 0) {
-                continue;
-            }
-
-            const remainingBytes = maxCaptureBytes - totalLength;
-            const chunk = value.byteLength > remainingBytes ? value.subarray(0, remainingBytes) : value;
-            chunks.push(chunk);
-            totalLength += chunk.byteLength;
-        }
-    } finally {
-        await reader.cancel().catch(() => {});
-    }
-
-    const bytes = new Uint8Array(totalLength);
-    let offset = 0;
-    for (const chunk of chunks) {
-        bytes.set(chunk, offset);
-        offset += chunk.byteLength;
-    }
-
-    return { bytes };
-}
 
 /**
  * Truncates text to the configured limit while preserving whole-string behavior for small inputs.

@@ -105,6 +105,35 @@ function mergeKnowledgeSourcesWithAttachments(
 }
 
 /**
+ * Merges tool definitions coming from commitments and runtime prompt overrides.
+ *
+ * @private internal helper for `AgentLlmExecutionTools`
+ */
+function mergePromptTools(
+    ...toolLists: Array<ReadonlyArray<NonNullable<ChatPrompt['tools']>[number]> | undefined>
+): Array<NonNullable<ChatPrompt['tools']>[number]> {
+    const mergedTools: Array<NonNullable<ChatPrompt['tools']>[number]> = [];
+    const seenToolNames = new Set<string>();
+
+    for (const toolList of toolLists) {
+        if (!toolList) {
+            continue;
+        }
+
+        for (const tool of toolList) {
+            if (!tool || seenToolNames.has(tool.name)) {
+                continue;
+            }
+
+            mergedTools.push(tool);
+            seenToolNames.add(tool.name);
+        }
+    }
+
+    return mergedTools;
+}
+
+/**
  * Execution Tools for calling LLM models with a predefined agent "soul"
  * This wraps underlying LLM execution tools and applies agent-specific system prompts and requirements
  *
@@ -322,6 +351,14 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
         const chatPrompt = prompt as ChatPrompt;
         const attachments = normalizeChatAttachments(chatPrompt.attachments);
         const attachmentUrls = attachments.map((attachment) => attachment.url);
+        const mergedTools = mergePromptTools(
+            sanitizedRequirements.tools,
+            chatPrompt.modelRequirements.tools,
+            chatPrompt.tools,
+        );
+        const hasRuntimePromptTools =
+            (Array.isArray(chatPrompt.modelRequirements.tools) && chatPrompt.modelRequirements.tools.length > 0) ||
+            (Array.isArray(chatPrompt.tools) && chatPrompt.tools.length > 0);
         const chatPromptContentWithAttachments = await appendChatAttachmentContextWithContent(
             chatPrompt.content,
             attachments,
@@ -347,10 +384,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
             modelRequirements: {
                 ...chatPrompt.modelRequirements,
                 ...sanitizedRequirements,
-                // Spread tools to convert readonly array to mutable
-                tools: sanitizedRequirements.tools
-                    ? [...sanitizedRequirements.tools]
-                    : chatPrompt.modelRequirements.tools,
+                tools: mergedTools.length > 0 ? mergedTools : undefined,
                 // Spread knowledgeSources to convert readonly array to mutable
                 knowledgeSources: knowledgeSourcesForAgent,
                 // Prepend agent system message to existing system message
@@ -365,7 +399,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
         console.log('!!!! promptWithAgentModelRequirements:', promptWithAgentModelRequirements);
 
         if (OpenAiAgentKitExecutionTools.isOpenAiAgentKitExecutionTools(this.options.llmTools)) {
-            const shouldUseCache = !hasAttachmentSources;
+            const shouldUseCache = !hasAttachmentSources && !hasRuntimePromptTools;
             let preparedAgentKit =
                 shouldUseCache && this.options.assistantPreparationMode === 'external'
                     ? this.options.llmTools.getPreparedAgentKitAgent()
@@ -376,8 +410,14 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
             let requirementsHash: string | undefined;
 
             if (shouldUseCache) {
-                requirementsHash = sha256(JSON.stringify(sanitizedRequirements)).toString();
-                vectorStoreHash = sha256(JSON.stringify(sanitizedRequirements.knowledgeSources ?? [])).toString();
+                requirementsHash = sha256(
+                    JSON.stringify({
+                        ...sanitizedRequirements,
+                        knowledgeSources: knowledgeSourcesForAgent,
+                        tools: mergedTools,
+                    }),
+                ).toString();
+                vectorStoreHash = sha256(JSON.stringify(knowledgeSourcesForAgent ?? [])).toString();
 
                 const cachedVectorStore = AgentLlmExecutionTools.vectorStoreCache.get(this.title);
                 const cachedAgentKit = AgentLlmExecutionTools.agentKitAgentCache.get(this.title);
@@ -428,7 +468,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                     name: this.title,
                     instructions: sanitizedRequirements.systemMessage || '',
                     knowledgeSources: knowledgeSourcesForAgent,
-                    tools: sanitizedRequirements.tools ? [...sanitizedRequirements.tools] : undefined,
+                    tools: mergedTools.length > 0 ? mergedTools : undefined,
                     vectorStoreId: shouldUseCache ? vectorStoreId : undefined,
                 });
             }

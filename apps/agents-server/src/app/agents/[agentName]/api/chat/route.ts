@@ -1,5 +1,6 @@
 import { CHAT_STREAM_KEEP_ALIVE_INTERVAL_MS, CHAT_STREAM_KEEP_ALIVE_TOKEN } from '@/src/constants/streaming';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { createChatAttachmentTools } from '@/src/tools/createChatAttachmentTools';
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import {
@@ -310,6 +311,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             rawParameters && typeof rawParameters === 'object' && !Array.isArray(rawParameters)
                 ? (rawParameters as Record<string, unknown>)
                 : {};
+        const attachmentTools = createChatAttachmentTools([], attachments);
         const promptParameters = composePromptParametersWithMemoryContext({
             baseParameters: incomingParameters,
             currentUserIdentity,
@@ -320,6 +322,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             projectGithubToken,
             emailSmtpCredential,
             emailFromAddress: useEmailConfiguration.senderEmail,
+            chatAttachments: attachments,
         });
 
         // Use AgentKitCacheManager for vector store caching
@@ -561,6 +564,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                             content: message,
                             thread,
                             attachments,
+                            ...(attachmentTools.length > 0 ? { tools: attachmentTools } : {}),
                         },
                         handleStreamChunk,
                         { signal: request.signal },

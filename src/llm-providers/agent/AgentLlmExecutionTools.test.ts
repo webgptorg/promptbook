@@ -79,4 +79,78 @@ describe('AgentLlmExecutionTools', () => {
         const forwardedPrompt = callChatModelMock.mock.calls[0]![0] as Prompt;
         expect(forwardedPrompt.content).toBe('Please answer plainly.\n\n- Rule 1\n- Rule 2\n- Rule 3');
     });
+
+    it('merges runtime prompt tools with tools coming from agent commitments', async () => {
+        const agentSource = `
+            AI Agent
+
+            USE BROWSER
+        ` as string_book;
+
+        const timing: { start: string_date_iso8601; complete: string_date_iso8601 } = {
+            start: '2026-02-09T00:00:00.000Z' as string_date_iso8601,
+            complete: '2026-02-09T00:00:01.000Z' as string_date_iso8601,
+        };
+
+        const chatPromptResult: ChatPromptResult = {
+            content: 'Response',
+            modelName: 'agent-chat-model' as string_model_name,
+            timing,
+            usage: UNCERTAIN_USAGE,
+            rawPromptContent: 'empty',
+            rawRequest: null,
+            rawResponse: {},
+        };
+
+        const callChatModelMock = jest.fn(async (_prompt: Prompt) => {
+            keepUnused(_prompt);
+            return chatPromptResult;
+        }) as jest.MockedFunction<(prompt: Prompt) => Promise<ChatPromptResult>>;
+
+        const availableModels: ReadonlyArray<AvailableModel> = [
+            {
+                modelName: 'mock-chat-model' as string_model_name,
+                modelVariant: 'CHAT',
+            },
+        ];
+
+        const llmTools: LlmExecutionTools = {
+            title: 'Mock Tools' as string_title & string_markdown_text,
+            checkConfiguration: async () => {},
+            listModels: async () => availableModels,
+            callChatModel: callChatModelMock,
+        };
+
+        const agentTools = new AgentLlmExecutionTools({
+            llmTools,
+            agentSource,
+        });
+
+        const prompt: Prompt = {
+            title: 'Test prompt',
+            content: 'Inspect the file.',
+            modelRequirements: {
+                modelVariant: 'CHAT',
+                tools: [
+                    {
+                        name: 'read_attached_file',
+                        description: 'Read one attached file chunk.',
+                        parameters: {
+                            type: 'object',
+                            properties: {},
+                            required: [],
+                        },
+                    },
+                ],
+            },
+            parameters: {} as Parameters,
+        };
+
+        await agentTools.callChatModel(prompt);
+
+        const forwardedPrompt = callChatModelMock.mock.calls[0]![0] as Prompt;
+        expect(forwardedPrompt.modelRequirements.tools?.map((tool) => tool.name)).toEqual(
+            expect.arrayContaining(['fetch_url_content', 'run_browser', 'read_attached_file']),
+        );
+    });
 });

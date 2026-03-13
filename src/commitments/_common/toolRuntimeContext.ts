@@ -1,4 +1,5 @@
 import { TODO_any } from '../../_packages/types.index';
+import type { ChatAttachment } from '../../utils/chat/chatAttachments';
 
 /**
  * Prompt parameter key used to pass hidden runtime context to tool execution.
@@ -65,6 +66,7 @@ export type ToolRuntimeContext = {
         agentId?: string;
         agentName?: string;
         parameters?: Record<string, string>;
+        attachments?: ReadonlyArray<ChatAttachment>;
     };
 };
 

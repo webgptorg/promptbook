@@ -1,3 +1,10 @@
+-   Improved Agents Server attached-file reading so agents can continue past the inline preview crop:
+
+    -   Kept the existing bounded inline attachment preview as a lightweight bootstrap, but added deterministic runtime tools `read_attached_file` and `search_attached_file` so agents can read attached text files in byte-range chunks and regex-search within them when the first preview is truncated.
+    -   Wired the current chat attachments into hidden tool runtime context for both live `/api/chat` turns and durable background `UserChatJob` execution, so the same attachment tools are available in normal and long-running Agents Server chats.
+    -   Fixed agent-side runtime tool merging so prompt-scoped tools are combined with commitment-provided tools before AgentKit preparation, which makes dynamic attachment tools reach the model reliably instead of being dropped whenever the agent source already declared tools.
+    -   Added focused coverage for attachment tool registration, byte-range reads, regex search results, and the new runtime-context transport of current chat attachments.
+
 -   Fixed Agents Server chat action controls to use the same blue accent across `New chat`, `Save`, `Timeouts`, `Cancel`, and the chat sidebar/scroll arrow buttons.
 
 -   Fixed Agents Server timeout wake-up chats resuming under the wrong server origin:

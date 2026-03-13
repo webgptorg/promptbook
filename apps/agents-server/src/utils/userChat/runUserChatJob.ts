@@ -1,4 +1,5 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { createChatAttachmentTools } from '@/src/tools/createChatAttachmentTools';
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { resolveBookScopedAgentContext } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
@@ -92,6 +93,7 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
               agentPermanentId,
           })
         : undefined;
+    const attachmentTools = createChatAttachmentTools([], userMessage.attachments || []);
     const promptParameters = composePromptParametersWithMemoryContext({
         baseParameters: job.parameters,
         currentUserIdentity: {
@@ -110,6 +112,7 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
         projectGithubToken,
         emailSmtpCredential,
         emailFromAddress: useEmailConfiguration.senderEmail,
+        chatAttachments: userMessage.attachments,
     });
     const agentKitCacheManager = new AgentKitCacheManager({ isVerbose: true });
     const baseOpenAiTools = await $provideOpenAiAgentKitExecutionToolsForServer();
@@ -218,6 +221,7 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
                 content: userMessage.content,
                 thread,
                 attachments: userMessage.attachments,
+                ...(attachmentTools.length > 0 ? { tools: attachmentTools } : {}),
             },
             (chunk) => {
                 latestContent = chunk.content ?? latestContent;

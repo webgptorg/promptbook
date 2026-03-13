@@ -1,6 +1,5 @@
 'use server';
 
-import { getAllCommitmentsToolFunctionsForNode } from '../../../../src/commitments/_common/getAllCommitmentsToolFunctionsForNode';
 import {
     setMemoryToolRuntimeAdapter,
     type MemoryToolRecord,
@@ -17,6 +16,7 @@ import {
     type UserMemoryRecord,
     updateUserMemory,
 } from '../utils/userMemory';
+import { getAllToolFunctionsForServer } from './getAllToolFunctionsForServer';
 
 /**
  * Cache of provided OpenAiAgentKitExecutionTools.
@@ -221,7 +221,7 @@ export async function $provideOpenAiAgentKitExecutionToolsForServer(): Promise<O
         executionTools: {
             script: new JavascriptExecutionTools({
                 isVerbose,
-                functions: getAllCommitmentsToolFunctionsForNode(),
+                functions: getAllToolFunctionsForServer(),
             }),
         },
         isVerbose,

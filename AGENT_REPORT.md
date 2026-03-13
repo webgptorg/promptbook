@@ -35,6 +35,11 @@
 
 ## 2026-03-13
 
+- Agents Server chat attachment handling appears to allow server-side fetching of arbitrary user-supplied `http(s)` URLs, including localhost/private-network targets, during inline attachment preview generation:
+  - Current path: `apps/agents-server/src/app/agents/[agentName]/api/chat/route.ts` -> `AgentLlmExecutionTools` -> `appendChatAttachmentContextWithContent(..., { allowLocalhost: true })`.
+  - `normalizeChatAttachments` accepts arbitrary absolute `http(s)` URLs, so a crafted attachment payload can make the server fetch internal endpoints as part of prompt construction.
+  - This looks like an SSRF risk unrelated to the scoped chunked-file-reading change and was not fixed here.
+
 - `npm run test-app-agents-server` fails after the app builds successfully, but the failure appears unrelated to the timeout UI changes in this task:
   - `apps/agents-server` `lint` passed and `test-build` completed successfully.
   - The failure happened in the `test-e2e` stage with `Dynamic server usage: Route /admin/error-simulation couldn't be rendered statically because it used \`cookies\``.
