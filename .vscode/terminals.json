@@ -2,6 +2,12 @@
     "autokill": true,
     "terminals": [
         {
+            "--note-0": "There are 3 types of terminals: 1) Runned automatically when coding (execute=true,onlySingle=false,focus=false) 2) Prepared automatically to be run by user but not executed by default (execute=false,onlySingle=false,focus=false), theese are marked by (💤) 3) Manually run by user (execute=true,onlySingle=true,focus=true)",
+            "--note-1": "The (💸) means that script has some cost associated with it, for example, using a paid API or service.",
+            "--note-2": "The (💤) means that script is not executed by default but need user to press [Enter] to run it",
+            "--note-3": "The (⏳) means that script is expected to run for a longer time than usual"
+        },
+        {
             "name": "👨‍💻⚫ Run CLI example (💸)",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
@@ -67,33 +73,27 @@
             "focus": true
         },
         {
-            "--note": "Description: Sync `_Server` rows to Vercel project domains. Use `--dry-run` for preview and `--delete-removed` to actually remove stale project domains."
-        },
-        {
             "name": "🎭👨‍💻🟣☁️ Sync Agents server Vercel domains (dry-run)",
             "cwd": "./apps/agents-server/",
             "command": "npx tsx ./scripts/sync-vercel-domains.ts --dry-run",
-            "execute": false,
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "🎭👨‍💻🟣☁️ Sync Agents server Vercel domains",
-            "cwd": "./apps/agents-server/",
-            "command": "npx tsx ./scripts/sync-vercel-domains.ts",
-            "execute": false,
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "--note": "Description: Backup remote Supabase PostgreSQL schema+data into one ZIP (no pg_dump). Example args: --schemas public,auth --output-dir other/backup --filename-pattern %timestamp%.sql.zip"
-        },
-        {
-            "name": "🎭👨‍💻🟣💾 Backup Supabase Postgres",
-            "command": "npx ts-node ./scripts/backup-supabase/backup-supabase.ts --output-dir other/backup --schemas public --filename-pattern %timestamp%.sql.zip",
             "execute": true,
             "onlySingle": true,
             "focus": true
+        },
+        {
+            "name": "🎭👨‍💻🟣☁️ Sync Agents server Vercel domains (💤)",
+            "cwd": "./apps/agents-server/",
+            "command": "npx tsx ./scripts/sync-vercel-domains.ts",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🎭👨‍💻🟣💾 Backup Supabase Postgres (💤)",
+            "command": "npx ts-node ./scripts/backup-supabase/backup-supabase.ts --output-dir other/backup --schemas public --filename-pattern %timestamp%.sql.zip",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
         },
         {
             "name": "👨‍💻🟣 Run ptbk start-pipelines-server",
@@ -389,7 +389,7 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.3-codex --priority 1 --no-wait && npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.1-codex-mini --no-wait && ./scripts/lines-to-lf.sh && npx ts-node ./scripts/prettify-all/prettify-all.ts --ignore-git-changes --commit && npm run test && npx ts-node ./scripts/generate-packages/generate-packages.ts"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.4-codex --priority 1 --no-wait && npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.1-codex-mini --no-wait && ./scripts/lines-to-lf.sh && npx ts-node ./scripts/prettify-all/prettify-all.ts --ignore-git-changes --commit && npm run test && npx ts-node ./scripts/generate-packages/generate-packages.ts"
             ],
             "execute": false,
             "onlySingle": false,
@@ -407,22 +407,22 @@
             "focus": true
         },
         {
-            "name": "⚡🚀 Run `gpt-5.1-codex-mini` Coding Agent (💸)(⏳)",
+            "name": "⚡🚀 Run `gpt-5.4-codex` Coding Agent (💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.1-codex-mini --no-wait"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.4-codex --priority 1"
             ],
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "⚡🚀 Run `gpt-5.3-codex-spark` Coding Agent (💸)(⏳)",
+            "name": "⚡🚀 Run `gpt-5.1-codex-mini` Coding Agent (💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.3-codex-spark --no-wait"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.1-codex-mini --no-wait"
             ],
             "execute": true,
             "onlySingle": true,
@@ -776,6 +776,13 @@
         {
             "name": "🍴⏬ Git pull all branches (⏳)",
             "command": "git diff --exit-code && ./scripts/pull-all-branches.sh",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🌎 SSH to browser server",
+            "command": "ssh root@159.203.128.124",
             "execute": true,
             "onlySingle": true,
             "focus": true
