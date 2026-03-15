@@ -1,0 +1,65 @@
+[ ]
+
+[🗨️🧱] Alternative ChatGPT-like chat UI for agent pages
+
+-   *(@@@@ Written by agent)*
+-   Create an additional agent chat page that visually mimics the ChatGPT UI (left chats tray + main conversation area + input composer), while keeping the existing Promptbook top header bar.
+-   This is a UI-only alternative: it must reuse the existing chat data model, API, websocket/streaming behavior, message rendering pipeline, permissions, and features (tools, attachments, sources/knowledge chips, TTS, feedback, etc.) without changing backend behavior.
+-   The new page must show the same conversation thread(s) and allow continuing the same chat with the same agent as the existing chat pages.
+-   Add navigation entry to the agent page switcher/menu so users can open this “ChatGPT-like” view alongside: profile, book, split, chat, text, and create-new-agent.
+-   Follow DRY: extract reusable layout primitives and message components instead of duplicating existing chat UI logic.
+
+-   UI requirements (ChatGPT-like look & feel)
+    -   Keep Promptbook header bar at the top (existing).
+    -   Under the header, full-height app layout:
+        -   Left sidebar (“chat tray”)
+            -   Shows list of chats for the current agent (same source as existing “My chats” / chat list).
+            -   Supports creating a new chat, selecting an existing chat, and shows active chat highlight.
+            -   Responsive behavior:
+                -   Desktop: persistent sidebar.
+                -   Mobile: hidden by default with a hamburger / drawer interaction.
+        -   Main area (“chat”)
+            -   Centered conversation column with max width similar to ChatGPT.
+            -   Message bubbles/rows styled like ChatGPT (user messages right aligned, assistant left; subtle backgrounds; avatars optional/@@@).
+            -   Composer at bottom with rounded input, send button, and attachment button (if attachments supported in current chat).
+            -   Streaming response UX should remain identical functionally (partial tokens, auto-scroll rules), just restyled.
+    -   Dark mode: if app supports dark mode, this page must respect it and match ChatGPT-like dark styling.
+
+-   Feature parity (must be supported if already supported in existing chat)
+    -   Message markdown rendering (code blocks, tables, links).
+    -   Tool call / “ongoing” indicators and their current interactions.
+    -   Sources / knowledge chips.
+    -   File attachments in chat, including previews.
+    -   Message actions (copy, regenerate/retry, feedback thumbs, TTS play) if present.
+    -   Error states and retries.
+
+-   URL/routing
+    -   Add a new route for this UI under agent pages, e.g. `/agents/[agentId]/chatgpt` or similar (@@@ decide final path).
+    -   Route must accept chat id in query/route same as existing chat page, so deep links open the same conversation.
+
+-   Engineering notes
+    -   Identify and reuse the existing chat state management (selected chat id, message list, send message, streaming).
+    -   Prefer implementing this as a new layout wrapper around existing chat components.
+    -   Create/extend CSS variables or design tokens to apply ChatGPT-like spacing/typography without affecting other pages.
+    -   Ensure no breaking changes to existing pages.
+
+-   Acceptance criteria
+    -   The same chat opened in the existing chat page and in the ChatGPT-like page shows identical messages in identical order.
+    -   Sending a message from either UI continues the same conversation (messages appear in both UIs after refresh/reopen).
+    -   Switching chats in the sidebar updates the main panel without full page reload (unless current architecture requires it; @@@).
+    -   All existing chat-only features continue to work and are accessible in this view.
+    -   Mobile UX: drawer works, composer stays accessible, scrolling works while streaming.
+
+-   Analytics/QA
+    -   Add lightweight event(s) for opening the new view and switching chats (@@@ if analytics exists).
+    -   Add at least one screenshot test / visual regression hook if present in repo (@@@).
+
+-   Update docs/changelog
+    -   Add the change into the [changelog](changelog/_current-preversion.md)
+
+-   You are working with the [Agents Server](apps/agents-server)
+-   Relevant areas to inspect/modify (@@@ exact files after implementation analysis)
+    -   `apps/agents-server/src/app/...` (agent routes)
+    -   existing chat page + components used for messages/composer/sidebar
+    -   agent page navigation/menu component
+    -   shared UI components/styles (Tailwind/CSS modules/@@@)
