@@ -1,20 +1,6 @@
 import spaceTrim from 'spacetrim';
 import { DatabaseError } from '../../../../src/errors/DatabaseError';
-import {
-    SERVER_ENVIRONMENT,
-    type ServerEnvironment,
-    type ServerRecord,
-} from '../utils/serverRegistry';
-
-/**
- * Reserved migration target that expands to all production servers.
- */
-const MIGRATION_TARGET_PRODUCTION = 'production';
-
-/**
- * Reserved migration target that expands to all preview servers.
- */
-const MIGRATION_TARGET_PREVIEW = 'preview';
+import { SERVER_ENVIRONMENT, type ServerEnvironment, type ServerRecord } from '../utils/serverRegistry';
 
 /**
  * Selects prefixes to migrate and validates `--only` targets.
@@ -58,7 +44,9 @@ export function selectPrefixesForMigration(
             continue;
         }
 
-        const matchingServer = registeredServers.find((server) => server.name.toLowerCase() === onlyTarget.toLowerCase());
+        const matchingServer = registeredServers.find(
+            (server) => server.name.toLowerCase() === onlyTarget.toLowerCase(),
+        );
         if (matchingServer) {
             pushUnique(selectedPrefixes, [matchingServer.tablePrefix]);
             continue;
@@ -75,9 +63,13 @@ export function selectPrefixesForMigration(
     if (invalidTargets.length > 0) {
         throw new DatabaseError(
             spaceTrim(`
-                Invalid migration targets specified in \`--only\`: ${invalidTargets.map((target) => `\`${target}\``).join(', ')}.
+                Invalid migration targets specified in \`--only\`: ${invalidTargets
+                    .map((target) => `\`${target}\``)
+                    .join(', ')}.
 
-                Available groups: \`${MIGRATION_TARGET_PRODUCTION}\`, \`${MIGRATION_TARGET_PREVIEW}\`
+                Available groups: \`${SERVER_ENVIRONMENT.PRODUCTION}\`, \`${SERVER_ENVIRONMENT.PREVIEW}\`, \`${
+                SERVER_ENVIRONMENT.LTS
+            }\`, \`${SERVER_ENVIRONMENT.LIVE}\`
                 Available servers: ${formatAvailableValues(registeredServers.map((server) => server.name))}
                 Available prefixes: ${formatAvailableValues(normalizedConfiguredPrefixes)}
             `),
@@ -95,12 +87,11 @@ export function selectPrefixesForMigration(
  */
 function resolveEnvironmentTarget(target: string): ServerEnvironment | null {
     const normalizedTarget = target.trim().toLowerCase();
-    if (normalizedTarget === MIGRATION_TARGET_PRODUCTION) {
-        return SERVER_ENVIRONMENT.PRODUCTION;
+
+    if (Object.values(SERVER_ENVIRONMENT).some((env) => env.toLowerCase() === normalizedTarget)) {
+        return Object.values(SERVER_ENVIRONMENT).find((env) => env.toLowerCase() === normalizedTarget)!;
     }
-    if (normalizedTarget === MIGRATION_TARGET_PREVIEW) {
-        return SERVER_ENVIRONMENT.PREVIEW;
-    }
+
     return null;
 }
 

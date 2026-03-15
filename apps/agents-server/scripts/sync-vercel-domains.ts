@@ -1,10 +1,10 @@
-import { Client } from 'pg';
 import * as dotenv from 'dotenv';
+import { Client } from 'pg';
 import spaceTrim from 'spacetrim';
 import { DatabaseError } from '../../../src/errors/DatabaseError';
-import { resolveDatabaseMigrationConnectionStringFromEnvironment } from '../src/database/runDatabaseMigrations';
-import { listRegisteredServersFromDatabase } from '../src/database/listRegisteredServersFromDatabase';
 import { normalizeDomainForMatching } from '../../../src/utils/validators/url/normalizeDomainForMatching';
+import { listRegisteredServersFromDatabase } from '../src/database/listRegisteredServersFromDatabase';
+import { resolveDatabaseMigrationConnectionStringFromEnvironment } from '../src/database/runDatabaseMigrations';
 
 dotenv.config();
 
@@ -290,7 +290,9 @@ function createVercelDomainSyncPlan(options: {
     readonly registeredServers: ReadonlyArray<{ domain: string }>;
     readonly projectDomains: ReadonlyArray<VercelProjectDomain>;
 }): VercelDomainSyncPlan {
-    const desiredDomains = uniqueDomains(options.registeredServers.map((server) => normalizeManagedDomain(server.domain)));
+    const desiredDomains = uniqueDomains(
+        options.registeredServers.map((server) => normalizeManagedDomain(server.domain)),
+    );
     const projectDomainByName = new Map<string, VercelProjectDomain>();
     const ignoredDomains: Array<string> = [];
 
@@ -374,10 +376,7 @@ async function listProjectDomains(configuration: VercelApiConfiguration): Promis
  * @param domain - Domain to attach to the project.
  * @returns Created/attached Vercel project domain.
  */
-async function addProjectDomain(
-    configuration: VercelApiConfiguration,
-    domain: string,
-): Promise<VercelProjectDomain> {
+async function addProjectDomain(configuration: VercelApiConfiguration, domain: string): Promise<VercelProjectDomain> {
     return requestVercel<VercelProjectDomain>({
         configuration,
         method: 'POST',

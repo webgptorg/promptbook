@@ -31,3 +31,42 @@
 -   You are working with Vercel API for domain management
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+---
+
+[🗄️🌐] Synchronization script should be mapping `_Server` records to Vercel domains and environments
+
+-   Primary source of truth for server environments should be the `_Server` database table _(be aware this table is only unprefixed table)_, which contains records for each server environment with fields like `name`, `environment`, `domain`, and `tablePrefix`.
+-   Vercel domains and which domain is running on which environment should be automatically managed based on the `_Server` records. For each record in `_Server`, there should be a corresponding Vercel domain configured to point to the correct server environment.
+-   The script should do the synchronization
+
+**This is the mapping logic:**
+
+'LTS' -> branch `lts`, Vercel environment "lts"
+'PRODUCTION' -> branch `production`, Vercel environment "Production"
+'PREVIEW' -> branch `preview`, Vercel environment "Preview"
+'LIVE' -> branch `main`, Vercel environment "Development"
+
+**Existing script:**
+
+-   The script already exist but it was created before the 4 environments were defined, and does not do the mapping propperly
+
+```bash
+$ npx tsx ./scripts/sync-vercel-domains.ts
+{"level":"info","event":"server_registry_loaded","timestamp":"2026-03-15T14:23:51.952Z","count":30,"dryRun":false}
+{"level":"info","event":"vercel_project_domains_loaded","timestamp":"2026-03-15T14:23:51.954Z","count":31,"ignoredCount":0,"dryRun":false}
+{"level":"warn","event":"domain_flagged_removed_from_registry","timestamp":"2026-03-15T14:23:51.954Z","domain":"search.ptbk.io","dryRun":false}
+{"level":"info","event":"sync_completed","timestamp":"2026-03-15T14:23:51.954Z","desiredCount":30,"addedCount":0,"verifyCount":0,"flaggedCount":1,"ignoredCount":0,"deleteRemoved":false,"dryRun":false}
+```
+
+**Context for synchronization:**
+
+-   It should work for both creating new rows in `_Server` and updating existing ones (e.g., if the domain or environment changes, it should update the Vercel configuration accordingly) or deleting rows (e.g., if a server is removed from `_Server`, it should remove or disable the corresponding Vercel domain).
+-   You are working with table [`_Server` in the database](apps/agents-server/src/database/_Server.sql)
+    -   No other table in the database is relevant for this task
+-   You are working with the [Vercel domains sync script](scripts/sync-vercel-domains.ts)
+-   You are working with the [Agents Server](apps/agents-server)
+-   You are working with migration tooling and scripts
+-   You are working with Vercel API for domain management
+
+![alt text](prompts/screenshots/2026-03-0890-agents-server-servers-env-and-vercel-domain-sync.png)
+![alt text](prompts/screenshots/2026-03-0890-agents-server-servers-env-and-vercel-domain-sync-1.png)

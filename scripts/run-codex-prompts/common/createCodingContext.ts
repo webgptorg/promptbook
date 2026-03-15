@@ -73,6 +73,13 @@ export function createCodingContext(): string_prompt {
 
         -   Migrations are located in \`/apps/agents-server/src/database/migrations\`
         -   Be aware that table names in migrations have prefix \`prefix_\` _(look at existing migrations for reference)_
+        -   Migrations should be backwards compatible:
+            -    Meaning that earlier versions of the server should be able to run with the database after migration without any issues.
+            -    This is important because we to have same database for production and preview environments
+            -    This database will be migrated to latermost version of the preview environment, but the production environment shuld be able to run with it without any issues
+            -    Only thing that can happen is that older versions of the server will not be able to use new features
+            -    So add new columns, tables, etc. is fine, but do not remove or rename existing ones, and do not change the meaning of existing columns, tables, etc.
+            -    When in doubt, prefer to add new things instead of changing existing ones, we can always clean up later, but changing existing things may cause breaking changes and issues in production environment which we want to avoid as much as possible.
 
         ### Metadata of Agents server *(as additional context)*
 

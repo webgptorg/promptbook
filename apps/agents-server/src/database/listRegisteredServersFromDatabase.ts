@@ -44,11 +44,17 @@ export async function listRegisteredServersFromDatabase(
         }
 
         throw new DatabaseError(
-            spaceTrim(`
-                Failed to query global server registry table \`_Server\`.
+            spaceTrim(
+                (block) => `
+                    Failed to query global server registry table \`_Server\`.
 
-                ${error instanceof Error ? error.message : String(error)}
-            `),
+                    ${block(error instanceof Error ? error.message : String(error))}
+
+                    \`\`\`sql
+                    ${block(LIST_REGISTERED_SERVERS_SQL)}
+                    \`\`\`
+                `,
+            ),
         );
     }
 }

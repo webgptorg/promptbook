@@ -6,8 +6,10 @@ import { DatabaseError } from '../../../../src/errors/DatabaseError';
  * Supported `_Server.environment` values.
  */
 export const SERVER_ENVIRONMENT = {
+    LTS: 'LTS',
     PRODUCTION: 'PRODUCTION',
     PREVIEW: 'PREVIEW',
+    LIVE: 'LIVE',
 } as const;
 
 /**
@@ -192,7 +194,8 @@ export function createServerPublicUrl(domain: string): URL {
         );
     }
 
-    const protocol = normalizedDomain.startsWith('localhost') || normalizedDomain.startsWith('127.0.0.1') ? 'http' : 'https';
+    const protocol =
+        normalizedDomain.startsWith('localhost') || normalizedDomain.startsWith('127.0.0.1') ? 'http' : 'https';
     return new URL(`${protocol}://${normalizedDomain}`);
 }
 
@@ -210,7 +213,7 @@ export function parseServerRecord(rawRow: Record<string, unknown>, label = 'row'
             spaceTrim(`
                 Invalid \`${SERVER_REGISTRY_TABLE_NAME}\` ${label}.
 
-                Field \`environment\` must be one of \`${SERVER_ENVIRONMENT.PRODUCTION}\` or \`${SERVER_ENVIRONMENT.PREVIEW}\`.
+                Field \`environment\` must be one of \`${SERVER_ENVIRONMENT.PRODUCTION}\`, \`${SERVER_ENVIRONMENT.PREVIEW}\`, \`${SERVER_ENVIRONMENT.LTS}\` or \`${SERVER_ENVIRONMENT.LIVE}\`.
             `),
         );
     }
@@ -287,7 +290,7 @@ export function parseServerRecord(rawRow: Record<string, unknown>, label = 'row'
  * @returns `true` when the value is supported.
  */
 export function isServerEnvironment(value: string): value is ServerEnvironment {
-    return value === SERVER_ENVIRONMENT.PRODUCTION || value === SERVER_ENVIRONMENT.PREVIEW;
+    return Object.values(SERVER_ENVIRONMENT).includes(value as ServerEnvironment);
 }
 
 /**

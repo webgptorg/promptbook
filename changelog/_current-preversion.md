@@ -1,5 +1,7 @@
 -   Fixed Agents Server management API smoke paths during E2E runs:
 
+-   There are 4 environments for Agents Server: `PRODUCTION`, `PREVIEW`, `LTS`, and `LIVE`
+
     -   Registered all server-side configured LLM provider constructors used by bring-your-own-keys execution tools, which stops generated default-avatar requests from crashing when Anthropic Claude, Deepseek, Azure OpenAI, Ollama, or OpenAI-compatible providers are configured.
     -   Hardened the Swagger management API Playwright assertion to target the visible explorer heading instead of a duplicate hidden text node rendered during page hydration.
 

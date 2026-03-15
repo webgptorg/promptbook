@@ -1,8 +1,8 @@
 'use client';
 
-import moment from 'moment';
 import { upload } from '@vercel/blob/client';
 import { ArrowRightLeft, Loader2, Plus, RefreshCcw, Save, Trash2, X } from 'lucide-react';
+import moment from 'moment';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { showAlert, showConfirm, showPrompt } from '../../../components/AsyncDialogs/asyncDialogs';
 import { Card } from '../../../components/Homepage/Card';
@@ -11,8 +11,8 @@ import { Dialog } from '../../../components/Portal/Dialog';
 import { SecretInput } from '../../../components/SecretInput/SecretInput';
 import { useDirtyModalGuard } from '../../../components/utils/useDirtyModalGuard';
 import { useUnsavedChangesGuard } from '../../../components/utils/useUnsavedChangesGuard';
-import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
 import { buildServerTablePrefix } from '../../../utils/buildServerTablePrefix';
+import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
 import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
 
 /**
@@ -30,7 +30,7 @@ type ManagedServerRow = {
     /**
      * Environment group used by migrations and operations.
      */
-    readonly environment: 'PRODUCTION' | 'PREVIEW';
+    readonly environment: 'LTS' | 'PRODUCTION' | 'PREVIEW' | 'LIVE';
     /**
      * Public domain assigned to the server.
      */
@@ -488,10 +488,7 @@ function hasCreateServerWizardChanges(wizardState: CreateServerWizardState): boo
  * @param props - Badge label and tone.
  * @returns Badge element.
  */
-function ServerStatusBadge(props: {
-    readonly label: string;
-    readonly tone: 'blue' | 'amber' | 'green' | 'gray';
-}) {
+function ServerStatusBadge(props: { readonly label: string; readonly tone: 'blue' | 'amber' | 'green' | 'gray' }) {
     const className =
         props.tone === 'blue'
             ? 'border-blue-200 bg-blue-50 text-blue-700'
@@ -934,7 +931,11 @@ export function ServersClient() {
      * Moves the wizard one step forward after validating the current step.
      */
     const handleWizardNext = async () => {
-        const validationMessage = getCreateServerWizardValidationMessage(wizardState, derivedWizardTablePrefix, wizardStep);
+        const validationMessage = getCreateServerWizardValidationMessage(
+            wizardState,
+            derivedWizardTablePrefix,
+            wizardStep,
+        );
         if (validationMessage) {
             await showAlert({
                 title: 'Create server',
@@ -957,7 +958,11 @@ export function ServersClient() {
             return;
         }
 
-        const validationMessage = getCreateServerWizardValidationMessage(wizardState, derivedWizardTablePrefix, wizardStep);
+        const validationMessage = getCreateServerWizardValidationMessage(
+            wizardState,
+            derivedWizardTablePrefix,
+            wizardStep,
+        );
         if (validationMessage) {
             await showAlert({
                 title: 'Create server',
@@ -1040,7 +1045,10 @@ export function ServersClient() {
                                         const isMigrating = migratingServerId === server.id;
 
                                         return (
-                                            <tr key={server.id} className={isCurrent ? 'bg-blue-50/40' : 'hover:bg-gray-50'}>
+                                            <tr
+                                                key={server.id}
+                                                className={isCurrent ? 'bg-blue-50/40' : 'hover:bg-gray-50'}
+                                            >
                                                 <td className="px-4 py-3 align-top">
                                                     <input
                                                         type="text"
@@ -1065,8 +1073,10 @@ export function ServersClient() {
                                                         className={INPUT_CLASS_NAME}
                                                         aria-label={`Environment for ${server.name}`}
                                                     >
+                                                        <option value="LIVE">LIVE</option>
                                                         <option value="PREVIEW">PREVIEW</option>
                                                         <option value="PRODUCTION">PRODUCTION</option>
+                                                        <option value="LTS">LTS</option>
                                                     </select>
                                                 </td>
                                                 <td className="px-4 py-3 align-top">
@@ -1085,7 +1095,11 @@ export function ServersClient() {
                                                         type="text"
                                                         value={draft?.tablePrefix || ''}
                                                         onChange={(event) =>
-                                                            updateServerDraft(server.id, 'tablePrefix', event.target.value)
+                                                            updateServerDraft(
+                                                                server.id,
+                                                                'tablePrefix',
+                                                                event.target.value,
+                                                            )
                                                         }
                                                         className={`${INPUT_CLASS_NAME} font-mono`}
                                                         aria-label={`Table prefix for ${server.name}`}
@@ -1093,8 +1107,12 @@ export function ServersClient() {
                                                 </td>
                                                 <td className="px-4 py-3 align-top">
                                                     <div className="flex flex-wrap gap-2">
-                                                        {isCurrent ? <ServerStatusBadge label="Current" tone="green" /> : null}
-                                                        {isDirty ? <ServerStatusBadge label="Unsaved" tone="blue" /> : null}
+                                                        {isCurrent ? (
+                                                            <ServerStatusBadge label="Current" tone="green" />
+                                                        ) : null}
+                                                        {isDirty ? (
+                                                            <ServerStatusBadge label="Unsaved" tone="blue" />
+                                                        ) : null}
                                                         {!isCurrent && !isDirty ? (
                                                             <span className="text-xs text-gray-400">-</span>
                                                         ) : null}
@@ -1184,490 +1202,529 @@ export function ServersClient() {
                         </div>
 
                         <div className="space-y-6 px-6 py-6">
-                        <div className="grid gap-3 md:grid-cols-3">
-                            {CREATE_SERVER_WIZARD_STEPS.map((step, index) => (
-                                <button
-                                    key={step.title}
-                                    type="button"
-                                    onClick={() => void handleWizardStepSelection(index)}
-                                    className={`rounded-xl border p-4 text-left transition ${
-                                        index === wizardStep
-                                            ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm'
-                                            : index < wizardStep
-                                            ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                                            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
-                                    }`}
-                                >
-                                    <div className="text-xs font-semibold uppercase tracking-wide">Step {index + 1}</div>
-                                    <div className="mt-1 text-base font-semibold">{step.title}</div>
-                                    <div className="mt-1 text-sm text-current/80">{step.description}</div>
-                                </button>
-                            ))}
-                        </div>
-
-                        {wizardError ? (
-                            <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
-                                <p className="font-semibold">Server creation failed</p>
-                                <p className="mt-1 whitespace-pre-wrap">{wizardError.message}</p>
-                                {wizardError.sqlDump && wizardError.sqlFilename ? (
-                                    <div className="mt-4 flex flex-wrap items-center gap-3">
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                downloadTextFile(wizardError.sqlFilename || 'create-server.sql', wizardError.sqlDump || '')
-                                            }
-                                            className={SECONDARY_BUTTON_CLASS_NAME}
-                                        >
-                                            Download SQL dump
-                                        </button>
-                                        <span className="text-xs text-red-700">
-                                            If you need manual recovery, send the dump to support@ptbk.io.
-                                        </span>
-                                    </div>
-                                ) : (
-                                    <p className="mt-3 text-xs text-red-700">
-                                        If the issue persists, contact support@ptbk.io with the error details.
-                                    </p>
-                                )}
+                            <div className="grid gap-3 md:grid-cols-3">
+                                {CREATE_SERVER_WIZARD_STEPS.map((step, index) => (
+                                    <button
+                                        key={step.title}
+                                        type="button"
+                                        onClick={() => void handleWizardStepSelection(index)}
+                                        className={`rounded-xl border p-4 text-left transition ${
+                                            index === wizardStep
+                                                ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm'
+                                                : index < wizardStep
+                                                ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                                                : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                                        }`}
+                                    >
+                                        <div className="text-xs font-semibold uppercase tracking-wide">
+                                            Step {index + 1}
+                                        </div>
+                                        <div className="mt-1 text-base font-semibold">{step.title}</div>
+                                        <div className="mt-1 text-sm text-current/80">{step.description}</div>
+                                    </button>
+                                ))}
                             </div>
-                        ) : null}
 
-                        {wizardStep === 0 ? (
-                            <div className="grid gap-4 md:grid-cols-2">
-                                <div>
-                                    <label htmlFor="create-server-name" className="mb-1 block text-sm font-medium text-gray-700">
-                                        Server name
-                                    </label>
-                                    <input
-                                        id="create-server-name"
-                                        type="text"
-                                        value={wizardState.name}
-                                        onChange={(event) =>
-                                            setWizardState((previous) => ({
-                                                ...previous,
-                                                name: event.target.value,
-                                            }))
-                                        }
-                                        className={INPUT_CLASS_NAME}
-                                        placeholder="Acme Support"
-                                    />
-                                </div>
-                                <div>
-                                    <label
-                                        htmlFor="create-server-identifier"
-                                        className="mb-1 block text-sm font-medium text-gray-700"
-                                    >
-                                        Identifier / slug
-                                    </label>
-                                    <input
-                                        id="create-server-identifier"
-                                        type="text"
-                                        value={wizardState.identifier}
-                                        onChange={(event) =>
-                                            setWizardState((previous) => ({
-                                                ...previous,
-                                                identifier: event.target.value.toLowerCase(),
-                                            }))
-                                        }
-                                        className={`${INPUT_CLASS_NAME} font-mono`}
-                                        placeholder="acme-support"
-                                    />
-                                    <p className="mt-1 text-xs text-gray-500">
-                                        Use lowercase letters, numbers, and hyphens only.
-                                    </p>
-                                </div>
-                                <div>
-                                    <label
-                                        htmlFor="create-server-table-prefix"
-                                        className="mb-1 block text-sm font-medium text-gray-700"
-                                    >
-                                        Derived table prefix
-                                    </label>
-                                    <input
-                                        id="create-server-table-prefix"
-                                        type="text"
-                                        value={derivedWizardTablePrefix}
-                                        readOnly
-                                        className={`${INPUT_CLASS_NAME} bg-gray-50 font-mono text-gray-600`}
-                                        placeholder="server_AcmeSupport_"
-                                    />
-                                </div>
-                                <div>
-                                    <label
-                                        htmlFor="create-server-environment"
-                                        className="mb-1 block text-sm font-medium text-gray-700"
-                                    >
-                                        Environment
-                                    </label>
-                                    <select
-                                        id="create-server-environment"
-                                        value={wizardState.environment}
-                                        onChange={(event) =>
-                                            setWizardState((previous) => ({
-                                                ...previous,
-                                                environment: event.target.value as ManagedServerRow['environment'],
-                                            }))
-                                        }
-                                        className={INPUT_CLASS_NAME}
-                                    >
-                                        <option value="PREVIEW">PREVIEW</option>
-                                        <option value="PRODUCTION">PRODUCTION</option>
-                                    </select>
-                                </div>
-                                <div className="md:col-span-2">
-                                    <label
-                                        htmlFor="create-server-domain"
-                                        className="mb-1 block text-sm font-medium text-gray-700"
-                                    >
-                                        Domain
-                                    </label>
-                                    <input
-                                        id="create-server-domain"
-                                        type="text"
-                                        value={wizardState.domain}
-                                        onChange={(event) =>
-                                            setWizardState((previous) => ({
-                                                ...previous,
-                                                domain: event.target.value,
-                                            }))
-                                        }
-                                        className={INPUT_CLASS_NAME}
-                                        placeholder="acme-support.ptbk.io"
-                                    />
-                                </div>
-                                <div className="md:col-span-2">
-                                    <label
-                                        htmlFor="create-server-icon-url"
-                                        className="mb-1 block text-sm font-medium text-gray-700"
-                                    >
-                                        Server icon
-                                    </label>
-                                    <div className="flex flex-col gap-3 lg:flex-row">
-                                        <input
-                                            id="create-server-icon-url"
-                                            type="text"
-                                            value={wizardState.iconUrl}
-                                            onChange={(event) =>
-                                                setWizardState((previous) => ({
-                                                    ...previous,
-                                                    iconUrl: event.target.value,
-                                                }))
-                                            }
-                                            className={INPUT_CLASS_NAME}
-                                            placeholder="Leave blank to keep the default icon"
-                                        />
-                                        <input
-                                            ref={iconInputRef}
-                                            type="file"
-                                            accept="image/*"
-                                            className="hidden"
-                                            onChange={handleIconUpload}
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => iconInputRef.current?.click()}
-                                            disabled={isUploadingIcon}
-                                            className={SECONDARY_BUTTON_CLASS_NAME}
-                                        >
-                                            {isUploadingIcon ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                                            Upload icon
-                                        </button>
-                                    </div>
-                                    {wizardState.iconUrl ? (
-                                        <div className="mt-3 inline-flex rounded-lg border border-gray-200 bg-gray-50 p-3">
-                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img
-                                                src={wizardState.iconUrl}
-                                                alt="Server icon preview"
-                                                className="h-16 w-16 rounded-lg object-cover"
-                                            />
+                            {wizardError ? (
+                                <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+                                    <p className="font-semibold">Server creation failed</p>
+                                    <p className="mt-1 whitespace-pre-wrap">{wizardError.message}</p>
+                                    {wizardError.sqlDump && wizardError.sqlFilename ? (
+                                        <div className="mt-4 flex flex-wrap items-center gap-3">
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    downloadTextFile(
+                                                        wizardError.sqlFilename || 'create-server.sql',
+                                                        wizardError.sqlDump || '',
+                                                    )
+                                                }
+                                                className={SECONDARY_BUTTON_CLASS_NAME}
+                                            >
+                                                Download SQL dump
+                                            </button>
+                                            <span className="text-xs text-red-700">
+                                                If you need manual recovery, send the dump to support@ptbk.io.
+                                            </span>
                                         </div>
                                     ) : (
-                                        <p className="mt-2 text-xs text-gray-500">
-                                            Leave the icon empty to keep the default branding assets.
+                                        <p className="mt-3 text-xs text-red-700">
+                                            If the issue persists, contact support@ptbk.io with the error details.
                                         </p>
                                     )}
                                 </div>
-                            </div>
-                        ) : null}
+                            ) : null}
 
-                        {wizardStep === 1 ? (
-                            <div className="space-y-6">
-                                <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                                    <div className="mb-4">
-                                        <h3 className="text-base font-semibold text-gray-900">Required admin user</h3>
-                                        <p className="mt-1 text-sm text-gray-500">
-                                            This admin belongs to the new server itself, not necessarily to the creating
-                                            user.
+                            {wizardStep === 0 ? (
+                                <div className="grid gap-4 md:grid-cols-2">
+                                    <div>
+                                        <label
+                                            htmlFor="create-server-name"
+                                            className="mb-1 block text-sm font-medium text-gray-700"
+                                        >
+                                            Server name
+                                        </label>
+                                        <input
+                                            id="create-server-name"
+                                            type="text"
+                                            value={wizardState.name}
+                                            onChange={(event) =>
+                                                setWizardState((previous) => ({
+                                                    ...previous,
+                                                    name: event.target.value,
+                                                }))
+                                            }
+                                            className={INPUT_CLASS_NAME}
+                                            placeholder="Acme Support"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label
+                                            htmlFor="create-server-identifier"
+                                            className="mb-1 block text-sm font-medium text-gray-700"
+                                        >
+                                            Identifier / slug
+                                        </label>
+                                        <input
+                                            id="create-server-identifier"
+                                            type="text"
+                                            value={wizardState.identifier}
+                                            onChange={(event) =>
+                                                setWizardState((previous) => ({
+                                                    ...previous,
+                                                    identifier: event.target.value.toLowerCase(),
+                                                }))
+                                            }
+                                            className={`${INPUT_CLASS_NAME} font-mono`}
+                                            placeholder="acme-support"
+                                        />
+                                        <p className="mt-1 text-xs text-gray-500">
+                                            Use lowercase letters, numbers, and hyphens only.
                                         </p>
                                     </div>
-                                    <div className="grid gap-4 md:grid-cols-2">
-                                        <div>
-                                            <label
-                                                htmlFor="create-server-admin-username"
-                                                className="mb-1 block text-sm font-medium text-gray-700"
-                                            >
-                                                Admin username
-                                            </label>
+                                    <div>
+                                        <label
+                                            htmlFor="create-server-table-prefix"
+                                            className="mb-1 block text-sm font-medium text-gray-700"
+                                        >
+                                            Derived table prefix
+                                        </label>
+                                        <input
+                                            id="create-server-table-prefix"
+                                            type="text"
+                                            value={derivedWizardTablePrefix}
+                                            readOnly
+                                            className={`${INPUT_CLASS_NAME} bg-gray-50 font-mono text-gray-600`}
+                                            placeholder="server_AcmeSupport_"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label
+                                            htmlFor="create-server-environment"
+                                            className="mb-1 block text-sm font-medium text-gray-700"
+                                        >
+                                            Environment
+                                        </label>
+                                        <select
+                                            id="create-server-environment"
+                                            value={wizardState.environment}
+                                            onChange={(event) =>
+                                                setWizardState((previous) => ({
+                                                    ...previous,
+                                                    environment: event.target.value as ManagedServerRow['environment'],
+                                                }))
+                                            }
+                                            className={INPUT_CLASS_NAME}
+                                        >
+                                            <option value="LIVE">LIVE</option>
+                                            <option value="PREVIEW">PREVIEW</option>
+                                            <option value="PRODUCTION">PRODUCTION</option>
+                                            <option value="LTS">LTS</option>
+                                        </select>
+                                    </div>
+                                    <div className="md:col-span-2">
+                                        <label
+                                            htmlFor="create-server-domain"
+                                            className="mb-1 block text-sm font-medium text-gray-700"
+                                        >
+                                            Domain
+                                        </label>
+                                        <input
+                                            id="create-server-domain"
+                                            type="text"
+                                            value={wizardState.domain}
+                                            onChange={(event) =>
+                                                setWizardState((previous) => ({
+                                                    ...previous,
+                                                    domain: event.target.value,
+                                                }))
+                                            }
+                                            className={INPUT_CLASS_NAME}
+                                            placeholder="acme-support.ptbk.io"
+                                        />
+                                    </div>
+                                    <div className="md:col-span-2">
+                                        <label
+                                            htmlFor="create-server-icon-url"
+                                            className="mb-1 block text-sm font-medium text-gray-700"
+                                        >
+                                            Server icon
+                                        </label>
+                                        <div className="flex flex-col gap-3 lg:flex-row">
                                             <input
-                                                id="create-server-admin-username"
+                                                id="create-server-icon-url"
                                                 type="text"
-                                                value={wizardState.adminUser.username}
+                                                value={wizardState.iconUrl}
+                                                onChange={(event) =>
+                                                    setWizardState((previous) => ({
+                                                        ...previous,
+                                                        iconUrl: event.target.value,
+                                                    }))
+                                                }
+                                                className={INPUT_CLASS_NAME}
+                                                placeholder="Leave blank to keep the default icon"
+                                            />
+                                            <input
+                                                ref={iconInputRef}
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={handleIconUpload}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => iconInputRef.current?.click()}
+                                                disabled={isUploadingIcon}
+                                                className={SECONDARY_BUTTON_CLASS_NAME}
+                                            >
+                                                {isUploadingIcon ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                                                Upload icon
+                                            </button>
+                                        </div>
+                                        {wizardState.iconUrl ? (
+                                            <div className="mt-3 inline-flex rounded-lg border border-gray-200 bg-gray-50 p-3">
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                <img
+                                                    src={wizardState.iconUrl}
+                                                    alt="Server icon preview"
+                                                    className="h-16 w-16 rounded-lg object-cover"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <p className="mt-2 text-xs text-gray-500">
+                                                Leave the icon empty to keep the default branding assets.
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            ) : null}
+
+                            {wizardStep === 1 ? (
+                                <div className="space-y-6">
+                                    <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                                        <div className="mb-4">
+                                            <h3 className="text-base font-semibold text-gray-900">
+                                                Required admin user
+                                            </h3>
+                                            <p className="mt-1 text-sm text-gray-500">
+                                                This admin belongs to the new server itself, not necessarily to the
+                                                creating user.
+                                            </p>
+                                        </div>
+                                        <div className="grid gap-4 md:grid-cols-2">
+                                            <div>
+                                                <label
+                                                    htmlFor="create-server-admin-username"
+                                                    className="mb-1 block text-sm font-medium text-gray-700"
+                                                >
+                                                    Admin username
+                                                </label>
+                                                <input
+                                                    id="create-server-admin-username"
+                                                    type="text"
+                                                    value={wizardState.adminUser.username}
+                                                    onChange={(event) =>
+                                                        setWizardState((previous) => ({
+                                                            ...previous,
+                                                            adminUser: {
+                                                                ...previous.adminUser,
+                                                                username: event.target.value,
+                                                            },
+                                                        }))
+                                                    }
+                                                    className={INPUT_CLASS_NAME}
+                                                    placeholder="admin"
+                                                />
+                                            </div>
+                                            <SecretInput
+                                                label="Admin password"
+                                                value={wizardState.adminUser.password}
                                                 onChange={(event) =>
                                                     setWizardState((previous) => ({
                                                         ...previous,
                                                         adminUser: {
                                                             ...previous.adminUser,
-                                                            username: event.target.value,
+                                                            password: event.target.value,
                                                         },
                                                     }))
                                                 }
-                                                className={INPUT_CLASS_NAME}
-                                                placeholder="admin"
+                                                placeholder="Required"
+                                                helperText="Password validation uses the same rules as the existing server admin flow."
                                             />
                                         </div>
-                                        <SecretInput
-                                            label="Admin password"
-                                            value={wizardState.adminUser.password}
-                                            onChange={(event) =>
-                                                setWizardState((previous) => ({
-                                                    ...previous,
-                                                    adminUser: {
-                                                        ...previous.adminUser,
-                                                        password: event.target.value,
-                                                    },
-                                                }))
-                                            }
-                                            placeholder="Required"
-                                            helperText="Password validation uses the same rules as the existing server admin flow."
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                        <div>
-                                            <h3 className="text-base font-semibold text-gray-900">Additional users</h3>
-                                            <p className="mt-1 text-sm text-gray-500">
-                                                Optional bootstrap users created immediately after migrations finish.
-                                            </p>
-                                        </div>
-                                        <button type="button" onClick={addAdditionalUser} className={SECONDARY_BUTTON_CLASS_NAME}>
-                                            <Plus className="h-4 w-4" />
-                                            Add user
-                                        </button>
                                     </div>
 
-                                    {wizardState.additionalUsers.length === 0 ? (
-                                        <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500">
-                                            No extra users will be created unless you add them here.
+                                    <div className="space-y-4">
+                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                            <div>
+                                                <h3 className="text-base font-semibold text-gray-900">
+                                                    Additional users
+                                                </h3>
+                                                <p className="mt-1 text-sm text-gray-500">
+                                                    Optional bootstrap users created immediately after migrations
+                                                    finish.
+                                                </p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={addAdditionalUser}
+                                                className={SECONDARY_BUTTON_CLASS_NAME}
+                                            >
+                                                <Plus className="h-4 w-4" />
+                                                Add user
+                                            </button>
                                         </div>
-                                    ) : (
-                                        <div className="space-y-3">
-                                            {wizardState.additionalUsers.map((user, index) => (
-                                                <div
-                                                    key={`wizard-user-${index}`}
-                                                    className="rounded-xl border border-gray-200 bg-white p-4"
-                                                >
-                                                    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_160px_auto]">
-                                                        <div>
-                                                            <label
-                                                                htmlFor={`create-server-user-${index}-username`}
-                                                                className="mb-1 block text-sm font-medium text-gray-700"
-                                                            >
-                                                                Username
+
+                                        {wizardState.additionalUsers.length === 0 ? (
+                                            <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500">
+                                                No extra users will be created unless you add them here.
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-3">
+                                                {wizardState.additionalUsers.map((user, index) => (
+                                                    <div
+                                                        key={`wizard-user-${index}`}
+                                                        className="rounded-xl border border-gray-200 bg-white p-4"
+                                                    >
+                                                        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_160px_auto]">
+                                                            <div>
+                                                                <label
+                                                                    htmlFor={`create-server-user-${index}-username`}
+                                                                    className="mb-1 block text-sm font-medium text-gray-700"
+                                                                >
+                                                                    Username
+                                                                </label>
+                                                                <input
+                                                                    id={`create-server-user-${index}-username`}
+                                                                    type="text"
+                                                                    value={user.username}
+                                                                    onChange={(event) =>
+                                                                        updateAdditionalUser(
+                                                                            index,
+                                                                            'username',
+                                                                            event.target.value,
+                                                                        )
+                                                                    }
+                                                                    className={INPUT_CLASS_NAME}
+                                                                    placeholder={`user-${index + 1}`}
+                                                                />
+                                                            </div>
+                                                            <SecretInput
+                                                                label="Password"
+                                                                value={user.password}
+                                                                onChange={(event) =>
+                                                                    updateAdditionalUser(
+                                                                        index,
+                                                                        'password',
+                                                                        event.target.value,
+                                                                    )
+                                                                }
+                                                                placeholder="Required"
+                                                            />
+                                                            <label className="flex items-center gap-3 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-700 lg:mt-7">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={user.isAdmin}
+                                                                    onChange={(event) =>
+                                                                        updateAdditionalUser(
+                                                                            index,
+                                                                            'isAdmin',
+                                                                            event.target.checked,
+                                                                        )
+                                                                    }
+                                                                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                                />
+                                                                Admin
                                                             </label>
-                                                            <input
-                                                                id={`create-server-user-${index}-username`}
-                                                                type="text"
-                                                                value={user.username}
-                                                                onChange={(event) =>
-                                                                    updateAdditionalUser(index, 'username', event.target.value)
-                                                                }
-                                                                className={INPUT_CLASS_NAME}
-                                                                placeholder={`user-${index + 1}`}
-                                                            />
-                                                        </div>
-                                                        <SecretInput
-                                                            label="Password"
-                                                            value={user.password}
-                                                            onChange={(event) =>
-                                                                updateAdditionalUser(index, 'password', event.target.value)
-                                                            }
-                                                            placeholder="Required"
-                                                        />
-                                                        <label className="flex items-center gap-3 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-700 lg:mt-7">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={user.isAdmin}
-                                                                onChange={(event) =>
-                                                                    updateAdditionalUser(index, 'isAdmin', event.target.checked)
-                                                                }
-                                                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                                            />
-                                                            Admin
-                                                        </label>
-                                                        <div className="flex items-end">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => removeAdditionalUser(index)}
-                                                                className={`${DANGER_BUTTON_CLASS_NAME} w-full justify-center lg:mt-7`}
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                                Remove
-                                                            </button>
+                                                            <div className="flex items-end">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => removeAdditionalUser(index)}
+                                                                    className={`${DANGER_BUTTON_CLASS_NAME} w-full justify-center lg:mt-7`}
+                                                                >
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                    Remove
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        ) : null}
-
-                        {wizardStep === 2 ? (
-                            <div className="space-y-6">
-                                <div className="grid gap-4 md:grid-cols-2">
-                                    <div>
-                                        <label
-                                            htmlFor="create-server-language"
-                                            className="mb-1 block text-sm font-medium text-gray-700"
-                                        >
-                                            Initial language
-                                        </label>
-                                        <select
-                                            id="create-server-language"
-                                            value={wizardState.initialSettings.language}
-                                            onChange={(event) =>
-                                                setWizardState((previous) => ({
-                                                    ...previous,
-                                                    initialSettings: {
-                                                        ...previous.initialSettings,
-                                                        language: event.target.value,
-                                                    },
-                                                }))
-                                            }
-                                            className={INPUT_CLASS_NAME}
-                                        >
-                                            {SERVER_LANGUAGE_OPTIONS.map((option) => (
-                                                <option key={option.value} value={option.value}>
-                                                    {option.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600">
-                                        <p className="font-semibold text-gray-900">Bootstrap summary</p>
-                                        <p className="mt-2">
-                                            The new server will be created as <strong>{wizardState.name || 'Unnamed server'}</strong> on{' '}
-                                            <strong>{wizardState.domain || 'pending domain'}</strong> with prefix{' '}
-                                            <code>{derivedWizardTablePrefix || 'pending prefix'}</code>.
-                                        </p>
-                                        <p className="mt-2">
-                                            Bootstrap users: <strong>{1 + wizardState.additionalUsers.length}</strong>
-                                        </p>
-                                    </div>
-                                    <div className="md:col-span-2">
-                                        <label
-                                            htmlFor="create-server-homepage-message"
-                                            className="mb-1 block text-sm font-medium text-gray-700"
-                                        >
-                                            Homepage message
-                                        </label>
-                                        <textarea
-                                            id="create-server-homepage-message"
-                                            value={wizardState.initialSettings.homepageMessage}
-                                            onChange={(event) =>
-                                                setWizardState((previous) => ({
-                                                    ...previous,
-                                                    initialSettings: {
-                                                        ...previous.initialSettings,
-                                                        homepageMessage: event.target.value,
-                                                    },
-                                                }))
-                                            }
-                                            className={TEXTAREA_CLASS_NAME}
-                                            placeholder="Optional markdown shown on the new server homepage."
-                                        />
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
+                            ) : null}
 
-                                <div className="grid gap-3 md:grid-cols-2">
-                                    {CREATE_SERVER_FEATURE_FLAGS.map((flag) => (
-                                        <label
-                                            key={flag.key}
-                                            className="flex items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4"
-                                        >
-                                            <input
-                                                type="checkbox"
-                                                checked={wizardState.initialSettings[flag.key]}
+                            {wizardStep === 2 ? (
+                                <div className="space-y-6">
+                                    <div className="grid gap-4 md:grid-cols-2">
+                                        <div>
+                                            <label
+                                                htmlFor="create-server-language"
+                                                className="mb-1 block text-sm font-medium text-gray-700"
+                                            >
+                                                Initial language
+                                            </label>
+                                            <select
+                                                id="create-server-language"
+                                                value={wizardState.initialSettings.language}
                                                 onChange={(event) =>
                                                     setWizardState((previous) => ({
                                                         ...previous,
                                                         initialSettings: {
                                                             ...previous.initialSettings,
-                                                            [flag.key]: event.target.checked,
+                                                            language: event.target.value,
                                                         },
                                                     }))
                                                 }
-                                                className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                className={INPUT_CLASS_NAME}
+                                            >
+                                                {SERVER_LANGUAGE_OPTIONS.map((option) => (
+                                                    <option key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600">
+                                            <p className="font-semibold text-gray-900">Bootstrap summary</p>
+                                            <p className="mt-2">
+                                                The new server will be created as{' '}
+                                                <strong>{wizardState.name || 'Unnamed server'}</strong> on{' '}
+                                                <strong>{wizardState.domain || 'pending domain'}</strong> with prefix{' '}
+                                                <code>{derivedWizardTablePrefix || 'pending prefix'}</code>.
+                                            </p>
+                                            <p className="mt-2">
+                                                Bootstrap users:{' '}
+                                                <strong>{1 + wizardState.additionalUsers.length}</strong>
+                                            </p>
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <label
+                                                htmlFor="create-server-homepage-message"
+                                                className="mb-1 block text-sm font-medium text-gray-700"
+                                            >
+                                                Homepage message
+                                            </label>
+                                            <textarea
+                                                id="create-server-homepage-message"
+                                                value={wizardState.initialSettings.homepageMessage}
+                                                onChange={(event) =>
+                                                    setWizardState((previous) => ({
+                                                        ...previous,
+                                                        initialSettings: {
+                                                            ...previous.initialSettings,
+                                                            homepageMessage: event.target.value,
+                                                        },
+                                                    }))
+                                                }
+                                                className={TEXTAREA_CLASS_NAME}
+                                                placeholder="Optional markdown shown on the new server homepage."
                                             />
-                                            <div>
-                                                <div className="text-sm font-semibold text-gray-900">{flag.title}</div>
-                                                <div className="mt-1 text-sm text-gray-500">{flag.description}</div>
-                                            </div>
-                                        </label>
-                                    ))}
-                                </div>
-                            </div>
-                        ) : null}
+                                        </div>
+                                    </div>
 
-                        <div className="flex flex-col gap-3 border-t border-gray-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
-                            <p className="text-xs text-gray-500">
-                                If setup fails, you can download the SQL dump for manual recovery.
-                            </p>
-                            <div className="flex flex-wrap justify-end gap-2">
-                                <button
-                                    type="button"
-                                    onClick={resetCreateServerWizard}
-                                    disabled={isCreatingServer || isUploadingIcon}
-                                    className={SECONDARY_BUTTON_CLASS_NAME}
-                                >
-                                    Reset
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handleWizardBack}
-                                    disabled={wizardStep === 0 || isCreatingServer}
-                                    className={SECONDARY_BUTTON_CLASS_NAME}
-                                >
-                                    Back
-                                </button>
-                                {wizardStep < CREATE_SERVER_WIZARD_STEPS.length - 1 ? (
+                                    <div className="grid gap-3 md:grid-cols-2">
+                                        {CREATE_SERVER_FEATURE_FLAGS.map((flag) => (
+                                            <label
+                                                key={flag.key}
+                                                className="flex items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4"
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={wizardState.initialSettings[flag.key]}
+                                                    onChange={(event) =>
+                                                        setWizardState((previous) => ({
+                                                            ...previous,
+                                                            initialSettings: {
+                                                                ...previous.initialSettings,
+                                                                [flag.key]: event.target.checked,
+                                                            },
+                                                        }))
+                                                    }
+                                                    className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                />
+                                                <div>
+                                                    <div className="text-sm font-semibold text-gray-900">
+                                                        {flag.title}
+                                                    </div>
+                                                    <div className="mt-1 text-sm text-gray-500">{flag.description}</div>
+                                                </div>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : null}
+
+                            <div className="flex flex-col gap-3 border-t border-gray-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
+                                <p className="text-xs text-gray-500">
+                                    If setup fails, you can download the SQL dump for manual recovery.
+                                </p>
+                                <div className="flex flex-wrap justify-end gap-2">
                                     <button
                                         type="button"
-                                        onClick={() => void handleWizardNext()}
+                                        onClick={resetCreateServerWizard}
                                         disabled={isCreatingServer || isUploadingIcon}
-                                        className={PRIMARY_BUTTON_CLASS_NAME}
+                                        className={SECONDARY_BUTTON_CLASS_NAME}
                                     >
-                                        Next
+                                        Reset
                                     </button>
-                                ) : (
                                     <button
                                         type="button"
-                                        onClick={() => void handleCreateServer()}
-                                        disabled={isCreatingServer || isUploadingIcon}
-                                        className={PRIMARY_BUTTON_CLASS_NAME}
+                                        onClick={handleWizardBack}
+                                        disabled={wizardStep === 0 || isCreatingServer}
+                                        className={SECONDARY_BUTTON_CLASS_NAME}
                                     >
-                                        {isCreatingServer ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                                        Create server
+                                        Back
                                     </button>
-                                )}
+                                    {wizardStep < CREATE_SERVER_WIZARD_STEPS.length - 1 ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => void handleWizardNext()}
+                                            disabled={isCreatingServer || isUploadingIcon}
+                                            className={PRIMARY_BUTTON_CLASS_NAME}
+                                        >
+                                            Next
+                                        </button>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            onClick={() => void handleCreateServer()}
+                                            disabled={isCreatingServer || isUploadingIcon}
+                                            className={PRIMARY_BUTTON_CLASS_NAME}
+                                        >
+                                            {isCreatingServer ? (
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <Plus className="h-4 w-4" />
+                                            )}
+                                            Create server
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
                 </Dialog>
             ) : null}
 
@@ -1678,8 +1735,8 @@ export function ServersClient() {
                             <div>
                                 <h2 className="text-lg font-medium text-red-900">Delete current server</h2>
                                 <p className="mt-1 text-sm text-red-800">
-                                    This removes the server registration for <strong>{currentServer.name}</strong>. Existing
-                                    server data stays untouched. You must type the server name to confirm.
+                                    This removes the server registration for <strong>{currentServer.name}</strong>.
+                                    Existing server data stays untouched. You must type the server name to confirm.
                                 </p>
                             </div>
                             <div className="flex flex-wrap items-center gap-3">

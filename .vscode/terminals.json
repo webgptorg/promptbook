@@ -5,7 +5,9 @@
             "--note-0": "There are 3 types of terminals: 1) Runned automatically when coding (execute=true,onlySingle=false,focus=false) 2) Prepared automatically to be run by user but not executed by default (execute=false,onlySingle=false,focus=false), theese are marked by (💤) 3) Manually run by user (execute=true,onlySingle=true,focus=true)",
             "--note-1": "The (💸) means that script has some cost associated with it, for example, using a paid API or service.",
             "--note-2": "The (💤) means that script is not executed by default but need user to press [Enter] to run it",
-            "--note-3": "The (⏳) means that script is expected to run for a longer time than usual"
+            "--note-3": "The (⏳) means that script is expected to run for a longer time than usual",
+            "--note-4": "The (❗) means that script should be run with caution, for example, it may cause breaking changes, data loss, etc.",
+            "--note-5": "The (❗❗) means that script should be run with extreme caution, messing up with LTS versions, etc."
         },
         {
             "name": "👨‍💻⚫ Run CLI example (💸)",
@@ -41,7 +43,7 @@
         },
 
         {
-            "name": "🎭👨‍💻🟣⏩ Migrate Agents server localhost (💤)",
+            "name": "🎭👨‍💻🟣⏩ Migrate Agents server local (💤)",
             "cwd": "./apps/agents-server/",
             "command": "npx tsx ./src/database/migrate.ts --only=pavol-hejny.ptbk.io",
             "execute": false,
@@ -49,15 +51,7 @@
             "focus": true
         },
         {
-            "name": "🎭👨‍💻🟣🏭 Generate reserved paths for Agents server",
-            "cwd": "./apps/agents-server/",
-            "command": "npm run generate-reserved-paths",
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "🎭👨‍💻🟣⏩ Migrate Agents server development (💤)",
+            "name": "(❗) 🎭👨‍💻🟣⏩ Migrate Agents server preview (💤)",
             "cwd": "./apps/agents-server/",
             "command": "npx tsx ./src/database/migrate.ts --only=preview",
             "execute": false,
@@ -65,10 +59,10 @@
             "focus": false
         },
         {
-            "name": "🎭👨‍💻🟣⏩ Migrate Agents server",
+            "name": "(❗❗) 🎭👨‍💻🟣⏩ Migrate Agents server (all environments) (💤)",
             "cwd": "./apps/agents-server/",
-            "command": "npm run migrate-database",
-            "execute": true,
+            "command": "npx tsx ./src/database/migrate.ts",
+            "execute": false,
             "onlySingle": true,
             "focus": true
         },
@@ -81,7 +75,7 @@
             "focus": true
         },
         {
-            "name": "🎭👨‍💻🟣☁️ Sync Agents server Vercel domains (💤)",
+            "name": "(❗) 🎭👨‍💻🟣☁️ Sync Agents server Vercel domains (💤)",
             "cwd": "./apps/agents-server/",
             "command": "npx tsx ./scripts/sync-vercel-domains.ts",
             "execute": false,
@@ -275,7 +269,7 @@
             "focus": true
         },
         {
-            "name": "🗑️ Delete OpenAI assistants",
+            "name": "(❗) 🗑️ Delete OpenAI assistants",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./scripts/delete-openai-assistants/delete-openai-assistants.ts"
@@ -285,12 +279,20 @@
             "focus": true
         },
         {
-            "name": "🗑️ Delete OpenAI resources (files + vector stores)",
+            "name": "(❗) 🗑️ Delete OpenAI resources (files + vector stores)",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./scripts/delete-openai-resources/delete-openai-resources.ts"
             ],
             "execute": false,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🎭👨‍💻🟣🏭 Generate reserved paths for Agents server",
+            "cwd": "./apps/agents-server/",
+            "command": "npm run generate-reserved-paths",
+            "execute": true,
             "onlySingle": true,
             "focus": true
         },
@@ -722,7 +724,7 @@
             "focus": true
         },
         {
-            "name": "🔪👨🏽‍💻 Force reinstall of node modules (⏳)",
+            "name": "(❗) 🔪👨🏽‍💻 Force reinstall of node modules (⏳)",
             "commands": [
                 "rm -f ./package-lock.json",
                 "rm -rf ./node_modules ./.next ./apps/**/node_modules ./apps/**/.next",
@@ -741,7 +743,7 @@
             "focus": true
         },
         {
-            "name": "🍴🗑️ Git delete merged branches",
+            "name": "(❗) 🍴🗑️ Git delete merged branches",
             "commands": [
                 "./scripts/is-main-checked.sh && git branch --merged | egrep -v '(^\\*|main)' | xargs git branch -d",
                 "git remote prune origin",
@@ -752,7 +754,7 @@
             "focus": true
         },
         {
-            "name": "🔪 Kill all Node.js processes (💤)",
+            "name": "(❗) 🔪 Kill all Node.js processes (💤)",
             "command": "echo 🔪 && taskkill /F /IM node.exe",
             "shellPath": "C:\\Windows\\System32\\cmd.exe",
             "execute": false,
@@ -767,14 +769,14 @@
             "focus": true
         },
         {
-            "name": "🍴⏫ Git push all branches (⏳)",
+            "name": "(❗) 🍴⏫ Git push all branches (⏳)",
             "command": "git diff --exit-code && ./scripts/push-all-branches.sh",
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🍴⏬ Git pull all branches (⏳)",
+            "name": "(❗) 🍴⏬ Git pull all branches (⏳)",
             "command": "git diff --exit-code && ./scripts/pull-all-branches.sh",
             "execute": true,
             "onlySingle": true,
@@ -809,8 +811,22 @@
             "focus": true
         },
         {
-            "name": "🏭🔼 Update the production Agents servers",
-            "command": "git branch --force production main && git push origin production --force-with-lease && (cd ./apps/agents-server/ && npm run migrate-database)",
+            "name": "(❗) 🏭🔼 Update the preview Agents servers (live / `main` -> `preview`) (💤)",
+            "command": "git branch --force preview main && git push origin preview --force-with-lease && (cd ./apps/agents-server/ && npx tsx ./src/database/migrate.ts --only=preview)",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "(❗❗) 🏭🔼 Update the production Agents servers (`preview` -> `production`)",
+            "command": "git branch --force production preview && git push origin production --force-with-lease && (cd ./apps/agents-server/ && npx tsx ./src/database/migrate.ts --only=production)",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(❗❗❗) 🏭🔼 Update the LTS Agents servers (`production` -> `lts`)",
+            "command": "git branch --force lts production && git push origin lts --force-with-lease && (cd ./apps/agents-server/ && npx tsx ./src/database/migrate.ts --only=lts)",
             "execute": true,
             "onlySingle": true,
             "focus": true
@@ -823,7 +839,7 @@
             "focus": true
         },
         {
-            "name": "🔼🚀 Release minor version (💸)(⏳)",
+            "name": "(❗) 🔼🚀 Release minor version (💸)(⏳)",
             "command": "npm version minor",
             "execute": true,
             "onlySingle": true,

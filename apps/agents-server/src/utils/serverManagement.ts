@@ -6,27 +6,28 @@ import { ConflictError } from '../../../../src/errors/ConflictError';
 import { DatabaseError } from '../../../../src/errors/DatabaseError';
 import { NotAllowed } from '../../../../src/errors/NotAllowed';
 import { NotFoundError } from '../../../../src/errors/NotFoundError';
-import { SERVER_LANGUAGE_METADATA_KEY } from '../languages/ServerLanguageRegistry';
-import { acquireMigrationExecutionLock, releaseMigrationExecutionLock } from '../database/acquireMigrationExecutionLock';
-import { applyPendingMigrationsForPrefix } from '../database/migratePrefix';
+import {
+    acquireMigrationExecutionLock,
+    releaseMigrationExecutionLock,
+} from '../database/acquireMigrationExecutionLock';
 import { metadataDefaults } from '../database/metadataDefaults';
+import { applyPendingMigrationsForPrefix } from '../database/migratePrefix';
+import { readMigrationFiles, resolveMigrationsDirectory } from '../database/resolveMigrationsDirectory';
 import {
     DATABASE_MIGRATION_APPLIED_BY,
     resolveDatabaseMigrationConnectionStringFromEnvironment,
     runDatabaseMigrations,
 } from '../database/runDatabaseMigrations';
-import { readMigrationFiles, resolveMigrationsDirectory } from '../database/resolveMigrationsDirectory';
+import { SERVER_LANGUAGE_METADATA_KEY } from '../languages/ServerLanguageRegistry';
 import { getPasswordValidationMessage, hashPassword } from './auth';
 import { buildServerTablePrefix } from './buildServerTablePrefix';
 import { scheduleDefaultFederatedAgentsSync } from './defaultFederatedAgents/scheduleDefaultFederatedAgentsSync';
 import {
+    createServerPublicUrl,
     getServerRegistryClient,
     invalidateRegisteredServersCache,
-    listRegisteredServersUsingServiceRole,
-} from './serverRegistry';
-import {
-    createServerPublicUrl,
     isServerEnvironment,
+    listRegisteredServersUsingServiceRole,
     normalizeServerDomain,
     parseServerRecord,
     type ServerEnvironment,
@@ -781,9 +782,7 @@ function buildServerMetadataSeedEntries(options: {
     }
 
     for (const [fieldName, metadataKey] of Object.entries(FEATURE_FLAG_METADATA_KEY_BY_FIELD)) {
-        const fieldValue = options.initialSettings[
-            fieldName as keyof typeof FEATURE_FLAG_METADATA_KEY_BY_FIELD
-        ];
+        const fieldValue = options.initialSettings[fieldName as keyof typeof FEATURE_FLAG_METADATA_KEY_BY_FIELD];
         entries.push(createMetadataSeedEntry(metadataKey, fieldValue ? 'true' : 'false'));
     }
 
@@ -947,7 +946,10 @@ function createSilentMigrationLogger(): Pick<Console, 'error' | 'info' | 'warn'>
  * @param action - Human-readable operation name.
  * @returns Branded domain error.
  */
-function normalizeRegistryWriteError(error: { code?: string; message?: string } | null | undefined, action: string): Error {
+function normalizeRegistryWriteError(
+    error: { code?: string; message?: string } | null | undefined,
+    action: string,
+): Error {
     if (error?.code === '23505') {
         return new ConflictError(
             spaceTrim(`
@@ -1103,7 +1105,7 @@ function normalizeServerEnvironment(environment: string): ServerEnvironment {
     if (!isServerEnvironment(normalizedEnvironment)) {
         throw new DatabaseError(
             spaceTrim(`
-                Field \`environment\` must be one of \`PRODUCTION\` or \`PREVIEW\`.
+                Field \`environment\` must be one of \`PRODUCTION\`, \`PREVIEW\`, \`LTS\` or \`LIVE\`.
             `),
         );
     }
