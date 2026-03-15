@@ -33,6 +33,8 @@
 
 ---
 
+[ ]
+
 [🗄️🌐] Synchronization script should be mapping `_Server` records to Vercel domains and environments
 
 -   Primary source of truth for server environments should be the `_Server` database table _(be aware this table is only unprefixed table)_, which contains records for each server environment with fields like `name`, `environment`, `domain`, and `tablePrefix`.
@@ -67,6 +69,7 @@ $ npx tsx ./scripts/sync-vercel-domains.ts
 -   You are working with the [Agents Server](apps/agents-server)
 -   You are working with migration tooling and scripts
 -   You are working with Vercel API for domain management
+-   Do a proper analysis of the current script and system of domains and environments of agents server before you start implementing.
 
 ![alt text](prompts/screenshots/2026-03-0890-agents-server-servers-env-and-vercel-domain-sync.png)
 ![alt text](prompts/screenshots/2026-03-0890-agents-server-servers-env-and-vercel-domain-sync-2.png)
