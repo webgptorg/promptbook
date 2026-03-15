@@ -1,0 +1,51 @@
+[ ]
+
+[🔔💬] Support push notifications for agent messages
+
+-   *(@@@@ Written by agent)*
+-   Add browser notifications so when an agent sends a message into a user chat, the user can be notified similarly to chat apps (useful for long-running background work and scheduled/timeout messages).
+-   Do not implement separate mechanisms for “slow response” vs “planned message”; implement one general notification flow triggered by “new agent message sent to the user”.
+-   Notification must be sent only when ALL conditions are met:
+    -   The user is not focused on the relevant chat UI (e.g., another tab is active / window blurred / chat route not open) @@@
+    -   Notifications are enabled by the user via control panel toggle; default is OFF.
+    -   The chat is owned by the current user (exclude API-created chats / external channels).
+-   Permission prompt rules:
+    -   Never request notification permission on page load.
+    -   Permission prompt can be triggered only when:
+        -   user sends a message, or
+        -   user toggles notifications ON in control panel.
+    -   If permission is denied, keep toggle OFF (or immediately revert) and provide inline explanation with a link to browser settings @@@.
+-   Notification content:
+    -   Include agent name, agent image/icon, and message preview.
+    -   Messages are stored as Markdown; for the preview in notifications, reuse existing utilities in the codebase to convert/strip Markdown to a plain text preview (do not reimplement).
+    -   Keep preview short (single line / truncated) and safe (no HTML injection) @@@.
+-   Click behavior:
+    -   Clicking a notification focuses the app and navigates to the correct chat thread (and ideally scrolls to the new message) @@@.
+-   Delivery strategy:
+    -   Implement as web push notifications suitable for background delivery (service worker) so it works when the tab is closed.
+    -   Also support “in-app notifications” fallback when permission is not granted but the app is open (e.g., toast) @@@.
+-   Subscription & device handling:
+    -   Store push subscription(s) per user (and optionally per device/browser) so multiple devices can receive notifications.
+    -   Allow removing invalid subscriptions automatically when push provider reports them as gone/invalid.
+-   Settings & metadata:
+    -   Add a metadata record defining if notifications should be default-on or default-off; product requirement: default OFF.
+    -   Persist per-user preference in DB and use it to decide whether to attempt sending push.
+-   Security & privacy:
+    -   Ensure notifications do not leak content to shared devices if the user disables them; respect preference.
+    -   Consider an optional “hide message content on lock screen” mode (only agent name + “sent a message”) @@@.
+-   Observability:
+    -   Add minimal logging/metrics for: subscription created/removed, push send attempts, push failures, and notifications suppressed due to focus/ownership/disabled.
+-   UX details:
+    -   Control panel: add toggle “Notifications” with short explanation and current permission status (granted/denied/default) @@@.
+    -   When notifications are OFF by default, consider showing a subtle hint after first long response / after first use (but without prompting permission) @@@.
+-   Implementation notes / reuse:
+    -   Reuse existing focus/visibility tracking utilities if present; otherwise introduce a single shared abstraction for “is chat focused” used by notifications suppression logic.
+    -   Reuse existing message preview / markdown conversion utilities.
+-   You are working with the [Agents Server](apps/agents-server)
+-   Touchpoints in project (to be confirmed during implementation):
+    -   Chat message send pipeline (server event emitted after message persisted) @@@
+    -   Web client chat page focus/visibility state + route awareness @@@
+    -   Control panel settings UI & persistence @@@
+    -   Service worker registration + push subscription lifecycle @@@
+    -   Server push sending module + VAPID keys/config + env vars @@@
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
