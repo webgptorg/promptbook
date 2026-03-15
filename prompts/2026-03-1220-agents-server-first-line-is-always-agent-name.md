@@ -1,9 +1,8 @@
 [ ]
 
-[🪪🧩] First non-empty line is always agent name (never a commitment)
+[📖1️⃣] First non-empty line is always agent name (never a commitment)
 
--   *(@@@@ Written by agent)*
--   There is a bug in Promptbook “book” parsing where the first line of the book (agent name / title) is sometimes mis-parsed as a commitment when it starts with a commitment keyword.
+-   There is a bug in Promptbook “book” agent source parsing where the first line of the book (agent name / title) is sometimes mis-parsed as a commitment when it starts with a commitment keyword.
 -   The parsing rule must be:
     -   Ignore all leading empty/whitespace-only lines.
     -   The first subsequent line that contains any non-whitespace characters is **always** the agent name.
@@ -15,6 +14,19 @@
 -   Examples that must work:
     -   `Persona John` should result in agent name `Persona John` (not a `Persona` commitment).
     -   `I don't know, Goal Generator` should result in agent name `I don't know, Goal Generator` (not a `Goal` commitment).
+
+```book
+Persona John
+
+PESONA This is the first real commitment
+```
+
+```book
+Goal maker
+
+GOAL This is the first real commitment
+```
+
 -   Add/adjust unit tests that cover:
     -   Leading whitespace-only lines before the agent name.
     -   Agent-name line starting with every supported commitment keyword.
@@ -24,8 +36,4 @@
 -   Implementation notes:
     -   Prefer changing the parser’s entry-point (prelude parsing) to explicitly “consume agent name line first”, then parse the rest.
     -   Avoid regex heuristics that can reclassify the first non-empty line.
--   You are working with:
-    -   [Agents Server](apps/agents-server)
-    -   Promptbook parsing utilities (wherever the book language is parsed) @@@
-    -   Book editor preview / parsing bridge (if separate from server) @@@
 -   Add the change into the [changelog](changelog/_current-preversion.md)
