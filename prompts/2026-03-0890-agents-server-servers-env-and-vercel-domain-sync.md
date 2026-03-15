@@ -69,4 +69,6 @@ $ npx tsx ./scripts/sync-vercel-domains.ts
 -   You are working with Vercel API for domain management
 
 ![alt text](prompts/screenshots/2026-03-0890-agents-server-servers-env-and-vercel-domain-sync.png)
+![alt text](prompts/screenshots/2026-03-0890-agents-server-servers-env-and-vercel-domain-sync-2.png)
+![alt text](prompts/screenshots/2026-03-0890-agents-server-servers-env-and-vercel-domain-sync-3.png)
 ![alt text](prompts/screenshots/2026-03-0890-agents-server-servers-env-and-vercel-domain-sync-1.png)
