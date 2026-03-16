@@ -253,7 +253,7 @@ export async function resolveInheritedAgentSource(
                                 NOTE Imported from ${importedAgentUrl}
                                 ${block(importedAgentSourceCorpus)}
 
-                                ---
+                                NOTE ===========
                         `,
                         ),
                         '', // <- Note: Add an extra newline for separation
@@ -306,7 +306,7 @@ export async function resolveInheritedAgentSource(
                             NOTE Inherited FROM ${parentAgentUrl}
                             ${block(parentSourceCorpus)}
 
-                            ---
+                            NOTE ===========
                     `,
                     ),
                     '', // <- Note: Add an extra newline for separation
@@ -347,7 +347,7 @@ export async function resolveInheritedAgentSource(
                         NOTE Inherited Adam FROM ${parentAgentUrl}
                         ${block(parentSourceCorpus)}
 
-                        ---
+                        NOTE ===========
                     `,
                 ),
                 ...restLines,

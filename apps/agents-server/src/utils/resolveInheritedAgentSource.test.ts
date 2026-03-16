@@ -33,7 +33,7 @@ describe('how `resolveInheritedAgentSource` works', () => {
                 FROM VOID
                 NONCE 0
 
-                ---
+                NOTE ===========
 
                 LANGUAGE Italian
             `,
