@@ -1,0 +1,56 @@
+[ ]
+
+[🧬🧩] Fix agent inheritance resolution (unresolved vs resolved agent source)
+
+-   *(@@@@ Written by agent)*
+-   Agents in Agents Server can inherit from:
+    -   `Adam` (default; hosted on Core server)
+    -   `Void` (no inheritance)
+    -   any explicit agent on the same server
+    -   a federated agent (remote server)
+-   Currently, inheritance referencing *looks* like it works (resolved book preview looks correct) but not all properties that should be inherited are actually inherited in runtime/UI.
+-   Define and enforce a single source of truth:
+    -   **Unresolved agent source** = what user edits in Book editor; stored as `agent.source`.
+    -   **Resolved agent source** = materialized source after processing all inheritance/imports; stored/derived as `agent.resolvedSource` (or equivalent).
+-   Requirement: everything that influences behavior and presentation must be derived from the resolved agent source (not from the unresolved one), except the book editor itself.
+-   Align the system so that:
+    -   rules are taken from resolved source
+    -   commitments are taken from resolved source
+    -   agent profile metadata (color, font, title/description, other metadata) is taken from resolved source
+    -   parsing/compilation functions do not contain special-case logic to “simulate inheritance”; they should just parse what is in resolved source.
+-   The resolved agent source shown when inspecting the resolved URL should be treated as the canonical expected result and used as acceptance baseline.
+    -   URL to example resolved agent source: @@@
+-   Ensure inheritance resolution works across local + core + federated sources:
+    -   proper remote fetch/caching and invalidation when upstream agent changes
+    -   deterministic merge strategy for conflicting properties (child overrides parent)
+    -   cycle detection and safe failure (error surfaced in UI and API)
+-   Introduce (or fix) a clear pipeline:
+    -   `unresolved source` -> `resolveInheritance()` -> `resolved source` -> `parse/compile/run + derive profile`
+    -   This pipeline must be reused by:
+        -   chat runtime
+        -   agent profile page
+        -   any server-side indexing/search
+        -   API endpoints returning agent metadata
+-   Add automated tests for inheritance scenarios:
+    -   default inherit from Adam
+    -   inherit from Void
+    -   inherit from local agent
+    -   inherit from federated agent
+    -   override precedence (child over parent)
+    -   metadata inheritance (color/font/etc.)
+    -   rules + commitments inheritance
+    -   cycle detection
+-   Add observability/debugging:
+    -   ability to log/inspect why a particular property has a specific final value (trace to ancestor)
+    -   expose resolved source in a safe endpoint for debugging (auth-gated if needed)
+-   Performance constraints:
+    -   resolved source should be cached; re-resolve only on changes to unresolved source or upstream dependencies
+    -   avoid multiple redundant resolutions per request
+-   Files/areas to focus on:
+    -   You are working with the [Agents Server](apps/agents-server)
+    -   Inheritance resolution utilities: @@@
+    -   Parsing/compilation functions referenced by user: @@@
+    -   Agent profile rendering (metadata derivation): @@@
+    -   API endpoints returning agent data: @@@
+    -   Any resolved-source storage/indexing tables/fields: @@@
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
