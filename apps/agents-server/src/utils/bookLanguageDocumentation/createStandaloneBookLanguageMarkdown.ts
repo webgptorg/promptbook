@@ -116,10 +116,10 @@ export function createStandaloneBookLanguageMarkdown(): string {
 
     return spaceTrim(
         (block) => `
-            # Book Language (Book 2.0) Standalone Documentation
+            # Book Language blueprint
 
-            > Canonical standalone guide for Promptbook Agent language (Book 2.0).  
-            > Generated from repository source-of-truth blocks and live commitment definitions.
+            > Canonical standalone guide for Promptbook Book Agent language.  
+            > Generated from repository https://github.com/webgptorg/promptbook
 
             - Book language version: \`${BOOK_LANGUAGE_VERSION}\`
             - Generated at: \`${generatedAtIso}\`
