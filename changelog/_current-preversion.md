@@ -1,3 +1,5 @@
+-   Added absolute `/integration` reference comments to copyable Agents Server integration snippets, including website embed, iframe, Promptbook SDK, OpenAI-compatible API, and MCP examples shown on the integration-related pages.
+
 -   Fixed Agents Server management API smoke paths during E2E runs:
 
 -   There are 4 environments for Agents Server: `PRODUCTION`, `PREVIEW`, `LTS`, and `LIVE`

@@ -6,12 +6,33 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../../../_com
 import { SdkCodeTabs } from './SdkCodeTabs';
 
 /**
+ * Prepends an integration-page comment to a copyable code snippet.
+ *
+ * @param code - The snippet content.
+ * @param integrationPageUrl - Absolute integration-page URL.
+ * @param style - Comment syntax matching the snippet language.
+ * @returns Snippet prefixed with a comment linking back to the integration page.
+ */
+function prependIntegrationPageComment(
+    code: string,
+    integrationPageUrl: string,
+    style: 'slash' | 'hash' | 'html',
+): string {
+    const commentPrefix = style === 'hash' ? '# ' : style === 'html' ? '<!-- ' : '// ';
+
+    const commentSuffix = style === 'html' ? ' -->' : '';
+
+    return `${commentPrefix}${integrationPageUrl}${commentSuffix}\n${code}`;
+}
+
+/**
  * Props for OpenAiCompatibleCodeTabs.
  */
 type OpenAiCompatibleCodeTabsProps = {
     agentName: string;
     agentApiBase: string;
     apiKeyValue: string;
+    integrationPageUrl: string;
 };
 
 /**
@@ -160,16 +181,25 @@ const createRequestPayload = (
 /**
  * Builds the cURL code sample for a given payload.
  */
-const buildCurlCode = (agentApiBase: string, apiKeyValue: string, payload: OpenAiRequestPayload) => {
+const buildCurlCode = (
+    agentApiBase: string,
+    apiKeyValue: string,
+    payload: OpenAiRequestPayload,
+    integrationPageUrl: string,
+) => {
     const requestBody = formatJsonForCode(payload);
 
-    return spaceTrim(
-        (block) => `
-            curl ${agentApiBase}/api/openai/v1/chat/completions \\
-              -H "Content-Type: application/json" \\
-              -H "Authorization: Bearer ${apiKeyValue}" \\
-              -d '${block(requestBody)}'
-        `,
+    return prependIntegrationPageComment(
+        spaceTrim(
+            (block) => `
+                curl ${agentApiBase}/api/openai/v1/chat/completions \\
+                  -H "Content-Type: application/json" \\
+                  -H "Authorization: Bearer ${apiKeyValue}" \\
+                  -d '${block(requestBody)}'
+            `,
+        ),
+        integrationPageUrl,
+        'hash',
     );
 };
 
@@ -180,27 +210,36 @@ const buildPythonCode = (
     agentName: string,
     agentApiBase: string,
     apiKeyValue: string,
+    integrationPageUrl: string,
     message: string,
     responseFormat?: OpenAiResponseFormat,
 ) => {
-    return spaceTrim(
-        (block) => `
-            from openai import OpenAI
+    return prependIntegrationPageComment(
+        spaceTrim(
+            (block) => `
+                from openai import OpenAI
 
-            client = OpenAI(
-                base_url="${agentApiBase}/api/openai/v1",
-                api_key="${apiKeyValue}",
-            )
+                client = OpenAI(
+                    base_url="${agentApiBase}/api/openai/v1",
+                    api_key="${apiKeyValue}",
+                )
 
-            response = client.chat.completions.create(
-                model="agent:${agentName}",
-                messages=[
-                    {"role": "user", "content": "${message}"}
-                ],${responseFormat ? `\n            response_format=${block(formatJsonForCode(responseFormat))},` : ''}
-            )
+                response = client.chat.completions.create(
+                    model="agent:${agentName}",
+                    messages=[
+                        {"role": "user", "content": "${message}"}
+                    ],${
+                        responseFormat
+                            ? `\n                response_format=${block(formatJsonForCode(responseFormat))},`
+                            : ''
+                    }
+                )
 
-            print(response.choices[0].message.content)
-        `,
+                print(response.choices[0].message.content)
+            `,
+        ),
+        integrationPageUrl,
+        'hash',
     );
 };
 
@@ -211,31 +250,38 @@ const buildJavaScriptCode = (
     agentName: string,
     agentApiBase: string,
     apiKeyValue: string,
+    integrationPageUrl: string,
     message: string,
     responseFormat?: OpenAiResponseFormat,
 ) => {
-    return spaceTrim(
-        (block) => `
-            import OpenAI from 'openai';
+    return prependIntegrationPageComment(
+        spaceTrim(
+            (block) => `
+                import OpenAI from 'openai';
 
-            const client = new OpenAI({
-                baseURL: '${agentApiBase}/api/openai/v1',
-                apiKey: '${apiKeyValue}',
-            });
-
-            async function main() {
-                const response = await client.chat.completions.create({
-                    model: 'agent:${agentName}',
-                    messages: [{ role: 'user', content: '${message}' }],${
-            responseFormat ? `\n                response_format: ${block(formatJsonForCode(responseFormat))},` : ''
-        }
+                const client = new OpenAI({
+                    baseURL: '${agentApiBase}/api/openai/v1',
+                    apiKey: '${apiKeyValue}',
                 });
 
-                console.log(response.choices[0].message.content);
+                async function main() {
+                    const response = await client.chat.completions.create({
+                        model: 'agent:${agentName}',
+                        messages: [{ role: 'user', content: '${message}' }],${
+                responseFormat
+                    ? `\n                    response_format: ${block(formatJsonForCode(responseFormat))},`
+                    : ''
             }
+                    });
 
-            main();
-        `,
+                    console.log(response.choices[0].message.content);
+                }
+
+                main();
+            `,
+        ),
+        integrationPageUrl,
+        'slash',
     );
 };
 
@@ -246,22 +292,28 @@ const buildSdkCodeSamples = (
     agentName: string,
     agentApiBase: string,
     apiKeyValue: string,
+    integrationPageUrl: string,
     message: string,
     responseFormat?: OpenAiResponseFormat,
 ): SdkCodeSamples => {
     const payload = createRequestPayload(agentName, message, responseFormat);
 
     return {
-        curlCode: buildCurlCode(agentApiBase, apiKeyValue, payload),
-        pythonCode: buildPythonCode(agentName, agentApiBase, apiKeyValue, message, responseFormat),
-        jsCode: buildJavaScriptCode(agentName, agentApiBase, apiKeyValue, message, responseFormat),
+        curlCode: buildCurlCode(agentApiBase, apiKeyValue, payload, integrationPageUrl),
+        pythonCode: buildPythonCode(agentName, agentApiBase, apiKeyValue, integrationPageUrl, message, responseFormat),
+        jsCode: buildJavaScriptCode(agentName, agentApiBase, apiKeyValue, integrationPageUrl, message, responseFormat),
     };
 };
 
 /**
  * Renders OpenAI-compatible SDK code samples with response format tabs.
  */
-export function OpenAiCompatibleCodeTabs({ agentName, agentApiBase, apiKeyValue }: OpenAiCompatibleCodeTabsProps) {
+export function OpenAiCompatibleCodeTabs({
+    agentName,
+    agentApiBase,
+    apiKeyValue,
+    integrationPageUrl,
+}: OpenAiCompatibleCodeTabsProps) {
     return (
         <Tabs defaultValue={RESPONSE_FORMAT_OPTIONS[0].value} className="w-full">
             <div className="flex flex-wrap items-center gap-3">
@@ -279,6 +331,7 @@ export function OpenAiCompatibleCodeTabs({ agentName, agentApiBase, apiKeyValue 
                     agentName,
                     agentApiBase,
                     apiKeyValue,
+                    integrationPageUrl,
                     option.message,
                     option.responseFormat,
                 );

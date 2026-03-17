@@ -1,12 +1,12 @@
 'use client';
 
+import { useAgentNaming } from '@/src/components/AgentNaming/AgentNamingContext';
+import { createApiToken } from '@/src/utils/apiTokensClient';
 import { Plus, ServerIcon, TerminalIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
-import { createApiToken } from '@/src/utils/apiTokensClient';
 import { CopyField } from '../CopyField';
 import { OpenAiCompatibleCodeTabs } from './OpenAiCompatibleCodeTabs';
-import { useAgentNaming } from '@/src/components/AgentNaming/AgentNamingContext';
 
 /**
  * Props for ApiKeyIntegrationSections.
@@ -14,6 +14,7 @@ import { useAgentNaming } from '@/src/components/AgentNaming/AgentNamingContext'
 type ApiKeyIntegrationSectionsProps = {
     agentName: string;
     agentApiBase: string;
+    integrationPageUrl: string;
     isAdmin: boolean;
     initialApiKey: string;
     hasApiKey: boolean;
@@ -25,6 +26,7 @@ type ApiKeyIntegrationSectionsProps = {
 export function ApiKeyIntegrationSections({
     agentName,
     agentApiBase,
+    integrationPageUrl,
     isAdmin,
     initialApiKey,
     hasApiKey,
@@ -91,7 +93,9 @@ export function ApiKeyIntegrationSections({
                     <div className="flex-1">
                         <h2 className="text-xl font-bold text-gray-900">OpenAI Compatible API</h2>
                         <p className="text-gray-600">
-                            {formatText('Use the agent as a drop-in replacement for OpenAI API in your existing applications.')}
+                            {formatText(
+                                'Use the agent as a drop-in replacement for OpenAI API in your existing applications.',
+                            )}
                         </p>
                         <div className="grid md:grid-cols-3 gap-4 mt-4 mb-2">
                             <CopyField label="Endpoint URL" value={`${agentApiBase}/api/openai/v1`} />
@@ -133,15 +137,16 @@ export function ApiKeyIntegrationSections({
                     agentName={agentName}
                     agentApiBase={agentApiBase}
                     apiKeyValue={apiKeyValue}
+                    integrationPageUrl={integrationPageUrl}
                 />
 
                 <div className="mt-6 rounded-xl border border-dashed border-gray-200 bg-white/70 p-4 space-y-2">
                     <p className="text-sm text-gray-600">
                         Set <code className="font-mono">response_format.type</code> to{' '}
-                        <code className="font-mono text-xs">json_schema</code> and describe the expected
-                        structure. Promptbook validates the agent response against this schema and asks
-                        the agent to try again if the payload is invalid. This works alongside the default
-                        text response, so you can switch between formats using the tabs above.
+                        <code className="font-mono text-xs">json_schema</code> and describe the expected structure.
+                        Promptbook validates the agent response against this schema and asks the agent to try again if
+                        the payload is invalid. This works alongside the default text response, so you can switch
+                        between formats using the tabs above.
                     </p>
                 </div>
             </div>
