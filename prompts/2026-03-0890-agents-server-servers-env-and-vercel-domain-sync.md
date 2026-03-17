@@ -33,7 +33,7 @@
 
 ---
 
-[ ]
+[x]
 
 [🗄️🌐] Synchronization script should be mapping `_Server` records to Vercel domains and environments
 

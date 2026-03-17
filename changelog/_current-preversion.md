@@ -144,6 +144,7 @@
     -   Reworked database migration selection so `--only` now supports `_Server` environment groups (`production`, `preview`), registered server names, and raw table prefixes while loading available prefixes from `_Server`.
     -   Updated the coding-script testing-server auto-migrator to select preview servers from `_Server` instead of a hard-coded prefix list.
     -   Added `apps/agents-server/scripts/sync-vercel-domains.ts`, a dry-run-capable Vercel domain sync script with structured JSON logs for CI, and registered it in `.vscode/terminals.json`.
+    -   Reworked `apps/agents-server/scripts/sync-vercel-domains.ts` so `_Server` is the primary source of truth for Vercel domain routing across all four server environments, including branch/custom-environment mapping (`LIVE -> main / Development`, `PREVIEW -> preview / Preview`, `PRODUCTION -> production / Production`, `LTS -> lts / lts`) plus drift detection that removes and recreates domains when an existing Vercel binding points to the wrong branch or environment.
 
 -   Added a branded Agents Server `500 / Internal Server Error` experience for App Router failures:
 
