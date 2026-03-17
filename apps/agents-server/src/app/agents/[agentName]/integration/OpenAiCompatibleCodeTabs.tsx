@@ -6,23 +6,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../../../_com
 import { SdkCodeTabs } from './SdkCodeTabs';
 
 /**
- * Prepends an integration-page comment to a copyable code snippet.
+ * Formats an integration-page comment for use inside a copyable code snippet.
  *
- * @param code - The snippet content.
  * @param integrationPageUrl - Absolute integration-page URL.
  * @param style - Comment syntax matching the snippet language.
- * @returns Snippet prefixed with a comment linking back to the integration page.
+ * @returns Comment line linking back to the integration page.
  */
-function prependIntegrationPageComment(
-    code: string,
-    integrationPageUrl: string,
-    style: 'slash' | 'hash' | 'html',
-): string {
+function formatIntegrationPageComment(integrationPageUrl: string, style: 'slash' | 'hash' | 'html'): string {
     const commentPrefix = style === 'hash' ? '# ' : style === 'html' ? '<!-- ' : '// ';
 
     const commentSuffix = style === 'html' ? ' -->' : '';
 
-    return `${commentPrefix}${integrationPageUrl}${commentSuffix}\n${code}`;
+    return `${commentPrefix}${integrationPageUrl}${commentSuffix}`;
 }
 
 /**
@@ -189,17 +184,14 @@ const buildCurlCode = (
 ) => {
     const requestBody = formatJsonForCode(payload);
 
-    return prependIntegrationPageComment(
-        spaceTrim(
-            (block) => `
-                curl ${agentApiBase}/api/openai/v1/chat/completions \\
-                  -H "Content-Type: application/json" \\
-                  -H "Authorization: Bearer ${apiKeyValue}" \\
-                  -d '${block(requestBody)}'
-            `,
-        ),
-        integrationPageUrl,
-        'hash',
+    return spaceTrim(
+        (block) => `
+            ${formatIntegrationPageComment(integrationPageUrl, 'hash')}
+            curl ${agentApiBase}/api/openai/v1/chat/completions \\
+              -H "Content-Type: application/json" \\
+              -H "Authorization: Bearer ${apiKeyValue}" \\
+              -d '${block(requestBody)}'
+        `,
     );
 };
 
@@ -214,32 +206,25 @@ const buildPythonCode = (
     message: string,
     responseFormat?: OpenAiResponseFormat,
 ) => {
-    return prependIntegrationPageComment(
-        spaceTrim(
-            (block) => `
-                from openai import OpenAI
+    return spaceTrim(
+        (block) => `
+            from openai import OpenAI
 
-                client = OpenAI(
-                    base_url="${agentApiBase}/api/openai/v1",
-                    api_key="${apiKeyValue}",
-                )
+            client = OpenAI(
+                base_url="${agentApiBase}/api/openai/v1",
+                api_key="${apiKeyValue}",
+            )
 
-                response = client.chat.completions.create(
-                    model="agent:${agentName}",
-                    messages=[
-                        {"role": "user", "content": "${message}"}
-                    ],${
-                        responseFormat
-                            ? `\n                response_format=${block(formatJsonForCode(responseFormat))},`
-                            : ''
-                    }
-                )
+            ${formatIntegrationPageComment(integrationPageUrl, 'hash')}
+            response = client.chat.completions.create(
+                model="agent:${agentName}",
+                messages=[
+                    {"role": "user", "content": "${message}"}
+                ],${responseFormat ? `\n            response_format=${block(formatJsonForCode(responseFormat))},` : ''}
+            )
 
-                print(response.choices[0].message.content)
-            `,
-        ),
-        integrationPageUrl,
-        'hash',
+            print(response.choices[0].message.content)
+        `,
     );
 };
 
@@ -254,34 +239,29 @@ const buildJavaScriptCode = (
     message: string,
     responseFormat?: OpenAiResponseFormat,
 ) => {
-    return prependIntegrationPageComment(
-        spaceTrim(
-            (block) => `
-                import OpenAI from 'openai';
+    return spaceTrim(
+        (block) => `
+            import OpenAI from 'openai';
 
-                const client = new OpenAI({
-                    baseURL: '${agentApiBase}/api/openai/v1',
-                    apiKey: '${apiKeyValue}',
+            const client = new OpenAI({
+                baseURL: '${agentApiBase}/api/openai/v1',
+                apiKey: '${apiKeyValue}',
+            });
+
+            async function main() {
+                ${formatIntegrationPageComment(integrationPageUrl, 'slash')}
+                const response = await client.chat.completions.create({
+                    model: 'agent:${agentName}',
+                    messages: [{ role: 'user', content: '${message}' }],${
+            responseFormat ? `\n                    response_format: ${block(formatJsonForCode(responseFormat))},` : ''
+        }
                 });
 
-                async function main() {
-                    const response = await client.chat.completions.create({
-                        model: 'agent:${agentName}',
-                        messages: [{ role: 'user', content: '${message}' }],${
-                responseFormat
-                    ? `\n                    response_format: ${block(formatJsonForCode(responseFormat))},`
-                    : ''
+                console.log(response.choices[0].message.content);
             }
-                    });
 
-                    console.log(response.choices[0].message.content);
-                }
-
-                main();
-            `,
-        ),
-        integrationPageUrl,
-        'slash',
+            main();
+        `,
     );
 };
 

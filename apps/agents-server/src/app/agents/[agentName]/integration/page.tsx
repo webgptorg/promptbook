@@ -48,23 +48,18 @@ function parseBooleanMetadataValue(raw: string | null, fallback: boolean): boole
 }
 
 /**
- * Prepends an integration-page comment to a copyable code snippet.
+ * Formats an integration-page comment for use inside a copyable code snippet.
  *
- * @param code - The snippet content.
  * @param integrationPageUrl - Absolute integration-page URL.
  * @param style - Comment syntax matching the snippet language.
- * @returns Snippet prefixed with a comment linking back to the integration page.
+ * @returns Comment line linking back to the integration page.
  */
-function prependIntegrationPageComment(
-    code: string,
-    integrationPageUrl: string,
-    style: 'slash' | 'hash' | 'html',
-): string {
+function formatIntegrationPageComment(integrationPageUrl: string, style: 'slash' | 'hash' | 'html'): string {
     const commentPrefix = style === 'hash' ? '# ' : style === 'html' ? '<!-- ' : '// ';
 
     const commentSuffix = style === 'html' ? ' -->' : '';
 
-    return `${commentPrefix}${integrationPageUrl}${commentSuffix}\n${code}`;
+    return `${commentPrefix}${integrationPageUrl}${commentSuffix}`;
 }
 
 /**
@@ -133,145 +128,127 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
 
     // Website Integration Code
     const { fullname, color, image, ...restMeta } = agentProfile.meta;
-    const websiteIntegrationReactCode = prependIntegrationPageComment(
-        spaceTrim(
-            (block) => `
-                import { PromptbookAgentIntegration } from '@promptbook/components';
+    const websiteIntegrationReactCode = spaceTrim(
+        (block) => `
+            import { PromptbookAgentIntegration } from '@promptbook/components';
 
-                export function YourComponent() {
-                    return(
-                        <PromptbookAgentIntegration
-                            agentUrl="${baseUrl}"
-                            meta={${block(JSON.stringify({ fullname, color, image, ...restMeta }, null, 4))}}
-                        />
-                    );
-                }
-            `,
-        ),
-        integrationPageUrl,
-        'slash',
+            export function YourComponent() {
+                return(
+                    ${formatIntegrationPageComment(integrationPageUrl, 'slash')}
+                    <PromptbookAgentIntegration
+                        agentUrl="${baseUrl}"
+                        meta={${block(JSON.stringify({ fullname, color, image, ...restMeta }, null, 4))}}
+                    />
+                );
+            }
+        `,
     );
 
     // HTML Integration Code - use single quotes for meta attribute to allow JSON with double quotes inside
     const metaJsonString = JSON.stringify({ fullname, color, image, ...restMeta }, null, 4);
-    const websiteIntegrationHtmlCode = prependIntegrationPageComment(
-        spaceTrim(
-            (block) => `
-                <script src="${publicUrl.href}api/embed.js" async defer></script>
+    const websiteIntegrationHtmlCode = spaceTrim(
+        (block) => `
+            <script src="${publicUrl.href}api/embed.js" async defer></script>
 
-                <promptbook-agent-integration
-                    agent-url="${baseUrl}"
-                    meta='${block(metaJsonString)}'
-                />
-            `,
-        ),
-        integrationPageUrl,
-        'html',
+            ${formatIntegrationPageComment(integrationPageUrl, 'html')}
+            <promptbook-agent-integration
+                agent-url="${baseUrl}"
+                meta='${block(metaJsonString)}'
+            />
+        `,
     );
 
     const headlessChatUrl = `${baseUrl}/chat?headless`;
     const iframeTitle = agentProfile.meta.fullname || agentName;
-    const iframeIntegrationCode = prependIntegrationPageComment(
-        spaceTrim(
-            (block) => `
-                <iframe
-                    src="${headlessChatUrl}"
-                    title="${block(iframeTitle)}"
-                    width="100%"
-                    height="640"
-                    style="border: none; border-radius: 16px;"
-                    allow="microphone; autoplay; clipboard-write"
-                ></iframe>
-            `,
-        ),
-        integrationPageUrl,
-        'html',
+    const iframeIntegrationCode = spaceTrim(
+        (block) => `
+            ${formatIntegrationPageComment(integrationPageUrl, 'html')}
+            <iframe
+                src="${headlessChatUrl}"
+                title="${block(iframeTitle)}"
+                width="100%"
+                height="640"
+                style="border: none; border-radius: 16px;"
+                allow="microphone; autoplay; clipboard-write"
+            ></iframe>
+        `,
     );
 
     // Promptbook SDK Integration Code
-    const promptbookSdkNodeCode = prependIntegrationPageComment(
-        spaceTrim(`
-            import { RemoteAgent } from '@promptbook/core';
+    const promptbookSdkNodeCode = spaceTrim(`
+        import { RemoteAgent } from '@promptbook/core';
 
-            async function main() {
-                const agent = await RemoteAgent.connect({
-                    agentUrl: '${baseUrl}',
+        async function main() {
+            ${formatIntegrationPageComment(integrationPageUrl, 'slash')}
+            const agent = await RemoteAgent.connect({
+                agentUrl: '${baseUrl}',
+            });
+
+            const result = await agent.callChatModel({
+                title: 'Remote chat',
+                content: 'Hello from another agent!',
+                parameters: {},
+                modelRequirements: {
+                    modelVariant: 'CHAT',
+                },
+            });
+
+            console.log(result.content);
+        }
+
+        main();
+    `);
+
+    const promptbookSdkBrowserCode = spaceTrim(`
+        import { useEffect, useMemo, useState } from 'react';
+        import { AgentChat } from '@promptbook/components';
+        import { RemoteAgent } from '@promptbook/core';
+
+        export function RemoteAgentChat() {
+            ${formatIntegrationPageComment(integrationPageUrl, 'slash')}
+            const agentUrl = '${baseUrl}';
+            const agentPromise = useMemo(() => RemoteAgent.connect({ agentUrl }), [agentUrl]);
+            const [agent, setAgent] = useState<RemoteAgent | null>(null);
+
+            useEffect(() => {
+                let isMounted = true;
+
+                agentPromise.then((connectedAgent) => {
+                    if (isMounted) {
+                        setAgent(connectedAgent);
+                    }
                 });
 
-                const result = await agent.callChatModel({
-                    title: 'Remote chat',
-                    content: 'Hello from another agent!',
-                    parameters: {},
-                    modelRequirements: {
-                        modelVariant: 'CHAT',
-                    },
-                });
+                return () => {
+                    isMounted = false;
+                };
+            }, [agentPromise]);
 
-                console.log(result.content);
+            if (!agent) {
+                return <div>Connecting to agent...</div>;
             }
 
-            main();
-        `),
-        integrationPageUrl,
-        'slash',
-    );
-
-    const promptbookSdkBrowserCode = prependIntegrationPageComment(
-        spaceTrim(`
-            import { useEffect, useMemo, useState } from 'react';
-            import { AgentChat } from '@promptbook/components';
-            import { RemoteAgent } from '@promptbook/core';
-
-            export function RemoteAgentChat() {
-                const agentUrl = '${baseUrl}';
-                const agentPromise = useMemo(() => RemoteAgent.connect({ agentUrl }), [agentUrl]);
-                const [agent, setAgent] = useState<RemoteAgent | null>(null);
-
-                useEffect(() => {
-                    let isMounted = true;
-
-                    agentPromise.then((connectedAgent) => {
-                        if (isMounted) {
-                            setAgent(connectedAgent);
-                        }
-                    });
-
-                    return () => {
-                        isMounted = false;
-                    };
-                }, [agentPromise]);
-
-                if (!agent) {
-                    return <div>Connecting to agent...</div>;
-                }
-
-                return <AgentChat agent={agent} visual="STANDALONE" />;
-            }
-        `),
-        integrationPageUrl,
-        'slash',
-    );
+            return <AgentChat agent={agent} visual="STANDALONE" />;
+        }
+    `);
 
     // MCP Config
-    const mcpConfigCode = prependIntegrationPageComment(
-        spaceTrim(`
-                        {
-                            "mcpServers": {
-                                "${agentName}": {
-                                    "command": "npx",
-                                    "args": [
-                                        "-y",
-                                        "@promptbook/cli",
-                                        "mcp",
-                                        "${baseUrl}"
-                                    ]
-                                }
-                            }
-                        }
-                `),
-        integrationPageUrl,
-        'slash',
-    );
+    const mcpConfigCode = spaceTrim(`
+        {
+            ${formatIntegrationPageComment(integrationPageUrl, 'slash')}
+            "mcpServers": {
+                "${agentName}": {
+                    "command": "npx",
+                    "args": [
+                        "-y",
+                        "@promptbook/cli",
+                        "mcp",
+                        "${baseUrl}"
+                    ]
+                }
+            }
+        }
+    `);
 
     const agentLinks = getAgentLinks(agentProfile.permanentId || agentName, (text) =>
         formatAgentNamingText(text, agentNaming),

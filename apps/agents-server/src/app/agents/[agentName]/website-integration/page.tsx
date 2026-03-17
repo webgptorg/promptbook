@@ -12,23 +12,18 @@ import { getAgentProfile } from '../_utils';
 import { WebsiteIntegrationTabs } from '../integration/WebsiteIntegrationTabs';
 
 /**
- * Prepends an integration-page comment to a copyable code snippet.
+ * Formats an integration-page comment for use inside a copyable code snippet.
  *
- * @param code - The snippet content.
  * @param integrationPageUrl - Absolute integration-page URL.
  * @param style - Comment syntax matching the snippet language.
- * @returns Snippet prefixed with a comment linking back to the integration page.
+ * @returns Comment line linking back to the integration page.
  */
-function prependIntegrationPageComment(
-    code: string,
-    integrationPageUrl: string,
-    style: 'slash' | 'hash' | 'html',
-): string {
+function formatIntegrationPageComment(integrationPageUrl: string, style: 'slash' | 'hash' | 'html'): string {
     const commentPrefix = style === 'hash' ? '# ' : style === 'html' ? '<!-- ' : '// ';
 
     const commentSuffix = style === 'html' ? ' -->' : '';
 
-    return `${commentPrefix}${integrationPageUrl}${commentSuffix}\n${code}`;
+    return `${commentPrefix}${integrationPageUrl}${commentSuffix}`;
 }
 
 /**
@@ -51,40 +46,34 @@ export default async function WebsiteIntegrationAgentPage({ params }: { params: 
         agentProfile.permanentId || agentName,
     )}/integration`;
 
-    const reactCode = prependIntegrationPageComment(
-        spaceTrim(
-            (block) => `
-                import { PromptbookAgentIntegration } from '@promptbook/components';
+    const reactCode = spaceTrim(
+        (block) => `
+            import { PromptbookAgentIntegration } from '@promptbook/components';
 
-                export function YourComponent() {
-                    return(
-                        <PromptbookAgentIntegration
-                            agentUrl="${agentUrl}"
-                            meta={${block(JSON.stringify({ fullname, color, image, ...restMeta }, null, 4))}}
-                        />
-                    );
-                }
-            `,
-        ),
-        integrationPageUrl,
-        'slash',
+            export function YourComponent() {
+                return(
+                    ${formatIntegrationPageComment(integrationPageUrl, 'slash')}
+                    <PromptbookAgentIntegration
+                        agentUrl="${agentUrl}"
+                        meta={${block(JSON.stringify({ fullname, color, image, ...restMeta }, null, 4))}}
+                    />
+                );
+            }
+        `,
     );
 
     // HTML Integration Code - use single quotes for meta attribute to allow JSON with double quotes inside
     const metaJsonString = JSON.stringify({ fullname, color, image, ...restMeta }, null, 4);
-    const htmlCode = prependIntegrationPageComment(
-        spaceTrim(
-            (block) => `
-                <script src="${publicUrl.href}api/embed.js" async defer></script>
+    const htmlCode = spaceTrim(
+        (block) => `
+            <script src="${publicUrl.href}api/embed.js" async defer></script>
 
-                <promptbook-agent-integration
-                    agent-url="${agentUrl}"
-                    meta='${block(metaJsonString)}'
-                />
-            `,
-        ),
-        integrationPageUrl,
-        'html',
+            ${formatIntegrationPageComment(integrationPageUrl, 'html')}
+            <promptbook-agent-integration
+                agent-url="${agentUrl}"
+                meta='${block(metaJsonString)}'
+            />
+        `,
     );
 
     return (
