@@ -99,5 +99,13 @@
     },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
-    "typings": "./esm/typings/src/_packages/markdown-utils.index.d.ts"
+    "typings": "./esm/typings/src/_packages/markdown-utils.index.d.ts",
+    "dependencies": {
+        "crypto": "1.0.1",
+        "crypto-js": "4.2.0",
+        "papaparse": "5.4.1",
+        "rxjs": "7.8.2",
+        "spacetrim": "0.11.60",
+        "waitasecond": "1.11.164"
+    }
 }
