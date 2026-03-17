@@ -11,13 +11,13 @@ import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
 import { TODO_any } from '../../_packages/types.index';
 import { serializeError } from '../../_packages/utils.index';
+import { parseToolExecutionEnvelope } from '../../commitments/_common/toolExecutionEnvelope';
 import {
     registerToolCallProgressListener,
     TOOL_PROGRESS_TOKEN_PARAMETER,
     type ToolCallProgressUpdate,
     unregisterToolCallProgressListener,
 } from '../../commitments/_common/toolRuntimeContext';
-import { parseToolExecutionEnvelope } from '../../commitments/_common/toolExecutionEnvelope';
 import { assertsError } from '../../errors/assertsError';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
@@ -47,7 +47,7 @@ import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCo
 import { OpenAiVectorStoreHandler } from './OpenAiVectorStoreHandler';
 import { buildToolInvocationScript } from './utils/buildToolInvocationScript';
 
-const DEFAULT_AGENT_KIT_MODEL_NAME = 'gpt-5.2' as string_model_name;
+const DEFAULT_AGENT_KIT_MODEL_NAME = 'gpt-5-mini-2025-08-07' as string_model_name;
 
 /**
  * Creates one structured log entry for streamed tool-call updates.
