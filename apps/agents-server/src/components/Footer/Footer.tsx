@@ -1,5 +1,6 @@
 'use client';
 
+import { NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF } from '@/config';
 import { CLAIM, NAME, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 import { HeadlessLink } from '../_utils/headlessParam';
@@ -172,7 +173,10 @@ export function Footer(props: FooterProps) {
                         {/* <- TODO: !!!!!!!! Put here Prague outline */}
                     </p>
                     <p className="mt-2 text-xs text-gray-400">
-                        {t('footer.engineVersion')} {PROMPTBOOK_ENGINE_VERSION}
+                        {t('footer.engineVersion')} {PROMPTBOOK_ENGINE_VERSION}{' '}
+                        {{ main: 'live', preview: 'preview', production: 'prod', lts: 'lts' }[
+                            NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF!
+                        ] || NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF}
                     </p>
                 </div>
                 {/*
