@@ -1,11 +1,30 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { describe, expect, it } from '@jest/globals';
+import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { book } from '../../../../src/_packages/core.index';
 import {
     createCustomDomainMatchCandidates,
     createCustomDomainOrFilter,
     resolveCustomDomainAgent,
 } from './customDomainRouting';
 import { SERVER_ENVIRONMENT, type ServerRecord } from './serverRegistry';
+
+jest.mock('./getFederatedServers', () => ({
+    getFederatedServers: jest.fn(async () => []),
+}));
+
+jest.mock('./getWellKnownAgentUrl', () => ({
+    getWellKnownAgentUrl: jest.fn(async () => 'https://core-test.ptbk.io/agents/adam'),
+}));
+
+/**
+ * Original fetch implementation restored after each test.
+ */
+const ORIGINAL_FETCH = global.fetch;
+
+afterEach(() => {
+    global.fetch = ORIGINAL_FETCH;
+    jest.restoreAllMocks();
+});
 
 describe('customDomainRouting', () => {
     it('builds normalized domain and link candidates from host header', () => {
@@ -47,7 +66,18 @@ describe('customDomainRouting', () => {
             });
             const supabase = createMockSupabase({
                 server_PavolHejny_Agent: {
-                    data: { agentName: 'my-agent' },
+                    data: [
+                        createAgentRow({
+                            agentName: 'my-agent',
+                            permanentId: 'my-agent',
+                            agentSource: book`
+                                My Agent
+
+                                FROM VOID
+                                META DOMAIN search.ptbk.io
+                            `,
+                        }),
+                    ],
                 },
             });
 
@@ -76,7 +106,20 @@ describe('customDomainRouting', () => {
             });
             const supabase = createMockSupabase({
                 server_First_Agent: { shouldThrow: true },
-                server_Second_Agent: { data: { agentName: 'second-agent' } },
+                server_Second_Agent: {
+                    data: [
+                        createAgentRow({
+                            agentName: 'second-agent',
+                            permanentId: 'second-agent',
+                            agentSource: book`
+                                Second Agent
+
+                                FROM VOID
+                                META LINK search.ptbk.io
+                            `,
+                        }),
+                    ],
+                },
             });
 
             const resolution = await resolveCustomDomainAgent('search.ptbk.io', supabase, [firstServer, secondServer]);
@@ -84,6 +127,64 @@ describe('customDomainRouting', () => {
             expect(resolution).toEqual({
                 server: secondServer,
                 agentName: 'second-agent',
+            });
+        });
+
+        it('matches inherited domain metadata from the resolved parent source', async () => {
+            const server = createServerRecord({
+                id: 1,
+                name: 'pavol-hejny',
+                environment: SERVER_ENVIRONMENT.PRODUCTION,
+                domain: 'pavol-hejny.ptbk.io',
+                tablePrefix: 'server_PavolHejny_',
+            });
+            const parentAgentUrl = 'https://core-test.ptbk.io/agents/parent-agent';
+            const supabase = createMockSupabase({
+                server_PavolHejny_Agent: {
+                    data: [
+                        createAgentRow({
+                            agentName: 'Child Agent',
+                            permanentId: 'child-agent',
+                            agentSource: `
+                                Child Agent
+
+                                FROM ${parentAgentUrl}
+                                RULE Child rule.
+                            `,
+                        }),
+                    ],
+                },
+            });
+
+            global.fetch = jest.fn(async (input: RequestInfo | URL) => {
+                const url = new URL(String(input));
+                const normalizedUrl = url.pathname.endsWith('/api/book')
+                    ? `${url.origin}${url.pathname}?recursionLevel=${url.searchParams.get('recursionLevel') || ''}`
+                    : url.href;
+
+                if (normalizedUrl !== `${parentAgentUrl}/api/book?recursionLevel=1`) {
+                    throw new Error(`Unexpected fetch URL: ${url.href}`);
+                }
+
+                return new Response(
+                    book`
+                        Parent Agent
+
+                        FROM VOID
+                        META DOMAIN inherited.ptbk.io
+                    `,
+                    {
+                        status: 200,
+                        headers: { 'content-type': 'text/plain' },
+                    },
+                );
+            }) as typeof fetch;
+
+            const resolution = await resolveCustomDomainAgent('inherited.ptbk.io', supabase, [server]);
+
+            expect(resolution).toEqual({
+                server,
+                agentName: 'Child Agent',
             });
         });
     });
@@ -114,12 +215,15 @@ function createServerRecord(partialServer: Partial<ServerRecord>): ServerRecord 
  * @returns Mocked Supabase client.
  */
 function createMockSupabase(
-    results: Record<string, { data?: { agentName: string } | null; shouldThrow?: boolean }>,
+    results: Record<string, { data?: Array<ReturnType<typeof createAgentRow>> | null; shouldThrow?: boolean }>,
 ): SupabaseClient {
     return {
         from(tableName: string) {
             const builder = {
                 select() {
+                    return builder;
+                },
+                is() {
                     return builder;
                 },
                 or() {
@@ -133,10 +237,69 @@ function createMockSupabase(
                     if (entry?.shouldThrow) {
                         throw new Error('boom');
                     }
-                    return { data: entry?.data ?? null };
+                    return { data: entry?.data?.[0] ?? null };
+                },
+                then(
+                    resolve: (value: { data: Array<ReturnType<typeof createAgentRow>> | null; error: null }) => unknown,
+                    reject?: (reason: unknown) => unknown,
+                ) {
+                    const entry = results[tableName];
+                    return (
+                        entry?.shouldThrow
+                            ? Promise.reject(new Error('boom'))
+                            : Promise.resolve({ data: entry?.data ?? null, error: null })
+                    ).then(resolve, reject);
                 },
             };
             return builder;
         },
     } as unknown as SupabaseClient;
+}
+
+/**
+ * Creates one minimal stored-agent row for routing tests.
+ *
+ * @param partialRow - Overridden row fields.
+ * @returns Stored agent row compatible with both raw queries and resolver initialization.
+ */
+function createAgentRow(partialRow: {
+    agentName: string;
+    permanentId: string;
+    agentSource: string;
+}): {
+    agentName: string;
+    permanentId: string;
+    agentSource: string;
+    agentProfile: {
+        agentName: string;
+        meta: Record<string, string>;
+        capabilities: [];
+        links: [];
+        parameters: [];
+        samples: [];
+        knowledgeSources: [];
+        agentHash: string;
+        initialMessage: null;
+        personaDescription: null;
+    };
+} {
+    return {
+        agentName: partialRow.agentName,
+        permanentId: partialRow.permanentId,
+        agentSource: partialRow.agentSource,
+        agentProfile: {
+            agentName: partialRow.agentName,
+            agentHash: `hash-${partialRow.permanentId}`,
+            meta: {
+                fullname: partialRow.agentName,
+            },
+            capabilities: [],
+            links: [],
+            parameters: [],
+            samples: [],
+            knowledgeSources: [],
+            initialMessage: null,
+            personaDescription: null,
+        },
+    };
 }

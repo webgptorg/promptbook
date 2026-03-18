@@ -2,10 +2,13 @@ import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-so
 import { createServerSearchMatcher } from '../../search/createServerSearchMatcher';
 import { loadLocalOrganizationSearchDataset } from '../../search/createDefaultServerSearchProviders/loadLocalOrganizationSearchDataset';
 import { stringifyJsonForSearch } from '../../search/createDefaultServerSearchProviders/stringifyJsonForSearch';
-import { toAgentProfile } from '../../search/createDefaultServerSearchProviders/toAgentProfile';
 import { $getTableName } from '../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../database/$provideSupabaseForServer';
 import type { OwnedAgentRow } from '../agentOwnership';
+import { $provideAgentReferenceResolver } from '../agentReferenceResolver/$provideAgentReferenceResolver';
+import { getWellKnownAgentUrl } from '../getWellKnownAgentUrl';
+import { resolveCurrentOrInternalServerOrigin } from '../resolveCurrentOrInternalServerOrigin';
+import { resolveStoredAgentState } from '../resolveStoredAgentState';
 import { z } from 'zod';
 import { ManagementAgentListQuerySchema } from './managementApiSchemas';
 
@@ -33,6 +36,20 @@ export type ManagementAgentListItem = {
 };
 
 /**
+ * Resolves canonical profile/source state for one owned agent row.
+ *
+ * @param row - Persisted agent row.
+ * @returns Resolved agent state derived from the stored unresolved source.
+ */
+export async function resolveOwnedAgentDerivedState(row: OwnedAgentRow) {
+    return resolveStoredAgentState(row, {
+        localServerUrl: await resolveCurrentOrInternalServerOrigin(),
+        adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
+        agentReferenceResolver: await $provideAgentReferenceResolver(),
+    });
+}
+
+/**
  * Builds public links for one agent.
  *
  * @param baseUrl - Public base URL of the current instance.
@@ -54,8 +71,11 @@ export function createManagementAgentLinks(baseUrl: URL, identifier: string) {
  * @param baseUrl - Public base URL of the current instance.
  * @returns JSON-serializable summary payload.
  */
-export function mapOwnedAgentRowToManagementSummary(row: OwnedAgentRow, baseUrl: URL) {
-    const profile = toAgentProfile(row.agentProfile);
+export function mapOwnedAgentRowToManagementSummary(
+    row: OwnedAgentRow,
+    baseUrl: URL,
+    profile: Partial<AgentBasicInformation>,
+) {
     const identifier = row.permanentId || row.agentName;
 
     return {
@@ -80,11 +100,15 @@ export function mapOwnedAgentRowToManagementSummary(row: OwnedAgentRow, baseUrl:
  * @param baseUrl - Public base URL of the current instance.
  * @returns JSON-serializable detail payload.
  */
-export function mapOwnedAgentRowToManagementDetail(row: OwnedAgentRow, baseUrl: URL) {
+export function mapOwnedAgentRowToManagementDetail(
+    row: OwnedAgentRow,
+    baseUrl: URL,
+    profile: Partial<AgentBasicInformation>,
+) {
     return {
-        ...mapOwnedAgentRowToManagementSummary(row, baseUrl),
+        ...mapOwnedAgentRowToManagementSummary(row, baseUrl, profile),
         source: row.agentSource,
-        profile: toAgentProfile(row.agentProfile),
+        profile,
     };
 }
 
@@ -161,14 +185,14 @@ export async function searchOwnedAgents(
             continue;
         }
 
-        const profile = toAgentProfile(agent.agentProfile);
+        const profile = agent.resolvedAgentProfile as Partial<AgentBasicInformation>;
         const searchText = [
             row.agentName,
             profile.meta?.fullname || '',
             profile.meta?.description || '',
             profile.personaDescription || '',
             stringifyJsonForSearch(profile.meta || {}),
-            row.agentSource || '',
+            agent.resolvedAgentSource || '',
         ].join('\n');
 
         const match = query.q
@@ -179,8 +203,8 @@ export async function searchOwnedAgents(
                       weight: 3,
                   },
                   {
-                      text: row.agentSource || '',
-                      snippetText: row.agentSource || '',
+                      text: agent.resolvedAgentSource || '',
+                      snippetText: agent.resolvedAgentSource || '',
                       weight: 2.1,
                   },
               ])

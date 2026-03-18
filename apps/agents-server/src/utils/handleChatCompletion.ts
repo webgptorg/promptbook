@@ -3,7 +3,6 @@ import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$prov
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import {
     parseBookScopedAgentIdentifier,
-    resolveBookScopedAgentContext,
 } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
 import { createChatHistoryRecorder } from '@/src/utils/chat/createChatHistoryRecorder';
 import { ensureNonEmptyChatContent } from '@/src/utils/chat/ensureNonEmptyChatContent';
@@ -49,6 +48,7 @@ import {
     resolveAgentCollectionTablePrefix,
     waitForRunningAgentPreparation,
 } from './agentPreparation';
+import { resolveServerAgentContext } from './resolveServerAgentContext';
 
 /**
  * Falls back to the estimated value when the original token count is unknown.
@@ -280,7 +280,7 @@ function createFrozenOpenAiCompatibilityMessages(
     } = {},
 ): Array<ChatMessage> {
     const startedAt = Date.now();
-    const messages = rawMessages.map((rawMessage, index) => {
+    const messages: Array<ChatMessage> = rawMessages.map((rawMessage, index) => {
         const message = rawMessage as OpenAiCompatibilityMessageLike;
 
         return {
@@ -400,9 +400,9 @@ export async function handleChatCompletion(
 
         const collection = await $provideAgentCollectionForServer();
         const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
-        let resolvedAgentContext: Awaited<ReturnType<typeof resolveBookScopedAgentContext>>;
+        let resolvedAgentContext: Awaited<ReturnType<typeof resolveServerAgentContext>>;
         try {
-            resolvedAgentContext = await resolveBookScopedAgentContext({
+            resolvedAgentContext = await resolveServerAgentContext({
                 collection,
                 agentIdentifier: agentName,
                 localServerUrl: new URL(request.url).origin,
@@ -415,10 +415,8 @@ export async function handleChatCompletion(
             );
         }
         let agentSource: string_book = resolvedAgentContext.resolvedAgentSource;
-        const projectRepositories = extractProjectRepositoriesFromAgentSource(resolvedAgentContext.resolvedAgentSource);
-        const useEmailConfiguration = extractUseEmailConfigurationFromAgentSource(
-            resolvedAgentContext.resolvedAgentSource,
-        );
+        const projectRepositories = extractProjectRepositoriesFromAgentSource(agentSource);
+        const useEmailConfiguration = extractUseEmailConfigurationFromAgentSource(agentSource);
 
         if (!agentSource) {
             return NextResponse.json(

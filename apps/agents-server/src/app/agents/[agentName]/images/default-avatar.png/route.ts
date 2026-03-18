@@ -1,7 +1,8 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideCdnForServer } from '@/src/tools/$provideCdnForServer';
 import { $provideExecutionToolsForServer } from '@/src/tools/$provideExecutionToolsForServer';
-import { parseAgentSource } from '@promptbook-local/core';
+import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
+import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
 import { computeHash, serializeError } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
@@ -23,9 +24,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
         // 1. Fetch agent data first to construct the prompt
         const collection = await $provideAgentCollectionForServer();
-        let agentSource;
+        let agentProfile;
         try {
-            agentSource = await collection.getAgentSource(agentName);
+            const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
+            const resolvedAgentContext = await resolveServerAgentContext({
+                collection,
+                agentIdentifier: agentName,
+                localServerUrl: new URL(request.url).origin,
+                fallbackResolver: baseAgentReferenceResolver,
+            });
+            agentProfile = resolvedAgentContext.resolvedAgentProfile;
         } catch (error) {
             assertsError(error);
 
@@ -35,8 +43,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             //> const pravaratUrl = `https://i.pravatar.cc/1024?u=${encodeURIComponent(agentName)}`;
             //> return NextResponse.redirect(pravaratUrl);
         }
-
-        const agentProfile = parseAgentSource(agentSource);
 
         const prompt = getAgentDefaultAvatarPrompt(agentProfile);
 

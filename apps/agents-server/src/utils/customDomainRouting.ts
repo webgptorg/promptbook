@@ -1,6 +1,12 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { AgentCollectionInSupabase } from '../../../../src/_packages/core.index';
+import type { AgentBasicInformation } from '../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import { normalizeDomainForMatching } from '../../../../src/utils/validators/url/normalizeDomainForMatching';
-import { type ServerRecord } from './serverRegistry';
+import { createServerAgentReferenceResolver } from './agentReferenceResolver/createServerAgentReferenceResolver';
+import { getFederatedServers } from './getFederatedServers';
+import { getWellKnownAgentUrl } from './getWellKnownAgentUrl';
+import { resolveStoredAgentStates } from './resolveStoredAgentState';
+import { createServerPublicUrl, type ServerRecord } from './serverRegistry';
 
 /**
  * Prefix used when generating HTTP URL variants for host matching.
@@ -95,6 +101,35 @@ export type CustomDomainResolution = {
 };
 
 /**
+ * Minimal persisted agent shape needed for custom-domain resolution.
+ */
+type CustomDomainAgentRow = {
+    readonly agentName: string;
+    readonly permanentId: string | null;
+    readonly agentSource: string;
+    readonly agentProfile?: AgentBasicInformation;
+};
+
+/**
+ * Checks whether resolved agent metadata matches one incoming custom host.
+ *
+ * @param profile - Canonical resolved profile derived from agent source.
+ * @param candidates - Host variants normalized for both `META DOMAIN` and `META LINK`.
+ * @returns `true` when the host should route to the provided agent.
+ */
+function matchesResolvedCustomDomain(
+    profile: Pick<AgentBasicInformation, 'links' | 'meta'>,
+    candidates: CustomDomainMatchCandidates,
+): boolean {
+    const normalizedDomain = normalizeDomainForMatching(profile.meta.domain || '');
+    if (normalizedDomain && candidates.domainCandidates.includes(normalizedDomain)) {
+        return true;
+    }
+
+    return (profile.links || []).some((link: string) => candidates.linkCandidates.includes(link.trim().toLowerCase()));
+}
+
+/**
  * Resolves a custom host to the matching agent if it is stored in one of the known servers.
  *
  * @param host - The incoming request host header.
@@ -107,20 +142,48 @@ export async function resolveCustomDomainAgent(
     supabase: SupabaseClient,
     servers: ReadonlyArray<ServerRecord>,
 ): Promise<CustomDomainResolution | null> {
-    const orFilter = createCustomDomainOrFilter(host);
-    if (!orFilter) {
+    const candidates = createCustomDomainMatchCandidates(host);
+    if (candidates.domainCandidates.length === 0 && candidates.linkCandidates.length === 0) {
         return null;
     }
+
+    const federatedServers = await getFederatedServers();
+    const adamAgentUrl = await getWellKnownAgentUrl('ADAM');
 
     for (const server of servers) {
         try {
             const tableName = `${server.tablePrefix}Agent`;
-            const { data } = await supabase.from(tableName).select('agentName').or(orFilter).limit(1).maybeSingle();
+            const { data, error } = await supabase
+                .from(tableName)
+                .select('agentName, permanentId, agentSource, agentProfile')
+                .is('deletedAt', null);
 
-            if (data && typeof data.agentName === 'string') {
+            if (error || !Array.isArray(data) || data.length === 0) {
+                continue;
+            }
+
+            const localServerUrl = createServerPublicUrl(server.domain).href;
+            const agentCollection = new AgentCollectionInSupabase(supabase as never, {
+                tablePrefix: server.tablePrefix,
+            });
+            const agentReferenceResolver = await createServerAgentReferenceResolver({
+                agentCollection,
+                localServerUrl,
+                federatedServers,
+            });
+            const resolvedAgents = await resolveStoredAgentStates(data as Array<CustomDomainAgentRow>, {
+                localServerUrl,
+                adamAgentUrl,
+                agentReferenceResolver,
+            });
+            const matchedAgent = resolvedAgents.find((agent) =>
+                matchesResolvedCustomDomain(agent.resolvedAgentProfile, candidates),
+            );
+
+            if (matchedAgent) {
                 return {
                     server,
-                    agentName: data.agentName,
+                    agentName: matchedAgent.agentName,
                 };
             }
         } catch {

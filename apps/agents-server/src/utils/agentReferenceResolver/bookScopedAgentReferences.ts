@@ -42,8 +42,10 @@ type IssueTrackingResolver = AgentReferenceResolver & {
  */
 export type ResolvedBookScopedAgentContext = {
     readonly requestedAgentIdentifier: string;
+    readonly canonicalAgentIdentifier: string;
+    readonly canonicalAgentUrl: string_agent_url;
     readonly resolvedAgentName: string;
-    readonly resolvedAgentSource: string_book;
+    readonly unresolvedAgentSource: string_book;
     readonly parentAgentPermanentId: string_agent_permanent_id;
     readonly parentAgentSource: string_book;
     readonly isBookScopedAgent: boolean;
@@ -271,11 +273,15 @@ export async function resolveBookScopedAgentContext(options: {
         const parentAgentSource = await collection.getAgentSource(parentAgentPermanentId);
         const parsedParentProfile = parseAgentSource(parentAgentSource);
         const resolvedAgentName = parsedParentProfile.agentName || normalizeAgentName(agentIdentifier);
+        const canonicalAgentIdentifier = parentAgentPermanentId;
+        const canonicalAgentUrl = `${localServerUrl.replace(/\/+$/g, '')}/agents/${encodeURIComponent(canonicalAgentIdentifier)}` as string_agent_url;
 
         return {
             requestedAgentIdentifier: agentIdentifier,
+            canonicalAgentIdentifier,
+            canonicalAgentUrl,
             resolvedAgentName,
-            resolvedAgentSource: parentAgentSource,
+            unresolvedAgentSource: parentAgentSource,
             parentAgentPermanentId,
             parentAgentSource,
             isBookScopedAgent: false,
@@ -301,11 +307,22 @@ export async function resolveBookScopedAgentContext(options: {
 
     const parsedEmbeddedProfile = parseAgentSource(embeddedSource);
     const resolvedAgentName = parsedEmbeddedProfile.agentName || parsedIdentifier.embeddedAgentName;
+    const canonicalAgentIdentifier = createBookScopedAgentIdentifier(
+        parentAgentPermanentId,
+        parsedIdentifier.embeddedAgentName,
+    );
+    const canonicalAgentUrl = createBookScopedAgentUrl(
+        localServerUrl,
+        parentAgentPermanentId,
+        parsedIdentifier.embeddedAgentName,
+    );
 
     return {
         requestedAgentIdentifier: agentIdentifier,
+        canonicalAgentIdentifier,
+        canonicalAgentUrl,
         resolvedAgentName,
-        resolvedAgentSource: embeddedSource,
+        unresolvedAgentSource: embeddedSource,
         parentAgentPermanentId,
         parentAgentSource,
         isBookScopedAgent: true,

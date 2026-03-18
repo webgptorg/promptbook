@@ -1,7 +1,10 @@
 import { after, NextResponse } from 'next/server';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import { resolveMetaDisclaimerStatusForUser } from '@/src/utils/metaDisclaimer';
+import { resolveCurrentOrInternalServerOrigin } from '@/src/utils/resolveCurrentOrInternalServerOrigin';
+import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
 import {
     appendQueuedUserChatTurn,
     createUserChatDetailPayload,
@@ -94,11 +97,17 @@ export async function POST(
         }
 
         const collection = await $provideAgentCollectionForServer();
-        const agentSource = await collection.getAgentSource(scopeResult.scope.agentPermanentId);
+        const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
+        const resolvedAgentContext = await resolveServerAgentContext({
+            collection,
+            agentIdentifier: scopeResult.scope.agentPermanentId,
+            localServerUrl: await resolveCurrentOrInternalServerOrigin(),
+            fallbackResolver: baseAgentReferenceResolver,
+        });
         const disclaimerStatus = await resolveMetaDisclaimerStatusForUser({
             userId: scopeResult.scope.userId,
             agentPermanentId: scopeResult.scope.agentPermanentId,
-            agentSource,
+            agentSource: resolvedAgentContext.resolvedAgentSource,
         });
 
         if (!disclaimerStatus.accepted) {

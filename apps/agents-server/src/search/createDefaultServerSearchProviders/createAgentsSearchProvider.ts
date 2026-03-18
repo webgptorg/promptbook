@@ -1,4 +1,5 @@
 import type { AgentsServerDatabase } from '../../database/schema';
+import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import type { ServerSearchProvider } from '../ServerSearchProvider';
 import type { ServerSearchResultItem } from '../ServerSearchResultItem';
 import { createServerSearchMatcher } from '../createServerSearchMatcher';
@@ -6,7 +7,6 @@ import { loadLocalOrganizationSearchDataset } from './loadLocalOrganizationSearc
 import { prefixSnippet } from './prefixSnippet';
 import { sortAndLimitProviderResults } from './sortAndLimitProviderResults';
 import { stringifyJsonForSearch } from './stringifyJsonForSearch';
-import { toAgentProfile } from './toAgentProfile';
 import { toFolderPathLabel } from './toFolderPathLabel';
 
 /**
@@ -16,8 +16,11 @@ import { toFolderPathLabel } from './toFolderPathLabel';
  */
 type AgentSearchRow = Pick<
     AgentsServerDatabase['public']['Tables']['Agent']['Row'],
-    'id' | 'agentName' | 'permanentId' | 'agentProfile' | 'agentSource' | 'folderId' | 'visibility'
->;
+    'id' | 'agentName' | 'permanentId' | 'agentSource' | 'folderId' | 'visibility'
+> & {
+    readonly resolvedAgentProfile: AgentBasicInformation;
+    readonly resolvedAgentSource: string;
+};
 
 /**
  * Creates provider for local agents (profile and book).
@@ -34,7 +37,7 @@ export function createAgentsSearchProvider(): ServerSearchProvider {
             const results: ServerSearchResultItem[] = [];
 
             for (const agent of dataset.agents as ReadonlyArray<AgentSearchRow>) {
-                const profile = toAgentProfile(agent.agentProfile);
+                const profile = agent.resolvedAgentProfile;
                 const routeAgentId = encodeURIComponent(agent.permanentId || agent.agentName);
                 const agentLabel = profile.meta?.fullname || agent.agentName;
                 const folderPath = toFolderPathLabel(agent.folderId, dataset.folderById);
@@ -69,7 +72,7 @@ export function createAgentsSearchProvider(): ServerSearchProvider {
                 }
 
                 const bookMatch = createServerSearchMatcher(context.query, [
-                    { text: agent.agentSource || '', snippetText: agent.agentSource || '', weight: 2.1 },
+                    { text: agent.resolvedAgentSource || '', snippetText: agent.resolvedAgentSource || '', weight: 2.1 },
                     { text: `${agent.agentName}\n${profile.meta?.fullname || ''}`, weight: 0.4 },
                 ]);
 

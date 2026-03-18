@@ -2,7 +2,8 @@ import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentColle
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { resolveInheritedAgentSource } from '@/src/utils/resolveInheritedAgentSource';
 import { padBook, validateBook } from '@promptbook-local/core';
-import { parseNumber, serializeError } from '@promptbook-local/utils';
+import type { string_agent_url } from '@promptbook-local/types';
+import { computeHash, parseNumber, serializeError } from '@promptbook-local/utils';
 import spaceTrim from 'spacetrim';
 import { DEFAULT_MAX_RECURSION } from '../../../../../../../../src/config';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
@@ -28,6 +29,25 @@ function normalizeHistoryVersionName(versionName: string | null): string | null 
 }
 
 /**
+ * Checks whether the client already has the latest ETag variant.
+ *
+ * @param request - Incoming HTTP request.
+ * @param etag - Freshly computed ETag for the response body.
+ * @returns `true` when the request can be answered with `304 Not Modified`.
+ */
+function hasMatchingEtag(request: Request, etag: string): boolean {
+    const ifNoneMatch = request.headers.get('if-none-match');
+    if (!ifNoneMatch) {
+        return false;
+    }
+
+    return ifNoneMatch
+        .split(',')
+        .map((candidate) => candidate.trim())
+        .some((candidate) => candidate === '*' || candidate === etag);
+}
+
+/**
  * @@@
  *
  * Note: [🕺] This route gives the agent source *(with resolved inheritance)*
@@ -39,6 +59,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
 
         const url = new URL(request.url);
         const recursionLevel = parseNumber(url.searchParams.get('recursionLevel'));
+        const inheritancePath = url.searchParams.getAll('resolutionPath');
 
         console.info(`[🕺] GET /agents/${agentName}/api/book?recursionLevel=${recursionLevel}`);
 
@@ -62,17 +83,34 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
             localServerUrl: new URL(request.url).origin,
             fallbackResolver: baseAgentReferenceResolver,
         });
-        const agentSource = resolvedAgentContext.resolvedAgentSource;
+        const agentSource = resolvedAgentContext.unresolvedAgentSource;
         const agentReferenceResolver = resolvedAgentContext.scopedAgentReferenceResolver;
         const effectiveAgentSource = await resolveInheritedAgentSource(agentSource, {
             adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
             recursionLevel,
+            currentAgentUrl: resolvedAgentContext.canonicalAgentUrl,
+            inheritancePath: inheritancePath as Array<string_agent_url>,
             agentReferenceResolver,
         });
+        const etag = `W/"${computeHash(effectiveAgentSource)}"`;
+
+        if (hasMatchingEtag(request, etag)) {
+            return new Response(null, {
+                status: 304,
+                headers: {
+                    ETag: etag,
+                    'Cache-Control': 'no-cache, max-age=0',
+                },
+            });
+        }
 
         return new Response(effectiveAgentSource, {
             status: 200,
-            headers: { 'Content-Type': 'text/plain' /* <- TODO: [🎳] Mime type of book */ },
+            headers: {
+                'Content-Type': 'text/plain' /* <- TODO: [🎳] Mime type of book */,
+                ETag: etag,
+                'Cache-Control': 'no-cache, max-age=0',
+            },
         });
     } catch (error) {
         assertsError(error);

@@ -22,7 +22,109 @@ export type ImportAgentOptions = {
      * @default 0
      */
     recursionLevel?: number;
+    /**
+     * Already visited canonical agent URLs used for remote cycle detection.
+     */
+    readonly inheritancePath?: ReadonlyArray<string_agent_url>;
 };
+
+/**
+ * Cached successful remote agent import payload.
+ */
+type ImportedAgentCacheRecord = {
+    /**
+     * Last successfully fetched agent source.
+     */
+    readonly source: string_book;
+
+    /**
+     * Last observed ETag returned by the remote `/api/book` endpoint.
+     */
+    readonly etag: string | null;
+
+    /**
+     * Last observed Last-Modified returned by the remote endpoint.
+     */
+    readonly lastModified: string | null;
+};
+
+/**
+ * Successful remote imports cached by canonical agent identifier.
+ */
+const IMPORTED_AGENT_CACHE = new Map<string, ImportedAgentCacheRecord>();
+
+/**
+ * In-flight remote imports deduplicated by canonical agent identifier.
+ */
+const PENDING_IMPORTED_AGENT_REQUESTS = new Map<string, Promise<string_book>>();
+
+/**
+ * Builds the remote URL used to fetch a canonical agent book.
+ *
+ * @param agentIdentification - Agent page URL or direct book URL.
+ * @param options - Import options controlling recursion metadata.
+ * @returns Fetch URL with recursion/cycle-detection query parameters.
+ */
+function createAgentBookUrl(
+    agentIdentification: string_agent_name | string_agent_permanent_id | string_agent_url,
+    options: ImportAgentOptions,
+): string {
+    if (agentIdentification.endsWith('.book') || agentIdentification.endsWith('.md')) {
+        return agentIdentification;
+    }
+
+    const recursionLevel = options.recursionLevel || 0;
+    const baseUrl = agentIdentification.includes('/api/book')
+        ? new URL(agentIdentification)
+        : new URL(`${agentIdentification.replace(/\/$/, '')}/api/book`);
+
+    baseUrl.searchParams.set('recursionLevel', String(recursionLevel + 1));
+
+    for (const visitedAgentUrl of options.inheritancePath || []) {
+        baseUrl.searchParams.append('resolutionPath', visitedAgentUrl);
+    }
+
+    return baseUrl.href;
+}
+
+/**
+ * Returns a stable cache key for one imported agent.
+ *
+ * @param agentIdentification - Agent identifier provided to `importAgent`.
+ * @returns Stable cache key reused across conditional fetches.
+ */
+function createImportCacheKey(
+    agentIdentification: string_agent_name | string_agent_permanent_id | string_agent_url,
+): string {
+    return agentIdentification.replace(/\/+$/g, '');
+}
+
+/**
+ * Extracts one text/book payload from a successful HTTP response.
+ *
+ * @param agentIdentification - Original agent identifier for diagnostics.
+ * @param response - Successful HTTP response.
+ * @returns Imported agent source text.
+ */
+async function readImportedAgentSource(
+    agentIdentification: string_agent_name | string_agent_permanent_id | string_agent_url,
+    response: Response,
+): Promise<string_book> {
+    const contentType: string | null = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+        const data: TODO_any = await response.json();
+        if (typeof data === 'string') {
+            return data as string_book;
+        } else if (data.source) {
+            return data.source as string_book;
+        } else {
+            console.warn(`Received JSON from ${agentIdentification} but couldn't determine source property. Using text.`);
+            throw new Error(`Received JSON from ${agentIdentification} but structure is unknown.`);
+        }
+    }
+
+    return (await response.text()) as string_book;
+}
 
 /**
  * Imports an agent by its URL or name
@@ -42,75 +144,82 @@ export async function importAgent(
         throw new NotYetImplementedError(`[🏠] Importing local agents be name or permanent id is not implemented yet`);
     }
 
-    try {
-        // 1. Try to resolve locally using collection if possible
-        // This is an optimization for internal agents
-        // We assume the URL might be relative or contain the agent name, or we just check if it's a full URL
-        // If it's a full URL, we need to check if it matches our server, but without knowing our server URL it's hard.
-        // So we might need to parse the URL to extract agent name if it matches expected pattern.
-        // For now, let's rely on fetch for external and check collection if it looks like a local reference (though FROM expects URL)
+    const importOptions = {
+        recursionLevel,
+        inheritancePath: options?.inheritancePath,
+    } satisfies ImportAgentOptions;
+    const cacheKey = createImportCacheKey(agentIdentification);
+    const cachedImport = IMPORTED_AGENT_CACHE.get(cacheKey);
+    const existingRequest = PENDING_IMPORTED_AGENT_REQUESTS.get(cacheKey);
+    if (existingRequest) {
+        return existingRequest;
+    }
 
-        // If the URL is valid, we try to fetch it
-        // TODO: Handle authentication/tokens for private agents if needed
+    const pendingRequest = (async (): Promise<string_book> => {
+        try {
+            const agentBookUrl = createAgentBookUrl(agentIdentification, importOptions);
+            const headers = new Headers();
 
-        // TODO: [🧠] Do this logic more robustly
-        let agentBookUrl: string = agentIdentification;
-        if (!agentBookUrl.endsWith('/api/book') && !agentBookUrl.endsWith('.book') && !agentBookUrl.endsWith('.md')) {
-            // Note: [🕺] Fetching the `/agents/[agentName]/api/book` endpoint for agent source
-            agentBookUrl = `${agentBookUrl.replace(/\/$/, '')}/api/book?recursionLevel=${recursionLevel + 1}`;
-        }
+            if (cachedImport?.etag) {
+                headers.set('If-None-Match', cachedImport.etag);
+            }
 
-        const response: Response = await fetch(agentBookUrl);
+            if (!cachedImport?.etag && cachedImport?.lastModified) {
+                headers.set('If-Modified-Since', cachedImport.lastModified);
+            }
 
-        if (!response.ok) {
-            let error: Error | null = null;
-            try {
-                const body: TODO_any = await response.json();
-                error = deserializeError(body, false);
-            } catch (error: TODO_any) {
-                keepUnused(error);
-            } finally {
-                if (error === null) {
-                    error = new Error(
-                        `Failed to fetch parent agent from ${agentBookUrl}: ${response.status} ${response.statusText}`,
-                    );
+            const response: Response = await fetch(agentBookUrl, {
+                cache: 'no-store',
+                headers,
+            });
+
+            if (response.status === 304 && cachedImport) {
+                return cachedImport.source;
+            }
+
+            if (!response.ok) {
+                let error: Error | null = null;
+                try {
+                    const body: TODO_any = await response.json();
+                    error = deserializeError(body, false);
+                } catch (error: TODO_any) {
+                    keepUnused(error);
+                } finally {
+                    if (error === null) {
+                        error = new Error(
+                            `Failed to fetch parent agent from ${agentBookUrl}: ${response.status} ${response.statusText}`,
+                        );
+                    }
                 }
+
+                throw error;
             }
 
+            const source = await readImportedAgentSource(agentIdentification, response);
+            IMPORTED_AGENT_CACHE.set(cacheKey, {
+                source,
+                etag: response.headers.get('etag'),
+                lastModified: response.headers.get('last-modified'),
+            });
+
+            return source;
+        } catch (error) {
+            assertsError(error);
+
+            error.message = `Failed to import agent from "${agentIdentification}"` + '\n\n' + error.message;
             throw error;
+        } finally {
+            PENDING_IMPORTED_AGENT_REQUESTS.delete(cacheKey);
         }
+    })();
 
-        // We assume the response is the agent source text
-        // TODO: Handle content negotiation or JSON responses if the server returns JSON
-        const contentType: string | null = response.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
-            const data: TODO_any = await response.json();
-            // Assume some structure or that the API returns source in a property
-            // For Agents Server API modelRequirements/route.ts returns AgentModelRequirements, not source.
-            // If we point to a raw source endpoint, it returns text.
-            // If we point to the agent page, it returns HTML.
-            // We need a standard way to get source.
-            // For now, let's assume the URL points to the source or an API returning source.
-            if (typeof data === 'string') {
-                return data as string_book;
-            } else if (data.source) {
-                return data.source as string_book;
-            } else {
-                // Fallback or error
-                console.warn(
-                    `Received JSON from ${agentIdentification} but couldn't determine source property. Using text.`,
-                );
-                // Re-fetch as text? Or assume body text was read? response.json() consumes body.
-                // So we might have failed here.
-                throw new Error(`Received JSON from ${agentIdentification} but structure is unknown.`);
-            }
-        } else {
-            return (await response.text()) as string_book;
-        }
+    PENDING_IMPORTED_AGENT_REQUESTS.set(cacheKey, pendingRequest);
+
+    try {
+        return await pendingRequest;
     } catch (error) {
         assertsError(error);
 
-        error.message = `Failed to import agent from "${agentIdentification}"` + '\n\n' + error.message;
         throw error;
 
         /*

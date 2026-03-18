@@ -4,12 +4,13 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { renameAgentSource } from '@/src/utils/renameAgentSource';
 import { isAgentVisibility, type AgentVisibility } from '@/src/utils/agentVisibility';
-import { parseAgentSource } from '@promptbook-local/core';
 import { TODO_any } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
 import { buildAgentNameOrIdFilter } from '@/src/utils/agentIdentifier';
+import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     const { agentName } = await params;
@@ -27,13 +28,19 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
             const agentId = await collection.getAgentPermanentId(agentName);
             const agentSource = await collection.getAgentSource(agentId);
             const nextAgentSource = renameAgentSource(agentSource, trimmedName);
-            const nextAgentProfile = parseAgentSource(nextAgentSource);
 
             await collection.updateAgentSource(agentId, nextAgentSource);
+            const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
+            const resolvedAgentContext = await resolveServerAgentContext({
+                collection,
+                agentIdentifier: agentId,
+                localServerUrl: new URL(request.url).origin,
+                fallbackResolver: baseAgentReferenceResolver,
+            });
 
             return NextResponse.json({
                 success: true,
-                agent: { ...nextAgentProfile, permanentId: agentId },
+                agent: { ...resolvedAgentContext.resolvedAgentProfile, permanentId: agentId },
             });
         }
 

@@ -1,5 +1,8 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { acceptUserMetaDisclaimer, resolveMetaDisclaimerStatusForUser } from '@/src/utils/metaDisclaimer';
+import { resolveCurrentOrInternalServerOrigin } from '@/src/utils/resolveCurrentOrInternalServerOrigin';
+import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
 import type { string_book } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
 import { resolveUserChatScope } from '../user-chats/resolveUserChatScope';
@@ -37,14 +40,20 @@ async function resolveMetaDisclaimerRouteContext(
 
     try {
         const collection = await $provideAgentCollectionForServer();
-        const agentSource = await collection.getAgentSource(scopeResult.scope.agentPermanentId);
+        const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
+        const resolvedAgentContext = await resolveServerAgentContext({
+            collection,
+            agentIdentifier: scopeResult.scope.agentPermanentId,
+            localServerUrl: await resolveCurrentOrInternalServerOrigin(),
+            fallbackResolver: baseAgentReferenceResolver,
+        });
 
         return {
             ok: true,
             context: {
                 userId: scopeResult.scope.userId,
                 agentPermanentId: scopeResult.scope.agentPermanentId,
-                agentSource,
+                agentSource: resolvedAgentContext.resolvedAgentSource,
             },
         };
     } catch {
@@ -128,4 +137,3 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         );
     }
 }
-

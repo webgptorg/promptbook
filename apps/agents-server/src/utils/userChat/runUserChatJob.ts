@@ -2,7 +2,6 @@ import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentColle
 import { createChatAttachmentTools } from '@/src/tools/createChatAttachmentTools';
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
-import { resolveBookScopedAgentContext } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
 import { AgentKitCacheManager } from '@/src/utils/cache/AgentKitCacheManager';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
 import { extractUseEmailConfigurationFromAgentSource } from '@/src/utils/emails/extractUseEmailConfigurationFromAgentSource';
@@ -31,6 +30,7 @@ import { persistUserChatJobTerminalState } from './persistUserChatJobTerminalSta
 import type { UserChatJobRecord } from './UserChatJobRecord';
 import { resolvePromptThreadBeforeUserMessage } from './userChatMessageLifecycle';
 import { updateUserChatAssistantMessage } from './updateUserChatAssistantMessage';
+import { resolveServerAgentContext } from '../resolveServerAgentContext';
 
 /**
  * Heartbeat cadence used while one chat job is actively streaming.
@@ -74,7 +74,7 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
     const localServerUrl = await resolveCurrentOrInternalServerOrigin();
     const collection = await $provideAgentCollectionForServer();
     const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
-    const resolvedAgentContext = await resolveBookScopedAgentContext({
+    const resolvedAgentContext = await resolveServerAgentContext({
         collection,
         agentIdentifier: job.agentPermanentId,
         localServerUrl,

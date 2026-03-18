@@ -4,7 +4,13 @@ import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentColle
 import { $provideServer } from '@/src/tools/$provideServer';
 import { findOwnedFolderById, findOwnedAgentByIdentifier } from '@/src/utils/agentOwnership';
 import { createAgentWithDefaultVisibility } from '@/src/utils/createAgentWithDefaultVisibility';
-import { searchOwnedAgents, getNextOwnedAgentSortOrder, mapOwnedAgentRowToManagementDetail, mapOwnedAgentRowToManagementSummary } from '@/src/utils/managementApi/managementApiAgents';
+import {
+    searchOwnedAgents,
+    getNextOwnedAgentSortOrder,
+    mapOwnedAgentRowToManagementDetail,
+    mapOwnedAgentRowToManagementSummary,
+    resolveOwnedAgentDerivedState,
+} from '@/src/utils/managementApi/managementApiAgents';
 import { resolveManagementApiIdentity } from '@/src/utils/managementApi/managementApiAuth';
 import {
     ManagementAgentCreateRequestSchema,
@@ -69,7 +75,7 @@ export async function GET(request: NextRequest) {
         const pagedAgents = agents.slice(startIndex, startIndex + limit);
 
         return createManagementApiJsonResponse(request, {
-            items: pagedAgents.map((item) => mapOwnedAgentRowToManagementSummary(item.row, publicUrl)),
+            items: pagedAgents.map((item) => mapOwnedAgentRowToManagementSummary(item.row, publicUrl, item.profile)),
             pagination: {
                 page,
                 limit,
@@ -147,10 +153,15 @@ export async function POST(request: NextRequest) {
         }
 
         const { publicUrl } = await $provideServer();
+        const resolvedAgentState = await resolveOwnedAgentDerivedState(persistedRow);
         return createManagementApiJsonResponse(
             request,
             {
-                agent: mapOwnedAgentRowToManagementDetail(persistedRow, publicUrl),
+                agent: mapOwnedAgentRowToManagementDetail(
+                    persistedRow,
+                    publicUrl,
+                    resolvedAgentState.resolvedAgentProfile,
+                ),
             },
             { status: 201 },
         );

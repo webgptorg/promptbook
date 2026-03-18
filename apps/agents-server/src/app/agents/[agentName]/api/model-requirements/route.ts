@@ -1,14 +1,12 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
-import { resolveInheritedAgentSource } from '@/src/utils/resolveInheritedAgentSource';
 import { createAgentModelRequirements } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { consumeAgentReferenceResolutionIssues } from '@/src/utils/agentReferenceResolver/AgentReferenceResolutionIssue';
-import { resolveBookScopedAgentContext } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
 import { createInlineKnowledgeSourceUploader } from '@/src/utils/knowledge/createInlineKnowledgeSourceUploader';
+import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
 
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     keepUnused(request /* <- Note: We dont need `request` parameter */);
@@ -18,7 +16,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
     try {
         const collection = await $provideAgentCollectionForServer();
         const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
-        const resolvedAgentContext = await resolveBookScopedAgentContext({
+        const resolvedAgentContext = await resolveServerAgentContext({
             collection,
             agentIdentifier: agentName,
             localServerUrl: new URL(request.url).origin,
@@ -26,12 +24,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         });
         const agentSource = resolvedAgentContext.resolvedAgentSource;
         const agentReferenceResolver = resolvedAgentContext.scopedAgentReferenceResolver;
-        const effectiveAgentSource = await resolveInheritedAgentSource(agentSource, {
-            adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
-            agentReferenceResolver,
-        });
         const modelRequirements = await createAgentModelRequirements(
-            effectiveAgentSource,
+            agentSource,
             undefined,
             undefined,
             undefined,

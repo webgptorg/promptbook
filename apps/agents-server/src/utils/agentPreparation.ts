@@ -4,11 +4,11 @@ import { serializeError } from '@promptbook-local/utils';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
 import { createServerAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/createServerAgentReferenceResolver';
-import { resolveBookScopedAgentContext } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
 import { AgentKitCacheManager } from '@/src/utils/cache/AgentKitCacheManager';
 import { getFederatedServers } from '@/src/utils/getFederatedServers';
 import { resolveInternalServerOrigin } from '@/src/utils/resolveInternalServerOrigin';
 import { retryWithBackoff } from '@/src/utils/retryWithBackoff';
+import { resolveServerAgentContext } from './resolveServerAgentContext';
 
 /**
  * Debounce window for agent pre-indexing.
@@ -753,7 +753,7 @@ async function processClaimedAgentPreparationJob(tablePrefix: string, claimedJob
 
         const fallbackAgentReferenceResolver = await createBackgroundAgentReferenceResolver(tablePrefix, collection);
         const localServerUrl = resolveInternalServerOrigin();
-        const resolvedAgentContext = await resolveBookScopedAgentContext({
+        const resolvedAgentContext = await resolveServerAgentContext({
             collection,
             agentIdentifier: claimedJob.agentPermanentId,
             localServerUrl,

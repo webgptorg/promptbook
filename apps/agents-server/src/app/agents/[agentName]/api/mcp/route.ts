@@ -1,5 +1,7 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { $provideExecutionToolsForServer } from '@/src/tools/$provideExecutionToolsForServer';
+import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { JSONRPCMessage } from '@modelcontextprotocol/sdk/types.js';
@@ -58,7 +60,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // Check if agent exists
     try {
         const collection = await $provideAgentCollectionForServer();
-        await collection.getAgentSource(agentName);
+        const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
+        await resolveServerAgentContext({
+            collection,
+            agentIdentifier: agentName,
+            localServerUrl: new URL(request.url).origin,
+            fallbackResolver: baseAgentReferenceResolver,
+        });
     } catch (error) {
         return NextResponse.json({ error: 'Agent not found' }, { status: 404 });
     }
@@ -99,7 +107,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                 async ({ messages }) => {
                     try {
                         const collection = await $provideAgentCollectionForServer();
-                        const agentSource = await collection.getAgentSource(agentName);
+                        const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
+                        const resolvedAgentContext = await resolveServerAgentContext({
+                            collection,
+                            agentIdentifier: agentName,
+                            localServerUrl: new URL(request.url).origin,
+                            fallbackResolver: baseAgentReferenceResolver,
+                        });
+                        const agentSource = resolvedAgentContext.resolvedAgentSource;
 
                         const executionTools = await $provideExecutionToolsForServer();
                         const agent = new Agent({

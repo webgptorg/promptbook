@@ -1,5 +1,7 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { $provideExecutionToolsForServer } from '@/src/tools/$provideExecutionToolsForServer';
+import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
 import { _OpenAiSdkTranspilerRegistration } from '@promptbook-local/wizard';
 import { NextRequest, NextResponse } from 'next/server';
 import { $bookTranspilersRegister } from '../../../../../../../../src/transpilers/_common/register/$bookTranspilersRegister';
@@ -47,7 +49,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
         // Get agent source
         const collection = await $provideAgentCollectionForServer();
-        const agentSource = await collection.getAgentSource(agentName);
+        const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
+        const resolvedAgentContext = await resolveServerAgentContext({
+            collection,
+            agentIdentifier: agentName,
+            localServerUrl: new URL(request.url).origin,
+            fallbackResolver: baseAgentReferenceResolver,
+        });
+        const agentSource = resolvedAgentContext.resolvedAgentSource;
 
         if (!agentSource) {
             return NextResponse.json({ error: 'Agent source not found' }, { status: 404 });

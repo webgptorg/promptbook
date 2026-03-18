@@ -2,8 +2,12 @@ import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-so
 import { $getTableName } from '../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../database/$provideSupabaseForServer';
 import type { AgentsServerDatabase } from '../../database/schema';
+import { $provideAgentReferenceResolver } from '../agentReferenceResolver/$provideAgentReferenceResolver';
 import { isPublicAgentVisibility } from '../agentVisibility';
 import { getCurrentUser } from '../getCurrentUser';
+import { getWellKnownAgentUrl } from '../getWellKnownAgentUrl';
+import { resolveCurrentOrInternalServerOrigin } from '../resolveCurrentOrInternalServerOrigin';
+import { resolveStoredAgentStates } from '../resolveStoredAgentState';
 import { buildFolderTree, collectAncestorFolderIds } from './folderTree';
 import type {
     AgentOrganizationAgent,
@@ -22,9 +26,11 @@ type AgentFolderRow = AgentsServerDatabase['public']['Tables']['AgentFolder']['R
  * @returns Agent payload enriched with organization metadata.
  */
 function mapAgentRowToOrganizationAgent(
-    row: Pick<AgentRow, 'agentName' | 'agentProfile' | 'permanentId' | 'visibility' | 'folderId' | 'sortOrder'>,
+    row: Pick<AgentRow, 'agentName' | 'permanentId' | 'visibility' | 'folderId' | 'sortOrder'> & {
+        resolvedAgentProfile: AgentBasicInformation;
+    },
 ): AgentOrganizationAgent {
-    const profile = row.agentProfile as AgentBasicInformation;
+    const profile = row.resolvedAgentProfile;
 
     return {
         ...profile,
@@ -77,7 +83,7 @@ export async function loadAgentOrganizationState(
 
     const agentQuery = supabase
         .from(agentTable)
-        .select('agentName, agentProfile, permanentId, visibility, folderId, sortOrder, deletedAt');
+        .select('agentName, agentSource, permanentId, visibility, folderId, sortOrder, deletedAt');
     const folderQuery = supabase.from(folderTable).select('id, name, parentId, sortOrder, icon, color, deletedAt');
 
     if (options.status === 'RECYCLE_BIN') {
@@ -98,7 +104,22 @@ export async function loadAgentOrganizationState(
         throw new Error(`Failed to load folders: ${folderResult.error.message}`);
     }
 
-    const agents = (agentResult.data || []).map(mapAgentRowToOrganizationAgent);
+    const localServerUrl = await resolveCurrentOrInternalServerOrigin();
+    const agentReferenceResolver = await $provideAgentReferenceResolver();
+    const resolvedAgents = await resolveStoredAgentStates(
+        (agentResult.data || []) as Array<Pick<AgentRow, 'agentName' | 'agentSource' | 'permanentId' | 'visibility' | 'folderId' | 'sortOrder'>>,
+        {
+            localServerUrl,
+            adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
+            agentReferenceResolver,
+        },
+    );
+    const agents = resolvedAgents.map((agent) =>
+        mapAgentRowToOrganizationAgent({
+            ...agent,
+            resolvedAgentProfile: agent.resolvedAgentProfile,
+        }),
+    );
     const folders = (folderResult.data || []).map(mapFolderRowToOrganizationFolder);
 
     if (currentUser || includePrivate) {

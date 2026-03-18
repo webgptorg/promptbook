@@ -121,7 +121,9 @@ describe('bookScopedAgentReferences', () => {
 
         expect(context.isBookScopedAgent).toBe(true);
         expect(context.parentAgentPermanentId).toBe('parent');
+        expect(context.canonicalAgentIdentifier).toBe(embeddedIdentifier);
+        expect(context.canonicalAgentUrl).toBe(`https://local.example/agents/${encodeURIComponent(embeddedIdentifier)}`);
         expect(context.resolvedAgentName).toBe('copywriter');
-        expect(context.resolvedAgentSource).toContain('Copywriter');
+        expect(context.unresolvedAgentSource).toContain('Copywriter');
     });
 });

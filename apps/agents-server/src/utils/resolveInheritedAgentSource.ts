@@ -8,6 +8,7 @@ import {
 import { string_agent_url, string_book } from '../../../../src/_packages/types.index'; // <- [🚾]
 import { isValidAgentUrl } from '../../../../src/_packages/utils.index'; // <- [🚾]
 import type { AgentReferenceResolver } from '../../../../src/book-2.0/agent-source/AgentReferenceResolver';
+import { parseAgentSourceWithCommitments } from '../../../../src/book-2.0/agent-source/parseAgentSourceWithCommitments';
 import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
 import {
     type AgentReferenceResolutionIssue,
@@ -95,6 +96,16 @@ function getErrorMessage(error: unknown): string {
 }
 
 /**
+ * Checks whether the provided error represents a cyclic inheritance/import resolution failure.
+ *
+ * @param error - Unknown error propagated from one resolver/import step.
+ * @returns `true` when the error should be surfaced instead of materialized into NOTE lines.
+ */
+function isResolutionCycleError(error: unknown): error is ParseError {
+    return error instanceof ParseError && /Cyclic `(FROM|IMPORT)` reference detected/.test(error.message);
+}
+
+/**
  * Inserts NOTE lines right after the title line in a book.
  *
  * @param agentSource - Original agent source.
@@ -123,12 +134,82 @@ type ResolveInheritedAgentSourceOptions = ImportAgentOptions & {
      *
      * @default 'https://core.ptbk.io/agents/adam'
      */
-    readonly adamAgentUrl: string_agent_url;
+    readonly adamAgentUrl?: string_agent_url;
     /**
      * Custom resolver used to expand compact agent references.
      */
     readonly agentReferenceResolver?: AgentReferenceResolver;
+    /**
+     * Canonical URL of the currently resolved agent.
+     */
+    readonly currentAgentUrl?: string_agent_url;
+    /**
+     * Already visited agent URLs in the current resolution stack.
+     */
+    readonly inheritancePath?: ReadonlyArray<string_agent_url>;
 };
+
+/**
+ * Normalizes agent URLs used for cycle detection and lineage reporting.
+ *
+ * @param agentUrl - Raw agent URL.
+ * @returns URL without trailing slashes.
+ */
+function normalizeAgentUrl(agentUrl: string_agent_url): string_agent_url {
+    return agentUrl.replace(/\/+$/g, '') as string_agent_url;
+}
+
+/**
+ * Builds the current resolution lineage ending with the agent being resolved now.
+ *
+ * @param options - Resolution options with current agent metadata.
+ * @returns Ordered lineage without empty values.
+ */
+function createResolutionLineage(options?: ResolveInheritedAgentSourceOptions): Array<string_agent_url> {
+    const lineage = [...(options?.inheritancePath || [])];
+
+    if (options?.currentAgentUrl) {
+        lineage.push(options.currentAgentUrl);
+    }
+
+    return lineage.map(normalizeAgentUrl);
+}
+
+/**
+ * Throws when a `FROM`/`IMPORT` edge would create an inheritance cycle.
+ *
+ * @param referenceUrl - Next referenced agent URL.
+ * @param commitmentType - Commitment that introduced the reference.
+ * @param options - Current resolution options.
+ */
+function assertNoResolutionCycle(
+    referenceUrl: string_agent_url,
+    commitmentType: 'FROM' | 'IMPORT',
+    options?: ResolveInheritedAgentSourceOptions,
+): void {
+    const normalizedReferenceUrl = normalizeAgentUrl(referenceUrl);
+    const lineage = createResolutionLineage(options);
+    const cycleStartIndex = lineage.findIndex((visitedUrl) => visitedUrl === normalizedReferenceUrl);
+
+    if (cycleStartIndex === -1) {
+        return;
+    }
+
+    const cycleChain = [...lineage.slice(cycleStartIndex), normalizedReferenceUrl]
+        .map((visitedUrl) => `- \`${visitedUrl}\``)
+        .join('\n');
+
+    throw new ParseError(
+        spaceTrim(
+            (block) => `
+                Cyclic \`${commitmentType}\` reference detected while resolving agent source.
+
+                Resolution chain:
+                ${block(cycleChain)}
+            `,
+        ),
+    );
+}
 
 /**
  * Resolves agent source with inheritance (FROM commitment)
@@ -144,6 +225,8 @@ export async function resolveInheritedAgentSource(
 ): Promise<string_book> {
     const { adamAgentUrl = 'https://core.ptbk.io/agents/adam', recursionLevel = 0 } = options || {};
     const agentReferenceResolver = options?.agentReferenceResolver;
+    const parsedAgentSource = parseAgentSourceWithCommitments(agentSource);
+    const hasExplicitFromCommitment = parsedAgentSource.commitments.some((commitment) => commitment.type === 'FROM');
 
     // Check if the source has FROM commitment
     // We use createAgentModelRequirements to parse commitments
@@ -163,12 +246,15 @@ export async function resolveInheritedAgentSource(
         parentAgentUrl = requirements.parentAgentUrl as string_agent_url;
     }
     // 2️⃣ Parent URL is explicitly defined as null (forcefully no parent)
-    else if (requirements.parentAgentUrl === null) {
+    else if (requirements.parentAgentUrl === null && hasExplicitFromCommitment) {
         parentAgentUrl = null;
     }
     // 3️⃣ Parent URL is not defined, use the default ancestor - Adam
-    else if (requirements.parentAgentUrl === undefined) {
-        parentAgentUrl = adamAgentUrl;
+    else if (requirements.parentAgentUrl === undefined || requirements.parentAgentUrl === null) {
+        parentAgentUrl =
+            options?.currentAgentUrl && normalizeAgentUrl(options.currentAgentUrl) === normalizeAgentUrl(adamAgentUrl)
+                ? null
+                : adamAgentUrl;
     }
     // 4️⃣ Parent URL is defined but invalid
     else {
@@ -191,9 +277,17 @@ export async function resolveInheritedAgentSource(
 
     if (parentAgentUrl) {
         try {
-            const parentAgentSource = await importAgent(parentAgentUrl, { recursionLevel });
+            assertNoResolutionCycle(parentAgentUrl, 'FROM', options);
+            const parentAgentSource = await importAgent(parentAgentUrl, {
+                recursionLevel,
+                inheritancePath: createResolutionLineage(options),
+            });
             parentAgentSourceCorpus = getAgentSourceCorpus(parentAgentSource as string_book);
         } catch (error) {
+            if (isResolutionCycleError(error)) {
+                throw error;
+            }
+
             parentAgentImportErrorMessage = getErrorMessage(error);
             console.warn(`[resolveInheritedAgentSource] Failed to import parent agent "${parentAgentUrl}":`, error);
         }
@@ -237,14 +331,12 @@ export async function resolveInheritedAgentSource(
                 const importedAgentUrl = importedUrlOrPath as string_agent_url;
 
                 try {
-                    const importedAgentSource = await importAgent(importedAgentUrl, { recursionLevel });
-                    const resolvedImportedAgentSource = await resolveInheritedAgentSource(importedAgentSource, {
-                        ...options,
-                        adamAgentUrl,
-                        agentReferenceResolver,
-                        recursionLevel: recursionLevel + 1,
+                    assertNoResolutionCycle(importedAgentUrl, 'IMPORT', options);
+                    const importedAgentSource = await importAgent(importedAgentUrl, {
+                        recursionLevel,
+                        inheritancePath: createResolutionLineage(options),
                     });
-                    const importedAgentSourceCorpus = getAgentSourceCorpus(resolvedImportedAgentSource);
+                    const importedAgentSourceCorpus = getAgentSourceCorpus(importedAgentSource);
 
                     newAgentSourceChunks.push(
                         spaceTrim(
@@ -259,6 +351,10 @@ export async function resolveInheritedAgentSource(
                         '', // <- Note: Add an extra newline for separation
                     );
                 } catch (error) {
+                    if (isResolutionCycleError(error)) {
+                        throw error;
+                    }
+
                     const errorMessage = getErrorMessage(error);
                     newAgentSourceChunks.push(
                         `NOTE Imported agent "${importedAgentUrl}" was not found or could not be loaded. Import skipped.`,

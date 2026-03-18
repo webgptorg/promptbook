@@ -1,3 +1,10 @@
+-   Fixed Agents Server agent inheritance resolution so unresolved book editor source and canonical resolved runtime source are now cleanly separated and reused consistently:
+
+    -   Renamed the book-scoped route context to expose `unresolvedAgentSource`, added a shared resolved-agent context/state utility, and made runtime/profile/model-requirements/system-message/avatar/disclaimer/transpilation flows derive behavior and presentation from the materialized resolved source instead of the editable source.
+    -   Hardened `FROM` / `IMPORT` resolution with canonical current-agent URLs, cycle detection, and `/api/book` ETag-based remote revalidation so local, core, and federated inheritance stays fresh when upstream agents change.
+    -   Updated local/federated metadata/search/management datasets to derive resolved profiles and resolved searchable source from stored agent books instead of the stale persisted `agentProfile` column, so inherited color/font/title/description/capabilities show up consistently across agent cards, `/api/agents`, search, and management summaries.
+    -   Added unit coverage for implicit Adam inheritance, local and federated parent resolution, metadata inheritance, child-over-parent overrides, inherited commitments/rules, and safe cycle failures.
+
 -   Added optimistic first-user-message rendering for new durable Agents Server chats started before entering `/chat`:
 
     -   Starting a new chat from the agent profile page, textarea page, or any other prefilled `/chat?message=...` flow now renders the first user bubble immediately as `Sending` while the durable `/messages` request is still in flight, instead of leaving a confusing one-message gap after navigation.

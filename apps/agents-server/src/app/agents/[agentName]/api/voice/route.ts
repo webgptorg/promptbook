@@ -1,6 +1,7 @@
 import { getMetadataMap } from '@/src/database/getMetadata';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
+import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { createChatHistoryRecorder } from '@/src/utils/chat/createChatHistoryRecorder';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
 import {
@@ -19,6 +20,7 @@ import { keepUnused } from '../../../../../../../../src/utils/organization/keepU
 import { respondIfClientVersionIsOutdated } from '../../../../../utils/clientVersionGuard';
 import { textToSpeechText } from '../../../../../utils/textToSpeechText';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
+import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
 
 export const maxDuration = 300;
 
@@ -85,9 +87,16 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
     try {
         const collection = await $provideAgentCollectionForServer();
-        const agentPermanentId = await collection.getAgentPermanentId(agentName);
         const currentUserIdentity = await resolveCurrentUserMemoryIdentity();
-        const agentSource = await collection.getAgentSource(agentName);
+        const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
+        const resolvedAgentContext = await resolveServerAgentContext({
+            collection,
+            agentIdentifier: agentName,
+            localServerUrl: new URL(request.url).origin,
+            fallbackResolver: baseAgentReferenceResolver,
+        });
+        const agentPermanentId = resolvedAgentContext.parentAgentPermanentId;
+        const agentSource = resolvedAgentContext.resolvedAgentSource;
         const projectRepositories = extractProjectRepositoriesFromAgentSource(agentSource);
         const useEmailConfiguration = extractUseEmailConfigurationFromAgentSource(agentSource);
         const projectGithubToken = await resolveUseProjectGithubToken({

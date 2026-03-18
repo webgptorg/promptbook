@@ -5,6 +5,7 @@ import { findOwnedAgentByIdentifier, findOwnedFolderById } from '@/src/utils/age
 import {
     getNextOwnedAgentSortOrder,
     mapOwnedAgentRowToManagementSummary,
+    resolveOwnedAgentDerivedState,
 } from '@/src/utils/managementApi/managementApiAgents';
 import { resolveManagementApiIdentity } from '@/src/utils/managementApi/managementApiAuth';
 import { ManagementFolderAgentPathParamsSchema } from '@/src/utils/managementApi/managementApiSchemas';
@@ -99,8 +100,13 @@ export async function POST(
         }
 
         const { publicUrl } = await $provideServer();
+        const resolvedAgentState = await resolveOwnedAgentDerivedState(updatedAgent);
         return createManagementApiJsonResponse(request, {
-            agent: mapOwnedAgentRowToManagementSummary(updatedAgent, publicUrl),
+            agent: mapOwnedAgentRowToManagementSummary(
+                updatedAgent,
+                publicUrl,
+                resolvedAgentState.resolvedAgentProfile,
+            ),
         });
     } catch (error) {
         if (error instanceof Error && error.message.includes('ambiguous')) {

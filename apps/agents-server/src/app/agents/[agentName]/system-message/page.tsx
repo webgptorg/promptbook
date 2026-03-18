@@ -4,10 +4,8 @@ import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentColle
 import { $provideServer } from '@/src/tools/$provideServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { consumeAgentReferenceResolutionIssues } from '@/src/utils/agentReferenceResolver/AgentReferenceResolutionIssue';
-import { resolveBookScopedAgentContext } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
-import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { createInlineKnowledgeSourceUploader } from '@/src/utils/knowledge/createInlineKnowledgeSourceUploader';
-import { resolveInheritedAgentSource } from '@/src/utils/resolveInheritedAgentSource';
+import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
 import { CodePreview } from '@common/components/CodePreview/CodePreview';
 import { createAgentModelRequirements } from '@promptbook-local/core';
 import { FileTextIcon } from 'lucide-react';
@@ -26,7 +24,7 @@ export default async function AgentSystemMessagePage({ params }: { params: Promi
 
     const collection = await $provideAgentCollectionForServer();
     const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
-    const resolvedAgentContext = await resolveBookScopedAgentContext({
+    const resolvedAgentContext = await resolveServerAgentContext({
         collection,
         agentIdentifier: agentName,
         localServerUrl: publicUrl.href,
@@ -34,12 +32,8 @@ export default async function AgentSystemMessagePage({ params }: { params: Promi
     });
     const agentSource = resolvedAgentContext.resolvedAgentSource;
     const agentReferenceResolver = resolvedAgentContext.scopedAgentReferenceResolver;
-    const effectiveAgentSource = await resolveInheritedAgentSource(agentSource, {
-        adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
-        agentReferenceResolver,
-    });
     const modelRequirements = await createAgentModelRequirements(
-        effectiveAgentSource,
+        agentSource,
         undefined,
         undefined,
         undefined,

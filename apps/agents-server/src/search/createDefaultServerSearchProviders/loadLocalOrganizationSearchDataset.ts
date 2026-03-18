@@ -1,6 +1,11 @@
 import { $getTableName } from '../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../database/$provideSupabaseForServer';
 import type { AgentsServerDatabase } from '../../database/schema';
+import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
+import { $provideAgentReferenceResolver } from '../../utils/agentReferenceResolver/$provideAgentReferenceResolver';
+import { getWellKnownAgentUrl } from '../../utils/getWellKnownAgentUrl';
+import { resolveCurrentOrInternalServerOrigin } from '../../utils/resolveCurrentOrInternalServerOrigin';
+import { resolveStoredAgentStates } from '../../utils/resolveStoredAgentState';
 
 /**
  * Agent table row shape used by local organization search.
@@ -9,8 +14,11 @@ import type { AgentsServerDatabase } from '../../database/schema';
  */
 type AgentSearchRow = Pick<
     AgentsServerDatabase['public']['Tables']['Agent']['Row'],
-    'id' | 'agentName' | 'permanentId' | 'agentProfile' | 'agentSource' | 'folderId' | 'visibility'
->;
+    'id' | 'agentName' | 'permanentId' | 'agentSource' | 'folderId' | 'visibility'
+> & {
+    readonly resolvedAgentProfile: AgentBasicInformation;
+    readonly resolvedAgentSource: string;
+};
 
 /**
  * Folder table row shape used by local organization search.
@@ -50,7 +58,7 @@ export async function loadLocalOrganizationSearchDataset(options: {
 
     const agentQuery = supabase
         .from(agentTable)
-        .select('id, agentName, permanentId, agentProfile, agentSource, folderId, visibility')
+        .select('id, agentName, permanentId, agentSource, folderId, visibility')
         .is('deletedAt', null);
 
     if (!options.includePrivate) {
@@ -74,7 +82,26 @@ export async function loadLocalOrganizationSearchDataset(options: {
     }
 
     const folders = (folderResult.data || []) as AgentFolderSearchRow[];
-    const agents = (agentResult.data || []) as AgentSearchRow[];
+    const localServerUrl = await resolveCurrentOrInternalServerOrigin();
+    const agentReferenceResolver = await $provideAgentReferenceResolver();
+    const resolvedAgents = await resolveStoredAgentStates(
+        (agentResult.data || []) as Array<Pick<AgentSearchRow, 'id' | 'agentName' | 'permanentId' | 'agentSource' | 'folderId' | 'visibility'>>,
+        {
+            localServerUrl,
+            adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
+            agentReferenceResolver,
+        },
+    );
+    const agents = resolvedAgents.map((agent) => ({
+        id: agent.id,
+        agentName: agent.agentName,
+        permanentId: agent.permanentId || null,
+        agentSource: agent.agentSource,
+        folderId: agent.folderId,
+        visibility: agent.visibility,
+        resolvedAgentProfile: agent.resolvedAgentProfile,
+        resolvedAgentSource: agent.resolvedAgentSource,
+    })) as AgentSearchRow[];
     const folderById = new Map<number, AgentFolderSearchRow>(folders.map((folder) => [folder.id, folder]));
 
     const visibleFolderIds = new Set<number>();

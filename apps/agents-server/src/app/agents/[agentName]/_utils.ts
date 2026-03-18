@@ -4,10 +4,8 @@ import { $provideServer } from '@/src/tools/$provideServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import {
     parseBookScopedAgentIdentifier,
-    resolveBookScopedAgentContext,
 } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
-import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
-import { resolveAgentProfileWithInheritance } from '@/src/utils/resolveAgentProfileWithInheritance';
+import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
 import { cache } from 'react';
 import type { AgentsServerDatabase } from '../../../database/schema';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
@@ -41,18 +39,13 @@ const getCachedAgentProfile = cache(async (agentName: string) => {
     const collection = await $provideAgentCollectionForServer();
     const { publicUrl } = await $provideServer();
     const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
-    const resolvedAgentContext = await resolveBookScopedAgentContext({
+    const resolvedAgentContext = await resolveServerAgentContext({
         collection,
         agentIdentifier: agentName,
         localServerUrl: publicUrl.href,
         fallbackResolver: baseAgentReferenceResolver,
     });
-    const agentSource = resolvedAgentContext.resolvedAgentSource;
-    const agentReferenceResolver = resolvedAgentContext.scopedAgentReferenceResolver;
-    const agentProfile = await resolveAgentProfileWithInheritance(agentSource, {
-        adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
-        agentReferenceResolver,
-    });
+    const agentProfile = resolvedAgentContext.resolvedAgentProfile;
 
     const supabase = $provideSupabaseForServer();
     const agentTable = await $getTableName('Agent');

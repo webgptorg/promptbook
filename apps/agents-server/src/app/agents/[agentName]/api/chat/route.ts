@@ -5,7 +5,6 @@ import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$prov
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import {
     parseBookScopedAgentIdentifier,
-    resolveBookScopedAgentContext,
 } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
 import { AgentKitCacheManager } from '@/src/utils/cache/AgentKitCacheManager';
 import { createChatHistoryRecorder } from '@/src/utils/chat/createChatHistoryRecorder';
@@ -48,6 +47,7 @@ import { keepUnused } from '../../../../../../../../src/utils/organization/keepU
 import { respondIfClientVersionIsOutdated } from '../../../../../utils/clientVersionGuard';
 import { prepareToolCallsForStreaming } from '../../../../../utils/toolCallStreaming';
 import { isAgentDeleted } from '../../_utils';
+import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
 
 /**
  * Shape of the incoming chat API payload.
@@ -264,7 +264,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     try {
         const collection = await $provideAgentCollectionForServer();
         const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
-        const resolvedAgentContext = await resolveBookScopedAgentContext({
+        const resolvedAgentContext = await resolveServerAgentContext({
             collection,
             agentIdentifier: agentName,
             localServerUrl: new URL(request.url).origin,

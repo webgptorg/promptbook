@@ -1,14 +1,15 @@
 import { $getTableName } from '../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../database/$provideSupabaseForServer';
 import type { AgentsServerDatabase } from '../../database/schema';
+import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import type { ServerSearchProvider } from '../ServerSearchProvider';
 import type { ServerSearchResultItem } from '../ServerSearchResultItem';
 import { createServerSearchMatcher } from '../createServerSearchMatcher';
 import { defaultServerSearchProviderConfig } from './defaultServerSearchProviderConfig';
 import { extractConversationTitle } from './extractConversationTitle';
 import { flattenChatMessagesToText } from './flattenChatMessagesToText';
+import { loadLocalOrganizationSearchDataset } from './loadLocalOrganizationSearchDataset';
 import { sortAndLimitProviderResults } from './sortAndLimitProviderResults';
-import { toAgentProfile } from './toAgentProfile';
 
 /**
  * User-chat table row shape used by conversations provider.
@@ -37,8 +38,10 @@ type ChatHistorySearchRow = Pick<
  */
 type AgentChatLinkRow = Pick<
     AgentsServerDatabase['public']['Tables']['Agent']['Row'],
-    'agentName' | 'permanentId' | 'agentProfile'
->;
+    'agentName' | 'permanentId'
+> & {
+    readonly resolvedAgentProfile: AgentBasicInformation;
+};
 
 /**
  * Creates provider for conversations (user chats and admin chat history).
@@ -77,30 +80,22 @@ async function searchUserConversations(
 
     const supabase = $provideSupabaseForServer();
     const userId = context.currentUser.id;
-    const [chatResult, agentResult] = await Promise.all([
+    const [chatResult, dataset] = await Promise.all([
         supabase
             .from(await $getTableName('UserChat'))
             .select('id, updatedAt, lastMessageAt, agentPermanentId, messages')
             .eq('userId', userId)
             .order('lastMessageAt', { ascending: false, nullsFirst: false })
             .limit(defaultServerSearchProviderConfig.userChatLimit),
-        supabase
-            .from(await $getTableName('Agent'))
-            .select('agentName, permanentId, agentProfile')
-            .is('deletedAt', null),
+        loadLocalOrganizationSearchDataset({ includePrivate: true }),
     ]);
 
     if (chatResult.error) {
         console.error('[search] Failed to load user chats:', chatResult.error);
         return [];
     }
-    if (agentResult.error) {
-        console.error('[search] Failed to load agents for chat linking:', agentResult.error);
-        return [];
-    }
-
     const agentByPermanentId = new Map<string, AgentChatLinkRow>();
-    for (const row of (agentResult.data || []) as AgentChatLinkRow[]) {
+    for (const row of dataset.agents as ReadonlyArray<AgentChatLinkRow>) {
         if (!row.permanentId) {
             continue;
         }
@@ -114,7 +109,7 @@ async function searchUserConversations(
             continue;
         }
 
-        const profile = toAgentProfile(relatedAgent.agentProfile);
+        const profile = relatedAgent.resolvedAgentProfile;
         const agentLabel = profile.meta?.fullname || relatedAgent.agentName;
         const messageText = flattenChatMessagesToText(chat.messages);
         const chatTitle = extractConversationTitle(messageText) || `Conversation with ${agentLabel}`;

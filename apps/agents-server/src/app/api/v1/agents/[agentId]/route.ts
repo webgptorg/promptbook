@@ -9,6 +9,7 @@ import { findOwnedAgentByIdentifier, findOwnedFolderById } from '@/src/utils/age
 import {
     getNextOwnedAgentSortOrder,
     mapOwnedAgentRowToManagementDetail,
+    resolveOwnedAgentDerivedState,
 } from '@/src/utils/managementApi/managementApiAgents';
 import { resolveManagementApiIdentity } from '@/src/utils/managementApi/managementApiAuth';
 import {
@@ -62,7 +63,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         }
 
         const { publicUrl } = await $provideServer();
-        return createManagementApiJsonResponse(request, mapOwnedAgentRowToManagementDetail(agentRow, publicUrl));
+        const resolvedAgentState = await resolveOwnedAgentDerivedState(agentRow);
+        return createManagementApiJsonResponse(
+            request,
+            mapOwnedAgentRowToManagementDetail(agentRow, publicUrl, resolvedAgentState.resolvedAgentProfile),
+        );
     } catch (error) {
         return mapOwnedAgentLookupErrorToResponse(request, error);
     }
@@ -177,8 +182,13 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         }
 
         const { publicUrl } = await $provideServer();
+        const resolvedAgentState = await resolveOwnedAgentDerivedState(updatedAgent);
         return createManagementApiJsonResponse(request, {
-            agent: mapOwnedAgentRowToManagementDetail(updatedAgent, publicUrl),
+            agent: mapOwnedAgentRowToManagementDetail(
+                updatedAgent,
+                publicUrl,
+                resolvedAgentState.resolvedAgentProfile,
+            ),
         });
     } catch (error) {
         return mapOwnedAgentLookupErrorToResponse(request, error);

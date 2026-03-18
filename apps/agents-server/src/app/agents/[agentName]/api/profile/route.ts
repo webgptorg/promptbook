@@ -1,52 +1,11 @@
 import { getMetadataMap } from '@/src/database/getMetadata';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
-import { resolveBookScopedAgentContext } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
-import { resolveTeamCapabilitiesFromAgentSource } from '@/src/utils/agentReferenceResolver/resolveTeamCapabilitiesFromAgentSource';
-import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
-import { resolveAgentProfileWithInheritance } from '@/src/utils/resolveAgentProfileWithInheritance';
+import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
 import { computeAgentHash } from '@promptbook-local/core';
-import { AgentCapability } from '@promptbook-local/types';
 import { serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
-
-/**
- * Replaces TEAM capabilities with resolver-backed entries while preserving capability order.
- *
- * @param capabilities - Original capability list parsed from agent source.
- * @param resolvedTeamCapabilities - TEAM capabilities resolved with compact references expanded.
- * @returns Capability list with TEAM entries replaced by resolved values.
- */
-function mergeTeamCapabilities(
-    capabilities: ReadonlyArray<AgentCapability>,
-    resolvedTeamCapabilities: ReadonlyArray<AgentCapability>,
-): Array<AgentCapability> {
-    if (resolvedTeamCapabilities.length === 0) {
-        return [...capabilities];
-    }
-
-    const mergedCapabilities: Array<AgentCapability> = [];
-    let hasInsertedResolvedTeams = false;
-
-    for (const capability of capabilities) {
-        if (capability.type === 'team') {
-            if (!hasInsertedResolvedTeams) {
-                mergedCapabilities.push(...resolvedTeamCapabilities);
-                hasInsertedResolvedTeams = true;
-            }
-            continue;
-        }
-
-        mergedCapabilities.push(capability);
-    }
-
-    if (!hasInsertedResolvedTeams) {
-        mergedCapabilities.push(...resolvedTeamCapabilities);
-    }
-
-    return mergedCapabilities;
-}
 
 export async function OPTIONS(request: Request) {
     keepUnused(request);
@@ -68,22 +27,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
     try {
         const collection = await $provideAgentCollectionForServer();
         const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
-        const resolvedAgentContext = await resolveBookScopedAgentContext({
+        const resolvedAgentContext = await resolveServerAgentContext({
             collection,
             agentIdentifier: agentName,
             localServerUrl: new URL(request.url).origin,
             fallbackResolver: baseAgentReferenceResolver,
         });
         const agentSource = resolvedAgentContext.resolvedAgentSource;
-        const agentReferenceResolver = resolvedAgentContext.scopedAgentReferenceResolver;
-        const adamAgentUrl = await getWellKnownAgentUrl('ADAM');
-        const agentProfile = await resolveAgentProfileWithInheritance(agentSource, {
-            adamAgentUrl,
-            agentReferenceResolver,
-        });
-        const resolvedTeamCapabilities = await resolveTeamCapabilitiesFromAgentSource(agentSource, agentReferenceResolver);
-
-        agentProfile.capabilities = mergeTeamCapabilities(agentProfile.capabilities, resolvedTeamCapabilities);
+        const agentProfile = { ...resolvedAgentContext.resolvedAgentProfile };
 
         const metadata = await getMetadataMap([
             'IS_EXPERIMENTAL_VOICE_CALLING_ENABLED',

@@ -1,24 +1,19 @@
 import { $provideServer } from '@/src/tools/$provideServer';
-import { getPublicAgentProfileSeoRecords } from '@/src/utils/seo/getPublicAgentProfileSeoRecords';
 import { NextResponse } from 'next/server';
-import { $provideAgentCollectionForServer } from '../../../tools/$provideAgentCollectionForServer';
+import { loadLocalOrganizationSearchDataset } from '../../../search/createDefaultServerSearchProviders/loadLocalOrganizationSearchDataset';
 import { getFederatedServers } from '../../../utils/getFederatedServers';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
     try {
-        const collection = await $provideAgentCollectionForServer();
-        const allAgents = await collection.listAgents();
+        const dataset = await loadLocalOrganizationSearchDataset({ includePrivate: false });
         const federatedServers = await getFederatedServers();
         const { publicUrl } = await $provideServer();
-
-        const publicSeoRecords = await getPublicAgentProfileSeoRecords();
-        const publicCanonicalAgentIds = new Set(publicSeoRecords.map((record) => record.canonicalAgentId));
-        const publicAgents = allAgents.filter((agent) => publicCanonicalAgentIds.has(agent.permanentId || agent.agentName));
-
-        const agentsWithUrl = publicAgents.map((agent) => ({
-            ...agent,
+        const agentsWithUrl = dataset.agents.map((agent) => ({
+            ...agent.resolvedAgentProfile,
+            agentName: agent.agentName,
+            permanentId: agent.permanentId || undefined,
             url: `${publicUrl.href}agents/${encodeURIComponent(agent.permanentId || agent.agentName)}`,
         }));
 
