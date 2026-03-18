@@ -1,6 +1,6 @@
 'use client';
 
-import { Clock3Icon, EyeIcon, EyeOffIcon, MessageSquarePlusIcon, Trash2Icon, XIcon } from 'lucide-react';
+import { Clock3Icon, EyeIcon, EyeOffIcon, Loader2Icon, MessageSquarePlusIcon, Trash2Icon, XIcon } from 'lucide-react';
 import { useState } from 'react';
 import { SolidArrowButton } from '../../../../../../../src/book-components/icons/SolidArrowButton';
 import { ChatListLoadingSkeleton } from '../../../../components/Skeleton/ChatListLoadingSkeleton';
@@ -120,14 +120,7 @@ type SidebarChatItemContent = {
      * Human-friendly message-count label.
      */
     readonly messagesCountLabel: string;
-    /**
-     * Compact timeout label for chats with an active timer.
-     */
-    readonly timeoutLabel: string | null;
-    /**
-     * Describes active timeout activity for assistive labels and tooltips.
-     */
-    readonly timeoutStatusLabel: string | null;
+    readonly activityIndicator: SidebarChatActivityIndicator;
     /**
      * Compact label that marks external frozen chats.
      */
@@ -136,6 +129,15 @@ type SidebarChatItemContent = {
      * Fully descriptive label exposed through title/ARIA attributes.
      */
     readonly accessibilityLabel: string;
+};
+
+/**
+ * Lightweight status indicator rendered in the same reserved slot for every chat row.
+ */
+type SidebarChatActivityIndicator = {
+    readonly kind: 'none' | 'running' | 'scheduled';
+    readonly compactLabel: string | null;
+    readonly statusLabel: string | null;
 };
 
 /**
@@ -150,14 +152,110 @@ function formatChatMessagesCount(messagesCount: number, formatText: (text: strin
 }
 
 /**
- * Formats active timeout count for compact sidebar descriptions.
+ * Formats active running count for compact sidebar descriptions.
  */
-function formatActiveTimeoutCount(count: number, formatText: (text: string) => string): string {
+function formatRunningActivityCount(count: number, formatText: (text: string) => string): string {
     if (count === 1) {
-        return `1 ${formatText('active timeout')}`;
+        return `1 ${formatText('response in progress')}`;
     }
 
-    return `${count} ${formatText('active timeouts')}`;
+    return `${count} ${formatText('responses in progress')}`;
+}
+
+/**
+ * Formats scheduled wake-up count for compact sidebar descriptions.
+ */
+function formatScheduledWakeUpCount(count: number, formatText: (text: string) => string): string {
+    if (count === 1) {
+        return `1 ${formatText('scheduled wake-up')}`;
+    }
+
+    return `${count} ${formatText('scheduled wake-ups')}`;
+}
+
+/**
+ * Resolves the single visible activity indicator for one chat.
+ */
+function resolveSidebarChatActivityIndicator(
+    chat: UserChatSummary,
+    formatText: (text: string) => string,
+    currentTimestamp: number,
+): SidebarChatActivityIndicator {
+    const scheduledLabel =
+        chat.timeoutActivity.count > 0 && chat.timeoutActivity.nearestDueAt
+            ? formatChatTimeoutRemainingTime(chat.timeoutActivity.nearestDueAt, currentTimestamp)
+            : null;
+
+    if (chat.runningActivity.count > 0) {
+        return {
+            kind: 'running',
+            compactLabel: formatText('Running'),
+            statusLabel: formatRunningActivityCount(chat.runningActivity.count, formatText),
+        };
+    }
+
+    if (chat.timeoutActivity.count > 0) {
+        const scheduledCountLabel = formatScheduledWakeUpCount(chat.timeoutActivity.count, formatText);
+
+        return {
+            kind: 'scheduled',
+            compactLabel: scheduledLabel || formatText('Scheduled'),
+            statusLabel:
+                scheduledLabel === null
+                    ? scheduledCountLabel
+                    : `${scheduledCountLabel}, ${formatText('next wake-up in')} ${scheduledLabel}`,
+        };
+    }
+
+    return {
+        kind: 'none',
+        compactLabel: null,
+        statusLabel: null,
+    };
+}
+
+/**
+ * Renders one running/scheduled activity icon while reserving layout space when absent.
+ */
+function ChatSidebarActivityIndicator({
+    indicator,
+}: {
+    indicator: SidebarChatActivityIndicator;
+}) {
+    const baseClasses =
+        'inline-flex h-4 w-4 items-center justify-center rounded-full bg-white/90 shadow-sm ring-1 ring-slate-200/90';
+
+    if (indicator.kind === 'running') {
+        return (
+            <span
+                role="img"
+                aria-label={indicator.statusLabel || undefined}
+                title={indicator.statusLabel || undefined}
+                className={`${baseClasses} text-blue-600 ring-blue-200/90`}
+            >
+                <Loader2Icon className="h-2.5 w-2.5 animate-spin" />
+            </span>
+        );
+    }
+
+    if (indicator.kind === 'scheduled') {
+        return (
+            <span
+                role="img"
+                aria-label={indicator.statusLabel || undefined}
+                title={indicator.statusLabel || undefined}
+                className={`${baseClasses} text-amber-700 ring-amber-200/90`}
+            >
+                <Clock3Icon className="h-2.5 w-2.5" />
+            </span>
+        );
+    }
+
+    return (
+        <span aria-hidden="true" className={`${baseClasses} invisible`}>
+            <Clock3Icon className="h-2.5 w-2.5" />
+        </span>
+    );
 }
 
 /**
@@ -174,14 +272,7 @@ function resolveSidebarChatItemContent(
     const lastActivity = formatChatTimestamp(chat.lastMessageAt || chat.updatedAt);
     const messagesCountLabel = formatChatMessagesCount(chat.messagesCount, formatText);
     const titleWithPreview = chat.preview ? `${title} - ${preview}` : title;
-    const timeoutLabel =
-        chat.timeoutActivity.count > 0 && chat.timeoutActivity.nearestDueAt
-            ? formatChatTimeoutRemainingTime(chat.timeoutActivity.nearestDueAt, currentTimestamp)
-            : null;
-    const timeoutStatusLabel =
-        timeoutLabel === null
-            ? null
-            : `${formatActiveTimeoutCount(chat.timeoutActivity.count, formatText)}, ${timeoutLabel} remaining`;
+    const activityIndicator = resolveSidebarChatActivityIndicator(chat, formatText, currentTimestamp);
     const sourceChipLabel = getUserChatSourceChipLabel(chat.source);
 
     return {
@@ -190,11 +281,10 @@ function resolveSidebarChatItemContent(
         lastActivity,
         messagesCount: chat.messagesCount,
         messagesCountLabel,
-        timeoutLabel,
-        timeoutStatusLabel,
+        activityIndicator,
         sourceChipLabel,
         accessibilityLabel: `${titleWithPreview} (${messagesCountLabel}, ${lastActivity}${
-            timeoutStatusLabel ? `, ${timeoutStatusLabel}` : ''
+            activityIndicator.statusLabel ? `, ${activityIndicator.statusLabel}` : ''
         })`,
     };
 }
@@ -324,13 +414,9 @@ export function AgentChatSidebar({
                                                 aria-label={content.accessibilityLabel}
                                                 title={content.accessibilityLabel}
                                             >
-                                                {content.timeoutLabel && (
-                                                    <span
-                                                        className="absolute left-1.5 top-1.5 z-[5] inline-flex h-2.5 w-2.5 animate-pulse rounded-full bg-amber-500 shadow-sm"
-                                                        aria-label={content.timeoutStatusLabel || undefined}
-                                                        title={content.timeoutStatusLabel || undefined}
-                                                    />
-                                                )}
+                                                <span className="absolute left-1.5 top-1.5 z-[5]">
+                                                    <ChatSidebarActivityIndicator indicator={content.activityIndicator} />
+                                                </span>
                                                 {content.sourceChipLabel && (
                                                     <span className="absolute left-1.5 bottom-1.5 z-[5] inline-flex items-center rounded-full bg-slate-900/85 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.18em] text-white shadow-sm">
                                                         {content.sourceChipLabel}
@@ -360,14 +446,14 @@ export function AgentChatSidebar({
                                                 </div>
                                                 <span
                                                     className={`max-w-full truncate text-[10px] font-semibold leading-none ${
-                                                        content.timeoutLabel
+                                                        content.activityIndicator.kind === 'scheduled'
                                                             ? 'text-amber-700'
-                                                            : isActive
+                                                            : content.activityIndicator.kind === 'running' || isActive
                                                               ? 'text-blue-700'
                                                               : 'text-slate-400'
                                                     }`}
                                                 >
-                                                    {content.timeoutLabel || content.lastActivity}
+                                                    {content.activityIndicator.compactLabel || content.lastActivity}
                                                 </span>
                                             </button>
                                         );
@@ -450,42 +536,43 @@ export function AgentChatSidebar({
                                                         : 'border-transparent hover:border-slate-200 hover:bg-slate-100/80'
                                                 } ${isEmpty && !isActive ? 'opacity-40' : ''}`}
                                                 >
+                                                    <span className="absolute left-3 top-3.5 z-[5]">
+                                                        <ChatSidebarActivityIndicator indicator={content.activityIndicator} />
+                                                    </span>
                                                     <button
                                                         type="button"
-                                                        className="w-full text-left px-3 py-3 pr-10"
+                                                        className="w-full text-left px-3 py-3 pl-10 pr-10"
                                                         onClick={() => handleChatChoose(chat.id)}
                                                         aria-label={content.accessibilityLabel}
                                                         title={content.accessibilityLabel}
                                                     >
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="min-w-0 flex-1 truncate text-sm font-medium text-slate-800">
-                                                            {content.title}
-                                                        </div>
-                                                        {content.sourceChipLabel && (
-                                                            <span className="inline-flex flex-shrink-0 items-center rounded-full bg-slate-900 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white">
-                                                                {content.sourceChipLabel}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    <div className="text-xs text-slate-500 truncate mt-1">
-                                                        {content.preview}
-                                                    </div>
-                                                    <div className="mt-2 flex items-center justify-between gap-2">
-                                                        <div className="truncate text-[11px] text-slate-400">
-                                                            {content.lastActivity}
-                                                        </div>
-                                                        {content.timeoutLabel && (
-                                                            <div
-                                                                className="inline-flex flex-shrink-0 items-center gap-1 rounded-full bg-amber-100/95 px-2 py-1 text-[10px] font-semibold text-amber-700"
-                                                                aria-label={content.timeoutStatusLabel || undefined}
-                                                                title={content.timeoutStatusLabel || undefined}
-                                                            >
-                                                                <Clock3Icon className="h-3 w-3" />
-                                                                <span>{content.timeoutLabel}</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="min-w-0 flex-1 truncate text-sm font-medium text-slate-800">
+                                                                {content.title}
                                                             </div>
-                                                        )}
-                                                    </div>
-                                                </button>
+                                                            {content.sourceChipLabel && (
+                                                                <span className="inline-flex flex-shrink-0 items-center rounded-full bg-slate-900 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white">
+                                                                    {content.sourceChipLabel}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <div className="mt-1 truncate text-xs text-slate-500">
+                                                            {content.preview}
+                                                        </div>
+                                                        <div className="mt-2 flex items-center justify-between gap-2">
+                                                            <div
+                                                                className={`truncate text-[11px] ${
+                                                                    content.activityIndicator.kind === 'scheduled'
+                                                                        ? 'font-semibold text-amber-700'
+                                                                        : content.activityIndicator.kind === 'running'
+                                                                          ? 'font-semibold text-blue-700'
+                                                                          : 'text-slate-400'
+                                                                }`}
+                                                            >
+                                                                {content.activityIndicator.compactLabel || content.lastActivity}
+                                                            </div>
+                                                        </div>
+                                                    </button>
                                                 {!chat.isReadOnly && (
                                                     <button
                                                         type="button"

@@ -4,6 +4,7 @@ import {
     createUserChat,
     createUserChatDetailPayload,
     createUserChatSummary,
+    listUserChatJobActivityCounts,
     listUserChats,
     USER_CHAT_SOURCES,
 } from '@/src/utils/userChat';
@@ -39,18 +40,32 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
             agentPermanentId: scopeResult.scope.agentPermanentId,
             includeExternalChats: showExternalChats,
         });
-        const timeoutActivities = await listUserChatTimeoutActivities({
-            userId: scopeResult.scope.userId,
-            agentPermanentId: scopeResult.scope.agentPermanentId,
-            chatIds: chats.map((chat) => chat.id),
-        });
+        const activityUserId =
+            scopeResult.scope.viewerIsAdmin && showExternalChats ? undefined : scopeResult.scope.userId;
+        const [timeoutActivities, jobActivityCounts] = await Promise.all([
+            listUserChatTimeoutActivities({
+                userId: activityUserId,
+                agentPermanentId: scopeResult.scope.agentPermanentId,
+                chatIds: chats.map((chat) => chat.id),
+            }),
+            listUserChatJobActivityCounts({
+                userId: activityUserId,
+                agentPermanentId: scopeResult.scope.agentPermanentId,
+                chatIds: chats.map((chat) => chat.id),
+            }),
+        ]);
 
         const activeChat =
             (requestedChatId ? chats.find((chat) => chat.id === requestedChatId) : null) ||
             chats[0] ||
             null;
         const activeChatDetail = activeChat ? await createUserChatDetailPayload(activeChat) : null;
-        const chatSummaries = chats.map((chat) => createUserChatSummary(chat, timeoutActivities[chat.id]));
+        const chatSummaries = chats.map((chat) =>
+            createUserChatSummary(chat, {
+                timeoutActivity: timeoutActivities[chat.id],
+                activeJobCount: jobActivityCounts[chat.id],
+            }),
+        );
 
         return NextResponse.json({
             chats: activeChatDetail ? replaceChatSummary(chatSummaries, activeChatDetail.chat) : chatSummaries,

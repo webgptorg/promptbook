@@ -17,6 +17,13 @@ export type UserChatRecord = {
 };
 
 /**
+ * Lightweight running activity metadata exposed with chat summaries.
+ */
+export type UserChatRunningActivity = {
+    count: number;
+};
+
+/**
  * Lightweight timeout activity metadata exposed with chat summaries.
  */
 export type UserChatTimeoutActivity = {
@@ -37,6 +44,7 @@ export type UserChatSummary = {
     messagesCount: number;
     title: string;
     preview: string;
+    runningActivity: UserChatRunningActivity;
     timeoutActivity: UserChatTimeoutActivity;
 };
 

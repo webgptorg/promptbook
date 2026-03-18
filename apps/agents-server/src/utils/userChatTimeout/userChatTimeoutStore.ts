@@ -179,7 +179,7 @@ export async function listUserChatTimeouts(options: ListUserChatTimeoutsOptions)
  * @private internal utility of userChatTimeout
  */
 export async function listUserChatTimeoutActivities(options: {
-    userId: number;
+    userId?: number;
     agentPermanentId: string;
     chatIds: ReadonlyArray<string>;
 }): Promise<Record<string, UserChatTimeoutActivity>> {
@@ -189,14 +189,19 @@ export async function listUserChatTimeoutActivities(options: {
 
     const userChatTimeoutTable = await provideUserChatTimeoutTable();
     const uniqueChatIds = [...new Set(options.chatIds)];
-    const { data, error } = await userChatTimeoutTable
+    let query = userChatTimeoutTable
         .select('chatId, dueAt')
         .in('chatId', uniqueChatIds)
-        .eq('userId', options.userId)
         .eq('agentPermanentId', options.agentPermanentId)
         .in('status', ACTIVE_USER_CHAT_TIMEOUT_STATUSES)
         .order('dueAt', { ascending: true })
         .order('createdAt', { ascending: true });
+
+    if (typeof options.userId === 'number') {
+        query = query.eq('userId', options.userId);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
         throw new Error(`Failed to list timeout activity for user chats: ${error.message}`);

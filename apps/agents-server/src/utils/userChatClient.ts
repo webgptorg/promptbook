@@ -98,6 +98,9 @@ export type UserChatSummary = {
     messagesCount: number;
     title: string;
     preview: string;
+    runningActivity: {
+        count: number;
+    };
     timeoutActivity: {
         count: number;
         nearestDueAt: string | null;

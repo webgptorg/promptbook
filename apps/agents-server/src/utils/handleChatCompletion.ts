@@ -275,6 +275,9 @@ function mapOpenAiCompatibilityRoleToSender(role: unknown): ChatMessage['sender'
 function createFrozenOpenAiCompatibilityMessages(
     rawMessages: ReadonlyArray<unknown>,
     assistantContent?: string,
+    options: {
+        includeAssistantPlaceholder?: boolean;
+    } = {},
 ): Array<ChatMessage> {
     const startedAt = Date.now();
     const messages = rawMessages.map((rawMessage, index) => {
@@ -295,6 +298,15 @@ function createFrozenOpenAiCompatibilityMessages(
             sender: 'AGENT',
             content: assistantContent,
             isComplete: true,
+            createdAt: new Date(startedAt + messages.length).toISOString() as NonNullable<ChatMessage['createdAt']>,
+        } satisfies ChatMessage);
+    } else if (options.includeAssistantPlaceholder) {
+        messages.push({
+            id: `openai-frozen-${messages.length}`,
+            sender: 'AGENT',
+            content: '',
+            isComplete: false,
+            lifecycleState: 'running',
             createdAt: new Date(startedAt + messages.length).toISOString() as NonNullable<ChatMessage['createdAt']>,
         } satisfies ChatMessage);
     }
@@ -584,7 +596,9 @@ export async function handleChatCompletion(
                 userId: currentUserIdentity.userId,
                 agentPermanentId: agentId,
                 source: USER_CHAT_SOURCES.OPENAI_API,
-                messages: createFrozenOpenAiCompatibilityMessages(messages),
+                messages: createFrozenOpenAiCompatibilityMessages(messages, undefined, {
+                    includeAssistantPlaceholder: true,
+                }),
             }).catch((error) => {
                 console.error('[user-chat] Failed to persist OpenAI-compatible frozen chat', error);
                 return null;

@@ -1,4 +1,5 @@
 import type { UserChatRecord, UserChatSummary, UserChatTimeoutActivity } from './UserChatRecord';
+import { createUserChatRunningActivity } from './createUserChatRunningActivity';
 import { shortenText } from '../shortenText';
 import { textToPreviewText } from '../textToPreviewText';
 import { isFrozenUserChatSource } from './UserChatSource';
@@ -35,12 +36,23 @@ const EMPTY_TIMEOUT_ACTIVITY: UserChatTimeoutActivity = {
 };
 
 /**
+ * Optional activity metadata that can be injected while building one chat summary.
+ *
+ * @private function of `createUserChatSummary`
+ */
+type CreateUserChatSummaryOptions = {
+    timeoutActivity?: UserChatTimeoutActivity;
+    activeJobCount?: number;
+};
+
+/**
  * Builds chat list metadata from a full record.
  */
 export function createUserChatSummary(
     chat: UserChatRecord,
-    timeoutActivity: UserChatTimeoutActivity = EMPTY_TIMEOUT_ACTIVITY,
+    options: CreateUserChatSummaryOptions = {},
 ): UserChatSummary {
+    const timeoutActivity = options.timeoutActivity || EMPTY_TIMEOUT_ACTIVITY;
     const firstUserMessage = chat.messages.find((message) => isUserMessageSender(message.sender));
     const lastMessage = [...chat.messages].reverse().find((message) => textToPreviewText(message.content).length > 0);
     const titleSource = textToPreviewText(firstUserMessage?.content || '');
@@ -56,6 +68,7 @@ export function createUserChatSummary(
         messagesCount: chat.messages.length,
         title: shortenText(titleSource || DEFAULT_CHAT_TITLE, CHAT_TITLE_MAX_LENGTH),
         preview: shortenText(previewSource, CHAT_PREVIEW_MAX_LENGTH),
+        runningActivity: createUserChatRunningActivity(chat, options.activeJobCount),
         timeoutActivity,
     };
 }

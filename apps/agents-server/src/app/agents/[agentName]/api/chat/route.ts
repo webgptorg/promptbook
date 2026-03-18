@@ -164,6 +164,7 @@ function createFrozenTeamMemberChatMessages(options: {
     userMessageContent: string;
     userAttachments?: ChatMessage['attachments'];
     assistantContent?: string;
+    includeAssistantPlaceholder?: boolean;
 }): Array<ChatMessage> {
     const startedAt = Date.now();
     const normalizedThread = (options.thread || []).map((message, index) => ({
@@ -193,6 +194,15 @@ function createFrozenTeamMemberChatMessages(options: {
             sender: 'AGENT',
             content: options.assistantContent,
             isComplete: true,
+            createdAt: new Date(startedAt + messages.length).toISOString() as NonNullable<ChatMessage['createdAt']>,
+        } satisfies ChatMessage);
+    } else if (options.includeAssistantPlaceholder) {
+        messages.push({
+            id: `team-frozen-${messages.length}`,
+            sender: 'AGENT',
+            content: '',
+            isComplete: false,
+            lifecycleState: 'running',
             createdAt: new Date(startedAt + messages.length).toISOString() as NonNullable<ChatMessage['createdAt']>,
         } satisfies ChatMessage);
     }
@@ -376,6 +386,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     thread,
                     userMessageContent: message,
                     userAttachments: attachments,
+                    includeAssistantPlaceholder: true,
                 }),
             }).catch((error) => {
                 console.error('[user-chat] Failed to persist team-member frozen chat', error);

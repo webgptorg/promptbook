@@ -1,3 +1,9 @@
+-   Added running vs scheduled chat-state indicators to the Agents Server `My chats` sidebar:
+
+    -   Extended user-chat summaries with lightweight running activity so the left tray can distinguish live in-progress chats from chats that only have a future wake-up pending, with running taking priority when both states apply.
+    -   Added reserved per-chat indicator slots in the sidebar using a subtle animated spinner for currently progressing chats and a subtle clock for scheduled wake-ups, plus richer hover/ARIA labels for the new states.
+    -   Fixed sidebar activity queries for admin-visible external chats so API/team-member chats shown through `Show external chats` can surface the same running/scheduled indicators as internal web chats.
+
 -   Fixed book agent-source title parsing so the first non-empty line is always treated as the plain-text agent name, even when it starts with a commitment keyword, and aligned downstream parsing/renaming paths with the same rule.
 
 -   Fixed Agents Server durable chat completion status lag so assistant messages now flip from `RUNNING` to `COMPLETED` as soon as the model output stream actually ends, instead of waiting for slower post-stream provider cleanup.

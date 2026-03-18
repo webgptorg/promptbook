@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.9064 17 minutes by OpenAI Codex `gpt-5.4`
 
 [🔄⏳] Agents Server: indicate running vs scheduled chats in chat list (left tray)
 
@@ -19,3 +19,4 @@
     -   Keep the UI stable (avoid row width jitter); reserve space for indicator even when absent
 
 -   You are working with the [Agents Server](apps/agents-server)
+

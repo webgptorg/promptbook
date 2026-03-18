@@ -56,7 +56,10 @@ export async function createUserChatDetailPayload(chat: UserChatRecord): Promise
     });
 
     return {
-        chat: createUserChatSummary(currentChat, createUserChatTimeoutActivity(activeTimeouts)),
+        chat: createUserChatSummary(currentChat, {
+            timeoutActivity: createUserChatTimeoutActivity(activeTimeouts),
+            activeJobCount: activeJobs.length,
+        }),
         messages: currentChat.messages,
         draftMessage: currentChat.draftMessage,
         activeJobs,

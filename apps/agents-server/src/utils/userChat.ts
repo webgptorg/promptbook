@@ -14,7 +14,7 @@ export { getUserChatJobByClientMessageId } from './userChat/getUserChatJobByClie
 export { heartbeatUserChatJob } from './userChat/heartbeatUserChatJob';
 export { listExpiredRunningUserChatJobs } from './userChat/listExpiredRunningUserChatJobs';
 export { listUserChats } from './userChat/listUserChats';
-export { listUserChatJobs } from './userChat/listUserChatJobs';
+export { listUserChatJobActivityCounts, listUserChatJobs } from './userChat/listUserChatJobs';
 export { mutateUserChat } from './userChat/mutateUserChat';
 export { persistUserChatJobTerminalState } from './userChat/persistUserChatJobTerminalState';
 export { persistFrozenUserChat } from './userChat/persistFrozenUserChat';
@@ -42,6 +42,7 @@ export type {
     UpdateUserChatDraftOptions,
     UpdateUserChatMessagesOptions,
     UserChatRecord,
+    UserChatRunningActivity,
     UserChatSummary,
 } from './userChat/UserChatRecord';
 export type {
