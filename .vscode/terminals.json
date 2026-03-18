@@ -9,28 +9,9 @@
             "--note-4": "The (❗) means that script should be run with caution, for example, it may cause breaking changes, data loss, etc.",
             "--note-5": "The (❗❗) means that script should be run with extreme caution, messing up with LTS versions, etc."
         },
+
         {
-            "name": "👨‍💻⚫ Run CLI example (💸)",
-            "commands": [
-                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts run ./book/examples/25-simple-knowledge.book.md --provider BRING_YOUR_OWN_KEYS"
-            ],
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "🎭👨‍💻🟣 Run ptbk start-agents-server",
-            "commands": [
-                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts start-agents-server ./agents/examples --port 4440 --provider BRING_YOUR_OWN_KEYS"
-            ],
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "🎭👨‍💻🟣 Run ptbk start-agents-server (direct = 🧸🔠 Run Agents server app)",
+            "name": "✨👨‍💻 Run ptbk start-agents-server (direct = 🧸🔠 Run Agents server app)",
             "cwd": "./apps/agents-server/",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
@@ -43,7 +24,7 @@
         },
 
         {
-            "name": "🎭👨‍💻🟣⏩ Migrate Agents server local (💤)",
+            "name": "✨⏩ Migrate Agents server local (💤)",
             "cwd": "./apps/agents-server/",
             "command": "npx tsx ./src/database/migrate.ts --only=pavol-hejny.ptbk.io",
             "execute": false,
@@ -51,7 +32,7 @@
             "focus": true
         },
         {
-            "name": "(❗) 🎭👨‍💻🟣⏩ Migrate Agents server preview (💤)",
+            "name": "(❗) ✨⏩ Migrate Agents server preview (💤)",
             "cwd": "./apps/agents-server/",
             "command": "npx tsx ./src/database/migrate.ts --only=preview",
             "execute": false,
@@ -59,7 +40,7 @@
             "focus": false
         },
         {
-            "name": "(❗❗) 🎭👨‍💻🟣⏩ Migrate Agents server (all environments) (💤)",
+            "name": "(❗❗) ✨⏩ Migrate Agents server (all environments) (💤)",
             "cwd": "./apps/agents-server/",
             "command": "npx tsx ./src/database/migrate.ts",
             "execute": false,
@@ -67,7 +48,7 @@
             "focus": true
         },
         {
-            "name": "🎭👨‍💻🟣☁️ Sync Agents server Vercel domains (dry-run)",
+            "name": "✨🔼 Sync Agents server Vercel domains (dry-run)",
             "cwd": "./apps/agents-server/",
             "command": "npx tsx ./scripts/sync-vercel-domains.ts --dry-run",
             "execute": true,
@@ -75,7 +56,7 @@
             "focus": true
         },
         {
-            "name": "(❗) 🎭👨‍💻🟣🔼 Sync Agents server Vercel domains (💤)",
+            "name": "(❗) ✨🔼 Sync Agents server Vercel domains (💤)",
             "cwd": "./apps/agents-server/",
             "command": "npx tsx ./scripts/sync-vercel-domains.ts",
             "execute": false,
@@ -83,11 +64,52 @@
             "focus": false
         },
         {
-            "name": "🎭👨‍💻🟣💾 Backup Supabase Postgres (💤)",
+            "name": "✨💾 Backup Supabase Postgres (💤)",
             "command": "npx ts-node ./scripts/backup-supabase/backup-supabase.ts --output-dir other/backup --schemas public --filename-pattern %timestamp%.sql.zip",
             "execute": false,
             "onlySingle": false,
             "focus": false
+        },
+        {
+            "name": "(❗) ✨🔼 Update the preview Agents servers (live / `main` -> `preview`) (💤)",
+            "command": "git branch --force preview main && git push origin preview --force-with-lease && (cd ./apps/agents-server/ && npx tsx ./src/database/migrate.ts --only=preview)",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "(❗❗) ✨🔼 Update the production Agents servers (`preview` -> `production`)",
+            "command": "git branch --force production preview && git push origin production --force-with-lease && (cd ./apps/agents-server/ && npx tsx ./src/database/migrate.ts --only=production)",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "(❗❗❗) ✨🔼 Update the LTS Agents servers (`production` -> `lts`)",
+            "command": "git branch --force lts production && git push origin lts --force-with-lease && (cd ./apps/agents-server/ && npx tsx ./src/database/migrate.ts --only=lts)",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "👨‍💻⚫ Run CLI example (💸)",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts run ./book/examples/25-simple-knowledge.book.md --provider BRING_YOUR_OWN_KEYS"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "✨👨‍💻🟣 Run ptbk start-agents-server",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts start-agents-server ./agents/examples --port 4440 --provider BRING_YOUR_OWN_KEYS"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
         },
         {
             "name": "👨‍💻🟣 Run ptbk start-pipelines-server",
@@ -185,7 +207,7 @@
             "focus": false
         },
         {
-            "name": "🧪 Test Agents Server (💤)(⏳)",
+            "name": "🧪✨ Test Agents Server (💤)(⏳)",
             "command": "npm run test-app-agents-server",
             "execute": false,
             "onlySingle": false,
@@ -289,7 +311,7 @@
             "focus": true
         },
         {
-            "name": "🎭👨‍💻🟣🏭 Generate reserved paths for Agents server",
+            "name": "✨🏭 Generate reserved paths for Agents server",
             "cwd": "./apps/agents-server/",
             "command": "npm run generate-reserved-paths",
             "execute": true,
@@ -365,7 +387,7 @@
             "focus": true
         },
         {
-            "name": "⚡🏭 Generate Agents server prompt boilerplates for Coding Agent",
+            "name": "⚡✨🏭 Generate Agents server prompt boilerplates for Coding Agent",
             "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 10 --template agents-server",
             "execute": true,
             "onlySingle": true,
@@ -806,27 +828,6 @@
         {
             "name": "🏭🩹 Prettify all files (+commit)(⏳)",
             "command": "npx ts-node ./scripts/prettify-all/prettify-all.ts --commit",
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "(❗) 🏭🔼 Update the preview Agents servers (live / `main` -> `preview`) (💤)",
-            "command": "git branch --force preview main && git push origin preview --force-with-lease && (cd ./apps/agents-server/ && npx tsx ./src/database/migrate.ts --only=preview)",
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
-        },
-        {
-            "name": "(❗❗) 🏭🔼 Update the production Agents servers (`preview` -> `production`)",
-            "command": "git branch --force production preview && git push origin production --force-with-lease && (cd ./apps/agents-server/ && npx tsx ./src/database/migrate.ts --only=production)",
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "(❗❗❗) 🏭🔼 Update the LTS Agents servers (`production` -> `lts`)",
-            "command": "git branch --force lts production && git push origin lts --force-with-lease && (cd ./apps/agents-server/ && npx tsx ./src/database/migrate.ts --only=lts)",
             "execute": true,
             "onlySingle": true,
             "focus": true
