@@ -1,45 +1,21 @@
-[ ]
+[ ] !!!
 
 [⏱️✅] Switch agent message status to complete ASAP
 
--   *(@@@@ Written by agent)*
--   In the Agents Server chat UI, the agent reply is visibly finished (all tokens rendered) but the message status stays as "cut"/"incomplete" for ~10 seconds before switching to "complete".
+-   In the Agents Server chat UI, the agent reply is visibly finished (all tokens rendered) but the message status stays as "RUNNING" for ~10 seconds before switching to "COMPLETED".
 -   Goal: As soon as we know the output stream is finished, update the message status from "incomplete" to "complete" immediately (target < 250ms after last visible token), without waiting for any extra timers / delayed markers.
 -   Do a root-cause analysis and fix the underlying reason rather than masking it with UI heuristics.
--   Likely root causes to investigate (@@@ confirm in code):
-    -   Server closes the HTTP stream late (buffering / flush behavior, or explicit post-processing before `controller.close()`).
-    -   Client waits for a trailing sentinel like `[DONE]` (or an OpenAI-compatible event) instead of relying on the stream `done` / close event.
-    -   Client message status is tied to a "final message persisted" event (DB write, tool-call reconciliation, background jobs) instead of stream completion.
-    -   Team/agent orchestration emits a final event later than the content (usage / metadata / commitments being finalized after content is already streamed).
 -   Define precise semantics (align server + client):
-    -   `incomplete` = still receiving tokens OR stream open OR a tool-call is in progress.
-    -   `complete` = stream closed OR explicit final event received (whichever happens first).
-    -   `cut` = aborted by user, timeout, network error, server error (not "just waiting").
--   Implementation requirements:
-    -   Server: emit an explicit final event (for example `event: message.done`) immediately when the model finishes, and close the stream right after it.
-    -   Client: transition the currently-streamed assistant message to `complete` on:
-        -   receiving the final event, OR
-        -   the stream ending (EOF) while the last event was not an error.
-    -   Ensure tool-call sequences still behave:
-        -   intermediate tool events keep status `incomplete`.
-        -   only the final assistant message marks status `complete`.
-    -   Add telemetry/diagnostics:
-        -   track `t(last_token_rendered -> status_complete)`; warn/log when > 1s.
-        -   (optional) expose this in dev mode to verify quickly.
+    -   `RUNNING` / `isComplete=false` = still receiving tokens OR stream open OR a tool-call is in progress.
+    -   `COMPLETED` / `isComplete=true` = stream closed OR explicit final event received (whichever happens first).
+    -   `FAILED` / `isComplete=true` = Some problem occurred
 -   Acceptance criteria:
     -   On a normal chat without tool calls, status becomes `complete` within 250ms after the last token appears.
     -   On chats with tool calls, status becomes `complete` within 250ms after the final assistant token is rendered.
     -   No regression:
-        -   aborted streams still show `cut`.
-        -   server/model errors show `error`.
-        -   long-running tool steps keep an "ongoing" indicator without falsely marking completion.
--   QA steps:
-    -   Reproduce the current ~10s delay on production/staging and record a HAR + screen capture (before fix).
-    -   Verify the delay is removed after fix in: Chrome, Safari, iOS Safari.
-    -   Test slow network / offline / reconnect: status eventually becomes correct.
--   You are working with:
-    -   [Agents Server](apps/agents-server)
-    -   Streaming endpoints and event format (@@@): likely under [apps/agents-server/src/app/api/**]
-    -   Chat message state management in UI (@@@): likely under [apps/agents-server/src/components/**] and [apps/agents-server/src/hooks/**]
-    -   Message persistence and status fields (@@@): likely under [apps/agents-server/src/database/**] and [apps/agents-server/src/app/api/messages/**]
-    -   Add the change into the [changelog](changelog/_current-preversion.md)
+        -   aborted streams still show `FAILED`.
+        -   server/model errors show `FAILED`.
+        -   long-running tool steps keep an `RUNNING` indicator without falsely marking completion.
+-   You are working with [Agents Server](apps/agents-server)
+
+![alt text](prompts/screenshots/2026-03-1360-agents-server-finish-message-status-asap.png)
