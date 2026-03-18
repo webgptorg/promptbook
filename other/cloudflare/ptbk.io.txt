@@ -1,6 +1,6 @@
 ;;
 ;; Domain:     ptbk.io.
-;; Exported:   2026-03-18 00:59:18
+;; Exported:   2026-03-18 01:39:11
 ;;
 ;; This file is intended for use for informational and archival
 ;; purposes ONLY and MUST be edited before use on a production
@@ -24,7 +24,7 @@
 ;;
 ;; Use at your own risk.
 ;; SOA Record
-ptbk.io	3600	IN	SOA	rick.ns.cloudflare.com. dns.cloudflare.com. 2052546215 10000 2400 604800 3600
+ptbk.io	3600	IN	SOA	rick.ns.cloudflare.com. dns.cloudflare.com. 2052546455 10000 2400 604800 3600
 
 ;; NS Records
 ptbk.io.	86400	IN	NS	rick.ns.cloudflare.com.
@@ -45,22 +45,52 @@ soul.ptbk.io.	1	IN	A	76.76.21.21 ; Aldaronic; A/B testing landing page for Promp
 webgpt.ptbk.io.	1	IN	A	76.76.21.21 ; Aldaronic; A/B testing landing page for Promptbook via Vercel cf_tags=cf-proxied:false
 
 ;; CNAME Records
+bizkithub.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
 books.ptbk.io.	1	IN	CNAME	webgptorg.github.io. ; cf_tags=cf-proxied:false
 brevo1._domainkey.ptbk.io.	3600	IN	CNAME	b1.ptbk-io.dkim.brevo.com. ; cf_tags=cf-proxied:false
 brevo2._domainkey.ptbk.io.	3600	IN	CNAME	b2.ptbk-io.dkim.brevo.com. ; cf_tags=cf-proxied:false
 browser.s5.ptbk.io.	1	IN	CNAME	s5.ptbk.io. ; cf_tags=cf-proxied:false
+chutoo.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
+chutoo-test.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
+core.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
+core-test.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
 daeron.ptbk.io.	1	IN	CNAME	webgptorg.github.io. ; A/B testing landing page for Promptbook cf_tags=cf-proxied:false
+dashboard.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
+demo.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
 earendil.ptbk.io.	1	IN	CNAME	jorgesquared.github.io. ; Pivoting chatbots cf_tags=cf-proxied:false
 eldamar.ptbk.io.	1	IN	CNAME	jorgesquared.github.io. ; Pivoting security cf_tags=cf-proxied:false
+gallery.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
 greenhack.ptbk.io.	1	IN	CNAME	jorgesquared.github.io. ; Landing page for GreenHack 2025 cf_tags=cf-proxied:false
+jiri-jahn.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
+landing-pages.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
 luthien.ptbk.io.	1	IN	CNAME	webgptorg.github.io. ; A/B testing landing page for Promptbook cf_tags=cf-proxied:false
+michal-novotny.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
+neon-media.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
 new.ptbk.io.	600	IN	CNAME	66b13097a4733114.vercel-dns-016.com. ; cf_tags=cf-proxied:false
+pasu.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
+pasu-test.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
+pavol-hejny.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
 playground.ptbk.io.	600	IN	CNAME	89afef358143d158.vercel-dns-016.com. ; cf_tags=cf-proxied:false
+praha13.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
+praha13-test.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
 promptbook.s5.ptbk.io.	1	IN	CNAME	s5.ptbk.io. ; cf_tags=cf-proxied:false
 promptimage.s5.ptbk.io.	1	IN	CNAME	s5.ptbk.io. ; cf_tags=cf-proxied:false
 *.ptbk.io.	1	IN	CNAME	ptbk.io. ; cf_tags=cf-proxied:false
+rymarov.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
+s10.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
+s11.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
+s12.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
+s13.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
+s6.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
+s7.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
+s8.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
+s9.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
 slides.ptbk.io.	1	IN	CNAME	webgptorg.github.io. ; cf_tags=cf-proxied:false
+test1.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
 testamar.ptbk.io.	1	IN	CNAME	hejny.github.io. ; Testing deployment of Lovable page cf_tags=cf-proxied:false
+tomas-kapler.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
+tomas-studenik.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
+vyjednavani.ptbk.io.	1	IN	CNAME	0ed1865950424cc4.vercel-dns-016.com. ; Managed by Promptbook sync-vercel-domains.ts cf_tags=cf-proxied:false
 www.ptbk.io.	1	IN	CNAME	ptbk.io. ; cf_tags=cf-proxied:false
 
 ;; MX Records

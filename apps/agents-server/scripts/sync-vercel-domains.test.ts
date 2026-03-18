@@ -1,7 +1,9 @@
-import { beforeAll, describe, expect, it } from '@jest/globals';
+import { beforeAll, describe, expect, it, jest } from '@jest/globals';
 import { SERVER_ENVIRONMENT } from '../src/utils/serverRegistry';
 
 let createVercelDomainSyncPlan: typeof import('./sync-vercel-domains').createVercelDomainSyncPlan;
+let createCloudflareDnsRecordSyncPlan: typeof import('./sync-vercel-domains').createCloudflareDnsRecordSyncPlan;
+let resolveDesiredCloudflareDnsRecord: typeof import('./sync-vercel-domains').resolveDesiredCloudflareDnsRecord;
 let resolveDesiredProjectDomain: typeof import('./sync-vercel-domains').resolveDesiredProjectDomain;
 
 beforeAll(async () => {
@@ -9,6 +11,8 @@ beforeAll(async () => {
 
     const syncVercelDomainsModule = await import('./sync-vercel-domains');
     createVercelDomainSyncPlan = syncVercelDomainsModule.createVercelDomainSyncPlan;
+    createCloudflareDnsRecordSyncPlan = syncVercelDomainsModule.createCloudflareDnsRecordSyncPlan;
+    resolveDesiredCloudflareDnsRecord = syncVercelDomainsModule.resolveDesiredCloudflareDnsRecord;
     resolveDesiredProjectDomain = syncVercelDomainsModule.resolveDesiredProjectDomain;
 });
 
@@ -183,5 +187,164 @@ describe('sync-vercel-domains', () => {
                 },
             ),
         ).toThrow(/Expected the Vercel production branch to be `production`/);
+    });
+
+    it('maps apex domains to Cloudflare A records and subdomains to CNAME records using Vercel recommendations', () => {
+        expect(
+            resolveDesiredCloudflareDnsRecord(
+                'ptbk.io',
+                {
+                    id: 'zone_ptbk',
+                    name: 'ptbk.io',
+                },
+                {
+                    misconfigured: true,
+                    recommendedIPv4: [{ rank: 1, value: ['76.76.21.21'] }],
+                    recommendedCNAME: [{ rank: 1, value: 'cname.vercel-dns.com.' }],
+                },
+            ),
+        ).toEqual({
+            zoneId: 'zone_ptbk',
+            zoneName: 'ptbk.io',
+            name: 'ptbk.io',
+            type: 'A',
+            content: '76.76.21.21',
+            proxied: false,
+            ttl: 1,
+            comment: 'Managed by Promptbook sync-vercel-domains.ts',
+            tags: [],
+        });
+
+        expect(
+            resolveDesiredCloudflareDnsRecord(
+                'preview.ptbk.io',
+                {
+                    id: 'zone_ptbk',
+                    name: 'ptbk.io',
+                },
+                {
+                    misconfigured: true,
+                    recommendedIPv4: [{ rank: 1, value: ['76.76.21.21'] }],
+                    recommendedCNAME: [{ rank: 1, value: '0ed1865950424cc4.vercel-dns-016.com.' }],
+                },
+            ),
+        ).toEqual({
+            zoneId: 'zone_ptbk',
+            zoneName: 'ptbk.io',
+            name: 'preview.ptbk.io',
+            type: 'CNAME',
+            content: '0ed1865950424cc4.vercel-dns-016.com',
+            proxied: false,
+            ttl: 1,
+            comment: 'Managed by Promptbook sync-vercel-domains.ts',
+            tags: [],
+        });
+    });
+
+    it('plans Cloudflare creates, updates, and skips without deleting unrelated zone records', async () => {
+        const cloudflareConfiguration = { token: 'token' };
+        const desiredRecords = [
+            {
+                zoneId: 'zone_ptbk',
+                zoneName: 'ptbk.io',
+                name: 'new.ptbk.io',
+                type: 'CNAME' as const,
+                content: 'cname.vercel-dns.com',
+                proxied: false,
+                ttl: 1,
+                comment: 'Managed by Promptbook sync-vercel-domains.ts',
+                tags: [],
+            },
+            {
+                zoneId: 'zone_ptbk',
+                zoneName: 'ptbk.io',
+                name: 'old.ptbk.io',
+                type: 'CNAME' as const,
+                content: 'cname.vercel-dns.com',
+                proxied: false,
+                ttl: 1,
+                comment: 'Managed by Promptbook sync-vercel-domains.ts',
+                tags: [],
+            },
+            {
+                zoneId: 'zone_ptbk',
+                zoneName: 'ptbk.io',
+                name: 'conflict.ptbk.io',
+                type: 'CNAME' as const,
+                content: 'cname.vercel-dns.com',
+                proxied: false,
+                ttl: 1,
+                comment: 'Managed by Promptbook sync-vercel-domains.ts',
+                tags: [],
+            },
+        ];
+
+        const originalFetch = global.fetch;
+        global.fetch = jest.fn(async (input: string | URL) => {
+            const url = input.toString();
+
+            if (url.includes('/client/v4/zones/zone_ptbk/dns_records') && !url.includes('/rec_')) {
+                return {
+                    ok: true,
+                    text: async () =>
+                        JSON.stringify({
+                            success: true,
+                            result: [
+                                {
+                                    id: 'rec_old',
+                                    type: 'CNAME',
+                                    name: 'old.ptbk.io',
+                                    content: 'legacy.example.com',
+                                    proxied: true,
+                                    ttl: 120,
+                                    comment: 'Legacy record',
+                                    tags: [],
+                                },
+                                {
+                                    id: 'rec_conflict_a',
+                                    type: 'A',
+                                    name: 'conflict.ptbk.io',
+                                    content: '1.2.3.4',
+                                },
+                            ],
+                            result_info: { page: 1, total_pages: 1 },
+                        }),
+                } as Response;
+            }
+
+            throw new Error(`Unexpected fetch URL in test: ${url}`);
+        }) as typeof fetch;
+
+        try {
+            const plan = await createCloudflareDnsRecordSyncPlan({
+                cloudflareConfiguration,
+                desiredRecords,
+            });
+
+            expect(plan.recordsToCreate).toEqual([desiredRecords[0]]);
+            expect(plan.recordsToUpdate).toHaveLength(1);
+            expect(plan.recordsToUpdate[0]).toMatchObject({
+                currentRecord: {
+                    id: 'rec_old',
+                    name: 'old.ptbk.io',
+                    content: 'legacy.example.com',
+                },
+                desiredRecord: desiredRecords[1],
+            });
+            expect(plan.recordsToUpdate[0]!.reasons).toEqual([
+                'content legacy.example.com -> cname.vercel-dns.com',
+                'proxied true -> false',
+                'ttl 120 -> 1',
+                'comment marker missing',
+            ]);
+            expect(plan.skippedDomains).toEqual([
+                {
+                    domain: 'conflict.ptbk.io',
+                    reason: 'Cloudflare already contains conflicting or ambiguous records on this hostname, so no automatic create/update was attempted.',
+                },
+            ]);
+        } finally {
+            global.fetch = originalFetch;
+        }
     });
 });

@@ -75,7 +75,7 @@
             "focus": true
         },
         {
-            "name": "(❗) 🎭👨‍💻🟣☁️ Sync Agents server Vercel domains (💤)",
+            "name": "(❗) 🎭👨‍💻🟣🔼 Sync Agents server Vercel domains (💤)",
             "cwd": "./apps/agents-server/",
             "command": "npx tsx ./scripts/sync-vercel-domains.ts",
             "execute": false,
