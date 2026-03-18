@@ -1,3 +1,5 @@
+-   Fixed the package-generation bundler step to run Rollup through a direct Node subprocess instead of a shell wrapper, and added active-package PID/progress diagnostics plus fail-fast detection when Rollup prints the final `created ...` line but does not exit cleanly.
+
 -   Fixed Agents Server agent inheritance resolution so unresolved book editor source and canonical resolved runtime source are now cleanly separated and reused consistently:
 
     -   Renamed the book-scoped route context to expose `unresolvedAgentSource`, added a shared resolved-agent context/state utility, and made runtime/profile/model-requirements/system-message/avatar/disclaimer/transpilation flows derive behavior and presentation from the materialized resolved source instead of the editable source.
