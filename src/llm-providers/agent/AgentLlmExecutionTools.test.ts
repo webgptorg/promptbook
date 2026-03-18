@@ -153,4 +153,80 @@ describe('AgentLlmExecutionTools', () => {
             expect.arrayContaining(['fetch_url_content', 'run_browser', 'read_attached_file']),
         );
     });
+
+    it('forwards explicit finished-stream chunks from the underlying llm tools', async () => {
+        const agentSource = `AI Agent` as string_book;
+        const timing: { start: string_date_iso8601; complete: string_date_iso8601 } = {
+            start: '2026-02-09T00:00:00.000Z' as string_date_iso8601,
+            complete: '2026-02-09T00:00:01.000Z' as string_date_iso8601,
+        };
+        const streamedChunk = {
+            content: 'Response',
+            modelName: 'agent-chat-model' as string_model_name,
+            timing,
+            usage: UNCERTAIN_USAGE,
+            rawPromptContent: 'empty',
+            rawRequest: null,
+            rawResponse: {},
+            isFinished: true,
+        } as ChatPromptResult & { isFinished?: boolean };
+        const finalResult: ChatPromptResult = {
+            content: 'Response',
+            modelName: 'agent-chat-model' as string_model_name,
+            timing,
+            usage: UNCERTAIN_USAGE,
+            rawPromptContent: 'empty',
+            rawRequest: null,
+            rawResponse: {},
+        };
+        const observedChunks: Array<ChatPromptResult & { isFinished?: boolean }> = [];
+        const callChatModelStreamMock = jest.fn(
+            async (
+                _prompt: Prompt,
+                onProgress: (chunk: ChatPromptResult & { isFinished?: boolean }) => void,
+            ): Promise<ChatPromptResult> => {
+                keepUnused(_prompt);
+                onProgress(streamedChunk);
+                return finalResult;
+            },
+        );
+
+        const llmTools: LlmExecutionTools = {
+            title: 'Mock Tools' as string_title & string_markdown_text,
+            checkConfiguration: async () => {},
+            listModels: async () => [
+                {
+                    modelName: 'mock-chat-model' as string_model_name,
+                    modelVariant: 'CHAT',
+                },
+            ],
+            callChatModelStream: callChatModelStreamMock,
+        };
+
+        const agentTools = new AgentLlmExecutionTools({
+            llmTools,
+            agentSource,
+        });
+
+        const prompt: Prompt = {
+            title: 'Test prompt',
+            content: 'Please answer plainly.',
+            modelRequirements: {
+                modelVariant: 'CHAT',
+            },
+            parameters: {} as Parameters,
+        };
+
+        const result = await agentTools.callChatModelStream(prompt, (chunk) => {
+            observedChunks.push(chunk as ChatPromptResult & { isFinished?: boolean });
+        });
+
+        expect(result.content).toBe('Response');
+        expect(observedChunks).toEqual([
+            expect.objectContaining({
+                content: 'Response',
+                isFinished: true,
+            }),
+        ]);
+    });
 });

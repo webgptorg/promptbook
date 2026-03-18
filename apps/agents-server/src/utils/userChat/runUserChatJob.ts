@@ -21,6 +21,7 @@ import { prepareToolCallsForStreaming } from '@/src/utils/toolCallStreaming';
 import { Agent, computeAgentHash, RemoteAgent } from '@promptbook-local/core';
 import type { ToolCall } from '@promptbook-local/types';
 import { serializeError } from '@promptbook-local/utils';
+import type { ChatPromptResult } from '../../../../../src/execution/PromptResult';
 import { mergeToolCalls } from '../../../../../src/utils/toolCalls/mergeToolCalls';
 import { ensureNonEmptyChatContent } from '@/src/utils/chat/ensureNonEmptyChatContent';
 import { appendMessageSuffix, resolveMessageSuffixFromAgentSource } from '@/src/utils/chat/messageSuffix';
@@ -162,6 +163,8 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
     let latestToolCalls: ReadonlyArray<ToolCall> | undefined;
     let isCancellationRequested = job.cancelRequestedAt !== null;
     let persistQueue: Promise<void> = Promise.resolve();
+    let hasQueuedCompletedPersistence = false;
+    let hasPersistedCompletedState = false;
     const abortController = new AbortController();
     const heartbeatTimer = setInterval(() => {
         persistQueue = persistQueue
@@ -211,6 +214,48 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
         provider,
     });
 
+    /**
+     * Queues one assistant-message mutation behind any earlier persistence work.
+     *
+     * @private function of `runUserChatJob`
+     */
+    const queueAssistantMessageUpdate = (mutateMessage: Parameters<typeof updateUserChatAssistantMessage>[0]['mutateMessage']) => {
+        persistQueue = persistQueue.then(async () => {
+            await updateUserChatAssistantMessage({
+                userId: job.userId,
+                agentPermanentId: job.agentPermanentId,
+                chatId: job.chatId,
+                assistantMessageId: job.assistantMessageId,
+                mutateMessage,
+            });
+        });
+    };
+
+    /**
+     * Persists the durable completion state immediately after the visible output stream ends.
+     *
+     * @private function of `runUserChatJob`
+     */
+    const queueCompletedPersistence = (): void => {
+        if (hasQueuedCompletedPersistence) {
+            return;
+        }
+
+        hasQueuedCompletedPersistence = true;
+        clearInterval(heartbeatTimer);
+        persistQueue = persistQueue.then(async () => {
+            await persistUserChatJobTerminalState({
+                job,
+                status: 'COMPLETED',
+                content: latestContent,
+                toolCalls: latestToolCalls,
+                provider,
+                generationDurationMs: Date.now() - startedAt,
+            });
+            hasPersistedCompletedState = true;
+        });
+    };
+
     try {
         const response = await agent.callChatModelStream!(
             {
@@ -224,28 +269,25 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
                 attachments: userMessage.attachments,
                 ...(attachmentTools.length > 0 ? { tools: attachmentTools } : {}),
             },
-            (chunk) => {
+            (chunk: ChatPromptResult & { isFinished?: boolean }) => {
                 latestContent = chunk.content ?? latestContent;
                 latestToolCalls = chunk.toolCalls
                     ? mergeToolCalls(latestToolCalls, prepareToolCallsForStreaming(chunk.toolCalls))
                     : latestToolCalls;
 
-                persistQueue = persistQueue.then(async () => {
-                    await updateUserChatAssistantMessage({
-                        userId: job.userId,
-                        agentPermanentId: job.agentPermanentId,
-                        chatId: job.chatId,
-                        assistantMessageId: job.assistantMessageId,
-                        mutateMessage: (message) => ({
-                            ...message,
-                            content: latestContent,
-                            ongoingToolCalls: latestToolCalls,
-                            lifecycleState: 'running',
-                            lifecycleError: undefined,
-                            isComplete: false,
-                        }),
-                    });
-                });
+                if (chunk.isFinished === true) {
+                    queueCompletedPersistence();
+                    return;
+                }
+
+                queueAssistantMessageUpdate((message) => ({
+                    ...message,
+                    content: latestContent,
+                    ongoingToolCalls: latestToolCalls,
+                    lifecycleState: 'running',
+                    lifecycleError: undefined,
+                    isComplete: false,
+                }));
             },
             { signal: abortController.signal },
         );
@@ -266,14 +308,30 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
             : latestToolCalls;
         const generationDurationMs = Date.now() - startedAt;
 
-        await persistUserChatJobTerminalState({
-            job,
-            status: 'COMPLETED',
-            content: responseContentWithSuffix,
-            toolCalls: finalToolCalls,
-            provider,
-            generationDurationMs,
-        });
+        if (hasQueuedCompletedPersistence) {
+            queueAssistantMessageUpdate((message) => ({
+                ...message,
+                content: responseContentWithSuffix,
+                isComplete: true,
+                lifecycleState: 'completed',
+                lifecycleError: undefined,
+                ongoingToolCalls: undefined,
+                toolCalls: finalToolCalls ?? message.toolCalls,
+                completedToolCalls: finalToolCalls ?? message.completedToolCalls,
+                generationDurationMs,
+            }));
+            await persistQueue;
+        } else {
+            await persistUserChatJobTerminalState({
+                job,
+                status: 'COMPLETED',
+                content: responseContentWithSuffix,
+                toolCalls: finalToolCalls,
+                provider,
+                generationDurationMs,
+            });
+            hasPersistedCompletedState = true;
+        }
 
         if (!resolvedAgentContext.isBookScopedAgent) {
             const newAgentSource = agent.agentSource.value;
@@ -294,6 +352,18 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
     } catch (error) {
         clearInterval(heartbeatTimer);
         await persistQueue.catch(() => undefined);
+
+        if (hasPersistedCompletedState) {
+            console.error('[user-chat-job] follow-up failed after completion', {
+                chatId: job.chatId,
+                messageId: job.userMessageId,
+                jobId: job.id,
+                provider,
+                error: serializeError(error as Error),
+            });
+
+            return 'completed';
+        }
 
         const failureReason = resolveUserChatJobFailureReason(error);
         const generationDurationMs = Date.now() - startedAt;

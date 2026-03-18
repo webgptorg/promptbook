@@ -807,7 +807,7 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
         readonly openAiAgentKitAgent: OpenAiAgentKitAgent;
         readonly prompt: Prompt;
         readonly rawPromptContent?: string;
-        readonly onProgress: (chunk: ChatPromptResult) => void;
+        readonly onProgress: (chunk: ChatPromptResult & { isFinished?: boolean }) => void;
         readonly responseFormatOutputType?: AgentOutputType;
         /**
          * Optional abort signal propagated from chat surfaces so stream generation can be cancelled.
@@ -852,6 +852,26 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
             },
             signal: options.signal,
         });
+
+        /**
+         * Emits one explicit terminal stream snapshot as soon as the visible model output stream ends.
+         *
+         * This intentionally happens before `streamResult.completed` resolves because the SDK can keep
+         * post-stream bookkeeping alive after the last user-visible token has already been delivered.
+         */
+        const emitFinishedStreamSnapshot = (): void => {
+            onProgress({
+                content: (streamResult.finalOutput ?? latestContent) as string_markdown,
+                modelName: this.agentKitModelName,
+                timing: { start, complete: $getCurrentDate() },
+                usage: UNCERTAIN_USAGE,
+                rawPromptContent: rawPromptContent as string_prompt,
+                rawRequest: null,
+                rawResponse: { runResult: streamResult },
+                toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
+                isFinished: true,
+            });
+        };
 
         for await (const event of streamResult) {
             if (event.type === 'raw_model_stream_event' && event.data?.type === 'output_text_delta') {
@@ -952,6 +972,7 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
             }
         }
 
+        emitFinishedStreamSnapshot();
         await streamResult.completed;
 
         const complete: string_date_iso8601 = $getCurrentDate();
