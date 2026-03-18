@@ -1,3 +1,4 @@
+import colors from 'colors';
 import * as dotenv from 'dotenv';
 import { Client } from 'pg';
 import spaceTrim from 'spacetrim';
@@ -64,6 +65,32 @@ type SyncVercelDomainsOptions = {
      * When true, removes Vercel project domains that are no longer present in `_Server`.
      */
     readonly deleteRemoved: boolean;
+};
+
+/**
+ * Human-readable report section shown after one sync run in interactive terminals.
+ */
+type HumanReadableReportSection = {
+    /**
+     * Stable section key.
+     */
+    readonly key: string;
+    /**
+     * Optional short explanation shown under the section title.
+     */
+    readonly description?: string;
+    /**
+     * Colorized section title suffix.
+     */
+    readonly label: string;
+    /**
+     * Colorized item prefix.
+     */
+    readonly bullet: string;
+    /**
+     * Lines rendered under the section.
+     */
+    readonly lines: ReadonlyArray<string>;
 };
 
 /**
@@ -448,6 +475,12 @@ async function main(): Promise<void> {
         ignoredCount: syncPlan.ignoredDomains.length,
         deleteRemoved: options.deleteRemoved,
         dryRun: options.dryRun,
+    });
+
+    printHumanReadableSyncReport({
+        options,
+        projectMetadata,
+        syncPlan,
     });
 }
 
@@ -902,6 +935,256 @@ function logSyncEvent(level: 'info' | 'warn' | 'error', event: string, payload: 
             ...payload,
         }),
     );
+}
+
+/**
+ * Prints a colorized human-readable summary for interactive terminal runs.
+ *
+ * @param options - Sync execution options.
+ * @param projectMetadata - Loaded Vercel project metadata.
+ * @param syncPlan - Computed sync plan.
+ */
+function printHumanReadableSyncReport(options: {
+    readonly options: SyncVercelDomainsOptions;
+    readonly projectMetadata: VercelProjectMetadata;
+    readonly syncPlan: VercelDomainSyncPlan;
+}): void {
+    if (!isHumanReadableSyncReportEnabled()) {
+        return;
+    }
+
+    const { options: syncOptions, projectMetadata, syncPlan } = options;
+    const summaryLabel = syncOptions.dryRun ? 'planned changes' : 'applied changes';
+    const reportSections = createHumanReadableReportSections(syncPlan, syncOptions);
+    const totalChangedDomains =
+        syncPlan.domainsToAdd.length +
+        syncPlan.domainsToVerify.length +
+        syncPlan.domainsToReconfigure.length +
+        (syncOptions.deleteRemoved ? syncPlan.domainsToFlag.length : 0);
+
+    console.log('');
+    console.log(colors.cyan.bold('━━━━━━━━━━ Vercel domain sync report ━━━━━━━━━━'));
+    console.log(
+        [
+            `${colors.bold('Mode:')} ${syncOptions.dryRun ? colors.yellow.bold('DRY RUN') : colors.green.bold('LIVE')}`,
+            `${colors.bold('Summary:')} ${colors.white.bold(String(totalChangedDomains))} ${summaryLabel}`,
+            `${colors.bold('Desired domains:')} ${colors.white(String(syncPlan.desiredDomains.length))}`,
+        ].join(` ${colors.gray('•')} `),
+    );
+    console.log(
+        [
+            `${colors.bold('Production branch:')} ${formatHumanReadableNullableValue(
+                projectMetadata.productionBranch,
+            )}`,
+            `${colors.bold('Custom environments:')} ${colors.white(String(projectMetadata.customEnvironments.length))}`,
+            `${colors.bold('Delete removed:')} ${syncOptions.deleteRemoved ? colors.red('yes') : colors.gray('no')}`,
+        ].join(` ${colors.gray('•')} `),
+    );
+
+    if (reportSections.length === 0) {
+        console.log(colors.green('✓ No domain changes were necessary.'));
+        if (syncPlan.ignoredDomains.length > 0) {
+            console.log(colors.gray(`○ Ignored ${syncPlan.ignoredDomains.length} Vercel-managed domain(s).`));
+        }
+        console.log(colors.cyan.bold('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'));
+        return;
+    }
+
+    for (const section of reportSections) {
+        console.log('');
+        console.log(`${section.bullet} ${section.label}`);
+        if (section.description) {
+            console.log(`  ${colors.gray(section.description)}`);
+        }
+        for (const line of section.lines) {
+            console.log(`  ${colors.gray('•')} ${line}`);
+        }
+    }
+
+    console.log('');
+    console.log(colors.cyan.bold('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'));
+}
+
+/**
+ * Creates itemized human-readable report sections for one sync plan.
+ *
+ * @param syncPlan - Computed sync plan.
+ * @param options - Sync execution options.
+ * @returns Ordered report sections.
+ */
+function createHumanReadableReportSections(
+    syncPlan: VercelDomainSyncPlan,
+    options: SyncVercelDomainsOptions,
+): Array<HumanReadableReportSection> {
+    const sections: Array<HumanReadableReportSection> = [];
+
+    if (syncPlan.domainsToAdd.length > 0) {
+        sections.push({
+            key: 'add',
+            label: colors.green.bold(options.dryRun ? 'Domains to add' : 'Domains added'),
+            bullet: colors.green(options.dryRun ? '+' : '✓'),
+            lines: syncPlan.domainsToAdd.map((domain) =>
+                formatDesiredDomainReportLine(domain, {
+                    includeEnvironmentLabel: true,
+                }),
+            ),
+        });
+    }
+
+    if (syncPlan.domainsToReconfigure.length > 0) {
+        sections.push({
+            key: 'reconfigure',
+            label: colors.yellow.bold(options.dryRun ? 'Domains to reconfigure' : 'Domains reconfigured'),
+            bullet: colors.yellow('↺'),
+            lines: syncPlan.domainsToReconfigure.map((reconfiguration) =>
+                formatDomainReconfigurationReportLine(reconfiguration),
+            ),
+        });
+    }
+
+    if (syncPlan.domainsToVerify.length > 0) {
+        sections.push({
+            key: 'verify',
+            label: colors.blue.bold(options.dryRun ? 'Domains to verify' : 'Domains verified'),
+            bullet: colors.blue('✓'),
+            lines: syncPlan.domainsToVerify.map((domain) => colors.white.bold(domain)),
+        });
+    }
+
+    if (syncPlan.domainsToFlag.length > 0) {
+        sections.push({
+            key: options.deleteRemoved ? 'delete' : 'flag',
+            label: options.deleteRemoved
+                ? colors.red.bold(options.dryRun ? 'Domains to delete' : 'Domains deleted')
+                : colors.red.bold('Domains flagged for removal'),
+            description: options.deleteRemoved
+                ? undefined
+                : 'These domains still exist on Vercel but are no longer present in `_Server`. Re-run with `--delete-removed` to remove them.',
+            bullet: colors.red(options.deleteRemoved ? '-' : '!'),
+            lines: syncPlan.domainsToFlag.map((domain) => colors.white.bold(domain)),
+        });
+    }
+
+    if (syncPlan.ignoredDomains.length > 0) {
+        sections.push({
+            key: 'ignored',
+            label: colors.gray.bold('Ignored Vercel-managed domains'),
+            bullet: colors.gray('○'),
+            lines: syncPlan.ignoredDomains.map((domain) => colors.gray(domain)),
+        });
+    }
+
+    return sections;
+}
+
+/**
+ * Formats one desired domain binding for the human-readable report.
+ *
+ * @param domain - Desired domain binding.
+ * @param options - Formatting options.
+ * @returns Colorized report line.
+ */
+function formatDesiredDomainReportLine(
+    domain: DesiredVercelProjectDomain,
+    options: {
+        readonly includeEnvironmentLabel: boolean;
+    },
+): string {
+    const parts = [colors.white.bold(domain.name)];
+
+    if (options.includeEnvironmentLabel) {
+        parts.push(colors.gray(`← ${domain.sourceEnvironment}`));
+    }
+
+    parts.push(colors.cyan(domain.vercelEnvironmentName));
+
+    const bindingDetails: Array<string> = [];
+    if (domain.gitBranch) {
+        bindingDetails.push(`branch ${colors.yellow(domain.gitBranch)}`);
+    }
+    if (domain.customEnvironmentId) {
+        bindingDetails.push(`custom env ${colors.magenta(domain.customEnvironmentId)}`);
+    }
+
+    if (bindingDetails.length > 0) {
+        parts.push(colors.gray(`(${bindingDetails.join(', ')})`));
+    }
+
+    return parts.join(' ');
+}
+
+/**
+ * Formats one domain reconfiguration item for the human-readable report.
+ *
+ * @param reconfiguration - Domain reconfiguration details.
+ * @returns Colorized report line.
+ */
+function formatDomainReconfigurationReportLine(reconfiguration: VercelDomainReconfiguration): string {
+    const currentBinding = normalizeVercelDomainBinding(reconfiguration.currentDomain);
+    const desiredBinding = normalizeVercelDomainBinding(reconfiguration.desiredDomain);
+
+    return [
+        colors.white.bold(reconfiguration.desiredDomain.name),
+        colors.gray(
+            `(${reconfiguration.desiredDomain.sourceEnvironment} → ${reconfiguration.desiredDomain.vercelEnvironmentName})`,
+        ),
+        colors.gray(
+            `${formatHumanReadableBinding(currentBinding)} ${colors.yellow('→')} ${formatHumanReadableBinding(
+                desiredBinding,
+            )}`,
+        ),
+        colors.yellow(`[${reconfiguration.reasons.join('; ')}]`),
+    ].join(' ');
+}
+
+/**
+ * Formats one normalized domain binding for the human-readable report.
+ *
+ * @param binding - Normalized branch/custom-environment binding.
+ * @returns Colorized binding label.
+ */
+function formatHumanReadableBinding(binding: {
+    readonly gitBranch: string | null;
+    readonly customEnvironmentId: string | null;
+}): string {
+    const bindingParts: Array<string> = [];
+
+    if (binding.gitBranch !== null) {
+        bindingParts.push(`branch ${colors.yellow(binding.gitBranch)}`);
+    }
+
+    if (binding.customEnvironmentId !== null) {
+        bindingParts.push(`env ${colors.magenta(binding.customEnvironmentId)}`);
+    }
+
+    if (bindingParts.length === 0) {
+        return colors.gray('<default>');
+    }
+
+    return bindingParts.join(', ');
+}
+
+/**
+ * Formats one nullable summary value for the human-readable report.
+ *
+ * @param value - Raw summary value.
+ * @returns Colorized value.
+ */
+function formatHumanReadableNullableValue(value: string | null | undefined): string {
+    return value ? colors.white(value) : colors.gray('<none>');
+}
+
+/**
+ * Detects whether the human-readable sync report should be printed.
+ *
+ * @returns `true` when interactive color output is expected.
+ */
+function isHumanReadableSyncReportEnabled(): boolean {
+    if (process.env.PROMPTBOOK_SYNC_VERCEL_DOMAINS_HUMAN_REPORT === 'false') {
+        return false;
+    }
+
+    return Boolean(process.stdout.isTTY || process.env.FORCE_COLOR);
 }
 
 /**
