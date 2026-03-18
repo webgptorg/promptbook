@@ -2,8 +2,8 @@ import { spaceTrim } from 'spacetrim';
 import type { BookCommitment } from '../../commitments/_base/BookCommitment';
 import type { ParsedCommitment } from '../../commitments/_base/ParsedCommitment';
 import { COMMITMENT_REGISTRY } from '../../commitments/index';
-import type { string_agent_name } from '../../types/typeAliases';
 import type { AgentSourceParseResult } from './AgentSourceParseResult';
+import { parseAgentSourcePrelude } from './parseAgentSourcePrelude';
 import type { string_book } from './string_book';
 
 /**
@@ -16,6 +16,9 @@ const HORIZONTAL_LINE_PATTERN = /^[\s]*[-_*][\s]*[-_*][\s]*[-_*][\s]*[-_*]*[\s]*
  * Parses agent source using the new commitment system with multiline support
  * This function replaces the hardcoded commitment parsing in the original parseAgentSource
  *
+ * The first non-empty line is always consumed as plain-text agent name. Commitment parsing
+ * starts only after that title line has been fixed.
+ *
  * @private internal utility of `parseAgentSource`
  */
 export function parseAgentSourceWithCommitments(agentSource: string_book): Omit<AgentSourceParseResult, 'agentHash'> {
@@ -27,68 +30,10 @@ export function parseAgentSourceWithCommitments(agentSource: string_book): Omit<
         };
     }
 
-    const lines = agentSource.split(/\r?\n/);
-    let agentName: string_agent_name | null = null;
-    let agentNameLineIndex = -1;
-
-    // Find the agent name: first non-empty line that is not a commitment and not a horizontal line
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        if (line === undefined) {
-            continue;
-        }
-        const trimmed = line.trim();
-        if (!trimmed) {
-            continue;
-        }
-
-        const isHorizontal = HORIZONTAL_LINE_PATTERN.test(line);
-        if (isHorizontal) {
-            continue;
-        }
-
-        let isCommitment = false;
-        for (const definition of COMMITMENT_REGISTRY) {
-            const typeRegex = definition.createTypeRegex();
-            const match = typeRegex.exec(trimmed);
-            if (match && match.groups?.type) {
-                isCommitment = true;
-                break;
-            }
-        }
-
-        if (!isCommitment) {
-            agentName = trimmed as string_agent_name;
-            agentNameLineIndex = i;
-            break;
-        }
-    }
+    const { lines, agentName, agentNameLineIndex, agentNameLineNumber } = parseAgentSourcePrelude(agentSource);
 
     const commitments: ParsedCommitment[] = [];
-    const nonCommitmentLines: string[] = [];
-
-    // Add lines before agentName that are horizontal lines (they are non-commitment)
-    for (let i = 0; i < agentNameLineIndex; i++) {
-        const line = lines[i];
-        if (line === undefined) {
-            continue;
-        }
-        const trimmed = line.trim();
-        if (!trimmed) {
-            continue;
-        }
-
-        const isHorizontal = HORIZONTAL_LINE_PATTERN.test(line);
-        if (isHorizontal) {
-            nonCommitmentLines.push(line);
-        }
-        // Note: Commitments before agentName are not added to nonCommitmentLines
-    }
-
-    // Add the agent name line to non-commitment lines
-    if (agentNameLineIndex >= 0) {
-        nonCommitmentLines.push(lines[agentNameLineIndex]!);
-    }
+    const nonCommitmentLines: string[] = agentNameLineIndex >= 0 ? [lines[agentNameLineIndex]!] : [];
 
     // Parse commitments with multiline support
     let currentCommitment: {
@@ -212,7 +157,7 @@ export function parseAgentSourceWithCommitments(agentSource: string_book): Omit<
 
     return {
         agentName,
-        agentNameLineNumber: agentNameLineIndex >= 0 ? agentNameLineIndex + 1 : undefined,
+        agentNameLineNumber,
         commitments,
         nonCommitmentLines,
     };

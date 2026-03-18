@@ -1,3 +1,5 @@
+-   Fixed book agent-source title parsing so the first non-empty line is always treated as the plain-text agent name, even when it starts with a commitment keyword, and aligned downstream parsing/renaming paths with the same rule.
+
 -   Fixed Agents Server durable chat completion status lag so assistant messages now flip from `RUNNING` to `COMPLETED` as soon as the model output stream actually ends, instead of waiting for slower post-stream provider cleanup.
 
 -   Added absolute `/integration` reference comments to copyable Agents Server integration snippets, including website embed, iframe, Promptbook SDK, OpenAI-compatible API, and MCP examples shown on the integration-related pages.

@@ -551,6 +551,7 @@ describe('parseAgentSource', () => {
 
     it('parses COLOR with comma separator', () => {
         const agentSource = validateBook(`
+            Agent Name
             COLOR red, blue, green
             PERSONA You are a helper
         `);
@@ -560,6 +561,7 @@ describe('parseAgentSource', () => {
 
     it('parses COLOR with space separator', () => {
         const agentSource = validateBook(`
+            Agent Name
             COLOR red blue green
             PERSONA You are a helper
         `);
@@ -569,6 +571,7 @@ describe('parseAgentSource', () => {
 
     it('parses FONT with comma separator', () => {
         const agentSource = validateBook(`
+            Agent Name
             FONT Arial, sans-serif
             PERSONA You are a helper
         `);
@@ -578,6 +581,7 @@ describe('parseAgentSource', () => {
 
     it('parses FONT with space separator', () => {
         const agentSource = validateBook(`
+            Agent Name
             FONT Arial sans-serif
             PERSONA You are a helper
         `);
@@ -587,6 +591,7 @@ describe('parseAgentSource', () => {
 
     it('parses FONT with spaces in name (treated as list)', () => {
         const agentSource = validateBook(`
+            Agent Name
             FONT Times New Roman
             PERSONA You are a helper
         `);
@@ -594,7 +599,7 @@ describe('parseAgentSource', () => {
         expect(result.meta.font).toBe('Times, New, Roman');
     });
 
-    it('parses agentName from first non-empty line that is not a commitment or horizontal line', () => {
+    it('parses agentName from the first non-empty line after leading whitespace-only lines', () => {
         // First non-empty is agent name
         let agentSource = validateBook(`
             John Doe
@@ -613,15 +618,15 @@ describe('parseAgentSource', () => {
         result = parseAgentSource(agentSource);
         expect(result.agentName).toBe('john-doe');
 
-        // Horizontal line before agent name
+        // Commitment-looking first non-empty line is still the agent name
         agentSource = validateBook(`
-            ---
-
-            John Doe
-            PERSONA You are a helpful assistant.
+            COLOR red, blue, green
+            PERSONA You are a helper
         `);
         result = parseAgentSource(agentSource);
-        expect(result.agentName).toBe('john-doe');
+        expect(result.agentName).toBe('color-red-blue-green');
+        expect(result.meta.fullname).toBe('COLOR red, blue, green');
+        expect(result.personaDescription).toBe('You are a helper');
 
         // Non-commitment line before agent name (should take first one)
         agentSource = validateBook(`
@@ -632,14 +637,6 @@ describe('parseAgentSource', () => {
         `);
         result = parseAgentSource(agentSource);
         expect(result.agentName).toBe('x');
-
-        // Commitment as first non-empty (agentName should be null, fallback to default)
-        agentSource = validateBook(`
-            COLOR red, blue, green
-            PERSONA You are a helper
-        `);
-        result = parseAgentSource(agentSource);
-        expect(result.agentName).toBe('agent-3daa54'); // Default hash since no name
     });
 
     describe('parses linked agents', () => {

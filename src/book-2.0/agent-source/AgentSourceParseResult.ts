@@ -8,7 +8,7 @@ import { string_agent_name } from '../../types/typeAliases';
  */
 export type AgentSourceParseResult = {
     /**
-     * The agent name (first line)
+     * The agent name taken from the first non-empty line after leading whitespace-only lines.
      */
     agentName: string_agent_name | null;
 

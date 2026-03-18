@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.3120 24 minutes by OpenAI Codex `gpt-5.4`
 
 [📖1️⃣] First non-empty line is always agent name (never a commitment)
 
@@ -37,3 +37,4 @@ GOAL This is the first real commitment
     -   Prefer changing the parser’s entry-point (prelude parsing) to explicitly “consume agent name line first”, then parse the rest.
     -   Avoid regex heuristics that can reclassify the first non-empty line.
 -   Add the change into the [changelog](changelog/_current-preversion.md)
+

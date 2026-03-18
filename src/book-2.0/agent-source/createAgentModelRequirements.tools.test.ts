@@ -146,6 +146,16 @@ describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
         expect(requirements._metadata?.useTimeout).toBe(true);
     });
 
+    it('should not interpret the agent name as an MCP server when the title starts with `MCP`', async () => {
+        const agentSource = validateBook(`
+            MCP https://title.example.com/catalog
+            MCP https://runtime.example.com/server
+        `);
+        const requirements = await createAgentModelRequirements(agentSource);
+
+        expect(requirements.mcpServers).toEqual(['https://runtime.example.com/server']);
+    });
+
     it('should ignore WALLET and keep wallet-backed tools available through USE EMAIL and USE PROJECT', async () => {
         const agentSource = validateBook(`
             Test Agent

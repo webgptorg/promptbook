@@ -11,6 +11,7 @@ import type { AgentModelRequirements } from './AgentModelRequirements';
 import type { CreateAgentModelRequirementsOptions } from './CreateAgentModelRequirementsOptions';
 import { createAgentModelRequirementsWithCommitments } from './createAgentModelRequirementsWithCommitments';
 import { parseAgentSource } from './parseAgentSource';
+import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitments';
 import type { string_book } from './string_book';
 
 /**
@@ -100,29 +101,16 @@ async function selectBestModelUsingPersona(
 /**
  * Extracts MCP servers from agent source
  *
- * @param agentSource The agent source string that may contain MCP lines
+ * @param agentSource The agent source string that may contain `USE MCP` commitments.
  * @returns Array of MCP server identifiers
  *
  * @private TODO: [🧠] Maybe should be public
  */
 export function extractMcpServers(agentSource: string_book): string[] {
-    if (!agentSource) {
-        return [];
-    }
-
-    const lines = agentSource.split(/\r?\n/);
-    const mcpRegex = /^\s*MCP\s+(.+)$/i;
-    const mcpServers: string[] = [];
-
-    // Look for MCP lines
-    for (const line of lines) {
-        const match = line.match(mcpRegex);
-        if (match && match[1]) {
-            mcpServers.push(match[1].trim());
-        }
-    }
-
-    return mcpServers;
+    return parseAgentSourceWithCommitments(agentSource).commitments
+        .filter((commitment) => commitment.type === 'USE MCP')
+        .map((commitment) => commitment.content.trim())
+        .filter(Boolean);
 }
 
 /**
@@ -136,7 +124,7 @@ export async function createAgentSystemMessage(agentSource: string_book): Promis
 }
 
 /**
- * Extracts the agent name from the first line of the agent source
+ * Extracts the agent name from the first non-empty line of the agent source.
  * @deprecated Use parseAgentSource instead
  * @private
  */
