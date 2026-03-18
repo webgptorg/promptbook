@@ -5,7 +5,16 @@ import { usePromise } from '@common/hooks/usePromise';
 import { Chat } from '@promptbook-local/components';
 import type { ChatMessage } from '@promptbook-local/types';
 import { RemoteAgent } from '@promptbook-local/core';
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import {
+    useCallback,
+    useEffect,
+    useLayoutEffect,
+    useMemo,
+    useRef,
+    useState,
+    type CSSProperties,
+    type ReactNode,
+} from 'react';
 import spaceTrim from 'spacetrim';
 import { useAgentBackground } from '../../../../components/AgentProfile/useAgentBackground';
 import { useChatEnterBehaviorPreferences } from '../../../../components/ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
@@ -21,6 +30,7 @@ import { createDefaultSpeechRecognition } from '../../../../utils/speech-to-text
 import { chatFileUploadHandler } from '../../../../utils/upload/createBookEditorUploadHandler';
 import { serializeUserLocationPromptParameter, USER_LOCATION_PROMPT_PARAMETER } from '../../../../utils/userLocationPromptParameter';
 import { getUserChatSourceBannerLabel, type UserChatSource } from '../../../../utils/userChat/UserChatSource';
+import { createUserChatClientMessageId } from '../../../../utils/userChatClient';
 import { MetaDisclaimerDialog } from '../MetaDisclaimerDialog';
 import { PseudoUserChatDialog } from '../PseudoUserChatDialog';
 import { useAgentChatMetaDisclaimer } from '../useAgentChatMetaDisclaimer';
@@ -34,6 +44,7 @@ import { useCanonicalChatMessages } from './useCanonicalChatMessages';
  * Props accepted by the canonical server-backed chat panel.
  */
 type CanonicalAgentChatPanelProps = {
+    chatId: string;
     agentName: string;
     agentUrl: string;
     brandColor?: string;
@@ -57,10 +68,17 @@ type CanonicalAgentChatPanelProps = {
         message: string;
         attachments?: ChatMessage['attachments'];
         parameters?: Record<string, unknown>;
+        clientMessageId?: string;
     }) => Promise<void>;
     onStartNewChat?: () => Promise<void> | void;
     onCancelActiveJob?: (jobId: string) => Promise<void> | void;
     onCancelActiveTimeout?: (timeoutId: string) => Promise<void> | void;
+    onAutoExecuteMessagePending?: (payload: {
+        chatId: string;
+        clientMessageId: string;
+        message: string;
+        attachments?: ChatMessage['attachments'];
+    }) => void;
     onAutoExecuteMessageConsumed?: () => void;
     extraActions?: ReactNode;
 };
@@ -79,6 +97,7 @@ function serializeAutoExecutePayload(message?: string, attachments?: ChatMessage
  */
 export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
     const {
+        chatId,
         agentName,
         agentUrl,
         brandColor,
@@ -102,6 +121,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
         onStartNewChat,
         onCancelActiveJob,
         onCancelActiveTimeout,
+        onAutoExecuteMessagePending,
         onAutoExecuteMessageConsumed,
         extraActions,
     } = props;
@@ -150,6 +170,8 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
         return createDefaultSpeechRecognition();
     }, [agent?.isVoiceTtsSttEnabled]);
     const hasAutoExecutedRef = useRef(false);
+    const hasSeededAutoExecutePendingMessageRef = useRef(false);
+    const autoExecuteClientMessageIdRef = useRef<string | undefined>(undefined);
     const lastAutoExecutePayloadRef = useRef<string | undefined>(
         serializeAutoExecutePayload(autoExecuteMessage, autoExecuteMessageAttachments),
     );
@@ -277,7 +299,11 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
     );
 
     const handleManualMessage = useCallback(
-        async (message: string, attachments?: ChatMessage['attachments']) => {
+        async (
+            message: string,
+            attachments?: ChatMessage['attachments'],
+            clientMessageId?: string,
+        ) => {
             if (isReadOnly) {
                 return;
             }
@@ -286,6 +312,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
                 message,
                 attachments,
                 parameters: effectivePromptParameters,
+                clientMessageId,
             });
         },
         [effectivePromptParameters, isReadOnly, onSubmitUserTurn],
@@ -303,20 +330,70 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
 
         lastAutoExecutePayloadRef.current = payload;
         hasAutoExecutedRef.current = false;
+        hasSeededAutoExecutePendingMessageRef.current = false;
+        autoExecuteClientMessageIdRef.current = undefined;
     }, [autoExecuteMessage, autoExecuteMessageAttachments]);
 
+    /**
+     * Returns one stable client id reused by the optimistic bubble and the
+     * durable send request for the current auto-executed message payload.
+     */
+    const resolveAutoExecuteClientMessageId = useCallback((): string => {
+        if (!autoExecuteClientMessageIdRef.current) {
+            autoExecuteClientMessageIdRef.current = createUserChatClientMessageId();
+        }
+
+        return autoExecuteClientMessageIdRef.current;
+    }, []);
+
+    const shouldAutoExecute =
+        (Boolean(effectiveAutoExecuteMessage) || Boolean(effectiveAutoExecuteMessageAttachments?.length)) &&
+        !hasAutoExecutedRef.current &&
+        !isReadOnly;
+
+    useLayoutEffect(() => {
+        if (!shouldAutoExecute) {
+            return;
+        }
+
+        if (hasSeededAutoExecutePendingMessageRef.current) {
+            return;
+        }
+
+        hasSeededAutoExecutePendingMessageRef.current = true;
+        onAutoExecuteMessagePending?.({
+            chatId,
+            clientMessageId: resolveAutoExecuteClientMessageId(),
+            message: effectiveAutoExecuteMessage ?? '',
+            attachments: effectiveAutoExecuteMessageAttachments,
+        });
+    }, [
+        chatId,
+        effectiveAutoExecuteMessage,
+        effectiveAutoExecuteMessageAttachments,
+        onAutoExecuteMessagePending,
+        resolveAutoExecuteClientMessageId,
+        shouldAutoExecute,
+    ]);
+
     useEffect(() => {
-        const shouldAutoExecute =
-            (Boolean(effectiveAutoExecuteMessage) || Boolean(effectiveAutoExecuteMessageAttachments?.length)) &&
-            !hasAutoExecutedRef.current &&
-            !isReadOnly;
         if (!shouldAutoExecute) {
             return;
         }
 
         hasAutoExecutedRef.current = true;
-        void handleManualMessage(effectiveAutoExecuteMessage ?? '', effectiveAutoExecuteMessageAttachments);
-    }, [effectiveAutoExecuteMessage, effectiveAutoExecuteMessageAttachments, handleManualMessage, isReadOnly]);
+        void handleManualMessage(
+            effectiveAutoExecuteMessage ?? '',
+            effectiveAutoExecuteMessageAttachments,
+            resolveAutoExecuteClientMessageId(),
+        ).catch(() => undefined);
+    }, [
+        effectiveAutoExecuteMessage,
+        effectiveAutoExecuteMessageAttachments,
+        handleManualMessage,
+        resolveAutoExecuteClientMessageId,
+        shouldAutoExecute,
+    ]);
 
     const initialMessage = useMemo(() => {
         const agentDisplayName = agent?.meta.fullname || agent?.agentName || agentName;

@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$1.22 29 minutes by OpenAI Codex `gpt-5.4`
 
 [🚀💬] Optimistic first message from agent profile page to chat page
 
@@ -32,3 +32,4 @@
     -   Unit: reconciliation/dedup logic for `tempMessageId` mapping.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

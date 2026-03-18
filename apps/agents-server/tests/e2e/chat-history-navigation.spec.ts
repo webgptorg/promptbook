@@ -48,6 +48,28 @@ type DelayedUserChatRequest = {
 };
 
 /**
+ * Handle for one deliberately delayed `POST /api/user-chats/[chatId]/messages` request.
+ */
+type DelayedUserChatMessageCreateRequest = {
+    /**
+     * Resolves once the delayed request has been intercepted.
+     */
+    readonly waitUntilStarted: Promise<void>;
+    /**
+     * Resolves once the delayed request has completed after release.
+     */
+    readonly waitUntilFinished: Promise<void>;
+    /**
+     * Allows the intercepted request to continue.
+     */
+    release(): void;
+    /**
+     * Removes the route interception.
+     */
+    dispose(): Promise<void>;
+};
+
+/**
  * Creates one management API token for the authenticated browser session.
  *
  * @param page - Current Playwright page.
@@ -213,6 +235,23 @@ function isMatchingUserChatSnapshotRequest(url: string, agentName: string, chatI
 }
 
 /**
+ * Checks whether one network URL matches the durable user-message creation endpoint.
+ *
+ * @param url - Network URL reported by Playwright.
+ * @param agentName - Canonical agent slug.
+ * @returns `true` when the URL represents `POST /agents/[agent]/api/user-chats/[chatId]/messages`.
+ */
+function isMatchingUserChatMessageCreateRequest(url: string, agentName: string): boolean {
+    const parsedUrl = new URL(url);
+    const canonicalPrefix = `/agents/${encodeURIComponent(agentName)}/api/user-chats/`;
+    const isCanonicalPath =
+        parsedUrl.pathname.startsWith(canonicalPrefix) && parsedUrl.pathname.endsWith('/messages');
+    const isFallbackPath = /^\/agents\/[^/]+\/api\/user-chats\/[^/]+\/messages$/.test(parsedUrl.pathname);
+
+    return isCanonicalPath || isFallbackPath;
+}
+
+/**
  * Delays the next targeted user-chat snapshot request until the test explicitly releases it.
  *
  * @param page - Current Playwright page.
@@ -277,9 +316,105 @@ async function delayNextUserChatSnapshotRequest(
 }
 
 /**
+ * Delays the next durable user-message creation request until the test explicitly releases it.
+ *
+ * @param page - Current Playwright page.
+ * @param agentName - Canonical agent slug.
+ * @returns Control handle for the delayed request.
+ */
+async function delayNextUserChatMessageCreateRequest(
+    page: Page,
+    agentName: string,
+): Promise<DelayedUserChatMessageCreateRequest> {
+    let hasInterceptedTargetRequest = false;
+    let releaseRequest: (() => void) | null = null;
+    let markStarted: (() => void) | null = null;
+
+    const waitUntilStarted = new Promise<void>((resolve) => {
+        markStarted = resolve;
+    });
+    const waitUntilFinished = page
+        .waitForResponse((response) => {
+            return (
+                response.request().method() === 'POST' &&
+                isMatchingUserChatMessageCreateRequest(response.url(), agentName)
+            );
+        })
+        .then(() => undefined);
+
+    const routeHandler = async (route: Route) => {
+        const request = route.request();
+        if (
+            hasInterceptedTargetRequest ||
+            request.method() !== 'POST' ||
+            !isMatchingUserChatMessageCreateRequest(request.url(), agentName)
+        ) {
+            await route.continue();
+            return;
+        }
+
+        hasInterceptedTargetRequest = true;
+        markStarted?.();
+
+        await new Promise<void>((resolve) => {
+            releaseRequest = resolve;
+        });
+
+        await route.continue();
+    };
+
+    await page.route('**/*', routeHandler);
+
+    return {
+        waitUntilStarted,
+        waitUntilFinished,
+        release() {
+            releaseRequest?.();
+        },
+        async dispose() {
+            await page.unroute('**/*', routeHandler);
+        },
+    };
+}
+
+/**
  * Chat-history navigation regressions for explicit user-selected chats.
  */
 test.describe('Agents Server chat history navigation', () => {
+    test('shows the first user message immediately as sending when starting a chat from the profile page', async ({
+        page,
+    }) => {
+        await page.goto('/');
+        await loginAsAdmin(page);
+
+        const apiKey = await createManagementApiToken(page);
+        const agent = await createTestAgent(page, apiKey, 'E2E Optimistic First Message');
+        const delayedMessageCreate = await delayNextUserChatMessageCreateRequest(page, agent.agentName);
+
+        await page.goto(`/agents/${encodeURIComponent(agent.agentName)}`);
+        await page.locator('textarea').first().fill('Hello from profile page');
+        await page.locator('[data-button-type="call-to-action"]').first().click();
+
+        await delayedMessageCreate.waitUntilStarted;
+        await expect
+            .poll(() => page.url(), {
+                message: 'Expected profile-page send to navigate to the durable chat route.',
+            })
+            .toContain(`/agents/${encodeURIComponent(agent.agentName)}/chat?chat=`);
+
+        await expect(page.getByText('Hello from profile page', { exact: true })).toBeVisible();
+        await expect(page.getByText('Sending', { exact: true })).toBeVisible();
+        await expect(page.getByText(/Hello! I am /)).toBeVisible();
+
+        delayedMessageCreate.release();
+        await delayedMessageCreate.waitUntilFinished;
+        await delayedMessageCreate.dispose();
+
+        await expect(page.getByText('Hello from profile page', { exact: true })).toBeVisible();
+        await expect(page.getByText('Sending', { exact: true })).toHaveCount(0);
+        await expect(page.getByText('Completed', { exact: true })).toBeVisible();
+    });
+
     test('keeps the newly created chat selected after a delayed stale refresh and does not open a native dialog', async ({
         page,
     }) => {

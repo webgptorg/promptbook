@@ -31,6 +31,14 @@ import { AgentChatWrapper } from '../AgentChatWrapper';
 import { takePendingProfileMessage } from '../profileMessageCache';
 import { AgentChatSidebar, AGENT_CHAT_SIDEBAR_ID } from './AgentChatSidebar';
 import { CanonicalAgentChatPanel } from './CanonicalAgentChatPanel';
+import { mergeCanonicalChatMessagesWithPendingOutboundMessages } from './mergeCanonicalChatMessagesWithPendingOutboundMessages';
+import {
+    clearPendingOutboundMessages,
+    markPendingOutboundMessageFailed,
+    queuePendingOutboundMessage,
+    reconcilePendingOutboundMessages,
+    usePendingOutboundMessages,
+} from './usePendingOutboundMessages';
 
 /**
  * Reconnect delay after one canonical chat-stream disconnect.
@@ -172,6 +180,14 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         activeChatDraftMessageRef.current = activeChatDraftMessage;
     }, [activeChatDraftMessage]);
 
+    useEffect(() => {
+        if (!activeChatId) {
+            return;
+        }
+
+        reconcilePendingOutboundMessages(activeChatId, activeMessages);
+    }, [activeChatId, activeMessages]);
+
     /**
      * Emits one dev-only instrumentation event for chat-selection debugging.
      */
@@ -209,10 +225,19 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         () => chats.find((chat) => chat.id === activeChatId) || null,
         [activeChatId, chats],
     );
+    const pendingOutboundMessages = usePendingOutboundMessages(activeChatId);
     const isActiveChatReadOnly = activeChatSummary?.isReadOnly === true;
     const hasAnyActiveTimeouts = useMemo(
         () => chats.some((chat) => chat.timeoutActivity.count > 0) || activeTimeouts.length > 0,
         [activeTimeouts.length, chats],
+    );
+    const renderedActiveMessages = useMemo(
+        () =>
+            mergeCanonicalChatMessagesWithPendingOutboundMessages({
+                canonicalMessages: activeMessages,
+                pendingOutboundMessages,
+            }),
+        [activeMessages, pendingOutboundMessages],
     );
 
     /**
@@ -968,6 +993,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             try {
                 setIsChatListLoading(true);
                 await removeUserChat(agentName, chatId);
+                clearPendingOutboundMessages(chatId);
                 if (activeChatIdRef.current === chatId) {
                     issueSelectionIntent('DELETE_CHAT', null);
                     setIsActiveChatLoading(true);
@@ -1010,6 +1036,26 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     );
 
     /**
+     * Seeds one optimistic outbound user bubble before the durable send request resolves.
+     */
+    const handleAutoExecuteMessagePending = useCallback(
+        (payload: {
+            chatId: string;
+            clientMessageId: string;
+            message: string;
+            attachments?: ChatMessage['attachments'];
+        }) => {
+            queuePendingOutboundMessage({
+                chatId: payload.chatId,
+                clientMessageId: payload.clientMessageId,
+                content: payload.message,
+                attachments: payload.attachments,
+            });
+        },
+        [],
+    );
+
+    /**
      * Submits one user-authored chat turn for durable server-side execution.
      */
     const handleSubmitUserTurn = useCallback(
@@ -1017,20 +1063,30 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             message: string;
             attachments?: ChatMessage['attachments'];
             parameters?: Record<string, unknown>;
+            clientMessageId?: string;
         }) => {
             const currentActiveChatId = activeChatIdRef.current;
             if (!shouldUseHistory || !currentActiveChatId) {
                 throw new Error('No active chat selected.');
             }
 
-            const signature = JSON.stringify({
-                message: payload.message,
-                attachments: payload.attachments || [],
-            });
-            const clientMessageId =
-                failedSendRef.current?.signature === signature
-                    ? failedSendRef.current.clientMessageId
-                    : createUserChatClientMessageId();
+            const signature = createChatMessageSignature(payload.message, payload.attachments);
+            const retryingFailedInitialMessage = failedSendRef.current?.signature === signature;
+            const clientMessageId = payload.clientMessageId
+                ? payload.clientMessageId
+                : retryingFailedInitialMessage
+                  ? failedSendRef.current!.clientMessageId
+                  : createUserChatClientMessageId();
+            const shouldMaintainOptimisticPendingMessage = Boolean(payload.clientMessageId) || retryingFailedInitialMessage;
+
+            if (shouldMaintainOptimisticPendingMessage) {
+                queuePendingOutboundMessage({
+                    chatId: currentActiveChatId,
+                    clientMessageId,
+                    content: payload.message,
+                    attachments: payload.attachments,
+                });
+            }
 
             try {
                 const result = await sendUserChatMessage(agentName, currentActiveChatId, {
@@ -1052,6 +1108,13 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                     signature,
                     clientMessageId,
                 };
+                if (shouldMaintainOptimisticPendingMessage) {
+                    markPendingOutboundMessageFailed({
+                        chatId: currentActiveChatId,
+                        clientMessageId,
+                        errorMessage: resolveErrorMessage(error, 'Failed to send chat message.'),
+                    });
+                }
                 throw error;
             }
         },
@@ -1167,6 +1230,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 </div>
             ) : (
                 <CanonicalAgentChatPanel
+                    chatId={activeChatId}
                     agentName={agentName}
                     agentUrl={agentUrl}
                     brandColor={brandColor}
@@ -1176,7 +1240,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                     initialAgentMessage={initialAgentMessage}
                     isReadOnly={isActiveChatReadOnly}
                     readOnlySource={activeChatSummary?.source}
-                    messages={activeMessages}
+                    messages={renderedActiveMessages}
                     draftMessage={isActiveChatReadOnly ? '' : activeChatDraftMessage}
                     autoExecuteMessage={autoExecuteMessage}
                     autoExecuteMessageAttachments={effectiveInitialAutoExecuteMessageAttachments}
@@ -1190,6 +1254,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                     onStartNewChat={isActiveChatReadOnly ? undefined : handleStartNewChatFromChatSurface}
                     onCancelActiveJob={isActiveChatReadOnly ? undefined : handleCancelActiveJob}
                     onCancelActiveTimeout={isActiveChatReadOnly ? undefined : handleCancelActiveTimeout}
+                    onAutoExecuteMessagePending={handleAutoExecuteMessagePending}
                     onAutoExecuteMessageConsumed={handleAutoExecuteMessageConsumed}
                 />
             )}
@@ -1237,6 +1302,16 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">{chatSurface}</section>
         </div>
     );
+}
+
+/**
+ * Builds a stable signature for one outbound user-message payload.
+ */
+function createChatMessageSignature(message: string, attachments?: ChatMessage['attachments']): string {
+    return JSON.stringify({
+        message,
+        attachments: attachments || [],
+    });
 }
 
 /**

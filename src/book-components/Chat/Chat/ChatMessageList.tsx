@@ -103,7 +103,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
 
                 return (
                     <ChatMessageItem
-                        key={message.id}
+                        key={resolveRenderedMessageKey(message)}
                         message={message}
                         participant={participant}
                         participants={participants}
@@ -134,4 +134,20 @@ export function ChatMessageList(props: ChatMessageListProps) {
             <div style={{ height: 100 }}></div>
         </div>
     );
+}
+
+/**
+ * Resolves a stable React key for one rendered chat message.
+ *
+ * Canonical user messages echoed back from the server keep the same
+ * `clientMessageId` as their optimistic predecessor, so preferring that key
+ * lets React preserve the existing DOM node while the optimistic bubble is
+ * reconciled into the canonical transcript.
+ *
+ * @param message - Rendered chat message.
+ * @returns Stable React key for the message row.
+ * @private component of `<Chat/>`
+ */
+function resolveRenderedMessageKey(message: ChatMessage): id {
+    return message.clientMessageId || message.id || message.content;
 }

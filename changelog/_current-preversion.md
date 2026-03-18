@@ -1,3 +1,10 @@
+-   Added optimistic first-user-message rendering for new durable Agents Server chats started before entering `/chat`:
+
+    -   Starting a new chat from the agent profile page, textarea page, or any other prefilled `/chat?message=...` flow now renders the first user bubble immediately as `Sending` while the durable `/messages` request is still in flight, instead of leaving a confusing one-message gap after navigation.
+    -   Added a small client-side pending outbound-message store scoped by `chatId`, merged it into the canonical chat transcript during rendering, and reconciled optimistic bubbles against canonical server messages primarily by explicit `clientMessageId` (with a bounded content/timestamp fallback).
+    -   Failed first-message sends now keep the optimistic bubble visible and marked `Failed`, while successful reconciliation reuses the same client-side render key so the optimistic bubble transitions into the canonical transcript without duplication or visible flicker.
+    -   Added focused unit coverage for optimistic merge/reconcile logic and a Playwright regression that delays the first durable send from the agent profile page to verify the `Sending` bubble appears before the server responds.
+
 -   Fixed Agents Server agent-route loading skeleton selection so each major agent page now streams a layout-matching skeleton family instead of falling back to the profile or homepage placeholder:
 
     -   Added a shared `AgentPageLoadingSkeleton` variant entrypoint plus documented route-family audit for profile, chat, textarea, editor, split editor/chat, integration/docs, code viewer, timeline, and gallery pages.

@@ -326,8 +326,12 @@ type ToolCallChipEntry = {
  *
  * @private internal helper of `<ChatMessageItem/>`
  */
-function resolveMessageLifecycleLabel(lifecycleState: ChatMessage['lifecycleState']): string | null {
-    switch (lifecycleState) {
+function resolveMessageLifecycleLabel(message: ChatMessage): string | null {
+    if (message.sender === 'USER' && message.lifecycleState === 'queued') {
+        return 'Sending';
+    }
+
+    switch (message.lifecycleState) {
         case 'queued':
             return 'Queued';
         case 'running':
@@ -690,7 +694,7 @@ export const ChatMessageItem = memo(
         const isMe = participant?.isMe;
         const timingDisplay = getChatMessageTimingDisplay(message);
         const shouldShowTiming = Boolean(isComplete && timingDisplay);
-        const lifecycleBadgeLabel = resolveMessageLifecycleLabel(message.lifecycleState);
+        const lifecycleBadgeLabel = resolveMessageLifecycleLabel(message);
         const shouldShowMessageMeta = Boolean(shouldShowTiming || lifecycleBadgeLabel);
         const shouldShowParticipantLabel = (participants || []).some((entry) => entry.name === 'TEAMMATE');
         const participantLabel = participant?.fullname || participant?.name;
