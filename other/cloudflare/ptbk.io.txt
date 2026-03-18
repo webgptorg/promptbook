@@ -1,0 +1,77 @@
+;;
+;; Domain:     ptbk.io.
+;; Exported:   2026-03-18 00:59:18
+;;
+;; This file is intended for use for informational and archival
+;; purposes ONLY and MUST be edited before use on a production
+;; DNS server.  In particular, you must:
+;;   -- update the SOA record with the correct authoritative name server
+;;   -- update the SOA record with the contact e-mail address information
+;;   -- update the NS record(s) with the authoritative name servers for this domain.
+;;
+;; For further information, please consult the BIND documentation
+;; located on the following website:
+;;
+;; http://www.isc.org/
+;;
+;; And RFC 1035:
+;;
+;; http://www.ietf.org/rfc/rfc1035.txt
+;;
+;; Please note that we do NOT offer technical support for any use
+;; of this zone data, the BIND name server, or any other third-party
+;; DNS software.
+;;
+;; Use at your own risk.
+;; SOA Record
+ptbk.io	3600	IN	SOA	rick.ns.cloudflare.com. dns.cloudflare.com. 2052546215 10000 2400 604800 3600
+
+;; NS Records
+ptbk.io.	86400	IN	NS	rick.ns.cloudflare.com.
+ptbk.io.	86400	IN	NS	tia.ns.cloudflare.com.
+
+;; A Records
+aldaron.ptbk.io.	1	IN	A	76.76.21.21 ; Aldaronic; A/B testing landing page for Promptbook via Vercel cf_tags=cf-proxied:false
+aranion.ptbk.io.	1	IN	A	76.76.21.21 ; Aldaronic; A/B testing landing page for Promptbook via Vercel cf_tags=cf-proxied:false
+arena.ptbk.io.	1	IN	A	76.76.21.21 ; Aldaronic; A/B testing landing page for Promptbook via Vercel cf_tags=cf-proxied:false
+book-components.ptbk.io.	1	IN	A	76.76.21.21 ; cf_tags=cf-proxied:false
+elenwe.ptbk.io.	1	IN	A	76.76.21.21 ; Aldaronic; A/B testing landing page for Promptbook via Vercel cf_tags=cf-proxied:false
+emailer.ptbk.io.	1	IN	A	76.76.21.21 ; Aldaronic; A/B testing landing page for Promptbook via Vercel cf_tags=cf-proxied:false
+feanor.ptbk.io.	1	IN	A	76.76.21.21 ; Aldaronic; A/B testing landing page for Promptbook via Vercel cf_tags=cf-proxied:false
+podcast.ptbk.io.	1	IN	A	207.154.239.143 ; Owncast server cf_tags=cf-proxied:false
+ptbk.io.	1	IN	A	76.76.21.21 ; Vercel cf_tags=cf-proxied:false
+s5.ptbk.io.	1	IN	A	104.248.16.7 ; cf_tags=cf-proxied:false
+soul.ptbk.io.	1	IN	A	76.76.21.21 ; Aldaronic; A/B testing landing page for Promptbook via Vercel cf_tags=cf-proxied:false
+webgpt.ptbk.io.	1	IN	A	76.76.21.21 ; Aldaronic; A/B testing landing page for Promptbook via Vercel cf_tags=cf-proxied:false
+
+;; CNAME Records
+books.ptbk.io.	1	IN	CNAME	webgptorg.github.io. ; cf_tags=cf-proxied:false
+brevo1._domainkey.ptbk.io.	3600	IN	CNAME	b1.ptbk-io.dkim.brevo.com. ; cf_tags=cf-proxied:false
+brevo2._domainkey.ptbk.io.	3600	IN	CNAME	b2.ptbk-io.dkim.brevo.com. ; cf_tags=cf-proxied:false
+browser.s5.ptbk.io.	1	IN	CNAME	s5.ptbk.io. ; cf_tags=cf-proxied:false
+daeron.ptbk.io.	1	IN	CNAME	webgptorg.github.io. ; A/B testing landing page for Promptbook cf_tags=cf-proxied:false
+earendil.ptbk.io.	1	IN	CNAME	jorgesquared.github.io. ; Pivoting chatbots cf_tags=cf-proxied:false
+eldamar.ptbk.io.	1	IN	CNAME	jorgesquared.github.io. ; Pivoting security cf_tags=cf-proxied:false
+greenhack.ptbk.io.	1	IN	CNAME	jorgesquared.github.io. ; Landing page for GreenHack 2025 cf_tags=cf-proxied:false
+luthien.ptbk.io.	1	IN	CNAME	webgptorg.github.io. ; A/B testing landing page for Promptbook cf_tags=cf-proxied:false
+new.ptbk.io.	600	IN	CNAME	66b13097a4733114.vercel-dns-016.com. ; cf_tags=cf-proxied:false
+playground.ptbk.io.	600	IN	CNAME	89afef358143d158.vercel-dns-016.com. ; cf_tags=cf-proxied:false
+promptbook.s5.ptbk.io.	1	IN	CNAME	s5.ptbk.io. ; cf_tags=cf-proxied:false
+promptimage.s5.ptbk.io.	1	IN	CNAME	s5.ptbk.io. ; cf_tags=cf-proxied:false
+*.ptbk.io.	1	IN	CNAME	ptbk.io. ; cf_tags=cf-proxied:false
+slides.ptbk.io.	1	IN	CNAME	webgptorg.github.io. ; cf_tags=cf-proxied:false
+testamar.ptbk.io.	1	IN	CNAME	hejny.github.io. ; Testing deployment of Lovable page cf_tags=cf-proxied:false
+www.ptbk.io.	1	IN	CNAME	ptbk.io. ; cf_tags=cf-proxied:false
+
+;; MX Records
+ptbk.io.	1	IN	MX	20 mx2.improvmx.com.
+ptbk.io.	1	IN	MX	10 mx1.improvmx.com.
+
+;; TXT Records
+_dmarc.ptbk.io.	3600	IN	TXT	"v=DMARC1; p=none; rua=mailto:rua@dmarc.brevo.com"
+mailjet._domainkey.ptbk.io.	1	IN	TXT	"k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAjK22CacLuBq54pCvmKz+AuAmM2uiw+9arcZmyw4+LD/mPgi/d3Sl0gJe3O9Ldi+F/ED2ea4C3iA9lPZBJev3YiaXXZGTPJ2mb+XFw39lL47+PKkwkAQ6oqt3h28hJAeKS7VT9dwqK3AdWSTouhJCuJoY6o4KhXgtC6eZ8tArc3D7BlAHsongKVVvXj8KDpvwVYTsDeDoq/" "mDwqgqKZ17RpOw8fbwyAZDMaIaQr3/M+QHIEt5EVmkgNp07//KzrLsSMQAzI1kAwD2VGB8yU7thNmtY5I3WVsyk2Oj3aM/4eO31ONHr2THMXX1IG51yOvnDXNx05hC8LmdemeyM8MMJwIDAQAB"
+ptbk.io.	1	IN	TXT	"v=spf1 include:spf.mailjet.com a mx include:gransy.com include:spf.improvmx.com ~all"
+ptbk.io.	3600	IN	TXT	"brevo-code:a6d3b92e194ed959d43a2bc39950691c"
+_vercel.ptbk.io.	600	IN	TXT	"vc-domain-verify=new.ptbk.io,9512f0ede0ec8545e321,dc"
+_vercel.ptbk.io.	600	IN	TXT	"vc-domain-verify=playground.ptbk.io,87ce7bdc0268d1814424,dc"
+_vercel.ptbk.io.	1	IN	TXT	"vc-domain-verify=admin.ptbk.io,74a4c9aef4b71f8a8f52"
