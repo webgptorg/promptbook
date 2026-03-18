@@ -4,6 +4,7 @@ import { ResizablePanelsAuto } from '@common/components/ResizablePanelsAuto/Resi
 import { string_agent_url, string_book } from '@promptbook-local/types';
 import { Book, MessageSquare } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { AgentSplitEditorChatLoadingSkeleton } from '../../../../components/Skeleton/AgentSplitEditorChatLoadingSkeleton';
 import { AgentChatWrapper } from '../AgentChatWrapper';
 import { BookEditorWrapper } from '../book/BookEditorWrapper';
 
@@ -42,7 +43,7 @@ export function AgentBookAndChat(props: AgentBookAndChatProps) {
     }, []);
 
     if (!isMounted) {
-        return <div className="w-full h-full bg-white" />;
+        return <AgentSplitEditorChatLoadingSkeleton />;
     }
 
     if (isMobile) {

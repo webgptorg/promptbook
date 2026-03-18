@@ -48,3 +48,8 @@
 - `npm run test-app-agents-server` also fails in another unrelated `test-e2e` setup path after successful app lint/build:
   - Next.js reports `Dynamic server usage` while prerendering `/restricted`, with logs mentioning both `headers` and `cookies`.
   - The stack in this run points into `/admin/servers/page` while the reported failing route is `/restricted`, which suggests a broader prerender/static-generation issue outside the textarea loading change in this task.
+
+- `npm run test-app-agents-server` currently fails in the `test-build` stage with an unrelated Agents Server type error:
+  - File: `apps/agents-server/src/utils/handleChatCompletion.ts`
+  - Error: a placeholder `ChatMessage` object with `isComplete: false` and `lifecycleState: 'running'` is no longer assignable to the inferred `ChatMessage` shape accepted at that `messages.push(...)` call.
+  - Reported by Next.js build at the `messages.push({ ... } satisfies ChatMessage)` block around line 309 while validating this skeleton-loading task, and not caused by the loading-route changes here.

@@ -4,6 +4,7 @@ import { AgentBasicInformation, string_url } from '@promptbook-local/types';
 import { ChevronDownIcon, CodeIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { MonacoEditorWithShadowDom } from '../../../../components/_utils/MonacoEditorWithShadowDom';
+import { AgentCodeViewerLoadingSkeleton } from '../../../../components/Skeleton/AgentCodeViewerLoadingSkeleton';
 import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 
 type Transpiler = {
@@ -109,13 +110,7 @@ export function AgentCodePageClient({ agentName, publicUrl }: AgentCodePageClien
     }, [selectedTranspiler, agentName, transpileCode]);
 
     if (!agentProfile) {
-        return (
-            <div className="min-h-screen p-6 md:p-12 flex flex-col items-center bg-gray-50">
-                <div className="w-full max-w-4xl bg-white rounded-xl shadow-sm border border-gray-200 p-12">
-                    <div className="text-center">Loading...</div>
-                </div>
-            </div>
-        );
+        return <AgentCodeViewerLoadingSkeleton />;
     }
 
     return (

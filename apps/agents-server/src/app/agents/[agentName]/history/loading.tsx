@@ -2,8 +2,8 @@ import { AgentPageLoadingSkeleton } from '../../../../components/Skeleton/AgentP
 import { AgentPageLoadingSkeletonVariant } from '../../../../components/Skeleton/AgentPageLoadingSkeletonVariant';
 
 /**
- * Renders the textarea-first skeleton while textarea route segments stream.
+ * Renders the timeline skeleton while the history route streams.
  */
 export default function Loading() {
-    return <AgentPageLoadingSkeleton variant={AgentPageLoadingSkeletonVariant.TEXTAREA} />;
+    return <AgentPageLoadingSkeleton variant={AgentPageLoadingSkeletonVariant.TIMELINE} />;
 }

@@ -1,3 +1,9 @@
+-   Fixed Agents Server agent-route loading skeleton selection so each major agent page now streams a layout-matching skeleton family instead of falling back to the profile or homepage placeholder:
+
+    -   Added a shared `AgentPageLoadingSkeleton` variant entrypoint plus documented route-family audit for profile, chat, textarea, editor, split editor/chat, integration/docs, code viewer, timeline, and gallery pages.
+    -   Added route-level `loading.tsx` selectors for agent `book`, `book+chat`, `integration`, `website-integration`, `system-message`, `export-as-transpiled-code`, `history`, and `images` pages while keeping the existing polished profile/chat/textarea skeletons unchanged.
+    -   Replaced remaining blank/text-only initial placeholders on the split book+chat and export code pages with the same new layout-aware skeletons so slow client hydration no longer regresses perceived loading quality.
+
 -   Added running vs scheduled chat-state indicators to the Agents Server `My chats` sidebar:
 
     -   Extended user-chat summaries with lightweight running activity so the left tray can distinguish live in-progress chats from chats that only have a future wake-up pending, with running taking priority when both states apply.
