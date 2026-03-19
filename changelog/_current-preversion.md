@@ -1,3 +1,5 @@
+-   Fixed Agents Server desktop header dropdown UX so hover now shows a non-blocking preview that cannot capture accidental clicks on page content, while deliberate click-open menus stay interactive and stable until dismissed across the agents hierarchy, Documentation, System, federated-server switcher, agent-view, and profile menus.
+
 -   Fixed Agents Server mobile chat tray access on the standalone chat page so the `Open chats sidebar` button now sits in a dedicated mobile slot above the transcript instead of floating over messages or the composer, while still respecting lateral device safe-area insets.
 
 -   Added Android share-sheet support for installed Agents Server PWAs, so each installed agent can appear as its own share target and open straight into a fresh 1:1 chat with the shared text or uploaded file attachments auto-sent as the first user message.
