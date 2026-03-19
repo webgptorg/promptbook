@@ -233,7 +233,6 @@ export function Header(props: HeaderProps) {
     const [mobileOpenSubMenus, setMobileOpenSubMenus] = useState<Record<string, boolean>>({});
     const dropdownPortalContainer = useHeaderDropdownPortalContainer();
     const [openSubMenu, setOpenSubMenu] = useState<OpenSubMenuState | null>(null);
-    const [interactiveDesktopMenuId, setInteractiveDesktopMenuId] = useState<string | null>(null);
     const subMenuCloseTimer = useRef<ReturnType<typeof window.setTimeout> | null>(null);
     const menuCloseTimers = useRef<Record<string, ReturnType<typeof window.setTimeout> | null>>({});
     const router = useRouter();
@@ -268,7 +267,6 @@ export function Header(props: HeaderProps) {
     useEffect(() => {
         setDesktopExpandedSubMenus({});
         setOpenSubMenu(null);
-        setInteractiveDesktopMenuId(null);
 
         if (subMenuCloseTimer.current) {
             clearTimeout(subMenuCloseTimer.current);
@@ -351,7 +349,7 @@ export function Header(props: HeaderProps) {
      * @private Schedules a delayed close for a header dropdown.
      */
     const scheduleMenuClose = (menuId: string, close: () => void) => {
-        if (isTouchInput || interactiveDesktopMenuId === menuId) {
+        if (isTouchInput) {
             return;
         }
         cancelMenuClose(menuId);
@@ -367,7 +365,6 @@ export function Header(props: HeaderProps) {
      * @private
      */
     const closeAllDesktopHeaderDropdowns = useCallback(() => {
-        setInteractiveDesktopMenuId(null);
         setIsFederatedOpen(false);
         setIsAgentsOpen(false);
         setIsAgentViewOpen(false);
@@ -406,115 +403,6 @@ export function Header(props: HeaderProps) {
             document.removeEventListener('pointerdown', handlePointerDown);
         };
     }, [closeAllDesktopHeaderDropdowns, isTouchInput]);
-
-    /**
-     * Keeps intentionally opened desktop menus stable until focus or pointer
-     * moves outside the header dropdown surface.
-     *
-     * @private
-     */
-    useEffect(() => {
-        if (!interactiveDesktopMenuId) {
-            return;
-        }
-
-        const isWithinHeaderDropdownSurface = (target: EventTarget | null) => {
-            if (!(target instanceof Node)) {
-                return false;
-            }
-
-            return (
-                Boolean(headerRef.current?.contains(target)) ||
-                Boolean(dropdownPortalContainer?.contains(target))
-            );
-        };
-
-        const handlePointerDown = (event: PointerEvent) => {
-            if (isWithinHeaderDropdownSurface(event.target)) {
-                return;
-            }
-
-            closeAllDesktopHeaderDropdowns();
-        };
-
-        const handleFocusIn = (event: FocusEvent) => {
-            if (isWithinHeaderDropdownSurface(event.target)) {
-                return;
-            }
-
-            closeAllDesktopHeaderDropdowns();
-        };
-
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
-                closeAllDesktopHeaderDropdowns();
-            }
-        };
-
-        document.addEventListener('pointerdown', handlePointerDown);
-        document.addEventListener('focusin', handleFocusIn);
-        document.addEventListener('keydown', handleKeyDown);
-
-        return () => {
-            document.removeEventListener('pointerdown', handlePointerDown);
-            document.removeEventListener('focusin', handleFocusIn);
-            document.removeEventListener('keydown', handleKeyDown);
-        };
-    }, [closeAllDesktopHeaderDropdowns, dropdownPortalContainer, interactiveDesktopMenuId]);
-
-    /**
-     * Opens one desktop dropdown as a transient hover preview without taking over the page.
-     *
-     * @param menuId - Stable identifier of the dropdown being previewed.
-     * @param open - State setter that shows the dropdown.
-     */
-    const openDesktopDropdownPreview = (menuId: string, open: () => void) => {
-        cancelMenuClose(menuId);
-
-        if (isTouchInput) {
-            return;
-        }
-
-        if (interactiveDesktopMenuId && interactiveDesktopMenuId !== menuId) {
-            return;
-        }
-
-        open();
-    };
-
-    /**
-     * Opens one desktop dropdown as an intentionally interactive panel.
-     *
-     * @param menuId - Stable identifier of the dropdown being committed.
-     * @param open - State setter that shows the dropdown.
-     */
-    const openDesktopDropdownInteractively = (menuId: string, open: () => void) => {
-        cancelMenuClose(menuId);
-
-        if (interactiveDesktopMenuId !== menuId) {
-            closeAllDesktopHeaderDropdowns();
-            setInteractiveDesktopMenuId(menuId);
-        }
-
-        open();
-    };
-
-    /**
-     * Closes one desktop dropdown and clears any committed interaction state.
-     *
-     * @param menuId - Stable identifier of the dropdown being closed.
-     * @param close - State setter that hides the dropdown.
-     */
-    const closeDesktopDropdown = (menuId: string, close: () => void) => {
-        cancelMenuClose(menuId);
-        close();
-        setOpenSubMenu(null);
-        setDesktopExpandedSubMenus({});
-
-        if (interactiveDesktopMenuId === menuId) {
-            setInteractiveDesktopMenuId(null);
-        }
-    };
 
     const visibleDocumentationCommitments = useMemo(() => getVisibleCommitmentDefinitions(), []);
     const documentationDropdownItems = useMemo(
@@ -804,7 +692,7 @@ export function Header(props: HeaderProps) {
      * Closes the agent view dropdown after a selection.
      */
     const closeAgentViewDropdown = () => {
-        closeDesktopDropdown('agent-view', () => setIsAgentViewOpen(false));
+        setIsAgentViewOpen(false);
         setIsMenuOpen(false);
     };
 
@@ -905,7 +793,7 @@ export function Header(props: HeaderProps) {
         : [];
 
     const closeAgentsDropdown = () => {
-        closeDesktopDropdown('agents-hierarchy', () => setIsAgentsOpen(false));
+        setIsAgentsOpen(false);
         setIsMenuOpen(false);
     };
 
@@ -1347,18 +1235,19 @@ export function Header(props: HeaderProps) {
 
                 if (item.type === 'dropdown') {
                     const dropdownItems = item.items ?? [];
-                    const isDropdownInteractive = interactiveDesktopMenuId === item.id;
-                    const isHoverPreview = item.isOpen && !isDropdownInteractive;
                     const closeDropdown = () => {
-                        closeDesktopDropdown(item.id, () => item.setIsOpen(false));
+                        cancelMenuClose(item.id);
+                        item.setIsOpen(false);
+                        setOpenSubMenu(null);
+                        setDesktopExpandedSubMenus({});
                     };
                     const toggleDropdown = () => {
-                        if (item.isOpen && isDropdownInteractive) {
-                            closeDropdown();
-                            return;
+                        cancelMenuClose(item.id);
+                        item.setIsOpen(!item.isOpen);
+                        if (item.isOpen) {
+                            setOpenSubMenu(null);
+                            setDesktopExpandedSubMenus({});
                         }
-
-                        openDesktopDropdownInteractively(item.id, () => item.setIsOpen(true));
                     };
 
                     const renderDropdownLink = (
@@ -1470,9 +1359,7 @@ export function Header(props: HeaderProps) {
                             if (subItem.items && subItem.items.length > 0) {
                                 const submenuKey = `${item.id}-dropdown-${subIndex}`;
                                 const isSubMenuOpen =
-                                    !isTouchInput &&
-                                    isDropdownInteractive &&
-                                    openSubMenu?.key === submenuKey;
+                                    !isTouchInput && openSubMenu?.key === submenuKey;
                                 const isTapSubMenuOpen = Boolean(
                                     desktopExpandedSubMenus[submenuKey],
                                 );
@@ -1587,9 +1474,12 @@ export function Header(props: HeaderProps) {
                         <div
                             key={index}
                             className="relative"
-                            onMouseEnter={() =>
-                                openDesktopDropdownPreview(item.id, () => item.setIsOpen(true))
-                            }
+                            onMouseEnter={() => {
+                                cancelMenuClose(item.id);
+                                if (!isTouchInput) {
+                                    item.setIsOpen(true);
+                                }
+                            }}
                             onMouseLeave={() =>
                                 scheduleMenuClose(item.id, () => item.setIsOpen(false))
                             }
@@ -1597,14 +1487,15 @@ export function Header(props: HeaderProps) {
                             <button
                                 className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
                                 onClick={toggleDropdown}
-                                onMouseEnter={() =>
-                                    openDesktopDropdownPreview(item.id, () => item.setIsOpen(true))
-                                }
+                                onMouseEnter={() => {
+                                    cancelMenuClose(item.id);
+                                    if (!isTouchInput) {
+                                        item.setIsOpen(true);
+                                    }
+                                }}
                                 onBlur={() =>
                                     scheduleMenuClose(item.id, () => item.setIsOpen(false))
                                 }
-                                aria-expanded={isDropdownInteractive}
-                                aria-haspopup="menu"
                             >
                                 {item.label}
                                 <ChevronDown className="w-4 h-4" />
@@ -1612,15 +1503,11 @@ export function Header(props: HeaderProps) {
 
                             {item.isOpen && (
                                 <div
-                                    className={`absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-2xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 backdrop-blur ${
-                                        isHoverPreview ? 'pointer-events-none [&_*]:!pointer-events-none' : ''
-                                    }`}
+                                    className="absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-2xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 backdrop-blur"
                                     onMouseEnter={() => cancelMenuClose(item.id)}
                                     onMouseLeave={() =>
                                         scheduleMenuClose(item.id, () => item.setIsOpen(false))
                                     }
-                                    aria-hidden={isHoverPreview}
-                                    inert={isHoverPreview}
                                 >
                                     {item.renderMenu ? (
                                         <div className="relative">{item.renderMenu()}</div>
@@ -1639,15 +1526,6 @@ export function Header(props: HeaderProps) {
             })}
         </nav>
     );
-
-    const isFederatedDropdownInteractive = interactiveDesktopMenuId === 'federated-server-switcher';
-    const isFederatedDropdownHoverPreview = isFederatedOpen && !isFederatedDropdownInteractive;
-    const isAgentsHierarchyInteractive = interactiveDesktopMenuId === 'agents-hierarchy';
-    const isAgentsHierarchyHoverPreview = isAgentsOpen && !isAgentsHierarchyInteractive;
-    const isAgentViewInteractive = interactiveDesktopMenuId === 'agent-view';
-    const isAgentViewHoverPreview = isAgentViewOpen && !isAgentViewInteractive;
-    const isProfileMenuInteractive = interactiveDesktopMenuId === 'profile-menu';
-    const isProfileMenuHoverPreview = isProfileOpen && !isProfileMenuInteractive;
 
     return (
         <header
@@ -1702,12 +1580,7 @@ export function Header(props: HeaderProps) {
                                 {federatedServers.length > 0 && (
                                     <div
                                         className="relative hidden lg:block"
-                                        onMouseEnter={() =>
-                                            openDesktopDropdownPreview(
-                                                'federated-server-switcher',
-                                                () => setIsFederatedOpen(true),
-                                            )
-                                        }
+                                        onMouseEnter={() => cancelMenuClose('federated-server-switcher')}
                                         onMouseLeave={() =>
                                             scheduleMenuClose('federated-server-switcher', () =>
                                                 setIsFederatedOpen(false),
@@ -1717,28 +1590,15 @@ export function Header(props: HeaderProps) {
                                         <button
                                             className="inline-flex p-1 text-gray-400 hover:text-gray-700 transition-colors"
                                             onClick={() => {
-                                                if (
-                                                    isFederatedOpen &&
-                                                    isFederatedDropdownInteractive
-                                                ) {
-                                                    closeDesktopDropdown(
-                                                        'federated-server-switcher',
-                                                        () => setIsFederatedOpen(false),
-                                                    );
-                                                    return;
-                                                }
-
-                                                openDesktopDropdownInteractively(
-                                                    'federated-server-switcher',
-                                                    () => setIsFederatedOpen(true),
-                                                );
+                                                cancelMenuClose('federated-server-switcher');
+                                                setIsFederatedOpen(!isFederatedOpen);
                                             }}
-                                            onMouseEnter={() =>
-                                                openDesktopDropdownPreview(
-                                                    'federated-server-switcher',
-                                                    () => setIsFederatedOpen(true),
-                                                )
-                                            }
+                                            onMouseEnter={() => {
+                                                cancelMenuClose('federated-server-switcher');
+                                                if (!isTouchInput) {
+                                                    setIsFederatedOpen(true);
+                                                }
+                                            }}
                                             onBlur={() =>
                                                 scheduleMenuClose('federated-server-switcher', () =>
                                                     setIsFederatedOpen(false),
@@ -1746,26 +1606,18 @@ export function Header(props: HeaderProps) {
                                             }
                                             title={t('header.switchServerAria')}
                                             aria-label={t('header.switchServerAria')}
-                                            aria-expanded={isFederatedDropdownInteractive}
-                                            aria-haspopup="menu"
                                         >
                                             <ChevronDown className="w-4 h-4" />
                                         </button>
                                         {isFederatedOpen && (
                                             <div
-                                                className={`absolute left-0 top-full z-50 mt-2 w-56 rounded-xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 max-h-[80vh] overflow-y-auto backdrop-blur ${
-                                                    isFederatedDropdownHoverPreview
-                                                        ? 'pointer-events-none [&_*]:!pointer-events-none'
-                                                        : ''
-                                                }`}
+                                                className="absolute left-0 top-full z-50 mt-2 w-56 rounded-xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 max-h-[80vh] overflow-y-auto backdrop-blur"
                                                 onMouseEnter={() => cancelMenuClose('federated-server-switcher')}
                                                 onMouseLeave={() =>
                                                     scheduleMenuClose('federated-server-switcher', () =>
                                                         setIsFederatedOpen(false),
                                                     )
                                                 }
-                                                aria-hidden={isFederatedDropdownHoverPreview}
-                                                inert={isFederatedDropdownHoverPreview}
                                             >
                                                 {federatedDropdownItems.map((subItem, subIndex) => {
                                                     const className = `mx-1 block rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 ${
@@ -1778,12 +1630,7 @@ export function Header(props: HeaderProps) {
                                                                 key={`federated-${subIndex}`}
                                                                 href={subItem.href}
                                                                 className={className}
-                                                                onClick={() =>
-                                                                    closeDesktopDropdown(
-                                                                        'federated-server-switcher',
-                                                                        () => setIsFederatedOpen(false),
-                                                                    )
-                                                                }
+                                                                onClick={() => setIsFederatedOpen(false)}
                                                             >
                                                                 {subItem.label}
                                                             </HeadlessLink>
@@ -1807,11 +1654,12 @@ export function Header(props: HeaderProps) {
                             {isAdmin ? (
                                 <div
                                     className="relative min-w-0"
-                                    onMouseEnter={() =>
-                                        openDesktopDropdownPreview('agents-hierarchy', () =>
-                                            setIsAgentsOpen(true),
-                                        )
-                                    }
+                                    onMouseEnter={() => {
+                                        cancelMenuClose('agents-hierarchy');
+                                        if (!isTouchInput) {
+                                            setIsAgentsOpen(true);
+                                        }
+                                    }}
                                     onMouseLeave={() =>
                                         scheduleMenuClose('agents-hierarchy', () => setIsAgentsOpen(false))
                                     }
@@ -1819,26 +1667,18 @@ export function Header(props: HeaderProps) {
                                     <button
                                         className="flex min-w-0 items-center gap-2 rounded-full border border-transparent px-2 sm:px-3 py-1 hover:border-gray-200 hover:bg-gray-100 transition"
                                         onClick={() => {
-                                            if (isAgentsOpen && isAgentsHierarchyInteractive) {
-                                                closeAgentsDropdown();
-                                                return;
-                                            }
-
-                                            openDesktopDropdownInteractively(
-                                                'agents-hierarchy',
-                                                () => setIsAgentsOpen(true),
-                                            );
+                                            cancelMenuClose('agents-hierarchy');
+                                            setIsAgentsOpen(!isAgentsOpen);
                                         }}
-                                        onMouseEnter={() =>
-                                            openDesktopDropdownPreview('agents-hierarchy', () =>
-                                                setIsAgentsOpen(true),
-                                            )
-                                        }
+                                        onMouseEnter={() => {
+                                            cancelMenuClose('agents-hierarchy');
+                                            if (!isTouchInput) {
+                                                setIsAgentsOpen(true);
+                                            }
+                                        }}
                                         onBlur={() =>
                                             scheduleMenuClose('agents-hierarchy', () => setIsAgentsOpen(false))
                                         }
-                                        aria-expanded={isAgentsHierarchyInteractive}
-                                        aria-haspopup="menu"
                                     >
                                         <AgentNameWithAvatar
                                             label={activeAgentLabel}
@@ -1856,17 +1696,11 @@ export function Header(props: HeaderProps) {
                                     </button>
                                     {isAgentsOpen && (
                                         <div
-                                            className={`absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-2xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 overflow-visible backdrop-blur ${
-                                                isAgentsHierarchyHoverPreview
-                                                    ? 'pointer-events-none [&_*]:!pointer-events-none'
-                                                    : ''
-                                            }`}
+                                            className="absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-2xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 overflow-visible backdrop-blur"
                                             onMouseEnter={() => cancelMenuClose('agents-hierarchy')}
                                             onMouseLeave={() =>
                                                 scheduleMenuClose('agents-hierarchy', () => setIsAgentsOpen(false))
                                             }
-                                            aria-hidden={isAgentsHierarchyHoverPreview}
-                                            inert={isAgentsHierarchyHoverPreview}
                                         >
                                             <AgentDirectoryDropdown
                                                 nodes={agentMenuTree}
@@ -1929,11 +1763,12 @@ export function Header(props: HeaderProps) {
                                     <ArrowIcon direction="right" className="hidden sm:block h-4 w-4 text-gray-500" />
                                     <div
                                         className="relative hidden sm:block"
-                                        onMouseEnter={() =>
-                                            openDesktopDropdownPreview('agent-view', () =>
-                                                setIsAgentViewOpen(true),
-                                            )
-                                        }
+                                        onMouseEnter={() => {
+                                            cancelMenuClose('agent-view');
+                                            if (!isTouchInput) {
+                                                setIsAgentViewOpen(true);
+                                            }
+                                        }}
                                         onMouseLeave={() =>
                                             scheduleMenuClose('agent-view', () => setIsAgentViewOpen(false))
                                         }
@@ -1941,43 +1776,29 @@ export function Header(props: HeaderProps) {
                                         <button
                                             className="flex items-center gap-2 rounded-full px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-100 transition"
                                             onClick={() => {
-                                                if (isAgentViewOpen && isAgentViewInteractive) {
-                                                    closeAgentViewDropdown();
-                                                    return;
-                                                }
-
-                                                openDesktopDropdownInteractively(
-                                                    'agent-view',
-                                                    () => setIsAgentViewOpen(true),
-                                                );
+                                                cancelMenuClose('agent-view');
+                                                setIsAgentViewOpen(!isAgentViewOpen);
                                             }}
-                                            onMouseEnter={() =>
-                                                openDesktopDropdownPreview('agent-view', () =>
-                                                    setIsAgentViewOpen(true),
-                                                )
-                                            }
+                                            onMouseEnter={() => {
+                                                cancelMenuClose('agent-view');
+                                                if (!isTouchInput) {
+                                                    setIsAgentViewOpen(true);
+                                                }
+                                            }}
                                             onBlur={() =>
                                                 scheduleMenuClose('agent-view', () => setIsAgentViewOpen(false))
                                             }
-                                            aria-expanded={isAgentViewInteractive}
-                                            aria-haspopup="menu"
                                         >
                                             {createAgentViewLabel(activeAgentView, t)}
                                             <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
                                         </button>
                                         {isAgentViewOpen && (
                                             <div
-                                                className={`absolute left-0 top-full z-50 mt-2 min-w-[180px] rounded-xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 backdrop-blur ${
-                                                    isAgentViewHoverPreview
-                                                        ? 'pointer-events-none [&_*]:!pointer-events-none'
-                                                        : ''
-                                                }`}
+                                                className="absolute left-0 top-full z-50 mt-2 min-w-[180px] rounded-xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 backdrop-blur"
                                                 onMouseEnter={() => cancelMenuClose('agent-view')}
                                                 onMouseLeave={() =>
                                                     scheduleMenuClose('agent-view', () => setIsAgentViewOpen(false))
                                                 }
-                                                aria-hidden={isAgentViewHoverPreview}
-                                                inert={isAgentViewHoverPreview}
                                             >
                                                 {renderAgentViewDropdownItems(
                                                     activeAgentViewItems,
@@ -2044,37 +1865,24 @@ export function Header(props: HeaderProps) {
                             <div className="hidden lg:flex items-center gap-3">
                                 <div
                                     className="relative"
-                                    onMouseEnter={() =>
-                                        openDesktopDropdownPreview('profile-menu', () =>
-                                            setIsProfileOpen(true),
-                                        )
-                                    }
+                                    onMouseEnter={() => cancelMenuClose('profile-menu')}
                                     onMouseLeave={() =>
                                         scheduleMenuClose('profile-menu', () => setIsProfileOpen(false))
                                     }
                                 >
                                     <button
                                         onClick={() => {
-                                            if (isProfileOpen && isProfileMenuInteractive) {
-                                                closeDesktopDropdown('profile-menu', () =>
-                                                    setIsProfileOpen(false),
-                                                );
-                                                return;
-                                            }
-
-                                            openDesktopDropdownInteractively('profile-menu', () =>
-                                                setIsProfileOpen(true),
-                                            );
+                                            cancelMenuClose('profile-menu');
+                                            setIsProfileOpen(!isProfileOpen);
                                         }}
-                                        onMouseEnter={() =>
-                                            openDesktopDropdownPreview('profile-menu', () =>
-                                                setIsProfileOpen(true),
-                                            )
-                                        }
+                                        onMouseEnter={() => {
+                                            cancelMenuClose('profile-menu');
+                                            if (!isTouchInput) {
+                                                setIsProfileOpen(true);
+                                            }
+                                        }}
                                         onBlur={() => scheduleMenuClose('profile-menu', () => setIsProfileOpen(false))}
                                         className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors px-3 py-2 rounded-md hover:bg-gray-50"
-                                        aria-expanded={isProfileMenuInteractive}
-                                        aria-haspopup="menu"
                                     >
                                         <div className="relative flex h-8 w-8 items-center justify-center">
                                             {currentUserProfileImageUrl ? (
@@ -2101,17 +1909,11 @@ export function Header(props: HeaderProps) {
 
                                     {isProfileOpen && (
                                         <div
-                                            className={`absolute top-full right-0 mt-2 w-56 bg-white/95 rounded-xl shadow-xl shadow-slate-900/10 border border-gray-100 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-200 backdrop-blur ${
-                                                isProfileMenuHoverPreview
-                                                    ? 'pointer-events-none [&_*]:!pointer-events-none'
-                                                    : ''
-                                            }`}
+                                            className="absolute top-full right-0 mt-2 w-56 bg-white/95 rounded-xl shadow-xl shadow-slate-900/10 border border-gray-100 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-200 backdrop-blur"
                                             onMouseEnter={() => cancelMenuClose('profile-menu')}
                                             onMouseLeave={() =>
                                                 scheduleMenuClose('profile-menu', () => setIsProfileOpen(false))
                                             }
-                                            aria-hidden={isProfileMenuHoverPreview}
-                                            inert={isProfileMenuHoverPreview}
                                         >
                                             <div className="px-4 py-3 border-b border-gray-100">
                                                 <p className="text-sm font-medium text-gray-900">
