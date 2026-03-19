@@ -14,6 +14,24 @@ controlPanel.feedbackTitle: Odezva
 controlPanel.feedbackSubtitle: Globální nastavení zvuku a vibrací
 controlPanel.audioLabel: Zvuk
 controlPanel.audioLoading: Načítám nastavení zvuku…
+controlPanel.notificationsTitle: Oznámení
+controlPanel.notificationsSection: Upozornění
+controlPanel.notificationsDescriptionEnabled: Oznámení prohlížeče jsou zapnutá pro nové odpovědi agenta, když tento chat není aktivní.
+controlPanel.notificationsDescriptionDisabled: Zapněte oznámení prohlížeče pro odpovědi agentů na pozadí a plánovaná probuzení.
+controlPanel.notificationsDescriptionUnavailable: Push oznámení nejsou v tomto prohlížeči nebo na tomto serveru dostupná.
+controlPanel.notificationsDetail: Oznámení se posílají jen pro vaše vlastní webové chaty, když příslušný chat není aktivní.
+controlPanel.notificationsPermissionLabel: "Oprávnění:"
+controlPanel.notificationsPermissionGranted: Uděleno
+controlPanel.notificationsPermissionDefault: Zatím neuděleno
+controlPanel.notificationsPermissionDenied: Zamítnuto
+controlPanel.notificationsPermissionUnsupported: Tento prohlížeč nepodporuje oznámení
+controlPanel.notificationsPermissionUnavailable: Na tomto serveru nedostupné
+controlPanel.notificationsStateEnabled: Zapnuto
+controlPanel.notificationsStateDisabled: Vypnuto
+controlPanel.notificationsEnableAction: Zapnout oznámení
+controlPanel.notificationsDisableAction: Vypnout oznámení
+controlPanel.notificationsHint: Zapněte oznámení prohlížeče, aby vás agenti mohli upozornit po dlouhém nebo plánovaném běhu.
+controlPanel.notificationsHintAction: Zapnout oznámení
 controlPanel.selfLearningTitle: Sebeučení
 controlPanel.selfLearningSection: Kniha
 controlPanel.selfLearningDescriptionPrivate: Soukromý režim ponechá knihu beze změn a zablokuje nové učení.

@@ -21,7 +21,6 @@ import { getAgentFolderContext, getAgentName, getAgentProfile, isAgentDeleted } 
 import { getAgentLinks } from './agentLinks';
 import { AgentProfileWrapper } from './AgentProfileWrapper';
 import { DeferredAgentProfileChat } from './DeferredAgentProfileChat';
-import { ServiceWorkerRegister } from './ServiceWorkerRegister';
 import { getPseudoAgentDescriptor } from '../../../utils/pseudoAgents';
 import { PseudoAgentProfilePage } from './PseudoAgentProfile';
 
@@ -279,7 +278,6 @@ export default async function AgentPage({
                     dangerouslySetInnerHTML={{ __html: JSON.stringify(publicAgentProfileStructuredData) }}
                 />
             )}
-            <ServiceWorkerRegister scope={`/agents/${encodeURIComponent(canonicalAgentId)}/`} />
             <AgentProfileWrapper
                 agent={agentProfile}
                 agentUrl={agentUrl}

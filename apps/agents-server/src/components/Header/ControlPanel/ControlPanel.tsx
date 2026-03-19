@@ -1,10 +1,11 @@
 'use client';
 
 import { ChatSoundAndVibrationPanel } from '@promptbook-local/components';
-import { ChevronDown, EyeOff, Languages, Settings2, Sparkles, SpeakerIcon, X, type LucideIcon } from 'lucide-react';
+import { Bell, ChevronDown, EyeOff, Languages, Settings2, Sparkles, SpeakerIcon, X, type LucideIcon } from 'lucide-react';
 import { useCallback, useEffect, useId, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { confirmPrivateModeEnable } from '../../PrivateModePreferences/confirmPrivateModeEnable';
 import { usePrivateModePreferences } from '../../PrivateModePreferences/PrivateModePreferencesProvider';
+import { useBrowserPushNotifications } from '../../PushNotifications/BrowserPushNotificationsProvider';
 import { useSelfLearningPreferences } from '../../SelfLearningPreferences/SelfLearningPreferencesProvider';
 import { useServerLanguage } from '../../ServerLanguage/ServerLanguageProvider';
 import { useSoundSystem } from '../../SoundSystemProvider/SoundSystemProvider';
@@ -21,7 +22,7 @@ type ControlPanelContentProps = {
 /**
  * Stable section identifiers used to manage section expansion state.
  */
-type ControlPanelSectionId = 'feedback' | 'selfLearning' | 'privateMode' | 'language';
+type ControlPanelSectionId = 'feedback' | 'notifications' | 'selfLearning' | 'privateMode' | 'language';
 
 /**
  * Expansion state map for all control panel sections.
@@ -33,6 +34,7 @@ type ControlPanelExpandedSections = Record<ControlPanelSectionId, boolean>;
  */
 const CONTROL_PANEL_INITIAL_EXPANDED_SECTIONS: ControlPanelExpandedSections = {
     feedback: false,
+    notifications: false,
     selfLearning: true,
     privateMode: true,
     language: false,
@@ -222,6 +224,15 @@ function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanel
     const { language, setLanguage, availableLanguages, t } = useServerLanguage();
     const { isSelfLearningEnabled, setIsSelfLearningEnabled } = useSelfLearningPreferences();
     const { isPrivateModeEnabled, setIsPrivateModeEnabled } = usePrivateModePreferences();
+    const {
+        isConfigured: isNotificationsConfigured,
+        isLoading: isNotificationsLoading,
+        isPersisting: isNotificationsPersisting,
+        isSupported: isNotificationsSupported,
+        isEnabled: isNotificationsEnabled,
+        permission: notificationPermission,
+        setNotificationsEnabled,
+    } = useBrowserPushNotifications();
     const languageSelectId = useId();
     const [expandedSections, setExpandedSections] = useState<ControlPanelExpandedSections>(() => ({
         ...CONTROL_PANEL_INITIAL_EXPANDED_SECTIONS,
@@ -282,6 +293,31 @@ function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanel
     const privateDetail = t('controlPanel.privateModeDetail');
     const activeLanguageName =
         availableLanguages.find((languagePack) => languagePack.language === language)?.nativeName || language;
+    const areNotificationsAvailable = isNotificationsSupported && isNotificationsConfigured;
+    const notificationsPermissionLabel = !isNotificationsConfigured
+        ? t('controlPanel.notificationsPermissionUnavailable')
+        : notificationPermission === 'granted'
+          ? t('controlPanel.notificationsPermissionGranted')
+          : notificationPermission === 'denied'
+            ? t('controlPanel.notificationsPermissionDenied')
+            : notificationPermission === 'unsupported'
+              ? t('controlPanel.notificationsPermissionUnsupported')
+              : t('controlPanel.notificationsPermissionDefault');
+    const notificationsStateLabel = isNotificationsEnabled
+        ? t('controlPanel.notificationsStateEnabled')
+        : t('controlPanel.notificationsStateDisabled');
+    const notificationsDescription = !areNotificationsAvailable
+        ? t('controlPanel.notificationsDescriptionUnavailable')
+        : isNotificationsEnabled
+          ? t('controlPanel.notificationsDescriptionEnabled')
+          : t('controlPanel.notificationsDescriptionDisabled');
+    const notificationsStateTone: ControlPanelStatusTone = !areNotificationsAvailable
+        ? 'neutral'
+        : notificationPermission === 'denied'
+          ? 'danger'
+          : isNotificationsEnabled
+            ? 'positive'
+            : 'informative';
     const summaryDescription = isPrivateModeEnabled ? t('controlPanel.privateModeDescriptionPrivate') : selfLearningDescription;
     const feedbackTitle = title || t('controlPanel.feedbackTitle');
 
@@ -301,6 +337,7 @@ function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanel
                         tone={isPrivateModeEnabled ? 'neutral' : isSelfLearningEnabled ? 'positive' : 'informative'}
                         label={selfLearningStateLabel}
                     />
+                    <ControlPanelStatusBadge tone={notificationsStateTone} label={notificationsStateLabel} />
                     <ControlPanelStatusBadge tone="neutral" label={activeLanguageName} />
                 </div>
             </div>
@@ -321,6 +358,49 @@ function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanel
                 ) : (
                     <p className="text-xs text-gray-500">{t('controlPanel.audioLoading')}</p>
                 )}
+            </ControlPanelSectionCard>
+
+            <ControlPanelSectionCard
+                icon={Bell}
+                title={t('controlPanel.notificationsTitle')}
+                sectionLabel={t('controlPanel.notificationsSection')}
+                description={notificationsDescription}
+                stateLabel={notificationsStateLabel}
+                stateTone={notificationsStateTone}
+                isExpanded={expandedSections.notifications}
+                onToggle={() => toggleSection('notifications')}
+                toggleLabel={getSectionToggleLabel(
+                    t('controlPanel.notificationsTitle'),
+                    expandedSections.notifications,
+                )}
+            >
+                <div className="space-y-2">
+                    <ControlPanelStateRow
+                        stateLabel={notificationsStateLabel}
+                        detail={t('controlPanel.notificationsDetail')}
+                        action={
+                            <ControlPanelToggleAction
+                                isPressed={isNotificationsEnabled}
+                                activeLabel={t('controlPanel.notificationsDisableAction')}
+                                inactiveLabel={t('controlPanel.notificationsEnableAction')}
+                                onClick={() => {
+                                    void setNotificationsEnabled(!isNotificationsEnabled);
+                                }}
+                                isDisabled={
+                                    isNotificationsLoading ||
+                                    isNotificationsPersisting ||
+                                    (!areNotificationsAvailable && !isNotificationsEnabled)
+                                }
+                            />
+                        }
+                    />
+                    <p className="text-xs text-gray-500">
+                        <span className="font-medium text-gray-700">
+                            {t('controlPanel.notificationsPermissionLabel')}
+                        </span>{' '}
+                        {notificationsPermissionLabel}
+                    </p>
+                </div>
             </ControlPanelSectionCard>
 
             <ControlPanelSectionCard

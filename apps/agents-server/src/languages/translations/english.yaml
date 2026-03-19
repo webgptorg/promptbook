@@ -14,6 +14,24 @@ controlPanel.feedbackTitle: Feedback
 controlPanel.feedbackSubtitle: Control sounds and vibration globally
 controlPanel.audioLabel: Audio
 controlPanel.audioLoading: Loading audio settings…
+controlPanel.notificationsTitle: Notifications
+controlPanel.notificationsSection: Alerts
+controlPanel.notificationsDescriptionEnabled: Browser notifications are on for new agent replies when this chat is not focused.
+controlPanel.notificationsDescriptionDisabled: Turn on browser notifications for background agent replies and scheduled wake-ups.
+controlPanel.notificationsDescriptionUnavailable: Push notifications are not available in this browser or on this server.
+controlPanel.notificationsDetail: Notifications are sent only for your own web chats when the relevant chat is not focused.
+controlPanel.notificationsPermissionLabel: "Permission:"
+controlPanel.notificationsPermissionGranted: Granted
+controlPanel.notificationsPermissionDefault: Not granted yet
+controlPanel.notificationsPermissionDenied: Denied
+controlPanel.notificationsPermissionUnsupported: Unsupported in this browser
+controlPanel.notificationsPermissionUnavailable: Unavailable on this server
+controlPanel.notificationsStateEnabled: Enabled
+controlPanel.notificationsStateDisabled: Disabled
+controlPanel.notificationsEnableAction: Enable notifications
+controlPanel.notificationsDisableAction: Disable notifications
+controlPanel.notificationsHint: Turn on browser notifications to hear back from agents after long-running or scheduled work.
+controlPanel.notificationsHintAction: Enable notifications
 controlPanel.selfLearningTitle: Self-learning
 controlPanel.selfLearningSection: Book
 controlPanel.selfLearningDescriptionPrivate: Private mode keeps the book unchanged and blocks any new learning.

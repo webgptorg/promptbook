@@ -1,3 +1,5 @@
+-   Added browser push notifications for Agents Server durable chats, including per-user opt-in settings, per-device subscriptions, focused-chat suppression, background service-worker delivery, notification click routing back to the correct chat thread, and automatic invalid-subscription cleanup.
+
 -   Added dedicated writing-style commitments and deprecated the legacy writing-sample aliases without breaking runtime compatibility:
 
     -   Added new `WRITING SAMPLE` and `WRITING RULES` commitments to the core registry, parser, and model-requirements compiler.

@@ -169,6 +169,12 @@ export const metadataDefaults = [
         type: 'BOOLEAN',
     },
     {
+        key: 'DEFAULT_IS_NOTIFICATIONS_ON',
+        value: 'false',
+        note: 'Default state for browser push notifications when a user has no saved preference. When false, users must opt in before agent replies can trigger notifications.',
+        type: 'BOOLEAN',
+    },
+    {
         key: 'IS_FOOTER_SHOWN',
         value: 'true',
         note: 'Show or hide the footer.',

@@ -4,6 +4,7 @@ import { serializeError, spaceTrim } from '@promptbook-local/utils';
 import { $randomBase58 } from '../../../../../src/utils/random/$randomBase58';
 import { getToolUsageLimits } from '../toolUsageLimits';
 import { resolveCurrentOrInternalServerOrigin } from '../resolveCurrentOrInternalServerOrigin';
+import { sendUserChatPushNotification } from '../sendUserChatPushNotification';
 import { appendQueuedUserChatTurn } from '../userChat/appendQueuedUserChatTurn';
 import { getUserChat } from '../userChat/getUserChat';
 import { getUserChatJobByClientMessageId } from '../userChat/getUserChatJobByClientMessageId';
@@ -375,7 +376,7 @@ async function appendUserChatTimeoutWarningMessage(timeout: UserChatTimeoutRecor
     }
 
     const nowIso = new Date().toISOString() as NonNullable<ChatMessage['createdAt']>;
-    await mutateUserChat({
+    const updatedChat = await mutateUserChat({
         userId: timeout.userId,
         agentPermanentId: timeout.agentPermanentId,
         chatId: timeout.chatId,
@@ -394,6 +395,21 @@ async function appendUserChatTimeoutWarningMessage(timeout: UserChatTimeoutRecor
             lastMessageAt: nowIso,
         }),
     });
+
+    const warningMessage = updatedChat.messages[updatedChat.messages.length - 1];
+    if (warningMessage) {
+        await sendUserChatPushNotification({
+            chat: updatedChat,
+            message: warningMessage,
+        }).catch((error) => {
+            console.error('[push-notification]', 'send_failed_timeout_warning', {
+                userId: updatedChat.userId,
+                chatId: updatedChat.id,
+                messageId: warningMessage.id,
+                error,
+            });
+        });
+    }
 }
 
 /**

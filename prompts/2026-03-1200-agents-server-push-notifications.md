@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 an hour by OpenAI Codex `gpt-5.4`
 
 [🔔💬] Support push notifications for agent messages
 
@@ -40,3 +40,4 @@
     -   Reuse existing message preview / markdown conversion utilities.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

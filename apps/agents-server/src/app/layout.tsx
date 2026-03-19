@@ -20,6 +20,7 @@ import { getDefaultChatPreferences } from '../utils/chatPreferences';
 import { getFederatedServers } from '../utils/getFederatedServers';
 import { isUserAdmin } from '../utils/isUserAdmin';
 import { isUserGlobalAdmin } from '../utils/isUserGlobalAdmin';
+import { getDefaultIsNotificationsOn } from '../utils/userPushNotificationSettings';
 import './globals.css';
 
 const barlowCondensed = Barlow_Condensed({
@@ -230,6 +231,7 @@ export default async function RootLayout({
         isAdmin ? loadAgentOrganizationState({ status: 'ACTIVE', includePrivate: true }) : null,
     );
     const chatPreferencesPromise = getDefaultChatPreferences();
+    const defaultIsNotificationsOnPromise = getDefaultIsNotificationsOn();
     const customStylesheetCssPromise = resolveOptionalLayoutText(
         'custom stylesheet CSS',
         getAggregatedCustomStylesheetCss,
@@ -259,6 +261,7 @@ export default async function RootLayout({
         agentNaming,
         organizationState,
         chatPreferences,
+        defaultIsNotificationsOn,
         customStylesheetCss,
         customJavascript,
         cookieStore,
@@ -272,6 +275,7 @@ export default async function RootLayout({
         agentNamingPromise,
         organizationStatePromise,
         chatPreferencesPromise,
+        defaultIsNotificationsOnPromise,
         customStylesheetCssPromise,
         customJavascriptPromise,
         cookieStorePromise,
@@ -310,10 +314,12 @@ export default async function RootLayout({
                     federatedServers={federatedServers}
                     defaultIsSoundsOn={chatPreferences.defaultIsSoundsOn}
                     defaultIsVibrationOn={chatPreferences.defaultIsVibrationOn}
+                    defaultIsNotificationsOn={defaultIsNotificationsOn}
                     isExperimental={isExperimental}
                     isFeedbackEnabled={isFeedbackEnabled}
                     isExperimentalPwaAppEnabled={isExperimentalPwaAppEnabled}
                     defaultServerLanguage={serverLanguage}
+                    webPushPublicKey={process.env.NEXT_PUBLIC_WEB_PUSH_PUBLIC_KEY || null}
                 >
                     {children}
                 </LayoutWrapper>

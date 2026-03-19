@@ -7,10 +7,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MenuIcon } from '../../../../../../../src/book-components/icons/MenuIcon';
 import { useAgentNaming } from '../../../../components/AgentNaming/AgentNamingContext';
 import { showConfirm } from '../../../../components/AsyncDialogs/asyncDialogs';
-import { notifyError } from '../../../../components/Notifications/notifications';
+import { notifyError, notifyInfo } from '../../../../components/Notifications/notifications';
 import { usePrivateModePreferences } from '../../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
+import { useBrowserPushNotifications } from '../../../../components/PushNotifications/BrowserPushNotificationsProvider';
 import { AgentChatLoadingSkeleton } from '../../../../components/Skeleton/AgentChatLoadingSkeleton';
 import { ChatThreadLoadingSkeleton } from '../../../../components/Skeleton/ChatThreadLoadingSkeleton';
+import { useServerLanguage } from '../../../../components/ServerLanguage/ServerLanguageProvider';
 import { useActiveBrowserTab } from '../../../../hooks/useActiveBrowserTab';
 import { SolidArrowButton } from '../../../../../../../src/book-components/icons/SolidArrowButton';
 import {
@@ -147,6 +149,13 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const isChatGptLikeLayout = layoutVariant === 'chatgptLike';
     const { formatText } = useAgentNaming();
     const { isPrivateModeEnabled } = usePrivateModePreferences();
+    const { t } = useServerLanguage();
+    const {
+        maybePromptAfterUserMessageGesture,
+        rememberDefaultOffHintShown,
+        setFocusedChat,
+        setNotificationsEnabled,
+    } = useBrowserPushNotifications();
     const isActiveBrowserTab = useActiveBrowserTab();
     const shouldUseHistory = isHistoryEnabled && !isPrivateModeEnabled;
     const resolvedChatRouteBasePath = chatRouteBasePath || `/agents/${encodeURIComponent(agentName)}/chat`;
@@ -168,6 +177,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
     const [showExternalChats, setShowExternalChats] = useState(false);
     const [currentTimestamp, setCurrentTimestamp] = useState(() => Date.now());
+    const [pendingNotificationHintAssistantMessageIds, setPendingNotificationHintAssistantMessageIds] = useState<Array<string>>([]);
     const hasInitialAutoMessageBeenConsumedRef = useRef(false);
     const autoExecuteTargetChatIdRef = useRef<string | undefined>(initialForceNewChat ? undefined : initialChatId);
     const activeChatIdRef = useRef<string | null>(null);
@@ -249,6 +259,64 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             }),
         [activeMessages, pendingOutboundMessages],
     );
+
+    useEffect(() => {
+        if (!shouldUseHistory || !activeChatId || isActiveChatReadOnly || !isActiveBrowserTab) {
+            setFocusedChat(null);
+            return;
+        }
+
+        setFocusedChat({
+            agentPermanentId: agentName,
+            chatId: activeChatId,
+            isChatFocused: true,
+        });
+    }, [activeChatId, agentName, isActiveBrowserTab, isActiveChatReadOnly, setFocusedChat, shouldUseHistory]);
+
+    useEffect(() => {
+        if (pendingNotificationHintAssistantMessageIds.length === 0) {
+            return;
+        }
+
+        const hasCompletedTrackedAssistantMessage = pendingNotificationHintAssistantMessageIds.some((assistantMessageId) =>
+            activeMessages.some(
+                (message) =>
+                    message.id === assistantMessageId &&
+                    message.sender !== 'USER' &&
+                    message.isComplete !== false,
+            ),
+        );
+        if (!hasCompletedTrackedAssistantMessage) {
+            return;
+        }
+
+        let isDisposed = false;
+        setPendingNotificationHintAssistantMessageIds([]);
+        void rememberDefaultOffHintShown()
+            .then((shouldShowHint) => {
+                if (!shouldShowHint || isDisposed) {
+                    return;
+                }
+
+                notifyInfo(t('controlPanel.notificationsHint'), {
+                    actionLabel: t('controlPanel.notificationsHintAction'),
+                    onAction: () => {
+                        void setNotificationsEnabled(true);
+                    },
+                });
+            })
+            .catch(() => undefined);
+
+        return () => {
+            isDisposed = true;
+        };
+    }, [
+        activeMessages,
+        pendingNotificationHintAssistantMessageIds,
+        rememberDefaultOffHintShown,
+        setNotificationsEnabled,
+        t,
+    ]);
 
     /**
      * Loads one canonical snapshot using the current external-chat filter.
@@ -1098,6 +1166,10 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 });
             }
 
+            if (!payload.clientMessageId) {
+                maybePromptAfterUserMessageGesture();
+            }
+
             try {
                 const result = await sendUserChatMessage(agentName, currentActiveChatId, {
                     clientMessageId,
@@ -1109,6 +1181,11 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 failedSendRef.current = null;
                 activeDraftDirtyRef.current = false;
                 setActiveChatDraftMessage('');
+                setPendingNotificationHintAssistantMessageIds((assistantMessageIds) =>
+                    assistantMessageIds.includes(result.job.assistantMessageId)
+                        ? assistantMessageIds
+                        : [...assistantMessageIds, result.job.assistantMessageId],
+                );
                 applyChatDetail(result, {
                     preserveDirtyDraft: false,
                     reason: 'send_user_turn',
@@ -1128,7 +1205,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 throw error;
             }
         },
-        [agentName, applyChatDetail, shouldUseHistory],
+        [agentName, applyChatDetail, maybePromptAfterUserMessageGesture, shouldUseHistory],
     );
 
     /**
