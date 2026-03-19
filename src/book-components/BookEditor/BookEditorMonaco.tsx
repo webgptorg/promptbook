@@ -23,6 +23,7 @@ import type { BookEditorProps } from './BookEditor';
 import styles from './BookEditor.module.css';
 import { BookEditorActionbar } from './BookEditorActionbar';
 import { BookEditorMonacoConstants } from './BookEditorMonacoConstants';
+import { createDeprecatedCommitmentDiagnostics } from './createDeprecatedCommitmentDiagnostics';
 import { useBookEditorMonacoDecorations } from './useBookEditorMonacoDecorations';
 import { useBookEditorMonacoDiagnostics } from './useBookEditorMonacoDiagnostics';
 import {
@@ -312,9 +313,10 @@ export function BookEditorMonaco(props: BookEditorProps) {
         monaco,
         onFileUpload,
     });
+    const combinedDiagnostics = [...(diagnostics || []), ...createDeprecatedCommitmentDiagnostics(value)];
 
     useBookEditorMonacoLanguage({ monaco });
-    useBookEditorMonacoDiagnostics({ monaco, editor, diagnostics });
+    useBookEditorMonacoDiagnostics({ monaco, editor, diagnostics: combinedDiagnostics });
     useBookEditorMonacoDecorations({ editor, monaco });
     useBookEditorMonacoStyles({
         instanceClass,

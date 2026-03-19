@@ -69,6 +69,8 @@ const BEHAVIOR_COMMITMENT_TYPES = new Set([
     'FORMATS',
     'ACTION',
     'ACTIONS',
+    'WRITING SAMPLE',
+    'WRITING RULES',
     'SAMPLE',
     'EXAMPLE',
     'SCENARIO',
@@ -363,9 +365,18 @@ function renderCommitmentCatalogSection(groupedCommitment: GroupedCommitmentDefi
     const status =
         primary instanceof NotYetImplementedCommitmentDefinition
             ? 'Placeholder (not fully implemented)'
+            : primary.deprecation
+              ? 'Implemented (deprecated)'
             : 'Implemented';
     const aliasText = aliases.length === 0 ? 'None' : aliases.map((alias) => `\`${alias}\``).join(', ');
     const documentationWithoutLeadingHeading = removeLeadingTopLevelHeading(primary.documentation);
+    const deprecationText = primary.deprecation
+        ? `- **Deprecation:** ${primary.deprecation.message}${
+              primary.deprecation.replacedBy && primary.deprecation.replacedBy.length > 0
+                  ? ` Preferred replacement: ${primary.deprecation.replacedBy.map((type) => `\`${type}\``).join(', ')}.`
+                  : ''
+          }`
+        : '';
 
     return spaceTrim(
         (block) => `
@@ -376,6 +387,7 @@ function renderCommitmentCatalogSection(groupedCommitment: GroupedCommitmentDefi
             - **Semantics:** ${primary.description}
             - **Type schema (\`createTypeRegex\`):** \`${stringifyRegex(primary.createTypeRegex())}\`
             - **Block schema (\`createRegex\`):** \`${stringifyRegex(primary.createRegex())}\`
+            ${deprecationText}
 
             ${block(documentationWithoutLeadingHeading)}
         `,

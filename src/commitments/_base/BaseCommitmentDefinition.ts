@@ -48,6 +48,13 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
     public abstract get documentation(): string;
 
     /**
+     * Optional UI/docs-only deprecation metadata.
+     */
+    public get deprecation(): CommitmentDefinition['deprecation'] {
+        return undefined;
+    }
+
+    /**
      * Creates a regex pattern to match this commitment in agent source
      * Uses the existing createCommitmentRegex function as internal helper
      */

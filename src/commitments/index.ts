@@ -51,6 +51,8 @@ import { UseSpawnCommitmentDefinition } from './USE_SPAWN/USE_SPAWN';
 import { UseTimeoutCommitmentDefinition } from './USE_TIMEOUT/USE_TIMEOUT';
 import { UseTimeCommitmentDefinition } from './USE_TIME/USE_TIME';
 import { UseUserLocationCommitmentDefinition } from './USE_USER_LOCATION/USE_USER_LOCATION';
+import { WritingRulesCommitmentDefinition } from './WRITING_RULES/WRITING_RULES';
+import { WritingSampleCommitmentDefinition } from './WRITING_SAMPLE/WRITING_SAMPLE';
 import { NotYetImplementedCommitmentDefinition } from './_base/NotYetImplementedCommitmentDefinition';
 
 /**
@@ -73,6 +75,8 @@ export const COMMITMENT_REGISTRY = [
     new RuleCommitmentDefinition('RULE'),
     new LanguageCommitmentDefinition('LANGUAGES'),
     new LanguageCommitmentDefinition('LANGUAGE'),
+    new WritingSampleCommitmentDefinition(),
+    new WritingRulesCommitmentDefinition(),
     new SampleCommitmentDefinition('SAMPLE'),
     new SampleCommitmentDefinition('EXAMPLE'),
     new FormatCommitmentDefinition('FORMAT'),

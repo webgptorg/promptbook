@@ -3,13 +3,29 @@ import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentMo
 import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
 
 /**
+ * Optional UI/docs-only deprecation metadata for one commitment keyword.
+ *
+ * @private internal type of `CommitmentDefinition`
+ */
+type CommitmentDeprecation = {
+    /**
+     * Human-readable deprecation note shown in editors and documentation.
+     */
+    readonly message: string;
+
+    /**
+     * Preferred replacement commitments, when applicable.
+     */
+    readonly replacedBy?: ReadonlyArray<string>;
+};
+
+/**
  * Definition of a commitment that can be applied to agent model requirements
  *
  * Each commitment is self-contained and manages its own logic for:
  * - Creating regex patterns for parsing
  * - Applying its effects to agent model requirements
  */
-
 export type CommitmentDefinition = {
     /**
      * The type/name of this commitment (e.g., 'PERSONA', 'KNOWLEDGE', etc.)
@@ -34,6 +50,14 @@ export type CommitmentDefinition = {
      * This is available at runtime for UIs, docs, and tooling.
      */
     readonly documentation: string;
+
+    /**
+     * Optional deprecation metadata for backward-compatible commitment aliases.
+     *
+     * This is intentionally UI/docs metadata only. It must not change runtime
+     * model requirements on its own.
+     */
+    readonly deprecation?: CommitmentDeprecation;
 
     /**
      * Creates a regex pattern to match this commitment in agent source

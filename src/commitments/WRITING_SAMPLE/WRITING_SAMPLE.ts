@@ -4,58 +4,49 @@ import { createWritingSampleSection } from '../_common/createWritingCommitmentSe
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
 /**
- * Legacy `SAMPLE` / `EXAMPLE` commitment definition.
+ * `WRITING SAMPLE` commitment definition.
  *
- * It stays runtime-compatible, but authors should migrate to `WRITING SAMPLE`
- * for writing voice exemplars.
+ * It provides explicit sample-only text that demonstrates how the agent should
+ * sound, without adding meta commentary or behavioral rules.
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class SampleCommitmentDefinition extends BaseCommitmentDefinition<'SAMPLE' | 'EXAMPLE'> {
-    public constructor(type: 'SAMPLE' | 'EXAMPLE' = 'SAMPLE') {
-        super(type);
+export class WritingSampleCommitmentDefinition extends BaseCommitmentDefinition<'WRITING SAMPLE'> {
+    public constructor() {
+        super('WRITING SAMPLE');
     }
 
     /**
-     * Short one-line description of `SAMPLE` / `EXAMPLE`.
+     * Short one-line description of `WRITING SAMPLE`.
      */
     public get description(): string {
-        return 'Deprecated legacy alias for `WRITING SAMPLE`.';
+        return 'Provide explicit sample-only text that demonstrates the desired voice.';
     }
 
     /**
-     * Optional UI/docs-only deprecation metadata.
-     */
-    public override get deprecation() {
-        return {
-            message: 'Use `WRITING SAMPLE` for explicit voice exemplars.',
-            replacedBy: ['WRITING SAMPLE'],
-        } as const;
-    }
-
-    /**
-     * Icon for `SAMPLE` / `EXAMPLE`.
+     * Icon for `WRITING SAMPLE`.
      */
     public get icon(): string {
         return '🗣️';
     }
 
     /**
-     * Markdown documentation for `SAMPLE` / `EXAMPLE`.
+     * Markdown documentation for `WRITING SAMPLE`.
      */
     public get documentation(): string {
         return spaceTrim(`
             # ${this.type}
 
-            Deprecated legacy alias for \`WRITING SAMPLE\`.
+            Provides explicit 1:1 sample text that demonstrates how the agent should sound.
 
-            ## Migration
+            ## Key aspects
 
-            - Existing \`${this.type}\` blocks still work.
-            - New books should use \`WRITING SAMPLE\` instead.
-            - Runtime behavior is intentionally unchanged for backward compatibility.
+            - Use it for **voice exemplars**, not for behavioral rules or tool-usage instructions.
+            - The content should be sample-only text without meta commentary.
+            - Multiple writing samples can stack, with newer samples carrying the highest weight.
+            - If \`WRITING RULES\` add explicit constraints, those constraints override conflicting details from the sample while the sample still anchors the voice.
 
-            ## Preferred replacement
+            ## Examples
 
             \`\`\`book
             Copywriter
@@ -65,14 +56,13 @@ export class SampleCommitmentDefinition extends BaseCommitmentDefinition<'SAMPLE
             Looking to boost your productivity? Our app helps you organize your tasks and manage your time effectively, so you can get more done with less stress. Try it today and see the difference! 🚀
             \`\`\`
 
-            ## Legacy compatibility example
-
             \`\`\`book
-            Copywriter
+            Brand Voice Assistant
 
-            PERSONA You are a Copywriter who writes persuasive marketing copy.
-            ${this.type}
-            Looking to boost your productivity? Our app helps you organize your tasks and manage your time effectively, so you can get more done with less stress. Try it today and see the difference! 🚀
+            PERSONA You write launch emails for a playful lifestyle brand.
+            WRITING SAMPLE
+            Big news: the wait is over. Our newest drop is here, and it is built to make your mornings smoother, calmer, and a little more fun. Grab yours before it disappears. ✨
+            WRITING RULES Keep paragraphs short and end every reply with one fitting emoji.
             \`\`\`
         `);
     }

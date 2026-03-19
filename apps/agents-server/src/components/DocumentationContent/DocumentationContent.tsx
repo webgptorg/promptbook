@@ -7,12 +7,24 @@ type DocumentationContentProps = {
         icon: string;
         description?: string;
         documentation: string;
+        deprecation?: {
+            message: string;
+            replacedBy?: ReadonlyArray<string>;
+        };
     };
     aliases?: string[];
     isPrintOnly?: boolean;
 };
 
 export function DocumentationContent({ primary, aliases = [], isPrintOnly = false }: DocumentationContentProps) {
+    const deprecationContent = primary.deprecation
+        ? `${primary.deprecation.message}${
+              primary.deprecation.replacedBy && primary.deprecation.replacedBy.length > 0
+                  ? ` Preferred replacement: ${primary.deprecation.replacedBy.map((type) => `\`${type}\``).join(', ')}.`
+                  : ''
+          }`
+        : null;
+
     return (
         <div
             className={`bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden ${
@@ -39,11 +51,24 @@ export function DocumentationContent({ primary, aliases = [], isPrintOnly = fals
                             Commitment
                         </span>
                     )}
+                    {!isPrintOnly && primary.deprecation && (
+                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 print:hidden">
+                            Deprecated
+                        </span>
+                    )}
                 </div>
                 {primary.description && (
                     <p className="text-xl text-gray-600 leading-relaxed max-w-3xl print:text-lg">
                         {primary.description}
                     </p>
+                )}
+                {deprecationContent && (
+                    <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 print:border print:border-amber-200">
+                        <div className="font-semibold mb-1">Deprecated</div>
+                        <div className="prose prose-sm prose-amber max-w-none prose-p:my-0 prose-code:text-amber-900 prose-code:bg-amber-100">
+                            <MarkdownContent content={deprecationContent} />
+                        </div>
+                    </div>
                 )}
             </div>
 

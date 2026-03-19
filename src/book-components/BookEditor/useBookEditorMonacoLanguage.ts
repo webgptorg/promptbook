@@ -182,7 +182,9 @@ export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor): void {
 
     monaco.languages.register({ id: BookEditorMonacoConstants.BOOK_LANGUAGE_ID });
 
-    const commitmentTypes = [...new Set(getAllCommitmentDefinitions().map(({ type }) => type))];
+    const commitmentDefinitions = getAllCommitmentDefinitions();
+    const commitmentTypes = [...new Set(commitmentDefinitions.map(({ type }) => type))];
+    const commitmentDefinitionByType = new Map(commitmentDefinitions.map((definition) => [definition.type, definition]));
     const noteLikeCommitmentTypeSet = new Set<string>([...TODO_COMMITMENT_TYPES, ...NOTE_COMMITMENT_TYPES]);
     const noteLikeCommitmentStates = createNoteLikeCommitmentStates(commitmentTypes);
     const executableCommitmentTypes = commitmentTypes.filter(
@@ -253,12 +255,23 @@ export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor): void {
                 endColumn: word.endColumn,
             };
 
-            const suggestions = commitmentTypes.map((type) => ({
-                label: type,
-                kind: monaco.languages.CompletionItemKind.Keyword,
-                insertText: type,
-                range,
-            }));
+            const suggestions = commitmentTypes.map((type) => {
+                const definition = commitmentDefinitionByType.get(type);
+                const completionDocumentation = definition?.deprecation
+                    ? `Deprecated. ${definition.deprecation.message}`
+                    : definition?.description || 'Commitment';
+
+                return {
+                    label: type,
+                    kind: monaco.languages.CompletionItemKind.Keyword,
+                    insertText: type,
+                    range,
+                    detail: definition?.deprecation ? 'Deprecated commitment' : 'Commitment',
+                    documentation: {
+                        value: completionDocumentation,
+                    },
+                };
+            });
 
             return { suggestions };
         },

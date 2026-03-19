@@ -7,8 +7,8 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  *
  * The MESSAGE commitment contains 1:1 text of the message which AI assistant already
  * sent during the conversation. Later messages are later in the conversation.
- * It is similar to EXAMPLE but it is not example, it is the real message which
- * AI assistant already sent.
+ * It is similar to `WRITING SAMPLE`, but it is not a sample. It is the real
+ * message that the AI assistant already sent.
  *
  * Example usage in agent source:
  *
@@ -46,7 +46,7 @@ export class MessageCommitmentDefinition extends BaseCommitmentDefinition<'MESSA
         return spaceTrim(`
             # ${this.type}
 
-            Contains 1:1 text of the message which AI assistant already sent during the conversation. Later messages are later in the conversation. It is similar to EXAMPLE but it is not example, it is the real message which AI assistant already sent.
+            Contains 1:1 text of the message which AI assistant already sent during the conversation. Later messages are later in the conversation. It is similar to \`WRITING SAMPLE\`, but it is not a sample. It is the real message which the AI assistant already sent.
 
             ## Key aspects
 
@@ -56,9 +56,9 @@ export class MessageCommitmentDefinition extends BaseCommitmentDefinition<'MESSA
             - Contains actual historical messages, not examples or templates.
             - Helps maintain conversation continuity and context.
 
-            ## Differences from EXAMPLE
+            ## Differences from WRITING SAMPLE
 
-            - \`EXAMPLE\` shows hypothetical or template responses
+            - \`WRITING SAMPLE\` shows hypothetical sample-only voice exemplars
             - \`MESSAGE\`/\`MESSAGES\` contains actual historical conversation content
             - \`MESSAGE\`/\`MESSAGES\` preserves the exact conversation flow
             - \`MESSAGE\`/\`MESSAGES\` helps with context awareness and consistency

@@ -1,3 +1,10 @@
+-   Added dedicated writing-style commitments and deprecated the legacy writing-sample aliases without breaking runtime compatibility:
+
+    -   Added new `WRITING SAMPLE` and `WRITING RULES` commitments to the core registry, parser, and model-requirements compiler.
+    -   `WRITING SAMPLE` now carries explicit 1:1 voice exemplars, while `WRITING RULES` is limited to writing-only constraints such as tone, formatting, length, and emoji usage.
+    -   Legacy `SAMPLE` / `EXAMPLE` commitments still compile with the same writing-sample behavior, but now expose reusable deprecation metadata so the Book editor shows warning markers and documentation pages show deprecated badges/messages without changing generated model requirements.
+    -   Updated commitment documentation/catalog output and related examples to steer authors toward `WRITING SAMPLE` / `WRITING RULES`, and added focused unit coverage for writing-commitment compilation, grouped commitment metadata, and editor deprecation diagnostics.
+
 -   Added an alternative ChatGPT-like Agents Server chat page at `/agents/[agentName]/chat/chatgpt-like` that keeps the existing Promptbook header and reuses the same durable chat threads, streaming/API behavior, message rendering pipeline, uploads, tool chips, sources, TTS, feedback, and permissions as the current standalone chat while presenting them in a left-tray + centered-conversation layout.
 
 -   Fixed Agents Server custom-domain proxy builds by replacing broad Promptbook umbrella imports in the middleware resolution path with focused source imports and a lightweight `FROM` resolver, preventing Node/Edge-incompatible runtime helpers from being bundled into the Next.js proxy build while keeping inherited custom-domain metadata resolution working.

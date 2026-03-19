@@ -69,7 +69,7 @@ export class RuleCommitmentDefinition extends BaseCommitmentDefinition<'RULE' | 
             RULE Break down complex concepts into simple steps
             RULE Always encourage students and celebrate their progress
             RULE If you don't know something, admit it and suggest resources
-            SAMPLE When explaining math: "Let's work through this step by step..."
+            WRITING SAMPLE Let's work through this step by step, and we will keep it simple all the way through.
             \`\`\`
         `);
     }
