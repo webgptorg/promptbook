@@ -28,6 +28,7 @@ import { CloseIcon } from '../../icons/CloseIcon';
 import { MicIcon } from '../../icons/MicIcon';
 import { SendIcon } from '../../icons/SendIcon';
 import type { ChatParticipant } from '../types/ChatParticipant';
+import { chatCssClassNames } from './chatCssClassNames';
 import styles from './Chat.module.css';
 import type { ChatProps, ChatSoundSystem } from './ChatProps';
 
@@ -1319,7 +1320,7 @@ export function ChatInputArea(props: ChatInputAreaProps) {
             )}
 
             <div
-                className={styles.inputContainer}
+                className={classNames(styles.inputContainer, chatCssClassNames.inputContainer)}
                 style={
                     {
                         '--chat-placeholder-color': '#fff',
@@ -1333,6 +1334,7 @@ export function ChatInputArea(props: ChatInputAreaProps) {
                     ref={(element) => {
                         textareaRef.current = element;
                     }}
+                    className={chatCssClassNames.inputTextarea}
                     onPaste={handlePaste}
                     value={messageContent}
                     placeholder={placeholderMessageContent || 'Write a message...'}
@@ -1355,7 +1357,7 @@ export function ChatInputArea(props: ChatInputAreaProps) {
                                 backgroundColor: buttonColor.toHex(),
                                 color: buttonColor.then(textColor).toHex(),
                             }}
-                            className={styles.attachmentButton}
+                            className={classNames(styles.attachmentButton, chatCssClassNames.inputAttachmentButton)}
                             onClick={onButtonClick(() => fileInputRef.current?.click())}
                             disabled={isUploading}
                             title="Attach file"
@@ -1379,6 +1381,7 @@ export function ChatInputArea(props: ChatInputAreaProps) {
                         }}
                         className={classNames(
                             styles.voiceButton,
+                            chatCssClassNames.inputVoiceButton,
                             (isVoiceCalling || speechRecognitionUiDescriptor.isButtonActive) &&
                                 styles.voiceButtonActive,
                         )}
@@ -1395,6 +1398,7 @@ export function ChatInputArea(props: ChatInputAreaProps) {
 
                 <button
                     data-button-type="call-to-action"
+                    className={chatCssClassNames.inputSendButton}
                     style={{
                         backgroundColor: buttonColor.toHex(),
                         color: buttonColor.then(textColor).toHex(),

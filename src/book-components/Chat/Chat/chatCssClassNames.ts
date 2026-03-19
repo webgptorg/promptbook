@@ -19,6 +19,11 @@ export const chatCssClassNames = {
     userAvatar: 'user-avatar',
     agentAvatar: 'agent-avatar',
     chatInput: 'chat-input',
+    inputContainer: 'chat-input-container',
+    inputTextarea: 'chat-input-textarea',
+    inputAttachmentButton: 'chat-input-attachment-button',
+    inputVoiceButton: 'chat-input-voice-button',
+    inputSendButton: 'chat-input-send-button',
 } as const;
 
 /**
@@ -39,6 +44,11 @@ export const chatCssClassDescriptions: Record<keyof typeof chatCssClassNames, st
     userAvatar: 'Avatar wrapper when author is user.',
     agentAvatar: 'Avatar wrapper when author is agent.',
     chatInput: 'Input/composer container at the bottom of the chat.',
+    inputContainer: 'Rounded composer surface that wraps textarea and action buttons.',
+    inputTextarea: 'Textarea inside the chat composer.',
+    inputAttachmentButton: 'Attachment button inside the chat composer.',
+    inputVoiceButton: 'Voice-recognition button inside the chat composer.',
+    inputSendButton: 'Send button inside the chat composer.',
 };
 
 /**

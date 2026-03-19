@@ -38,6 +38,7 @@ import { useAgentChatToolInteractions } from '../useAgentChatToolInteractions';
 import { useTeamAgentProfiles } from '../useTeamAgentProfiles';
 import type { UserChatJob, UserChatTimeout } from '../../../../utils/userChatClient';
 import { ChatTimeoutButton } from './ChatTimeoutButton';
+import type { AgentChatLayoutVariant } from './AgentChatLayoutVariant';
 import { useCanonicalChatMessages } from './useCanonicalChatMessages';
 
 /**
@@ -81,6 +82,7 @@ type CanonicalAgentChatPanelProps = {
     }) => void;
     onAutoExecuteMessageConsumed?: () => void;
     extraActions?: ReactNode;
+    variant?: AgentChatLayoutVariant;
 };
 
 /**
@@ -124,12 +126,18 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
         onAutoExecuteMessagePending,
         onAutoExecuteMessageConsumed,
         extraActions,
+        variant = 'default',
     } = props;
+    const isChatGptLikeVariant = variant === 'chatgptLike';
     const { backgroundImage, brandColorHex, brandColorLightHex, brandColorDarkHex } = useAgentBackground(brandColor);
     const chatBackgroundStyle: CSSProperties & Record<string, string> = {
-        backgroundImage: `url("${backgroundImage}")`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        ...(isChatGptLikeVariant
+            ? {}
+            : {
+                  backgroundImage: `url("${backgroundImage}")`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+              }),
         '--agent-chat-brand-color': brandColorHex,
         '--agent-chat-brand-color-light': brandColorLightHex,
         '--agent-chat-brand-color-dark': brandColorDarkHex,
@@ -454,59 +462,68 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
     const handleFileUpload = useCallback(async (file: File) => {
         return chatFileUploadHandler(file);
     }, []);
+    const chatElement = (
+        <Chat
+            className={`agent-chat-panel__chat h-full min-h-0 w-full ${
+                isChatGptLikeVariant ? 'agent-chat-panel__chat--chatgpt-like' : ''
+            }`}
+            style={chatBackgroundStyle}
+            title={`Chat with ${agent?.meta.fullname || agent?.agentName || agentName}`}
+            messages={renderedMessages}
+            defaultMessage={draftMessage}
+            placeholderMessageContent={inputPlaceholder}
+            onMessage={isReadOnly ? undefined : (handleManualMessage as unknown as (message: string) => Promise<void>)}
+            onActionButton={executeQuickActionButton}
+            onChange={onDraftMessageChange}
+            onReset={isReadOnly ? undefined : onStartNewChat}
+            resetRequiresConfirmation={false}
+            onFeedback={!isReadOnly && isFeedbackEnabled ? handleFeedback : undefined}
+            onFileUpload={!isReadOnly && areFileAttachmentsEnabled ? handleFileUpload : undefined}
+            participants={participants}
+            buttonColor={isChatGptLikeVariant ? '#111827' : brandColorHex}
+            visual="FULL_PAGE"
+            effectConfigs={effectConfigs}
+            soundSystem={soundSystem}
+            speechRecognition={speechRecognition}
+            speechRecognitionLanguage={speechRecognitionLanguage}
+            enterBehavior={enterBehavior}
+            resolveEnterBehavior={resolveEnterBehavior}
+            isSpeechPlaybackEnabled={agent?.isVoiceTtsSttEnabled ?? false}
+            elevenLabsVoiceId={agent?.meta.voice}
+            teamAgentProfiles={teamAgentProfiles}
+            extraActions={
+                <>
+                    {!isReadOnly && (
+                        <ChatTimeoutButton
+                            activeTimeouts={activeTimeouts}
+                            currentTimestamp={currentTimestamp}
+                            onCancelActiveTimeout={onCancelActiveTimeout}
+                        />
+                    )}
+                    {cancelAction}
+                    {!isReadOnly && extraActions}
+                </>
+            }
+        >
+            {isReadOnly && frozenChatBannerLabel && (
+                <div className="mx-4 mt-4 rounded-2xl border border-amber-200 bg-amber-50/95 px-4 py-3 text-sm font-medium text-amber-900 shadow-sm">
+                    {`Chat from ${frozenChatBannerLabel}. View-only.`}
+                </div>
+            )}
+        </Chat>
+    );
 
     return (
         <>
-            <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm">
-                <Chat
-                    className="h-full min-h-0 w-full"
-                    style={chatBackgroundStyle}
-                    title={`Chat with ${agent?.meta.fullname || agent?.agentName || agentName}`}
-                    messages={renderedMessages}
-                    defaultMessage={draftMessage}
-                    placeholderMessageContent={inputPlaceholder}
-                    onMessage={
-                        isReadOnly ? undefined : (handleManualMessage as unknown as (message: string) => Promise<void>)
-                    }
-                    onActionButton={executeQuickActionButton}
-                    onChange={onDraftMessageChange}
-                    onReset={isReadOnly ? undefined : onStartNewChat}
-                    resetRequiresConfirmation={false}
-                    onFeedback={!isReadOnly && isFeedbackEnabled ? handleFeedback : undefined}
-                    onFileUpload={!isReadOnly && areFileAttachmentsEnabled ? handleFileUpload : undefined}
-                    participants={participants}
-                    buttonColor={brandColorHex}
-                    visual="FULL_PAGE"
-                    effectConfigs={effectConfigs}
-                    soundSystem={soundSystem}
-                    speechRecognition={speechRecognition}
-                    speechRecognitionLanguage={speechRecognitionLanguage}
-                    enterBehavior={enterBehavior}
-                    resolveEnterBehavior={resolveEnterBehavior}
-                    isSpeechPlaybackEnabled={agent?.isVoiceTtsSttEnabled ?? false}
-                    elevenLabsVoiceId={agent?.meta.voice}
-                    teamAgentProfiles={teamAgentProfiles}
-                    extraActions={
-                        <>
-                            {!isReadOnly && (
-                                <ChatTimeoutButton
-                                    activeTimeouts={activeTimeouts}
-                                    currentTimestamp={currentTimestamp}
-                                    onCancelActiveTimeout={onCancelActiveTimeout}
-                                />
-                            )}
-                            {cancelAction}
-                            {!isReadOnly && extraActions}
-                        </>
-                    }
-                >
-                    {isReadOnly && frozenChatBannerLabel && (
-                        <div className="mx-4 mt-4 rounded-2xl border border-amber-200 bg-amber-50/95 px-4 py-3 text-sm font-medium text-amber-900 shadow-sm">
-                            {`Chat from ${frozenChatBannerLabel}. View-only.`}
-                        </div>
-                    )}
-                </Chat>
-            </div>
+            {isChatGptLikeVariant ? (
+                <div className="agent-chat-panel agent-chat-panel--chatgpt-like flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden">
+                    <div className="agent-chat-panel__inner flex min-h-0 flex-1 overflow-hidden">{chatElement}</div>
+                </div>
+            ) : (
+                <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm">
+                    {chatElement}
+                </div>
+            )}
 
             <PseudoUserChatDialog
                 isOpen={pendingPseudoUserInteraction !== null}

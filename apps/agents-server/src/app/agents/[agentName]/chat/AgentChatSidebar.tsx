@@ -6,6 +6,7 @@ import { SolidArrowButton } from '../../../../../../../src/book-components/icons
 import { ChatListLoadingSkeleton } from '../../../../components/Skeleton/ChatListLoadingSkeleton';
 import { getUserChatSourceChipLabel } from '../../../../utils/userChat/UserChatSource';
 import type { UserChatSummary } from '../../../../utils/userChatClient';
+import type { AgentChatLayoutVariant } from './AgentChatLayoutVariant';
 import { formatChatTimeoutRemainingTime } from './formatChatTimeoutRemainingTime';
 
 /**
@@ -94,6 +95,10 @@ type AgentChatSidebarProps = {
      * Called when the mobile overlay should close (e.g., after navigation or backdrop tap).
      */
     readonly onCloseMobileSidebar: () => void;
+    /**
+     * Visual sidebar variant used by the current route.
+     */
+    readonly variant?: AgentChatLayoutVariant;
 };
 
 /**
@@ -312,7 +317,9 @@ export function AgentChatSidebar({
     onToggleCollapse,
     isMobileSidebarOpen,
     onCloseMobileSidebar,
+    variant = 'default',
 }: AgentChatSidebarProps) {
+    const isChatGptLike = variant === 'chatgptLike';
     const shouldRenderCollapsed = isCollapsed && !isMobileSidebarOpen;
     const widthClasses = isCollapsed ? 'w-72 md:w-20' : 'w-72 md:w-72';
     const transformClasses = isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full';
@@ -350,6 +357,202 @@ export function AgentChatSidebar({
     const emptyChatCount = allSidebarItems.filter((item) => item.isEmpty).length;
     const sidebarItems = allSidebarItems.filter((item) => showEmptyChats || !item.isEmpty || item.isActive);
     const shouldRenderFilters = emptyChatCount > 0 || isAdmin;
+
+    if (isChatGptLike) {
+        return (
+            <>
+                <aside
+                    id={AGENT_CHAT_SIDEBAR_ID}
+                    className={`fixed inset-y-0 left-0 z-[60] flex w-[18.5rem] max-w-[84vw] flex-col border-r border-slate-200/80 bg-white/95 shadow-2xl backdrop-blur-xl transition-transform duration-300 ease-in-out md:static md:max-w-none md:translate-x-0 md:shadow-none dark:border-slate-800/80 dark:bg-slate-950/95 ${
+                        isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                    }`}
+                >
+                    <div className="flex items-center justify-between border-b border-slate-200/80 px-4 py-3 dark:border-slate-800/80">
+                        <div className="min-w-0">
+                            <p className="text-[0.65rem] font-semibold uppercase tracking-[0.32em] text-slate-400 dark:text-slate-500">
+                                {formatText('Current agent')}
+                            </p>
+                            <h2 className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+                                {formatText('Chats')}
+                            </h2>
+                        </div>
+                        <button
+                            type="button"
+                            className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 md:hidden dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-slate-100"
+                            onClick={onCloseMobileSidebar}
+                            aria-label={formatText('Close chats sidebar')}
+                        >
+                            <XIcon className="h-4 w-4" />
+                        </button>
+                    </div>
+
+                    <div className="px-3 py-3">
+                        <button
+                            type="button"
+                            onClick={handleCreateAndClose}
+                            disabled={isCreatingChat || isLoadingChats}
+                            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-default disabled:opacity-60 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-white"
+                        >
+                            <MessageSquarePlusIcon className="h-4 w-4" />
+                            {isCreatingChat ? formatText('Creating...') : formatText('New chat')}
+                        </button>
+                    </div>
+
+                    {isLoadingChats ? (
+                        <ChatListLoadingSkeleton rowCount={8} />
+                    ) : (
+                        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-2 pb-3 scrollbar-hidden">
+                            {sidebarItems.length === 0 ? (
+                                <p className="px-3 py-2 text-sm text-slate-500 dark:text-slate-400">{emptyStateText}</p>
+                            ) : (
+                                sidebarItems.map(({ chat, content, isActive, isEmpty }) => {
+                                    const rowClassName = isActive
+                                        ? 'border-slate-900 bg-slate-900 text-white shadow-sm dark:border-slate-700 dark:bg-slate-800'
+                                        : 'border-transparent bg-transparent text-slate-700 hover:border-slate-200 hover:bg-slate-100/80 dark:text-slate-200 dark:hover:border-slate-800 dark:hover:bg-slate-900/80';
+                                    const secondaryTextClassName = isActive
+                                        ? 'text-white/72 dark:text-slate-300'
+                                        : 'text-slate-500 dark:text-slate-400';
+                                    const timestampClassName =
+                                        content.activityIndicator.kind === 'running'
+                                            ? isActive
+                                                ? 'text-sky-200'
+                                                : 'text-sky-600 dark:text-sky-400'
+                                            : content.activityIndicator.kind === 'scheduled'
+                                              ? isActive
+                                                  ? 'text-amber-200'
+                                                  : 'text-amber-700 dark:text-amber-400'
+                                              : secondaryTextClassName;
+
+                                    return (
+                                        <div
+                                            key={chat.id}
+                                            className={`group relative rounded-2xl border ${rowClassName} ${
+                                                isEmpty && !isActive ? 'opacity-45' : ''
+                                            }`}
+                                        >
+                                            <button
+                                                type="button"
+                                                className="w-full rounded-2xl px-3 py-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500"
+                                                onClick={() => handleChatChoose(chat.id)}
+                                                aria-label={content.accessibilityLabel}
+                                                title={content.accessibilityLabel}
+                                            >
+                                                <div className="flex items-start gap-3">
+                                                    <div className="pt-1">
+                                                        <ChatSidebarActivityIndicator indicator={content.activityIndicator} />
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="min-w-0 flex-1 truncate text-sm font-semibold">
+                                                                {content.title}
+                                                            </div>
+                                                            {content.sourceChipLabel && (
+                                                                <span
+                                                                    className={`inline-flex flex-shrink-0 items-center rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-[0.18em] ${
+                                                                        isActive
+                                                                            ? 'bg-white/14 text-white'
+                                                                            : 'bg-slate-900 text-white dark:bg-slate-700'
+                                                                    }`}
+                                                                >
+                                                                    {content.sourceChipLabel}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <div className={`mt-1 line-clamp-2 text-xs ${secondaryTextClassName}`}>
+                                                            {content.preview}
+                                                        </div>
+                                                        <div className="mt-2 flex items-center justify-between gap-2">
+                                                            <span className={`truncate text-[11px] font-medium ${timestampClassName}`}>
+                                                                {content.activityIndicator.compactLabel || content.lastActivity}
+                                                            </span>
+                                                            <span className={`text-[11px] ${secondaryTextClassName}`}>
+                                                                {content.messagesCountLabel}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </button>
+
+                                            {!chat.isReadOnly && (
+                                                <button
+                                                    type="button"
+                                                    className={`absolute right-2 top-2 rounded-full p-1.5 opacity-0 transition group-hover:opacity-100 focus-visible:opacity-100 ${
+                                                        isActive
+                                                            ? 'text-white/70 hover:bg-white/10 hover:text-white'
+                                                            : 'text-slate-400 hover:bg-white hover:text-red-600 dark:hover:bg-slate-800'
+                                                    }`}
+                                                    onClick={(event) => {
+                                                        event.preventDefault();
+                                                        event.stopPropagation();
+                                                        onDeleteChat(chat.id);
+                                                        if (isMobileSidebarOpen) {
+                                                            onCloseMobileSidebar();
+                                                        }
+                                                    }}
+                                                    title={formatText('Delete chat')}
+                                                >
+                                                    <Trash2Icon className="h-4 w-4" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    )}
+
+                    {shouldRenderFilters && !isLoadingChats && (
+                        <div className="border-t border-slate-200/80 px-3 py-3 dark:border-slate-800/80">
+                            <div className="flex flex-wrap gap-2">
+                                {emptyChatCount > 0 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowEmptyChats((prev) => !prev)}
+                                        className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:text-slate-100"
+                                    >
+                                        {showEmptyChats ? (
+                                            <>
+                                                <EyeOffIcon className="h-3.5 w-3.5" />
+                                                {formatText('Hide empty')}
+                                            </>
+                                        ) : (
+                                            <>
+                                                <EyeIcon className="h-3.5 w-3.5" />
+                                                {`${formatText('Show')} ${emptyChatCount}`}
+                                            </>
+                                        )}
+                                    </button>
+                                )}
+                                {isAdmin && (
+                                    <button
+                                        type="button"
+                                        onClick={() => onShowExternalChatsChange(!showExternalChats)}
+                                        className={`inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                                            showExternalChats
+                                                ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950'
+                                                : 'border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:text-slate-100'
+                                        }`}
+                                    >
+                                        {showExternalChats
+                                            ? formatText('External chats on')
+                                            : formatText('External chats off')}
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </aside>
+
+                <div
+                    className={`fixed inset-0 z-50 bg-slate-900/55 transition-opacity duration-300 ${
+                        isMobileSidebarOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+                    } md:hidden`}
+                    onClick={onCloseMobileSidebar}
+                    aria-hidden="true"
+                />
+            </>
+        );
+    }
 
     return (
         <>

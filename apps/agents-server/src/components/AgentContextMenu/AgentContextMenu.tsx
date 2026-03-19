@@ -546,6 +546,12 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
         },
         {
             type: 'link' as const,
+            href: `/agents/${encodeURIComponent(agentName)}/chat/chatgpt-like`,
+            icon: MessageSquareIcon,
+            label: 'ChatGPT-like Chat',
+        },
+        {
+            type: 'link' as const,
             href: `/agents/${encodeURIComponent(agentName)}/book+chat`,
             icon: SquareSplitHorizontalIcon,
             label: 'Edit Book & Chat',

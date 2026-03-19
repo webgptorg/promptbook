@@ -30,6 +30,7 @@ import { PseudoUserChatDialog } from './PseudoUserChatDialog';
 import { useAgentChatMetaDisclaimer } from './useAgentChatMetaDisclaimer';
 import { useAgentChatToolInteractions } from './useAgentChatToolInteractions';
 import { useTeamAgentProfiles } from './useTeamAgentProfiles';
+import type { AgentChatLayoutVariant } from './chat/AgentChatLayoutVariant';
 
 /**
  * Props accepted by `<AgentChatWrapper/>`.
@@ -70,6 +71,10 @@ type AgentChatWrapperProps = {
      * Called once when an auto-execute message becomes eligible for dispatch.
      */
     onAutoExecuteMessageConsumed?: () => void;
+    /**
+     * Visual wrapper variant shared with the durable chat route.
+     */
+    layoutVariant?: AgentChatLayoutVariant;
 };
 
 // TODO: [🐱‍🚀] Rename to AgentChatSomethingWrapper
@@ -96,17 +101,23 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         chatFailMessage,
         onStartNewChat,
         onAutoExecuteMessageConsumed,
+        layoutVariant = 'default',
     } = props;
     const effectiveInputPlaceholder = resolveAgentChatInputPlaceholder(inputPlaceholder);
+    const isChatGptLikeVariant = layoutVariant === 'chatgptLike';
 
     const shouldEnableFeedback = isFeedbackEnabled ?? true;
     const { backgroundImage, brandColorHex, brandColorLightHex, brandColorDarkHex } = useAgentBackground(brandColor);
     const allowFileAttachments = areFileAttachmentsEnabled ?? true;
 
     const chatBackgroundStyle: CSSProperties & Record<string, string> = {
-        backgroundImage: `url("${backgroundImage}")`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        ...(isChatGptLikeVariant
+            ? {}
+            : {
+                  backgroundImage: `url("${backgroundImage}")`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+              }),
         '--agent-chat-brand-color': brandColorHex,
         '--agent-chat-brand-color-light': brandColorLightHex,
         '--agent-chat-brand-color-dark': brandColorDarkHex,
@@ -312,6 +323,18 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     }, [effectiveSelfLearningEnabled, userLocationPromptParameter]);
 
     if (!agent) {
+        if (isChatGptLikeVariant) {
+            return (
+                <div className="agent-chat-panel agent-chat-panel--chatgpt-like flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden">
+                    <div className="agent-chat-panel__inner flex min-h-0 flex-1 overflow-hidden">
+                        <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-[28px] border border-slate-200/80 bg-white/88 shadow-[0_24px_80px_rgba(15,23,42,0.12)] dark:border-slate-800/80 dark:bg-slate-950/88">
+                            <ChatThreadLoadingSkeleton />
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
         return (
             <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm">
                 <ChatThreadLoadingSkeleton />
@@ -319,40 +342,53 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         );
     }
 
+    const chatElement = (
+        <AgentChat
+            key={chatKey}
+            className={`agent-chat-panel__chat h-full min-h-0 w-full ${
+                isChatGptLikeVariant ? 'agent-chat-panel__chat--chatgpt-like' : ''
+            }`}
+            style={chatBackgroundStyle}
+            agent={agent}
+            placeholderMessageContent={effectiveInputPlaceholder}
+            onFeedback={shouldEnableFeedback ? handleFeedback : undefined}
+            onFileUpload={allowFileAttachments ? handleFileUpload : undefined}
+            onError={handleError}
+            defaultMessage={defaultMessage}
+            autoExecuteMessage={effectiveAutoExecuteMessage}
+            autoExecuteMessageAttachments={effectiveAutoExecuteMessageAttachments}
+            persistenceKey={persistenceKey}
+            onChange={handleMessagesChange}
+            onInputTextChange={onInputTextChange}
+            onActionButton={executeQuickActionButton}
+            sendMessage={sendMessage}
+            speechRecognition={speechRecognition}
+            visual="FULL_PAGE"
+            effectConfigs={effectConfigs}
+            soundSystem={soundSystem}
+            thinkingMessages={thinkingMessages}
+            speechRecognitionLanguage={speechRecognitionLanguage}
+            enterBehavior={enterBehavior}
+            resolveEnterBehavior={resolveEnterBehavior}
+            isSpeechPlaybackEnabled={isSpeechFeaturesEnabled}
+            chatFailMessage={chatFailMessage}
+            promptParameters={promptParameters}
+            onReset={onStartNewChat}
+            resetMode={onStartNewChat ? 'delegate' : undefined}
+            teamAgentProfiles={teamAgentProfiles}
+            buttonColor={isChatGptLikeVariant ? '#111827' : undefined}
+        />
+    );
+
     return (
         <>
-            <AgentChat
-                key={chatKey}
-                className={`h-full min-h-0 w-full`}
-                style={chatBackgroundStyle}
-                agent={agent}
-                placeholderMessageContent={effectiveInputPlaceholder}
-                onFeedback={shouldEnableFeedback ? handleFeedback : undefined}
-                onFileUpload={allowFileAttachments ? handleFileUpload : undefined}
-                onError={handleError}
-                defaultMessage={defaultMessage}
-                autoExecuteMessage={effectiveAutoExecuteMessage}
-                autoExecuteMessageAttachments={effectiveAutoExecuteMessageAttachments}
-                persistenceKey={persistenceKey}
-                onChange={handleMessagesChange}
-                onInputTextChange={onInputTextChange}
-                onActionButton={executeQuickActionButton}
-                sendMessage={sendMessage}
-                speechRecognition={speechRecognition}
-                visual="FULL_PAGE"
-                effectConfigs={effectConfigs}
-                soundSystem={soundSystem}
-                thinkingMessages={thinkingMessages}
-                speechRecognitionLanguage={speechRecognitionLanguage}
-                enterBehavior={enterBehavior}
-                resolveEnterBehavior={resolveEnterBehavior}
-                isSpeechPlaybackEnabled={isSpeechFeaturesEnabled}
-                chatFailMessage={chatFailMessage}
-                promptParameters={promptParameters}
-                onReset={onStartNewChat}
-                resetMode={onStartNewChat ? 'delegate' : undefined}
-                teamAgentProfiles={teamAgentProfiles}
-            />
+            {isChatGptLikeVariant ? (
+                <div className="agent-chat-panel agent-chat-panel--chatgpt-like flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden">
+                    <div className="agent-chat-panel__inner flex min-h-0 flex-1 overflow-hidden">{chatElement}</div>
+                </div>
+            ) : (
+                chatElement
+            )}
             <PseudoUserChatDialog
                 isOpen={pendingPseudoUserInteraction !== null}
                 prompt={pendingPseudoUserInteraction?.prompt || ''}
