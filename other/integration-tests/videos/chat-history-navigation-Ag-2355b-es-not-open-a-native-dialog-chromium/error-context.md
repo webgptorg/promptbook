@@ -71,44 +71,42 @@
                   - generic [ref=e97]: a few seconds ago
               - button "EXT" [ref=e99] [cursor=pointer]
               - paragraph [ref=e100]: Chats
-          - button "Open chats sidebar" [ref=e101] [cursor=pointer]:
-            - img [ref=e102]
-          - generic [ref=e109]:
-            - generic [ref=e110]:
-              - button "New chat" [ref=e111] [cursor=pointer]:
-                - img [ref=e112]
-                - generic [ref=e114]: New chat
-              - button "Save" [ref=e116] [cursor=pointer]:
-                - img [ref=e117]
-                - generic [ref=e120]: Save
-            - generic [ref=e121]:
-              - generic [ref=e125]:
-                - generic [ref=e126]:
-                  - paragraph [ref=e129]: Hello! I am E2E Chat Navigation New Chat.
-                  - generic [ref=e131] [cursor=pointer]: ⭐
-                - generic "2026-03-19 12:55:51" [ref=e132]:
-                  - generic [ref=e133]: 12:55 PM
-              - generic [ref=e135]:
-                - generic [ref=e136]:
-                  - paragraph [ref=e139]: Alpha seeded chat
-                  - generic [ref=e141] [cursor=pointer]: ⭐
-                - generic "2026-03-19 12:55:51" [ref=e142]:
-                  - generic [ref=e143]: 12:55 PM
-              - generic [ref=e147]:
-                - generic [ref=e148]:
-                  - paragraph [ref=e151]: Reply for Alpha seeded chat
-                  - generic [ref=e153] [cursor=pointer]: ⭐
-                - generic "2026-03-19 12:55:51" [ref=e154]:
-                  - generic [ref=e155]: 12:55 PM
-            - generic [ref=e158]:
-              - textbox "Write a message..." [active] [ref=e159]
-              - button "Attach file" [ref=e160] [cursor=pointer]:
-                - img [ref=e161]
-              - button "Start dictation" [ref=e163] [cursor=pointer]:
+          - generic [ref=e105]:
+            - generic [ref=e106]:
+              - button "New chat" [ref=e107] [cursor=pointer]:
+                - img [ref=e108]
+                - generic [ref=e110]: New chat
+              - button "Save" [ref=e112] [cursor=pointer]:
+                - img [ref=e113]
+                - generic [ref=e116]: Save
+            - generic [ref=e117]:
+              - generic [ref=e121]:
+                - generic [ref=e122]:
+                  - paragraph [ref=e125]: Hello! I am E2E Chat Navigation New Chat.
+                  - generic [ref=e127] [cursor=pointer]: ⭐
+                - generic "2026-03-19 17:31:02" [ref=e128]:
+                  - generic [ref=e129]: 5:31 PM
+              - generic [ref=e131]:
+                - generic [ref=e132]:
+                  - paragraph [ref=e135]: Alpha seeded chat
+                  - generic [ref=e137] [cursor=pointer]: ⭐
+                - generic "2026-03-19 17:31:02" [ref=e138]:
+                  - generic [ref=e139]: 5:31 PM
+              - generic [ref=e143]:
+                - generic [ref=e144]:
+                  - paragraph [ref=e147]: Reply for Alpha seeded chat
+                  - generic [ref=e149] [cursor=pointer]: ⭐
+                - generic "2026-03-19 17:31:02" [ref=e150]:
+                  - generic [ref=e151]: 5:31 PM
+            - generic [ref=e154]:
+              - textbox "Write a message..." [active] [ref=e155]
+              - button "Attach file" [ref=e156] [cursor=pointer]:
+                - img [ref=e157]
+              - button "Start dictation" [ref=e159] [cursor=pointer]:
+                - img [ref=e160]
+              - button [ref=e163] [cursor=pointer]:
                 - img [ref=e164]
-              - button [ref=e167] [cursor=pointer]:
-                - img [ref=e168]
   - generic:
     - region "Notifications"
-  - alert [ref=e170]
+  - alert [ref=e166]
 ```

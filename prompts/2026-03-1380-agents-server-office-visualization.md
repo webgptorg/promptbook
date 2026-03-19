@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 41 minutes by OpenAI Codex `gpt-5.4`
 
 [🏢🤖] Agent office visualization
 
@@ -44,3 +44,4 @@ A fun 3D "office" view for the Agents Server home page that visualizes agents as
     -   Suggested libraries: Babylon.js or Three.js for 3D rendering; Do not implement fallback, this is just additional feature and it is ok if it is not available on mobile / low-end devices in the first iteration, we can add it later if needed.
 
 -   You are working with the [Agents Server](apps/agents-server)
+

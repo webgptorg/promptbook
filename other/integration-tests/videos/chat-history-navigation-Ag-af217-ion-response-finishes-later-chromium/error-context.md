@@ -57,64 +57,62 @@
               - button "New chat" [ref=e80] [cursor=pointer]:
                 - img [ref=e81]
               - generic [ref=e83]:
-                - button "Charlie history chat - Reply for Charlie history chat (2 messages, a few seconds ago)" [ref=e84] [cursor=pointer]:
+                - button "Charlie history chat - Reply for Charlie history chat (2 messages, a minute ago)" [ref=e84] [cursor=pointer]:
                   - generic "2 messages" [ref=e86]: "2"
                   - generic [ref=e87]:
                     - generic [ref=e88]: Charlie history chat
                     - generic [ref=e89]: Reply for Charlie history chat
-                  - generic [ref=e90]: a few seconds ago
-                - button "Bravo history chat - Reply for Bravo history chat (2 messages, a few seconds ago)" [ref=e91] [cursor=pointer]:
+                  - generic [ref=e90]: a minute ago
+                - button "Bravo history chat - Reply for Bravo history chat (2 messages, a minute ago)" [ref=e91] [cursor=pointer]:
                   - generic "2 messages" [ref=e93]: "2"
                   - generic [ref=e94]:
                     - generic [ref=e95]: Bravo history chat
                     - generic [ref=e96]: Reply for Bravo history chat
-                  - generic [ref=e97]: a few seconds ago
-                - button "Alpha history chat - Reply for Alpha history chat (2 messages, a few seconds ago)" [ref=e98] [cursor=pointer]:
+                  - generic [ref=e97]: a minute ago
+                - button "Alpha history chat - Reply for Alpha history chat (2 messages, a minute ago)" [ref=e98] [cursor=pointer]:
                   - generic "2 messages" [ref=e100]: "2"
                   - generic [ref=e101]:
                     - generic [ref=e102]: Alpha history chat
                     - generic [ref=e103]: Reply for Alpha history chat
-                  - generic [ref=e104]: a few seconds ago
+                  - generic [ref=e104]: a minute ago
               - button "EXT" [ref=e106] [cursor=pointer]
               - paragraph [ref=e107]: Chats
-          - button "Open chats sidebar" [ref=e108] [cursor=pointer]:
-            - img [ref=e109]
-          - generic [ref=e116]:
-            - generic [ref=e117]:
-              - button "New chat" [ref=e118] [cursor=pointer]:
-                - img [ref=e119]
-                - generic [ref=e121]: New chat
-              - button "Save" [ref=e123] [cursor=pointer]:
-                - img [ref=e124]
-                - generic [ref=e127]: Save
-            - generic [ref=e128]:
-              - generic [ref=e132]:
-                - generic [ref=e133]:
-                  - paragraph [ref=e136]: Hello! I am E2E Chat Navigation Last Click Wins.
-                  - generic [ref=e138] [cursor=pointer]: ⭐
-                - generic "2026-03-19 12:56:54" [ref=e139]:
-                  - generic [ref=e140]: 12:56 PM
-              - generic [ref=e142]:
-                - generic [ref=e143]:
-                  - paragraph [ref=e146]: Bravo history chat
-                  - generic [ref=e148] [cursor=pointer]: ⭐
-                - generic "2026-03-19 12:56:54" [ref=e149]:
-                  - generic [ref=e150]: 12:56 PM
-              - generic [ref=e154]:
-                - generic [ref=e155]:
-                  - paragraph [ref=e158]: Reply for Bravo history chat
-                  - generic [ref=e160] [cursor=pointer]: ⭐
-                - generic "2026-03-19 12:56:54" [ref=e161]:
-                  - generic [ref=e162]: 12:56 PM
-            - generic [ref=e165]:
-              - textbox "Write a message..." [active] [ref=e166]
-              - button "Attach file" [ref=e167] [cursor=pointer]:
-                - img [ref=e168]
-              - button "Start dictation" [ref=e170] [cursor=pointer]:
+          - generic [ref=e112]:
+            - generic [ref=e113]:
+              - button "New chat" [ref=e114] [cursor=pointer]:
+                - img [ref=e115]
+                - generic [ref=e117]: New chat
+              - button "Save" [ref=e119] [cursor=pointer]:
+                - img [ref=e120]
+                - generic [ref=e123]: Save
+            - generic [ref=e124]:
+              - generic [ref=e128]:
+                - generic [ref=e129]:
+                  - paragraph [ref=e132]: Hello! I am E2E Chat Navigation Last Click Wins.
+                  - generic [ref=e134] [cursor=pointer]: ⭐
+                - generic "2026-03-19 17:32:06" [ref=e135]:
+                  - generic [ref=e136]: 5:32 PM
+              - generic [ref=e138]:
+                - generic [ref=e139]:
+                  - paragraph [ref=e142]: Bravo history chat
+                  - generic [ref=e144] [cursor=pointer]: ⭐
+                - generic "2026-03-19 17:32:06" [ref=e145]:
+                  - generic [ref=e146]: 5:32 PM
+              - generic [ref=e150]:
+                - generic [ref=e151]:
+                  - paragraph [ref=e154]: Reply for Bravo history chat
+                  - generic [ref=e156] [cursor=pointer]: ⭐
+                - generic "2026-03-19 17:32:06" [ref=e157]:
+                  - generic [ref=e158]: 5:32 PM
+            - generic [ref=e161]:
+              - textbox "Write a message..." [active] [ref=e162]
+              - button "Attach file" [ref=e163] [cursor=pointer]:
+                - img [ref=e164]
+              - button "Start dictation" [ref=e166] [cursor=pointer]:
+                - img [ref=e167]
+              - button [ref=e170] [cursor=pointer]:
                 - img [ref=e171]
-              - button [ref=e174] [cursor=pointer]:
-                - img [ref=e175]
   - generic:
     - region "Notifications"
-  - alert [ref=e177]
+  - alert [ref=e173]
 ```

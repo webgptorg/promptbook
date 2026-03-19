@@ -56,54 +56,67 @@
             - generic [ref=e79]:
               - button "New chat" [ref=e80] [cursor=pointer]:
                 - img [ref=e81]
-              - button "Hello from profile page - Hello from profile page (2 messages, a few seconds ago)" [ref=e84] [cursor=pointer]:
+              - button "Hello from profile page - Hi - got your note from the profile page. I can use Markdown and code blocks, and if I'm unsure… (2 messages, a few seconds ago)" [ref=e84] [cursor=pointer]:
                 - generic "2 messages" [ref=e86]: "2"
                 - generic [ref=e87]:
                   - generic [ref=e88]: Hello from profile page
-                  - generic [ref=e89]: Hello from profile page
+                  - generic [ref=e89]: Hi - got your note from the profile page. I can use Markdown and code blocks, and if I'm unsure…
                 - generic [ref=e90]: a few seconds ago
               - button "EXT" [ref=e92] [cursor=pointer]
               - paragraph [ref=e93]: Chats
-          - button "Open chats sidebar" [ref=e94] [cursor=pointer]:
-            - img [ref=e95]
-          - generic [ref=e102]:
-            - generic [ref=e103]:
-              - button "New chat" [ref=e104] [cursor=pointer]:
-                - img [ref=e105]
-                - generic [ref=e107]: New chat
-              - button "Save" [ref=e109] [cursor=pointer]:
-                - img [ref=e110]
-                - generic [ref=e113]: Save
-            - generic [ref=e114]:
-              - generic [ref=e118]:
-                - generic [ref=e119]:
-                  - paragraph [ref=e122]: Hello! I am E2E Optimistic First Message.
-                  - generic [ref=e124] [cursor=pointer]: ⭐
-                - generic "2026-03-19 12:54:56" [ref=e125]:
-                  - generic [ref=e126]: 12:54 PM
-              - generic [ref=e128]:
-                - generic [ref=e129]:
-                  - paragraph [ref=e132]: Hello from profile page
-                  - generic [ref=e134] [cursor=pointer]: ⭐
-                - generic "2026-03-19 12:54:56" [ref=e135]:
-                  - generic [ref=e136]: Completed
-                  - generic [ref=e137]: 12:54 PM
-              - generic [ref=e141]:
-                - generic [ref=e144] [cursor=pointer]: ⭐
-                - generic "2026-03-19 12:54:56" [ref=e145]:
-                  - generic [ref=e146]: Cancelled
-                  - generic [ref=e147]: 12:54 PM
-                  - generic [ref=e148]: (5.9s to answer)
-                - generic [ref=e149]: terminated
-            - generic [ref=e152]:
-              - textbox "Write a message..." [active] [ref=e153]
-              - button "Attach file" [ref=e154] [cursor=pointer]:
-                - img [ref=e155]
-              - button "Start dictation" [ref=e157] [cursor=pointer]:
-                - img [ref=e158]
-              - button [ref=e161] [cursor=pointer]:
-                - img [ref=e162]
+          - generic [ref=e98]:
+            - generic [ref=e99]:
+              - button "New chat" [ref=e100] [cursor=pointer]:
+                - img [ref=e101]
+                - generic [ref=e103]: New chat
+              - button "Save" [ref=e105] [cursor=pointer]:
+                - img [ref=e106]
+                - generic [ref=e109]: Save
+            - generic [ref=e110]:
+              - generic [ref=e114]:
+                - generic [ref=e115]:
+                  - paragraph [ref=e118]: Hello! I am E2E Optimistic First Message.
+                  - generic [ref=e120] [cursor=pointer]: ⭐
+                - generic "2026-03-19 17:30:05" [ref=e121]:
+                  - generic [ref=e122]: 5:30 PM
+              - generic [ref=e124]:
+                - generic [ref=e125]:
+                  - paragraph [ref=e128]: Hello from profile page
+                  - generic [ref=e130] [cursor=pointer]: ⭐
+                - generic "2026-03-19 17:30:05" [ref=e131]:
+                  - generic [ref=e132]: Completed
+                  - generic [ref=e133]: 5:30 PM
+              - generic [ref=e137]:
+                - generic [ref=e138]:
+                  - generic [ref=e140]:
+                    - paragraph [ref=e141]: Hi - got your note from the profile page.
+                    - paragraph [ref=e142]:
+                      - text: I can use
+                      - strong [ref=e143]: Markdown
+                      - text: and code blocks, and if I'm unsure about anything I'll say so and offer to look it up or clarify.
+                    - paragraph [ref=e144]: "What would you like me to do next? Examples:"
+                    - list [ref=e145]:
+                      - listitem [ref=e146]: Draft regression test cases for the profile page
+                      - listitem [ref=e147]: Write sample test code (e.g., Cypress, Playwright, Jest)
+                      - listitem [ref=e148]: Review an existing test plan or bug repro steps
+                      - listitem [ref=e149]: Generate test data and edge cases
+                    - paragraph [ref=e150]: Tell me which option (or describe another), and any relevant details (platform, framework, important fields).
+                  - button "🧠 self-learning" [ref=e152] [cursor=pointer]:
+                    - generic [ref=e153]: 🧠 self-learning
+                  - generic [ref=e155] [cursor=pointer]: ⭐
+                - generic "2026-03-19 17:30:05" [ref=e156]:
+                  - generic [ref=e157]: Completed
+                  - generic [ref=e158]: 5:30 PM
+                  - generic [ref=e159]: (15s to answer)
+            - generic [ref=e162]:
+              - textbox "Write a message..." [active] [ref=e163]
+              - button "Attach file" [ref=e164] [cursor=pointer]:
+                - img [ref=e165]
+              - button "Start dictation" [ref=e167] [cursor=pointer]:
+                - img [ref=e168]
+              - button [ref=e171] [cursor=pointer]:
+                - img [ref=e172]
   - generic:
     - region "Notifications"
-  - alert [ref=e164]
+  - alert [ref=e174]
 ```

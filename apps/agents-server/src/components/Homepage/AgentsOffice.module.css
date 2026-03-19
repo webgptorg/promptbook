@@ -1,0 +1,723 @@
+.viewport {
+    position: relative;
+    min-height: 640px;
+    overflow: hidden;
+    border: 1px solid rgb(226 232 240 / 1);
+    border-radius: 1.5rem;
+    background:
+        radial-gradient(circle at top left, rgba(34, 211, 238, 0.14), transparent 24%),
+        radial-gradient(circle at bottom right, rgba(251, 191, 36, 0.14), transparent 24%),
+        linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        0 20px 48px rgba(15, 23, 42, 0.12);
+    cursor: grab;
+}
+
+.viewport::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(148, 163, 184, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148, 163, 184, 0.1) 1px, transparent 1px);
+    background-size: 44px 44px;
+    pointer-events: none;
+}
+
+.viewportPanning {
+    cursor: grabbing;
+}
+
+.world {
+    position: absolute;
+    inset: 0;
+    transform-origin: top left;
+    transition: transform 240ms ease;
+}
+
+.ambientGlowPrimary,
+.ambientGlowSecondary {
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(34px);
+    pointer-events: none;
+}
+
+.ambientGlowPrimary {
+    top: 72px;
+    left: 84px;
+    width: 280px;
+    height: 280px;
+    background: rgba(34, 211, 238, 0.22);
+}
+
+.ambientGlowSecondary {
+    right: 100px;
+    bottom: 120px;
+    width: 320px;
+    height: 320px;
+    background: rgba(251, 191, 36, 0.18);
+}
+
+.corridor {
+    position: absolute;
+    left: 48px;
+    right: 48px;
+    border-radius: 2rem;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.4)),
+        linear-gradient(90deg, rgba(100, 116, 139, 0.08), rgba(100, 116, 139, 0.18), rgba(100, 116, 139, 0.08));
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        0 18px 40px rgba(15, 23, 42, 0.12);
+    overflow: hidden;
+}
+
+.corridorLane {
+    position: absolute;
+    left: 36px;
+    right: 36px;
+    height: 42px;
+    border-radius: 999px;
+    border: 1px dashed rgba(148, 163, 184, 0.36);
+}
+
+.corridorLane:first-child {
+    top: 28px;
+}
+
+.corridorLane:last-child {
+    bottom: 28px;
+}
+
+.corridorDivider {
+    position: absolute;
+    left: 32px;
+    right: 32px;
+    top: 50%;
+    border-top: 2px dashed rgba(15, 23, 42, 0.08);
+    transform: translateY(-50%);
+}
+
+.room {
+    position: absolute;
+}
+
+.roomSelected {
+    z-index: 3;
+}
+
+.roomTopWall,
+.roomSideWall {
+    position: absolute;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), var(--room-wall));
+    box-shadow: 0 12px 18px rgba(15, 23, 42, 0.08);
+}
+
+.roomTopWall {
+    left: 22px;
+    right: 18px;
+    top: -18px;
+    height: 24px;
+    border-radius: 18px 18px 0 0;
+    transform: skewX(-34deg);
+    transform-origin: left bottom;
+}
+
+.roomSideWall {
+    top: 22px;
+    right: -18px;
+    bottom: 12px;
+    width: 22px;
+    border-radius: 0 18px 18px 0;
+    transform: skewY(-34deg);
+    transform-origin: left top;
+}
+
+.roomFloor {
+    position: absolute;
+    inset: 0;
+    overflow: visible;
+    border-radius: 1.6rem;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.72)),
+        linear-gradient(140deg, var(--room-surface), var(--room-accent-muted));
+    border: 1px solid rgba(255, 255, 255, 0.88);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.76),
+        0 18px 40px color-mix(in srgb, var(--room-shadow) 18%, transparent);
+}
+
+.roomFloor::before {
+    content: '';
+    position: absolute;
+    inset: 14px;
+    border-radius: 1.2rem;
+    border: 1px dashed rgba(255, 255, 255, 0.5);
+    opacity: 0.8;
+}
+
+.roomFloor::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background:
+        radial-gradient(circle at 12% 12%, rgba(255, 255, 255, 0.44), transparent 22%),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+        linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+    background-size: auto, 38px 38px, 38px 38px;
+    pointer-events: none;
+}
+
+.roomFocusButton {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    right: 16px;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid rgba(255, 255, 255, 0.88);
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.76);
+    color: rgb(15 23 42 / 1);
+    font-size: 0.88rem;
+    font-weight: 600;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.roomFocusButton:hover {
+    background: rgba(255, 255, 255, 0.88);
+}
+
+.roomBadge {
+    white-space: nowrap;
+    padding: 0.3rem 0.55rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--room-accent-soft) 72%, white);
+    color: color-mix(in srgb, var(--room-shadow) 80%, black);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.roomSubtitle {
+    position: absolute;
+    top: 72px;
+    left: 20px;
+    right: 20px;
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(15, 23, 42, 0.55);
+}
+
+.roomWhiteboard {
+    position: absolute;
+    top: 92px;
+    right: 22px;
+    width: 82px;
+    height: 46px;
+    border-radius: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.82);
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.56)),
+        linear-gradient(135deg, rgba(15, 23, 42, 0.05), transparent);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.84);
+}
+
+.roomWhiteboard::after {
+    content: '';
+    position: absolute;
+    inset: 10px 12px;
+    border-radius: 999px;
+    border-top: 2px solid rgba(15, 23, 42, 0.14);
+    border-bottom: 2px solid rgba(15, 23, 42, 0.08);
+}
+
+.roomPlant,
+.roomPlantSecondary {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50% 50% 45% 45%;
+    background: linear-gradient(180deg, rgba(22, 163, 74, 0.95), rgba(21, 128, 61, 0.78));
+    box-shadow:
+        0 14px 0 -7px rgba(120, 53, 15, 0.38),
+        0 8px 16px rgba(15, 23, 42, 0.12);
+}
+
+.roomPlant {
+    bottom: 26px;
+    left: 22px;
+}
+
+.roomPlantSecondary {
+    top: 110px;
+    left: 110px;
+    width: 16px;
+    height: 16px;
+}
+
+.deskGhost {
+    position: absolute;
+    width: 92px;
+    height: 30px;
+    border-radius: 1rem;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.28)),
+        color-mix(in srgb, var(--room-desk) 62%, white);
+    opacity: 0.22;
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.07);
+    pointer-events: none;
+}
+
+.meetingTable {
+    position: absolute;
+    left: 50%;
+    top: 136px;
+    width: 150px;
+    height: 82px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.meetingTableTop {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background:
+        radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.58), transparent 24%),
+        linear-gradient(135deg, color-mix(in srgb, var(--room-accent) 84%, white), var(--room-desk));
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        0 18px 28px rgba(15, 23, 42, 0.12);
+}
+
+.meetingTableShadow {
+    position: absolute;
+    inset: 12px -8px -8px -8px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.08);
+    filter: blur(16px);
+}
+
+.agentButton {
+    position: absolute;
+    z-index: 2;
+    width: 144px;
+    height: 118px;
+    border: none;
+    background: transparent;
+    transform: translate(-50%, -50%) rotate(var(--agent-rotation));
+    cursor: pointer;
+}
+
+.agentMotion {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 180ms ease;
+}
+
+.agentButton:hover .agentMotion,
+.agentButton:focus-visible .agentMotion {
+    transform: translateY(-4px);
+}
+
+.stationDesk {
+    position: absolute;
+    left: 50%;
+    bottom: 14px;
+    width: 98px;
+    height: 46px;
+    transform: translateX(-50%);
+}
+
+.stationChair {
+    position: absolute;
+    left: 50%;
+    bottom: -8px;
+    width: 48px;
+    height: 14px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.14);
+    transform: translateX(-50%);
+}
+
+.stationSurface {
+    position: absolute;
+    inset: 0;
+    border-radius: 1rem;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.24), transparent),
+        linear-gradient(135deg, var(--agent-desk), color-mix(in srgb, var(--agent-desk) 78%, white));
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.38),
+        0 10px 20px rgba(15, 23, 42, 0.14);
+}
+
+.stationScreen {
+    position: absolute;
+    left: 50%;
+    top: -18px;
+    width: 60px;
+    height: 26px;
+    border-radius: 0.8rem;
+    background:
+        linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.8)),
+        linear-gradient(135deg, var(--agent-accent), var(--agent-accent-soft));
+    transform: translateX(-50%);
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18);
+    overflow: hidden;
+}
+
+.stationScreen span {
+    display: block;
+    padding: 0.38rem 0.5rem;
+    font-size: 0.48rem;
+    font-weight: 700;
+    line-height: 1.15;
+    color: rgba(255, 255, 255, 0.82);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+
+.stationBadgeRow {
+    position: absolute;
+    left: 6px;
+    right: 6px;
+    bottom: 6px;
+    display: flex;
+    gap: 0.22rem;
+    justify-content: center;
+}
+
+.stationBadge {
+    max-width: 48px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0.16rem 0.36rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 0.42rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.meetingNote,
+.corridorBubble {
+    position: absolute;
+    left: 50%;
+    top: 8px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    min-width: 82px;
+    max-width: 120px;
+    padding: 0.42rem 0.6rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.88);
+    color: rgb(15 23 42 / 1);
+    font-size: 0.6rem;
+    font-weight: 700;
+    line-height: 1.1;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+    transform: translateX(-50%);
+}
+
+.meetingNote::after,
+.corridorBubble::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -6px;
+    width: 12px;
+    height: 12px;
+    background: inherit;
+    transform: translateX(-50%) rotate(45deg);
+}
+
+.corridorBubble {
+    top: 14px;
+    min-width: 96px;
+}
+
+.agentFigure {
+    position: absolute;
+    left: 50%;
+    top: 24px;
+    width: 74px;
+    height: 68px;
+    transform: translateX(-50%);
+}
+
+.agentShadow {
+    position: absolute;
+    left: 50%;
+    bottom: -4px;
+    width: 46px;
+    height: 14px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.14);
+    transform: translateX(-50%);
+    filter: blur(1px);
+}
+
+.agentAvatar {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 44px;
+    height: 44px;
+    overflow: hidden;
+    border-radius: 999px;
+    border: 2px solid rgba(255, 255, 255, 0.84);
+    background: linear-gradient(135deg, var(--agent-accent-soft), var(--agent-accent));
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.18);
+    transform: translateX(-50%);
+}
+
+.agentInitials {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 0.9rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+}
+
+.agentAvatarImage {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.presenceDot {
+    position: absolute;
+    right: 0;
+    bottom: 1px;
+    width: 11px;
+    height: 11px;
+    border-radius: 999px;
+    border: 2px solid rgba(255, 255, 255, 0.92);
+    background: var(--agent-accent);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.18);
+}
+
+.agentNameplate {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    min-width: 72px;
+    max-width: 100px;
+    padding: 0.26rem 0.48rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.84);
+    color: rgba(15, 23, 42, 0.9);
+    font-size: 0.58rem;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.agentTooltip {
+    position: absolute;
+    left: 50%;
+    top: -10px;
+    width: 220px;
+    padding: 0.85rem;
+    border: 1px solid rgba(226, 232, 240, 0.95);
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18);
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, calc(-100% + 8px));
+    transition:
+        opacity 180ms ease,
+        transform 180ms ease;
+    backdrop-filter: blur(16px);
+}
+
+.agentButton:hover .agentTooltip,
+.agentButton:focus-visible .agentTooltip {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate(-50%, calc(-100% - 8px));
+}
+
+.tooltipMetaRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: rgba(71, 85, 105, 0.95);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.tooltipActions {
+    display: flex;
+    gap: 0.45rem;
+    margin-top: 0.8rem;
+}
+
+.tooltipAction {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.42rem 0.58rem;
+    border: 1px solid rgba(226, 232, 240, 0.95);
+    border-radius: 0.8rem;
+    background: white;
+    color: rgb(15 23 42 / 1);
+    font-size: 0.7rem;
+    font-weight: 700;
+    transition: border-color 160ms ease;
+}
+
+.tooltipAction:hover {
+    border-color: rgba(148, 163, 184, 0.9);
+}
+
+.agentIdle .agentMotion {
+    animation: office-idle 3.8s ease-in-out infinite;
+    animation-delay: var(--agent-phase);
+}
+
+.agentWorking .agentMotion {
+    animation: office-working 3.2s ease-in-out infinite;
+    animation-delay: var(--agent-phase);
+}
+
+.agentWorking .stationScreen {
+    animation: office-screen 2.4s ease-in-out infinite;
+    animation-delay: var(--agent-phase);
+}
+
+.agentMeeting .stationDesk {
+    display: none;
+}
+
+.agentMeeting .meetingNote {
+    display: inline-flex;
+}
+
+.agentMeeting .agentMotion {
+    animation: office-meeting 2.5s ease-in-out infinite;
+    animation-delay: var(--agent-phase);
+}
+
+.agentMoving .stationDesk {
+    display: none;
+}
+
+.agentMoving .corridorBubble {
+    display: inline-flex;
+}
+
+.agentMoving .agentMotion {
+    animation: office-moving 2.9s ease-in-out infinite alternate;
+    animation-delay: var(--agent-phase);
+}
+
+.corridorAgent {
+    width: 148px;
+    height: 102px;
+}
+
+.corridorAgent .agentFigure {
+    top: 34px;
+}
+
+.corridorAgent .agentNameplate {
+    bottom: -4px;
+}
+
+.remoteAgent .agentNameplate {
+    background: color-mix(in srgb, var(--agent-accent-soft) 36%, white);
+}
+
+@keyframes office-idle {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-2px);
+    }
+}
+
+@keyframes office-working {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-4px);
+    }
+}
+
+@keyframes office-screen {
+    0%,
+    100% {
+        filter: saturate(1);
+    }
+
+    50% {
+        filter: saturate(1.28) brightness(1.08);
+    }
+}
+
+@keyframes office-meeting {
+    0%,
+    100% {
+        transform: translateY(0) scale(1);
+    }
+
+    40% {
+        transform: translateY(-4px) scale(1.02);
+    }
+
+    70% {
+        transform: translateY(-1px) scale(0.99);
+    }
+}
+
+@keyframes office-moving {
+    0% {
+        transform: translateX(-10px) translateY(0);
+    }
+
+    100% {
+        transform: translateX(10px) translateY(-2px);
+    }
+}

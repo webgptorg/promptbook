@@ -15,7 +15,7 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { TODO_any, string_url } from '@promptbook-local/types';
-import { FolderPlusIcon, Grid, Network, TrashIcon } from 'lucide-react';
+import { Building2, FolderPlusIcon, Grid, Network, TrashIcon } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -116,6 +116,14 @@ const TOUCH_DRAG_TOLERANCE_PX = 6;
  * Deferred graph chunk loaded only when the graph view is active.
  */
 const DeferredAgentsGraph = dynamic(() => import('./AgentsGraph').then((mod) => mod.AgentsGraph), {
+    ssr: false,
+    loading: () => <GraphLoadingSkeleton />,
+});
+
+/**
+ * Deferred office chunk loaded only when the office view is active.
+ */
+const DeferredAgentsOffice = dynamic(() => import('./AgentsOffice').then((mod) => mod.AgentsOffice), {
     ssr: false,
     loading: () => <GraphLoadingSkeleton />,
 });
@@ -449,12 +457,13 @@ export function AgentsList(props: AgentsListProps) {
         }
     }, [normalizedPublicUrl]);
 
-    const viewMode = searchParams.get('view') === 'graph' ? 'GRAPH' : 'LIST';
-    const showFederatedAgentsInGraph = showFederatedAgents && viewMode === 'GRAPH';
+    const viewParam = searchParams.get('view');
+    const viewMode = viewParam === 'graph' ? 'GRAPH' : viewParam === 'office' ? 'OFFICE' : 'LIST';
+    const shouldLoadFederatedAgents = showFederatedAgents && viewMode !== 'LIST';
     const { federatedAgents, federatedServersStatus } = useFederatedAgents(
-        showFederatedAgents,
+        shouldLoadFederatedAgents,
         initialExternalAgents,
-        showFederatedAgentsInGraph,
+        viewMode,
     );
     const isTouchInput = useIsTouchInput();
     const allowFullCardDrag = canOrganize && viewMode === 'LIST' && !isTouchInput;
@@ -599,7 +608,7 @@ export function AgentsList(props: AgentsListProps) {
         [agents, currentFolderId],
     );
 
-    const agentCount = viewMode === 'LIST' ? visibleAgents.length : agents.length;
+    const agentCount = viewMode === 'LIST' ? visibleAgents.length : viewMode === 'OFFICE' ? agents.length + federatedAgents.length : agents.length;
     const sensors = useSensors(
         useSensor(MouseSensor, {
             activationConstraint: { distance: DRAG_START_DISTANCE_PX },
@@ -656,10 +665,12 @@ export function AgentsList(props: AgentsListProps) {
      *
      * @param mode - Next view mode.
      */
-    const setViewMode = (mode: 'LIST' | 'GRAPH') => {
+    const setViewMode = (mode: 'LIST' | 'GRAPH' | 'OFFICE') => {
         const params = new URLSearchParams(searchParams.toString());
         if (mode === 'LIST') {
             params.delete('view');
+        } else if (mode === 'OFFICE') {
+            params.set('view', 'office');
         } else {
             params.set('view', 'graph');
         }
@@ -1449,7 +1460,11 @@ export function AgentsList(props: AgentsListProps) {
     const dragFolderLabel = formatText('Drag folder');
 
     const headingTitle =
-        viewMode === 'LIST' && currentFolderId !== null
+        viewMode === 'OFFICE'
+            ? formatText('Agent Office')
+            : viewMode === 'GRAPH'
+            ? formatText('Agent Graph')
+            : currentFolderId !== null
             ? folderMaps.folderById.get(currentFolderId)?.name || formatText('Local Agents')
             : formatText('Local Agents');
     const contextMenuAgent = contextMenuState?.agent ?? null;
@@ -1476,27 +1491,67 @@ export function AgentsList(props: AgentsListProps) {
                         <span>
                             {headingTitle} ({agentCount})
                         </span>
-                        {viewMode === 'LIST' && (
-                            <div className="mt-2 flex items-center gap-2 text-sm text-gray-600">
-                                <BreadcrumbDropTarget
-                                    label={formatText('All Agents')}
-                                    folderId={null}
-                                    onClick={() => navigateToFolder(null)}
-                                    canOrganize={canOrganize}
-                                />
-                                {breadcrumbFolders.map((folder) => (
-                                    <div key={folder.id} className="flex items-center gap-2">
-                                        <span>/</span>
-                                        <BreadcrumbDropTarget
-                                            label={folder.name}
-                                            folderId={folder.id}
-                                            onClick={() => navigateToFolder(folder.id)}
-                                            canOrganize={canOrganize}
-                                        />
-                                    </div>
-                                ))}
+                        <div className="mt-3 flex flex-wrap items-center gap-3">
+                            <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
+                                <button
+                                    onClick={() => setViewMode('LIST')}
+                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors ${
+                                        viewMode === 'LIST'
+                                            ? 'bg-white shadow-sm text-blue-600 font-medium'
+                                            : 'text-gray-500 hover:text-gray-900'
+                                    }`}
+                                    title="List View"
+                                >
+                                    <Grid className="w-4 h-4" />
+                                    <span>List</span>
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('GRAPH')}
+                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors ${
+                                        viewMode === 'GRAPH'
+                                            ? 'bg-white shadow-sm text-blue-600 font-medium'
+                                            : 'text-gray-500 hover:text-gray-900'
+                                    }`}
+                                    title="Graph View"
+                                >
+                                    <Network className="w-4 h-4" />
+                                    <span>Graph</span>
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('OFFICE')}
+                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors ${
+                                        viewMode === 'OFFICE'
+                                            ? 'bg-white shadow-sm text-blue-600 font-medium'
+                                            : 'text-gray-500 hover:text-gray-900'
+                                    }`}
+                                    title="Office View"
+                                >
+                                    <Building2 className="w-4 h-4" />
+                                    <span>Office</span>
+                                </button>
                             </div>
-                        )}
+                            {viewMode === 'LIST' && (
+                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                    <BreadcrumbDropTarget
+                                        label={formatText('All Agents')}
+                                        folderId={null}
+                                        onClick={() => navigateToFolder(null)}
+                                        canOrganize={canOrganize}
+                                    />
+                                    {breadcrumbFolders.map((folder) => (
+                                        <div key={folder.id} className="flex items-center gap-2">
+                                            <span>/</span>
+                                            <BreadcrumbDropTarget
+                                                label={folder.name}
+                                                folderId={folder.id}
+                                                onClick={() => navigateToFolder(folder.id)}
+                                                canOrganize={canOrganize}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                     <div className="flex items-center gap-2">
                         {viewMode === 'LIST' && canOrganize && (
@@ -1510,32 +1565,6 @@ export function AgentsList(props: AgentsListProps) {
                                 New Folder
                             </button>
                         )}
-                        <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg ml-4">
-                            <button
-                                onClick={() => setViewMode('LIST')}
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors ${
-                                    viewMode === 'LIST'
-                                        ? 'bg-white shadow-sm text-blue-600 font-medium'
-                                        : 'text-gray-500 hover:text-gray-900'
-                                }`}
-                                title="List View"
-                            >
-                                <Grid className="w-4 h-4" />
-                                <span>List</span>
-                            </button>
-                            <button
-                                onClick={() => setViewMode('GRAPH')}
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors ${
-                                    viewMode === 'GRAPH'
-                                        ? 'bg-white shadow-sm text-blue-600 font-medium'
-                                        : 'text-gray-500 hover:text-gray-900'
-                                }`}
-                                title="Graph View"
-                            >
-                                <Network className="w-4 h-4" />
-                                <span>Graph</span>
-                            </button>
-                        </div>
                     </div>
                 </div>
             </h2>
@@ -1637,10 +1666,20 @@ export function AgentsList(props: AgentsListProps) {
                         ) : null}
                     </DragOverlay>
                 </DndContext>
-            ) : (
+            ) : viewMode === 'GRAPH' ? (
                 <div className="w-full">
                     <DeferredAgentsGraph
                         agents={agents.map((a) => ({ ...a, serverUrl: publicUrl.replace(/\/$/, '') }))}
+                        federatedAgents={federatedAgents}
+                        federatedServersStatus={federatedServersStatus}
+                        publicUrl={publicUrl}
+                        folders={folders}
+                    />
+                </div>
+            ) : (
+                <div className="w-full">
+                    <DeferredAgentsOffice
+                        agents={agents.map((agent) => ({ ...agent, serverUrl: publicUrl.replace(/\/$/, '') }))}
                         federatedAgents={federatedAgents}
                         federatedServersStatus={federatedServersStatus}
                         publicUrl={publicUrl}
