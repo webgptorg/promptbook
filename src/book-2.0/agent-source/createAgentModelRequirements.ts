@@ -107,8 +107,8 @@ async function selectBestModelUsingPersona(
  * @private TODO: [🧠] Maybe should be public
  */
 export function extractMcpServers(agentSource: string_book): string[] {
-    return parseAgentSourceWithCommitments(agentSource).commitments
-        .filter((commitment) => commitment.type === 'USE MCP')
+    return parseAgentSourceWithCommitments(agentSource)
+        .commitments.filter((commitment) => commitment.type === 'USE MCP')
         .map((commitment) => commitment.content.trim())
         .filter(Boolean);
 }

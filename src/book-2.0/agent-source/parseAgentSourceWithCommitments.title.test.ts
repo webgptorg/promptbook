@@ -66,32 +66,35 @@ GOAL This is the first real commitment`);
             newline: '\r\n',
             variant: 'Windows',
         },
-    ])('keeps leading whitespace-only lines and description parsing consistent for $variant newlines', ({ newline }) => {
-        const agentSource = validateBook(
-            [
-                '',
-                '   ',
-                'Goal maker',
-                '',
-                'Short description',
-                'Still description',
-                'GOAL This is the first real commitment',
-            ].join(newline),
-        );
+    ])(
+        'keeps leading whitespace-only lines and description parsing consistent for $variant newlines',
+        ({ newline }) => {
+            const agentSource = validateBook(
+                [
+                    '',
+                    '   ',
+                    'Goal maker',
+                    '',
+                    'Short description',
+                    'Still description',
+                    'GOAL This is the first real commitment',
+                ].join(newline),
+            );
 
-        const result = parseAgentSourceWithCommitments(agentSource);
+            const result = parseAgentSourceWithCommitments(agentSource);
 
-        expect(result.agentName).toBe('Goal maker');
-        expect(result.agentNameLineNumber).toBe(3);
-        expect(result.nonCommitmentLines).toEqual(['Goal maker', '', 'Short description', 'Still description']);
-        expect(result.commitments).toEqual([
-            expect.objectContaining({
-                type: 'GOAL',
-                content: 'This is the first real commitment',
-                lineNumber: 7,
-            }),
-        ]);
-    });
+            expect(result.agentName).toBe('Goal maker');
+            expect(result.agentNameLineNumber).toBe(3);
+            expect(result.nonCommitmentLines).toEqual(['Goal maker', '', 'Short description', 'Still description']);
+            expect(result.commitments).toEqual([
+                expect.objectContaining({
+                    type: 'GOAL',
+                    content: 'This is the first real commitment',
+                    lineNumber: 7,
+                }),
+            ]);
+        },
+    );
 
     it.each(getSupportedCommitmentKeywords())(
         'never classifies the first non-empty line as `%s` commitment syntax',

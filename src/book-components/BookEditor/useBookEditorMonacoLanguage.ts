@@ -184,7 +184,9 @@ export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor): void {
 
     const commitmentDefinitions = getAllCommitmentDefinitions();
     const commitmentTypes = [...new Set(commitmentDefinitions.map(({ type }) => type))];
-    const commitmentDefinitionByType = new Map(commitmentDefinitions.map((definition) => [definition.type, definition]));
+    const commitmentDefinitionByType = new Map(
+        commitmentDefinitions.map((definition) => [definition.type, definition]),
+    );
     const noteLikeCommitmentTypeSet = new Set<string>([...TODO_COMMITMENT_TYPES, ...NOTE_COMMITMENT_TYPES]);
     const noteLikeCommitmentStates = createNoteLikeCommitmentStates(commitmentTypes);
     const executableCommitmentTypes = commitmentTypes.filter(

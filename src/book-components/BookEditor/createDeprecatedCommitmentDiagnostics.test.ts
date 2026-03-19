@@ -4,11 +4,13 @@ import { createDeprecatedCommitmentDiagnostics } from './createDeprecatedCommitm
 
 describe('createDeprecatedCommitmentDiagnostics', () => {
     it('creates warning diagnostics for deprecated SAMPLE and EXAMPLE commitments', () => {
-        const diagnostics = createDeprecatedCommitmentDiagnostics(validateBook(`Copywriter
+        const diagnostics = createDeprecatedCommitmentDiagnostics(
+            validateBook(`Copywriter
 
 SAMPLE Legacy sample
 RULE Stay accurate
-EXAMPLE Newer legacy sample`));
+EXAMPLE Newer legacy sample`),
+        );
 
         expect(diagnostics).toEqual([
             expect.objectContaining({
@@ -27,11 +29,13 @@ EXAMPLE Newer legacy sample`));
     });
 
     it('does not create warnings for WRITING SAMPLE, WRITING RULES, or RULE', () => {
-        const diagnostics = createDeprecatedCommitmentDiagnostics(validateBook(`Copywriter
+        const diagnostics = createDeprecatedCommitmentDiagnostics(
+            validateBook(`Copywriter
 
 WRITING SAMPLE Fresh sample
 WRITING RULES Keep it short
-RULE Stay accurate`));
+RULE Stay accurate`),
+        );
 
         expect(diagnostics).toEqual([]);
     });
