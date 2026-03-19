@@ -2,7 +2,7 @@ import { prompt } from '../../../src/pipeline/prompt-notation';
 import { string_prompt } from '../../../src/types/typeAliases';
 
 /**
- * Builds the common coding context appended to runner prompts.
+ * [✨] Builds the common coding context appended to runner prompts.
  */
 export function createCodingContext(): string_prompt {
     return prompt`
@@ -71,7 +71,7 @@ export function createCodingContext(): string_prompt {
 
         ### Database migrations for Agents server *(as additional context)*
 
-        -   Migrations are located in \`/apps/agents-server/src/database/migrations\`
+        -   Migrations are located in \`apps/agents-server/src/database/migrations\`
         -   Be aware that table names in migrations have prefix \`prefix_\` _(look at existing migrations for reference)_
         -   Migrations should be backwards compatible:
             -    Meaning that earlier versions of the server should be able to run with the database after migration without any issues.
@@ -87,7 +87,7 @@ export function createCodingContext(): string_prompt {
         -   It has \`key\` and \`value\` fields
         -   It is a similar concept to configuration, but this configuration can be changed by the administrators in the Agents server website.
 
-        ### Book language *(as additional context)*
+        ### Book Language blueprint *(as additional context)*
 
         Book language is a domain-specific language used for defining AI agents in the Promptbook Engine and Agents server.
         It has lightweight syntax and keywords (the commitments) that allow you to define the "soul" of the agent.
@@ -96,13 +96,15 @@ export function createCodingContext(): string_prompt {
         Every agent has its source defined in the book language, which is called "agent source". The agent source is parsed and processed by the Promptbook Engine to create the actual AI agent that can interact with users and perform tasks.
         This agent source is internaly converted to a structured format called "agent model requirements" which are the actual raw technical instructions for the AI model to run the agent.
 
+        There is a standalone book language documentation on each agent server on \`/api/docs/book.md\` route, for example \`https://pavol-hejny.ptbk.io/api/docs/book.md\`. 
+        Use it as a reference for the syntax and semantics of the book language, and [modify](apps/agents-server/src/utils/bookLanguageDocumentation/createStandaloneBookLanguageMarkdown.ts) it it is relevant to the change you are doing.
 
-        ### Commitments *(as additional context)*
+        #### Commitments *(as additional context and part of Book Language)*
 
         Commitments are basic syntax elements that add specific functionalities to AI agents written in \`book\` language.
 
         -   They are used in \`agentSource\`, there are commitments like \`PERSONA\`, \`RULE\`, \`KNOWLEDGE\`, \`USE BROWSER\`, \`USE SEARCH ENGINE\`, \`META IMAGE\`, \`CLOSED\`, etc.
-        -   Commitments are in the folder \`/src/commitments\`
+        -   Commitments are in the folder \`src/commitments\`
         -   Each commitment starts with a keyword, e.g., \`PERSONA\`, \`KNOWLEDGE\`, \`USE SEARCH ENGINE\`, etc. on a begining of the line and end by new commitment or end of the book.
         -   There is a general pattern that commitment keyword is followed by a space and then by the content of the commitment which adds specific human-readable free text information or instructions associated with that commitment, for example:
             -   \`PERSONA You are a helpful assistant that helps with cooking recipes.\` - \`PERSONA\` is the commitment keyword, and "You are a helpful assistant that helps with cooking recipes." is the content of the commitment which gives specific instructions

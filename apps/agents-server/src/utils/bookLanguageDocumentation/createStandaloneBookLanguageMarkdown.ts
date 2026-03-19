@@ -103,8 +103,8 @@ type GroupedCommitmentDefinition = ReturnType<typeof getGroupedCommitmentDefinit
 export function createStandaloneBookLanguageMarkdown(): string {
     const groupedCommitments = getGroupedCommitmentDefinitions();
     const generatedAtIso = new Date().toISOString();
-    const placeholderCommitmentCount = groupedCommitments.filter(({ primary }) =>
-        primary instanceof NotYetImplementedCommitmentDefinition,
+    const placeholderCommitmentCount = groupedCommitments.filter(
+        ({ primary }) => primary instanceof NotYetImplementedCommitmentDefinition,
     ).length;
     const implementedCommitmentCount = groupedCommitments.length - placeholderCommitmentCount;
 
@@ -117,6 +117,7 @@ export function createStandaloneBookLanguageMarkdown(): string {
     const behaviorCommitments = groupedCommitments.filter(({ primary }) => BEHAVIOR_COMMITMENT_TYPES.has(primary.type));
 
     return spaceTrim(
+        // [✨]
         (block) => `
             # Book Language blueprint
 
@@ -184,10 +185,18 @@ export function createStandaloneBookLanguageMarkdown(): string {
 
             Agent composition commitments in current runtime:
 
-            - Profile-centric commitments detected: ${profileCommitments.map(({ primary }) => `\`${primary.type}\``).join(', ')}
-            - Behavior-centric commitments detected: ${behaviorCommitments.map(({ primary }) => `\`${primary.type}\``).join(', ')}
-            - Tool/runtime commitments detected: ${toolingCommitments.map(({ primary }) => `\`${primary.type}\``).join(', ')}
-            - Composition commitments detected: ${compositionCommitments.map(({ primary }) => `\`${primary.type}\``).join(', ')}
+            - Profile-centric commitments detected: ${profileCommitments
+                .map(({ primary }) => `\`${primary.type}\``)
+                .join(', ')}
+            - Behavior-centric commitments detected: ${behaviorCommitments
+                .map(({ primary }) => `\`${primary.type}\``)
+                .join(', ')}
+            - Tool/runtime commitments detected: ${toolingCommitments
+                .map(({ primary }) => `\`${primary.type}\``)
+                .join(', ')}
+            - Composition commitments detected: ${compositionCommitments
+                .map(({ primary }) => `\`${primary.type}\``)
+                .join(', ')}
 
             ### META commitments and agent profile
 
@@ -277,8 +286,8 @@ export function createStandaloneBookLanguageMarkdown(): string {
 
             ${block(
                 bookLanguageCommonPitfalls
-                    .map(
-                        (pitfall, index) => spaceTrim(`
+                    .map((pitfall, index) =>
+                        spaceTrim(`
                             ${index + 1}. **${pitfall.title}**
                             - Don't: ${pitfall.dont}
                             - Do instead: ${pitfall.doInstead}
@@ -366,7 +375,7 @@ function renderCommitmentCatalogSection(groupedCommitment: GroupedCommitmentDefi
         primary instanceof NotYetImplementedCommitmentDefinition
             ? 'Placeholder (not fully implemented)'
             : primary.deprecation
-              ? 'Implemented (deprecated)'
+            ? 'Implemented (deprecated)'
             : 'Implemented';
     const aliasText = aliases.length === 0 ? 'None' : aliases.map((alias) => `\`${alias}\``).join(', ');
     const documentationWithoutLeadingHeading = removeLeadingTopLevelHeading(primary.documentation);
