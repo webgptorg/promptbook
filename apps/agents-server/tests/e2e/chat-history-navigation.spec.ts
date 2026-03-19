@@ -228,10 +228,7 @@ function isMatchingUserChatSnapshotRequest(url: string, agentName: string, chatI
     const isUserChatsPath =
         parsedUrl.pathname === canonicalAgentPath || /^\/agents\/[^/]+\/api\/user-chats$/.test(parsedUrl.pathname);
 
-    return (
-        isUserChatsPath &&
-        parsedUrl.searchParams.get('chat') === chatId
-    );
+    return isUserChatsPath && parsedUrl.searchParams.get('chat') === chatId;
 }
 
 /**
@@ -244,8 +241,7 @@ function isMatchingUserChatSnapshotRequest(url: string, agentName: string, chatI
 function isMatchingUserChatMessageCreateRequest(url: string, agentName: string): boolean {
     const parsedUrl = new URL(url);
     const canonicalPrefix = `/agents/${encodeURIComponent(agentName)}/api/user-chats/`;
-    const isCanonicalPath =
-        parsedUrl.pathname.startsWith(canonicalPrefix) && parsedUrl.pathname.endsWith('/messages');
+    const isCanonicalPath = parsedUrl.pathname.startsWith(canonicalPrefix) && parsedUrl.pathname.endsWith('/messages');
     const isFallbackPath = /^\/agents\/[^/]+\/api\/user-chats\/[^/]+\/messages$/.test(parsedUrl.pathname);
 
     return isCanonicalPath || isFallbackPath;
@@ -394,15 +390,19 @@ test.describe('Agents Server chat history navigation', () => {
         await page.goto(`/agents/${encodeURIComponent(agent.agentName)}`);
         await page.locator('textarea').first().fill('Hello from profile page');
         await page.locator('[data-button-type="call-to-action"]').first().click();
+        const optimisticMessageBubble = page
+            .locator('p')
+            .filter({ hasText: /^Hello from profile page$/ })
+            .first();
 
         await delayedMessageCreate.waitUntilStarted;
         await expect
             .poll(() => page.url(), {
                 message: 'Expected profile-page send to navigate to the durable chat route.',
             })
-            .toContain(`/agents/${encodeURIComponent(agent.agentName)}/chat?chat=`);
+            .toContain(`${agent.chatUrl}?chat=`);
 
-        await expect(page.getByText('Hello from profile page', { exact: true })).toBeVisible();
+        await expect(optimisticMessageBubble).toBeVisible();
         await expect(page.getByText('Sending', { exact: true })).toBeVisible();
         await expect(page.getByText(/Hello! I am /)).toBeVisible();
 
@@ -410,7 +410,7 @@ test.describe('Agents Server chat history navigation', () => {
         await delayedMessageCreate.waitUntilFinished;
         await delayedMessageCreate.dispose();
 
-        await expect(page.getByText('Hello from profile page', { exact: true })).toBeVisible();
+        await expect(optimisticMessageBubble).toBeVisible();
         await expect(page.getByText('Sending', { exact: true })).toHaveCount(0);
         await expect(page.getByText('Completed', { exact: true })).toBeVisible();
     });
@@ -465,7 +465,9 @@ test.describe('Agents Server chat history navigation', () => {
         expect(sawNativeDialog).toBe(false);
     });
 
-    test('keeps the last clicked chat selected when an earlier navigation response finishes later', async ({ page }) => {
+    test('keeps the last clicked chat selected when an earlier navigation response finishes later', async ({
+        page,
+    }) => {
         await page.goto('/');
         await loginAsAdmin(page);
 

@@ -1,4 +1,3 @@
-import { NotYetImplementedError } from '../../../../src/_packages/core.index'; // <- [🚾]
 import {
     string_agent_name,
     string_agent_permanent_id,
@@ -6,9 +5,11 @@ import {
     string_book,
     TODO_any,
 } from '../../../../src/_packages/types.index'; // <- [🚾]
-import { deserializeError, isValidUrl } from '../../../../src/_packages/utils.index'; // <- [🚾]
 import { assertsError } from '../../../../src/errors/assertsError';
+import { NotYetImplementedError } from '../../../../src/errors/NotYetImplementedError';
+import { deserializeError } from '../../../../src/errors/utils/deserializeError';
 import { keepUnused } from '../../../../src/utils/organization/keepUnused';
+import { isValidUrl } from '../../../../src/utils/validators/url/isValidUrl';
 
 /**
  * @@@
@@ -118,7 +119,9 @@ async function readImportedAgentSource(
         } else if (data.source) {
             return data.source as string_book;
         } else {
-            console.warn(`Received JSON from ${agentIdentification} but couldn't determine source property. Using text.`);
+            console.warn(
+                `Received JSON from ${agentIdentification} but couldn't determine source property. Using text.`,
+            );
             throw new Error(`Received JSON from ${agentIdentification} but structure is unknown.`);
         }
     }

@@ -1,6 +1,6 @@
-import { parseAgentSource } from '../../../../src/_packages/core.index';
 import type { AgentBasicInformation, string_agent_url, string_book } from '../../../../src/_packages/types.index';
 import type { AgentReferenceResolver } from '../../../../src/book-2.0/agent-source/AgentReferenceResolver';
+import { parseAgentSource } from '../../../../src/book-2.0/agent-source/parseAgentSource';
 import { resolveTeamCapabilitiesFromAgentSource } from './agentReferenceResolver/resolveTeamCapabilitiesFromAgentSource';
 import { resolveInheritedAgentSource } from './resolveInheritedAgentSource';
 
@@ -111,10 +111,7 @@ export async function resolveAgentStateFromSource(
         resolvedAgentSource,
         resolvedAgentProfile: {
             ...resolvedAgentProfile,
-            capabilities: mergeResolvedTeamCapabilities(
-                resolvedAgentProfile.capabilities,
-                resolvedTeamCapabilities,
-            ),
+            capabilities: mergeResolvedTeamCapabilities(resolvedAgentProfile.capabilities, resolvedTeamCapabilities),
         },
     };
 }

@@ -1,11 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { AgentCollectionInSupabase } from '../../../../src/_packages/core.index';
-import type { AgentBasicInformation } from '../../../../src/book-2.0/agent-source/AgentBasicInformation';
+import type { AgentBasicInformation, string_book } from '../../../../src/_packages/types.index';
+import type { AgentCollection } from '../../../../src/collection/agent-collection/AgentCollection';
 import { normalizeDomainForMatching } from '../../../../src/utils/validators/url/normalizeDomainForMatching';
 import { createServerAgentReferenceResolver } from './agentReferenceResolver/createServerAgentReferenceResolver';
 import { getFederatedServers } from './getFederatedServers';
 import { getWellKnownAgentUrl } from './getWellKnownAgentUrl';
-import { resolveStoredAgentStates } from './resolveStoredAgentState';
+import { resolveInheritedAgentSource } from './resolveInheritedAgentSource';
 import { createServerPublicUrl, type ServerRecord } from './serverRegistry';
 
 /**
@@ -107,8 +107,41 @@ type CustomDomainAgentRow = {
     readonly agentName: string;
     readonly permanentId: string | null;
     readonly agentSource: string;
-    readonly agentProfile?: AgentBasicInformation;
 };
+
+/**
+ * Minimal resolved metadata needed for custom-domain matching.
+ */
+type ResolvedCustomDomainMetadata = Pick<AgentBasicInformation, 'links' | 'meta'>;
+
+/**
+ * Creates a minimal local collection used only for compact-reference initialization.
+ *
+ * @param agents - Stored server-owned agents.
+ * @returns Lightweight collection compatible with the resolver initialization step.
+ */
+function createResolverAgentCollection(agents: ReadonlyArray<CustomDomainAgentRow>): AgentCollection {
+    return {
+        async listAgents() {
+            return agents.map(
+                (agent) =>
+                    ({
+                        agentName: agent.agentName,
+                        permanentId: agent.permanentId || undefined,
+                        agentHash: `custom-domain-${agent.permanentId || agent.agentName}`,
+                        meta: {},
+                        links: [],
+                        capabilities: [],
+                        parameters: [],
+                        samples: [],
+                        knowledgeSources: [],
+                        initialMessage: null,
+                        personaDescription: null,
+                    } satisfies AgentBasicInformation),
+            );
+        },
+    } as unknown as AgentCollection;
+}
 
 /**
  * Checks whether resolved agent metadata matches one incoming custom host.
@@ -127,6 +160,101 @@ function matchesResolvedCustomDomain(
     }
 
     return (profile.links || []).some((link: string) => candidates.linkCandidates.includes(link.trim().toLowerCase()));
+}
+
+/**
+ * Builds the canonical public URL for one local stored agent.
+ *
+ * @param agent - Stored agent row.
+ * @param localServerUrl - Current server origin.
+ * @returns Canonical local agent URL.
+ */
+function createCanonicalLocalAgentUrl(agent: CustomDomainAgentRow, localServerUrl: string): string {
+    const canonicalAgentIdentifier = agent.permanentId || agent.agentName;
+    return `${localServerUrl.replace(/\/+$/g, '')}/agents/${encodeURIComponent(canonicalAgentIdentifier)}`;
+}
+
+/**
+ * Parses only the resolved custom-domain metadata used by proxy routing.
+ *
+ * @param resolvedAgentSource - Agent source after inheritance/import resolution.
+ * @returns Resolved domain/link metadata.
+ */
+function parseResolvedCustomDomainMetadata(resolvedAgentSource: string): ResolvedCustomDomainMetadata {
+    const lines = resolvedAgentSource.split(/\r?\n/);
+    const meta: AgentBasicInformation['meta'] = {};
+    const links: string[] = [];
+    let hasSeenTitle = false;
+    let isInsideCodeBlock = false;
+
+    for (const line of lines) {
+        const trimmedLine = line.trim();
+
+        if (!hasSeenTitle) {
+            if (!trimmedLine) {
+                continue;
+            }
+
+            hasSeenTitle = true;
+            continue;
+        }
+
+        if (trimmedLine.startsWith('```')) {
+            isInsideCodeBlock = !isInsideCodeBlock;
+            continue;
+        }
+
+        if (isInsideCodeBlock) {
+            continue;
+        }
+
+        const metaDomainMatch = /^META DOMAIN(?:\s+(.*))?$/i.exec(trimmedLine);
+        if (metaDomainMatch) {
+            const domain = (metaDomainMatch[1] || '').trim();
+            if (domain) {
+                meta.domain = domain;
+            }
+            continue;
+        }
+
+        const metaLinkMatch = /^META LINK(?:\s+(.*))?$/i.exec(trimmedLine);
+        if (metaLinkMatch) {
+            const link = (metaLinkMatch[1] || '').trim();
+            if (link) {
+                links.push(link);
+            }
+        }
+    }
+
+    return {
+        meta,
+        links,
+    };
+}
+
+/**
+ * Resolves the custom-domain metadata for one stored agent using the same
+ * inheritance/import resolution path as the rest of the server.
+ *
+ * @param agent - Stored agent row.
+ * @param options - Shared resolution dependencies.
+ * @returns Resolved domain/link metadata.
+ */
+async function resolveCustomDomainMetadataForAgent(
+    agent: CustomDomainAgentRow,
+    options: {
+        readonly localServerUrl: string;
+        readonly adamAgentUrl: string;
+        readonly agentReferenceResolver: Awaited<ReturnType<typeof createServerAgentReferenceResolver>>;
+    },
+): Promise<ResolvedCustomDomainMetadata> {
+    const resolvedAgentSource = await resolveInheritedAgentSource(agent.agentSource as string_book, {
+        adamAgentUrl: options.adamAgentUrl,
+        currentAgentUrl: createCanonicalLocalAgentUrl(agent, options.localServerUrl),
+        agentReferenceResolver: options.agentReferenceResolver,
+    });
+
+    return parseResolvedCustomDomainMetadata(resolvedAgentSource);
 }
 
 /**
@@ -163,22 +291,26 @@ export async function resolveCustomDomainAgent(
             }
 
             const localServerUrl = createServerPublicUrl(server.domain).href;
-            const agentCollection = new AgentCollectionInSupabase(supabase as never, {
-                tablePrefix: server.tablePrefix,
-            });
             const agentReferenceResolver = await createServerAgentReferenceResolver({
-                agentCollection,
+                agentCollection: createResolverAgentCollection(data as Array<CustomDomainAgentRow>),
                 localServerUrl,
                 federatedServers,
             });
-            const resolvedAgents = await resolveStoredAgentStates(data as Array<CustomDomainAgentRow>, {
-                localServerUrl,
-                adamAgentUrl,
-                agentReferenceResolver,
-            });
-            const matchedAgent = resolvedAgents.find((agent) =>
-                matchesResolvedCustomDomain(agent.resolvedAgentProfile, candidates),
-            );
+
+            let matchedAgent: CustomDomainAgentRow | undefined;
+
+            for (const agent of data as Array<CustomDomainAgentRow>) {
+                const resolvedMetadata = await resolveCustomDomainMetadataForAgent(agent, {
+                    localServerUrl,
+                    adamAgentUrl,
+                    agentReferenceResolver,
+                });
+
+                if (matchesResolvedCustomDomain(resolvedMetadata, candidates)) {
+                    matchedAgent = agent;
+                    break;
+                }
+            }
 
             if (matchedAgent) {
                 return {

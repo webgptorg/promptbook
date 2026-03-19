@@ -1,15 +1,12 @@
-import {
-    createAgentModelRequirements,
-    padBook,
-    ParseError,
-    UnexpectedError,
-    validateBook,
-} from '../../../../src/_packages/core.index'; // <- [🚾]
-import { string_agent_url, string_book } from '../../../../src/_packages/types.index'; // <- [🚾]
-import { isValidAgentUrl } from '../../../../src/_packages/utils.index'; // <- [🚾]
+import type { string_agent_url, string_book } from '../../../../src/_packages/types.index'; // <- [🚾]
 import type { AgentReferenceResolver } from '../../../../src/book-2.0/agent-source/AgentReferenceResolver';
-import { parseAgentSourceWithCommitments } from '../../../../src/book-2.0/agent-source/parseAgentSourceWithCommitments';
+import { padBook } from '../../../../src/book-2.0/agent-source/padBook';
+import { isVoidPseudoAgentReference } from '../../../../src/book-2.0/agent-source/pseudoAgentReferences';
+import { validateBook } from '../../../../src/book-2.0/agent-source/string_book';
+import { ParseError } from '../../../../src/errors/ParseError';
+import { UnexpectedError } from '../../../../src/errors/UnexpectedError';
 import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
+import { isValidAgentUrl } from '../../../../src/utils/validators/url/isValidAgentUrl';
 import {
     type AgentReferenceResolutionIssue,
     consumeAgentReferenceResolutionIssues,
@@ -126,6 +123,105 @@ function insertNotesAfterTitle(agentSource: string_book, notes: ReadonlyArray<st
 }
 
 /**
+ * Returns the last explicit single-line commitment content for one commitment type.
+ *
+ * This lightweight parser is intentionally limited to the subset needed by
+ * inheritance resolution so it stays safe to bundle into the Next.js proxy path.
+ *
+ * @param agentSource - Raw book source.
+ * @param commitmentType - Commitment keyword to search for.
+ * @returns Trimmed commitment content, empty string for a blank explicit commitment, or `undefined` when absent.
+ */
+function getLastSingleLineCommitmentContent(agentSource: string_book, commitmentType: 'FROM'): string | undefined {
+    const commitmentPrefix = `${commitmentType} `;
+    const lines = agentSource.split(/\r?\n/);
+    let hasSeenTitle = false;
+    let isInsideCodeBlock = false;
+    let matchedContent: string | undefined;
+
+    for (const line of lines) {
+        const trimmedLine = line.trim();
+
+        if (!hasSeenTitle) {
+            if (!trimmedLine) {
+                continue;
+            }
+
+            hasSeenTitle = true;
+            continue;
+        }
+
+        if (trimmedLine.startsWith('```')) {
+            isInsideCodeBlock = !isInsideCodeBlock;
+            continue;
+        }
+
+        if (isInsideCodeBlock) {
+            continue;
+        }
+
+        if (trimmedLine === commitmentType) {
+            matchedContent = '';
+            continue;
+        }
+
+        if (trimmedLine.startsWith(commitmentPrefix)) {
+            matchedContent = trimmedLine.slice(commitmentPrefix.length).trim();
+        }
+    }
+
+    return matchedContent;
+}
+
+/**
+ * Resolves the effective `FROM` parent URL using only lightweight commitment parsing.
+ *
+ * @param parsedAgentSource - Parsed source containing commitments.
+ * @param rawAgentSource - Original source used for diagnostics.
+ * @param agentReferenceResolver - Optional compact-reference resolver.
+ * @returns Valid parent URL, explicit `null` for `FROM VOID`/blank `FROM`, or `undefined` when `FROM` is absent.
+ */
+async function resolveParentAgentUrlFromCommitments(
+    rawAgentSource: string_book,
+    agentReferenceResolver?: AgentReferenceResolver,
+): Promise<string_agent_url | null | undefined> {
+    const explicitFromContent = getLastSingleLineCommitmentContent(rawAgentSource, 'FROM');
+
+    if (explicitFromContent === undefined) {
+        return undefined;
+    }
+
+    let resolvedParentReference = explicitFromContent.trim();
+
+    if (agentReferenceResolver && resolvedParentReference) {
+        resolvedParentReference = (
+            await agentReferenceResolver.resolveCommitmentContent('FROM', resolvedParentReference)
+        ).trim();
+    }
+
+    if (!resolvedParentReference || isVoidPseudoAgentReference(resolvedParentReference)) {
+        return null;
+    }
+
+    if (!isValidAgentUrl(resolvedParentReference)) {
+        throw new ParseError(
+            spaceTrim(
+                (block) => `
+                    Invalid parent agent URL in FROM "${resolvedParentReference}" commitment:
+
+                    \`\`\`book
+                    ${block(rawAgentSource)}
+                    \`\`\`
+            
+                `,
+            ),
+        );
+    }
+
+    return resolvedParentReference as string_agent_url;
+}
+
+/**
  * @@@
  */
 type ResolveInheritedAgentSourceOptions = ImportAgentOptions & {
@@ -225,15 +321,9 @@ export async function resolveInheritedAgentSource(
 ): Promise<string_book> {
     const { adamAgentUrl = 'https://core.ptbk.io/agents/adam', recursionLevel = 0 } = options || {};
     const agentReferenceResolver = options?.agentReferenceResolver;
-    const parsedAgentSource = parseAgentSourceWithCommitments(agentSource);
-    const hasExplicitFromCommitment = parsedAgentSource.commitments.some((commitment) => commitment.type === 'FROM');
-
-    // Check if the source has FROM commitment
-    // We use createAgentModelRequirements to parse commitments
-    // Note: We don't provide tools/models here as we only care about parsing commitments
-    const requirements = await createAgentModelRequirements(agentSource, undefined, undefined, undefined, {
-        agentReferenceResolver,
-    });
+    const explicitFromContent = getLastSingleLineCommitmentContent(agentSource, 'FROM');
+    const hasExplicitFromCommitment = explicitFromContent !== undefined;
+    const resolvedParentAgentUrl = await resolveParentAgentUrlFromCommitments(agentSource, agentReferenceResolver);
     let fromResolutionIssues = consumeAgentReferenceResolutionIssues(agentReferenceResolver).filter(
         (issue) => issue.commitmentType === 'FROM',
     );
@@ -242,15 +332,15 @@ export async function resolveInheritedAgentSource(
 
     // Note: [🆓] There are several cases what the agent ancestor could be:
     // 1️⃣ Parent URL is explicitly defined and valid
-    if (isValidAgentUrl(requirements.parentAgentUrl)) {
-        parentAgentUrl = requirements.parentAgentUrl as string_agent_url;
+    if (isValidAgentUrl(resolvedParentAgentUrl)) {
+        parentAgentUrl = resolvedParentAgentUrl as string_agent_url;
     }
     // 2️⃣ Parent URL is explicitly defined as null (forcefully no parent)
-    else if (requirements.parentAgentUrl === null && hasExplicitFromCommitment) {
+    else if (resolvedParentAgentUrl === null && hasExplicitFromCommitment) {
         parentAgentUrl = null;
     }
     // 3️⃣ Parent URL is not defined, use the default ancestor - Adam
-    else if (requirements.parentAgentUrl === undefined || requirements.parentAgentUrl === null) {
+    else if (resolvedParentAgentUrl === undefined || resolvedParentAgentUrl === null) {
         parentAgentUrl =
             options?.currentAgentUrl && normalizeAgentUrl(options.currentAgentUrl) === normalizeAgentUrl(adamAgentUrl)
                 ? null
@@ -261,7 +351,7 @@ export async function resolveInheritedAgentSource(
         throw new ParseError(
             spaceTrim(
                 (block) => `
-                    Invalid parent agent URL in FROM "${requirements.parentAgentUrl}" commitment:
+                    Invalid parent agent URL in FROM "${resolvedParentAgentUrl}" commitment:
 
                     \`\`\`book
                     ${block(agentSource)}

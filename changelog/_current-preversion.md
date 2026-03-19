@@ -1,3 +1,5 @@
+-   Fixed Agents Server custom-domain proxy builds by replacing broad Promptbook umbrella imports in the middleware resolution path with focused source imports and a lightweight `FROM` resolver, preventing Node/Edge-incompatible runtime helpers from being bundled into the Next.js proxy build while keeping inherited custom-domain metadata resolution working.
+
 -   Fixed the package-generation bundler step to run Rollup through a direct Node subprocess instead of a shell wrapper, and added active-package PID/progress diagnostics plus fail-fast detection when Rollup prints the final `created ...` line but does not exit cleanly.
 
 -   Fixed Agents Server agent inheritance resolution so unresolved book editor source and canonical resolved runtime source are now cleanly separated and reused consistently:
