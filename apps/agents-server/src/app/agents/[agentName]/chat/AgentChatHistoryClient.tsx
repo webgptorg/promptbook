@@ -1417,7 +1417,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         <SolidArrowButton
             direction="right"
             onClick={openMobileSidebar}
-            className={`fixed left-2 top-1/2 z-40 -translate-y-1/2 md:hidden ${mobileHandleVisibility}`}
+            className={`shrink-0 transition-opacity duration-150 ${mobileHandleVisibility}`}
             aria-controls={AGENT_CHAT_SIDEBAR_ID}
             aria-expanded={isMobileSidebarOpen}
             aria-hidden={isMobileSidebarOpen}

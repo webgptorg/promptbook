@@ -18,7 +18,7 @@ type AgentChatPageLayoutProps = {
      */
     readonly sidebar?: ReactNode;
     /**
-     * Optional floating trigger used by the default layout on mobile.
+     * Optional mobile trigger rendered in a reserved slot above the chat surface.
      */
     readonly mobileSidebarTrigger?: ReactNode;
     /**
@@ -63,8 +63,14 @@ export function AgentChatPageLayout({
         return (
             <div className="flex h-full min-h-0 w-full overflow-hidden bg-slate-50/80">
                 {sidebar}
-                {mobileSidebarTrigger}
-                <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">{children}</section>
+                <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+                    {mobileSidebarTrigger && (
+                        <div className="flex shrink-0 items-center justify-start pb-2 pl-[max(env(safe-area-inset-left),0.75rem)] pr-[max(env(safe-area-inset-right),0.75rem)] pt-2 md:hidden">
+                            {mobileSidebarTrigger}
+                        </div>
+                    )}
+                    {children}
+                </section>
             </div>
         );
     }

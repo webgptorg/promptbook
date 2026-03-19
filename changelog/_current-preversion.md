@@ -1,3 +1,5 @@
+-   Fixed Agents Server mobile chat tray access on the standalone chat page so the `Open chats sidebar` button now sits in a dedicated mobile slot above the transcript instead of floating over messages or the composer, while still respecting lateral device safe-area insets.
+
 -   Added Android share-sheet support for installed Agents Server PWAs, so each installed agent can appear as its own share target and open straight into a fresh 1:1 chat with the shared text or uploaded file attachments auto-sent as the first user message.
 
 -   Added browser push notifications for Agents Server durable chats, including per-user opt-in settings, per-device subscriptions, focused-chat suppression, background service-worker delivery, notification click routing back to the correct chat thread, and automatic invalid-subscription cleanup.
