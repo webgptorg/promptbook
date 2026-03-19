@@ -86,20 +86,20 @@
                 - generic [ref=e126]:
                   - paragraph [ref=e129]: Hello! I am E2E Chat Navigation New Chat.
                   - generic [ref=e131] [cursor=pointer]: ⭐
-                - generic "2026-03-19 11:18:41" [ref=e132]:
-                  - generic [ref=e133]: 11:18 AM
+                - generic "2026-03-19 12:55:51" [ref=e132]:
+                  - generic [ref=e133]: 12:55 PM
               - generic [ref=e135]:
                 - generic [ref=e136]:
                   - paragraph [ref=e139]: Alpha seeded chat
                   - generic [ref=e141] [cursor=pointer]: ⭐
-                - generic "2026-03-19 11:18:41" [ref=e142]:
-                  - generic [ref=e143]: 11:18 AM
+                - generic "2026-03-19 12:55:51" [ref=e142]:
+                  - generic [ref=e143]: 12:55 PM
               - generic [ref=e147]:
                 - generic [ref=e148]:
                   - paragraph [ref=e151]: Reply for Alpha seeded chat
                   - generic [ref=e153] [cursor=pointer]: ⭐
-                - generic "2026-03-19 11:18:41" [ref=e154]:
-                  - generic [ref=e155]: 11:18 AM
+                - generic "2026-03-19 12:55:51" [ref=e154]:
+                  - generic [ref=e155]: 12:55 PM
             - generic [ref=e158]:
               - textbox "Write a message..." [active] [ref=e159]
               - button "Attach file" [ref=e160] [cursor=pointer]:

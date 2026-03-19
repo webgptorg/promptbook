@@ -31,6 +31,7 @@ import {
     type UserChatSummary,
     type UserChatTimeout,
 } from '../../../../utils/userChatClient';
+import { consumeShareTargetPayloadFromBrowser } from '../../../../utils/shareTargetClient';
 import { AgentChatWrapper } from '../AgentChatWrapper';
 import { takePendingProfileMessage } from '../profileMessageCache';
 import type { AgentChatLayoutVariant } from './AgentChatLayoutVariant';
@@ -78,6 +79,8 @@ type AgentChatHistoryClientProps = {
     speechRecognitionLanguage?: string;
     initialChatId?: string;
     initialAutoExecuteMessage?: string;
+    initialAutoExecuteMessageAttachments?: ChatMessage['attachments'];
+    initialShareTargetId?: string;
     initialForceNewChat?: boolean;
     initialAgentMessage?: string | null;
     isHistoryEnabled: boolean;
@@ -136,6 +139,8 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         speechRecognitionLanguage,
         initialChatId,
         initialAutoExecuteMessage,
+        initialAutoExecuteMessageAttachments,
+        initialShareTargetId,
         initialForceNewChat = false,
         initialAgentMessage,
         isHistoryEnabled,
@@ -161,7 +166,8 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const resolvedChatRouteBasePath = chatRouteBasePath || `/agents/${encodeURIComponent(agentName)}/chat`;
     const pendingProfileMessage = useMemo(() => takePendingProfileMessage(agentName), [agentName]);
     const effectiveInitialAutoExecuteMessage = initialAutoExecuteMessage ?? pendingProfileMessage?.message;
-    const effectiveInitialAutoExecuteMessageAttachments = pendingProfileMessage?.attachments;
+    const effectiveInitialAutoExecuteMessageAttachments =
+        initialAutoExecuteMessageAttachments ?? pendingProfileMessage?.attachments;
     const [chats, setChats] = useState<Array<UserChatSummary>>([]);
     const [activeChatId, setActiveChatId] = useState<string | null>(null);
     const [activeMessages, setActiveMessages] = useState<Array<ChatMessage>>([]);
@@ -180,6 +186,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const [pendingNotificationHintAssistantMessageIds, setPendingNotificationHintAssistantMessageIds] = useState<Array<string>>([]);
     const hasInitialAutoMessageBeenConsumedRef = useRef(false);
     const autoExecuteTargetChatIdRef = useRef<string | undefined>(initialForceNewChat ? undefined : initialChatId);
+    const shareTargetIdRef = useRef<string | undefined>(initialShareTargetId);
     const activeChatIdRef = useRef<string | null>(null);
     const activeChatDraftMessageRef = useRef('');
     const activeDraftDirtyRef = useRef(false);
@@ -339,6 +346,9 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
             if (includeInitialMessage && effectiveInitialAutoExecuteMessage) {
                 params.set('message', effectiveInitialAutoExecuteMessage);
+            }
+            if (includeInitialMessage && shareTargetIdRef.current) {
+                params.set('shareTarget', shareTargetIdRef.current);
             }
 
             if (isHeadlessMode) {
@@ -783,6 +793,10 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     useEffect(() => {
         autoExecuteTargetChatIdRef.current = initialForceNewChat ? undefined : initialChatId;
     }, [initialChatId, initialForceNewChat]);
+
+    useEffect(() => {
+        shareTargetIdRef.current = initialShareTargetId;
+    }, [initialShareTargetId]);
 
     useEffect(() => {
         if (!hasAnyActiveTimeouts) {
@@ -1260,6 +1274,12 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
      */
     const handleAutoExecuteMessageConsumed = useCallback(() => {
         hasInitialAutoMessageBeenConsumedRef.current = true;
+        const consumedShareTargetId = shareTargetIdRef.current;
+        shareTargetIdRef.current = undefined;
+
+        if (consumedShareTargetId) {
+            void consumeShareTargetPayloadFromBrowser(agentName, consumedShareTargetId).catch(() => undefined);
+        }
 
         if (typeof window === 'undefined') {
             return;
@@ -1267,8 +1287,9 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
         const nextUrl = new URL(window.location.href);
         nextUrl.searchParams.delete('message');
+        nextUrl.searchParams.delete('shareTarget');
         window.history.replaceState(window.history.state, '', `${nextUrl.pathname}${nextUrl.search}`);
-    }, []);
+    }, [agentName]);
 
     const autoMessageTargetId = autoExecuteTargetChatIdRef.current;
     const autoExecuteMessage =

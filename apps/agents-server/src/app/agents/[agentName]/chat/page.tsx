@@ -3,6 +3,7 @@ import { loadChatConfiguration } from '@/src/utils/chatConfiguration';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { resolveAgentChatInputPlaceholder } from '@/src/utils/agentChatInputPlaceholder';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
+import { peekShareTargetPayload } from '@/src/utils/shareTargetPayloads';
 import { getThinkingMessages } from '@/src/utils/thinkingMessages';
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
@@ -23,7 +24,7 @@ import { AgentChatHistoryClient } from './AgentChatHistoryClient';
  */
 function buildCanonicalAgentChatPath(
     canonicalAgentId: string,
-    search: { headless?: string; chat?: string; message?: string; newChat?: string },
+    search: { headless?: string; chat?: string; message?: string; newChat?: string; shareTarget?: string },
 ): string {
     const params = new URLSearchParams();
     if (search.headless !== undefined) {
@@ -38,6 +39,9 @@ function buildCanonicalAgentChatPath(
     if (search.newChat !== undefined) {
         params.set('newChat', search.newChat);
     }
+    if (search.shareTarget !== undefined) {
+        params.set('shareTarget', search.shareTarget);
+    }
 
     const query = params.toString();
     const pathname = `/agents/${encodeURIComponent(canonicalAgentId)}/chat`;
@@ -49,12 +53,12 @@ export default async function AgentChatPage({
     searchParams,
 }: {
     params: Promise<{ agentName: string }>;
-    searchParams: Promise<{ headless?: string; message?: string; chat?: string; newChat?: string }>;
+    searchParams: Promise<{ headless?: string; message?: string; chat?: string; newChat?: string; shareTarget?: string }>;
 }) {
     const requestHeadersPromise = headers();
     const [agentName, currentSearchParams, requestHeaders] = await Promise.all([getAgentName(params), searchParams, requestHeadersPromise]);
     $sideEffect(requestHeaders);
-    const { headless, message, chat, newChat } = currentSearchParams;
+    const { headless, message, chat, newChat, shareTarget } = currentSearchParams;
 
     const routeTarget = await resolveAgentRouteTarget(agentName);
     if (routeTarget === null) {
@@ -80,6 +84,12 @@ export default async function AgentChatPage({
     const currentUserPromise = getCurrentUser();
     const chatConfigurationPromise = loadChatConfiguration();
     const thinkingMessagesPromise = getThinkingMessages();
+    const shareTargetPayloadPromise = shareTarget
+        ? peekShareTargetPayload({
+              shareTargetId: shareTarget,
+              agentPermanentId: canonicalAgentId,
+          })
+        : Promise.resolve(null);
 
     const isDeleted = await isDeletedPromise;
     const isHeadless = headless !== undefined;
@@ -96,16 +106,26 @@ export default async function AgentChatPage({
     const speechRecognitionLanguage = resolveSpeechRecognitionLanguage({
         acceptLanguageHeader: requestHeaders.get('accept-language'),
     });
-    const [agentProfile, historyIdentityAvailable, currentUser, { isFileAttachmentsEnabled, isFeedbackEnabled }, thinkingMessages] =
+    const [
+        agentProfile,
+        historyIdentityAvailable,
+        currentUser,
+        { isFileAttachmentsEnabled, isFeedbackEnabled },
+        thinkingMessages,
+        shareTargetPayload,
+    ] =
         await Promise.all([
         agentProfilePromise,
         historyIdentityAvailablePromise,
         currentUserPromise,
         chatConfigurationPromise,
         thinkingMessagesPromise,
+        shareTargetPayloadPromise,
     ]);
     const agentDisplayName = agentProfile.meta.fullname || agentProfile.agentName || canonicalAgentId;
     const inputPlaceholder = resolveAgentChatInputPlaceholder(agentProfile.meta.inputPlaceholder);
+    const initialAutoExecuteMessage = shareTargetPayload?.message || message;
+    const initialAutoExecuteMessageAttachments = shareTargetPayload?.attachments;
 
     return (
         <main className={`agents-server-chat-route relative agent-chat-route-surface print-export-chat-surface`}>
@@ -113,7 +133,9 @@ export default async function AgentChatPage({
             <AgentChatHistoryClient
                 agentName={canonicalAgentId}
                 agentUrl={agentUrl}
-                initialAutoExecuteMessage={message}
+                initialAutoExecuteMessage={initialAutoExecuteMessage}
+                initialAutoExecuteMessageAttachments={initialAutoExecuteMessageAttachments}
+                initialShareTargetId={shareTargetPayload?.id}
                 initialChatId={chat}
                 initialForceNewChat={parseBooleanFlag(newChat)}
                 initialAgentMessage={agentProfile.initialMessage}

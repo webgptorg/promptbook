@@ -33,7 +33,7 @@ import { PseudoAgentProfilePage } from './PseudoAgentProfile';
  */
 function buildCanonicalAgentPath(
     canonicalAgentId: string,
-    search: { headless?: string; chat?: string; message?: string; newChat?: string },
+    search: { headless?: string; chat?: string; message?: string; newChat?: string; shareTarget?: string },
 ): string {
     const params = new URLSearchParams();
     if (search.headless !== undefined) {
@@ -47,6 +47,9 @@ function buildCanonicalAgentPath(
     }
     if (search.newChat !== undefined) {
         params.set('newChat', search.newChat);
+    }
+    if (search.shareTarget !== undefined) {
+        params.set('shareTarget', search.shareTarget);
     }
 
     const query = params.toString();
@@ -63,7 +66,7 @@ function buildCanonicalAgentPath(
  */
 function buildCanonicalAgentChatPath(
     canonicalAgentId: string,
-    search: { chat?: string; message?: string; newChat?: string },
+    search: { chat?: string; message?: string; newChat?: string; shareTarget?: string },
 ): string {
     const params = new URLSearchParams();
     if (search.chat !== undefined) {
@@ -77,6 +80,9 @@ function buildCanonicalAgentChatPath(
     } else if (search.message !== undefined) {
         // Any `?message=...` handled on profile page should start as a fresh chat.
         params.set('newChat', '1');
+    }
+    if (search.shareTarget !== undefined) {
+        params.set('shareTarget', search.shareTarget);
     }
 
     const query = params.toString();
@@ -166,7 +172,7 @@ export default async function AgentPage({
     searchParams,
 }: {
     params: Promise<{ agentName: string }>;
-    searchParams: Promise<{ headless?: string; chat?: string; message?: string; newChat?: string }>;
+    searchParams: Promise<{ headless?: string; chat?: string; message?: string; newChat?: string; shareTarget?: string }>;
 }) {
     const [agentName, currentSearchParams] = await Promise.all([getAgentName(params), searchParams]);
     const routeTarget = await resolveAgentRouteTarget(agentName);

@@ -1,4 +1,4 @@
-[ ]
+[x] ~$3.06 an hour by OpenAI Codex `gpt-5.4`
 
 [📲🤝] Share into installed agent PWA (Android share sheet → new conversation)
 
@@ -18,3 +18,4 @@
 -   If the user has multiple agents installed as PWAs, each installed agent must appear as a separate share target option.
 -   Handle “cold start” reliably (PWA not running): the shared payload must not be lost.
 -   You are working with the [Agents Server](apps/agents-server)
+

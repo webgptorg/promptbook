@@ -60,3 +60,8 @@
   - File: `apps/agents-server/src/utils/handleChatCompletion.ts`
   - Error: a placeholder `ChatMessage` object with `isComplete: false` and `lifecycleState: 'running'` is no longer assignable to the inferred `ChatMessage` shape accepted at that `messages.push(...)` call.
   - Reported by Next.js build at the `messages.push({ ... } satisfies ChatMessage)` block around line 309 while validating this skeleton-loading task, and not caused by the loading-route changes here.
+
+- `npm run test-app-agents-server` still fails after successful `next build` in a prerender/runtime path unrelated to the Android share-target work:
+  - In this run on `2026-03-19`, `apps/agents-server` lint passed and production build completed, including the new `/agents/[agentName]/share-target` and `/agents/[agentName]/api/share-target/[shareTargetId]/consume` routes.
+  - The failure happens later during the existing prerender/test bootstrap with `Dynamic server usage: Route /admin/backup couldn't be rendered statically because it used \`cookies\``.
+  - The logged stack points into `/admin/backup` and `/api/users`, not the newly added share-target manifest, route handlers, or chat bootstrap code.

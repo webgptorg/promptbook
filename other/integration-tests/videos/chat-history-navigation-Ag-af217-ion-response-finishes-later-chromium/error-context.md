@@ -92,20 +92,20 @@
                 - generic [ref=e133]:
                   - paragraph [ref=e136]: Hello! I am E2E Chat Navigation Last Click Wins.
                   - generic [ref=e138] [cursor=pointer]: ⭐
-                - generic "2026-03-19 11:19:44" [ref=e139]:
-                  - generic [ref=e140]: 11:19 AM
+                - generic "2026-03-19 12:56:54" [ref=e139]:
+                  - generic [ref=e140]: 12:56 PM
               - generic [ref=e142]:
                 - generic [ref=e143]:
                   - paragraph [ref=e146]: Bravo history chat
                   - generic [ref=e148] [cursor=pointer]: ⭐
-                - generic "2026-03-19 11:19:44" [ref=e149]:
-                  - generic [ref=e150]: 11:19 AM
+                - generic "2026-03-19 12:56:54" [ref=e149]:
+                  - generic [ref=e150]: 12:56 PM
               - generic [ref=e154]:
                 - generic [ref=e155]:
                   - paragraph [ref=e158]: Reply for Bravo history chat
                   - generic [ref=e160] [cursor=pointer]: ⭐
-                - generic "2026-03-19 11:19:44" [ref=e161]:
-                  - generic [ref=e162]: 11:19 AM
+                - generic "2026-03-19 12:56:54" [ref=e161]:
+                  - generic [ref=e162]: 12:56 PM
             - generic [ref=e165]:
               - textbox "Write a message..." [active] [ref=e166]
               - button "Attach file" [ref=e167] [cursor=pointer]:

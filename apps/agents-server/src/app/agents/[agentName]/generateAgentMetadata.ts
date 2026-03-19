@@ -44,6 +44,7 @@ export async function generateAgentMetadata({ params }: { params: Promise<{ agen
             metadataBase: publicUrl,
             title,
             description,
+            manifest: `/agents/${encodeURIComponent(canonicalAgentId)}/manifest.webmanifest`,
             icons: {
                 icon: iconUrl,
                 shortcut: iconUrl,

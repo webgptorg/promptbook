@@ -56,11 +56,11 @@
             - generic [ref=e79]:
               - button "New chat" [ref=e80] [cursor=pointer]:
                 - img [ref=e81]
-              - button "Hello from profile page - Hello - nice to meet you from the profile page! I can use Markdown and code blocks. If you're u… (2 messages, a few seconds ago)" [ref=e84] [cursor=pointer]:
+              - button "Hello from profile page - Hello from profile page (2 messages, a few seconds ago)" [ref=e84] [cursor=pointer]:
                 - generic "2 messages" [ref=e86]: "2"
                 - generic [ref=e87]:
                   - generic [ref=e88]: Hello from profile page
-                  - generic [ref=e89]: Hello - nice to meet you from the profile page! I can use Markdown and code blocks. If you're u…
+                  - generic [ref=e89]: Hello from profile page
                 - generic [ref=e90]: a few seconds ago
               - button "EXT" [ref=e92] [cursor=pointer]
               - paragraph [ref=e93]: Chats
@@ -79,56 +79,31 @@
                 - generic [ref=e119]:
                   - paragraph [ref=e122]: Hello! I am E2E Optimistic First Message.
                   - generic [ref=e124] [cursor=pointer]: ⭐
-                - generic "2026-03-19 11:17:45" [ref=e125]:
-                  - generic [ref=e126]: 11:17 AM
+                - generic "2026-03-19 12:54:56" [ref=e125]:
+                  - generic [ref=e126]: 12:54 PM
               - generic [ref=e128]:
                 - generic [ref=e129]:
                   - paragraph [ref=e132]: Hello from profile page
                   - generic [ref=e134] [cursor=pointer]: ⭐
-                - generic "2026-03-19 11:17:45" [ref=e135]:
+                - generic "2026-03-19 12:54:56" [ref=e135]:
                   - generic [ref=e136]: Completed
-                  - generic [ref=e137]: 11:17 AM
+                  - generic [ref=e137]: 12:54 PM
               - generic [ref=e141]:
-                - generic [ref=e142]:
-                  - generic [ref=e144]:
-                    - paragraph [ref=e145]: Hello - nice to meet you from the profile page!
-                    - paragraph [ref=e146]:
-                      - text: I can use
-                      - strong [ref=e147]: Markdown
-                      - text: and code blocks. If you're unsure about anything, I'll say so and can look it up or clarify.
-                    - paragraph [ref=e148]: "Quick checklist for profile-page regression tests (concise):"
-                    - list [ref=e149]:
-                      - listitem [ref=e150]: "UI: visibility and correct labels for all fields/buttons"
-                      - listitem [ref=e151]: "Validation: required fields, formats (email, phone), inline errors"
-                      - listitem [ref=e152]: "Save/Cancel: data persistence, undo/confirmation flows"
-                      - listitem [ref=e153]: "Uploads: profile picture size/type, preview, failure cases"
-                      - listitem [ref=e154]: "Privacy/settings: toggles persist and enforce permissions"
-                      - listitem [ref=e155]: "Auth/permissions: role-based access and editing restrictions"
-                      - listitem [ref=e156]: "API: correct requests/responses, error handling, retries"
-                      - listitem [ref=e157]: "Responsiveness/accessibility: mobile layouts, keyboard navigation, ARIA"
-                      - listitem [ref=e158]: "Edge cases: long text, special chars, network failures, session expiry"
-                    - paragraph [ref=e159]: "Want me to:"
-                    - list [ref=e160]:
-                      - listitem [ref=e161]: write specific test cases,
-                      - listitem [ref=e162]: generate automated tests (Cypress/Selenium/Playwright), or
-                      - listitem [ref=e163]: dig into one of the checklist items?
-                    - paragraph [ref=e164]: Which framework or output do you prefer?
-                  - button "🧠 self-learning" [ref=e166] [cursor=pointer]:
-                    - generic [ref=e167]: 🧠 self-learning
-                  - generic [ref=e169] [cursor=pointer]: ⭐
-                - generic "2026-03-19 11:17:45" [ref=e170]:
-                  - generic [ref=e171]: Completed
-                  - generic [ref=e172]: 11:17 AM
-                  - generic [ref=e173]: (12s to answer)
-            - generic [ref=e176]:
-              - textbox "Write a message..." [active] [ref=e177]
-              - button "Attach file" [ref=e178] [cursor=pointer]:
-                - img [ref=e179]
-              - button "Start dictation" [ref=e181] [cursor=pointer]:
-                - img [ref=e182]
-              - button [ref=e185] [cursor=pointer]:
-                - img [ref=e186]
+                - generic [ref=e144] [cursor=pointer]: ⭐
+                - generic "2026-03-19 12:54:56" [ref=e145]:
+                  - generic [ref=e146]: Cancelled
+                  - generic [ref=e147]: 12:54 PM
+                  - generic [ref=e148]: (5.9s to answer)
+                - generic [ref=e149]: terminated
+            - generic [ref=e152]:
+              - textbox "Write a message..." [active] [ref=e153]
+              - button "Attach file" [ref=e154] [cursor=pointer]:
+                - img [ref=e155]
+              - button "Start dictation" [ref=e157] [cursor=pointer]:
+                - img [ref=e158]
+              - button [ref=e161] [cursor=pointer]:
+                - img [ref=e162]
   - generic:
     - region "Notifications"
-  - alert [ref=e188]
+  - alert [ref=e164]
 ```

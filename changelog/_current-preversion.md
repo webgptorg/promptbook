@@ -1,3 +1,5 @@
+-   Added Android share-sheet support for installed Agents Server PWAs, so each installed agent can appear as its own share target and open straight into a fresh 1:1 chat with the shared text or uploaded file attachments auto-sent as the first user message.
+
 -   Added browser push notifications for Agents Server durable chats, including per-user opt-in settings, per-device subscriptions, focused-chat suppression, background service-worker delivery, notification click routing back to the correct chat thread, and automatic invalid-subscription cleanup.
 
 -   Added dedicated writing-style commitments and deprecated the legacy writing-sample aliases without breaking runtime compatibility:
