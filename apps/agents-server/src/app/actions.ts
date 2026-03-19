@@ -4,8 +4,10 @@ import { $generateBookBoilerplate } from '@promptbook-local/core';
 import { string_agent_name, string_book } from '@promptbook-local/types';
 import { revalidatePath } from 'next/cache';
 import { string_agent_permanent_id } from '../../../../src/types/typeAliases';
+import { NEW_AGENT_WIZZARD_METADATA_KEY, parseNewAgentWizardMode } from '../constants/newAgentWizard';
 import { getMetadata } from '../database/getMetadata';
 import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
+import { type AgentVisibility, parseAgentVisibility } from '../utils/agentVisibility';
 import { authenticateUser } from '../utils/authenticateUser';
 import { createAgentWithDefaultVisibility } from '../utils/createAgentWithDefaultVisibility';
 import { resolveCurrentUserIdentity } from '../utils/currentUserIdentity';
@@ -46,15 +48,32 @@ export async function $generateAgentBoilerplateAction(): Promise<string_book> {
 }
 
 /**
+ * Resolves the current new-agent creation flow configuration.
+ *
+ * @returns Metadata-backed flow mode and default visibility.
+ */
+export async function $getNewAgentCreationSettingsAction(): Promise<{
+    mode: ReturnType<typeof parseNewAgentWizardMode>;
+    defaultVisibility: AgentVisibility;
+}> {
+    return {
+        mode: parseNewAgentWizardMode(await getMetadata(NEW_AGENT_WIZZARD_METADATA_KEY)),
+        defaultVisibility: parseAgentVisibility(await getMetadata('DEFAULT_VISIBILITY')),
+    };
+}
+
+/**
  * Creates a new agent using provided book content.
  *
  * @param bookContent - Agent source content to store.
  * @param folderId - Optional folder to place the newly created agent into.
+ * @param visibility - Optional explicit visibility override.
  * @returns Agent name and permanent identifier.
  */
 export async function $createAgentFromBookAction(
     bookContent: string_book,
     folderId?: number | null,
+    visibility?: AgentVisibility | null,
 ): Promise<{ agentName: string_agent_name; permanentId: string_agent_permanent_id }> {
     // TODO: [👹] Check permissions here
     if (!(await isUserAdmin())) {
@@ -66,6 +85,7 @@ export async function $createAgentFromBookAction(
     const createOptions = folderId === undefined ? undefined : { folderId };
     const { agentName, permanentId } = await createAgentWithDefaultVisibility(collection, bookContent, {
         ...createOptions,
+        visibility: visibility ?? undefined,
         userId: currentUserIdentity?.userId,
     });
 

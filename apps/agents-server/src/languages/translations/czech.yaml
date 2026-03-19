@@ -148,6 +148,73 @@ agentCreation.createFailedMessage: Nepodařilo se vytvořit agenta. Zkuste to pr
 agentCreation.dialogTitle: Vytvořit nového agenta
 agentCreation.dialogCreateAction: Vytvořit agenta
 agentCreation.dialogCreating: Vytvářím...
+agentCreation.wizardEyebrow: Průvodce
+agentCreation.wizardTitle: Vytvořit nového agenta
+agentCreation.wizard.basicTitle: Základní údaje
+agentCreation.wizard.personaTitle: Persona a vlastnosti
+agentCreation.wizard.rulesTitle: Pravidla a zábrany
+agentCreation.wizard.knowledgeTitle: Znalosti
+agentCreation.wizard.reviewTitle: Kontrola a vytvoření
+agentCreation.wizard.basicDescription: Nastavte základní identitu nového agenta, než na pozadí sestavíme zdroj knihy.
+agentCreation.wizard.personaDescription: Vyberte několik přednastavených vlastností a případně přidejte jednu vlastní poznámku.
+agentCreation.wizard.rulesDescription: Zvolte výchozí zábrany, které mají řídit chování agenta.
+agentCreation.wizard.knowledgeDescription: Nahrajte soubory nebo přidejte URL, které se mají stát součástí znalostí agenta.
+agentCreation.wizard.reviewDescription: Potvrďte níže zvolené volby, nebo se před vytvořením přepněte do pokročilého editoru.
+agentCreation.wizard.basicShort: Základ
+agentCreation.wizard.personaShort: Persona
+agentCreation.wizard.rulesShort: Pravidla
+agentCreation.wizard.knowledgeShort: Znalosti
+agentCreation.wizard.reviewShort: Kontrola
+agentCreation.wizard.nameLabel: Název agenta
+agentCreation.wizard.namePlaceholder: Agent zákaznické podpory
+agentCreation.wizard.nameRequired: Před pokračováním zadejte název.
+agentCreation.wizard.descriptionLabel: Krátký popis
+agentCreation.wizard.descriptionPlaceholder: Odpovídá na dotazy zákazníků a předává složitější případy dál.
+agentCreation.wizard.visibilityLabel: Viditelnost
+agentCreation.wizard.visibilityPrivate: Soukromý
+agentCreation.wizard.visibilityUnlisted: Neveřejný odkaz
+agentCreation.wizard.visibilityPublic: Veřejný
+agentCreation.wizard.traitsLabel: Přednastavené vlastnosti
+agentCreation.wizard.customTraitLabel: Vlastní vlastnost
+agentCreation.wizard.customTraitPlaceholder: Přidejte jednu krátkou vlastnost nebo specializaci navíc.
+agentCreation.wizard.traitHelpful: Ochotný
+agentCreation.wizard.traitConcise: Stručný
+agentCreation.wizard.traitProfessional: Profesionální
+agentCreation.wizard.traitFriendly: Přátelský
+agentCreation.wizard.traitAnalytical: Analytický
+agentCreation.wizard.traitTechnical: Technický
+agentCreation.wizard.traitEducational: Vysvětlující
+agentCreation.wizard.traitCreative: Kreativní
+agentCreation.wizard.ruleProtectPersonalData: Vyhýbat se vyžadování nebo zveřejňování osobních údajů.
+agentCreation.wizard.ruleProfessionalTone: Udržovat profesionální tón.
+agentCreation.wizard.ruleRegulatedAdvice: Vyhýbat se zdravotním, právním a finančním radám.
+agentCreation.wizard.ruleUncertainty: Otevřeně přiznat nejistotu.
+agentCreation.wizard.customInstructionsLabel: Vlastní instrukce
+agentCreation.wizard.customInstructionsPlaceholder: Přidejte jedno krátké pravidlo nebo zábranu vlastními slovy.
+agentCreation.wizard.uploadLabel: Nahrát soubory se znalostmi
+agentCreation.wizard.uploadHint: Používá stejnou ingest pipeline jako editor knihy.
+agentCreation.wizard.uploadAction: Nahrát soubory
+agentCreation.wizard.uploadFailed: Nahrávání selhalo.
+agentCreation.wizard.urlsLabel: Vložit URL se znalostmi
+agentCreation.wizard.urlsPlaceholder: "https://example.com/docs\nhttps://example.com/faq"
+agentCreation.wizard.urlsHint: Zadejte jednu URL na řádek.
+agentCreation.wizard.addUrlsAction: Přidat URL
+agentCreation.wizard.invalidUrls: "{count} URL položek bylo přeskočeno, protože nejsou platnými HTTP(S) odkazy."
+agentCreation.wizard.noKnowledge: Zatím nejsou přidány žádné znalostní zdroje.
+agentCreation.wizard.uploadedFile: Nahraný soubor
+agentCreation.wizard.uploading: Nahrávám... {progress}%
+agentCreation.wizard.removeKnowledgeAction: Odebrat
+agentCreation.wizard.openEditorAfterCreationLabel: Po vytvoření otevřít editor knihy
+agentCreation.wizard.openEditorAfterCreationDescription: Ponechte nezaškrtnuté, pokud chcete po vytvoření přejít na profil agenta.
+agentCreation.wizard.reviewBasicHeading: Základní údaje
+agentCreation.wizard.reviewPersonaHeading: Persona a vlastnosti
+agentCreation.wizard.reviewRulesHeading: Pravidla a zábrany
+agentCreation.wizard.reviewKnowledgeHeading: Znalosti
+agentCreation.wizard.openAdvancedEditorAction: "Pokročilé: místo toho otevřít editor"
+agentCreation.wizard.backAction: Zpět
+agentCreation.wizard.nextAction: Další
+agentCreation.wizard.createAction: Vytvořit agenta
+agentCreation.wizard.creatingAction: Vytvářím...
 footer.productSectionTitle: Produkt
 footer.getStarted: Začít
 footer.manifest: Manifest

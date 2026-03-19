@@ -65,3 +65,7 @@
   - In this run on `2026-03-19`, `apps/agents-server` lint passed and production build completed, including the new `/agents/[agentName]/share-target` and `/agents/[agentName]/api/share-target/[shareTargetId]/consume` routes.
   - The failure happens later during the existing prerender/test bootstrap with `Dynamic server usage: Route /admin/backup couldn't be rendered statically because it used \`cookies\``.
   - The logged stack points into `/admin/backup` and `/api/users`, not the newly added share-target manifest, route handlers, or chat bootstrap code.
+
+- `npm run test-app-agents-server` also failed during verification of the new-agent wizard work after successful app lint/build:
+  - The app built and started, but a later prerender/runtime path logged `Dynamic server usage: Route /admin/task-manager couldn't be rendered statically because it used \`cookies\``.
+  - The failure surfaced after the wizard changes were already typechecked and built successfully, and the stack points at `/admin/task-manager`, not the new-agent dialog, metadata, or creation actions touched in this task.

@@ -27,8 +27,8 @@ export function AddAgentButton({ currentFolderId }: AddAgentButtonProps) {
     const addButtonLabel = formatText(t('agentCreation.addButtonLabel'));
 
     const { isPreparingDialog, openNewAgentDialog, dialog } = useNewAgentDialog({
-        onCreated: ({ permanentId }) => {
-            router.push(`/agents/${permanentId}`);
+        onCreated: ({ targetPath }) => {
+            router.push(targetPath);
         },
         onCreateFailed: async (error) => {
             console.error('Failed to create agent:', error);

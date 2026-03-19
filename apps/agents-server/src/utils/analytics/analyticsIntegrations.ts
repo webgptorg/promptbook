@@ -45,6 +45,7 @@ function buildGoogleAnalyticsSnippet(settings: AnalyticsSettings): string | null
         '    function gtag() {',
         '        window.dataLayer.push(arguments);',
         '    }',
+        '    window.gtag = gtag;',
         '    gtag(\'js\', new Date());',
         '    gtag(\'config\', measurementId, {',
         `        send_page_view: ${sendPageView},`,

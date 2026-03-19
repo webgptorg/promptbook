@@ -148,6 +148,73 @@ agentCreation.createFailedMessage: Failed to create agent. Please try again.
 agentCreation.dialogTitle: Create New Agent
 agentCreation.dialogCreateAction: Create Agent
 agentCreation.dialogCreating: Creating...
+agentCreation.wizardEyebrow: Guided flow
+agentCreation.wizardTitle: Create New Agent
+agentCreation.wizard.basicTitle: Basic info
+agentCreation.wizard.personaTitle: Persona & traits
+agentCreation.wizard.rulesTitle: Rules & guardrails
+agentCreation.wizard.knowledgeTitle: Knowledge
+agentCreation.wizard.reviewTitle: Review & create
+agentCreation.wizard.basicDescription: Set the core identity of the new agent before we build the hidden book source.
+agentCreation.wizard.personaDescription: Pick a few preset traits and optionally add one custom personality note.
+agentCreation.wizard.rulesDescription: Select the default guardrails that should shape the agent's behavior.
+agentCreation.wizard.knowledgeDescription: Upload files or add URLs that should become part of the agent's knowledge.
+agentCreation.wizard.reviewDescription: Confirm the high-level choices below, or switch to the advanced editor before creating.
+agentCreation.wizard.basicShort: Basics
+agentCreation.wizard.personaShort: Persona
+agentCreation.wizard.rulesShort: Rules
+agentCreation.wizard.knowledgeShort: Knowledge
+agentCreation.wizard.reviewShort: Review
+agentCreation.wizard.nameLabel: Agent name
+agentCreation.wizard.namePlaceholder: Customer Support Agent
+agentCreation.wizard.nameRequired: Enter a name before continuing.
+agentCreation.wizard.descriptionLabel: Short description
+agentCreation.wizard.descriptionPlaceholder: Answers customer questions and escalates edge cases.
+agentCreation.wizard.visibilityLabel: Visibility
+agentCreation.wizard.visibilityPrivate: Private
+agentCreation.wizard.visibilityUnlisted: Unlisted
+agentCreation.wizard.visibilityPublic: Public
+agentCreation.wizard.traitsLabel: Preset traits
+agentCreation.wizard.customTraitLabel: Custom trait
+agentCreation.wizard.customTraitPlaceholder: Add one short extra trait or specialization.
+agentCreation.wizard.traitHelpful: Helpful
+agentCreation.wizard.traitConcise: Concise
+agentCreation.wizard.traitProfessional: Professional
+agentCreation.wizard.traitFriendly: Friendly
+agentCreation.wizard.traitAnalytical: Analytical
+agentCreation.wizard.traitTechnical: Technical
+agentCreation.wizard.traitEducational: Educational
+agentCreation.wizard.traitCreative: Creative
+agentCreation.wizard.ruleProtectPersonalData: Avoid requesting or disclosing personal data.
+agentCreation.wizard.ruleProfessionalTone: Keep a professional tone.
+agentCreation.wizard.ruleRegulatedAdvice: Avoid medical, legal, and financial advice.
+agentCreation.wizard.ruleUncertainty: Be transparent about uncertainty.
+agentCreation.wizard.customInstructionsLabel: Custom instructions
+agentCreation.wizard.customInstructionsPlaceholder: Add one short rule or guardrail in your own words.
+agentCreation.wizard.uploadLabel: Upload knowledge files
+agentCreation.wizard.uploadHint: Uses the same file-ingestion pipeline as the book editor.
+agentCreation.wizard.uploadAction: Upload files
+agentCreation.wizard.uploadFailed: Upload failed.
+agentCreation.wizard.urlsLabel: Paste knowledge URLs
+agentCreation.wizard.urlsPlaceholder: "https://example.com/docs\nhttps://example.com/faq"
+agentCreation.wizard.urlsHint: Add one URL per line.
+agentCreation.wizard.addUrlsAction: Add URLs
+agentCreation.wizard.invalidUrls: "{count} URL entries were skipped because they are not valid HTTP(S) links."
+agentCreation.wizard.noKnowledge: No knowledge sources added yet.
+agentCreation.wizard.uploadedFile: Uploaded file
+agentCreation.wizard.uploading: Uploading... {progress}%
+agentCreation.wizard.removeKnowledgeAction: Remove
+agentCreation.wizard.openEditorAfterCreationLabel: Open book editor after creation
+agentCreation.wizard.openEditorAfterCreationDescription: Keep this unchecked to land on the agent profile instead.
+agentCreation.wizard.reviewBasicHeading: Basic info
+agentCreation.wizard.reviewPersonaHeading: Persona & traits
+agentCreation.wizard.reviewRulesHeading: Rules & guardrails
+agentCreation.wizard.reviewKnowledgeHeading: Knowledge
+agentCreation.wizard.openAdvancedEditorAction: "Advanced: open editor instead"
+agentCreation.wizard.backAction: Back
+agentCreation.wizard.nextAction: Next
+agentCreation.wizard.createAction: Create agent
+agentCreation.wizard.creatingAction: Creating...
 footer.productSectionTitle: Product
 footer.getStarted: Get started
 footer.manifest: Manifest

@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 an hour by OpenAI Codex `gpt-5.4`
 
 [🧙‍♀️📋] `NEW_AGENT_WIZZARD`
 
@@ -58,3 +58,4 @@ CLOSED
     -   Wizzard is primarily a frontend component that will bake the agent source based on user inputs on the frontend and the backend will receive same agent source as if it came from the book editor, so we can reuse the same api endpoints.
 
 -   You are working with the [Agents Server](apps/agents-server)
+

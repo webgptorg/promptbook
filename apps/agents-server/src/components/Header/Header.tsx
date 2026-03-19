@@ -918,8 +918,8 @@ export function Header(props: HeaderProps) {
         openNewAgentDialog,
         dialog: newAgentDialog,
     } = useNewAgentDialog({
-        onCreated: ({ permanentId }) => {
-            pushWithHeadless(router, `/agents/${encodeURIComponent(permanentId)}`, isHeadless);
+        onCreated: ({ targetPath }) => {
+            pushWithHeadless(router, targetPath, isHeadless);
         },
         onCreateFailed: async (error) => {
             console.error('Failed to create agent:', error);

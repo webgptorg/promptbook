@@ -3,8 +3,20 @@
 import type { string_book } from '@promptbook-local/types';
 import type { ReactElement } from 'react';
 import { useCallback, useState } from 'react';
-import { $createAgentFromBookAction, $generateAgentBoilerplateAction } from '../../app/actions';
+import type { AgentVisibility } from '../../utils/agentVisibility';
+import {
+    $createAgentFromBookAction,
+    $generateAgentBoilerplateAction,
+    $getNewAgentCreationSettingsAction,
+} from '../../app/actions';
+import type { NewAgentWizardMode } from '../../constants/newAgentWizard';
 import { NewAgentDialog } from './NewAgentDialog';
+import type {
+    NewAgentWizardCreateRequest,
+    NewAgentWizardOpenEditorRequest,
+} from './NewAgentWizard';
+import { NewAgentWizard } from './NewAgentWizard';
+import { trackNewAgentCreationEvent } from './trackNewAgentCreationEvent';
 
 /**
  * Options for opening the new-agent dialog.
@@ -28,6 +40,10 @@ type CreatedAgentPayload = {
      * Created permanent identifier.
      */
     readonly permanentId: string;
+    /**
+     * Route that should be opened after creation.
+     */
+    readonly targetPath: string;
 };
 
 /**
@@ -71,27 +87,68 @@ type UseNewAgentDialogResult = {
 };
 
 /**
+ * Local union describing the active new-agent creation surface.
+ */
+type NewAgentDialogState =
+    | {
+          readonly surface: 'editor';
+          readonly mode: NewAgentWizardMode;
+          readonly initialAgentSource: string_book;
+          readonly targetFolderId: number | null | undefined;
+          readonly visibilityOverride?: AgentVisibility;
+      }
+    | {
+          readonly surface: 'wizard';
+          readonly mode: NewAgentWizardMode;
+          readonly defaultVisibility: AgentVisibility;
+          readonly targetFolderId: number | null | undefined;
+      };
+
+/**
  * Provides a shared "create new agent" workflow with boilerplate loading and a book-editing dialog.
  */
 export function useNewAgentDialog(options: UseNewAgentDialogOptions): UseNewAgentDialogResult {
     const { onCreated, onCreateFailed, onPrepareFailed } = options;
     const [isPreparingDialog, setIsPreparingDialog] = useState(false);
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [initialAgentSource, setInitialAgentSource] = useState<string_book>('' as string_book);
-    const [targetFolderId, setTargetFolderId] = useState<number | null | undefined>(undefined);
+    const [dialogState, setDialogState] = useState<NewAgentDialogState | null>(null);
 
     const closeNewAgentDialog = useCallback(() => {
-        setIsDialogOpen(false);
+        setDialogState(null);
     }, []);
 
     const openNewAgentDialog = useCallback(
         async (openOptions?: OpenNewAgentDialogOptions) => {
             setIsPreparingDialog(true);
             try {
+                const settings = await $getNewAgentCreationSettingsAction();
+
+                trackNewAgentCreationEvent('new_agent_flow_assigned', {
+                    mode: settings.mode,
+                    folderId: openOptions?.folderId,
+                });
+
+                if (settings.mode === 'WIZARD') {
+                    setDialogState({
+                        surface: 'wizard',
+                        mode: settings.mode,
+                        defaultVisibility: settings.defaultVisibility,
+                        targetFolderId: openOptions?.folderId,
+                    });
+                    trackNewAgentCreationEvent('new_agent_wizard_shown', {
+                        mode: settings.mode,
+                        surface: 'wizard',
+                        folderId: openOptions?.folderId,
+                    });
+                    return;
+                }
+
                 const boilerplate = await $generateAgentBoilerplateAction();
-                setInitialAgentSource(boilerplate);
-                setTargetFolderId(openOptions?.folderId);
-                setIsDialogOpen(true);
+                setDialogState({
+                    surface: 'editor',
+                    mode: settings.mode,
+                    initialAgentSource: boilerplate,
+                    targetFolderId: openOptions?.folderId,
+                });
             } catch (error) {
                 await onPrepareFailed?.(error);
             } finally {
@@ -101,29 +158,116 @@ export function useNewAgentDialog(options: UseNewAgentDialogOptions): UseNewAgen
         [onPrepareFailed],
     );
 
-    const handleCreate = useCallback(
+    const handleCreateFromEditor = useCallback(
         async (agentSource: string_book) => {
+            if (!dialogState || dialogState.surface !== 'editor') {
+                return;
+            }
+
             try {
-                const { agentName, permanentId } = await $createAgentFromBookAction(agentSource, targetFolderId);
-                await onCreated({ agentName, permanentId });
-                setIsDialogOpen(false);
+                const { agentName, permanentId } = await $createAgentFromBookAction(
+                    agentSource,
+                    dialogState.targetFolderId,
+                    dialogState.visibilityOverride,
+                );
+                trackNewAgentCreationEvent('new_agent_created', {
+                    mode: dialogState.mode,
+                    surface: 'editor',
+                    folderId: dialogState.targetFolderId,
+                });
+                await onCreated({
+                    agentName,
+                    permanentId,
+                    targetPath: `/agents/${encodeURIComponent(permanentId)}`,
+                });
+                setDialogState(null);
             } catch (error) {
                 await onCreateFailed?.(error);
             }
         },
-        [onCreateFailed, onCreated, targetFolderId],
+        [dialogState, onCreateFailed, onCreated],
     );
+
+    const handleCreateFromWizard = useCallback(
+        async (request: NewAgentWizardCreateRequest) => {
+            if (!dialogState || dialogState.surface !== 'wizard') {
+                return;
+            }
+
+            try {
+                const { agentName, permanentId } = await $createAgentFromBookAction(
+                    request.agentSource,
+                    dialogState.targetFolderId,
+                    request.visibility,
+                );
+                trackNewAgentCreationEvent('new_agent_created', {
+                    mode: dialogState.mode,
+                    surface: 'wizard',
+                    folderId: dialogState.targetFolderId,
+                    knowledgeCount: request.knowledgeCount,
+                });
+                const targetPath = request.openBookEditorAfterCreation
+                    ? `/agents/${encodeURIComponent(permanentId)}/book`
+                    : `/agents/${encodeURIComponent(permanentId)}`;
+
+                if (request.openBookEditorAfterCreation) {
+                    trackNewAgentCreationEvent('new_agent_editor_opened_after_creation', {
+                        mode: dialogState.mode,
+                        surface: 'wizard',
+                        folderId: dialogState.targetFolderId,
+                        knowledgeCount: request.knowledgeCount,
+                    });
+                }
+
+                await onCreated({
+                    agentName,
+                    permanentId,
+                    targetPath,
+                });
+                setDialogState(null);
+            } catch (error) {
+                await onCreateFailed?.(error);
+            }
+        },
+        [dialogState, onCreateFailed, onCreated],
+    );
+
+    const handleOpenEditorFromWizard = useCallback((request: NewAgentWizardOpenEditorRequest) => {
+        setDialogState((currentDialogState) => {
+            if (!currentDialogState || currentDialogState.surface !== 'wizard') {
+                return currentDialogState;
+            }
+
+            return {
+                surface: 'editor',
+                mode: currentDialogState.mode,
+                initialAgentSource: request.agentSource,
+                targetFolderId: currentDialogState.targetFolderId,
+                visibilityOverride: request.visibility,
+            };
+        });
+    }, []);
 
     return {
         isPreparingDialog,
         openNewAgentDialog,
         closeNewAgentDialog,
-        dialog: isDialogOpen ? (
-            <NewAgentDialog
-                onClose={closeNewAgentDialog}
-                initialAgentSource={initialAgentSource}
-                onCreate={handleCreate}
-            />
-        ) : null,
+        dialog:
+            dialogState?.surface === 'editor' ? (
+                <NewAgentDialog
+                    onClose={closeNewAgentDialog}
+                    initialAgentSource={dialogState.initialAgentSource}
+                    onCreate={handleCreateFromEditor}
+                />
+            ) : dialogState?.surface === 'wizard' ? (
+                <NewAgentWizard
+                    mode={dialogState.mode}
+                    defaultVisibility={dialogState.defaultVisibility}
+                    folderId={dialogState.targetFolderId}
+                    onClose={closeNewAgentDialog}
+                    onCreate={handleCreateFromWizard}
+                    onOpenEditor={handleOpenEditorFromWizard}
+                />
+            ) : null,
     };
 }

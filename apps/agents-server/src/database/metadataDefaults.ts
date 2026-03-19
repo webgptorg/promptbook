@@ -4,6 +4,7 @@ import { DEFAULT_THINKING_MESSAGES } from '../../../../src/utils/DEFAULT_THINKIN
 import { SERVER_LANGUAGE_METADATA_KEY } from '../languages/ServerLanguageRegistry';
 import { MetadataType } from '../constants/metadataTypes';
 import { ANALYTICS_METADATA_KEYS, getAnalyticsMetadataDefinition } from '../constants/analyticsMetadata';
+import { NEW_AGENT_WIZZARD_METADATA_KEY } from '../constants/newAgentWizard';
 import { DEFAULT_TOOL_USAGE_LIMITS, TOOL_USAGE_LIMITS_METADATA_KEY } from '../constants/toolUsageLimits';
 
 /**
@@ -208,6 +209,12 @@ export const metadataDefaults = [
         key: 'DEFAULT_VISIBILITY',
         value: 'UNLISTED',
         note: 'Default visibility for new agents. Can be PRIVATE, UNLISTED, or PUBLIC.',
+        type: 'TEXT_SINGLE_LINE',
+    },
+    {
+        key: NEW_AGENT_WIZZARD_METADATA_KEY,
+        value: 'BOILERPLATE',
+        note: 'Controls the "new agent" flow. Possible values: BOILERPLATE or WIZARD.',
         type: 'TEXT_SINGLE_LINE',
     },
     {
