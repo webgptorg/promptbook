@@ -63,7 +63,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
     const host = (await headers()).get('host') || 'unknown';
 
     const searchParams = await props.searchParams;
-    const isGraphView = searchParams?.view === 'graph';
+    const isListView = searchParams?.view !== 'graph' && searchParams?.view !== 'office';
     const isSubfolderView = getIsSubfolderView(searchParams);
 
     return (
@@ -80,7 +80,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
                     isSubfolderView={isSubfolderView}
                 />
 
-                {!isGraphView && !isSubfolderView && (
+                {isListView && !isSubfolderView && (
                     <ExternalAgentsSectionClient publicUrl={publicUrl.href /* <- [??] */} />
                 )}
 
