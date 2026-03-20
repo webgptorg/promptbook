@@ -13,9 +13,10 @@
 -   Goals (success criteria):
 
     -   Hover should remain a lightweight preview that does not block page interactions unless the user commits to the menu.
+        -   It should have some delay before opening to prevent accidental triggers
+        -   When clicking on the menu item, it should open the menu immediately and make it interactive.
     -   Click-to-open should be fully interactive and stable for users who intentionally open and use the menu.
-    -   Mouse movement from top to page should never result in accidental menu clicks on underlying elements.
-    -   Maintain keyboard & screen-reader accessibility.
+    -   Quick mouse movement from top to page should never result in accidental menu clicks.
 
 -   You are working with the [Agents Server](apps/agents-server)
 

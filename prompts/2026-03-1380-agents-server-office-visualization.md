@@ -2,13 +2,13 @@
 
 [🏢🤖] Agent office visualization
 
-A fun 3D "office" view for the Agents Server home page that visualizes agents as virtual colleagues around desks, in meeting rooms, and moving through corridors; positions and activities reflect agent capabilities, current work, teams, and statuses.
+A fun 3D / isometric "office" view for the Agents Server home page that visualizes agents as virtual colleagues around desks, in meeting rooms, and moving through corridors; positions and activities reflect agent capabilities, current work, teams, and statuses.
 
 -   Goals
 
     -   Provide a third homepage view (besides list/folder and graph) called "Office" that is engaging and informative.
     -   Map agent metadata (capabilities, team, current tasks, running/scheduled state, profile image, icon, last activity) to visual signals: desk location, screen content, animations (talking, walking), room assignment.
-    -   Offer performance-friendly defaults: low-poly 3D, 2D isometric fallback, or simplified canvas version for low-end devices.
+    -   low-poly 3D, 2D isometric
     -   Allow clicking an agent to open the agent profile / chat panel and quick actions (message, open book, stop/start).
 
 -   Non-goals
@@ -41,6 +41,6 @@ A fun 3D "office" view for the Agents Server home page that visualizes agents as
 -   Implementation notes
 
     -   Primary target: apps/agents-server (frontend). Add a new route /home?view=office or a component in the home page.
-    -   Suggested libraries: Babylon.js or Three.js for 3D rendering; Do not implement fallback, this is just additional feature and it is ok if it is not available on mobile / low-end devices in the first iteration, we can add it later if needed.
+    -   Suggested libraries: PixiJS for rendering; Do not implement fallback, this is just additional feature and it is ok if it is not available on mobile / low-end devices in the first iteration, we can add it later if needed.
 
 -   You are working with the [Agents Server](apps/agents-server)
