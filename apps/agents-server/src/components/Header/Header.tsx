@@ -152,7 +152,25 @@ type OpenSubMenuState = {
     items: SubMenuItem[];
 };
 
+/**
+ * Interaction mode used by one desktop header dropdown.
+ */
+type DesktopHeaderDropdownInteractionMode = 'preview' | 'committed';
+
+/**
+ * Active desktop dropdown along with the way it was opened.
+ */
+type DesktopHeaderDropdownState = {
+    menuId: string;
+    mode: DesktopHeaderDropdownInteractionMode;
+};
+
 const SUBMENU_CLOSE_DELAY_MS = 240;
+
+/**
+ * @private Delay before hover reveals a non-blocking dropdown preview.
+ */
+const HEADER_DROPDOWN_HOVER_OPEN_DELAY_MS = 180;
 
 /**
  * @private Delay used when the user leaves a header dropdown so it stays open long enough to reach the panel.
@@ -233,6 +251,8 @@ export function Header(props: HeaderProps) {
     const [mobileOpenSubMenus, setMobileOpenSubMenus] = useState<Record<string, boolean>>({});
     const dropdownPortalContainer = useHeaderDropdownPortalContainer();
     const [openSubMenu, setOpenSubMenu] = useState<OpenSubMenuState | null>(null);
+    const [desktopDropdownState, setDesktopDropdownState] = useState<DesktopHeaderDropdownState | null>(null);
+    const menuOpenTimers = useRef<Record<string, ReturnType<typeof window.setTimeout> | null>>({});
     const subMenuCloseTimer = useRef<ReturnType<typeof window.setTimeout> | null>(null);
     const menuCloseTimers = useRef<Record<string, ReturnType<typeof window.setTimeout> | null>>({});
     const router = useRouter();
@@ -277,6 +297,19 @@ export function Header(props: HeaderProps) {
                 clearTimeout(timer);
             }
         });
+        Object.values(menuOpenTimers.current).forEach((timer) => {
+            if (timer) {
+                clearTimeout(timer);
+            }
+        });
+        setDesktopDropdownState(null);
+        setIsFederatedOpen(false);
+        setIsAgentsOpen(false);
+        setIsAgentViewOpen(false);
+        setIsDocsOpen(false);
+        setIsSystemOpen(false);
+        setIsProfileOpen(false);
+        menuOpenTimers.current = {};
         menuCloseTimers.current = {};
     }, [isTouchInput]);
 
@@ -291,6 +324,12 @@ export function Header(props: HeaderProps) {
                     clearTimeout(timer);
                 }
             });
+            Object.values(menuOpenTimers.current).forEach((timer) => {
+                if (timer) {
+                    clearTimeout(timer);
+                }
+            });
+            menuOpenTimers.current = {};
             menuCloseTimers.current = {};
         };
     }, []);
@@ -335,6 +374,17 @@ export function Header(props: HeaderProps) {
     };
 
     /**
+     * @private Cancels the pending open timer of a header dropdown preview.
+     */
+    const cancelMenuOpen = (menuId: string) => {
+        const pendingTimer = menuOpenTimers.current[menuId];
+        if (pendingTimer) {
+            clearTimeout(pendingTimer);
+            menuOpenTimers.current[menuId] = null;
+        }
+    };
+
+    /**
      * @private Cancels the pending close timer of a header dropdown.
      */
     const cancelMenuClose = (menuId: string) => {
@@ -346,25 +396,28 @@ export function Header(props: HeaderProps) {
     };
 
     /**
-     * @private Schedules a delayed close for a header dropdown.
-     */
-    const scheduleMenuClose = (menuId: string, close: () => void) => {
-        if (isTouchInput) {
-            return;
-        }
-        cancelMenuClose(menuId);
-        menuCloseTimers.current[menuId] = setTimeout(() => {
-            close();
-            menuCloseTimers.current[menuId] = null;
-        }, HEADER_DROPDOWN_CLOSE_DELAY_MS);
-    };
-
-    /**
-     * Closes all desktop header dropdowns and nested submenu state.
+     * Closes all desktop header dropdowns, timers, and nested submenu state.
      *
      * @private
      */
     const closeAllDesktopHeaderDropdowns = useCallback(() => {
+        if (subMenuCloseTimer.current) {
+            clearTimeout(subMenuCloseTimer.current);
+            subMenuCloseTimer.current = null;
+        }
+        Object.values(menuOpenTimers.current).forEach((timer) => {
+            if (timer) {
+                clearTimeout(timer);
+            }
+        });
+        Object.values(menuCloseTimers.current).forEach((timer) => {
+            if (timer) {
+                clearTimeout(timer);
+            }
+        });
+        menuOpenTimers.current = {};
+        menuCloseTimers.current = {};
+        setDesktopDropdownState(null);
         setIsFederatedOpen(false);
         setIsAgentsOpen(false);
         setIsAgentViewOpen(false);
@@ -376,33 +429,133 @@ export function Header(props: HeaderProps) {
     }, []);
 
     /**
-     * On touch/coarse-pointer layouts, close desktop dropdowns when tapping outside
-     * the header so tap-based expansion remains predictable without hover timers.
+     * @private Returns true when the given dropdown was explicitly opened by click/tap.
+     */
+    const isDesktopDropdownCommitted = (menuId: string) =>
+        desktopDropdownState?.menuId === menuId && desktopDropdownState.mode === 'committed';
+
+    /**
+     * @private Returns true when the given dropdown is only showing a hover preview.
+     */
+    const isDesktopDropdownPreview = (menuId: string) =>
+        desktopDropdownState?.menuId === menuId && desktopDropdownState.mode === 'preview';
+
+    /**
+     * @private Opens one desktop dropdown as a delayed hover preview that stays non-interactive.
+     */
+    const previewDesktopDropdown = (menuId: string, open: () => void) => {
+        if (isTouchInput) {
+            return;
+        }
+
+        cancelMenuClose(menuId);
+
+        if (desktopDropdownState?.mode === 'committed' && desktopDropdownState.menuId !== menuId) {
+            return;
+        }
+
+        if (desktopDropdownState?.menuId === menuId) {
+            return;
+        }
+
+        cancelMenuOpen(menuId);
+        menuOpenTimers.current[menuId] = setTimeout(() => {
+            closeAllDesktopHeaderDropdowns();
+            open();
+            setDesktopDropdownState({ menuId, mode: 'preview' });
+            menuOpenTimers.current[menuId] = null;
+        }, HEADER_DROPDOWN_HOVER_OPEN_DELAY_MS);
+    };
+
+    /**
+     * @private Opens one desktop dropdown in committed interactive mode.
+     */
+    const commitDesktopDropdown = (menuId: string, open: () => void) => {
+        cancelMenuOpen(menuId);
+        cancelMenuClose(menuId);
+
+        if (desktopDropdownState?.menuId === menuId && desktopDropdownState.mode === 'committed') {
+            return;
+        }
+
+        closeAllDesktopHeaderDropdowns();
+        open();
+        setDesktopDropdownState({ menuId, mode: 'committed' });
+    };
+
+    /**
+     * @private Closes one desktop dropdown and clears its interaction mode.
+     */
+    const closeDesktopDropdown = (menuId: string, close: () => void) => {
+        cancelMenuOpen(menuId);
+        cancelMenuClose(menuId);
+        close();
+        setDesktopDropdownState((current) => (current?.menuId === menuId ? null : current));
+    };
+
+    /**
+     * @private Toggles one desktop dropdown between committed open and closed states.
+     */
+    const toggleDesktopDropdown = (menuId: string, open: () => void, close: () => void) => {
+        if (desktopDropdownState?.menuId === menuId && desktopDropdownState.mode === 'committed') {
+            closeDesktopDropdown(menuId, close);
+            return;
+        }
+
+        commitDesktopDropdown(menuId, open);
+    };
+
+    /**
+     * @private Schedules a delayed close for a header dropdown.
+     */
+    const scheduleMenuClose = (menuId: string, close: () => void) => {
+        cancelMenuOpen(menuId);
+        if (isTouchInput) {
+            return;
+        }
+        if (isDesktopDropdownCommitted(menuId)) {
+            return;
+        }
+        cancelMenuClose(menuId);
+        menuCloseTimers.current[menuId] = setTimeout(() => {
+            close();
+            setDesktopDropdownState((current) => (current?.menuId === menuId ? null : current));
+            menuCloseTimers.current[menuId] = null;
+        }, HEADER_DROPDOWN_CLOSE_DELAY_MS);
+    };
+
+    /**
+     * Closes desktop dropdowns when clicking outside the header or pressing Escape.
      *
      * @private
      */
     useEffect(() => {
-        if (!isTouchInput) {
-            return;
-        }
-
         const handlePointerDown = (event: PointerEvent) => {
-            if (!headerRef.current) {
+            const target = event.target as Node | null;
+            if (!headerRef.current || !target) {
                 return;
             }
 
-            if (headerRef.current.contains(event.target as Node)) {
+            if (headerRef.current.contains(target) || dropdownPortalContainer?.contains(target)) {
                 return;
             }
 
             closeAllDesktopHeaderDropdowns();
         };
 
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                closeAllDesktopHeaderDropdowns();
+            }
+        };
+
         document.addEventListener('pointerdown', handlePointerDown);
+        document.addEventListener('keydown', handleKeyDown);
         return () => {
             document.removeEventListener('pointerdown', handlePointerDown);
+            document.removeEventListener('keydown', handleKeyDown);
         };
-    }, [closeAllDesktopHeaderDropdowns, isTouchInput]);
+    }, [closeAllDesktopHeaderDropdowns, dropdownPortalContainer]);
 
     const visibleDocumentationCommitments = useMemo(() => getVisibleCommitmentDefinitions(), []);
     const documentationDropdownItems = useMemo(
@@ -692,7 +845,7 @@ export function Header(props: HeaderProps) {
      * Closes the agent view dropdown after a selection.
      */
     const closeAgentViewDropdown = () => {
-        setIsAgentViewOpen(false);
+        closeDesktopDropdown('agent-view', () => setIsAgentViewOpen(false));
         setIsMenuOpen(false);
     };
 
@@ -793,7 +946,7 @@ export function Header(props: HeaderProps) {
         : [];
 
     const closeAgentsDropdown = () => {
-        setIsAgentsOpen(false);
+        closeDesktopDropdown('agents-hierarchy', () => setIsAgentsOpen(false));
         setIsMenuOpen(false);
     };
 
@@ -849,10 +1002,10 @@ export function Header(props: HeaderProps) {
     const handleCreateAgent = useCallback(
         (folderId: number | null) => {
             void openNewAgentDialog({ folderId });
-            setIsAgentsOpen(false);
+            closeAllDesktopHeaderDropdowns();
             setIsMenuOpen(false);
         },
-        [openNewAgentDialog],
+        [closeAllDesktopHeaderDropdowns, openNewAgentDialog],
     );
 
     const agentMenuTree = useMemo(
@@ -1235,16 +1388,19 @@ export function Header(props: HeaderProps) {
 
                 if (item.type === 'dropdown') {
                     const dropdownItems = item.items ?? [];
+                    const isDropdownPreview = isDesktopDropdownPreview(item.id);
                     const closeDropdown = () => {
-                        cancelMenuClose(item.id);
-                        item.setIsOpen(false);
+                        closeDesktopDropdown(item.id, () => item.setIsOpen(false));
                         setOpenSubMenu(null);
                         setDesktopExpandedSubMenus({});
                     };
                     const toggleDropdown = () => {
-                        cancelMenuClose(item.id);
-                        item.setIsOpen(!item.isOpen);
-                        if (item.isOpen) {
+                        toggleDesktopDropdown(
+                            item.id,
+                            () => item.setIsOpen(true),
+                            () => item.setIsOpen(false),
+                        );
+                        if (isDesktopDropdownCommitted(item.id)) {
                             setOpenSubMenu(null);
                             setDesktopExpandedSubMenus({});
                         }
@@ -1359,7 +1515,9 @@ export function Header(props: HeaderProps) {
                             if (subItem.items && subItem.items.length > 0) {
                                 const submenuKey = `${item.id}-dropdown-${subIndex}`;
                                 const isSubMenuOpen =
-                                    !isTouchInput && openSubMenu?.key === submenuKey;
+                                    !isTouchInput &&
+                                    isDesktopDropdownCommitted(item.id) &&
+                                    openSubMenu?.key === submenuKey;
                                 const isTapSubMenuOpen = Boolean(
                                     desktopExpandedSubMenus[submenuKey],
                                 );
@@ -1475,10 +1633,7 @@ export function Header(props: HeaderProps) {
                             key={index}
                             className="relative"
                             onMouseEnter={() => {
-                                cancelMenuClose(item.id);
-                                if (!isTouchInput) {
-                                    item.setIsOpen(true);
-                                }
+                                previewDesktopDropdown(item.id, () => item.setIsOpen(true));
                             }}
                             onMouseLeave={() =>
                                 scheduleMenuClose(item.id, () => item.setIsOpen(false))
@@ -1488,10 +1643,7 @@ export function Header(props: HeaderProps) {
                                 className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
                                 onClick={toggleDropdown}
                                 onMouseEnter={() => {
-                                    cancelMenuClose(item.id);
-                                    if (!isTouchInput) {
-                                        item.setIsOpen(true);
-                                    }
+                                    previewDesktopDropdown(item.id, () => item.setIsOpen(true));
                                 }}
                                 onBlur={() =>
                                     scheduleMenuClose(item.id, () => item.setIsOpen(false))
@@ -1503,7 +1655,10 @@ export function Header(props: HeaderProps) {
 
                             {item.isOpen && (
                                 <div
-                                    className="absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-2xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 backdrop-blur"
+                                    aria-hidden={isDropdownPreview || undefined}
+                                    className={`absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-2xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 backdrop-blur ${
+                                        isDropdownPreview ? 'pointer-events-none' : 'pointer-events-auto'
+                                    }`}
                                     onMouseEnter={() => cancelMenuClose(item.id)}
                                     onMouseLeave={() =>
                                         scheduleMenuClose(item.id, () => item.setIsOpen(false))
@@ -1580,7 +1735,12 @@ export function Header(props: HeaderProps) {
                                 {federatedServers.length > 0 && (
                                     <div
                                         className="relative hidden lg:block"
-                                        onMouseEnter={() => cancelMenuClose('federated-server-switcher')}
+                                        onMouseEnter={() =>
+                                            previewDesktopDropdown(
+                                                'federated-server-switcher',
+                                                () => setIsFederatedOpen(true),
+                                            )
+                                        }
                                         onMouseLeave={() =>
                                             scheduleMenuClose('federated-server-switcher', () =>
                                                 setIsFederatedOpen(false),
@@ -1590,14 +1750,17 @@ export function Header(props: HeaderProps) {
                                         <button
                                             className="inline-flex p-1 text-gray-400 hover:text-gray-700 transition-colors"
                                             onClick={() => {
-                                                cancelMenuClose('federated-server-switcher');
-                                                setIsFederatedOpen(!isFederatedOpen);
+                                                toggleDesktopDropdown(
+                                                    'federated-server-switcher',
+                                                    () => setIsFederatedOpen(true),
+                                                    () => setIsFederatedOpen(false),
+                                                );
                                             }}
                                             onMouseEnter={() => {
-                                                cancelMenuClose('federated-server-switcher');
-                                                if (!isTouchInput) {
-                                                    setIsFederatedOpen(true);
-                                                }
+                                                previewDesktopDropdown(
+                                                    'federated-server-switcher',
+                                                    () => setIsFederatedOpen(true),
+                                                );
                                             }}
                                             onBlur={() =>
                                                 scheduleMenuClose('federated-server-switcher', () =>
@@ -1611,7 +1774,15 @@ export function Header(props: HeaderProps) {
                                         </button>
                                         {isFederatedOpen && (
                                             <div
-                                                className="absolute left-0 top-full z-50 mt-2 w-56 rounded-xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 max-h-[80vh] overflow-y-auto backdrop-blur"
+                                                aria-hidden={
+                                                    isDesktopDropdownPreview('federated-server-switcher') ||
+                                                    undefined
+                                                }
+                                                className={`absolute left-0 top-full z-50 mt-2 max-h-[80vh] w-56 overflow-y-auto rounded-xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 backdrop-blur ${
+                                                    isDesktopDropdownPreview('federated-server-switcher')
+                                                        ? 'pointer-events-none'
+                                                        : 'pointer-events-auto'
+                                                }`}
                                                 onMouseEnter={() => cancelMenuClose('federated-server-switcher')}
                                                 onMouseLeave={() =>
                                                     scheduleMenuClose('federated-server-switcher', () =>
@@ -1655,10 +1826,10 @@ export function Header(props: HeaderProps) {
                                 <div
                                     className="relative min-w-0"
                                     onMouseEnter={() => {
-                                        cancelMenuClose('agents-hierarchy');
-                                        if (!isTouchInput) {
-                                            setIsAgentsOpen(true);
-                                        }
+                                        previewDesktopDropdown(
+                                            'agents-hierarchy',
+                                            () => setIsAgentsOpen(true),
+                                        );
                                     }}
                                     onMouseLeave={() =>
                                         scheduleMenuClose('agents-hierarchy', () => setIsAgentsOpen(false))
@@ -1667,14 +1838,17 @@ export function Header(props: HeaderProps) {
                                     <button
                                         className="flex min-w-0 items-center gap-2 rounded-full border border-transparent px-2 sm:px-3 py-1 hover:border-gray-200 hover:bg-gray-100 transition"
                                         onClick={() => {
-                                            cancelMenuClose('agents-hierarchy');
-                                            setIsAgentsOpen(!isAgentsOpen);
+                                            toggleDesktopDropdown(
+                                                'agents-hierarchy',
+                                                () => setIsAgentsOpen(true),
+                                                () => setIsAgentsOpen(false),
+                                            );
                                         }}
                                         onMouseEnter={() => {
-                                            cancelMenuClose('agents-hierarchy');
-                                            if (!isTouchInput) {
-                                                setIsAgentsOpen(true);
-                                            }
+                                            previewDesktopDropdown(
+                                                'agents-hierarchy',
+                                                () => setIsAgentsOpen(true),
+                                            );
                                         }}
                                         onBlur={() =>
                                             scheduleMenuClose('agents-hierarchy', () => setIsAgentsOpen(false))
@@ -1696,7 +1870,12 @@ export function Header(props: HeaderProps) {
                                     </button>
                                     {isAgentsOpen && (
                                         <div
-                                            className="absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-2xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 overflow-visible backdrop-blur"
+                                            aria-hidden={isDesktopDropdownPreview('agents-hierarchy') || undefined}
+                                            className={`absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] overflow-visible rounded-2xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 backdrop-blur ${
+                                                isDesktopDropdownPreview('agents-hierarchy')
+                                                    ? 'pointer-events-none'
+                                                    : 'pointer-events-auto'
+                                            }`}
                                             onMouseEnter={() => cancelMenuClose('agents-hierarchy')}
                                             onMouseLeave={() =>
                                                 scheduleMenuClose('agents-hierarchy', () => setIsAgentsOpen(false))
@@ -1764,10 +1943,9 @@ export function Header(props: HeaderProps) {
                                     <div
                                         className="relative hidden sm:block"
                                         onMouseEnter={() => {
-                                            cancelMenuClose('agent-view');
-                                            if (!isTouchInput) {
-                                                setIsAgentViewOpen(true);
-                                            }
+                                            previewDesktopDropdown('agent-view', () =>
+                                                setIsAgentViewOpen(true),
+                                            );
                                         }}
                                         onMouseLeave={() =>
                                             scheduleMenuClose('agent-view', () => setIsAgentViewOpen(false))
@@ -1776,14 +1954,16 @@ export function Header(props: HeaderProps) {
                                         <button
                                             className="flex items-center gap-2 rounded-full px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-100 transition"
                                             onClick={() => {
-                                                cancelMenuClose('agent-view');
-                                                setIsAgentViewOpen(!isAgentViewOpen);
+                                                toggleDesktopDropdown(
+                                                    'agent-view',
+                                                    () => setIsAgentViewOpen(true),
+                                                    () => setIsAgentViewOpen(false),
+                                                );
                                             }}
                                             onMouseEnter={() => {
-                                                cancelMenuClose('agent-view');
-                                                if (!isTouchInput) {
-                                                    setIsAgentViewOpen(true);
-                                                }
+                                                previewDesktopDropdown('agent-view', () =>
+                                                    setIsAgentViewOpen(true),
+                                                );
                                             }}
                                             onBlur={() =>
                                                 scheduleMenuClose('agent-view', () => setIsAgentViewOpen(false))
@@ -1794,7 +1974,12 @@ export function Header(props: HeaderProps) {
                                         </button>
                                         {isAgentViewOpen && (
                                             <div
-                                                className="absolute left-0 top-full z-50 mt-2 min-w-[180px] rounded-xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 backdrop-blur"
+                                                aria-hidden={isDesktopDropdownPreview('agent-view') || undefined}
+                                                className={`absolute left-0 top-full z-50 mt-2 min-w-[180px] rounded-xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 backdrop-blur ${
+                                                    isDesktopDropdownPreview('agent-view')
+                                                        ? 'pointer-events-none'
+                                                        : 'pointer-events-auto'
+                                                }`}
                                                 onMouseEnter={() => cancelMenuClose('agent-view')}
                                                 onMouseLeave={() =>
                                                     scheduleMenuClose('agent-view', () => setIsAgentViewOpen(false))
@@ -1865,21 +2050,27 @@ export function Header(props: HeaderProps) {
                             <div className="hidden lg:flex items-center gap-3">
                                 <div
                                     className="relative"
-                                    onMouseEnter={() => cancelMenuClose('profile-menu')}
+                                    onMouseEnter={() =>
+                                        previewDesktopDropdown('profile-menu', () =>
+                                            setIsProfileOpen(true),
+                                        )
+                                    }
                                     onMouseLeave={() =>
                                         scheduleMenuClose('profile-menu', () => setIsProfileOpen(false))
                                     }
                                 >
                                     <button
                                         onClick={() => {
-                                            cancelMenuClose('profile-menu');
-                                            setIsProfileOpen(!isProfileOpen);
+                                            toggleDesktopDropdown(
+                                                'profile-menu',
+                                                () => setIsProfileOpen(true),
+                                                () => setIsProfileOpen(false),
+                                            );
                                         }}
                                         onMouseEnter={() => {
-                                            cancelMenuClose('profile-menu');
-                                            if (!isTouchInput) {
-                                                setIsProfileOpen(true);
-                                            }
+                                            previewDesktopDropdown('profile-menu', () =>
+                                                setIsProfileOpen(true),
+                                            );
                                         }}
                                         onBlur={() => scheduleMenuClose('profile-menu', () => setIsProfileOpen(false))}
                                         className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors px-3 py-2 rounded-md hover:bg-gray-50"
@@ -1909,7 +2100,12 @@ export function Header(props: HeaderProps) {
 
                                     {isProfileOpen && (
                                         <div
-                                            className="absolute top-full right-0 mt-2 w-56 bg-white/95 rounded-xl shadow-xl shadow-slate-900/10 border border-gray-100 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-200 backdrop-blur"
+                                            aria-hidden={isDesktopDropdownPreview('profile-menu') || undefined}
+                                            className={`absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 backdrop-blur ${
+                                                isDesktopDropdownPreview('profile-menu')
+                                                    ? 'pointer-events-none'
+                                                    : 'pointer-events-auto'
+                                            }`}
                                             onMouseEnter={() => cancelMenuClose('profile-menu')}
                                             onMouseLeave={() =>
                                                 scheduleMenuClose('profile-menu', () => setIsProfileOpen(false))
