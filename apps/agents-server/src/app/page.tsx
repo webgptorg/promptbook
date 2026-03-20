@@ -27,9 +27,7 @@ export default async function HomePage(props: HomePageProps) {
         getHomePageAgents(),
         props.searchParams,
     ]);
-    const selectedView = Array.isArray(searchParams?.view) ? searchParams?.view[0] : searchParams?.view;
-    const isGraphView = selectedView === 'graph';
-    const isOfficeView = selectedView === 'office';
+    const isGraphView = searchParams?.view === 'graph';
     const isSubfolderView = getIsSubfolderView(searchParams);
 
     return (
@@ -46,7 +44,7 @@ export default async function HomePage(props: HomePageProps) {
                     isSubfolderView={isSubfolderView}
                 />
 
-                {!isGraphView && !isOfficeView && !isSubfolderView && (
+                {!isGraphView && !isSubfolderView && (
                     <ExternalAgentsSectionClient publicUrl={publicUrl.href /* <- [??] */} />
                 )}
             </div>

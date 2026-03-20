@@ -1,6 +1,4 @@
--   Fixed Agents Server homepage/root-route streaming hangs during offline or slow federated-server lookups by time-bounding remote agent-reference discovery, so anonymous `page.goto('/')` E2E flows no longer wait indefinitely for unreachable `/api/agents` federation endpoints.
-
--   Fixed Agents Server runtime startup regressions by replacing broad package-barrel imports in the server collection bootstrap path and admin chat-feedback chat rendering with direct source imports, preventing circular initialization failures on `/` and browser-only chat modules from being evaluated on the server.
+-   Added a metadata-controlled `NEW_AGENT_WIZZARD` A/B path for Agents Server new-agent creation, preserving the current boilerplate book-editor flow by default while enabling a guided multi-step wizard that collects high-level agent details, uploads knowledge through the same ingestion pipeline, synthesizes the hidden book source with a traceability `NOTE`, reuses the existing create-agent endpoint in the background, supports an advanced switch back to the raw editor, and emits client-side funnel analytics for assignment, wizard completion, creation, and post-create editor opens.
 
 -   Fixed chat-map server startup crashes by lazily loading Leaflet inside the client-only GeoJSON map effect, so admin chat-feedback and other chat surfaces no longer evaluate browser-only map code while the Next.js server bundle is being loaded.
 
