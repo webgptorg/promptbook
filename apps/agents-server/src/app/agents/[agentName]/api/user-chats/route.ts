@@ -1,5 +1,4 @@
-import type { ChatMessage } from '@promptbook-local/types';
-import { NextResponse } from 'next/server';
+import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import {
     createUserChat,
     createUserChatDetailPayload,
@@ -9,7 +8,8 @@ import {
     USER_CHAT_SOURCES,
 } from '@/src/utils/userChat';
 import { listUserChatTimeoutActivities } from '@/src/utils/userChatTimeout/userChatTimeoutStore';
-import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
+import type { ChatMessage } from '@promptbook-local/types';
+import { NextResponse } from 'next/server';
 import { resolveUserChatScope } from './resolveUserChatScope';
 
 /**
@@ -56,9 +56,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         ]);
 
         const activeChat =
-            (requestedChatId ? chats.find((chat) => chat.id === requestedChatId) : null) ||
-            chats[0] ||
-            null;
+            (requestedChatId ? chats.find((chat) => chat.id === requestedChatId) : null) || chats[0] || null;
         const activeChatDetail = activeChat ? await createUserChatDetailPayload(activeChat) : null;
         const chatSummaries = chats.map((chat) =>
             createUserChatSummary(chat, {

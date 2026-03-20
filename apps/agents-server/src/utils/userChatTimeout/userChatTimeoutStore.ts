@@ -1,8 +1,8 @@
-import type { TODO_any } from '@promptbook-local/types';
-import type { Json } from '@/src/database/schema';
 import { $provideClientSql } from '@/src/database/$provideClientSql';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
+import type { Json } from '@/src/database/schema';
 import { $provideServer } from '@/src/tools/$provideServer';
+import type { TODO_any } from '@promptbook-local/types';
 import { $randomBase58 } from '../../../../../src/utils/random/$randomBase58';
 import type { UserChatTimeoutActivity } from '../userChat/UserChatRecord';
 import { createUserChatTimeoutActivity } from './createUserChatTimeoutActivity';
@@ -29,6 +29,15 @@ const USER_CHAT_TIMEOUT_ID_PREFIX = 'tmo_';
  * @private internal utility of userChatTimeout
  */
 const GENERATED_USER_CHAT_TIMEOUT_ID_LENGTH = 14;
+
+/**
+ * Human-readable fallback used when timeout persistence is unavailable because
+ * the database migration has not been applied yet.
+ *
+ * @private internal utility of userChatTimeout
+ */
+const USER_CHAT_TIMEOUT_TABLE_UNAVAILABLE_MESSAGE =
+    'User chat timeouts are unavailable until the `UserChatTimeout` database migration is applied.';
 
 /**
  * Lease duration used while one timeout row is claimed by the worker.
@@ -94,6 +103,38 @@ function normalizeUserChatTimeoutParameters(rawParameters: Json): UserChatTimeou
 }
 
 /**
+ * Returns `true` when a timeout-table query failed because the relation does not exist yet.
+ *
+ * @private internal utility of userChatTimeout
+ */
+function isMissingUserChatTimeoutRelationError(error: unknown): boolean {
+    if (!error || typeof error !== 'object') {
+        return false;
+    }
+
+    const code = typeof (error as { code?: unknown }).code === 'string' ? (error as { code: string }).code : '';
+    const message =
+        typeof (error as { message?: unknown }).message === 'string'
+            ? (error as { message: string }).message
+            : String(error);
+
+    return code === '42P01' || code === 'PGRST205' || /relation .* does not exist/i.test(message);
+}
+
+/**
+ * Throws the original error unless it represents a missing timeout table.
+ *
+ * @private internal utility of userChatTimeout
+ */
+function rethrowUnlessMissingUserChatTimeoutRelation(error: unknown): void {
+    if (isMissingUserChatTimeoutRelationError(error)) {
+        return;
+    }
+
+    throw error;
+}
+
+/**
  * Provides the scoped Supabase query builder for `UserChatTimeout`.
  *
  * @private internal utility of userChatTimeout
@@ -112,7 +153,8 @@ async function provideUserChatTimeoutTable(): Promise<TODO_any> {
  */
 export async function createUserChatTimeout(options: CreateUserChatTimeoutOptions): Promise<UserChatTimeoutRecord> {
     const nowIso = new Date().toISOString();
-    const timeoutId = options.id || `${USER_CHAT_TIMEOUT_ID_PREFIX}${$randomBase58(GENERATED_USER_CHAT_TIMEOUT_ID_LENGTH)}`;
+    const timeoutId =
+        options.id || `${USER_CHAT_TIMEOUT_ID_PREFIX}${$randomBase58(GENERATED_USER_CHAT_TIMEOUT_ID_LENGTH)}`;
     const dueAt = options.dueAt || new Date(Date.now() + options.durationMs).toISOString();
     const userChatTimeoutTable = await provideUserChatTimeoutTable();
     const insertPayload: UserChatTimeoutInsert = {
@@ -124,7 +166,7 @@ export async function createUserChatTimeout(options: CreateUserChatTimeoutOption
         agentPermanentId: options.agentPermanentId,
         status: 'QUEUED',
         message: options.message || null,
-        parameters: ((options.parameters || {}) satisfies Record<string, unknown>) as Json,
+        parameters: (options.parameters || {}) satisfies Record<string, unknown> as Json,
         durationMs: options.durationMs,
         dueAt,
         queuedAt: nowIso,
@@ -134,6 +176,10 @@ export async function createUserChatTimeout(options: CreateUserChatTimeoutOption
     const { data, error } = await userChatTimeoutTable.insert(insertPayload).select('*').maybeSingle();
 
     if (error) {
+        if (isMissingUserChatTimeoutRelationError(error)) {
+            throw new Error(USER_CHAT_TIMEOUT_TABLE_UNAVAILABLE_MESSAGE);
+        }
+
         throw new Error(`Failed to create user chat timeout for chat "${options.chatId}": ${error.message}`);
     }
 
@@ -149,7 +195,9 @@ export async function createUserChatTimeout(options: CreateUserChatTimeoutOption
  *
  * @private internal utility of userChatTimeout
  */
-export async function listUserChatTimeouts(options: ListUserChatTimeoutsOptions): Promise<Array<UserChatTimeoutRecord>> {
+export async function listUserChatTimeouts(
+    options: ListUserChatTimeoutsOptions,
+): Promise<Array<UserChatTimeoutRecord>> {
     const userChatTimeoutTable = await provideUserChatTimeoutTable();
 
     let query = userChatTimeoutTable
@@ -167,6 +215,10 @@ export async function listUserChatTimeouts(options: ListUserChatTimeoutsOptions)
     const { data, error } = await query;
 
     if (error) {
+        if (isMissingUserChatTimeoutRelationError(error)) {
+            return [];
+        }
+
         throw new Error(`Failed to list user chat timeouts for chat "${options.chatId}": ${error.message}`);
     }
 
@@ -204,6 +256,10 @@ export async function listUserChatTimeoutActivities(options: {
     const { data, error } = await query;
 
     if (error) {
+        if (isMissingUserChatTimeoutRelationError(error)) {
+            return {};
+        }
+
         throw new Error(`Failed to list timeout activity for user chats: ${error.message}`);
     }
 
@@ -234,6 +290,10 @@ export async function getUserChatTimeout(options: GetUserChatTimeoutOptions): Pr
         .maybeSingle();
 
     if (error) {
+        if (isMissingUserChatTimeoutRelationError(error)) {
+            return null;
+        }
+
         throw new Error(`Failed to load user chat timeout "${options.timeoutId}": ${error.message}`);
     }
 
@@ -250,6 +310,10 @@ export async function getUserChatTimeoutById(timeoutId: string): Promise<UserCha
     const { data, error } = await userChatTimeoutTable.select('*').eq('id', timeoutId).maybeSingle();
 
     if (error) {
+        if (isMissingUserChatTimeoutRelationError(error)) {
+            return null;
+        }
+
         throw new Error(`Failed to load user chat timeout "${timeoutId}": ${error.message}`);
     }
 
@@ -349,6 +413,10 @@ export async function retryUserChatTimeout(timeoutId: string): Promise<UserChatT
         .maybeSingle();
 
     if (error) {
+        if (isMissingUserChatTimeoutRelationError(error)) {
+            return null;
+        }
+
         throw new Error(`Failed to retry user chat timeout "${timeoutId}": ${error.message}`);
     }
 
@@ -401,6 +469,10 @@ export async function countActiveUserChatTimeoutsForChat(chatId: string): Promis
         .in('status', ACTIVE_USER_CHAT_TIMEOUT_STATUSES);
 
     if (error) {
+        if (isMissingUserChatTimeoutRelationError(error)) {
+            return 0;
+        }
+
         throw new Error(`Failed to count active user chat timeouts for chat "${chatId}": ${error.message}`);
     }
 
@@ -421,6 +493,10 @@ export async function countCompletedUserChatTimeoutsForChatSince(chatId: string,
         .gte('completedAt', sinceIso);
 
     if (error) {
+        if (isMissingUserChatTimeoutRelationError(error)) {
+            return 0;
+        }
+
         throw new Error(`Failed to count completed user chat timeouts for chat "${chatId}": ${error.message}`);
     }
 
@@ -435,34 +511,41 @@ export async function countCompletedUserChatTimeoutsForChatSince(chatId: string,
 export async function recoverExpiredRunningUserChatTimeouts(): Promise<number> {
     const sql = await $provideClientSql();
     const tableIdentifier = quoteIdentifier(await getUserChatTimeoutTableName());
-    const recoveredRows = await sql.raw<Array<{ id: string }>>(
-        `
-            UPDATE ${tableIdentifier}
-            SET
-                "status" = CASE
-                    WHEN "cancelRequestedAt" IS NOT NULL THEN 'CANCELLED'
-                    ELSE 'QUEUED'
-                END,
-                "updatedAt" = CURRENT_TIMESTAMP,
-                "startedAt" = CASE
-                    WHEN "cancelRequestedAt" IS NOT NULL THEN "startedAt"
-                    ELSE NULL
-                END,
-                "completedAt" = CASE
-                    WHEN "cancelRequestedAt" IS NOT NULL THEN CURRENT_TIMESTAMP
-                    ELSE NULL
-                END,
-                "leaseExpiresAt" = NULL,
-                "failureReason" = CASE
-                    WHEN "cancelRequestedAt" IS NOT NULL THEN COALESCE("failureReason", 'Timeout was cancelled.')
-                    ELSE "failureReason"
-                END
-            WHERE "status" = 'RUNNING'
-              AND "leaseExpiresAt" IS NOT NULL
-              AND "leaseExpiresAt" < CURRENT_TIMESTAMP
-            RETURNING "id"
-        `,
-    );
+    let recoveredRows: Array<{ id: string }>;
+
+    try {
+        recoveredRows = await sql.raw<Array<{ id: string }>>(
+            `
+                UPDATE ${tableIdentifier}
+                SET
+                    "status" = CASE
+                        WHEN "cancelRequestedAt" IS NOT NULL THEN 'CANCELLED'
+                        ELSE 'QUEUED'
+                    END,
+                    "updatedAt" = CURRENT_TIMESTAMP,
+                    "startedAt" = CASE
+                        WHEN "cancelRequestedAt" IS NOT NULL THEN "startedAt"
+                        ELSE NULL
+                    END,
+                    "completedAt" = CASE
+                        WHEN "cancelRequestedAt" IS NOT NULL THEN CURRENT_TIMESTAMP
+                        ELSE NULL
+                    END,
+                    "leaseExpiresAt" = NULL,
+                    "failureReason" = CASE
+                        WHEN "cancelRequestedAt" IS NOT NULL THEN COALESCE("failureReason", 'Timeout was cancelled.')
+                        ELSE "failureReason"
+                    END
+                WHERE "status" = 'RUNNING'
+                  AND "leaseExpiresAt" IS NOT NULL
+                  AND "leaseExpiresAt" < CURRENT_TIMESTAMP
+                RETURNING "id"
+            `,
+        );
+    } catch (error) {
+        rethrowUnlessMissingUserChatTimeoutRelation(error);
+        return 0;
+    }
 
     return recoveredRows.length;
 }
@@ -472,42 +555,51 @@ export async function recoverExpiredRunningUserChatTimeouts(): Promise<number> {
  *
  * @private internal utility of userChatTimeout
  */
-export async function claimNextDueUserChatTimeout(options: {
-    preferredTimeoutId?: string;
-} = {}): Promise<UserChatTimeoutRecord | null> {
+export async function claimNextDueUserChatTimeout(
+    options: {
+        preferredTimeoutId?: string;
+    } = {},
+): Promise<UserChatTimeoutRecord | null> {
     const sql = await $provideClientSql();
     const tableIdentifier = quoteIdentifier(await getUserChatTimeoutTableName());
     const values: Array<unknown> = [USER_CHAT_TIMEOUT_LEASE_DURATION_MS];
     const preferredTimeoutClause = options.preferredTimeoutId
         ? `AND timeout."id" = $${values.push(options.preferredTimeoutId)}`
         : '';
-    const claimedRows = await sql.raw<Array<UserChatTimeoutRow>>(
-        `
-            WITH candidate AS (
-                SELECT timeout."id"
-                FROM ${tableIdentifier} timeout
-                WHERE timeout."status" = 'QUEUED'
-                  AND timeout."cancelRequestedAt" IS NULL
-                  AND timeout."dueAt" <= CURRENT_TIMESTAMP
-                  ${preferredTimeoutClause}
-                ORDER BY timeout."dueAt" ASC, timeout."createdAt" ASC
-                LIMIT 1
-                FOR UPDATE SKIP LOCKED
-            )
-            UPDATE ${tableIdentifier} timeout
-            SET
-                "status" = 'RUNNING',
-                "updatedAt" = CURRENT_TIMESTAMP,
-                "startedAt" = COALESCE(timeout."startedAt", CURRENT_TIMESTAMP),
-                "leaseExpiresAt" = CURRENT_TIMESTAMP + ($1 * INTERVAL '1 millisecond'),
-                "attemptCount" = timeout."attemptCount" + 1,
-                "failureReason" = NULL
-            FROM candidate
-            WHERE timeout."id" = candidate."id"
-            RETURNING timeout.*
-        `,
-        values,
-    );
+    let claimedRows: Array<UserChatTimeoutRow>;
+
+    try {
+        claimedRows = await sql.raw<Array<UserChatTimeoutRow>>(
+            `
+                WITH candidate AS (
+                    SELECT timeout."id"
+                    FROM ${tableIdentifier} timeout
+                    WHERE timeout."status" = 'QUEUED'
+                      AND timeout."cancelRequestedAt" IS NULL
+                      AND timeout."dueAt" <= CURRENT_TIMESTAMP
+                      ${preferredTimeoutClause}
+                    ORDER BY timeout."dueAt" ASC, timeout."createdAt" ASC
+                    LIMIT 1
+                    FOR UPDATE SKIP LOCKED
+                )
+                UPDATE ${tableIdentifier} timeout
+                SET
+                    "status" = 'RUNNING',
+                    "updatedAt" = CURRENT_TIMESTAMP,
+                    "startedAt" = COALESCE(timeout."startedAt", CURRENT_TIMESTAMP),
+                    "leaseExpiresAt" = CURRENT_TIMESTAMP + ($1 * INTERVAL '1 millisecond'),
+                    "attemptCount" = timeout."attemptCount" + 1,
+                    "failureReason" = NULL
+                FROM candidate
+                WHERE timeout."id" = candidate."id"
+                RETURNING timeout.*
+            `,
+            values,
+        );
+    } catch (error) {
+        rethrowUnlessMissingUserChatTimeoutRelation(error);
+        return null;
+    }
 
     return claimedRows[0] ? mapUserChatTimeoutRow(claimedRows[0]) : null;
 }
@@ -537,6 +629,10 @@ async function updateUserChatTimeoutTerminalState(
         .maybeSingle();
 
     if (error) {
+        if (isMissingUserChatTimeoutRelationError(error)) {
+            return null;
+        }
+
         throw new Error(`Failed to update user chat timeout "${timeoutId}": ${error.message}`);
     }
 

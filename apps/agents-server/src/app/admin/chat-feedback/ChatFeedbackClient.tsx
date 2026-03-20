@@ -1,11 +1,11 @@
 'use client';
 
-import { Chat } from '@promptbook-local/components';
 import type { ChatMessage, string_date_iso8601 } from '@promptbook-local/types';
 import { useEffect, useMemo, useState } from 'react';
-import { Card } from '../../../components/Homepage/Card';
-import { showAlert, showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
+import { Chat } from '../../../../../../src/book-components/Chat/Chat/Chat';
 import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
+import { showAlert, showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
+import { Card } from '../../../components/Homepage/Card';
 import {
     $clearAgentChatFeedback,
     $deleteChatFeedbackRow,

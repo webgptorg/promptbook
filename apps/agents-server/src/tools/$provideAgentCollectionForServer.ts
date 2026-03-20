@@ -1,12 +1,10 @@
 'use server';
 
-import { AgentCollectionInSupabase } from '@promptbook-local/core';
-import { AgentCollection } from '@promptbook-local/types';
+import type { AgentCollection } from '../../../../src/collection/agent-collection/AgentCollection';
+import { AgentCollectionInSupabase } from '../../../../src/collection/agent-collection/constructors/agent-collection-in-supabase/AgentCollectionInSupabase';
 import { just } from '../../../../src/utils/organization/just';
 import { $provideSupabaseForServer } from '../database/$provideSupabaseForServer';
 import { $provideServer } from './$provideServer';
-import { attachAgentPreparationScheduling } from '../utils/attachAgentPreparationScheduling';
-import { scheduleDefaultFederatedAgentsSync } from '../utils/defaultFederatedAgents/scheduleDefaultFederatedAgentsSync';
 
 /**
  * Cache of provided agent collection
@@ -51,17 +49,22 @@ export async function $provideAgentCollectionForServer(): Promise<AgentCollectio
         isVerbose,
         tablePrefix,
     });
+
+    agentCollection = providedCollection;
+
+    const [{ attachAgentPreparationScheduling }, { scheduleDefaultFederatedAgentsSync }] = await Promise.all([
+        import('../utils/attachAgentPreparationScheduling'),
+        import('../utils/defaultFederatedAgents/scheduleDefaultFederatedAgentsSync'),
+    ]);
+
     attachAgentPreparationScheduling(providedCollection, { tablePrefix });
     scheduleDefaultFederatedAgentsSync({
         tablePrefix,
         localServerUrl: publicUrl.href,
     });
 
-    agentCollection = providedCollection;
-
     return agentCollection;
 }
-
 
 /**
  * TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming

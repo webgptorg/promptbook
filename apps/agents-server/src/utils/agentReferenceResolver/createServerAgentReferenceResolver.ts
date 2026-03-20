@@ -1,3 +1,4 @@
+import type { AgentReferenceResolver } from '../../../../../src/book-2.0/agent-source/AgentReferenceResolver';
 import { normalizeAgentName } from '../../../../../src/book-2.0/agent-source/normalizeAgentName';
 import {
     VOID_PSEUDO_AGENT_REFERENCE,
@@ -6,7 +7,6 @@ import {
     resolvePseudoAgentKindFromReference,
 } from '../../../../../src/book-2.0/agent-source/pseudoAgentReferences';
 import type { AgentCollection } from '../../../../../src/collection/agent-collection/AgentCollection';
-import type { AgentReferenceResolver } from '../../../../../src/book-2.0/agent-source/AgentReferenceResolver';
 import type { BookCommitment } from '../../../../../src/commitments/_base/BookCommitment';
 import {
     type AgentReferenceResolutionIssue,
@@ -40,6 +40,13 @@ const BASE58_PATTERN = /^[1-9A-HJ-NP-Za-km-z]+$/;
  * Upper bound for in-memory unresolved-reference issue tracking.
  */
 const MAX_TRACKED_RESOLUTION_ISSUES = 200;
+
+/**
+ * Upper bound for one federated-agent lookup request before falling back to an empty cache.
+ *
+ * @private
+ */
+const FEDERATED_AGENT_LOOKUP_TIMEOUT_MS = 1_500;
 
 /**
  * Creates a resolver backed by the Agents Server collection and configured federated servers.
@@ -361,7 +368,9 @@ class ServerAgentReferenceResolver implements IssueTrackingAgentReferenceResolve
         const endpoint = `${baseUrl}/api/agents`;
 
         try {
-            const response = await fetch(endpoint);
+            const response = await fetch(endpoint, {
+                signal: AbortSignal.timeout(FEDERATED_AGENT_LOOKUP_TIMEOUT_MS),
+            });
             if (!response.ok) {
                 return lookup;
             }

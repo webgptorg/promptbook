@@ -3,11 +3,17 @@
 import 'leaflet/dist/leaflet.css';
 
 import type { Feature, GeoJsonObject, GeoJsonProperties, Geometry } from 'geojson';
-import type { Layer, LatLng, Map as LeafletMap, Path, PathOptions } from 'leaflet';
-import L from 'leaflet';
+import type { LatLng, Layer, Map as LeafletMap, Path, PathOptions } from 'leaflet';
 import { Maximize2, X } from 'lucide-react';
 import { useEffect, useRef, useState, type MouseEvent, type RefObject } from 'react';
 import styles from './ChatMessageMap.module.css';
+
+/**
+ * Runtime Leaflet namespace loaded lazily on the client.
+ *
+ * @private internal helper of `<ChatMessageMap/>`
+ */
+type LeafletNamespace = typeof import('leaflet');
 
 /**
  * Identifier used when rendering the OpenStreetMap tile layer.
@@ -211,14 +217,14 @@ function decorateGeoJsonLayer(feature: ChatGeoJsonFeature, layer: Layer) {
  *
  * @private internal helper of `<ChatMessageMap/>`
  */
-function createPointOfInterestMarker(feature: ChatGeoJsonFeature, latlng: LatLng) {
+function createPointOfInterestMarker(leaflet: LeafletNamespace, feature: ChatGeoJsonFeature, latlng: LatLng) {
     const label = getGeoJsonFeatureLabel(feature);
     const initial = label ? label.trim().charAt(0).toLocaleUpperCase() : '';
     const initialHtml = initial
         ? `<span class="${styles.poiMarkerInitial}" aria-hidden="true">${escapeHtml(initial)}</span>`
         : '';
 
-    const icon = L.divIcon({
+    const icon = leaflet.divIcon({
         className: styles.poiMarkerIcon,
         html: `
             <span class="${styles.poiMarkerPulse}" aria-hidden="true"></span>
@@ -228,7 +234,7 @@ function createPointOfInterestMarker(feature: ChatGeoJsonFeature, latlng: LatLng
         iconAnchor: POI_MARKER_CONFIG.anchor,
     });
 
-    return L.marker(latlng, {
+    return leaflet.marker(latlng, {
         icon,
         riseOnHover: true,
     });
@@ -279,60 +285,78 @@ function useLeafletGeoJsonMap(containerRef: RefObject<HTMLDivElement | null>, da
             leafletRef.current = null;
         }
 
-        const map = L.map(container, {
-            center: [0, 0],
-            zoom: 2,
-            zoomControl: false,
-            attributionControl: false,
-        });
+        let isDisposed = false;
+        let disposeMap: (() => void) | undefined;
 
-        const layer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            id: DEFAULT_LAYER_ID,
-        });
+        void (async () => {
+            const leafletModule = await import('leaflet');
+            const leaflet = ('default' in leafletModule ? leafletModule.default : leafletModule) as LeafletNamespace;
 
-        layer.addTo(map);
-
-        const geoJsonLayer = L.geoJSON(data, {
-            style: getGeoJsonFeatureStyle,
-            pointToLayer: (feature: ChatGeoJsonFeature, latlng: LatLng) => createPointOfInterestMarker(feature, latlng),
-            onEachFeature: (feature: ChatGeoJsonFeature, layer: Layer) => decorateGeoJsonLayer(feature, layer),
-        });
-
-        geoJsonLayer.addTo(map);
-        const bounds = geoJsonLayer.getBounds();
-        if (bounds.isValid()) {
-            map.fitBounds(bounds, {
-                padding: [16, 16],
-            });
-        } else {
-            map.setView([0, 0], 2);
-        }
-
-        leafletRef.current = map;
-
-        const scheduleMapInvalidation = () => {
-            if (mapInvalidationTimeoutRef.current !== null) {
-                window.clearTimeout(mapInvalidationTimeoutRef.current);
+            if (isDisposed) {
+                return;
             }
 
-            mapInvalidationTimeoutRef.current = window.setTimeout(() => {
-                map.invalidateSize();
-                mapInvalidationTimeoutRef.current = null;
-            }, 0);
-        };
+            const map = leaflet.map(container, {
+                center: [0, 0],
+                zoom: 2,
+                zoomControl: false,
+                attributionControl: false,
+            });
 
-        scheduleMapInvalidation();
-        map.whenReady(scheduleMapInvalidation);
+            const layer = leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                id: DEFAULT_LAYER_ID,
+            });
+
+            layer.addTo(map);
+
+            const geoJsonLayer = leaflet.geoJSON(data, {
+                style: getGeoJsonFeatureStyle,
+                pointToLayer: (feature: ChatGeoJsonFeature, latlng: LatLng) =>
+                    createPointOfInterestMarker(leaflet, feature, latlng),
+                onEachFeature: (feature: ChatGeoJsonFeature, layer: Layer) => decorateGeoJsonLayer(feature, layer),
+            });
+
+            geoJsonLayer.addTo(map);
+            const bounds = geoJsonLayer.getBounds();
+            if (bounds.isValid()) {
+                map.fitBounds(bounds, {
+                    padding: [16, 16],
+                });
+            } else {
+                map.setView([0, 0], 2);
+            }
+
+            leafletRef.current = map;
+
+            const scheduleMapInvalidation = () => {
+                if (mapInvalidationTimeoutRef.current !== null) {
+                    window.clearTimeout(mapInvalidationTimeoutRef.current);
+                }
+
+                mapInvalidationTimeoutRef.current = window.setTimeout(() => {
+                    map.invalidateSize();
+                    mapInvalidationTimeoutRef.current = null;
+                }, 0);
+            };
+
+            scheduleMapInvalidation();
+            map.whenReady(scheduleMapInvalidation);
+
+            disposeMap = () => {
+                if (mapInvalidationTimeoutRef.current !== null) {
+                    window.clearTimeout(mapInvalidationTimeoutRef.current);
+                    mapInvalidationTimeoutRef.current = null;
+                }
+
+                map.remove();
+                leafletRef.current = null;
+            };
+        })();
 
         return () => {
-            if (mapInvalidationTimeoutRef.current !== null) {
-                window.clearTimeout(mapInvalidationTimeoutRef.current);
-                mapInvalidationTimeoutRef.current = null;
-            }
-
-            map.remove();
-            leafletRef.current = null;
+            isDisposed = true;
+            disposeMap?.();
         };
     }, [containerRef, data, enabled]);
 }

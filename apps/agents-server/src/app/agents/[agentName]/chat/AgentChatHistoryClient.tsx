@@ -5,16 +5,17 @@ import { MessageSquarePlusIcon } from 'lucide-react';
 import moment from 'moment';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MenuIcon } from '../../../../../../../src/book-components/icons/MenuIcon';
+import { SolidArrowButton } from '../../../../../../../src/book-components/icons/SolidArrowButton';
 import { useAgentNaming } from '../../../../components/AgentNaming/AgentNamingContext';
 import { showConfirm } from '../../../../components/AsyncDialogs/asyncDialogs';
 import { notifyError, notifyInfo } from '../../../../components/Notifications/notifications';
 import { usePrivateModePreferences } from '../../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { useBrowserPushNotifications } from '../../../../components/PushNotifications/BrowserPushNotificationsProvider';
+import { useServerLanguage } from '../../../../components/ServerLanguage/ServerLanguageProvider';
 import { AgentChatLoadingSkeleton } from '../../../../components/Skeleton/AgentChatLoadingSkeleton';
 import { ChatThreadLoadingSkeleton } from '../../../../components/Skeleton/ChatThreadLoadingSkeleton';
-import { useServerLanguage } from '../../../../components/ServerLanguage/ServerLanguageProvider';
 import { useActiveBrowserTab } from '../../../../hooks/useActiveBrowserTab';
-import { SolidArrowButton } from '../../../../../../../src/book-components/icons/SolidArrowButton';
+import { consumeShareTargetPayloadFromBrowser } from '../../../../utils/shareTargetClient';
 import {
     cancelUserChatJob,
     cancelUserChatTimeout,
@@ -31,12 +32,11 @@ import {
     type UserChatSummary,
     type UserChatTimeout,
 } from '../../../../utils/userChatClient';
-import { consumeShareTargetPayloadFromBrowser } from '../../../../utils/shareTargetClient';
 import { AgentChatWrapper } from '../AgentChatWrapper';
 import { takePendingProfileMessage } from '../profileMessageCache';
 import type { AgentChatLayoutVariant } from './AgentChatLayoutVariant';
 import { AgentChatPageLayout } from './AgentChatPageLayout';
-import { AgentChatSidebar, AGENT_CHAT_SIDEBAR_ID } from './AgentChatSidebar';
+import { AGENT_CHAT_SIDEBAR_ID, AgentChatSidebar } from './AgentChatSidebar';
 import { CanonicalAgentChatPanel } from './CanonicalAgentChatPanel';
 import { mergeCanonicalChatMessagesWithPendingOutboundMessages } from './mergeCanonicalChatMessagesWithPendingOutboundMessages';
 import {
@@ -155,12 +155,8 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const { formatText } = useAgentNaming();
     const { isPrivateModeEnabled } = usePrivateModePreferences();
     const { t } = useServerLanguage();
-    const {
-        maybePromptAfterUserMessageGesture,
-        rememberDefaultOffHintShown,
-        setFocusedChat,
-        setNotificationsEnabled,
-    } = useBrowserPushNotifications();
+    const { maybePromptAfterUserMessageGesture, rememberDefaultOffHintShown, setFocusedChat, setNotificationsEnabled } =
+        useBrowserPushNotifications();
     const isActiveBrowserTab = useActiveBrowserTab();
     const shouldUseHistory = isHistoryEnabled && !isPrivateModeEnabled;
     const resolvedChatRouteBasePath = chatRouteBasePath || `/agents/${encodeURIComponent(agentName)}/chat`;
@@ -183,7 +179,9 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
     const [showExternalChats, setShowExternalChats] = useState(false);
     const [currentTimestamp, setCurrentTimestamp] = useState(() => Date.now());
-    const [pendingNotificationHintAssistantMessageIds, setPendingNotificationHintAssistantMessageIds] = useState<Array<string>>([]);
+    const [pendingNotificationHintAssistantMessageIds, setPendingNotificationHintAssistantMessageIds] = useState<
+        Array<string>
+    >([]);
     const hasInitialAutoMessageBeenConsumedRef = useRef(false);
     const autoExecuteTargetChatIdRef = useRef<string | undefined>(initialForceNewChat ? undefined : initialChatId);
     const shareTargetIdRef = useRef<string | undefined>(initialShareTargetId);
@@ -285,13 +283,12 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             return;
         }
 
-        const hasCompletedTrackedAssistantMessage = pendingNotificationHintAssistantMessageIds.some((assistantMessageId) =>
-            activeMessages.some(
-                (message) =>
-                    message.id === assistantMessageId &&
-                    message.sender !== 'USER' &&
-                    message.isComplete !== false,
-            ),
+        const hasCompletedTrackedAssistantMessage = pendingNotificationHintAssistantMessageIds.some(
+            (assistantMessageId) =>
+                activeMessages.some(
+                    (message) =>
+                        message.id === assistantMessageId && message.sender !== 'USER' && message.isComplete !== false,
+                ),
         );
         if (!hasCompletedTrackedAssistantMessage) {
             return;
@@ -684,10 +681,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                     intentSequence,
                     reason: 'bootstrap_create_chat',
                 });
-                setChats([
-                    createdChat.chat,
-                    ...snapshot.chats.filter((chat) => chat.id !== createdChat.chat.id),
-                ]);
+                setChats([createdChat.chat, ...snapshot.chats.filter((chat) => chat.id !== createdChat.chat.id)]);
                 return;
             }
 
@@ -1167,9 +1161,10 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             const clientMessageId = payload.clientMessageId
                 ? payload.clientMessageId
                 : retryingFailedInitialMessage
-                  ? failedSendRef.current!.clientMessageId
-                  : createUserChatClientMessageId();
-            const shouldMaintainOptimisticPendingMessage = Boolean(payload.clientMessageId) || retryingFailedInitialMessage;
+                ? failedSendRef.current!.clientMessageId
+                : createUserChatClientMessageId();
+            const shouldMaintainOptimisticPendingMessage =
+                Boolean(payload.clientMessageId) || retryingFailedInitialMessage;
 
             if (shouldMaintainOptimisticPendingMessage) {
                 queuePendingOutboundMessage({
@@ -1334,9 +1329,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             );
         }
 
-        return (
-            guestChatContent
-        );
+        return guestChatContent;
     }
 
     if (isBootstrapping || !activeChatId) {
@@ -1348,7 +1341,9 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             );
         }
 
-        return <AgentChatLoadingSkeleton showSidebar={!isHeadlessMode} isSidebarCollapsed={effectiveIsSidebarCollapsed} />;
+        return (
+            <AgentChatLoadingSkeleton showSidebar={!isHeadlessMode} isSidebarCollapsed={effectiveIsSidebarCollapsed} />
+        );
     }
 
     const chatSurface = (
@@ -1468,7 +1463,11 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         }
 
         return (
-            <AgentChatPageLayout variant={layoutVariant} sidebar={chatSidebar} mobileSidebarTrigger={defaultMobileSidebarTrigger}>
+            <AgentChatPageLayout
+                variant={layoutVariant}
+                sidebar={chatSidebar}
+                mobileSidebarTrigger={defaultMobileSidebarTrigger}
+            >
                 {chatSurface}
             </AgentChatPageLayout>
         );
@@ -1506,10 +1505,7 @@ function resolveErrorMessage(error: unknown, fallbackMessage: string): string {
 /**
  * Moves one chat summary to the top of the sidebar list.
  */
-function replaceChatInList(
-    chats: ReadonlyArray<UserChatSummary>,
-    targetChat: UserChatSummary,
-): Array<UserChatSummary> {
+function replaceChatInList(chats: ReadonlyArray<UserChatSummary>, targetChat: UserChatSummary): Array<UserChatSummary> {
     const remainingChats = chats.filter((chat) => chat.id !== targetChat.id);
     return [targetChat, ...remainingChats];
 }

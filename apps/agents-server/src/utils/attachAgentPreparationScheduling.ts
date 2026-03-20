@@ -1,5 +1,5 @@
-import { computeAgentHash } from '@promptbook-local/core';
 import { AgentCollection, string_agent_permanent_id, string_book } from '@promptbook-local/types';
+import { computeAgentHash } from '../../../../src/book-2.0/agent-source/computeAgentHash';
 import { scheduleAgentPreparation } from './agentPreparation';
 
 /**
@@ -18,9 +18,7 @@ type DecoratableAgentCollection = AgentCollection & {
  * Removes META ID lines before fingerprinting so hashes match persisted AgentCollection behavior.
  */
 function stripMetaIdLines(agentSource: string_book): string_book {
-    const strippedLines = agentSource
-        .split(/\r?\n/)
-        .filter((line) => !line.trim().startsWith('META ID '));
+    const strippedLines = agentSource.split(/\r?\n/).filter((line) => !line.trim().startsWith('META ID '));
 
     return strippedLines.join('\n') as string_book;
 }

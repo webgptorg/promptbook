@@ -11,7 +11,16 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
     // console.log('Service Worker fetching.', event.request.url);
-    // Simple pass-through fetch
+    const requestUrl = new URL(event.request.url);
+    const isSameOrigin = requestUrl.origin === self.location.origin;
+    const isApiRequest =
+        isSameOrigin && (requestUrl.pathname.startsWith('/api/') || /\/agents\/[^/]+\/api\//.test(requestUrl.pathname));
+
+    if (isApiRequest) {
+        return;
+    }
+
+    // Simple pass-through fetch for non-API requests.
     event.respondWith(fetch(event.request));
 });
 

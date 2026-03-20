@@ -1,3 +1,15 @@
+-   Fixed Agents Server homepage/root-route streaming hangs during offline or slow federated-server lookups by time-bounding remote agent-reference discovery, so anonymous `page.goto('/')` E2E flows no longer wait indefinitely for unreachable `/api/agents` federation endpoints.
+
+-   Fixed Agents Server runtime startup regressions by replacing broad package-barrel imports in the server collection bootstrap path and admin chat-feedback chat rendering with direct source imports, preventing circular initialization failures on `/` and browser-only chat modules from being evaluated on the server.
+
+-   Fixed chat-map server startup crashes by lazily loading Leaflet inside the client-only GeoJSON map effect, so admin chat-feedback and other chat surfaces no longer evaluate browser-only map code while the Next.js server bundle is being loaded.
+
+-   Fixed Agents Server homepage bootstrap instability by deferring agent-collection scheduling helpers until after the base collection cache is initialized, which breaks the remaining circular startup path that could still throw `Cannot access 'o' before initialization` on `/`.
+
+-   Fixed durable chat testability and request routing by making the service worker skip same-origin API requests, so chat-history/user-chat fetches go straight to the network instead of being pass-through proxied by the worker and becoming invisible to Playwright request interception.
+
+-   Fixed Agents Server durable chat history flows to stay usable on databases that have not yet applied the `UserChatTimeout` migration, by falling back to empty timeout state for chat reads/background polling instead of failing `New chat`, optimistic first-message navigation, or chat-selection refreshes with `relation "UserChatTimeout" does not exist`.
+
 -   Fixed Agents Server mobile chat tray access on the standalone chat page so the `Open chats sidebar` button now sits in a dedicated mobile slot above the transcript instead of floating over messages or the composer, while still respecting lateral device safe-area insets.
 
 -   Added Android share-sheet support for installed Agents Server PWAs, so each installed agent can appear as its own share target and open straight into a fresh 1:1 chat with the shared text or uploaded file attachments auto-sent as the first user message.
