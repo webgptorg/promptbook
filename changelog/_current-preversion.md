@@ -1,3 +1,9 @@
+-   Fixed Agents Server desktop header menus to prevent accidental clicks through hover-opened panels and unified dropdown interaction behavior:
+    -   Added shared hover/click interaction state for desktop menus with delayed hover-preview opening and immediate click-to-commit opening.
+    -   Made hover-opened desktop dropdown panels non-interactive until committed by click, so delayed-close overlays no longer capture clicks intended for page content beneath the header.
+    -   Refactored Documentation, System, Agents hierarchy, Agent View (`Profile/Chat/Book`), and nested `More` handling to use the same shared dropdown interaction and submenu rendering logic.
+    -   Applied the same unified hover-preview/click-commit behavior to desktop federated-server and profile dropdown triggers for consistent top-header interaction rules.
+
 -   Added `USE CALENDAR` end-to-end support for Agents Server with Google Calendar integration:
     -   Added a new core commitment `USE CALENDAR` (alias `CALENDAR`) with parser/runtime wiring, capability chips, tool schemas/functions (`calendar_list_events`, `calendar_get_event`, `calendar_create_event`, `calendar_update_event`, `calendar_delete_event`, `calendar_invite_guests`), and metadata extraction for provider URL/scopes/calendar id.
     -   Added Google Calendar OAuth backend flows (`/api/calendar-oauth/connect`, `/api/calendar-oauth/callback`, `/api/calendar-oauth/status`, `/api/calendar-oauth/refresh`, `/api/calendar-oauth/revoke`) with signed state, wallet token persistence, refresh-token handling, and scoped redirect status reporting.
