@@ -1,10 +1,10 @@
+[ ]
 
 [🔐🤖] Agents Server — crawling, robots.txt, sitemap and visibility policy
 
--   *(@@@@ Written by agent)*
 -   Overview: Define and implement server-level and agent-level crawling/scraping visibility so that by default the server is private (no sitemap, no crawling allowed), while explicitly public agents are discoverable and fully indexable. Ensure robots.txt, sitemap generation, OG tags, headers and metadata honor the server and agent visibility settings.
 -   Goals:
-    -   Default server visibility = private. Private servers must not expose sitemaps, must disallow crawling in robots.txt, must avoid leaking internal URLs or metadata to scraping engines.
+    -   Default server visibility, determined by metadata item `SERVER_VISIBILITY` (`PRIVATE`/`PUBLIC`) = by default `PRIVATE`. Private servers must not expose sitemaps, must disallow crawling in robots.txt, must avoid leaking internal URLs or metadata to scraping engines.
     -   Public servers should be maximally friendly: expose public agents in sitemap(s), provide permissive robots.txt, include full Open Graph and social metadata, set appropriate X-Robots-Tag headers to allow indexing.
     -   Unlisted agents: accessible by exact link on private servers but not listed in any sitemap and not discoverable by crawling. On public servers unlisted agents remain unlisted (not in sitemap) but can be accessed by link.
     -   Agent-level override: each Agent has a visibility metadata (private / unlisted / public). Behavior is combination of server visibility and agent visibility (server private + agent public => agent remains accessible via direct link but not listed; server public + agent public => listed and indexable).
@@ -29,7 +29,7 @@
     -   For public servers, include a visible link to sitemap (e.g., /sitemap.xml) on footer and add appropriate meta tags for sharing.
     -   For private servers, remove sitemap links from footer and avoid exposing bulk lists of agents.
 -   Infra / deployment tasks:
-    -   Add environment variable or deployment config: PROMPTBOOK_SERVER_VISIBILITY (private|public) that can be set at deploy time.
+    -   Add environment variable or deployment config: `SERVER_VISIBILITY` (`PRIVATE`|`PUBLIC`) that can be set at deploy time.
     -   Ensure automated builds and deployment set correct value; document how to switch to public.
     -   CDN / reverse proxy rules: when server.private block or return 403 on sitemap endpoints and robots.txt should disallow all crawlers.
 -   Security & privacy considerations:
@@ -43,22 +43,4 @@
 -   Migration & changelog:
     -   DB migration script to add Agent.visibility (if missing) and default to private/unlisted as appropriate.
     -   Add an entry to changelog: "Agents server: server-level visibility, robots.txt and sitemap behaviour".
--   Files / areas to change (starting points):
-    -   apps/agents-server (backend middleware, routes)
-    -   apps/agents-server/src/web/robots.ts (new)
-    -   apps/agents-server/src/web/sitemap.ts (new)
-    -   apps/agents-server/src/models/agent.ts (visibility enum + migration)
-    -   apps/agents-server/src/config (server visibility env handling)
-    -   apps/web (public site UI changes, footer sitemap link)
-    -   scripts/migrations (DB migration)
-    -   changelog/_current-preversion.md
--   Rollout plan:
-    -   Stage in staging environment with PROMPTBOOK_SERVER_VISIBILITY=private and public to validate both behaviors.
-    -   Notify admins about default private behavior and provide docs for switching to public.
--   Questions / missing information I need to proceed:
-    -   What are the exact model and file names for Server/Agent in the repo (if different from apps/agents-server/src/models/agent.ts)? @@@
-    -   Do we prefer an env var name other than PROMPTBOOK_SERVER_VISIBILITY? @@@
-    -   Are there any multi-tenant or per-host visibility requirements (e.g., one deployment serving multiple tenants each with own visibility)? @@@
-    -   Is there an existing robots.txt / sitemap implementation to adapt? If yes, where is it located? @@@
-
-This commit was done by [Promptbook Agent](https://pavol-hejny.ptbk.io/agents/E1upys74QBME7s/)
+-   You are working with the [Agents Server](apps/agents-server)
