@@ -1,0 +1,64 @@
+
+[🔐🤖] Agents Server — crawling, robots.txt, sitemap and visibility policy
+
+-   *(@@@@ Written by agent)*
+-   Overview: Define and implement server-level and agent-level crawling/scraping visibility so that by default the server is private (no sitemap, no crawling allowed), while explicitly public agents are discoverable and fully indexable. Ensure robots.txt, sitemap generation, OG tags, headers and metadata honor the server and agent visibility settings.
+-   Goals:
+    -   Default server visibility = private. Private servers must not expose sitemaps, must disallow crawling in robots.txt, must avoid leaking internal URLs or metadata to scraping engines.
+    -   Public servers should be maximally friendly: expose public agents in sitemap(s), provide permissive robots.txt, include full Open Graph and social metadata, set appropriate X-Robots-Tag headers to allow indexing.
+    -   Unlisted agents: accessible by exact link on private servers but not listed in any sitemap and not discoverable by crawling. On public servers unlisted agents remain unlisted (not in sitemap) but can be accessed by link.
+    -   Agent-level override: each Agent has a visibility metadata (private / unlisted / public). Behavior is combination of server visibility and agent visibility (server private + agent public => agent remains accessible via direct link but not listed; server public + agent public => listed and indexable).
+-   Acceptance criteria:
+    -   Default server configuration is private; newly created installations behave as private until explicitly switched.
+    -   GET /robots.txt responds with a generated robots file that reflects server visibility and exposes only allowed paths. For private servers it should disallow all crawling and not link sitemaps; for public servers it should allow crawling and include sitemap links for public agents.
+    -   GET /sitemap.xml and any sitemap endpoints return 404 or 403 when server is private; when public they return sitemap entries limited to public agents and paginated if necessary.
+    -   Public agents served on private server: main page shows public agents but sitemaps and indexing remains off by default.
+    -   Open Graph / Twitter card metadata present and complete for public agents when server is public (title, description, image, canonical), and reduced/presence-minimized on private servers to avoid unintentional indexing.
+    -   X-Robots-Tag and HTTP headers correctly set per visibility policy.
+    -   Unit and integration tests added covering robots.txt generation, sitemap generation, and header/meta behavior.
+-   Implementation tasks (backend):
+    -   Add server-level metadata flag: Server.visibility (enum: private, public), default private. Persist in config / env and admin UI.
+    -   Add Agent.visibility (enum: private, unlisted, public) if not present; migrate DB if necessary.
+    -   Implement middleware to serve robots.txt dynamically based on Server.visibility and optionally per-host overrides. File: apps/agents-server/src/web/robots.ts (or equivalent).
+    -   Implement sitemap generator endpoint(s) that respect Server.visibility and include only public agents when server is public. File: apps/agents-server/src/web/sitemap.ts.
+    -   Ensure sitemap generation paginates and includes canonical URLs and lastmod.
+    -   Serve X-Robots-Tag header on agent pages: noindex, nofollow for private server/agent combinations.
+    -   Ensure public sitemap URLs are reachable and canonical when server public.
+-   Implementation tasks (frontend / UX):
+    -   Admin UI: toggle Server.visibility (private/public) and per-agent visibility (private/unlisted/public) with explanatory help text.
+    -   For public servers, include a visible link to sitemap (e.g., /sitemap.xml) on footer and add appropriate meta tags for sharing.
+    -   For private servers, remove sitemap links from footer and avoid exposing bulk lists of agents.
+-   Infra / deployment tasks:
+    -   Add environment variable or deployment config: PROMPTBOOK_SERVER_VISIBILITY (private|public) that can be set at deploy time.
+    -   Ensure automated builds and deployment set correct value; document how to switch to public.
+    -   CDN / reverse proxy rules: when server.private block or return 403 on sitemap endpoints and robots.txt should disallow all crawlers.
+-   Security & privacy considerations:
+    -   Do not include internal or sensitive agent URLs in sitemaps or robots.txt when server is private.
+    -   Avoid exposing list endpoints or APIs that enumerate agents for anonymous users when server private.
+    -   Ensure server logs and analytics do not leak agent content to external services when private.
+-   Tests & QA:
+    -   Unit tests for robots.txt generation logic for both visibility modes.
+    -   Integration tests for sitemap endpoints, including pagination and correct inclusion/exclusion of agents.
+    -   E2E tests simulating crawlers (and checking headers) to verify noindex behavior.
+-   Migration & changelog:
+    -   DB migration script to add Agent.visibility (if missing) and default to private/unlisted as appropriate.
+    -   Add an entry to changelog: "Agents server: server-level visibility, robots.txt and sitemap behaviour".
+-   Files / areas to change (starting points):
+    -   apps/agents-server (backend middleware, routes)
+    -   apps/agents-server/src/web/robots.ts (new)
+    -   apps/agents-server/src/web/sitemap.ts (new)
+    -   apps/agents-server/src/models/agent.ts (visibility enum + migration)
+    -   apps/agents-server/src/config (server visibility env handling)
+    -   apps/web (public site UI changes, footer sitemap link)
+    -   scripts/migrations (DB migration)
+    -   changelog/_current-preversion.md
+-   Rollout plan:
+    -   Stage in staging environment with PROMPTBOOK_SERVER_VISIBILITY=private and public to validate both behaviors.
+    -   Notify admins about default private behavior and provide docs for switching to public.
+-   Questions / missing information I need to proceed:
+    -   What are the exact model and file names for Server/Agent in the repo (if different from apps/agents-server/src/models/agent.ts)? @@@
+    -   Do we prefer an env var name other than PROMPTBOOK_SERVER_VISIBILITY? @@@
+    -   Are there any multi-tenant or per-host visibility requirements (e.g., one deployment serving multiple tenants each with own visibility)? @@@
+    -   Is there an existing robots.txt / sitemap implementation to adapt? If yes, where is it located? @@@
+
+This commit was done by [Promptbook Agent](https://pavol-hejny.ptbk.io/agents/E1upys74QBME7s/)
