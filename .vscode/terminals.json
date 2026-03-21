@@ -861,6 +861,13 @@
             "focus": false
         },
         {
+            "name": "🔼🧪 Release pre-release version (ignore pre-checks) (💸)(⏳)",
+            "command": "npm version prerelease --ignore-scripts && npm run postversion",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🔼🩹 Release patch version (💤)(💸)(⏳)",
             "command": "npm version patch",
             "onlySingle": true,
