@@ -1384,6 +1384,13 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                                     },
                                 },
                                 {
+                                    name: '🔍 Debug Node & npm version',
+                                    run: spaceTrim(`
+                                        node -v
+                                        npm -v
+                                    `),
+                                },
+                                {
                                     name: '🔐 Prepare NPM authentication',
                                     run: spaceTrim(`
                                         if [ -n "$NPM_TOKEN" ]; then
