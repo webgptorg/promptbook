@@ -20,7 +20,7 @@ export const PROMPTBOOK_ENGINE_VERSION: string_promptbook_version = '0.112.0-11'
 
 /**
  * Represents the version string of the Promptbook engine.
- * It follows semantic versioning (e.g., `0.112.0-0`).
+ * It follows semantic versioning (e.g., `0.112.0-11`).
  *
  * @generated
  */
