@@ -1,3 +1,5 @@
+-   Fixed NPM publishing for generated release workflows by restoring optional token-based registry authentication as a fallback to trusted publishing and by tagging prerelease package versions with the `next` dist-tag instead of promoting them to `latest`.
+
 -   Added an isometric `Office` homepage view to Agents Server alongside `List` and `Graph`, with room-based local/federated agent grouping, desk/meeting/corridor activity scenes inferred from existing metadata, pan/zoom/reset/team-focus controls, hover quick actions for profile/chat/book, and federated "head office" styling for core remote colleagues.
 
 -   Fixed Agents Server desktop header dropdown UX so hover now opens a delayed non-blocking preview while click opens the same menu immediately in a stable interactive mode, preventing transient Documentation/System/agent/profile menus from capturing accidental clicks meant for page content under the header.

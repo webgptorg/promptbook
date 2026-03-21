@@ -483,6 +483,10 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         throw new Error(`Version is not defined in the package.json`);
     }
 
+    const npmDistTag = mainPackageJson.version.includes('-') ? 'next' : 'latest';
+
+    console.info(`NPM dist-tag ${npmDistTag}`);
+
     const allDependencies = {
         ...mainPackageJson.dependencies,
         // <- TODO: Maybe add `devDependencies` and check collisions between `dependencies` and `devDependencies`
@@ -1380,6 +1384,21 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                                     },
                                 },
                                 {
+                                    name: '🔐 Prepare NPM authentication',
+                                    run: spaceTrim(`
+                                        if [ -n "$NPM_TOKEN" ]; then
+                                            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+                                        fi
+                                    `),
+                                    env: {
+                                        NPM_TOKEN: '${{secrets.NPM_TOKEN}}',
+                                    },
+                                },
+                                {
+                                    name: '🏷️ Detect NPM dist-tag',
+                                    run: `echo "NPM_DIST_TAG=${npmDistTag}" >> $GITHUB_ENV`,
+                                },
+                                {
                                     name: '🔽 Install dependencies',
                                     run: 'npm ci',
                                 },
@@ -1392,7 +1411,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                                 ...packagesMetadata.map(({ packageBasename, packageFullname }) => ({
                                     name: `🔼 Publish ${packageFullname}`,
                                     'working-directory': `./packages/${packageBasename}`,
-                                    run: 'npm publish --provenance --access public',
+                                    run: 'npm publish --provenance --access public --tag $NPM_DIST_TAG',
                                     // Note: Migrated to Trusted Publisher
                                     // env: {
                                     //     NODE_AUTH_TOKEN: '${{secrets.NPM_TOKEN}}',
