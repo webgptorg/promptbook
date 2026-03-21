@@ -20,6 +20,7 @@
         -   When clicking on the menu item, it should open the menu immediately and make it interactive.
     -   Click-to-open should be fully interactive and stable for users who intentionally open and use the menu.
     -   Quick mouse movement from top to page should never result in accidental menu clicks.
+    -   The behavior should be consistent across all menu items and subitems, including the "More" submenu.
 
 -   You are working with the [Agents Server](apps/agents-server)
 
