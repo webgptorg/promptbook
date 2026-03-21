@@ -15,6 +15,11 @@ import type { ChatParticipant } from '../types/ChatParticipant';
 import { getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletInfo';
 import { resolveToolCallState } from '../utils/resolveToolCallState';
 import {
+    buildTimeoutToolPrimarySentence,
+    buildTimeoutToolScheduleSentence,
+    resolveTimeoutToolCallPresentation,
+} from '../utils/timeoutToolCallPresentation';
+import {
     parseWalletCredentialToolCallResult,
     type WalletCredentialToolCallResult,
     WALLET_CREDENTIAL_TOOL_CALL_NAME,
@@ -622,6 +627,105 @@ function formatMemoryTimestamp(value?: string): string | null {
 }
 
 /**
+ * Default snooze interval used by timeout quick actions.
+ *
+ * @private internal timeout-chat constant
+ */
+const DEFAULT_TIMEOUT_SNOOZE_DURATION_MILLISECONDS = 5 * 60 * 1_000;
+
+/**
+ * Configuration for the shared clock panel used by time and timeout popups.
+ *
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+type ToolCallClockPanelOptions = {
+    /**
+     * Date rendered by the analog clock and local labels.
+     */
+    date: Date;
+    /**
+     * Optional relative label (for example: `called 2 minutes ago`).
+     */
+    relativeLabel?: string | null;
+    /**
+     * Optional timezone label shown below the date.
+     */
+    timezoneLabel?: string | null;
+};
+
+/**
+ * Renders a shared analog-clock panel used by time and timeout tool views.
+ *
+ * @param options - Clock panel rendering options.
+ * @returns Clock section with local date/time labels.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function renderToolCallClockPanel(options: ToolCallClockPanelOptions): ReactElement {
+    const { date, relativeLabel, timezoneLabel } = options;
+
+    return (
+        <div className={styles.toolCallClockPanel}>
+            <ClockIcon date={date} size={150} />
+            <div className={styles.toolCallClockLabels}>
+                <div className={styles.toolCallClockPrimary}>
+                    {date.toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                    })}
+                </div>
+                <div className={styles.toolCallClockSecondary}>{date.toLocaleDateString()}</div>
+                {relativeLabel && <div className={styles.toolCallClockMeta}>({relativeLabel})</div>}
+                {timezoneLabel && <div className={styles.toolCallClockMeta}>{timezoneLabel}</div>}
+            </div>
+        </div>
+    );
+}
+
+/**
+ * Copies one quick action command to clipboard when supported.
+ *
+ * @param command - Command text copied for the user.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function copyTimeoutQuickActionCommand(command: string): void {
+    if (typeof navigator === 'undefined' || !navigator.clipboard?.writeText) {
+        return;
+    }
+
+    void navigator.clipboard.writeText(command);
+}
+
+/**
+ * Builds one `cancel_timeout(...)` helper command for timeout quick actions.
+ *
+ * @param timeoutId - Timeout identifier to cancel.
+ * @returns Helper command text.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function createCancelTimeoutQuickActionCommand(timeoutId: string): string {
+    return `cancel_timeout(${JSON.stringify({ timeoutId })})`;
+}
+
+/**
+ * Builds one `set_timeout(...)` helper command for timeout snooze quick actions.
+ *
+ * @param message - Optional timeout wake-up message.
+ * @returns Helper command text.
+ * @private internal utility of `<ChatToolCallModal/>`
+ */
+function createSnoozeTimeoutQuickActionCommand(message?: string): string {
+    const payload: Record<string, TODO_any> = {
+        milliseconds: DEFAULT_TIMEOUT_SNOOZE_DURATION_MILLISECONDS,
+    };
+
+    if (typeof message === 'string' && message.trim()) {
+        payload.message = message.trim();
+    }
+
+    return `set_timeout(${JSON.stringify(payload)})`;
+}
+
+/**
  * Options for rendering a tool call detail view.
  *
  * @private utility of `<ChatToolCallModal/>`
@@ -643,6 +747,10 @@ type ToolCallDetailsOptions = {
      * Chat button color for fallback styling.
      */
     buttonColor: WithTake<Color>;
+    /**
+     * Requests switching the modal into advanced technical mode.
+     */
+    onRequestAdvancedView?: () => void;
 };
 
 /**
@@ -1001,7 +1109,7 @@ function renderRunBrowserToolCall(options: {
  * @private function of ChatToolCallModal
  */
 export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactElement {
-    const { toolCall, toolTitles, agentParticipant, buttonColor } = options;
+    const { toolCall, toolTitles, agentParticipant, buttonColor, onRequestAdvancedView } = options;
     const resultRaw = parseToolCallResult(toolCall.result);
     const args = parseToolCallArguments(toolCall);
     const toolCallDate = getToolCallTimestamp(toolCall);
@@ -1024,6 +1132,7 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
     const isSearch =
         toolCall.name === 'web_search' || toolCall.name === 'useSearchEngine' || toolCall.name === 'search';
     const isTime = toolCall.name === 'get_current_time' || toolCall.name === 'useTime';
+    const isTimeout = toolCall.name === 'set_timeout' || toolCall.name === 'cancel_timeout';
     const isEmail = toolCall.name === 'send_email' || toolCall.name === 'useEmail';
     const isPopup = toolCall.name === 'open_popup' || toolCall.name === 'usePopup' || toolCall.name === 'popup';
     const isRunBrowser = toolCall.name === 'run_browser';
@@ -1248,40 +1357,18 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
                 </div>
 
                 <div className={styles.searchModalContent}>
-                    <div
-                        style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            gap: '20px',
-                            padding: '20px',
-                        }}
-                    >
-                        {isValidDate && displayDate && <ClockIcon date={displayDate} size={150} />}
-                        <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '2em', fontWeight: 'bold' }}>
-                                {isValidDate && displayDate
-                                    ? displayDate.toLocaleTimeString([], {
-                                          hour: '2-digit',
-                                          minute: '2-digit',
-                                      })
-                                    : 'Unknown time'}
-                            </div>
-                            <div style={{ color: '#666' }}>
-                                {isValidDate && displayDate ? displayDate.toLocaleDateString() : 'Unknown date'}
-                            </div>
-                            {relativeLabel && (
-                                <div style={{ fontSize: '0.9em', color: '#888', marginTop: '5px' }}>
-                                    ({relativeLabel})
-                                </div>
-                            )}
-                            {args.timezone && (
-                                <div style={{ fontSize: '0.9em', color: '#888', marginTop: '5px' }}>
-                                    Timezone: {args.timezone}
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                    {isValidDate && displayDate ? (
+                        renderToolCallClockPanel({
+                            date: displayDate,
+                            relativeLabel,
+                            timezoneLabel:
+                                typeof args.timezone === 'string' && args.timezone.trim()
+                                    ? `Timezone: ${args.timezone.trim()}`
+                                    : null,
+                        })
+                    ) : (
+                        <p className={styles.toolCallEmpty}>Unknown time</p>
+                    )}
                     <div className={styles.toolCallDetails}>
                         <p>
                             <strong>Timestamp of call:</strong>
@@ -1291,6 +1378,108 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
                                 {toolCallDate ? toolCallDate.toLocaleString() : 'Unknown'}
                             </pre>
                         </div>
+                    </div>
+                </div>
+            </>
+        );
+    }
+
+    if (isTimeout) {
+        const timeoutPresentation = resolveTimeoutToolCallPresentation({
+            toolCallName: toolCall.name,
+            args,
+            resultRaw,
+            currentDate: new Date(),
+        });
+        const clockDate = timeoutPresentation?.dueAtDate || toolCallDate;
+        const isValidClockDate = !!clockDate && !Number.isNaN(clockDate.getTime());
+        const title =
+            timeoutPresentation?.action === 'cancel'
+                ? timeoutPresentation.status === 'cancelled'
+                    ? 'Timeout cancelled'
+                    : 'Timeout update'
+                : 'Timeout scheduled';
+        const primarySentence = timeoutPresentation
+            ? buildTimeoutToolPrimarySentence(timeoutPresentation)
+            : 'Timeout details are still loading.';
+        const scheduleSentence = timeoutPresentation ? buildTimeoutToolScheduleSentence(timeoutPresentation) : null;
+        const cancelCommand =
+            timeoutPresentation?.timeoutId && timeoutPresentation.action !== 'cancel'
+                ? createCancelTimeoutQuickActionCommand(timeoutPresentation.timeoutId)
+                : null;
+        const snoozeCommand = createSnoozeTimeoutQuickActionCommand(timeoutPresentation?.message || undefined);
+
+        return (
+            <>
+                <div className={styles.searchModalHeader}>
+                    <span className={styles.searchModalIcon}>⏱️</span>
+                    <h3 className={styles.searchModalQuery}>{title}</h3>
+                </div>
+
+                <div className={styles.searchModalContent}>
+                    {isValidClockDate && clockDate ? (
+                        renderToolCallClockPanel({
+                            date: clockDate,
+                            relativeLabel: timeoutPresentation?.relativeDueLabel || null,
+                            timezoneLabel: timeoutPresentation?.localTimezone
+                                ? `Timezone: ${timeoutPresentation.localTimezone}`
+                                : null,
+                        })
+                    ) : (
+                        <p className={styles.toolCallEmpty}>Scheduled time is unavailable.</p>
+                    )}
+
+                    <div className={styles.timeoutToolSummary}>
+                        <p className={styles.timeoutToolPrimarySentence}>{primarySentence}</p>
+                        {scheduleSentence && <p className={styles.timeoutToolSecondarySentence}>{scheduleSentence}</p>}
+                        {timeoutPresentation?.localDueDateLabel && (
+                            <p className={styles.timeoutToolSecondarySentence}>
+                                Date: {timeoutPresentation.localDueDateLabel}
+                            </p>
+                        )}
+                        {timeoutPresentation?.message && (
+                            <p className={styles.timeoutToolSecondarySentence}>
+                                Message: {timeoutPresentation.message}
+                            </p>
+                        )}
+                    </div>
+
+                    <div className={styles.timeoutToolActionRow} role="group" aria-label="Timeout quick actions">
+                        <button
+                            type="button"
+                            className={styles.timeoutToolActionButton}
+                            onClick={() => {
+                                if (!cancelCommand) {
+                                    return;
+                                }
+
+                                copyTimeoutQuickActionCommand(cancelCommand);
+                            }}
+                            disabled={!cancelCommand}
+                            aria-label="Cancel timeout"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            className={styles.timeoutToolActionButton}
+                            onClick={() => {
+                                copyTimeoutQuickActionCommand(snoozeCommand);
+                            }}
+                            aria-label="Snooze timeout"
+                        >
+                            Snooze
+                        </button>
+                        {onRequestAdvancedView && (
+                            <button
+                                type="button"
+                                className={styles.timeoutToolActionButton}
+                                onClick={onRequestAdvancedView}
+                                aria-label="View advanced timeout details"
+                            >
+                                View advanced
+                            </button>
+                        )}
                     </div>
                 </div>
             </>

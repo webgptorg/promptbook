@@ -1,3 +1,10 @@
+-   Improved `USE TIMEOUT` tool-call chip UX in chat by replacing raw technical labels with friendly defaults and adding on-demand advanced metadata:
+    -   Timeout chips now use concise, human-friendly labels (for example `Timeout: 5s`) instead of exposing raw `timeoutId` or payload internals by default.
+    -   Clicking timeout chips now opens a friendly default popup with the shared clock visual, relative/local scheduling copy, timezone context, and quick actions (`Cancel`, `Snooze`, `View advanced`).
+    -   Advanced mode now includes an explicit timeout metadata section with milliseconds, exact ISO UTC due timestamp, timezone, timeout id, and idempotency key for technical inspection.
+    -   Improved modal accessibility for tool-call details with explicit dialog semantics, initial focus handling, and `Escape` keyboard close support.
+    -   Added timeout chip/popup coverage in unit and integration tests, plus manual QA checklist `apps/agents-server/USE_TIMEOUT_CHIP_QA.md`.
+
 -   Added agent-scoped global timeout management in Agents Server so users can manage scheduled wake-ups across all chats of the same agent:
     -   Added a new `/agents/[agentName]/timeouts` "My timeouts" page that lists queued/running/paused/history timeout rows across chats and links each row back to its originating chat.
     -   Added agent-scoped timeout APIs (`GET /agents/[agentName]/api/timeouts`, `PATCH/DELETE /agents/[agentName]/api/timeouts/[timeoutId]`) for listing, editing, pausing/resuming, extending, and cancelling timeout rows.

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { isPseudoAgentUrl } from '../../../book-2.0/agent-source/pseudoAgentReferences';
 import { Color } from '../../../utils/color/Color';
 import type { WithTake } from '../../../utils/take/interfaces/ITakeChain';
@@ -79,6 +79,8 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
     const [teamProfiles, setTeamProfiles] = useState<Record<string, AgentProfileData>>({});
     const [selectedTeamToolCall, setSelectedTeamToolCall] = useState<TransitiveToolCall | null>(null);
     const [viewMode, setViewMode] = useState<ToolCallModalViewMode>('simple');
+    const modalDialogRef = useRef<HTMLDivElement>(null);
+    const previousActiveElementRef = useRef<HTMLElement | null>(null);
 
     const resultRaw = useMemo(() => (toolCall ? parseToolCallResult(toolCall.result) : null), [toolCall]);
     const teamResult = useMemo(() => parseTeamToolResult(resultRaw), [resultRaw]);
@@ -154,6 +156,46 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
         setViewMode('simple');
     }, [isOpen, toolCallIdentity]);
 
+    useEffect(() => {
+        if (!isOpen) {
+            return;
+        }
+
+        previousActiveElementRef.current =
+            typeof document !== 'undefined' && document.activeElement instanceof HTMLElement
+                ? document.activeElement
+                : null;
+        const animationFrame = requestAnimationFrame(() => {
+            modalDialogRef.current?.focus();
+        });
+
+        return () => {
+            cancelAnimationFrame(animationFrame);
+            previousActiveElementRef.current?.focus();
+            previousActiveElementRef.current = null;
+        };
+    }, [isOpen, toolCallIdentity]);
+
+    useEffect(() => {
+        if (!isOpen) {
+            return;
+        }
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key !== 'Escape') {
+                return;
+            }
+
+            event.preventDefault();
+            onClose();
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isOpen, onClose]);
+
     const focusedToolCallCandidate = selectedTeamToolCall?.toolCall || toolCall;
     const handleAdvancedToolCallReportExport = useCallback(
         async (destination: ToolCallReportDestination): Promise<void> => {
@@ -224,6 +266,9 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
                 toolTitles,
                 agentParticipant,
                 buttonColor,
+                onRequestAdvancedView: () => {
+                    setViewMode('advanced');
+                },
             })
         );
 
@@ -236,8 +281,20 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
                 }
             }}
         >
-            <div className={classNames(styles.ratingModalContent, styles.toolCallModal)}>
-                <button type="button" className={styles.modalCloseButton} onClick={onClose} aria-label="Close dialog">
+            <div
+                ref={modalDialogRef}
+                className={classNames(styles.ratingModalContent, styles.toolCallModal)}
+                role="dialog"
+                aria-modal="true"
+                aria-label="Tool call details"
+                tabIndex={-1}
+            >
+                <button
+                    type="button"
+                    className={styles.modalCloseButton}
+                    onClick={onClose}
+                    aria-label="Close tool call details"
+                >
                     <CloseIcon />
                 </button>
                 {modalContent}

@@ -4,6 +4,8 @@ import { MonacoEditorWithShadowDom } from '../../_common/MonacoEditorWithShadowD
 import type { ChatMessage } from '../types/ChatMessage';
 import { getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletInfo';
 import { resolveToolCallState } from '../utils/resolveToolCallState';
+import { parseToolCallArguments, parseToolCallResult } from '../utils/toolCallParsing';
+import { isTimeoutToolCallName, resolveTimeoutToolCallPresentation } from '../utils/timeoutToolCallPresentation';
 import styles from './Chat.module.css';
 
 /**
@@ -267,19 +269,45 @@ function resolveAdvancedToolCallHeader(options: AdvancedToolCallDetailsOptions):
 function createAdvancedToolCallPayloadSections(
     toolCall: NonNullable<ChatMessage['toolCalls']>[number],
 ): Array<AdvancedToolCallPayloadSection> {
+    const parsedArguments = parseToolCallArguments(toolCall);
+    const parsedResult = parseToolCallResult(toolCall.result);
     const requestPayload = {
         toolName: toolCall.name,
         state: resolveToolCallState(toolCall),
         arguments: toolCall.arguments,
     };
-
-    return [
+    const payloadSections: Array<AdvancedToolCallPayloadSection> = [
         { id: 'request', title: 'Input payload', payload: requestPayload },
         { id: 'logs', title: 'Streamed logs', payload: toolCall.logs ?? [] },
         { id: 'result', title: 'Output payload', payload: toolCall.result },
         { id: 'raw-model', title: 'Model payload', payload: toolCall.rawToolCall },
         { id: 'event', title: 'Full event', payload: toolCall },
     ];
+
+    if (isTimeoutToolCallName(toolCall.name)) {
+        const timeoutPresentation = resolveTimeoutToolCallPresentation({
+            toolCallName: toolCall.name,
+            args: parsedArguments,
+            resultRaw: parsedResult,
+            currentDate: new Date(),
+        });
+
+        payloadSections.splice(2, 0, {
+            id: 'timeout-metadata',
+            title: 'Timeout metadata',
+            payload: {
+                action: timeoutPresentation?.action ?? null,
+                status: timeoutPresentation?.status ?? null,
+                milliseconds: timeoutPresentation?.milliseconds ?? null,
+                dueAtIsoUtc: timeoutPresentation?.dueAtIsoUtc ?? null,
+                localTimezone: timeoutPresentation?.localTimezone ?? null,
+                timeoutId: timeoutPresentation?.timeoutId ?? null,
+                idempotencyKey: toolCall.idempotencyKey ?? null,
+            },
+        });
+    }
+
+    return payloadSections;
 }
 
 /**

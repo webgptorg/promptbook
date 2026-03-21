@@ -6,6 +6,7 @@ import {
     parseToolCallArguments,
     parseToolCallResult,
 } from './toolCallParsing';
+import { buildTimeoutToolCallChipLabel, resolveTimeoutToolCallPresentation } from './timeoutToolCallPresentation';
 import { parseWalletCredentialToolCallResult, WALLET_CREDENTIAL_TOOL_CALL_NAME } from './walletCredentialToolCall';
 
 const MEMORY_CHIP_MAX_LENGTH = 48;
@@ -95,6 +96,14 @@ export function getToolCallChipletInfo(toolCall: ToolCall): ToolCallChipletInfo 
     const isMemoryTool = toolCall.name === 'retrieve_user_memory' || toolCall.name === 'store_user_memory';
     const isTimeoutTool = toolCall.name === 'set_timeout' || toolCall.name === 'cancel_timeout';
     const resultRaw = parseToolCallResult(toolCall.result);
+    const timeoutPresentation = isTimeoutTool
+        ? resolveTimeoutToolCallPresentation({
+              toolCallName: toolCall.name,
+              args,
+              resultRaw,
+              currentDate: new Date(),
+          })
+        : null;
     const walletCredentialResult = parseWalletCredentialToolCallResult(resultRaw);
     const teamResult = parseTeamToolResult(resultRaw);
 
@@ -144,18 +153,10 @@ export function getToolCallChipletInfo(toolCall: ToolCall): ToolCallChipletInfo 
         }
     }
 
-    if (isTimeoutTool) {
-        if (typeof args.message === 'string' && args.message.trim()) {
-            return {
-                text: `${emoji} ${args.message.trim()}`,
-            };
-        }
-
-        if (typeof args.timeoutId === 'string' && args.timeoutId.trim()) {
-            return {
-                text: `${emoji} ${args.timeoutId.trim()}`,
-            };
-        }
+    if (isTimeoutTool && timeoutPresentation) {
+        return {
+            text: `${emoji} ${buildTimeoutToolCallChipLabel(timeoutPresentation)}`,
+        };
     }
 
     if (args.query) {
