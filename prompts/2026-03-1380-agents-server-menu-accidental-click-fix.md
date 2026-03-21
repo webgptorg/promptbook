@@ -1,14 +1,17 @@
 [ ]
 
-[🖱️📂] Fix accidental clicking into hover-opened menu
+[🖱️📂] Fix accidental clicking into hover-opened menu, unite menu items and subitems behavoiur
 
 -   Overview: Prevent the hover-opened menu from blocking clicks on page content while preserving fast, discoverable menu access; guarantee perfect UX for both: (1) intentionally opening and using the menu, (2) moving the mouse across the top and clicking page content without accidental clicks being captured by the menu.
 
--   Problem summary:
+-   Problem(s) summary:
 
-    -   Currently the app opens menu items on hover with a visible delay and leaves them interactive; when a user moves the mouse from the top toward the page content, the hover-opened dropdown can sit above content and catch clicks that were intended for the page.
+    -   Currently the app opens menu items on hover immediatelly leaves them interactive; but the closing of the menu has some delay; when a user moves the mouse from the top toward the page content, the menu is being opened on hover and captures clicks that are intended for the page content, resulting in accidental clicks inside the menu and a frustrated UX when users try to click content under a transient menu.
     -   This results in accidental clicks inside the menu and a frustrated UX when users try to click content under a transient menu.
     -   Context: Agents Server menu structure and behavior referenced in common project notes for the app.
+    -   Menu has the breadcrumns Server -> Agents -> Profile/Chat/Book, and menu items "Documentation" and "System". Theese should behave the same way in terms of hover and click interactions and also be implemented by shared code just with different content.
+    -   There is also a submenu under Profile/Chat/Book/More, "More" is not behaving like the main menu items, it is only click-to-open and not hover-to-open, but it should be unified with the main menu items in terms of behavior and implementation.
+    -   There should be one shared implementation for hover and click interactions for all menu items, subitems, subsubitems, with the same behavior and configuration.
 
 -   Goals (success criteria):
 
