@@ -13,8 +13,8 @@ import type { PackageJson } from 'type-fest';
 import { forTime } from 'waitasecond';
 import YAML from 'yaml';
 import { GENERATOR_WARNING } from '../../src/config';
-import { assertsError } from '../../src/errors/assertsError';
 import { UnexpectedError } from '../../src/errors/UnexpectedError';
+import { assertsError } from '../../src/errors/assertsError';
 import { $execCommand } from '../../src/utils/execCommand/$execCommand';
 import { isFileExisting } from '../../src/utils/files/isFileExisting';
 import { prettifyMarkdown } from '../../src/utils/markdown/prettifyMarkdown';
@@ -181,9 +181,7 @@ async function buildPackageBundle(packageBasename: string, packageFullname: stri
         'rollup.config.js',
     ];
 
-    console.info(
-        colors.yellow(process.cwd()) + ' ' + colors.green(process.execPath) + ' ' + colors.blue(rollupArgs.join(' ')),
-    );
+    console.info(colors.yellow(process.cwd()) + ' ' + colors.green(process.execPath) + ' ' + colors.blue(rollupArgs.join(' ')));
 
     await new Promise<void>((resolve, reject) => {
         const commandProcess = spawn(process.execPath, rollupArgs, {
@@ -400,9 +398,7 @@ async function buildPackageBundle(packageBasename: string, packageFullname: stri
 
         commandProcess.on('exit', (code, signal) => {
             if (activeRollupBuild !== null) {
-                activeRollupBuild.lastLifecycleEvent = `Rollup subprocess exited with code=${code ?? 'null'} signal=${
-                    signal ?? 'null'
-                }`;
+                activeRollupBuild.lastLifecycleEvent = `Rollup subprocess exited with code=${code ?? 'null'} signal=${signal ?? 'null'}`;
             }
         });
 
@@ -947,9 +943,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             if (activeRollupBuild !== null) {
                 console.error(`📦 Active bundle: ${activeRollupBuild.packageFullname}`);
                 console.error(`🆔 Rollup PID: ${activeRollupBuild.childPid ?? 'pending'}`);
-                console.error(
-                    `🔇 Time since last Rollup output: ${formatDurationForLog(now - activeRollupBuild.lastOutputAt)}`,
-                );
+                console.error(`🔇 Time since last Rollup output: ${formatDurationForLog(now - activeRollupBuild.lastOutputAt)}`);
                 console.error(`🧾 Rollup state: ${activeRollupBuild.lastLifecycleEvent}`);
                 if (activeRollupBuild.createdAt !== null) {
                     console.error(
@@ -1418,7 +1412,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                                 ...packagesMetadata.map(({ packageBasename, packageFullname }) => ({
                                     name: `🔼 Publish ${packageFullname}`,
                                     'working-directory': `./packages/${packageBasename}`,
-                                    run: 'npm publish --provenance --access public --tag $NPM_DIST_TAG',
+                                    run: 'npm publish --provenance --access public',
                                     // Note: Migrated to Trusted Publisher
                                     // env: {
                                     //     NODE_AUTH_TOKEN: '${{secrets.NPM_TOKEN}}',
