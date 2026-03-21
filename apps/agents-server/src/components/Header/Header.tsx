@@ -7,6 +7,7 @@ import {
     ArrowRight,
     BarChart3,
     ChevronDown,
+    ChevronRight,
     Code2,
     FolderIcon,
     Globe2,
@@ -20,7 +21,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import type { CSSProperties, ReactNode } from 'react';
+import type { CSSProperties, MouseEvent, ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { HamburgerMenu } from '../../../../../src/book-components/_common/HamburgerMenu/HamburgerMenu';
 import { useMenuHoisting } from '../../../../../src/book-components/_common/MenuHoisting/MenuHoistingContext';
@@ -44,7 +45,7 @@ import { showAlert, showLoginDialog } from '../AsyncDialogs/asyncDialogs';
 import { ChangePasswordDialog } from '../ChangePasswordDialog/ChangePasswordDialog';
 import { useNewAgentDialog } from '../NewAgentDialog/useNewAgentDialog';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
-
+import { DropdownSubMenuPortal } from './DropdownSubMenuPortal';
 import {
     AgentDirectoryDropdown,
     AgentNameWithAvatar,
@@ -145,6 +146,12 @@ type MenuItem =
 /**
  * Tracks the currently open nested dropdown along with its anchor rectangle.
  */
+type OpenSubMenuState = {
+    key: string;
+    rect: DOMRect;
+    items: SubMenuItem[];
+};
+
 /**
  * Interaction mode used by one desktop header dropdown.
  */
@@ -157,6 +164,8 @@ type DesktopHeaderDropdownState = {
     menuId: string;
     mode: DesktopHeaderDropdownInteractionMode;
 };
+
+const SUBMENU_CLOSE_DELAY_MS = 240;
 
 /**
  * @private Delay before hover reveals a non-blocking dropdown preview.
@@ -241,8 +250,10 @@ export function Header(props: HeaderProps) {
     const [isMobileSystemOpen, setIsMobileSystemOpen] = useState(false);
     const [mobileOpenSubMenus, setMobileOpenSubMenus] = useState<Record<string, boolean>>({});
     const dropdownPortalContainer = useHeaderDropdownPortalContainer();
+    const [openSubMenu, setOpenSubMenu] = useState<OpenSubMenuState | null>(null);
     const [desktopDropdownState, setDesktopDropdownState] = useState<DesktopHeaderDropdownState | null>(null);
     const menuOpenTimers = useRef<Record<string, ReturnType<typeof window.setTimeout> | null>>({});
+    const subMenuCloseTimer = useRef<ReturnType<typeof window.setTimeout> | null>(null);
     const menuCloseTimers = useRef<Record<string, ReturnType<typeof window.setTimeout> | null>>({});
     const router = useRouter();
     const pathname = usePathname();
@@ -268,13 +279,19 @@ export function Header(props: HeaderProps) {
 
     useEffect(() => {
         if (!isDocsOpen && !isSystemOpen) {
+            setOpenSubMenu(null);
             setDesktopExpandedSubMenus({});
         }
     }, [isDocsOpen, isSystemOpen]);
 
     useEffect(() => {
         setDesktopExpandedSubMenus({});
+        setOpenSubMenu(null);
 
+        if (subMenuCloseTimer.current) {
+            clearTimeout(subMenuCloseTimer.current);
+            subMenuCloseTimer.current = null;
+        }
         Object.values(menuCloseTimers.current).forEach((timer) => {
             if (timer) {
                 clearTimeout(timer);
@@ -298,6 +315,10 @@ export function Header(props: HeaderProps) {
 
     useEffect(() => {
         return () => {
+            if (subMenuCloseTimer.current) {
+                clearTimeout(subMenuCloseTimer.current);
+                subMenuCloseTimer.current = null;
+            }
             Object.values(menuCloseTimers.current).forEach((timer) => {
                 if (timer) {
                     clearTimeout(timer);
@@ -312,6 +333,45 @@ export function Header(props: HeaderProps) {
             menuCloseTimers.current = {};
         };
     }, []);
+
+    const cancelSubMenuClose = () => {
+        if (subMenuCloseTimer.current) {
+            clearTimeout(subMenuCloseTimer.current);
+            subMenuCloseTimer.current = null;
+        }
+    };
+
+    const scheduleSubMenuClose = (key: string) => {
+        cancelSubMenuClose();
+        subMenuCloseTimer.current = setTimeout(() => {
+            setOpenSubMenu((current) => (current?.key === key ? null : current));
+            subMenuCloseTimer.current = null;
+        }, SUBMENU_CLOSE_DELAY_MS);
+    };
+
+    const handleSubMenuMouseEnter = (key: string, items: SubMenuItem[], event: MouseEvent<HTMLDivElement>) => {
+        cancelSubMenuClose();
+        const rect = event.currentTarget.getBoundingClientRect();
+        setOpenSubMenu({
+            key,
+            rect,
+            items,
+        });
+    };
+
+    const handleSubMenuMouseLeave = (key: string) => {
+        scheduleSubMenuClose(key);
+    };
+
+    const keepSubMenuOpen = () => {
+        cancelSubMenuClose();
+    };
+
+    const handleSubMenuPortalLeave = () => {
+        if (openSubMenu) {
+            scheduleSubMenuClose(openSubMenu.key);
+        }
+    };
 
     /**
      * @private Cancels the pending open timer of a header dropdown preview.
@@ -341,6 +401,10 @@ export function Header(props: HeaderProps) {
      * @private
      */
     const closeAllDesktopHeaderDropdowns = useCallback(() => {
+        if (subMenuCloseTimer.current) {
+            clearTimeout(subMenuCloseTimer.current);
+            subMenuCloseTimer.current = null;
+        }
         Object.values(menuOpenTimers.current).forEach((timer) => {
             if (timer) {
                 clearTimeout(timer);
@@ -360,6 +424,7 @@ export function Header(props: HeaderProps) {
         setIsDocsOpen(false);
         setIsSystemOpen(false);
         setIsProfileOpen(false);
+        setOpenSubMenu(null);
         setDesktopExpandedSubMenus({});
     }, []);
 
@@ -1031,7 +1096,10 @@ export function Header(props: HeaderProps) {
     /**
      * @private Creates one category entry inside the System dropdown when there are items to show.
      */
-    const createSystemCategory = (label: SystemCategoryLabel, items: ReadonlyArray<SubMenuItem>): SubMenuItem[] => {
+    const createSystemCategory = (
+        label: SystemCategoryLabel,
+        items: ReadonlyArray<SubMenuItem>,
+    ): SubMenuItem[] => {
         if (items.length === 0) {
             return [];
         }
@@ -1299,6 +1367,7 @@ export function Header(props: HeaderProps) {
         ...(shouldShowSystemMenu ? [buildSystemMenuItem(systemMenuEntries)] : []),
     ];
 
+
     /**
      * Renders desktop top-level navigation entries shown to the right of the centered search slot.
      */
@@ -1322,6 +1391,7 @@ export function Header(props: HeaderProps) {
                     const isDropdownPreview = isDesktopDropdownPreview(item.id);
                     const closeDropdown = () => {
                         closeDesktopDropdown(item.id, () => item.setIsOpen(false));
+                        setOpenSubMenu(null);
                         setDesktopExpandedSubMenus({});
                     };
                     const toggleDropdown = () => {
@@ -1331,11 +1401,16 @@ export function Header(props: HeaderProps) {
                             () => item.setIsOpen(false),
                         );
                         if (isDesktopDropdownCommitted(item.id)) {
+                            setOpenSubMenu(null);
                             setDesktopExpandedSubMenus({});
                         }
                     };
 
-                    const renderDropdownLink = (linkItem: SubMenuItem, keySuffix: string, className: string) => {
+                    const renderDropdownLink = (
+                        linkItem: SubMenuItem,
+                        keySuffix: string,
+                        className: string,
+                    ) => {
                         if (linkItem.onClick) {
                             return (
                                 <button
@@ -1383,10 +1458,16 @@ export function Header(props: HeaderProps) {
                         >
                             {nestedItems.map((nestedItem, nestedIndex) => {
                                 const nestedKey = `${keyPrefix}-${nestedIndex}`;
-                                const hasNestedChildren = Boolean(nestedItem.items && nestedItem.items.length > 0);
-                                const borderClass = nestedItem.isBordered ? 'border-b border-gray-100 pb-1' : '';
+                                const hasNestedChildren = Boolean(
+                                    nestedItem.items && nestedItem.items.length > 0,
+                                );
+                                const borderClass = nestedItem.isBordered
+                                    ? 'border-b border-gray-100 pb-1'
+                                    : '';
                                 const leafClassName = `block rounded-lg px-3 py-2 text-sm ${
-                                    nestedItem.isBold ? 'font-medium text-gray-900' : 'text-gray-700'
+                                    nestedItem.isBold
+                                        ? 'font-medium text-gray-900'
+                                        : 'text-gray-700'
                                 } hover:bg-white hover:text-gray-900 transition-colors ${borderClass}`;
 
                                 if (!hasNestedChildren) {
@@ -1401,7 +1482,9 @@ export function Header(props: HeaderProps) {
                                             onClick={() => toggleDesktopSubMenu(nestedKey)}
                                             className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-medium text-gray-700 transition-colors hover:bg-white hover:text-gray-900"
                                         >
-                                            <span className="min-w-0 flex-1">{renderSubMenuItemLabel(nestedItem)}</span>
+                                            <span className="min-w-0 flex-1">
+                                                {renderSubMenuItemLabel(nestedItem)}
+                                            </span>
                                             <ChevronDown
                                                 className={`h-3 w-3 text-gray-400 transition-transform ${
                                                     isNestedOpen ? 'rotate-180' : ''
@@ -1422,45 +1505,127 @@ export function Header(props: HeaderProps) {
 
                     const renderDropdownItems = () =>
                         dropdownItems.map((subItem, subIndex) => {
-                            const borderClass = subItem.isBordered ? 'border-b border-gray-100' : '';
+                            const borderClass = subItem.isBordered
+                                ? 'border-b border-gray-100'
+                                : '';
                             const baseClassName = `mx-1 block rounded-lg px-3 py-2.5 text-sm ${
                                 subItem.isBold ? 'font-medium text-gray-900' : 'text-gray-600'
                             } hover:bg-gray-50 hover:text-gray-900 transition-colors ${borderClass}`;
 
                             if (subItem.items && subItem.items.length > 0) {
                                 const submenuKey = `${item.id}-dropdown-${subIndex}`;
-                                const isSubMenuExpanded = Boolean(desktopExpandedSubMenus[submenuKey]);
+                                const isSubMenuOpen =
+                                    !isTouchInput &&
+                                    isDesktopDropdownCommitted(item.id) &&
+                                    openSubMenu?.key === submenuKey;
+                                const isTapSubMenuOpen = Boolean(
+                                    desktopExpandedSubMenus[submenuKey],
+                                );
                                 const childItems = subItem.items!;
                                 return (
-                                    <div key={submenuKey} className={`mx-1 ${borderClass}`}>
+                                    <div
+                                        key={submenuKey}
+                                        className={`relative mx-1 rounded-lg ${borderClass}`}
+                                        onMouseEnter={(event) => {
+                                            if (isTouchInput) {
+                                                return;
+                                            }
+                                            handleSubMenuMouseEnter(submenuKey, childItems, event);
+                                            cancelMenuClose(item.id);
+                                        }}
+                                        onMouseLeave={() => {
+                                            if (isTouchInput) {
+                                                return;
+                                            }
+                                            handleSubMenuMouseLeave(submenuKey);
+                                        }}
+                                    >
                                         <button
                                             type="button"
                                             className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm ${
-                                                subItem.isBold ? 'font-medium text-gray-900' : 'text-gray-600'
+                                                subItem.isBold
+                                                    ? 'font-medium text-gray-900'
+                                                    : 'text-gray-600'
                                             } hover:bg-gray-50 hover:text-gray-900 transition-colors`}
-                                            onClick={() => {
+                                            onClick={(event) => {
                                                 cancelMenuClose(item.id);
-                                                toggleDesktopSubMenu(submenuKey);
+                                                if (isTouchInput) {
+                                                    toggleDesktopSubMenu(submenuKey);
+                                                    return;
+                                                }
+                                                const rect = (
+                                                    event.currentTarget.parentElement ??
+                                                    event.currentTarget
+                                                ).getBoundingClientRect();
+                                                setOpenSubMenu((current) =>
+                                                    current?.key === submenuKey
+                                                        ? null
+                                                        : {
+                                                              key: submenuKey,
+                                                              rect,
+                                                              items: childItems,
+                                                          },
+                                                );
                                             }}
                                         >
-                                            <span className="min-w-0 flex-1">{renderSubMenuItemLabel(subItem)}</span>
-                                            <ChevronDown
+                                            <span className="min-w-0 flex-1">
+                                                {renderSubMenuItemLabel(subItem)}
+                                            </span>
+                                            <ChevronRight
                                                 className={`h-3 w-3 text-gray-400 transition-transform ${
-                                                    isSubMenuExpanded ? 'rotate-180' : ''
+                                                    isTouchInput && isTapSubMenuOpen
+                                                        ? 'rotate-90'
+                                                        : ''
                                                 }`}
                                             />
                                         </button>
 
-                                        {isSubMenuExpanded && (
+                                        {isTouchInput && isTapSubMenuOpen && (
                                             <div className="mx-1 mb-2 rounded-xl border border-gray-100 bg-gradient-to-b from-white to-gray-50/80 p-2">
-                                                {renderTouchNestedDropdownItems(childItems, submenuKey)}
+                                                {renderTouchNestedDropdownItems(
+                                                    childItems,
+                                                    submenuKey,
+                                                )}
                                             </div>
+                                        )}
+
+                                        {isSubMenuOpen && openSubMenu && (
+                                            <DropdownSubMenuPortal
+                                                anchorRect={openSubMenu.rect}
+                                                container={dropdownPortalContainer}
+                                                onMouseEnter={() => {
+                                                    keepSubMenuOpen();
+                                                    cancelMenuClose(item.id);
+                                                }}
+                                                onMouseLeave={() => {
+                                                    handleSubMenuPortalLeave();
+                                                    scheduleMenuClose(item.id, () =>
+                                                        item.setIsOpen(false),
+                                                    );
+                                                }}
+                                            >
+                                                <div className="pointer-events-auto max-h-[70vh] w-[min(320px,calc(100vw-4rem))] overflow-y-auto rounded-xl border border-gray-100 bg-white/95 p-2 shadow-xl shadow-slate-900/10 backdrop-blur">
+                                                    <div className="flex flex-col gap-1">
+                                                        {childItems.map((child, childIndex) =>
+                                                            renderDropdownLink(
+                                                                child,
+                                                                `${submenuKey}-portal-child-${childIndex}`,
+                                                                'block rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors',
+                                                            ),
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </DropdownSubMenuPortal>
                                         )}
                                     </div>
                                 );
                             }
 
-                            return renderDropdownLink(subItem, `dropdown-${subIndex}`, baseClassName);
+                            return renderDropdownLink(
+                                subItem,
+                                `dropdown-${subIndex}`,
+                                baseClassName,
+                            );
                         });
 
                     return (
@@ -1470,7 +1635,9 @@ export function Header(props: HeaderProps) {
                             onMouseEnter={() => {
                                 previewDesktopDropdown(item.id, () => item.setIsOpen(true));
                             }}
-                            onMouseLeave={() => scheduleMenuClose(item.id, () => item.setIsOpen(false))}
+                            onMouseLeave={() =>
+                                scheduleMenuClose(item.id, () => item.setIsOpen(false))
+                            }
                         >
                             <button
                                 className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
@@ -1478,7 +1645,9 @@ export function Header(props: HeaderProps) {
                                 onMouseEnter={() => {
                                     previewDesktopDropdown(item.id, () => item.setIsOpen(true));
                                 }}
-                                onBlur={() => scheduleMenuClose(item.id, () => item.setIsOpen(false))}
+                                onBlur={() =>
+                                    scheduleMenuClose(item.id, () => item.setIsOpen(false))
+                                }
                             >
                                 {item.label}
                                 <ChevronDown className="w-4 h-4" />
@@ -1487,9 +1656,13 @@ export function Header(props: HeaderProps) {
                             {item.isOpen && (
                                 <div
                                     aria-hidden={isDropdownPreview || undefined}
-                                    className="absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-2xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 backdrop-blur pointer-events-auto"
+                                    className={`absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-2xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 backdrop-blur ${
+                                        isDropdownPreview ? 'pointer-events-none' : 'pointer-events-auto'
+                                    }`}
                                     onMouseEnter={() => cancelMenuClose(item.id)}
-                                    onMouseLeave={() => scheduleMenuClose(item.id, () => item.setIsOpen(false))}
+                                    onMouseLeave={() =>
+                                        scheduleMenuClose(item.id, () => item.setIsOpen(false))
+                                    }
                                 >
                                     {item.renderMenu ? (
                                         <div className="relative">{item.renderMenu()}</div>
@@ -1563,8 +1736,9 @@ export function Header(props: HeaderProps) {
                                     <div
                                         className="relative hidden lg:block"
                                         onMouseEnter={() =>
-                                            previewDesktopDropdown('federated-server-switcher', () =>
-                                                setIsFederatedOpen(true),
+                                            previewDesktopDropdown(
+                                                'federated-server-switcher',
+                                                () => setIsFederatedOpen(true),
                                             )
                                         }
                                         onMouseLeave={() =>
@@ -1583,8 +1757,9 @@ export function Header(props: HeaderProps) {
                                                 );
                                             }}
                                             onMouseEnter={() => {
-                                                previewDesktopDropdown('federated-server-switcher', () =>
-                                                    setIsFederatedOpen(true),
+                                                previewDesktopDropdown(
+                                                    'federated-server-switcher',
+                                                    () => setIsFederatedOpen(true),
                                                 );
                                             }}
                                             onBlur={() =>
@@ -1600,7 +1775,8 @@ export function Header(props: HeaderProps) {
                                         {isFederatedOpen && (
                                             <div
                                                 aria-hidden={
-                                                    isDesktopDropdownPreview('federated-server-switcher') || undefined
+                                                    isDesktopDropdownPreview('federated-server-switcher') ||
+                                                    undefined
                                                 }
                                                 className={`absolute left-0 top-full z-50 mt-2 max-h-[80vh] w-56 overflow-y-auto rounded-xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 backdrop-blur ${
                                                     isDesktopDropdownPreview('federated-server-switcher')
@@ -1650,7 +1826,10 @@ export function Header(props: HeaderProps) {
                                 <div
                                     className="relative min-w-0"
                                     onMouseEnter={() => {
-                                        previewDesktopDropdown('agents-hierarchy', () => setIsAgentsOpen(true));
+                                        previewDesktopDropdown(
+                                            'agents-hierarchy',
+                                            () => setIsAgentsOpen(true),
+                                        );
                                     }}
                                     onMouseLeave={() =>
                                         scheduleMenuClose('agents-hierarchy', () => setIsAgentsOpen(false))
@@ -1666,7 +1845,10 @@ export function Header(props: HeaderProps) {
                                             );
                                         }}
                                         onMouseEnter={() => {
-                                            previewDesktopDropdown('agents-hierarchy', () => setIsAgentsOpen(true));
+                                            previewDesktopDropdown(
+                                                'agents-hierarchy',
+                                                () => setIsAgentsOpen(true),
+                                            );
                                         }}
                                         onBlur={() =>
                                             scheduleMenuClose('agents-hierarchy', () => setIsAgentsOpen(false))
@@ -1761,7 +1943,9 @@ export function Header(props: HeaderProps) {
                                     <div
                                         className="relative hidden sm:block"
                                         onMouseEnter={() => {
-                                            previewDesktopDropdown('agent-view', () => setIsAgentViewOpen(true));
+                                            previewDesktopDropdown('agent-view', () =>
+                                                setIsAgentViewOpen(true),
+                                            );
                                         }}
                                         onMouseLeave={() =>
                                             scheduleMenuClose('agent-view', () => setIsAgentViewOpen(false))
@@ -1777,7 +1961,9 @@ export function Header(props: HeaderProps) {
                                                 );
                                             }}
                                             onMouseEnter={() => {
-                                                previewDesktopDropdown('agent-view', () => setIsAgentViewOpen(true));
+                                                previewDesktopDropdown('agent-view', () =>
+                                                    setIsAgentViewOpen(true),
+                                                );
                                             }}
                                             onBlur={() =>
                                                 scheduleMenuClose('agent-view', () => setIsAgentViewOpen(false))
@@ -1816,6 +2002,7 @@ export function Header(props: HeaderProps) {
                             <HeaderSearchBox className="w-full" />
                         </div>
                     </div>
+
 
                     {/* CTA Button & Mobile Menu Toggle */}
                     <div className="ml-auto flex items-center gap-2 sm:gap-3 md:gap-4 flex-shrink-0 lg:ml-0 lg:justify-self-end">
@@ -1864,7 +2051,9 @@ export function Header(props: HeaderProps) {
                                 <div
                                     className="relative"
                                     onMouseEnter={() =>
-                                        previewDesktopDropdown('profile-menu', () => setIsProfileOpen(true))
+                                        previewDesktopDropdown('profile-menu', () =>
+                                            setIsProfileOpen(true),
+                                        )
                                     }
                                     onMouseLeave={() =>
                                         scheduleMenuClose('profile-menu', () => setIsProfileOpen(false))
@@ -1879,7 +2068,9 @@ export function Header(props: HeaderProps) {
                                             );
                                         }}
                                         onMouseEnter={() => {
-                                            previewDesktopDropdown('profile-menu', () => setIsProfileOpen(true));
+                                            previewDesktopDropdown('profile-menu', () =>
+                                                setIsProfileOpen(true),
+                                            );
                                         }}
                                         onBlur={() => scheduleMenuClose('profile-menu', () => setIsProfileOpen(false))}
                                         className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors px-3 py-2 rounded-md hover:bg-gray-50"
