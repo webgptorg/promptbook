@@ -6,6 +6,7 @@ import { cookies } from 'next/headers';
 import { getCustomJavascriptWithIntegrations } from '../database/customJavascript';
 import { getAggregatedCustomStylesheetCss } from '../database/customStylesheet';
 import { getMetadataMap } from '../database/getMetadata';
+import { getServerVisibility } from '../utils/getServerVisibility';
 import {
     resolveServerLanguageCode,
     SERVER_LANGUAGE_COOKIE_NAME,
@@ -21,6 +22,7 @@ import { getFederatedServers } from '../utils/getFederatedServers';
 import { isUserAdmin } from '../utils/isUserAdmin';
 import { isUserGlobalAdmin } from '../utils/isUserGlobalAdmin';
 import { getDefaultIsNotificationsOn } from '../utils/userPushNotificationSettings';
+import { isPublicServerVisibility } from '../utils/serverVisibility';
 import './globals.css';
 
 const barlowCondensed = Barlow_Condensed({
@@ -163,15 +165,17 @@ async function resolveOptionalLayoutText(label: string, loader: () => Promise<st
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-    const [{ publicUrl }, metadata] = await Promise.all([
+    const [{ publicUrl }, metadata, serverVisibility] = await Promise.all([
         $provideServer(),
         getMetadataMap(['SERVER_NAME', 'SERVER_DESCRIPTION', 'SERVER_FAVICON_URL']),
+        getServerVisibility(),
     ]);
+    const isPublicServer = isPublicServerVisibility(serverVisibility);
     const serverName = metadata.SERVER_NAME || 'Promptbook Agents Server';
     const serverDescription = metadata.SERVER_DESCRIPTION || 'Agents server powered by Promptbook';
     const serverFaviconUrl = metadata.SERVER_FAVICON_URL || faviconLogoImage.src;
 
-    return {
+    const baseMetadata = {
         title: serverName,
         description: serverDescription,
         // TODO: keywords: ['@@@'], <- Do the keywords dynamically, each agents server could have its own keywords + some common ones
@@ -181,6 +185,19 @@ export async function generateMetadata(): Promise<Metadata> {
             shortcut: serverFaviconUrl,
             apple: serverFaviconUrl,
         },
+        robots: {
+            index: isPublicServer,
+            follow: isPublicServer,
+        },
+        metadataBase: publicUrl,
+    } satisfies Metadata;
+
+    if (!isPublicServer) {
+        return baseMetadata;
+    }
+
+    return {
+        ...baseMetadata,
         openGraph: {
             title: serverName,
             description: serverDescription,
@@ -203,7 +220,6 @@ export async function generateMetadata(): Promise<Metadata> {
             description: serverDescription,
             // TODO: images: ['https://www.ptbk.io/design'],
         },
-        metadataBase: publicUrl,
     };
 }
 
@@ -226,6 +242,7 @@ export default async function RootLayout({
     const currentUserPromise = getCurrentUser();
     const isAdminPromise = isUserAdmin();
     const isGlobalAdminPromise = isUserGlobalAdmin();
+    const serverVisibilityPromise = getServerVisibility();
     const agentNamingPromise = getAgentNaming();
     const organizationStatePromise = isAdminPromise.then((isAdmin) =>
         isAdmin ? loadAgentOrganizationState({ status: 'ACTIVE', includePrivate: true }) : null,
@@ -248,9 +265,22 @@ export default async function RootLayout({
                 showFederatedServersPublicly: (layoutMetadata.SHOW_FEDERATED_SERVERS_PUBLICLY ?? 'false') === 'true',
             }),
     );
-    const footerLinksPromise = Promise.all([layoutMetadataPromise, federatedServersPromise]).then(
-        ([layoutMetadata, federatedServers]) =>
-            [...parseFooterLinks(layoutMetadata.FOOTER_LINKS), ...federatedServers.map(({ title, url }) => ({ title, url }))],
+    const footerLinksPromise = Promise.all([layoutMetadataPromise, federatedServersPromise, serverVisibilityPromise]).then(
+        ([layoutMetadata, federatedServers, serverVisibility]) => {
+            const footerLinks = [
+                ...parseFooterLinks(layoutMetadata.FOOTER_LINKS),
+                ...federatedServers.map(({ title, url }) => ({ title, url })),
+            ];
+
+            if (isPublicServerVisibility(serverVisibility)) {
+                footerLinks.push({
+                    title: 'Sitemap',
+                    url: '/sitemap.xml',
+                });
+            }
+
+            return footerLinks;
+        },
     );
 
     const [
@@ -267,6 +297,7 @@ export default async function RootLayout({
         cookieStore,
         federatedServers,
         footerLinks,
+        serverVisibility,
     ] = await Promise.all([
         isAdminPromise,
         isGlobalAdminPromise,
@@ -281,6 +312,7 @@ export default async function RootLayout({
         cookieStorePromise,
         federatedServersPromise,
         footerLinksPromise,
+        serverVisibilityPromise,
     ]);
 
     const serverName = layoutMetadata.SERVER_NAME || 'Promptbook Agents Server';
@@ -291,6 +323,7 @@ export default async function RootLayout({
     const isExperimental = (layoutMetadata.IS_EXPERIMENTAL_APP ?? 'false') === 'true';
     const isFeedbackEnabled = (layoutMetadata.IS_FEEDBACK_ENABLED ?? 'true') === 'true';
     const isExperimentalPwaAppEnabled = (layoutMetadata.IS_EXPERIMENTAL_PWA_APP_ENABLED ?? 'true') === 'true';
+    const isPublicServer = isPublicServerVisibility(serverVisibility);
     const safeCustomJavascript = customJavascript.replace(/<\/script>/gi, '<\\/script>');
     const cookieLanguage = cookieStore.get(SERVER_LANGUAGE_COOKIE_NAME)?.value || null;
     const serverLanguage = resolveServerLanguageCode(cookieLanguage || layoutMetadata[SERVER_LANGUAGE_METADATA_KEY]);
@@ -310,7 +343,7 @@ export default async function RootLayout({
                     agentFolders={JSON.parse(JSON.stringify(agentFolders))}
                     agentNaming={agentNaming}
                     isFooterShown={isFooterShown}
-                    footerLinks={footerLinks}
+                    footerLinks={isPublicServer ? footerLinks : footerLinks.filter((link) => link.url !== '/sitemap.xml')}
                     federatedServers={federatedServers}
                     defaultIsSoundsOn={chatPreferences.defaultIsSoundsOn}
                     defaultIsVibrationOn={chatPreferences.defaultIsVibrationOn}

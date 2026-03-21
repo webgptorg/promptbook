@@ -17,6 +17,8 @@ import { loadChatConfiguration } from '../../../utils/chatConfiguration';
 import { resolveAgentChatInputPlaceholder } from '../../../utils/agentChatInputPlaceholder';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { isPublicAgentVisibility } from '@/src/utils/agentVisibility';
+import { getServerVisibility } from '@/src/utils/getServerVisibility';
+import { isPublicServerVisibility } from '@/src/utils/serverVisibility';
 import { getAgentFolderContext, getAgentName, getAgentProfile, isAgentDeleted } from './_utils';
 import { getAgentLinks } from './agentLinks';
 import { AgentProfileWrapper } from './AgentProfileWrapper';
@@ -215,13 +217,23 @@ export default async function AgentPage({
     const isAdminPromise = isUserAdmin();
     const historyIdentityAvailablePromise = ensureChatHistoryIdentity();
     const providedServerPromise = $provideServer();
+    const serverVisibilityPromise = getServerVisibility();
     const chatConfigurationPromise = loadChatConfiguration();
     const agentNamingPromise = getAgentNaming();
     const agentProfilePromise = getAgentProfile(canonicalAgentId);
     const isDeletedPromise = isAgentDeleted(canonicalAgentId);
     const folderContextPromise = isAdminPromise.then((isAdmin) => getAgentFolderContext(canonicalAgentId, isAdmin));
 
-    const [requestHeaders, isAdmin, historyIdentityAvailable, { publicUrl }, { isFileAttachmentsEnabled }, folderContext, agentNaming] =
+    const [
+        requestHeaders,
+        isAdmin,
+        historyIdentityAvailable,
+        { publicUrl },
+        { isFileAttachmentsEnabled },
+        folderContext,
+        agentNaming,
+        serverVisibility,
+    ] =
         await Promise.all([
             requestHeadersPromise,
             isAdminPromise,
@@ -230,7 +242,9 @@ export default async function AgentPage({
             chatConfigurationPromise,
             folderContextPromise,
             agentNamingPromise,
+            serverVisibilityPromise,
         ]);
+    const isPublicServer = isPublicServerVisibility(serverVisibility);
     const speechRecognitionLanguage = resolveSpeechRecognitionLanguage({
         acceptLanguageHeader: requestHeaders.get('accept-language'),
     });
@@ -269,7 +283,7 @@ export default async function AgentPage({
     const fallbackAvatarPath = `/agents/${encodeURIComponent(agentProfile.permanentId || canonicalAgentId)}/images/default-avatar.png`;
     const avatarSrc = resolveAgentAvatarImageUrl({ agent: agentProfile, baseUrl: publicUrl.href }) || fallbackAvatarPath;
     const publicAgentProfileStructuredData = createPublicAgentProfileStructuredData({
-        isPublic: isPublicAgentVisibility(agentProfile.visibility) && !isDeleted,
+        isPublic: isPublicServer && isPublicAgentVisibility(agentProfile.visibility) && !isDeleted,
         canonicalUrl: routeTarget.canonicalUrl,
         title: fullname,
         description: agentProfile.meta.description || agentProfile.personaDescription || undefined,

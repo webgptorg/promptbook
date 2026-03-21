@@ -3,16 +3,28 @@ import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { SUPABASE_TABLE_PREFIX } from '../config';
 import { RESERVED_PATHS } from './generated/reservedPaths';
+import { buildAgentNameOrIdFilter } from './utils/agentIdentifier';
+import { isAgentVisibility, isPublicAgentVisibility, type AgentVisibility } from './utils/agentVisibility';
 import { resolveCustomDomainAgent, type CustomDomainResolution } from './utils/customDomainRouting';
 import { isIpAllowed } from './utils/isIpAllowed';
 import { listRegisteredServers, resolveRegisteredServerByHost } from './utils/serverRegistry';
+import {
+    DEFAULT_SERVER_VISIBILITY,
+    isPublicServerVisibility,
+    parseServerVisibility,
+    SERVER_VISIBILITY_METADATA_KEY,
+    type ServerVisibility,
+} from './utils/serverVisibility';
 
 export async function middleware(req: NextRequest) {
     // 1. Get client IP
     let ip = (req as TODO_any).ip;
     const xForwardedFor = req.headers.get('x-forwarded-for');
     if (!ip && xForwardedFor) {
-        ip = xForwardedFor.split(',')[0].trim();
+        const forwardedIp = xForwardedFor.split(',')[0];
+        if (forwardedIp) {
+            ip = forwardedIp.trim();
+        }
     }
     // Fallback for local development if needed, though req.ip is usually ::1 or 127.0.0.1
     ip = ip || '127.0.0.1';
@@ -23,6 +35,7 @@ export async function middleware(req: NextRequest) {
     const allowedIpsEnv = process.env.RESTRICT_IP;
     let allowedIpsMetadata: string | null = null;
     let embeddingAllowedMetadata: string | null = null;
+    let serverVisibilityMetadata: string | null = null;
 
     const host = req.headers.get('host');
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -67,7 +80,7 @@ export async function middleware(req: NextRequest) {
             const { data } = await supabase
                 .from(`${tablePrefixForRequest}Metadata`)
                 .select('key, value')
-                .in('key', ['RESTRICT_IP', 'IS_EMBEDDING_ALLOWED']);
+                .in('key', ['RESTRICT_IP', 'IS_EMBEDDING_ALLOWED', SERVER_VISIBILITY_METADATA_KEY]);
 
             if (Array.isArray(data)) {
                 for (const row of data) {
@@ -79,6 +92,9 @@ export async function middleware(req: NextRequest) {
                     if (key === 'IS_EMBEDDING_ALLOWED' && typeof value === 'string') {
                         embeddingAllowedMetadata = value;
                     }
+                    if (key === SERVER_VISIBILITY_METADATA_KEY && typeof value === 'string') {
+                        serverVisibilityMetadata = value;
+                    }
                 }
             }
         } catch (error) {
@@ -89,6 +105,20 @@ export async function middleware(req: NextRequest) {
     const allowedIps =
         allowedIpsMetadata !== null && allowedIpsMetadata !== undefined ? allowedIpsMetadata : allowedIpsEnv;
     const isEmbeddingAllowed = parseBooleanMetadataValue(embeddingAllowedMetadata, true);
+    const serverVisibility = parseServerVisibility(
+        process.env.SERVER_VISIBILITY || serverVisibilityMetadata,
+        DEFAULT_SERVER_VISIBILITY,
+    );
+    const applyVisibilityHeadersForResponse = async (response: NextResponse): Promise<void> => {
+        await applyVisibilityHeaders({
+            request: req,
+            response,
+            supabase,
+            tablePrefixForRequest,
+            canQueryServerTables,
+            serverVisibility,
+        });
+    };
 
     let isValidToken = false;
     const authHeader = req.headers.get('authorization');
@@ -96,7 +126,7 @@ export async function middleware(req: NextRequest) {
     if (authHeader && authHeader.startsWith('Bearer ')) {
         const token = authHeader.split(' ')[1];
 
-        if (token.startsWith('ptbk_') && supabase && canQueryServerTables) {
+        if (token && token.startsWith('ptbk_') && supabase && canQueryServerTables) {
             try {
                 const { data } = await supabase
                     .from(`${tablePrefixForRequest}ApiTokens`)
@@ -161,16 +191,22 @@ export async function middleware(req: NextRequest) {
             path === '/sw.js';
 
         if (isAllowedPath) {
-            return NextResponse.next();
+            const response = NextResponse.next();
+            await applyVisibilityHeadersForResponse(response);
+            return response;
         }
 
         // Block access to other paths (e.g. Chat)
         if (req.headers.get('accept')?.includes('text/html')) {
             const url = req.nextUrl.clone();
             url.pathname = '/restricted';
-            return NextResponse.rewrite(url);
+            const response = NextResponse.rewrite(url);
+            await applyVisibilityHeadersForResponse(response);
+            return response;
         }
-        return new NextResponse('Forbidden', { status: 403 });
+        const response = new NextResponse('Forbidden', { status: 403 });
+        await applyVisibilityHeadersForResponse(response);
+        return response;
     }
 
     // If we are here, the user is allowed (either by IP or session)
@@ -196,6 +232,7 @@ export async function middleware(req: NextRequest) {
         response.headers.set('Access-Control-Allow-Origin', '*');
         response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
         response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
+        await applyVisibilityHeadersForResponse(response);
 
         return response;
     }
@@ -207,15 +244,18 @@ export async function middleware(req: NextRequest) {
         const requestHeaders = new Headers(req.headers);
         requestHeaders.set('x-promptbook-server', customDomainResolution.server.domain);
 
-        return NextResponse.rewrite(url, {
+        const response = NextResponse.rewrite(url, {
             request: {
                 headers: requestHeaders,
             },
         });
+        await applyVisibilityHeadersForResponse(response);
+        return response;
     }
 
     const response = NextResponse.next();
     applyEmbeddingHeader(response, req.nextUrl, isEmbeddingAllowed);
+    await applyVisibilityHeadersForResponse(response);
 
     return response;
 
@@ -240,6 +280,159 @@ export const config = {
  * Pattern that matches the standalone chat route used for embedding.
  */
 const EMBED_CHAT_PATHNAME_PATTERN = /^\/agents\/[^/]+\/chat\/?$/;
+
+/**
+ * Pattern that matches canonical agent profile routes.
+ */
+const AGENT_PROFILE_PATHNAME_PATTERN = /^\/agents\/([^/]+)\/?$/;
+
+/**
+ * Pattern that matches any non-profile subpage under one agent.
+ */
+const AGENT_SUBPAGE_PATHNAME_PATTERN = /^\/agents\/[^/]+\/.+$/;
+
+/**
+ * Parameters required to apply visibility-aware robots headers.
+ */
+type ApplyVisibilityHeadersOptions = {
+    request: NextRequest;
+    response: NextResponse;
+    supabase: TODO_any | null;
+    tablePrefixForRequest: string;
+    canQueryServerTables: boolean;
+    serverVisibility: ServerVisibility;
+};
+
+/**
+ * Classified agent-route shape used by robots header logic.
+ */
+type AgentRouteMatch =
+    | { kind: 'none' }
+    | { kind: 'subpage' }
+    | { kind: 'profile'; agentIdentifier: string };
+
+/**
+ * Applies visibility-aware `X-Robots-Tag` headers to HTML responses.
+ *
+ * @param options - Response and visibility context.
+ */
+async function applyVisibilityHeaders(options: ApplyVisibilityHeadersOptions): Promise<void> {
+    if (!isHtmlRequest(options.request)) {
+        return;
+    }
+
+    if (!isPublicServerVisibility(options.serverVisibility)) {
+        options.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+        return;
+    }
+
+    const routeMatch = resolveAgentRouteMatch(options.request.nextUrl.pathname);
+    if (routeMatch.kind === 'none') {
+        return;
+    }
+
+    if (routeMatch.kind === 'subpage') {
+        options.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+        return;
+    }
+
+    const agentVisibility = await resolveAgentVisibilityForIndexing({
+        supabase: options.supabase,
+        tablePrefixForRequest: options.tablePrefixForRequest,
+        canQueryServerTables: options.canQueryServerTables,
+        agentIdentifier: routeMatch.agentIdentifier,
+    });
+
+    options.response.headers.set(
+        'X-Robots-Tag',
+        isPublicAgentVisibility(agentVisibility) ? 'index, follow' : 'noindex, nofollow',
+    );
+}
+
+/**
+ * Checks whether the request is likely targeting an HTML page response.
+ *
+ * @param request - Incoming middleware request.
+ * @returns `true` when response robots headers should be evaluated.
+ */
+function isHtmlRequest(request: NextRequest): boolean {
+    return request.headers.get('accept')?.includes('text/html') === true;
+}
+
+/**
+ * Classifies one pathname into agent profile/subpage buckets for indexing policy.
+ *
+ * @param pathname - Request pathname.
+ * @returns Agent route classification.
+ */
+function resolveAgentRouteMatch(pathname: string): AgentRouteMatch {
+    const profileMatch = pathname.match(AGENT_PROFILE_PATHNAME_PATTERN);
+    if (profileMatch && profileMatch[1]) {
+        return {
+            kind: 'profile',
+            agentIdentifier: profileMatch[1],
+        };
+    }
+
+    if (AGENT_SUBPAGE_PATHNAME_PATTERN.test(pathname)) {
+        return { kind: 'subpage' };
+    }
+
+    return { kind: 'none' };
+}
+
+/**
+ * Loads one agent visibility value for profile indexing decisions.
+ *
+ * @param options - Agent lookup options.
+ * @returns Agent visibility, or `null` when unavailable.
+ */
+async function resolveAgentVisibilityForIndexing(options: {
+    supabase: TODO_any | null;
+    tablePrefixForRequest: string;
+    canQueryServerTables: boolean;
+    agentIdentifier: string;
+}): Promise<AgentVisibility | null> {
+    if (!options.supabase || !options.canQueryServerTables) {
+        return null;
+    }
+
+    const decodedAgentIdentifier = decodeURIComponentSafe(options.agentIdentifier);
+
+    try {
+        const { data, error } = await options.supabase
+            .from(`${options.tablePrefixForRequest}Agent`)
+            .select('visibility')
+            .or(buildAgentNameOrIdFilter(decodedAgentIdentifier))
+            .is('deletedAt', null)
+            .limit(1)
+            .maybeSingle();
+
+        if (error || !data) {
+            return null;
+        }
+
+        const visibility = (data as { visibility?: unknown }).visibility;
+        return isAgentVisibility(visibility) ? visibility : null;
+    } catch (error) {
+        console.error('Failed to resolve agent visibility for robots header:', error);
+        return null;
+    }
+}
+
+/**
+ * Decodes one URL-encoded path segment without throwing.
+ *
+ * @param value - Encoded path segment.
+ * @returns Decoded value or original text when decoding fails.
+ */
+function decodeURIComponentSafe(value: string): string {
+    try {
+        return decodeURIComponent(value);
+    } catch {
+        return value;
+    }
+}
 
 /**
  * Parses boolean metadata values, falling back when the stored value is missing or unrecognized.

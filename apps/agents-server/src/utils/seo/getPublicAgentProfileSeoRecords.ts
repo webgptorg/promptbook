@@ -11,6 +11,11 @@ type PublicAgentSeoRow = Pick<
 >;
 
 /**
+ * Default number of agent URLs emitted in one sitemap page.
+ */
+export const DEFAULT_SITEMAP_PAGE_SIZE = 500;
+
+/**
  * Canonical SEO record for one publicly indexable agent profile page.
  */
 export type PublicAgentProfileSeoRecord = {
@@ -38,14 +43,66 @@ export type PublicAgentProfileSeoRecord = {
  * @returns Canonical SEO records for public agent profiles.
  */
 export async function getPublicAgentProfileSeoRecords(): Promise<ReadonlyArray<PublicAgentProfileSeoRecord>> {
+    const count = await countPublicAgentProfileSeoRecords();
+    if (count === 0) {
+        return [];
+    }
+
+    return getPublicAgentProfileSeoRecordsPage({ page: 1, pageSize: count });
+}
+
+/**
+ * Counts publicly indexable agent profile records.
+ *
+ * Note: Only non-deleted `PUBLIC` agents are counted.
+ *
+ * @returns Total number of public agent profile pages.
+ */
+export async function countPublicAgentProfileSeoRecords(): Promise<number> {
     const supabase = $provideSupabaseForServer();
     const agentTable = await $getTableName('Agent');
 
     const result = await supabase
         .from(agentTable)
-        .select('agentName, permanentId, createdAt, updatedAt')
+        .select('agentName', { count: 'exact', head: true })
         .eq('visibility', 'PUBLIC')
         .is('deletedAt', null);
+
+    if (result.error) {
+        throw new Error(`Failed to load public agents for SEO: ${result.error.message}`);
+    }
+
+    return result.count || 0;
+}
+
+/**
+ * Loads one page of publicly indexable agent profile records.
+ *
+ * @param options - Paging options.
+ * @returns One page of canonical SEO records for public agent profiles.
+ */
+export async function getPublicAgentProfileSeoRecordsPage(options: {
+    page: number;
+    pageSize?: number;
+}): Promise<ReadonlyArray<PublicAgentProfileSeoRecord>> {
+    const supabase = $provideSupabaseForServer();
+    const agentTable = await $getTableName('Agent');
+    const page = Number.isFinite(options.page) && options.page > 0 ? Math.floor(options.page) : 1;
+    const pageSize =
+        Number.isFinite(options.pageSize) && (options.pageSize || 0) > 0
+            ? Math.floor(options.pageSize || DEFAULT_SITEMAP_PAGE_SIZE)
+            : DEFAULT_SITEMAP_PAGE_SIZE;
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    const result = await supabase
+        .from(agentTable)
+        .select('agentName, permanentId, createdAt, updatedAt')
+        .eq('visibility', 'PUBLIC')
+        .is('deletedAt', null)
+        .order('updatedAt', { ascending: false })
+        .order('createdAt', { ascending: false })
+        .range(from, to);
 
     if (result.error) {
         throw new Error(`Failed to load public agents for SEO: ${result.error.message}`);

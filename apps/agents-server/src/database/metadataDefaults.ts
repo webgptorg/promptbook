@@ -41,6 +41,12 @@ export const metadataDefaults = [
         type: 'TEXT',
     },
     {
+        key: 'SERVER_VISIBILITY',
+        value: 'PRIVATE',
+        note: 'Global crawling/indexing mode for this server. PRIVATE blocks sitemap and indexing; PUBLIC enables indexing for PUBLIC agents.',
+        type: 'TEXT_SINGLE_LINE',
+    },
+    {
         key: 'AGENT_NAMING',
         value: 'Agent / Agents',
         note: 'Override the singular/plural naming for agents in the UI. Format: singular/plural (e.g. chatbot/chatbots).',

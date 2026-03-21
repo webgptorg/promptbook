@@ -8,6 +8,7 @@ import { metadataDefaults } from '../../../database/metadataDefaults';
 import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
 import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
 import { MetadataType } from '../../../constants/metadataTypes';
+import { SERVER_VISIBILITY_METADATA_KEY } from '../../../utils/serverVisibility';
 
 type MetadataEntry = {
     id: number;
@@ -91,6 +92,7 @@ const validateIpOrCidr = (ip: string): boolean => {
  * @private
  */
 type MetadataValueFieldProps = {
+    metadataKey: string;
     type?: MetadataType;
     value: string;
     onValueChange: (value: string) => void;
@@ -109,6 +111,7 @@ type MetadataValueFieldProps = {
  * @private
  */
 const MetadataValueField = ({
+    metadataKey,
     type,
     value,
     onValueChange,
@@ -117,6 +120,20 @@ const MetadataValueField = ({
     onFileUpload,
     fieldId,
 }: MetadataValueFieldProps) => {
+    if (metadataKey === SERVER_VISIBILITY_METADATA_KEY) {
+        return (
+            <select
+                id={fieldId}
+                value={value}
+                onChange={(e) => onValueChange(e.target.value)}
+                className={METADATA_INPUT_CLASS_NAME}
+            >
+                <option value="PRIVATE">Private (default)</option>
+                <option value="PUBLIC">Public</option>
+            </select>
+        );
+    }
+
     if (type === 'TEXT_SINGLE_LINE') {
         return (
             <input
@@ -558,6 +575,7 @@ export function MetadataClient() {
                             Value
                         </label>
                         <MetadataValueField
+                            metadataKey={addFormState.key}
                             fieldId="add-metadata-value"
                             type={addFormState.type}
                             value={addFormState.value}
@@ -683,6 +701,7 @@ export function MetadataClient() {
                                                                     Value
                                                                 </label>
                                                                 <MetadataValueField
+                                                                    metadataKey={editingFormState.key}
                                                                     fieldId={editValueFieldId}
                                                                     type={editingFormState.type}
                                                                     value={editingFormState.value}

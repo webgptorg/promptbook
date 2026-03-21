@@ -1,7 +1,9 @@
 import { $provideServer } from '@/src/tools/$provideServer';
+import { getServerVisibility } from '@/src/utils/getServerVisibility';
 import { Metadata } from 'next';
 import { isPublicAgentVisibility } from '../../../utils/agentVisibility';
 import { resolvePseudoAgentDescriptor } from '../../../utils/pseudoAgents';
+import { isPublicServerVisibility } from '../../../utils/serverVisibility';
 import { getAgentName, getAgentProfile } from './_utils';
 
 /**
@@ -11,7 +13,8 @@ import { getAgentName, getAgentProfile } from './_utils';
  * @returns Metadata used by Next.js head rendering.
  */
 export async function generateAgentMetadata({ params }: { params: Promise<{ agentName: string }> }): Promise<Metadata> {
-    const { publicUrl } = await $provideServer();
+    const [{ publicUrl }, serverVisibility] = await Promise.all([$provideServer(), getServerVisibility()]);
+    const isPublicServer = isPublicServerVisibility(serverVisibility);
     const agentName = await getAgentName(params);
     const pseudoDescriptor = resolvePseudoAgentDescriptor(agentName);
 
@@ -33,14 +36,14 @@ export async function generateAgentMetadata({ params }: { params: Promise<{ agen
 
         const title = agentProfile.meta.fullname || agentProfile.agentName;
         const description = agentProfile.meta.description || agentProfile.personaDescription || undefined;
-        const isPublicAgent = isPublicAgentVisibility(agentProfile.visibility);
+        const isIndexable = isPublicServer && isPublicAgentVisibility(agentProfile.visibility);
 
         // Use the agent's icon-256.png as the favicon
         const iconUrl = `/agents/${encodeURIComponent(canonicalAgentId)}/images/icon-256.png`;
 
         const canonicalUrl = `/agents/${encodeURIComponent(canonicalAgentId)}`;
 
-        const metadata = {
+        const baseMetadata = {
             metadataBase: publicUrl,
             title,
             description,
@@ -50,6 +53,18 @@ export async function generateAgentMetadata({ params }: { params: Promise<{ agen
                 shortcut: iconUrl,
                 apple: iconUrl,
             },
+            robots: {
+                index: isIndexable,
+                follow: isIndexable,
+            },
+        } satisfies Metadata;
+
+        if (!isIndexable) {
+            return baseMetadata;
+        }
+
+        return {
+            ...baseMetadata,
             alternates: {
                 canonical: canonicalUrl,
             },
@@ -66,13 +81,7 @@ export async function generateAgentMetadata({ params }: { params: Promise<{ agen
                 description,
                 images: [iconUrl],
             },
-            robots: {
-                index: isPublicAgent,
-                follow: isPublicAgent,
-            },
         } satisfies Metadata;
-
-        return metadata;
     } catch (error) {
         console.warn(`Failed to generate metadata for agent ${agentName}`, error);
         return {

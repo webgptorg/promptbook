@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.7355 30 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [🔐🤖] Agents Server — crawling, robots.txt, sitemap and visibility policy
 
@@ -44,3 +44,4 @@
     -   DB migration script to add Agent.visibility (if missing) and default to private/unlisted as appropriate.
     -   Add an entry to changelog: "Agents server: server-level visibility, robots.txt and sitemap behaviour".
 -   You are working with the [Agents Server](apps/agents-server)
+
