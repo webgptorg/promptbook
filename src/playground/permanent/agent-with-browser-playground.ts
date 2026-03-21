@@ -10,9 +10,9 @@ dotenv.config({ path: '.env' });
 
 // TODO: import { PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
 import colors from 'colors';
-import { locateChrome } from 'locate-app';
 import { join } from 'path';
 import { chromium } from 'playwright';
+import { locateChrome } from '../../executables/browsers/locateChrome';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 
 if (process.cwd() !== join(__dirname, '../../..')) {
@@ -36,7 +36,7 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    const browser = await chromium.launch({ headless: false, executablePath: await locateChrome() });
+    const browser = await chromium.launch({ headless: false, executablePath: (await locateChrome()) || undefined });
     const context = await browser.newContext();
     const page = await context.newPage();
 

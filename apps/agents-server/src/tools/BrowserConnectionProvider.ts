@@ -1,8 +1,8 @@
 import { mkdir } from 'fs/promises';
-import { locateChrome } from 'locate-app';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { BrowserContext, chromium } from 'playwright';
+import { locateChrome } from '../../../../src/executables/browsers/locateChrome';
 import { REMOTE_BROWSER_URL } from '../../config';
 import { retryWithBackoff } from '../utils/retryWithBackoff';
 import {
@@ -409,7 +409,7 @@ export class BrowserConnectionProvider {
 
         try {
             const chromePath = await locateChrome();
-            launchOptions.executablePath = chromePath;
+            launchOptions.executablePath = chromePath!;
         } catch (error) {
             if (this.isVerbose) {
                 console.warn(

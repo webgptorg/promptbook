@@ -1,8 +1,8 @@
 import { serializeError } from '@promptbook-local/utils';
-import { locateChrome } from 'locate-app';
 import { NextResponse } from 'next/server';
 import { Browser, chromium } from 'playwright';
 import { assertsError } from '../../../../../../../src/errors/assertsError';
+import { locateChrome } from '../../../../../../../src/executables/browsers/locateChrome';
 
 // Use globalThis to persist the browser instance across hot reloads in development
 const globalForBrowser = globalThis as unknown as {

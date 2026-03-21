@@ -1,3 +1,4 @@
+import { describe, expect, it } from '@jest/globals';
 import { locateLibreoffice } from './locateLibreoffice';
 
 describe('locating the LibreOffice', () => {
