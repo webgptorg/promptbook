@@ -1,7 +1,6 @@
 import { locateApp } from '../locateApp';
 import type { string_executable_path } from '../../types/typeAliases';
 
-
 /**
  * @@@
  *

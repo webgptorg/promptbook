@@ -186,9 +186,9 @@ export function createUseCalendarToolFunctions(): Record<string_javascript_name,
                 const eventId = normalizeRequiredText(args.eventId, 'eventId');
                 const payload = await callGoogleCalendarApi<GoogleCalendarEvent>(accessToken, {
                     method: 'GET',
-                    path: `/calendars/${encodeGoogleCalendarId(calendarReference.calendarId)}/events/${encodeURIComponent(
-                        eventId,
-                    )}`,
+                    path: `/calendars/${encodeGoogleCalendarId(
+                        calendarReference.calendarId,
+                    )}/events/${encodeURIComponent(eventId)}`,
                 });
 
                 return JSON.stringify({
@@ -245,9 +245,9 @@ export function createUseCalendarToolFunctions(): Record<string_javascript_name,
 
                 const payload = await callGoogleCalendarApi<GoogleCalendarEvent>(accessToken, {
                     method: 'PATCH',
-                    path: `/calendars/${encodeGoogleCalendarId(calendarReference.calendarId)}/events/${encodeURIComponent(
-                        eventId,
-                    )}`,
+                    path: `/calendars/${encodeGoogleCalendarId(
+                        calendarReference.calendarId,
+                    )}/events/${encodeURIComponent(eventId)}`,
                     query: createSendUpdatesQuery(args.sendUpdates),
                     body: requestBody,
                 });
@@ -266,9 +266,9 @@ export function createUseCalendarToolFunctions(): Record<string_javascript_name,
                 const eventId = normalizeRequiredText(args.eventId, 'eventId');
                 await callGoogleCalendarApi(accessToken, {
                     method: 'DELETE',
-                    path: `/calendars/${encodeGoogleCalendarId(calendarReference.calendarId)}/events/${encodeURIComponent(
-                        eventId,
-                    )}`,
+                    path: `/calendars/${encodeGoogleCalendarId(
+                        calendarReference.calendarId,
+                    )}/events/${encodeURIComponent(eventId)}`,
                     query: createSendUpdatesQuery(args.sendUpdates),
                 });
 
@@ -292,9 +292,9 @@ export function createUseCalendarToolFunctions(): Record<string_javascript_name,
 
                 const existingEvent = await callGoogleCalendarApi<GoogleCalendarEvent>(accessToken, {
                     method: 'GET',
-                    path: `/calendars/${encodeGoogleCalendarId(calendarReference.calendarId)}/events/${encodeURIComponent(
-                        eventId,
-                    )}`,
+                    path: `/calendars/${encodeGoogleCalendarId(
+                        calendarReference.calendarId,
+                    )}/events/${encodeURIComponent(eventId)}`,
                 });
                 const existingAttendees = (existingEvent?.attendees || [])
                     .map((attendee) => normalizeOptionalText(attendee.email))
@@ -303,9 +303,9 @@ export function createUseCalendarToolFunctions(): Record<string_javascript_name,
 
                 const payload = await callGoogleCalendarApi<GoogleCalendarEvent>(accessToken, {
                     method: 'PATCH',
-                    path: `/calendars/${encodeGoogleCalendarId(calendarReference.calendarId)}/events/${encodeURIComponent(
-                        eventId,
-                    )}`,
+                    path: `/calendars/${encodeGoogleCalendarId(
+                        calendarReference.calendarId,
+                    )}/events/${encodeURIComponent(eventId)}`,
                     query: createSendUpdatesQuery(args.sendUpdates),
                     body: {
                         attendees: mergedAttendees.map((email) => ({ email })),

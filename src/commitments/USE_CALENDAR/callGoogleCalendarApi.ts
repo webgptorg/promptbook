@@ -107,7 +107,8 @@ function extractGoogleCalendarApiErrorMessage(parsedPayload: unknown, fallbackTe
                     }
 
                     const normalizedErrorEntry = errorEntry as { message?: unknown; reason?: unknown };
-                    const detailMessage = typeof normalizedErrorEntry.message === 'string' ? normalizedErrorEntry.message : '';
+                    const detailMessage =
+                        typeof normalizedErrorEntry.message === 'string' ? normalizedErrorEntry.message : '';
                     const reason = typeof normalizedErrorEntry.reason === 'string' ? normalizedErrorEntry.reason : '';
                     return [detailMessage, reason].filter(Boolean).join(' | ');
                 })

@@ -97,7 +97,10 @@ export class UseCalendarCommitmentDefinition extends BaseCommitmentDefinition<'U
                       )
                       .join('\n')
                 : '- Calendar is resolved from runtime context';
-        const extraInstructions = formatOptionalInstructionBlock('Calendar instructions', parsedCommitment.instructions);
+        const extraInstructions = formatOptionalInstructionBlock(
+            'Calendar instructions',
+            parsedCommitment.instructions,
+        );
 
         return this.appendToSystemMessage(
             {

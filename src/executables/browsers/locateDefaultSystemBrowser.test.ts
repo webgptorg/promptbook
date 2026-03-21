@@ -8,9 +8,7 @@ describe('locating default system browser', () => {
     });
 
     it('should locate same default system browser when asking twice', async () => {
-        expect(await locateDefaultSystemBrowser()).toEqual(
-            await locateDefaultSystemBrowser(),
-        );
+        expect(await locateDefaultSystemBrowser()).toEqual(await locateDefaultSystemBrowser());
         expect.assertions(1);
     });
 });

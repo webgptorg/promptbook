@@ -22,8 +22,6 @@ describe('locating the browser', () => {
         expect.assertions(1);
     });
     */
-    
-     
 
     it('should locate Edge', async () => {
         if (process.platform === 'win32') {

@@ -202,7 +202,8 @@ export function extractUseCalendarReferencesFromCommitments(
  * @private internal utility of USE CALENDAR commitment
  */
 export function parseGoogleCalendarIdFromUrl(url: URL): string | null {
-    const rawCalendarId = url.searchParams.get('cid') || url.searchParams.get('src') || url.searchParams.get('calendarId');
+    const rawCalendarId =
+        url.searchParams.get('cid') || url.searchParams.get('src') || url.searchParams.get('calendarId');
     if (!rawCalendarId) {
         return null;
     }

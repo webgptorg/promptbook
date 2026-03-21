@@ -148,9 +148,7 @@ function resolveUseCalendarToolRuntime(args: UseCalendarToolArgsBase): UseCalend
     if (configuredCalendars.length > 0) {
         const allowedCalendarUrls = new Set(configuredCalendars.map((configuredCalendar) => configuredCalendar.url));
         if (!allowedCalendarUrls.has(calendarReference.url)) {
-            throw new Error(
-                `Calendar "${calendarReference.url}" is not configured by USE CALENDAR for this agent.`,
-            );
+            throw new Error(`Calendar "${calendarReference.url}" is not configured by USE CALENDAR for this agent.`);
         }
     }
 

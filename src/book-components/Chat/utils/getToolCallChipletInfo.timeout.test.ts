@@ -28,4 +28,3 @@ describe('getToolCallChipletInfo timeout labels', () => {
         expect(buildToolCallChipText(info)).toBe('⏱️ Timeout: 5s');
     });
 });
-
