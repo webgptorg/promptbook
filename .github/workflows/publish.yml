@@ -20,6 +20,10 @@ jobs:
               with:
                   node-version: 22
                   registry-url: https://registry.npmjs.org/
+            - name: 🔍 Debug Node & npm version
+              run: |-
+                  node -v
+                  npm -v
             - name: 🔐 Prepare NPM authentication
               run: >-
                   if [ -n "$NPM_TOKEN" ]; then
