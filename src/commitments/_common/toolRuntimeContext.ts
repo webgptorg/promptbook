@@ -108,6 +108,15 @@ export type ToolRuntimeContext = {
         smtpCredential?: string;
         fromAddress?: string;
     };
+    calendars?: {
+        googleAccessToken?: string;
+        connections?: Array<{
+            provider: string;
+            url: string;
+            calendarId: string;
+            scopes?: string[];
+        }>;
+    };
     spawn?: {
         depth?: number;
         parentRunId?: string;

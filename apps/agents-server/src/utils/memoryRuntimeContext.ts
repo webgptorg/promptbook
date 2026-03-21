@@ -30,6 +30,13 @@ export type ComposePromptParametersWithMemoryContextOptions = {
     projectGithubToken?: string;
     emailSmtpCredential?: string;
     emailFromAddress?: string;
+    calendarGoogleAccessToken?: string;
+    calendarConnections?: ReadonlyArray<{
+        provider: string;
+        url: string;
+        calendarId: string;
+        scopes?: string[];
+    }>;
     chatAttachments?: ReadonlyArray<ChatAttachment>;
 };
 
@@ -50,6 +57,8 @@ export function composePromptParametersWithMemoryContext(
         projectGithubToken,
         emailSmtpCredential,
         emailFromAddress,
+        calendarGoogleAccessToken,
+        calendarConnections,
         chatAttachments,
     } = options;
     const normalizedBaseParameters = normalizePromptParameters(baseParameters);
@@ -83,6 +92,17 @@ export function composePromptParametersWithMemoryContext(
         ...(normalizeOptionalText(emailSmtpCredential) ? { smtpCredential: normalizeOptionalText(emailSmtpCredential) } : {}),
         ...(normalizeOptionalText(emailFromAddress) ? { fromAddress: normalizeOptionalText(emailFromAddress) } : {}),
     };
+    const resolvedCalendarConnections =
+        calendarConnections === undefined
+            ? normalizeCalendarConnections(existingRuntimeContext.calendars?.connections)
+            : normalizeCalendarConnections(calendarConnections);
+    const calendarsRuntimeContext = {
+        ...(existingRuntimeContext.calendars || {}),
+        ...(normalizeOptionalText(calendarGoogleAccessToken)
+            ? { googleAccessToken: normalizeOptionalText(calendarGoogleAccessToken) }
+            : {}),
+        ...(resolvedCalendarConnections.length > 0 ? { connections: resolvedCalendarConnections } : {}),
+    };
 
     const mergedRuntimeContext: ToolRuntimeContext = {
         ...existingRuntimeContext,
@@ -104,6 +124,10 @@ export function composePromptParametersWithMemoryContext(
         email:
             mergedEmailRuntimeContext.smtpCredential || mergedEmailRuntimeContext.fromAddress
                 ? mergedEmailRuntimeContext
+                : undefined,
+        calendars:
+            calendarsRuntimeContext.googleAccessToken || calendarsRuntimeContext.connections
+                ? calendarsRuntimeContext
                 : undefined,
         spawn: {
             ...(existingRuntimeContext.spawn || {}),
@@ -218,4 +242,66 @@ function normalizeProjectRepositories(rawRepositories: unknown): string[] {
     }
 
     return repositories;
+}
+
+/**
+ * Normalizes configured calendar references while preserving declaration order.
+ */
+function normalizeCalendarConnections(
+    rawConnections: unknown,
+): Array<{
+    provider: string;
+    url: string;
+    calendarId: string;
+    scopes?: string[];
+}> {
+    if (!Array.isArray(rawConnections)) {
+        return [];
+    }
+
+    const connections: Array<{
+        provider: string;
+        url: string;
+        calendarId: string;
+        scopes?: string[];
+    }> = [];
+    const knownConnections = new Set<string>();
+
+    for (const rawConnection of rawConnections) {
+        if (!rawConnection || typeof rawConnection !== 'object') {
+            continue;
+        }
+
+        const connection = rawConnection as Record<string, unknown>;
+        const provider = normalizeOptionalText(connection.provider);
+        const url = normalizeOptionalText(connection.url);
+        const calendarId = normalizeOptionalText(connection.calendarId);
+
+        if (!provider || !url || !calendarId) {
+            continue;
+        }
+
+        const connectionKey = `${provider}|${url}`;
+        if (knownConnections.has(connectionKey)) {
+            continue;
+        }
+
+        knownConnections.add(connectionKey);
+
+        const scopes = Array.isArray(connection.scopes)
+            ? connection.scopes
+                  .filter((scope): scope is string => typeof scope === 'string')
+                  .map((scope) => scope.trim())
+                  .filter(Boolean)
+            : [];
+
+        connections.push({
+            provider,
+            url,
+            calendarId,
+            ...(scopes.length > 0 ? { scopes } : {}),
+        });
+    }
+
+    return connections;
 }

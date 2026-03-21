@@ -10,7 +10,10 @@ import {
 } from '@/src/utils/metaDisclaimer';
 import { extractUseEmailConfigurationFromAgentSource } from '@/src/utils/emails/extractUseEmailConfigurationFromAgentSource';
 import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
+import { extractUseCalendarConnectionsFromAgentSource } from '@/src/utils/calendars/extractUseCalendarConnectionsFromAgentSource';
+import { logCalendarToolCallsActivity } from '@/src/utils/calendars/logCalendarToolCallsActivity';
 import { resolveUseEmailSmtpCredential } from '@/src/utils/resolveUseEmailSmtpCredential';
+import { resolveUseCalendarGoogleToken } from '@/src/utils/resolveUseCalendarGoogleToken';
 import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithubToken';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
 import { Agent, computeAgentHash } from '@promptbook-local/core';
@@ -98,11 +101,19 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const agentPermanentId = resolvedAgentContext.parentAgentPermanentId;
         const agentSource = resolvedAgentContext.resolvedAgentSource;
         const projectRepositories = extractProjectRepositoriesFromAgentSource(agentSource);
+        const calendarConnections = extractUseCalendarConnectionsFromAgentSource(agentSource);
         const useEmailConfiguration = extractUseEmailConfigurationFromAgentSource(agentSource);
         const projectGithubToken = await resolveUseProjectGithubToken({
             userId: currentUserIdentity?.userId,
             agentPermanentId,
         });
+        const calendarGoogleAccessToken =
+            calendarConnections.length > 0
+                ? await resolveUseCalendarGoogleToken({
+                      userId: currentUserIdentity?.userId,
+                      agentPermanentId,
+                  })
+                : undefined;
         const emailSmtpCredential = useEmailConfiguration.isEnabled
             ? await resolveUseEmailSmtpCredential({
                   userId: currentUserIdentity?.userId,
@@ -153,6 +164,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             projectGithubToken,
             emailSmtpCredential,
             emailFromAddress: useEmailConfiguration.senderEmail,
+            calendarGoogleAccessToken,
+            calendarConnections,
         });
         const openAiAgentKitExecutionTools = await $provideOpenAiAgentKitExecutionToolsForServer();
         const agent = new Agent({
@@ -218,6 +231,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             previousMessageHash: userMessageHash,
             usage: response.usage,
         });
+        if (response.toolCalls && response.toolCalls.length > 0) {
+            await logCalendarToolCallsActivity({
+                userId: currentUserIdentity?.userId ?? null,
+                agentPermanentId,
+                toolCalls: response.toolCalls,
+            });
+        }
 
         // Learning
         if (!isPrivateModeEnabled) {

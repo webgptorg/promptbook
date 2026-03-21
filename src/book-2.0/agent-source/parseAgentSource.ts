@@ -190,6 +190,15 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
             continue;
         }
 
+        if (commitment.type === 'USE CALENDAR') {
+            capabilities.push({
+                type: 'calendar',
+                label: 'Calendar',
+                iconName: 'Calendar',
+            });
+            continue;
+        }
+
         if (commitment.type === 'FROM') {
             const content = spaceTrim(commitment.content).split(/\r?\n/)[0] || '';
 

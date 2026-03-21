@@ -110,6 +110,26 @@ export const bookLanguageDocumentationExamples: ReadonlyArray<BookLanguageDocume
         ],
     },
     {
+        id: 'use-calendar-integration-agent',
+        title: 'USE CALENDAR integration',
+        goal: 'Coordinate meetings and schedules through a connected Google Calendar.',
+        source: spaceTrim(`
+            Calendar Assistant
+
+            PERSONA You schedule meetings and keep the calendar conflict-free.
+            USE CALENDAR https://calendar.google.com/calendar/u/0/r
+            SCOPES https://www.googleapis.com/auth/calendar
+            RULE Confirm destructive actions before deleting an event.
+            INITIAL MESSAGE Tell me the meeting details and I will schedule it in your calendar.
+        `),
+        walkthrough: [
+            '`USE CALENDAR` enables calendar tools for listing, reading, creating, updating, and deleting events.',
+            'The first calendar URL identifies which calendar integration should be used.',
+            '`SCOPES` can explicitly request required Google Calendar OAuth permissions.',
+            'Credentials are resolved from wallet-backed Google Calendar OAuth records at runtime in Agents Server.',
+        ],
+    },
+    {
         id: 'agents-team-example',
         title: 'Agents TEAM (with in-book teammates)',
         goal: 'Delegate sub-tasks to specialized teammates.',

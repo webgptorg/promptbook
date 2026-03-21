@@ -1,6 +1,11 @@
 'use client';
 
+import { buildCalendarOAuthConnectUrl } from '@/src/utils/calendarOAuthClient';
 import { buildGithubAppConnectUrl } from '@/src/utils/githubAppClient';
+import {
+    USE_CALENDAR_GOOGLE_WALLET_KEY,
+    USE_CALENDAR_GOOGLE_WALLET_SERVICE,
+} from '@/src/utils/useCalendarGoogleWalletConstants';
 import {
     USE_PROJECT_GITHUB_WALLET_KEY,
     USE_PROJECT_GITHUB_WALLET_SERVICE,
@@ -10,7 +15,7 @@ import {
     USE_EMAIL_SMTP_WALLET_SECRET_JSON_EXAMPLE,
     USE_EMAIL_SMTP_WALLET_SERVICE,
 } from '@/src/utils/useEmailSmtpWalletConstants';
-import { Github, KeyRound, Lock, Save, UserRound, X } from 'lucide-react';
+import { Calendar, Github, KeyRound, Lock, Save, UserRound, X } from 'lucide-react';
 import { useEffect, useId, useMemo, useState } from 'react';
 import { Dialog } from '../Portal/Dialog';
 import { SecretInput } from '../SecretInput/SecretInput';
@@ -35,6 +40,11 @@ export type PendingWalletRecordRequest = {
     message?: string;
     isUserScoped: boolean;
     isGlobal: boolean;
+    calendarOAuth?: {
+        provider: 'google';
+        calendarUrl: string;
+        scopes: string[];
+    };
 };
 
 /**
@@ -63,6 +73,15 @@ export type WalletRecordDialogGithubAppOptions = {
 };
 
 /**
+ * Calendar OAuth connect settings passed into the shared wallet dialog.
+ */
+export type WalletRecordDialogCalendarOAuthOptions = {
+    isConfigured: boolean;
+    returnTo?: string;
+    agentPermanentId?: string | null;
+};
+
+/**
  * Props for wallet record dialog.
  */
 export type WalletRecordDialogProps = {
@@ -71,13 +90,14 @@ export type WalletRecordDialogProps = {
     onSubmit: (payload: WalletRecordDialogSubmitPayload) => Promise<void> | void;
     onClose: () => void;
     githubApp?: WalletRecordDialogGithubAppOptions;
+    calendarOAuth?: WalletRecordDialogCalendarOAuthOptions;
 };
 
 /**
  * Dialog that captures one wallet credential record from user.
  */
 export function WalletRecordDialog(props: WalletRecordDialogProps) {
-    const { isOpen, request, onSubmit, onClose, githubApp } = props;
+    const { isOpen, request, onSubmit, onClose, githubApp, calendarOAuth } = props;
     const serviceInputId = useId();
     const keyInputId = useId();
 
@@ -117,8 +137,10 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
 
     const canUseGithubAppConnect =
         githubApp?.isConfigured === true && isUseProjectGithubWalletRequest(recordType, service, key);
+    const canUseCalendarOAuthConnect =
+        calendarOAuth?.isConfigured === true && isUseCalendarWalletRequest(recordType, service, key);
     const isUseEmailSmtpWalletRequest = isUseEmailSmtpWalletRequestRecord(recordType, service, key);
-    const manualFieldsVisible = !canUseGithubAppConnect || isManualTokenVisible;
+    const manualFieldsVisible = (!canUseGithubAppConnect && !canUseCalendarOAuthConnect) || isManualTokenVisible;
     const requestedJsonSchema = request?.jsonSchema;
     const requestedJsonSchemaText = useMemo(
         () => formatWalletJsonSchemaForDisplay(requestedJsonSchema),
@@ -292,6 +314,66 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                     </div>
                 )}
 
+                {canUseCalendarOAuthConnect && (
+                    <div className="space-y-3 rounded-md border border-blue-200 bg-blue-50/50 p-3">
+                        <div className="space-y-1 text-xs text-blue-900">
+                            <p className="font-semibold uppercase tracking-wide">Google Calendar access requested</p>
+                            <p>
+                                Calendar URL:{' '}
+                                <span className="font-mono break-all">
+                                    {request.calendarOAuth?.calendarUrl || 'https://calendar.google.com/calendar/u/0/r'}
+                                </span>
+                            </p>
+                            <p className="font-semibold uppercase tracking-wide pt-1">Scopes</p>
+                            <ul className="list-disc pl-4 space-y-0.5">
+                                {(request.calendarOAuth?.scopes && request.calendarOAuth.scopes.length > 0
+                                    ? request.calendarOAuth.scopes
+                                    : ['https://www.googleapis.com/auth/calendar']
+                                ).map((scope) => (
+                                    <li key={scope} className="font-mono break-all">
+                                        {scope}
+                                    </li>
+                                ))}
+                            </ul>
+                            <p className="font-semibold uppercase tracking-wide pt-1">Examples</p>
+                            <p>Read events, create meetings, update/delete events, and invite guests.</p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() =>
+                                redirectToCalendarOAuthConnect({
+                                    isUserScoped,
+                                    isGlobal,
+                                    calendarOAuth,
+                                    calendarUrl:
+                                        request.calendarOAuth?.calendarUrl ||
+                                        'https://calendar.google.com/calendar/u/0/r',
+                                    scopes:
+                                        request.calendarOAuth?.scopes && request.calendarOAuth.scopes.length > 0
+                                            ? request.calendarOAuth.scopes
+                                            : ['https://www.googleapis.com/auth/calendar'],
+                                })
+                            }
+                            disabled={isSubmitting}
+                            className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-blue-300 bg-white px-3 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            <Calendar className="h-4 w-4" />
+                            Connect Google Calendar
+                        </button>
+                        {!isManualTokenVisible && (
+                            <button
+                                type="button"
+                                onClick={() => setIsManualTokenVisible(true)}
+                                disabled={isSubmitting}
+                                className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-amber-600 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <KeyRound className="h-4 w-4" />
+                                Add token manually
+                            </button>
+                        )}
+                    </div>
+                )}
+
                 {manualFieldsVisible && (
                     <>
                         <div className="grid gap-3 sm:grid-cols-3">
@@ -441,6 +523,17 @@ function isUseProjectGithubWalletRequest(recordType: WalletRecordType, service: 
 }
 
 /**
+ * Returns true when dialog currently targets USE CALENDAR Google access token.
+ */
+function isUseCalendarWalletRequest(recordType: WalletRecordType, service: string, key: string): boolean {
+    return (
+        recordType === 'ACCESS_TOKEN' &&
+        service.trim().toLowerCase() === USE_CALENDAR_GOOGLE_WALLET_SERVICE &&
+        key.trim() === USE_CALENDAR_GOOGLE_WALLET_KEY
+    );
+}
+
+/**
  * Returns true when dialog currently targets USE EMAIL SMTP access token.
  */
 function isUseEmailSmtpWalletRequestRecord(recordType: WalletRecordType, service: string, key: string): boolean {
@@ -483,6 +576,34 @@ function redirectToGithubAppConnect(options: {
         isGlobal: effectiveIsGlobal,
         isUserScoped: options.isUserScoped,
         agentPermanentId: options.githubApp?.agentPermanentId || null,
+    });
+
+    if (typeof window !== 'undefined') {
+        window.location.assign(connectUrl);
+    }
+}
+
+/**
+ * Redirects browser to Google Calendar OAuth connect endpoint.
+ */
+function redirectToCalendarOAuthConnect(options: {
+    isUserScoped: boolean;
+    isGlobal: boolean;
+    calendarOAuth?: WalletRecordDialogCalendarOAuthOptions;
+    calendarUrl: string;
+    scopes: string[];
+}): void {
+    const effectiveIsGlobal = options.isGlobal || !options.calendarOAuth?.agentPermanentId;
+    const returnTo =
+        options.calendarOAuth?.returnTo ||
+        (typeof window !== 'undefined' ? `${window.location.pathname}${window.location.search}` : '/system/user-wallet');
+    const connectUrl = buildCalendarOAuthConnectUrl({
+        returnTo,
+        isGlobal: effectiveIsGlobal,
+        isUserScoped: options.isUserScoped,
+        agentPermanentId: options.calendarOAuth?.agentPermanentId || null,
+        calendarUrl: options.calendarUrl,
+        scopes: options.scopes,
     });
 
     if (typeof window !== 'undefined') {

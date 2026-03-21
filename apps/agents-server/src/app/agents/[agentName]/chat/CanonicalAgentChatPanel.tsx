@@ -25,6 +25,7 @@ import { useSoundSystem } from '../../../../components/SoundSystemProvider/Sound
 import { useActiveBrowserTab } from '../../../../hooks/useActiveBrowserTab';
 import { createDefaultChatEffects } from '../../../../utils/chat/createDefaultChatEffects';
 import { executeQuickActionButton } from '../../../../utils/chat/executeQuickActionButton';
+import { fetchCalendarOAuthStatus, type CalendarOAuthStatusResponse } from '../../../../utils/calendarOAuthClient';
 import { fetchGithubAppStatus, type GithubAppStatusResponse } from '../../../../utils/githubAppClient';
 import { createDefaultSpeechRecognition } from '../../../../utils/speech-to-text/createDefaultSpeechRecognition';
 import { chatFileUploadHandler } from '../../../../utils/upload/createBookEditorUploadHandler';
@@ -159,6 +160,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
     const isActiveBrowserTab = useActiveBrowserTab();
     const { t } = useServerLanguage();
     const [githubAppStatus, setGithubAppStatus] = useState<GithubAppStatusResponse | null>(null);
+    const [calendarOAuthStatus, setCalendarOAuthStatus] = useState<CalendarOAuthStatusResponse | null>(null);
     const effectiveSelfLearningEnabled = isSelfLearningEnabled && !isPrivateModeEnabled;
     const currentAgentPermanentId = useMemo(() => {
         return typeof (agent as { permanentId?: unknown } | undefined)?.permanentId === 'string'
@@ -187,21 +189,25 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
     useEffect(() => {
         let isMounted = true;
 
-        const loadGithubAppStatus = async () => {
-            const status = await fetchGithubAppStatus();
+        const loadIntegrationStatus = async () => {
+            const [githubStatus, calendarStatus] = await Promise.all([
+                fetchGithubAppStatus(),
+                fetchCalendarOAuthStatus(currentAgentPermanentId),
+            ]);
             if (!isMounted) {
                 return;
             }
 
-            setGithubAppStatus(status);
+            setGithubAppStatus(githubStatus);
+            setCalendarOAuthStatus(calendarStatus);
         };
 
-        void loadGithubAppStatus();
+        void loadIntegrationStatus();
 
         return () => {
             isMounted = false;
         };
-    }, []);
+    }, [currentAgentPermanentId]);
 
     const {
         isMetaDisclaimerAccepting,
@@ -540,6 +546,10 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
                 onClose={handleWalletRequestClose}
                 githubApp={{
                     isConfigured: githubAppStatus?.isConfigured === true,
+                    agentPermanentId: currentAgentPermanentId,
+                }}
+                calendarOAuth={{
+                    isConfigured: calendarOAuthStatus?.isConfigured === true,
                     agentPermanentId: currentAgentPermanentId,
                 }}
             />

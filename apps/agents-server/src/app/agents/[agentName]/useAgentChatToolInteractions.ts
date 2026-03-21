@@ -145,6 +145,10 @@ type TeamToolResult = {
  */
 type WalletToolResult = {
     /**
+     * Optional action identifier.
+     */
+    readonly action?: string;
+    /**
      * Tool status indicator.
      */
     readonly status?: string;
@@ -213,6 +217,18 @@ type WalletToolResult = {
      * Optional repository hint.
      */
     readonly repository?: string;
+    /**
+     * Optional calendar provider hint.
+     */
+    readonly provider?: string;
+    /**
+     * Optional calendar URL hint.
+     */
+    readonly calendarUrl?: string;
+    /**
+     * Optional OAuth scopes requested for calendar access.
+     */
+    readonly scopes?: unknown;
 };
 
 /**
@@ -364,6 +380,20 @@ function parseToolResultObject(result: unknown): Record<string, unknown> | null 
     } catch {
         return null;
     }
+}
+
+/**
+ * Normalizes unknown optional text values.
+ *
+ * @private function of AgentChatWrapper
+ */
+function normalizeOptionalText(value: unknown): string | null {
+    if (typeof value !== 'string') {
+        return null;
+    }
+
+    const trimmedValue = value.trim();
+    return trimmedValue || null;
 }
 
 /**
@@ -547,6 +577,11 @@ function buildPendingWalletRequest(toolCall: ToolCall): PendingWalletRecordReque
     const sourceJsonSchema = requestPayload?.jsonSchema || parsedResult?.jsonSchema;
     const sourceMessage = requestPayload?.message || parsedResult?.message;
     const repositoryHint = parsedResult?.repository?.trim();
+    const calendarUrlHint = normalizeOptionalText(parsedResult?.calendarUrl);
+    const calendarScopes = normalizeCalendarScopes(parsedResult?.scopes);
+    const isCalendarAuthRequest =
+        normalizeOptionalText(parsedResult?.action)?.toLowerCase() === 'calendar-auth' &&
+        normalizeOptionalText(parsedResult?.provider)?.toLowerCase() === 'google';
 
     const message = repositoryHint
         ? `${sourceMessage || 'Credential required.'}\nRepository: ${repositoryHint}`
@@ -562,7 +597,37 @@ function buildPendingWalletRequest(toolCall: ToolCall): PendingWalletRecordReque
         message,
         isUserScoped: requestPayload?.isUserScoped === true || parsedResult?.isUserScoped === true,
         isGlobal: requestPayload?.isGlobal === true || parsedResult?.isGlobal === true,
+        ...(isCalendarAuthRequest
+            ? {
+                  calendarOAuth: {
+                      provider: 'google' as const,
+                      calendarUrl: calendarUrlHint || 'https://calendar.google.com/calendar/u/0/r',
+                      scopes:
+                          calendarScopes.length > 0
+                              ? calendarScopes
+                              : ['https://www.googleapis.com/auth/calendar'],
+                  },
+              }
+            : {}),
     };
+}
+
+/**
+ * Normalizes unknown calendar scopes payload into a unique list.
+ *
+ * @private function of AgentChatWrapper
+ */
+function normalizeCalendarScopes(rawScopes: unknown): string[] {
+    if (!Array.isArray(rawScopes)) {
+        return [];
+    }
+
+    const scopes = rawScopes
+        .filter((scope): scope is string => typeof scope === 'string')
+        .map((scope) => scope.trim())
+        .filter(Boolean);
+
+    return [...new Set(scopes)];
 }
 
 /**

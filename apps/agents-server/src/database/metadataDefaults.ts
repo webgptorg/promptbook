@@ -253,6 +253,30 @@ export const metadataDefaults = [
         note: 'Secret used for signing GitHub App connect state. Keep it unique per deployment.',
         type: 'TEXT_SINGLE_LINE',
     },
+    {
+        key: 'GOOGLE_CALENDAR_CLIENT_ID',
+        value: '',
+        note: 'Google OAuth client ID used for Google Calendar connect flow.',
+        type: 'TEXT_SINGLE_LINE',
+    },
+    {
+        key: 'GOOGLE_CALENDAR_CLIENT_SECRET',
+        value: '',
+        note: 'Google OAuth client secret used for Google Calendar connect flow.',
+        type: 'TEXT_SINGLE_LINE',
+    },
+    {
+        key: 'GOOGLE_CALENDAR_REDIRECT_URI',
+        value: '',
+        note: 'Redirect URI registered in Google Cloud Console for Calendar OAuth callbacks.',
+        type: 'TEXT_SINGLE_LINE',
+    },
+    {
+        key: 'GOOGLE_CALENDAR_STATE_SECRET',
+        value: '',
+        note: 'Secret used for signing Google Calendar OAuth state payloads.',
+        type: 'TEXT_SINGLE_LINE',
+    },
     ...analyticsMetadataDefaults,
 ] as const satisfies ReadonlyArray<{
     key: string;

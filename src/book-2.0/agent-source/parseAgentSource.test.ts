@@ -419,6 +419,22 @@ describe('parseAgentSource', () => {
         });
     });
 
+    it('parses USE CALENDAR capability', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                Agent Name
+                USE CALENDAR https://calendar.google.com/calendar/u/0/r
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+
+        expect(result.capabilities).toContainEqual({
+            type: 'calendar',
+            label: 'Calendar',
+            iconName: 'Calendar',
+        });
+    });
+
     it('ignores deprecated WALLET commitment and keeps USE EMAIL and USE PROJECT capabilities', () => {
         const agentSource = validateBook(
             spaceTrim(`

@@ -1,6 +1,7 @@
 import { AgentBasicInformation, AgentCapability } from '@promptbook-local/types';
 import {
     Book,
+    Calendar,
     Code,
     Clock8Icon,
     ExternalLink,
@@ -45,6 +46,7 @@ const CAPABILITY_PRIORITY_BUCKETS: ReadonlyArray<ReadonlyArray<AgentCapability['
         'email',
         'privacy',
         'project',
+        'calendar',
         'wallet',
     ],
     ['knowledge'],
@@ -170,6 +172,7 @@ export function AgentCapabilityChips({ agent, className, maxChips, size = 'defau
                         Shield,
                         Users,
                         Code,
+                        Calendar,
                         // <- [??] Add icons for new capabilities here
                     }[capability.iconName] || ShieldQuestionMarkIcon;
 

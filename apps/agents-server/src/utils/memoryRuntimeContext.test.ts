@@ -96,6 +96,40 @@ describe('composePromptParametersWithMemoryContext', () => {
         });
     });
 
+    it('embeds calendar runtime context when token and configured calendars are provided', () => {
+        const parameters = composePromptParametersWithMemoryContext({
+            baseParameters: {
+                plain: 'value',
+            },
+            currentUserIdentity: null,
+            agentName: 'Calendar Agent',
+            calendarGoogleAccessToken: 'google_access_token',
+            calendarConnections: [
+                {
+                    provider: 'google',
+                    url: 'https://calendar.google.com/calendar/u/0/r',
+                    calendarId: 'primary',
+                    scopes: ['https://www.googleapis.com/auth/calendar'],
+                },
+            ],
+        });
+
+        expect(parameters.plain).toBe('value');
+
+        const runtimeContext = JSON.parse(parameters[TOOL_RUNTIME_CONTEXT_PARAMETER]!);
+        expect(runtimeContext.calendars).toEqual({
+            googleAccessToken: 'google_access_token',
+            connections: [
+                {
+                    provider: 'google',
+                    url: 'https://calendar.google.com/calendar/u/0/r',
+                    calendarId: 'primary',
+                    scopes: ['https://www.googleapis.com/auth/calendar'],
+                },
+            ],
+        });
+    });
+
     it('embeds scoped chat runtime context for thread-bound tools', () => {
         const parameters = composePromptParametersWithMemoryContext({
             baseParameters: {

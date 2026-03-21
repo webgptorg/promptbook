@@ -98,3 +98,11 @@ export type ResolveUseEmailSmtpCredentialOptions = {
     userId?: number;
     agentPermanentId?: string;
 };
+
+/**
+ * Google Calendar token resolution options for USE CALENDAR.
+ */
+export type ResolveUseCalendarGoogleTokenOptions = {
+    userId?: number;
+    agentPermanentId?: string;
+};

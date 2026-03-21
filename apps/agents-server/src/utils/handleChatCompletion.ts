@@ -18,7 +18,10 @@ import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRunt
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import { extractUseEmailConfigurationFromAgentSource } from '@/src/utils/emails/extractUseEmailConfigurationFromAgentSource';
 import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
+import { extractUseCalendarConnectionsFromAgentSource } from '@/src/utils/calendars/extractUseCalendarConnectionsFromAgentSource';
+import { logCalendarToolCallsActivity } from '@/src/utils/calendars/logCalendarToolCallsActivity';
 import { resolveUseEmailSmtpCredential } from '@/src/utils/resolveUseEmailSmtpCredential';
+import { resolveUseCalendarGoogleToken } from '@/src/utils/resolveUseCalendarGoogleToken';
 import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithubToken';
 import { persistFrozenUserChat, USER_CHAT_SOURCES } from '@/src/utils/userChat';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
@@ -416,6 +419,7 @@ export async function handleChatCompletion(
         }
         let agentSource: string_book = resolvedAgentContext.resolvedAgentSource;
         const projectRepositories = extractProjectRepositoriesFromAgentSource(agentSource);
+        const calendarConnections = extractUseCalendarConnectionsFromAgentSource(agentSource);
         const useEmailConfiguration = extractUseEmailConfigurationFromAgentSource(agentSource);
 
         if (!agentSource) {
@@ -470,6 +474,13 @@ export async function handleChatCompletion(
             userId: currentUserIdentity?.userId,
             agentPermanentId: agentId,
         });
+        const calendarGoogleAccessToken =
+            calendarConnections.length > 0
+                ? await resolveUseCalendarGoogleToken({
+                      userId: currentUserIdentity?.userId,
+                      agentPermanentId: agentId,
+                  })
+                : undefined;
         const emailSmtpCredential = useEmailConfiguration.isEnabled
             ? await resolveUseEmailSmtpCredential({
                   userId: currentUserIdentity?.userId,
@@ -573,6 +584,8 @@ export async function handleChatCompletion(
             projectGithubToken,
             emailSmtpCredential,
             emailFromAddress: useEmailConfiguration.senderEmail,
+            calendarGoogleAccessToken,
+            calendarConnections,
         });
 
         const prompt: ChatPrompt = {
@@ -704,6 +717,13 @@ export async function handleChatCompletion(
                             previousMessageHash: userMessageHash,
                             usage: result.usage,
                         });
+                        if (result.toolCalls && result.toolCalls.length > 0) {
+                            await logCalendarToolCallsActivity({
+                                userId: currentUserIdentity?.userId ?? null,
+                                agentPermanentId: agentId,
+                                toolCalls: result.toolCalls,
+                            });
+                        }
                         if (!isPrivateModeEnabled && currentUserIdentity?.userId) {
                             await persistFrozenUserChat({
                                 userId: currentUserIdentity.userId,
@@ -774,6 +794,13 @@ export async function handleChatCompletion(
                 previousMessageHash: userMessageHash,
                 usage: result.usage,
             });
+            if (result.toolCalls && result.toolCalls.length > 0) {
+                await logCalendarToolCallsActivity({
+                    userId: currentUserIdentity?.userId ?? null,
+                    agentPermanentId: agentId,
+                    toolCalls: result.toolCalls,
+                });
+            }
             if (!isPrivateModeEnabled && currentUserIdentity?.userId) {
                 await persistFrozenUserChat({
                     userId: currentUserIdentity.userId,

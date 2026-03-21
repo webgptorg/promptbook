@@ -21,6 +21,7 @@ import { CodePreview } from '../../../../../../_common/components/CodePreview/Co
 import { getAgentName, getAgentProfile } from '../_utils';
 import { getAgentLinks } from '../agentLinks';
 import { ApiKeyIntegrationSections } from './ApiKeyIntegrationSections';
+import { CalendarIntegrationSection } from './CalendarIntegrationSection';
 import { PromptbookSdkTabs } from './PromptbookSdkTabs';
 import { WebsiteIntegrationTabs } from './WebsiteIntegrationTabs';
 
@@ -94,6 +95,7 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
     }
 
     const { publicUrl } = await $provideServer();
+    const agentPermanentId = agentProfile.permanentId || agentName;
     const agentPublicId = encodeURIComponent(agentProfile.permanentId || agentName);
     const baseUrl = `${publicUrl.href}agents/${encodeURIComponent(agentName)}`;
     const agentApiBase = `${publicUrl.href}agents/${encodeURIComponent(agentName)}`;
@@ -368,6 +370,11 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
                         isAdmin={isAdmin}
                         initialApiKey={apiKey}
                         hasApiKey={hasApiKey}
+                    />
+
+                    <CalendarIntegrationSection
+                        agentName={agentName}
+                        agentPermanentId={agentPermanentId}
                     />
 
                     {/* MCP Integration */}

@@ -4,11 +4,14 @@ import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$prov
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { AgentKitCacheManager } from '@/src/utils/cache/AgentKitCacheManager';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
+import { extractUseCalendarConnectionsFromAgentSource } from '@/src/utils/calendars/extractUseCalendarConnectionsFromAgentSource';
+import { logCalendarToolCallsActivity } from '@/src/utils/calendars/logCalendarToolCallsActivity';
 import { extractUseEmailConfigurationFromAgentSource } from '@/src/utils/emails/extractUseEmailConfigurationFromAgentSource';
 import { getUserById } from '@/src/utils/getUserById';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
 import { resolveCurrentOrInternalServerOrigin } from '@/src/utils/resolveCurrentOrInternalServerOrigin';
+import { resolveUseCalendarGoogleToken } from '@/src/utils/resolveUseCalendarGoogleToken';
 import { resolveUseEmailSmtpCredential } from '@/src/utils/resolveUseEmailSmtpCredential';
 import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithubToken';
 import {
@@ -84,11 +87,19 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
     const agentPermanentId = resolvedAgentContext.parentAgentPermanentId;
     const resolvedAgentName = resolvedAgentContext.resolvedAgentName;
     const projectRepositories = extractProjectRepositoriesFromAgentSource(agentSource);
+    const calendarConnections = extractUseCalendarConnectionsFromAgentSource(agentSource);
     const useEmailConfiguration = extractUseEmailConfigurationFromAgentSource(agentSource);
     const projectGithubToken = await resolveUseProjectGithubToken({
         userId: job.userId,
         agentPermanentId,
     });
+    const calendarGoogleAccessToken =
+        calendarConnections.length > 0
+            ? await resolveUseCalendarGoogleToken({
+                  userId: job.userId,
+                  agentPermanentId,
+              })
+            : undefined;
     const emailSmtpCredential = useEmailConfiguration.isEnabled
         ? await resolveUseEmailSmtpCredential({
               userId: job.userId,
@@ -114,6 +125,8 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
         projectGithubToken,
         emailSmtpCredential,
         emailFromAddress: useEmailConfiguration.senderEmail,
+        calendarGoogleAccessToken,
+        calendarConnections,
         chatAttachments: userMessage.attachments,
     });
     const agentKitCacheManager = new AgentKitCacheManager({ isVerbose: true });
@@ -331,6 +344,14 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
                 generationDurationMs,
             });
             hasPersistedCompletedState = true;
+        }
+
+        if (response.toolCalls && response.toolCalls.length > 0) {
+            await logCalendarToolCallsActivity({
+                userId: job.userId,
+                agentPermanentId,
+                toolCalls: response.toolCalls,
+            });
         }
 
         if (!resolvedAgentContext.isBookScopedAgent) {

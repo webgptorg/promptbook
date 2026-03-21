@@ -27,7 +27,10 @@ import {
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import { extractUseEmailConfigurationFromAgentSource } from '@/src/utils/emails/extractUseEmailConfigurationFromAgentSource';
 import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
+import { extractUseCalendarConnectionsFromAgentSource } from '@/src/utils/calendars/extractUseCalendarConnectionsFromAgentSource';
+import { logCalendarToolCallsActivity } from '@/src/utils/calendars/logCalendarToolCallsActivity';
 import { resolveUseEmailSmtpCredential } from '@/src/utils/resolveUseEmailSmtpCredential';
+import { resolveUseCalendarGoogleToken } from '@/src/utils/resolveUseCalendarGoogleToken';
 import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithubToken';
 import { persistFrozenUserChat, USER_CHAT_SOURCES } from '@/src/utils/userChat';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
@@ -274,6 +277,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const agentId = resolvedAgentContext.parentAgentPermanentId;
         const resolvedAgentName = resolvedAgentContext.resolvedAgentName;
         const projectRepositories = extractProjectRepositoriesFromAgentSource(agentSource);
+        const calendarConnections = extractUseCalendarConnectionsFromAgentSource(agentSource);
         const useEmailConfiguration = extractUseEmailConfigurationFromAgentSource(agentSource);
         // [▶️] const executionTools = await $provideExecutionToolsForServer();
         const messageSuffix = resolveMessageSuffixFromAgentSource(agentSource);
@@ -285,6 +289,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             userId: currentUserIdentity?.userId,
             agentPermanentId: agentId,
         });
+        const calendarGoogleAccessToken =
+            calendarConnections.length > 0
+                ? await resolveUseCalendarGoogleToken({
+                      userId: currentUserIdentity?.userId,
+                      agentPermanentId: agentId,
+                  })
+                : undefined;
         const emailSmtpCredential = useEmailConfiguration.isEnabled
             ? await resolveUseEmailSmtpCredential({
                   userId: currentUserIdentity?.userId,
@@ -332,6 +343,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             projectGithubToken,
             emailSmtpCredential,
             emailFromAddress: useEmailConfiguration.senderEmail,
+            calendarGoogleAccessToken,
+            calendarConnections,
             chatAttachments: attachments,
         });
 
@@ -649,6 +662,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
                     if (response.toolCalls && response.toolCalls.length > 0) {
                         emitToolCalls(response.toolCalls);
+                        await logCalendarToolCallsActivity({
+                            userId: currentUserIdentity?.userId ?? null,
+                            agentPermanentId: agentId,
+                            toolCalls: response.toolCalls,
+                        });
                     }
 
                     closeStream();

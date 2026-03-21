@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 an hour by OpenAI Codex `gpt-5.3-codex`
 
 [📅🤖] Add `USE CALENDAR` commitment to allow agents to access and manipulate calendars (Google Calendar and future providers)
 
@@ -40,3 +40,4 @@
     -   Tokens are stored in the wallet and refresh logic works.
     -   All calendar actions appear in audit logs.
 -   You are working with the [Agents Server](apps/agents-server)
+

@@ -59,6 +59,7 @@ export type AgentCapability = {
         | 'popup'
         | 'privacy'
         | 'project'
+        | 'calendar'
         | 'wallet';
 
     /**

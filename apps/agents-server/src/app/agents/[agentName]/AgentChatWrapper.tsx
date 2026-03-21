@@ -18,6 +18,7 @@ import { useSoundSystem } from '../../../components/SoundSystemProvider/SoundSys
 import { resolveAgentChatInputPlaceholder } from '../../../utils/agentChatInputPlaceholder';
 import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatEffects';
 import { reportClientVersionMismatch } from '../../../utils/clientVersionClient';
+import { fetchCalendarOAuthStatus, type CalendarOAuthStatusResponse } from '../../../utils/calendarOAuthClient';
 import type { FriendlyErrorMessage } from '../../../utils/errorMessages';
 import { handleChatError } from '../../../utils/errorMessages';
 import { fetchGithubAppStatus, type GithubAppStatusResponse } from '../../../utils/githubAppClient';
@@ -141,6 +142,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     const [chatKey, setChatKey] = useState<number>(0);
     const sendMessage = useSendMessageToLlmChat();
     const [githubAppStatus, setGithubAppStatus] = useState<GithubAppStatusResponse | null>(null);
+    const [calendarOAuthStatus, setCalendarOAuthStatus] = useState<CalendarOAuthStatusResponse | null>(null);
     const currentAgentPermanentId = useMemo(() => {
         return typeof (agent as { permanentId?: unknown } | undefined)?.permanentId === 'string'
             ? ((agent as { permanentId?: string }).permanentId as string)
@@ -164,26 +166,30 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     });
 
     /**
-     * Loads GitHub App availability so wallet popup can offer one-click connect.
+     * Loads external integration status so wallet popup can offer one-click connect flows.
      */
     useEffect(() => {
         let isMounted = true;
 
-        const loadGithubAppStatus = async () => {
-            const status = await fetchGithubAppStatus();
+        const loadIntegrationStatus = async () => {
+            const [githubStatus, calendarStatus] = await Promise.all([
+                fetchGithubAppStatus(),
+                fetchCalendarOAuthStatus(currentAgentPermanentId),
+            ]);
             if (!isMounted) {
                 return;
             }
 
-            setGithubAppStatus(status);
+            setGithubAppStatus(githubStatus);
+            setCalendarOAuthStatus(calendarStatus);
         };
 
-        void loadGithubAppStatus();
+        void loadIntegrationStatus();
 
         return () => {
             isMounted = false;
         };
-    }, []);
+    }, [currentAgentPermanentId]);
 
     const handleFeedback = useCallback(
         async (feedback: {
@@ -404,6 +410,10 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 onClose={handleWalletRequestClose}
                 githubApp={{
                     isConfigured: githubAppStatus?.isConfigured === true,
+                    agentPermanentId: currentAgentPermanentId,
+                }}
+                calendarOAuth={{
+                    isConfigured: calendarOAuthStatus?.isConfigured === true,
                     agentPermanentId: currentAgentPermanentId,
                 }}
             />

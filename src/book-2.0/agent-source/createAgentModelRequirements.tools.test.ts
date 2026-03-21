@@ -130,6 +130,34 @@ describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
         expect(requirements._metadata?.useEmailSender).toBe('agent@example.com');
     });
 
+    it('should add calendar tools when USE CALENDAR is used', async () => {
+        const agentSource = validateBook(`
+            Test Agent
+            USE CALENDAR https://calendar.google.com/calendar/u/0/r
+        `);
+        const requirements = await createAgentModelRequirements(agentSource);
+
+        expect(requirements.tools).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({ name: 'calendar_list_events' }),
+                expect.objectContaining({ name: 'calendar_get_event' }),
+                expect.objectContaining({ name: 'calendar_create_event' }),
+                expect.objectContaining({ name: 'calendar_update_event' }),
+                expect.objectContaining({ name: 'calendar_delete_event' }),
+                expect.objectContaining({ name: 'calendar_invite_guests' }),
+            ]),
+        );
+        expect(requirements._metadata?.useCalendar).toBe(true);
+        expect(requirements._metadata?.useCalendars).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    provider: 'google',
+                    calendarId: 'primary',
+                }),
+            ]),
+        );
+    });
+
     it('should add timeout tools when USE TIMEOUT is used', async () => {
         const agentSource = validateBook(`
             Test Agent

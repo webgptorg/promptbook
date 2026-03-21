@@ -40,6 +40,7 @@ import { TeamCommitmentDefinition } from './TEAM/TEAM';
 import { TemplateCommitmentDefinition } from './TEMPLATE/TEMPLATE';
 import { UseCommitmentDefinition } from './USE/USE';
 import { UseBrowserCommitmentDefinition } from './USE_BROWSER/USE_BROWSER';
+import { UseCalendarCommitmentDefinition } from './USE_CALENDAR/USE_CALENDAR';
 import { UseEmailCommitmentDefinition } from './USE_EMAIL/USE_EMAIL';
 import { UseImageGeneratorCommitmentDefinition } from './USE_IMAGE_GENERATOR/USE_IMAGE_GENERATOR';
 import { UseMcpCommitmentDefinition } from './USE_MCP/USE_MCP';
@@ -130,6 +131,7 @@ export const COMMITMENT_REGISTRY = [
     new UseTimeoutCommitmentDefinition(),
     new UseTimeCommitmentDefinition(),
     new UseUserLocationCommitmentDefinition(),
+    new UseCalendarCommitmentDefinition(),
     new UseEmailCommitmentDefinition(),
     new UsePopupCommitmentDefinition(),
     new UseImageGeneratorCommitmentDefinition('USE IMAGE GENERATOR'),
