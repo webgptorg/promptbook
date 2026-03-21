@@ -1,5 +1,6 @@
 import {
     ChevronRight,
+    Clock3Icon,
     FileTextIcon,
     MessageSquareIcon,
     MoreHorizontalIcon,
@@ -57,7 +58,7 @@ const AGENT_MENU_MAX_WIDTH_CLASS = 'max-w-[220px]';
  *
  * @private function of Header
  */
-export type AgentHierarchyView = 'Profile' | 'Chat' | 'Book' | 'More';
+export type AgentHierarchyView = 'Profile' | 'Chat' | 'Book' | 'Timeouts' | 'More';
 
 /**
  * Icon displayed next to each hierarchy view label.
@@ -68,6 +69,7 @@ const AGENT_VIEW_ICON_MAP: Record<AgentHierarchyView, typeof FileTextIcon> = {
     Profile: FileTextIcon,
     Chat: MessageSquareIcon,
     Book: NotebookPenIcon,
+    Timeouts: Clock3Icon,
     More: MoreHorizontalIcon,
 };
 
@@ -161,6 +163,7 @@ export function createAgentViewLabel(view: AgentHierarchyView, translate: (key: 
         Profile: 'common.profile',
         Chat: 'common.chat',
         Book: 'common.book',
+        Timeouts: 'common.timeouts',
         More: 'common.more',
     };
     return (
@@ -276,6 +279,10 @@ function resolveAgentHierarchyView(segment: string | undefined): AgentHierarchyV
 
     if (segment === 'book') {
         return 'Book';
+    }
+
+    if (segment === 'timeouts') {
+        return 'Timeouts';
     }
 
     return 'More';
@@ -1027,4 +1034,3 @@ export function createAgentHierarchyMobileItems(nodes: ReadonlyArray<AgentMenuTr
         };
     });
 }
-

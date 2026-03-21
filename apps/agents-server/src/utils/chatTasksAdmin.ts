@@ -29,8 +29,10 @@ export type AdminChatTaskRecord = {
     updatedAt: string;
     finishedAt: string | null;
     cancelRequestedAt: string | null;
+    pausedAt: string | null;
     lastHeartbeatAt: string | null;
     leaseExpiresAt: string | null;
+    recurrenceIntervalMs: number | null;
     priority: number | null;
     attemptCount: number;
     retryCount: number;

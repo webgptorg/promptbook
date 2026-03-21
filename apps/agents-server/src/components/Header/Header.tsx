@@ -1127,6 +1127,10 @@ export function Header(props: HeaderProps) {
                   label: createAgentViewLabel('Chat', t),
                   href: `/agents/${encodeURIComponent(activeAgentNavigationId)}/chat`,
               },
+              {
+                  label: createAgentViewLabel('Timeouts', t),
+                  href: `/agents/${encodeURIComponent(activeAgentNavigationId)}/timeouts`,
+              },
               ...(isAdmin
                   ? [
                         {

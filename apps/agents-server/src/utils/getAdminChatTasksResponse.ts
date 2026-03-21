@@ -94,8 +94,10 @@ type AdminChatTaskSqlRow = {
     updatedAt: string;
     finishedAt: string | null;
     cancelRequestedAt: string | null;
+    pausedAt: string | null;
     lastHeartbeatAt: string | null;
     leaseExpiresAt: string | null;
+    recurrenceIntervalMs: string | number | null;
     attemptCount: number;
     lastErrorSummary: string | null;
     userId: number;
@@ -423,8 +425,10 @@ function mapAdminChatTaskSqlRow(row: AdminChatTaskSqlRow): AdminChatTaskRecord {
         updatedAt: row.updatedAt,
         finishedAt: row.finishedAt,
         cancelRequestedAt: row.cancelRequestedAt,
+        pausedAt: row.pausedAt,
         lastHeartbeatAt: row.lastHeartbeatAt,
         leaseExpiresAt: row.leaseExpiresAt,
+        recurrenceIntervalMs: resolveNullableSqlNumber(row.recurrenceIntervalMs),
         priority: null,
         attemptCount: row.attemptCount,
         retryCount: Math.max(0, row.attemptCount - 1),
@@ -520,8 +524,10 @@ function createAdminChatTaskBaseQuery(options: {
             job."updatedAt" AS "updatedAt",
             job."completedAt" AS "finishedAt",
             job."cancelRequestedAt" AS "cancelRequestedAt",
+            NULL::TIMESTAMP WITH TIME ZONE AS "pausedAt",
             job."lastHeartbeatAt" AS "lastHeartbeatAt",
             job."leaseExpiresAt" AS "leaseExpiresAt",
+            NULL::BIGINT AS "recurrenceIntervalMs",
             job."attemptCount" AS "attemptCount",
             job."failureReason" AS "lastErrorSummary",
             job."userId" AS "userId",
@@ -545,8 +551,10 @@ function createAdminChatTaskBaseQuery(options: {
             timeout."updatedAt" AS "updatedAt",
             timeout."completedAt" AS "finishedAt",
             timeout."cancelRequestedAt" AS "cancelRequestedAt",
+            timeout."pausedAt" AS "pausedAt",
             NULL::TIMESTAMP WITH TIME ZONE AS "lastHeartbeatAt",
             timeout."leaseExpiresAt" AS "leaseExpiresAt",
+            timeout."recurrenceIntervalMs" AS "recurrenceIntervalMs",
             timeout."attemptCount" AS "attemptCount",
             timeout."failureReason" AS "lastErrorSummary",
             timeout."userId" AS "userId",

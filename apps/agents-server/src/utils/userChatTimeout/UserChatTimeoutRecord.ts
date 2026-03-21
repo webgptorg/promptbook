@@ -26,12 +26,16 @@ export type UserChatTimeoutRecord = {
     parameters: UserChatTimeoutParameters;
     durationMs: number;
     dueAt: string;
+    recurrenceIntervalMs: number | null;
     queuedAt: string;
     startedAt: string | null;
     completedAt: string | null;
     cancelRequestedAt: string | null;
+    pausedAt: string | null;
     leaseExpiresAt: string | null;
     attemptCount: number;
+    runCount: number;
+    lastFiredAt: string | null;
     failureReason: string | null;
 };
 
@@ -50,12 +54,16 @@ export type UserChatTimeoutRow = {
     parameters: Json;
     durationMs: number;
     dueAt: string;
+    recurrenceIntervalMs: number | null;
     queuedAt: string;
     startedAt: string | null;
     completedAt: string | null;
     cancelRequestedAt: string | null;
+    pausedAt: string | null;
     leaseExpiresAt: string | null;
     attemptCount: number;
+    runCount: number;
+    lastFiredAt: string | null;
     failureReason: string | null;
 };
 
@@ -74,12 +82,16 @@ export type UserChatTimeoutInsert = {
     parameters?: Json;
     durationMs: number;
     dueAt: string;
+    recurrenceIntervalMs?: number | null;
     queuedAt: string;
     startedAt?: string | null;
     completedAt?: string | null;
     cancelRequestedAt?: string | null;
+    pausedAt?: string | null;
     leaseExpiresAt?: string | null;
     attemptCount?: number;
+    runCount?: number;
+    lastFiredAt?: string | null;
     failureReason?: string | null;
 };
 
@@ -93,6 +105,7 @@ export type CreateUserChatTimeoutOptions = {
     chatId: string;
     durationMs: number;
     dueAt?: string;
+    recurrenceIntervalMs?: number | null;
     message?: string;
     parameters?: UserChatTimeoutParameters;
 };
@@ -115,4 +128,44 @@ export type ListUserChatTimeoutsOptions = {
     agentPermanentId: string;
     chatId: string;
     onlyActive?: boolean;
+};
+
+/**
+ * Query options for loading one timeout scoped only to user + agent.
+ */
+export type GetAgentScopedUserChatTimeoutOptions = {
+    userId: number;
+    agentPermanentId: string;
+    timeoutId: string;
+};
+
+/**
+ * Query options for listing all timeouts owned by one user+agent across chats.
+ */
+export type ListAgentUserChatTimeoutsOptions = {
+    userId: number;
+    agentPermanentId: string;
+    statuses?: ReadonlyArray<UserChatTimeoutStatus>;
+    includePaused?: boolean;
+    limit?: number;
+    offset?: number;
+};
+
+/**
+ * Mutable fields accepted when editing one agent-scoped timeout.
+ */
+export type UpdateAgentScopedUserChatTimeoutPatch = {
+    dueAt?: string;
+    recurrenceIntervalMs?: number | null;
+    message?: string | null;
+    parameters?: UserChatTimeoutParameters;
+    pausedAt?: string | null;
+    extendByMs?: number;
+};
+
+/**
+ * Options for updating one timeout scoped by user + agent + timeout id.
+ */
+export type UpdateAgentScopedUserChatTimeoutOptions = GetAgentScopedUserChatTimeoutOptions & {
+    patch: UpdateAgentScopedUserChatTimeoutPatch;
 };

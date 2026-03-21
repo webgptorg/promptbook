@@ -1,4 +1,4 @@
-[ ]
+[x] ~$1.09 2 hours by OpenAI Codex `gpt-5.3-codex`
 
 [⏳🧭] Allow agents to see and manage timeouts across all their chats
 

@@ -7,6 +7,7 @@ common.admin: Administrátor
 common.profile: Profil
 common.chat: Chat
 common.book: Kniha
+common.timeouts: Časovače
 common.more: Více
 controlPanel.label: Ovládací panel
 controlPanel.openAriaLabel: Otevřít globální ovládací panel

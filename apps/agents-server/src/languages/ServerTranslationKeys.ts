@@ -13,6 +13,7 @@ export const SERVER_TRANSLATION_KEYS = [
     "common.profile",
     "common.chat",
     "common.book",
+    "common.timeouts",
     "common.more",
     "controlPanel.label",
     "controlPanel.openAriaLabel",

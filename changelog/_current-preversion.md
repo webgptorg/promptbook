@@ -1,3 +1,12 @@
+-   Added agent-scoped global timeout management in Agents Server so users can manage scheduled wake-ups across all chats of the same agent:
+    -   Added a new `/agents/[agentName]/timeouts` "My timeouts" page that lists queued/running/paused/history timeout rows across chats and links each row back to its originating chat.
+    -   Added agent-scoped timeout APIs (`GET /agents/[agentName]/api/timeouts`, `PATCH/DELETE /agents/[agentName]/api/timeouts/[timeoutId]`) for listing, editing, pausing/resuming, extending, and cancelling timeout rows.
+    -   Added timeout edit capabilities for next run (`dueAt`), recurrence interval (`recurrenceIntervalMs`), wake-up message, and JSON payload parameters from one central UI.
+    -   Extended durable timeout persistence with migration `2026-03-0290-user-chat-timeout-recurrence.sql` by adding `recurrenceIntervalMs`, `pausedAt`, `runCount`, and `lastFiredAt` fields plus supporting indexes.
+    -   Updated timeout worker behavior to skip paused rows and to automatically create the next queued timeout when a recurring timeout fires.
+    -   Added `Timeouts` into the agent view navigation dropdown and translations (`common.timeouts`) so the new manager is accessible directly from the global header.
+    -   Extended admin Task Manager timeout visibility with paused/recurrence metadata in task rows for clearer cross-agent troubleshooting and governance.
+
 -   Fixed Agents Server desktop header menus to prevent accidental clicks through hover-opened panels and unified dropdown interaction behavior:
     -   Added shared hover/click interaction state for desktop menus with delayed hover-preview opening and immediate click-to-commit opening.
     -   Made hover-opened desktop dropdown panels non-interactive until committed by click, so delayed-close overlays no longer capture clicks intended for page content beneath the header.

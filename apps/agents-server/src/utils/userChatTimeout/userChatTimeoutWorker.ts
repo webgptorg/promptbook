@@ -98,6 +98,7 @@ export async function scheduleThreadScopedUserChatTimeout(options: {
     readonly agentPermanentId: string;
     readonly chatId: string;
     readonly durationMs: number;
+    readonly recurrenceIntervalMs?: number | null;
     readonly message?: string;
     readonly parameters?: UserChatTimeoutParameters;
 }): Promise<UserChatTimeoutRecord> {
@@ -119,6 +120,7 @@ export async function scheduleThreadScopedUserChatTimeout(options: {
         agentPermanentId: options.agentPermanentId,
         chatId: options.chatId,
         durationMs: options.durationMs,
+        recurrenceIntervalMs: options.recurrenceIntervalMs,
         message: options.message,
         parameters: options.parameters,
     });
@@ -332,7 +334,44 @@ async function processClaimedUserChatTimeout(timeout: UserChatTimeoutRecord): Pr
             return;
         }
 
-        await markUserChatTimeoutCompleted(latestTimeout.timeoutId);
+        const completedTimeout = await markUserChatTimeoutCompleted(latestTimeout.timeoutId);
+
+        if (!completedTimeout || completedTimeout.status !== 'COMPLETED') {
+            console.info('[user-chat-timeout]', 'skip_recurrence_non_completed', {
+                chatId: latestTimeout.chatId,
+                timeoutId: latestTimeout.timeoutId,
+                resultingStatus: completedTimeout?.status || null,
+            });
+            return;
+        }
+
+        try {
+            const recurringTimeout = await scheduleRecurringUserChatTimeout(completedTimeout);
+
+            if (recurringTimeout) {
+                console.info('[user-chat-timeout]', 'rescheduled', {
+                    chatId: recurringTimeout.chatId,
+                    previousTimeoutId: latestTimeout.timeoutId,
+                    timeoutId: recurringTimeout.timeoutId,
+                    dueAt: recurringTimeout.dueAt,
+                    recurrenceIntervalMs: recurringTimeout.recurrenceIntervalMs,
+                });
+            }
+        } catch (recurrenceError) {
+            const recurrenceReason =
+                recurrenceError instanceof Error
+                    ? recurrenceError.message
+                    : 'Failed to schedule recurring timeout.';
+            await appendUserChatTimeoutWarningMessage(
+                latestTimeout,
+                `Recurring schedule failed: ${recurrenceReason}`,
+            ).catch(() => undefined);
+            console.error('[user-chat-timeout]', 'recurrence_schedule_failed', {
+                chatId: latestTimeout.chatId,
+                timeoutId: latestTimeout.timeoutId,
+                error: serializeError(recurrenceError as Error),
+            });
+        }
 
         console.info('[user-chat-timeout]', 'fired', {
             chatId: latestTimeout.chatId,
@@ -454,6 +493,36 @@ function clearUserChatTimeoutLocalWakeup(timeoutId: string): void {
 
     clearTimeout(wakeup);
     userChatTimeoutWakeupsById.delete(timeoutId);
+}
+
+/**
+ * Creates the next queued row for recurring timeouts after one successful fire.
+ *
+ * @private internal utility of userChatTimeout
+ */
+async function scheduleRecurringUserChatTimeout(
+    completedTimeout: UserChatTimeoutRecord,
+): Promise<UserChatTimeoutRecord | null> {
+    const recurrenceIntervalMs = completedTimeout.recurrenceIntervalMs;
+
+    if (typeof recurrenceIntervalMs !== 'number' || !Number.isFinite(recurrenceIntervalMs) || recurrenceIntervalMs <= 0) {
+        return null;
+    }
+
+    const nextDueAtIso = new Date(Date.now() + Math.floor(recurrenceIntervalMs)).toISOString();
+    const nextTimeout = await createUserChatTimeout({
+        userId: completedTimeout.userId,
+        agentPermanentId: completedTimeout.agentPermanentId,
+        chatId: completedTimeout.chatId,
+        durationMs: Math.floor(recurrenceIntervalMs),
+        recurrenceIntervalMs: Math.floor(recurrenceIntervalMs),
+        dueAt: nextDueAtIso,
+        message: completedTimeout.message || undefined,
+        parameters: completedTimeout.parameters,
+    });
+
+    scheduleUserChatTimeoutLocalWakeup(nextTimeout);
+    return nextTimeout;
 }
 
 /**

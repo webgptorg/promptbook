@@ -149,13 +149,51 @@ export type UserChatTimeout = {
     parameters: Record<string, unknown>;
     durationMs: number;
     dueAt: string;
+    recurrenceIntervalMs: number | null;
     queuedAt: string;
     startedAt: string | null;
     completedAt: string | null;
     cancelRequestedAt: string | null;
+    pausedAt: string | null;
     leaseExpiresAt: string | null;
     attemptCount: number;
+    runCount: number;
+    lastFiredAt: string | null;
     failureReason: string | null;
+};
+
+/**
+ * Aggregated timeout counters used in the global agent timeout manager.
+ */
+export type AgentUserTimeoutCounters = {
+    allCount: number;
+    queuedCount: number;
+    runningCount: number;
+    pausedCount: number;
+    completedCount: number;
+    failedCount: number;
+    cancelledCount: number;
+};
+
+/**
+ * API payload for the agent-wide timeout list endpoint.
+ */
+export type AgentUserTimeoutListResponse = {
+    items: Array<UserChatTimeout>;
+    counters: AgentUserTimeoutCounters;
+    generatedAt: string;
+};
+
+/**
+ * Editable timeout fields accepted by the agent-wide timeout update endpoint.
+ */
+export type AgentUserTimeoutUpdatePayload = {
+    dueAt?: string;
+    recurrenceIntervalMs?: number | null;
+    message?: string | null;
+    parameters?: Record<string, unknown>;
+    paused?: boolean;
+    extendByMs?: number;
 };
 
 /**
@@ -497,6 +535,66 @@ export async function cancelUserChatTimeout(
     }
 
     return (await response.json()) as UserChatDetail;
+}
+
+/**
+ * Loads all durable timeouts for one user+agent across chats.
+ */
+export async function fetchAgentUserTimeouts(agentName: string): Promise<AgentUserTimeoutListResponse> {
+    const response = await fetch(`/agents/${encodeURIComponent(agentName)}/api/timeouts`, {
+        method: 'GET',
+        cache: 'no-store',
+        headers: createUserChatRequestHeaders(),
+    });
+
+    if (!response.ok) {
+        throw await resolveUserChatApiError(response, 'Failed to load agent timeouts.');
+    }
+
+    return (await response.json()) as AgentUserTimeoutListResponse;
+}
+
+/**
+ * Updates one durable timeout in the agent-wide timeout manager.
+ */
+export async function updateAgentUserTimeout(
+    agentName: string,
+    timeoutId: string,
+    payload: AgentUserTimeoutUpdatePayload,
+): Promise<UserChatTimeout> {
+    const response = await fetch(
+        `/agents/${encodeURIComponent(agentName)}/api/timeouts/${encodeURIComponent(timeoutId)}`,
+        {
+            method: 'PATCH',
+            headers: createUserChatRequestHeaders({ 'Content-Type': 'application/json' }),
+            body: JSON.stringify(payload),
+        },
+    );
+
+    if (!response.ok) {
+        throw await resolveUserChatApiError(response, 'Failed to update agent timeout.');
+    }
+
+    return (await response.json()) as UserChatTimeout;
+}
+
+/**
+ * Cancels one durable timeout in the agent-wide timeout manager.
+ */
+export async function cancelAgentUserTimeout(agentName: string, timeoutId: string): Promise<UserChatTimeout> {
+    const response = await fetch(
+        `/agents/${encodeURIComponent(agentName)}/api/timeouts/${encodeURIComponent(timeoutId)}`,
+        {
+            method: 'DELETE',
+            headers: createUserChatRequestHeaders(),
+        },
+    );
+
+    if (!response.ok) {
+        throw await resolveUserChatApiError(response, 'Failed to cancel agent timeout.');
+    }
+
+    return (await response.json()) as UserChatTimeout;
 }
 
 /**

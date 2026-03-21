@@ -80,6 +80,7 @@ const TASK_TIME_WINDOW_OPTIONS = [
 const TASK_STATUS_CLASS_MAP: Record<string, string> = {
     RUNNING: 'border-blue-200 bg-blue-50 text-blue-700',
     QUEUED: 'border-slate-200 bg-slate-50 text-slate-700',
+    PAUSED: 'border-orange-200 bg-orange-50 text-orange-700',
     RETRYING: 'border-amber-200 bg-amber-50 text-amber-700',
     FAILED: 'border-rose-200 bg-rose-50 text-rose-700',
     COMPLETED: 'border-emerald-200 bg-emerald-50 text-emerald-700',
@@ -448,9 +449,22 @@ export function TaskManagerClient() {
                                                         Retries:{' '}
                                                         <span className="text-gray-700">{task.retryCount}</span>
                                                     </div>
+                                                    {task.recurrenceIntervalMs ? (
+                                                        <div>
+                                                            Recurrence:{' '}
+                                                            <span className="text-gray-700">
+                                                                Every {formatDuration(task.recurrenceIntervalMs)}
+                                                            </span>
+                                                        </div>
+                                                    ) : null}
                                                     {task.cancelRequestedAt ? (
                                                         <div className="font-medium text-orange-700">
                                                             Cancellation requested
+                                                        </div>
+                                                    ) : null}
+                                                    {task.pausedAt ? (
+                                                        <div className="font-medium text-orange-700">
+                                                            Paused {formatDateTime(task.pausedAt)}
                                                         </div>
                                                     ) : null}
                                                 </div>
@@ -497,6 +511,7 @@ export function TaskManagerClient() {
                                                         label: 'Lease expires',
                                                         value: formatDateTime(task.leaseExpiresAt),
                                                     },
+                                                    { label: 'Paused at', value: formatDateTime(task.pausedAt) },
                                                 ])}
                                             </td>
                                             <td className="max-w-xs px-4 py-3 align-top text-[11px] leading-relaxed text-gray-600">
@@ -645,7 +660,12 @@ function SelectField(props: {
  * Compact badge rendering the effective task status.
  */
 function TaskStatusBadge({ task, isStuck }: TaskStatusBadgeProps) {
-    const label = task.status === 'QUEUED' && task.retryCount > 0 ? 'RETRYING' : task.status;
+    const label =
+        task.status === 'QUEUED' && task.pausedAt
+            ? 'PAUSED'
+            : task.status === 'QUEUED' && task.retryCount > 0
+            ? 'RETRYING'
+            : task.status;
     const tone = isStuck ? TASK_STATUS_CLASS_MAP.STUCK : TASK_STATUS_CLASS_MAP[label] || TASK_STATUS_CLASS_MAP.QUEUED;
     return <span className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold ${tone}`}>{label}</span>;
 }
