@@ -1,7 +1,5 @@
 import * as dotenv from 'dotenv';
 
-dotenv.config({ path: '.env' });
-
 import colors from 'colors';
 import { existsSync } from 'fs';
 import { mkdir, readFile, writeFile } from 'fs/promises';
@@ -31,11 +29,6 @@ import {
     SOURCE_ROOTS,
 } from './find-refactor-candidates.constants';
 
-if (process.cwd() !== join(__dirname, '../..')) {
-    console.error(colors.red(`CWD must be root of the project`));
-    process.exit(1);
-}
-
 if (require.main === module) {
     findRefactorCandidates()
         .catch((error) => {
@@ -47,6 +40,20 @@ if (require.main === module) {
         .then(() => {
             process.exit(0);
         });
+}
+
+/**
+ * Initializes environment and validates repository context for this script.
+ *
+ * @private utility for `findRefactorCandidates`
+ */
+function initializeFindRefactorCandidatesRun(): void {
+    dotenv.config({ path: '.env' });
+
+    if (process.cwd() !== join(__dirname, '../..')) {
+        console.error(colors.red(`CWD must be root of the project`));
+        process.exit(1);
+    }
 }
 
 /**
@@ -73,6 +80,8 @@ type RefactorCandidate = {
  * @public exported from `@promptbook/cli`
  */
 export async function findRefactorCandidates(): Promise<void> {
+    initializeFindRefactorCandidatesRun();
+
     console.info(colors.cyan('?? Find refactor candidates'));
 
     const rootDir = process.cwd();

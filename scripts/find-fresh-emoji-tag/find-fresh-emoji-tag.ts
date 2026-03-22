@@ -2,8 +2,6 @@
 
 import * as dotenv from 'dotenv';
 
-dotenv.config({ path: '.env' });
-
 import colors from 'colors';
 import { readFileSync } from 'fs';
 import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob'
@@ -12,11 +10,6 @@ import type { string_char_emoji } from '../../src/types/typeAliasEmoji';
 import { difference } from '../../src/utils/sets/difference';
 import { $shuffleItems } from './utils/$shuffleItems';
 import { EMOJIS, EMOJIS_OF_SINGLE_PICTOGRAM } from './utils/emojis';
-
-if (process.cwd() !== join(__dirname, '../..')) {
-    console.error(colors.red(`CWD must be root of the project`));
-    process.exit(1);
-}
 
 // Note: When run as a standalone script, call the exported function
 if (require.main === module) {
@@ -32,11 +25,27 @@ if (require.main === module) {
 }
 
 /**
+ * Initializes environment and validates repository context for this script.
+ *
+ * @private utility for `findFreshEmojiTag`
+ */
+function initializeFindFreshEmojiTagRun(): void {
+    dotenv.config({ path: '.env' });
+
+    if (process.cwd() !== join(__dirname, '../..')) {
+        console.error(colors.red(`CWD must be root of the project`));
+        process.exit(1);
+    }
+}
+
+/**
  * Finds fresh emoji tags that are not yet used in the codebase.
  *
  * @public exported from `@promptbook/cli`
  */
 export async function findFreshEmojiTag(): Promise<void> {
+    initializeFindFreshEmojiTagRun();
+
     console.info(`🤪  Find fresh emoji tag`);
 
     // Do here stuff you want to test

@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.4356 21 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨🚼] When I try use Promptbook CLI on an external project, these errors are happening. Fix them:
 
@@ -59,3 +59,4 @@ Error: Cannot find module 'playwright'
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

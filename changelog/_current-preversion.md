@@ -1,3 +1,8 @@
+-   Fixed `ptbk about` startup failures in external projects:
+    -   Made `run_browser` tool resolution fully lazy in `resolveRunBrowserToolForNode`, so CLI startup no longer eagerly requires `playwright`.
+    -   Removed import-time side effects from `find-fresh-emoji-tag` and `find-refactor-candidates` script modules by moving `.env` initialization and root-CWD checks into runtime initialization, preventing `CWD must be root of the project` during CLI bootstrap.
+    -   Updated the draft shell installer to generate a Node-based `ptbk` launcher via `npx @promptbook/cli` instead of a hardcoded `ts-node` command.
+
 -   Fixed Agents Server durable draft persistence to be race-tolerant when a chat is deleted or disappears during save:
     -   Treated `PATCH /agents/[agentName]/api/user-chats/[chatId]/draft` as best-effort for missing chats and now return a no-op success instead of surfacing a hard save error.
     -   Added dedicated scope-error response handling in the draft route so `USER_CHAT_NOT_FOUND` during `mutate_chat` no longer breaks user flow in concurrent delete/navigation timing windows.

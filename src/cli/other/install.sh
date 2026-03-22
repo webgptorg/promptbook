@@ -9,7 +9,11 @@
 
 cd /usr/bin
 
-#echo 'npx ptbk "$@"' > ptbk
-echo 'ts-node ~/work/ai/promptbook/src/cli/test/ptbk.ts "$@"' > ptbk
+cat > ptbk <<'EOF'
+#!/bin/sh
+npx --yes @promptbook/cli "$@"
+EOF
+
+chmod +x ptbk
 
 echo 'Promptbook CLI installed successfully!'
