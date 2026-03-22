@@ -23,15 +23,39 @@ Error: Cannot find module 'playwright'
 
 ---
 
-[-]
+[ ]
 
 [✨🚼] bar
+
+```bash
+$ npx ptbk coder find-fresh-emoji-tag
+(node:40552) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+CWD must be root of the project
+
+```
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
+-   You are working with the [Promptbook CLI](src/cli/test/ptbk.ts)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
+[ ]
+
+[✨🚼] bar
+
+```bash
+$ npx ptbk coder init
+$ npx ptbk coder initialize
+```
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Promptbook CLI](src/cli/test/ptbk.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
@@ -43,8 +67,7 @@ Error: Cannot find module 'playwright'
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
+-   You are working with the [Promptbook CLI](src/cli/test/ptbk.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
@@ -56,7 +79,41 @@ Error: Cannot find module 'playwright'
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
+-   You are working with the [Promptbook CLI](src/cli/test/ptbk.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+---
+
+[-]
+
+[✨🚼] bar
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Promptbook CLI](src/cli/test/ptbk.ts)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
+[-]
+
+[✨🚼] bar
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Promptbook CLI](src/cli/test/ptbk.ts)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
+[-]
+
+[✨🚼] bar
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Promptbook CLI](src/cli/test/ptbk.ts)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
