@@ -12,11 +12,22 @@ dotenv.config({ path: '.env' });
 import colors from 'colors';
 import { join } from 'path';
 import { chromium } from 'playwright';
+import { spaceTrim } from 'spacetrim';
 import { locateChrome } from '../../executables/browsers/locateChrome';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 
 if (process.cwd() !== join(__dirname, '../../..')) {
-    console.error(colors.red(`CWD must be root of the project`));
+    console.error(
+        colors.red(
+            spaceTrim(`
+                CWD must be root of the project
+
+                Script: agent-with-browser-playground.ts
+                Current CWD: ${process.cwd()}
+                Expected CWD: ${join(__dirname, '../../..')}
+            `),
+        ),
+    );
     process.exit(1);
 }
 

@@ -6,11 +6,22 @@ dotenv.config({ path: '.env' });
 
 import colors from 'colors';
 import { basename, join } from 'path';
+import { spaceTrim } from 'spacetrim';
 import { assertsError } from '../../src/errors/assertsError';
 import { runCodexPrompts } from './main/runCodexPrompts';
 
 if (process.cwd() !== join(__dirname, '../..')) {
-    console.error(colors.red('CWD must be root of the project'));
+    console.error(
+        colors.red(
+            spaceTrim(`
+                CWD must be root of the project
+
+                Script: run-codex-prompts.ts
+                Current CWD: ${process.cwd()}
+                Expected CWD: ${join(__dirname, '../..')}
+            `),
+        ),
+    );
     process.exit(1);
 }
 

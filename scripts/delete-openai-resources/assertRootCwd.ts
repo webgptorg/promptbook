@@ -1,5 +1,6 @@
 import colors from 'colors';
 import { join } from 'path';
+import { spaceTrim } from 'spacetrim';
 
 /**
  * Absolute path of the repository root.
@@ -13,8 +14,17 @@ const ROOT_DIR = join(__dirname, '../..');
  */
 export function assertRootCwd(): void {
     if (process.cwd() !== ROOT_DIR) {
-        console.error(colors.red('CWD must be root of the project.'));
+        console.error(
+            colors.red(
+                spaceTrim(`
+                    CWD must be root of the project
+
+                    Script: assertRootCwd.ts
+                    Current CWD: ${process.cwd()}
+                    Expected CWD: ${ROOT_DIR}
+                `),
+            ),
+        );
         process.exit(1);
     }
 }
-

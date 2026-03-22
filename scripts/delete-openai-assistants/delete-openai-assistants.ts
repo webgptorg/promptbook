@@ -8,6 +8,7 @@ import colors from 'colors';
 import OpenAI from 'openai';
 import { join } from 'path';
 import { createInterface } from 'readline';
+import { spaceTrim } from 'spacetrim';
 
 const ASSISTANTS_PAGE_LIMIT = 100;
 const ROOT_DIR = join(__dirname, '../..');
@@ -89,7 +90,17 @@ async function main(): Promise<void> {
  */
 function ensureRootCwd(): void {
     if (process.cwd() !== ROOT_DIR) {
-        console.error(colors.red('CWD must be root of the project.'));
+        console.error(
+            colors.red(
+                spaceTrim(`
+                    CWD must be root of the project
+
+                    Script: delete-openai-assistants.ts
+                    Current CWD: ${process.cwd()}
+                    Expected CWD: ${ROOT_DIR}
+                `),
+            ),
+        );
         process.exit(1);
     }
 }

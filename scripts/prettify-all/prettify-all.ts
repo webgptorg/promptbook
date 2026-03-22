@@ -4,6 +4,7 @@
 import colors from 'colors';
 import commander from 'commander';
 import { basename, join } from 'path';
+import { spaceTrim } from 'spacetrim';
 import { $execCommand } from '../../src/_packages/node.index';
 import { assertsError } from '../../src/errors/assertsError';
 import { commit } from '../utils/autocommit/commit';
@@ -11,7 +12,17 @@ import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 import { readAllProjectFiles } from '../utils/readAllProjectFiles';
 
 if (process.cwd() !== join(__dirname, '../..')) {
-    console.error(colors.red(`CWD must be root of the project`));
+    console.error(
+        colors.red(
+            spaceTrim(`
+                CWD must be root of the project
+
+                Script: prettify-all.ts
+                Current CWD: ${process.cwd()}
+                Expected CWD: ${join(__dirname, '../..')}
+            `),
+        ),
+    );
     process.exit(1);
 }
 
