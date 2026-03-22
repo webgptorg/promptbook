@@ -1,3 +1,9 @@
+-   Enhanced the Agents Server `/?view=office` visualization with a pixel-office inspired rendering style while preserving existing layout/state behavior:
+    -   Reworked room rendering with textured floor tiles, stronger wall treatments, and richer corridor markings to better communicate office structure.
+    -   Added deterministic decorative room props (bookshelves, plants, whiteboards, coffee/storage stations, and lounge furniture) for more expressive scene context.
+    -   Updated desk and avatar rendering with richer furniture/character details and compact animated activity bubbles for `idle` / `working` / `meeting` / `moving` states.
+    -   Refactored repeated isometric face rendering into reusable block/theme helpers to keep the office renderer DRY and easier to maintain.
+
 -   Enhanced the Agents Server new-agent wizard to be lighter and faster, and aligned the flow with the new 4-step creation model:
     -   Simplified the wizard visual structure to reduce form-like clutter while keeping the same core data collection.
     -   Enabled direct step navigation so users can jump to any wizard step at any time without validation-based blocking.
