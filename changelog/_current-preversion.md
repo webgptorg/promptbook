@@ -1,3 +1,7 @@
+-   Fixed Agents Server durable draft persistence to be race-tolerant when a chat is deleted or disappears during save:
+    -   Treated `PATCH /agents/[agentName]/api/user-chats/[chatId]/draft` as best-effort for missing chats and now return a no-op success instead of surfacing a hard save error.
+    -   Added dedicated scope-error response handling in the draft route so `USER_CHAT_NOT_FOUND` during `mutate_chat` no longer breaks user flow in concurrent delete/navigation timing windows.
+
 -   Extended `USE TIMEOUT` cross-chat visibility/management in Agents Server runtime so one agent conversation can inspect and manage timeouts from other chats in the same user+agent scope:
     -   Added a new `list_timeouts` tool in the core `USE TIMEOUT` commitment (tool schema, parser, runtime adapter contract, system-message/docs, and tests) for scoped timeout discovery.
     -   Updated the Agents Server timeout runtime adapter to list agent-scoped timeouts via existing store APIs and to cancel by user+agent+`timeoutId` (without current-chat restriction), while keeping `set_timeout` scheduling thread-scoped.

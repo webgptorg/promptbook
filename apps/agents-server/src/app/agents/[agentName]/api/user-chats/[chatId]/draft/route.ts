@@ -6,6 +6,9 @@ import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 
 /**
  * Updates the draft message for one chat without modifying messages or activity timestamps.
+ *
+ * Missing chats are treated as a no-op to keep draft persistence best-effort during
+ * concurrent delete/navigation races.
  */
 export async function PATCH(
     request: Request,
@@ -36,7 +39,7 @@ export async function PATCH(
         });
 
         if (!existingChat) {
-            return NextResponse.json({ error: 'Chat not found.' }, { status: 404 });
+            return NextResponse.json({ success: true });
         }
 
         if (isFrozenUserChatSource(existingChat.source)) {
@@ -59,19 +62,7 @@ export async function PATCH(
         return NextResponse.json({ success: true });
     } catch (error) {
         if (error instanceof UserChatScopeError) {
-            const status =
-                error.code === 'USER_CHAT_SCOPE_DIAGNOSTICS_FAILED' || error.code === 'USER_CHAT_SCOPE_INCONSISTENT'
-                    ? 500
-                    : 404;
-
-            return NextResponse.json(
-                {
-                    error: error.message,
-                    code: error.code,
-                    details: error.details,
-                },
-                { status },
-            );
+            return resolveUserChatDraftScopeErrorResponse(error);
         }
 
         return NextResponse.json(
@@ -82,4 +73,29 @@ export async function PATCH(
             { status: 500 },
         );
     }
+}
+
+/**
+ * Resolves one HTTP response for branded user-chat scope failures during draft persistence.
+ *
+ * @private route helper
+ */
+function resolveUserChatDraftScopeErrorResponse(error: UserChatScopeError): NextResponse {
+    if (error.code === 'USER_CHAT_NOT_FOUND') {
+        return NextResponse.json({ success: true });
+    }
+
+    const status =
+        error.code === 'USER_CHAT_SCOPE_DIAGNOSTICS_FAILED' || error.code === 'USER_CHAT_SCOPE_INCONSISTENT'
+            ? 500
+            : 404;
+
+    return NextResponse.json(
+        {
+            error: error.message,
+            code: error.code,
+            details: error.details,
+        },
+        { status },
+    );
 }

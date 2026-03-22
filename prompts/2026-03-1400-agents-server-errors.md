@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 39 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨💩] I am using agent server. This error is happening. Fix it:
 
