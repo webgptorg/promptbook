@@ -1,12 +1,21 @@
 import {
     setTimeoutToolRuntimeAdapter,
+    type TimeoutToolListItem,
     type TimeoutToolRuntimeContext,
 } from '../../../../src/commitments/USE_TIMEOUT/USE_TIMEOUT';
 import {
     cancelScheduledUserChatTimeout,
+    getAgentScopedUserChatTimeout,
+    listAgentUserChatTimeouts,
     scheduleThreadScopedUserChatTimeout,
-} from '../utils/userChatTimeout/userChatTimeoutWorker';
-import { getUserChatTimeout } from '../utils/userChatTimeout/userChatTimeoutStore';
+} from '../utils/userChatTimeout';
+
+/**
+ * Maximum number of timeouts returned in one `list_timeouts` runtime call.
+ *
+ * @private internal timeout adapter constant
+ */
+const MAX_LISTED_TIMEOUTS_LIMIT = 100;
 
 /**
  * Shared timeout runtime adapter bound to the Agents Server durable chat infrastructure.
@@ -24,9 +33,9 @@ const timeoutToolRuntimeAdapter = {
         timeoutId: string;
         dueAt: string;
     }> {
-        const chatId = requireThreadScopedTimeoutField(runtimeContext.chatId, 'chat');
-        const userId = requireThreadScopedTimeoutField(runtimeContext.userId, 'user');
-        const agentPermanentId = requireThreadScopedTimeoutField(runtimeContext.agentId, 'agent');
+        const chatId = requireTimeoutScopeField(runtimeContext.chatId, 'chat');
+        const userId = requireTimeoutScopeField(runtimeContext.userId, 'user');
+        const agentPermanentId = requireTimeoutScopeField(runtimeContext.agentId, 'agent');
         const timeout = await scheduleThreadScopedUserChatTimeout({
             userId,
             agentPermanentId,
@@ -51,13 +60,11 @@ const timeoutToolRuntimeAdapter = {
         dueAt?: string;
         status: 'cancelled' | 'not_found';
     }> {
-        const chatId = requireThreadScopedTimeoutField(runtimeContext.chatId, 'chat');
-        const userId = requireThreadScopedTimeoutField(runtimeContext.userId, 'user');
-        const agentPermanentId = requireThreadScopedTimeoutField(runtimeContext.agentId, 'agent');
-        const existingTimeout = await getUserChatTimeout({
+        const userId = requireTimeoutScopeField(runtimeContext.userId, 'user');
+        const agentPermanentId = requireTimeoutScopeField(runtimeContext.agentId, 'agent');
+        const existingTimeout = await getAgentScopedUserChatTimeout({
             userId,
             agentPermanentId,
-            chatId,
             timeoutId: args.timeoutId,
         });
 
@@ -81,6 +88,40 @@ const timeoutToolRuntimeAdapter = {
             timeoutId: cancelledTimeout.timeoutId,
             dueAt: cancelledTimeout.dueAt,
             status: 'cancelled',
+        };
+    },
+    async listTimeouts(
+        args: {
+            includeFinished: boolean;
+            limit: number;
+        },
+        runtimeContext: TimeoutToolRuntimeContext,
+    ): Promise<{
+        items: Array<TimeoutToolListItem>;
+        total: number;
+    }> {
+        const userId = requireTimeoutScopeField(runtimeContext.userId, 'user');
+        const agentPermanentId = requireTimeoutScopeField(runtimeContext.agentId, 'agent');
+        const limit = normalizeTimeoutListLimit(args.limit);
+        const statuses = args.includeFinished ? undefined : (['QUEUED', 'RUNNING'] as const);
+        const listedTimeouts = await listAgentUserChatTimeouts({
+            userId,
+            agentPermanentId,
+            limit,
+            ...(statuses ? { statuses } : {}),
+        });
+
+        return {
+            items: listedTimeouts.map((timeout) => ({
+                timeoutId: timeout.timeoutId,
+                chatId: timeout.chatId,
+                status: timeout.status,
+                dueAt: timeout.dueAt,
+                paused: Boolean(timeout.pausedAt),
+                message: timeout.message,
+                recurrenceIntervalMs: timeout.recurrenceIntervalMs,
+            })),
+            total: listedTimeouts.length,
         };
     },
 };
@@ -109,21 +150,34 @@ function normalizeTimeoutMessage(value: unknown): string | undefined {
 }
 
 /**
- * Ensures one required thread-scoped timeout field is available in runtime context.
+ * Ensures one required timeout scope field is available in runtime context.
  *
  * @private internal utility for timeout tool adapters
  */
-function requireThreadScopedTimeoutField<TValue>(
+function requireTimeoutScopeField<TValue>(
     value: TValue | undefined,
     fieldName: 'chat' | 'user' | 'agent',
 ): TValue {
     if (value === undefined || value === null) {
-        throw new Error(`Timeouts are unavailable because ${fieldName} thread context is missing.`);
+        throw new Error(`Timeouts are unavailable because ${fieldName} scope context is missing.`);
     }
 
     if (typeof value === 'string' && value.length === 0) {
-        throw new Error(`Timeouts are unavailable because ${fieldName} thread context is missing.`);
+        throw new Error(`Timeouts are unavailable because ${fieldName} scope context is missing.`);
     }
 
     return value;
+}
+
+/**
+ * Clamps requested timeout-list limits to the supported adapter range.
+ *
+ * @private internal utility for timeout tool adapters
+ */
+function normalizeTimeoutListLimit(value: number): number {
+    if (!Number.isFinite(value)) {
+        return MAX_LISTED_TIMEOUTS_LIMIT;
+    }
+
+    return Math.max(1, Math.min(MAX_LISTED_TIMEOUTS_LIMIT, Math.floor(value)));
 }

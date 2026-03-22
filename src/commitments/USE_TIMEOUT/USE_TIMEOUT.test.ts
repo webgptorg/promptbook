@@ -31,8 +31,10 @@ describe('UseTimeoutCommitmentDefinition', () => {
 
         expect(requirements.tools).toContainEqual(expect.objectContaining({ name: 'set_timeout' }));
         expect(requirements.tools).toContainEqual(expect.objectContaining({ name: 'cancel_timeout' }));
+        expect(requirements.tools).toContainEqual(expect.objectContaining({ name: 'list_timeouts' }));
         expect(requirements.systemMessage).toContain('set_timeout');
         expect(requirements.systemMessage).toContain('cancel_timeout');
+        expect(requirements.systemMessage).toContain('list_timeouts');
     });
 
     it('returns disabled result when runtime context is missing', async () => {
@@ -46,6 +48,11 @@ describe('UseTimeoutCommitmentDefinition', () => {
 
         expect(result.action).toBe('set');
         expect(result.status).toBe('disabled');
+
+        const listResultRaw = await functions.list_timeouts!({});
+        const listResult = parseJsonResult<{ status: string; action: string }>(listResultRaw);
+        expect(listResult.action).toBe('list');
+        expect(listResult.status).toBe('disabled');
     });
 
     it('schedules and cancels timeouts through runtime adapter when enabled', async () => {
@@ -61,6 +68,22 @@ describe('UseTimeoutCommitmentDefinition', () => {
                     timeoutId: args.timeoutId,
                     dueAt: '2026-03-12T12:00:00.000Z',
                     status: 'cancelled',
+                };
+            },
+            async listTimeouts() {
+                return {
+                    total: 1,
+                    items: [
+                        {
+                            timeoutId: 'tmo_60000',
+                            chatId: 'chat-2',
+                            status: 'QUEUED',
+                            dueAt: '2026-03-12T12:00:00.000Z',
+                            paused: false,
+                            message: 'Check messages',
+                            recurrenceIntervalMs: null,
+                        },
+                    ],
                 };
             },
         };
@@ -105,6 +128,29 @@ describe('UseTimeoutCommitmentDefinition', () => {
             status: 'cancelled',
             timeoutId: 'tmo_60000',
             dueAt: '2026-03-12T12:00:00.000Z',
+        });
+
+        const listResultRaw = await functions.list_timeouts!({
+            limit: 10,
+            [TOOL_RUNTIME_CONTEXT_ARGUMENT]: runtimeContext,
+        });
+        const listEnvelope = parseToolExecutionEnvelope(listResultRaw);
+        expect(listEnvelope?.assistantMessage).toBe('Found 1 timeout.');
+        expect(listEnvelope?.toolResult).toEqual({
+            action: 'list',
+            status: 'listed',
+            total: 1,
+            items: [
+                {
+                    timeoutId: 'tmo_60000',
+                    chatId: 'chat-2',
+                    status: 'QUEUED',
+                    dueAt: '2026-03-12T12:00:00.000Z',
+                    paused: false,
+                    message: 'Check messages',
+                    recurrenceIntervalMs: null,
+                },
+            ],
         });
     });
 });

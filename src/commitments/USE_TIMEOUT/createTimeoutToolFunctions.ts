@@ -7,6 +7,8 @@ import { TimeoutToolNames } from './TimeoutToolNames';
 import type {
     CancelTimeoutToolArgs,
     CancelTimeoutToolResult,
+    ListTimeoutsToolArgs,
+    ListTimeoutsToolResult,
     SetTimeoutToolArgs,
     SetTimeoutToolResult,
 } from './TimeoutToolRuntimeAdapter';
@@ -79,6 +81,41 @@ export function createTimeoutToolFunctions(): Record<string_javascript_name, Too
             } catch (error) {
                 const result: CancelTimeoutToolResult = {
                     action: 'cancel',
+                    status: 'error',
+                    message: error instanceof Error ? error.message : String(error),
+                };
+
+                return JSON.stringify(result);
+            }
+        },
+        async [TimeoutToolNames.list](args: ListTimeoutsToolArgs): Promise<string> {
+            const runtimeContext = resolveTimeoutRuntimeContext(args);
+            const { adapter, disabledResult } = getTimeoutToolRuntimeAdapterOrDisabledResult('list', runtimeContext);
+
+            if (!adapter || disabledResult) {
+                return JSON.stringify(disabledResult);
+            }
+
+            try {
+                const parsedArgs = parseTimeoutToolArgs.list(args);
+                const listedTimeouts = await adapter.listTimeouts(parsedArgs, runtimeContext);
+                const result: ListTimeoutsToolResult = {
+                    action: 'list',
+                    status: 'listed',
+                    items: listedTimeouts.items,
+                    total: listedTimeouts.total,
+                };
+
+                return createToolExecutionEnvelope({
+                    assistantMessage:
+                        listedTimeouts.total === 1
+                            ? 'Found 1 timeout.'
+                            : `Found ${listedTimeouts.total} timeouts.`,
+                    toolResult: result,
+                });
+            } catch (error) {
+                const result: ListTimeoutsToolResult = {
+                    action: 'list',
                     status: 'error',
                     message: error instanceof Error ? error.message : String(error),
                 };

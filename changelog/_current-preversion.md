@@ -1,3 +1,8 @@
+-   Extended `USE TIMEOUT` cross-chat visibility/management in Agents Server runtime so one agent conversation can inspect and manage timeouts from other chats in the same user+agent scope:
+    -   Added a new `list_timeouts` tool in the core `USE TIMEOUT` commitment (tool schema, parser, runtime adapter contract, system-message/docs, and tests) for scoped timeout discovery.
+    -   Updated the Agents Server timeout runtime adapter to list agent-scoped timeouts via existing store APIs and to cancel by user+agent+`timeoutId` (without current-chat restriction), while keeping `set_timeout` scheduling thread-scoped.
+    -   Added timeout chip title mapping for `list_timeouts` so chat tool-call UI remains human-readable.
+
 -   Enhanced the Agents Server `/?view=office` visualization with a pixel-office inspired rendering style while preserving existing layout/state behavior:
     -   Reworked room rendering with textured floor tiles, stronger wall treatments, and richer corridor markings to better communicate office structure.
     -   Added deterministic decorative room props (bookshelves, plants, whiteboards, coffee/storage stations, and lounge furniture) for more expressive scene context.

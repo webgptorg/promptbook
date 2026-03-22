@@ -15,7 +15,7 @@
 
 ---
 
-[ ]
+[x] ~$1.10 40 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [⏳🧭] Allow agents to see and manage timeouts across all their chats
 
@@ -28,3 +28,4 @@
 -   If you need to do the database migration, do it
 
 ![alt text](prompts/screenshots/2026-03-1390-agents-server-global-timeouts.png)
+

@@ -1,6 +1,4 @@
 import type {
-    CancelTimeoutToolResult,
-    SetTimeoutToolResult,
     TimeoutToolAction,
     TimeoutToolResult,
     TimeoutToolRuntimeAdapter,
@@ -14,14 +12,6 @@ import { getTimeoutToolRuntimeAdapter } from './setTimeoutToolRuntimeAdapter';
  * @private internal utility of USE TIMEOUT
  */
 function createDisabledTimeoutResult(action: TimeoutToolAction, message: string): TimeoutToolResult {
-    if (action === 'set') {
-        return {
-            action,
-            status: 'disabled',
-            message,
-        };
-    }
-
     return {
         action,
         status: 'disabled',
@@ -36,7 +26,7 @@ function createDisabledTimeoutResult(action: TimeoutToolAction, message: string)
  */
 type TimeoutToolRuntimeAdapterResolution = {
     adapter: TimeoutToolRuntimeAdapter | null;
-    disabledResult: SetTimeoutToolResult | CancelTimeoutToolResult | null;
+    disabledResult: TimeoutToolResult | null;
 };
 
 /**

@@ -67,6 +67,7 @@ export const TOOL_TITLES: Record<string, { title: string; emoji: string }> = {
     useTime: { title: 'Checking time', emoji: '🕒' },
     set_timeout: { title: 'Setting timer', emoji: '⏱️' },
     cancel_timeout: { title: 'Cancelling timer', emoji: '⏱️' },
+    list_timeouts: { title: 'Listing timers', emoji: '⏱️' },
     get_user_location: { title: 'Checking location', emoji: '📍' },
     send_email: { title: 'Sending email', emoji: '📧' },
     useEmail: { title: 'Sending email', emoji: '📧' },

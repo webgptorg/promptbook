@@ -12,7 +12,9 @@ import { TimeoutToolNames } from './TimeoutToolNames';
 export { setTimeoutToolRuntimeAdapter } from './setTimeoutToolRuntimeAdapter';
 export type {
     CancelTimeoutToolResult,
+    ListTimeoutsToolResult,
     SetTimeoutToolResult,
+    TimeoutToolListItem,
     TimeoutToolRuntimeAdapter,
     TimeoutToolRuntimeContext,
 } from './TimeoutToolRuntimeAdapter';
@@ -20,7 +22,7 @@ export type {
 /**
  * `USE TIMEOUT` commitment definition.
  *
- * The `USE TIMEOUT` commitment enables thread-scoped timers that wake the same chat later.
+ * The `USE TIMEOUT` commitment enables timeout wake-ups and scoped timeout management.
  *
  * @private [🪔] Maybe export the commitments through some package
  */
@@ -37,7 +39,7 @@ export class UseTimeoutCommitmentDefinition extends BaseCommitmentDefinition<'US
      * Short one-line description of `USE TIMEOUT`.
      */
     get description(): string {
-        return 'Enable thread-scoped timers that can wake the same chat in the future.';
+        return 'Enable timeout wake-ups plus scoped timeout listing/cancellation across chats.';
     }
 
     /**
@@ -54,14 +56,15 @@ export class UseTimeoutCommitmentDefinition extends BaseCommitmentDefinition<'US
         return spaceTrim(`
             # USE TIMEOUT
 
-            Enables the agent to schedule thread-scoped timeout wake-ups.
+            Enables timeout wake-ups and timeout management for the same user+agent scope.
 
             ## Key aspects
 
             - The agent uses \`set_timeout\` to schedule a future wake-up in the same chat thread.
             - The tool returns immediately while the timeout is stored and executed by the runtime later.
             - The wake-up arrives as a new user-like timeout message in the same conversation.
-            - The agent can cancel an existing timeout by \`timeoutId\` via \`cancel_timeout\`.
+            - The agent can inspect known timeouts via \`list_timeouts\`.
+            - The agent can cancel an existing timeout by \`timeoutId\` via \`cancel_timeout\`, including timeouts created in another chat.
             - Commitment content is treated as optional timeout policy instructions.
 
             ## Examples
@@ -96,6 +99,7 @@ export class UseTimeoutCommitmentDefinition extends BaseCommitmentDefinition<'US
         return {
             [TimeoutToolNames.set]: 'Set timer',
             [TimeoutToolNames.cancel]: 'Cancel timer',
+            [TimeoutToolNames.list]: 'List timers',
         };
     }
 

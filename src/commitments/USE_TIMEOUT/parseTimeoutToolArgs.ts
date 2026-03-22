@@ -1,6 +1,20 @@
 import { spaceTrim } from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
-import type { CancelTimeoutToolArgs, SetTimeoutToolArgs } from './TimeoutToolRuntimeAdapter';
+import type { CancelTimeoutToolArgs, ListTimeoutsToolArgs, SetTimeoutToolArgs } from './TimeoutToolRuntimeAdapter';
+
+/**
+ * Default number of rows returned by `list_timeouts`.
+ *
+ * @private internal USE TIMEOUT constant
+ */
+const DEFAULT_LIST_TIMEOUTS_LIMIT = 20;
+
+/**
+ * Hard cap for `list_timeouts` page size.
+ *
+ * @private internal USE TIMEOUT constant
+ */
+const MAX_LIST_TIMEOUTS_LIMIT = 100;
 
 /**
  * Parsed arguments for `set_timeout`.
@@ -19,6 +33,16 @@ type ParsedSetTimeoutToolArgs = {
  */
 type ParsedCancelTimeoutToolArgs = {
     timeoutId: string;
+};
+
+/**
+ * Parsed arguments for `list_timeouts`.
+ *
+ * @private type of UseTimeoutCommitmentDefinition
+ */
+type ParsedListTimeoutsToolArgs = {
+    includeFinished: boolean;
+    limit: number;
 };
 
 /**
@@ -64,5 +88,42 @@ export const parseTimeoutToolArgs = {
         }
 
         return { timeoutId };
+    },
+
+    /**
+     * Parses `list_timeouts` input.
+     */
+    list(args: ListTimeoutsToolArgs): ParsedListTimeoutsToolArgs {
+        if (args.includeFinished !== undefined && typeof args.includeFinished !== 'boolean') {
+            throw new PipelineExecutionError(
+                spaceTrim(`
+                    Timeout \`includeFinished\` must be a boolean when provided.
+                `),
+            );
+        }
+
+        const parsedLimit =
+            args.limit === undefined ? DEFAULT_LIST_TIMEOUTS_LIMIT : Math.floor(Number(args.limit));
+
+        if (!Number.isFinite(parsedLimit) || parsedLimit <= 0) {
+            throw new PipelineExecutionError(
+                spaceTrim(`
+                    Timeout \`limit\` must be a positive number.
+                `),
+            );
+        }
+
+        if (parsedLimit > MAX_LIST_TIMEOUTS_LIMIT) {
+            throw new PipelineExecutionError(
+                spaceTrim(`
+                    Timeout \`limit\` must be at most \`${MAX_LIST_TIMEOUTS_LIMIT}\`.
+                `),
+            );
+        }
+
+        return {
+            includeFinished: args.includeFinished === true,
+            limit: parsedLimit,
+        };
     },
 };

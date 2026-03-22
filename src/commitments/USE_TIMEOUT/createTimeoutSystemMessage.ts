@@ -10,9 +10,9 @@ export function createTimeoutSystemMessage(extraInstructions: string): string {
         (block) => `
             Timeout scheduling:
             - Use "set_timeout" to wake this same chat thread in the future.
-            - Timers are thread-scoped, not global for the whole agent.
+            - Use "list_timeouts" to review timeouts across all chats for the same user+agent scope.
+            - "cancel_timeout" accepts a timeout id from any chat in this same user+agent scope.
             - When one timeout elapses, you will receive a new user-like message that explicitly says it is a timeout wake-up and includes the \`timeoutId\`.
-            - Use "cancel_timeout" when a previously scheduled timeout is no longer relevant.
             - Do not claim a timer was set or cancelled unless the tool confirms it.
             ${block(extraInstructions)}
         `,
