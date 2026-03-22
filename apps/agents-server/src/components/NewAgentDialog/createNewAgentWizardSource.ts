@@ -16,6 +16,11 @@ export type NewAgentWizardKnowledgeItem = {
 };
 
 /**
+ * Capability commitments supported by the guided wizard.
+ */
+export type NewAgentWizardCapabilityCommitment = 'USE BROWSER' | 'USE SEARCH ENGINE';
+
+/**
  * Data required to synthesize the hidden book source from the wizard form.
  */
 export type CreateNewAgentWizardSourceOptions = {
@@ -32,17 +37,13 @@ export type CreateNewAgentWizardSourceOptions = {
      */
     readonly personaTraits: ReadonlyArray<string>;
     /**
-     * Optional extra persona text entered by the user.
-     */
-    readonly customTraitText?: string;
-    /**
      * Rule commitments collected from default toggles.
      */
     readonly rules: ReadonlyArray<string>;
     /**
-     * Optional additional custom rule text.
+     * Tool capability commitments selected in the wizard.
      */
-    readonly customInstructions?: string;
+    readonly capabilityCommitments: ReadonlyArray<NewAgentWizardCapabilityCommitment>;
     /**
      * Knowledge sources uploaded or pasted in the wizard.
      */
@@ -53,11 +54,12 @@ export type CreateNewAgentWizardSourceOptions = {
  * Builds one book-language commitment line, preserving multiline content when needed.
  *
  * @param keyword - Commitment keyword.
- * @param content - Commitment content.
+ * @param content - Optional commitment content.
  * @returns Formatted commitment line.
  */
-function createCommitment(keyword: string, content: string): string {
-    return `${keyword} ${spaceTrim(content)}`;
+function createCommitment(keyword: string, content?: string): string {
+    const normalizedContent = spaceTrim(content || '');
+    return normalizedContent === '' ? keyword : `${keyword} ${normalizedContent}`;
 }
 
 /**
@@ -90,16 +92,12 @@ function normalizeSingleLine(value: string | null | undefined): string {
 export function createNewAgentWizardSource(options: CreateNewAgentWizardSourceOptions): string_book {
     const agentName = normalizeSingleLine(options.agentName);
     const description = normalizeSingleLine(options.description);
-    const customTraitText = normalizeSingleLine(options.customTraitText);
-    const customInstructions = spaceTrim(options.customInstructions || '');
-    const personaTraits = [
-        ...options.personaTraits.map(normalizeSingleLine).filter(Boolean),
-        ...(customTraitText ? [customTraitText] : []),
-    ];
-    const rules = [
-        ...options.rules.map((rule) => spaceTrim(rule)).filter(Boolean),
-        ...(customInstructions ? [customInstructions] : []),
-    ];
+    const personaTraits = options.personaTraits.map(normalizeSingleLine).filter(Boolean);
+    const rules = options.rules.map((rule) => spaceTrim(rule)).filter(Boolean);
+    const capabilityCommitments = options.capabilityCommitments.filter(
+        (commitment): commitment is NewAgentWizardCapabilityCommitment =>
+            commitment === 'USE BROWSER' || commitment === 'USE SEARCH ENGINE',
+    );
     const knowledgeItems = options.knowledgeItems
         .map((item) => ({
             label: normalizeSingleLine(item.label),
@@ -109,6 +107,7 @@ export function createNewAgentWizardSource(options: CreateNewAgentWizardSourceOp
     const noteLines = [
         'NOTE This agent was created via the NEW_AGENT_WIZZARD flow',
         `- Personality: ${formatSummaryList(personaTraits, 'Default guided persona')}`,
+        `- Capabilities: ${formatSummaryList(capabilityCommitments, 'None selected')}`,
         `- Rules: ${formatSummaryList(rules, 'None specified')}`,
         `- Knowledge: ${formatSummaryList(
             knowledgeItems.map((item) => item.label),
@@ -126,6 +125,7 @@ export function createNewAgentWizardSource(options: CreateNewAgentWizardSourceOp
         ...(description ? ['', createCommitment('META DESCRIPTION', description)] : []),
         '',
         createCommitment('PERSONA', personaDescription),
+        ...capabilityCommitments.map((commitment) => createCommitment(commitment)),
         ...rules.map((rule) => createCommitment('RULE', rule)),
         ...knowledgeItems.map((item) => createCommitment('KNOWLEDGE', item.source)),
     ];

@@ -61,7 +61,7 @@ CLOSED
 
 ---
 
-[ ]
+[x] ~$0.00 26 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [🧙‍♀️📋] Enhance the new agent wizzard
 
@@ -110,3 +110,4 @@ CLOSED
 -   Do a proper analysis of the current functionality before you start implementing.
 -   Do a proper analysis of the book language before you start implementing
 -   You are working with the [Agents Server](apps/agents-server)
+

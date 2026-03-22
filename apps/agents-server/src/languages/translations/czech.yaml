@@ -157,8 +157,8 @@ agentCreation.wizard.rulesTitle: Pravidla a zábrany
 agentCreation.wizard.knowledgeTitle: Znalosti
 agentCreation.wizard.reviewTitle: Kontrola a vytvoření
 agentCreation.wizard.basicDescription: Nastavte základní identitu nového agenta, než na pozadí sestavíme zdroj knihy.
-agentCreation.wizard.personaDescription: Vyberte několik přednastavených vlastností a případně přidejte jednu vlastní poznámku.
-agentCreation.wizard.rulesDescription: Zvolte výchozí zábrany, které mají řídit chování agenta.
+agentCreation.wizard.personaDescription: Vyberte vlastnosti, přidejte vlastní štítky a zapněte schopnosti.
+agentCreation.wizard.rulesDescription: Zvolte zábrany a přidejte vlastní pravidla jako štítky.
 agentCreation.wizard.knowledgeDescription: Nahrajte soubory nebo přidejte URL, které se mají stát součástí znalostí agenta.
 agentCreation.wizard.reviewDescription: Potvrďte níže zvolené volby, nebo se před vytvořením přepněte do pokročilého editoru.
 agentCreation.wizard.basicShort: Základ
@@ -176,8 +176,9 @@ agentCreation.wizard.visibilityPrivate: Soukromý
 agentCreation.wizard.visibilityUnlisted: Neveřejný odkaz
 agentCreation.wizard.visibilityPublic: Veřejný
 agentCreation.wizard.traitsLabel: Přednastavené vlastnosti
+agentCreation.wizard.capabilitiesLabel: Schopnosti
 agentCreation.wizard.customTraitLabel: Vlastní vlastnost
-agentCreation.wizard.customTraitPlaceholder: Přidejte jednu krátkou vlastnost nebo specializaci navíc.
+agentCreation.wizard.customTraitPlaceholder: Napište vlastnost a potvrďte Enterem.
 agentCreation.wizard.traitHelpful: Ochotný
 agentCreation.wizard.traitConcise: Stručný
 agentCreation.wizard.traitProfessional: Profesionální
@@ -186,19 +187,21 @@ agentCreation.wizard.traitAnalytical: Analytický
 agentCreation.wizard.traitTechnical: Technický
 agentCreation.wizard.traitEducational: Vysvětlující
 agentCreation.wizard.traitCreative: Kreativní
+agentCreation.wizard.capabilityBrowser: Umí používat prohlížeč
+agentCreation.wizard.capabilitySearchEngine: Umí hledat na webu
 agentCreation.wizard.ruleProtectPersonalData: Vyhýbat se vyžadování nebo zveřejňování osobních údajů.
 agentCreation.wizard.ruleProfessionalTone: Udržovat profesionální tón.
 agentCreation.wizard.ruleRegulatedAdvice: Vyhýbat se zdravotním, právním a finančním radám.
 agentCreation.wizard.ruleUncertainty: Otevřeně přiznat nejistotu.
 agentCreation.wizard.customInstructionsLabel: Vlastní instrukce
-agentCreation.wizard.customInstructionsPlaceholder: Přidejte jedno krátké pravidlo nebo zábranu vlastními slovy.
+agentCreation.wizard.customInstructionsPlaceholder: Napište pravidlo a potvrďte Enterem.
 agentCreation.wizard.uploadLabel: Nahrát soubory se znalostmi
 agentCreation.wizard.uploadHint: Používá stejnou ingest pipeline jako editor knihy.
 agentCreation.wizard.uploadAction: Nahrát soubory
 agentCreation.wizard.uploadFailed: Nahrávání selhalo.
 agentCreation.wizard.urlsLabel: Vložit URL se znalostmi
-agentCreation.wizard.urlsPlaceholder: "https://example.com/docs\nhttps://example.com/faq"
-agentCreation.wizard.urlsHint: Zadejte jednu URL na řádek.
+agentCreation.wizard.urlsPlaceholder: https://example.com/docs
+agentCreation.wizard.urlsHint: Vložte URL a potvrďte Enterem.
 agentCreation.wizard.addUrlsAction: Přidat URL
 agentCreation.wizard.invalidUrls: "{count} URL položek bylo přeskočeno, protože nejsou platnými HTTP(S) odkazy."
 agentCreation.wizard.noKnowledge: Zatím nejsou přidány žádné znalostní zdroje.

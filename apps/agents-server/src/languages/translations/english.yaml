@@ -157,8 +157,8 @@ agentCreation.wizard.rulesTitle: Rules & guardrails
 agentCreation.wizard.knowledgeTitle: Knowledge
 agentCreation.wizard.reviewTitle: Review & create
 agentCreation.wizard.basicDescription: Set the core identity of the new agent before we build the hidden book source.
-agentCreation.wizard.personaDescription: Pick a few preset traits and optionally add one custom personality note.
-agentCreation.wizard.rulesDescription: Select the default guardrails that should shape the agent's behavior.
+agentCreation.wizard.personaDescription: Pick traits, add custom trait chips, and enable capabilities.
+agentCreation.wizard.rulesDescription: Select guardrails and add custom rule chips.
 agentCreation.wizard.knowledgeDescription: Upload files or add URLs that should become part of the agent's knowledge.
 agentCreation.wizard.reviewDescription: Confirm the high-level choices below, or switch to the advanced editor before creating.
 agentCreation.wizard.basicShort: Basics
@@ -176,8 +176,9 @@ agentCreation.wizard.visibilityPrivate: Private
 agentCreation.wizard.visibilityUnlisted: Unlisted
 agentCreation.wizard.visibilityPublic: Public
 agentCreation.wizard.traitsLabel: Preset traits
+agentCreation.wizard.capabilitiesLabel: Capabilities
 agentCreation.wizard.customTraitLabel: Custom trait
-agentCreation.wizard.customTraitPlaceholder: Add one short extra trait or specialization.
+agentCreation.wizard.customTraitPlaceholder: Type a trait and press Enter.
 agentCreation.wizard.traitHelpful: Helpful
 agentCreation.wizard.traitConcise: Concise
 agentCreation.wizard.traitProfessional: Professional
@@ -186,19 +187,21 @@ agentCreation.wizard.traitAnalytical: Analytical
 agentCreation.wizard.traitTechnical: Technical
 agentCreation.wizard.traitEducational: Educational
 agentCreation.wizard.traitCreative: Creative
+agentCreation.wizard.capabilityBrowser: Can use browser
+agentCreation.wizard.capabilitySearchEngine: Can search the web
 agentCreation.wizard.ruleProtectPersonalData: Avoid requesting or disclosing personal data.
 agentCreation.wizard.ruleProfessionalTone: Keep a professional tone.
 agentCreation.wizard.ruleRegulatedAdvice: Avoid medical, legal, and financial advice.
 agentCreation.wizard.ruleUncertainty: Be transparent about uncertainty.
 agentCreation.wizard.customInstructionsLabel: Custom instructions
-agentCreation.wizard.customInstructionsPlaceholder: Add one short rule or guardrail in your own words.
+agentCreation.wizard.customInstructionsPlaceholder: Type a rule and press Enter.
 agentCreation.wizard.uploadLabel: Upload knowledge files
 agentCreation.wizard.uploadHint: Uses the same file-ingestion pipeline as the book editor.
 agentCreation.wizard.uploadAction: Upload files
 agentCreation.wizard.uploadFailed: Upload failed.
 agentCreation.wizard.urlsLabel: Paste knowledge URLs
-agentCreation.wizard.urlsPlaceholder: "https://example.com/docs\nhttps://example.com/faq"
-agentCreation.wizard.urlsHint: Add one URL per line.
+agentCreation.wizard.urlsPlaceholder: https://example.com/docs
+agentCreation.wizard.urlsHint: Paste a URL and press Enter to add it.
 agentCreation.wizard.addUrlsAction: Add URLs
 agentCreation.wizard.invalidUrls: "{count} URL entries were skipped because they are not valid HTTP(S) links."
 agentCreation.wizard.noKnowledge: No knowledge sources added yet.

@@ -101,8 +101,24 @@ type NewAgentDialogState =
           readonly surface: 'wizard';
           readonly mode: NewAgentWizardMode;
           readonly defaultVisibility: AgentVisibility;
+          readonly initialAgentName?: string;
           readonly targetFolderId: number | null | undefined;
       };
+
+/**
+ * Extracts the generated display name from boilerplate source.
+ *
+ * @param boilerplate - Generated boilerplate source.
+ * @returns First non-empty line or empty fallback.
+ */
+function extractAgentNameFromBoilerplate(boilerplate: string_book): string {
+    return (
+        boilerplate
+            .split(/\r?\n/)
+            .map((line) => line.trim())
+            .find(Boolean) || ''
+    );
+}
 
 /**
  * Provides a shared "create new agent" workflow with boilerplate loading and a book-editing dialog.
@@ -128,10 +144,19 @@ export function useNewAgentDialog(options: UseNewAgentDialogOptions): UseNewAgen
                 });
 
                 if (settings.mode === 'WIZARD') {
+                    let initialAgentName = '';
+                    try {
+                        const boilerplate = await $generateAgentBoilerplateAction();
+                        initialAgentName = extractAgentNameFromBoilerplate(boilerplate);
+                    } catch {
+                        // Keep wizard opening even when boilerplate name prefill is unavailable.
+                    }
+
                     setDialogState({
                         surface: 'wizard',
                         mode: settings.mode,
                         defaultVisibility: settings.defaultVisibility,
+                        initialAgentName,
                         targetFolderId: openOptions?.folderId,
                     });
                     trackNewAgentCreationEvent('new_agent_wizard_shown', {
@@ -206,23 +231,11 @@ export function useNewAgentDialog(options: UseNewAgentDialogOptions): UseNewAgen
                     folderId: dialogState.targetFolderId,
                     knowledgeCount: request.knowledgeCount,
                 });
-                const targetPath = request.openBookEditorAfterCreation
-                    ? `/agents/${encodeURIComponent(permanentId)}/book`
-                    : `/agents/${encodeURIComponent(permanentId)}`;
-
-                if (request.openBookEditorAfterCreation) {
-                    trackNewAgentCreationEvent('new_agent_editor_opened_after_creation', {
-                        mode: dialogState.mode,
-                        surface: 'wizard',
-                        folderId: dialogState.targetFolderId,
-                        knowledgeCount: request.knowledgeCount,
-                    });
-                }
 
                 await onCreated({
                     agentName,
                     permanentId,
-                    targetPath,
+                    targetPath: `/agents/${encodeURIComponent(permanentId)}`,
                 });
                 setDialogState(null);
             } catch (error) {
@@ -263,6 +276,7 @@ export function useNewAgentDialog(options: UseNewAgentDialogOptions): UseNewAgen
                 <NewAgentWizard
                     mode={dialogState.mode}
                     defaultVisibility={dialogState.defaultVisibility}
+                    initialAgentName={dialogState.initialAgentName}
                     folderId={dialogState.targetFolderId}
                     onClose={closeNewAgentDialog}
                     onCreate={handleCreateFromWizard}

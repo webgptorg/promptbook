@@ -7,10 +7,9 @@ describe('createNewAgentWizardSource', () => {
         const agentSource = createNewAgentWizardSource({
             agentName: 'Recipe Helper',
             description: 'Answers cooking questions',
-            personaTraits: ['helpful', 'concise', 'professional'],
-            customTraitText: 'strong at practical kitchen advice',
-            rules: ['Use a professional tone in every response.'],
-            customInstructions: 'Prefer concrete next steps.',
+            personaTraits: ['helpful', 'concise', 'professional', 'strong at practical kitchen advice'],
+            rules: ['Use a professional tone in every response.', 'Prefer concrete next steps.'],
+            capabilityCommitments: ['USE BROWSER', 'USE SEARCH ENGINE'],
             knowledgeItems: [
                 {
                     label: 'recipes.pdf',
@@ -25,8 +24,11 @@ describe('createNewAgentWizardSource', () => {
 
         expect(agentSource).toContain('NOTE This agent was created via the NEW_AGENT_WIZZARD flow');
         expect(agentSource).toContain('- Personality: helpful, concise, professional, strong at practical kitchen advice');
+        expect(agentSource).toContain('- Capabilities: USE BROWSER, USE SEARCH ENGINE');
         expect(agentSource).toContain('META DESCRIPTION Answers cooking questions');
         expect(agentSource).toContain('PERSONA You are a helpful, concise, professional, strong at practical kitchen advice assistant');
+        expect(agentSource).toContain('USE BROWSER');
+        expect(agentSource).toContain('USE SEARCH ENGINE');
         expect(agentSource).toContain('RULE Use a professional tone in every response.');
         expect(agentSource).toContain('RULE Prefer concrete next steps.');
         expect(agentSource).toContain('KNOWLEDGE https://ptbk.io/k/recipes.pdf');
@@ -44,9 +46,11 @@ describe('createNewAgentWizardSource', () => {
             agentName: 'Minimal Agent',
             personaTraits: [],
             rules: [],
+            capabilityCommitments: [],
             knowledgeItems: [],
         });
 
+        expect(agentSource).toContain('- Capabilities: None selected');
         expect(agentSource).toContain('- Rules: None specified');
         expect(agentSource).toContain('- Knowledge: No knowledge uploaded');
         expect(agentSource).toContain('PERSONA You are a helpful, concise, and professional assistant');

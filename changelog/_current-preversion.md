@@ -1,3 +1,13 @@
+-   Enhanced the Agents Server new-agent wizard to be lighter and faster, and aligned the flow with the new 4-step creation model:
+    -   Simplified the wizard visual structure to reduce form-like clutter while keeping the same core data collection.
+    -   Enabled direct step navigation so users can jump to any wizard step at any time without validation-based blocking.
+    -   Prefilled Step 1 agent name from the existing boilerplate name generator path (`$generateAgentBoilerplateAction`), preserving metadata-driven name pool behavior.
+    -   Reworked Step 2 custom traits into Enter-to-add removable chips and added human-friendly capability chips that map to hidden `USE BROWSER` / `USE SEARCH ENGINE` commitments in generated source.
+    -   Reworked Step 3 custom rules into Enter-to-add removable chips.
+    -   Reworked Step 4 knowledge URL entry into Enter-to-add behavior, made the entire wizard surface drag-and-drop active for file knowledge upload, and removed the `Open book editor after creation` option.
+    -   Removed the Review step and moved final creation directly to Step 4.
+    -   Updated wizard source synthesis and tests to support capability commitments and chip-array trait/rule inputs.
+
 -   Fixed Agents Server header dropdown accidental-click UX by unifying desktop menu interaction behavior across breadcrumb menus and top navigation:
     -   Added a shared delayed hover-preview mode for desktop dropdowns so hover-opened menus are non-blocking (`pointer-events: none`) until the user explicitly commits with click.
     -   Kept click-to-open immediate and interactive, with the same shared state/timer logic reused for breadcrumb dropdowns (`Server`, `Agents`, `Profile/Chat/Book/More`) and top-level `Documentation`/`System`.
