@@ -102,8 +102,7 @@ export const parseTimeoutToolArgs = {
             );
         }
 
-        const parsedLimit =
-            args.limit === undefined ? DEFAULT_LIST_TIMEOUTS_LIMIT : Math.floor(Number(args.limit));
+        const parsedLimit = args.limit === undefined ? DEFAULT_LIST_TIMEOUTS_LIMIT : Math.floor(Number(args.limit));
 
         if (!Number.isFinite(parsedLimit) || parsedLimit <= 0) {
             throw new PipelineExecutionError(

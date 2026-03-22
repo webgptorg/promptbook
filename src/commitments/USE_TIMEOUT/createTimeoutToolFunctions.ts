@@ -108,9 +108,7 @@ export function createTimeoutToolFunctions(): Record<string_javascript_name, Too
 
                 return createToolExecutionEnvelope({
                     assistantMessage:
-                        listedTimeouts.total === 1
-                            ? 'Found 1 timeout.'
-                            : `Found ${listedTimeouts.total} timeouts.`,
+                        listedTimeouts.total === 1 ? 'Found 1 timeout.' : `Found ${listedTimeouts.total} timeouts.`,
                     toolResult: result,
                 });
             } catch (error) {
