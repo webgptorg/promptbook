@@ -1,3 +1,23 @@
+-   Updated LLM model pricing and added new models across all providers (synced to 2026-03-22):
+
+    -   **OpenAI**: Significant price reductions reflecting market changes:
+        -   `gpt-4.1`: $3.00→$2.00 input, $12.00→$8.00 output per 1M tokens
+        -   `gpt-4.1-mini`: $0.80→$0.40 input, $3.20→$1.60 output per 1M tokens
+        -   `gpt-4.1-nano`: $0.20→$0.10 input, $0.80→$0.40 output per 1M tokens
+        -   `o3`: 80% price cut — $15.00→$2.00 input, $60.00→$8.00 output per 1M tokens
+        -   `o3-pro`: $30.00→$20.00 input, $120.00→$80.00 output per 1M tokens
+        -   `o4-mini`: $4.00→$1.10 input, $16.00→$4.40 output per 1M tokens
+        -   `o3-mini`: $3.00→$1.10 input, $12.00→$4.40 output per 1M tokens
+        -   `gpt-4o` / `gpt-4o-2024-05-13`: $5.00→$2.50 input, $15.00→$10.00 output per 1M tokens
+    -   **Google Gemini**: Updated Gemini 2.5 series pricing to match official API:
+        -   `gemini-2.5-pro`: $7.00→$1.25 input, $21.00→$10.00 output per 1M tokens (reduction)
+        -   `gemini-2.5-flash`: $0.35→$0.30 input, $1.05→$2.50 output per 1M tokens (output corrected upward; previous value was stale/incorrect)
+        -   `gemini-2.5-flash-lite`: $0.20→$0.10 input, $0.60→$0.40 output per 1M tokens (reduction)
+    -   **Anthropic Claude**: Added new Claude 4.6 generation models:
+        -   Added `claude-opus-4-6` at $5.00/$25.00 per 1M tokens (down from $15/$75 for Claude 3 Opus)
+        -   Added `claude-sonnet-4-6` at $3.00/$15.00 per 1M tokens
+    -   **DeepSeek**: Updated `deepseek-chat` (DeepSeek V3) pricing: $0.14→$0.28 input, $0.28→$0.42 output per 1M tokens
+
 -   Fixed `ptbk about` startup failures in external projects:
 
     -   Made `run_browser` tool resolution fully lazy in `resolveRunBrowserToolForNode`, so CLI startup no longer eagerly requires `playwright`.
