@@ -6,6 +6,7 @@ import colors from 'colors';
 import { readFileSync } from 'fs';
 import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob'
 import { basename, join } from 'path';
+import { spaceTrim } from 'spacetrim';
 import type { string_char_emoji } from '../../src/types/typeAliasEmoji';
 import { difference } from '../../src/utils/sets/difference';
 import { $shuffleItems } from './utils/$shuffleItems';
