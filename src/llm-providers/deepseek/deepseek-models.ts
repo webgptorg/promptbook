@@ -6,7 +6,7 @@ import { pricing } from '../_common/utils/pricing';
 /**
  * List of available Deepseek models with descriptions
  *
- * Note: Synced with official API docs at 2025-08-20
+ * Note: Synced with official API docs at 2026-03-22
  *
  * @see https://www.deepseek.com/models
  * @public exported from `@promptbook/deepseek`
@@ -29,8 +29,8 @@ export const DEEPSEEK_MODELS: ReadonlyArray<
             modelDescription:
                 'Latest flagship general-purpose model with 128K context window. Features exceptional reasoning capabilities, advanced code generation, and strong performance across diverse domains. Offers competitive performance with leading models while maintaining cost efficiency. Ideal for complex reasoning, coding, and knowledge-intensive tasks.',
             pricing: {
-                prompt: pricing(`$0.14 / 1M tokens`),
-                output: pricing(`$0.28 / 1M tokens`),
+                prompt: pricing(`$0.28 / 1M tokens`),
+                output: pricing(`$0.42 / 1M tokens`),
             },
         },
         {
