@@ -45,3 +45,15 @@ A fun 3D / isometric "office" view for the Agents Server home page that visualiz
 
 -   You are working with the [Agents Server](apps/agents-server)
 
+---
+
+[ ]
+
+[🏢🤖] Enhance Agent office visualization in `/?view=office`
+
+-   Take inspiration from [pixel-agents](https://github.com/pablodelucca/pixel-agents)
+-   You are working with the [Agents Server](apps/agents-server)
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+
+![alt text](prompts/screenshots/2026-03-1380-agents-server-office-visualization.png)

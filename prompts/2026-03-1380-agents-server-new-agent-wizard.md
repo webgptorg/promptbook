@@ -59,3 +59,54 @@ CLOSED
 
 -   You are working with the [Agents Server](apps/agents-server)
 
+---
+
+[ ]
+
+[🧙‍♀️📋] Enhance the new agent wizzard
+
+0. **All pages**
+
+-   Make the wizard much more lightweight and visually easier. There is now so much clutter, and it looks like some corporate form which shouldn't be.
+-   You should be able to jump across any step you want. It shouldn't be blocked by unfilled things. You should be able to click on any step and be navigated to this step.
+
+![Step 1](prompts/screenshots/2026-03-1380-agents-server-new-agent-wizard.png)
+
+1. **Step 1: Basics**
+
+-   Pre-fill the agent name with some boilerplate name. Use the existing mechanism for creating boilerplate names.
+
+![Step 1](prompts/screenshots/2026-03-1380-agents-server-new-agent-wizard.png)
+
+2. **Step 2: Persona & traits**
+
+-   Custom trait should work like adding new chips, press enter to add a new trait.
+-   Also allow to select the `USE`capabilities, like `USE BROWSER` or `USE SEARCH ENGINE`, But in this step, do not expose the detail that these are in the book language, something different than `PERSONA`. Here, they should be shown just as the traits.
+-   For example, if the user selects `USE BROWSER` capability, we can show a trait chip with "Can use browser" or something like this, without exposing the underlying book commitment. We want to keep it simple and not expose any book language or technical details in the wizard, just human-friendly labels for traits and capabilities.
+
+![Step 2](prompts/screenshots/2026-03-1380-agents-server-new-agent-wizard-1.png)
+
+3. **Step 3: Rules & guardrails**
+
+-   Rules should be added in the same way as traits, press enter to add a new rule.
+
+![Step 3](prompts/screenshots/2026-03-1380-agents-server-new-agent-wizard-2.png)
+
+4. **Step 4: Knowledge**
+
+-   Entire model should be file drag and drop active
+-   Adding URL knowledge should work same as traits and rules, you should be able to paste \*/ write URL and press enter to add it to the list of knowledge.
+-   Remove "Open book editor after creation", this shouldn’t be a thing
+
+![Step 4](prompts/screenshots/2026-03-1380-agents-server-new-agent-wizard-3.png)
+
+5. **Step 5: Review**
+
+-   Remove this step entirely and replace, just allow to create the agent after step 4, there is no need for review, it is just a summary of previous steps and it doesn't add much value, we can save users time by removing it.
+
+**Common rules:**
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   Do a proper analysis of the book language before you start implementing
+-   You are working with the [Agents Server](apps/agents-server)
