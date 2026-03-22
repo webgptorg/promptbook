@@ -1,5 +1,5 @@
 import { unparse } from 'papaparse';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { FormatParser } from '../_common/FormatParser';

@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { string_javascript } from '../../types/typeAliases';
 import { Color } from '../color/Color';

@@ -4,7 +4,7 @@ import type {
 } from 'commander';
 import { mkdir, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { createPipelineCollectionFromDirectory } from '../../collection/pipeline-collection/constructors/createPipelineCollectionFromDirectory';
 import { pipelineCollectionToJson } from '../../collection/pipeline-collection/pipelineCollectionToJson';
 import {

@@ -1,5 +1,5 @@
 import { AgentBasicInformation } from '@promptbook-local/types';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { string_prompt_image } from '../../../../../../../../src/types/typeAliases';
 
 /**

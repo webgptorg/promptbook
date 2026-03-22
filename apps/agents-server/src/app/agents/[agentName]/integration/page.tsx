@@ -12,7 +12,7 @@ import { BoxIcon, CodeIcon, GlobeIcon } from 'lucide-react';
 import { headers } from 'next/headers';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { Color } from '../../../../../../../src/utils/color/Color';
 import { withAlpha } from '../../../../../../../src/utils/color/operators/withAlpha';
@@ -372,10 +372,7 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
                         hasApiKey={hasApiKey}
                     />
 
-                    <CalendarIntegrationSection
-                        agentName={agentName}
-                        agentPermanentId={agentPermanentId}
-                    />
+                    <CalendarIntegrationSection agentName={agentName} agentPermanentId={agentPermanentId} />
 
                     {/* MCP Integration */}
                     <div className="p-6 rounded-xl border-2 border-orange-200 bg-orange-50/30 shadow-sm">

@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { string_markdown_text, string_title } from '../../types/typeAliases';
 import { MultipleLlmExecutionTools } from './MultipleLlmExecutionTools';

@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { ALL_ERRORS } from '../0-index';
 import type { ErrorJson } from './ErrorJson';

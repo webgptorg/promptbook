@@ -1,17 +1,17 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
-import { resolveInheritedAgentSource } from '@/src/utils/resolveInheritedAgentSource';
-import { padBook, validateBook } from '@promptbook-local/core';
-import type { string_agent_url } from '@promptbook-local/types';
-import { computeHash, parseNumber, serializeError } from '@promptbook-local/utils';
-import spaceTrim from 'spacetrim';
-import { DEFAULT_MAX_RECURSION } from '../../../../../../../../src/config';
-import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import {
     parseBookScopedAgentIdentifier,
     resolveBookScopedAgentContext,
 } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
+import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
+import { resolveInheritedAgentSource } from '@/src/utils/resolveInheritedAgentSource';
+import { padBook, validateBook } from '@promptbook-local/core';
+import type { string_agent_url } from '@promptbook-local/types';
+import { computeHash, parseNumber, serializeError } from '@promptbook-local/utils';
+import { spaceTrim } from 'spacetrim';
+import { DEFAULT_MAX_RECURSION } from '../../../../../../../../src/config';
+import { assertsError } from '../../../../../../../../src/errors/assertsError';
 
 /**
  * Normalizes optional history version name received from request.

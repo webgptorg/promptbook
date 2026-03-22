@@ -1,6 +1,6 @@
 import { mkdir, unlink, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
 import { buildAgentGitEnv, buildAgentGitSigningFlag } from './agentGitIdentity';
 
@@ -256,7 +256,9 @@ function buildPushFailureHints(output: string): string[] {
             'publickey',
         ])
     ) {
-        hints.push('Authentication/authorization failed. Verify Git credentials or SSH key and repository permissions.');
+        hints.push(
+            'Authentication/authorization failed. Verify Git credentials or SSH key and repository permissions.',
+        );
     }
 
     if (

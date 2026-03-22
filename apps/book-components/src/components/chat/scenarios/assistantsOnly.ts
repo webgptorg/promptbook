@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import type { ChatMessage } from '../../../../../../src/book-components/Chat/types/ChatMessage';
 
 export const assistantsOnlyScenario = {

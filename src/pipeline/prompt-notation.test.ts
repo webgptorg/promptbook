@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { PromptString, prompt } from './prompt-notation';
 
 describe('how prompt tag function works', () => {

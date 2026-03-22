@@ -1,8 +1,3 @@
-import { put } from '@vercel/blob';
-import { normalizeChatAttachments } from '@promptbook-local/core';
-import type { TODO_any } from '@promptbook-local/types';
-import { after } from 'next/server';
-import spaceTrim from 'spacetrim';
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { getMetadata } from '@/src/database/getMetadata';
@@ -11,11 +6,16 @@ import { FILE_SECURITY_CHECKERS } from '@/src/file-security-checkers';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { getUserFileCdnKey } from '@/src/utils/cdn/utils/getUserFileCdnKey';
 import { validateMimeType } from '@/src/utils/validators/validateMimeType';
-import { $randomBase58 } from '../../../../src/utils/random/$randomBase58';
+import { normalizeChatAttachments } from '@promptbook-local/core';
+import type { TODO_any } from '@promptbook-local/types';
+import { put } from '@vercel/blob';
+import { after } from 'next/server';
+import { spaceTrim } from 'spacetrim';
 import { DatabaseError } from '../../../../src/errors/DatabaseError';
 import { LimitReachedError } from '../../../../src/errors/LimitReachedError';
 import { NotAllowed } from '../../../../src/errors/NotAllowed';
 import type { ChatAttachment } from '../../../../src/utils/chat/chatAttachments';
+import { $randomBase58 } from '../../../../src/utils/random/$randomBase58';
 import { isSupportedShareTargetFile } from './shareTarget';
 
 /**
@@ -211,10 +211,7 @@ function serializeShareTargetAttachments(attachments: ReadonlyArray<ChatAttachme
 /**
  * Uploads one shared file to blob storage and records it in the `File` admin table.
  */
-async function createShareTargetAttachment(
-    file: File,
-    maxFileUploadBytes: number,
-): Promise<ChatAttachment> {
+async function createShareTargetAttachment(file: File, maxFileUploadBytes: number): Promise<ChatAttachment> {
     const normalizedFilename = resolveShareTargetFilename(file.name);
     if (!isSupportedShareTargetFile({ name: normalizedFilename, type: file.type })) {
         throw new NotAllowed(
@@ -322,10 +319,7 @@ async function insertShareTargetFileRecord(options: {
 /**
  * Populates best-effort file-security results after the share redirect has already returned.
  */
-async function populateShareTargetFileSecurityResult(options: {
-    fileId: number;
-    storageUrl: string;
-}): Promise<void> {
+async function populateShareTargetFileSecurityResult(options: { fileId: number; storageUrl: string }): Promise<void> {
     const securityResult: Record<string, unknown> = {};
 
     for (const checkerId of Object.keys(FILE_SECURITY_CHECKERS)) {

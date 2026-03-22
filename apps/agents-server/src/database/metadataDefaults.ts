@@ -1,11 +1,11 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { CORE_AGENTS_SERVER } from '../../../../servers';
 import { DEFAULT_THINKING_MESSAGES } from '../../../../src/utils/DEFAULT_THINKING_MESSAGES';
-import { SERVER_LANGUAGE_METADATA_KEY } from '../languages/ServerLanguageRegistry';
-import { MetadataType } from '../constants/metadataTypes';
 import { ANALYTICS_METADATA_KEYS, getAnalyticsMetadataDefinition } from '../constants/analyticsMetadata';
+import { MetadataType } from '../constants/metadataTypes';
 import { NEW_AGENT_WIZZARD_METADATA_KEY } from '../constants/newAgentWizard';
 import { DEFAULT_TOOL_USAGE_LIMITS, TOOL_USAGE_LIMITS_METADATA_KEY } from '../constants/toolUsageLimits';
+import { SERVER_LANGUAGE_METADATA_KEY } from '../languages/ServerLanguageRegistry';
 
 /**
  * Default metadata entries produced from the analytics configuration definitions.

@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { PROMPTBOOK_ENGINE_VERSION } from '../version';
 
 /**

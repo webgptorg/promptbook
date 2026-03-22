@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 
 /**
  * Default chat prompt used when the incoming message is missing or blank.
@@ -104,7 +104,11 @@ export function resolveChatMessageContentForApiRequest(
 ): ChatMessageValidationResult {
     const fallbackMessage = options.fallbackMessage || DEFAULT_CHAT_MESSAGE_CONTENT;
 
-    if (rawMessage === undefined || rawMessage === null || (typeof rawMessage === 'string' && spaceTrim(rawMessage) === '')) {
+    if (
+        rawMessage === undefined ||
+        rawMessage === null ||
+        (typeof rawMessage === 'string' && spaceTrim(rawMessage) === '')
+    ) {
         return {
             isValid: true,
             message: fallbackMessage,

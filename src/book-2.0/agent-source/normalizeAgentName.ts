@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { titleToName } from '../../_packages/utils.index';
 import { string_agent_name } from '../../types/typeAliases';
 

@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { ParseError } from '../../errors/ParseError';
 import type { string_markdown } from '../../types/typeAliases';
 import type { MarkdownCodeBlock } from './extractAllBlocksFromMarkdown';

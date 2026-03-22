@@ -2,12 +2,12 @@
 
 import { upload } from '@vercel/blob/client';
 import { useCallback, useRef, useState } from 'react';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { constructImageFilename } from '../../../../../../src/utils/normalization/constructImageFilename';
+import { showAlert } from '../../../components/AsyncDialogs/asyncDialogs';
+import { Card } from '../../../components/Homepage/Card';
 import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
 import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
-import { Card } from '../../../components/Homepage/Card';
-import { showAlert } from '../../../components/AsyncDialogs/asyncDialogs';
 
 // Using local SVG components because they might not be exported from @promptbook-local/components
 function CameraIcon({ size = 24, color = 'currentColor' }: { size?: number; color?: string }) {

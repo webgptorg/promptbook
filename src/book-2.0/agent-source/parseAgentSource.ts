@@ -1,9 +1,9 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { TODO_any } from '../../_packages/types.index';
 import { parseUseProjectCommitmentContent } from '../../commitments/USE_PROJECT/projectReference';
 import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_camelCase';
-import { normalizeDomainForMatching } from '../../utils/validators/url/normalizeDomainForMatching';
 import { extractUrlsFromText } from '../../utils/validators/url/extractUrlsFromText';
+import { normalizeDomainForMatching } from '../../utils/validators/url/normalizeDomainForMatching';
 import type { AgentBasicInformation, AgentCapability } from './AgentBasicInformation';
 import { computeAgentHash } from './computeAgentHash';
 import { createDefaultAgentName } from './createDefaultAgentName';

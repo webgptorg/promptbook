@@ -2,8 +2,11 @@ import colors from 'colors';
 import * as fs from 'fs';
 import { join } from 'path';
 import { Client } from 'pg';
-import spaceTrim from 'spacetrim';
-import { readMigrationFiles, resolveMigrationsDirectory } from '../../../apps/agents-server/src/database/resolveMigrationsDirectory';
+import { spaceTrim } from 'spacetrim';
+import {
+    readMigrationFiles,
+    resolveMigrationsDirectory,
+} from '../../../apps/agents-server/src/database/resolveMigrationsDirectory';
 import {
     DATABASE_MIGRATION_APPLIED_BY,
     resolveDatabaseMigrationRuntimeConfiguration,

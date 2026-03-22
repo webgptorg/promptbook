@@ -3,7 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import type { MessageCreateParamsNonStreaming } from '@anthropic-ai/sdk/resources';
 import Bottleneck from 'bottleneck';
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
 import { DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';

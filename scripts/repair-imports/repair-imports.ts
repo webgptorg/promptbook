@@ -4,7 +4,7 @@
 import colors from 'colors';
 import commander from 'commander';
 import { basename, dirname, join, relative } from 'path';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { assertsError } from '../../src/errors/assertsError';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';

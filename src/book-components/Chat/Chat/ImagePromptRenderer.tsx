@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { constructImageFilename } from '../../../utils/normalization/constructImageFilename';
 import styles from './Chat.module.css';
 

@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { REPLACING_NONCE } from '../constants';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { UnexpectedError } from '../errors/UnexpectedError';

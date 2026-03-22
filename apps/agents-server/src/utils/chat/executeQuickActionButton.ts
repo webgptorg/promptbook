@@ -1,6 +1,6 @@
 'use client';
 
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { JavascriptExecutionTools } from '../../../../../src/_packages/javascript.index';
 import { notifyError } from '../../components/Notifications/notifications';
 

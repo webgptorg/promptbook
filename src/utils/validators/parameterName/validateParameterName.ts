@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { RESERVED_PARAMETER_NAMES } from '../../../constants';
 import { ParseError } from '../../../errors/ParseError';
 import type { string_parameter_name, string_reserved_parameter_name } from '../../../types/typeAliases';

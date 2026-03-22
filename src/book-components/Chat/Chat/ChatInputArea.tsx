@@ -10,12 +10,12 @@ import {
     type ChangeEvent,
     type ClipboardEvent,
     type DragEvent,
-    type KeyboardEvent as ReactKeyboardEvent,
     type MouseEvent,
+    type KeyboardEvent as ReactKeyboardEvent,
 } from 'react';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { USER_CHAT_COLOR } from '../../../config';
-import type { SpeechRecognitionEvent, SpeechRecognitionErrorCode } from '../../../types/SpeechRecognition';
+import type { SpeechRecognitionErrorCode, SpeechRecognitionEvent } from '../../../types/SpeechRecognition';
 import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
 import { grayscale } from '../../../utils/color/operators/grayscale';
@@ -28,8 +28,8 @@ import { CloseIcon } from '../../icons/CloseIcon';
 import { MicIcon } from '../../icons/MicIcon';
 import { SendIcon } from '../../icons/SendIcon';
 import type { ChatParticipant } from '../types/ChatParticipant';
-import { chatCssClassNames } from './chatCssClassNames';
 import styles from './Chat.module.css';
+import { chatCssClassNames } from './chatCssClassNames';
 import type { ChatProps, ChatSoundSystem } from './ChatProps';
 
 /**

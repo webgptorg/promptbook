@@ -1,7 +1,7 @@
 import colors from 'colors';
 import * as dotenv from 'dotenv';
 import { Client } from 'pg';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { DatabaseError } from '../../../src/errors/DatabaseError';
 import { normalizeDomainForMatching } from '../../../src/utils/validators/url/normalizeDomainForMatching';
 import { listRegisteredServersFromDatabase } from '../src/database/listRegisteredServersFromDatabase';

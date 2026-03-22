@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { ParseError } from '../../errors/ParseError';
 import { FORMFACTOR_DEFINITIONS } from '../../formfactors/index';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';

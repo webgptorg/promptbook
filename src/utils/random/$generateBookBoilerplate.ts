@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import type { PartialDeep } from 'type-fest';
 import type { AgentBasicInformation } from '../../book-2.0/agent-source/AgentBasicInformation';
 import type { string_book } from '../../book-2.0/agent-source/string_book';

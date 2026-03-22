@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
 import { compilePipeline } from '../../../conversion/compilePipeline';
 import type { PipelineString } from '../../../pipeline/PipelineString';

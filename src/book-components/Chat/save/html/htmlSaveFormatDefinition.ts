@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import type { ChatMessage } from '../../types/ChatMessage';
 import type { ChatParticipant } from '../../types/ChatParticipant';
 import type { ChatSaveFormatDefinition } from '../_common/ChatSaveFormatDefinition';

@@ -2,7 +2,7 @@
 
 import { CLIENT_LATEST_VERSION, CLIENT_VERSION_HEADER, ClientVersionMismatchError } from '@promptbook-local/utils';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import {
     ClientVersionMismatchInfo,
     onClientVersionMismatch,

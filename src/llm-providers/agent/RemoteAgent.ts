@@ -1,5 +1,5 @@
 import { BehaviorSubject } from 'rxjs';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import type { AgentCapability } from '../../book-2.0/agent-source/AgentBasicInformation';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { CHAT_STREAM_KEEP_ALIVE_TOKEN } from '../../constants/streaming';

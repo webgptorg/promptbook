@@ -1,12 +1,12 @@
 import { Client } from 'pg';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
+import { DatabaseError } from '../../../../src/errors/DatabaseError';
+import { type ServerRecord } from '../utils/serverRegistry';
 import { acquireMigrationExecutionLock, releaseMigrationExecutionLock } from './acquireMigrationExecutionLock';
 import { listRegisteredServersFromDatabase } from './listRegisteredServersFromDatabase';
 import { migratePrefix } from './migratePrefix';
 import { readMigrationFiles, resolveMigrationsDirectory } from './resolveMigrationsDirectory';
 import { selectPrefixesForMigration } from './selectPrefixesForMigration';
-import { DatabaseError } from '../../../../src/errors/DatabaseError';
-import { type ServerRecord } from '../utils/serverRegistry';
 
 /**
  * Allowed values describing who applied a migration record.
@@ -19,7 +19,8 @@ export const DATABASE_MIGRATION_APPLIED_BY = {
 /**
  * Value used in migration history to indicate whether a migration was applied automatically or manually.
  */
-export type DatabaseMigrationAppliedBy = (typeof DATABASE_MIGRATION_APPLIED_BY)[keyof typeof DATABASE_MIGRATION_APPLIED_BY];
+export type DatabaseMigrationAppliedBy =
+    (typeof DATABASE_MIGRATION_APPLIED_BY)[keyof typeof DATABASE_MIGRATION_APPLIED_BY];
 
 /**
  * Minimal logger contract used by the migration runner.
@@ -184,7 +185,9 @@ export async function resolveDatabaseMigrationRuntimeConfiguration(
  * @param options - Migration execution options.
  * @returns Aggregated migration summary.
  */
-export async function runDatabaseMigrations(options: RunDatabaseMigrationsOptions): Promise<RunDatabaseMigrationsResult> {
+export async function runDatabaseMigrations(
+    options: RunDatabaseMigrationsOptions,
+): Promise<RunDatabaseMigrationsResult> {
     const logger = options.logger ?? console;
     const selectedPrefixes = selectPrefixesForMigration(
         options.prefixes,

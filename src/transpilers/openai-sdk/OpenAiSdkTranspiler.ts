@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { createAgentModelRequirements } from '../../book-2.0/agent-source/createAgentModelRequirements';
 import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
 import { parseAgentSourceWithCommitments } from '../../book-2.0/agent-source/parseAgentSourceWithCommitments';

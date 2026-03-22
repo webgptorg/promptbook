@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { NotAllowed } from '../../../../../../src/errors/NotAllowed';
 import { Card } from '../../../components/Homepage/Card';
 
@@ -344,7 +344,9 @@ export function ErrorSimulationClient() {
             }
 
             const payload = (await response.json()) as { mode?: string; timestamp?: string };
-            const detail = `Endpoint healthy in mode \`${payload.mode ?? 'unknown'}\` at ${payload.timestamp ?? 'n/a'}.`;
+            const detail = `Endpoint healthy in mode \`${payload.mode ?? 'unknown'}\` at ${
+                payload.timestamp ?? 'n/a'
+            }.`;
 
             setInlineStatus({
                 variant: 'success',

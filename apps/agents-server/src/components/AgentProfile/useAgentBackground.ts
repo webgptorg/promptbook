@@ -1,8 +1,8 @@
+import { useMemo } from 'react';
+import { spaceTrim } from 'spacetrim';
 import { Color } from '../../../../../src/utils/color/Color';
 import { darken } from '../../../../../src/utils/color/operators/darken';
 import { lighten } from '../../../../../src/utils/color/operators/lighten';
-import { useMemo } from 'react';
-import spaceTrim from 'spacetrim';
 
 export function useAgentBackground(colorString: string | undefined) {
     return useMemo(() => {

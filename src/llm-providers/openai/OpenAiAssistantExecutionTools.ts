@@ -1,15 +1,15 @@
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import OpenAI from 'openai';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { TODO_any } from '../../_packages/types.index';
 import { serializeError } from '../../_packages/utils.index';
+import { parseToolExecutionEnvelope } from '../../commitments/_common/toolExecutionEnvelope';
 import {
     registerToolCallProgressListener,
     TOOL_PROGRESS_TOKEN_PARAMETER,
     type ToolCallProgressUpdate,
     unregisterToolCallProgressListener,
 } from '../../commitments/_common/toolRuntimeContext';
-import { parseToolExecutionEnvelope } from '../../commitments/_common/toolExecutionEnvelope';
 import { assertsError } from '../../errors/assertsError';
 import { NotAllowed } from '../../errors/NotAllowed';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';

@@ -1,6 +1,6 @@
 import hexEncoder from 'crypto-js/enc-hex';
 import sha256 from 'crypto-js/sha256';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { serializeError } from '../../../../_packages/utils.index';
 import { DEFAULT_IS_VERBOSE, MAX_FILENAME_LENGTH } from '../../../../config';
 import { assertsError } from '../../../../errors/assertsError';

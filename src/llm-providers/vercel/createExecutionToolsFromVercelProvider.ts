@@ -1,5 +1,5 @@
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';

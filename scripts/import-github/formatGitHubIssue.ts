@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { GENERATOR_WARNING } from '../../src/config';
 
 type GitHubIssueForFormatting = {
@@ -29,17 +29,16 @@ type GitHubIssueForFormatting = {
 export function formatGitHubIssue(issue: GitHubIssueForFormatting): string {
     const labels = issue.labels.nodes.map((label) => label.name).join(', ');
     const comments = issue.comments.nodes
-        .map(
-            (comment) =>
-                spaceTrim(
-                    (block) => `
+        .map((comment) =>
+            spaceTrim(
+                (block) => `
                             ### Comment by ${comment.author?.login || 'ghost'} on ${new Date(
-                        comment.createdAt,
-                    ).toLocaleString()}
+                    comment.createdAt,
+                ).toLocaleString()}
 
                             ${block(comment.body)}
                         `,
-                ),
+            ),
         )
         .join('\n\n---\n\n');
 

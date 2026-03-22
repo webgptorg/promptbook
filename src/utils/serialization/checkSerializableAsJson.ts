@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { assertsError } from '../../errors/assertsError';
 import type { string_name } from '../../types/typeAliases';

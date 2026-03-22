@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { Client } from 'pg';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { AuthenticationError } from '../../../../src/errors/AuthenticationError';
 import { ConflictError } from '../../../../src/errors/ConflictError';
 import { DatabaseError } from '../../../../src/errors/DatabaseError';

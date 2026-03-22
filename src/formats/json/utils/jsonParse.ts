@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 
 /**
  * Converts a JavaScript Object Notation (JSON) string into an object.

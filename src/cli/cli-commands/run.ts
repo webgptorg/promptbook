@@ -5,7 +5,7 @@ import type {
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import prompts from 'prompts';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { getAllCommitmentsToolFunctionsForNode } from '../../commitments/_common/getAllCommitmentsToolFunctionsForNode';
 import { DEFAULT_MAX_EXECUTION_ATTEMPTS } from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';

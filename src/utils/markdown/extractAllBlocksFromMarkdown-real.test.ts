@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { readFileSync } from 'fs';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { extractAllBlocksFromMarkdown } from './extractAllBlocksFromMarkdown';
 
 describe('how extractAllBlocksFromMarkdown works in real example', () => {

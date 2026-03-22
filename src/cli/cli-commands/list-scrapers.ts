@@ -1,7 +1,7 @@
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { $registeredScrapersMessage } from '../../scrapers/_common/register/$registeredScrapersMessage';

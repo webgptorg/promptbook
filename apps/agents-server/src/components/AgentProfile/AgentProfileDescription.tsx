@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { shortenText } from '../../utils/shortenText';
 
 const AGENT_PROFILE_DESCRIPTION_COLLAPSE_LENGTH = 320;
@@ -31,12 +31,7 @@ type AgentProfileDescriptionProps = {
  * @private Internal helper for the agent profile view.
  */
 export function AgentProfileDescription(props: AgentProfileDescriptionProps) {
-    const {
-        text,
-        className = '',
-        collapsedLabel = 'Show more',
-        expandedLabel = 'Show less',
-    } = props;
+    const { text, className = '', collapsedLabel = 'Show more', expandedLabel = 'Show less' } = props;
 
     const normalizedText = useMemo(() => spaceTrim(text ?? ''), [text]);
     const hasLongDescription = normalizedText.length > AGENT_PROFILE_DESCRIPTION_COLLAPSE_LENGTH;

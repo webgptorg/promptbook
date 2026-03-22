@@ -5,7 +5,7 @@ import { existsSync } from 'fs';
 import { mkdir, readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
 import { basename, extname, join, relative, resolve } from 'path';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import type { SourceFile } from 'typescript';
 import * as ts from 'typescript';
 import { normalizeToKebabCase } from '../../src/_packages/utils.index';

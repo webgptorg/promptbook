@@ -10,7 +10,7 @@ import {
 } from '@/src/utils/seo/getPublicAgentProfileSeoRecords';
 import { isPublicServerVisibility } from '@/src/utils/serverVisibility';
 import { NextRequest, NextResponse } from 'next/server';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 
 export const dynamic = 'force-dynamic';
 

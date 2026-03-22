@@ -2,15 +2,16 @@ import Bottleneck from 'bottleneck';
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import type { ClientOptions } from 'openai';
 import OpenAI from 'openai';
-import spaceTrim from 'spacetrim';
-import { API_REQUEST_TIMEOUT, CONNECTION_RETRIES_LIMIT, DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
+import { spaceTrim } from 'spacetrim';
+import { serializeError } from '../../_packages/utils.index';
+import { parseToolExecutionEnvelope } from '../../commitments/_common/toolExecutionEnvelope';
 import {
     registerToolCallProgressListener,
     TOOL_PROGRESS_TOKEN_PARAMETER,
     type ToolCallProgressUpdate,
     unregisterToolCallProgressListener,
 } from '../../commitments/_common/toolRuntimeContext';
-import { parseToolExecutionEnvelope } from '../../commitments/_common/toolExecutionEnvelope';
+import { API_REQUEST_TIMEOUT, CONNECTION_RETRIES_LIMIT, DEFAULT_MAX_REQUESTS_PER_MINUTE } from '../../config';
 import { assertsError } from '../../errors/assertsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { AvailableModel } from '../../execution/AvailableModel';
@@ -22,7 +23,9 @@ import type {
     ImagePromptResult,
 } from '../../execution/PromptResult';
 import type { Usage } from '../../execution/Usage';
+import { addUsage } from '../../execution/utils/addUsage';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
+import { forEachAsync } from '../../execution/utils/forEachAsync';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { ChatPrompt, Prompt } from '../../types/Prompt';
 import type { ToolCallLogEntry, ToolCallState } from '../../types/ToolCall';
@@ -37,12 +40,7 @@ import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import type { chococake } from '../../utils/organization/really_any';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
-import { serializeError } from '../../_packages/utils.index';
 import { exportJson } from '../../utils/serialization/exportJson';
-import { addUsage } from '../../execution/utils/addUsage';
-import { forEachAsync } from '../../execution/utils/forEachAsync';
-import { mapToolsToOpenAi } from './utils/mapToolsToOpenAi';
-import { buildToolInvocationScript } from './utils/buildToolInvocationScript';
 import {
     isUnsupportedParameterError,
     parseUnsupportedParameterError,
@@ -50,6 +48,8 @@ import {
 } from '../_common/utils/removeUnsupportedModelRequirements';
 import { computeOpenAiUsage } from './computeOpenAiUsage';
 import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
+import { buildToolInvocationScript } from './utils/buildToolInvocationScript';
+import { mapToolsToOpenAi } from './utils/mapToolsToOpenAi';
 
 type StructuredCloneFunction = <T>(value: T) => T;
 type StreamedToolCall = NonNullable<ChatPromptResult['toolCalls']>[number];

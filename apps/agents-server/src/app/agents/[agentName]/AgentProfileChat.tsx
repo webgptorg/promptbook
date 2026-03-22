@@ -6,7 +6,7 @@ import { RemoteAgent } from '@promptbook-local/core';
 import { string_book, type ChatMessage } from '@promptbook-local/types';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { string_agent_url, string_color } from '../../../../../../src/types/typeAliases';
 import { $getCurrentDate } from '../../../../../../src/utils/misc/$getCurrentDate';
 import { keepUnused } from '../../../../../../src/utils/organization/keepUnused';

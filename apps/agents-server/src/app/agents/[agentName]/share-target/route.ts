@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server';
-import spaceTrim from 'spacetrim';
+import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { loadChatConfiguration } from '@/src/utils/chatConfiguration';
 import { resolveShareTargetMessage } from '@/src/utils/shareTarget';
 import { createShareTargetAttachments, storeShareTargetPayload } from '@/src/utils/shareTargetPayloads';
-import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { NextResponse } from 'next/server';
+import { spaceTrim } from 'spacetrim';
 import { DatabaseError } from '../../../../../../../src/errors/DatabaseError';
 import { LimitReachedError } from '../../../../../../../src/errors/LimitReachedError';
 import { NotAllowed } from '../../../../../../../src/errors/NotAllowed';
@@ -11,10 +11,7 @@ import { NotAllowed } from '../../../../../../../src/errors/NotAllowed';
 /**
  * Creates one new chat launch payload from the Android share sheet and redirects into the installed PWA chat UI.
  */
-export async function POST(
-    request: Request,
-    { params }: { params: Promise<{ agentName: string }> },
-) {
+export async function POST(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     const { agentName: rawAgentName } = await params;
     const agentName = decodeURIComponent(rawAgentName);
     const collection = await $provideAgentCollectionForServer();
@@ -82,10 +79,7 @@ export async function POST(
         }
 
         console.error('[share-target] Failed to process shared payload', error);
-        return NextResponse.json(
-            { error: 'Failed to open the shared content in this agent.' },
-            { status: 500 },
-        );
+        return NextResponse.json({ error: 'Failed to open the shared content in this agent.' }, { status: 500 });
     }
 }
 

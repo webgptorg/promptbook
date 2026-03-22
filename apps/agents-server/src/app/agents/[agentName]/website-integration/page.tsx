@@ -5,7 +5,7 @@ import { formatAgentNamingText } from '@/src/utils/agentNaming';
 import { getAgentNaming } from '@/src/utils/getAgentNaming';
 import { PromptbookAgentIntegration } from '@promptbook-local/components';
 import { headers } from 'next/headers';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { just } from '../../../../../../../src/utils/organization/just';
 import { getAgentProfile } from '../_utils';

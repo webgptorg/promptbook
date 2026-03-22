@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { DEFAULT_BOOK_TITLE } from '../../config';
 import type { string_markdown } from '../../types/typeAliases';
 import { parseMarkdownSection } from './parseMarkdownSection';

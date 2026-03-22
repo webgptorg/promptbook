@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { padBook } from '../book-2.0/agent-source/padBook';
 import type { string_book } from '../book-2.0/agent-source/string_book';
 import { isValidBook } from '../book-2.0/agent-source/string_book';

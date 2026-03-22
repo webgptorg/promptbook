@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { DEFAULT_IS_VERBOSE } from '../../../config';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
 import type { string_markdown_text, string_mime_type_with_wildcard, string_user_id } from '../../../types/typeAliases';

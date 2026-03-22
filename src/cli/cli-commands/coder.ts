@@ -2,7 +2,7 @@ import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import type { $side_effect } from '../../utils/organization/$side_effect';
 import { $initializeCoderFindFreshEmojiTagCommand } from './coder/find-fresh-emoji-tags';
 import { $initializeCoderFindRefactorCandidatesCommand } from './coder/find-refactor-candidates';

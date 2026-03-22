@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { NotAllowed } from '../../../../../../src/errors/NotAllowed';
 import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
 import { isUserAdmin } from '../../../utils/isUserAdmin';

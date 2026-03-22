@@ -5,7 +5,7 @@ import type {
 import { readFile } from 'fs/promises';
 import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob'
 import { basename } from 'path';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { getAllCommitmentsToolFunctionsForNode } from '../../commitments/_common/getAllCommitmentsToolFunctionsForNode';
 import { compilePipeline } from '../../conversion/compilePipeline';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';

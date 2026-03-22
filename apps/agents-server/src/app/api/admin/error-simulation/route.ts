@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { NotAllowed } from '../../../../../../../src/errors/NotAllowed';
 import { isUserAdmin } from '../../../../utils/isUserAdmin';
 

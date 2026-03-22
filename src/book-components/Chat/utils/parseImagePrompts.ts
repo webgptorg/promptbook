@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 
 /**
  * Segment representing parts of a chat message that contain either raw text or an image prompt.

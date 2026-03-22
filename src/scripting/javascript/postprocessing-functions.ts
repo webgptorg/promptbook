@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { extractBlock } from '../../postprocessing/utils/extractBlock';
 import { prettifyMarkdown } from '../../utils/markdown/prettifyMarkdown';
 import { trimCodeBlock } from '../../utils/markdown/trimCodeBlock';

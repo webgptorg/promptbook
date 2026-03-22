@@ -1,5 +1,5 @@
 import { describe, expect, it, jest } from '@jest/globals';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { validateBook } from '../../../../../src/book-2.0/agent-source/string_book';
 import {
     appendMessageSuffix,

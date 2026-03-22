@@ -8,7 +8,7 @@ import {
     setDefaultOpenAIKey,
 } from '@openai/agents';
 import OpenAI from 'openai';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { TODO_any } from '../../_packages/types.index';
 import { serializeError } from '../../_packages/utils.index';
 import { parseToolExecutionEnvelope } from '../../commitments/_common/toolExecutionEnvelope';

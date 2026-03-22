@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { useStateWithDeps } from 'use-state-with-deps';
 import { $isRunningInBrowser } from '../../../src/_packages/utils.index';
 

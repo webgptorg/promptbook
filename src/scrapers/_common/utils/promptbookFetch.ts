@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { PromptbookFetchError } from '../../../errors/PromptbookFetchError';
 import { assertsError } from '../../../errors/assertsError';
 import type { PromptbookFetch } from '../../../execution/PromptbookFetch';

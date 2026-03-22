@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { DatabaseError } from '../../../../src/errors/DatabaseError';
 import { SERVER_ENVIRONMENT, type ServerEnvironment, type ServerRecord } from '../utils/serverRegistry';
 

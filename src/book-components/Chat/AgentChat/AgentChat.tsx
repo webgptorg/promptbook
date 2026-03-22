@@ -3,7 +3,7 @@
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
 /* Context removed – using attachable sendMessage from hook */
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { Color, saturate } from '../../../_packages/color.index';
 import { PROMPTBOOK_COLOR } from '../../../config';
 import { asUpdatableSubject } from '../../../types/Updatable';

@@ -1,5 +1,5 @@
 import colors from 'colors';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
 import { linguisticHash, unwrapResult } from '../../../_packages/utils.index';
 import { extractOpenTeacherInstructions } from '../../../book-2.0/agent-source/extractOpenTeacherInstructions';
@@ -9,8 +9,7 @@ import type { string_book } from '../../../book-2.0/agent-source/string_book';
 import { validateBook } from '../../../book-2.0/agent-source/string_book';
 import type { ChatPromptResult } from '../../../execution/PromptResult';
 import type { Prompt } from '../../../types/Prompt';
-import type { ToolCall } from '../../../types/ToolCall';
-import type { SelfLearningCommitmentTypeCounts, SelfLearningTeacherSummary } from '../../../types/ToolCall';
+import type { SelfLearningCommitmentTypeCounts, SelfLearningTeacherSummary, ToolCall } from '../../../types/ToolCall';
 import type { string_prompt } from '../../../types/typeAliases';
 import { just } from '../../../utils/organization/just';
 

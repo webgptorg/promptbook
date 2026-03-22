@@ -1,7 +1,7 @@
 'use client';
 
 import { TODO_any } from '@promptbook-local/types';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../../../_common/components/Tabs/Tabs';
 import { SdkCodeTabs } from './SdkCodeTabs';
 

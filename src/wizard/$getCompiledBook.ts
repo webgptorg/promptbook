@@ -1,6 +1,7 @@
 import { join } from 'path';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { createPipelineCollectionFromDirectory } from '../collection/pipeline-collection/constructors/createPipelineCollectionFromDirectory';
+import type { PipelineCollection } from '../collection/pipeline-collection/PipelineCollection';
 import { DEFAULT_BOOKS_DIRNAME, LOOP_LIMIT } from '../config';
 import { saveArchive } from '../conversion/archive/saveArchive';
 import { compilePipeline } from '../conversion/compilePipeline';
@@ -9,7 +10,6 @@ import type { ExecutionTools } from '../execution/ExecutionTools';
 import { isValidPipelineString } from '../pipeline/isValidPipelineString';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
 import type { PipelineString } from '../pipeline/PipelineString';
-import type { PipelineCollection } from '../collection/pipeline-collection/PipelineCollection';
 import { validatePipelineString } from '../pipeline/validatePipelineString';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
 import type { string_filename, string_pipeline_url } from '../types/typeAliases';

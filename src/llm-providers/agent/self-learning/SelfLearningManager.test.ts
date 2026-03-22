@@ -1,5 +1,5 @@
 import { describe, expect, it, jest } from '@jest/globals';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import type { string_book } from '../../../book-2.0/agent-source/string_book';
 import type { ChatPromptResult } from '../../../execution/PromptResult';
 import { UNCERTAIN_USAGE } from '../../../execution/utils/usage-constants';

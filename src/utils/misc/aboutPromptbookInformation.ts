@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { PUBLIC_AGENTS_SERVERS } from '../../../servers';
 import { CLAIM, IS_COST_PREVENTED, NAME } from '../../config';
 import type { string_markdown } from '../../types/typeAliases';

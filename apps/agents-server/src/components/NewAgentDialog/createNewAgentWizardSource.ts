@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { validateBook, type string_book } from '../../../../../src/book-2.0/agent-source/string_book';
 
 /**

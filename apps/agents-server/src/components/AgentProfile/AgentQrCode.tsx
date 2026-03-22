@@ -3,7 +3,7 @@
 import { PromptbookQrCode } from '@promptbook-local/components';
 import { AgentBasicInformation } from '@promptbook-local/types';
 import { useState } from 'react';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 
 type AgentQrCodeProps = Pick<AgentBasicInformation, 'agentName' | 'personaDescription' | 'meta'> & {

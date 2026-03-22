@@ -1,9 +1,8 @@
 import type { Socket } from 'socket.io-client';
 import { io } from 'socket.io-client';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
+import { CONNECTION_RETRIES_LIMIT, CONNECTION_TIMEOUT_MS } from '../config';
 import { isValidUrl } from '../utils/validators/url/isValidUrl';
-import { CONNECTION_RETRIES_LIMIT } from '../config';
-import { CONNECTION_TIMEOUT_MS } from '../config';
 import type { RemoteClientOptions } from './types/RemoteClientOptions';
 
 /**

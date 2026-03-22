@@ -3,8 +3,8 @@
 import { WalletRecordDialog } from '@/src/components/WalletRecordDialog/WalletRecordDialog';
 import { usePromise } from '@common/hooks/usePromise';
 import { Chat } from '@promptbook-local/components';
-import type { ChatMessage } from '@promptbook-local/types';
 import { RemoteAgent } from '@promptbook-local/core';
+import type { ChatMessage } from '@promptbook-local/types';
 import {
     useCallback,
     useEffect,
@@ -15,7 +15,7 @@ import {
     type CSSProperties,
     type ReactNode,
 } from 'react';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { useAgentBackground } from '../../../../components/AgentProfile/useAgentBackground';
 import { useChatEnterBehaviorPreferences } from '../../../../components/ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
 import { usePrivateModePreferences } from '../../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
@@ -23,23 +23,26 @@ import { useSelfLearningPreferences } from '../../../../components/SelfLearningP
 import { useServerLanguage } from '../../../../components/ServerLanguage/ServerLanguageProvider';
 import { useSoundSystem } from '../../../../components/SoundSystemProvider/SoundSystemProvider';
 import { useActiveBrowserTab } from '../../../../hooks/useActiveBrowserTab';
+import { fetchCalendarOAuthStatus, type CalendarOAuthStatusResponse } from '../../../../utils/calendarOAuthClient';
 import { createDefaultChatEffects } from '../../../../utils/chat/createDefaultChatEffects';
 import { executeQuickActionButton } from '../../../../utils/chat/executeQuickActionButton';
-import { fetchCalendarOAuthStatus, type CalendarOAuthStatusResponse } from '../../../../utils/calendarOAuthClient';
 import { fetchGithubAppStatus, type GithubAppStatusResponse } from '../../../../utils/githubAppClient';
 import { createDefaultSpeechRecognition } from '../../../../utils/speech-to-text/createDefaultSpeechRecognition';
 import { chatFileUploadHandler } from '../../../../utils/upload/createBookEditorUploadHandler';
-import { serializeUserLocationPromptParameter, USER_LOCATION_PROMPT_PARAMETER } from '../../../../utils/userLocationPromptParameter';
 import { getUserChatSourceBannerLabel, type UserChatSource } from '../../../../utils/userChat/UserChatSource';
+import type { UserChatJob, UserChatTimeout } from '../../../../utils/userChatClient';
 import { createUserChatClientMessageId } from '../../../../utils/userChatClient';
+import {
+    serializeUserLocationPromptParameter,
+    USER_LOCATION_PROMPT_PARAMETER,
+} from '../../../../utils/userLocationPromptParameter';
 import { MetaDisclaimerDialog } from '../MetaDisclaimerDialog';
 import { PseudoUserChatDialog } from '../PseudoUserChatDialog';
 import { useAgentChatMetaDisclaimer } from '../useAgentChatMetaDisclaimer';
 import { useAgentChatToolInteractions } from '../useAgentChatToolInteractions';
 import { useTeamAgentProfiles } from '../useTeamAgentProfiles';
-import type { UserChatJob, UserChatTimeout } from '../../../../utils/userChatClient';
-import { ChatTimeoutButton } from './ChatTimeoutButton';
 import type { AgentChatLayoutVariant } from './AgentChatLayoutVariant';
+import { ChatTimeoutButton } from './ChatTimeoutButton';
 import { useCanonicalChatMessages } from './useCanonicalChatMessages';
 
 /**
@@ -313,11 +316,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
     );
 
     const handleManualMessage = useCallback(
-        async (
-            message: string,
-            attachments?: ChatMessage['attachments'],
-            clientMessageId?: string,
-        ) => {
+        async (message: string, attachments?: ChatMessage['attachments'], clientMessageId?: string) => {
             if (isReadOnly) {
                 return;
             }

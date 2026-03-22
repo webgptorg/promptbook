@@ -1,7 +1,7 @@
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { readFile } from 'fs/promises';
 import { dirname, join, relative } from 'path';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { DEFAULT_IS_VERBOSE, DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../../config';
 import { loadArchive } from '../../../conversion/archive/loadArchive';
 import { compilePipeline } from '../../../conversion/compilePipeline';

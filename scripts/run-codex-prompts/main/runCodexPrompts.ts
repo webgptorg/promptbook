@@ -1,7 +1,7 @@
 import colors from 'colors';
 import moment from 'moment';
 import { join } from 'path';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { DatabaseError } from '../../../src/errors/DatabaseError';
 import { OPENAI_MODELS } from '../../../src/llm-providers/openai/openai-models';
 import { just } from '../../../src/utils/organization/just';
@@ -156,7 +156,9 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
 
             if (!options.allowCredits) {
                 console.info(
-                    colors.gray('OpenAI Codex credit spending is disabled. Use `--allow-credits` to explicitly opt in.'),
+                    colors.gray(
+                        'OpenAI Codex credit spending is disabled. Use `--allow-credits` to explicitly opt in.',
+                    ),
                 );
             }
         } else if (agentName === 'cline') {

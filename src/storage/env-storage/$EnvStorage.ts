@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { GENERATOR_WARNING_IN_ENV } from '../../config';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { $provideEnvFilename } from '../../llm-providers/_common/register/$provideEnvFilename';

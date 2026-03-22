@@ -1,5 +1,5 @@
 import { BOOK_LANGUAGE_VERSION, getGroupedCommitmentDefinitions } from '@promptbook-local/core';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { NotYetImplementedCommitmentDefinition } from '../../../../../src/commitments/_base/NotYetImplementedCommitmentDefinition';
 import type { BookLanguageDocumentationExample } from './BookLanguageDocumentationExample';
 import { bookLanguageCommonPitfalls } from './bookLanguageCommonPitfalls';

@@ -2,7 +2,7 @@ import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { forEver } from 'waitasecond';
 import { createPipelineCollectionFromDirectory } from '../../collection/pipeline-collection/constructors/createPipelineCollectionFromDirectory';
 import { DEFAULT_BOOKS_DIRNAME } from '../../config';

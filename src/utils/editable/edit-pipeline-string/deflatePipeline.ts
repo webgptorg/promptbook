@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { padBook } from '../../../book-2.0/agent-source/padBook';
 import { DEFAULT_BOOK_OUTPUT_PARAMETER_NAME, DEFAULT_BOOK_TITLE } from '../../../config';
 import type { PipelineString } from '../../../pipeline/PipelineString';

@@ -5,7 +5,7 @@ import type {
 import { readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob'
 import { basename } from 'path';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { prettifyPipelineString } from '../../conversion/prettify/prettifyPipelineString';
 import { assertsError } from '../../errors/assertsError';
 import { validatePipelineString } from '../../pipeline/validatePipelineString';

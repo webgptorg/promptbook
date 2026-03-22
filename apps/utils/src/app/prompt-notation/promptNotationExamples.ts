@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 
 /**
  * Describes a prompt notation example for documentation and tooling.

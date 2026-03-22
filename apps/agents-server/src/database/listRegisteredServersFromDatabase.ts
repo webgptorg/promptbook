@@ -1,5 +1,5 @@
 import type { Client, QueryResultRow } from 'pg';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { DatabaseError } from '../../../../src/errors/DatabaseError';
 import { parseServerRecord, type ServerRecord } from '../utils/serverRegistry';
 

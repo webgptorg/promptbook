@@ -8,7 +8,7 @@ import colors from 'colors';
 import commander from 'commander';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { COMMANDS } from '../../src/commands/index';
 import { GENERATOR_WARNING } from '../../src/config';
 import { assertsError } from '../../src/errors/assertsError';

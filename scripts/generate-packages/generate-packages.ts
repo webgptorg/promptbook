@@ -8,7 +8,7 @@ import fs, { mkdir, readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob'
 import os from 'os';
 import { basename, dirname, join, relative } from 'path';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import type { PackageJson } from 'type-fest';
 import { forTime } from 'waitasecond';
 import YAML from 'yaml';
