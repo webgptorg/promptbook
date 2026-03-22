@@ -47,7 +47,7 @@ import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCo
 import { OpenAiVectorStoreHandler } from './OpenAiVectorStoreHandler';
 import { buildToolInvocationScript } from './utils/buildToolInvocationScript';
 
-const DEFAULT_AGENT_KIT_MODEL_NAME = 'gpt-5-mini-2025-08-07' as string_model_name;
+const DEFAULT_AGENT_KIT_MODEL_NAME = 'gpt-5.4-nano' as string_model_name;
 
 /**
  * Creates one structured log entry for streamed tool-call updates.
