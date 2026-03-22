@@ -10,6 +10,10 @@ import { createPortal } from 'react-dom';
 export type DropdownSubMenuPortalProps = {
     anchorRect: DOMRect;
     container: HTMLDivElement | null;
+    /**
+     * Determines whether the portal should capture pointer events.
+     */
+    isInteractive: boolean;
     onMouseEnter: () => void;
     onMouseLeave: () => void;
     children: ReactNode;
@@ -23,6 +27,7 @@ export type DropdownSubMenuPortalProps = {
 export function DropdownSubMenuPortal({
     anchorRect,
     container,
+    isInteractive,
     onMouseEnter,
     onMouseLeave,
     children,
@@ -68,7 +73,7 @@ export function DropdownSubMenuPortal({
 
     return createPortal(
         <div
-            className="fixed z-50"
+            className={`fixed z-50 ${isInteractive ? 'pointer-events-auto' : 'pointer-events-none'}`}
             style={{ top: position.top, left: position.left }}
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}

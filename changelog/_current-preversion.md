@@ -1,3 +1,8 @@
+-   Fixed Agents Server header dropdown accidental-click UX by unifying desktop menu interaction behavior across breadcrumb menus and top navigation:
+    -   Added a shared delayed hover-preview mode for desktop dropdowns so hover-opened menus are non-blocking (`pointer-events: none`) until the user explicitly commits with click.
+    -   Kept click-to-open immediate and interactive, with the same shared state/timer logic reused for breadcrumb dropdowns (`Server`, `Agents`, `Profile/Chat/Book/More`) and top-level `Documentation`/`System`.
+    -   Unified nested submenu handling (including `More`) under shared rendering/interaction code so hover/click behavior is consistent for menu items and subitems.
+
 -   Added `USE CALENDAR` end-to-end support for Agents Server with Google Calendar integration:
     -   Added a new core commitment `USE CALENDAR` (alias `CALENDAR`) with parser/runtime wiring, capability chips, tool schemas/functions (`calendar_list_events`, `calendar_get_event`, `calendar_create_event`, `calendar_update_event`, `calendar_delete_event`, `calendar_invite_guests`), and metadata extraction for provider URL/scopes/calendar id.
     -   Added Google Calendar OAuth backend flows (`/api/calendar-oauth/connect`, `/api/calendar-oauth/callback`, `/api/calendar-oauth/status`, `/api/calendar-oauth/refresh`, `/api/calendar-oauth/revoke`) with signed state, wallet token persistence, refresh-token handling, and scoped redirect status reporting.
