@@ -24,15 +24,15 @@
         },
 
         {
-            "name": "✨⏩ Migrate Agents server local (💤)",
+            "name": "✨⏩ Migrate Agents server `live` (💤)",
             "cwd": "./apps/agents-server/",
-            "command": "npx tsx ./src/database/migrate.ts --only=pavol-hejny.ptbk.io",
+            "command": "npx tsx ./src/database/migrate.ts --only=live",
             "execute": false,
-            "onlySingle": true,
-            "focus": true
+            "onlySingle": false,
+            "focus": false
         },
         {
-            "name": "(❗) ✨⏩ Migrate Agents server preview (💤)",
+            "name": "(❗) ✨⏩ Migrate Agents server `preview` (💤)",
             "cwd": "./apps/agents-server/",
             "command": "npx tsx ./src/database/migrate.ts --only=preview",
             "execute": false,
