@@ -278,7 +278,7 @@
         },
         {
             "name": "🤪 Find fresh emoji tag",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts coder find-fresh-emoji-tag",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder find-fresh-emoji-tags",
             "execute": true,
             "onlySingle": false,
             "focus": false

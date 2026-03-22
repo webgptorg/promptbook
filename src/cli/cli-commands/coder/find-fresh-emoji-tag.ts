@@ -7,14 +7,14 @@ import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { handleActionErrors } from '../common/handleActionErrors';
 
 /**
- * Initializes `coder find-fresh-emoji-tag` command for Promptbook CLI utilities
+ * Initializes `coder find-fresh-emoji-tags` command for Promptbook CLI utilities
  *
  * Note: `$` is used to indicate that this function is not a pure function - it registers a command in the CLI
  *
  * @private internal function of `promptbookCli`
  */
 export function $initializeCoderFindFreshEmojiTagCommand(program: Program): $side_effect {
-    const command = program.command('find-fresh-emoji-tag');
+    const command = program.command('find-fresh-emoji-tags');
     command.description(
         spaceTrim(`
             Find unused emoji tags in the codebase
@@ -28,7 +28,9 @@ export function $initializeCoderFindFreshEmojiTagCommand(program: Program): $sid
     command.action(
         handleActionErrors(async () => {
             // Note: Import the function dynamically to avoid loading heavy dependencies until needed
-            const { findFreshEmojiTag } = await import('../../../../scripts/find-fresh-emoji-tag/find-fresh-emoji-tag');
+            const { findFreshEmojiTag } = await import(
+                '../../../../scripts/find-fresh-emoji-tags/find-fresh-emoji-tags'
+            );
 
             try {
                 await findFreshEmojiTag();

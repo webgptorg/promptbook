@@ -1,4 +1,4 @@
-// find-fresh-emoji-tag.ts
+// find-fresh-emoji-tags.ts
 
 import * as dotenv from 'dotenv';
 

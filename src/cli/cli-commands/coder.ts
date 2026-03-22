@@ -4,7 +4,7 @@ import type {
 } from 'commander';
 import spaceTrim from 'spacetrim';
 import type { $side_effect } from '../../utils/organization/$side_effect';
-import { $initializeCoderFindFreshEmojiTagCommand } from './coder/find-fresh-emoji-tag';
+import { $initializeCoderFindFreshEmojiTagCommand } from './coder/find-fresh-emoji-tags';
 import { $initializeCoderFindRefactorCandidatesCommand } from './coder/find-refactor-candidates';
 import { $initializeCoderGenerateBoilerplatesCommand } from './coder/generate-boilerplates';
 import { $initializeCoderRunCommand } from './coder/run';
@@ -18,7 +18,7 @@ import { $initializeCoderVerifyCommand } from './coder/verify';
  * - find-refactor-candidates: Find files that need refactoring
  * - run: Run coding prompts with AI agents
  * - verify: Verify completed prompts
- * - find-fresh-emoji-tag: Find unused emoji tags
+ * - find-fresh-emoji-tags: Find unused emoji tags
  *
  * Note: `$` is used to indicate that this function is not a pure function - it registers a command in the CLI
  *
@@ -35,7 +35,7 @@ export function $initializeCoderCommand(program: Program): $side_effect {
             - find-refactor-candidates: Find files that need refactoring
             - run: Run coding prompts with AI agents
             - verify: Verify completed prompts
-            - find-fresh-emoji-tag: Find unused emoji tags
+            - find-fresh-emoji-tags: Find unused emoji tags
         `),
     );
 

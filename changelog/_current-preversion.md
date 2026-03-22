@@ -1,24 +1,29 @@
 -   Fixed `ptbk about` startup failures in external projects:
+
     -   Made `run_browser` tool resolution fully lazy in `resolveRunBrowserToolForNode`, so CLI startup no longer eagerly requires `playwright`.
-    -   Removed import-time side effects from `find-fresh-emoji-tag` and `find-refactor-candidates` script modules by moving `.env` initialization and root-CWD checks into runtime initialization, preventing `CWD must be root of the project` during CLI bootstrap.
+    -   Removed import-time side effects from `find-fresh-emoji-tags` and `find-refactor-candidates` script modules by moving `.env` initialization and root-CWD checks into runtime initialization, preventing `CWD must be root of the project` during CLI bootstrap.
     -   Updated the draft shell installer to generate a Node-based `ptbk` launcher via `npx @promptbook/cli` instead of a hardcoded `ts-node` command.
 
 -   Fixed Agents Server durable draft persistence to be race-tolerant when a chat is deleted or disappears during save:
+
     -   Treated `PATCH /agents/[agentName]/api/user-chats/[chatId]/draft` as best-effort for missing chats and now return a no-op success instead of surfacing a hard save error.
     -   Added dedicated scope-error response handling in the draft route so `USER_CHAT_NOT_FOUND` during `mutate_chat` no longer breaks user flow in concurrent delete/navigation timing windows.
 
 -   Extended `USE TIMEOUT` cross-chat visibility/management in Agents Server runtime so one agent conversation can inspect and manage timeouts from other chats in the same user+agent scope:
+
     -   Added a new `list_timeouts` tool in the core `USE TIMEOUT` commitment (tool schema, parser, runtime adapter contract, system-message/docs, and tests) for scoped timeout discovery.
     -   Updated the Agents Server timeout runtime adapter to list agent-scoped timeouts via existing store APIs and to cancel by user+agent+`timeoutId` (without current-chat restriction), while keeping `set_timeout` scheduling thread-scoped.
     -   Added timeout chip title mapping for `list_timeouts` so chat tool-call UI remains human-readable.
 
 -   Enhanced the Agents Server `/?view=office` visualization with a pixel-office inspired rendering style while preserving existing layout/state behavior:
+
     -   Reworked room rendering with textured floor tiles, stronger wall treatments, and richer corridor markings to better communicate office structure.
     -   Added deterministic decorative room props (bookshelves, plants, whiteboards, coffee/storage stations, and lounge furniture) for more expressive scene context.
     -   Updated desk and avatar rendering with richer furniture/character details and compact animated activity bubbles for `idle` / `working` / `meeting` / `moving` states.
     -   Refactored repeated isometric face rendering into reusable block/theme helpers to keep the office renderer DRY and easier to maintain.
 
 -   Enhanced the Agents Server new-agent wizard to be lighter and faster, and aligned the flow with the new 4-step creation model:
+
     -   Simplified the wizard visual structure to reduce form-like clutter while keeping the same core data collection.
     -   Enabled direct step navigation so users can jump to any wizard step at any time without validation-based blocking.
     -   Prefilled Step 1 agent name from the existing boilerplate name generator path (`$generateAgentBoilerplateAction`), preserving metadata-driven name pool behavior.
@@ -29,11 +34,13 @@
     -   Updated wizard source synthesis and tests to support capability commitments and chip-array trait/rule inputs.
 
 -   Fixed Agents Server header dropdown accidental-click UX by unifying desktop menu interaction behavior across breadcrumb menus and top navigation:
+
     -   Added a shared delayed hover-preview mode for desktop dropdowns so hover-opened menus are non-blocking (`pointer-events: none`) until the user explicitly commits with click.
     -   Kept click-to-open immediate and interactive, with the same shared state/timer logic reused for breadcrumb dropdowns (`Server`, `Agents`, `Profile/Chat/Book/More`) and top-level `Documentation`/`System`.
     -   Unified nested submenu handling (including `More`) under shared rendering/interaction code so hover/click behavior is consistent for menu items and subitems.
 
 -   Added `USE CALENDAR` end-to-end support for Agents Server with Google Calendar integration:
+
     -   Added a new core commitment `USE CALENDAR` (alias `CALENDAR`) with parser/runtime wiring, capability chips, tool schemas/functions (`calendar_list_events`, `calendar_get_event`, `calendar_create_event`, `calendar_update_event`, `calendar_delete_event`, `calendar_invite_guests`), and metadata extraction for provider URL/scopes/calendar id.
     -   Added Google Calendar OAuth backend flows (`/api/calendar-oauth/connect`, `/api/calendar-oauth/callback`, `/api/calendar-oauth/status`, `/api/calendar-oauth/refresh`, `/api/calendar-oauth/revoke`) with signed state, wallet token persistence, refresh-token handling, and scoped redirect status reporting.
     -   Added calendar persistence and audit storage with migration `2026-03-0280-calendar-connections.sql` (`CalendarConnection`, `CalendarActivity`), plus Agents Server helpers and provider adapters for connection CRUD, activity reads/writes, and Google Calendar API access.

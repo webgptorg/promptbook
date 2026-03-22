@@ -2,8 +2,8 @@ import { readFileSync } from 'fs';
 import glob from 'glob-promise';
 import type { string_char_emoji } from '../../../src/types/typeAliasEmoji';
 import { difference } from '../../../src/utils/sets/difference';
-import { $shuffleItems } from '../../find-fresh-emoji-tag/utils/$shuffleItems';
-import { EMOJIS_OF_SINGLE_PICTOGRAM } from '../../find-fresh-emoji-tag/utils/emojis';
+import { $shuffleItems } from '../../find-fresh-emoji-tags/utils/$shuffleItems';
+import { EMOJIS_OF_SINGLE_PICTOGRAM } from '../../find-fresh-emoji-tags/utils/emojis';
 
 /**
  * Emoji prefix used for prompt tags (e.g. `[prefix + emoji]`).
@@ -57,10 +57,7 @@ export type PromptEmojiTagSelection = {
 /**
  * Builds a prompt emoji tag with the configured prefix.
  */
-export function formatPromptEmojiTag(
-    emoji: string_char_emoji,
-    tagPrefix: string = PROMPT_EMOJI_TAG_PREFIX,
-): string {
+export function formatPromptEmojiTag(emoji: string_char_emoji, tagPrefix: string = PROMPT_EMOJI_TAG_PREFIX): string {
     return `[${tagPrefix}${emoji}]`;
 }
 
@@ -85,9 +82,7 @@ export async function getFreshPromptEmojiTags(options: PromptEmojiTagOptions): P
     const selectedEmojis = shuffledEmojis.slice(0, count);
 
     if (selectedEmojis.length < count) {
-        throw new Error(
-            `Not enough fresh prompt emojis available. Needed ${count}, found ${selectedEmojis.length}.`,
-        );
+        throw new Error(`Not enough fresh prompt emojis available. Needed ${count}, found ${selectedEmojis.length}.`);
     }
 
     return {

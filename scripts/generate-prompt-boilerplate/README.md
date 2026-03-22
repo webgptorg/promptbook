@@ -99,4 +99,4 @@ When using `--template agents-server`, generated filenames include the template 
 
 ## Integration
 
-The script follows the same pattern as other project scripts like `find-fresh-emoji-tag` and integrates seamlessly with the existing codebase structure.
+The script follows the same pattern as other project scripts like `find-fresh-emoji-tags` and integrates seamlessly with the existing codebase structure.
