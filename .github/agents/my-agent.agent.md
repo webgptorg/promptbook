@@ -10,8 +10,6 @@ description: Agent that update models and LLM providers
 
 # Update LLMs
 
-Describe what your agent does here.
-
 Update the information of models
 
 The available models are listed in the folder `src/llm-providers`.
