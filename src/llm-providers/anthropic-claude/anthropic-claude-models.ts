@@ -25,7 +25,8 @@ export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
             modelVariant: 'CHAT',
             modelTitle: 'Claude Opus 4.6',
             modelName: 'claude-opus-4-6',
-            modelDescription: "Anthropic's most capable model for advanced coding, complex reasoning, and agentic workflows with 1M token context window.",
+            modelDescription:
+                "Anthropic's most capable model for advanced coding, complex reasoning, and agentic workflows with 1M token context window.",
             pricing: {
                 prompt: pricing(`$5.00 / 1M tokens`),
                 output: pricing(`$25.00 / 1M tokens`),
@@ -35,7 +36,8 @@ export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
             modelVariant: 'CHAT',
             modelTitle: 'Claude Sonnet 4.6',
             modelName: 'claude-sonnet-4-6',
-            modelDescription: 'Best speed and intelligence balance for production-ready workloads with 1M token context window. Ideal for high-performance, lower-latency applications.',
+            modelDescription:
+                'Best speed and intelligence balance for production-ready workloads with 1M token context window. Ideal for high-performance, lower-latency applications.',
             pricing: {
                 prompt: pricing(`$3.00 / 1M tokens`),
                 output: pricing(`$15.00 / 1M tokens`),
