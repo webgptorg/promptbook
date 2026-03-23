@@ -2,7 +2,7 @@
 
 # ✨ Promptbook: AI Agents
 
-Turn your company's scattered knowledge into AI ready Books
+Create persistent AI agents that turn your company's scattered knowledge into action — powered by the [Agents Server](https://gallery.ptbk.io/)
 
 
 
@@ -248,11 +248,13 @@ Rest of the documentation is common for **entire promptbook ecosystem**:
 
 ## 📖 The Book Whitepaper
 
+Promptbook lets you create **persistent AI agents** that work on real goals for your company. The [**Agents Server**](https://gallery.ptbk.io/) is the heart of the project — a place where your AI agents live, remember context, collaborate in teams, and get things done.
+
 Nowadays, the biggest challenge for most business applications isn't the raw capabilities of AI models. Large language models such as GPT-5.2 and Claude-4.5 are incredibly capable.
 
 The main challenge lies in **managing the context**, providing rules and knowledge, and narrowing the personality.
 
-In Promptbook, you can define your context **using simple Books** that are very explicit, easy to understand and write, reliable, and highly portable.
+In Promptbook, you define your agents **using simple Books** — a human-readable language that is explicit, easy to understand and write, reliable, and highly portable. You then deploy them to the **Agents Server**, where they run persistently and work toward their goals.
 
 <table style="border: 1px solid #777; border-radius: 10px;"><tr><td>
 
@@ -260,8 +262,13 @@ In Promptbook, you can define your context **using simple Books** that are very 
 <br/>
 **PERSONA** You are a company lawyer.<br/>
 Your job is to provide legal advice and support to the company and its employees.<br/>
+**GOAL** Respond to incoming legal inquiries via email and keep the company website updated with the latest legal policies.<br/>
 **RULE** You are knowledgeable, professional, and detail-oriented.<br/>
-TEAM You are part of the legal team of Paul Smith & Associés, you discuss with {Emily White}, the head of the compliance department. {George Brown} is expert in corporate law and {Sophia Black} is expert in labor law.<br/>
+**KNOWLEDGE** https://company.com/company-policies.pdf<br/>
+**KNOWLEDGE** https://company.com/internal-documents/employee-handbook.docx<br/>
+**USE EMAIL**<br/>
+**USE BROWSER**<br/>
+**TEAM** You are part of the legal team of Paul Smith & Associés, you discuss with {Emily White}, the head of the compliance department. {George Brown} is expert in corporate law and {Sophia Black} is expert in labor law.<br/>
 
 </td></tr></table>
 
@@ -284,6 +291,22 @@ Personas define the character of your AI persona, its role, and how it should in
 **<ins>Paul Smith & Associés</ins>**<br/>
 <br/>
 **PERSONA** You are a company lawyer.<br/>
+Your job is to provide legal advice and support to the company and its employees.<br/>
+
+</td></tr></table>
+
+#### `Goal` commitment
+
+Goals define what the agent should actively work toward. Unlike a chatbot that only responds when asked, an agent with goals takes initiative and works on tasks persistently on the Agents Server.
+
+<table style="border: 1px solid #777; border-radius: 10px;"><tr><td>
+
+**<ins>Paul Smith & Associés</ins>**<br/>
+<br/>
+**PERSONA** You are a company lawyer.<br/>
+Your job is to provide legal advice and support to the company and its employees.<br/>
+**GOAL** Respond to incoming legal inquiries via email within 24 hours.<br/>
+**GOAL** Keep the company website updated with the latest legal policies and compliance information.<br/>
 
 </td></tr></table>
 
@@ -301,9 +324,9 @@ Promptbook Engine will automatically enforce this knowledge during interactions.
 <br/>
 **PERSONA** You are a company lawyer.<br/>
 Your job is to provide legal advice and support to the company and its employees.<br/>
-You are knowledgeable, professional, and detail-oriented.<br/>
-<br/>
-**KNOWLEDGE**  https://company.com/company-policies.pdf<br/>
+**GOAL** Respond to incoming legal inquiries via email within 24 hours.<br/>
+**GOAL** Keep the company website updated with the latest legal policies and compliance information.<br/>
+**KNOWLEDGE** https://company.com/company-policies.pdf<br/>
 **KNOWLEDGE** https://company.com/internal-documents/employee-handbook.docx<br/>
 
 </td></tr></table>
@@ -320,13 +343,38 @@ Depending on rule strictness, Promptbook will either propagate it to the prompt 
 <br/>
 **PERSONA** You are a company lawyer.<br/>
 Your job is to provide legal advice and support to the company and its employees.<br/>
-You are knowledgeable, professional, and detail-oriented.<br/>
-<br/>
-**RULE** Always ensure compliance with laws and regulations.<br/>
+**GOAL** Respond to incoming legal inquiries via email within 24 hours.<br/>
+**GOAL** Keep the company website updated with the latest legal policies and compliance information.<br/>
+**RULE** Always ensure compliance with local laws and regulations.<br/>
 **RULE** Never provide legal advice outside your area of expertise.<br/>
 **RULE** Never provide legal advice about criminal law.<br/>
-**KNOWLEDGE**  https://company.com/company-policies.pdf<br/>
+**KNOWLEDGE** https://company.com/company-policies.pdf<br/>
 **KNOWLEDGE** https://company.com/internal-documents/employee-handbook.docx<br/>
+
+</td></tr></table>
+
+#### `Use` commitments
+
+Use commitments grant the agent real capabilities — tools it can use to interact with the outside world. `USE EMAIL` lets the agent send emails, `USE BROWSER` lets it access and read web content, `USE SEARCH ENGINE` lets it search the web, and many more.
+
+These are what turn a chatbot into a persistent agent that actually does work.
+
+<table style="border: 1px solid #777; border-radius: 10px;"><tr><td>
+
+**<ins>Paul Smith & Associés</ins>**<br/>
+<br/>
+**PERSONA** You are a company lawyer.<br/>
+Your job is to provide legal advice and support to the company and its employees.<br/>
+**GOAL** Respond to incoming legal inquiries via email within 24 hours.<br/>
+**GOAL** Keep the company website updated with the latest legal policies and compliance information.<br/>
+**RULE** Always ensure compliance with local laws and regulations.<br/>
+**RULE** Never provide legal advice outside your area of expertise.<br/>
+**RULE** Never provide legal advice about criminal law.<br/>
+**KNOWLEDGE** https://company.com/company-policies.pdf<br/>
+**KNOWLEDGE** https://company.com/internal-documents/employee-handbook.docx<br/>
+**USE EMAIL**<br/>
+**USE BROWSER**<br/>
+**USE SEARCH ENGINE**<br/>
 
 </td></tr></table>
 
@@ -340,32 +388,31 @@ Team commitment allows you to define the team structure and advisory fellow memb
 <br/>
 **PERSONA** You are a company lawyer.<br/>
 Your job is to provide legal advice and support to the company and its employees.<br/>
-You are knowledgeable, professional, and detail-oriented.<br/>
-<br/>
-**RULE** Always ensure compliance with laws and regulations.<br/>
+**GOAL** Respond to incoming legal inquiries via email within 24 hours.<br/>
+**GOAL** Keep the company website updated with the latest legal policies and compliance information.<br/>
+**RULE** Always ensure compliance with local laws and regulations.<br/>
 **RULE** Never provide legal advice outside your area of expertise.<br/>
 **RULE** Never provide legal advice about criminal law.<br/>
-**KNOWLEDGE**  https://company.com/company-policies.pdf<br/>
+**KNOWLEDGE** https://company.com/company-policies.pdf<br/>
 **KNOWLEDGE** https://company.com/internal-documents/employee-handbook.docx<br/>
-TEAM You are part of the legal team of Paul Smith & Associés, you discuss with {Emily White}, the head of the compliance department. {George Brown} is expert in corporate law and {Sophia Black} is expert in labor law.<br/>
+**USE EMAIL**<br/>
+**USE BROWSER**<br/>
+**USE SEARCH ENGINE**<br/>
+**TEAM** You are part of the legal team of Paul Smith & Associés, you discuss with {Emily White}, the head of the compliance department. {George Brown} is expert in corporate law and {Sophia Black} is expert in labor law.<br/>
 
 </td></tr></table>
 
-
-
 ### Promptbook Ecosystem
 
-!!!@@@
+Promptbook is an ecosystem of tools centered around the **Agents Server** — a production-ready platform for running persistent AI agents.
 
-#### Promptbook Server
+#### Agents Server
 
-!!!@@@
+The [**Agents Server**](https://gallery.ptbk.io/) is the primary way to use Promptbook. It is a web application where your AI agents live and work. You can create agents, give them knowledge and rules using the Book language, organize them into teams, and let them work on goals persistently. The Agents Server provides a UI for managing agents, an API for integrating them into your applications, and can be self-hosted via [Docker](https://hub.docker.com/r/hejny/promptbook/) or deployed on Vercel.
 
 #### Promptbook Engine
 
-!!!@@@
-
-
+The [Promptbook Engine](https://github.com/webgptorg/promptbook) is the open-source core that powers everything. It parses the Book language, applies commitments, manages LLM provider integrations, and executes agents. The Agents Server is built on top of the Engine. If you need to embed agent capabilities directly into your own application, you can use the Engine as a standalone TypeScript/JavaScript library via [NPM packages](https://www.npmjs.com/package/@promptbook/core).
 
 
 
@@ -379,7 +426,7 @@ TEAM You are part of the legal team of Paul Smith & Associés, you discuss with 
 
 ## 💜 The Promptbook Project
 
-Promptbook project is ecosystem of multiple projects and tools, following is a list of most important pieces of the project:
+Promptbook project is an ecosystem centered around the **Agents Server** — a platform for creating, deploying, and running persistent AI agents. Following is a list of the most important pieces of the project:
 
 <table>
   <thead>
@@ -390,9 +437,9 @@ Promptbook project is ecosystem of multiple projects and tools, following is a l
   </thead>
   <tbody>
     <tr>
-      <td><a href="https://gallery.ptbk.io/">Agents Server</a></td>
+      <td><a href="https://gallery.ptbk.io/"><strong>⭐ Agents Server</strong></a></td>
       <td>
-          Place where you "AI agents live". It allows to create, manage, deploy, and interact with AI agents created in Book language.
+          The primary way to use Promptbook. A production-ready platform where your AI agents live — create, manage, deploy, and interact with persistent agents that work on goals. Available as a hosted service or <a href="https://hub.docker.com/r/hejny/promptbook/">self-hosted via Docker</a>.
       </td>
     </tr>
     <tr>
@@ -406,16 +453,13 @@ Promptbook project is ecosystem of multiple projects and tools, following is a l
     <tr>
       <td><a href="https://github.com/webgptorg/promptbook">Promptbook Engine</a></td>
       <td>
-          Promptbook engine can run AI agents based on Book language.
-          It is released as <a href="https://www.npmjs.com/package/@promptbook/core#-packages-for-developers">multiple NPM packages</a> and <a href="https://hub.docker.com/r/hejny/promptbook">Promptbook Agent Server as Docker Package</a>
-          Agent Server is based on Promptbook Engine.
+          The open-source core that powers the Agents Server. Can also be used as a standalone TypeScript/JavaScript library to embed agent capabilities into your own applications.
+          Released as <a href="https://www.npmjs.com/package/@promptbook/core#-packages-for-developers">multiple NPM packages</a>.
       </td>
     </tr>
     
   </tbody>
 </table>
-
-
 
 ### 🌐 Community & Social Media
 
@@ -473,8 +517,6 @@ Join our growing community of developers and users:
 
 
 
-
-
 ## 📚 Documentation
 
 See detailed guides and API reference in the [docs](https://github.com/webgptorg/promptbook/discussions/categories/concepts) or [online](https://discord.gg/x3QWNaa89N).
@@ -483,9 +525,16 @@ See detailed guides and API reference in the [docs](https://github.com/webgptorg
 
 For information on reporting security vulnerabilities, see our [Security Policy](./SECURITY.md).
 
-## 📦 Packages _(for developers)_
+## 📦 Deployment & Packages
 
-This library is divided into several packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
+The fastest way to get started is with the **Agents Server**:
+
+-   🐋 **[Docker image](https://hub.docker.com/r/hejny/promptbook/)** — Self-host the Agents Server with full control over your data
+-   ☁️ **[Hosted Agents Server](https://gallery.ptbk.io/)** — Start creating agents immediately, no setup required
+
+### NPM Packages _(for developers embedding the Engine)_
+
+If you want to embed the Promptbook Engine directly into your application, the library is divided into several packages published from a [single monorepo](https://github.com/webgptorg/promptbook).
 You can install all of them at once:
 
 ```bash
@@ -504,7 +553,6 @@ Or you can install them separately:
 -   **[@promptbook/browser](https://www.npmjs.com/package/@promptbook/browser)** - Core of the library for browser environment
 -   ⭐ **[@promptbook/utils](https://www.npmjs.com/package/@promptbook/utils)** - Utility functions used in the library but also useful for individual use in preprocessing and postprocessing LLM inputs and outputs
 -   **[@promptbook/markdown-utils](https://www.npmjs.com/package/@promptbook/markdown-utils)** - Utility functions used for processing markdown
--   _(Not finished)_ **[@promptbook/wizard](https://www.npmjs.com/package/@promptbook/wizard)** - Wizard for creating+running promptbooks in single line
 -   **[@promptbook/javascript](https://www.npmjs.com/package/@promptbook/javascript)** - Execution tools for javascript inside promptbooks
 -   **[@promptbook/openai](https://www.npmjs.com/package/@promptbook/openai)** - Execution tools for OpenAI API, wrapper around OpenAI SDK
 -   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK 
@@ -526,8 +574,7 @@ Or you can install them separately:
 -   **[@promptbook/templates](https://www.npmjs.com/package/@promptbook/templates)** - Useful templates and examples of books which can be used as a starting point
 -   **[@promptbook/types](https://www.npmjs.com/package/@promptbook/types)** - Just typescript types used in the library
 -   **[@promptbook/color](https://www.npmjs.com/package/@promptbook/color)** - Color manipulation library
--   ⭐ **[@promptbook/cli](https://www.npmjs.com/package/@promptbook/cli)** - Command line interface utilities for promptbooks
--   🐋 **[Docker image](https://hub.docker.com/r/hejny/promptbook/)** - Promptbook server
+-   **[@promptbook/cli](https://www.npmjs.com/package/@promptbook/cli)** - Command line interface utilities for promptbooks
 
 
 
@@ -550,8 +597,6 @@ The following glossary is used to clarify certain concepts:
 -   **Longtail** refers to non-common or rare events, items, or entities that are not well-represented in the training data of machine learning models. Longtail items are often challenging for models to predict accurately.
 
 _Note: This section is not a complete dictionary, more list of general AI / LLM terms that has connection with Promptbook_
-
-
 
 ### 💯 Core concepts
 
@@ -614,7 +659,17 @@ _Note: This section is not a complete dictionary, more list of general AI / LLM 
 
 
 
+## � Agents Server
+
+The **[Agents Server](https://gallery.ptbk.io/)** is the primary way to use Promptbook. It is a production-ready platform where you create, deploy, and manage persistent AI agents that work toward goals. Agents remember context across conversations, collaborate in teams, and follow the rules and knowledge you define in the Book language.
+
+-   **Hosted** at [gallery.ptbk.io](https://gallery.ptbk.io/) — start creating agents immediately
+-   **Self-hosted** via [Docker](https://hub.docker.com/r/hejny/promptbook/) — full control over your data and infrastructure
+-   **API** for integrating agents into your own applications
+
 ## 🚂 Promptbook Engine
+
+The Engine is the open-source core that powers the Agents Server. If you need to embed agent capabilities directly into your TypeScript/JavaScript application, you can use it as a standalone library.
 
 ![Schema of Promptbook Engine](./documents/promptbook-engine.svg)
 
@@ -622,23 +677,24 @@ _Note: This section is not a complete dictionary, more list of general AI / LLM 
 
 ### ➕ When to use
 
--   When you are writing app that generates complex things via LLM - like **websites, articles, presentations, code, stories, songs**,...
--   When you want to **separate code from text prompts**
--   When you want to describe **complex prompt pipelines** and don't want to do it in the code
--   When you want to **orchestrate multiple prompts** together
--   When you want to **reuse** parts of prompts in multiple places
--   When you want to **version** your prompts and **test multiple versions**
--   When you want to **log** the execution of prompts and backtrace the issues
+-   When you want to **deploy persistent AI agents** that work on goals for your company
+-   When you need agents with **specific personalities, knowledge, and rules** tailored to your business
+-   When you want agents that **collaborate in teams** and consult each other
+-   When you need to **integrate AI agents into your existing applications** via API
+-   When you want to **self-host** your AI agents with full control over data and infrastructure
+-   When you are writing an app that generates complex things via LLM — like **websites, articles, presentations, code, stories, songs**,...
+-   When you want to **version** your agent definitions and **test multiple versions**
+-   When you want to **log** agent execution and backtrace issues
 
 [See more](https://github.com/webgptorg/promptbook/discussions/111)
 
 ### ➖ When not to use
 
--   When you have already implemented single simple prompt and it works fine for your job
+-   When a single simple prompt already works fine for your job
 -   When [OpenAI Assistant (GPTs)](https://help.openai.com/en/articles/8673914-gpts-vs-assistants) is enough for you
--   When you need streaming _(this may be implemented in the future, [see discussion](https://github.com/webgptorg/promptbook/discussions/102))_.
+-   When you need streaming _(this may be implemented in the future, [see discussion](https://github.com/webgptorg/promptbook/discussions/102))_
 -   When you need to use something other than JavaScript or TypeScript _(other languages are on the way, [see the discussion](https://github.com/webgptorg/promptbook/discussions/101))_
--   When your main focus is on something other than text - like images, audio, video, spreadsheets _(other media types may be added in the future, [see discussion](https://github.com/webgptorg/promptbook/discussions/103))_
+-   When your main focus is on something other than text — like images, audio, video, spreadsheets _(other media types may be added in the future, [see discussion](https://github.com/webgptorg/promptbook/discussions/103))_
 -   When you need to use recursion _([see the discussion](https://github.com/webgptorg/promptbook/discussions/38))_
 
 [See more](https://github.com/webgptorg/promptbook/discussions/112)
