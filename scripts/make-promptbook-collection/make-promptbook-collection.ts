@@ -8,6 +8,7 @@ import colors from 'colors';
 import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
+import { spaceTrim } from 'spacetrim';
 import { $execCommand, $provideScrapersForNode } from '../../src/_packages/node.index';
 import { createPipelineCollectionFromDirectory } from '../../src/collection/pipeline-collection/constructors/createPipelineCollectionFromDirectory';
 import { pipelineCollectionToJson } from '../../src/collection/pipeline-collection/pipelineCollectionToJson';

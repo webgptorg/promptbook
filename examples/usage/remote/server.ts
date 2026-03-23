@@ -20,7 +20,6 @@ import '../../../src/_packages/anthropic-claude.index';
 import '../../../src/_packages/azure-openai.index';
 import '../../../src/_packages/openai.index';
 import { assertsError } from '../../../src/errors/assertsError';
-
 import { spaceTrim } from 'spacetrim';
 
 if (process.cwd().split(/[\\/]/).pop() !== 'promptbook') {
