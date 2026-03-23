@@ -5,8 +5,7 @@ import * as dotenv from 'dotenv';
 import colors from 'colors';
 import { readFileSync } from 'fs';
 import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob'
-import { basename, join } from 'path';
-import { spaceTrim } from 'spacetrim';
+import { basename } from 'path';
 import type { string_char_emoji } from '../../src/types/typeAliasEmoji';
 import { difference } from '../../src/utils/sets/difference';
 import { $shuffleItems } from './utils/$shuffleItems';
@@ -26,27 +25,12 @@ if (require.main === module) {
 }
 
 /**
- * Initializes environment and validates repository context for this script.
+ * Initializes environment for this script.
  *
  * @private utility for `findFreshEmojiTag`
  */
 function initializeFindFreshEmojiTagRun(): void {
     dotenv.config({ path: '.env' });
-
-    if (process.cwd() !== join(__dirname, '../..')) {
-        console.error(
-            colors.red(
-                spaceTrim(`
-                    CWD must be root of the project
-
-                    Script: find-fresh-emoji-tag.ts
-                    Current CWD: ${process.cwd()}
-                    Expected CWD: ${join(__dirname, '../..')}
-                `),
-            ),
-        );
-        process.exit(1);
-    }
 }
 
 /**
