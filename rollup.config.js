@@ -51,8 +51,8 @@ export default function () {
 
             // External dependencies to reduce bundle size and prevent issues
             const external = [
-                /*
-                TODO: !!! What allowing of the dependencies makes with bundle size?
+                /**/
+                // TODO: [🧠] What allowing of the dependencies makes with bundle size?
 
                 // Node.js built-ins
                 'fs',
@@ -108,7 +108,6 @@ export default function () {
                 'glob-promise',
                 'lorem-ipsum',
                 'markitdown-ts',
-
 
                 /**/
                 // React dependencies (for components package)

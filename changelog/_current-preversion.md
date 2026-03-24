@@ -1,3 +1,5 @@
+-   Fixed Rollup build hang for `@promptbook/pdf` (and other packages) by re-enabling the `external` dependency list in `rollup.config.js` — heavy dependencies like `markitdown-ts` were being inlined, causing Rollup to stall indefinitely
+
 -   Updated README and documentation to focus on the **Agents Server** as the primary product, emphasizing persistent AI agents working on goals rather than pipelines and CLI tooling
 -   Rewrote all Paul Smith Book examples to show **goal-oriented agents** with real capabilities: added `GOAL`, `USE EMAIL`, `USE BROWSER`, `USE SEARCH ENGINE` commitments; added new `Goal` and `Use` commitment showcase sections
 -   Updated LLM model pricing and added new models across all providers (synced to 2026-03-22):
