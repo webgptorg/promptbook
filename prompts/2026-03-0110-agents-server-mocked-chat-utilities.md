@@ -1,11 +1,11 @@
 [ ]
 
-[🧪💬] Mocked Chats utility for Administration -> Utilities
+[🧪💬] Mocked Chats utility for "System" -> Utilities
 
-Overview: Add an "Utilities" section under the Administration menu (visible to all logged-in users) and implement the first utility: "Mocked Chats" — a small UI for creating, editing and opening saved mocked-chat presets in a new window for recording/showcase purposes.
+Overview: Add an "Utilities" section under the "System" menu (visible to all logged-in users) and implement the first utility: "Mocked Chats" — a small UI for creating, editing and opening saved mocked-chat presets in a new window for recording/showcase purposes.
 
 -   Purpose: let any logged-in user create a deterministic, pre-sequenced chat (participants, messages, timings, colors, background) that can be opened in a new window using the existing Mocked Chat component for screen/video recording and demos. The live typing box in the opened mocked chat should append messages locally (for demo interaction) but must NOT overwrite the saved mocked preset.
--   Availability: add a new Administration -> Utilities menu item (non-admins included). Utilities will be a simple index page listing available utilities (start with Mocked Chats). The Mocked Chats editor and the open chat viewer are reachable from there.
+-   Availability: add a new System -> Utilities menu item (non-admins included). Utilities will be a simple index page listing available utilities (start with Mocked Chats). The Mocked Chats editor and the open chat viewer are reachable from there.
 -   persist mocked chats per user using the existing arbitrary user-data saving system
 -   Two parts:
     -   Creation & editing UI (inside Agents Server)
@@ -26,7 +26,7 @@ Overview: Add an "Utilities" section under the Administration menu (visible to a
     -   Utilities must be visible to all logged-in users. Mocked chats are saved per-user and are only accessible by that user unless a later sharing feature is added.
     -   Input should be sanitized and validated before saving.
 -   Acceptance criteria
-    -   A new "Utilities" item appears under Administration for all logged-in users.
+    -   A new "Utilities" item appears under System for all logged-in users.
     -   Users can create, edit, save, duplicate, delete mocked chats; data is saved in the user-data system.
     -   Users can open any mocked chat in a new window where the Mocked Chat component plays the scripted messages according to timings and shows customized participants/colors/background.
     -   The opened mocked-chat window shows the Promptbook header bar but not the full My Chats tray; it shows a minimal My Chats which lists only mocked chats (created by user).
@@ -35,4 +35,5 @@ Overview: Add an "Utilities" section under the Administration menu (visible to a
     -   Share mocked chats between users or export/import JSON presets
     -   Add timeline scrubbing, precise timestamp editing, or VTT export for video captions
     -   Add CLI or scheduled playback for automated recordings
+-   Use existing `MockedChat` component for rendering the chat in the new window, passing the mocked chat data as props.
 -   You are working with the [Agents Server](apps/agents-server)
