@@ -1,4 +1,9 @@
-import { $isRunningInBrowser, $isRunningInNode, $isRunningInWebWorker } from '@promptbook-local/utils';
+import {
+    $detectRuntimeEnvironment,
+    $isRunningInBrowser,
+    $isRunningInNode,
+    $isRunningInWebWorker,
+} from '@promptbook-local/utils';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { $provideSupabaseForBrowser } from './$provideSupabaseForBrowser';
 import { $provideSupabaseForServer } from './$provideSupabaseForServer';
@@ -20,6 +25,7 @@ export function $provideSupabase(): SupabaseClient<AgentsServerDatabase> {
     } else if ($isRunningInWebWorker()) {
         return $provideSupabaseForWorker();
     } else {
+        console.info($detectRuntimeEnvironment());
         throw new Error('Unknown environment, cannot determine how to get Supabase client');
     }
 }
