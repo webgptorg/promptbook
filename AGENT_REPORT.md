@@ -69,3 +69,17 @@
 - `npm run test-app-agents-server` also failed during verification of the new-agent wizard work after successful app lint/build:
   - The app built and started, but a later prerender/runtime path logged `Dynamic server usage: Route /admin/task-manager couldn't be rendered statically because it used \`cookies\``.
   - The failure surfaced after the wizard changes were already typechecked and built successfully, and the stack points at `/admin/task-manager`, not the new-agent dialog, metadata, or creation actions touched in this task.
+
+## 2026-03-25
+
+- `npm run test-app-agents-server` failed again after successful lint/build with a prerender/runtime error unrelated to this chat-design styling task:
+  - Next.js reported `Dynamic server usage: Route /embed couldn't be rendered statically because it used \`headers\``.
+  - Failure happened in the app test pipeline bootstrap after `next build` and points to existing static-generation/runtime constraints outside the updated chat CSS/markdown styling files.
+
+- `npm run test-unit` currently fails due an unrelated test-suite pickup outside the Promptbook source tree:
+  - Jest includes `.tmp/pixel-agents-repo/webview-ui/test/dev-assets.test.ts`, which depends on `vite` types and ESM `import.meta` module settings not available in this repository test config.
+  - Result in this run: `1 failed, 318 passed` with all failures coming from that `.tmp` suite.
+
+- `npm run test-app-agents-server` also fails in `test-e2e` in this run after successful lint/build:
+  - Playwright timeout: `tests/e2e/api-authorization.spec.ts` exceeded 60s waiting on `page.goto('/')`.
+  - The failing assertion is in `returns unauthorized metadata API response for anonymous users`, while many other e2e tests in the same run passed.

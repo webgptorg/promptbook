@@ -2,46 +2,51 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.8em;
-    padding: 4px 10px;
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 5px 11px;
+    background: rgba(255, 255, 255, 0.24);
+    background: color-mix(in srgb, var(--message-bg-color, #ffffff) 74%, rgba(255, 255, 255, 0.8) 26%);
+    border: 1px solid rgba(125, 125, 125, 0.3);
+    border-color: color-mix(in srgb, var(--message-text-color, #0f172a) 16%, transparent);
+    border-radius: 999px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
     color: inherit;
     transition: all 0.2s ease;
     cursor: pointer;
+    backdrop-filter: blur(8px);
 }
 
 .sourceChip:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.34);
+    background: color-mix(in srgb, var(--message-bg-color, #ffffff) 64%, rgba(255, 255, 255, 0.9) 36%);
     transform: translateY(-1px);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.14);
 }
 
 .icon {
     font-size: 1.1em;
     flex-shrink: 0;
-    font-family: 'OpenMojiColor', 'OpenMojiBlack', Arial, Helvetica, sans-serif;
+    font-family: 'OpenMojiColor', 'OpenMojiBlack';
 }
 
 .label {
-    font-weight: 500;
+    font-weight: 600;
     white-space: nowrap;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
 }
 
 .citationId {
     font-size: 0.85em;
-    opacity: 0.7;
-    font-weight: 400;
+    opacity: 0.78;
+    font-weight: 500;
 }
 
 .suffix {
     font-size: 0.85em;
-    opacity: 0.75;
+    opacity: 0.82;
     font-weight: 500;
     white-space: nowrap;
 }

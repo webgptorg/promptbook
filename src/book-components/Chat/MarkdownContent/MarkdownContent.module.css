@@ -1,32 +1,57 @@
+.MarkdownContent {
+    --md-text-color: var(--chat-md-text-color, inherit);
+    --md-muted-color: var(--chat-md-muted-color, currentColor);
+    --md-link-color: var(--chat-md-link-color, #2563eb);
+    --md-heading-color: var(--chat-heading-text-color, var(--md-text-color));
+    --md-heading-font-family: var(
+        --chat-md-heading-font-family,
+        var(--font-poppins, 'Poppins', system-ui, -apple-system, sans-serif)
+    );
+    --md-body-font-family: var(
+        --chat-md-body-font-family,
+        var(--font-poppins, 'Poppins', system-ui, -apple-system, sans-serif)
+    );
+    --md-code-font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+    --md-inline-code-bg: var(--chat-md-inline-code-bg, rgba(15, 23, 42, 0.08));
+    --md-inline-code-border: var(--chat-md-inline-code-border, rgba(15, 23, 42, 0.12));
+    --md-inline-code-color: var(--chat-md-inline-code-color, var(--md-text-color));
+    --md-blockquote-bg: var(--chat-md-blockquote-bg, rgba(248, 250, 252, 0.92));
+    --md-blockquote-border: var(--chat-md-blockquote-border, rgba(59, 130, 246, 0.35));
+    --md-table-bg: var(--chat-md-table-bg, rgba(248, 250, 252, 0.92));
+    --md-table-row-alt-bg: var(--chat-md-table-row-alt-bg, rgba(241, 245, 249, 0.9));
+    --md-table-head-bg: var(--chat-md-table-head-bg, rgba(226, 232, 240, 0.95));
+    --md-table-border: var(--chat-md-table-border, rgba(148, 163, 184, 0.36));
+    --md-citation-bg: var(--chat-md-citation-bg, rgba(59, 130, 246, 0.14));
+    --md-citation-color: var(--chat-md-citation-color, #1d4ed8);
+
+    color: var(--md-text-color);
+    font-family: var(--md-body-font-family);
+    font-size: inherit;
+    line-height: 1.65;
+    letter-spacing: 0.002em;
+}
+
+.MarkdownContent > :first-child {
+    margin-top: 0 !important;
+}
+
+.MarkdownContent > :last-child {
+    margin-bottom: 0 !important;
+}
+
 .MarkdownContent :is(h1, h2, h3, h4, h5, h6) {
     position: relative;
-    z-index: 1;
-    margin-bottom: 0.4em;
-    margin-top: 1.6rem;
-    color: var(--chat-heading-text-color, var(--message-text-color, #0f172a));
-    font-family: var(--font-poppins, 'Poppins', system-ui, -apple-system, sans-serif);
+    margin: 1.4em 0 0.55em;
+    color: var(--md-heading-color);
+    font-family: var(--md-heading-font-family);
     font-weight: 600;
-    line-height: 1.35;
-    letter-spacing: -0.01em;
-}
-
-.MarkdownContent a {
-    color: var(--chat-heading-accent, #38bdf8);
-    text-decoration: underline;
-    text-decoration-thickness: 1.3px;
-    text-underline-offset: 2px;
-    text-decoration-color: currentColor;
-    text-decoration-style: solid;
-    transition: color 0.2s ease, text-decoration-color 0.2s ease, opacity 0.2s ease;
-}
-
-.MarkdownContent a:hover,
-.MarkdownContent a:focus-visible {
-    opacity: 0.85;
+    line-height: 1.24;
+    letter-spacing: 0.01em;
+    text-wrap: balance;
 }
 
 .MarkdownContent h1 {
-    font-size: 1.5rem;
+    font-size: 1.52rem;
 }
 
 .MarkdownContent h2 {
@@ -34,81 +59,134 @@
 }
 
 .MarkdownContent h3 {
-    font-size: 1.3rem;
+    font-size: 1.26rem;
 }
 
 .MarkdownContent h4 {
-    font-size: 1.2rem;
+    font-size: 1.14rem;
 }
 
 .MarkdownContent h5 {
-    font-size: 1.1rem;
+    font-size: 1.04rem;
 }
 
 .MarkdownContent h6 {
-    font-size: 1rem;
+    font-size: 0.98rem;
 }
 
 .MarkdownContent p {
-    text-wrap: auto;
+    margin: 0 0 0.9em;
+    text-wrap: pretty;
+}
+
+.MarkdownContent p:empty {
+    display: none;
+}
+
+.MarkdownContent :is(ul, ol) {
+    margin: 0.65em 0 1em;
+    padding-inline-start: 1.35rem;
+    display: grid;
+    gap: 0.35em;
 }
 
 .MarkdownContent ul {
     list-style: disc;
-    margin-left: 20px;
 }
 
 .MarkdownContent ol {
     list-style: decimal;
-    margin-left: 20px;
 }
 
-.MarkdownContent img,
+.MarkdownContent li {
+    line-height: 1.58;
+}
+
+.MarkdownContent li > :is(ul, ol) {
+    margin-top: 0.45em;
+    margin-bottom: 0;
+}
+
+.MarkdownContent a {
+    color: var(--md-link-color);
+    text-decoration-line: underline;
+    text-decoration-thickness: 1.4px;
+    text-underline-offset: 0.16em;
+    text-decoration-color: currentColor;
+    transition: opacity 0.2s ease, text-decoration-thickness 0.2s ease;
+}
+
+.MarkdownContent a:hover,
+.MarkdownContent a:focus-visible {
+    opacity: 0.92;
+    text-decoration-thickness: 2px;
+}
+
+.MarkdownContent img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: 14px;
+    margin: 0.95em 0;
+}
+
 .MarkdownContent pre,
 .MarkdownContent blockquote,
-.MarkdownContent table {
-    margin-top: 10px;
-    margin-bottom: 10px;
-    border-radius: 8px;
+.MarkdownContent table,
+.MarkdownContent hr {
+    margin: 0.95em 0;
 }
 
 .MarkdownContent pre {
     display: block;
     border: none;
+    border-radius: 12px;
     box-shadow: none;
-    background: #000000ff;
-    font-size: inherit;
-    line-height: inherit;
-    color: #fff;
-    padding: 1em;
+    background: transparent;
+    padding: 0;
+    overflow: visible;
 }
 
 .MarkdownContent blockquote {
     display: block;
     border: none;
+    border-left: 3px solid var(--md-blockquote-border);
+    border-radius: 12px;
     box-shadow: none;
-    background: #ffffffcc;
-    font-size: inherit;
-    line-height: inherit;
-    color: #000;
-    padding: 1em;
+    background: var(--md-blockquote-bg);
+    color: var(--md-muted-color);
+    padding: 0.72em 0.96em;
+}
+
+.MarkdownContent blockquote > :last-child {
+    margin-bottom: 0;
 }
 
 .MarkdownContent code {
-    display: inline-block;
     margin: 0;
-    padding: 0;
-    border: none;
-    box-shadow: none;
-    background: #cccccc55;
-    font-size: inherit;
-    line-height: inherit;
-    color: inherit;
+    padding: 0.14em 0.42em;
+    border: 1px solid var(--md-inline-code-border);
+    border-radius: 8px;
+    background: var(--md-inline-code-bg);
+    font-family: var(--md-code-font-family);
+    font-size: 0.88em;
+    line-height: 1.45;
+    color: var(--md-inline-code-color);
+    word-break: break-word;
 }
 
 .MarkdownContent pre code {
-    background-color: #000000cc;
-    border-radius: 8px;
+    background: none !important;
+    color: inherit !important;
+    font-family: inherit !important;
+    font-size: inherit !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    white-space: pre;
+    word-break: normal;
+    overflow-x: auto;
+    display: block;
 }
 
 .MarkdownContent .chat-code-block {
@@ -117,10 +195,12 @@
     font-size: 14px;
     line-height: 1.6;
     overflow-x: auto;
-    border-color: #23272f;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-    font-family: 'Fira Mono', 'Menlo', 'Consolas', 'Liberation Mono', monospace;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(2, 6, 23, 0.28);
+    font-family: var(--md-code-font-family);
 }
+
 .MarkdownContent .chat-code-block code {
     background: none !important;
     color: inherit !important;
@@ -130,81 +210,89 @@
     border: none !important;
     box-shadow: none !important;
     white-space: pre;
-    word-break: break-word;
+    word-break: normal;
     overflow-x: auto;
     display: block;
 }
+
 .MarkdownContent table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    margin: 16px 0;
-    background: #f8fafc; /* Stronger light background for contrast */
+    border: 1px solid var(--md-table-border);
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    font-size: 14px;
-    color: #17223b; /* Dark text for contrast */
+    background: var(--md-table-bg);
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1);
+    font-size: 0.93em;
+    color: inherit;
 }
+
 .MarkdownContent th,
 .MarkdownContent td {
-    padding: 10px 16px;
-    border-bottom: 1px solid #d1dbe8;
+    padding: 0.58em 0.72em;
+    border-bottom: 1px solid var(--md-table-border);
     text-align: left;
-    color: #17223b; /* Ensure strong text color for all cells */
+    vertical-align: top;
+    color: inherit;
     background: none;
 }
+
 .MarkdownContent th {
-    background: linear-gradient(90deg, #eaf3fa 80%, #d1e3f8 100%);
-    font-weight: 700;
-    color: #17223b; /* Strong header text */
-    border-bottom: 2px solid #b5c7de;
+    background: var(--md-table-head-bg);
+    font-weight: 600;
 }
+
 .MarkdownContent tr:last-child td {
     border-bottom: none;
 }
+
 .MarkdownContent tr:nth-child(even) td {
-    background: #eaf3fa;
+    background: var(--md-table-row-alt-bg);
 }
-.MarkdownContent tr:hover td {
-    background: #cbe0f7;
-    transition: background 0.2s;
+
+.MarkdownContent hr {
+    border: none;
+    border-top: 1px solid var(--md-table-border);
+    opacity: 0.8;
 }
-.MarkdownContent table {
-    border-radius: 12px;
-    overflow: hidden;
+
+.MarkdownContent strong {
+    font-weight: 650;
 }
-.MarkdownContent th:first-child,
-.MarkdownContent td:first-child {
-    border-top-left-radius: 12px;
-}
-.MarkdownContent th:last-child,
-.MarkdownContent td:last-child {
-    border-top-right-radius: 12px;
+
+.MarkdownContent em {
+    font-style: italic;
 }
 
 .citation {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.4em;
+    margin: 0 0.1em;
+    padding: 0 0.35em;
+    border-radius: 999px;
+    font-size: 0.74em;
+    font-weight: 700;
+    line-height: 1.45;
     vertical-align: super;
-    font-size: 0.7em;
-    font-weight: bold;
-    color: #007bff;
-    background: #e7f1ff;
-    padding: 0 4px;
-    border-radius: 4px;
-    margin: 0 2px;
-    cursor: default;
-    user-select: none;
+    color: var(--md-citation-color);
+    background: var(--md-citation-bg);
 }
 
 .citationRef {
-    font-size: 0.75em;
-    font-weight: 600;
-    color: #007bff;
-    margin: 0 1px;
-    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.4em;
+    margin: 0 0.1em;
+    padding: 0 0.35em;
+    border-radius: 999px;
+    font-size: 0.74em;
+    font-weight: 700;
+    line-height: 1.45;
+    vertical-align: super;
+    color: var(--md-citation-color);
+    background: var(--md-citation-bg);
 }
-
-/**
- * TODO: [🌉] DRY Markdown primitives styling
- */

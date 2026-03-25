@@ -1,3 +1,10 @@
+-   Enhanced the shared `Chat` component design used in Agents Server to deliver a more premium, polished conversation UI without changing chat behavior:
+
+    -   Refined visual hierarchy and spacing across message rows, avatars, bubbles, metadata, tool/source chips, quick buttons, and inline copy/play controls.
+    -   Refreshed chat composer and top action buttons with a cleaner, more cohesive surface treatment and typography.
+    -   Improved in-bubble markdown typography/styling for headings, lists, links, blockquotes, inline code, tables, and citation refs using message-aware CSS variables.
+    -   Removed duplicated markdown primitive rules from `Chat.module.css` and centralized markdown primitives in `MarkdownContent.module.css` to keep chat styling DRY.
+
 -   Added a new Agents Server **System -> Utilities** area with first utility **Mocked Chats**:
 
     -   Added a new Utilities section in the System menu for all authenticated users (non-admin included), plus a `/system/utilities` index page.
