@@ -1194,7 +1194,9 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                 if (
                     indexContent.includes(`from '${dependencyName}'`) ||
                     indexContent.includes(`require('${dependencyName}')`) ||
-                    indexContent.includes(`require("${dependencyName}")`)
+                    indexContent.includes(`require("${dependencyName}")`) ||
+                    indexContent.includes(`import('${dependencyName}')`) ||
+                    indexContent.includes(`import("${dependencyName}")`)
                 ) {
                     packageJson.dependencies = packageJson.dependencies || {};
 

@@ -103,6 +103,8 @@ export default function () {
                 'socket.io-client',
                 'swagger-ui-express',
                 'express-openapi-validator',
+                'leaflet',
+                'leaflet/dist/leaflet.css',
                 'prompts',
                 'commander',
                 'glob-promise',

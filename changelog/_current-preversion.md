@@ -1,3 +1,5 @@
+-   Fixed `@promptbook/components` build failure in consuming projects caused by unresolved `leaflet` imports — removed static CSS import, load Leaflet CSS dynamically via CDN `<link>`, added `leaflet` to Rollup externals, and updated package generation script to detect dynamic `import()` references so `leaflet` is correctly listed as a dependency
+
 -   Fixed Rollup build hang for `@promptbook/pdf` (and other packages) by re-enabling the `external` dependency list in `rollup.config.js` — heavy dependencies like `markitdown-ts` were being inlined, causing Rollup to stall indefinitely
 
 -   Updated README and documentation to focus on the **Agents Server** as the primary product, emphasizing persistent AI agents working on goals rather than pipelines and CLI tooling

@@ -1,12 +1,39 @@
 'use client';
 
-import 'leaflet/dist/leaflet.css';
-
 import type { Feature, GeoJsonObject, GeoJsonProperties, Geometry } from 'geojson';
 import type { LatLng, Layer, Map as LeafletMap, Path, PathOptions } from 'leaflet';
 import { Maximize2, X } from 'lucide-react';
 import { useEffect, useRef, useState, type MouseEvent, type RefObject } from 'react';
 import styles from './ChatMessageMap.module.css';
+
+/**
+ * ID of the injected `<link>` element for Leaflet's CSS.
+ *
+ * @private internal helper of `<ChatMessageMap/>`
+ */
+const LEAFLET_CSS_LINK_ID = 'chat-message-map-leaflet-css';
+
+/**
+ * Ensures the Leaflet stylesheet is loaded exactly once by injecting a `<link>` element into the `<head>`.
+ *
+ * @private internal helper of `<ChatMessageMap/>`
+ */
+function ensureLeafletCssLoaded(): void {
+    if (typeof document === 'undefined') {
+        return;
+    }
+
+    if (document.getElementById(LEAFLET_CSS_LINK_ID)) {
+        return;
+    }
+
+    const link = document.createElement('link');
+    link.id = LEAFLET_CSS_LINK_ID;
+    link.rel = 'stylesheet';
+    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    link.crossOrigin = '';
+    document.head.appendChild(link);
+}
 
 /**
  * Runtime Leaflet namespace loaded lazily on the client.
@@ -289,7 +316,9 @@ function useLeafletGeoJsonMap(containerRef: RefObject<HTMLDivElement | null>, da
         let disposeMap: (() => void) | undefined;
 
         void (async () => {
-            const leafletModule = await import('leaflet');
+            ensureLeafletCssLoaded();
+
+            const leafletModule = await import(/* webpackChunkName: "leaflet" */ 'leaflet');
             const leaflet = ('default' in leafletModule ? leafletModule.default : leafletModule) as LeafletNamespace;
 
             if (isDisposed) {
