@@ -31,7 +31,7 @@
 
 ---
 
-[ ]
+[x] ~$0.00 an hour by OpenAI Codex `gpt-5.3-codex`
 
 [⏳🧭] Allow agents to see and manage timeouts across all their chats
 
@@ -72,3 +72,4 @@ Sure, I see that I have 3 active timeouts across different chats. I have cancell
 -   If you need to do the database migration, do it
 
 ![alt text](prompts/screenshots/2026-03-1390-agents-server-global-timeouts-1.png)
+

@@ -5,6 +5,13 @@
     -   Added a new pixel-office renderer that reuses the existing office layout model for DRY room/desk/agent mapping while drawing animated top-down pixel sprites.
     -   Integrated Pixel Agents assets via a small server-side asset proxy route backed by the `pixel-agents` package so character sprite sheets are reused directly.
 
+-   Enhanced Agents Server timeout management so agents can inspect and control timers across all their chats with stronger bulk and individual controls:
+
+    -   Extended `USE TIMEOUT` with richer management semantics: `cancel_timeout` now supports `allActive: true`, new `update_timeout` allows pause/resume and next-run/recurrence/payload edits, and `list_timeouts` now returns assistant-visible per-timeout rows (including ids) so agents can act directly on concrete timers.
+    -   Added shared agent-scoped bulk timeout utilities (cancel all active, pause all active queued, resume all paused queued) and reused them from both the runtime tool adapter and HTTP APIs to keep timeout-management logic DRY.
+    -   Added `POST /agents/[agentName]/api/timeouts/actions` for timeout manager bulk actions and upgraded `/agents/[agentName]/timeouts` UI with one-click `Cancel active`, `Pause active`, and `Resume paused` controls across chats.
+    -   Extended timeout list-query options with explicit paused filtering and updated timeout-related tool/chip metadata/tests to cover the new management flows.
+
 -   Fixed `@promptbook/components` build failure in consuming projects caused by unresolved `leaflet` imports — removed static CSS import, load Leaflet CSS dynamically via CDN `<link>`, added `leaflet` to Rollup externals, and updated package generation script to detect dynamic `import()` references so `leaflet` is correctly listed as a dependency
 
 -   Fixed Rollup build hang for `@promptbook/pdf` (and other packages) by re-enabling the `external` dependency list in `rollup.config.js` — heavy dependencies like `markitdown-ts` were being inlined, causing Rollup to stall indefinitely

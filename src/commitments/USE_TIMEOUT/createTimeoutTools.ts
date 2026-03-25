@@ -35,7 +35,7 @@ export function createTimeoutTools(existingTools: ReadonlyArray<LlmToolDefinitio
         tools.push({
             name: TimeoutToolNames.cancel,
             description:
-                'Cancel one previously scheduled timeout within the same user+agent scope, even if it was set in another chat.',
+                'Cancel one timeout by id or cancel all active timeouts across chats for the same user+agent scope.',
             parameters: {
                 type: 'object',
                 properties: {
@@ -43,8 +43,11 @@ export function createTimeoutTools(existingTools: ReadonlyArray<LlmToolDefinitio
                         type: 'string',
                         description: 'Identifier returned earlier by `set_timeout` or `list_timeouts`.',
                     },
+                    allActive: {
+                        type: 'boolean',
+                        description: 'When true, cancel all currently active timeouts across chats in this user+agent scope.',
+                    },
                 },
-                required: ['timeoutId'],
             },
         });
     }
@@ -53,7 +56,7 @@ export function createTimeoutTools(existingTools: ReadonlyArray<LlmToolDefinitio
         tools.push({
             name: TimeoutToolNames.list,
             description:
-                'List scheduled timeouts across all chats for this same user+agent scope so they can be reviewed or cancelled.',
+                'List timeout details across all chats for this same user+agent scope so they can be reviewed and managed.',
             parameters: {
                 type: 'object',
                 properties: {
@@ -65,6 +68,53 @@ export function createTimeoutTools(existingTools: ReadonlyArray<LlmToolDefinitio
                     limit: {
                         type: 'number',
                         description: 'Maximum number of rows to return (default 20, max 100).',
+                    },
+                },
+            },
+        });
+    }
+
+    if (!tools.some((tool) => tool.name === TimeoutToolNames.update)) {
+        tools.push({
+            name: TimeoutToolNames.update,
+            description:
+                'Update one timeout (pause/resume, next run, recurrence, payload) or pause/resume all active queued timeouts across chats.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    timeoutId: {
+                        type: 'string',
+                        description: 'Identifier returned earlier by `set_timeout` or `list_timeouts` for one timeout update.',
+                    },
+                    allActive: {
+                        type: 'boolean',
+                        description:
+                            'When true, run one bulk pause/resume across all active queued timeouts in this same user+agent scope.',
+                    },
+                    paused: {
+                        type: 'boolean',
+                        description:
+                            'Pause (`true`) or resume (`false`) one timeout; with `allActive: true` this pauses/resumes all active queued timeouts.',
+                    },
+                    dueAt: {
+                        type: 'string',
+                        description: 'Set the next run timestamp (ISO string). Cannot be used with `extendByMs`.',
+                    },
+                    extendByMs: {
+                        type: 'number',
+                        description: 'Move next run by this many milliseconds. Cannot be used with `dueAt`.',
+                    },
+                    recurrenceIntervalMs: {
+                        type: 'number',
+                        description: 'Set recurrence interval in milliseconds; pass `null` to disable recurrence.',
+                    },
+                    message: {
+                        type: 'string',
+                        description: 'Set wake-up message text for this timeout; pass empty string to clear.',
+                    },
+                    parameters: {
+                        type: 'object',
+                        description: 'Replace stored JSON parameters passed back when timeout fires.',
                     },
                 },
             },

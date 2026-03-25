@@ -14,6 +14,7 @@ export type {
     CancelTimeoutToolResult,
     ListTimeoutsToolResult,
     SetTimeoutToolResult,
+    UpdateTimeoutToolResult,
     TimeoutToolListItem,
     TimeoutToolRuntimeAdapter,
     TimeoutToolRuntimeContext,
@@ -39,7 +40,7 @@ export class UseTimeoutCommitmentDefinition extends BaseCommitmentDefinition<'US
      * Short one-line description of `USE TIMEOUT`.
      */
     get description(): string {
-        return 'Enable timeout wake-ups plus scoped timeout listing/cancellation across chats.';
+        return 'Enable timeout wake-ups plus scoped timeout listing, updates, and cancellation across chats.';
     }
 
     /**
@@ -63,8 +64,9 @@ export class UseTimeoutCommitmentDefinition extends BaseCommitmentDefinition<'US
             - The agent uses \`set_timeout\` to schedule a future wake-up in the same chat thread.
             - The tool returns immediately while the timeout is stored and executed by the runtime later.
             - The wake-up arrives as a new user-like timeout message in the same conversation.
-            - The agent can inspect known timeouts via \`list_timeouts\`.
-            - The agent can cancel an existing timeout by \`timeoutId\` via \`cancel_timeout\`, including timeouts created in another chat.
+            - The agent can inspect known timeout details via \`list_timeouts\`.
+            - The agent can cancel one timeout by \`timeoutId\` or cancel all active timeouts via \`cancel_timeout\`.
+            - The agent can pause/resume and edit timeout details via \`update_timeout\`.
             - Commitment content is treated as optional timeout policy instructions.
 
             ## Examples
@@ -100,6 +102,7 @@ export class UseTimeoutCommitmentDefinition extends BaseCommitmentDefinition<'US
             [TimeoutToolNames.set]: 'Set timer',
             [TimeoutToolNames.cancel]: 'Cancel timer',
             [TimeoutToolNames.list]: 'List timers',
+            [TimeoutToolNames.update]: 'Update timer',
         };
     }
 

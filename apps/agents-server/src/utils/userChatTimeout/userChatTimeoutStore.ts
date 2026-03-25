@@ -377,7 +377,9 @@ export async function listAgentUserChatTimeouts(
         query = query.in('status', options.statuses);
     }
 
-    if (options.includePaused === false) {
+    if (typeof options.paused === 'boolean') {
+        query = options.paused ? query.not('pausedAt', 'is', null) : query.is('pausedAt', null);
+    } else if (options.includePaused === false) {
         query = query.is('pausedAt', null);
     }
 

@@ -18,6 +18,24 @@ export type SetTimeoutToolArgs = {
  */
 export type CancelTimeoutToolArgs = {
     timeoutId?: string;
+    allActive?: boolean;
+    [key: string]: TODO_any;
+};
+
+/**
+ * Tool arguments for updating one timeout or pausing/resuming all active queued timeouts.
+ *
+ * @private type of UseTimeoutCommitmentDefinition
+ */
+export type UpdateTimeoutToolArgs = {
+    timeoutId?: string;
+    allActive?: boolean;
+    dueAt?: string;
+    extendByMs?: number;
+    recurrenceIntervalMs?: number | null;
+    message?: string | null;
+    parameters?: Record<string, unknown>;
+    paused?: boolean;
     [key: string]: TODO_any;
 };
 
@@ -88,9 +106,31 @@ export type SetTimeoutToolResult = {
  */
 export type CancelTimeoutToolResult = {
     action: 'cancel';
-    status: 'cancelled' | 'not_found' | 'disabled' | 'error';
+    status: 'cancelled' | 'cancelled_all' | 'not_found' | 'disabled' | 'error';
     timeoutId?: string;
     dueAt?: string;
+    cancelledCount?: number;
+    cancelledTimeoutIds?: Array<string>;
+    hasMore?: boolean;
+    message?: string;
+};
+
+/**
+ * Result payload returned by `update_timeout`.
+ *
+ * @private type of UseTimeoutCommitmentDefinition
+ */
+export type UpdateTimeoutToolResult = {
+    action: 'update';
+    status: 'updated' | 'updated_all' | 'not_found' | 'conflict' | 'disabled' | 'error';
+    timeoutId?: string;
+    dueAt?: string;
+    paused?: boolean;
+    recurrenceIntervalMs?: number | null;
+    updatedCount?: number;
+    matchedCount?: number;
+    updatedTimeoutIds?: Array<string>;
+    hasMore?: boolean;
     message?: string;
 };
 
@@ -115,14 +155,19 @@ export type ListTimeoutsToolResult = {
 export type TimeoutToolAction =
     | SetTimeoutToolResult['action']
     | CancelTimeoutToolResult['action']
-    | ListTimeoutsToolResult['action'];
+    | ListTimeoutsToolResult['action']
+    | UpdateTimeoutToolResult['action'];
 
 /**
  * Union of all `USE TIMEOUT` tool results.
  *
  * @private type of UseTimeoutCommitmentDefinition
  */
-export type TimeoutToolResult = SetTimeoutToolResult | CancelTimeoutToolResult | ListTimeoutsToolResult;
+export type TimeoutToolResult =
+    | SetTimeoutToolResult
+    | CancelTimeoutToolResult
+    | ListTimeoutsToolResult
+    | UpdateTimeoutToolResult;
 
 /**
  * Runtime adapter used by `USE TIMEOUT` tools.
@@ -141,14 +186,21 @@ export type TimeoutToolRuntimeAdapter = {
         dueAt: string;
     }>;
     cancelTimeout(
-        args: {
-            timeoutId: string;
-        },
+        args:
+            | {
+                  timeoutId: string;
+              }
+            | {
+                  allActive: true;
+              },
         runtimeContext: TimeoutToolRuntimeContext,
     ): Promise<{
-        timeoutId: string;
+        status: 'cancelled' | 'cancelled_all' | 'not_found';
+        timeoutId?: string;
         dueAt?: string;
-        status: 'cancelled' | 'not_found';
+        cancelledCount?: number;
+        cancelledTimeoutIds?: Array<string>;
+        hasMore?: boolean;
     }>;
     listTimeouts(
         args: {
@@ -160,4 +212,44 @@ export type TimeoutToolRuntimeAdapter = {
         items: Array<TimeoutToolListItem>;
         total: number;
     }>;
+    updateTimeout(
+        args:
+            | {
+                  timeoutId: string;
+                  patch: {
+                      dueAt?: string;
+                      extendByMs?: number;
+                      recurrenceIntervalMs?: number | null;
+                      message?: string | null;
+                      parameters?: Record<string, unknown>;
+                      paused?: boolean;
+                  };
+              }
+            | {
+                  allActive: true;
+                  paused: boolean;
+              },
+        runtimeContext: TimeoutToolRuntimeContext,
+    ): Promise<
+        | {
+              status: 'updated';
+              timeout: TimeoutToolListItem;
+          }
+        | {
+              status: 'not_found';
+              timeoutId: string;
+          }
+        | {
+              status: 'conflict';
+              timeoutId: string;
+              reason: 'finished' | 'running';
+          }
+        | {
+              status: 'updated_all';
+              updatedCount: number;
+              matchedCount: number;
+              updatedTimeoutIds: Array<string>;
+              hasMore?: boolean;
+          }
+    >;
 };

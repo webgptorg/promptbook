@@ -1,5 +1,10 @@
 export { createTimeoutWakeUpMessage } from './userChatTimeout/createTimeoutWakeUpMessage';
 export {
+    cancelAllActiveAgentScopedUserChatTimeouts,
+    pauseAllActiveAgentScopedUserChatTimeouts,
+    resumeAllPausedAgentScopedUserChatTimeouts,
+} from './userChatTimeout/agentScopedTimeoutBulkActions';
+export {
     cancelUserChatTimeout,
     claimNextDueUserChatTimeout,
     countActiveUserChatTimeoutsForChat,
@@ -39,3 +44,4 @@ export type {
     UserChatTimeoutRow,
     UserChatTimeoutStatus,
 } from './userChatTimeout/UserChatTimeoutRecord';
+export type { AgentScopedTimeoutBulkMutationSummary } from './userChatTimeout/agentScopedTimeoutBulkActions';

@@ -197,6 +197,23 @@ export type AgentUserTimeoutUpdatePayload = {
 };
 
 /**
+ * Supported bulk timeout actions in the agent-wide timeout manager.
+ */
+export type AgentUserTimeoutBulkAction = 'cancel_all_active' | 'pause_all_active' | 'resume_all_paused';
+
+/**
+ * API payload returned after one bulk timeout action.
+ */
+export type AgentUserTimeoutBulkActionResponse = {
+    action: AgentUserTimeoutBulkAction;
+    matchedCount: number;
+    updatedCount: number;
+    timeoutIds: Array<string>;
+    hasMore: boolean;
+    generatedAt: string;
+};
+
+/**
  * API payload for list endpoint.
  */
 export type UserChatsSnapshot = {
@@ -595,6 +612,26 @@ export async function cancelAgentUserTimeout(agentName: string, timeoutId: strin
     }
 
     return (await response.json()) as UserChatTimeout;
+}
+
+/**
+ * Executes one bulk timeout action in the agent-wide timeout manager.
+ */
+export async function runAgentUserTimeoutBulkAction(
+    agentName: string,
+    action: AgentUserTimeoutBulkAction,
+): Promise<AgentUserTimeoutBulkActionResponse> {
+    const response = await fetch(`/agents/${encodeURIComponent(agentName)}/api/timeouts/actions`, {
+        method: 'POST',
+        headers: createUserChatRequestHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ action }),
+    });
+
+    if (!response.ok) {
+        throw await resolveUserChatApiError(response, 'Failed to execute timeout bulk action.');
+    }
+
+    return (await response.json()) as AgentUserTimeoutBulkActionResponse;
 }
 
 /**

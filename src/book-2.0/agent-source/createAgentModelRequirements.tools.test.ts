@@ -170,6 +170,7 @@ describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
                 expect.objectContaining({ name: 'set_timeout' }),
                 expect.objectContaining({ name: 'cancel_timeout' }),
                 expect.objectContaining({ name: 'list_timeouts' }),
+                expect.objectContaining({ name: 'update_timeout' }),
             ]),
         );
         expect(requirements._metadata?.useTimeout).toBe(true);

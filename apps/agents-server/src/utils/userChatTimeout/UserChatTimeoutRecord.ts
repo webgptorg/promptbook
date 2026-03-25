@@ -147,6 +147,7 @@ export type ListAgentUserChatTimeoutsOptions = {
     agentPermanentId: string;
     statuses?: ReadonlyArray<UserChatTimeoutStatus>;
     includePaused?: boolean;
+    paused?: boolean;
     limit?: number;
     offset?: number;
 };

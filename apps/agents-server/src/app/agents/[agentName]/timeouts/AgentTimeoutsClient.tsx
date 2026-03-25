@@ -5,9 +5,11 @@ import { Dialog } from '@/src/components/Portal/Dialog';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+    runAgentUserTimeoutBulkAction,
     cancelAgentUserTimeout,
     fetchAgentUserTimeouts,
     updateAgentUserTimeout,
+    type AgentUserTimeoutBulkAction,
     type AgentUserTimeoutCounters,
     type AgentUserTimeoutUpdatePayload,
     type UserChatTimeout,
@@ -31,6 +33,53 @@ type AgentTimeoutsClientProps = {
 const AGENT_TIMEOUT_MANAGER_POLL_INTERVAL_MS = 10_000;
 
 /**
+ * UX copy/configuration for supported timeout-manager bulk actions.
+ */
+const TIMEOUT_MANAGER_BULK_ACTION_CONFIG: Record<
+    AgentUserTimeoutBulkAction,
+    {
+        idleLabel: string;
+        busyLabel: string;
+        confirmTitle: string;
+        confirmMessage: string;
+        confirmLabel: string;
+        errorTitle: string;
+        buttonClassName: string;
+    }
+> = {
+    cancel_all_active: {
+        idleLabel: 'Cancel active',
+        busyLabel: 'Cancelling...',
+        confirmTitle: 'Cancel all active timeouts',
+        confirmMessage: 'Cancel all active timeouts for this agent across your chats?',
+        confirmLabel: 'Cancel all',
+        errorTitle: 'Bulk cancellation failed',
+        buttonClassName:
+            'rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 disabled:cursor-not-allowed disabled:opacity-60',
+    },
+    pause_all_active: {
+        idleLabel: 'Pause active',
+        busyLabel: 'Pausing...',
+        confirmTitle: 'Pause all active timeouts',
+        confirmMessage: 'Pause all active queued timeouts for this agent across your chats?',
+        confirmLabel: 'Pause all',
+        errorTitle: 'Bulk pause failed',
+        buttonClassName:
+            'rounded-md border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 disabled:cursor-not-allowed disabled:opacity-60',
+    },
+    resume_all_paused: {
+        idleLabel: 'Resume paused',
+        busyLabel: 'Resuming...',
+        confirmTitle: 'Resume all paused timeouts',
+        confirmMessage: 'Resume all paused queued timeouts for this agent across your chats?',
+        confirmLabel: 'Resume all',
+        errorTitle: 'Bulk resume failed',
+        buttonClassName:
+            'rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 disabled:cursor-not-allowed disabled:opacity-60',
+    },
+};
+
+/**
  * Displays all timeouts for one user+agent across chats and supports timeout edits.
  */
 export function AgentTimeoutsClient({ agentName }: AgentTimeoutsClientProps) {
@@ -44,6 +93,7 @@ export function AgentTimeoutsClient({ agentName }: AgentTimeoutsClientProps) {
     const [editingTimeout, setEditingTimeout] = useState<UserChatTimeout | null>(null);
     const [busyTimeoutId, setBusyTimeoutId] = useState<string | null>(null);
     const [busyAction, setBusyAction] = useState<'save' | 'cancel' | 'pause' | 'resume' | 'extend' | null>(null);
+    const [busyBulkAction, setBusyBulkAction] = useState<AgentUserTimeoutBulkAction | null>(null);
     const [editDueAtLocalValue, setEditDueAtLocalValue] = useState('');
     const [editRecurrenceMinutesValue, setEditRecurrenceMinutesValue] = useState('');
     const [editMessageValue, setEditMessageValue] = useState('');
@@ -180,6 +230,39 @@ export function AgentTimeoutsClient({ agentName }: AgentTimeoutsClientProps) {
     );
 
     /**
+     * Executes one bulk timeout action and refreshes manager data.
+     */
+    const handleBulkAction = useCallback(
+        async (action: AgentUserTimeoutBulkAction) => {
+            const actionConfig = TIMEOUT_MANAGER_BULK_ACTION_CONFIG[action];
+            const confirmed = await showConfirm({
+                title: actionConfig.confirmTitle,
+                message: actionConfig.confirmMessage,
+                confirmLabel: actionConfig.confirmLabel,
+                cancelLabel: 'Back',
+            }).catch(() => false);
+
+            if (!confirmed) {
+                return;
+            }
+
+            try {
+                setBusyBulkAction(action);
+                await runAgentUserTimeoutBulkAction(agentName, action);
+                await refreshTimeouts(false);
+            } catch (error) {
+                await showAlert({
+                    title: actionConfig.errorTitle,
+                    message: error instanceof Error ? error.message : 'Failed to run timeout bulk action.',
+                }).catch(() => undefined);
+            } finally {
+                setBusyBulkAction(null);
+            }
+        },
+        [agentName, refreshTimeouts],
+    );
+
+    /**
      * Opens the advanced timeout edit dialog with prefilled values.
      */
     const handleOpenEditDialog = useCallback((timeout: UserChatTimeout) => {
@@ -294,14 +377,46 @@ export function AgentTimeoutsClient({ agentName }: AgentTimeoutsClientProps) {
                         Agent-scoped timeout manager across all your chats.
                     </p>
                 </div>
-                <button
-                    type="button"
-                    onClick={() => void refreshTimeouts(true)}
-                    disabled={isRefreshing}
-                    className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                    {isRefreshing ? 'Refreshing...' : 'Refresh'}
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={() => void handleBulkAction('cancel_all_active')}
+                        disabled={busyBulkAction !== null}
+                        className={TIMEOUT_MANAGER_BULK_ACTION_CONFIG.cancel_all_active.buttonClassName}
+                    >
+                        {busyBulkAction === 'cancel_all_active'
+                            ? TIMEOUT_MANAGER_BULK_ACTION_CONFIG.cancel_all_active.busyLabel
+                            : TIMEOUT_MANAGER_BULK_ACTION_CONFIG.cancel_all_active.idleLabel}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => void handleBulkAction('pause_all_active')}
+                        disabled={busyBulkAction !== null}
+                        className={TIMEOUT_MANAGER_BULK_ACTION_CONFIG.pause_all_active.buttonClassName}
+                    >
+                        {busyBulkAction === 'pause_all_active'
+                            ? TIMEOUT_MANAGER_BULK_ACTION_CONFIG.pause_all_active.busyLabel
+                            : TIMEOUT_MANAGER_BULK_ACTION_CONFIG.pause_all_active.idleLabel}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => void handleBulkAction('resume_all_paused')}
+                        disabled={busyBulkAction !== null}
+                        className={TIMEOUT_MANAGER_BULK_ACTION_CONFIG.resume_all_paused.buttonClassName}
+                    >
+                        {busyBulkAction === 'resume_all_paused'
+                            ? TIMEOUT_MANAGER_BULK_ACTION_CONFIG.resume_all_paused.busyLabel
+                            : TIMEOUT_MANAGER_BULK_ACTION_CONFIG.resume_all_paused.idleLabel}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => void refreshTimeouts(true)}
+                        disabled={isRefreshing || busyBulkAction !== null}
+                        className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                        {isRefreshing ? 'Refreshing...' : 'Refresh'}
+                    </button>
+                </div>
             </div>
 
             <div className="grid gap-3 md:grid-cols-4">
