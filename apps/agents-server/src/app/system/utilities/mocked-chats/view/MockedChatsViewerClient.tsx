@@ -1,0 +1,308 @@
+'use client';
+
+import { MockedChat } from '@promptbook-local/components';
+import type { ChatMessage, ChatParticipant, string_date_iso8601 } from '@promptbook-local/types';
+import Link from 'next/link';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import {
+    MOCKED_CHAT_TIMING_PRESET_MULTIPLIERS,
+    MOCKED_CHAT_VIEWPORT_PRESETS,
+    type MockedChatPreset,
+    type MockedChatTimingPreset,
+} from '@/src/utils/mockedChatsSchema';
+
+/**
+ * Properties for the mocked-chat recording viewer.
+ */
+type MockedChatsViewerClientProps = {
+    mockedChats: Array<MockedChatPreset>;
+    initialMockedChatId: string | null;
+};
+
+/**
+ * Recording-oriented mocked-chat viewer with minimal left list.
+ */
+export function MockedChatsViewerClient(props: MockedChatsViewerClientProps) {
+    const { mockedChats, initialMockedChatId } = props;
+
+    const selectedMockedChat = useMemo(() => {
+        if (mockedChats.length === 0) {
+            return null;
+        }
+
+        if (!initialMockedChatId) {
+            return mockedChats[0] || null;
+        }
+
+        return mockedChats.find((chat) => chat.id === initialMockedChatId) || mockedChats[0] || null;
+    }, [initialMockedChatId, mockedChats]);
+
+    const [replayNonce, setReplayNonce] = useState(0);
+
+    useEffect(() => {
+        setReplayNonce(0);
+    }, [selectedMockedChat?.id]);
+
+    const viewportPreset = useMemo(() => {
+        if (!selectedMockedChat) {
+            return MOCKED_CHAT_VIEWPORT_PRESETS.LAPTOP;
+        }
+
+        return MOCKED_CHAT_VIEWPORT_PRESETS[selectedMockedChat.settings.viewportPreset];
+    }, [selectedMockedChat]);
+
+    const timingMultiplier = useMemo(() => {
+        if (!selectedMockedChat) {
+            return 1;
+        }
+
+        return MOCKED_CHAT_TIMING_PRESET_MULTIPLIERS[selectedMockedChat.settings.timingPreset];
+    }, [selectedMockedChat]);
+
+    const replayOffsetsMs = useMemo(() => {
+        if (!selectedMockedChat) {
+            return [];
+        }
+
+        return selectedMockedChat.messages.map((message) => Math.max(0, Math.round(message.offsetMs * timingMultiplier)));
+    }, [selectedMockedChat, timingMultiplier]);
+
+    const participants = useMemo<ReadonlyArray<ChatParticipant>>(() => {
+        if (!selectedMockedChat) {
+            return [];
+        }
+
+        return selectedMockedChat.participants.map((participant) => ({
+            name: participant.id,
+            fullname: participant.name,
+            isMe: participant.isMe,
+            avatarSrc: participant.typingAvatarUrl || participant.avatarUrl || undefined,
+            color: participant.bubbleColor,
+        }));
+    }, [selectedMockedChat]);
+
+    const scriptedMessages = useMemo<ReadonlyArray<ChatMessage>>(() => {
+        if (!selectedMockedChat) {
+            return [];
+        }
+
+        const baseTimestamp = Date.now();
+
+        return selectedMockedChat.messages.map((message, index) => {
+            const createdAt = selectedMockedChat.settings.showTimestamps
+                ? (new Date(baseTimestamp + replayOffsetsMs[index]!).toISOString() as string_date_iso8601)
+                : undefined;
+
+            return {
+                id: message.id,
+                sender: message.senderId,
+                content: message.content,
+                isComplete: true,
+                createdAt,
+            };
+        });
+    }, [replayOffsetsMs, selectedMockedChat]);
+
+    const chatSurfaceStyle = useMemo<CSSProperties>(() => {
+        if (!selectedMockedChat) {
+            return {};
+        }
+
+        return {
+            backgroundColor: selectedMockedChat.settings.backgroundColor || '#f8fafc',
+            backgroundImage: selectedMockedChat.settings.backgroundImageUrl
+                ? `url(${selectedMockedChat.settings.backgroundImageUrl})`
+                : undefined,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+        };
+    }, [selectedMockedChat]);
+
+    const frameStyle = useMemo<CSSProperties>(
+        () => ({
+            width: viewportPreset.width,
+            height: viewportPreset.height,
+            maxWidth: '100%',
+            maxHeight: '100%',
+        }),
+        [viewportPreset.height, viewportPreset.width],
+    );
+
+    if (!selectedMockedChat) {
+        return (
+            <div className="flex min-h-[calc(var(--agents-server-app-height)-var(--agents-server-header-height))] flex-col items-center justify-center gap-4 px-4 text-center text-slate-600">
+                <h1 className="text-2xl font-semibold text-slate-900">No mocked chats available</h1>
+                <p className="max-w-xl text-sm">
+                    Create your first mocked chat preset in the editor, then open this viewer in a new window for
+                    recording.
+                </p>
+                <Link
+                    href="/system/utilities/mocked-chats"
+                    className="inline-flex items-center rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                >
+                    Open mocked chats editor
+                </Link>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex min-h-[calc(var(--agents-server-app-height)-var(--agents-server-header-height))] w-full min-w-0 overflow-hidden bg-slate-100">
+            <aside className="hidden w-72 shrink-0 border-r border-slate-200 bg-white p-4 md:flex md:flex-col">
+                <h2 className="mb-4 text-lg font-semibold text-slate-900">My Mocked Chats</h2>
+                <div className="flex-1 overflow-y-auto">
+                    <ul className="space-y-2">
+                        {mockedChats.map((chat) => {
+                            const isSelected = chat.id === selectedMockedChat.id;
+                            return (
+                                <li key={chat.id}>
+                                    <Link
+                                        href={buildViewerHref(chat.id)}
+                                        className={`block rounded-lg border px-3 py-2 text-sm transition ${
+                                            isSelected
+                                                ? 'border-blue-300 bg-blue-50 text-blue-900'
+                                                : 'border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+                                        }`}
+                                    >
+                                        <p className="truncate font-semibold">{chat.name}</p>
+                                        <p className="mt-1 text-xs text-slate-500">{chat.messages.length} scripted messages</p>
+                                    </Link>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </div>
+                <div className="mt-4 border-t border-slate-200 pt-4">
+                    <Link
+                        href="/system/utilities/mocked-chats"
+                        className="inline-flex items-center rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:border-slate-400"
+                    >
+                        Edit mocked chats
+                    </Link>
+                </div>
+            </aside>
+
+            <section className="flex min-w-0 flex-1 flex-col overflow-hidden p-4">
+                <div className="mb-2 md:hidden">
+                    <label className="block space-y-1 text-xs text-slate-600">
+                        <span className="font-semibold uppercase tracking-wide">My Mocked Chats</span>
+                        <select
+                            value={selectedMockedChat.id}
+                            onChange={(event) => {
+                                window.location.href = buildViewerHref(event.target.value);
+                            }}
+                            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            {mockedChats.map((chat) => (
+                                <option key={chat.id} value={chat.id}>
+                                    {chat.name}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                </div>
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3">
+                    <div>
+                        <h1 className="text-lg font-semibold text-slate-900">{selectedMockedChat.name}</h1>
+                        <p className="text-xs text-slate-500">
+                            Viewport: {viewportPreset.label} | Timing:{' '}
+                            {formatTimingPresetLabel(selectedMockedChat.settings.timingPreset)}
+                        </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        <Link
+                            href="/system/utilities/mocked-chats"
+                            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:border-slate-400"
+                        >
+                            Back to editor
+                        </Link>
+                    </div>
+                </div>
+
+                <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-xl" style={frameStyle}>
+                        <div className="h-full w-full" style={chatSurfaceStyle}>
+                            <MockedChat
+                                key={`${selectedMockedChat.id}:${replayNonce}`}
+                                title={selectedMockedChat.name}
+                                visual="STANDALONE"
+                                messages={scriptedMessages}
+                                participants={participants}
+                                isResettable={!selectedMockedChat.settings.loopPlayback}
+                                isPausable={true}
+                                isSaveButtonEnabled={false}
+                                appendMessagesLocallyOnSend={true}
+                                messageOffsetsMs={replayOffsetsMs}
+                                delayConfig={resolveDelayConfigByTimingPreset(selectedMockedChat.settings.timingPreset)}
+                                onSimulationComplete={
+                                    selectedMockedChat.settings.loopPlayback
+                                        ? () => {
+                                              setReplayNonce((nonce) => nonce + 1);
+                                          }
+                                        : undefined
+                                }
+                            />
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    );
+}
+
+/**
+ * Builds one link URL for selecting mocked chats in the viewer.
+ */
+function buildViewerHref(mockedChatId: string): string {
+    const params = new URLSearchParams();
+    params.set('chat', mockedChatId);
+    return `/system/utilities/mocked-chats/view?${params.toString()}`;
+}
+
+/**
+ * Converts timing preset enum values into short labels.
+ */
+function formatTimingPresetLabel(timingPreset: MockedChatTimingPreset): string {
+    if (timingPreset === 'FAST') {
+        return 'Fast';
+    }
+
+    if (timingPreset === 'SLOW') {
+        return 'Slow';
+    }
+
+    return 'Normal';
+}
+
+/**
+ * Resolves deterministic delay configuration from a timing preset.
+ */
+function resolveDelayConfigByTimingPreset(timingPreset: MockedChatTimingPreset) {
+    if (timingPreset === 'FAST') {
+        return {
+            waitAfterWord: 20,
+            extraWordDelay: 0,
+            beforeFirstMessage: 0,
+            thinkingBetweenMessages: 0,
+            longPauseChance: 0,
+        };
+    }
+
+    if (timingPreset === 'SLOW') {
+        return {
+            waitAfterWord: 90,
+            extraWordDelay: 20,
+            beforeFirstMessage: 0,
+            thinkingBetweenMessages: 0,
+            longPauseChance: 0,
+        };
+    }
+
+    return {
+        waitAfterWord: 45,
+        extraWordDelay: 10,
+        beforeFirstMessage: 0,
+        thinkingBetweenMessages: 0,
+        longPauseChance: 0,
+    };
+}

@@ -80,6 +80,8 @@ export const SERVER_TRANSLATION_KEYS = [
     "header.landingPage",
     "header.userMemory",
     "header.userWallet",
+    "header.utilities",
+    "header.mockedChats",
     "header.viewAllUsers",
     "header.createNewUser",
     "header.servers",

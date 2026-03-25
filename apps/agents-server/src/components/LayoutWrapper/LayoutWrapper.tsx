@@ -74,9 +74,11 @@ export function LayoutWrapper({
     // const isAdminChatPage = pathname?.startsWith('/admin/chat-history') || pathname?.startsWith('/admin/chat-feedback');
     const isChatPage = pathname ? /^\/agents\/[^/]+\/chat(?:\/chatgpt-like)?$/.test(pathname) : false;
     const isTextareaPage = pathname ? /^\/agents\/[^/]+\/textarea$/.test(pathname) : false;
+    const isMockedChatsViewerPage = pathname ? /^\/system\/utilities\/mocked-chats\/view$/.test(pathname) : false;
     const isHeaderHidden = isTextareaPage;
     const isFooterHiddenOnPage = pathname
-        ? /^\/agents\/[^/]+\/(book|chat(?:\/chatgpt-like)?|book\+chat|textarea)$/.test(pathname)
+        ? /^\/agents\/[^/]+\/(book|chat(?:\/chatgpt-like)?|book\+chat|textarea)$/.test(pathname) ||
+          isMockedChatsViewerPage
         : false;
 
     const mainClassName = isChatPage ? 'agents-server-chat-main' : 'flex-1 pt-[60px]';

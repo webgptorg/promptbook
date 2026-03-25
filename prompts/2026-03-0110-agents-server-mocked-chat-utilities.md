@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.5356 an hour by OpenAI Codex `gpt-5.3-codex`
 
 [🧪💬] Mocked Chats utility for "System" -> Utilities
 
@@ -37,3 +37,4 @@ Overview: Add an "Utilities" section under the "System" menu (visible to all log
     -   Add CLI or scheduled playback for automated recordings
 -   Use existing `MockedChat` component for rendering the chat in the new window, passing the mocked chat data as props.
 -   You are working with the [Agents Server](apps/agents-server)
+

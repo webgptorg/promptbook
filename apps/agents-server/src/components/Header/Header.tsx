@@ -17,6 +17,7 @@ import {
     LogOut,
     Settings2,
     UserRound,
+    Wrench,
     type LucideIcon,
 } from 'lucide-react';
 import Image from 'next/image';
@@ -182,6 +183,7 @@ const MOBILE_SUBMENU_INDENT_PX = 14;
  */
 type SystemCategoryLabel =
     | 'My Account'
+    | 'Utilities'
     | 'Administration'
     | 'Monitoring & Usage'
     | 'Integrations & Keys'
@@ -193,6 +195,7 @@ type SystemCategoryLabel =
  */
 const SYSTEM_CATEGORY_ICON_MAP: Record<SystemCategoryLabel, LucideIcon> = {
     'My Account': UserRound,
+    Utilities: Wrench,
     Administration: Settings2,
     'Monitoring & Usage': BarChart3,
     'Integrations & Keys': KeyRound,
@@ -1459,10 +1462,28 @@ export function Header(props: HeaderProps) {
     ];
 
     /**
+     * @private Utility links available to authenticated users.
+     */
+    const utilitiesSystemItems: SubMenuItem[] = currentUser
+        ? [
+              {
+                  label: t('header.utilities'),
+                  href: '/system/utilities',
+                  isBold: true,
+              },
+              {
+                  label: t('header.mockedChats'),
+                  href: '/system/utilities/mocked-chats',
+              },
+          ]
+        : [];
+
+    /**
      * @private System menu entries exposed to non-admin users.
      */
     const userSystemItems: SubMenuItem[] = [
         ...createSystemCategory('My Account', userAccountSystemItems),
+        ...createSystemCategory('Utilities', utilitiesSystemItems),
         ...createSystemCategory('Legal & About', legalAndAboutSystemItems),
     ];
 
@@ -1636,6 +1657,7 @@ export function Header(props: HeaderProps) {
      */
     const adminSystemMenuItems: SubMenuItem[] = [
         ...createSystemCategory('My Account', userAccountSystemItems),
+        ...createSystemCategory('Utilities', utilitiesSystemItems),
         ...createSystemCategory('Administration', administrationSystemItems),
         ...createSystemCategory('Monitoring & Usage', monitoringAndUsageSystemItems),
         ...createSystemCategory('Integrations & Keys', integrationsAndKeysSystemItems),

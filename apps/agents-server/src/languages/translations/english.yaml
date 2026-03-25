@@ -76,6 +76,8 @@ header.menuLabel: Menu
 header.landingPage: Landing page
 header.userMemory: User Memory
 header.userWallet: User Wallet
+header.utilities: Utilities
+header.mockedChats: Mocked Chats
 header.viewAllUsers: View all users
 header.createNewUser: Create new user
 header.servers: Servers

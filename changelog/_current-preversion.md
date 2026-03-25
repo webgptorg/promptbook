@@ -1,3 +1,11 @@
+-   Added a new Agents Server **System -> Utilities** area with first utility **Mocked Chats**:
+
+    -   Added a new Utilities section in the System menu for all authenticated users (non-admin included), plus a `/system/utilities` index page.
+    -   Added per-user mocked-chat preset persistence via existing `UserData` (`mockedChats.v1`) with server-side normalization/validation and authenticated CRUD API at `/api/system/mocked-chats`.
+    -   Added `/system/utilities/mocked-chats` editor UI with My Mocked Chats list + editor surface, including create, duplicate, rename, delete, Save, Save as New, participant/message/timing/background metadata editing, and clear `Open in new window` CTAs.
+    -   Added `/system/utilities/mocked-chats/view` recording viewer route that renders Promptbook header with a minimal mocked-chat-only left list (no regular My Chats tray), uses `MockedChat` for scripted playback, supports quick preset switching, and keeps typed demo messages local-only.
+    -   Extended shared `MockedChat` with deterministic `messageOffsetsMs` playback, optional local append-on-send mode, and `onSimulationComplete` callback to support looped replay scenarios.
+
 -   Added a new Agents Server homepage view `/?view=pixel-office` that renders a dedicated Pixel Office visualization:
 
     -   Added shared homepage-view mode helpers so list/graph/office/pixel-office query handling stays consistent across server pages and the client view switcher.

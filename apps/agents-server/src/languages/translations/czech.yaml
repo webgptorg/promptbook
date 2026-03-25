@@ -76,6 +76,8 @@ header.menuLabel: Menu
 header.landingPage: Úvodní stránka
 header.userMemory: Uživatelská paměť
 header.userWallet: Uživatelská peněženka
+header.utilities: Nástroje
+header.mockedChats: Mockované chaty
 header.viewAllUsers: Zobrazit všechny uživatele
 header.createNewUser: Vytvořit nového uživatele
 header.servers: Servery
