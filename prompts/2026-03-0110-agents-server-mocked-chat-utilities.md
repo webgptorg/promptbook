@@ -1,3 +1,5 @@
+[ ]
+
 [🧪💬] Mocked Chats utility for Administration -> Utilities
 
 Overview: Add an "Utilities" section under the Administration menu (visible to all logged-in users) and implement the first utility: "Mocked Chats" — a small UI for creating, editing and opening saved mocked-chat presets in a new window for recording/showcase purposes.
