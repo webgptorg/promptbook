@@ -60,7 +60,7 @@ A fun 3D / isometric "office" view for the Agents Server home page that visualiz
 
 ---
 
-[ ]
+[x] ~$2.41 an hour by OpenAI Codex `gpt-5.3-codex`
 
 [🏢🤖] Add "Pixel office" visualization in homepage of agents server `/?view=pixel-office`
 
@@ -69,3 +69,4 @@ A fun 3D / isometric "office" view for the Agents Server home page that visualiz
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ![alt text](prompts/screenshots/2026-03-1380-agents-server-office-visualization.png)
+

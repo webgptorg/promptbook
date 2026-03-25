@@ -11,6 +11,7 @@ import { HomepageMessage } from '../../components/Homepage/HomepageMessage';
 import { ModelsSection } from '../../components/Homepage/ModelsSection';
 import { Section } from '../../components/Homepage/Section';
 import { TechInfoCard } from '../../components/Homepage/TechInfoCard';
+import { isHomeListViewMode, resolveHomeViewModeFromSearchParam } from '../../components/Homepage/homeViewMode';
 import { UsersList } from '../../components/UsersList/UsersList';
 import VercelDeploymentCard from '../../components/VercelDeploymentCard/VercelDeploymentCard';
 import { getLongRunningTask } from '../../deamons/longRunningTask';
@@ -63,7 +64,8 @@ export default async function DashboardPage(props: DashboardPageProps) {
     const host = (await headers()).get('host') || 'unknown';
 
     const searchParams = await props.searchParams;
-    const isListView = searchParams?.view !== 'graph' && searchParams?.view !== 'office';
+    const viewMode = resolveHomeViewModeFromSearchParam(searchParams?.view);
+    const isListView = isHomeListViewMode(viewMode);
     const isSubfolderView = getIsSubfolderView(searchParams);
 
     return (

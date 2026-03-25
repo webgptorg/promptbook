@@ -24,6 +24,7 @@ export const RESERVED_PATHS: readonly string[] = [
     "logo-blue-white-256.png",
     "manifest.webmanifest",
     "openapi.json",
+    "pixel-agents-assets",
     "recycle-bin",
     "restricted",
     "robots.txt",

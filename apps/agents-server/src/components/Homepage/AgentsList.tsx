@@ -15,7 +15,7 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { TODO_any, string_url } from '@promptbook-local/types';
-import { Building2, FolderPlusIcon, Grid, Network, TrashIcon } from 'lucide-react';
+import { Building2, FolderPlusIcon, Gamepad2, Grid, Network, TrashIcon } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -53,6 +53,11 @@ import { FolderCard } from './FolderCard';
 import type { FolderEditValues } from './FolderEditDialog';
 import { getDropIntentFromRects } from './getDropIntentFromRects';
 import { HOMEPAGE_AGENT_GRID_CLASS } from './gridLayout';
+import {
+    getHomeViewQueryValue,
+    resolveHomeViewMode,
+    type HomeViewMode,
+} from './homeViewMode';
 import { ParentFolderCard } from './ParentFolderCard';
 import { SortableAgentCard } from './SortableAgentCard';
 import { SortableFolderCard } from './SortableFolderCard';
@@ -127,6 +132,17 @@ const DeferredAgentsOffice = dynamic(() => import('./AgentsOffice').then((mod) =
     ssr: false,
     loading: () => <GraphLoadingSkeleton />,
 });
+
+/**
+ * Deferred pixel-office chunk loaded only when the pixel-office view is active.
+ */
+const DeferredAgentsPixelOffice = dynamic(
+    () => import('./AgentsPixelOffice').then((mod) => mod.AgentsPixelOffice),
+    {
+        ssr: false,
+        loading: () => <GraphLoadingSkeleton />,
+    },
+);
 
 /**
  * Deferred agent context menu so directory browsing does not eagerly hydrate interaction-only code.
@@ -457,9 +473,8 @@ export function AgentsList(props: AgentsListProps) {
         }
     }, [normalizedPublicUrl]);
 
-    const requestedView = searchParams.get('view');
-    const viewMode = requestedView === 'graph' ? 'GRAPH' : requestedView === 'office' ? 'OFFICE' : 'LIST';
-    const shouldRefreshFederatedAgents = showFederatedAgents && (viewMode === 'GRAPH' || viewMode === 'OFFICE');
+    const viewMode = resolveHomeViewMode(searchParams.get('view'));
+    const shouldRefreshFederatedAgents = showFederatedAgents && viewMode !== 'LIST';
     const { federatedAgents, federatedServersStatus } = useFederatedAgents(
         showFederatedAgents,
         initialExternalAgents,
@@ -629,7 +644,12 @@ export function AgentsList(props: AgentsListProps) {
         return folders.filter((folder) => officeVisibleFolderIds.has(folder.id));
     }, [folders, officeVisibleFolderIds]);
 
-    const agentCount = viewMode === 'LIST' ? visibleAgents.length : viewMode === 'OFFICE' ? officeAgents.length : agents.length;
+    const agentCount =
+        viewMode === 'LIST'
+            ? visibleAgents.length
+            : viewMode === 'OFFICE' || viewMode === 'PIXEL_OFFICE'
+              ? officeAgents.length
+              : agents.length;
     const sensors = useSensors(
         useSensor(MouseSensor, {
             activationConstraint: { distance: DRAG_START_DISTANCE_PX },
@@ -686,14 +706,13 @@ export function AgentsList(props: AgentsListProps) {
      *
      * @param mode - Next view mode.
      */
-    const setViewMode = (mode: 'LIST' | 'GRAPH' | 'OFFICE') => {
+    const setViewMode = (mode: HomeViewMode) => {
         const params = new URLSearchParams(searchParams.toString());
-        if (mode === 'LIST') {
+        const viewQueryValue = getHomeViewQueryValue(mode);
+        if (viewQueryValue === null) {
             params.delete('view');
-        } else if (mode === 'GRAPH') {
-            params.set('view', 'graph');
         } else {
-            params.set('view', 'office');
+            params.set('view', viewQueryValue);
         }
         router.replace(`?${params.toString()}`, { scroll: false });
     };
@@ -1579,6 +1598,18 @@ export function AgentsList(props: AgentsListProps) {
                                 <Building2 className="w-4 h-4" />
                                 <span>Office</span>
                             </button>
+                            <button
+                                onClick={() => setViewMode('PIXEL_OFFICE')}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors ${
+                                    viewMode === 'PIXEL_OFFICE'
+                                        ? 'bg-white shadow-sm text-blue-600 font-medium'
+                                        : 'text-gray-500 hover:text-gray-900'
+                                }`}
+                                title="Pixel Office View"
+                            >
+                                <Gamepad2 className="w-4 h-4" />
+                                <span>Pixel</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1691,9 +1722,18 @@ export function AgentsList(props: AgentsListProps) {
                         folders={folders}
                     />
                 </div>
-            ) : (
+            ) : viewMode === 'OFFICE' ? (
                 <div className="w-full">
                     <DeferredAgentsOffice
+                        agents={officeAgents}
+                        federatedAgents={federatedAgents}
+                        publicUrl={publicUrl}
+                        folders={officeFolders}
+                    />
+                </div>
+            ) : (
+                <div className="w-full">
+                    <DeferredAgentsPixelOffice
                         agents={officeAgents}
                         federatedAgents={federatedAgents}
                         publicUrl={publicUrl}

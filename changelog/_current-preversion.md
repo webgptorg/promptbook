@@ -1,3 +1,10 @@
+-   Added a new Agents Server homepage view `/?view=pixel-office` that renders a dedicated Pixel Office visualization:
+
+    -   Added shared homepage-view mode helpers so list/graph/office/pixel-office query handling stays consistent across server pages and the client view switcher.
+    -   Added a new `Pixel` toggle beside `List` / `Graph` / `Office` and wired it to lazy-load the new homepage pixel visualization.
+    -   Added a new pixel-office renderer that reuses the existing office layout model for DRY room/desk/agent mapping while drawing animated top-down pixel sprites.
+    -   Integrated Pixel Agents assets via a small server-side asset proxy route backed by the `pixel-agents` package so character sprite sheets are reused directly.
+
 -   Fixed `@promptbook/components` build failure in consuming projects caused by unresolved `leaflet` imports — removed static CSS import, load Leaflet CSS dynamically via CDN `<link>`, added `leaflet` to Rollup externals, and updated package generation script to detect dynamic `import()` references so `leaflet` is correctly listed as a dependency
 
 -   Fixed Rollup build hang for `@promptbook/pdf` (and other packages) by re-enabling the `external` dependency list in `rollup.config.js` — heavy dependencies like `markitdown-ts` were being inlined, causing Rollup to stall indefinitely

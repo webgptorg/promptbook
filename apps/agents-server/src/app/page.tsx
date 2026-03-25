@@ -3,6 +3,7 @@ import { $sideEffect } from '../../../../src/utils/organization/$sideEffect';
 import { AgentsList } from '../components/Homepage/AgentsList';
 import { ExternalAgentsSectionClient } from '../components/Homepage/ExternalAgentsSectionClient';
 import { HomepageMessage } from '../components/Homepage/HomepageMessage';
+import { isHomeListViewMode, resolveHomeViewModeFromSearchParam } from '../components/Homepage/homeViewMode';
 import { $provideServer } from '../tools/$provideServer';
 import { getIsSubfolderView } from '../utils/getIsSubfolderView';
 import { isUserAdmin } from '../utils/isUserAdmin';
@@ -27,7 +28,8 @@ export default async function HomePage(props: HomePageProps) {
         getHomePageAgents(),
         props.searchParams,
     ]);
-    const isListView = searchParams?.view !== 'graph' && searchParams?.view !== 'office';
+    const viewMode = resolveHomeViewModeFromSearchParam(searchParams?.view);
+    const isListView = isHomeListViewMode(viewMode);
     const isSubfolderView = getIsSubfolderView(searchParams);
 
     return (
