@@ -64,7 +64,9 @@ export function MockedChatsViewerClient(props: MockedChatsViewerClientProps) {
             return [];
         }
 
-        return selectedMockedChat.messages.map((message) => Math.max(0, Math.round(message.offsetMs * timingMultiplier)));
+        return selectedMockedChat.messages.map((message) =>
+            Math.max(0, Math.round(message.offsetMs * timingMultiplier)),
+        );
     }, [selectedMockedChat, timingMultiplier]);
 
     const participants = useMemo<ReadonlyArray<ChatParticipant>>(() => {
@@ -165,7 +167,9 @@ export function MockedChatsViewerClient(props: MockedChatsViewerClientProps) {
                                         }`}
                                     >
                                         <p className="truncate font-semibold">{chat.name}</p>
-                                        <p className="mt-1 text-xs text-slate-500">{chat.messages.length} scripted messages</p>
+                                        <p className="mt-1 text-xs text-slate-500">
+                                            {chat.messages.length} scripted messages
+                                        </p>
                                     </Link>
                                 </li>
                             );
@@ -183,68 +187,26 @@ export function MockedChatsViewerClient(props: MockedChatsViewerClientProps) {
             </aside>
 
             <section className="flex min-w-0 flex-1 flex-col overflow-hidden p-4">
-                <div className="mb-2 md:hidden">
-                    <label className="block space-y-1 text-xs text-slate-600">
-                        <span className="font-semibold uppercase tracking-wide">My Chats {/* My Mocked Chats */}</span>
-                        <select
-                            value={selectedMockedChat.id}
-                            onChange={(event) => {
-                                window.location.href = buildViewerHref(event.target.value);
-                            }}
-                            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            {mockedChats.map((chat) => (
-                                <option key={chat.id} value={chat.id}>
-                                    {chat.name}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
-                </div>
-                <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3">
-                    <div>
-                        <h1 className="text-lg font-semibold text-slate-900">{selectedMockedChat.name}</h1>
-                        <p className="text-xs text-slate-500">
-                            Viewport: {viewportPreset.label} | Timing:{' '}
-                            {formatTimingPresetLabel(selectedMockedChat.settings.timingPreset)}
-                        </p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                        <Link
-                            href="/system/utilities/mocked-chats"
-                            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:border-slate-400"
-                        >
-                            Back to editor
-                        </Link>
-                    </div>
-                </div>
-
-                <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto rounded-xl border border-slate-200 bg-slate-50 p-4">
-                    <div className="overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-xl" style={frameStyle}>
-                        <div className="h-full w-full" style={chatSurfaceStyle}>
-                            <MockedChat
-                                key={`${selectedMockedChat.id}:${replayNonce}`}
-                                title={selectedMockedChat.name}
-                                visual="STANDALONE"
-                                messages={scriptedMessages}
-                                participants={participants}
-                                isResettable={!selectedMockedChat.settings.loopPlayback}
-                                isPausable={true}
-                                isSaveButtonEnabled={false}
-                                appendMessagesLocallyOnSend={true}
-                                messageOffsetsMs={replayOffsetsMs}
-                                delayConfig={resolveDelayConfigByTimingPreset(selectedMockedChat.settings.timingPreset)}
-                                onSimulationComplete={
-                                    selectedMockedChat.settings.loopPlayback
-                                        ? () => {
-                                              setReplayNonce((nonce) => nonce + 1);
-                                          }
-                                        : undefined
-                                }
-                            />
-                        </div>
-                    </div>
-                </div>
+                <MockedChat
+                    key={`${selectedMockedChat.id}:${replayNonce}`}
+                    title={selectedMockedChat.name}
+                    visual="STANDALONE"
+                    messages={scriptedMessages}
+                    participants={participants}
+                    isResettable={!selectedMockedChat.settings.loopPlayback}
+                    isPausable={true}
+                    isSaveButtonEnabled={false}
+                    appendMessagesLocallyOnSend={true}
+                    messageOffsetsMs={replayOffsetsMs}
+                    delayConfig={resolveDelayConfigByTimingPreset(selectedMockedChat.settings.timingPreset)}
+                    onSimulationComplete={
+                        selectedMockedChat.settings.loopPlayback
+                            ? () => {
+                                  setReplayNonce((nonce) => nonce + 1);
+                              }
+                            : undefined
+                    }
+                />
             </section>
         </div>
     );
