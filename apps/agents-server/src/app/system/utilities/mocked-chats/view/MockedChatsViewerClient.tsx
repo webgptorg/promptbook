@@ -151,7 +151,6 @@ export function MockedChatsViewerClient(props: MockedChatsViewerClientProps) {
     return (
         <div className="flex min-h-[calc(var(--agents-server-app-height)-var(--agents-server-header-height))] w-full min-w-0 overflow-hidden bg-slate-100">
             <aside className="hidden w-72 shrink-0 border-r border-slate-200 bg-white p-4 md:flex md:flex-col">
-                <h2 className="mb-4 text-lg font-semibold text-slate-900">My Chats {/* My Mocked Chats */}</h2>
                 <div className="flex-1 overflow-y-auto">
                     <ul className="space-y-2">
                         {mockedChats.map((chat) => {
