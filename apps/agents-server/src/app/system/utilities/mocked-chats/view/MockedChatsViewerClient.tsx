@@ -176,14 +176,6 @@ export function MockedChatsViewerClient(props: MockedChatsViewerClientProps) {
                         })}
                     </ul>
                 </div>
-                <div className="mt-4 border-t border-slate-200 pt-4">
-                    <Link
-                        href="/system/utilities/mocked-chats"
-                        className="inline-flex items-center rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:border-slate-400"
-                    >
-                        Edit mocked chats
-                    </Link>
-                </div>
             </aside>
 
             <section className="flex min-w-0 flex-1 flex-col overflow-hidden p-4">
@@ -194,7 +186,9 @@ export function MockedChatsViewerClient(props: MockedChatsViewerClientProps) {
                     messages={scriptedMessages}
                     participants={participants}
                     isResettable={!selectedMockedChat.settings.loopPlayback}
-                    isPausable={true}
+                    isCopyButtonEnabled={false}
+                    isSpeechPlaybackEnabled={false}
+                    isPausable={false}
                     isSaveButtonEnabled={false}
                     appendMessagesLocallyOnSend={true}
                     messageOffsetsMs={replayOffsetsMs}
