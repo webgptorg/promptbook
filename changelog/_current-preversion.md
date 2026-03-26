@@ -1,3 +1,9 @@
+-   Enhanced the Agents Server `/agents/[agentName]/chat/chatgpt-like` alternative chat UI to better mirror ChatGPT while keeping the existing Promptbook header and fully reusing the same durable chat pipeline:
+
+    -   Kept data/backend behavior shared with the canonical chat route and added missing route parity for `shareTarget` deep links (including auto-executed shared message attachments) so both views open/continue the same conversations.
+    -   Refined ChatGPT-like-only layout/styling tokens for the left chat tray, centered conversation column, message rows, composer, and mobile drawer/top bar, without changing `/agents/[agentName]/chat` behavior.
+    -   Added a direct `ChatGPT-like` entry to the header agent view switcher so users can navigate to this view alongside other agent pages.
+
 -   Fixed Jest test suite picking up `.tmp/pixel-agents-repo/webview-ui/test/dev-assets.test.ts` — added `testPathIgnorePatterns` to [jest.config.js](../jest.config.js) to exclude the `.tmp/` directory from Jest's test discovery (the file is a Node.js native test runner test, not a Jest test)
 
 -   Enhanced the shared `Chat` component design used in Agents Server to deliver a more premium, polished conversation UI without changing chat behavior:

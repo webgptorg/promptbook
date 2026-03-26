@@ -1420,11 +1420,11 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         />
     );
     const chatGptLikeTopBar = (
-        <div className="agent-chat-chatgpt-like-mobile-header flex items-center justify-between gap-3 border-b border-slate-200/80 px-4 py-3 md:hidden dark:border-slate-800/80">
+        <div className="agent-chat-chatgpt-like-mobile-header flex items-center justify-between gap-3 px-3.5 py-2.5 md:hidden">
             <button
                 type="button"
                 onClick={openMobileSidebar}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:text-slate-100"
+                className="agent-chat-chatgpt-like-mobile-header__icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg border transition"
                 aria-controls={AGENT_CHAT_SIDEBAR_ID}
                 aria-expanded={isMobileSidebarOpen}
                 aria-label={formatText('Open chats sidebar')}
@@ -1445,7 +1445,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                     void handleCreateChat();
                 }}
                 disabled={isCreatingChat}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900 disabled:cursor-default disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:text-slate-100"
+                className="agent-chat-chatgpt-like-mobile-header__icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg border transition disabled:cursor-default disabled:opacity-60"
                 aria-label={formatText('New chat')}
             >
                 <MessageSquarePlusIcon className="h-4 w-4" />

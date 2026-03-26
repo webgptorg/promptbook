@@ -52,6 +52,7 @@ import {
     AgentNameWithAvatar,
     appendFolderActionNodes,
     buildAgentMenuStructure,
+    createChatGptLikeViewLabel,
     createAgentHierarchyLabel,
     createAgentHierarchyMobileItems,
     createAgentViewLabel,
@@ -1154,6 +1155,10 @@ export function Header(props: HeaderProps) {
               {
                   label: createAgentViewLabel('Chat', t),
                   href: `/agents/${encodeURIComponent(activeAgentNavigationId)}/chat`,
+              },
+              {
+                  label: createChatGptLikeViewLabel(),
+                  href: `/agents/${encodeURIComponent(activeAgentNavigationId)}/chat/chatgpt-like`,
               },
               {
                   label: createAgentViewLabel('Timeouts', t),
