@@ -1,7 +1,14 @@
 [x] ~$0.00 33 minutes by OpenAI Codex `gpt-5.4`
 
+
+---
+
+
+[ ]
+
 [🗨️🧱] Alternative ChatGPT-like chat UI for agent pages
 
+-   **The `/agents/[agentId]/chat/chatgpt-like` page already exists but does not look like ChatGPT at all**
 -   Create an additional agent chat page that visually mimics the ChatGPT UI (left chats tray + main conversation area + input composer), while keeping the existing Promptbook top header bar.
 -   Normal chat page is in `/agents/[agentId]/chat` or similar, this new page can be at `/agents/[agentId]/chat/chatgpt-like`
 -   This is a UI-only alternative: it must reuse the existing chat data model, API, websocket/streaming behavior, message rendering pipeline, permissions, and features (tools, attachments, sources/knowledge chips, TTS, feedback, etc.) without changing backend behavior.
@@ -70,4 +77,3 @@
 ![alt text](prompts/screenshots/2026-03-1100-agents-server-chatgpt-like-chat-ui-2.png)
 ![alt text](prompts/screenshots/2026-03-1100-agents-server-chatgpt-like-chat-ui-3.png)
 ![alt text](prompts/screenshots/2026-03-1100-agents-server-chatgpt-like-chat-ui-4.png)
-
