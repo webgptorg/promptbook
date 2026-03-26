@@ -1,15 +1,15 @@
 'use client';
 
-import { MockedChat } from '@promptbook-local/components';
-import type { ChatMessage, ChatParticipant, string_date_iso8601 } from '@promptbook-local/types';
-import Link from 'next/link';
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import {
     MOCKED_CHAT_TIMING_PRESET_MULTIPLIERS,
     MOCKED_CHAT_VIEWPORT_PRESETS,
     type MockedChatPreset,
     type MockedChatTimingPreset,
 } from '@/src/utils/mockedChatsSchema';
+import { MockedChat } from '@promptbook-local/components';
+import type { ChatMessage, ChatParticipant, string_date_iso8601 } from '@promptbook-local/types';
+import Link from 'next/link';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 
 /**
  * Properties for the mocked-chat recording viewer.
@@ -149,7 +149,7 @@ export function MockedChatsViewerClient(props: MockedChatsViewerClientProps) {
     return (
         <div className="flex min-h-[calc(var(--agents-server-app-height)-var(--agents-server-header-height))] w-full min-w-0 overflow-hidden bg-slate-100">
             <aside className="hidden w-72 shrink-0 border-r border-slate-200 bg-white p-4 md:flex md:flex-col">
-                <h2 className="mb-4 text-lg font-semibold text-slate-900">My Mocked Chats</h2>
+                <h2 className="mb-4 text-lg font-semibold text-slate-900">My Chats {/* My Mocked Chats */}</h2>
                 <div className="flex-1 overflow-y-auto">
                     <ul className="space-y-2">
                         {mockedChats.map((chat) => {
@@ -185,7 +185,7 @@ export function MockedChatsViewerClient(props: MockedChatsViewerClientProps) {
             <section className="flex min-w-0 flex-1 flex-col overflow-hidden p-4">
                 <div className="mb-2 md:hidden">
                     <label className="block space-y-1 text-xs text-slate-600">
-                        <span className="font-semibold uppercase tracking-wide">My Mocked Chats</span>
+                        <span className="font-semibold uppercase tracking-wide">My Chats {/* My Mocked Chats */}</span>
                         <select
                             value={selectedMockedChat.id}
                             onChange={(event) => {
