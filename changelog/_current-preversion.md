@@ -1,3 +1,5 @@
+-   Fixed Jest test suite picking up `.tmp/pixel-agents-repo/webview-ui/test/dev-assets.test.ts` — added `testPathIgnorePatterns` to [jest.config.js](../jest.config.js) to exclude the `.tmp/` directory from Jest's test discovery (the file is a Node.js native test runner test, not a Jest test)
+
 -   Enhanced the shared `Chat` component design used in Agents Server to deliver a more premium, polished conversation UI without changing chat behavior:
 
     -   Refined visual hierarchy and spacing across message rows, avatars, bubbles, metadata, tool/source chips, quick buttons, and inline copy/play controls.

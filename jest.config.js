@@ -3,6 +3,7 @@ module.exports = {
         '(jsx?|tsx?)$': ['ts-jest', { tsconfig: 'tsconfig.jest.json' }],
     },
     testRegex: '(test)\\.(jsx?|tsx?)$',
+    testPathIgnorePatterns: ['/node_modules/', '<rootDir>/\\.tmp/'],
     setupFilesAfterEnv: ['./jest.setup.js'],
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
     moduleNameMapper: {
