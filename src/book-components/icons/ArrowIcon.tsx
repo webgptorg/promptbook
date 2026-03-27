@@ -83,7 +83,6 @@ export function ArrowIcon({ direction, size = 24, className }: ArrowIconProps) {
             width={size}
             height={size}
             viewBox="0 0 24 24"
-            // fill="currentColor"
             fill="currentColor"
             aria-hidden="true"
             className={classNames('shrink-0', className)}

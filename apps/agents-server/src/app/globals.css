@@ -331,12 +331,12 @@ textarea:focus-visible {
     --agent-chat-primary-action-shadow: 0 4px 16px rgba(0, 132, 255, 0.3);
     --agent-chat-primary-action-shadow-hover: 0 8px 24px rgba(0, 132, 255, 0.4);
     --agent-chat-primary-action-focus-color: rgba(59, 130, 246, 0.68);
-    --agent-chat-arrow-border-color: transparent;
-    --agent-chat-arrow-border-color-hover: transparent;
+    --agent-chat-arrow-border-color: var(--agent-chat-primary-action-border-color);
+    --agent-chat-arrow-border-color-hover: var(--agent-chat-primary-action-border-color-hover);
     --agent-chat-arrow-text-color: var(--agent-chat-primary-action-text-color);
     --agent-chat-arrow-text-color-hover: var(--agent-chat-primary-action-text-color-hover);
-    --agent-chat-arrow-background: #888;
-    --agent-chat-arrow-background-hover: #333;
+    --agent-chat-arrow-background: var(--agent-chat-primary-action-background);
+    --agent-chat-arrow-background-hover: var(--agent-chat-primary-action-background-hover);
     --agent-chat-arrow-shadow: var(--agent-chat-primary-action-shadow);
     --agent-chat-arrow-shadow-hover: var(--agent-chat-primary-action-shadow-hover);
     --agent-chat-arrow-focus-color: var(--agent-chat-primary-action-focus-color);
@@ -375,7 +375,11 @@ textarea:focus-visible {
     color: var(--agent-chat-primary-action-text-color);
     box-shadow: var(--agent-chat-primary-action-shadow);
     backdrop-filter: blur(8px);
-    transition: color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease,
+    transition:
+        color 150ms ease,
+        border-color 150ms ease,
+        box-shadow 150ms ease,
+        transform 150ms ease,
         background 150ms ease;
 }
 
@@ -413,8 +417,7 @@ textarea:focus-visible {
     color: var(--agent-chat-arrow-text-color);
     box-shadow: var(--agent-chat-arrow-shadow);
     backdrop-filter: blur(8px);
-    transition: color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease,
-        background 150ms ease;
+    transition: color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease, background 150ms ease;
 }
 
 .agent-chat-route-surface .agent-chat-solid-arrow-button:hover,
