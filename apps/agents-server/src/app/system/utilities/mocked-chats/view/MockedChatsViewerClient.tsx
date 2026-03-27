@@ -2,14 +2,13 @@
 
 import {
     MOCKED_CHAT_TIMING_PRESET_MULTIPLIERS,
-    MOCKED_CHAT_VIEWPORT_PRESETS,
     type MockedChatPreset,
     type MockedChatTimingPreset,
 } from '@/src/utils/mockedChatsSchema';
 import { MockedChat } from '@promptbook-local/components';
 import type { ChatMessage, ChatParticipant, string_date_iso8601 } from '@promptbook-local/types';
 import Link from 'next/link';
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 /**
  * Properties for the mocked-chat recording viewer.
@@ -42,14 +41,6 @@ export function MockedChatsViewerClient(props: MockedChatsViewerClientProps) {
     useEffect(() => {
         setReplayNonce(0);
     }, [selectedMockedChat?.id]);
-
-    const viewportPreset = useMemo(() => {
-        if (!selectedMockedChat) {
-            return MOCKED_CHAT_VIEWPORT_PRESETS.LAPTOP;
-        }
-
-        return MOCKED_CHAT_VIEWPORT_PRESETS[selectedMockedChat.settings.viewportPreset];
-    }, [selectedMockedChat]);
 
     const timingMultiplier = useMemo(() => {
         if (!selectedMockedChat) {
@@ -104,31 +95,6 @@ export function MockedChatsViewerClient(props: MockedChatsViewerClientProps) {
             };
         });
     }, [replayOffsetsMs, selectedMockedChat]);
-
-    const chatSurfaceStyle = useMemo<CSSProperties>(() => {
-        if (!selectedMockedChat) {
-            return {};
-        }
-
-        return {
-            backgroundColor: selectedMockedChat.settings.backgroundColor || '#f8fafc',
-            backgroundImage: selectedMockedChat.settings.backgroundImageUrl
-                ? `url(${selectedMockedChat.settings.backgroundImageUrl})`
-                : undefined,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-        };
-    }, [selectedMockedChat]);
-
-    const frameStyle = useMemo<CSSProperties>(
-        () => ({
-            width: viewportPreset.width,
-            height: viewportPreset.height,
-            maxWidth: '100%',
-            maxHeight: '100%',
-        }),
-        [viewportPreset.height, viewportPreset.width],
-    );
 
     if (!selectedMockedChat) {
         return (
@@ -212,21 +178,6 @@ function buildViewerHref(mockedChatId: string): string {
     const params = new URLSearchParams();
     params.set('chat', mockedChatId);
     return `/system/utilities/mocked-chats/view?${params.toString()}`;
-}
-
-/**
- * Converts timing preset enum values into short labels.
- */
-function formatTimingPresetLabel(timingPreset: MockedChatTimingPreset): string {
-    if (timingPreset === 'FAST') {
-        return 'Fast';
-    }
-
-    if (timingPreset === 'SLOW') {
-        return 'Slow';
-    }
-
-    return 'Normal';
 }
 
 /**
