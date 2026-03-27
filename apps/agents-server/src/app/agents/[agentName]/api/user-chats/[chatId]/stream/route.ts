@@ -248,6 +248,7 @@ function createUserChatMessageSignature(
         lifecycleError: message.lifecycleError ?? null,
         contentLength: message.content.length,
         contentHash: createStableTextDigest(message.content),
+        progressCard: message.progressCard ? JSON.stringify(message.progressCard) : null,
         ongoingToolCalls: createToolCallsSignature(message.ongoingToolCalls),
         completedToolCalls: createToolCallsSignature(message.completedToolCalls),
         toolCalls: createToolCallsSignature(message.toolCalls),

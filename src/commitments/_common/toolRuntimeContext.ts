@@ -127,6 +127,10 @@ export type ToolRuntimeContext = {
         userId?: number;
         agentId?: string;
         agentName?: string;
+        /**
+         * Optional assistant message id currently being generated in durable web chat.
+         */
+        assistantMessageId?: string;
         parameters?: Record<string, string>;
         attachments?: ReadonlyArray<ChatAttachment>;
     };

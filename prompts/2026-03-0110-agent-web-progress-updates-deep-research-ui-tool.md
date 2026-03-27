@@ -1,4 +1,4 @@
-[ ]
+[x] ~$2.28 28 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [🧭📡] Agent web tool for progressive “deep research” style progress updates
 
@@ -35,3 +35,4 @@
     -   [Agents Server](apps/agents-server)
 
 ![alt text](prompts/screenshots/2026-03-0110-agent-web-progress-updates-deep-research-ui-tool.png)
+

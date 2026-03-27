@@ -1,3 +1,12 @@
+-   Added an optional Agents Server web-chat progress tool (`agent_progress`) for deep-research-style live progress panels during long responses:
+
+    -   Added a new runtime tool definition + handler that supports `initialize`, `append_items`, `update`, and `finalize` actions with validated structured payloads (`title`, `now`, `next`, and bullet `items` with `pending` / `completed` status).
+    -   Wired the tool into web chat runtimes (durable user-chat jobs and `/api/chat`) and extended hidden chat runtime context with `assistantMessageId` so progress updates target the correct in-flight assistant message.
+    -   Persisted progress-card state on the assistant message and reused the existing canonical chat stream mechanism by extending snapshot signatures to include progress-card changes (no separate transport required).
+    -   Added a new in-bubble `ProgressPanel` renderer in chat messages with spinner/completed bullet statuses, explicit **What I'm Doing Now** / **What I'll Do Next** sections, and markdown rendering support for tool-provided text.
+    -   Preserved existing fallback thinking placeholders when the tool is never used, and ensured final answer persistence clears/hides progress panels.
+    -   Invalid tool payloads now fail gracefully (structured `ignored` result + server logs) without crashing the chat run.
+
 -   Fixed critical Agents Server Supabase overload/crash behavior under durable chat load by reducing database pressure in the hottest runtime paths:
 
     -   Added write backpressure in durable chat job execution so assistant-message progress is no longer persisted on every streamed token chunk; persistence is now throttled to a bounded cadence with final-state flushes preserved.

@@ -160,6 +160,34 @@ describe('composePromptParametersWithMemoryContext', () => {
         });
     });
 
+    it('embeds assistant message id for scoped durable progress updates', () => {
+        const parameters = composePromptParametersWithMemoryContext({
+            baseParameters: {},
+            currentUserIdentity: {
+                userId: 7,
+                user: {
+                    username: 'progress-user',
+                    isAdmin: false,
+                    profileImageUrl: null,
+                },
+            },
+            agentPermanentId: 'agent-progress',
+            agentName: 'Progress Agent',
+            chatId: 'chat-progress',
+            assistantMessageId: 'assistant-message-1',
+        });
+
+        const runtimeContext = JSON.parse(parameters[TOOL_RUNTIME_CONTEXT_PARAMETER]!);
+        expect(runtimeContext.chat).toEqual({
+            chatId: 'chat-progress',
+            userId: 7,
+            agentId: 'agent-progress',
+            agentName: 'Progress Agent',
+            assistantMessageId: 'assistant-message-1',
+            parameters: {},
+        });
+    });
+
     it('embeds current chat attachments into hidden runtime context without requiring chat id', () => {
         const parameters = composePromptParametersWithMemoryContext({
             baseParameters: {},

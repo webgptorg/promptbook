@@ -40,6 +40,8 @@ import type { ChatSaveFormatDefinition } from '../book-components/Chat/save/_com
 import type { string_chat_format_name } from '../book-components/Chat/save/_common/string_chat_format_name';
 import type { SourceChipProps } from '../book-components/Chat/SourceChip/SourceChip';
 import type { ChatToolCall } from '../book-components/Chat/types/ChatMessage';
+import type { ChatProgressItem } from '../book-components/Chat/types/ChatMessage';
+import type { ChatProgressCard } from '../book-components/Chat/types/ChatMessage';
 import type { ChatMessage } from '../book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../book-components/Chat/types/ChatParticipant';
 import type { ParsedCitation } from '../book-components/Chat/utils/parseCitationsFromContent';
@@ -463,6 +465,8 @@ export type { ChatSaveFormatDefinition };
 export type { string_chat_format_name };
 export type { SourceChipProps };
 export type { ChatToolCall };
+export type { ChatProgressItem };
+export type { ChatProgressCard };
 export type { ChatMessage };
 export type { ChatParticipant };
 export type { ParsedCitation };

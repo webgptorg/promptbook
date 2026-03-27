@@ -35,6 +35,7 @@ export async function persistUserChatJobTerminalState(options: {
             toolCalls: options.toolCalls ?? message.toolCalls,
             completedToolCalls: options.toolCalls ?? message.completedToolCalls,
             generationDurationMs: options.generationDurationMs ?? message.generationDurationMs,
+            progressCard: undefined,
         }),
     });
 

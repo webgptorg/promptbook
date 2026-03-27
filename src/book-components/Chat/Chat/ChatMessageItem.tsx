@@ -223,6 +223,96 @@ function StreamingFeaturePlaceholder({ kind }: StreamingFeaturePlaceholderProps)
 }
 
 /**
+ * Props for `<ProgressPanel/>`.
+ *
+ * @private internal helper of <ChatMessageItem/>
+ */
+type ProgressPanelProps = {
+    /**
+     * Structured progress card payload attached to the current message.
+     */
+    readonly progressCard: NonNullable<ChatMessage['progressCard']>;
+};
+
+/**
+ * Renders a deep-research-like progress card with now/next sections and bullet statuses.
+ *
+ * @private internal helper of <ChatMessageItem/>
+ */
+function ProgressPanel({ progressCard }: ProgressPanelProps) {
+    const shouldShowTitle = Boolean(progressCard.title?.trim());
+    const shouldShowNow = Boolean(progressCard.now?.trim());
+    const shouldShowNext = Boolean(progressCard.next?.trim());
+    const items = progressCard.items || [];
+
+    return (
+        <section className={styles.progressPanel} aria-live="polite">
+            {shouldShowTitle && (
+                <div className={styles.progressPanelTitle}>
+                    <MarkdownContent content={progressCard.title!} />
+                </div>
+            )}
+
+            {shouldShowNow && (
+                <div className={styles.progressPanelSection}>
+                    <div className={styles.progressPanelSectionLabel}>What I&apos;m Doing Now</div>
+                    <div className={styles.progressPanelSectionBody}>
+                        <MarkdownContent content={progressCard.now!} />
+                    </div>
+                </div>
+            )}
+
+            {shouldShowNext && (
+                <div className={styles.progressPanelSection}>
+                    <div className={styles.progressPanelSectionLabel}>What I&apos;ll Do Next</div>
+                    <div className={styles.progressPanelSectionBody}>
+                        <MarkdownContent content={progressCard.next!} />
+                    </div>
+                </div>
+            )}
+
+            {items.length > 0 && (
+                <ul className={styles.progressPanelList}>
+                    {items.map((item, index) => {
+                        const itemKey = item.id || `progress-item-${index}`;
+                        const isPending = item.status === 'pending';
+
+                        return (
+                            <li key={itemKey} className={styles.progressPanelListItem}>
+                                <span className={styles.progressPanelListBullet} aria-hidden="true">
+                                    •
+                                </span>
+                                {isPending ? (
+                                    <span className={styles.progressPanelItemSpinner} aria-hidden="true" />
+                                ) : (
+                                    <span className={styles.progressPanelItemCompleted} aria-hidden="true">
+                                        ✓
+                                    </span>
+                                )}
+                                <div className={styles.progressPanelItemText}>
+                                    <MarkdownContent content={item.text} />
+                                </div>
+                            </li>
+                        );
+                    })}
+                </ul>
+            )}
+        </section>
+    );
+}
+
+/**
+ * Returns true when one progress card should currently be rendered.
+ *
+ * @private internal helper of <ChatMessageItem/>
+ */
+function isProgressCardVisible(
+    progressCard: ChatMessage['progressCard'],
+): progressCard is NonNullable<ChatMessage['progressCard']> {
+    return Boolean(progressCard && progressCard.isVisible !== false);
+}
+
+/**
  * Finds teammate metadata by tool name, falling back to the toolName field when needed.
  */
 function findTeammateByToolName(teammates: TeammatesMap | undefined, toolName: string): TeammateMetadata | undefined {
@@ -788,6 +878,10 @@ export const ChatMessageItem = memo(
         );
         const shouldShowButtons = isLastMessage && renderableButtons.length > 0;
         const trimmedMessageContent = message.content.trim();
+        const visibleProgressCard = isProgressCardVisible(message.progressCard) ? message.progressCard : null;
+        const shouldRenderProgressPanel = Boolean(
+            visibleProgressCard && !isComplete && trimmedMessageContent.length === 0,
+        );
         const speechPlaybackEnabled = isSpeechPlaybackEnabled ?? true;
         const shouldShowPlayButton = speechPlaybackEnabled && trimmedMessageContent.length > 0;
         const playButtonTitle = audioError ?? (isAudioPlaying ? 'Pause message playback' : 'Read message aloud');
@@ -1186,6 +1280,10 @@ export const ChatMessageItem = memo(
                             </div>
                         )}
 
+                        {shouldRenderProgressPanel && visibleProgressCard && (
+                            <ProgressPanel progressCard={visibleProgressCard} />
+                        )}
+
                         {message.content === LOADING_INTERACTIVE_IMAGE ? (
                             <>
                                 {/* Loading Case: B */}
@@ -1445,6 +1543,10 @@ export const ChatMessageItem = memo(
         }
 
         if ((prev.message.isVoiceCall ?? false) !== (next.message.isVoiceCall ?? false)) {
+            return false;
+        }
+
+        if (prev.message.progressCard !== next.message.progressCard) {
             return false;
         }
 

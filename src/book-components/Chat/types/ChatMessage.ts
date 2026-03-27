@@ -5,6 +5,65 @@ import type { id, string_date_iso8601, string_markdown } from '../../../types/ty
 export type ChatToolCall = ToolCall;
 
 /**
+ * One item in a user-facing progress card shown while assistant response is still running.
+ *
+ * @public exported from `@promptbook/components`
+ */
+export type ChatProgressItem = {
+    /**
+     * Stable item id used for incremental updates.
+     */
+    readonly id: string;
+
+    /**
+     * Item text in markdown.
+     */
+    readonly text: string_markdown;
+
+    /**
+     * Item status shown by the UI.
+     */
+    readonly status: 'pending' | 'completed';
+};
+
+/**
+ * Structured progress card rendered in place of generic thinking placeholders.
+ *
+ * @public exported from `@promptbook/components`
+ */
+export type ChatProgressCard = {
+    /**
+     * Optional title shown at the top of the panel.
+     */
+    readonly title?: string_markdown;
+
+    /**
+     * Optional markdown section describing current work.
+     */
+    readonly now?: string_markdown;
+
+    /**
+     * Optional markdown section describing upcoming work.
+     */
+    readonly next?: string_markdown;
+
+    /**
+     * Ordered bullet items representing in-progress or completed tasks.
+     */
+    readonly items: ReadonlyArray<ChatProgressItem>;
+
+    /**
+     * Optional timestamp when this card was last updated.
+     */
+    readonly updatedAt?: string_date_iso8601;
+
+    /**
+     * Optional visibility flag allowing explicit panel hide before final answer.
+     */
+    readonly isVisible?: boolean;
+};
+
+/**
  * Represents a single message within a chat interface.
  *
  * This type extends the base `Message` type by omitting internal routing fields
@@ -133,6 +192,11 @@ export type ChatMessage = Omit<Message<id>, 'direction' | 'recipients' | 'thread
          */
         excerpt?: string;
     }>;
+
+    /**
+     * Optional structured progress-card payload shown while a response is still in progress.
+     */
+    readonly progressCard?: ChatProgressCard;
 };
 
 /**

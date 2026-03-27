@@ -25,6 +25,7 @@ export type ComposePromptParametersWithMemoryContextOptions = {
     agentPermanentId?: string;
     agentName: string;
     chatId?: string;
+    assistantMessageId?: string;
     isPrivateModeEnabled?: boolean;
     projectRepositories?: string[];
     projectGithubToken?: string;
@@ -52,6 +53,7 @@ export function composePromptParametersWithMemoryContext(
         agentPermanentId,
         agentName,
         chatId,
+        assistantMessageId,
         isPrivateModeEnabled,
         projectRepositories,
         projectGithubToken,
@@ -139,13 +141,18 @@ export function composePromptParametersWithMemoryContext(
             parentAgentId: agentPermanentId || existingRuntimeContext.spawn?.parentAgentId,
         },
         chat:
-            chatId || existingRuntimeContext.chat?.chatId || normalizedChatAttachments.length > 0
+            chatId ||
+            assistantMessageId ||
+            existingRuntimeContext.chat?.chatId ||
+            existingRuntimeContext.chat?.assistantMessageId ||
+            normalizedChatAttachments.length > 0
                 ? {
                       ...(existingRuntimeContext.chat || {}),
                       chatId: chatId || existingRuntimeContext.chat?.chatId,
                       userId: currentUserIdentity?.userId || existingRuntimeContext.chat?.userId,
                       agentId: agentPermanentId || existingRuntimeContext.chat?.agentId,
                       agentName: agentName || existingRuntimeContext.chat?.agentName,
+                      assistantMessageId: assistantMessageId || existingRuntimeContext.chat?.assistantMessageId,
                       parameters: promptParametersForChatContext,
                       attachments:
                           normalizedChatAttachments.length > 0

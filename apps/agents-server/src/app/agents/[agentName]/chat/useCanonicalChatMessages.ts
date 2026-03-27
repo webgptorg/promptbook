@@ -307,8 +307,16 @@ function shouldShowThinkingMessage(message: ChatMessage): boolean {
     return (
         shouldManageMessageInBrowser(message) &&
         (message.lifecycleState === 'queued' || message.lifecycleState === 'running') &&
-        message.content.trim().length === 0
+        message.content.trim().length === 0 &&
+        !isProgressCardVisible(message.progressCard)
     );
+}
+
+/**
+ * Returns true when one message contains a visible progress card payload.
+ */
+function isProgressCardVisible(progressCard: ChatMessage['progressCard']): boolean {
+    return Boolean(progressCard && progressCard.isVisible !== false);
 }
 
 /**

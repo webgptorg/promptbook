@@ -1,5 +1,6 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { createChatAttachmentTools } from '@/src/tools/createChatAttachmentTools';
+import { createAgentProgressTools } from '@/src/tools/createAgentProgressTools';
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { AgentKitCacheManager } from '@/src/utils/cache/AgentKitCacheManager';
@@ -115,7 +116,7 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
               agentPermanentId,
           })
         : undefined;
-    const attachmentTools = createChatAttachmentTools([], userMessage.attachments || []);
+    const runtimeTools = createAgentProgressTools(createChatAttachmentTools([], userMessage.attachments || []));
     const promptParameters = composePromptParametersWithMemoryContext({
         baseParameters: job.parameters,
         currentUserIdentity: {
@@ -129,6 +130,7 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
         agentPermanentId,
         agentName: resolvedAgentName,
         chatId: job.chatId,
+        assistantMessageId: job.assistantMessageId,
         isPrivateModeEnabled: false,
         projectRepositories,
         projectGithubToken,
@@ -353,7 +355,7 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
                 content: userMessage.content,
                 thread,
                 attachments: userMessage.attachments,
-                ...(attachmentTools.length > 0 ? { tools: attachmentTools } : {}),
+                ...(runtimeTools.length > 0 ? { tools: runtimeTools } : {}),
             },
             (chunk: ChatPromptResult & { isFinished?: boolean }) => {
                 latestContent = chunk.content ?? latestContent;
