@@ -36,11 +36,13 @@ type ParsedSetTimeoutToolArgs = {
  *
  * @private type of UseTimeoutCommitmentDefinition
  */
-type ParsedCancelTimeoutToolArgs = {
-    timeoutId: string;
-} | {
-    allActive: true;
-};
+type ParsedCancelTimeoutToolArgs =
+    | {
+          timeoutId: string;
+      }
+    | {
+          allActive: true;
+      };
 
 /**
  * Parsed arguments for `list_timeouts`.

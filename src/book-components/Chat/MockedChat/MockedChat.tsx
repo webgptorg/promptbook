@@ -232,15 +232,18 @@ export function MockedChat(props: MockedChatProps) {
     /**
      * Resolves deterministic waiting time before one message when fixed offsets are supplied.
      */
-    const resolveOffsetDelayBeforeMessage = useCallback((messageIndex: number): number => {
-        if (!normalizedMessageOffsetsMs) {
-            return 0;
-        }
+    const resolveOffsetDelayBeforeMessage = useCallback(
+        (messageIndex: number): number => {
+            if (!normalizedMessageOffsetsMs) {
+                return 0;
+            }
 
-        const currentOffset = normalizedMessageOffsetsMs[messageIndex] || 0;
-        const previousOffset = messageIndex > 0 ? normalizedMessageOffsetsMs[messageIndex - 1] || 0 : 0;
-        return Math.max(0, currentOffset - previousOffset);
-    }, [normalizedMessageOffsetsMs]);
+            const currentOffset = normalizedMessageOffsetsMs[messageIndex] || 0;
+            const previousOffset = messageIndex > 0 ? normalizedMessageOffsetsMs[messageIndex - 1] || 0 : 0;
+            return Math.max(0, currentOffset - previousOffset);
+        },
+        [normalizedMessageOffsetsMs],
+    );
 
     useEffect(() => {
         let isCancelled = false;

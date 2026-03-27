@@ -256,10 +256,7 @@ export function createTimeoutToolFunctions(): Record<string_javascript_name, Too
  *
  * @private internal utility of USE TIMEOUT
  */
-function createListedTimeoutsAssistantMessage(options: {
-    total: number;
-    items: Array<TimeoutToolListItem>;
-}): string {
+function createListedTimeoutsAssistantMessage(options: { total: number; items: Array<TimeoutToolListItem> }): string {
     if (options.total <= 0 || options.items.length === 0) {
         return 'Found 0 timeouts.';
     }
@@ -345,10 +342,14 @@ function createBulkUpdateAssistantMessage(options: {
     const skippedCount = Math.max(0, options.matchedCount - options.updatedCount);
     const idsSuffix =
         visibleTimeoutIds.length > 0
-            ? ` Updated ids: ${visibleTimeoutIds.join(', ')}${hiddenIdsCount > 0 ? `, and ${hiddenIdsCount} more.` : '.'}`
+            ? ` Updated ids: ${visibleTimeoutIds.join(', ')}${
+                  hiddenIdsCount > 0 ? `, and ${hiddenIdsCount} more.` : '.'
+              }`
             : '';
     const skippedSuffix = skippedCount > 0 ? ` Skipped ${skippedCount} due to concurrent changes.` : '';
     const hasMoreSuffix = options.hasMore ? ' Additional matching timeouts may still exist.' : '';
 
-    return `${verb} ${options.updatedCount} ${options.updatedCount === 1 ? 'timeout' : 'timeouts'}.${idsSuffix}${skippedSuffix}${hasMoreSuffix}`;
+    return `${verb} ${options.updatedCount} ${
+        options.updatedCount === 1 ? 'timeout' : 'timeouts'
+    }.${idsSuffix}${skippedSuffix}${hasMoreSuffix}`;
 }

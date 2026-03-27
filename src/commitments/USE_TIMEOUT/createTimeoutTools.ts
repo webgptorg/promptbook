@@ -45,7 +45,8 @@ export function createTimeoutTools(existingTools: ReadonlyArray<LlmToolDefinitio
                     },
                     allActive: {
                         type: 'boolean',
-                        description: 'When true, cancel all currently active timeouts across chats in this user+agent scope.',
+                        description:
+                            'When true, cancel all currently active timeouts across chats in this user+agent scope.',
                     },
                 },
             },
@@ -84,7 +85,8 @@ export function createTimeoutTools(existingTools: ReadonlyArray<LlmToolDefinitio
                 properties: {
                     timeoutId: {
                         type: 'string',
-                        description: 'Identifier returned earlier by `set_timeout` or `list_timeouts` for one timeout update.',
+                        description:
+                            'Identifier returned earlier by `set_timeout` or `list_timeouts` for one timeout update.',
                     },
                     allActive: {
                         type: 'boolean',
