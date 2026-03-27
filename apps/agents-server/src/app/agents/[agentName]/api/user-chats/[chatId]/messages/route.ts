@@ -13,6 +13,7 @@ import {
     isFrozenUserChatSource,
     triggerUserChatJobWorker,
 } from '@/src/utils/userChat';
+import { UserChatScopeError } from '@/src/utils/userChat/UserChatScopeError';
 import { normalizeChatAttachments } from '@promptbook-local/core';
 import { resolveChatMessageValidationIssue } from '@/src/utils/chat/validateChatMessageContent';
 import { resolveUserChatScope } from '../../resolveUserChatScope';
@@ -164,11 +165,47 @@ export async function POST(
             { status: 202 },
         );
     } catch (error) {
+        if (error instanceof UserChatScopeError) {
+            return resolveUserChatMessageScopeErrorResponse(error);
+        }
+
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Failed to enqueue chat message.' },
             { status: 500 },
         );
     }
+}
+
+/**
+ * Resolves one HTTP response for branded user-chat scope failures while enqueueing a chat turn.
+ *
+ * @private route helper
+ */
+function resolveUserChatMessageScopeErrorResponse(error: UserChatScopeError): NextResponse {
+    if (error.code === 'USER_CHAT_NOT_FOUND') {
+        return NextResponse.json(
+            {
+                error: 'Chat not found.',
+                code: error.code,
+                details: error.details,
+            },
+            { status: 404 },
+        );
+    }
+
+    const status =
+        error.code === 'USER_CHAT_SCOPE_DIAGNOSTICS_FAILED' || error.code === 'USER_CHAT_SCOPE_INCONSISTENT'
+            ? 500
+            : 404;
+
+    return NextResponse.json(
+        {
+            error: error.message,
+            code: error.code,
+            details: error.details,
+        },
+        { status },
+    );
 }
 
 /**

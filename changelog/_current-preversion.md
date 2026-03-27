@@ -1,3 +1,9 @@
+-   Fixed Agents Server durable user-chat message enqueue error handling so concurrent chat deletion races no longer surface as generic internal save failures:
+
+    -   Added explicit `UserChatScopeError` handling in `POST /agents/[agentName]/api/user-chats/[chatId]/messages`.
+    -   `USER_CHAT_NOT_FOUND` now returns a deterministic `404 Chat not found.` response instead of leaking the internal `mutate_chat` diagnostic markdown as a generic `500`.
+    -   Kept scope-diagnostics inconsistency failures mapped to `500`, while scope mismatch failures continue to map to `404`.
+
 -   Added Promptbook coder project bootstrap command aliases `ptbk coder init` and `ptbk coder initialize` for external repositories:
 
     -   Added new `src/cli/cli-commands/coder/init.ts` subcommand that initializes coder prerequisites in current project.
