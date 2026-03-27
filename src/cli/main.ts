@@ -1,4 +1,4 @@
-import { promptbookCli } from './promptbookCli';
+import { $runPromptbookCli } from './$runPromptbookCli';
 
 /**
  * Note: [🔺] Purpose of this file is to export CLI for production environment
@@ -11,7 +11,7 @@ import { promptbookCli } from './promptbookCli';
  */
 export const _CLI = {
     // Note: [🥠]
-    _initialize_promptbookCli: promptbookCli,
+    _initialize_promptbookCli: $runPromptbookCli,
 };
 
 /**

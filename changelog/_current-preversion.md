@@ -1,3 +1,9 @@
+-   Unified Promptbook CLI bootstrap for local and packaged execution so `ts-node src/cli/test/ptbk.ts ...` and `npx ptbk ...` now run through the same initializer:
+
+    -   Added shared `src/cli/$runPromptbookCli.ts` bootstrap with single runtime-registration path.
+    -   Updated `src/cli/main.ts` (`_CLI._initialize_promptbookCli`) to call the shared bootstrap.
+    -   Updated `src/cli/test/ptbk.ts` to use the same shared bootstrap instead of a separate direct initialization path.
+
 -   Added an optional Agents Server web-chat progress tool (`agent_progress`) for deep-research-style live progress panels during long responses:
 
     -   Added a new runtime tool definition + handler that supports `initialize`, `append_items`, `update`, and `finalize` actions with validated structured payloads (`title`, `now`, `next`, and bullet `items` with `pending` / `completed` status).
