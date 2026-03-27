@@ -1,6 +1,6 @@
 [ ]
 
-[✨♋️] In the Agents server this error occures, fix it:
+[✨💩] In the Agents server this error occures, fix it:
 
 ```
 Chat save failed because chat `PbuAR74jdCWbCu` does not exist. **Classification:** Missing database row. **Operation:** `mutate_chat` **Requested scope:** user `3`, agent `JrMi6YxWeLvjoK`
@@ -14,7 +14,7 @@ Chat save failed because chat `PbuAR74jdCWbCu` does not exist. **Classification:
 
 [-]
 
-[✨♋️] foo
+[✨💩] foo
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
@@ -27,7 +27,7 @@ Chat save failed because chat `PbuAR74jdCWbCu` does not exist. **Classification:
 
 [-]
 
-[✨♋️] foo
+[✨💩] foo
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
@@ -40,7 +40,7 @@ Chat save failed because chat `PbuAR74jdCWbCu` does not exist. **Classification:
 
 [-]
 
-[✨♋️] foo
+[✨💩] foo
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
