@@ -43,6 +43,15 @@ import { resolveServerAgentContext } from '../resolveServerAgentContext';
 const USER_CHAT_JOB_HEARTBEAT_INTERVAL_MS = 5_000;
 
 /**
+ * Minimum interval between persisted assistant-message snapshots while streaming.
+ *
+ * Throttling this write path avoids overwhelming Supabase with token-level updates.
+ *
+ * @private function of `userChat`
+ */
+const USER_CHAT_JOB_ASSISTANT_MESSAGE_PERSIST_INTERVAL_MS = 500;
+
+/**
  * Error name used when a running durable chat job is cancelled.
  *
  * @private function of `userChat`
@@ -178,6 +187,9 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
     let persistQueue: Promise<void> = Promise.resolve();
     let hasQueuedCompletedPersistence = false;
     let hasPersistedCompletedState = false;
+    let lastAssistantMessagePersistedAt = 0;
+    let hasPendingAssistantMessageUpdate = false;
+    let assistantMessageUpdateTimeout: ReturnType<typeof setTimeout> | null = null;
     const abortController = new AbortController();
     const heartbeatTimer = setInterval(() => {
         persistQueue = persistQueue
@@ -245,6 +257,65 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
     };
 
     /**
+     * Cancels any scheduled delayed assistant-message persistence timer.
+     *
+     * @private function of `runUserChatJob`
+     */
+    const clearScheduledAssistantMessageUpdate = (): void => {
+        if (!assistantMessageUpdateTimeout) {
+            return;
+        }
+
+        clearTimeout(assistantMessageUpdateTimeout);
+        assistantMessageUpdateTimeout = null;
+    };
+
+    /**
+     * Persists the latest assistant-message snapshot with write throttling.
+     *
+     * @private function of `runUserChatJob`
+     */
+    const scheduleAssistantMessageUpdate = (force = false): void => {
+        if (hasQueuedCompletedPersistence || hasPersistedCompletedState) {
+            clearScheduledAssistantMessageUpdate();
+            hasPendingAssistantMessageUpdate = false;
+            return;
+        }
+
+        const now = Date.now();
+        const remainingDelayMs =
+            USER_CHAT_JOB_ASSISTANT_MESSAGE_PERSIST_INTERVAL_MS - (now - lastAssistantMessagePersistedAt);
+
+        if (!force && remainingDelayMs > 0) {
+            hasPendingAssistantMessageUpdate = true;
+
+            if (!assistantMessageUpdateTimeout) {
+                assistantMessageUpdateTimeout = setTimeout(() => {
+                    assistantMessageUpdateTimeout = null;
+                    scheduleAssistantMessageUpdate(true);
+                }, remainingDelayMs);
+
+                assistantMessageUpdateTimeout.unref?.();
+            }
+
+            return;
+        }
+
+        clearScheduledAssistantMessageUpdate();
+        hasPendingAssistantMessageUpdate = false;
+        lastAssistantMessagePersistedAt = now;
+
+        queueAssistantMessageUpdate((message) => ({
+            ...message,
+            content: latestContent,
+            ongoingToolCalls: latestToolCalls,
+            lifecycleState: 'running',
+            lifecycleError: undefined,
+            isComplete: false,
+        }));
+    };
+
+    /**
      * Persists the durable completion state immediately after the visible output stream ends.
      *
      * @private function of `runUserChatJob`
@@ -255,6 +326,8 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
         }
 
         hasQueuedCompletedPersistence = true;
+        clearScheduledAssistantMessageUpdate();
+        hasPendingAssistantMessageUpdate = false;
         clearInterval(heartbeatTimer);
         persistQueue = persistQueue.then(async () => {
             await persistUserChatJobTerminalState({
@@ -289,23 +362,22 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
                     : latestToolCalls;
 
                 if (chunk.isFinished === true) {
+                    scheduleAssistantMessageUpdate(true);
                     queueCompletedPersistence();
                     return;
                 }
 
-                queueAssistantMessageUpdate((message) => ({
-                    ...message,
-                    content: latestContent,
-                    ongoingToolCalls: latestToolCalls,
-                    lifecycleState: 'running',
-                    lifecycleError: undefined,
-                    isComplete: false,
-                }));
+                scheduleAssistantMessageUpdate();
             },
             { signal: abortController.signal },
         );
 
         clearInterval(heartbeatTimer);
+        if (hasPendingAssistantMessageUpdate) {
+            scheduleAssistantMessageUpdate(true);
+        } else {
+            clearScheduledAssistantMessageUpdate();
+        }
         await persistQueue;
 
         const normalizedResponse = ensureNonEmptyChatContent({
@@ -372,6 +444,7 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
         return 'completed';
     } catch (error) {
         clearInterval(heartbeatTimer);
+        clearScheduledAssistantMessageUpdate();
         await persistQueue.catch(() => undefined);
 
         if (hasPersistedCompletedState) {

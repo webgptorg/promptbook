@@ -1,3 +1,9 @@
+-   Fixed critical Agents Server Supabase overload/crash behavior under durable chat load by reducing database pressure in the hottest runtime paths:
+
+    -   Added write backpressure in durable chat job execution so assistant-message progress is no longer persisted on every streamed token chunk; persistence is now throttled to a bounded cadence with final-state flushes preserved.
+    -   Reduced canonical chat stream polling pressure for active and idle chats (`/agents/[agentName]/api/user-chats/[chatId]/stream`) to significantly lower repeated Supabase reads.
+    -   Prevented timeout-worker bootstrap storms by ensuring the immediate catch-up kick runs only once per server process instead of on every scope-resolving request.
+
 -   Enhanced the Agents Server `/agents/[agentName]/chat/chatgpt-like` alternative chat UI to better mirror ChatGPT while keeping the existing Promptbook header and fully reusing the same durable chat pipeline:
 
     -   Kept data/backend behavior shared with the canonical chat route and added missing route parity for `shareTarget` deep links (including auto-executed shared message attachments) so both views open/continue the same conversations.
