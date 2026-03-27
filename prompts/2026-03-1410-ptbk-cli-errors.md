@@ -50,7 +50,7 @@ npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.
 
 ---
 
-[ ]
+[x] ~$1.27 14 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨🚼] Implement
 
@@ -125,4 +125,5 @@ $ npx ptbk coder initialize
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Promptbook CLI](src/cli/test/ptbk.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
 

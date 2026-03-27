@@ -7,6 +7,7 @@ import type { $side_effect } from '../../utils/organization/$side_effect';
 import { $initializeCoderFindFreshEmojiTagCommand } from './coder/find-fresh-emoji-tags';
 import { $initializeCoderFindRefactorCandidatesCommand } from './coder/find-refactor-candidates';
 import { $initializeCoderGenerateBoilerplatesCommand } from './coder/generate-boilerplates';
+import { $initializeCoderInitCommand } from './coder/init';
 import { $initializeCoderRunCommand } from './coder/run';
 import { $initializeCoderVerifyCommand } from './coder/verify';
 
@@ -14,6 +15,7 @@ import { $initializeCoderVerifyCommand } from './coder/verify';
  * Initializes `coder` command with subcommands for Promptbook CLI utilities
  *
  * The coder command provides utilities for automated coding:
+ * - init: Initialize coder configuration in current project
  * - generate-boilerplates: Generate prompt boilerplate files
  * - find-refactor-candidates: Find files that need refactoring
  * - run: Run coding prompts with AI agents
@@ -31,6 +33,7 @@ export function $initializeCoderCommand(program: Program): $side_effect {
             Coding utilities for automated development workflows
 
             Subcommands:
+            - init: Initialize coder configuration in current project
             - generate-boilerplates: Generate prompt boilerplate files
             - find-refactor-candidates: Find files that need refactoring
             - run: Run coding prompts with AI agents
@@ -40,6 +43,7 @@ export function $initializeCoderCommand(program: Program): $side_effect {
     );
 
     // Register all subcommands
+    $initializeCoderInitCommand(coderCommand);
     $initializeCoderGenerateBoilerplatesCommand(coderCommand);
     $initializeCoderFindRefactorCandidatesCommand(coderCommand);
     $initializeCoderRunCommand(coderCommand);

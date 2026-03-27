@@ -1,3 +1,11 @@
+-   Added Promptbook coder project bootstrap command aliases `ptbk coder init` and `ptbk coder initialize` for external repositories:
+
+    -   Added new `src/cli/cli-commands/coder/init.ts` subcommand that initializes coder prerequisites in current project.
+    -   The new initializer now creates `prompts/` and `prompts/done/` if missing.
+    -   The new initializer now ensures `.env` contains required coding-agent identity variables (`CODING_AGENT_GIT_NAME`, `CODING_AGENT_GIT_EMAIL`, `CODING_AGENT_GIT_SIGNING_KEY`) with default Promptbook bootstrap values.
+    -   Wired the command into `src/cli/cli-commands/coder.ts` and updated coder subcommand help text.
+    -   Extended `src/cli/test/ptbk.test.ts` with CLI coverage for both `coder init --help` and `coder initialize --help`.
+
 -   Unified Promptbook CLI bootstrap for local and packaged execution so `ts-node src/cli/test/ptbk.ts ...` and `npx ptbk ...` now run through the same initializer:
 
     -   Added shared `src/cli/$runPromptbookCli.ts` bootstrap with single runtime-registration path.

@@ -21,5 +21,23 @@ describe('how promptbookCli works', () => {
             }),
         ).resolves.toContain(PROMPTBOOK_ENGINE_VERSION));
 
+    it('should expose `coder init` command', () =>
+        expect(
+            $execCommand({
+                command: 'ts-node src/cli/test/ptbk.ts coder init --help',
+                crashOnError: false,
+                cwd: process.cwd(),
+            }),
+        ).resolves.toContain('Initialize Promptbook coder configuration for current project'));
+
+    it('should expose `coder initialize` alias', () =>
+        expect(
+            $execCommand({
+                command: 'ts-node src/cli/test/ptbk.ts coder initialize --help',
+                crashOnError: false,
+                cwd: process.cwd(),
+            }),
+        ).resolves.toContain('Initialize Promptbook coder configuration for current project'));
+
     // TODO: Test each command
 });
