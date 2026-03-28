@@ -1,3 +1,5 @@
+-   Updated the Agents Server `/agents/[agentName]/system-message` page so `promptSuffix` is extracted and shown in its own read-only field (like `systemMessage`), and the JSON model-requirements preview now replaces both extracted fields with `[look ☝ above]` placeholders.
+
 -   Fixed Agents Server Book editor syntax highlighting around fenced markdown blocks so indented fence delimiters (for example lines like `   \`\`\`markdown` and `   \`\`\``) now correctly open and close Monaco code-block tokenization, preventing subsequent commitments from staying incorrectly highlighted as code.
 
 -   Increased the default `maxTurns` for agent runs from `10` to `200` in `OpenAiAgentKitExecutionTools` to prevent premature "Max turns exceeded" failures on complex agentic tasks.
