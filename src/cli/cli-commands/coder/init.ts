@@ -126,9 +126,7 @@ async function ensureDirectory(projectPath: string, relativeDirectoryPath: strin
 /**
  * Ensures `.env` exists and contains all required coder environment variables.
  */
-async function ensureCoderEnvFile(
-    projectPath: string,
-): Promise<{
+async function ensureCoderEnvFile(projectPath: string): Promise<{
     readonly envFileStatus: InitializationStatus;
     readonly initializedEnvVariableNames: ReadonlyArray<string>;
 }> {
@@ -218,9 +216,7 @@ function printInitializationSummary(summary: CoderInitializationSummary): void {
     console.info(colors.gray(`- .env: ${formatInitializationStatus(summary.envFileStatus)}`));
 
     if (summary.initializedEnvVariableNames.length > 0) {
-        console.info(
-            colors.cyan(`- Added env variables: ${summary.initializedEnvVariableNames.join(', ')}`),
-        );
+        console.info(colors.cyan(`- Added env variables: ${summary.initializedEnvVariableNames.join(', ')}`));
     } else {
         console.info(colors.gray('- Required coder env variables are already present.'));
     }

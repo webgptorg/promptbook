@@ -112,19 +112,23 @@ export function useChatRatings(options: UseChatRatingsOptions): {
     const [feedbackStatus, setFeedbackStatus] = useState<FeedbackStatus | null>(null);
     const feedbackStatusTimeoutRef = useRef<number | null>(null);
 
-    const handleRating = useCallback((message: ChatMessage, newRating: number) => {
-        const normalizedRating = feedbackMode === 'report_issue' ? 1 : newRating;
-        setSelectedMessage(message);
-        setMessageRatings((previousRatings) => {
-            const nextRatings = new Map(previousRatings);
-            nextRatings.set(
-                message.id || message.content /* <- TODO: [??][??] Is `message.content` good replacement for the ID */,
-                normalizedRating,
-            );
-            return nextRatings;
-        });
-        setRatingModalOpen(true);
-    }, [feedbackMode]);
+    const handleRating = useCallback(
+        (message: ChatMessage, newRating: number) => {
+            const normalizedRating = feedbackMode === 'report_issue' ? 1 : newRating;
+            setSelectedMessage(message);
+            setMessageRatings((previousRatings) => {
+                const nextRatings = new Map(previousRatings);
+                nextRatings.set(
+                    message.id ||
+                        message.content /* <- TODO: [??][??] Is `message.content` good replacement for the ID */,
+                    normalizedRating,
+                );
+                return nextRatings;
+            });
+            setRatingModalOpen(true);
+        },
+        [feedbackMode],
+    );
 
     const showFeedbackStatus = useCallback((status: FeedbackStatus | null) => {
         if (feedbackStatusTimeoutRef.current !== null) {
@@ -203,7 +207,9 @@ export function useChatRatings(options: UseChatRatingsOptions): {
             });
             showFeedbackStatus({
                 message:
-                    feedbackMode === 'report_issue' ? DEFAULT_REPORT_ISSUE_SUCCESS_MESSAGE : DEFAULT_FEEDBACK_SUCCESS_MESSAGE,
+                    feedbackMode === 'report_issue'
+                        ? DEFAULT_REPORT_ISSUE_SUCCESS_MESSAGE
+                        : DEFAULT_FEEDBACK_SUCCESS_MESSAGE,
                 variant: 'success',
             });
         }

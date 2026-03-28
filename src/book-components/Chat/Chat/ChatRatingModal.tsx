@@ -101,7 +101,10 @@ export function ChatRatingModal(props: ChatRatingModalProps) {
                                 onClick={() =>
                                     setMessageRatings((previousRatings) => {
                                         const nextRatings = new Map(previousRatings);
-                                        nextRatings.set(selectedMessage.id || selectedMessage.content /* <-[??] */, star);
+                                        nextRatings.set(
+                                            selectedMessage.id || selectedMessage.content /* <-[??] */,
+                                            star,
+                                        );
                                         return nextRatings;
                                     })
                                 }
@@ -142,9 +145,7 @@ export function ChatRatingModal(props: ChatRatingModalProps) {
                 />
                 {isReportIssueMode ? 'Issue details:' : 'Note:'}
                 <textarea
-                    placeholder={
-                        isReportIssueMode ? 'Describe what went wrong (optional)' : 'Add a note (optional)'
-                    }
+                    placeholder={isReportIssueMode ? 'Describe what went wrong (optional)' : 'Add a note (optional)'}
                     defaultValue={textRating}
                     onChange={(event) => setTextRating(event.target.value)}
                     className={styles.ratingInput}
