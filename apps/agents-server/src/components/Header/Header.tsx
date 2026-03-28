@@ -396,6 +396,10 @@ export function Header(props: HeaderProps) {
      * Resolves whether one nested submenu is currently interactive.
      */
     const isNestedSubMenuInteractive = (key: string): boolean => isTouchInput || subMenuModes[key] === 'interactive';
+    /**
+     * Resolves whether one nested submenu should capture pointer events.
+     */
+    const isNestedSubMenuPointerEnabled = (key: string): boolean => isTouchInput || Boolean(subMenuModes[key]);
 
     /**
      * Cancels the pending close timer for nested submenu branches.
@@ -892,6 +896,7 @@ export function Header(props: HeaderProps) {
             const isSubMenuOpen = !isTouchInput && openSubMenu?.key === itemKey;
             const isTapSubMenuOpen = Boolean(desktopExpandedSubMenus[itemKey]);
             const isSubMenuInteractive = isNestedSubMenuInteractive(itemKey);
+            const isSubMenuPointerEnabled = isNestedSubMenuPointerEnabled(itemKey);
 
             return (
                 <div
@@ -950,7 +955,7 @@ export function Header(props: HeaderProps) {
                         <DropdownSubMenuPortal
                             anchorRect={openSubMenu.rect}
                             container={dropdownPortalContainer}
-                            isInteractive={isSubMenuInteractive}
+                            isInteractive={isSubMenuPointerEnabled}
                             onMouseEnter={() => {
                                 keepSubMenuOpen();
                                 cancelMenuClose(menuId);
@@ -962,7 +967,7 @@ export function Header(props: HeaderProps) {
                         >
                             <div
                                 className={`max-h-[70vh] w-[min(320px,calc(100vw-4rem))] overflow-y-auto rounded-xl border border-gray-100 bg-white/95 p-2 shadow-xl shadow-slate-900/10 backdrop-blur ${
-                                    isSubMenuInteractive ? 'pointer-events-auto' : 'pointer-events-none'
+                                    isSubMenuPointerEnabled ? 'pointer-events-auto' : 'pointer-events-none'
                                 }`}
                             >
                                 <div className="flex flex-col gap-1">

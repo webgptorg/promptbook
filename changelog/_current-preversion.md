@@ -1,3 +1,5 @@
+-   Fixed Agents Server nested header submenu interaction so hover-opened submenu panels now keep pointer events enabled, preventing category subitems from closing before they can be clicked.
+
 -   Updated the Agents Server `/agents/[agentName]/system-message` page so `promptSuffix` is extracted and shown in its own read-only field (like `systemMessage`), and the JSON model-requirements preview now replaces both extracted fields with `[look ☝ above]` placeholders.
 
 -   Fixed Agents Server Book editor syntax highlighting around fenced markdown blocks so indented fence delimiters (for example lines like `   \`\`\`markdown` and `   \`\`\``) now correctly open and close Monaco code-block tokenization, preventing subsequent commitments from staying incorrectly highlighted as code.
