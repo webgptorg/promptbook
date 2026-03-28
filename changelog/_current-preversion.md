@@ -1,3 +1,5 @@
+-   Increased the default `maxTurns` for agent runs from `10` to `200` in `OpenAiAgentKitExecutionTools` to prevent premature "Max turns exceeded" failures on complex agentic tasks.
+
 -   Fixed Agents Server durable user-chat message enqueue error handling so concurrent chat deletion races no longer surface as generic internal save failures:
 
     -   Added explicit `UserChatScopeError` handling in `POST /agents/[agentName]/api/user-chats/[chatId]/messages`.

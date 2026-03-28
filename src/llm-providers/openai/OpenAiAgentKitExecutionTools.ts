@@ -843,6 +843,7 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
 
         const streamResult = await run(agentForRun, inputItems, {
             stream: true,
+            maxTurns: 200,
             context: {
                 parameters: prompt.parameters,
                 onToolProgress: onProgress,
