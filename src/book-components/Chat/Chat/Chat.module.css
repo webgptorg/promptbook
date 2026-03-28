@@ -443,6 +443,53 @@
     border-top: 1px solid color-mix(in srgb, var(--message-text-color, #0f172a) 14%, transparent);
 }
 
+.citationFootnotes {
+    list-style: none;
+    margin: 10px 0 0;
+    padding: 10px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    border-top: 1px solid rgba(125, 125, 125, 0.28);
+    border-top: 1px solid color-mix(in srgb, var(--message-text-color, #0f172a) 14%, transparent);
+}
+
+.citationFootnoteItem {
+    margin: 0;
+    padding: 0;
+}
+
+.citationFootnoteButton,
+.citationFootnoteText {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: inherit;
+}
+
+.citationFootnoteButton {
+    border: none;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+    font: inherit;
+}
+
+.citationFootnoteButton:hover .citationFootnoteSource {
+    text-decoration: underline;
+}
+
+.citationFootnoteNumber {
+    font-weight: 700;
+    opacity: 0.85;
+}
+
+.citationFootnoteSource {
+    word-break: break-word;
+}
+
 .toolCallChip {
     display: flex;
     align-items: center;

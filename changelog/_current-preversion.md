@@ -1,3 +1,10 @@
+-   Updated shared chat citation rendering (including Agents Server chat bubbles) to show clean numbered inline references with per-message footnotes:
+
+    -   Added citation-footnote transformation that supports both OpenAI-style markers (`【id†document】`) and inline id tokens (`[0:0]`, `[8:13]`), maps ids to document sources, and assigns stable numbers by first appearance.
+    -   Deduplicated repeated citations by document source so repeated mentions reuse the same inline number and emit a single footnote entry.
+    -   Replaced message-level source chip rendering for direct message citations with a bottom footnote list formatted as `number -> 【document.ext】`, while keeping teammate/transitive source chips unchanged.
+    -   Added unit coverage for `[0:0]` / `[8:13]` parsing+mapping, per-document deduplication, first-appearance numbering stability, and mixed-notation rendering.
+
 -   Fixed Agents Server nested header submenu interaction so hover-opened submenu panels now keep pointer events enabled, preventing category subitems from closing before they can be clicked.
 
 -   Updated the Agents Server `/agents/[agentName]/system-message` page so `promptSuffix` is extracted and shown in its own read-only field (like `systemMessage`), and the JSON model-requirements preview now replaces both extracted fields with `[look ☝ above]` placeholders.

@@ -1,4 +1,4 @@
-[ ]
+[x] ~$1.05 29 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [🧾📎] Render agent citations as clean numbered footnotes (dedup per document)
 
@@ -32,3 +32,4 @@
     -   Footnotes appear at the bottom of the message, clearly associated with the body citations.
 -   Acceptance criteria (automated):
     -   Tests covering `[0:0]` + `[8:13]` notations and dedup behavior pass.
+
