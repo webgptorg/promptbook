@@ -104,6 +104,7 @@ describe('ensureBookEditorMonacoLanguage', () => {
                 readonly 'agent-reference-body': ReadonlyArray<readonly [RegExp, string, string?]>;
                 readonly 'note-commitment-body': ReadonlyArray<readonly [RegExp, string, string?]>;
                 readonly 'todo-commitment-body': ReadonlyArray<readonly [RegExp, string, string?]>;
+                readonly codeblock: ReadonlyArray<readonly [RegExp, string, string?]>;
             };
         };
         const themeConfig = spies.defineTheme.mock.calls[0]?.[1] as {
@@ -146,6 +147,27 @@ describe('ensureBookEditorMonacoLanguage', () => {
         expect(noteThemeRule?.foreground).toBe(PROMPTBOOK_SYNTAX_COLORS.NOTE_COMMITMENT.toHex());
         expect(todoThemeRule?.foreground).toBe(PROMPTBOOK_SYNTAX_COLORS.TODO_COMMITMENT_TEXT.toHex());
         expect(todoThemeRule?.background).toBe(PROMPTBOOK_SYNTAX_COLORS.TODO_COMMITMENT_BACKGROUND.toHex());
+    });
+
+    it('accepts indented fenced-code delimiters in tokenizer rules', () => {
+        const { monaco, spies } = createMonacoLanguageMock();
+
+        ensureBookEditorMonacoLanguage(monaco);
+
+        const monarchConfig = spies.setMonarchTokensProvider.mock.calls[0]?.[1] as {
+            readonly tokenizer: {
+                readonly body: ReadonlyArray<readonly [RegExp, string, string?]>;
+                readonly codeblock: ReadonlyArray<readonly [RegExp, string, string?]>;
+            };
+        };
+
+        const bodyCodeBlockRule = monarchConfig.tokenizer.body.find((rule) => rule[2] === '@codeblock');
+        const codeBlockClosingRule = monarchConfig.tokenizer.codeblock.find((rule) => rule[2] === '@pop');
+
+        expect(bodyCodeBlockRule?.[0].test('```markdown')).toBe(true);
+        expect(bodyCodeBlockRule?.[0].test('   ```markdown')).toBe(true);
+        expect(codeBlockClosingRule?.[0].test('```')).toBe(true);
+        expect(codeBlockClosingRule?.[0].test('   ```')).toBe(true);
     });
 
     it('re-applies Book model language when mounted editor uses a different language', () => {

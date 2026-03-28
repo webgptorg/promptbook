@@ -73,6 +73,13 @@ const NOTE_LIKE_COMMITMENT_GROUPS = [
 const BOOK_EDITOR_LANGUAGE_INITIALIZED_FLAG = 'promptbookBookEditorLanguageInitialized';
 
 /**
+ * Matches fenced code-block delimiters, including optional leading indentation.
+ *
+ * @private function of BookEditorMonaco
+ */
+const CODE_BLOCK_FENCE_REGEX = /^\s*```.*$/;
+
+/**
  * Monaco instance shape extended with the BookEditor setup marker.
  *
  * @private function of BookEditorMonaco
@@ -205,7 +212,7 @@ export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor): void {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const defaultBodyRules: any = [
         [/^---[-]*$/, ''],
-        [/^```.*$/, 'code-block', '@codeblock'],
+        [CODE_BLOCK_FENCE_REGEX, 'code-block', '@codeblock'],
         ...commitmentTransitionRules,
         [parameterRegex, 'parameter'],
         [/\{[^}]+\}/, 'parameter'],
@@ -214,7 +221,7 @@ export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor): void {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const agentReferenceBodyRules: any = [
         [/^---[-]*$/, '', '@body'],
-        [/^```.*$/, 'code-block', '@codeblock'],
+        [CODE_BLOCK_FENCE_REGEX, 'code-block', '@codeblock'],
         ...commitmentTransitionRules,
         ...BookEditorMonacoTokenization.AGENT_REFERENCE_HIGHLIGHT_REGEXES.map((regex) => [regex, 'agent-reference']),
         [parameterRegex, 'parameter'],
@@ -233,7 +240,7 @@ export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor): void {
             root: [
                 [/^\s*$/, 'empty'],
                 [/^-*$/, 'line'],
-                [/^```.*$/, 'code-block', '@codeblock'],
+                [CODE_BLOCK_FENCE_REGEX, 'code-block', '@codeblock'],
                 [/^.*$/, 'title', '@body'],
             ],
             body: defaultBodyRules,
@@ -241,7 +248,7 @@ export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor): void {
             'note-commitment-body': noteCommitmentBodyRules,
             'todo-commitment-body': todoCommitmentBodyRules,
             codeblock: [
-                [/^```.*$/, 'code-block', '@pop'],
+                [CODE_BLOCK_FENCE_REGEX, 'code-block', '@pop'],
                 [/^.*$/, 'code-block'],
             ],
         },

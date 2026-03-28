@@ -1,3 +1,5 @@
+-   Fixed Agents Server Book editor syntax highlighting around fenced markdown blocks so indented fence delimiters (for example lines like `   \`\`\`markdown` and `   \`\`\``) now correctly open and close Monaco code-block tokenization, preventing subsequent commitments from staying incorrectly highlighted as code.
+
 -   Increased the default `maxTurns` for agent runs from `10` to `200` in `OpenAiAgentKitExecutionTools` to prevent premature "Max turns exceeded" failures on complex agentic tasks.
 
 -   Fixed Agents Server durable user-chat message enqueue error handling so concurrent chat deletion races no longer surface as generic internal save failures:
