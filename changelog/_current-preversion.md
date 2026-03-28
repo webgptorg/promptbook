@@ -1,3 +1,5 @@
+-   Fixed flaky `promptbookFetch` test by removing the `https://s6.ptbk.io/` URL assertion that was returning `MIDDLEWARE_INVOCATION_TIMEOUT` errors.
+
 -   Added configurable Agents Server chat feedback modes with a single `CHAT_FEEDBACK_MODE` setting (`off`, `stars`, `report_issue`) and wired it through all chat surfaces:
 
     -   Replaced boolean `isFeedbackEnabled` UI wiring with mode-based `feedbackMode` routing in standalone chat, ChatGPT-like chat, and book+chat views.
@@ -15,7 +17,7 @@
 
 -   Updated the Agents Server `/agents/[agentName]/system-message` page so `promptSuffix` is extracted and shown in its own read-only field (like `systemMessage`), and the JSON model-requirements preview now replaces both extracted fields with `[look ☝ above]` placeholders.
 
--   Fixed Agents Server Book editor syntax highlighting around fenced markdown blocks so indented fence delimiters (for example lines like `   \`\`\`markdown` and `   \`\`\``) now correctly open and close Monaco code-block tokenization, preventing subsequent commitments from staying incorrectly highlighted as code.
+-   Fixed Agents Server Book editor syntax highlighting around fenced markdown blocks so indented fence delimiters (for example lines like `   \`\`\`markdown`and` \`\`\``) now correctly open and close Monaco code-block tokenization, preventing subsequent commitments from staying incorrectly highlighted as code.
 
 -   Increased the default `maxTurns` for agent runs from `10` to `200` in `OpenAiAgentKitExecutionTools` to prevent premature "Max turns exceeded" failures on complex agentic tasks.
 
