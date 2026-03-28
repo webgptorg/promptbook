@@ -25,6 +25,11 @@ import { useSoundSystem } from '../../../../components/SoundSystemProvider/Sound
 import { useActiveBrowserTab } from '../../../../hooks/useActiveBrowserTab';
 import { fetchCalendarOAuthStatus, type CalendarOAuthStatusResponse } from '../../../../utils/calendarOAuthClient';
 import { createDefaultChatEffects } from '../../../../utils/chat/createDefaultChatEffects';
+import {
+    isChatFeedbackEnabled,
+    toChatComponentFeedbackMode,
+    type ChatFeedbackMode,
+} from '../../../../utils/chatFeedbackMode';
 import { executeQuickActionButton } from '../../../../utils/chat/executeQuickActionButton';
 import { fetchGithubAppStatus, type GithubAppStatusResponse } from '../../../../utils/githubAppClient';
 import { createDefaultSpeechRecognition } from '../../../../utils/speech-to-text/createDefaultSpeechRecognition';
@@ -64,7 +69,7 @@ type CanonicalAgentChatPanelProps = {
     autoExecuteMessage?: string;
     autoExecuteMessageAttachments?: ChatMessage['attachments'];
     areFileAttachmentsEnabled: boolean;
-    isFeedbackEnabled: boolean;
+    feedbackMode: ChatFeedbackMode;
     activeJobs: ReadonlyArray<UserChatJob>;
     activeTimeouts: ReadonlyArray<UserChatTimeout>;
     currentTimestamp: number;
@@ -118,7 +123,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
         autoExecuteMessage,
         autoExecuteMessageAttachments,
         areFileAttachmentsEnabled,
-        isFeedbackEnabled,
+        feedbackMode,
         activeJobs,
         activeTimeouts,
         currentTimestamp,
@@ -188,6 +193,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
     const lastAutoExecutePayloadRef = useRef<string | undefined>(
         serializeAutoExecutePayload(autoExecuteMessage, autoExecuteMessageAttachments),
     );
+    const feedbackEnabled = isChatFeedbackEnabled(feedbackMode);
 
     useEffect(() => {
         let isMounted = true;
@@ -482,7 +488,8 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
             onChange={onDraftMessageChange}
             onReset={isReadOnly ? undefined : onStartNewChat}
             resetRequiresConfirmation={false}
-            onFeedback={!isReadOnly && isFeedbackEnabled ? handleFeedback : undefined}
+            feedbackMode={toChatComponentFeedbackMode(feedbackMode)}
+            onFeedback={!isReadOnly && feedbackEnabled ? handleFeedback : undefined}
             onFileUpload={!isReadOnly && areFileAttachmentsEnabled ? handleFileUpload : undefined}
             participants={participants}
             buttonColor={isChatGptLikeVariant ? '#111827' : brandColorHex}

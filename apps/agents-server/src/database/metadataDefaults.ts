@@ -146,9 +146,15 @@ export const metadataDefaults = [
         type: 'BOOLEAN',
     },
     {
+        key: 'CHAT_FEEDBACK_MODE',
+        value: 'stars',
+        note: 'Controls post-response feedback UI mode. Allowed values: off, stars, report_issue.',
+        type: 'TEXT_SINGLE_LINE',
+    },
+    {
         key: 'IS_FEEDBACK_ENABLED',
         value: 'true',
-        note: 'Enable or disable collecting chat feedback and showing the feedback menu entry.',
+        note: 'Legacy feedback toggle kept for backward compatibility. Prefer CHAT_FEEDBACK_MODE for new setups.',
         type: 'BOOLEAN',
     },
     {

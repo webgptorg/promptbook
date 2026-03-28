@@ -15,6 +15,7 @@ import { useServerLanguage } from '../../../../components/ServerLanguage/ServerL
 import { AgentChatLoadingSkeleton } from '../../../../components/Skeleton/AgentChatLoadingSkeleton';
 import { ChatThreadLoadingSkeleton } from '../../../../components/Skeleton/ChatThreadLoadingSkeleton';
 import { useActiveBrowserTab } from '../../../../hooks/useActiveBrowserTab';
+import type { ChatFeedbackMode } from '../../../../utils/chatFeedbackMode';
 import { consumeShareTargetPayloadFromBrowser } from '../../../../utils/shareTargetClient';
 import {
     cancelUserChatJob,
@@ -86,7 +87,7 @@ type AgentChatHistoryClientProps = {
     isHistoryEnabled: boolean;
     isCurrentUserAdmin: boolean;
     areFileAttachmentsEnabled: boolean;
-    isFeedbackEnabled: boolean;
+    feedbackMode: ChatFeedbackMode;
     isHeadlessMode?: boolean;
     chatRouteBasePath?: string;
     layoutVariant?: AgentChatLayoutVariant;
@@ -146,7 +147,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         isHistoryEnabled,
         isCurrentUserAdmin,
         areFileAttachmentsEnabled,
-        isFeedbackEnabled,
+        feedbackMode,
         isHeadlessMode = false,
         chatRouteBasePath,
         layoutVariant = 'default',
@@ -1313,7 +1314,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                         speechRecognitionLanguage={speechRecognitionLanguage}
                         persistenceKey={`guest-chat-${encodeURIComponent(agentName)}`}
                         areFileAttachmentsEnabled={areFileAttachmentsEnabled}
-                        isFeedbackEnabled={isFeedbackEnabled}
+                        feedbackMode={feedbackMode}
                         onAutoExecuteMessageConsumed={handleAutoExecuteMessageConsumed}
                         layoutVariant={layoutVariant}
                     />
@@ -1369,7 +1370,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                     autoExecuteMessage={autoExecuteMessage}
                     autoExecuteMessageAttachments={effectiveInitialAutoExecuteMessageAttachments}
                     areFileAttachmentsEnabled={areFileAttachmentsEnabled}
-                    isFeedbackEnabled={isFeedbackEnabled}
+                    feedbackMode={feedbackMode}
                     activeJobs={activeJobs}
                     activeTimeouts={activeTimeouts}
                     currentTimestamp={currentTimestamp}

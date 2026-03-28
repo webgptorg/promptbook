@@ -12,6 +12,7 @@ import { SecretInput } from '../../../components/SecretInput/SecretInput';
 import { useDirtyModalGuard } from '../../../components/utils/useDirtyModalGuard';
 import { useUnsavedChangesGuard } from '../../../components/utils/useUnsavedChangesGuard';
 import { buildServerTablePrefix } from '../../../utils/buildServerTablePrefix';
+import type { ChatFeedbackMode } from '../../../utils/chatFeedbackMode';
 import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
 import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
 
@@ -144,7 +145,7 @@ type CreateServerWizardState = {
     initialSettings: {
         language: string;
         homepageMessage: string;
-        isFeedbackEnabled: boolean;
+        feedbackMode: ChatFeedbackMode;
         isFileAttachmentsEnabled: boolean;
         isExperimentalPwaAppEnabled: boolean;
         isFooterShown: boolean;
@@ -207,14 +208,27 @@ const SERVER_LANGUAGE_OPTIONS = [
 ] as const;
 
 /**
- * Feature flags exposed in the create-server wizard.
+ * Chat feedback mode options exposed in the create-server wizard.
  */
-const CREATE_SERVER_FEATURE_FLAGS = [
+const CHAT_FEEDBACK_MODE_OPTIONS: ReadonlyArray<{ readonly value: ChatFeedbackMode; readonly label: string }> = [
     {
-        key: 'isFeedbackEnabled',
-        title: 'Feedback enabled',
-        description: 'Show chat feedback and store feedback records.',
+        value: 'off',
+        label: 'Off',
     },
+    {
+        value: 'stars',
+        label: 'Stars',
+    },
+    {
+        value: 'report_issue',
+        label: 'Report issue',
+    },
+];
+
+/**
+ * Boolean feature flags exposed in the create-server wizard.
+ */
+const CREATE_SERVER_BOOLEAN_FEATURE_FLAGS = [
     {
         key: 'isFileAttachmentsEnabled',
         title: 'File attachments enabled',
@@ -270,7 +284,7 @@ function createInitialWizardState(): CreateServerWizardState {
         initialSettings: {
             language: 'en',
             homepageMessage: '',
-            isFeedbackEnabled: true,
+            feedbackMode: 'stars',
             isFileAttachmentsEnabled: true,
             isExperimentalPwaAppEnabled: true,
             isFooterShown: true,
@@ -463,7 +477,7 @@ function hasCreateServerWizardChanges(wizardState: CreateServerWizardState): boo
         wizardState.adminUser.password !== initialWizardState.adminUser.password ||
         wizardState.initialSettings.language !== initialWizardState.initialSettings.language ||
         wizardState.initialSettings.homepageMessage !== initialWizardState.initialSettings.homepageMessage ||
-        wizardState.initialSettings.isFeedbackEnabled !== initialWizardState.initialSettings.isFeedbackEnabled ||
+        wizardState.initialSettings.feedbackMode !== initialWizardState.initialSettings.feedbackMode ||
         wizardState.initialSettings.isFileAttachmentsEnabled !==
             initialWizardState.initialSettings.isFileAttachmentsEnabled ||
         wizardState.initialSettings.isExperimentalPwaAppEnabled !==
@@ -1642,10 +1656,38 @@ export function ServersClient() {
                                                 placeholder="Optional markdown shown on the new server homepage."
                                             />
                                         </div>
+                                        <div>
+                                            <label
+                                                htmlFor="create-server-feedback-mode"
+                                                className="mb-1 block text-sm font-medium text-gray-700"
+                                            >
+                                                Chat feedback mode
+                                            </label>
+                                            <select
+                                                id="create-server-feedback-mode"
+                                                value={wizardState.initialSettings.feedbackMode}
+                                                onChange={(event) =>
+                                                    setWizardState((previous) => ({
+                                                        ...previous,
+                                                        initialSettings: {
+                                                            ...previous.initialSettings,
+                                                            feedbackMode: event.target.value as ChatFeedbackMode,
+                                                        },
+                                                    }))
+                                                }
+                                                className={INPUT_CLASS_NAME}
+                                            >
+                                                {CHAT_FEEDBACK_MODE_OPTIONS.map((option) => (
+                                                    <option key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
                                     </div>
 
                                     <div className="grid gap-3 md:grid-cols-2">
-                                        {CREATE_SERVER_FEATURE_FLAGS.map((flag) => (
+                                        {CREATE_SERVER_BOOLEAN_FEATURE_FLAGS.map((flag) => (
                                             <label
                                                 key={flag.key}
                                                 className="flex items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4"

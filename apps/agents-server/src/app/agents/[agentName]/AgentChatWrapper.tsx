@@ -17,6 +17,11 @@ import { useServerLanguage } from '../../../components/ServerLanguage/ServerLang
 import { useSoundSystem } from '../../../components/SoundSystemProvider/SoundSystemProvider';
 import { resolveAgentChatInputPlaceholder } from '../../../utils/agentChatInputPlaceholder';
 import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatEffects';
+import {
+    isChatFeedbackEnabled,
+    toChatComponentFeedbackMode,
+    type ChatFeedbackMode,
+} from '../../../utils/chatFeedbackMode';
 import { reportClientVersionMismatch } from '../../../utils/clientVersionClient';
 import { fetchCalendarOAuthStatus, type CalendarOAuthStatusResponse } from '../../../utils/calendarOAuthClient';
 import type { FriendlyErrorMessage } from '../../../utils/errorMessages';
@@ -57,9 +62,9 @@ type AgentChatWrapperProps = {
      */
     areFileAttachmentsEnabled?: boolean;
     /**
-     * When `false`, hides the feedback UI (star button) inside the chat.
+     * Controls which feedback UI should be shown after assistant responses.
      */
-    isFeedbackEnabled?: boolean;
+    feedbackMode?: ChatFeedbackMode;
     chatFailMessage?: string;
     /**
      * Optional handler for "New chat" action emitted from chat action bar.
@@ -98,7 +103,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         onMessagesChange,
         onInputTextChange,
         areFileAttachmentsEnabled,
-        isFeedbackEnabled,
+        feedbackMode = 'stars',
         chatFailMessage,
         onStartNewChat,
         onAutoExecuteMessageConsumed,
@@ -107,7 +112,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     const effectiveInputPlaceholder = resolveAgentChatInputPlaceholder(inputPlaceholder);
     const isChatGptLikeVariant = layoutVariant === 'chatgptLike';
 
-    const shouldEnableFeedback = isFeedbackEnabled ?? true;
+    const shouldEnableFeedback = isChatFeedbackEnabled(feedbackMode);
     const { backgroundImage, brandColorHex, brandColorLightHex, brandColorDarkHex } = useAgentBackground(brandColor);
     const allowFileAttachments = areFileAttachmentsEnabled ?? true;
 
@@ -357,6 +362,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             style={chatBackgroundStyle}
             agent={agent}
             placeholderMessageContent={effectiveInputPlaceholder}
+            feedbackMode={toChatComponentFeedbackMode(feedbackMode)}
             onFeedback={shouldEnableFeedback ? handleFeedback : undefined}
             onFileUpload={allowFileAttachments ? handleFileUpload : undefined}
             onError={handleError}

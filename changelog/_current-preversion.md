@@ -1,3 +1,9 @@
+-   Added configurable Agents Server chat feedback modes with a single `CHAT_FEEDBACK_MODE` setting (`off`, `stars`, `report_issue`) and wired it through all chat surfaces:
+
+    -   Replaced boolean `isFeedbackEnabled` UI wiring with mode-based `feedbackMode` routing in standalone chat, ChatGPT-like chat, and book+chat views.
+    -   Extended shared chat feedback UI to support a lightweight `report_issue` flow that replaces stars with a report action while reusing the same feedback save callback/payload path.
+    -   Added metadata default `CHAT_FEEDBACK_MODE` and kept legacy `IS_FEEDBACK_ENABLED` fallback/compatibility behavior for older configurations and create-server bootstrap payloads.
+
 -   Updated shared chat citation rendering (including Agents Server chat bubbles) to show clean numbered inline references with per-message footnotes:
 
     -   Added citation-footnote transformation that supports both OpenAI-style markers (`【id†document】`) and inline id tokens (`[0:0]`, `[8:13]`), maps ids to document sources, and assigns stable numbers by first appearance.

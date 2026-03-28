@@ -25,6 +25,13 @@ export type ChatFeedbackResponse = {
 };
 
 /**
+ * Visual mode for post-response feedback actions.
+ *
+ * @public exported from `@promptbook/components`
+ */
+export type ChatFeedbackMode = 'off' | 'stars' | 'report_issue';
+
+/**
  * Interface for sound system that can be passed to Chat component
  * This allows the chat to trigger sounds without tight coupling
  *
@@ -321,11 +328,11 @@ export type ChatProps = {
 
     /**
      * Optional callback for handling user feedback on messages
-     * When provided, star rating buttons (1-5 stars) will be displayed next to each message
+     * When provided, message feedback actions are displayed according to `feedbackMode`.
      *
      * @param feedback - Object containing the feedback data
      * @param feedback.message - The message being rated
-     * @param feedback.rating - Star rating from 1 to 5
+     * @param feedback.rating - Numeric feedback rating value
      * @param feedback.textRating - Optional text feedback/note from user
      * @param feedback.chatThread - Complete chat thread as string
      * @param feedback.expectedAnswer - Optional expected answer provided by user
@@ -339,6 +346,13 @@ export type ChatProps = {
         expectedAnswer: string | null;
         url: string;
     }): Promisable<void>;
+
+    /**
+     * Selects which feedback action UI is shown on assistant responses.
+     *
+     * @default 'stars'
+     */
+    readonly feedbackMode?: ChatFeedbackMode;
 
     /**
      * Optional callback for handling file uploads

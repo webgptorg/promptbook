@@ -26,6 +26,10 @@ export type ChatMessageListProps = {
     mode: 'LIGHT' | 'DARK';
     isCopyButtonEnabled?: boolean;
     isFeedbackEnabled?: boolean;
+    /**
+     * Chooses which feedback controls should be rendered.
+     */
+    feedbackMode?: ChatProps['feedbackMode'];
     onCopy?: () => void;
     onMessage?: (messageContent: string) => Promisable<void>;
     onActionButton?: ChatProps['onActionButton'];
@@ -60,6 +64,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
         mode,
         isCopyButtonEnabled,
         isFeedbackEnabled,
+        feedbackMode,
         onCopy,
         onMessage,
         onActionButton,
@@ -117,6 +122,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
                         mode={mode}
                         isCopyButtonEnabled={isCopyButtonEnabled}
                         isFeedbackEnabled={isFeedbackEnabled}
+                        feedbackMode={feedbackMode}
                         onCopy={onCopy}
                         onCreateAgent={onCreateAgent}
                         toolTitles={toolTitles}

@@ -33,6 +33,7 @@ import {
     type ServerEnvironment,
     type ServerRecord,
 } from './serverRegistry';
+import { isChatFeedbackEnabled, parseChatFeedbackMode, type ChatFeedbackMode } from './chatFeedbackMode';
 
 /**
  * Table name of the global server registry.
@@ -45,10 +46,9 @@ const SERVER_REGISTRY_TABLE_NAME = '_Server';
 const SERVER_TABLE_PREFIX_PATTERN = /^[A-Za-z][A-Za-z0-9_]*_$/;
 
 /**
- * Metadata keys seeded from the create-server wizard feature flags.
+ * Metadata keys seeded from the create-server wizard boolean feature flags.
  */
-const FEATURE_FLAG_METADATA_KEY_BY_FIELD = {
-    isFeedbackEnabled: 'IS_FEEDBACK_ENABLED',
+const BOOLEAN_FEATURE_FLAG_METADATA_KEY_BY_FIELD = {
     isFileAttachmentsEnabled: 'IS_FILE_ATTACHEMENTS_ENABLED',
     isExperimentalPwaAppEnabled: 'IS_EXPERIMENTAL_PWA_APP_ENABLED',
     isFooterShown: 'IS_FOOTER_SHOWN',
@@ -85,9 +85,13 @@ export type CreateServerInitialSettings = {
      */
     readonly homepageMessage: string;
     /**
-     * Whether chat feedback should be enabled.
+     * Feedback mode used in chats after assistant responses.
      */
-    readonly isFeedbackEnabled: boolean;
+    readonly feedbackMode?: ChatFeedbackMode;
+    /**
+     * Legacy feedback toggle kept for backwards compatibility with older wizard payloads.
+     */
+    readonly isFeedbackEnabled?: boolean;
     /**
      * Whether chat file attachments should be enabled.
      */
@@ -702,6 +706,13 @@ async function normalizeCreateServerInput(input: CreateServerInput): Promise<Nor
     const iconUrl = normalizeOptionalText(input.iconUrl);
     const language = normalizeNonEmptyText(input.initialSettings.language, 'initialSettings.language');
     const homepageMessage = normalizeOptionalText(input.initialSettings.homepageMessage) || '';
+    const legacyFeedbackEnabled =
+        typeof input.initialSettings.isFeedbackEnabled === 'boolean'
+            ? input.initialSettings.isFeedbackEnabled
+                ? 'true'
+                : 'false'
+            : null;
+    const feedbackMode = parseChatFeedbackMode(input.initialSettings.feedbackMode, legacyFeedbackEnabled);
     const adminUser = normalizeSeedUser(input.adminUser, 'admin user', true);
     const additionalUsers = (input.additionalUsers || []).map((user, index) =>
         normalizeSeedUser(user, `additional user ${index + 1}`, false),
@@ -715,6 +726,7 @@ async function normalizeCreateServerInput(input: CreateServerInput): Promise<Nor
         language,
         homepageMessage,
         iconUrl,
+        feedbackMode,
         initialSettings: input.initialSettings,
     });
 
@@ -765,11 +777,14 @@ function buildServerMetadataSeedEntries(options: {
     readonly language: string;
     readonly homepageMessage: string;
     readonly iconUrl: string | null;
+    readonly feedbackMode: ChatFeedbackMode;
     readonly initialSettings: CreateServerInitialSettings;
 }): ReadonlyArray<ServerMetadataSeedEntry> {
     const entries: Array<ServerMetadataSeedEntry> = [
         createMetadataSeedEntry('SERVER_NAME', options.name),
         createMetadataSeedEntry(SERVER_LANGUAGE_METADATA_KEY, options.language),
+        createMetadataSeedEntry('CHAT_FEEDBACK_MODE', options.feedbackMode),
+        createMetadataSeedEntry('IS_FEEDBACK_ENABLED', isChatFeedbackEnabled(options.feedbackMode) ? 'true' : 'false'),
     ];
 
     if (options.homepageMessage !== '') {
@@ -781,8 +796,9 @@ function buildServerMetadataSeedEntries(options: {
         entries.push(createMetadataSeedEntry('SERVER_FAVICON_URL', options.iconUrl));
     }
 
-    for (const [fieldName, metadataKey] of Object.entries(FEATURE_FLAG_METADATA_KEY_BY_FIELD)) {
-        const fieldValue = options.initialSettings[fieldName as keyof typeof FEATURE_FLAG_METADATA_KEY_BY_FIELD];
+    for (const [fieldName, metadataKey] of Object.entries(BOOLEAN_FEATURE_FLAG_METADATA_KEY_BY_FIELD)) {
+        const fieldValue =
+            options.initialSettings[fieldName as keyof typeof BOOLEAN_FEATURE_FLAG_METADATA_KEY_BY_FIELD];
         entries.push(createMetadataSeedEntry(metadataKey, fieldValue ? 'true' : 'false'));
     }
 

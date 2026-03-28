@@ -3,6 +3,7 @@
 import type { id } from '../../../types/typeAliases';
 import { classNames } from '../../_common/react-utils/classNames';
 import type { ChatMessage } from '../types/ChatMessage';
+import type { ChatFeedbackMode } from './ChatProps';
 import styles from './Chat.module.css';
 
 /**
@@ -18,6 +19,10 @@ export type ChatRatingModalProps = {
     hoveredRating: number;
     messageRatings: Map<id, number>;
     textRating: string;
+    /**
+     * Chooses which feedback flow the modal should render.
+     */
+    feedbackMode: ChatFeedbackMode;
     mode: 'LIGHT' | 'DARK';
     isMobile: boolean;
     onClose: () => void;
@@ -42,6 +47,7 @@ export function ChatRatingModal(props: ChatRatingModalProps) {
         hoveredRating,
         messageRatings,
         textRating,
+        feedbackMode,
         mode,
         isMobile,
         onClose,
@@ -55,6 +61,7 @@ export function ChatRatingModal(props: ChatRatingModalProps) {
     if (!isOpen || !selectedMessage) {
         return null;
     }
+    const isReportIssueMode = feedbackMode === 'report_issue';
 
     const userQuestion = (() => {
         const idx = postprocessedMessages.findIndex((message) => message.id === selectedMessage.id);
@@ -85,42 +92,44 @@ export function ChatRatingModal(props: ChatRatingModalProps) {
             }}
         >
             <div className={styles.ratingModalContent}>
-                <h3>Rate this response</h3>
-                <div className={styles.stars}>
-                    {[1, 2, 3, 4, 5].map((star) => (
-                        <span
-                            key={star}
-                            onClick={() =>
-                                setMessageRatings((previousRatings) => {
-                                    const nextRatings = new Map(previousRatings);
-                                    nextRatings.set(selectedMessage.id || selectedMessage.content /* <-[??] */, star);
-                                    return nextRatings;
-                                })
-                            }
-                            onMouseEnter={() => setHoveredRating(star)}
-                            onMouseLeave={() => setHoveredRating(0)}
-                            className={classNames(styles.ratingModalStar)}
-                            style={{
-                                color:
-                                    star <=
-                                    (hoveredRating ||
-                                        messageRatings.get(
-                                            selectedMessage.id || selectedMessage.content /* <-[??] */,
-                                        ) ||
-                                        0)
-                                        ? '#FFD700'
-                                        : mode === 'LIGHT'
-                                        ? '#ccc'
-                                        : '#555',
-                            }}
-                        >
-                            ⭐
-                        </span>
-                    ))}
-                </div>
+                <h3>{isReportIssueMode ? 'Report issue' : 'Rate this response'}</h3>
+                {!isReportIssueMode && (
+                    <div className={styles.stars}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                            <span
+                                key={star}
+                                onClick={() =>
+                                    setMessageRatings((previousRatings) => {
+                                        const nextRatings = new Map(previousRatings);
+                                        nextRatings.set(selectedMessage.id || selectedMessage.content /* <-[??] */, star);
+                                        return nextRatings;
+                                    })
+                                }
+                                onMouseEnter={() => setHoveredRating(star)}
+                                onMouseLeave={() => setHoveredRating(0)}
+                                className={classNames(styles.ratingModalStar)}
+                                style={{
+                                    color:
+                                        star <=
+                                        (hoveredRating ||
+                                            messageRatings.get(
+                                                selectedMessage.id || selectedMessage.content /* <-[??] */,
+                                            ) ||
+                                            0)
+                                            ? '#FFD700'
+                                            : mode === 'LIGHT'
+                                            ? '#ccc'
+                                            : '#555',
+                                }}
+                            >
+                                ⭐
+                            </span>
+                        ))}
+                    </div>
+                )}
                 Your question:
                 <textarea readOnly value={userQuestion} className={styles.ratingInput} />
-                Expected answer:
+                {isReportIssueMode ? 'What should the answer include?' : 'Expected answer:'}
                 <textarea
                     placeholder={selectedMessage.content || 'Expected answer (optional)'}
                     defaultValue={selectedMessage.expectedAnswer || selectedMessage.content}
@@ -131,16 +140,18 @@ export function ChatRatingModal(props: ChatRatingModalProps) {
                     }}
                     className={styles.ratingInput}
                 />
-                Note:
+                {isReportIssueMode ? 'Issue details:' : 'Note:'}
                 <textarea
-                    placeholder="Add a note (optional)"
+                    placeholder={
+                        isReportIssueMode ? 'Describe what went wrong (optional)' : 'Add a note (optional)'
+                    }
                     defaultValue={textRating}
                     onChange={(event) => setTextRating(event.target.value)}
                     className={styles.ratingInput}
                 />
                 <div className={styles.ratingActions}>
                     <button onClick={onClose}>Cancel</button>
-                    <button onClick={submitRating}>Submit</button>
+                    <button onClick={submitRating}>{isReportIssueMode ? 'Report issue' : 'Submit'}</button>
                 </div>
             </div>
         </div>

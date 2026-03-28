@@ -18,6 +18,7 @@ import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../utils/a
 import { getAgentNaming } from '../utils/getAgentNaming';
 import { getCurrentUser } from '../utils/getCurrentUser';
 import { getDefaultChatPreferences } from '../utils/chatPreferences';
+import { parseChatFeedbackMode } from '../utils/chatFeedbackMode';
 import { getFederatedServers } from '../utils/getFederatedServers';
 import { isUserAdmin } from '../utils/isUserAdmin';
 import { isUserGlobalAdmin } from '../utils/isUserGlobalAdmin';
@@ -235,6 +236,7 @@ export default async function RootLayout({
         'FOOTER_LINKS',
         'SHOW_FEDERATED_SERVERS_PUBLICLY',
         'IS_EXPERIMENTAL_APP',
+        'CHAT_FEEDBACK_MODE',
         'IS_FEEDBACK_ENABLED',
         'IS_EXPERIMENTAL_PWA_APP_ENABLED',
         SERVER_LANGUAGE_METADATA_KEY,
@@ -321,7 +323,7 @@ export default async function RootLayout({
     const agents: AgentOrganizationAgent[] = organizationState?.agents || [];
     const agentFolders: AgentOrganizationFolder[] = organizationState?.folders || [];
     const isExperimental = (layoutMetadata.IS_EXPERIMENTAL_APP ?? 'false') === 'true';
-    const isFeedbackEnabled = (layoutMetadata.IS_FEEDBACK_ENABLED ?? 'true') === 'true';
+    const feedbackMode = parseChatFeedbackMode(layoutMetadata.CHAT_FEEDBACK_MODE, layoutMetadata.IS_FEEDBACK_ENABLED);
     const isExperimentalPwaAppEnabled = (layoutMetadata.IS_EXPERIMENTAL_PWA_APP_ENABLED ?? 'true') === 'true';
     const isPublicServer = isPublicServerVisibility(serverVisibility);
     const safeCustomJavascript = customJavascript.replace(/<\/script>/gi, '<\\/script>');
@@ -349,7 +351,7 @@ export default async function RootLayout({
                     defaultIsVibrationOn={chatPreferences.defaultIsVibrationOn}
                     defaultIsNotificationsOn={defaultIsNotificationsOn}
                     isExperimental={isExperimental}
-                    isFeedbackEnabled={isFeedbackEnabled}
+                    feedbackMode={feedbackMode}
                     isExperimentalPwaAppEnabled={isExperimentalPwaAppEnabled}
                     defaultServerLanguage={serverLanguage}
                     webPushPublicKey={process.env.NEXT_PUBLIC_WEB_PUSH_PUBLIC_KEY || null}

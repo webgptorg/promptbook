@@ -136,6 +136,7 @@ export function Chat(props: ChatProps) {
         onReset,
         resetRequiresConfirmation = true,
         onFeedback,
+        feedbackMode = 'stars',
         onFileUpload,
         speechRecognition,
         placeholderMessageContent,
@@ -302,7 +303,7 @@ export function Chat(props: ChatProps) {
             handleRating,
             submitRating,
         },
-    } = useChatRatings({ messages, onFeedback, isMobile: isMobileFromHook });
+    } = useChatRatings({ messages, onFeedback, feedbackMode, isMobile: isMobileFromHook });
 
     const [toolCallModalOpen, setToolCallModalOpen] = useState(false);
     const [selectedToolCallState, setSelectedToolCallState] = useState<SelectedToolCallState | null>(null);
@@ -355,7 +356,7 @@ export function Chat(props: ChatProps) {
     );
 
     const handleCopy = useCallback(() => {}, []);
-    const isFeedbackEnabled = !!onFeedback;
+    const isFeedbackEnabled = !!onFeedback && feedbackMode !== 'off';
     const shouldFadeActions = isActionsOverlapping;
     const shouldDisableActions = isActionsOverlapping && isActionsScrolling;
     const hasActions =
@@ -535,6 +536,7 @@ export function Chat(props: ChatProps) {
                         mode={mode}
                         isCopyButtonEnabled={isCopyButtonEnabled}
                         isFeedbackEnabled={isFeedbackEnabled}
+                        feedbackMode={feedbackMode}
                         onCopy={handleCopy}
                         onMessage={onMessage}
                         onActionButton={onActionButton}
@@ -622,6 +624,7 @@ export function Chat(props: ChatProps) {
                 hoveredRating={hoveredRating}
                 messageRatings={messageRatings}
                 textRating={textRating}
+                feedbackMode={feedbackMode}
                 mode={mode}
                 isMobile={isMobileFromHook}
                 onClose={() => setRatingModalOpen(false)}

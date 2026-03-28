@@ -1161,6 +1161,19 @@
     transform: scale(1.1);
 }
 
+.feedbackIssueButton {
+    border: 0;
+    background: transparent;
+    color: #ffd700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0;
+}
+
 /* Chat input area */
 .chatMainFlow .chatInput {
     z-index: 10;

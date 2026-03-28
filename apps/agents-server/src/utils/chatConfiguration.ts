@@ -1,7 +1,9 @@
 import { getMetadataMap } from '../database/getMetadata';
+import { parseChatFeedbackMode, type ChatFeedbackMode } from './chatFeedbackMode';
 
 const CHAT_FAIL_MESSAGE_KEY = 'CHAT_FAIL_MESSAGE';
 const IS_FILE_ATTACHEMENTS_ENABLED_KEY = 'IS_FILE_ATTACHEMENTS_ENABLED';
+const CHAT_FEEDBACK_MODE_KEY = 'CHAT_FEEDBACK_MODE';
 const IS_FEEDBACK_ENABLED_KEY = 'IS_FEEDBACK_ENABLED';
 
 /**
@@ -34,8 +36,8 @@ export type ChatConfiguration = {
     readonly chatFailMessage: string | null;
     /** Whether file attachments are allowed inside chats. */
     readonly isFileAttachmentsEnabled: boolean;
-    /** Whether chat feedback via ratings should be available to users. */
-    readonly isFeedbackEnabled: boolean;
+    /** Which feedback UI should be shown after assistant responses. */
+    readonly feedbackMode: ChatFeedbackMode;
 };
 
 /**
@@ -48,15 +50,17 @@ export async function loadChatConfiguration(): Promise<ChatConfiguration> {
     const metadata = await getMetadataMap([
         CHAT_FAIL_MESSAGE_KEY,
         IS_FILE_ATTACHEMENTS_ENABLED_KEY,
+        CHAT_FEEDBACK_MODE_KEY,
         IS_FEEDBACK_ENABLED_KEY,
     ]);
     const rawChatFail = metadata[CHAT_FAIL_MESSAGE_KEY];
     const rawAttachments = metadata[IS_FILE_ATTACHEMENTS_ENABLED_KEY];
+    const rawFeedbackMode = metadata[CHAT_FEEDBACK_MODE_KEY];
     const rawFeedback = metadata[IS_FEEDBACK_ENABLED_KEY];
 
     return {
         chatFailMessage: rawChatFail ?? null,
         isFileAttachmentsEnabled: parseBooleanMetadata(rawAttachments, true),
-        isFeedbackEnabled: parseBooleanMetadata(rawFeedback, true),
+        feedbackMode: parseChatFeedbackMode(rawFeedbackMode, rawFeedback),
     };
 }

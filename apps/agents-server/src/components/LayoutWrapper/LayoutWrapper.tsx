@@ -4,6 +4,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { MenuHoistingProvider } from '../../../../../src/book-components/_common/MenuHoisting/MenuHoistingContext';
 import type { AgentNaming } from '../../utils/agentNaming';
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
+import type { ChatFeedbackMode } from '../../utils/chatFeedbackMode';
 import type { UserInfo } from '../../utils/getCurrentUser';
 import { AgentNamingProvider } from '../AgentNaming/AgentNamingContext';
 import { AsyncDialogsProvider } from '../AsyncDialogs/AsyncDialogsProvider';
@@ -34,7 +35,7 @@ type LayoutWrapperProps = {
     footerLinks: Array<FooterLink>;
     federatedServers: Array<{ url: string; title: string }>;
     isExperimental: boolean;
-    isFeedbackEnabled: boolean;
+    feedbackMode: ChatFeedbackMode;
     /**
      * Indicates if the install-as-app option should be shown in agent menus.
      */
@@ -60,7 +61,7 @@ export function LayoutWrapper({
     footerLinks,
     federatedServers,
     isExperimental,
-    isFeedbackEnabled,
+    feedbackMode,
     isExperimentalPwaAppEnabled,
     defaultIsSoundsOn,
     defaultIsVibrationOn,
@@ -119,7 +120,7 @@ export function LayoutWrapper({
                                                                 agentFolders={agentFolders}
                                                                 federatedServers={federatedServers}
                                                                 isExperimental={isExperimental}
-                                                                isFeedbackEnabled={isFeedbackEnabled}
+                                                                feedbackMode={feedbackMode}
                                                             />
                                                             <main className={mainClassName}>{children}</main>
                                                             {isFooterShown && !isFooterHiddenOnPage && (

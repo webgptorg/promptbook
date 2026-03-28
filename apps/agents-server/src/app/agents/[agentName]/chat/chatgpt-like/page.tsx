@@ -114,7 +114,7 @@ export default async function AgentChatGptLikePage({
         agentProfile,
         historyIdentityAvailable,
         currentUser,
-        { isFileAttachmentsEnabled, isFeedbackEnabled },
+        { isFileAttachmentsEnabled, feedbackMode },
         thinkingMessages,
         shareTargetPayload,
     ] =
@@ -150,7 +150,7 @@ export default async function AgentChatGptLikePage({
                 isHistoryEnabled={historyIdentityAvailable}
                 isCurrentUserAdmin={currentUser?.isAdmin === true}
                 areFileAttachmentsEnabled={isFileAttachmentsEnabled}
-                isFeedbackEnabled={isFeedbackEnabled}
+                feedbackMode={feedbackMode}
                 isHeadlessMode={isHeadless}
                 chatRouteBasePath={`/agents/${encodeURIComponent(canonicalAgentId)}/chat/chatgpt-like`}
                 layoutVariant="chatgptLike"

@@ -32,6 +32,7 @@ import { just } from '../../../../../src/utils/organization/just';
 import { RESERVED_PATHS } from '../../generated/reservedPaths';
 import { buildAgentFolderContext } from '../../utils/agentOrganization/agentFolderContext';
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
+import type { ChatFeedbackMode } from '../../utils/chatFeedbackMode';
 import type { UserInfo } from '../../utils/getCurrentUser';
 import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
 import { HeadlessLink, pushWithHeadless, useIsHeadless } from '../_utils/headlessParam';
@@ -114,9 +115,9 @@ type HeaderProps = {
      */
     isExperimental?: boolean;
     /**
-     * Determines whether chat feedback should be exposed inside the menu.
+     * Determines which chat feedback mode is active.
      */
-    isFeedbackEnabled?: boolean;
+    feedbackMode?: ChatFeedbackMode;
 };
 
 /* TODO: [🐱‍🚀] Make this Agents server native  */
@@ -234,7 +235,7 @@ export function Header(props: HeaderProps) {
         agentFolders,
         federatedServers,
         isExperimental = false,
-        isFeedbackEnabled = true,
+        feedbackMode = 'stars',
     } = props;
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -1602,7 +1603,7 @@ export function Header(props: HeaderProps) {
             label: t('header.chatHistory'),
             href: '/admin/chat-history',
         },
-        ...(isFeedbackEnabled
+        ...(feedbackMode !== 'off'
             ? [
                   {
                       label: t('header.chatFeedback'),

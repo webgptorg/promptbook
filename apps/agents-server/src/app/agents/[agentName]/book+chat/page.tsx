@@ -41,7 +41,7 @@ export default async function AgentBookAndChatPage({ params }: { params: Promise
     const speechRecognitionLanguage = resolveSpeechRecognitionLanguage({
         acceptLanguageHeader: requestHeaders.get('accept-language'),
     });
-    const { chatFailMessage, isFileAttachmentsEnabled, isFeedbackEnabled } = await loadChatConfiguration();
+    const { chatFailMessage, isFileAttachmentsEnabled, feedbackMode } = await loadChatConfiguration();
 
     return (
         <div className={`agents-server-viewport-width h-[calc(100dvh-60px)] relative`}>
@@ -53,7 +53,7 @@ export default async function AgentBookAndChatPage({ params }: { params: Promise
                 speechRecognitionLanguage={speechRecognitionLanguage}
                 chatFailMessage={chatFailMessage ?? undefined}
                 areFileAttachmentsEnabled={isFileAttachmentsEnabled}
-                isFeedbackEnabled={isFeedbackEnabled}
+                feedbackMode={feedbackMode}
             />
         </div>
     );

@@ -5,6 +5,7 @@ import { string_agent_url, string_book } from '@promptbook-local/types';
 import { Book, MessageSquare } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { AgentSplitEditorChatLoadingSkeleton } from '../../../../components/Skeleton/AgentSplitEditorChatLoadingSkeleton';
+import type { ChatFeedbackMode } from '../../../../utils/chatFeedbackMode';
 import { AgentChatWrapper } from '../AgentChatWrapper';
 import { BookEditorWrapper } from '../book/BookEditorWrapper';
 
@@ -16,7 +17,7 @@ type AgentBookAndChatProps = {
     speechRecognitionLanguage?: string;
     chatFailMessage?: string;
     areFileAttachmentsEnabled: boolean;
-    isFeedbackEnabled: boolean;
+    feedbackMode: ChatFeedbackMode;
 };
 
 export function AgentBookAndChat(props: AgentBookAndChatProps) {
@@ -28,7 +29,7 @@ export function AgentBookAndChat(props: AgentBookAndChatProps) {
         speechRecognitionLanguage,
         chatFailMessage,
         areFileAttachmentsEnabled,
-        isFeedbackEnabled,
+        feedbackMode,
     } = props;
     const [isMobile, setIsMobile] = useState(false);
     const [activeTab, setActiveTab] = useState<'book' | 'chat'>('chat');
@@ -60,7 +61,7 @@ export function AgentBookAndChat(props: AgentBookAndChatProps) {
                             thinkingMessages={thinkingMessages}
                             speechRecognitionLanguage={speechRecognitionLanguage}
                             areFileAttachmentsEnabled={areFileAttachmentsEnabled}
-                            isFeedbackEnabled={isFeedbackEnabled}
+                            feedbackMode={feedbackMode}
                             chatFailMessage={chatFailMessage}
                         />
                     </div>
@@ -98,7 +99,7 @@ export function AgentBookAndChat(props: AgentBookAndChatProps) {
                 thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}
                 areFileAttachmentsEnabled={areFileAttachmentsEnabled}
-                isFeedbackEnabled={isFeedbackEnabled}
+                feedbackMode={feedbackMode}
                 chatFailMessage={chatFailMessage}
             />
         </ResizablePanelsAuto>

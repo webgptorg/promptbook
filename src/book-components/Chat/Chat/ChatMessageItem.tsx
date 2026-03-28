@@ -68,6 +68,10 @@ type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'onActionButton' | 'pa
      */
     isFeedbackEnabled?: boolean;
     /**
+     * Chooses which feedback controls should be rendered.
+     */
+    feedbackMode?: ChatProps['feedbackMode'];
+    /**
      * Called when the copy button is pressed.
      */
     onCopy?: () => void;
@@ -684,6 +688,7 @@ export const ChatMessageItem = memo(
             mode,
             isCopyButtonEnabled,
             isFeedbackEnabled,
+            feedbackMode = 'stars',
             onCopy,
             onCreateAgent,
             teammates,
@@ -849,6 +854,7 @@ export const ChatMessageItem = memo(
         const [consumedActionButtonIndexes, setConsumedActionButtonIndexes] = useState<ReadonlySet<number>>(
             () => new Set(),
         );
+        const isReportIssueFeedbackMode = feedbackMode === 'report_issue';
 
         const ongoingToolCallChips = useMemo(
             () => buildOngoingToolCallChips(message.ongoingToolCalls, teammates, teamAgentProfiles),
@@ -1443,18 +1449,36 @@ export const ChatMessageItem = memo(
                             </div>
                         )}
 
-                        {isFeedbackEnabled && isComplete && (
+                        {isFeedbackEnabled && feedbackMode !== 'off' && isComplete && (
                             <div
                                 className={styles.rating}
-                                onMouseEnter={() => {
-                                    setExpandedMessageId(message.id || message.content /* <-[💃] */);
-                                }}
-                                onMouseLeave={() => {
-                                    setExpandedMessageId(null);
-                                    setLocalHoveredRating(0);
-                                }}
+                                onMouseEnter={
+                                    isReportIssueFeedbackMode
+                                        ? undefined
+                                        : () => {
+                                              setExpandedMessageId(message.id || message.content /* <-[💃] */);
+                                          }
+                                }
+                                onMouseLeave={
+                                    isReportIssueFeedbackMode
+                                        ? undefined
+                                        : () => {
+                                              setExpandedMessageId(null);
+                                              setLocalHoveredRating(0);
+                                          }
+                                }
                             >
-                                {isExpanded ? (
+                                {isReportIssueFeedbackMode ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRating(message, 1)}
+                                        className={styles.feedbackIssueButton}
+                                        aria-label="Report issue with this response"
+                                        title="Report issue"
+                                    >
+                                        ⚠
+                                    </button>
+                                ) : isExpanded ? (
                                     [1, 2, 3, 4, 5].map((star) => (
                                         <span
                                             key={star}
@@ -1606,6 +1630,14 @@ export const ChatMessageItem = memo(
         }
 
         if (prev.currentRating !== next.currentRating) {
+            return false;
+        }
+
+        if (prev.isFeedbackEnabled !== next.isFeedbackEnabled) {
+            return false;
+        }
+
+        if (prev.feedbackMode !== next.feedbackMode) {
             return false;
         }
 

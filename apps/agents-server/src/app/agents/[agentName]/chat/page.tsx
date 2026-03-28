@@ -110,7 +110,7 @@ export default async function AgentChatPage({
         agentProfile,
         historyIdentityAvailable,
         currentUser,
-        { isFileAttachmentsEnabled, isFeedbackEnabled },
+        { isFileAttachmentsEnabled, feedbackMode },
         thinkingMessages,
         shareTargetPayload,
     ] =
@@ -146,7 +146,7 @@ export default async function AgentChatPage({
                 isHistoryEnabled={historyIdentityAvailable}
                 isCurrentUserAdmin={currentUser?.isAdmin === true}
                 areFileAttachmentsEnabled={isFileAttachmentsEnabled}
-                isFeedbackEnabled={isFeedbackEnabled}
+                feedbackMode={feedbackMode}
                 isHeadlessMode={isHeadless}
             />
         </main>
