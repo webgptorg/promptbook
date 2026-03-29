@@ -44,6 +44,7 @@ export type ResolvedBookScopedAgentContext = {
     readonly requestedAgentIdentifier: string;
     readonly canonicalAgentIdentifier: string;
     readonly canonicalAgentUrl: string_agent_url;
+    readonly currentAgentAliases: ReadonlyArray<string_agent_url>;
     readonly resolvedAgentName: string;
     readonly unresolvedAgentSource: string_book;
     readonly parentAgentPermanentId: string_agent_permanent_id;
@@ -274,12 +275,19 @@ export async function resolveBookScopedAgentContext(options: {
         const parsedParentProfile = parseAgentSource(parentAgentSource);
         const resolvedAgentName = parsedParentProfile.agentName || normalizeAgentName(agentIdentifier);
         const canonicalAgentIdentifier = parentAgentPermanentId;
-        const canonicalAgentUrl = `${localServerUrl.replace(/\/+$/g, '')}/agents/${encodeURIComponent(canonicalAgentIdentifier)}` as string_agent_url;
+        const normalizedServerUrl = localServerUrl.replace(/\/+$/g, '');
+        const canonicalAgentUrl = `${normalizedServerUrl}/agents/${encodeURIComponent(canonicalAgentIdentifier)}` as string_agent_url;
+        const currentAgentAliases = [
+            canonicalAgentUrl,
+            `${normalizedServerUrl}/agents/${encodeURIComponent(agentIdentifier)}`,
+            `${normalizedServerUrl}/agents/${encodeURIComponent(resolvedAgentName)}`,
+        ].filter((value, index, values): value is string_agent_url => values.indexOf(value) === index);
 
         return {
             requestedAgentIdentifier: agentIdentifier,
             canonicalAgentIdentifier,
             canonicalAgentUrl,
+            currentAgentAliases,
             resolvedAgentName,
             unresolvedAgentSource: parentAgentSource,
             parentAgentPermanentId,
@@ -321,6 +329,7 @@ export async function resolveBookScopedAgentContext(options: {
         requestedAgentIdentifier: agentIdentifier,
         canonicalAgentIdentifier,
         canonicalAgentUrl,
+        currentAgentAliases: [canonicalAgentUrl],
         resolvedAgentName,
         unresolvedAgentSource: embeddedSource,
         parentAgentPermanentId,

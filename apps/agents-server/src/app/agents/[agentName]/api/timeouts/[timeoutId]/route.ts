@@ -3,6 +3,7 @@ import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import {
     cancelScheduledUserChatTimeout,
     getAgentScopedUserChatTimeout,
+    notifyUserChatTimeoutScheduleChanged,
     updateAgentScopedUserChatTimeout,
 } from '@/src/utils/userChatTimeout';
 import type { UpdateAgentScopedUserChatTimeoutPatch } from '@/src/utils/userChatTimeout';
@@ -70,6 +71,8 @@ export async function PATCH(
         if (!updatedTimeout) {
             return NextResponse.json({ error: 'Timeout not found.' }, { status: 404 });
         }
+
+        notifyUserChatTimeoutScheduleChanged(updatedTimeout);
 
         return NextResponse.json(updatedTimeout);
     } catch (error) {

@@ -1644,3 +1644,4 @@
 -   Updated `openai` from `4.63.0` to `6.18.0` and fixed all resulting type errors.
 -   Resolved `zod` peer dependency conflicts between `@ai-sdk/deepseek` and `@openai/agents` by using `overrides` in `package.json`.
 -   Fixed `node-fetch` declaration issue in `LindatAutomaticTranslator.ts` by using native `URLSearchParams` and removing `node-fetch` import.
+-   Stabilized Agents Server under low traffic by removing constant 5-second DB polling from timeout/preparation workers, restoring durable timeout wake-ups through Vercel cron, fixing agent-source cycle detection across canonical/name URLs, and reducing agent-reference resolver churn.

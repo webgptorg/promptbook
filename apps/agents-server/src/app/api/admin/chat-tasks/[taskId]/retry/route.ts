@@ -1,6 +1,11 @@
 import { after, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
-import { getUserChatTimeoutById, retryUserChatTimeout, triggerUserChatTimeoutWorker } from '@/src/utils/userChatTimeout';
+import {
+    getUserChatTimeoutById,
+    notifyUserChatTimeoutScheduleChanged,
+    retryUserChatTimeout,
+    triggerUserChatTimeoutWorker,
+} from '@/src/utils/userChatTimeout';
 import { getUserChatJobById, retryUserChatJob, triggerUserChatJobWorker } from '@/src/utils/userChat';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
 
@@ -73,6 +78,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ tas
         if (!retriedTimeout) {
             return NextResponse.json({ error: 'Task could not be retried.' }, { status: 409 });
         }
+
+        notifyUserChatTimeoutScheduleChanged(retriedTimeout);
 
         after(() =>
             triggerUserChatTimeoutWorker({

@@ -16,11 +16,6 @@ import { resolveServerAgentContext } from './resolveServerAgentContext';
 const AGENT_PREPARATION_DEBOUNCE_MS = 30_000;
 
 /**
- * Poll interval for the in-process preparation worker loop.
- */
-const AGENT_PREPARATION_WORKER_INTERVAL_MS = 5_000;
-
-/**
  * Maximum number of jobs processed per worker tick and table prefix.
  */
 const AGENT_PREPARATION_MAX_JOBS_PER_TICK = 2;
@@ -148,11 +143,6 @@ const AGENT_PREPARATION_METRICS: AgentPreparationMetrics = {
 const ACTIVE_TABLE_PREFIXES = new Set<string>();
 
 /**
- * Interval handle for the singleton background worker.
- */
-let agentPreparationWorkerInterval: ReturnType<typeof setInterval> | null = null;
-
-/**
  * One-shot wake-up timeout handles keyed by table prefix.
  */
 const agentPreparationWakeupTimeoutsByPrefix = new Map<string, ReturnType<typeof setTimeout>>();
@@ -223,22 +213,10 @@ function shouldDisableBackgroundWorkerLoop(): boolean {
 }
 
 /**
- * Starts the singleton background worker if it is not already running.
+ * Retained compatibility no-op for call sites that previously started a polling worker.
  */
 function ensureAgentPreparationWorkerRunning(): void {
-    if (shouldDisableBackgroundWorkerLoop()) {
-        return;
-    }
-
-    if (agentPreparationWorkerInterval) {
-        return;
-    }
-
-    agentPreparationWorkerInterval = setInterval(() => {
-        void runAgentPreparationWorkerTick();
-    }, AGENT_PREPARATION_WORKER_INTERVAL_MS);
-
-    agentPreparationWorkerInterval.unref?.();
+    return;
 }
 
 /**

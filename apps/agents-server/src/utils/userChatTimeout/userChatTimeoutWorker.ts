@@ -26,13 +26,6 @@ import {
 } from './userChatTimeoutStore';
 
 /**
- * Poll interval for the background timeout worker loop.
- *
- * @private internal utility of userChatTimeout
- */
-const USER_CHAT_TIMEOUT_WORKER_INTERVAL_MS = 5_000;
-
-/**
  * Maximum number of due timeouts processed in one worker tick.
  *
  * @private internal utility of userChatTimeout
@@ -66,13 +59,6 @@ const USER_CHAT_TIMEOUT_CLIENT_MESSAGE_ID_PREFIX = 'timeout:';
  * @private internal utility of userChatTimeout
  */
 const USER_CHAT_TIMEOUT_WARNING_MESSAGE_ID_LENGTH = 14;
-
-/**
- * Singleton interval handle for the timeout worker.
- *
- * @private internal singleton of userChatTimeout
- */
-let userChatTimeoutWorkerInterval: ReturnType<typeof setInterval> | null = null;
 
 /**
  * One-shot local wake-up timers keyed by timeout id.
@@ -132,7 +118,6 @@ export async function scheduleThreadScopedUserChatTimeout(options: {
         durationMs: timeout.durationMs,
     });
 
-    ensureUserChatTimeoutWorkerRunning();
     scheduleUserChatTimeoutLocalWakeup(timeout);
 
     return timeout;
@@ -160,24 +145,12 @@ export async function cancelScheduledUserChatTimeout(timeoutId: string): Promise
 }
 
 /**
- * Starts the singleton timeout worker loop if it is not already running.
+ * Retained compatibility no-op for call sites that previously started a polling loop.
  *
  * @private internal utility of userChatTimeout
  */
 export function ensureUserChatTimeoutWorkerRunning(): void {
-    if (shouldDisableBackgroundWorkerLoop()) {
-        return;
-    }
-
-    if (userChatTimeoutWorkerInterval) {
-        return;
-    }
-
-    userChatTimeoutWorkerInterval = setInterval(() => {
-        void runUserChatTimeoutWorkerTick();
-    }, USER_CHAT_TIMEOUT_WORKER_INTERVAL_MS);
-
-    userChatTimeoutWorkerInterval.unref?.();
+    return;
 }
 
 /**
@@ -191,6 +164,32 @@ export function kickUserChatTimeoutWorkerTick(): void {
     }
 
     void runUserChatTimeoutWorkerTick();
+}
+
+/**
+ * Refreshes the best-effort local wake-up after one timeout schedule mutation.
+ *
+ * @private internal utility of userChatTimeout
+ */
+export function notifyUserChatTimeoutScheduleChanged(timeout: UserChatTimeoutRecord): void {
+    if (timeout.status !== 'QUEUED' || timeout.cancelRequestedAt || timeout.pausedAt) {
+        clearUserChatTimeoutLocalWakeup(timeout.timeoutId);
+        return;
+    }
+
+    const dueAtTimestamp = new Date(timeout.dueAt).getTime();
+    if (!Number.isFinite(dueAtTimestamp)) {
+        clearUserChatTimeoutLocalWakeup(timeout.timeoutId);
+        return;
+    }
+
+    if (dueAtTimestamp <= Date.now()) {
+        clearUserChatTimeoutLocalWakeup(timeout.timeoutId);
+        kickUserChatTimeoutWorkerTick();
+        return;
+    }
+
+    scheduleUserChatTimeoutLocalWakeup(timeout);
 }
 
 /**

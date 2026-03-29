@@ -75,6 +75,11 @@ function isAuthorizedInternalWorkerRequest(request: Request): boolean {
  */
 function isAuthorizedVercelCronRequest(request: Request): boolean {
     const cronSecret = process.env.CRON_SECRET?.trim();
+    const userAgent = request.headers.get('user-agent') || '';
+
+    if (request.method === 'GET' && userAgent.startsWith('vercel-cron/')) {
+        return true;
+    }
 
     if (!cronSecret) {
         return false;

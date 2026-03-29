@@ -19,6 +19,11 @@ export type ResolveAgentStateFromSourceOptions = {
     readonly canonicalAgentUrl?: string_agent_url;
 
     /**
+     * Additional equivalent URLs of the current agent used for cycle detection.
+     */
+    readonly currentAgentAliases?: ReadonlyArray<string_agent_url>;
+
+    /**
      * Optional compact-reference resolver shared with the current server/request context.
      */
     readonly agentReferenceResolver?: AgentReferenceResolver;
@@ -98,6 +103,7 @@ export async function resolveAgentStateFromSource(
     const resolvedAgentSource = await resolveInheritedAgentSource(unresolvedAgentSource, {
         adamAgentUrl: options.adamAgentUrl,
         currentAgentUrl: options.canonicalAgentUrl,
+        currentAgentAliases: options.currentAgentAliases,
         agentReferenceResolver: options.agentReferenceResolver,
     });
     const resolvedAgentProfile = parseAgentSource(resolvedAgentSource);

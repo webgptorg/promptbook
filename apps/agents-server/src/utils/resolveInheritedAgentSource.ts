@@ -240,6 +240,10 @@ type ResolveInheritedAgentSourceOptions = ImportAgentOptions & {
      */
     readonly currentAgentUrl?: string_agent_url;
     /**
+     * Additional equivalent URLs that should be treated as the current agent while detecting cycles.
+     */
+    readonly currentAgentAliases?: ReadonlyArray<string_agent_url>;
+    /**
      * Already visited agent URLs in the current resolution stack.
      */
     readonly inheritancePath?: ReadonlyArray<string_agent_url>;
@@ -268,7 +272,11 @@ function createResolutionLineage(options?: ResolveInheritedAgentSourceOptions): 
         lineage.push(options.currentAgentUrl);
     }
 
-    return lineage.map(normalizeAgentUrl);
+    for (const alias of options?.currentAgentAliases || []) {
+        lineage.push(alias);
+    }
+
+    return [...new Set(lineage.map(normalizeAgentUrl))];
 }
 
 /**

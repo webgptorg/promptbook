@@ -27,6 +27,7 @@ export {
     cancelScheduledUserChatTimeout,
     ensureUserChatTimeoutWorkerRunning,
     kickUserChatTimeoutWorkerTick,
+    notifyUserChatTimeoutScheduleChanged,
     runUserChatTimeoutWorkerTick,
     scheduleThreadScopedUserChatTimeout,
 } from './userChatTimeout/userChatTimeoutWorker';

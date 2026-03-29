@@ -312,4 +312,20 @@ describe('how `resolveInheritedAgentSource` works', () => {
             ),
         ).rejects.toBeInstanceOf(ParseError);
     });
+
+    it('should detect self-cycles when canonical and name-based URLs refer to the same agent', async () => {
+        await expect(
+            resolveInheritedAgentSource(
+                book`
+                    Recursive 0
+
+                    FROM https://core-test.ptbk.io/agents/recursive-0
+                `,
+                {
+                    currentAgentUrl: 'https://core-test.ptbk.io/agents/perm-recursive-0',
+                    currentAgentAliases: ['https://core-test.ptbk.io/agents/recursive-0'],
+                },
+            ),
+        ).rejects.toBeInstanceOf(ParseError);
+    });
 });

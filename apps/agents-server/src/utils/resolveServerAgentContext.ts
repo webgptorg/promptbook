@@ -47,6 +47,7 @@ export async function resolveServerAgentContext(
     const resolvedAgentState = await resolveAgentStateFromSource(bookScopedAgentContext.unresolvedAgentSource, {
         adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
         canonicalAgentUrl: bookScopedAgentContext.canonicalAgentUrl,
+        currentAgentAliases: bookScopedAgentContext.currentAgentAliases,
         agentReferenceResolver: bookScopedAgentContext.scopedAgentReferenceResolver,
     });
 

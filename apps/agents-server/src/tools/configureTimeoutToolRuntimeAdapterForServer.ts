@@ -9,6 +9,7 @@ import {
     cancelScheduledUserChatTimeout,
     getAgentScopedUserChatTimeout,
     listAgentUserChatTimeouts,
+    notifyUserChatTimeoutScheduleChanged,
     pauseAllActiveAgentScopedUserChatTimeouts,
     resumeAllPausedAgentScopedUserChatTimeouts,
     scheduleThreadScopedUserChatTimeout,
@@ -279,6 +280,8 @@ const timeoutToolRuntimeAdapter: TimeoutToolRuntimeAdapter = {
                 timeoutId,
             };
         }
+
+        notifyUserChatTimeoutScheduleChanged(updatedTimeout);
 
         return {
             status: 'updated',

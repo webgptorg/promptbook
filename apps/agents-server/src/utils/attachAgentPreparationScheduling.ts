@@ -1,5 +1,6 @@
 import { AgentCollection, string_agent_permanent_id, string_book } from '@promptbook-local/types';
 import { computeAgentHash } from '../../../../src/book-2.0/agent-source/computeAgentHash';
+import { $invalidateProvidedAgentReferenceResolverCache } from './agentReferenceResolver/$provideAgentReferenceResolver';
 import { scheduleAgentPreparation } from './agentPreparation';
 
 /**
@@ -50,6 +51,7 @@ export function attachAgentPreparationScheduling(
     const originalCreateAgent = collection.createAgent.bind(collection);
     collection.createAgent = async (...args) => {
         const createdAgent = await originalCreateAgent(...args);
+        $invalidateProvidedAgentReferenceResolverCache();
 
         if (createdAgent.permanentId) {
             await scheduleAgentPreparation({
@@ -70,6 +72,7 @@ export function attachAgentPreparationScheduling(
         options?: { readonly versionName?: string | null },
     ) => {
         await originalUpdateAgentSource(permanentId, agentSource, options);
+        $invalidateProvidedAgentReferenceResolverCache();
 
         const fingerprint = computePersistedAgentFingerprint(agentSource);
         await scheduleAgentPreparation({

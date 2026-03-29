@@ -50,6 +50,26 @@ function createCanonicalLocalAgentUrl(agent: StoredAgentSourceRecord, localServe
 }
 
 /**
+ * Builds local route aliases that should be treated as the same agent for cycle detection.
+ *
+ * @param agent - Stored local agent row.
+ * @param localServerUrl - Current server origin.
+ * @returns Unique alias URLs for the current agent.
+ */
+function createCanonicalLocalAgentAliases(
+    agent: StoredAgentSourceRecord,
+    localServerUrl: string,
+): Array<string_agent_url> {
+    const normalizedServerUrl = localServerUrl.replace(/\/+$/g, '');
+    const aliases = new Set<string>([
+        createCanonicalLocalAgentUrl(agent, localServerUrl),
+        `${normalizedServerUrl}/agents/${encodeURIComponent(agent.agentName)}`,
+    ]);
+
+    return [...aliases] as Array<string_agent_url>;
+}
+
+/**
  * Derives resolved source/profile for one stored local agent row.
  *
  * @param agent - Stored local agent row.
@@ -65,6 +85,7 @@ export async function resolveStoredAgentState<TAgent extends StoredAgentSourceRe
     const resolvedAgentState = await resolveAgentStateFromSource(agent.agentSource as string_book, {
         adamAgentUrl: options.adamAgentUrl,
         canonicalAgentUrl,
+        currentAgentAliases: createCanonicalLocalAgentAliases(agent, options.localServerUrl),
         agentReferenceResolver: options.agentReferenceResolver,
     });
 

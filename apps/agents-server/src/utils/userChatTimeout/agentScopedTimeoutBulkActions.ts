@@ -1,6 +1,6 @@
 import type { UserChatTimeoutStatus, UserChatTimeoutRecord } from './UserChatTimeoutRecord';
 import { listAgentUserChatTimeouts, updateAgentScopedUserChatTimeout } from './userChatTimeoutStore';
-import { cancelScheduledUserChatTimeout } from './userChatTimeoutWorker';
+import { cancelScheduledUserChatTimeout, notifyUserChatTimeoutScheduleChanged } from './userChatTimeoutWorker';
 
 /**
  * Number of timeout rows loaded per page while collecting bulk-mutation targets.
@@ -82,6 +82,7 @@ export async function pauseAllActiveAgentScopedUserChatTimeouts(options: {
         });
 
         if (updatedTimeout && updatedTimeout.pausedAt) {
+            notifyUserChatTimeoutScheduleChanged(updatedTimeout);
             pausedTimeoutIds.push(updatedTimeout.timeoutId);
         }
     }
@@ -120,6 +121,7 @@ export async function resumeAllPausedAgentScopedUserChatTimeouts(options: {
         });
 
         if (updatedTimeout && !updatedTimeout.pausedAt) {
+            notifyUserChatTimeoutScheduleChanged(updatedTimeout);
             resumedTimeoutIds.push(updatedTimeout.timeoutId);
         }
     }
