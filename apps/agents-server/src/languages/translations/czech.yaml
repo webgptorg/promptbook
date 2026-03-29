@@ -154,17 +154,20 @@ agentCreation.dialogCreating: Vytvářím...
 agentCreation.wizardEyebrow: Průvodce
 agentCreation.wizardTitle: Vytvořit nového agenta
 agentCreation.wizard.basicTitle: Základní údaje
-agentCreation.wizard.personaTitle: Persona a vlastnosti
+agentCreation.wizard.personaTitle: Persona a schopnosti
+agentCreation.wizard.writingTitle: Styl psaní
 agentCreation.wizard.rulesTitle: Pravidla a zábrany
 agentCreation.wizard.knowledgeTitle: Znalosti
 agentCreation.wizard.reviewTitle: Kontrola a vytvoření
-agentCreation.wizard.basicDescription: Nastavte základní identitu nového agenta, než na pozadí sestavíme zdroj knihy.
-agentCreation.wizard.personaDescription: Vyberte vlastnosti, přidejte vlastní štítky a zapněte schopnosti.
+agentCreation.wizard.basicDescription: Nastavte základní identitu, cíl a viditelnost nového agenta, než na pozadí sestavíme zdroj knihy.
+agentCreation.wizard.personaDescription: Zvolte osobnostní rysy, režim učení a schopnosti odvozené z dostupných `USE` commitmentů.
+agentCreation.wizard.writingDescription: Vyberte přednastavené styly psaní, přidejte vlastní pokyny a prohlédněte si ukázky hlasu v maketě chatu.
 agentCreation.wizard.rulesDescription: Zvolte zábrany a přidejte vlastní pravidla jako štítky.
 agentCreation.wizard.knowledgeDescription: Nahrajte soubory nebo přidejte URL, které se mají stát součástí znalostí agenta.
 agentCreation.wizard.reviewDescription: Potvrďte níže zvolené volby, nebo se před vytvořením přepněte do pokročilého editoru.
 agentCreation.wizard.basicShort: Základ
 agentCreation.wizard.personaShort: Persona
+agentCreation.wizard.writingShort: Styl
 agentCreation.wizard.rulesShort: Pravidla
 agentCreation.wizard.knowledgeShort: Znalosti
 agentCreation.wizard.reviewShort: Kontrola
@@ -173,12 +176,21 @@ agentCreation.wizard.namePlaceholder: Agent zákaznické podpory
 agentCreation.wizard.nameRequired: Před pokračováním zadejte název.
 agentCreation.wizard.descriptionLabel: Krátký popis
 agentCreation.wizard.descriptionPlaceholder: Odpovídá na dotazy zákazníků a předává složitější případy dál.
+agentCreation.wizard.goalLabel: Cíl
+agentCreation.wizard.goalPlaceholder: Pomáhej uživatelům rychle řešit problémy s účtem bez ztráty důležitého kontextu.
 agentCreation.wizard.visibilityLabel: Viditelnost
 agentCreation.wizard.visibilityPrivate: Soukromý
 agentCreation.wizard.visibilityUnlisted: Neveřejný odkaz
 agentCreation.wizard.visibilityPublic: Veřejný
 agentCreation.wizard.traitsLabel: Přednastavené vlastnosti
+agentCreation.wizard.learningModeLabel: Režim učení
+agentCreation.wizard.learningModeOpen: Otevřený pro učení
+agentCreation.wizard.learningModeOpenDescription: Přidá `OPEN`, takže agent zůstane upravitelný během konverzace.
+agentCreation.wizard.learningModeClosed: Fixovaný po vytvoření
+agentCreation.wizard.learningModeClosedDescription: Přidá `CLOSED`, takže agent zůstane stabilní a bez učení.
 agentCreation.wizard.capabilitiesLabel: Schopnosti
+agentCreation.wizard.capabilitiesHint: Některé pokročilé schopnosti vyžadují další nastavení v editoru.
+agentCreation.wizard.capabilityRequiresEditor: Tuto schopnost nastavte v pokročilém editoru.
 agentCreation.wizard.customTraitLabel: Vlastní vlastnost
 agentCreation.wizard.customTraitPlaceholder: Napište vlastnost a potvrďte Enterem.
 agentCreation.wizard.traitHelpful: Ochotný
@@ -189,12 +201,48 @@ agentCreation.wizard.traitAnalytical: Analytický
 agentCreation.wizard.traitTechnical: Technický
 agentCreation.wizard.traitEducational: Vysvětlující
 agentCreation.wizard.traitCreative: Kreativní
+agentCreation.wizard.traitEmpathetic: Empatický
+agentCreation.wizard.traitCurious: Zvídavý
+agentCreation.wizard.traitStrategic: Strategický
+agentCreation.wizard.traitPatient: Trpělivý
+agentCreation.wizard.traitDecisive: Rozhodný
+agentCreation.wizard.writingStylesLabel: Přednastavené styly psaní
+agentCreation.wizard.writingStyleProfessional: Profesionální
+agentCreation.wizard.writingStyleFriendly: Přátelský
+agentCreation.wizard.writingStyleConcise: Stručný
+agentCreation.wizard.writingStyleDetailed: Detailní
+agentCreation.wizard.writingStyleConversational: Konverzační
+agentCreation.wizard.writingStyleUpbeat: Pozitivní
+agentCreation.wizard.customWritingTraitLabel: Vlastní stylový rys
+agentCreation.wizard.customWritingTraitPlaceholder: Napište stylový rys a potvrďte Enterem.
+agentCreation.wizard.customWritingRuleLabel: Vlastní pravidlo psaní
+agentCreation.wizard.customWritingRulePlaceholder: Napište pravidlo psaní a potvrďte Enterem.
+agentCreation.wizard.customWritingSampleLabel: Vlastní ukázka stylu
+agentCreation.wizard.customWritingSamplePlaceholder: Napište ukázkovou odpověď, která vystihuje požadovaný hlas.
+agentCreation.wizard.customWritingSamplePreviewTitle: Náhled vlastní ukázky
+agentCreation.wizard.writingPreviewUserMessage: Můžeš shrnout, co mám udělat dál?
 agentCreation.wizard.capabilityBrowser: Umí používat prohlížeč
 agentCreation.wizard.capabilitySearchEngine: Umí hledat na webu
+agentCreation.wizard.capabilitySpawn: Umí vytvářet nové agenty
+agentCreation.wizard.capabilityTimeout: Umí spravovat časovače
+agentCreation.wizard.capabilityTime: Zná aktuální čas
+agentCreation.wizard.capabilityUserLocation: Umí použít polohu uživatele
+agentCreation.wizard.capabilityCalendar: Umí spravovat kalendář
+agentCreation.wizard.capabilityEmail: Umí posílat e-maily
+agentCreation.wizard.capabilityPopup: Umí otevřít popup rozhraní
+agentCreation.wizard.capabilityImageGenerator: Umí generovat obrázky
+agentCreation.wizard.capabilityPrivacy: Umí použít režim soukromí
+agentCreation.wizard.capabilityProject: Umí pracovat s projektem
+agentCreation.wizard.capabilityMcp: Umí se připojit k MCP
 agentCreation.wizard.ruleProtectPersonalData: Vyhýbat se vyžadování nebo zveřejňování osobních údajů.
 agentCreation.wizard.ruleProfessionalTone: Udržovat profesionální tón.
 agentCreation.wizard.ruleRegulatedAdvice: Vyhýbat se zdravotním, právním a finančním radám.
 agentCreation.wizard.ruleUncertainty: Otevřeně přiznat nejistotu.
+agentCreation.wizard.ruleClarifyAmbiguity: Při nejasném zadání se doptat na upřesnění.
+agentCreation.wizard.ruleCiteSources: Při použití externích informací uvádět nebo pojmenovat zdroj.
+agentCreation.wizard.ruleStayInScope: Držet se svého rozsahu a říct, kdy je potřeba eskalace.
+agentCreation.wizard.ruleStateAssumptions: Důležité předpoklady uvádět explicitně.
+agentCreation.wizard.ruleConfirmRiskyActions: Před riskantními, drahými nebo nevratnými kroky žádat potvrzení.
 agentCreation.wizard.customInstructionsLabel: Vlastní instrukce
 agentCreation.wizard.customInstructionsPlaceholder: Napište pravidlo a potvrďte Enterem.
 agentCreation.wizard.uploadLabel: Nahrát soubory se znalostmi

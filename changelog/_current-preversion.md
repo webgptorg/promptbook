@@ -1,3 +1,11 @@
+-   Enhanced the Agents Server new-agent wizard to cover more of the book-language agent design flow while keeping the UI DRY:
+
+    -   Added `GOAL` input to page 1 alongside name, description, and visibility.
+    -   Expanded page 2 persona setup with icon-based persona presets, explicit `OPEN` / `CLOSED` learning mode, and a capability catalogue covering all concrete `USE *` commitments, with advanced-editor-only handling for commitments that need extra configuration.
+    -   Inserted a new writing-style page with icon-based presets, custom writing traits/rules, mocked-chat sample previews, and hidden source synthesis for `WRITING RULES` plus `WRITING SAMPLE`.
+    -   Expanded rules presets with icons and additional guardrail options.
+    -   Refactored wizard preset metadata into shared configuration used by both the UI and hidden source synthesis, and added tests that keep the wizard capability list aligned with the commitment registry.
+
 -   Fixed flaky `promptbookFetch` test by removing the `https://s6.ptbk.io/` URL assertion that was returning `MIDDLEWARE_INVOCATION_TIMEOUT` errors.
 
 -   Added configurable Agents Server chat feedback modes with a single `CHAT_FEEDBACK_MODE` setting (`off`, `stars`, `report_issue`) and wired it through all chat surfaces:

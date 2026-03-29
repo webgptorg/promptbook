@@ -154,17 +154,20 @@ agentCreation.dialogCreating: Creating...
 agentCreation.wizardEyebrow: Guided flow
 agentCreation.wizardTitle: Create New Agent
 agentCreation.wizard.basicTitle: Basic info
-agentCreation.wizard.personaTitle: Persona & traits
+agentCreation.wizard.personaTitle: Persona & capabilities
+agentCreation.wizard.writingTitle: Writing style
 agentCreation.wizard.rulesTitle: Rules & guardrails
 agentCreation.wizard.knowledgeTitle: Knowledge
 agentCreation.wizard.reviewTitle: Review & create
-agentCreation.wizard.basicDescription: Set the core identity of the new agent before we build the hidden book source.
-agentCreation.wizard.personaDescription: Pick traits, add custom trait chips, and enable capabilities.
+agentCreation.wizard.basicDescription: Set the core identity, goal, and visibility before we build the hidden book source.
+agentCreation.wizard.personaDescription: Choose persona traits, learning mode, and capability switches derived from the available USE commitments.
+agentCreation.wizard.writingDescription: Pick writing-style presets, add custom style guidance, and preview voice samples in mocked chat bubbles.
 agentCreation.wizard.rulesDescription: Select guardrails and add custom rule chips.
 agentCreation.wizard.knowledgeDescription: Upload files or add URLs that should become part of the agent's knowledge.
 agentCreation.wizard.reviewDescription: Confirm the high-level choices below, or switch to the advanced editor before creating.
 agentCreation.wizard.basicShort: Basics
 agentCreation.wizard.personaShort: Persona
+agentCreation.wizard.writingShort: Writing
 agentCreation.wizard.rulesShort: Rules
 agentCreation.wizard.knowledgeShort: Knowledge
 agentCreation.wizard.reviewShort: Review
@@ -173,12 +176,21 @@ agentCreation.wizard.namePlaceholder: Customer Support Agent
 agentCreation.wizard.nameRequired: Enter a name before continuing.
 agentCreation.wizard.descriptionLabel: Short description
 agentCreation.wizard.descriptionPlaceholder: Answers customer questions and escalates edge cases.
+agentCreation.wizard.goalLabel: Goal
+agentCreation.wizard.goalPlaceholder: Help users resolve account issues quickly without losing important context.
 agentCreation.wizard.visibilityLabel: Visibility
 agentCreation.wizard.visibilityPrivate: Private
 agentCreation.wizard.visibilityUnlisted: Unlisted
 agentCreation.wizard.visibilityPublic: Public
 agentCreation.wizard.traitsLabel: Preset traits
+agentCreation.wizard.learningModeLabel: Learning mode
+agentCreation.wizard.learningModeOpen: Open to learning
+agentCreation.wizard.learningModeOpenDescription: Adds `OPEN` so the agent stays modifiable by conversation.
+agentCreation.wizard.learningModeClosed: Fixed after creation
+agentCreation.wizard.learningModeClosedDescription: Adds `CLOSED` so the agent stays stable and non-learning.
 agentCreation.wizard.capabilitiesLabel: Capabilities
+agentCreation.wizard.capabilitiesHint: Some advanced capabilities require extra setup in the editor.
+agentCreation.wizard.capabilityRequiresEditor: Configure this capability in the advanced editor.
 agentCreation.wizard.customTraitLabel: Custom trait
 agentCreation.wizard.customTraitPlaceholder: Type a trait and press Enter.
 agentCreation.wizard.traitHelpful: Helpful
@@ -189,12 +201,48 @@ agentCreation.wizard.traitAnalytical: Analytical
 agentCreation.wizard.traitTechnical: Technical
 agentCreation.wizard.traitEducational: Educational
 agentCreation.wizard.traitCreative: Creative
+agentCreation.wizard.traitEmpathetic: Empathetic
+agentCreation.wizard.traitCurious: Curious
+agentCreation.wizard.traitStrategic: Strategic
+agentCreation.wizard.traitPatient: Patient
+agentCreation.wizard.traitDecisive: Decisive
+agentCreation.wizard.writingStylesLabel: Writing-style presets
+agentCreation.wizard.writingStyleProfessional: Professional
+agentCreation.wizard.writingStyleFriendly: Friendly
+agentCreation.wizard.writingStyleConcise: Concise
+agentCreation.wizard.writingStyleDetailed: Detailed
+agentCreation.wizard.writingStyleConversational: Conversational
+agentCreation.wizard.writingStyleUpbeat: Upbeat
+agentCreation.wizard.customWritingTraitLabel: Custom writing trait
+agentCreation.wizard.customWritingTraitPlaceholder: Type a style trait and press Enter.
+agentCreation.wizard.customWritingRuleLabel: Custom writing rule
+agentCreation.wizard.customWritingRulePlaceholder: Type a writing rule and press Enter.
+agentCreation.wizard.customWritingSampleLabel: Custom writing sample
+agentCreation.wizard.customWritingSamplePlaceholder: Write a sample reply that captures the desired voice.
+agentCreation.wizard.customWritingSamplePreviewTitle: Custom sample preview
+agentCreation.wizard.writingPreviewUserMessage: Can you summarize what I should do next?
 agentCreation.wizard.capabilityBrowser: Can use browser
 agentCreation.wizard.capabilitySearchEngine: Can search the web
+agentCreation.wizard.capabilitySpawn: Can create new agents
+agentCreation.wizard.capabilityTimeout: Can manage timers
+agentCreation.wizard.capabilityTime: Knows current time
+agentCreation.wizard.capabilityUserLocation: Can use user location
+agentCreation.wizard.capabilityCalendar: Can manage calendar
+agentCreation.wizard.capabilityEmail: Can send email
+agentCreation.wizard.capabilityPopup: Can open popup UI
+agentCreation.wizard.capabilityImageGenerator: Can generate images
+agentCreation.wizard.capabilityPrivacy: Can use privacy mode
+agentCreation.wizard.capabilityProject: Can work with a project
+agentCreation.wizard.capabilityMcp: Can connect to MCP
 agentCreation.wizard.ruleProtectPersonalData: Avoid requesting or disclosing personal data.
 agentCreation.wizard.ruleProfessionalTone: Keep a professional tone.
 agentCreation.wizard.ruleRegulatedAdvice: Avoid medical, legal, and financial advice.
 agentCreation.wizard.ruleUncertainty: Be transparent about uncertainty.
+agentCreation.wizard.ruleClarifyAmbiguity: Ask clarifying questions when the request is ambiguous.
+agentCreation.wizard.ruleCiteSources: Cite or name sources when using external information.
+agentCreation.wizard.ruleStayInScope: Stay within scope and say when escalation is needed.
+agentCreation.wizard.ruleStateAssumptions: State important assumptions explicitly.
+agentCreation.wizard.ruleConfirmRiskyActions: Confirm risky, costly, or irreversible actions first.
 agentCreation.wizard.customInstructionsLabel: Custom instructions
 agentCreation.wizard.customInstructionsPlaceholder: Type a rule and press Enter.
 agentCreation.wizard.uploadLabel: Upload knowledge files

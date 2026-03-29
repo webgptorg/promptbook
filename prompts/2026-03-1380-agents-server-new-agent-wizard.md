@@ -113,7 +113,7 @@ CLOSED
 
 ---
 
-[ ]
+[x] ~$0.00 36 minutes by OpenAI Codex `gpt-5.4`
 
 [🧙‍♀️📋] Enhance the new agent wizzard
 
@@ -127,3 +127,4 @@ CLOSED
 -   You are working with the [Agents Server](apps/agents-server) with the new agent wizard flow
 
 ![alt text](prompts/screenshots/2026-03-1380-agents-server-new-agent-wizard-4.png)
+

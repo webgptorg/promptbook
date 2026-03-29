@@ -10,9 +10,9 @@ import {
     type ChangeEvent,
     type DragEvent,
     type KeyboardEvent,
+    type ReactNode,
 } from 'react';
 import type { NewAgentWizardMode } from '../../constants/newAgentWizard';
-import type { ServerTranslationKey } from '../../languages/ServerTranslationKeys';
 import { simplifyKnowledgeLabel } from '../../utils/knowledge/simplifyKnowledgeLabel';
 import { bookEditorUploadHandler } from '../../utils/upload/createBookEditorUploadHandler';
 import type { AgentVisibility } from '../../utils/agentVisibility';
@@ -23,8 +23,14 @@ import { useDirtyModalGuard } from '../utils/useDirtyModalGuard';
 import {
     createNewAgentWizardSource,
     type CreateNewAgentWizardSourceOptions,
-    type NewAgentWizardCapabilityCommitment,
 } from './createNewAgentWizardSource';
+import {
+    NEW_AGENT_WIZARD_CAPABILITY_PRESETS,
+    NEW_AGENT_WIZARD_PERSONA_PRESETS,
+    NEW_AGENT_WIZARD_RULE_PRESETS,
+    NEW_AGENT_WIZARD_STEP_DEFINITIONS,
+    NEW_AGENT_WIZARD_WRITING_STYLE_PRESETS,
+} from './newAgentWizardPresets';
 import { trackNewAgentCreationEvent } from './trackNewAgentCreationEvent';
 
 /**
@@ -35,26 +41,32 @@ type NewAgentWizardProps = {
      * Metadata-driven flow assignment used for analytics.
      */
     readonly mode: NewAgentWizardMode;
+
     /**
      * Default visibility resolved from server metadata.
      */
     readonly defaultVisibility: AgentVisibility;
+
     /**
      * Boilerplate agent name generated through the existing name pool mechanism.
      */
     readonly initialAgentName?: string;
+
     /**
      * Folder scope where the flow was opened.
      */
     readonly folderId?: number | null;
+
     /**
      * Requests closing the wizard dialog.
      */
     readonly onClose: () => void;
+
     /**
      * Persists the synthesized agent source using the existing create-agent endpoint.
      */
     readonly onCreate: (request: NewAgentWizardCreateRequest) => Promise<void>;
+
     /**
      * Switches from the wizard to the advanced raw editor before creation.
      */
@@ -69,10 +81,12 @@ export type NewAgentWizardCreateRequest = {
      * Hidden book source synthesized from the wizard form.
      */
     readonly agentSource: string_book;
+
     /**
      * Explicit visibility choice selected in the wizard.
      */
     readonly visibility: AgentVisibility;
+
     /**
      * Number of ready knowledge sources included in the final source.
      */
@@ -87,90 +101,11 @@ export type NewAgentWizardOpenEditorRequest = {
      * Hidden book source synthesized from the wizard form.
      */
     readonly agentSource: string_book;
+
     /**
      * Explicit visibility choice selected in the wizard.
      */
     readonly visibility: AgentVisibility;
-};
-
-/**
- * One step displayed in the wizard timeline.
- */
-type WizardStepDefinition = {
-    /**
-     * Localized title key displayed as the current section heading.
-     */
-    readonly titleKey: ServerTranslationKey;
-    /**
-     * Localized helper text shown under the wizard title.
-     */
-    readonly descriptionKey: ServerTranslationKey;
-    /**
-     * Compact label shown in the step navigation buttons.
-     */
-    readonly shortKey: ServerTranslationKey;
-};
-
-/**
- * One persona preset shown as a selectable chip.
- */
-type WizardTraitPreset = {
-    /**
-     * Stable identifier stored in local component state.
-     */
-    readonly id: string;
-    /**
-     * Translation key used for the chip label.
-     */
-    readonly labelKey: ServerTranslationKey;
-    /**
-     * Canonical English fragment written into the final `PERSONA` commitment.
-     */
-    readonly sourceText: string;
-    /**
-     * Whether the preset is selected by default.
-     */
-    readonly isDefault: boolean;
-};
-
-/**
- * One capability preset shown as a selectable chip in step 2.
- */
-type WizardCapabilityPreset = {
-    /**
-     * Stable identifier stored in local component state.
-     */
-    readonly id: string;
-    /**
-     * Human-friendly chip label key.
-     */
-    readonly labelKey: ServerTranslationKey;
-    /**
-     * Final book-language commitment added when selected.
-     */
-    readonly commitmentKeyword: NewAgentWizardCapabilityCommitment;
-};
-
-/**
- * One rule/guardrail preset shown as a selectable chip.
- */
-type WizardRulePreset = {
-    /**
-     * Stable identifier stored in local component state.
-     */
-    readonly id: string;
-    /**
-     * Translation key used for the chip label.
-     */
-    readonly labelKey: ServerTranslationKey;
-    /**
-     * Canonical English rule written into the final `RULE` commitment.
-     */
-    readonly sourceText: string;
-    /**
-     * Whether the rule starts enabled.
-     */
-    readonly isDefault: boolean;
 };
 
 /**
@@ -181,26 +116,32 @@ type WizardKnowledgeItem = {
      * Stable client-side identifier.
      */
     readonly id: string;
+
     /**
      * Human-friendly label shown in the wizard and traceability note.
      */
     readonly label: string;
+
     /**
      * Final `KNOWLEDGE` source written into the hidden book.
      */
     readonly source: string;
+
     /**
      * Distinguishes uploads from pasted URLs for rendering.
      */
     readonly kind: 'file' | 'url';
+
     /**
      * Upload lifecycle status.
      */
     readonly status: 'uploading' | 'ready' | 'error';
+
     /**
      * Best-effort upload progress between `0` and `1`.
      */
     readonly progress: number;
+
     /**
      * Optional upload error message.
      */
@@ -215,46 +156,97 @@ type NewAgentWizardState = {
      * Required agent name.
      */
     readonly name: string;
+
     /**
      * Optional short description.
      */
     readonly description: string;
+
+    /**
+     * Optional agent goal.
+     */
+    readonly goal: string;
+
     /**
      * Explicit visibility override.
      */
     readonly visibility: AgentVisibility;
+
     /**
      * Selected persona preset ids.
      */
-    readonly selectedTraitIds: ReadonlyArray<string>;
+    readonly selectedPersonaTraitIds: ReadonlyArray<string>;
+
     /**
-     * Draft custom trait text entered in the chip input.
+     * Draft custom persona-trait text entered in the chip input.
      */
-    readonly customTraitDraft: string;
+    readonly customPersonaTraitDraft: string;
+
     /**
-     * Custom trait chips added by pressing Enter.
+     * Custom persona-trait chips added by pressing Enter.
      */
-    readonly customTraits: ReadonlyArray<string>;
+    readonly customPersonaTraits: ReadonlyArray<string>;
+
     /**
      * Selected capability preset ids.
      */
     readonly selectedCapabilityIds: ReadonlyArray<string>;
+
     /**
-     * Selected guardrail preset ids.
+     * Whether the wizard should emit `OPEN` or `CLOSED`.
+     */
+    readonly isOpenToLearning: boolean;
+
+    /**
+     * Selected writing-style preset ids.
+     */
+    readonly selectedWritingStyleIds: ReadonlyArray<string>;
+
+    /**
+     * Draft custom writing-style trait entered in the chip input.
+     */
+    readonly customWritingTraitDraft: string;
+
+    /**
+     * Custom writing-style traits added by pressing Enter.
+     */
+    readonly customWritingTraits: ReadonlyArray<string>;
+
+    /**
+     * Draft custom writing-rule text entered in the chip input.
+     */
+    readonly customWritingRuleDraft: string;
+
+    /**
+     * Custom writing-rule chips added by pressing Enter.
+     */
+    readonly customWritingRules: ReadonlyArray<string>;
+
+    /**
+     * Optional free-form writing sample shown in the preview bubble and emitted as `WRITING SAMPLE`.
+     */
+    readonly customWritingSample: string;
+
+    /**
+     * Selected rule preset ids.
      */
     readonly selectedRuleIds: ReadonlyArray<string>;
+
     /**
      * Draft custom rule text entered in the chip input.
      */
     readonly customRuleDraft: string;
+
     /**
      * Custom rule chips added by pressing Enter.
      */
     readonly customRules: ReadonlyArray<string>;
+
     /**
      * Uploaded and pasted knowledge items.
      */
     readonly knowledgeItems: ReadonlyArray<WizardKnowledgeItem>;
+
     /**
      * Draft URL input.
      */
@@ -262,10 +254,135 @@ type NewAgentWizardState = {
 };
 
 /**
+ * Visual variants for selectable wizard cards.
+ */
+type WizardCardVariant = 'blue' | 'emerald' | 'amber';
+
+/**
+ * Props for one selectable wizard preset card.
+ */
+type WizardSelectableCardProps = {
+    /**
+     * Emoji icon shown in the card header.
+     */
+    readonly icon: string;
+
+    /**
+     * Main label shown in the card header.
+     */
+    readonly label: string;
+
+    /**
+     * Whether the card is currently selected.
+     */
+    readonly isSelected: boolean;
+
+    /**
+     * Whether the card is interactive.
+     */
+    readonly isDisabled?: boolean;
+
+    /**
+     * Color theme for selected state.
+     */
+    readonly variant?: WizardCardVariant;
+
+    /**
+     * Optional secondary note displayed under the label.
+     */
+    readonly note?: string;
+
+    /**
+     * Optional rich content rendered under the heading.
+     */
+    readonly children?: ReactNode;
+
+    /**
+     * Handles card selection.
+     */
+    readonly onClick?: () => void;
+};
+
+/**
+ * Props for one reusable chip-input section.
+ */
+type WizardChipInputProps = {
+    /**
+     * Visible field label.
+     */
+    readonly label: string;
+
+    /**
+     * Current input value.
+     */
+    readonly draftValue: string;
+
+    /**
+     * Placeholder shown in the input.
+     */
+    readonly placeholder: string;
+
+    /**
+     * Collected chips.
+     */
+    readonly chips: ReadonlyArray<string>;
+
+    /**
+     * Visual theme for chip rendering.
+     */
+    readonly chipVariant?: WizardCardVariant;
+
+    /**
+     * Updates the input draft.
+     */
+    readonly onDraftChange: (nextValue: string) => void;
+
+    /**
+     * Adds the current draft as a chip.
+     */
+    readonly onAdd: () => void;
+
+    /**
+     * Removes a single chip by index.
+     */
+    readonly onRemove: (chipIndex: number) => void;
+
+    /**
+     * Accessible remove label.
+     */
+    readonly removeLabel: string;
+};
+
+/**
+ * Props for one mocked-chat preview bubble stack.
+ */
+type WritingSamplePreviewProps = {
+    /**
+     * Assistant message to show in the preview bubble.
+     */
+    readonly assistantMessage: string;
+
+    /**
+     * Optional label shown above the preview.
+     */
+    readonly title?: string;
+
+    /**
+     * Shared user-side prompt shown above the assistant sample.
+     */
+    readonly userMessage: string;
+};
+
+/**
  * Shared styling for single-line inputs.
  */
 const INPUT_CLASS_NAME =
     'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100';
+
+/**
+ * Shared styling for multi-line inputs.
+ */
+const TEXTAREA_CLASS_NAME = `${INPUT_CLASS_NAME} min-h-24 resize-y`;
 
 /**
  * Shared styling for secondary dialog actions.
@@ -280,115 +397,9 @@ const PRIMARY_BUTTON_CLASS_NAME =
     'inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-3.5 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50';
 
 /**
- * Ordered wizard steps.
+ * Shared user prompt displayed inside mocked-chat previews.
  */
-const WIZARD_STEP_DEFINITIONS: ReadonlyArray<WizardStepDefinition> = [
-    {
-        titleKey: 'agentCreation.wizard.basicTitle',
-        descriptionKey: 'agentCreation.wizard.basicDescription',
-        shortKey: 'agentCreation.wizard.basicShort',
-    },
-    {
-        titleKey: 'agentCreation.wizard.personaTitle',
-        descriptionKey: 'agentCreation.wizard.personaDescription',
-        shortKey: 'agentCreation.wizard.personaShort',
-    },
-    {
-        titleKey: 'agentCreation.wizard.rulesTitle',
-        descriptionKey: 'agentCreation.wizard.rulesDescription',
-        shortKey: 'agentCreation.wizard.rulesShort',
-    },
-    {
-        titleKey: 'agentCreation.wizard.knowledgeTitle',
-        descriptionKey: 'agentCreation.wizard.knowledgeDescription',
-        shortKey: 'agentCreation.wizard.knowledgeShort',
-    },
-] as const;
-
-/**
- * Persona presets available in step 2 of the wizard.
- */
-const WIZARD_TRAIT_PRESETS: ReadonlyArray<WizardTraitPreset> = [
-    { id: 'helpful', labelKey: 'agentCreation.wizard.traitHelpful', sourceText: 'helpful', isDefault: true },
-    { id: 'concise', labelKey: 'agentCreation.wizard.traitConcise', sourceText: 'concise', isDefault: true },
-    {
-        id: 'professional',
-        labelKey: 'agentCreation.wizard.traitProfessional',
-        sourceText: 'professional',
-        isDefault: true,
-    },
-    { id: 'friendly', labelKey: 'agentCreation.wizard.traitFriendly', sourceText: 'friendly', isDefault: false },
-    {
-        id: 'analytical',
-        labelKey: 'agentCreation.wizard.traitAnalytical',
-        sourceText: 'analytical',
-        isDefault: false,
-    },
-    {
-        id: 'technical',
-        labelKey: 'agentCreation.wizard.traitTechnical',
-        sourceText: 'technically knowledgeable',
-        isDefault: false,
-    },
-    {
-        id: 'educational',
-        labelKey: 'agentCreation.wizard.traitEducational',
-        sourceText: 'clear and patient when explaining complex topics',
-        isDefault: false,
-    },
-    {
-        id: 'creative',
-        labelKey: 'agentCreation.wizard.traitCreative',
-        sourceText: 'creative when brainstorming',
-        isDefault: false,
-    },
-] as const;
-
-/**
- * Capability presets available in step 2.
- */
-const WIZARD_CAPABILITY_PRESETS: ReadonlyArray<WizardCapabilityPreset> = [
-    {
-        id: 'browser',
-        labelKey: 'agentCreation.wizard.capabilityBrowser',
-        commitmentKeyword: 'USE BROWSER',
-    },
-    {
-        id: 'search-engine',
-        labelKey: 'agentCreation.wizard.capabilitySearchEngine',
-        commitmentKeyword: 'USE SEARCH ENGINE',
-    },
-] as const;
-
-/**
- * Guardrail presets available in step 3 of the wizard.
- */
-const WIZARD_RULE_PRESETS: ReadonlyArray<WizardRulePreset> = [
-    {
-        id: 'protect-personal-data',
-        labelKey: 'agentCreation.wizard.ruleProtectPersonalData',
-        sourceText: 'Do not request or disclose personal data unless it is essential and clearly provided by the user.',
-        isDefault: true,
-    },
-    {
-        id: 'professional-tone',
-        labelKey: 'agentCreation.wizard.ruleProfessionalTone',
-        sourceText: 'Use a professional tone in every response.',
-        isDefault: true,
-    },
-    {
-        id: 'regulated-advice',
-        labelKey: 'agentCreation.wizard.ruleRegulatedAdvice',
-        sourceText: 'Do not provide medical, legal, or financial advice beyond general informational guidance.',
-        isDefault: false,
-    },
-    {
-        id: 'uncertainty',
-        labelKey: 'agentCreation.wizard.ruleUncertainty',
-        sourceText: 'Be transparent about uncertainty and limitations.',
-        isDefault: false,
-    },
-] as const;
+const WRITING_PREVIEW_USER_MESSAGE_KEY = 'agentCreation.wizard.writingPreviewUserMessage' as const;
 
 /**
  * Normalizes free-form single-line input.
@@ -414,12 +425,24 @@ function createInitialWizardState(
     return {
         name: normalizeSingleLineInput(initialAgentName),
         description: '',
+        goal: '',
         visibility: defaultVisibility,
-        selectedTraitIds: WIZARD_TRAIT_PRESETS.filter((preset) => preset.isDefault).map((preset) => preset.id),
-        customTraitDraft: '',
-        customTraits: [],
+        selectedPersonaTraitIds: NEW_AGENT_WIZARD_PERSONA_PRESETS.filter((preset) => preset.isDefault).map(
+            (preset) => preset.id,
+        ),
+        customPersonaTraitDraft: '',
+        customPersonaTraits: [],
         selectedCapabilityIds: [],
-        selectedRuleIds: WIZARD_RULE_PRESETS.filter((preset) => preset.isDefault).map((preset) => preset.id),
+        isOpenToLearning: true,
+        selectedWritingStyleIds: NEW_AGENT_WIZARD_WRITING_STYLE_PRESETS.filter((preset) => preset.isDefault).map(
+            (preset) => preset.id,
+        ),
+        customWritingTraitDraft: '',
+        customWritingTraits: [],
+        customWritingRuleDraft: '',
+        customWritingRules: [],
+        customWritingSample: '',
+        selectedRuleIds: NEW_AGENT_WIZARD_RULE_PRESETS.filter((preset) => preset.isDefault).map((preset) => preset.id),
         customRuleDraft: '',
         customRules: [],
         knowledgeItems: [],
@@ -521,28 +544,67 @@ function parseKnowledgeUrl(rawUrl: string): { validUrl?: string; isInvalid: bool
 }
 
 /**
+ * Selects preset objects by their ids while preserving preset order.
+ *
+ * @param presets - Full preset catalogue.
+ * @param selectedIds - Selected preset identifiers.
+ * @returns Ordered selected preset list.
+ */
+function selectPresetsById<TPreset extends { id: string }>(
+    presets: ReadonlyArray<TPreset>,
+    selectedIds: ReadonlyArray<string>,
+): Array<TPreset> {
+    return presets.filter((preset) => selectedIds.includes(preset.id));
+}
+
+/**
+ * Converts one free-form writing-style trait into a safe `WRITING RULES` sentence.
+ *
+ * @param trait - Raw custom writing trait entered by the user.
+ * @returns Writing-rule sentence or empty string when nothing should be emitted.
+ */
+function createWritingTraitRule(trait: string): string {
+    const normalizedTrait = normalizeSingleLineInput(trait);
+    return normalizedTrait === '' ? '' : `Use a ${normalizedTrait} writing style.`;
+}
+
+/**
  * Builds the pure source-builder payload from the current wizard state.
  *
  * @param state - Current wizard state.
  * @returns Normalized source-builder payload.
  */
 function buildWizardSourceOptions(state: NewAgentWizardState): CreateNewAgentWizardSourceOptions {
-    const selectedTraits = WIZARD_TRAIT_PRESETS.filter((preset) => state.selectedTraitIds.includes(preset.id)).map(
-        (preset) => preset.sourceText,
+    const selectedPersonaPresets = selectPresetsById(NEW_AGENT_WIZARD_PERSONA_PRESETS, state.selectedPersonaTraitIds);
+    const selectedWritingPresets = selectPresetsById(
+        NEW_AGENT_WIZARD_WRITING_STYLE_PRESETS,
+        state.selectedWritingStyleIds,
     );
-    const selectedRules = WIZARD_RULE_PRESETS.filter((preset) => state.selectedRuleIds.includes(preset.id)).map(
-        (preset) => preset.sourceText,
-    );
-    const selectedCapabilities = WIZARD_CAPABILITY_PRESETS.filter((preset) =>
-        state.selectedCapabilityIds.includes(preset.id),
-    ).map((preset) => preset.commitmentKeyword);
+    const selectedRulePresets = selectPresetsById(NEW_AGENT_WIZARD_RULE_PRESETS, state.selectedRuleIds);
+    const selectedCapabilityPresets = selectPresetsById(
+        NEW_AGENT_WIZARD_CAPABILITY_PRESETS,
+        state.selectedCapabilityIds,
+    ).filter((preset) => preset.availability === 'wizard');
+    const customWritingSample = state.customWritingSample.trim();
 
     return {
         agentName: state.name,
         description: state.description,
-        personaTraits: [...selectedTraits, ...state.customTraits],
-        rules: [...selectedRules, ...state.customRules],
-        capabilityCommitments: selectedCapabilities,
+        goal: state.goal,
+        personaTraits: [...selectedPersonaPresets.map((preset) => preset.sourceText), ...state.customPersonaTraits],
+        isOpenToLearning: state.isOpenToLearning,
+        rules: [...selectedRulePresets.map((preset) => preset.sourceText), ...state.customRules],
+        capabilityCommitments: selectedCapabilityPresets.map((preset) => preset.commitmentKeyword),
+        writingStyleTraits: [...selectedWritingPresets.map((preset) => preset.sourceText), ...state.customWritingTraits],
+        writingRules: [
+            ...selectedWritingPresets.flatMap((preset) => preset.writingRules),
+            ...state.customWritingTraits.map(createWritingTraitRule).filter(Boolean),
+            ...state.customWritingRules,
+        ],
+        writingSamples: [
+            ...selectedWritingPresets.map((preset) => preset.writingSample),
+            ...(customWritingSample === '' ? [] : [customWritingSample]),
+        ],
         knowledgeItems: state.knowledgeItems
             .filter((item) => item.status === 'ready')
             .map((item) => ({ label: item.label, source: item.source })),
@@ -560,7 +622,160 @@ function isFileDragEvent(event: DragEvent<HTMLElement>): boolean {
 }
 
 /**
+ * Returns the selected-state classes for a given card variant.
+ *
+ * @param variant - Visual variant.
+ * @returns Tailwind class string for selected state.
+ */
+function getSelectedCardClassName(variant: WizardCardVariant): string {
+    if (variant === 'emerald') {
+        return 'border-emerald-500 bg-emerald-50 text-emerald-950 shadow-emerald-100';
+    }
+
+    if (variant === 'amber') {
+        return 'border-amber-500 bg-amber-50 text-amber-950 shadow-amber-100';
+    }
+
+    return 'border-blue-500 bg-blue-50 text-blue-950 shadow-blue-100';
+}
+
+/**
+ * Renders one reusable selectable wizard card.
+ *
+ * @param props - Card props.
+ * @returns Selectable preset card.
+ */
+function WizardSelectableCard(props: WizardSelectableCardProps) {
+    const { icon, label, isSelected, isDisabled = false, variant = 'blue', note, children, onClick } = props;
+
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            disabled={isDisabled}
+            className={`flex min-h-24 flex-col rounded-xl border p-3 text-left transition ${
+                isDisabled
+                    ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-500'
+                    : isSelected
+                    ? `shadow-sm ${getSelectedCardClassName(variant)}`
+                    : 'border-slate-200 bg-white text-slate-800 hover:border-slate-300 hover:bg-slate-50'
+            }`}
+        >
+            <div className="flex items-center gap-2">
+                <span className="text-lg" aria-hidden="true">
+                    {icon}
+                </span>
+                <span className="text-sm font-semibold">{label}</span>
+            </div>
+            {note && <p className="mt-1 text-xs leading-5 opacity-80">{note}</p>}
+            {children && <div className="mt-3">{children}</div>}
+        </button>
+    );
+}
+
+/**
+ * Renders a reusable chip-input section with removable chips.
+ *
+ * @param props - Chip input props.
+ * @returns Label, input, and chip list.
+ */
+function WizardChipInput(props: WizardChipInputProps) {
+    const {
+        label,
+        draftValue,
+        placeholder,
+        chips,
+        chipVariant = 'blue',
+        onDraftChange,
+        onAdd,
+        onRemove,
+        removeLabel,
+    } = props;
+    const chipClassName =
+        chipVariant === 'amber'
+            ? 'border-amber-200 bg-amber-50 text-amber-900'
+            : chipVariant === 'emerald'
+            ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
+            : 'border-blue-200 bg-blue-50 text-blue-900';
+    const iconClassName =
+        chipVariant === 'amber'
+            ? 'text-amber-700 hover:text-amber-900'
+            : chipVariant === 'emerald'
+            ? 'text-emerald-700 hover:text-emerald-900'
+            : 'text-blue-700 hover:text-blue-900';
+
+    return (
+        <div>
+            <label className="mb-1.5 block text-sm font-medium text-slate-800">{label}</label>
+            <input
+                value={draftValue}
+                onChange={(event) => onDraftChange(event.target.value)}
+                onKeyDown={(event) => {
+                    if (event.key !== 'Enter') {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    onAdd();
+                }}
+                placeholder={placeholder}
+                className={INPUT_CLASS_NAME}
+            />
+            {chips.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                    {chips.map((chip, index) => (
+                        <span
+                            key={`${chip}-${index}`}
+                            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm ${chipClassName}`}
+                        >
+                            {chip}
+                            <button
+                                type="button"
+                                onClick={() => onRemove(index)}
+                                className={`transition ${iconClassName}`}
+                                aria-label={removeLabel}
+                            >
+                                <X className="h-3.5 w-3.5" />
+                            </button>
+                        </span>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
+/**
+ * Renders a minimal mocked-chat preview used for writing-style samples.
+ *
+ * @param props - Writing preview props.
+ * @returns Mocked chat bubbles.
+ */
+function WritingSamplePreview(props: WritingSamplePreviewProps) {
+    const { assistantMessage, title, userMessage } = props;
+
+    return (
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            {title && <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{title}</div>}
+            <div className="flex justify-end">
+                <div className="max-w-[85%] rounded-2xl rounded-br-md bg-white px-3 py-2 text-xs text-slate-700 shadow-sm">
+                    {userMessage}
+                </div>
+            </div>
+            <div className="mt-2 flex justify-start">
+                <div className="max-w-[85%] rounded-2xl rounded-bl-md bg-blue-600 px-3 py-2 text-xs text-white shadow-sm">
+                    {assistantMessage}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+/**
  * Renders the guided multi-step new-agent creation flow.
+ *
+ * @param props - Wizard props.
+ * @returns Guided new-agent wizard dialog.
  */
 export function NewAgentWizard(props: NewAgentWizardProps) {
     const { mode, defaultVisibility, initialAgentName, folderId, onClose, onCreate, onOpenEditor } = props;
@@ -586,10 +801,11 @@ export function NewAgentWizard(props: NewAgentWizardProps) {
         isCloseBlocked: isCreating,
         onClose,
     });
-    const currentStepDefinition = WIZARD_STEP_DEFINITIONS[step] || WIZARD_STEP_DEFINITIONS[0];
+    const currentStepDefinition = NEW_AGENT_WIZARD_STEP_DEFINITIONS[step] || NEW_AGENT_WIZARD_STEP_DEFINITIONS[0];
     const currentStepTitle = t(currentStepDefinition.titleKey);
     const currentStepDescription = t(currentStepDefinition.descriptionKey);
-    const isLastStep = step === WIZARD_STEP_DEFINITIONS.length - 1;
+    const isLastStep = step === NEW_AGENT_WIZARD_STEP_DEFINITIONS.length - 1;
+    const writingPreviewUserMessage = t(WRITING_PREVIEW_USER_MESSAGE_KEY);
 
     /**
      * Queues one or more knowledge files for upload.
@@ -667,118 +883,67 @@ export function NewAgentWizard(props: NewAgentWizardProps) {
     }
 
     /**
-     * Toggles one persona trait preset.
+     * Toggles one preset selection in state.
      *
-     * @param traitId - Trait identifier.
+     * @param key - State property holding ids.
+     * @param presetId - Target preset identifier.
      */
-    function toggleTrait(traitId: string): void {
+    function togglePresetSelection(
+        key:
+            | 'selectedPersonaTraitIds'
+            | 'selectedCapabilityIds'
+            | 'selectedWritingStyleIds'
+            | 'selectedRuleIds',
+        presetId: string,
+    ): void {
         setState((previous) => ({
             ...previous,
-            selectedTraitIds: toggleSelection(previous.selectedTraitIds, traitId),
+            [key]: toggleSelection(previous[key], presetId),
         }));
     }
 
     /**
-     * Toggles one capability preset.
+     * Adds the current draft value into one chip array and clears the draft.
      *
-     * @param capabilityId - Capability identifier.
+     * @param chipsKey - State property containing chip values.
+     * @param draftKey - State property containing draft input.
      */
-    function toggleCapability(capabilityId: string): void {
+    function addDraftChip(
+        chipsKey:
+            | 'customPersonaTraits'
+            | 'customWritingTraits'
+            | 'customWritingRules'
+            | 'customRules',
+        draftKey:
+            | 'customPersonaTraitDraft'
+            | 'customWritingTraitDraft'
+            | 'customWritingRuleDraft'
+            | 'customRuleDraft',
+    ): void {
         setState((previous) => ({
             ...previous,
-            selectedCapabilityIds: toggleSelection(previous.selectedCapabilityIds, capabilityId),
+            [chipsKey]: addUniqueChip(previous[chipsKey], previous[draftKey]),
+            [draftKey]: '',
         }));
     }
 
     /**
-     * Toggles one rule preset.
+     * Removes one chip from the specified chip list.
      *
-     * @param ruleId - Rule identifier.
-     */
-    function toggleRule(ruleId: string): void {
-        setState((previous) => ({
-            ...previous,
-            selectedRuleIds: toggleSelection(previous.selectedRuleIds, ruleId),
-        }));
-    }
-
-    /**
-     * Adds the custom trait draft as one chip.
-     */
-    function addCustomTrait(): void {
-        setState((previous) => {
-            const nextCustomTraits = addUniqueChip(previous.customTraits, previous.customTraitDraft);
-            return {
-                ...previous,
-                customTraits: nextCustomTraits,
-                customTraitDraft: '',
-            };
-        });
-    }
-
-    /**
-     * Adds the custom rule draft as one chip.
-     */
-    function addCustomRule(): void {
-        setState((previous) => {
-            const nextCustomRules = addUniqueChip(previous.customRules, previous.customRuleDraft);
-            return {
-                ...previous,
-                customRules: nextCustomRules,
-                customRuleDraft: '',
-            };
-        });
-    }
-
-    /**
-     * Handles Enter key for chip-style trait insertion.
-     *
-     * @param event - Keyboard event from the trait input.
-     */
-    function handleCustomTraitKeyDown(event: KeyboardEvent<HTMLInputElement>): void {
-        if (event.key !== 'Enter') {
-            return;
-        }
-
-        event.preventDefault();
-        addCustomTrait();
-    }
-
-    /**
-     * Handles Enter key for chip-style rule insertion.
-     *
-     * @param event - Keyboard event from the rule input.
-     */
-    function handleCustomRuleKeyDown(event: KeyboardEvent<HTMLInputElement>): void {
-        if (event.key !== 'Enter') {
-            return;
-        }
-
-        event.preventDefault();
-        addCustomRule();
-    }
-
-    /**
-     * Removes one custom trait chip.
-     *
+     * @param chipsKey - State property containing chip values.
      * @param chipIndex - Index of the chip to remove.
      */
-    function removeCustomTrait(chipIndex: number): void {
+    function removeDraftChip(
+        chipsKey:
+            | 'customPersonaTraits'
+            | 'customWritingTraits'
+            | 'customWritingRules'
+            | 'customRules',
+        chipIndex: number,
+    ): void {
         setState((previous) => ({
             ...previous,
-            customTraits: removeChipAt(previous.customTraits, chipIndex),
-        }));
-    }
-
-    /**
-     * Removes one custom rule chip.
-     *
-     * @param chipIndex - Index of the chip to remove.
-     */
-    function removeCustomRule(chipIndex: number): void {
-        setState((previous) => ({
-            ...previous,
-            customRules: removeChipAt(previous.customRules, chipIndex),
+            [chipsKey]: removeChipAt(previous[chipsKey], chipIndex),
         }));
     }
 
@@ -929,14 +1094,14 @@ export function NewAgentWizard(props: NewAgentWizardProps) {
         }
 
         queueKnowledgeFiles(files);
-        setStep(WIZARD_STEP_DEFINITIONS.length - 1);
+        setStep(NEW_AGENT_WIZARD_STEP_DEFINITIONS.length - 1);
     }
 
     /**
      * Moves the wizard one step forward.
      */
     function handleNext(): void {
-        setStep((previous) => Math.min(previous + 1, WIZARD_STEP_DEFINITIONS.length - 1));
+        setStep((previous) => Math.min(previous + 1, NEW_AGENT_WIZARD_STEP_DEFINITIONS.length - 1));
     }
 
     /**
@@ -986,12 +1151,12 @@ export function NewAgentWizard(props: NewAgentWizardProps) {
     return (
         <Dialog
             onClose={requestClose}
-            className="w-[min(94vw,52rem)]"
+            className="w-[min(96vw,60rem)]"
             ariaLabelledBy={titleId}
             ariaDescribedBy={descriptionId}
         >
             <div
-                className="relative flex h-[min(92vh,46rem)] flex-col overflow-hidden"
+                className="relative flex h-[min(92vh,52rem)] flex-col overflow-hidden"
                 onDragEnter={handleDialogDragEnter}
                 onDragOver={handleDialogDragOver}
                 onDragLeave={handleDialogDragLeave}
@@ -1021,7 +1186,7 @@ export function NewAgentWizard(props: NewAgentWizardProps) {
                     </div>
 
                     <div className="mt-4 flex flex-wrap gap-2">
-                        {WIZARD_STEP_DEFINITIONS.map((stepDefinition, stepIndex) => (
+                        {NEW_AGENT_WIZARD_STEP_DEFINITIONS.map((stepDefinition, stepIndex) => (
                             <button
                                 key={stepDefinition.shortKey}
                                 type="button"
@@ -1040,7 +1205,7 @@ export function NewAgentWizard(props: NewAgentWizardProps) {
                 </div>
 
                 <div className="flex-1 overflow-y-auto bg-slate-50 px-5 py-4">
-                    <div className="mx-auto max-w-3xl">
+                    <div className="mx-auto max-w-4xl">
                         <h3 className="text-lg font-semibold text-slate-900">{currentStepTitle}</h3>
 
                         {step === 0 && (
@@ -1078,6 +1243,20 @@ export function NewAgentWizard(props: NewAgentWizardProps) {
 
                                 <div>
                                     <label className="mb-1.5 block text-sm font-medium text-slate-800">
+                                        {t('agentCreation.wizard.goalLabel')}
+                                    </label>
+                                    <textarea
+                                        value={state.goal}
+                                        onChange={(event) =>
+                                            setState((previous) => ({ ...previous, goal: event.target.value }))
+                                        }
+                                        placeholder={t('agentCreation.wizard.goalPlaceholder')}
+                                        className={TEXTAREA_CLASS_NAME}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="mb-1.5 block text-sm font-medium text-slate-800">
                                         {t('agentCreation.wizard.visibilityLabel')}
                                     </label>
                                     <div className="flex flex-wrap gap-2">
@@ -1110,147 +1289,179 @@ export function NewAgentWizard(props: NewAgentWizardProps) {
                         )}
 
                         {step === 1 && (
-                            <div className="mt-4 space-y-4 rounded-xl border border-slate-200 bg-white p-4">
+                            <div className="mt-4 space-y-6 rounded-xl border border-slate-200 bg-white p-4">
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-slate-800">
                                         {t('agentCreation.wizard.traitsLabel')}
                                     </label>
-                                    <div className="flex flex-wrap gap-2">
-                                        {WIZARD_TRAIT_PRESETS.map((preset) => {
-                                            const isSelected = state.selectedTraitIds.includes(preset.id);
-                                            return (
-                                                <button
-                                                    key={preset.id}
-                                                    type="button"
-                                                    onClick={() => toggleTrait(preset.id)}
-                                                    className={`rounded-full border px-3 py-1.5 text-sm transition ${
-                                                        isSelected
-                                                            ? 'border-blue-600 bg-blue-600 text-white'
-                                                            : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50'
-                                                    }`}
-                                                >
-                                                    {t(preset.labelKey)}
-                                                </button>
-                                            );
-                                        })}
+                                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                                        {NEW_AGENT_WIZARD_PERSONA_PRESETS.map((preset) => (
+                                            <WizardSelectableCard
+                                                key={preset.id}
+                                                icon={preset.icon}
+                                                label={t(preset.labelKey)}
+                                                isSelected={state.selectedPersonaTraitIds.includes(preset.id)}
+                                                onClick={() => togglePresetSelection('selectedPersonaTraitIds', preset.id)}
+                                            />
+                                        ))}
                                     </div>
                                 </div>
+
+                                <WizardChipInput
+                                    label={t('agentCreation.wizard.customTraitLabel')}
+                                    draftValue={state.customPersonaTraitDraft}
+                                    placeholder={t('agentCreation.wizard.customTraitPlaceholder')}
+                                    chips={state.customPersonaTraits}
+                                    onDraftChange={(customPersonaTraitDraft) =>
+                                        setState((previous) => ({ ...previous, customPersonaTraitDraft }))
+                                    }
+                                    onAdd={() => addDraftChip('customPersonaTraits', 'customPersonaTraitDraft')}
+                                    onRemove={(chipIndex) => removeDraftChip('customPersonaTraits', chipIndex)}
+                                    removeLabel={t('agentCreation.wizard.removeKnowledgeAction')}
+                                />
 
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-slate-800">
-                                        {t('agentCreation.wizard.capabilitiesLabel')}
+                                        {t('agentCreation.wizard.learningModeLabel')}
                                     </label>
-                                    <div className="flex flex-wrap gap-2">
-                                        {WIZARD_CAPABILITY_PRESETS.map((preset) => {
-                                            const isSelected = state.selectedCapabilityIds.includes(preset.id);
-                                            return (
-                                                <button
-                                                    key={preset.id}
-                                                    type="button"
-                                                    onClick={() => toggleCapability(preset.id)}
-                                                    className={`rounded-full border px-3 py-1.5 text-sm transition ${
-                                                        isSelected
-                                                            ? 'border-emerald-600 bg-emerald-600 text-white'
-                                                            : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50'
-                                                    }`}
-                                                >
-                                                    {t(preset.labelKey)}
-                                                </button>
-                                            );
-                                        })}
+                                    <div className="grid gap-3 md:grid-cols-2">
+                                        <WizardSelectableCard
+                                            icon="🔓"
+                                            label={t('agentCreation.wizard.learningModeOpen')}
+                                            note={t('agentCreation.wizard.learningModeOpenDescription')}
+                                            isSelected={state.isOpenToLearning}
+                                            onClick={() =>
+                                                setState((previous) => ({ ...previous, isOpenToLearning: true }))
+                                            }
+                                            variant="emerald"
+                                        />
+                                        <WizardSelectableCard
+                                            icon="🔒"
+                                            label={t('agentCreation.wizard.learningModeClosed')}
+                                            note={t('agentCreation.wizard.learningModeClosedDescription')}
+                                            isSelected={!state.isOpenToLearning}
+                                            onClick={() =>
+                                                setState((previous) => ({ ...previous, isOpenToLearning: false }))
+                                            }
+                                            variant="amber"
+                                        />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="mb-1.5 block text-sm font-medium text-slate-800">
-                                        {t('agentCreation.wizard.customTraitLabel')}
-                                    </label>
-                                    <input
-                                        value={state.customTraitDraft}
-                                        onChange={(event) =>
-                                            setState((previous) => ({ ...previous, customTraitDraft: event.target.value }))
-                                        }
-                                        onKeyDown={handleCustomTraitKeyDown}
-                                        placeholder={t('agentCreation.wizard.customTraitPlaceholder')}
-                                        className={INPUT_CLASS_NAME}
-                                    />
-                                    {state.customTraits.length > 0 && (
-                                        <div className="mt-2 flex flex-wrap gap-2">
-                                            {state.customTraits.map((trait, index) => (
-                                                <span
-                                                    key={`${trait}-${index}`}
-                                                    className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-sm text-blue-900"
-                                                >
-                                                    {trait}
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeCustomTrait(index)}
-                                                        className="text-blue-700 transition hover:text-blue-900"
-                                                        aria-label={t('agentCreation.wizard.removeKnowledgeAction')}
-                                                    >
-                                                        <X className="h-3.5 w-3.5" />
-                                                    </button>
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}
+                                    <div className="mb-2 flex items-center justify-between gap-3">
+                                        <label className="block text-sm font-medium text-slate-800">
+                                            {t('agentCreation.wizard.capabilitiesLabel')}
+                                        </label>
+                                        <span className="text-xs text-slate-500">
+                                            {t('agentCreation.wizard.capabilitiesHint')}
+                                        </span>
+                                    </div>
+                                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                                        {NEW_AGENT_WIZARD_CAPABILITY_PRESETS.map((preset) => {
+                                            const isSelected = state.selectedCapabilityIds.includes(preset.id);
+                                            const isDisabled = preset.availability !== 'wizard';
+
+                                            return (
+                                                <WizardSelectableCard
+                                                    key={preset.id}
+                                                    icon={preset.icon}
+                                                    label={t(preset.labelKey)}
+                                                    isSelected={isSelected}
+                                                    isDisabled={isDisabled}
+                                                    note={
+                                                        isDisabled
+                                                            ? t('agentCreation.wizard.capabilityRequiresEditor')
+                                                            : undefined
+                                                    }
+                                                    onClick={
+                                                        isDisabled
+                                                            ? undefined
+                                                            : () => togglePresetSelection('selectedCapabilityIds', preset.id)
+                                                    }
+                                                    variant="emerald"
+                                                />
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                             </div>
                         )}
 
                         {step === 2 && (
-                            <div className="mt-4 space-y-4 rounded-xl border border-slate-200 bg-white p-4">
-                                <div className="flex flex-wrap gap-2">
-                                    {WIZARD_RULE_PRESETS.map((preset) => {
-                                        const isSelected = state.selectedRuleIds.includes(preset.id);
-                                        return (
-                                            <button
+                            <div className="mt-4 space-y-6 rounded-xl border border-slate-200 bg-white p-4">
+                                <div>
+                                    <label className="mb-2 block text-sm font-medium text-slate-800">
+                                        {t('agentCreation.wizard.writingStylesLabel')}
+                                    </label>
+                                    <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
+                                        {NEW_AGENT_WIZARD_WRITING_STYLE_PRESETS.map((preset) => (
+                                            <WizardSelectableCard
                                                 key={preset.id}
-                                                type="button"
-                                                onClick={() => toggleRule(preset.id)}
-                                                className={`rounded-full border px-3 py-1.5 text-sm transition ${
-                                                    isSelected
-                                                        ? 'border-blue-600 bg-blue-600 text-white'
-                                                        : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50'
-                                                }`}
+                                                icon={preset.icon}
+                                                label={t(preset.labelKey)}
+                                                isSelected={state.selectedWritingStyleIds.includes(preset.id)}
+                                                onClick={() => togglePresetSelection('selectedWritingStyleIds', preset.id)}
                                             >
-                                                {t(preset.labelKey)}
-                                            </button>
-                                        );
-                                    })}
+                                                <WritingSamplePreview
+                                                    assistantMessage={preset.writingSample}
+                                                    userMessage={writingPreviewUserMessage}
+                                                />
+                                            </WizardSelectableCard>
+                                        ))}
+                                    </div>
                                 </div>
+
+                                <WizardChipInput
+                                    label={t('agentCreation.wizard.customWritingTraitLabel')}
+                                    draftValue={state.customWritingTraitDraft}
+                                    placeholder={t('agentCreation.wizard.customWritingTraitPlaceholder')}
+                                    chips={state.customWritingTraits}
+                                    chipVariant="blue"
+                                    onDraftChange={(customWritingTraitDraft) =>
+                                        setState((previous) => ({ ...previous, customWritingTraitDraft }))
+                                    }
+                                    onAdd={() => addDraftChip('customWritingTraits', 'customWritingTraitDraft')}
+                                    onRemove={(chipIndex) => removeDraftChip('customWritingTraits', chipIndex)}
+                                    removeLabel={t('agentCreation.wizard.removeKnowledgeAction')}
+                                />
+
+                                <WizardChipInput
+                                    label={t('agentCreation.wizard.customWritingRuleLabel')}
+                                    draftValue={state.customWritingRuleDraft}
+                                    placeholder={t('agentCreation.wizard.customWritingRulePlaceholder')}
+                                    chips={state.customWritingRules}
+                                    chipVariant="amber"
+                                    onDraftChange={(customWritingRuleDraft) =>
+                                        setState((previous) => ({ ...previous, customWritingRuleDraft }))
+                                    }
+                                    onAdd={() => addDraftChip('customWritingRules', 'customWritingRuleDraft')}
+                                    onRemove={(chipIndex) => removeDraftChip('customWritingRules', chipIndex)}
+                                    removeLabel={t('agentCreation.wizard.removeKnowledgeAction')}
+                                />
 
                                 <div>
                                     <label className="mb-1.5 block text-sm font-medium text-slate-800">
-                                        {t('agentCreation.wizard.customInstructionsLabel')}
+                                        {t('agentCreation.wizard.customWritingSampleLabel')}
                                     </label>
-                                    <input
-                                        value={state.customRuleDraft}
+                                    <textarea
+                                        value={state.customWritingSample}
                                         onChange={(event) =>
-                                            setState((previous) => ({ ...previous, customRuleDraft: event.target.value }))
+                                            setState((previous) => ({
+                                                ...previous,
+                                                customWritingSample: event.target.value,
+                                            }))
                                         }
-                                        onKeyDown={handleCustomRuleKeyDown}
-                                        placeholder={t('agentCreation.wizard.customInstructionsPlaceholder')}
-                                        className={INPUT_CLASS_NAME}
+                                        placeholder={t('agentCreation.wizard.customWritingSamplePlaceholder')}
+                                        className={TEXTAREA_CLASS_NAME}
                                     />
-                                    {state.customRules.length > 0 && (
-                                        <div className="mt-2 flex flex-wrap gap-2">
-                                            {state.customRules.map((rule, index) => (
-                                                <span
-                                                    key={`${rule}-${index}`}
-                                                    className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-sm text-slate-800"
-                                                >
-                                                    {rule}
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeCustomRule(index)}
-                                                        className="text-slate-500 transition hover:text-slate-800"
-                                                        aria-label={t('agentCreation.wizard.removeKnowledgeAction')}
-                                                    >
-                                                        <X className="h-3.5 w-3.5" />
-                                                    </button>
-                                                </span>
-                                            ))}
+                                    {state.customWritingSample.trim() !== '' && (
+                                        <div className="mt-3">
+                                            <WritingSamplePreview
+                                                title={t('agentCreation.wizard.customWritingSamplePreviewTitle')}
+                                                assistantMessage={state.customWritingSample.trim()}
+                                                userMessage={writingPreviewUserMessage}
+                                            />
                                         </div>
                                     )}
                                 </div>
@@ -1258,6 +1469,37 @@ export function NewAgentWizard(props: NewAgentWizardProps) {
                         )}
 
                         {step === 3 && (
+                            <div className="mt-4 space-y-4 rounded-xl border border-slate-200 bg-white p-4">
+                                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                                    {NEW_AGENT_WIZARD_RULE_PRESETS.map((preset) => (
+                                        <WizardSelectableCard
+                                            key={preset.id}
+                                            icon={preset.icon}
+                                            label={t(preset.labelKey)}
+                                            isSelected={state.selectedRuleIds.includes(preset.id)}
+                                            onClick={() => togglePresetSelection('selectedRuleIds', preset.id)}
+                                            variant="amber"
+                                        />
+                                    ))}
+                                </div>
+
+                                <WizardChipInput
+                                    label={t('agentCreation.wizard.customInstructionsLabel')}
+                                    draftValue={state.customRuleDraft}
+                                    placeholder={t('agentCreation.wizard.customInstructionsPlaceholder')}
+                                    chips={state.customRules}
+                                    chipVariant="amber"
+                                    onDraftChange={(customRuleDraft) =>
+                                        setState((previous) => ({ ...previous, customRuleDraft }))
+                                    }
+                                    onAdd={() => addDraftChip('customRules', 'customRuleDraft')}
+                                    onRemove={(chipIndex) => removeDraftChip('customRules', chipIndex)}
+                                    removeLabel={t('agentCreation.wizard.removeKnowledgeAction')}
+                                />
+                            </div>
+                        )}
+
+                        {step === 4 && (
                             <div className="mt-4 space-y-4">
                                 <div className="rounded-xl border border-dashed border-slate-300 bg-white p-4">
                                     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1371,7 +1613,7 @@ export function NewAgentWizard(props: NewAgentWizardProps) {
                 </div>
 
                 <div className="border-t border-slate-200 bg-white px-5 py-3">
-                    <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
+                    <div className="mx-auto flex max-w-4xl items-center justify-between gap-3">
                         <button
                             type="button"
                             onClick={step === 0 ? requestClose : handleBack}

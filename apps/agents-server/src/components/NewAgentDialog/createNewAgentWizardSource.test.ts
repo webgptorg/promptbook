@@ -1,15 +1,21 @@
 import { describe, expect, it } from '@jest/globals';
+import { createAgentModelRequirements } from '../../../../../src/book-2.0/agent-source/createAgentModelRequirements';
 import { parseAgentSource } from '../../../../../src/book-2.0/agent-source/parseAgentSource';
 import { createNewAgentWizardSource } from './createNewAgentWizardSource';
 
 describe('createNewAgentWizardSource', () => {
-    it('builds a traceable agent source from wizard inputs', () => {
+    it('builds a traceable agent source from wizard inputs', async () => {
         const agentSource = createNewAgentWizardSource({
             agentName: 'Recipe Helper',
             description: 'Answers cooking questions',
-            personaTraits: ['helpful', 'concise', 'professional', 'strong at practical kitchen advice'],
+            goal: 'Help users cook with confidence using practical kitchen advice.',
+            personaTraits: ['helpful', 'analytical', 'strong at practical kitchen advice'],
+            isOpenToLearning: true,
             rules: ['Use a professional tone in every response.', 'Prefer concrete next steps.'],
-            capabilityCommitments: ['USE BROWSER', 'USE SEARCH ENGINE'],
+            capabilityCommitments: ['USE BROWSER', 'USE SEARCH ENGINE', 'USE EMAIL'],
+            writingStyleTraits: ['professional', 'concise'],
+            writingRules: ['Use a professional tone.', 'Keep responses concise.'],
+            writingSamples: ['Happy to help. Start by preheating the oven and measuring everything before you begin.'],
             knowledgeItems: [
                 {
                     label: 'recipes.pdf',
@@ -23,12 +29,25 @@ describe('createNewAgentWizardSource', () => {
         });
 
         expect(agentSource).toContain('NOTE This agent was created via the NEW_AGENT_WIZZARD flow');
-        expect(agentSource).toContain('- Personality: helpful, concise, professional, strong at practical kitchen advice');
-        expect(agentSource).toContain('- Capabilities: USE BROWSER, USE SEARCH ENGINE');
+        expect(agentSource).toContain('- Goal: Help users cook with confidence using practical kitchen advice.');
+        expect(agentSource).toContain('- Personality: helpful, analytical, strong at practical kitchen advice');
+        expect(agentSource).toContain('- Learning: Open to learning');
+        expect(agentSource).toContain('- Capabilities: USE BROWSER, USE SEARCH ENGINE, USE EMAIL');
+        expect(agentSource).toContain('- Writing style: professional, concise');
         expect(agentSource).toContain('META DESCRIPTION Answers cooking questions');
-        expect(agentSource).toContain('PERSONA You are a helpful, concise, professional, strong at practical kitchen advice assistant');
+        expect(agentSource).toContain('PERSONA You are a helpful, analytical, strong at practical kitchen advice assistant');
+        expect(agentSource).toContain('GOAL Help users cook with confidence using practical kitchen advice.');
+        expect(agentSource).toContain('OPEN');
         expect(agentSource).toContain('USE BROWSER');
         expect(agentSource).toContain('USE SEARCH ENGINE');
+        expect(agentSource).toContain('USE EMAIL');
+        expect(agentSource).toContain('STYLE professional');
+        expect(agentSource).toContain('STYLE concise');
+        expect(agentSource).toContain('WRITING RULES Use a professional tone.');
+        expect(agentSource).toContain('WRITING RULES Keep responses concise.');
+        expect(agentSource).toContain(
+            'WRITING SAMPLE Happy to help. Start by preheating the oven and measuring everything before you begin.',
+        );
         expect(agentSource).toContain('RULE Use a professional tone in every response.');
         expect(agentSource).toContain('RULE Prefer concrete next steps.');
         expect(agentSource).toContain('KNOWLEDGE https://ptbk.io/k/recipes.pdf');
@@ -39,20 +58,39 @@ describe('createNewAgentWizardSource', () => {
         expect(parsedAgent.meta.fullname).toBe('Recipe Helper');
         expect(parsedAgent.meta.description).toBe('Answers cooking questions');
         expect(parsedAgent.knowledgeSources).toHaveLength(2);
+
+        const requirements = await createAgentModelRequirements(agentSource);
+        expect(requirements.systemMessage).toContain('Style: professional');
+        expect(requirements.systemMessage).toContain('Style: concise');
+        expect(requirements.systemMessage).toContain('## Writing rules');
+        expect(requirements.systemMessage).toContain('## Writing sample');
+        expect(requirements.systemMessage).toContain('Use a professional tone.');
+        expect(requirements.systemMessage).toContain(
+            'Happy to help. Start by preheating the oven and measuring everything before you begin.',
+        );
     });
 
     it('uses safe fallback summaries when optional fields are omitted', () => {
         const agentSource = createNewAgentWizardSource({
             agentName: 'Minimal Agent',
+            goal: '',
             personaTraits: [],
+            isOpenToLearning: false,
             rules: [],
             capabilityCommitments: [],
+            writingStyleTraits: [],
+            writingRules: [],
+            writingSamples: [],
             knowledgeItems: [],
         });
 
+        expect(agentSource).toContain('- Goal: No explicit goal');
+        expect(agentSource).toContain('- Learning: Fixed after creation');
         expect(agentSource).toContain('- Capabilities: None selected');
+        expect(agentSource).toContain('- Writing style: Default guided writing style');
         expect(agentSource).toContain('- Rules: None specified');
         expect(agentSource).toContain('- Knowledge: No knowledge uploaded');
         expect(agentSource).toContain('PERSONA You are a helpful, concise, and professional assistant');
+        expect(agentSource).toContain('CLOSED');
     });
 });
