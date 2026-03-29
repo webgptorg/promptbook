@@ -432,7 +432,8 @@
 }
 
 .toolCallChips,
-.sourceCitations {
+.sourceCitations,
+.citationFootnotes {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
@@ -441,6 +442,26 @@
     padding-top: 10px;
     border-top: 1px solid rgba(125, 125, 125, 0.28);
     border-top: 1px solid color-mix(in srgb, var(--message-text-color, #0f172a) 14%, transparent);
+}
+
+.citationFootnotes {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.citationFootnoteItem {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 32px;
+}
+
+.citationFootnoteNumber {
+    min-width: 1.25rem;
+    font-size: 0.84rem;
+    font-weight: 700;
+    line-height: 1;
+    color: color-mix(in srgb, var(--message-text-color, #0f172a) 78%, transparent);
 }
 
 .toolCallChip {

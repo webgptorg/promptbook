@@ -26,6 +26,10 @@ export type SourceChipProps = {
      * Optional suffix text to display after the citation label.
      */
     suffix?: string;
+    /**
+     * Controls whether the technical citation id is shown inside the chip label.
+     */
+    isCitationIdVisible?: boolean;
 };
 
 /**
@@ -44,7 +48,7 @@ export type SourceChipProps = {
  *
  * @private utility of `ChatMessageItem` component
  */
-export function SourceChip({ citation, onClick, className, suffix }: SourceChipProps) {
+export function SourceChip({ citation, onClick, className, suffix, isCitationIdVisible = true }: SourceChipProps) {
     const handleClick = (event: React.MouseEvent) => {
         event.stopPropagation();
         if (onClick) {
@@ -69,7 +73,7 @@ export function SourceChip({ citation, onClick, className, suffix }: SourceChipP
             <span className={styles.icon}>{icon}</span>
             <span className={styles.label}>
                 {displayName}
-                <span className={styles.citationId}> [{citation.id}]</span>
+                {isCitationIdVisible && <span className={styles.citationId}> [{citation.id}]</span>}
             </span>
             {suffix && <span className={styles.suffix}>{suffix}</span>}
         </button>
