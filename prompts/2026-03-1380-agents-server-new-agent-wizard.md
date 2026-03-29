@@ -111,3 +111,18 @@ CLOSED
 -   Do a proper analysis of the book language before you start implementing
 -   You are working with the [Agents Server](apps/agents-server)
 
+---
+
+[ ]
+
+[🧙‍♀️📋] Enhance the new agent wizzard
+
+-   In Page 1 - Allow to specify `GOAL`
+-   In Page 2 - Persona, list all the capabilities, look on all `USE` commitments and also allow to check `Open to learning` which adds `OPEN` / `CLOSED` commitment, also each persona trait preset should have icon, also list more persona presets
+-   Page 3 - Rules, all rules presetrs should have icons, also list more rules presets
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   Do a proper analysis of the book language before you start implementing
+-   You are working with the [Agents Server](apps/agents-server) with the new agent wizard flow
+
+![alt text](prompts/screenshots/2026-03-1380-agents-server-new-agent-wizard-4.png)
