@@ -1,3 +1,8 @@
+-   Restored immediate hover navigation for Agents Server header dropdowns so hover-opened desktop menus remain pointer-interactive without an extra click:
+
+    -   Hover-opened `System`, agent-view (`Profile` / `Chat` / ...), federated-server, agents, and profile menus now keep pointer events enabled while preserving the shared delayed open/close logic.
+    -   Kept the existing click-committed state only for explicit toggle behavior, so the header interaction code stays DRY while hover navigation works again.
+
 -   Enhanced the Agents Server new-agent wizard to cover more of the book-language agent design flow while keeping the UI DRY:
 
     -   Added `GOAL` input to page 1 alongside name, description, and visibility.

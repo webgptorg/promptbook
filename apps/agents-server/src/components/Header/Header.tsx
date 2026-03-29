@@ -388,13 +388,19 @@ export function Header(props: HeaderProps) {
     };
 
     /**
-     * Resolves whether one desktop dropdown is currently interactive.
+     * Resolves whether one desktop dropdown was explicitly committed via click or tap.
      */
     const isDesktopDropdownInteractive = (menuId: string): boolean =>
         isTouchInput || desktopDropdownModes[menuId] === 'interactive';
 
     /**
-     * Resolves whether one nested submenu is currently interactive.
+     * Resolves whether one desktop dropdown should keep pointer events enabled while open.
+     */
+    const isDesktopDropdownPointerEnabled = (menuId: string): boolean =>
+        isTouchInput || Boolean(desktopDropdownModes[menuId]);
+
+    /**
+     * Resolves whether one nested submenu was explicitly committed via click or tap.
      */
     const isNestedSubMenuInteractive = (key: string): boolean => isTouchInput || subMenuModes[key] === 'interactive';
     /**
@@ -1081,9 +1087,9 @@ export function Header(props: HeaderProps) {
     };
 
     /**
-     * Reflects whether the agent-view breadcrumb dropdown is currently interactive.
+     * Reflects whether the agent-view breadcrumb dropdown should keep pointer events enabled.
      */
-    const isAgentViewDesktopInteractive = isDesktopDropdownInteractive('agent-view');
+    const isAgentViewDesktopPointerEnabled = isDesktopDropdownPointerEnabled('agent-view');
 
     /**
      * Updates the current route after a rename initiated from the header menu.
@@ -1213,9 +1219,9 @@ export function Header(props: HeaderProps) {
     };
 
     /**
-     * Reflects whether the federated dropdown is currently interactive.
+     * Reflects whether the federated dropdown should keep pointer events enabled.
      */
-    const isFederatedDesktopInteractive = isDesktopDropdownInteractive('federated-server-switcher');
+    const isFederatedDesktopPointerEnabled = isDesktopDropdownPointerEnabled('federated-server-switcher');
 
     /**
      * Closes only the desktop agents hierarchy dropdown.
@@ -1236,9 +1242,9 @@ export function Header(props: HeaderProps) {
     };
 
     /**
-     * Reflects whether the agents hierarchy dropdown is currently interactive.
+     * Reflects whether the agents hierarchy dropdown should keep pointer events enabled.
      */
-    const isAgentsDesktopInteractive = isDesktopDropdownInteractive('agents-hierarchy');
+    const isAgentsDesktopPointerEnabled = isDesktopDropdownPointerEnabled('agents-hierarchy');
 
     /**
      * Closes only the desktop profile dropdown.
@@ -1259,9 +1265,9 @@ export function Header(props: HeaderProps) {
     };
 
     /**
-     * Reflects whether the profile dropdown is currently interactive.
+     * Reflects whether the profile dropdown should keep pointer events enabled.
      */
-    const isProfileDesktopInteractive = isDesktopDropdownInteractive('profile-menu');
+    const isProfileDesktopPointerEnabled = isDesktopDropdownPointerEnabled('profile-menu');
 
     const handleLogout = async () => {
         await logoutAction();
@@ -1730,7 +1736,7 @@ export function Header(props: HeaderProps) {
                         }
                         openInteractiveDesktopDropdown(item.id, () => item.setIsOpen(true));
                     };
-                    const isDropdownInteractive = isDesktopDropdownInteractive(item.id);
+                    const isDropdownPointerEnabled = isDesktopDropdownPointerEnabled(item.id);
 
                     return (
                         <div
@@ -1758,7 +1764,7 @@ export function Header(props: HeaderProps) {
                             {item.isOpen && (
                                 <div
                                     className={`absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-2xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 backdrop-blur ${
-                                        isDropdownInteractive ? 'pointer-events-auto' : 'pointer-events-none'
+                                        isDropdownPointerEnabled ? 'pointer-events-auto' : 'pointer-events-none'
                                     }`}
                                     onMouseEnter={() => cancelMenuClose(item.id)}
                                     onMouseLeave={() => scheduleMenuClose(item.id, () => item.setIsOpen(false))}
@@ -1877,7 +1883,7 @@ export function Header(props: HeaderProps) {
                                         {isFederatedOpen && (
                                             <div
                                                 className={`absolute left-0 top-full z-50 mt-2 w-56 rounded-xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 max-h-[80vh] overflow-y-auto backdrop-blur ${
-                                                    isFederatedDesktopInteractive
+                                                    isFederatedDesktopPointerEnabled
                                                         ? 'pointer-events-auto'
                                                         : 'pointer-events-none'
                                                 }`}
@@ -1963,7 +1969,7 @@ export function Header(props: HeaderProps) {
                                     {isAgentsOpen && (
                                         <div
                                             className={`absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-2xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 overflow-visible backdrop-blur ${
-                                                isAgentsDesktopInteractive
+                                                isAgentsDesktopPointerEnabled
                                                     ? 'pointer-events-auto'
                                                     : 'pointer-events-none'
                                             }`}
@@ -2062,7 +2068,7 @@ export function Header(props: HeaderProps) {
                                         {isAgentViewOpen && (
                                             <div
                                                 className={`absolute left-0 top-full z-50 mt-2 min-w-[180px] rounded-xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 backdrop-blur ${
-                                                    isAgentViewDesktopInteractive
+                                                    isAgentViewDesktopPointerEnabled
                                                         ? 'pointer-events-auto'
                                                         : 'pointer-events-none'
                                                 }`}
@@ -2187,7 +2193,7 @@ export function Header(props: HeaderProps) {
                                     {isProfileOpen && (
                                         <div
                                             className={`absolute top-full right-0 mt-2 w-56 bg-white/95 rounded-xl shadow-xl shadow-slate-900/10 border border-gray-100 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-200 backdrop-blur ${
-                                                isProfileDesktopInteractive
+                                                isProfileDesktopPointerEnabled
                                                     ? 'pointer-events-auto'
                                                     : 'pointer-events-none'
                                             }`}
