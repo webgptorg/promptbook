@@ -119,7 +119,8 @@ CLOSED
 
 -   In Page 1 - Allow to specify `GOAL`
 -   In Page 2 - Persona, list all the capabilities, look on all `USE` commitments and also allow to check `Open to learning` which adds `OPEN` / `CLOSED` commitment, also each persona trait preset should have icon, also list more persona presets
--   Page 3 - Rules, all rules presetrs should have icons, also list more rules presets
+-   Add here Page 3 - The writing style, with presets like "Professional", "Friendly", "Concise", "Detailed", etc. Each preset should have an icon, and also allow to write custom writing style trait. This will set commitments `WRITING RULES` and `WRITING STYLE` in the book source, but in the wizard, we should not expose these technical details, just show it as traits or capabilities and allow to add custom writing style rule and sampling. Show the samplings in message bubbles in mocked Chat
+-   Page 4 (formarly page 3) - Rules, all rules presetrs should have icons, also list more rules presets
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   Do a proper analysis of the book language before you start implementing
