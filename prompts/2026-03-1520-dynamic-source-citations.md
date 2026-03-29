@@ -1,11 +1,11 @@
-[x] ~$1.05 29 minutes by OpenAI Codex `gpt-5.3-codex`
+[ ]
 
 [🧾📎] Render agent citations as clean numbered footnotes (dedup per document)
 
 -   The agent in the Agents Server can cite sources, but the current citations render as ugly blue technical markers inside the message text (e.g. patterns like `[0:0]` and `[8:13]`).
--   Transform the chat rendering so that message body contains only clean numeric citation markers (e.g. `¹`, `²` or `[1]`, depending on final UI), and at the bottom of the same message a footnote list appears with:
+-   Transform the chat rendering so that message body contains only clean numeric citation markers (e.g. `¹`, `²`), and at the bottom of the same message a footnote list appears with:
     -   the same number in front of the cited source
-    -   the source name rendered as `【document123.doc】`
+    -   the source name rendered as the citation chip *(same as now)*
 -   Citation numbering rules:
     -   Two possible incoming cite notations must be supported: `[0:0]` and `[8:13]`.
     -   The chat component must generate the displayed citation numbers dynamically.
@@ -32,4 +32,3 @@
     -   Footnotes appear at the bottom of the message, clearly associated with the body citations.
 -   Acceptance criteria (automated):
     -   Tests covering `[0:0]` + `[8:13]` notations and dedup behavior pass.
-

@@ -29,9 +29,12 @@ import type { ToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
 import { buildToolCallChipText, getToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
 import { resolveToolCallState } from '../utils/resolveToolCallState';
 import { createDeduplicatedWalletCredentialToolCalls } from '../utils/walletCredentialToolCall';
-import { extractCitationsFromMessage, type ParsedCitation } from '../utils/parseCitationsFromContent';
+import {
+    dedupeCitationsBySource,
+    extractCitationsFromMessage,
+    type ParsedCitation,
+} from '../utils/parseCitationsFromContent';
 import { parseMessageButtons, type MessageButton } from '../utils/parseMessageButtons';
-import { renderCitationsAsFootnotes } from '../utils/renderCitationsAsFootnotes';
 import {
     getLatestStreamingFeatureBoundary,
     sanitizeStreamingMessageContent,
@@ -99,7 +102,7 @@ type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'onActionButton' | 'pa
     onToolCallClick?: (toolCall: NonNullable<ChatMessage['toolCalls']>[number]) => void;
 
     /**
-     * Called when one citation reference is clicked.
+     * Called when a source citation chip is clicked.
      */
     onCitationClick?: (citation: ParsedCitation) => void;
     /**
@@ -813,21 +816,10 @@ export const ChatMessageItem = memo(
 
             return resolveStreamingFeaturePlaceholderKind(streamingFeatureBoundary, contentWithoutButtons);
         }, [contentWithoutButtons, streamingFeatureBoundary]);
-        const messageWithCitations = extractCitationsFromMessage(message);
-        const citations = messageWithCitations.citations || [];
-        const renderedCitationMessage = useMemo(
-            () =>
-                renderCitationsAsFootnotes({
-                    content: sanitizedContentWithoutButtons,
-                    citations,
-                }),
-            [citations, sanitizedContentWithoutButtons],
-        );
         const contentSegments = useMemo(
-            () => splitMessageContentIntoSegments(renderedCitationMessage.content),
-            [renderedCitationMessage.content],
+            () => splitMessageContentIntoSegments(sanitizedContentWithoutButtons),
+            [sanitizedContentWithoutButtons],
         );
-        const citationFootnotes = renderedCitationMessage.footnotes;
         const hasMapSegment = useMemo(
             () => contentSegments.some((segment) => segment.type === 'map'),
             [contentSegments],
@@ -840,6 +832,10 @@ export const ChatMessageItem = memo(
         const teamToolCallSummary = useMemo(() => collectTeamToolCallSummary(completedToolCalls), [completedToolCalls]);
         const transitiveToolCalls = teamToolCallSummary.toolCalls;
         const transitiveCitations = teamToolCallSummary.citations;
+        // Extract citations from message content
+        const messageWithCitations = extractCitationsFromMessage(message);
+        const citations = messageWithCitations.citations || [];
+        const displayCitations = dedupeCitationsBySource(citations);
         const [localHoveredRating, setLocalHoveredRating] = useState(0);
         const [copied, setCopied] = useState(false);
         const [tooltipAlign, setTooltipAlign] = useState<'center' | 'left' | 'right'>('center');
@@ -1370,42 +1366,15 @@ export const ChatMessageItem = memo(
                                 {toolCallChips.map((chip) => renderToolCallChip(chip, onToolCallClick))}
                             </div>
                         )}
-                        {citationFootnotes.length > 0 && (
-                            <ol className={styles.citationFootnotes}>
-                                {citationFootnotes.map((footnote) => {
-                                    const sourceLabel = `【${footnote.citation.source}】`;
-
-                                    return (
-                                        <li
-                                            key={`citation-footnote-${footnote.number}-${footnote.citation.source}`}
-                                            className={styles.citationFootnoteItem}
-                                        >
-                                            {onCitationClick ? (
-                                                <button
-                                                    type="button"
-                                                    className={styles.citationFootnoteButton}
-                                                    onClick={() => onCitationClick(footnote.citation)}
-                                                >
-                                                    <span className={styles.citationFootnoteNumber}>
-                                                        {footnote.number}.
-                                                    </span>
-                                                    <span className={styles.citationFootnoteSource}>{sourceLabel}</span>
-                                                </button>
-                                            ) : (
-                                                <span className={styles.citationFootnoteText}>
-                                                    <span className={styles.citationFootnoteNumber}>
-                                                        {footnote.number}.
-                                                    </span>
-                                                    <span className={styles.citationFootnoteSource}>{sourceLabel}</span>
-                                                </span>
-                                            )}
-                                        </li>
-                                    );
-                                })}
-                            </ol>
-                        )}
-                        {transitiveCitations.length > 0 && (
+                        {(displayCitations.length > 0 || transitiveCitations.length > 0) && (
                             <div className={styles.sourceCitations}>
+                                {displayCitations.map((citation) => (
+                                    <SourceChip
+                                        key={`${citation.source}-${citation.url || 'no-url'}`}
+                                        citation={citation}
+                                        onClick={onCitationClick}
+                                    />
+                                ))}
                                 {transitiveCitations.map((citation, index) => (
                                     <SourceChip
                                         key={`team-source-${citation.source}-${index}`}
