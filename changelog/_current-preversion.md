@@ -1,3 +1,5 @@
+-   Fixed Agents Server agent breadcrumb `More` submenu items so they now reuse and display the same icons as the shared agent profile/context menu entries.
+
 -   Restored immediate hover navigation for Agents Server header dropdowns so hover-opened desktop menus remain pointer-interactive without an extra click:
 
     -   Hover-opened `System`, agent-view (`Profile` / `Chat` / ...), federated-server, agents, and profile menus now keep pointer events enabled while preserving the shared delayed open/close logic.

@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react';
-import type { LucideIcon } from 'lucide-react';
+import type { ComponentType, ReactNode } from 'react';
 
 /**
  * Shape of one entry rendered in nested header dropdowns and mobile menu trees.
@@ -8,7 +7,7 @@ import type { LucideIcon } from 'lucide-react';
  */
 export type SubMenuItem = {
     label: ReactNode;
-    icon?: LucideIcon;
+    icon?: ComponentType<{ className?: string }>;
     href?: string;
     onClick?: () => void | Promise<void>;
     isBold?: boolean;

@@ -208,7 +208,10 @@ const SYSTEM_CATEGORY_ICON_MAP: Record<SystemCategoryLabel, LucideIcon> = {
 /**
  * Propagates one fallback icon to submenu entries that do not specify their own icon.
  */
-function applyFallbackSubMenuIcon(items: ReadonlyArray<SubMenuItem>, fallbackIcon: LucideIcon): SubMenuItem[] {
+function applyFallbackSubMenuIcon(
+    items: ReadonlyArray<SubMenuItem>,
+    fallbackIcon: NonNullable<SubMenuItem['icon']>,
+): SubMenuItem[] {
     return items.map((item) => {
         const resolvedIcon = item.icon ?? fallbackIcon;
         return {

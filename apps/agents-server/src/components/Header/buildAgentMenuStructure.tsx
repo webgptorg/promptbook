@@ -15,9 +15,11 @@ import type { ServerTranslationKey } from '../../languages/ServerTranslationKeys
 import { buildFolderPath, getFolderPathSegments } from '../../utils/agentOrganization/folderPath';
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
 import { HeadlessLink } from '../_utils/headlessParam';
-import type { ContextMenuItem } from '../ContextMenu/ContextMenuPanel';
 import { FolderAppearanceIcon } from '../FolderAppearance/FolderAppearanceIcon';
 import type { SubMenuItem } from './SubMenuItem';
+
+export { mapContextMenuItemsToSubMenuItems } from './mapContextMenuItemsToSubMenuItems';
+
 type HeaderAgentMenuAgent = AgentOrganizationAgent;
 
 /**
@@ -189,43 +191,6 @@ export function createChatGptLikeViewLabel() {
 }
 
 /**
- * Converts context menu items into submenu entries for the agent view dropdown.
- *
- * @param menuItems - Context menu entries to map.
- * @returns View submenu items with divider boundaries preserved as borders.
- * @private function of Header
- */
-export function mapContextMenuItemsToSubMenuItems(menuItems: ReadonlyArray<ContextMenuItem>): SubMenuItem[] {
-    const items: SubMenuItem[] = [];
-    let lastItemIndex = -1;
-
-    menuItems.forEach((item) => {
-        if (item.type === 'divider') {
-            if (lastItemIndex >= 0) {
-                items[lastItemIndex] = { ...items[lastItemIndex], isBordered: true };
-            }
-            return;
-        }
-
-        const mappedItem: SubMenuItem =
-            item.type === 'link'
-                ? {
-                      label: item.label,
-                      href: item.href,
-                  }
-                : {
-                      label: item.label,
-                      onClick: item.onClick,
-                  };
-
-        items.push(mappedItem);
-        lastItemIndex = items.length - 1;
-    });
-
-    return items;
-}
-
-/**
  * Builds a minimal agent payload for menu rendering fallback scenarios.
  *
  * @param agentIdentifier - Active agent identifier when available.
@@ -315,11 +280,13 @@ export function resolveActiveAgentNavigation(pathname: string | null): ActiveAge
     }
 
     const pathSegments = pathname.split('/').filter(Boolean);
-    if (pathSegments.length === 0) {
+    const firstPathSegment = pathSegments[0];
+
+    if (!firstPathSegment) {
         return { agentIdentifier: null, view: null };
     }
 
-    if (pathSegments[0] === 'agents') {
+    if (firstPathSegment === 'agents') {
         if (!pathSegments[1]) {
             return { agentIdentifier: null, view: null };
         }
@@ -330,12 +297,12 @@ export function resolveActiveAgentNavigation(pathname: string | null): ActiveAge
         };
     }
 
-    if (RESERVED_PATH_SET.has(pathSegments[0])) {
+    if (RESERVED_PATH_SET.has(firstPathSegment)) {
         return { agentIdentifier: null, view: null };
     }
 
     return {
-        agentIdentifier: decodeURIComponent(pathSegments[0]),
+        agentIdentifier: decodeURIComponent(firstPathSegment),
         view: resolveAgentHierarchyView(pathSegments[1]),
     };
 }
