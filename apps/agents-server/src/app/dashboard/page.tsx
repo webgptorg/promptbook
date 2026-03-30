@@ -1,5 +1,3 @@
-'use server';
-
 export const dynamic = 'force-dynamic';
 
 import { getSingleLlmExecutionTools } from '@promptbook-local/core';
