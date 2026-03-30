@@ -1,3 +1,9 @@
+-   Unified the Agents Server mobile app menu with the chat-specific **My chats** navigation so mobile chat pages now use one shared header hamburger menu:
+
+    -   Extended the shared menu-hoisting context so pages can contribute mobile-only menu sections in addition to hoisted icon actions.
+    -   Wired the chat history page to hoist a **My chats** section into the shared mobile header menu, including new-chat, chat-pickup, delete, and filter controls.
+    -   Removed the duplicate mobile chat-sidebar trigger/overlay path while leaving the existing desktop chat sidebar behavior unchanged.
+
 -   Optimized Agents Server agent chat preparation so repeated chats stop paying the same setup cost on every message:
 
     -   Added shared process-local caching for resolved server-agent runtime state and prepared model requirements, and reused it across the web chat route, OpenAI-compatible chat path, durable user-chat jobs, agent-preparation worker, model-requirements endpoints, and durable-chat disclaimer checks.
