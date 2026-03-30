@@ -9,3 +9,5 @@
 -   You are working with [Agents Server](apps/agents-server)
 -   Current behavior: stars can already be toggled on/off (Variant 1 should represent the “off” state)
 -   Reuse the same saving logic, if needed do a db migration
+
+---
