@@ -1,10 +1,11 @@
 'use server';
 
+export const dynamic = 'force-dynamic';
+
 import { getSingleLlmExecutionTools } from '@promptbook-local/core';
 import moment from 'moment';
 import { headers } from 'next/headers';
 import { AboutPromptbookInformation } from '../../../../../src/utils/misc/xAboutPromptbookInformation';
-import { $sideEffect } from '../../../../../src/utils/organization/$sideEffect';
 import { AgentsList } from '../../components/Homepage/AgentsList';
 import { ExternalAgentsSectionClient } from '../../components/Homepage/ExternalAgentsSectionClient';
 import { HomepageMessage } from '../../components/Homepage/HomepageMessage';
@@ -42,8 +43,6 @@ type DashboardPageProps = {
  * Renders the legacy dashboard with system and admin details.
  */
 export default async function DashboardPage(props: DashboardPageProps) {
-    $sideEffect(/* Note: [??] This will ensure dynamic rendering of page and avoid Next.js pre-render */ headers());
-
     const server = await $provideServer();
     const { publicUrl } = server;
     const isAdmin = await isUserAdmin(); /* <- TODO: [??] Here should be user permissions */
