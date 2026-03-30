@@ -1,3 +1,8 @@
+-   Fixed Agents Server middleware crash (`Unknown environment, cannot determine how to get Supabase client`) caused by `$provideSupabase` not recognising the Next.js Edge Runtime:
+
+    -   Added `$provideSupabaseForEdge` that creates a lightweight, session-less Supabase client suitable for Edge Runtime (uses service-role key when available, falls back to anon key).
+    -   Updated `$provideSupabase` to detect the Edge Runtime via `globalThis.EdgeRuntime` and delegate to `$provideSupabaseForEdge`, resolving the timeout in the `api-authorization` E2E test for anonymous users.
+
 -   Fixed Agents Server agent breadcrumb `More` submenu items so they now reuse and display the same icons as the shared agent profile/context menu entries.
 
 -   Restored immediate hover navigation for Agents Server header dropdowns so hover-opened desktop menus remain pointer-interactive without an extra click:
