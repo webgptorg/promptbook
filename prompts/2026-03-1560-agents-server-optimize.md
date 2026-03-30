@@ -33,6 +33,7 @@
 ![alt text](prompts/screenshots/2026-03-1560-agents-server-optimize-6.png)
 ![alt text](prompts/screenshots/2026-03-1560-agents-server-optimize-7.png)
 ![alt text](prompts/screenshots/2026-03-1560-agents-server-optimize-8.png)
+![alt text](prompts/screenshots/2026-03-1560-agents-server-optimize-9.png)
 
 ---
 
