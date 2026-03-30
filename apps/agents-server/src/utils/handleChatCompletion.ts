@@ -2,6 +2,7 @@ import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentColle
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import {
+    createBookScopedAgentReferenceResolver,
     parseBookScopedAgentIdentifier,
 } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
 import { createChatHistoryRecorder } from '@/src/utils/chat/createChatHistoryRecorder';
@@ -51,7 +52,10 @@ import {
     resolveAgentCollectionTablePrefix,
     waitForRunningAgentPreparation,
 } from './agentPreparation';
-import { resolveServerAgentContext } from './resolveServerAgentContext';
+import {
+    resolveCachedServerAgentContext,
+    resolveCachedServerAgentModelRequirements,
+} from './cachedServerAgentRuntime';
 
 /**
  * Falls back to the estimated value when the original token count is unknown.
@@ -401,14 +405,17 @@ export async function handleChatCompletion(
             );
         }
 
-        const collection = await $provideAgentCollectionForServer();
-        const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
-        let resolvedAgentContext: Awaited<ReturnType<typeof resolveServerAgentContext>>;
+        const [collection, baseAgentReferenceResolver] = await Promise.all([
+            $provideAgentCollectionForServer(),
+            $provideAgentReferenceResolver(),
+        ]);
+        const localServerUrl = new URL(request.url).origin;
+        let resolvedAgentContext: Awaited<ReturnType<typeof resolveCachedServerAgentContext>>;
         try {
-            resolvedAgentContext = await resolveServerAgentContext({
+            resolvedAgentContext = await resolveCachedServerAgentContext({
                 collection,
                 agentIdentifier: agentName,
-                localServerUrl: new URL(request.url).origin,
+                localServerUrl,
                 fallbackResolver: baseAgentReferenceResolver,
             });
         } catch (error) {
@@ -433,10 +440,18 @@ export async function handleChatCompletion(
 
         // Note: Handle system messages as CONTEXT
         const systemMessages = messages.filter((msg: TODO_any) => msg.role === 'system');
+        const hasDynamicContext = systemMessages.length > 0;
         if (systemMessages.length > 0) {
             const contextString = systemMessages.map((msg: TODO_any) => `CONTEXT ${msg.content}`).join('\n');
             agentSource = `${agentSource}\n\n${contextString}` as string_book;
         }
+        const preparedAgentModelRequirements = !hasDynamicContext
+            ? await resolveCachedServerAgentModelRequirements({
+                  resolvedAgentContext,
+                  localServerUrl,
+                  fallbackResolver: baseAgentReferenceResolver,
+              })
+            : null;
 
         const threadMessages = messages.filter((msg: TODO_any) => msg.role !== 'system');
 
@@ -470,27 +485,28 @@ export async function handleChatCompletion(
             });
         }
         const currentUserIdentity = await resolveCurrentUserMemoryIdentity();
-        const projectGithubToken = await resolveUseProjectGithubToken({
-            userId: currentUserIdentity?.userId,
-            agentPermanentId: agentId,
-        });
-        const calendarGoogleAccessToken =
+        const [projectGithubToken, calendarGoogleAccessToken, emailSmtpCredential] = await Promise.all([
+            resolveUseProjectGithubToken({
+                userId: currentUserIdentity?.userId,
+                agentPermanentId: agentId,
+            }),
             calendarConnections.length > 0
-                ? await resolveUseCalendarGoogleToken({
+                ? resolveUseCalendarGoogleToken({
                       userId: currentUserIdentity?.userId,
                       agentPermanentId: agentId,
                   })
-                : undefined;
-        const emailSmtpCredential = useEmailConfiguration.isEnabled
-            ? await resolveUseEmailSmtpCredential({
-                  userId: currentUserIdentity?.userId,
-                  agentPermanentId: agentId,
-              })
-            : undefined;
+                : Promise.resolve(undefined),
+            useEmailConfiguration.isEnabled
+                ? resolveUseEmailSmtpCredential({
+                      userId: currentUserIdentity?.userId,
+                      agentPermanentId: agentId,
+                  })
+                : Promise.resolve(undefined),
+        ]);
 
         // Use AgentKitCacheManager for vector store caching
         const agentKitCacheManager = new AgentKitCacheManager({ isVerbose: true });
-        const baseOpenAiTools = await $provideOpenAiAgentKitExecutionToolsForServer();
+        const baseOpenAiToolsPromise = $provideOpenAiAgentKitExecutionToolsForServer();
 
         // Get or create AgentKit agent with enhanced caching
         // By default, includes full configuration (PERSONA + CONTEXT) in cache key for strict matching
@@ -498,11 +514,22 @@ export async function handleChatCompletion(
         const agentKitResult = await agentKitCacheManager.getOrCreateAgentKitAgent(
             agentSource,
             resolvedAgentContext.resolvedAgentName,
-            baseOpenAiTools,
+            await baseOpenAiToolsPromise,
             {
                 includeDynamicContext: true, // Default: strict caching (includes CONTEXT)
                 agentId,
-                agentReferenceResolver: resolvedAgentContext.scopedAgentReferenceResolver,
+                ...(hasDynamicContext
+                    ? {
+                          agentReferenceResolver: createBookScopedAgentReferenceResolver({
+                              parentAgentSource: resolvedAgentContext.parentAgentSource,
+                              parentAgentIdentifier: resolvedAgentContext.parentAgentPermanentId,
+                              localServerUrl,
+                              fallbackResolver: baseAgentReferenceResolver,
+                          }),
+                      }
+                    : {
+                          modelRequirements: preparedAgentModelRequirements!.modelRequirements,
+                      }),
             },
         );
 

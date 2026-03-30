@@ -5,10 +5,13 @@ import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForSer
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
 import { createServerAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/createServerAgentReferenceResolver';
 import { AgentKitCacheManager } from '@/src/utils/cache/AgentKitCacheManager';
+import {
+    resolveCachedServerAgentContext,
+    resolveCachedServerAgentModelRequirements,
+} from '@/src/utils/cachedServerAgentRuntime';
 import { getFederatedServers } from '@/src/utils/getFederatedServers';
 import { resolveInternalServerOrigin } from '@/src/utils/resolveInternalServerOrigin';
 import { retryWithBackoff } from '@/src/utils/retryWithBackoff';
-import { resolveServerAgentContext } from './resolveServerAgentContext';
 
 /**
  * Debounce window for agent pre-indexing.
@@ -731,9 +734,14 @@ async function processClaimedAgentPreparationJob(tablePrefix: string, claimedJob
 
         const fallbackAgentReferenceResolver = await createBackgroundAgentReferenceResolver(tablePrefix, collection);
         const localServerUrl = resolveInternalServerOrigin();
-        const resolvedAgentContext = await resolveServerAgentContext({
+        const resolvedAgentContext = await resolveCachedServerAgentContext({
             collection,
             agentIdentifier: claimedJob.agentPermanentId,
+            localServerUrl,
+            fallbackResolver: fallbackAgentReferenceResolver,
+        });
+        const preparedAgentModelRequirements = await resolveCachedServerAgentModelRequirements({
+            resolvedAgentContext,
             localServerUrl,
             fallbackResolver: fallbackAgentReferenceResolver,
         });
@@ -751,7 +759,7 @@ async function processClaimedAgentPreparationJob(tablePrefix: string, claimedJob
                     {
                         includeDynamicContext: true,
                         agentId: claimedJob.agentPermanentId,
-                        agentReferenceResolver: resolvedAgentContext.scopedAgentReferenceResolver,
+                        modelRequirements: preparedAgentModelRequirements.modelRequirements,
                     },
                 );
             },

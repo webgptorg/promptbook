@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.5082 30 minutes by OpenAI Codex `gpt-5.4`
 
 [✨☛] Chatting with agents on the Agents Server should be faster
 
@@ -53,3 +53,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

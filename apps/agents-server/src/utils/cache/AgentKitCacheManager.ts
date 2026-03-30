@@ -21,6 +21,11 @@ const KNOWLEDGE_SOURCE_HASH_TIMEOUT_MS = 30000;
 const VECTOR_STORE_HASH_VERSION = 'vector-store-v1';
 
 /**
+ * Short-lived in-memory cache lifetime for fully prepared AgentKit agents.
+ */
+const PREPARED_AGENT_KIT_CACHE_TTL_MS = 5 * 60_000;
+
+/**
  * Marker used to avoid appending the same citation policy block multiple times.
  */
 const SOURCE_CITATION_POLICY_SENTINEL = 'Source citation policy:';
@@ -139,7 +144,7 @@ export type AgentKitCacheResult = {
     readonly tools: OpenAiAgentKitExecutionTools;
 
     /**
-     * Whether cached vector store metadata was reused.
+     * Whether any cached AgentKit preparation was reused.
      */
     readonly fromCache: boolean;
 
@@ -163,6 +168,51 @@ export type AgentKitCacheResult = {
      */
     readonly vectorStoreId?: string;
 };
+
+/**
+ * Shared prepared AgentKit agent snapshot stored in memory for repeated chat turns.
+ */
+type PreparedAgentKitCacheEntry = {
+    /**
+     * Expiration timestamp for the cached prepared agent.
+     */
+    readonly expiresAt: number;
+
+    /**
+     * Prepared AgentKit agent ready to clone into request-scoped tools.
+     */
+    readonly preparedAgent: Awaited<ReturnType<OpenAiAgentKitExecutionTools['prepareAgentKitAgent']>>;
+
+    /**
+     * Whether the initial preparation reused a durable vector-store cache entry.
+     */
+    readonly fromCache: boolean;
+
+    /**
+     * Cache key derived from the assistant configuration.
+     */
+    readonly assistantCacheKey: string;
+
+    /**
+     * The agent configuration used to derive the cache key.
+     */
+    readonly configuration: AssistantConfiguration;
+
+    /**
+     * Vector store hash used for the prepared agent.
+     */
+    readonly vectorStoreHash: string | null;
+};
+
+/**
+ * In-memory prepared AgentKit agents keyed by fully resolved preparation payload.
+ */
+const preparedAgentKitCacheEntries = new Map<string, PreparedAgentKitCacheEntry>();
+
+/**
+ * In-flight prepared AgentKit computations keyed by fully resolved preparation payload.
+ */
+const pendingPreparedAgentKitCacheEntries = new Map<string, Promise<PreparedAgentKitCacheEntry>>();
 
 /**
  * Manages the lifecycle of OpenAI AgentKit agents with vector store caching.
@@ -217,9 +267,14 @@ export class AgentKitCacheManager {
              * Optional resolver for compact agent references scoped to the current book.
              */
             agentReferenceResolver?: AgentReferenceResolver;
+
+            /**
+             * Optional prepared model requirements to reuse instead of recalculating them.
+             */
+            modelRequirements?: AgentModelRequirements;
         } = {},
     ): Promise<AgentKitCacheResult> {
-        const { includeDynamicContext = true, agentId, onCacheMiss, agentReferenceResolver } = options;
+        const { includeDynamicContext = true, agentId, onCacheMiss, agentReferenceResolver, modelRequirements } = options;
 
         const configuration = extractAssistantConfiguration(agentSource, { includeDynamicContext });
         const assistantCacheKey = computeAssistantCacheKey(configuration);
@@ -235,9 +290,171 @@ export class AgentKitCacheManager {
             });
         }
 
-        const effectiveAgentReferenceResolver = agentReferenceResolver || (await $provideAgentReferenceResolver());
-        const modelRequirements: AgentModelRequirements = await createAgentModelRequirements(
-            configuration.baseAgentSource,
+        const preparedAgentKitCacheEntry = await this.getOrCreatePreparedAgentKitCacheEntry({
+            assistantCacheKey,
+            configuration,
+            agentName,
+            baseTools,
+            onCacheMiss,
+            agentReferenceResolver,
+            modelRequirements,
+        });
+
+        return {
+            tools: baseTools.getPreparedAgentTools(preparedAgentKitCacheEntry.preparedAgent),
+            fromCache: preparedAgentKitCacheEntry.fromCache,
+            assistantCacheKey,
+            vectorStoreHash: preparedAgentKitCacheEntry.vectorStoreHash,
+            configuration,
+            vectorStoreId: preparedAgentKitCacheEntry.preparedAgent.vectorStoreId,
+        };
+    }
+
+    /**
+     * Resolves or builds one short-lived prepared AgentKit cache entry.
+     */
+    private async getOrCreatePreparedAgentKitCacheEntry(options: {
+        readonly assistantCacheKey: string;
+        readonly configuration: AssistantConfiguration;
+        readonly agentName: string;
+        readonly baseTools: OpenAiAgentKitExecutionTools;
+        readonly onCacheMiss?: () => void | Promise<void>;
+        readonly agentReferenceResolver?: AgentReferenceResolver;
+        readonly modelRequirements?: AgentModelRequirements;
+    }): Promise<PreparedAgentKitCacheEntry> {
+        const {
+            assistantCacheKey,
+            configuration,
+            agentName,
+            baseTools,
+            onCacheMiss,
+            agentReferenceResolver,
+            modelRequirements,
+        } = options;
+        const resolvedModelRequirements = await this.resolveAgentModelRequirements({
+            configuration,
+            agentReferenceResolver,
+            modelRequirements,
+        });
+        const preparedAgentKitCacheKey = this.createPreparedAgentKitCacheKey(
+            assistantCacheKey,
+            resolvedModelRequirements,
+        );
+        const cachedEntry = this.readPreparedAgentKitCacheEntry(preparedAgentKitCacheKey);
+
+        if (cachedEntry) {
+            if (this.isVerbose) {
+                console.info('[🤰]', 'AgentKit cache hit (prepared agent)', {
+                    agentName,
+                    preparedAgentCacheKey: preparedAgentKitCacheKey,
+                    vectorStoreHash: cachedEntry.vectorStoreHash,
+                    vectorStoreId: cachedEntry.preparedAgent.vectorStoreId,
+                });
+            }
+
+            return {
+                ...cachedEntry,
+                fromCache: true,
+            };
+        }
+
+        const pendingEntry = pendingPreparedAgentKitCacheEntries.get(preparedAgentKitCacheKey);
+        if (pendingEntry) {
+            return pendingEntry;
+        }
+
+        const pendingComputation = (async (): Promise<PreparedAgentKitCacheEntry> => {
+            try {
+                const knowledgeSources = resolvedModelRequirements.knowledgeSources
+                    ? [...resolvedModelRequirements.knowledgeSources]
+                    : [];
+                const tools = resolvedModelRequirements.tools ? [...resolvedModelRequirements.tools] : undefined;
+                const instructions = withSourceCitationPolicy(resolvedModelRequirements.systemMessage, {
+                    knowledgeSources,
+                    tools,
+                });
+                const agentKitName = formatAssistantNameWithHash(configuration.name || agentName, assistantCacheKey);
+                const vectorStoreHash = await this.computeVectorStoreHash({ agentName, knowledgeSources });
+                const cachedVectorStoreId = vectorStoreHash
+                    ? await this.getCachedVectorStoreId(vectorStoreHash, baseTools)
+                    : null;
+
+                if (cachedVectorStoreId && this.isVerbose) {
+                    console.info('[🤰]', 'AgentKit cache hit (vector store)', {
+                        agentName,
+                        assistantCacheKey,
+                        vectorStoreHash,
+                        vectorStoreId: cachedVectorStoreId,
+                    });
+                }
+
+                if (!cachedVectorStoreId && knowledgeSources.length > 0 && onCacheMiss) {
+                    await onCacheMiss();
+                }
+
+                const preparedKnowledgeSources =
+                    !cachedVectorStoreId && knowledgeSources.length > 0
+                        ? await resolveWebsiteKnowledgeSourcesForServer(knowledgeSources, { isVerbose: this.isVerbose })
+                        : knowledgeSources;
+
+                if (this.isVerbose) {
+                    console.info('[🤰]', 'Preparing AgentKit agent via cache manager', {
+                        agentName,
+                        agentKitName,
+                        instructionsLength: instructions.length,
+                        knowledgeSourcesCount: preparedKnowledgeSources.length,
+                        toolsCount: tools?.length ?? 0,
+                    });
+                }
+
+                const preparedAgent = await baseTools.prepareAgentKitAgent({
+                    name: agentKitName,
+                    instructions,
+                    knowledgeSources: preparedKnowledgeSources,
+                    tools,
+                    vectorStoreId: cachedVectorStoreId ?? undefined,
+                });
+
+                if (!cachedVectorStoreId && preparedAgent.vectorStoreId && vectorStoreHash) {
+                    const note = this.buildVectorStoreNote({ agentName, knowledgeSources });
+                    await this.cacheVectorStore(vectorStoreHash, preparedAgent.vectorStoreId, note);
+                }
+
+                const nextEntry: PreparedAgentKitCacheEntry = {
+                    expiresAt: Date.now() + PREPARED_AGENT_KIT_CACHE_TTL_MS,
+                    preparedAgent,
+                    fromCache: Boolean(cachedVectorStoreId),
+                    assistantCacheKey,
+                    configuration,
+                    vectorStoreHash,
+                };
+
+                this.writePreparedAgentKitCacheEntry(preparedAgentKitCacheKey, nextEntry);
+                return nextEntry;
+            } finally {
+                pendingPreparedAgentKitCacheEntries.delete(preparedAgentKitCacheKey);
+            }
+        })();
+
+        pendingPreparedAgentKitCacheEntries.set(preparedAgentKitCacheKey, pendingComputation);
+        return pendingComputation;
+    }
+
+    /**
+     * Resolves model requirements either from a caller-provided value or by preparing them now.
+     */
+    private async resolveAgentModelRequirements(options: {
+        readonly configuration: AssistantConfiguration;
+        readonly agentReferenceResolver?: AgentReferenceResolver;
+        readonly modelRequirements?: AgentModelRequirements;
+    }): Promise<AgentModelRequirements> {
+        if (options.modelRequirements) {
+            return options.modelRequirements;
+        }
+
+        const effectiveAgentReferenceResolver = options.agentReferenceResolver || (await $provideAgentReferenceResolver());
+        const resolvedModelRequirements = await createAgentModelRequirements(
+            options.configuration.baseAgentSource,
             undefined,
             undefined,
             undefined,
@@ -247,68 +464,71 @@ export class AgentKitCacheManager {
             },
         );
         const unresolvedAgentReferences = consumeAgentReferenceResolutionIssues(effectiveAgentReferenceResolver);
+
         if (unresolvedAgentReferences.length > 0) {
             console.warn('[AgentKitCacheManager] Unresolved agent references detected:', unresolvedAgentReferences);
         }
-        const knowledgeSources = modelRequirements.knowledgeSources ? [...modelRequirements.knowledgeSources] : [];
-        const tools = modelRequirements.tools ? [...modelRequirements.tools] : undefined;
-        const instructions = withSourceCitationPolicy(modelRequirements.systemMessage, { knowledgeSources, tools });
-        const agentKitName = formatAssistantNameWithHash(configuration.name || agentName, assistantCacheKey);
 
-        const vectorStoreHash = await this.computeVectorStoreHash({ agentName, knowledgeSources });
-        const cachedVectorStoreId = vectorStoreHash
-            ? await this.getCachedVectorStoreId(vectorStoreHash, baseTools)
-            : null;
+        return resolvedModelRequirements;
+    }
 
-        if (cachedVectorStoreId && this.isVerbose) {
-            console.info('[🤰]', 'AgentKit cache hit (vector store)', {
-                agentName,
-                assistantCacheKey,
-                vectorStoreHash,
-                vectorStoreId: cachedVectorStoreId,
-            });
+    /**
+     * Reads a prepared AgentKit cache entry when it is still fresh.
+     */
+    private readPreparedAgentKitCacheEntry(assistantCacheKey: string): PreparedAgentKitCacheEntry | null {
+        const cachedEntry = preparedAgentKitCacheEntries.get(assistantCacheKey);
+
+        if (!cachedEntry) {
+            return null;
         }
 
-        if (!cachedVectorStoreId && knowledgeSources.length > 0 && onCacheMiss) {
-            await onCacheMiss();
+        if (cachedEntry.expiresAt <= Date.now()) {
+            preparedAgentKitCacheEntries.delete(assistantCacheKey);
+            return null;
         }
 
-        const preparedKnowledgeSources =
-            !cachedVectorStoreId && knowledgeSources.length > 0
-                ? await resolveWebsiteKnowledgeSourcesForServer(knowledgeSources, { isVerbose: this.isVerbose })
-                : knowledgeSources;
+        return cachedEntry;
+    }
 
-        if (this.isVerbose) {
-            console.info('[🤰]', 'Preparing AgentKit agent via cache manager', {
-                agentName,
-                agentKitName,
-                instructionsLength: instructions.length,
-                knowledgeSourcesCount: preparedKnowledgeSources.length,
-                toolsCount: tools?.length ?? 0,
-            });
+    /**
+     * Stores one prepared AgentKit cache entry and drops expired siblings.
+     */
+    private writePreparedAgentKitCacheEntry(
+        preparedAgentKitCacheKey: string,
+        cacheEntry: PreparedAgentKitCacheEntry,
+    ): void {
+        const now = Date.now();
+
+        for (const [existingKey, existingEntry] of preparedAgentKitCacheEntries.entries()) {
+            if (existingEntry.expiresAt <= now) {
+                preparedAgentKitCacheEntries.delete(existingKey);
+            }
         }
 
-        const preparedAgent = await baseTools.prepareAgentKitAgent({
-            name: agentKitName,
-            instructions,
-            knowledgeSources: preparedKnowledgeSources,
-            tools,
-            vectorStoreId: cachedVectorStoreId ?? undefined,
+        preparedAgentKitCacheEntries.set(preparedAgentKitCacheKey, cacheEntry);
+    }
+
+    /**
+     * Builds one cache key for the fully resolved AgentKit preparation payload.
+     */
+    private createPreparedAgentKitCacheKey(
+        assistantCacheKey: string,
+        modelRequirements: AgentModelRequirements,
+    ): string {
+        const payload = JSON.stringify({
+            assistantCacheKey,
+            systemMessage: modelRequirements.systemMessage,
+            promptSuffix: modelRequirements.promptSuffix,
+            knowledgeSources: modelRequirements.knowledgeSources ?? [],
+            tools: modelRequirements.tools ?? [],
+            mcpServers: modelRequirements.mcpServers ?? [],
+            importedAgentUrls: modelRequirements.importedAgentUrls ?? [],
+            importedFileUrls: modelRequirements.importedFileUrls ?? [],
+            parentAgentUrl: modelRequirements.parentAgentUrl,
+            isClosed: modelRequirements.isClosed,
         });
 
-        if (!cachedVectorStoreId && preparedAgent.vectorStoreId && vectorStoreHash) {
-            const note = this.buildVectorStoreNote({ agentName, knowledgeSources });
-            await this.cacheVectorStore(vectorStoreHash, preparedAgent.vectorStoreId, note);
-        }
-
-        return {
-            tools: baseTools.getPreparedAgentTools(preparedAgent),
-            fromCache: Boolean(cachedVectorStoreId),
-            assistantCacheKey,
-            vectorStoreHash,
-            configuration,
-            vectorStoreId: preparedAgent.vectorStoreId,
-        };
+        return createHash('sha256').update(payload).digest('hex');
     }
 
     /**

@@ -2,6 +2,7 @@ import { AgentCollection, string_agent_permanent_id, string_book } from '@prompt
 import { computeAgentHash } from '../../../../src/book-2.0/agent-source/computeAgentHash';
 import { $invalidateProvidedAgentReferenceResolverCache } from './agentReferenceResolver/$provideAgentReferenceResolver';
 import { scheduleAgentPreparation } from './agentPreparation';
+import { invalidateCachedServerAgentRuntime } from './cachedServerAgentRuntime';
 
 /**
  * Marker key used to prevent double-decoration of the same collection instance.
@@ -52,6 +53,7 @@ export function attachAgentPreparationScheduling(
     collection.createAgent = async (...args) => {
         const createdAgent = await originalCreateAgent(...args);
         $invalidateProvidedAgentReferenceResolverCache();
+        invalidateCachedServerAgentRuntime();
 
         if (createdAgent.permanentId) {
             await scheduleAgentPreparation({
@@ -73,6 +75,7 @@ export function attachAgentPreparationScheduling(
     ) => {
         await originalUpdateAgentSource(permanentId, agentSource, options);
         $invalidateProvidedAgentReferenceResolverCache();
+        invalidateCachedServerAgentRuntime();
 
         const fingerprint = computePersistedAgentFingerprint(agentSource);
         await scheduleAgentPreparation({

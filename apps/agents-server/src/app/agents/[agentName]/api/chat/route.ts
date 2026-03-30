@@ -18,7 +18,6 @@ import {
 } from '@/src/utils/chat/messageSuffix';
 import { resolveChatMessageContentForApiRequest } from '@/src/utils/chat/validateChatMessageContent';
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
-import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
 import { resolveCurrentUserIdentity, type ResolvedCurrentUserIdentity } from '@/src/utils/currentUserIdentity';
 import {
@@ -41,7 +40,7 @@ import {
     waitForRunningAgentPreparation,
 } from '@/src/utils/agentPreparation';
 import type { ChatMessage } from '@promptbook-local/components';
-import { Agent, computeAgentHash, normalizeChatAttachments, RemoteAgent } from '@promptbook-local/core';
+import { Agent, computeAgentHash, normalizeChatAttachments } from '@promptbook-local/core';
 import type { ToolCall } from '@promptbook-local/types';
 import { $getCurrentDate, serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
@@ -51,7 +50,11 @@ import { keepUnused } from '../../../../../../../../src/utils/organization/keepU
 import { respondIfClientVersionIsOutdated } from '../../../../../utils/clientVersionGuard';
 import { prepareToolCallsForStreaming } from '../../../../../utils/toolCallStreaming';
 import { isAgentDeleted } from '../../_utils';
-import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
+import {
+    resolveCachedServerAgentContext,
+    resolveCachedServerAgentModelRequirements,
+} from '@/src/utils/cachedServerAgentRuntime';
+import { getTeacherRemoteAgent } from '@/src/utils/getTeacherRemoteAgent';
 
 /**
  * Shape of the incoming chat API payload.
@@ -266,12 +269,20 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     //      <- TODO: [🐱‍🚀] To configuration DEFAULT_INITIAL_HIDDEN_MESSAGE
 
     try {
-        const collection = await $provideAgentCollectionForServer();
-        const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
-        const resolvedAgentContext = await resolveServerAgentContext({
+        const [collection, baseAgentReferenceResolver] = await Promise.all([
+            $provideAgentCollectionForServer(),
+            $provideAgentReferenceResolver(),
+        ]);
+        const localServerUrl = new URL(request.url).origin;
+        const resolvedAgentContext = await resolveCachedServerAgentContext({
             collection,
             agentIdentifier: agentName,
-            localServerUrl: new URL(request.url).origin,
+            localServerUrl,
+            fallbackResolver: baseAgentReferenceResolver,
+        });
+        const preparedAgentModelRequirementsPromise = resolveCachedServerAgentModelRequirements({
+            resolvedAgentContext,
+            localServerUrl,
             fallbackResolver: baseAgentReferenceResolver,
         });
         const agentSource = resolvedAgentContext.resolvedAgentSource;
@@ -282,27 +293,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const useEmailConfiguration = extractUseEmailConfigurationFromAgentSource(agentSource);
         // [▶️] const executionTools = await $provideExecutionToolsForServer();
         const messageSuffix = resolveMessageSuffixFromAgentSource(agentSource);
-        const [currentUserIdentity, currentRequestIdentity] = await Promise.all([
+        const [preparedAgentModelRequirements, currentUserIdentity, currentRequestIdentity] = await Promise.all([
+            preparedAgentModelRequirementsPromise,
             resolveCurrentUserMemoryIdentity(),
             resolveCurrentUserIdentity(),
         ]);
-        const projectGithubToken = await resolveUseProjectGithubToken({
-            userId: currentUserIdentity?.userId,
-            agentPermanentId: agentId,
-        });
-        const calendarGoogleAccessToken =
-            calendarConnections.length > 0
-                ? await resolveUseCalendarGoogleToken({
-                      userId: currentUserIdentity?.userId,
-                      agentPermanentId: agentId,
-                  })
-                : undefined;
-        const emailSmtpCredential = useEmailConfiguration.isEnabled
-            ? await resolveUseEmailSmtpCredential({
-                  userId: currentUserIdentity?.userId,
-                  agentPermanentId: agentId,
-              })
-            : undefined;
         const disclaimerMarkdown = resolveMetaDisclaimerMarkdownFromAgentSource(agentSource);
 
         if (disclaimerMarkdown) {
@@ -329,6 +324,25 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             }
         }
 
+        const [projectGithubToken, calendarGoogleAccessToken, emailSmtpCredential] = await Promise.all([
+            resolveUseProjectGithubToken({
+                userId: currentUserIdentity?.userId,
+                agentPermanentId: agentId,
+            }),
+            calendarConnections.length > 0
+                ? resolveUseCalendarGoogleToken({
+                      userId: currentUserIdentity?.userId,
+                      agentPermanentId: agentId,
+                  })
+                : Promise.resolve(undefined),
+            useEmailConfiguration.isEnabled
+                ? resolveUseEmailSmtpCredential({
+                      userId: currentUserIdentity?.userId,
+                      agentPermanentId: agentId,
+                  })
+                : Promise.resolve(undefined),
+        ]);
+
         const incomingParameters =
             rawParameters && typeof rawParameters === 'object' && !Array.isArray(rawParameters)
                 ? (rawParameters as Record<string, unknown>)
@@ -351,7 +365,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
         // Use AgentKitCacheManager for vector store caching
         const agentKitCacheManager = new AgentKitCacheManager({ isVerbose: true });
-        const baseOpenAiTools = await $provideOpenAiAgentKitExecutionToolsForServer();
+        const baseOpenAiToolsPromise = $provideOpenAiAgentKitExecutionToolsForServer();
 
         const agentHash = computeAgentHash(agentSource);
         const tablePrefix = resolveAgentCollectionTablePrefix(collection);
@@ -552,11 +566,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     const agentKitResult = await agentKitCacheManager.getOrCreateAgentKitAgent(
                         agentSource,
                         resolvedAgentName,
-                        baseOpenAiTools,
+                        await baseOpenAiToolsPromise,
                         {
                             includeDynamicContext: true,
                             agentId,
-                            agentReferenceResolver: resolvedAgentContext.scopedAgentReferenceResolver,
+                            modelRequirements: preparedAgentModelRequirements.modelRequirements,
                             onCacheMiss: async () => {
                                 const toolCall = createAssistantPreparationToolCall('Preparing AgentKit agent');
                                 emitToolCalls([toolCall]);
@@ -572,9 +586,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                             llm: agentKitResult.tools,
                         },
                         agentSource,
-                        teacherAgent: await RemoteAgent.connect({
-                            agentUrl: await getWellKnownAgentUrl('TEACHER'),
-                        }), // <- [🦋]
+                        teacherAgent: await getTeacherRemoteAgent(), // <- [🦋]
                     });
 
                     const response = await agent.callChatModelStream!(

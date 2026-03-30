@@ -1,40 +1,34 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { createAgentModelRequirements } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
-import { consumeAgentReferenceResolutionIssues } from '@/src/utils/agentReferenceResolver/AgentReferenceResolutionIssue';
-import { createInlineKnowledgeSourceUploader } from '@/src/utils/knowledge/createInlineKnowledgeSourceUploader';
-import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
+import {
+    resolveCachedServerAgentContext,
+    resolveCachedServerAgentModelRequirements,
+} from '@/src/utils/cachedServerAgentRuntime';
 
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
-    keepUnused(request /* <- Note: We dont need `request` parameter */);
     let { agentName } = await params;
     agentName = decodeURIComponent(agentName);
 
     try {
-        const collection = await $provideAgentCollectionForServer();
-        const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
-        const resolvedAgentContext = await resolveServerAgentContext({
+        const [collection, baseAgentReferenceResolver] = await Promise.all([
+            $provideAgentCollectionForServer(),
+            $provideAgentReferenceResolver(),
+        ]);
+        const localServerUrl = new URL(request.url).origin;
+        const resolvedAgentContext = await resolveCachedServerAgentContext({
             collection,
             agentIdentifier: agentName,
-            localServerUrl: new URL(request.url).origin,
+            localServerUrl,
             fallbackResolver: baseAgentReferenceResolver,
         });
-        const agentSource = resolvedAgentContext.resolvedAgentSource;
-        const agentReferenceResolver = resolvedAgentContext.scopedAgentReferenceResolver;
-        const modelRequirements = await createAgentModelRequirements(
-            agentSource,
-            undefined,
-            undefined,
-            undefined,
-            {
-                agentReferenceResolver,
-                inlineKnowledgeSourceUploader: createInlineKnowledgeSourceUploader(),
-            },
-        );
-        const unresolvedAgentReferences = consumeAgentReferenceResolutionIssues(agentReferenceResolver);
+        const { modelRequirements, unresolvedAgentReferences } = await resolveCachedServerAgentModelRequirements({
+            resolvedAgentContext,
+            localServerUrl,
+            fallbackResolver: baseAgentReferenceResolver,
+        });
         if (unresolvedAgentReferences.length > 0) {
             console.warn('[model-requirements API] Unresolved agent references detected:', unresolvedAgentReferences);
         }

@@ -4,7 +4,7 @@ import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolv
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import { resolveMetaDisclaimerStatusForUser } from '@/src/utils/metaDisclaimer';
 import { resolveCurrentOrInternalServerOrigin } from '@/src/utils/resolveCurrentOrInternalServerOrigin';
-import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
+import { resolveCachedServerAgentContext } from '@/src/utils/cachedServerAgentRuntime';
 import {
     appendQueuedUserChatTurn,
     createUserChatDetailPayload,
@@ -97,12 +97,15 @@ export async function POST(
             });
         }
 
-        const collection = await $provideAgentCollectionForServer();
-        const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
-        const resolvedAgentContext = await resolveServerAgentContext({
+        const [collection, baseAgentReferenceResolver, localServerUrl] = await Promise.all([
+            $provideAgentCollectionForServer(),
+            $provideAgentReferenceResolver(),
+            resolveCurrentOrInternalServerOrigin(),
+        ]);
+        const resolvedAgentContext = await resolveCachedServerAgentContext({
             collection,
             agentIdentifier: scopeResult.scope.agentPermanentId,
-            localServerUrl: await resolveCurrentOrInternalServerOrigin(),
+            localServerUrl,
             fallbackResolver: baseAgentReferenceResolver,
         });
         const disclaimerStatus = await resolveMetaDisclaimerStatusForUser({

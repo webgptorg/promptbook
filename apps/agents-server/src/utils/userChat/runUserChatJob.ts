@@ -4,12 +4,16 @@ import { createAgentProgressTools } from '@/src/tools/createAgentProgressTools';
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { AgentKitCacheManager } from '@/src/utils/cache/AgentKitCacheManager';
+import {
+    resolveCachedServerAgentContext,
+    resolveCachedServerAgentModelRequirements,
+} from '@/src/utils/cachedServerAgentRuntime';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
 import { extractUseCalendarConnectionsFromAgentSource } from '@/src/utils/calendars/extractUseCalendarConnectionsFromAgentSource';
 import { logCalendarToolCallsActivity } from '@/src/utils/calendars/logCalendarToolCallsActivity';
 import { extractUseEmailConfigurationFromAgentSource } from '@/src/utils/emails/extractUseEmailConfigurationFromAgentSource';
 import { getUserById } from '@/src/utils/getUserById';
-import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
+import { getTeacherRemoteAgent } from '@/src/utils/getTeacherRemoteAgent';
 import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
 import { resolveCurrentOrInternalServerOrigin } from '@/src/utils/resolveCurrentOrInternalServerOrigin';
 import { resolveUseCalendarGoogleToken } from '@/src/utils/resolveUseCalendarGoogleToken';
@@ -21,7 +25,7 @@ import {
     waitForRunningAgentPreparation,
 } from '@/src/utils/agentPreparation';
 import { prepareToolCallsForStreaming } from '@/src/utils/toolCallStreaming';
-import { Agent, computeAgentHash, RemoteAgent } from '@promptbook-local/core';
+import { Agent, computeAgentHash } from '@promptbook-local/core';
 import type { ToolCall } from '@promptbook-local/types';
 import { serializeError } from '@promptbook-local/utils';
 import type { ChatPromptResult } from '../../../../../src/execution/PromptResult';
@@ -34,7 +38,6 @@ import { persistUserChatJobTerminalState } from './persistUserChatJobTerminalSta
 import type { UserChatJobRecord } from './UserChatJobRecord';
 import { resolvePromptThreadBeforeUserMessage } from './userChatMessageLifecycle';
 import { updateUserChatAssistantMessage } from './updateUserChatAssistantMessage';
-import { resolveServerAgentContext } from '../resolveServerAgentContext';
 
 /**
  * Heartbeat cadence used while one chat job is actively streaming.
@@ -63,17 +66,19 @@ const USER_CHAT_JOB_CANCELLED_ERROR_NAME = 'UserChatJobCancelledError';
  * Runs one claimed durable chat job to completion.
  */
 export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed' | 'failed' | 'cancelled'> {
-    const chat = await getUserChat({
-        userId: job.userId,
-        agentPermanentId: job.agentPermanentId,
-        chatId: job.chatId,
-    });
+    const [chat, userRow] = await Promise.all([
+        getUserChat({
+            userId: job.userId,
+            agentPermanentId: job.agentPermanentId,
+            chatId: job.chatId,
+        }),
+        getUserById(job.userId),
+    ]);
 
     if (!chat) {
         throw new Error(`User chat "${job.chatId}" was not found for durable job "${job.id}".`);
     }
 
-    const userRow = await getUserById(job.userId);
     if (!userRow) {
         throw new Error(`User "${job.userId}" was not found for durable job "${job.id}".`);
     }
@@ -84,12 +89,19 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
     }
 
     const thread = resolvePromptThreadBeforeUserMessage(chat.messages, job.userMessageId);
-    const localServerUrl = await resolveCurrentOrInternalServerOrigin();
-    const collection = await $provideAgentCollectionForServer();
-    const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
-    const resolvedAgentContext = await resolveServerAgentContext({
+    const [localServerUrl, collection, baseAgentReferenceResolver] = await Promise.all([
+        resolveCurrentOrInternalServerOrigin(),
+        $provideAgentCollectionForServer(),
+        $provideAgentReferenceResolver(),
+    ]);
+    const resolvedAgentContext = await resolveCachedServerAgentContext({
         collection,
         agentIdentifier: job.agentPermanentId,
+        localServerUrl,
+        fallbackResolver: baseAgentReferenceResolver,
+    });
+    const preparedAgentModelRequirements = await resolveCachedServerAgentModelRequirements({
+        resolvedAgentContext,
         localServerUrl,
         fallbackResolver: baseAgentReferenceResolver,
     });
@@ -99,23 +111,24 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
     const projectRepositories = extractProjectRepositoriesFromAgentSource(agentSource);
     const calendarConnections = extractUseCalendarConnectionsFromAgentSource(agentSource);
     const useEmailConfiguration = extractUseEmailConfigurationFromAgentSource(agentSource);
-    const projectGithubToken = await resolveUseProjectGithubToken({
-        userId: job.userId,
-        agentPermanentId,
-    });
-    const calendarGoogleAccessToken =
+    const [projectGithubToken, calendarGoogleAccessToken, emailSmtpCredential] = await Promise.all([
+        resolveUseProjectGithubToken({
+            userId: job.userId,
+            agentPermanentId,
+        }),
         calendarConnections.length > 0
-            ? await resolveUseCalendarGoogleToken({
+            ? resolveUseCalendarGoogleToken({
                   userId: job.userId,
                   agentPermanentId,
               })
-            : undefined;
-    const emailSmtpCredential = useEmailConfiguration.isEnabled
-        ? await resolveUseEmailSmtpCredential({
-              userId: job.userId,
-              agentPermanentId,
-          })
-        : undefined;
+            : Promise.resolve(undefined),
+        useEmailConfiguration.isEnabled
+            ? resolveUseEmailSmtpCredential({
+                  userId: job.userId,
+                  agentPermanentId,
+              })
+            : Promise.resolve(undefined),
+    ]);
     const runtimeTools = createAgentProgressTools(createChatAttachmentTools([], userMessage.attachments || []));
     const promptParameters = composePromptParametersWithMemoryContext({
         baseParameters: job.parameters,
@@ -141,7 +154,7 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
         chatAttachments: userMessage.attachments,
     });
     const agentKitCacheManager = new AgentKitCacheManager({ isVerbose: true });
-    const baseOpenAiTools = await $provideOpenAiAgentKitExecutionToolsForServer();
+    const baseOpenAiToolsPromise = $provideOpenAiAgentKitExecutionToolsForServer();
     const agentHash = computeAgentHash(agentSource);
     const tablePrefix = resolveAgentCollectionTablePrefix(collection);
     const preparationWaitResult = await waitForRunningAgentPreparation({
@@ -163,11 +176,11 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
     const agentKitResult = await agentKitCacheManager.getOrCreateAgentKitAgent(
         agentSource,
         resolvedAgentName,
-        baseOpenAiTools,
+        await baseOpenAiToolsPromise,
         {
             includeDynamicContext: true,
             agentId: agentPermanentId,
-            agentReferenceResolver: resolvedAgentContext.scopedAgentReferenceResolver,
+            modelRequirements: preparedAgentModelRequirements.modelRequirements,
         },
     );
     const provider = agentKitResult.tools.title;
@@ -178,9 +191,7 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
             llm: agentKitResult.tools,
         },
         agentSource,
-        teacherAgent: await RemoteAgent.connect({
-            agentUrl: await getWellKnownAgentUrl('TEACHER'),
-        }),
+        teacherAgent: await getTeacherRemoteAgent(),
     });
     const startedAt = Date.now();
     let latestContent = '';

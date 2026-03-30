@@ -1,3 +1,11 @@
+-   Optimized Agents Server agent chat preparation so repeated chats stop paying the same setup cost on every message:
+
+    -   Added shared process-local caching for resolved server-agent runtime state and prepared model requirements, and reused it across the web chat route, OpenAI-compatible chat path, durable user-chat jobs, agent-preparation worker, model-requirements endpoints, and durable-chat disclaimer checks.
+    -   Upgraded `AgentKitCacheManager` to accept precomputed model requirements and to keep a short-lived in-memory cache of fully prepared AgentKit agents, so hot chats reuse prepared AgentKit state instead of recomputing requirements, vector-store checks, and preparation work.
+    -   Cached the well-known Teacher remote agent connection instead of refetching its profile on each chat run.
+    -   Parallelized several independent async lookups in the hot chat paths (server origin, collection/resolver loading, user lookup, wallet/token resolution), reducing avoidable wall-clock latency before responses start streaming.
+    -   Documented the deeper root-cause analysis and the next durable cross-instance optimization step in [2026-03-1580-agents-server-optimize.notes.md](../prompts/2026-03-1580-agents-server-optimize.notes.md).
+
 -   Fixed Agents Server federated agent-source resolution so missing remote imports no longer break inheritance/import processing:
 
     -   Added a shared retry path for federated agent imports with 3 total attempts and a configurable metadata-backed delay (`FEDERATED_AGENT_IMPORT_RETRY_DELAY_MS`).
