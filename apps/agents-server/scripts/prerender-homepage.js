@@ -7,44 +7,89 @@ const path = require('node:path');
 const APP_ROOT = path.resolve(__dirname, '..');
 const PORT = Number.parseInt(process.env.PRE_RENDER_PORT ?? '4440', 10) || 4440;
 const HOME_URL = `http://127.0.0.1:${PORT}/`;
+/**
+ * Marker printed by `next start` once the production server accepts requests.
+ */
+const SERVER_READY_MARKER = 'Ready in';
 const OUTPUT_DIR = path.join(APP_ROOT, '.next', 'prerendered');
 const OUTPUT_FILE = path.join(OUTPUT_DIR, 'home.html');
-const WAIT_INTERVAL_MS = 500;
 const WAIT_TIMEOUT_MS = 15000;
-let spawnError = null;
+/**
+ * Timeout for the final homepage download once the server is confirmed ready.
+ */
+const HOME_REQUEST_TIMEOUT_MS = 30000;
+/**
+ * When enabled, homepage prerender failures abort the whole build.
+ */
+const IS_STRICT_PRERENDER_ENABLED = process.env.PRERENDER_HOMEPAGE_STRICT === 'true';
 
 /**
- * Sleeps for the requested amount of time.
+ * Waits for `next start` to report that it is ready to serve requests.
  *
- * @param ms - Milliseconds to wait.
- * @returns Promise that resolves after the delay.
+ * HTTP probes are intentionally avoided here because the Agents Server middleware
+ * can trigger remote agent lookups even for seemingly lightweight routes.
+ *
+ * @param serverProcess - Spawned `next start` child process.
+ * @returns Promise that resolves once the server reports readiness.
+ * @throws When the server exits or does not become ready in time.
  */
-function sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
+function waitForServerReady(serverProcess) {
+    return new Promise((resolve, reject) => {
+        let settled = false;
+        let stdoutBuffer = '';
 
-/**
- * Waits for the production server to respond on the home page.
- *
- * @throws When the server did not start within the timeout window.
- */
-async function waitForServer() {
-    const deadline = Date.now() + WAIT_TIMEOUT_MS;
-    while (Date.now() < deadline) {
-        if (spawnError) {
-            throw spawnError;
-        }
-        try {
-            const response = await fetch(HOME_URL, { method: 'HEAD', cache: 'no-store' });
-            if (response.ok) {
+        const cleanup = () => {
+            clearTimeout(timeoutId);
+            serverProcess.stdout?.off('data', handleStdout);
+            serverProcess.off('error', handleError);
+            serverProcess.off('exit', handleExit);
+        };
+
+        const settle = (handler, value) => {
+            if (settled) {
                 return;
             }
-        } catch (error) {
-            // Roll through the polling cycle until the server accepts a connection.
+
+            settled = true;
+            cleanup();
+            handler(value);
+        };
+
+        const handleStdout = (chunk) => {
+            stdoutBuffer = `${stdoutBuffer}${chunk.toString()}`.slice(-4096);
+            if (stdoutBuffer.includes(SERVER_READY_MARKER)) {
+                settle(resolve);
+            }
+        };
+
+        const handleError = (error) => {
+            settle(reject, error);
+        };
+
+        const handleExit = (code, signal) => {
+            settle(
+                reject,
+                new Error(
+                    `Production server exited before it became ready (code: ${String(code)}, signal: ${String(signal)})`,
+                ),
+            );
+        };
+
+        const timeoutId = setTimeout(() => {
+            settle(
+                reject,
+                new Error(`Timed out waiting ${WAIT_TIMEOUT_MS}ms for \`next start\` to report readiness.`),
+            );
+        }, WAIT_TIMEOUT_MS);
+
+        serverProcess.stdout?.on('data', handleStdout);
+        serverProcess.on('error', handleError);
+        serverProcess.on('exit', handleExit);
+
+        if (stdoutBuffer.includes(SERVER_READY_MARKER)) {
+            settle(resolve);
         }
-        await sleep(WAIT_INTERVAL_MS);
-    }
-    throw new Error(`Unable to reach ${HOME_URL} within ${WAIT_TIMEOUT_MS}ms`);
+    });
 }
 
 /**
@@ -71,17 +116,15 @@ async function prerenderHomePage() {
         }
     };
 
-    serverProcess.on('error', (error) => {
-        spawnError = error;
-        stopServer();
-    });
-
     process.on('SIGINT', stopServer);
     process.on('SIGTERM', stopServer);
 
     try {
-        await waitForServer();
-        const response = await fetch(HOME_URL, { cache: 'no-store' });
+        await waitForServerReady(serverProcess);
+        const response = await fetch(HOME_URL, {
+            cache: 'no-store',
+            signal: AbortSignal.timeout(HOME_REQUEST_TIMEOUT_MS),
+        });
         if (!response.ok) {
             throw new Error(`Failed to download ${HOME_URL} (${response.status})`);
         }
@@ -96,6 +139,14 @@ async function prerenderHomePage() {
 }
 
 prerenderHomePage().catch((error) => {
-    console.error('Prerender homepage failed:', error instanceof Error ? error.message : error);
-    process.exitCode = 1;
+    if (IS_STRICT_PRERENDER_ENABLED) {
+        console.error('Prerender homepage failed:', error instanceof Error ? error.message : error);
+        process.exitCode = 1;
+        return;
+    }
+
+    console.warn(
+        'Skipping homepage prerender:',
+        error instanceof Error ? error.message : error,
+    );
 });

@@ -1,3 +1,8 @@
+-   Fixed Agents Server Vercel homepage prerender builds so the post-build snapshot step no longer fail-blocks deployment when federated homepage resolution is too slow:
+
+    -   Updated `apps/agents-server/scripts/prerender-homepage.js` to wait for the `next start` readiness log instead of probing HTTP routes that still execute Agents Server middleware.
+    -   Kept the homepage snapshot attempt, but made it best-effort so builds continue when `/` cannot be captured within the bounded timeout because server-side federated agent resolution is hanging or too slow.
+
 -   Unified the Agents Server mobile app menu with the chat-specific **My chats** navigation so mobile chat pages now use one shared header hamburger menu:
 
     -   Extended the shared menu-hoisting context so pages can contribute mobile-only menu sections in addition to hoisted icon actions.
