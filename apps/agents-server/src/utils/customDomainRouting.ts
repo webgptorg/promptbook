@@ -2,7 +2,9 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AgentBasicInformation, string_book } from '../../../../src/_packages/types.index';
 import type { AgentCollection } from '../../../../src/collection/agent-collection/AgentCollection';
 import { normalizeDomainForMatching } from '../../../../src/utils/validators/url/normalizeDomainForMatching';
+import type { FederatedAgentImportConfiguration } from '../constants/federatedAgentImport';
 import { createServerAgentReferenceResolver } from './agentReferenceResolver/createServerAgentReferenceResolver';
+import { loadFederatedAgentImportConfiguration } from './federatedAgentImportConfiguration';
 import { getFederatedServers } from './getFederatedServers';
 import { getWellKnownAgentUrl } from './getWellKnownAgentUrl';
 import { resolveInheritedAgentSource } from './resolveInheritedAgentSource';
@@ -246,12 +248,14 @@ async function resolveCustomDomainMetadataForAgent(
         readonly localServerUrl: string;
         readonly adamAgentUrl: string;
         readonly agentReferenceResolver: Awaited<ReturnType<typeof createServerAgentReferenceResolver>>;
+        readonly federatedAgentImportConfiguration: FederatedAgentImportConfiguration;
     },
 ): Promise<ResolvedCustomDomainMetadata> {
     const resolvedAgentSource = await resolveInheritedAgentSource(agent.agentSource as string_book, {
         adamAgentUrl: options.adamAgentUrl,
         currentAgentUrl: createCanonicalLocalAgentUrl(agent, options.localServerUrl),
         agentReferenceResolver: options.agentReferenceResolver,
+        federatedAgentImportConfiguration: options.federatedAgentImportConfiguration,
     });
 
     return parseResolvedCustomDomainMetadata(resolvedAgentSource);
@@ -275,8 +279,11 @@ export async function resolveCustomDomainAgent(
         return null;
     }
 
-    const federatedServers = await getFederatedServers();
-    const adamAgentUrl = await getWellKnownAgentUrl('ADAM');
+    const [federatedServers, adamAgentUrl, federatedAgentImportConfiguration] = await Promise.all([
+        getFederatedServers(),
+        getWellKnownAgentUrl('ADAM'),
+        loadFederatedAgentImportConfiguration(),
+    ]);
 
     for (const server of servers) {
         try {
@@ -304,6 +311,7 @@ export async function resolveCustomDomainAgent(
                     localServerUrl,
                     adamAgentUrl,
                     agentReferenceResolver,
+                    federatedAgentImportConfiguration,
                 });
 
                 if (matchesResolvedCustomDomain(resolvedMetadata, candidates)) {

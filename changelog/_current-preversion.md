@@ -1,3 +1,9 @@
+-   Fixed Agents Server federated agent-source resolution so missing remote imports no longer break inheritance/import processing:
+
+    -   Added a shared retry path for federated agent imports with 3 total attempts and a configurable metadata-backed delay (`FEDERATED_AGENT_IMPORT_RETRY_DELAY_MS`).
+    -   After the retries are exhausted, the resolver now injects a valid fallback book source (`Not found agent` + explanatory `NOTE`) instead of failing or skipping the imported source entirely.
+    -   Wired the retry/fallback behavior through inherited-agent resolution, direct `/api/book` resolution, custom-domain metadata resolution, and other server-side resolved-agent entry points.
+
 -   Fixed Agents Server middleware crash (`Unknown environment, cannot determine how to get Supabase client`) caused by `$provideSupabase` not recognising the Next.js Edge Runtime:
 
     -   Added `$provideSupabaseForEdge` that creates a lightweight, session-less Supabase client suitable for Edge Runtime (uses service-role key when available, falls back to anon key).

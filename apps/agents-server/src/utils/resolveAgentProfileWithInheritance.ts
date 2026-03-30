@@ -1,5 +1,6 @@
 import type { AgentBasicInformation, string_agent_url, string_book } from '../../../../src/_packages/types.index'; // <- [🚾]
 import type { AgentReferenceResolver } from '../../../../src/book-2.0/agent-source/AgentReferenceResolver';
+import type { FederatedAgentImportConfiguration } from '../constants/federatedAgentImport';
 import { resolveAgentStateFromSource } from './resolveAgentStateFromSource';
 
 /**
@@ -14,6 +15,10 @@ type ResolveAgentProfileWithInheritanceOptions = {
      * Optional compact-reference resolver used for FROM/IMPORT/TEAM commitments.
      */
     readonly agentReferenceResolver?: AgentReferenceResolver;
+    /**
+     * Retry configuration used when loading imported agents from federated servers.
+     */
+    readonly federatedAgentImportConfiguration?: FederatedAgentImportConfiguration;
 };
 
 /**

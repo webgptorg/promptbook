@@ -8,10 +8,15 @@ import { UnexpectedError } from '../../../../src/errors/UnexpectedError';
 import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
 import { isValidAgentUrl } from '../../../../src/utils/validators/url/isValidAgentUrl';
 import {
+    DEFAULT_FEDERATED_AGENT_IMPORT_CONFIGURATION,
+    type FederatedAgentImportConfiguration,
+} from '../constants/federatedAgentImport';
+import {
     type AgentReferenceResolutionIssue,
     consumeAgentReferenceResolutionIssues,
 } from './agentReferenceResolver/AgentReferenceResolutionIssue';
-import { importAgent, ImportAgentOptions } from './importAgent';
+import { type ImportAgentOptions } from './importAgent';
+import { importAgentWithFallback } from './importAgentWithFallback';
 
 /**
  * Gets the corpus of an agent source (removes title and trailing status)
@@ -76,30 +81,6 @@ function appendResolutionIssueNotes(
         seenIssueKeys.add(key);
         targetChunks.push(formatResolutionIssueAsNote(issue), '');
     }
-}
-
-/**
- * Creates a short human-readable error message for logging/notes.
- *
- * @param error - Unknown error value.
- * @returns String message safe for display.
- */
-function getErrorMessage(error: unknown): string {
-    if (error instanceof Error && error.message) {
-        return error.message;
-    }
-
-    return String(error);
-}
-
-/**
- * Checks whether the provided error represents a cyclic inheritance/import resolution failure.
- *
- * @param error - Unknown error propagated from one resolver/import step.
- * @returns `true` when the error should be surfaced instead of materialized into NOTE lines.
- */
-function isResolutionCycleError(error: unknown): error is ParseError {
-    return error instanceof ParseError && /Cyclic `(FROM|IMPORT)` reference detected/.test(error.message);
 }
 
 /**
@@ -247,6 +228,10 @@ type ResolveInheritedAgentSourceOptions = ImportAgentOptions & {
      * Already visited agent URLs in the current resolution stack.
      */
     readonly inheritancePath?: ReadonlyArray<string_agent_url>;
+    /**
+     * Retry configuration used for federated imported-agent loading.
+     */
+    readonly federatedAgentImportConfiguration?: FederatedAgentImportConfiguration;
 };
 
 /**
@@ -329,6 +314,8 @@ export async function resolveInheritedAgentSource(
 ): Promise<string_book> {
     const { adamAgentUrl = 'https://core.ptbk.io/agents/adam', recursionLevel = 0 } = options || {};
     const agentReferenceResolver = options?.agentReferenceResolver;
+    const federatedAgentImportConfiguration =
+        options?.federatedAgentImportConfiguration || DEFAULT_FEDERATED_AGENT_IMPORT_CONFIGURATION;
     const explicitFromContent = getLastSingleLineCommitmentContent(agentSource, 'FROM');
     const hasExplicitFromCommitment = explicitFromContent !== undefined;
     const resolvedParentAgentUrl = await resolveParentAgentUrlFromCommitments(agentSource, agentReferenceResolver);
@@ -371,24 +358,18 @@ export async function resolveInheritedAgentSource(
     }
 
     let parentAgentSourceCorpus: string | null = null;
-    let parentAgentImportErrorMessage: string | null = null;
 
     if (parentAgentUrl) {
-        try {
-            assertNoResolutionCycle(parentAgentUrl, 'FROM', options);
-            const parentAgentSource = await importAgent(parentAgentUrl, {
+        assertNoResolutionCycle(parentAgentUrl, 'FROM', options);
+        const parentAgentSource = await importAgentWithFallback(
+            parentAgentUrl,
+            {
                 recursionLevel,
                 inheritancePath: createResolutionLineage(options),
-            });
-            parentAgentSourceCorpus = getAgentSourceCorpus(parentAgentSource as string_book);
-        } catch (error) {
-            if (isResolutionCycleError(error)) {
-                throw error;
-            }
-
-            parentAgentImportErrorMessage = getErrorMessage(error);
-            console.warn(`[resolveInheritedAgentSource] Failed to import parent agent "${parentAgentUrl}":`, error);
-        }
+            },
+            federatedAgentImportConfiguration,
+        );
+        parentAgentSourceCorpus = getAgentSourceCorpus(parentAgentSource as string_book);
     }
 
     let isFromResolved = false;
@@ -427,39 +408,29 @@ export async function resolveInheritedAgentSource(
 
             if (isValidAgentUrl(importedUrlOrPath)) {
                 const importedAgentUrl = importedUrlOrPath as string_agent_url;
-
-                try {
-                    assertNoResolutionCycle(importedAgentUrl, 'IMPORT', options);
-                    const importedAgentSource = await importAgent(importedAgentUrl, {
+                assertNoResolutionCycle(importedAgentUrl, 'IMPORT', options);
+                const importedAgentSource = await importAgentWithFallback(
+                    importedAgentUrl,
+                    {
                         recursionLevel,
                         inheritancePath: createResolutionLineage(options),
-                    });
-                    const importedAgentSourceCorpus = getAgentSourceCorpus(importedAgentSource);
+                    },
+                    federatedAgentImportConfiguration,
+                );
+                const importedAgentSourceCorpus = getAgentSourceCorpus(importedAgentSource);
 
-                    newAgentSourceChunks.push(
-                        spaceTrim(
-                            (block) => `
+                newAgentSourceChunks.push(
+                    spaceTrim(
+                        (block) => `
 
-                                NOTE Imported from ${importedAgentUrl}
-                                ${block(importedAgentSourceCorpus)}
+                            NOTE Imported from ${importedAgentUrl}
+                            ${block(importedAgentSourceCorpus)}
 
-                                NOTE ===========
-                        `,
-                        ),
-                        '', // <- Note: Add an extra newline for separation
-                    );
-                } catch (error) {
-                    if (isResolutionCycleError(error)) {
-                        throw error;
-                    }
-
-                    const errorMessage = getErrorMessage(error);
-                    newAgentSourceChunks.push(
-                        `NOTE Imported agent "${importedAgentUrl}" was not found or could not be loaded. Import skipped.`,
-                        `NOTE Import error: ${errorMessage}`,
-                        '',
-                    );
-                }
+                            NOTE ===========
+                    `,
+                    ),
+                    '', // <- Note: Add an extra newline for separation
+                );
                 continue;
             }
 
@@ -509,11 +480,6 @@ export async function resolveInheritedAgentSource(
                 newAgentSourceChunks.push(
                     `NOTE Parent agent "${parentAgentUrl}" was not found or could not be loaded. Inheritance skipped.`,
                 );
-
-                if (parentAgentImportErrorMessage) {
-                    newAgentSourceChunks.push(`NOTE Inheritance error: ${parentAgentImportErrorMessage}`);
-                }
-
                 newAgentSourceChunks.push('');
             }
 
@@ -551,7 +517,6 @@ export async function resolveInheritedAgentSource(
                 titleLine,
                 '',
                 `NOTE Default parent agent "${parentAgentUrl}" was not found or could not be loaded. Inheritance skipped.`,
-                ...(parentAgentImportErrorMessage ? [`NOTE Inheritance error: ${parentAgentImportErrorMessage}`] : []),
                 '',
                 ...restLines,
             );

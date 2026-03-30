@@ -2,6 +2,10 @@ import { spaceTrim } from 'spacetrim';
 import { CORE_AGENTS_SERVER } from '../../../../servers';
 import { DEFAULT_THINKING_MESSAGES } from '../../../../src/utils/DEFAULT_THINKING_MESSAGES';
 import { ANALYTICS_METADATA_KEYS, getAnalyticsMetadataDefinition } from '../constants/analyticsMetadata';
+import {
+    DEFAULT_FEDERATED_AGENT_IMPORT_RETRY_DELAY_MS,
+    FEDERATED_AGENT_IMPORT_RETRY_DELAY_MS_METADATA_KEY,
+} from '../constants/federatedAgentImport';
 import { MetadataType } from '../constants/metadataTypes';
 import { NEW_AGENT_WIZZARD_METADATA_KEY } from '../constants/newAgentWizard';
 import { DEFAULT_TOOL_USAGE_LIMITS, TOOL_USAGE_LIMITS_METADATA_KEY } from '../constants/toolUsageLimits';
@@ -120,6 +124,12 @@ export const metadataDefaults = [
         value: '',
         note: 'Comma separated list of federated servers URLs. The server will look to all federated servers and list their agents.',
         type: 'TEXT',
+    },
+    {
+        key: FEDERATED_AGENT_IMPORT_RETRY_DELAY_MS_METADATA_KEY,
+        value: String(DEFAULT_FEDERATED_AGENT_IMPORT_RETRY_DELAY_MS),
+        note: 'Delay in milliseconds between the 3 retry attempts when importing agent books from federated servers.',
+        type: 'NUMBER',
     },
     {
         key: 'SHOW_FEDERATED_SERVERS_PUBLICLY',

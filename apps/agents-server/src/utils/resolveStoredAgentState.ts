@@ -5,6 +5,7 @@ import {
     type ResolvedAgentState,
     type ResolveAgentStateFromSourceOptions,
 } from './resolveAgentStateFromSource';
+import { loadFederatedAgentImportConfiguration } from './federatedAgentImportConfiguration';
 
 /**
  * Minimal stored-agent shape needed to derive resolved runtime/presentation state.
@@ -29,7 +30,7 @@ export type ResolvedStoredAgentState<TAgent extends StoredAgentSourceRecord> = T
  */
 export type ResolveStoredAgentStateOptions = Pick<
     ResolveAgentStateFromSourceOptions,
-    'adamAgentUrl' | 'agentReferenceResolver'
+    'adamAgentUrl' | 'agentReferenceResolver' | 'federatedAgentImportConfiguration'
 > & {
     /**
      * Public/current server origin used to build canonical local agent URLs.
@@ -82,11 +83,14 @@ export async function resolveStoredAgentState<TAgent extends StoredAgentSourceRe
 ): Promise<ResolvedStoredAgentState<TAgent>> {
     const canonicalAgentIdentifier = agent.permanentId || agent.agentName;
     const canonicalAgentUrl = createCanonicalLocalAgentUrl(agent, options.localServerUrl);
+    const federatedAgentImportConfiguration =
+        options.federatedAgentImportConfiguration ?? (await loadFederatedAgentImportConfiguration());
     const resolvedAgentState = await resolveAgentStateFromSource(agent.agentSource as string_book, {
         adamAgentUrl: options.adamAgentUrl,
         canonicalAgentUrl,
         currentAgentAliases: createCanonicalLocalAgentAliases(agent, options.localServerUrl),
         agentReferenceResolver: options.agentReferenceResolver,
+        federatedAgentImportConfiguration,
     });
 
     return {

@@ -1,5 +1,6 @@
 import type { AgentBasicInformation, string_agent_url, string_book } from '../../../../src/_packages/types.index';
 import type { AgentReferenceResolver } from '../../../../src/book-2.0/agent-source/AgentReferenceResolver';
+import type { FederatedAgentImportConfiguration } from '../constants/federatedAgentImport';
 import { parseAgentSource } from '../../../../src/book-2.0/agent-source/parseAgentSource';
 import { resolveTeamCapabilitiesFromAgentSource } from './agentReferenceResolver/resolveTeamCapabilitiesFromAgentSource';
 import { resolveInheritedAgentSource } from './resolveInheritedAgentSource';
@@ -27,6 +28,11 @@ export type ResolveAgentStateFromSourceOptions = {
      * Optional compact-reference resolver shared with the current server/request context.
      */
     readonly agentReferenceResolver?: AgentReferenceResolver;
+
+    /**
+     * Retry configuration used when loading imported agents from federated servers.
+     */
+    readonly federatedAgentImportConfiguration?: FederatedAgentImportConfiguration;
 };
 
 /**
@@ -105,6 +111,7 @@ export async function resolveAgentStateFromSource(
         currentAgentUrl: options.canonicalAgentUrl,
         currentAgentAliases: options.currentAgentAliases,
         agentReferenceResolver: options.agentReferenceResolver,
+        federatedAgentImportConfiguration: options.federatedAgentImportConfiguration,
     });
     const resolvedAgentProfile = parseAgentSource(resolvedAgentSource);
     const resolvedTeamCapabilities = await resolveTeamCapabilitiesFromAgentSource(

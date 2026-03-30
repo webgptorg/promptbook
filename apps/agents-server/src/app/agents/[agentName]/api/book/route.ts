@@ -4,6 +4,7 @@ import {
     parseBookScopedAgentIdentifier,
     resolveBookScopedAgentContext,
 } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
+import { loadFederatedAgentImportConfiguration } from '@/src/utils/federatedAgentImportConfiguration';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { resolveInheritedAgentSource } from '@/src/utils/resolveInheritedAgentSource';
 import { padBook, validateBook } from '@promptbook-local/core';
@@ -85,12 +86,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         });
         const agentSource = resolvedAgentContext.unresolvedAgentSource;
         const agentReferenceResolver = resolvedAgentContext.scopedAgentReferenceResolver;
+        const federatedAgentImportConfiguration = await loadFederatedAgentImportConfiguration();
         const effectiveAgentSource = await resolveInheritedAgentSource(agentSource, {
             adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
             recursionLevel,
             currentAgentUrl: resolvedAgentContext.canonicalAgentUrl,
             inheritancePath: inheritancePath as Array<string_agent_url>,
             agentReferenceResolver,
+            federatedAgentImportConfiguration,
         });
         const etag = `W/"${computeHash(effectiveAgentSource)}"`;
 

@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import { ParseError, book } from '../../../../src/_packages/core.index'; // <- [🚾]
 import type { AgentCollection } from '../../../../src/collection/agent-collection/AgentCollection';
+import {
+    DEFAULT_FEDERATED_AGENT_IMPORT_CONFIGURATION,
+    FEDERATED_AGENT_IMPORT_MAX_ATTEMPTS,
+} from '../constants/federatedAgentImport';
 import { createServerAgentReferenceResolver } from './agentReferenceResolver/createServerAgentReferenceResolver';
 import { resolveInheritedAgentSource } from './resolveInheritedAgentSource';
 
@@ -245,6 +249,43 @@ describe('how `resolveInheritedAgentSource` works', () => {
         expect(resolvedAgentSource).toContain('RULE Child rule.');
     });
 
+    it('should embed fallback source after failed default Adam retries', async () => {
+        mockFetchRoutes({
+            'https://core-test.ptbk.io/agents/adam/api/book?recursionLevel=1': {
+                body: {
+                    name: 'NotFoundError',
+                    message: 'Agent not found',
+                    stack: '',
+                },
+                contentType: 'application/json',
+                status: 404,
+            },
+        });
+
+        const resolvedAgentSource = await resolveInheritedAgentSource(
+            book`
+                Beatrice
+
+                LANGUAGE Italian
+            `,
+            {
+                adamAgentUrl: 'https://core-test.ptbk.io/agents/adam',
+                currentAgentUrl: 'https://local.example/agents/beatrice',
+                federatedAgentImportConfiguration: {
+                    ...DEFAULT_FEDERATED_AGENT_IMPORT_CONFIGURATION,
+                    retryDelayMs: 0,
+                },
+            },
+        );
+
+        expect(global.fetch).toHaveBeenCalledTimes(FEDERATED_AGENT_IMPORT_MAX_ATTEMPTS);
+        expect(resolvedAgentSource).toContain('NOTE Inherited Adam FROM https://core-test.ptbk.io/agents/adam');
+        expect(resolvedAgentSource).toContain(
+            'NOTE This agent was supposed to be imported from https://core-test.ptbk.io/agents/adam, but it can not be loaded after 3 attempts because of Agent not found',
+        );
+        expect(resolvedAgentSource).toContain('LANGUAGE Italian');
+    });
+
     it('should keep the agent working when compact FROM reference is missing', async () => {
         const agentReferenceResolver = await createServerAgentReferenceResolver({
             agentCollection: createMockAgentCollection([]),
@@ -294,6 +335,44 @@ describe('how `resolveInheritedAgentSource` works', () => {
 
         expect(resolvedAgentSource).toContain(
             'NOTE Referenced agent "Unknown Source" in IMPORT commitment was not found. Import skipped.',
+        );
+        expect(resolvedAgentSource).toContain('LANGUAGE Italian');
+    });
+
+    it('should embed fallback source after failed remote IMPORT retries', async () => {
+        mockFetchRoutes({
+            'https://federated.example/agents/missing-source/api/book?recursionLevel=1': {
+                body: {
+                    name: 'NotFoundError',
+                    message: 'Remote import unavailable',
+                    stack: '',
+                },
+                contentType: 'application/json',
+                status: 404,
+            },
+        });
+
+        const resolvedAgentSource = await resolveInheritedAgentSource(
+            book`
+                Beatrice
+
+                FROM VOID
+                IMPORT https://federated.example/agents/missing-source
+                LANGUAGE Italian
+            `,
+            {
+                currentAgentUrl: 'https://local.example/agents/beatrice',
+                federatedAgentImportConfiguration: {
+                    ...DEFAULT_FEDERATED_AGENT_IMPORT_CONFIGURATION,
+                    retryDelayMs: 0,
+                },
+            },
+        );
+
+        expect(global.fetch).toHaveBeenCalledTimes(FEDERATED_AGENT_IMPORT_MAX_ATTEMPTS);
+        expect(resolvedAgentSource).toContain('NOTE Imported from https://federated.example/agents/missing-source');
+        expect(resolvedAgentSource).toContain(
+            'NOTE This agent was supposed to be imported from https://federated.example/agents/missing-source, but it can not be loaded after 3 attempts because of Remote import unavailable',
         );
         expect(resolvedAgentSource).toContain('LANGUAGE Italian');
     });

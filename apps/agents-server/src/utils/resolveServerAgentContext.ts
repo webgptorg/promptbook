@@ -1,6 +1,7 @@
 import type { AgentReferenceResolver } from '../../../../src/book-2.0/agent-source/AgentReferenceResolver';
 import type { AgentCollection } from '../../../../src/collection/agent-collection/AgentCollection';
 import { resolveBookScopedAgentContext, type ResolvedBookScopedAgentContext } from './agentReferenceResolver/bookScopedAgentReferences';
+import { loadFederatedAgentImportConfiguration } from './federatedAgentImportConfiguration';
 import { getWellKnownAgentUrl } from './getWellKnownAgentUrl';
 import { resolveAgentStateFromSource, type ResolvedAgentState } from './resolveAgentStateFromSource';
 
@@ -44,11 +45,13 @@ export async function resolveServerAgentContext(
     options: ResolveServerAgentContextOptions,
 ): Promise<ResolvedServerAgentContext> {
     const bookScopedAgentContext = await resolveBookScopedAgentContext(options);
+    const federatedAgentImportConfiguration = await loadFederatedAgentImportConfiguration();
     const resolvedAgentState = await resolveAgentStateFromSource(bookScopedAgentContext.unresolvedAgentSource, {
         adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
         canonicalAgentUrl: bookScopedAgentContext.canonicalAgentUrl,
         currentAgentAliases: bookScopedAgentContext.currentAgentAliases,
         agentReferenceResolver: bookScopedAgentContext.scopedAgentReferenceResolver,
+        federatedAgentImportConfiguration,
     });
 
     return {
