@@ -98,11 +98,11 @@ export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL' | 
             return requirements;
         }
 
-        // Create goal section for system message
+        // Add goal to the system message
         const goalSection = `Goal: ${trimmedContent}`;
+        const requirementsWithGoal = this.appendToSystemMessage(requirements, goalSection, '\n\n');
 
-        // Goals are important directives, so we add them prominently to the system message
-        return this.appendToSystemMessage(requirements, goalSection, '\n\n');
+        return this.appendToPromptSuffix(requirementsWithGoal, goalSection);
     }
 }
 
