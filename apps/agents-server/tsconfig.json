@@ -24,6 +24,13 @@
             "@promptbook-local/*": ["../../src/_packages/*.index"]
         }
     },
-    "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "../_common/hooks/usePromise.ts"],
+    "include": [
+        "next-env.d.ts",
+        "**/*.ts",
+        "**/*.tsx",
+        ".next/types/**/*.ts",
+        ".next-e2e/types/**/*.ts",
+        "../_common/hooks/usePromise.ts"
+    ],
     "exclude": ["node_modules"]
 }

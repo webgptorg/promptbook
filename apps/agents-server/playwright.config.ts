@@ -1,5 +1,5 @@
-import { defineConfig, devices } from 'playwright/test';
 import path from 'path';
+import { defineConfig, devices } from 'playwright/test';
 
 /**
  * Local host and port used by the mocked Supabase API during integration tests.
@@ -26,26 +26,18 @@ const APP_URL = `http://127.0.0.1:${APP_PORT}`;
  */
 const APP_E2E_ENV = {
     ADMIN_PASSWORD: 'e2e-admin-password',
+    NEXT_DIST_DIR: '.next-e2e',
     NEXT_PUBLIC_SITE_URL: APP_URL,
     SUPABASE_TABLE_PREFIX: '',
     NEXT_PUBLIC_SUPABASE_URL: MOCK_SUPABASE_URL,
-    NEXT_PUBLIC_SUPABASE_ANON_KEY:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiJ9.e2e-signature',
-    SUPABASE_SERVICE_ROLE_KEY:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.e2e-signature',
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiJ9.e2e-signature',
+    SUPABASE_SERVICE_ROLE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.e2e-signature',
 };
 
 /**
  * Directory under the repository root that should hold Playwright artifacts such as recorded videos.
  */
-const E2E_ARTIFACTS_DIR = path.join(
-    __dirname,
-    '..',
-    '..',
-    'other',
-    'integration-tests',
-    'videos',
-);
+const E2E_ARTIFACTS_DIR = path.join(__dirname, '..', '..', 'other', 'integration-tests', 'videos');
 
 /**
  * Playwright configuration for Agents Server integration tests.

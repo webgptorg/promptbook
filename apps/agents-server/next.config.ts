@@ -1,9 +1,19 @@
 import type { NextConfig } from 'next';
 import path from 'path';
 
+/**
+ * Next.js build output directory.
+ *
+ * E2E runs can override this to isolate their build artifacts from local dev servers on Windows,
+ * which prevents `.next/trace` file locking collisions.
+ */
+const nextDistDir = process.env.NEXT_DIST_DIR || '.next';
+
 const nextConfig: NextConfig = {
     // output: 'standalone',
     // <- TODO: [🐱‍🚀][🧠] How to properly build Next.js app, for both Vercel and Doceker?
+
+    distDir: nextDistDir,
 
     experimental: {
         externalDir: true,
