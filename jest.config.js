@@ -1,16 +1,18 @@
 module.exports = {
     transform: {
         '(jsx?|tsx?)$': ['ts-jest', { tsconfig: 'tsconfig.jest.json' }],
+        '\\.ya?ml$': '<rootDir>/jest.yamlRawTransformer.js',
     },
     testRegex: '(test)\\.(jsx?|tsx?)$',
     testPathIgnorePatterns: ['/node_modules/', '<rootDir>/\\.tmp/'],
     setupFilesAfterEnv: ['./jest.setup.js'],
-    moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+    moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'yaml', 'yml', 'node'],
     moduleNameMapper: {
         '^@/(.*)$': '<rootDir>/apps/agents-server/$1',
         '^@common/(.*)$': '<rootDir>/apps/_common/$1',
         '^@promptbook-local/(.*)$': '<rootDir>/src/_packages/$1.index',
         '\\.(css|less|sass|scss)$': '<rootDir>/jest.styleMock.js',
+        '^(.*\\.ya?ml)\\?raw$': '$1',
     },
     coverageDirectory: './coverage/',
     collectCoverage: true,

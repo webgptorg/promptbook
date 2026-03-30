@@ -7,5 +7,6 @@
             "@common/*": ["apps/_common/*"],
             "@promptbook-local/*": ["src/_packages/*.index"]
         }
-    }
+    },
+    "include": ["src", "books", "apps/agents-server/src", "apps/_common"]
 }

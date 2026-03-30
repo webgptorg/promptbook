@@ -1,5 +1,11 @@
 -   Fixed Jest TypeScript path resolution for `@promptbook-local/*` imports by correcting the `paths` pattern in `tsconfig.jest.json` from the invalid regex-style `$1.index` to the correct TypeScript glob syntax `*.index`, resolving `TS2307: Cannot find module '@promptbook-local/utils'` errors in test runs.
 
+-   Fixed Jest test suite compilation for `*.yaml?raw` Vite-style imports used in Agents Server language packs:
+
+    -   Added `apps/agents-server/src` to `tsconfig.jest.json` `include` so the existing `yaml-raw.d.ts` type declaration is picked up by ts-jest, resolving `TS2307: Cannot find module '*.yaml?raw'`.
+    -   Added `moduleNameMapper` entry in `jest.config.js` to strip the `?raw` query suffix at runtime (`*.yaml?raw` → `*.yaml`).
+    -   Added `jest.yamlRawTransformer.js` and registered it as a transform for `.yaml`/`.yml` files so Jest returns the raw file content as a string, matching Vite's `?raw` import semantics.
+
 -   Fixed Agents Server Vercel homepage prerender builds so the post-build snapshot step no longer fail-blocks deployment when federated homepage resolution is too slow:
 
     -   Updated `apps/agents-server/scripts/prerender-homepage.js` to wait for the `next start` readiness log instead of probing HTTP routes that still execute Agents Server middleware.
