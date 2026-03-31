@@ -9,6 +9,10 @@ import {
 import { MetadataType } from '../constants/metadataTypes';
 import { NEW_AGENT_WIZZARD_METADATA_KEY } from '../constants/newAgentWizard';
 import { DEFAULT_TOOL_USAGE_LIMITS, TOOL_USAGE_LIMITS_METADATA_KEY } from '../constants/toolUsageLimits';
+import {
+    DEFAULT_USER_CHAT_BACKGROUND_WORKER_INTERVAL_MS,
+    USER_CHAT_BACKGROUND_WORKER_INTERVAL_MS_METADATA_KEY,
+} from '../constants/userChatBackgroundWorker';
 import { SERVER_LANGUAGE_METADATA_KEY } from '../languages/ServerLanguageRegistry';
 
 /**
@@ -91,6 +95,12 @@ export const metadataDefaults = [
         value: 'Sorry, I encountered an error processing your message. Please, try again later.',
         note: 'Friendly text shown inside chats when a reply fails to generate.',
         type: 'TEXT',
+    },
+    {
+        key: USER_CHAT_BACKGROUND_WORKER_INTERVAL_MS_METADATA_KEY,
+        value: String(DEFAULT_USER_CHAT_BACKGROUND_WORKER_INTERVAL_MS),
+        note: 'Minimum age in milliseconds before queued chat jobs can be started by background cron wake-ups.',
+        type: 'NUMBER',
     },
     {
         key: 'RESTRICT_IP',

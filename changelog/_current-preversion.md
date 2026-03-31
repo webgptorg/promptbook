@@ -1,3 +1,9 @@
+-   Fixed Agents Server durable chat-task startup reliability so queued agent replies no longer stay stuck indefinitely when immediate worker wake-ups are missed:
+
+    -   Added active-chat worker wake-ups directly from the canonical chat stream route, so chats currently viewed by users re-trigger queued reply jobs quickly (`preferredJobId` + throttled retries).
+    -   Added cron execution support for `/api/internal/user-chat-jobs/run` (including Vercel cron authorization), and wired a dedicated Vercel cron entry for background catch-up ticks.
+    -   Added metadata-backed background wake interval configuration (`USER_CHAT_BACKGROUND_WORKER_INTERVAL_MS`, default `120000`) and applied it to cron job claiming so unattended queued jobs are picked only after the configured delay.
+
 -   Deduplicated repeated Promptbook Engine `USE` commitment sections in generated system messages:
 
     -   Repeated `USE TIME`, `USE BROWSER`, and `USE SEARCH ENGINE` commitments now emit their hard-coded system-message guidance only once per type while preserving the first-occurrence position.

@@ -16,11 +16,13 @@ export const USER_CHAT_JOB_LEASE_DURATION_MS = 2 * 60 * 1000;
  */
 export async function claimNextQueuedUserChatJob(options: {
     preferredJobId?: string;
+    queuedBefore?: string;
 } = {}): Promise<UserChatJobRecord | null> {
     const sql = await $provideClientSql();
     const tableIdentifier = quoteIdentifier(await $getTableName('UserChatJob'));
     const values: Array<unknown> = [USER_CHAT_JOB_LEASE_DURATION_MS];
     const preferredJobClause = options.preferredJobId ? `AND job."id" = $${values.push(options.preferredJobId)}` : '';
+    const queuedBeforeClause = options.queuedBefore ? `AND job."queuedAt" <= $${values.push(options.queuedBefore)}` : '';
     const claimedRows = await sql.raw<Array<UserChatJobRow>>(
         `
             WITH candidate AS (
@@ -29,6 +31,7 @@ export async function claimNextQueuedUserChatJob(options: {
                 WHERE job."status" = 'QUEUED'
                   AND job."cancelRequestedAt" IS NULL
                   ${preferredJobClause}
+                  ${queuedBeforeClause}
                   AND NOT EXISTS (
                       SELECT 1
                       FROM ${tableIdentifier} running

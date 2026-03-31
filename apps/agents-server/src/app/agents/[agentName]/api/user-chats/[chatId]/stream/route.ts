@@ -1,5 +1,5 @@
 import { CHAT_STREAM_KEEP_ALIVE_INTERVAL_MS } from '@/src/constants/streaming';
-import { createUserChatDetailPayload, getUserChat, isFrozenUserChatSource } from '@/src/utils/userChat';
+import { createUserChatDetailPayload, getUserChat, isFrozenUserChatSource, triggerUserChatJobWorker } from '@/src/utils/userChat';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import type { ChatMessage } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
@@ -14,6 +14,11 @@ const ACTIVE_USER_CHAT_STREAM_POLL_INTERVAL_MS = 1_000;
  * Lower refresh cadence used when the active chat is idle.
  */
 const IDLE_USER_CHAT_STREAM_POLL_INTERVAL_MS = 15_000;
+
+/**
+ * Minimum delay between worker wake attempts while the active chat still has queued jobs.
+ */
+const ACTIVE_USER_CHAT_WORKER_WAKE_THROTTLE_MS = 5_000;
 
 /**
  * Allows one chat-stream response to stay open for the platform maximum.
@@ -67,12 +72,15 @@ export async function GET(
         return NextResponse.json({ error: 'Chat not found.' }, { status: 404 });
     }
 
+    const requestOrigin = new URL(request.url).origin;
     const encoder = new TextEncoder();
     const readableStream = new ReadableStream({
         async start(controller) {
             let isStreamClosed = false;
             let lastSnapshotSignature: string | null = null;
             let keepAliveInterval: ReturnType<typeof setInterval> | null = null;
+            let isWorkerWakeInFlight = false;
+            let lastWorkerWakeAttemptAt = 0;
 
             /**
              * Closes the stream once and stops scheduled keep-alive work.
@@ -118,6 +126,49 @@ export async function GET(
             };
 
             /**
+             * Triggers one durable worker wake-up when this active stream still observes queued jobs.
+             *
+             * @private route helper
+             */
+            const wakeWorkerForQueuedJobs = (
+                activeJobs: Awaited<ReturnType<typeof createUserChatDetailPayload>>['activeJobs'],
+            ): void => {
+                if (isWorkerWakeInFlight) {
+                    return;
+                }
+
+                const queuedJob = activeJobs.find(
+                    (activeJob) => activeJob.status === 'QUEUED' && activeJob.cancelRequestedAt === null,
+                );
+                if (!queuedJob) {
+                    return;
+                }
+
+                const now = Date.now();
+                if (now - lastWorkerWakeAttemptAt < ACTIVE_USER_CHAT_WORKER_WAKE_THROTTLE_MS) {
+                    return;
+                }
+
+                lastWorkerWakeAttemptAt = now;
+                isWorkerWakeInFlight = true;
+
+                void triggerUserChatJobWorker({
+                    origin: requestOrigin,
+                    preferredJobId: queuedJob.id,
+                })
+                    .catch((error) => {
+                        console.error('[user-chat] Failed to trigger durable worker from active stream', {
+                            chatId,
+                            jobId: queuedJob.id,
+                            error,
+                        });
+                    })
+                    .finally(() => {
+                        isWorkerWakeInFlight = false;
+                    });
+            };
+
+            /**
              * Loads the latest canonical chat detail and emits it only when the user-visible state changed.
              *
              * @private route helper
@@ -136,6 +187,9 @@ export async function GET(
                 }
 
                 const payload = await createUserChatDetailPayload(currentChat);
+                if (!isFrozenUserChatSource(payload.chat.source)) {
+                    wakeWorkerForQueuedJobs(payload.activeJobs);
+                }
                 const nextSignature = createUserChatDetailSignature(payload);
 
                 if (nextSignature !== lastSnapshotSignature) {
