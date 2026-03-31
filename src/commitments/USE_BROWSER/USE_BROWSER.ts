@@ -3,8 +3,8 @@ import { string_javascript_name, TODO_any } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
-import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
+import { appendAggregatedUseCommitmentPlaceholder } from '../USE/aggregateUseCommitmentSystemMessages';
 import { fetchUrlContentViaBrowser } from './fetchUrlContentViaBrowser';
 
 /**
@@ -17,13 +17,14 @@ import { fetchUrlContentViaBrowser } from './fetchUrlContentViaBrowser';
  * 1. One-shot URL fetching: Simple function to fetch and scrape URL content
  * 2. Running browser: For complex tasks like scrolling, clicking, form filling, etc.
  *
- * The content following `USE BROWSER` is ignored (similar to NOTE).
+ * The content following `USE BROWSER` is an arbitrary text that the agent should know
+ * (e.g. browsing scope or preferred sources).
  *
  * Example usage in agent source:
  *
  * ```book
  * USE BROWSER
- * USE BROWSER This will be ignored
+ * USE BROWSER Prefer official documentation and source websites.
  * ```
  *
  * @private [🪔] Maybe export the commitments through some package
@@ -65,7 +66,7 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
 
             ## Key aspects
 
-            - The content following \`USE BROWSER\` is ignored (similar to NOTE)
+            - The content following \`USE BROWSER\` is an arbitrary text that the agent should know (e.g. browsing scope or preferred sources).
             - Provides two levels of browser access:
               1. **One-shot URL fetching**: Simple function to fetch and scrape URL content (active)
               2. **Running browser**: For complex tasks like scrolling, clicking, form filling, etc. (runtime-dependent)
@@ -115,8 +116,8 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
-        // The content after USE BROWSER is ignored (similar to NOTE)
-        TODO_USE(content);
+        // Additional instructions are aggregated later in the final USE system-message pass.
+        void content;
 
         // Get existing tools array or create new one
         const existingTools = requirements.tools || [];
@@ -193,8 +194,7 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
 
         const updatedTools = [...existingTools, ...toolsToAdd];
 
-        // Return requirements with updated tools and metadata
-        return this.appendToSystemMessage(
+        return appendAggregatedUseCommitmentPlaceholder(
             {
                 ...requirements,
                 tools: updatedTools,
@@ -203,12 +203,7 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
                     useBrowser: true,
                 },
             },
-            spaceTrim(`
-                You have access to browser tools to fetch and access content from the internet.
-                - Use "fetch_url_content" to retrieve content from specific URLs (webpages or documents) using scrapers.
-                - Use "run_browser" for real interactive browser automation (navigation, clicks, typing, waiting, scrolling).
-                When you need to know information from a specific website or document, use the fetch_url_content tool.
-            `),
+            this.type,
         );
     }
 

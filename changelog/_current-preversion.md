@@ -1,4 +1,11 @@
 -   Optimized Agents Server database query volume to fix Supabase overload, unhealthy status, and server crashes:
+-   Deduplicated repeated Promptbook Engine `USE` commitment sections in generated system messages:
+
+    -   Repeated `USE TIME`, `USE BROWSER`, and `USE SEARCH ENGINE` commitments now emit their hard-coded system-message guidance only once per type while preserving the first-occurrence position.
+    -   Distinct free-text instructions from repeated `USE` commitments are now merged once in stable source order instead of being duplicated block-by-block.
+    -   Added regression coverage for duplicate `USE` aggregation and multi-`PERSONA` ordering.
+
+-   Fixed critical Agents Server Supabase overload/crash behavior and improved chat responsiveness by reducing repeated database work in the hottest paths:
 
     -   Middleware now reuses a singleton Supabase client and caches the `_Server` registry (10s TTL) and `Metadata` lookups (30s TTL) instead of creating a new client and querying the database on every HTTP request.
     -   Admin task-manager default polling interval increased from 3s to 10s, and recovery operations (`recoverExpiredRunningUserChatJobs`, `recoverExpiredRunningUserChatTimeouts`) are now throttled to at most once per 60s instead of running on every poll.
