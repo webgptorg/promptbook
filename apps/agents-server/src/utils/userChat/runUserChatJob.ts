@@ -204,7 +204,7 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
             modelRequirements: preparedAgentModelRequirements.modelRequirements,
         },
     );
-    let provider: string | null = agentKitResult.tools.title;
+    const provider: string | null = agentKitResult.tools.title;
     const agent = new Agent({
         isVerbose: true,
         assistantPreparationMode: 'external',
