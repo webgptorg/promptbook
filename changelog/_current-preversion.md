@@ -1,3 +1,10 @@
+-   Fixed Agents Server refusing to load agents when `gallery.ptbk.io` (or any federated server) was slow or timing out:
+
+    -   **Root cause**: `customDomainRouting.ts` creates a fresh `ServerAgentReferenceResolver` instance per middleware request. Each fresh instance had an empty per-instance `remoteCaches` map, so every request triggered a new 1500 ms network call to each configured federated server. When `gallery.ptbk.io` timed out repeatedly, middleware became extremely slow and agents appeared to fail loading.
+    -   Promoted `remoteCaches` and `remoteRequests` from instance-level fields to module-level maps (`MODULE_REMOTE_AGENT_CACHE`, `MODULE_REMOTE_AGENT_REQUESTS`) shared across all `ServerAgentReferenceResolver` instances.
+    -   Added `REMOTE_AGENT_CACHE_TTL_MS` (1 minute) so failed/empty lookups are also cached and not retried on every request within the window.
+    -   The fix is transparent: successful lookups, empty lookups (e.g. due to timeout), and in-flight deduplication all now survive across resolver instances created for different custom-domain requests.
+
 -   Fixed Agents Server durable chat tasks getting stuck in QUEUED state and never starting, by introducing a reliable in-process background worker alongside the existing HTTP-trigger mechanism:
 
     -   **Root cause analysis**: The only paths to start a queued job were (a) an `after()` HTTP self-call from the messages route, (b) the stream-based `triggerUserChatJobWorker` HTTP call every 5 s, and (c) the Vercel cron (every minute, but only picking up jobs older than 2 minutes). In local development there is no cron, and if the HTTP self-calls failed silently the job would stay stuck forever.

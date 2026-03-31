@@ -49,6 +49,30 @@ const MAX_TRACKED_RESOLUTION_ISSUES = 200;
 const FEDERATED_AGENT_LOOKUP_TIMEOUT_MS = 1_500;
 
 /**
+ * How long a remote-agent lookup result (including empty/failed results) is considered
+ * fresh. Shared across all resolver instances so that per-request resolver creation in
+ * customDomainRouting does not re-fetch the same federated server on every request.
+ *
+ * @private
+ */
+const REMOTE_AGENT_CACHE_TTL_MS = 60_000; // 1 minute
+
+/**
+ * Module-level cache of remote-agent lookups keyed by server URL.
+ * Shared across resolver instances to avoid redundant network calls.
+ *
+ * @private
+ */
+const MODULE_REMOTE_AGENT_CACHE = new Map<string, { readonly lookup: RemoteAgentLookup; readonly fetchedAt: number }>();
+
+/**
+ * In-flight remote-agent fetch promises deduplicated by server URL.
+ *
+ * @private
+ */
+const MODULE_REMOTE_AGENT_REQUESTS = new Map<string, Promise<RemoteAgentLookup>>();
+
+/**
  * Creates a resolver backed by the Agents Server collection and configured federated servers.
  *
  * @param options - Resolver dependencies
@@ -72,8 +96,6 @@ class ServerAgentReferenceResolver implements IssueTrackingAgentReferenceResolve
     private readonly federatedServers: string[];
     private readonly localNameToUrl = new Map<string, string>();
     private readonly localIdToUrl = new Map<string, string>();
-    private readonly remoteCaches = new Map<string, RemoteAgentLookup>();
-    private readonly remoteRequests = new Map<string, Promise<RemoteAgentLookup>>();
     private readonly resolutionIssues: Array<AgentReferenceResolutionIssue> = [];
 
     public constructor(options: ServerResolverOptions) {
@@ -338,23 +360,24 @@ class ServerAgentReferenceResolver implements IssueTrackingAgentReferenceResolve
     }
 
     private async ensureRemoteLookup(serverUrl: string): Promise<RemoteAgentLookup> {
-        const cached = this.remoteCaches.get(serverUrl);
-        if (cached) {
-            return cached;
+        const now = Date.now();
+        const cached = MODULE_REMOTE_AGENT_CACHE.get(serverUrl);
+        if (cached && now - cached.fetchedAt < REMOTE_AGENT_CACHE_TTL_MS) {
+            return cached.lookup;
         }
 
-        let pending = this.remoteRequests.get(serverUrl);
+        let pending = MODULE_REMOTE_AGENT_REQUESTS.get(serverUrl);
         if (!pending) {
             pending = this.fetchRemoteAgents(serverUrl);
-            this.remoteRequests.set(serverUrl, pending);
+            MODULE_REMOTE_AGENT_REQUESTS.set(serverUrl, pending);
         }
 
         try {
             const lookup = await pending;
-            this.remoteCaches.set(serverUrl, lookup);
+            MODULE_REMOTE_AGENT_CACHE.set(serverUrl, { lookup, fetchedAt: Date.now() });
             return lookup;
         } finally {
-            this.remoteRequests.delete(serverUrl);
+            MODULE_REMOTE_AGENT_REQUESTS.delete(serverUrl);
         }
     }
 
