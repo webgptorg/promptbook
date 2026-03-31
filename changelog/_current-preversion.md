@@ -1,3 +1,15 @@
+-   Fixed Agents Server durable chat tasks getting stuck in QUEUED state and never starting, by introducing a reliable in-process background worker alongside the existing HTTP-trigger mechanism:
+
+    -   **Root cause analysis**: The only paths to start a queued job were (a) an `after()` HTTP self-call from the messages route, (b) the stream-based `triggerUserChatJobWorker` HTTP call every 5 s, and (c) the Vercel cron (every minute, but only picking up jobs older than 2 minutes). In local development there is no cron, and if the HTTP self-calls failed silently the job would stay stuck forever.
+    -   Created `userChatJobBackgroundWorker.ts` — an in-process worker (`runUserChatJobBackgroundWorkerTick`, `kickUserChatJobInteractiveWorkerTick`, `ensureUserChatJobBackgroundWorkerRunning`) that claims and runs durable chat jobs directly without an HTTP round-trip, eliminating all HTTP self-call failure modes.
+    -   Created `ensureUserChatJobBackgroundWorkerBootstrapped.ts` — mirrors the timeout-worker bootstrap pattern; starts the periodic interval and fires one immediate catch-up kick on first access.
+    -   Wired `ensureUserChatJobBackgroundWorkerBootstrapped()` into `resolveUserChatScope` so the daemon is guaranteed running before any user chat interaction is served.
+    -   Added `kickUserChatJobInteractiveWorkerTick(preferredJobId)` in-process call to the messages route (alongside the existing `after()` HTTP trigger) so reply jobs start processing immediately when users send a message, without waiting for an HTTP round-trip.
+    -   Added the same in-process kick inside the stream route's `wakeWorkerForQueuedJobs` so actively-watched chats also benefit from the reliable fast path.
+    -   Added a 30-second abort timeout to `triggerUserChatJobWorker` to prevent the HTTP trigger's fetch from hanging indefinitely and blocking the stream's `isWorkerWakeInFlight` flag.
+    -   The background interval period is driven by `DEFAULT_USER_CHAT_BACKGROUND_WORKER_INTERVAL_MS` (2 minutes, configurable via the `USER_CHAT_BACKGROUND_WORKER_INTERVAL_MS` metadata key), ensuring unattended queued jobs are caught up within that window in all environments.
+    -   Exported `ensureUserChatJobBackgroundWorkerBootstrapped`, `ensureUserChatJobBackgroundWorkerRunning`, `kickUserChatJobBackgroundWorkerTick`, and `kickUserChatJobInteractiveWorkerTick` from the `userChat` barrel.
+
 -   Unified Agents Server mobile navigation into one shared left-side drawer opened from the header hamburger:
 
     -   Moved the mobile hamburger trigger to the left side of the fixed header and kept desktop navigation behavior unchanged.

@@ -1,5 +1,6 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { resolveCurrentUserIdentity } from '@/src/utils/currentUserIdentity';
+import { ensureUserChatJobBackgroundWorkerBootstrapped } from '@/src/utils/userChat/ensureUserChatJobBackgroundWorkerBootstrapped';
 import { ensureUserChatTimeoutWorkerBootstrapped } from '@/src/utils/userChatTimeout/ensureUserChatTimeoutWorkerBootstrapped';
 
 /**
@@ -23,6 +24,7 @@ export async function resolveUserChatScope(
     agentIdentifier: string,
 ): Promise<{ ok: true; scope: ResolvedUserChatScope } | { ok: false; error: UserChatScopeResolutionError }> {
     ensureUserChatTimeoutWorkerBootstrapped();
+    ensureUserChatJobBackgroundWorkerBootstrapped();
 
     const currentUserIdentity = await resolveCurrentUserIdentity();
     if (!currentUserIdentity) {

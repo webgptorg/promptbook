@@ -1,6 +1,12 @@
 import { CHAT_STREAM_KEEP_ALIVE_INTERVAL_MS } from '@/src/constants/streaming';
-import { createUserChatDetailPayload, getUserChat, isFrozenUserChatSource, triggerUserChatJobWorker } from '@/src/utils/userChat';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
+import {
+    createUserChatDetailPayload,
+    getUserChat,
+    isFrozenUserChatSource,
+    kickUserChatJobInteractiveWorkerTick,
+    triggerUserChatJobWorker,
+} from '@/src/utils/userChat';
 import type { ChatMessage } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
 import { resolveUserChatScope } from '../../resolveUserChatScope';
@@ -40,10 +46,7 @@ type UserChatStreamFrame =
 /**
  * Streams canonical chat snapshots for one scoped user chat so multiple viewers can observe the same background turn.
  */
-export async function GET(
-    request: Request,
-    { params }: { params: Promise<{ agentName: string; chatId: string }> },
-) {
+export async function GET(request: Request, { params }: { params: Promise<{ agentName: string; chatId: string }> }) {
     if (isPrivateModeEnabledFromRequest(request)) {
         return NextResponse.json({ error: 'Private mode is enabled.' }, { status: 403 });
     }
@@ -151,6 +154,9 @@ export async function GET(
 
                 lastWorkerWakeAttemptAt = now;
                 isWorkerWakeInFlight = true;
+
+                // In-process kick as a fast-path (bypasses HTTP, works in local dev and as fallback)
+                kickUserChatJobInteractiveWorkerTick(queuedJob.id);
 
                 void triggerUserChatJobWorker({
                     origin: requestOrigin,
@@ -266,9 +272,7 @@ export async function GET(
 /**
  * Builds a stable signature for the user-visible parts of a canonical chat snapshot.
  */
-function createUserChatDetailSignature(
-    payload: Awaited<ReturnType<typeof createUserChatDetailPayload>>,
-): string {
+function createUserChatDetailSignature(payload: Awaited<ReturnType<typeof createUserChatDetailPayload>>): string {
     return JSON.stringify({
         chatId: payload.chat.id,
         updatedAt: payload.chat.updatedAt,

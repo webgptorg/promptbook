@@ -1,30 +1,28 @@
-import { after, NextResponse } from 'next/server';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
-import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
-import { resolveMetaDisclaimerStatusForUser } from '@/src/utils/metaDisclaimer';
-import { resolveCurrentOrInternalServerOrigin } from '@/src/utils/resolveCurrentOrInternalServerOrigin';
 import { resolveCachedServerAgentContext } from '@/src/utils/cachedServerAgentRuntime';
+import { resolveChatMessageValidationIssue } from '@/src/utils/chat/validateChatMessageContent';
+import { resolveMetaDisclaimerStatusForUser } from '@/src/utils/metaDisclaimer';
+import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
+import { resolveCurrentOrInternalServerOrigin } from '@/src/utils/resolveCurrentOrInternalServerOrigin';
 import {
     appendQueuedUserChatTurn,
     createUserChatDetailPayload,
     getUserChat,
     getUserChatJobByClientMessageId,
     isFrozenUserChatSource,
+    kickUserChatJobInteractiveWorkerTick,
     triggerUserChatJobWorker,
 } from '@/src/utils/userChat';
 import { UserChatScopeError } from '@/src/utils/userChat/UserChatScopeError';
 import { normalizeChatAttachments } from '@promptbook-local/core';
-import { resolveChatMessageValidationIssue } from '@/src/utils/chat/validateChatMessageContent';
+import { after, NextResponse } from 'next/server';
 import { resolveUserChatScope } from '../../resolveUserChatScope';
 
 /**
  * Enqueues one durable user chat turn and immediately returns canonical chat state.
  */
-export async function POST(
-    request: Request,
-    { params }: { params: Promise<{ agentName: string; chatId: string }> },
-) {
+export async function POST(request: Request, { params }: { params: Promise<{ agentName: string; chatId: string }> }) {
     if (isPrivateModeEnabledFromRequest(request)) {
         return NextResponse.json({ error: 'Private mode is enabled.' }, { status: 403 });
     }
@@ -152,6 +150,10 @@ export async function POST(
 
             throw error;
         });
+
+        // Kick the in-process worker immediately as a reliable fast-path fallback.
+        // The HTTP trigger via after() remains as a secondary path for distributed environments.
+        kickUserChatJobInteractiveWorkerTick(enqueuedTurn.job.id);
 
         after(() =>
             triggerUserChatJobWorker({
