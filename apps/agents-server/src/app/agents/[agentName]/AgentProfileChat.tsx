@@ -15,6 +15,8 @@ import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingConte
 import { showAlert } from '../../../components/AsyncDialogs/asyncDialogs';
 import { useChatEnterBehaviorPreferences } from '../../../components/ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
+import { createMyChatsMobileMenuItem } from '../../../components/Header/createMyChatsMobileMenuItem';
+import { useHoistedMobileMenuItems } from '../../../components/Header/MobileMenuHoistingContext';
 import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { executeQuickActionButton } from '../../../utils/chat/executeQuickActionButton';
 import { resolveChatMessageValidationIssue } from '../../../utils/chat/validateChatMessageContent';
@@ -279,6 +281,34 @@ export function AgentProfileChat({
         },
         [chatRoute, navigateToDestination],
     );
+    const hoistedMobileMenuItems = useMemo(
+        () =>
+            !isDeleted && isHistoryEnabled && !isPrivateModeEnabled
+                ? [
+                      createMyChatsMobileMenuItem({
+                          formatText,
+                          chats: existingChats,
+                          onSelectChat: (chatId) => {
+                              void handleContinueChat(chatId);
+                          },
+                          onCreateChat: () => {
+                              void navigateToChat({ shouldForceNewChat: true });
+                          },
+                      }),
+                  ]
+                : [],
+        [
+            existingChats,
+            formatText,
+            handleContinueChat,
+            isDeleted,
+            isHistoryEnabled,
+            isPrivateModeEnabled,
+            navigateToChat,
+        ],
+    );
+
+    useHoistedMobileMenuItems(hoistedMobileMenuItems);
 
     const isSpeechFeaturesEnabled = agent?.isVoiceTtsSttEnabled ?? false;
     const speechRecognition = useMemo(() => {

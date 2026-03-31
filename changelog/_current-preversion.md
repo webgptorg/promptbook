@@ -1,3 +1,10 @@
+-   Unified Agents Server mobile navigation into one shared left-side drawer opened from the header hamburger:
+
+    -   Moved the mobile hamburger trigger to the left side of the fixed header and kept desktop navigation behavior unchanged.
+    -   Redesigned the mobile menu from a top sheet to a left drawer, including left-edge swipe-to-open and in-drawer swipe-to-close gestures.
+    -   Added shared mobile menu hoisting for route-specific sections and wired agent chat + agent profile pages to hoist a nested **My chats** section into the same drawer.
+    -   Removed the duplicate chat-page-only mobile sidebar trigger path so chat navigation now goes through the unified header menu system.
+
 -   Fixed Agents Server durable chat-task startup reliability so queued agent replies no longer stay stuck indefinitely when immediate worker wake-ups are missed:
 
     -   Added active-chat worker wake-ups directly from the canonical chat stream route, so chats currently viewed by users re-trigger queued reply jobs quickly (`preferredJobId` + throttled retries).

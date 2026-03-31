@@ -4,10 +4,10 @@ import type { ChatMessage } from '@promptbook-local/types';
 import { MessageSquarePlusIcon } from 'lucide-react';
 import moment from 'moment';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { MenuIcon } from '../../../../../../../src/book-components/icons/MenuIcon';
-import { SolidArrowButton } from '../../../../../../../src/book-components/icons/SolidArrowButton';
 import { useAgentNaming } from '../../../../components/AgentNaming/AgentNamingContext';
 import { showConfirm } from '../../../../components/AsyncDialogs/asyncDialogs';
+import { createMyChatsMobileMenuItem } from '../../../../components/Header/createMyChatsMobileMenuItem';
+import { useHoistedMobileMenuItems } from '../../../../components/Header/MobileMenuHoistingContext';
 import { notifyError, notifyInfo } from '../../../../components/Notifications/notifications';
 import { usePrivateModePreferences } from '../../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { useBrowserPushNotifications } from '../../../../components/PushNotifications/BrowserPushNotificationsProvider';
@@ -37,7 +37,7 @@ import { AgentChatWrapper } from '../AgentChatWrapper';
 import { takePendingProfileMessage } from '../profileMessageCache';
 import type { AgentChatLayoutVariant } from './AgentChatLayoutVariant';
 import { AgentChatPageLayout } from './AgentChatPageLayout';
-import { AGENT_CHAT_SIDEBAR_ID, AgentChatSidebar } from './AgentChatSidebar';
+import { AgentChatSidebar } from './AgentChatSidebar';
 import { CanonicalAgentChatPanel } from './CanonicalAgentChatPanel';
 import { mergeCanonicalChatMessagesWithPendingOutboundMessages } from './mergeCanonicalChatMessagesWithPendingOutboundMessages';
 import {
@@ -197,7 +197,6 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const [isActiveChatStreamConnected, setIsActiveChatStreamConnected] = useState(false);
     const [isCreatingChat, setIsCreatingChat] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
-    const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
     const [showExternalChats, setShowExternalChats] = useState(false);
     const [currentTimestamp, setCurrentTimestamp] = useState(() => Date.now());
     const [pendingNotificationHintAssistantMessageIds, setPendingNotificationHintAssistantMessageIds] = useState<
@@ -256,16 +255,8 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const toggleSidebarCollapsed = useCallback(() => {
         setIsSidebarCollapsed((value) => !value);
     }, []);
-    const openMobileSidebar = useCallback(() => {
-        setIsMobileSidebarOpen(true);
-    }, []);
-    const closeMobileSidebar = useCallback(() => {
-        setIsMobileSidebarOpen(false);
-    }, []);
-    const mobileHandleVisibility = isMobileSidebarOpen
-        ? 'opacity-0 pointer-events-none'
-        : 'opacity-100 pointer-events-auto';
-    const effectiveIsSidebarCollapsed = isChatGptLikeLayout ? false : isMobileSidebarOpen ? false : isSidebarCollapsed;
+    const closeMobileSidebar = useCallback(() => undefined, []);
+    const effectiveIsSidebarCollapsed = isChatGptLikeLayout ? false : isSidebarCollapsed;
     const shouldShowExternalChats = isCurrentUserAdmin && showExternalChats;
     const activeChatSummary = useMemo(
         () => chats.find((chat) => chat.id === activeChatId) || null,
@@ -1330,6 +1321,33 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         (!autoMessageTargetId || autoMessageTargetId === activeChatId)
             ? effectiveInitialAutoExecuteMessage
             : undefined;
+    const hoistedMobileMenuItems = useMemo(
+        () =>
+            shouldUseHistory && !isHeadlessMode
+                ? [
+                      createMyChatsMobileMenuItem({
+                          formatText,
+                          chats,
+                          activeChatId,
+                          onSelectChat: handleSelectChatFromSidebar,
+                          onCreateChat: () => {
+                              void handleCreateChat();
+                          },
+                      }),
+                  ]
+                : [],
+        [
+            activeChatId,
+            chats,
+            formatText,
+            handleCreateChat,
+            handleSelectChatFromSidebar,
+            isHeadlessMode,
+            shouldUseHistory,
+        ],
+    );
+
+    useHoistedMobileMenuItems(hoistedMobileMenuItems);
 
     if (!shouldUseHistory) {
         const guestChatContent = (
@@ -1438,34 +1456,17 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             onShowExternalChatsChange={handleShowExternalChatsChange}
             isCollapsed={effectiveIsSidebarCollapsed}
             onToggleCollapse={toggleSidebarCollapsed}
-            isMobileSidebarOpen={isMobileSidebarOpen}
+            isMobileSidebarOpen={false}
             onCloseMobileSidebar={closeMobileSidebar}
             variant={layoutVariant}
         />
     );
-    const defaultMobileSidebarTrigger = (
-        <SolidArrowButton
-            direction="right"
-            onClick={openMobileSidebar}
-            className={`shrink-0 transition-opacity duration-150 ${mobileHandleVisibility}`}
-            aria-controls={AGENT_CHAT_SIDEBAR_ID}
-            aria-expanded={isMobileSidebarOpen}
-            aria-hidden={isMobileSidebarOpen}
-            aria-label={formatText('Open chats sidebar')}
-        />
-    );
     const chatGptLikeTopBar = (
         <div className="agent-chat-chatgpt-like-mobile-header flex items-center justify-between gap-3 px-3.5 py-2.5 md:hidden">
-            <button
-                type="button"
-                onClick={openMobileSidebar}
-                className="agent-chat-chatgpt-like-mobile-header__icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg border transition"
-                aria-controls={AGENT_CHAT_SIDEBAR_ID}
-                aria-expanded={isMobileSidebarOpen}
-                aria-label={formatText('Open chats sidebar')}
-            >
-                <MenuIcon size={18} />
-            </button>
+            <span
+                aria-hidden="true"
+                className="agent-chat-chatgpt-like-mobile-header__icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg border opacity-0"
+            />
             <div className="min-w-0 flex-1 text-center">
                 <div className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
                     {activeChatSummary?.title || formatText('New chat')}
@@ -1498,11 +1499,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         }
 
         return (
-            <AgentChatPageLayout
-                variant={layoutVariant}
-                sidebar={chatSidebar}
-                mobileSidebarTrigger={defaultMobileSidebarTrigger}
-            >
+            <AgentChatPageLayout variant={layoutVariant} sidebar={chatSidebar}>
                 {chatSurface}
             </AgentChatPageLayout>
         );

@@ -66,6 +66,7 @@ import {
 import { buildDocumentationDropdownItems } from './buildDocumentationDropdownItems';
 import { HeaderControlPanelDropdown } from './ControlPanel/ControlPanel';
 import { HeaderSearchBox } from './HeaderSearchBox';
+import { useMobileMenuHoisting } from './MobileMenuHoistingContext';
 import type { SubMenuItem } from './SubMenuItem';
 import { useHeaderDropdownPortalContainer } from './useHeaderDropdownPortalContainer';
 import { useHeaderTouchInput } from './useHeaderTouchInput';
@@ -179,6 +180,44 @@ const HEADER_DROPDOWN_CLOSE_DELAY_MS = 280;
  * Horizontal indentation applied for each nested submenu level in mobile navigation.
  */
 const MOBILE_SUBMENU_INDENT_PX = 14;
+/**
+ * Maximum horizontal distance from the left viewport edge that can start an "open drawer" swipe.
+ */
+const MOBILE_MENU_EDGE_SWIPE_START_X_PX = 24;
+/**
+ * Minimum horizontal swipe distance required to trigger open/close drawer gestures.
+ */
+const MOBILE_MENU_SWIPE_TRIGGER_DISTANCE_PX = 58;
+/**
+ * Maximum vertical drift allowed while recognizing horizontal drawer swipes.
+ */
+const MOBILE_MENU_SWIPE_MAX_VERTICAL_DRIFT_PX = 44;
+/**
+ * Maximum gesture duration considered a deliberate drawer swipe.
+ */
+const MOBILE_MENU_SWIPE_MAX_DURATION_MS = 700;
+
+/**
+ * Tracks one in-progress touch gesture for mobile drawer swipe interactions.
+ */
+type MobileMenuSwipeGesture = {
+    /**
+     * Gesture mode describing whether the swipe tries to open or close the drawer.
+     */
+    readonly mode: 'open' | 'close';
+    /**
+     * Horizontal gesture origin in viewport coordinates.
+     */
+    readonly startX: number;
+    /**
+     * Vertical gesture origin in viewport coordinates.
+     */
+    readonly startY: number;
+    /**
+     * Epoch timestamp in milliseconds at touch start.
+     */
+    readonly startedAt: number;
+};
 
 /**
  * Supported category names inside the System dropdown.
@@ -266,12 +305,15 @@ export function Header(props: HeaderProps) {
     const isHeadless = useIsHeadless();
     const isTouchInput = useHeaderTouchInput();
     const menuHoisting = useMenuHoisting();
+    const mobileMenuHoisting = useMobileMenuHoisting();
     const { naming } = useAgentNaming();
     const { t } = useServerLanguage();
     const [desktopExpandedSubMenus, setDesktopExpandedSubMenus] = useState<Record<string, boolean>>({});
     const [isAgentQrCodeOpen, setIsAgentQrCodeOpen] = useState(false);
     const { installPromptEvent, isInstalled, handleInstallApp } = useInstallPromptState();
     const headerRef = useRef<HTMLElement | null>(null);
+    const mobileMenuDrawerRef = useRef<HTMLDivElement | null>(null);
+    const mobileMenuSwipeGestureRef = useRef<MobileMenuSwipeGesture | null>(null);
 
     useEffect(() => {
         if (!isMenuOpen) {
@@ -318,6 +360,106 @@ export function Header(props: HeaderProps) {
         });
         menuCloseTimers.current = {};
     }, [isTouchInput]);
+
+    /**
+     * Enables left-edge swipe opening on mobile and in-drawer swipe closing.
+     */
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const isDesktopViewport = (): boolean => window.matchMedia('(min-width: 1024px)').matches;
+
+        const handleTouchStart = (event: TouchEvent) => {
+            if (event.touches.length !== 1 || isDesktopViewport()) {
+                mobileMenuSwipeGestureRef.current = null;
+                return;
+            }
+
+            const touch = event.touches[0];
+            if (!touch) {
+                mobileMenuSwipeGestureRef.current = null;
+                return;
+            }
+
+            if (!isMenuOpen) {
+                if (touch.clientX > MOBILE_MENU_EDGE_SWIPE_START_X_PX) {
+                    mobileMenuSwipeGestureRef.current = null;
+                    return;
+                }
+
+                mobileMenuSwipeGestureRef.current = {
+                    mode: 'open',
+                    startX: touch.clientX,
+                    startY: touch.clientY,
+                    startedAt: Date.now(),
+                };
+                return;
+            }
+
+            const drawerRight = mobileMenuDrawerRef.current?.getBoundingClientRect().right;
+            if (drawerRight === undefined || touch.clientX > drawerRight) {
+                mobileMenuSwipeGestureRef.current = null;
+                return;
+            }
+
+            mobileMenuSwipeGestureRef.current = {
+                mode: 'close',
+                startX: touch.clientX,
+                startY: touch.clientY,
+                startedAt: Date.now(),
+            };
+        };
+
+        const handleTouchEnd = (event: TouchEvent) => {
+            const gesture = mobileMenuSwipeGestureRef.current;
+            mobileMenuSwipeGestureRef.current = null;
+
+            if (!gesture || event.changedTouches.length === 0 || isDesktopViewport()) {
+                return;
+            }
+
+            const touch = event.changedTouches[0];
+            if (!touch) {
+                return;
+            }
+
+            const deltaX = touch.clientX - gesture.startX;
+            const deltaY = touch.clientY - gesture.startY;
+            const durationMs = Date.now() - gesture.startedAt;
+
+            if (
+                Math.abs(deltaY) > MOBILE_MENU_SWIPE_MAX_VERTICAL_DRIFT_PX ||
+                durationMs > MOBILE_MENU_SWIPE_MAX_DURATION_MS
+            ) {
+                return;
+            }
+
+            if (gesture.mode === 'open' && deltaX >= MOBILE_MENU_SWIPE_TRIGGER_DISTANCE_PX) {
+                setIsMenuOpen(true);
+                return;
+            }
+
+            if (gesture.mode === 'close' && deltaX <= -MOBILE_MENU_SWIPE_TRIGGER_DISTANCE_PX) {
+                setIsMenuOpen(false);
+            }
+        };
+
+        const handleTouchCancel = () => {
+            mobileMenuSwipeGestureRef.current = null;
+        };
+
+        window.addEventListener('touchstart', handleTouchStart, { passive: true });
+        window.addEventListener('touchend', handleTouchEnd, { passive: true });
+        window.addEventListener('touchcancel', handleTouchCancel, { passive: true });
+
+        return () => {
+            window.removeEventListener('touchstart', handleTouchStart);
+            window.removeEventListener('touchend', handleTouchEnd);
+            window.removeEventListener('touchcancel', handleTouchCancel);
+        };
+    }, [isMenuOpen]);
 
     useEffect(() => {
         return () => {
@@ -1707,6 +1849,7 @@ export function Header(props: HeaderProps) {
             : []),
         ...(shouldShowSystemMenu ? [buildSystemMenuItem(systemMenuEntries)] : []),
     ];
+    const hoistedMobileMenuItems = mobileMenuHoisting?.menuItems || [];
 
 
     /**
@@ -1816,6 +1959,13 @@ export function Header(props: HeaderProps) {
                 <div className="flex h-full items-center gap-2 sm:gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-5">
                     <div className="min-w-0 flex-1">
                         <div className="flex min-w-0 items-center gap-2 sm:gap-3 rounded-2xl border border-gray-200 bg-white/90 px-2 sm:px-3 md:px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm shadow-slate-200/60 backdrop-blur">
+                            <div className="lg:hidden">
+                                <HamburgerMenu
+                                    isOpen={isMenuOpen}
+                                    onClick={() => setIsMenuOpen((isOpen) => !isOpen)}
+                                    className="rounded-xl p-1.5 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+                                />
+                            </div>
                             <div className="relative flex min-w-0 items-center gap-3">
                                 <HeadlessLink
                                     href="/"
@@ -2242,21 +2392,13 @@ export function Header(props: HeaderProps) {
                             </div>
                         )}
 
-                        {/* Mobile Menu Toggle */}
-                        <div className="lg:hidden">
-                            <HamburgerMenu
-                                isOpen={isMenuOpen}
-                                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                className="p-2 text-gray-600 hover:text-gray-900"
-                            />
-                        </div>
                     </div>
                 </div>
 
                 {/* Mobile Navigation Backdrop */}
                 {isMenuOpen && (
                     <div
-                        className="lg:hidden fixed inset-0 top-16 bg-black/20 backdrop-blur-sm z-40 animate-in fade-in duration-200"
+                        className="lg:hidden fixed inset-0 top-16 bg-slate-900/35 backdrop-blur-sm z-40 animate-in fade-in duration-200"
                         onClick={() => setIsMenuOpen(false)}
                     />
                 )}
@@ -2264,15 +2406,16 @@ export function Header(props: HeaderProps) {
                 {/* Mobile Navigation */}
                 {isMenuOpen && (
                     <div
-                        className="lg:hidden absolute top-16 left-0 right-0 z-50 bg-white shadow-2xl py-6 border-t border-gray-200 animate-in slide-in-from-top-2 h-[calc(100vh-4rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
+                        ref={mobileMenuDrawerRef}
+                        className="lg:hidden fixed top-16 bottom-0 left-0 z-50 w-[min(25rem,92vw)] border-r border-gray-200 bg-white/95 py-6 shadow-2xl animate-in slide-in-from-left-4 duration-200 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
                         style={{
                             backdropFilter: 'blur(20px)',
                             WebkitBackdropFilter: 'blur(20px)',
                         }}
                     >
-                        <nav className="mx-auto flex flex-col items-center gap-6 px-6 max-w-md pb-8">
-                            <div className="w-full border-b border-gray-200 pb-6 text-center">
-                                <div className="flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-[0.3em] text-gray-400 mb-3">
+                        <nav className="mx-auto flex flex-col gap-6 px-4 pb-8">
+                            <div className="w-full border-b border-gray-200 pb-6">
+                                <div className="flex items-center justify-between gap-2 text-xs font-bold uppercase tracking-[0.3em] text-gray-400 mb-3">
                                     <span>{t('header.menuLabel')}</span>
                                     {federatedServers.length > 0 && (
                                         <button
@@ -2288,9 +2431,9 @@ export function Header(props: HeaderProps) {
                                         </button>
                                     )}
                                 </div>
-                                <p className="text-xl font-bold text-gray-900 truncate px-4">{serverName}</p>
+                                <p className="text-lg font-bold text-gray-900 truncate">{serverName}</p>
                                 {isFederatedOpen && federatedDropdownItems.length > 0 && (
-                                    <div className="mt-4 mx-auto w-full max-w-[90vw] flex flex-col gap-1 rounded-lg border border-gray-200 bg-gradient-to-b from-gray-50 to-white p-3 shadow-sm animate-in fade-in-0 slide-in-from-top-2 duration-200">
+                                    <div className="mt-4 w-full flex flex-col gap-1 rounded-lg border border-gray-200 bg-gradient-to-b from-gray-50 to-white p-3 shadow-sm animate-in fade-in-0 slide-in-from-top-2 duration-200">
                                         {federatedDropdownItems.map((subItem, subIndex) => {
                                             const className = `block rounded-md px-4 py-3 text-sm text-gray-700 hover:bg-white hover:shadow-sm active:scale-98 transition-all duration-150 ${
                                                 subItem.isBold ? 'font-semibold' : ''
@@ -2316,7 +2459,7 @@ export function Header(props: HeaderProps) {
                                     </div>
                                 )}
 
-                                <div className="mt-6 flex flex-col items-center gap-4 w-full">
+                                <div className="mt-6 flex flex-col gap-4 w-full">
                                     <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
                                         <ArrowIcon direction="right" className="h-4 w-4 text-gray-500" />
                                         {isAdmin ? (
@@ -2329,7 +2472,7 @@ export function Header(props: HeaderProps) {
                                                     avatarUrl={activeAgentAvatarUrl}
                                                     avatarSizeClassName="h-6 w-6"
                                                     textClassName="text-sm font-semibold text-gray-900"
-                                                    maxWidthClassName="max-w-[60vw]"
+                                                    maxWidthClassName="max-w-[12rem]"
                                                     fallbackIcon={
                                                         !activeAgent ? (
                                                             <FolderIcon className="h-4 w-4 text-gray-500" aria-hidden />
@@ -2353,7 +2496,7 @@ export function Header(props: HeaderProps) {
                                                     avatarUrl={activeAgentAvatarUrl}
                                                     avatarSizeClassName="h-6 w-6"
                                                     textClassName="text-sm font-semibold text-gray-900"
-                                                    maxWidthClassName="max-w-[60vw]"
+                                                    maxWidthClassName="max-w-[12rem]"
                                                     fallbackIcon={
                                                         !activeAgent ? (
                                                             <FolderIcon className="h-4 w-4 text-gray-500" aria-hidden />
@@ -2425,6 +2568,15 @@ export function Header(props: HeaderProps) {
                                             <span className="sr-only">{item.name}</span>
                                         </button>
                                     ))}
+                                </div>
+                            )}
+
+                            {/* Hoisted Mobile Menu Trees */}
+                            {hoistedMobileMenuItems.length > 0 && (
+                                <div className="w-full py-3 border-b border-gray-200">
+                                    <div className="rounded-xl border border-gray-200 bg-gradient-to-b from-gray-50 to-white p-3 shadow-sm">
+                                        {renderMobileNestedMenuItems(hoistedMobileMenuItems, 'mobile-hoisted-menu')}
+                                    </div>
                                 </div>
                             )}
 
