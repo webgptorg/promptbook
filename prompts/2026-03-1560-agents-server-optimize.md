@@ -50,3 +50,17 @@
 
 <!-- 11:11 -->
 
+---
+
+[ ]
+
+[✨⛅️] Agents server does not start the tasks
+
+-   Tasks are stucked forever in queued status and they are not starting
+-   When the user is activelly looking at the chat, task of the answering from agent should start ASAP
+-   For the background chats, there should be some cron job that starts the tasks once in a 2 minutes (add this time to the metadata configuration of the agents server)
+-   Do a proper and complex analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server) with the chats and tasks
+
+![alt text](prompts/screenshots/2026-03-1560-agents-server-optimize-15.png)
+![alt text](prompts/screenshots/2026-03-1560-agents-server-optimize-16.png)
