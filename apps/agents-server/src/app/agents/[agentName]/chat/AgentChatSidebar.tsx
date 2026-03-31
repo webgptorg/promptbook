@@ -4,12 +4,10 @@ import { Clock3Icon, EyeIcon, EyeOffIcon, Loader2Icon, MessageSquarePlusIcon, Tr
 import { useState } from 'react';
 import { SolidArrowButton } from '../../../../../../../src/book-components/icons/SolidArrowButton';
 import { ChatListLoadingSkeleton } from '../../../../components/Skeleton/ChatListLoadingSkeleton';
+import { getUserChatSourceChipLabel } from '../../../../utils/userChat/UserChatSource';
 import type { UserChatSummary } from '../../../../utils/userChatClient';
 import type { AgentChatLayoutVariant } from './AgentChatLayoutVariant';
-import {
-    resolveUserChatMenuItemContent,
-    type UserChatMenuItemActivityIndicator,
-} from './resolveUserChatMenuItemContent';
+import { formatChatTimeoutRemainingTime } from './formatChatTimeoutRemainingTime';
 
 /**
  * Maximum number of messages a chat can have to be considered "empty" (just the initial greeting).
@@ -101,11 +99,125 @@ type AgentChatSidebarProps = {
      * Visual sidebar variant used by the current route.
      */
     readonly variant?: AgentChatLayoutVariant;
-    /**
-     * Hides the route-local mobile drawer so the shared header drawer owns mobile navigation.
-     */
-    readonly isMobileDrawerDisabled?: boolean;
 };
+
+/**
+ * Shared chat-item display fields consumed by both sidebar layouts.
+ */
+type SidebarChatItemContent = {
+    /**
+     * Primary title of the chat entry.
+     */
+    readonly title: string;
+    /**
+     * Secondary preview text from the latest message.
+     */
+    readonly preview: string;
+    /**
+     * Human-friendly timestamp shown next to the chat.
+     */
+    readonly lastActivity: string;
+    /**
+     * Number of messages currently stored in this chat.
+     */
+    readonly messagesCount: number;
+    /**
+     * Human-friendly message-count label.
+     */
+    readonly messagesCountLabel: string;
+    readonly activityIndicator: SidebarChatActivityIndicator;
+    /**
+     * Compact label that marks external frozen chats.
+     */
+    readonly sourceChipLabel: string | null;
+    /**
+     * Fully descriptive label exposed through title/ARIA attributes.
+     */
+    readonly accessibilityLabel: string;
+};
+
+/**
+ * Lightweight status indicator rendered in the same reserved slot for every chat row.
+ */
+type SidebarChatActivityIndicator = {
+    readonly kind: 'none' | 'running' | 'scheduled';
+    readonly compactLabel: string | null;
+    readonly statusLabel: string | null;
+};
+
+/**
+ * Formats message count for compact chat labels.
+ */
+function formatChatMessagesCount(messagesCount: number, formatText: (text: string) => string): string {
+    if (messagesCount === 1) {
+        return `1 ${formatText('message')}`;
+    }
+
+    return `${messagesCount} ${formatText('messages')}`;
+}
+
+/**
+ * Formats active running count for compact sidebar descriptions.
+ */
+function formatRunningActivityCount(count: number, formatText: (text: string) => string): string {
+    if (count === 1) {
+        return `1 ${formatText('response in progress')}`;
+    }
+
+    return `${count} ${formatText('responses in progress')}`;
+}
+
+/**
+ * Formats scheduled wake-up count for compact sidebar descriptions.
+ */
+function formatScheduledWakeUpCount(count: number, formatText: (text: string) => string): string {
+    if (count === 1) {
+        return `1 ${formatText('scheduled wake-up')}`;
+    }
+
+    return `${count} ${formatText('scheduled wake-ups')}`;
+}
+
+/**
+ * Resolves the single visible activity indicator for one chat.
+ */
+function resolveSidebarChatActivityIndicator(
+    chat: UserChatSummary,
+    formatText: (text: string) => string,
+    currentTimestamp: number,
+): SidebarChatActivityIndicator {
+    const scheduledLabel =
+        chat.timeoutActivity.count > 0 && chat.timeoutActivity.nearestDueAt
+            ? formatChatTimeoutRemainingTime(chat.timeoutActivity.nearestDueAt, currentTimestamp)
+            : null;
+
+    if (chat.runningActivity.count > 0) {
+        return {
+            kind: 'running',
+            compactLabel: formatText('Running'),
+            statusLabel: formatRunningActivityCount(chat.runningActivity.count, formatText),
+        };
+    }
+
+    if (chat.timeoutActivity.count > 0) {
+        const scheduledCountLabel = formatScheduledWakeUpCount(chat.timeoutActivity.count, formatText);
+
+        return {
+            kind: 'scheduled',
+            compactLabel: scheduledLabel || formatText('Scheduled'),
+            statusLabel:
+                scheduledLabel === null
+                    ? scheduledCountLabel
+                    : `${scheduledCountLabel}, ${formatText('next wake-up in')} ${scheduledLabel}`,
+        };
+    }
+
+    return {
+        kind: 'none',
+        compactLabel: null,
+        statusLabel: null,
+    };
+}
 
 /**
  * Renders one running/scheduled activity icon while reserving layout space when absent.
@@ -113,7 +225,7 @@ type AgentChatSidebarProps = {
 function ChatSidebarActivityIndicator({
     indicator,
 }: {
-    indicator: UserChatMenuItemActivityIndicator;
+    indicator: SidebarChatActivityIndicator;
 }) {
     const baseClasses =
         'inline-flex h-4 w-4 items-center justify-center rounded-full bg-white/90 shadow-sm ring-1 ring-slate-200/90';
@@ -152,6 +264,37 @@ function ChatSidebarActivityIndicator({
 }
 
 /**
+ * Resolves one chat summary into reusable display content for sidebar entries.
+ */
+function resolveSidebarChatItemContent(
+    chat: UserChatSummary,
+    formatText: (text: string) => string,
+    formatChatTimestamp: (timestamp: string) => string,
+    currentTimestamp: number,
+): SidebarChatItemContent {
+    const title = chat.title || formatText('New chat');
+    const preview = chat.preview || formatText('No messages yet');
+    const lastActivity = formatChatTimestamp(chat.lastMessageAt || chat.updatedAt);
+    const messagesCountLabel = formatChatMessagesCount(chat.messagesCount, formatText);
+    const titleWithPreview = chat.preview ? `${title} - ${preview}` : title;
+    const activityIndicator = resolveSidebarChatActivityIndicator(chat, formatText, currentTimestamp);
+    const sourceChipLabel = getUserChatSourceChipLabel(chat.source);
+
+    return {
+        title,
+        preview,
+        lastActivity,
+        messagesCount: chat.messagesCount,
+        messagesCountLabel,
+        activityIndicator,
+        sourceChipLabel,
+        accessibilityLabel: `${titleWithPreview} (${messagesCountLabel}, ${lastActivity}${
+            activityIndicator.statusLabel ? `, ${activityIndicator.statusLabel}` : ''
+        })`,
+    };
+}
+
+/**
  * Responsive sidebar that lists user chats and provides creation/deletion controls.
  *
  * @private Agents Server presentation logic for the agent chat experience.
@@ -175,7 +318,6 @@ export function AgentChatSidebar({
     isMobileSidebarOpen,
     onCloseMobileSidebar,
     variant = 'default',
-    isMobileDrawerDisabled = false,
 }: AgentChatSidebarProps) {
     const isChatGptLike = variant === 'chatgptLike';
     const shouldRenderCollapsed = isCollapsed && !isMobileSidebarOpen;
@@ -186,7 +328,6 @@ export function AgentChatSidebar({
     const mobileOverlayState = isMobileSidebarOpen
         ? 'opacity-100 pointer-events-auto'
         : 'opacity-0 pointer-events-none';
-    const mobileHiddenClassName = isMobileDrawerDisabled ? 'hidden md:flex' : '';
 
     const handleChatChoose = (chatId: string) => {
         onSelectChat(chatId);
@@ -211,7 +352,7 @@ export function AgentChatSidebar({
         isActive: chat.id === activeChatId,
         isEmpty: chat.messagesCount <= EMPTY_CHAT_MAX_MESSAGES,
         isReadOnly: chat.isReadOnly,
-        content: resolveUserChatMenuItemContent(chat, formatText, formatChatTimestamp, currentTimestamp),
+        content: resolveSidebarChatItemContent(chat, formatText, formatChatTimestamp, currentTimestamp),
     }));
     const emptyChatCount = allSidebarItems.filter((item) => item.isEmpty).length;
     const sidebarItems = allSidebarItems.filter((item) => showEmptyChats || !item.isEmpty || item.isActive);
@@ -222,7 +363,7 @@ export function AgentChatSidebar({
             <>
                 <aside
                     id={AGENT_CHAT_SIDEBAR_ID}
-                    className={`agent-chat-chatgpt-like-sidebar fixed inset-y-0 left-0 z-[60] flex w-[17.25rem] max-w-[84vw] flex-col transition-transform duration-300 ease-in-out md:static md:max-w-none md:translate-x-0 ${mobileHiddenClassName} ${
+                    className={`agent-chat-chatgpt-like-sidebar fixed inset-y-0 left-0 z-[60] flex w-[17.25rem] max-w-[84vw] flex-col transition-transform duration-300 ease-in-out md:static md:max-w-none md:translate-x-0 ${
                         isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
                     }`}
                 >
@@ -377,7 +518,7 @@ export function AgentChatSidebar({
                 </aside>
 
                 <div
-                    className={`fixed inset-0 z-50 bg-black/45 backdrop-blur-[1.5px] transition-opacity duration-300 ${isMobileDrawerDisabled ? 'hidden' : ''} ${
+                    className={`fixed inset-0 z-50 bg-black/45 backdrop-blur-[1.5px] transition-opacity duration-300 ${
                         isMobileSidebarOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
                     } md:hidden`}
                     onClick={onCloseMobileSidebar}
@@ -391,7 +532,7 @@ export function AgentChatSidebar({
         <>
             <aside
                 id={AGENT_CHAT_SIDEBAR_ID}
-                className={`fixed inset-y-0 left-0 z-[60] flex flex-col border-r border-slate-200 bg-white/95 shadow-xl backdrop-blur ${panelTransitionClasses} md:static md:shadow-none md:bg-white/90 ${widthClasses} ${transformClasses} md:translate-x-0 ${mobileHiddenClassName}`}
+                className={`fixed inset-y-0 left-0 z-[60] flex flex-col border-r border-slate-200 bg-white/95 shadow-xl backdrop-blur ${panelTransitionClasses} md:static md:shadow-none md:bg-white/90 ${widthClasses} ${transformClasses} md:translate-x-0`}
             >
                 <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2">
                     <div className="flex items-center gap-1">
@@ -683,7 +824,7 @@ export function AgentChatSidebar({
             </aside>
 
             <div
-                className={`fixed inset-0 z-50 bg-slate-900/40 ${overlayTransitionClasses} ${mobileOverlayState} ${isMobileDrawerDisabled ? 'hidden' : ''} md:hidden`}
+                className={`fixed inset-0 z-50 bg-slate-900/40 ${overlayTransitionClasses} ${mobileOverlayState} md:hidden`}
                 onClick={onCloseMobileSidebar}
                 aria-hidden="true"
             />
