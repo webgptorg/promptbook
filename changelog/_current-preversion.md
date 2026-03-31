@@ -1,4 +1,17 @@
 -   Optimized Agents Server database query volume to fix Supabase overload, unhealthy status, and server crashes:
+-   Unified Agents Server mobile navigation into one shared left-side drawer opened from the header hamburger:
+
+    -   Moved the mobile hamburger trigger to the left side of the fixed header and kept desktop navigation behavior unchanged.
+    -   Redesigned the mobile menu from a top sheet to a left drawer, including left-edge swipe-to-open and in-drawer swipe-to-close gestures.
+    -   Added shared mobile menu hoisting for route-specific sections and wired agent chat + agent profile pages to hoist a nested **My chats** section into the same drawer.
+    -   Removed the duplicate chat-page-only mobile sidebar trigger path so chat navigation now goes through the unified header menu system.
+
+-   Fixed Agents Server durable chat-task startup reliability so queued agent replies no longer stay stuck indefinitely when immediate worker wake-ups are missed:
+
+    -   Added active-chat worker wake-ups directly from the canonical chat stream route, so chats currently viewed by users re-trigger queued reply jobs quickly (`preferredJobId` + throttled retries).
+    -   Added cron execution support for `/api/internal/user-chat-jobs/run` (including Vercel cron authorization), and wired a dedicated Vercel cron entry for background catch-up ticks.
+    -   Added metadata-backed background wake interval configuration (`USER_CHAT_BACKGROUND_WORKER_INTERVAL_MS`, default `120000`) and applied it to cron job claiming so unattended queued jobs are picked only after the configured delay.
+
 -   Deduplicated repeated Promptbook Engine `USE` commitment sections in generated system messages:
 
     -   Repeated `USE TIME`, `USE BROWSER`, and `USE SEARCH ENGINE` commitments now emit their hard-coded system-message guidance only once per type while preserving the first-occurrence position.
