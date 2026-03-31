@@ -18,6 +18,10 @@ type AgentChatPageLayoutProps = {
      */
     readonly sidebar?: ReactNode;
     /**
+     * Optional mobile trigger rendered in a reserved slot above the chat surface.
+     */
+    readonly mobileSidebarTrigger?: ReactNode;
+    /**
      * Optional top bar rendered inside the main section.
      */
     readonly mainTopBar?: ReactNode;
@@ -34,6 +38,7 @@ export function AgentChatPageLayout({
     variant = 'default',
     isHeadlessMode = false,
     sidebar,
+    mobileSidebarTrigger,
     mainTopBar,
     children,
 }: AgentChatPageLayoutProps) {
@@ -59,6 +64,11 @@ export function AgentChatPageLayout({
             <div className="flex h-full min-h-0 w-full overflow-hidden bg-slate-50/80">
                 {sidebar}
                 <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+                    {mobileSidebarTrigger && (
+                        <div className="flex shrink-0 items-center justify-start pb-2 pl-[max(env(safe-area-inset-left),0.75rem)] pr-[max(env(safe-area-inset-right),0.75rem)] pt-2 md:hidden">
+                            {mobileSidebarTrigger}
+                        </div>
+                    )}
                     {children}
                 </section>
             </div>

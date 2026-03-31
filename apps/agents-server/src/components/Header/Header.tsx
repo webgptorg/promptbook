@@ -253,7 +253,6 @@ export function Header(props: HeaderProps) {
     const [isMobileDocsOpen, setIsMobileDocsOpen] = useState(false);
     const [isMobileSystemOpen, setIsMobileSystemOpen] = useState(false);
     const [mobileOpenSubMenus, setMobileOpenSubMenus] = useState<Record<string, boolean>>({});
-    const [mobileOpenHoistedSections, setMobileOpenHoistedSections] = useState<Record<string, boolean>>({});
     const dropdownPortalContainer = useHeaderDropdownPortalContainer();
     const [openSubMenu, setOpenSubMenu] = useState<OpenSubMenuState | null>(null);
     const [desktopDropdownModes, setDesktopDropdownModes] = useState<Record<string, DropdownInteractionMode>>({});
@@ -267,15 +266,6 @@ export function Header(props: HeaderProps) {
     const isHeadless = useIsHeadless();
     const isTouchInput = useHeaderTouchInput();
     const menuHoisting = useMenuHoisting();
-    const hoistedMobileMenuSections = useMemo(
-        () => menuHoisting?.mobileMenuSections ?? [],
-        [menuHoisting?.mobileMenuSections],
-    );
-    const hasHoistedMobileMenuSections = hoistedMobileMenuSections.length > 0;
-    const hoistedMobileMenuSectionDefaultOpenByKey = useMemo(
-        () => new Map(hoistedMobileMenuSections.map((section) => [section.key, Boolean(section.isDefaultOpen)])),
-        [hoistedMobileMenuSections],
-    );
     const { naming } = useAgentNaming();
     const { t } = useServerLanguage();
     const [desktopExpandedSubMenus, setDesktopExpandedSubMenus] = useState<Record<string, boolean>>({});
@@ -286,29 +276,12 @@ export function Header(props: HeaderProps) {
     useEffect(() => {
         if (!isMenuOpen) {
             setMobileOpenSubMenus({});
-            setMobileOpenHoistedSections({});
             setIsMobileAgentsOpen(false);
             setIsMobileAgentViewOpen(false);
             setIsMobileDocsOpen(false);
             setIsMobileSystemOpen(false);
         }
     }, [isMenuOpen]);
-
-    useEffect(() => {
-        if (!isMenuOpen || hoistedMobileMenuSections.length === 0) {
-            return;
-        }
-
-        setMobileOpenHoistedSections((previous) => {
-            const next: Record<string, boolean> = {};
-
-            for (const section of hoistedMobileMenuSections) {
-                next[section.key] = previous[section.key] ?? Boolean(section.isDefaultOpen);
-            }
-
-            return next;
-        });
-    }, [hoistedMobileMenuSections, isMenuOpen]);
 
     useEffect(() => {
         if (!isDocsOpen && !isSystemOpen && !isAgentViewOpen) {
@@ -690,16 +663,6 @@ export function Header(props: HeaderProps) {
         setMobileOpenSubMenus((previous) => ({
             ...previous,
             [key]: !previous[key],
-        }));
-    };
-
-    /**
-     * Toggles one hoisted mobile section contributed by page-level menu hoisting.
-     */
-    const toggleMobileHoistedSection = (key: string) => {
-        setMobileOpenHoistedSections((previous) => ({
-            ...previous,
-            [key]: !(previous[key] ?? hoistedMobileMenuSectionDefaultOpenByKey.get(key) ?? false),
         }));
     };
 
@@ -1853,15 +1816,6 @@ export function Header(props: HeaderProps) {
                 <div className="flex h-full items-center gap-2 sm:gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-5">
                     <div className="min-w-0 flex-1">
                         <div className="flex min-w-0 items-center gap-2 sm:gap-3 rounded-2xl border border-gray-200 bg-white/90 px-2 sm:px-3 md:px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm shadow-slate-200/60 backdrop-blur">
-                            {hasHoistedMobileMenuSections && (
-                                <div className="flex-shrink-0 lg:hidden">
-                                    <HamburgerMenu
-                                        isOpen={isMenuOpen}
-                                        onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                        className="p-2 text-gray-600 hover:text-gray-900"
-                                    />
-                                </div>
-                            )}
                             <div className="relative flex min-w-0 items-center gap-3">
                                 <HeadlessLink
                                     href="/"
@@ -2289,13 +2243,13 @@ export function Header(props: HeaderProps) {
                         )}
 
                         {/* Mobile Menu Toggle */}
-                        {!hasHoistedMobileMenuSections && <div className="lg:hidden">
+                        <div className="lg:hidden">
                             <HamburgerMenu
                                 isOpen={isMenuOpen}
                                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                                 className="p-2 text-gray-600 hover:text-gray-900"
                             />
-                        </div>}
+                        </div>
                     </div>
                 </div>
 
@@ -2451,35 +2405,6 @@ export function Header(props: HeaderProps) {
                                     </div>
                                 </div>
                             </div>
-
-                            {hoistedMobileMenuSections.map((section) => {
-                                const isSectionOpen =
-                                    mobileOpenHoistedSections[section.key] ?? Boolean(section.isDefaultOpen);
-
-                                return (
-                                    <div key={section.key} className="w-full flex flex-col items-center gap-2">
-                                        <button
-                                            type="button"
-                                            className="w-full flex items-center justify-center gap-2 text-base font-semibold text-gray-700 hover:text-blue-600 py-3 px-4 rounded-lg hover:bg-gray-50 active:bg-gray-100 active:scale-98 transition-all duration-150"
-                                            onClick={() => toggleMobileHoistedSection(section.key)}
-                                        >
-                                            {section.label}
-                                            <ChevronDown
-                                                className={`w-4 h-4 transition-transform duration-200 ${
-                                                    isSectionOpen ? 'rotate-180' : ''
-                                                }`}
-                                            />
-                                        </button>
-                                        {isSectionOpen && (
-                                            <div className="w-full flex flex-col gap-2 rounded-lg border border-gray-200 bg-gray-50 p-3 shadow-sm animate-in fade-in-0 slide-in-from-top-2 duration-200">
-                                                {section.renderContent({
-                                                    closeMenu: () => setIsMenuOpen(false),
-                                                })}
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
 
                             {/* Hoisted Menu Items for Mobile */}
                             {menuHoisting && menuHoisting.menu.length > 0 && (
