@@ -2,6 +2,7 @@ import type { BookCommitment } from '../../commitments/_base/BookCommitment';
 import { createBasicAgentModelRequirements } from '../../commitments/_base/createEmptyAgentModelRequirements';
 import type { ParsedCommitment } from '../../commitments/_base/ParsedCommitment';
 import { getCommitmentDefinition } from '../../commitments/_common/getCommitmentDefinition';
+import { aggregateUseCommitmentSystemMessages } from '../../commitments/USE/aggregateUseCommitmentSystemMessages';
 import { $fileImportPlugins } from '../../import-plugins/$fileImportPlugins';
 import { promptbookFetch } from '../../scrapers/_common/utils/promptbookFetch';
 import type { string_model_name } from '../../types/typeAliases';
@@ -165,6 +166,8 @@ export async function createAgentModelRequirementsWithCommitments(
             }
         }
     }
+
+    requirements = aggregateUseCommitmentSystemMessages(requirements, filteredCommitments);
 
     // Handle IMPORT commitments for generic files
     // Note: This logic could be moved to ImportCommitmentDefinition, but it needs to be asynchronous

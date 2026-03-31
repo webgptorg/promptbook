@@ -1,10 +1,9 @@
-import moment from 'moment';
 import { spaceTrim } from 'spacetrim';
 import { string_javascript_name, TODO_any } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
-import { formatOptionalInstructionBlock } from '../_base/formatOptionalInstructionBlock';
+import { appendAggregatedUseCommitmentPlaceholder } from '../USE/aggregateUseCommitmentSystemMessages';
 
 /**
  * USE TIME commitment definition
@@ -78,7 +77,8 @@ export class UseTimeCommitmentDefinition extends BaseCommitmentDefinition<'USE T
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
-        const extraInstructions = formatOptionalInstructionBlock('Time instructions', content);
+        // Additional instructions are aggregated later in the final USE system-message pass.
+        void content;
 
         // Get existing tools array or create new one
         const existingTools = requirements.tools || [];
@@ -106,8 +106,7 @@ export class UseTimeCommitmentDefinition extends BaseCommitmentDefinition<'USE T
                   // <- TODO: !!!! define the function in LLM tools
               ];
 
-        // Return requirements with updated tools and metadata
-        return this.appendToSystemMessage(
+        return appendAggregatedUseCommitmentPlaceholder(
             {
                 ...requirements,
                 tools: updatedTools,
@@ -115,14 +114,7 @@ export class UseTimeCommitmentDefinition extends BaseCommitmentDefinition<'USE T
                     ...requirements._metadata,
                 },
             },
-            spaceTrim(
-                (block) => `
-                    Time and date context:
-                    - It is ${moment().format('MMMM YYYY')} now.
-                    - If you need more precise current time information, use the tool "get_current_time".
-                    ${block(extraInstructions)}
-                `,
-            ),
+            this.type,
         );
     }
 

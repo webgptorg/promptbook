@@ -1,4 +1,4 @@
-[ ]
+[x] ~$1.06 21 minutes by OpenAI Codex `gpt-5.4`
 
 [🧩🕒] Aggregate duplicate commitments in system message without hard-coded duplication
 
@@ -15,3 +15,4 @@
     -   `USE BROWSER` appears twice => browser hard-coded + tool availability appear once.
     -   `USE BROWSER` + `USE SEARCH ENGINE` mixed in multiple occurrences => each aggregated independently.
 -   Add a regression test for Persona-like behavior (multi `PERSONA` commitments) to ensure aggregation does not introduce duplication or reorder the combined additional instructions unexpectedly.
+
