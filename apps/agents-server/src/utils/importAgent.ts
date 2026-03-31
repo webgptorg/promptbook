@@ -30,6 +30,11 @@ export type ImportAgentOptions = {
 };
 
 /**
+ * How long a cached agent source is considered fresh without any network request.
+ */
+const IMPORTED_AGENT_CACHE_TTL_MS = 60_000; // 1 minute
+
+/**
  * Cached successful remote agent import payload.
  */
 type ImportedAgentCacheRecord = {
@@ -47,6 +52,12 @@ type ImportedAgentCacheRecord = {
      * Last observed Last-Modified returned by the remote endpoint.
      */
     readonly lastModified: string | null;
+
+    /**
+     * Timestamp (ms since epoch) when this record was last populated.
+     * Used to skip network requests entirely while the record is still fresh.
+     */
+    readonly fetchedAt: number;
 };
 
 /**
@@ -153,6 +164,13 @@ export async function importAgent(
     } satisfies ImportAgentOptions;
     const cacheKey = createImportCacheKey(agentIdentification);
     const cachedImport = IMPORTED_AGENT_CACHE.get(cacheKey);
+
+    // Return cached source immediately when it is still within the TTL window,
+    // avoiding any network round-trip for repeated calls to the same agent.
+    if (cachedImport && Date.now() - cachedImport.fetchedAt < IMPORTED_AGENT_CACHE_TTL_MS) {
+        return cachedImport.source;
+    }
+
     const existingRequest = PENDING_IMPORTED_AGENT_REQUESTS.get(cacheKey);
     if (existingRequest) {
         return existingRequest;
@@ -177,6 +195,8 @@ export async function importAgent(
             });
 
             if (response.status === 304 && cachedImport) {
+                // Refresh fetchedAt so the TTL window resets after a confirmed 304.
+                IMPORTED_AGENT_CACHE.set(cacheKey, { ...cachedImport, fetchedAt: Date.now() });
                 return cachedImport.source;
             }
 
@@ -203,6 +223,7 @@ export async function importAgent(
                 source,
                 etag: response.headers.get('etag'),
                 lastModified: response.headers.get('last-modified'),
+                fetchedAt: Date.now(),
             });
 
             return source;
