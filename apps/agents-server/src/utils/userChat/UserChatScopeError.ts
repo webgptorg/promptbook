@@ -51,3 +51,19 @@ export class UserChatScopeError extends Error {
         this.details = details;
     }
 }
+
+/**
+ * Type-guards unknown failures thrown by scoped user-chat persistence helpers.
+ */
+export function isUserChatScopeError(error: unknown): error is UserChatScopeError {
+    return error instanceof UserChatScopeError;
+}
+
+/**
+ * Detects missing-chat failures caused by concurrent delete/navigation races.
+ */
+export function isUserChatNotFoundScopeError(
+    error: unknown,
+): error is UserChatScopeError & { code: 'USER_CHAT_NOT_FOUND' } {
+    return isUserChatScopeError(error) && error.code === 'USER_CHAT_NOT_FOUND';
+}

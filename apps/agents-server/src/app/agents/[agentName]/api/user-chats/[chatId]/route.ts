@@ -1,5 +1,4 @@
-import type { ChatMessage } from '@promptbook-local/types';
-import { NextResponse } from 'next/server';
+import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import {
     createUserChatDetailPayload,
     deleteUserChat,
@@ -7,17 +6,15 @@ import {
     isFrozenUserChatSource,
     updateUserChatMessages,
 } from '@/src/utils/userChat';
-import { UserChatScopeError } from '@/src/utils/userChat/UserChatScopeError';
+import { isUserChatNotFoundScopeError, UserChatScopeError } from '@/src/utils/userChat/UserChatScopeError';
+import type { ChatMessage } from '@promptbook-local/types';
+import { NextResponse } from 'next/server';
 import { resolveUserChatScope } from '../resolveUserChatScope';
-import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 
 /**
  * Loads one chat for current user.
  */
-export async function GET(
-    request: Request,
-    { params }: { params: Promise<{ agentName: string; chatId: string }> },
-) {
+export async function GET(request: Request, { params }: { params: Promise<{ agentName: string; chatId: string }> }) {
     void request;
 
     const { agentName: rawAgentName, chatId: rawChatId } = await params;
@@ -59,10 +56,7 @@ export async function GET(
 /**
  * Replaces stored messages for one chat.
  */
-export async function PATCH(
-    request: Request,
-    { params }: { params: Promise<{ agentName: string; chatId: string }> },
-) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ agentName: string; chatId: string }> }) {
     if (isPrivateModeEnabledFromRequest(request)) {
         return NextResponse.json({ error: 'Private mode is enabled.' }, { status: 403 });
     }
@@ -110,19 +104,7 @@ export async function PATCH(
         return NextResponse.json(await createUserChatDetailPayload(updatedChat));
     } catch (error) {
         if (error instanceof UserChatScopeError) {
-            const status =
-                error.code === 'USER_CHAT_SCOPE_DIAGNOSTICS_FAILED' || error.code === 'USER_CHAT_SCOPE_INCONSISTENT'
-                    ? 500
-                    : 404;
-
-            return NextResponse.json(
-                {
-                    error: error.message,
-                    code: error.code,
-                    details: error.details,
-                },
-                { status },
-            );
+            return resolveUserChatUpdateScopeErrorResponse(error);
         }
 
         return NextResponse.json(
@@ -136,12 +118,41 @@ export async function PATCH(
 }
 
 /**
+ * Resolves one HTTP response for scoped user-chat message-save failures.
+ *
+ * @private route helper
+ */
+function resolveUserChatUpdateScopeErrorResponse(error: UserChatScopeError): NextResponse {
+    if (isUserChatNotFoundScopeError(error)) {
+        return NextResponse.json(
+            {
+                error: 'Chat not found.',
+                code: error.code,
+                details: error.details,
+            },
+            { status: 404 },
+        );
+    }
+
+    const status =
+        error.code === 'USER_CHAT_SCOPE_DIAGNOSTICS_FAILED' || error.code === 'USER_CHAT_SCOPE_INCONSISTENT'
+            ? 500
+            : 404;
+
+    return NextResponse.json(
+        {
+            error: error.message,
+            code: error.code,
+            details: error.details,
+        },
+        { status },
+    );
+}
+
+/**
  * Deletes one chat for current user.
  */
-export async function DELETE(
-    request: Request,
-    { params }: { params: Promise<{ agentName: string; chatId: string }> },
-) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ agentName: string; chatId: string }> }) {
     void request;
 
     if (isPrivateModeEnabledFromRequest(request)) {

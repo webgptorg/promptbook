@@ -1,3 +1,9 @@
+-   Fixed Agents Server durable user-chat persistence when a chat disappears mid-save so missing chat rows no longer surface raw internal `mutate_chat` diagnostics to users:
+
+    -   Durable worker finalization now treats `USER_CHAT_NOT_FOUND` as a delete/navigation race, finalizes the queued job cleanly, and skips rethrowing the internal persistence diagnostic.
+    -   Assistant terminal-state persistence now still finalizes the durable job even when the backing chat row vanished before the final assistant-message update can be written.
+    -   `PATCH /agents/[agentName]/api/user-chats/[chatId]` now maps missing-chat scope failures back to a deterministic `404 Chat not found.` response instead of returning the internal markdown diagnostic blob.
+
 -   Fixed flaky Agents Server E2E startup on Windows by isolating Playwright's Next.js build output into `.next-e2e`, avoiding `.next/trace` file-lock collisions with other local Next.js processes that could leave the test server unavailable.
 
 -   Fixed Jest TypeScript path resolution for `@promptbook-local/*` imports by correcting the `paths` pattern in `tsconfig.jest.json` from the invalid regex-style `$1.index` to the correct TypeScript glob syntax `*.index`, resolving `TS2307: Cannot find module '@promptbook-local/utils'` errors in test runs.

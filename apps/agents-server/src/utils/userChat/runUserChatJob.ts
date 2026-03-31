@@ -1,43 +1,45 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { createChatAttachmentTools } from '@/src/tools/createChatAttachmentTools';
-import { createAgentProgressTools } from '@/src/tools/createAgentProgressTools';
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
+import { createAgentProgressTools } from '@/src/tools/createAgentProgressTools';
+import { createChatAttachmentTools } from '@/src/tools/createChatAttachmentTools';
+import {
+    AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS,
+    resolveAgentCollectionTablePrefix,
+    waitForRunningAgentPreparation,
+} from '@/src/utils/agentPreparation';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { AgentKitCacheManager } from '@/src/utils/cache/AgentKitCacheManager';
 import {
     resolveCachedServerAgentContext,
     resolveCachedServerAgentModelRequirements,
 } from '@/src/utils/cachedServerAgentRuntime';
-import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
 import { extractUseCalendarConnectionsFromAgentSource } from '@/src/utils/calendars/extractUseCalendarConnectionsFromAgentSource';
 import { logCalendarToolCallsActivity } from '@/src/utils/calendars/logCalendarToolCallsActivity';
+import { ensureNonEmptyChatContent } from '@/src/utils/chat/ensureNonEmptyChatContent';
+import { appendMessageSuffix, resolveMessageSuffixFromAgentSource } from '@/src/utils/chat/messageSuffix';
 import { extractUseEmailConfigurationFromAgentSource } from '@/src/utils/emails/extractUseEmailConfigurationFromAgentSource';
-import { getUserById } from '@/src/utils/getUserById';
 import { getTeacherRemoteAgent } from '@/src/utils/getTeacherRemoteAgent';
+import { getUserById } from '@/src/utils/getUserById';
+import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
 import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
 import { resolveCurrentOrInternalServerOrigin } from '@/src/utils/resolveCurrentOrInternalServerOrigin';
 import { resolveUseCalendarGoogleToken } from '@/src/utils/resolveUseCalendarGoogleToken';
 import { resolveUseEmailSmtpCredential } from '@/src/utils/resolveUseEmailSmtpCredential';
 import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithubToken';
-import {
-    AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS,
-    resolveAgentCollectionTablePrefix,
-    waitForRunningAgentPreparation,
-} from '@/src/utils/agentPreparation';
 import { prepareToolCallsForStreaming } from '@/src/utils/toolCallStreaming';
 import { Agent, computeAgentHash } from '@promptbook-local/core';
 import type { ToolCall } from '@promptbook-local/types';
 import { serializeError } from '@promptbook-local/utils';
 import type { ChatPromptResult } from '../../../../../src/execution/PromptResult';
 import { mergeToolCalls } from '../../../../../src/utils/toolCalls/mergeToolCalls';
-import { ensureNonEmptyChatContent } from '@/src/utils/chat/ensureNonEmptyChatContent';
-import { appendMessageSuffix, resolveMessageSuffixFromAgentSource } from '@/src/utils/chat/messageSuffix';
+import { finalizeUserChatJob } from './finalizeUserChatJob';
 import { getUserChat } from './getUserChat';
 import { heartbeatUserChatJob } from './heartbeatUserChatJob';
 import { persistUserChatJobTerminalState } from './persistUserChatJobTerminalState';
+import { updateUserChatAssistantMessage } from './updateUserChatAssistantMessage';
 import type { UserChatJobRecord } from './UserChatJobRecord';
 import { resolvePromptThreadBeforeUserMessage } from './userChatMessageLifecycle';
-import { updateUserChatAssistantMessage } from './updateUserChatAssistantMessage';
+import { isUserChatNotFoundScopeError } from './UserChatScopeError';
 
 /**
  * Heartbeat cadence used while one chat job is actively streaming.
@@ -63,6 +65,13 @@ const USER_CHAT_JOB_ASSISTANT_MESSAGE_PERSIST_INTERVAL_MS = 500;
 const USER_CHAT_JOB_CANCELLED_ERROR_NAME = 'UserChatJobCancelledError';
 
 /**
+ * Shared durable-job final reason used when the backing chat disappears mid-run.
+ *
+ * @private function of `userChat`
+ */
+const USER_CHAT_JOB_MISSING_CHAT_FAILURE_REASON = 'Chat was deleted before the queued response could be saved.';
+
+/**
  * Runs one claimed durable chat job to completion.
  */
 export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed' | 'failed' | 'cancelled'> {
@@ -76,7 +85,19 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
     ]);
 
     if (!chat) {
-        throw new Error(`User chat "${job.chatId}" was not found for durable job "${job.id}".`);
+        await finalizeUserChatJob({
+            jobId: job.id,
+            status: 'CANCELLED',
+            failureReason: USER_CHAT_JOB_MISSING_CHAT_FAILURE_REASON,
+        });
+
+        console.info('[user-chat-job] cancelled_missing_chat_before_start', {
+            chatId: job.chatId,
+            messageId: job.userMessageId,
+            jobId: job.id,
+        });
+
+        return 'cancelled';
     }
 
     if (!userRow) {
@@ -183,7 +204,7 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
             modelRequirements: preparedAgentModelRequirements.modelRequirements,
         },
     );
-    const provider = agentKitResult.tools.title;
+    let provider: string | null = agentKitResult.tools.title;
     const agent = new Agent({
         isVerbose: true,
         assistantPreparationMode: 'external',
@@ -257,7 +278,9 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
      *
      * @private function of `runUserChatJob`
      */
-    const queueAssistantMessageUpdate = (mutateMessage: Parameters<typeof updateUserChatAssistantMessage>[0]['mutateMessage']) => {
+    const queueAssistantMessageUpdate = (
+        mutateMessage: Parameters<typeof updateUserChatAssistantMessage>[0]['mutateMessage'],
+    ) => {
         persistQueue = persistQueue.then(async () => {
             await updateUserChatAssistantMessage({
                 userId: job.userId,
@@ -472,8 +495,28 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
             return 'completed';
         }
 
-        const failureReason = resolveUserChatJobFailureReason(error);
         const generationDurationMs = Date.now() - startedAt;
+
+        if (isUserChatNotFoundScopeError(error)) {
+            await finalizeUserChatJob({
+                jobId: job.id,
+                status: 'CANCELLED',
+                provider,
+                failureReason: USER_CHAT_JOB_MISSING_CHAT_FAILURE_REASON,
+            });
+
+            console.info('[user-chat-job] cancelled_missing_chat_during_run', {
+                chatId: job.chatId,
+                messageId: job.userMessageId,
+                jobId: job.id,
+                provider,
+                durationMs: generationDurationMs,
+            });
+
+            return 'cancelled';
+        }
+
+        const failureReason = resolveUserChatJobFailureReason(error);
 
         if (isCancellationRequested || isUserChatJobCancelledError(error)) {
             await persistUserChatJobTerminalState({
@@ -550,6 +593,10 @@ function isUserChatJobCancelledError(error: unknown): boolean {
  * @private function of `userChat`
  */
 function resolveUserChatJobFailureReason(error: unknown): string {
+    if (isUserChatNotFoundScopeError(error)) {
+        return USER_CHAT_JOB_MISSING_CHAT_FAILURE_REASON;
+    }
+
     if (isUserChatJobCancelledError(error)) {
         return 'Chat generation was cancelled.';
     }
