@@ -14,15 +14,25 @@ export function buildCodexScript(options: CodexScriptOptions): string {
 
     return spaceTrim(
         (block) => `
+
+            if [ -f .env ]; then
+            set -a
+            source .env
+            set +a
+            fi
+
+            unset OPENAI_API_KEY
+            unset OPENAI_BASE_URL
+
             ${options.codexCommand} \\
-              ${loginMethodConfig}
-              ${modelReasoningEffortConfig}
-              --ask-for-approval ${options.askForApproval} \\
-              exec --model ${options.model} \\
-              --local-provider none \\
-              --sandbox ${options.sandbox} \\
-              -C ${projectPath} \\
-              <<'${delimiter}'
+                ${loginMethodConfig}
+                ${modelReasoningEffortConfig}
+                --ask-for-approval ${options.askForApproval} \\
+                exec --model ${options.model} \\
+                --local-provider none \\
+                --sandbox ${options.sandbox} \\
+                -C ${projectPath} \\
+                <<'${delimiter}'
 
             ${block(options.prompt)}
 
