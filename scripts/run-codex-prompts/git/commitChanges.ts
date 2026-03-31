@@ -5,7 +5,8 @@ import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
 import { buildAgentGitEnv, buildAgentGitSigningFlag } from './agentGitIdentity';
 
 /**
- * Commits staged changes with the provided message using the configured agent identity and signing key.
+ * Commits staged changes with the provided message using the dedicated coding-agent identity when configured,
+ * otherwise falls back to the default Git configuration.
  */
 export async function commitChanges(message: string): Promise<void> {
     const commitMessagePath = join(process.cwd(), '.tmp', 'codex-prompts', `COMMIT_MESSAGE_${Date.now()}.txt`);
@@ -14,13 +15,14 @@ export async function commitChanges(message: string): Promise<void> {
 
     try {
         const agentEnv = buildAgentGitEnv();
+        const signingFlag = buildAgentGitSigningFlag();
         await $execCommand({
             command: 'git add .',
             env: agentEnv,
         });
 
         await $execCommand({
-            command: `git commit ${buildAgentGitSigningFlag()} --file "${commitMessagePath}"`,
+            command: buildGitCommitCommand(commitMessagePath, signingFlag),
             env: agentEnv,
         });
 
@@ -50,7 +52,7 @@ class GitPushFailedError extends Error {
  * - Uses `git push --set-upstream` on first push when upstream is missing.
  * - Skips pushing when upstream exists and there is nothing to push.
  */
-async function pushCommittedChanges(agentEnv: Record<string, string>): Promise<void> {
+async function pushCommittedChanges(agentEnv?: Record<string, string>): Promise<void> {
     if (await hasUpstreamBranch(agentEnv)) {
         const commitsAhead = await countCommitsAheadOfUpstream(agentEnv);
         if (commitsAhead === 0) {
@@ -80,7 +82,7 @@ async function pushCommittedChanges(agentEnv: Record<string, string>): Promise<v
 /**
  * Checks whether the current branch has an upstream reference.
  */
-async function hasUpstreamBranch(agentEnv: Record<string, string>): Promise<boolean> {
+async function hasUpstreamBranch(agentEnv?: Record<string, string>): Promise<boolean> {
     try {
         await $execCommand({
             command: 'git rev-parse --abbrev-ref --symbolic-full-name @{upstream}',
@@ -97,7 +99,7 @@ async function hasUpstreamBranch(agentEnv: Record<string, string>): Promise<bool
 /**
  * Counts commits present on local `HEAD` but not on the upstream branch.
  */
-async function countCommitsAheadOfUpstream(agentEnv: Record<string, string>): Promise<number> {
+async function countCommitsAheadOfUpstream(agentEnv?: Record<string, string>): Promise<number> {
     const output = await $execCommand({
         command: 'git rev-list --count @{upstream}..HEAD',
         env: agentEnv,
@@ -115,7 +117,7 @@ async function countCommitsAheadOfUpstream(agentEnv: Record<string, string>): Pr
 /**
  * Reads the current local branch name.
  */
-async function readCurrentBranchName(agentEnv: Record<string, string>): Promise<string> {
+async function readCurrentBranchName(agentEnv?: Record<string, string>): Promise<string> {
     const branch = await $execCommand({
         command: 'git rev-parse --abbrev-ref HEAD',
         env: agentEnv,
@@ -128,7 +130,7 @@ async function readCurrentBranchName(agentEnv: Record<string, string>): Promise<
 /**
  * Resolves which remote should be used when setting upstream on first push.
  */
-async function resolveDefaultRemoteName(currentBranch: string, agentEnv: Record<string, string>): Promise<string> {
+async function resolveDefaultRemoteName(currentBranch: string, agentEnv?: Record<string, string>): Promise<string> {
     const pushDefault = await readOptionalGitConfig('remote.pushDefault', agentEnv);
     if (pushDefault) {
         return pushDefault;
@@ -183,7 +185,7 @@ async function resolveDefaultRemoteName(currentBranch: string, agentEnv: Record<
 /**
  * Reads optional git config value; returns undefined when the key is missing.
  */
-async function readOptionalGitConfig(name: string, agentEnv: Record<string, string>): Promise<string | undefined> {
+async function readOptionalGitConfig(name: string, agentEnv?: Record<string, string>): Promise<string | undefined> {
     try {
         const value = await $execCommand({
             command: `git config --get "${name}"`,
@@ -201,7 +203,7 @@ async function readOptionalGitConfig(name: string, agentEnv: Record<string, stri
 /**
  * Executes one push command and wraps failures into a detailed branded error.
  */
-async function executeGitPushCommand(command: string, agentEnv: Record<string, string>): Promise<void> {
+async function executeGitPushCommand(command: string, agentEnv?: Record<string, string>): Promise<void> {
     try {
         await $execCommand({
             command,
@@ -210,6 +212,20 @@ async function executeGitPushCommand(command: string, agentEnv: Record<string, s
     } catch (error) {
         throw new GitPushFailedError(buildPushFailureMessage(command, error));
     }
+}
+
+/**
+ * Builds the `git commit` command with an optional signing flag.
+ */
+function buildGitCommitCommand(commitMessagePath: string, signingFlag?: string): string {
+    const commandParts = ['git commit'];
+
+    if (signingFlag) {
+        commandParts.push(signingFlag);
+    }
+
+    commandParts.push(`--file "${commitMessagePath}"`);
+    return commandParts.join(' ');
 }
 
 /**

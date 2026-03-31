@@ -30,6 +30,13 @@ function okResult(value = ''): Promise<string> {
     return Promise.resolve(value);
 }
 
+/**
+ * Returns only the command strings passed to `$execCommand`.
+ */
+function getCalledCommands(execMock: ExecCommandMock): string[] {
+    return execMock.mock.calls.map(([options]) => (typeof options === 'string' ? options : options.command));
+}
+
 describe('commitChanges', () => {
     beforeEach(() => {
         (buildAgentGitEnv as jest.MockedFunction<typeof buildAgentGitEnv>).mockReturnValue({
@@ -62,7 +69,7 @@ describe('commitChanges', () => {
 
         await commitChanges('test commit');
 
-        const calledCommands = execMock.mock.calls.map(([options]) => (typeof options === 'string' ? options : options.command));
+        const calledCommands = getCalledCommands(execMock);
         expect(calledCommands).toContain('git push');
     });
 
@@ -84,7 +91,7 @@ describe('commitChanges', () => {
 
         await commitChanges('test commit');
 
-        const calledCommands = execMock.mock.calls.map(([options]) => (typeof options === 'string' ? options : options.command));
+        const calledCommands = getCalledCommands(execMock);
         expect(calledCommands).not.toContain('git push');
     });
 
@@ -118,7 +125,7 @@ describe('commitChanges', () => {
 
         await commitChanges('test commit');
 
-        const calledCommands = execMock.mock.calls.map(([options]) => (typeof options === 'string' ? options : options.command));
+        const calledCommands = getCalledCommands(execMock);
         expect(calledCommands).toContain('git push --set-upstream "origin" "feature/auto-push"');
     });
 
@@ -145,5 +152,38 @@ describe('commitChanges', () => {
         await expect(commitChanges('test commit')).rejects.toThrow(
             /Failed to push coding-agent commit to the remote repository\.[\s\S]*Local branch is behind remote history\./,
         );
+    });
+
+    it('falls back to default git config when coding-agent identity is incomplete', async () => {
+        const execMock = getExecCommandMock();
+        (buildAgentGitEnv as jest.MockedFunction<typeof buildAgentGitEnv>).mockReturnValue(undefined);
+        (buildAgentGitSigningFlag as jest.MockedFunction<typeof buildAgentGitSigningFlag>).mockReturnValue(undefined);
+
+        execMock.mockImplementation(async (options) => {
+            const command = typeof options === 'string' ? options : options.command;
+
+            if (command === 'git rev-parse --abbrev-ref --symbolic-full-name @{upstream}') {
+                return 'origin/main';
+            }
+
+            if (command === 'git rev-list --count @{upstream}..HEAD') {
+                return '1';
+            }
+
+            return okResult();
+        });
+
+        await commitChanges('test commit');
+
+        const calledCommands = getCalledCommands(execMock);
+        const commitCommand = calledCommands.find((command) => command.startsWith('git commit '));
+        const gitAddCallOptions = execMock.mock.calls.find(([options]) =>
+            (typeof options === 'string' ? options : options.command) === 'git add .',
+        )?.[0];
+
+        expect(commitCommand).toBeDefined();
+        expect(commitCommand).toMatch(/^git commit --file ".*COMMIT_MESSAGE_\d+\.txt"$/);
+        expect(commitCommand).not.toContain('--gpg-sign');
+        expect(typeof gitAddCallOptions === 'string' ? undefined : gitAddCallOptions?.env).toBeUndefined();
     });
 });
