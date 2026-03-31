@@ -34,6 +34,7 @@
 ![alt text](prompts/screenshots/2026-03-1560-agents-server-optimize-7.png)
 ![alt text](prompts/screenshots/2026-03-1560-agents-server-optimize-8.png)
 ![alt text](prompts/screenshots/2026-03-1560-agents-server-optimize-9.png)
+![alt text](prompts/screenshots/2026-03-1560-agents-server-optimize-10.png)
 
 ---
 
@@ -73,4 +74,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
