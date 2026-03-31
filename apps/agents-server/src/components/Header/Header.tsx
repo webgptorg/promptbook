@@ -46,7 +46,6 @@ import { QrCodeModal } from '../AgentProfile/QrCodeModal';
 import { showAlert, showLoginDialog } from '../AsyncDialogs/asyncDialogs';
 import { ChangePasswordDialog } from '../ChangePasswordDialog/ChangePasswordDialog';
 import { useNewAgentDialog } from '../NewAgentDialog/useNewAgentDialog';
-import { useMobileMenuHoisting } from '../MobileMenuHoisting/MobileMenuHoistingContext';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 import { DropdownSubMenuPortal } from './DropdownSubMenuPortal';
 import {
@@ -141,6 +140,8 @@ type MenuItem =
           label: ReactNode;
           isOpen: boolean;
           setIsOpen: (isOpen: boolean) => void;
+          isMobileOpen: boolean;
+          setIsMobileOpen: (isOpen: boolean) => void;
           items: Array<SubMenuItem>;
           renderMenu?: () => ReactNode;
       });
@@ -178,18 +179,6 @@ const HEADER_DROPDOWN_CLOSE_DELAY_MS = 280;
  * Horizontal indentation applied for each nested submenu level in mobile navigation.
  */
 const MOBILE_SUBMENU_INDENT_PX = 14;
-/**
- * Maximum horizontal start position that still counts as a left-edge drawer swipe.
- */
-const MOBILE_MENU_EDGE_SWIPE_START_PX = 24;
-/**
- * Minimum horizontal travel required to open the mobile drawer by swiping.
- */
-const MOBILE_MENU_EDGE_SWIPE_OPEN_THRESHOLD_PX = 72;
-/**
- * Maximum vertical drift tolerated before cancelling the mobile drawer swipe gesture.
- */
-const MOBILE_MENU_EDGE_SWIPE_MAX_VERTICAL_DRIFT_PX = 56;
 
 /**
  * Supported category names inside the System dropdown.
@@ -238,38 +227,6 @@ function applyFallbackSubMenuIcon(
  */
 const RESERVED_PATH_SET = new Set<string>(RESERVED_PATHS);
 
-/**
- * Resolves the plain translated label of one active agent view.
- */
-function resolveAgentViewText(
-    view: 'Profile' | 'Chat' | 'Book' | 'Timeouts' | 'More',
-    translate: (key: 'common.profile' | 'common.chat' | 'common.book' | 'common.timeouts' | 'common.more') => string,
-): string {
-    const translationKeyByView = {
-        Profile: 'common.profile',
-        Chat: 'common.chat',
-        Book: 'common.book',
-        Timeouts: 'common.timeouts',
-        More: 'common.more',
-    } as const;
-
-    return translate(translationKeyByView[view]);
-}
-
-/**
- * Resolves a consistent icon for one mobile top-level drawer entry.
- */
-function resolveMobileTopLevelMenuIcon(menuId: string): SubMenuItem['icon'] | undefined {
-    switch (menuId) {
-        case 'documentation':
-            return Globe2;
-        case 'system':
-            return Settings2;
-        default:
-            return undefined;
-    }
-}
-
 export function Header(props: HeaderProps) {
     const {
         isAdmin = false,
@@ -291,6 +248,10 @@ export function Header(props: HeaderProps) {
     const [isDocsOpen, setIsDocsOpen] = useState(false);
     const [isSystemOpen, setIsSystemOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [isMobileAgentsOpen, setIsMobileAgentsOpen] = useState(false);
+    const [isMobileAgentViewOpen, setIsMobileAgentViewOpen] = useState(false);
+    const [isMobileDocsOpen, setIsMobileDocsOpen] = useState(false);
+    const [isMobileSystemOpen, setIsMobileSystemOpen] = useState(false);
     const [mobileOpenSubMenus, setMobileOpenSubMenus] = useState<Record<string, boolean>>({});
     const dropdownPortalContainer = useHeaderDropdownPortalContainer();
     const [openSubMenu, setOpenSubMenu] = useState<OpenSubMenuState | null>(null);
@@ -305,7 +266,6 @@ export function Header(props: HeaderProps) {
     const isHeadless = useIsHeadless();
     const isTouchInput = useHeaderTouchInput();
     const menuHoisting = useMenuHoisting();
-    const mobileMenuHoisting = useMobileMenuHoisting();
     const { naming } = useAgentNaming();
     const { t } = useServerLanguage();
     const [desktopExpandedSubMenus, setDesktopExpandedSubMenus] = useState<Record<string, boolean>>({});
@@ -316,6 +276,10 @@ export function Header(props: HeaderProps) {
     useEffect(() => {
         if (!isMenuOpen) {
             setMobileOpenSubMenus({});
+            setIsMobileAgentsOpen(false);
+            setIsMobileAgentViewOpen(false);
+            setIsMobileDocsOpen(false);
+            setIsMobileSystemOpen(false);
         }
     }, [isMenuOpen]);
 
@@ -379,130 +343,6 @@ export function Header(props: HeaderProps) {
             menuCloseTimers.current = {};
         };
     }, []);
-
-    useEffect(() => {
-        setIsMenuOpen(false);
-    }, [pathname]);
-
-    useEffect(() => {
-        if (!isMenuOpen) {
-            return;
-        }
-
-        const originalOverflow = document.body.style.overflow;
-        document.body.style.overflow = 'hidden';
-
-        return () => {
-            document.body.style.overflow = originalOverflow;
-        };
-    }, [isMenuOpen]);
-
-    useEffect(() => {
-        if (typeof window === 'undefined') {
-            return;
-        }
-
-        const handleResize = () => {
-            if (window.innerWidth >= 1024) {
-                setIsMenuOpen(false);
-            }
-        };
-
-        window.addEventListener('resize', handleResize);
-        return () => {
-            window.removeEventListener('resize', handleResize);
-        };
-    }, []);
-
-    useEffect(() => {
-        if (typeof window === 'undefined') {
-            return;
-        }
-
-        const swipeState = {
-            isTracking: false,
-            isCancelled: false,
-            startX: 0,
-            startY: 0,
-        };
-
-        const resetSwipeState = () => {
-            swipeState.isTracking = false;
-            swipeState.isCancelled = false;
-            swipeState.startX = 0;
-            swipeState.startY = 0;
-        };
-
-        const handleTouchStart = (event: TouchEvent) => {
-            if (window.innerWidth >= 1024 || isMenuOpen || event.touches.length !== 1) {
-                resetSwipeState();
-                return;
-            }
-
-            const touch = event.touches[0];
-            if (touch.clientX > MOBILE_MENU_EDGE_SWIPE_START_PX) {
-                resetSwipeState();
-                return;
-            }
-
-            swipeState.isTracking = true;
-            swipeState.isCancelled = false;
-            swipeState.startX = touch.clientX;
-            swipeState.startY = touch.clientY;
-        };
-
-        const handleTouchMove = (event: TouchEvent) => {
-            if (!swipeState.isTracking || event.touches.length !== 1) {
-                return;
-            }
-
-            const touch = event.touches[0];
-            const deltaX = touch.clientX - swipeState.startX;
-            const deltaY = touch.clientY - swipeState.startY;
-
-            if (deltaX < 0) {
-                swipeState.isCancelled = true;
-                return;
-            }
-
-            if (Math.abs(deltaY) > MOBILE_MENU_EDGE_SWIPE_MAX_VERTICAL_DRIFT_PX && Math.abs(deltaY) > deltaX) {
-                swipeState.isCancelled = true;
-            }
-        };
-
-        const handleTouchEnd = (event: TouchEvent) => {
-            if (!swipeState.isTracking || event.changedTouches.length !== 1) {
-                resetSwipeState();
-                return;
-            }
-
-            const touch = event.changedTouches[0];
-            const deltaX = touch.clientX - swipeState.startX;
-            const deltaY = touch.clientY - swipeState.startY;
-
-            if (
-                !swipeState.isCancelled &&
-                deltaX >= MOBILE_MENU_EDGE_SWIPE_OPEN_THRESHOLD_PX &&
-                Math.abs(deltaX) > Math.abs(deltaY)
-            ) {
-                setIsMenuOpen(true);
-            }
-
-            resetSwipeState();
-        };
-
-        document.addEventListener('touchstart', handleTouchStart, { passive: true });
-        document.addEventListener('touchmove', handleTouchMove, { passive: true });
-        document.addEventListener('touchend', handleTouchEnd);
-        document.addEventListener('touchcancel', resetSwipeState);
-
-        return () => {
-            document.removeEventListener('touchstart', handleTouchStart);
-            document.removeEventListener('touchmove', handleTouchMove);
-            document.removeEventListener('touchend', handleTouchEnd);
-            document.removeEventListener('touchcancel', resetSwipeState);
-        };
-    }, [isMenuOpen]);
 
     /**
      * Stores one interaction mode for a desktop dropdown id.
@@ -855,7 +695,7 @@ export function Header(props: HeaderProps) {
 
         return (
             <span className="flex min-w-0 items-center gap-2">
-                <ItemIcon className={`h-4 w-4 shrink-0 ${item.isActive ? 'text-blue-600' : 'text-gray-500'}`} aria-hidden />
+                <ItemIcon className="h-4 w-4 shrink-0 text-gray-500" aria-hidden />
                 <span className="min-w-0">{item.label}</span>
             </span>
         );
@@ -917,23 +757,17 @@ export function Header(props: HeaderProps) {
         depth = 0,
     ): ReactNode => {
         return (
-            <div
-                className={`w-full flex flex-col gap-1.5 ${
-                    depth > 0 ? 'mt-2 border-l border-slate-200 pl-3' : ''
-                }`}
-            >
+            <div className={`w-full flex flex-col gap-1 ${depth > 0 ? 'mt-1 border-l border-gray-200 pl-1.5' : ''}`}>
                 {items.map((item, index) => {
                     const itemKey = `${keyPrefix}-${index}`;
                     const hasChildren = Boolean(item.items && item.items.length > 0);
                     const isSubMenuOpen = Boolean(mobileOpenSubMenus[itemKey]);
-                    const borderClass = item.isBordered ? 'border-b border-slate-200/80 pb-1.5' : '';
+                    const borderClass = item.isBordered ? 'border-b border-gray-200' : '';
                     const leafClassName =
-                        `block rounded-2xl border px-4 py-3 pr-4 text-sm shadow-sm transition-all duration-150 active:scale-[0.985] ${
-                            item.isActive
-                                ? 'border-blue-200 bg-blue-50 text-blue-700 shadow-blue-100/70'
-                                : item.isBold
-                                  ? 'border-slate-200/80 bg-white text-slate-900 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700'
-                                  : 'border-transparent bg-white/75 text-slate-700 hover:border-slate-200 hover:bg-white hover:text-slate-900'
+                        `block rounded-md py-2.5 pr-3 text-sm transition-all duration-150 hover:shadow-sm active:scale-98 ${
+                            item.isBold
+                                ? 'font-semibold text-gray-900 hover:bg-blue-50 hover:text-blue-600'
+                                : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                         } ${borderClass}`.trim();
                     const indentationStyle = createMobileMenuItemPaddingStyle(depth);
 
@@ -944,11 +778,7 @@ export function Header(props: HeaderProps) {
                     return (
                         <div key={itemKey} className={`w-full flex flex-col ${borderClass}`}>
                             <button
-                                className={`w-full flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 pr-4 text-left text-sm font-semibold shadow-sm transition-all duration-150 active:scale-[0.985] ${
-                                    isSubMenuOpen
-                                        ? 'border-blue-200 bg-blue-50 text-blue-700 shadow-blue-100/70'
-                                        : 'border-slate-200/80 bg-white text-slate-800 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700'
-                                }`}
+                                className="w-full flex items-center justify-between gap-2 rounded-md py-2.5 pr-3 text-left text-sm font-semibold text-gray-800 hover:bg-white hover:text-blue-600 active:bg-gray-100 active:scale-98 transition-all duration-150"
                                 style={indentationStyle}
                                 onClick={() => toggleMobileSubMenu(itemKey)}
                             >
@@ -1331,46 +1161,42 @@ export function Header(props: HeaderProps) {
         [agentContextMenuItems],
     );
 
-    const activeAgentViewItems = useMemo(
-        (): SubMenuItem[] =>
-            activeAgentNavigationId
-                ? [
-                      {
-                          label: createAgentViewLabel('Profile', t),
-                          href: `/agents/${encodeURIComponent(activeAgentNavigationId)}`,
-                      },
-                      {
-                          label: createAgentViewLabel('Chat', t),
-                          href: `/agents/${encodeURIComponent(activeAgentNavigationId)}/chat`,
-                      },
-                      {
-                          label: createChatGptLikeViewLabel(),
-                          href: `/agents/${encodeURIComponent(activeAgentNavigationId)}/chat/chatgpt-like`,
-                      },
-                      {
-                          label: createAgentViewLabel('Timeouts', t),
-                          href: `/agents/${encodeURIComponent(activeAgentNavigationId)}/timeouts`,
-                      },
-                      ...(isAdmin
-                          ? [
-                                {
-                                    label: createAgentViewLabel('Book', t),
-                                    href: `/agents/${encodeURIComponent(activeAgentNavigationId)}/book`,
-                                } as SubMenuItem,
-                            ]
-                          : []),
-                      ...(agentMoreViewItems.length > 0
-                          ? [
-                                {
-                                    label: createAgentViewLabel('More', t),
-                                    items: agentMoreViewItems,
-                                } as SubMenuItem,
-                            ]
-                          : []),
-                  ]
-                : [],
-        [activeAgentNavigationId, agentMoreViewItems, isAdmin, t],
-    );
+    const activeAgentViewItems: SubMenuItem[] = activeAgentNavigationId
+        ? [
+              {
+                  label: createAgentViewLabel('Profile', t),
+                  href: `/agents/${encodeURIComponent(activeAgentNavigationId)}`,
+              },
+              {
+                  label: createAgentViewLabel('Chat', t),
+                  href: `/agents/${encodeURIComponent(activeAgentNavigationId)}/chat`,
+              },
+              {
+                  label: createChatGptLikeViewLabel(),
+                  href: `/agents/${encodeURIComponent(activeAgentNavigationId)}/chat/chatgpt-like`,
+              },
+              {
+                  label: createAgentViewLabel('Timeouts', t),
+                  href: `/agents/${encodeURIComponent(activeAgentNavigationId)}/timeouts`,
+              },
+              ...(isAdmin
+                  ? [
+                        {
+                            label: createAgentViewLabel('Book', t),
+                            href: `/agents/${encodeURIComponent(activeAgentNavigationId)}/book`,
+                        } as SubMenuItem,
+                    ]
+                  : []),
+              ...(agentMoreViewItems.length > 0
+                  ? [
+                        {
+                            label: createAgentViewLabel('More', t),
+                            items: agentMoreViewItems,
+                        } as SubMenuItem,
+                    ]
+                  : []),
+          ]
+        : [];
 
     const closeAgentsDropdown = () => {
         closeDesktopDropdownNow('agents-hierarchy', () => setIsAgentsOpen(false));
@@ -1523,25 +1349,28 @@ export function Header(props: HeaderProps) {
     );
 
     /**
+     * Static entries appended below the dynamic hierarchy in the Agents menu.
+     */
+    const hierarchyAgentActionItems: SubMenuItem[] = [
+        {
+            label: viewAllAgentsLabel,
+            href: '/agents',
+            isBold: true,
+            isBordered: true,
+        },
+        {
+            label: createNewAgentLabel,
+            onClick: isPreparingDialog ? undefined : () => handleCreateAgent(null),
+            isBold: true,
+        },
+    ];
+    /**
      * Hierarchical mobile Agents menu data with appended action items.
      */
-    const hierarchyAgentMobileItems = useMemo(
-        (): SubMenuItem[] => [
-            ...createAgentHierarchyMobileItems(agentMenuTree),
-            {
-                label: viewAllAgentsLabel,
-                href: '/agents',
-                isBold: true,
-                isBordered: true,
-            },
-            {
-                label: createNewAgentLabel,
-                onClick: isPreparingDialog ? undefined : () => handleCreateAgent(null),
-                isBold: true,
-            },
-        ],
-        [agentMenuTree, createNewAgentLabel, handleCreateAgent, isPreparingDialog, viewAllAgentsLabel],
-    );
+    const hierarchyAgentMobileItems: SubMenuItem[] = [
+        ...createAgentHierarchyMobileItems(agentMenuTree),
+        ...hierarchyAgentActionItems,
+    ];
 
     // Federated servers dropdown items (respect logo, only current is not clickable)
     const [isFederatedOpen, setIsFederatedOpen] = useState(false);
@@ -1681,16 +1510,23 @@ export function Header(props: HeaderProps) {
     /**
      * @private Shared dropdown props that keep every System menu item wired to the same open/close state.
      */
-    const systemDropdownBase = useMemo(
-        (): Omit<Extract<MenuItem, { type: 'dropdown' }>, 'items'> => ({
-            type: 'dropdown' as const,
-            id: 'system',
-            label: t('header.systemMenuLabel'),
-            isOpen: isSystemOpen,
-            setIsOpen: setIsSystemOpen,
-        }),
-        [isSystemOpen, t],
-    );
+    const systemDropdownBase: Omit<Extract<MenuItem, { type: 'dropdown' }>, 'items'> = {
+        type: 'dropdown' as const,
+        id: 'system',
+        label: t('header.systemMenuLabel'),
+        isOpen: isSystemOpen,
+        setIsOpen: setIsSystemOpen,
+        isMobileOpen: isMobileSystemOpen,
+        setIsMobileOpen: setIsMobileSystemOpen,
+    };
+
+    /**
+     * @private Build a System dropdown menu entry that reuses the shared toggle state.
+     */
+    const buildSystemMenuItem = (items: SubMenuItem[]): MenuItem => ({
+        ...systemDropdownBase,
+        items,
+    });
 
     /**
      * @private Administration-focused actions shown inside the System dropdown.
@@ -1854,135 +1690,23 @@ export function Header(props: HeaderProps) {
     const shouldShowSystemMenu = systemMenuEntries.length > 0;
 
     // Menu items configuration (DRY principle)
-    const menuItems = useMemo(
-        (): MenuItem[] => [
-            ...(hasMenuAccess
-                ? [
-                      {
-                          id: 'documentation',
-                          type: 'dropdown' as const,
-                          label: t('header.documentationMenuLabel'),
-                          isOpen: isDocsOpen,
-                          setIsOpen: setIsDocsOpen,
-                          items: documentationDropdownItems,
-                      },
-                  ]
-                : []),
-            ...(shouldShowSystemMenu ? [{ ...systemDropdownBase, items: systemMenuEntries }] : []),
-        ],
-        [
-            documentationDropdownItems,
-            hasMenuAccess,
-            isDocsOpen,
-            shouldShowSystemMenu,
-            systemDropdownBase,
-            systemMenuEntries,
-            t,
-        ],
-    );
-    const mobileContextMenuItems = useMemo(
-        () => [
-            ...(federatedDropdownItems.length > 0
-                ? [
-                      {
-                          label: t('header.switchServerAria'),
-                          icon: Globe2,
-                          items: federatedDropdownItems,
-                      } satisfies SubMenuItem,
-                  ]
-                : []),
-            ...(isAdmin
-                ? [
-                      {
-                          label: (
-                              <AgentNameWithAvatar
-                                  label={activeAgentLabel}
-                                  avatarUrl={activeAgentAvatarUrl}
-                                  avatarSizeClassName="h-6 w-6"
-                                  textClassName="text-sm font-semibold text-slate-900"
-                                  maxWidthClassName="max-w-[13rem]"
-                                  fallbackIcon={
-                                      !activeAgent ? <FolderIcon className="h-4 w-4 text-gray-500" /> : undefined
-                                  }
-                              />
-                          ),
-                          items: hierarchyAgentMobileItems,
-                          isBold: true,
-                      } satisfies SubMenuItem,
-                  ]
-                : activeAgentNavigationId
-                  ? [
-                        {
-                            label: (
-                                <AgentNameWithAvatar
-                                    label={activeAgentLabel}
-                                    avatarUrl={activeAgentAvatarUrl}
-                                    avatarSizeClassName="h-6 w-6"
-                                    textClassName="text-sm font-semibold text-slate-900"
-                                    maxWidthClassName="max-w-[13rem]"
-                                    fallbackIcon={
-                                        !activeAgent ? (
-                                            <FolderIcon className="h-4 w-4 text-gray-500" aria-hidden />
-                                        ) : undefined
-                                    }
-                                />
-                            ),
-                            href: activeAgentHref,
-                            isBold: true,
-                        } satisfies SubMenuItem,
-                    ]
-                  : []),
-            ...(activeAgentView && activeAgentViewItems.length > 0
-                ? [
-                      {
-                          label: resolveAgentViewText(activeAgentView, t),
-                          items: activeAgentViewItems,
-                          isBold: true,
-                      } satisfies SubMenuItem,
-                  ]
-                : []),
-        ],
-        [
-            activeAgent,
-            activeAgentAvatarUrl,
-            activeAgentHref,
-            activeAgentLabel,
-            activeAgentNavigationId,
-            activeAgentView,
-            activeAgentViewItems,
-            federatedDropdownItems,
-            hierarchyAgentMobileItems,
-            isAdmin,
-            t,
-        ],
-    );
-    const mobileUnifiedMenuItems = useMemo(
-        () => [
-            ...mobileContextMenuItems,
-            ...(mobileMenuHoisting?.items || []),
-            ...menuItems.map((item) => {
-                if (item.type === 'link') {
-                    return {
-                        label: item.label,
-                        href: item.href,
-                        icon: resolveMobileTopLevelMenuIcon(item.id),
-                    } satisfies SubMenuItem;
-                }
-
-                return {
-                    label: item.label,
-                    items: item.items,
-                    icon: resolveMobileTopLevelMenuIcon(item.id),
-                } satisfies SubMenuItem;
-            }),
-        ],
-        [menuItems, mobileContextMenuItems, mobileMenuHoisting?.items],
-    );
-    const mobileDrawerContextText = activeAgentView
-        ? `${activeAgentLabel} / ${resolveAgentViewText(activeAgentView, t)}`
-        : activeAgentNavigationId
-          ? activeAgentLabel
-          : t('header.landingPage');
+    const menuItems: MenuItem[] = [
+        ...(hasMenuAccess
+            ? [
+                  {
+                      id: 'documentation',
+                      type: 'dropdown' as const,
+                      label: t('header.documentationMenuLabel'),
+                      isOpen: isDocsOpen,
+                      setIsOpen: setIsDocsOpen,
+                      isMobileOpen: isMobileDocsOpen,
+                      setIsMobileOpen: setIsMobileDocsOpen,
+                      items: documentationDropdownItems,
+                  },
+              ]
+            : []),
+        ...(shouldShowSystemMenu ? [buildSystemMenuItem(systemMenuEntries)] : []),
+    ];
 
 
     /**
@@ -2092,13 +1816,6 @@ export function Header(props: HeaderProps) {
                 <div className="flex h-full items-center gap-2 sm:gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-5">
                     <div className="min-w-0 flex-1">
                         <div className="flex min-w-0 items-center gap-2 sm:gap-3 rounded-2xl border border-gray-200 bg-white/90 px-2 sm:px-3 md:px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm shadow-slate-200/60 backdrop-blur">
-                            <div className="lg:hidden">
-                                <HamburgerMenu
-                                    isOpen={isMenuOpen}
-                                    onClick={() => setIsMenuOpen((isCurrentlyOpen) => !isCurrentlyOpen)}
-                                    className="rounded-xl border border-slate-200 bg-white p-2 text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
-                                />
-                            </div>
                             <div className="relative flex min-w-0 items-center gap-3">
                                 <HeadlessLink
                                     href="/"
@@ -2525,156 +2242,239 @@ export function Header(props: HeaderProps) {
                             </div>
                         )}
 
+                        {/* Mobile Menu Toggle */}
+                        <div className="lg:hidden">
+                            <HamburgerMenu
+                                isOpen={isMenuOpen}
+                                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                className="p-2 text-gray-600 hover:text-gray-900"
+                            />
+                        </div>
                     </div>
                 </div>
 
-                <div
-                    className={`fixed inset-0 top-16 z-40 bg-slate-950/35 backdrop-blur-[2px] transition-opacity duration-300 lg:hidden ${
-                        isMenuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
-                    }`}
-                    onClick={() => setIsMenuOpen(false)}
-                />
+                {/* Mobile Navigation Backdrop */}
+                {isMenuOpen && (
+                    <div
+                        className="lg:hidden fixed inset-0 top-16 bg-black/20 backdrop-blur-sm z-40 animate-in fade-in duration-200"
+                        onClick={() => setIsMenuOpen(false)}
+                    />
+                )}
 
-                <aside
-                    className={`fixed inset-y-16 left-0 z-50 w-[min(23rem,88vw)] max-w-[23rem] overflow-hidden rounded-r-[2rem] border-r border-slate-200/80 bg-white/95 shadow-[0_24px_60px_rgba(15,23,42,0.18)] backdrop-blur-xl transition-transform duration-300 ease-out lg:hidden ${
-                        isMenuOpen ? 'pointer-events-auto translate-x-0' : 'pointer-events-none -translate-x-full'
-                    }`}
-                    aria-hidden={!isMenuOpen}
-                    aria-label={t('header.menuLabel')}
-                    style={{
-                        WebkitBackdropFilter: 'blur(20px)',
-                    }}
-                >
-                    <div className="flex h-full flex-col">
-                        <nav className="flex-1 overflow-y-auto px-3 py-4 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
-                            <div className="flex flex-col gap-4">
-                            <div className="border-b border-slate-200/80 bg-gradient-to-br from-white via-slate-50 to-blue-50/70 px-4 pb-4 pt-5">
-                                <div className="flex items-start gap-3">
-                                    <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/80 bg-white shadow-sm">
-                                        {serverLogoUrl ? (
-                                            // eslint-disable-next-line @next/next/no-img-element
-                                            <img
-                                                src={serverLogoUrl}
-                                                alt={serverName}
-                                                width={44}
-                                                height={44}
-                                                className="h-8 w-8 object-contain"
+                {/* Mobile Navigation */}
+                {isMenuOpen && (
+                    <div
+                        className="lg:hidden absolute top-16 left-0 right-0 z-50 bg-white shadow-2xl py-6 border-t border-gray-200 animate-in slide-in-from-top-2 h-[calc(100vh-4rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
+                        style={{
+                            backdropFilter: 'blur(20px)',
+                            WebkitBackdropFilter: 'blur(20px)',
+                        }}
+                    >
+                        <nav className="mx-auto flex flex-col items-center gap-6 px-6 max-w-md pb-8">
+                            <div className="w-full border-b border-gray-200 pb-6 text-center">
+                                <div className="flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-[0.3em] text-gray-400 mb-3">
+                                    <span>{t('header.menuLabel')}</span>
+                                    {federatedServers.length > 0 && (
+                                        <button
+                                            className="inline-flex p-1 text-gray-500 hover:text-gray-800"
+                                            onClick={() => setIsFederatedOpen(!isFederatedOpen)}
+                                            aria-label={t('header.switchServerAria')}
+                                        >
+                                            <ChevronDown
+                                                className={`h-4 w-4 transition-transform duration-200 ${
+                                                    isFederatedOpen ? 'rotate-180' : ''
+                                                }`}
                                             />
+                                        </button>
+                                    )}
+                                </div>
+                                <p className="text-xl font-bold text-gray-900 truncate px-4">{serverName}</p>
+                                {isFederatedOpen && federatedDropdownItems.length > 0 && (
+                                    <div className="mt-4 mx-auto w-full max-w-[90vw] flex flex-col gap-1 rounded-lg border border-gray-200 bg-gradient-to-b from-gray-50 to-white p-3 shadow-sm animate-in fade-in-0 slide-in-from-top-2 duration-200">
+                                        {federatedDropdownItems.map((subItem, subIndex) => {
+                                            const className = `block rounded-md px-4 py-3 text-sm text-gray-700 hover:bg-white hover:shadow-sm active:scale-98 transition-all duration-150 ${
+                                                subItem.isBold ? 'font-semibold' : ''
+                                            }`;
+                                            if (subItem.href) {
+                                                return (
+                                                    <HeadlessLink
+                                                        key={`mobile-federated-${subIndex}`}
+                                                        href={subItem.href}
+                                                        className={className}
+                                                        onClick={() => setIsMenuOpen(false)}
+                                                    >
+                                                        {subItem.label}
+                                                    </HeadlessLink>
+                                                );
+                                            }
+                                            return (
+                                                <span key={`mobile-federated-${subIndex}`} className={className}>
+                                                    {subItem.label}
+                                                </span>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+
+                                <div className="mt-6 flex flex-col items-center gap-4 w-full">
+                                    <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
+                                        <ArrowIcon direction="right" className="h-4 w-4 text-gray-500" />
+                                        {isAdmin ? (
+                                            <button
+                                                className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-100 active:bg-gray-200 transition-all duration-150"
+                                                onClick={() => setIsMobileAgentsOpen(!isMobileAgentsOpen)}
+                                            >
+                                                <AgentNameWithAvatar
+                                                    label={activeAgentLabel}
+                                                    avatarUrl={activeAgentAvatarUrl}
+                                                    avatarSizeClassName="h-6 w-6"
+                                                    textClassName="text-sm font-semibold text-gray-900"
+                                                    maxWidthClassName="max-w-[60vw]"
+                                                    fallbackIcon={
+                                                        !activeAgent ? (
+                                                            <FolderIcon className="h-4 w-4 text-gray-500" aria-hidden />
+                                                        ) : undefined
+                                                    }
+                                                />
+                                                <ChevronDown
+                                                    className={`h-4 w-4 transition-transform duration-200 ${
+                                                        isMobileAgentsOpen ? 'rotate-180' : ''
+                                                    }`}
+                                                />
+                                            </button>
                                         ) : (
-                                            <Image
-                                                src={promptbookLogoBlueTransparent}
-                                                alt={serverName}
-                                                width={44}
-                                                height={44}
-                                                className="h-8 w-8 object-contain"
-                                            />
+                                            <HeadlessLink
+                                                href={activeAgentHref}
+                                                className="flex min-w-0 items-center gap-2"
+                                                onClick={() => setIsMenuOpen(false)}
+                                            >
+                                                <AgentNameWithAvatar
+                                                    label={activeAgentLabel}
+                                                    avatarUrl={activeAgentAvatarUrl}
+                                                    avatarSizeClassName="h-6 w-6"
+                                                    textClassName="text-sm font-semibold text-gray-900"
+                                                    maxWidthClassName="max-w-[60vw]"
+                                                    fallbackIcon={
+                                                        !activeAgent ? (
+                                                            <FolderIcon className="h-4 w-4 text-gray-500" aria-hidden />
+                                                        ) : undefined
+                                                    }
+                                                />
+                                            </HeadlessLink>
                                         )}
                                     </div>
-                                    <div className="min-w-0 flex-1">
-                                        <p className="text-[0.65rem] font-semibold uppercase tracking-[0.32em] text-slate-400">
-                                            {t('header.menuLabel')}
-                                        </p>
-                                        <h2 className="mt-1 truncate text-lg font-semibold tracking-tight text-slate-900">
-                                            {serverName}
-                                        </h2>
-                                        <p className="mt-1 text-sm leading-5 text-slate-500">
-                                            {mobileDrawerContextText}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="mt-4">
-                                    <HeaderSearchBox
-                                        placeholder={t('header.searchThisServerPlaceholder')}
-                                        onNavigate={() => setIsMenuOpen(false)}
-                                    />
-                                </div>
-                            </div>
 
-                            {menuHoisting && menuHoisting.menu.length > 0 && (
-                                <div className="rounded-[1.35rem] border border-slate-200/80 bg-slate-50/90 p-3 shadow-sm">
-                                    <div className="flex flex-wrap gap-2">
-                                        {menuHoisting.menu.map((item, index) => (
-                                            <button
-                                                key={index}
-                                                onClick={() => {
-                                                    item.onClick();
-                                                    setIsMenuOpen(false);
-                                                }}
-                                                className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition ${
-                                                    item.isActive
-                                                        ? 'border-blue-200 bg-blue-50 text-blue-700'
-                                                        : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900'
-                                                }`}
-                                                title={item.name}
-                                            >
-                                                {item.icon}
-                                                <span className="min-w-0 truncate">{item.name}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
+                                    {isAdmin && isMobileAgentsOpen && (
+                                        <div className="w-full max-w-[90vw] flex flex-col gap-1 rounded-lg border border-gray-200 bg-gradient-to-b from-gray-50 to-white p-3 max-h-[40vh] overflow-y-auto shadow-sm animate-in fade-in-0 slide-in-from-top-2 duration-200 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                                            {renderMobileNestedMenuItems(hierarchyAgentMobileItems, 'mobile-agents')}
+                                        </div>
+                                    )}
 
-                            {mobileUnifiedMenuItems.length > 0 && (
-                                <div className="rounded-[1.5rem] bg-gradient-to-b from-slate-50/90 to-white/90 p-2">
-                                    {renderMobileNestedMenuItems(mobileUnifiedMenuItems, 'mobile-unified-menu')}
-                                </div>
-                            )}
-                            </div>
-                        </nav>
-
-                        <div className="border-t border-slate-200/80 bg-white/95 px-4 py-4">
-                            {!currentUser && !isAdmin && (
-                                <button
-                                    onClick={() => {
-                                        void showLoginDialog().catch(() => undefined);
-                                        setIsMenuOpen(false);
-                                    }}
-                                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
-                                >
-                                    <LogIn className="h-4 w-4" />
-                                    {t('header.logIn')}
-                                </button>
-                            )}
-
-                            {(currentUser || isAdmin) && (
-                                <div className="rounded-[1.35rem] border border-slate-200/80 bg-gradient-to-b from-slate-50 to-white p-3 shadow-sm">
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-blue-100 text-sm font-semibold text-blue-700">
-                                            {currentUserProfileImageUrl ? (
-                                                // eslint-disable-next-line @next/next/no-img-element
-                                                <img
-                                                    src={currentUserProfileImageUrl}
-                                                    alt={`${currentUserDisplayName} avatar`}
-                                                    className="h-11 w-11 object-cover"
-                                                />
-                                            ) : (
-                                                currentUserAvatarLabel
+                                    {activeAgentView && activeAgentViewItems.length > 0 && (
+                                        <div className="w-full max-w-[90vw] flex flex-col gap-1">
+                                            <div className="flex items-center justify-center gap-2 text-sm font-medium text-gray-700">
+                                                <ArrowIcon direction="right" className="h-4 w-4 text-gray-500" />
+                                                <button
+                                                    className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold text-gray-900 hover:bg-gray-100 transition"
+                                                    onClick={() => setIsMobileAgentViewOpen(!isMobileAgentViewOpen)}
+                                                >
+                                                    {createAgentViewLabel(activeAgentView, t)}
+                                                    <ChevronDown
+                                                        className={`h-4 w-4 transition-transform duration-200 ${
+                                                            isMobileAgentViewOpen ? 'rotate-180' : ''
+                                                        }`}
+                                                    />
+                                                </button>
+                                            </div>
+                                            {isMobileAgentViewOpen && (
+                                                <div className="flex flex-col gap-1 rounded-lg border border-gray-200 bg-gradient-to-b from-gray-50 to-white p-3 shadow-sm animate-in fade-in-0 slide-in-from-top-2 duration-200">
+                                                    {renderMobileNestedMenuItems(
+                                                        activeAgentViewItems,
+                                                        'mobile-agent-view',
+                                                    )}
+                                                </div>
                                             )}
                                         </div>
-                                        <div className="min-w-0 flex-1">
-                                            <p className="truncate text-sm font-semibold text-slate-900">
-                                                {currentUserDisplayName}
-                                            </p>
-                                            <p className="mt-1 text-xs text-slate-500">
-                                                {t('header.loggedInAs', { username: currentUserDisplayName })}
-                                            </p>
-                                        </div>
-                                        {(currentUser?.isAdmin || isAdmin) && (
-                                            <span className="inline-flex shrink-0 items-center rounded-full bg-blue-100 px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.22em] text-blue-700">
-                                                {t('common.admin')}
-                                            </span>
-                                        )}
+                                    )}
+
+                                    <div className="w-full max-w-[90vw] pt-1">
+                                        <HeaderSearchBox
+                                            placeholder={t('header.searchThisServerPlaceholder')}
+                                            onNavigate={() => setIsMenuOpen(false)}
+                                        />
                                     </div>
-                                    <div className="mt-3 flex flex-col gap-2">
+                                </div>
+                            </div>
+
+                            {/* Hoisted Menu Items for Mobile */}
+                            {menuHoisting && menuHoisting.menu.length > 0 && (
+                                <div className="w-full py-3 border-b border-gray-200 flex justify-center gap-3 overflow-x-auto">
+                                    {menuHoisting.menu.map((item, index) => (
+                                        <button
+                                            key={index}
+                                            onClick={() => {
+                                                item.onClick();
+                                                setIsMenuOpen(false);
+                                            }}
+                                            className={`p-3 rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-all duration-150 text-gray-600 hover:text-gray-900 shadow-sm hover:shadow active:scale-95 ${
+                                                item.isActive ? 'bg-blue-50 text-blue-600 shadow' : ''
+                                            }`}
+                                            title={item.name}
+                                        >
+                                            {item.icon}
+                                            <span className="sr-only">{item.name}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Login Status for Mobile */}
+                            <div className="w-full py-4 border-b border-gray-200 flex flex-col items-center gap-3">
+                                {!currentUser && !isAdmin && (
+                                    <button
+                                        onClick={() => {
+                                            void showLoginDialog().catch(() => undefined);
+                                            setIsMenuOpen(false);
+                                        }}
+                                        className="flex items-center gap-3 px-6 py-3 text-base font-semibold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-lg shadow-md hover:shadow-lg active:scale-98 transition-all duration-150"
+                                    >
+                                        <LogIn className="w-4 h-4" />
+                                        {t('header.logIn')}
+                                    </button>
+                                )}
+
+                                {(currentUser || isAdmin) && (
+                                    <div className="w-full flex flex-col items-center gap-3 bg-gradient-to-b from-gray-50 to-white rounded-lg p-4 border border-gray-200 shadow-sm">
+                                        <div className="flex flex-col items-center gap-3 text-center">
+                                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-lg font-semibold text-blue-700">
+                                                {currentUserProfileImageUrl ? (
+                                                    // eslint-disable-next-line @next/next/no-img-element
+                                                    <img
+                                                        src={currentUserProfileImageUrl}
+                                                        alt={`${currentUserDisplayName} avatar`}
+                                                        className="h-12 w-12 rounded-full object-cover border border-gray-200"
+                                                    />
+                                                ) : (
+                                                    currentUserAvatarLabel
+                                                )}
+                                            </div>
+                                            <div className="text-sm text-gray-700 font-medium">
+                                                {t('header.loggedInAs', { username: currentUserDisplayName })}
+                                                {(currentUser?.isAdmin || isAdmin) && (
+                                                    <span className="ml-2 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full shadow-sm">
+                                                        {t('common.admin')}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
                                         <button
                                             onClick={() => {
                                                 setIsChangePasswordOpen(true);
                                                 setIsMenuOpen(false);
                                             }}
-                                            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                                            className="w-full flex items-center justify-center gap-2 px-4 py-3 text-base font-semibold text-gray-700 bg-white hover:bg-gray-50 active:bg-gray-100 border border-gray-300 rounded-lg shadow-sm hover:shadow active:scale-98 transition-all duration-150"
                                         >
-                                            <Lock className="h-4 w-4" />
+                                            <Lock className="w-4 h-4" />
                                             {t('header.changePassword')}
                                         </button>
                                         <button
@@ -2682,17 +2482,68 @@ export function Header(props: HeaderProps) {
                                                 handleLogout();
                                                 setIsMenuOpen(false);
                                             }}
-                                            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-100"
+                                            className="w-full flex items-center justify-center gap-2 px-4 py-3 text-base font-semibold text-red-600 bg-red-50 hover:bg-red-100 active:bg-red-200 border border-red-200 rounded-lg shadow-sm hover:shadow active:scale-98 transition-all duration-150"
                                         >
-                                            <LogOut className="h-4 w-4" />
+                                            <LogOut className="w-4 h-4" />
                                             {t('header.logOut')}
                                         </button>
                                     </div>
-                                </div>
+                                )}
+                            </div>
+
+                            {menuItems.map((item, index) => {
+                                if (item.type === 'link') {
+                                    return (
+                                        <HeadlessLink
+                                            key={index}
+                                            href={item.href}
+                                            className="block w-full text-base font-semibold text-gray-700 hover:text-blue-600 py-3 px-4 text-center rounded-lg hover:bg-gray-50 active:bg-gray-100 active:scale-98 transition-all duration-150"
+                                            onClick={() => setIsMenuOpen(false)}
+                                        >
+                                            {item.label}
+                                        </HeadlessLink>
+                                    );
+                                }
+
+                                if (item.type === 'dropdown') {
+                                    return (
+                                        <div key={index} className="w-full flex flex-col items-center gap-2">
+                                            <button
+                                                className="w-full flex items-center justify-center gap-2 text-base font-semibold text-gray-700 hover:text-blue-600 py-3 px-4 rounded-lg hover:bg-gray-50 active:bg-gray-100 active:scale-98 transition-all duration-150"
+                                                onClick={() => item.setIsMobileOpen(!item.isMobileOpen)}
+                                            >
+                                                {item.label}
+                                                <ChevronDown
+                                                    className={`w-4 h-4 transition-transform duration-200 ${
+                                                        item.isMobileOpen ? 'rotate-180' : ''
+                                                    }`}
+                                                />
+                                            </button>
+                                            {item.isMobileOpen && (
+                                                <div className="w-full flex flex-col items-center gap-2 bg-gray-50 rounded-lg p-3 border border-gray-200 shadow-sm animate-in fade-in-0 slide-in-from-top-2 duration-200">
+                                                    {renderMobileNestedMenuItems(item.items, `mobile-menu-${index}`)}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                }
+
+                                return null;
+                            })}
+
+                            {just(false /* TODO: [🧠] Figure out what to do with these links */) && (
+                                <a
+                                    href="https://ptbk.io/"
+                                    target="_blank"
+                                    className="text-base font-medium text-gray-600 hover:text-gray-900 py-2 text-center"
+                                    onClick={() => setIsMenuOpen(false)}
+                                >
+                                    Create your server
+                                </a>
                             )}
-                        </div>
+                        </nav>
                     </div>
-                </aside>
+                )}
             </div>
             {newAgentDialog}
         </header>

@@ -10,7 +10,6 @@ export type SubMenuItem = {
     icon?: ComponentType<{ className?: string }>;
     href?: string;
     onClick?: () => void | Promise<void>;
-    isActive?: boolean;
     isBold?: boolean;
     isBordered?: boolean;
     items?: SubMenuItem[];
