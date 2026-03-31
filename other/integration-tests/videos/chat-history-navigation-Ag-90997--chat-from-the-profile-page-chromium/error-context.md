@@ -1,0 +1,155 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e5]:
+        - generic [ref=e7]:
+          - generic [ref=e8]:
+            - link "Promptbook Agents Server Promptbook Agents Server" [ref=e9] [cursor=pointer]:
+              - /url: /
+              - img "Promptbook Agents Server" [ref=e10]
+              - generic [ref=e11]: Promptbook Agents Server
+            - button "Switch server" [ref=e13] [cursor=pointer]:
+              - img [ref=e14]
+          - img [ref=e16]
+          - button "agents" [ref=e20] [cursor=pointer]:
+            - generic [ref=e21]:
+              - img [ref=e23]
+              - generic [ref=e25]: agents
+            - img [ref=e26]
+        - generic [ref=e30]:
+          - generic [ref=e31]: Global search
+          - generic [ref=e32]:
+            - img
+            - combobox "Global search" [ref=e33]
+        - generic [ref=e34]:
+          - navigation [ref=e35]:
+            - button "Documentation" [ref=e37] [cursor=pointer]:
+              - text: Documentation
+              - img [ref=e38]
+            - button "System" [ref=e41] [cursor=pointer]:
+              - text: System
+              - img [ref=e42]
+          - button "Open global control panel" [ref=e45] [cursor=pointer]:
+            - img [ref=e46]
+            - generic [ref=e49]: Control panel
+          - generic [ref=e51]:
+            - button "A admin Admin" [expanded] [ref=e52] [cursor=pointer]:
+              - generic [ref=e54]: A
+              - generic [ref=e55]:
+                - generic [ref=e56]: admin
+                - generic [ref=e57]: Admin
+              - img [ref=e58]
+            - generic [ref=e60]:
+              - generic [ref=e61]:
+                - paragraph [ref=e62]: admin
+                - paragraph [ref=e63]: Admin
+              - button "Change Password" [ref=e64] [cursor=pointer]:
+                - img [ref=e65]
+                - text: Change Password
+              - button "Log out" [ref=e68] [cursor=pointer]:
+                - img [ref=e69]
+                - text: Log out
+    - main [ref=e72]:
+      - generic [ref=e75]:
+        - heading "Local Agents (0) All Agents New Folder List Graph Office Pixel" [level=2] [ref=e76]:
+          - generic [ref=e77]:
+            - generic [ref=e78]:
+              - generic [ref=e79]: Local Agents (0)
+              - button "All Agents" [ref=e81] [cursor=pointer]
+            - generic [ref=e82]:
+              - button "New Folder" [ref=e83] [cursor=pointer]:
+                - img [ref=e84]
+                - text: New Folder
+              - generic [ref=e86]:
+                - button "List" [ref=e87] [cursor=pointer]:
+                  - img [ref=e88]
+                  - generic [ref=e90]: List
+                - button "Graph" [ref=e91] [cursor=pointer]:
+                  - img [ref=e92]
+                  - generic [ref=e97]: Graph
+                - button "Office" [ref=e98] [cursor=pointer]:
+                  - img [ref=e99]
+                  - generic [ref=e103]: Office
+                - button "Pixel" [ref=e104] [cursor=pointer]:
+                  - img [ref=e105]
+                  - generic [ref=e107]: Pixel
+        - generic [ref=e108]:
+          - generic [ref=e110] [cursor=pointer]: + Add New Agent
+          - link "Open Recycle Bin" [ref=e111] [cursor=pointer]:
+            - /url: /recycle-bin
+            - img [ref=e112]
+            - text: Open Recycle Bin
+        - status [ref=e115]
+    - contentinfo [ref=e116]:
+      - generic [ref=e117]:
+        - generic [ref=e118]:
+          - generic [ref=e119]:
+            - heading "Promptbook" [level=3] [ref=e120]
+            - paragraph [ref=e121]: Turn your company's scattered knowledge into AI ready books
+          - generic [ref=e122]:
+            - heading "Product" [level=3] [ref=e123]
+            - list [ref=e124]:
+              - listitem [ref=e125]:
+                - link "Get started" [ref=e126] [cursor=pointer]:
+                  - /url: /get-started
+              - listitem [ref=e127]:
+                - link "Manifest" [ref=e128] [cursor=pointer]:
+                  - /url: /manifest
+              - listitem [ref=e129]:
+                - link "Documentation" [ref=e130] [cursor=pointer]:
+                  - /url: https://github.com/webgptorg/promptbook
+              - listitem [ref=e131]:
+                - link "Terms of Service" [ref=e132] [cursor=pointer]:
+                  - /url: /terms
+              - listitem [ref=e133]:
+                - link "Privacy Policy" [ref=e134] [cursor=pointer]:
+                  - /url: /privacy
+          - generic [ref=e135]:
+            - heading "Company" [level=3] [ref=e136]
+            - list [ref=e137]:
+              - listitem [ref=e138]:
+                - link "AI Web, LLC" [ref=e139] [cursor=pointer]:
+                  - /url: https://or-justice-cz.translate.goog/ias/ui/rejstrik-firma.vysledky?subjektId=1223693&typ=UPLNY&_x_tr_sl=cs&_x_tr_tl=en&_x_tr_hl=en-US&_x_tr_pto=wapp
+              - listitem [ref=e140]:
+                - link "About Us" [ref=e141] [cursor=pointer]:
+                  - /url: https://ptbk.io/#about-us
+              - listitem [ref=e142]:
+                - link "Blog" [ref=e143] [cursor=pointer]:
+                  - /url: https://ptbk.io/blog
+              - listitem [ref=e144]:
+                - link "Logos & Branding" [ref=e145] [cursor=pointer]:
+                  - /url: /design
+          - generic [ref=e146]:
+            - heading "Connect" [level=3] [ref=e147]
+            - list [ref=e148]:
+              - listitem [ref=e149]:
+                - link "GitHub" [ref=e150] [cursor=pointer]:
+                  - /url: https://github.com/webgptorg/promptbook
+              - listitem [ref=e151]:
+                - link "LinkedIn" [ref=e152] [cursor=pointer]:
+                  - /url: https://linkedin.com/company/promptbook
+              - listitem [ref=e153]:
+                - link "Discord" [ref=e154] [cursor=pointer]:
+                  - /url: https://discord.gg/x3QWNaa89N
+              - listitem [ref=e155]:
+                - link "More" [ref=e156] [cursor=pointer]:
+                  - /url: /contact
+          - generic [ref=e157]:
+            - heading "Links" [level=3] [ref=e158]
+            - list [ref=e159]:
+              - listitem [ref=e160]:
+                - 'link "Federated: core.ptbk.io" [ref=e161] [cursor=pointer]':
+                  - /url: https://core.ptbk.io/
+        - generic [ref=e162]:
+          - paragraph [ref=e163]:
+            - text: © 2026 Promptbook
+            - text: All rights reserved.
+            - text: Made with ❤️ in the Czech Republic.
+          - paragraph [ref=e164]: Promptbook engine version 0.112.0-26
+  - generic:
+    - region "Notifications"
+  - alert [ref=e165]
+```
