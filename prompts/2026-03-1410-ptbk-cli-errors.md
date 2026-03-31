@@ -68,7 +68,7 @@ $ npx ptbk coder initialize
 
 ---
 
-[ ]
+[x] ~$0.3677 9 minutes by OpenAI Codex `gpt-5.4`
 
 [✨🚼] Do not fail `ptbk coder run` when `CODING_AGENT_` env not set
 
@@ -125,3 +125,4 @@ $ npx ptbk coder initialize
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Promptbook CLI](src/cli/test/ptbk.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

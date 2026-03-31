@@ -18,6 +18,7 @@ import { waitForEnter } from '../common/waitForEnter';
 import { checkPause, listenForPause } from '../common/waitForPause';
 import { commitChanges } from '../git/commitChanges';
 import { ensureWorkingTreeClean } from '../git/ensureWorkingTreeClean';
+import { printAgentGitIdentityTipIfNeeded } from '../git/agentGitIdentity';
 import { runAutoMigrateTestingServers } from '../migrations/runAutoMigrateTestingServers';
 import { buildCodexPrompt } from '../prompts/buildCodexPrompt';
 import { buildCommitMessage } from '../prompts/buildCommitMessage';
@@ -298,6 +299,9 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
         }
     } finally {
         progressDisplay?.stop();
+        if (!options.dryRun) {
+            printAgentGitIdentityTipIfNeeded();
+        }
     }
 }
 
