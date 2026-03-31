@@ -14,12 +14,12 @@ import {
 /**
  * Shared cache lifetime for resolved agent runtime snapshots.
  */
-const SERVER_AGENT_CONTEXT_CACHE_TTL_MS = 30_000;
+const SERVER_AGENT_CONTEXT_CACHE_TTL_MS = 5 * 60_000;
 
 /**
  * Shared cache lifetime for prepared agent model requirements.
  */
-const SERVER_AGENT_MODEL_REQUIREMENTS_CACHE_TTL_MS = 30_000;
+const SERVER_AGENT_MODEL_REQUIREMENTS_CACHE_TTL_MS = 5 * 60_000;
 
 /**
  * Immutable resolved server-agent context safe to reuse across requests.

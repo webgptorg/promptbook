@@ -64,6 +64,26 @@ const DISCONNECTED_CHAT_REFRESH_INTERVAL_MS = 4_000;
 const CHAT_LIST_REFRESH_INTERVAL_MS = 20_000;
 
 /**
+ * Slow fallback refresh cadence for idle chats with no active work.
+ */
+const IDLE_CHAT_REFRESH_INTERVAL_MS = 60_000;
+
+/**
+ * Refresh cadence used when a scheduled timeout is close to firing.
+ */
+const NEAR_TIMEOUT_CHAT_REFRESH_INTERVAL_MS = 5_000;
+
+/**
+ * Refresh cadence used for longer-lived scheduled timeouts.
+ */
+const SCHEDULED_TIMEOUT_CHAT_REFRESH_INTERVAL_MS = 30_000;
+
+/**
+ * Time window treated as "near due" for scheduled timeout refreshes.
+ */
+const ACTIVE_TIMEOUT_NEAR_DUE_WINDOW_MS = 20_000;
+
+/**
  * Debounce window for draft persistence.
  */
 const SAVE_DEBOUNCE_MS = 600;
@@ -265,6 +285,12 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             }),
         [activeMessages, pendingOutboundMessages],
     );
+    const shouldMaintainActiveChatStream =
+        shouldUseHistory &&
+        activeChatId !== null &&
+        !isActiveChatReadOnly &&
+        isActiveBrowserTab &&
+        activeJobs.length > 0;
 
     useEffect(() => {
         if (!shouldUseHistory || !activeChatId || isActiveChatReadOnly || !isActiveBrowserTab) {
@@ -827,7 +853,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     }, [flushActiveDraft, shouldUseHistory]);
 
     useEffect(() => {
-        if (!shouldUseHistory || !activeChatId || isActiveChatReadOnly || !isActiveBrowserTab) {
+        if (!shouldMaintainActiveChatStream) {
             setIsActiveChatStreamConnected(false);
             return;
         }
@@ -898,10 +924,8 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         activeChatId,
         agentName,
         applyChatDetail,
-        isActiveBrowserTab,
-        isActiveChatReadOnly,
         refreshActiveChat,
-        shouldUseHistory,
+        shouldMaintainActiveChatStream,
     ]);
 
     useEffect(() => {
@@ -909,9 +933,11 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             return;
         }
 
-        const pollIntervalMs = isActiveChatStreamConnected
-            ? CHAT_LIST_REFRESH_INTERVAL_MS
-            : DISCONNECTED_CHAT_REFRESH_INTERVAL_MS;
+        const pollIntervalMs = resolveActiveChatRefreshIntervalMs({
+            isActiveChatStreamConnected,
+            activeJobs,
+            activeTimeouts,
+        });
         const runRefresh = () => {
             if (typeof document !== 'undefined' && document.hidden) {
                 return;
@@ -938,7 +964,15 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             window.removeEventListener('focus', handleFocus);
         };
-    }, [activeChatId, isActiveChatReadOnly, isActiveChatStreamConnected, refreshActiveChat, shouldUseHistory]);
+    }, [
+        activeChatId,
+        activeJobs,
+        activeTimeouts,
+        isActiveChatReadOnly,
+        isActiveChatStreamConnected,
+        refreshActiveChat,
+        shouldUseHistory,
+    ]);
 
     /**
      * Selects one existing chat.
@@ -1509,6 +1543,34 @@ function resolveErrorMessage(error: unknown, fallbackMessage: string): string {
 function replaceChatInList(chats: ReadonlyArray<UserChatSummary>, targetChat: UserChatSummary): Array<UserChatSummary> {
     const remainingChats = chats.filter((chat) => chat.id !== targetChat.id);
     return [targetChat, ...remainingChats];
+}
+
+/**
+ * Resolves the periodic fallback refresh interval for the active chat page.
+ */
+function resolveActiveChatRefreshIntervalMs(options: {
+    isActiveChatStreamConnected: boolean;
+    activeJobs: ReadonlyArray<UserChatJob>;
+    activeTimeouts: ReadonlyArray<UserChatTimeout>;
+}): number {
+    if (options.activeJobs.length > 0) {
+        return options.isActiveChatStreamConnected
+            ? CHAT_LIST_REFRESH_INTERVAL_MS
+            : DISCONNECTED_CHAT_REFRESH_INTERVAL_MS;
+    }
+
+    const nearestTimeoutDueAt = options.activeTimeouts
+        .map((timeout) => Date.parse(timeout.dueAt))
+        .filter((timestamp) => Number.isFinite(timestamp))
+        .sort((left, right) => left - right)[0];
+
+    if (nearestTimeoutDueAt === undefined) {
+        return IDLE_CHAT_REFRESH_INTERVAL_MS;
+    }
+
+    return nearestTimeoutDueAt - Date.now() <= ACTIVE_TIMEOUT_NEAR_DUE_WINDOW_MS
+        ? NEAR_TIMEOUT_CHAT_REFRESH_INTERVAL_MS
+        : SCHEDULED_TIMEOUT_CHAT_REFRESH_INTERVAL_MS;
 }
 
 /**

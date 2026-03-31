@@ -1,1 +1,81 @@
-WRITE NOTES HERE
+## Analysis
+
+-   The crash pattern matches database saturation rather than one broken endpoint. The Supabase instance was being hit by several small but constant request loops, so even low external traffic could push it into unhealthy state and then cause connection failures in the server.
+-   Database queries and their frequency:
+    -   `middleware.ts` was doing database-backed routing work on most requests. In the hot path this meant `_Server` lookup, `Metadata` lookup, optional `ApiTokens` lookup, and sometimes agent visibility lookup for HTML pages.
+    -   This middleware cost was also paid by routes that should be cheap or purely internal, including `/robots.txt`, `/sitemap.xml`, `/humans.txt`, `/manifest.webmanifest`, and `/api/internal/*`.
+    -   `AgentChatHistoryClient.tsx` kept the canonical active-chat stream open whenever the chat tab was selected. The stream route then polled the database every `500 ms` while active and every `5 s` while idle, and the page also had a fallback refresh loop (`4 s` when disconnected, `20 s` otherwise). Idle open chat tabs therefore still produced a steady background read load.
+    -   `runUserChatJob.ts` persisted assistant-message progress snapshots every `500 ms`, which caused frequent writes while the model was still streaming.
+    -   `$provideAgentCollectionForServer.ts` had its cache effectively disabled, so it recreated the server agent collection repeatedly and re-ran federated sync scheduling on each call.
+    -   `validateApiKey.ts` created a fresh Supabase client for each validation request.
+    -   Simple organization/homepage requests were still resolving every stored `agentSource` even though the database already persists `Agent.agentProfile`. That unnecessarily pulled agent-source resolution into listing pages and directory sync APIs.
+-   Cron jobs:
+    -   `apps/agents-server/vercel.json` configures `/api/internal/user-chat-timeouts/run` every minute.
+    -   User-chat jobs are also triggered through `/api/internal/user-chat-jobs/run`.
+    -   Before the fix, those background-worker routes still went through the full middleware database path, so background maintenance work added avoidable registry/metadata/token queries before doing the actual job/timeout work.
+-   Potential infinite or recursive loops:
+    -   I did not find evidence of a direct infinite recursion in the inspected agent-source resolution or `createAgentModelRequirements(...)` path.
+    -   The overload came from repeated-work loops instead:
+        -   request -> middleware database reads
+        -   open chat tab -> stream polling -> database reads
+        -   fallback chat refresh -> more database reads
+        -   wait-for-preparation -> immediate worker kick -> more preparation work
+        -   provide collection -> attach/schedule again -> more background work
+-   Planned agent events / `USE TIMEOUT`:
+    -   The timeout feature itself was not the only root cause, but it contributed to the pressure pattern around chat pages and background workers.
+    -   The timeout worker already used a single-statement claim path, but its queued/running scans were missing supporting indexes.
+    -   Timeout-related chat refreshes were still more frequent than necessary even when the next timeout was far in the future.
+-   Most likely root causes of the overload:
+    -   middleware database amplification on nearly every request
+    -   disabled agent-collection caching and repeated scheduler attachment
+    -   too-frequent active-chat stream polling and fallback refreshes for idle chats
+    -   too-frequent durable writes while streaming assistant output
+    -   repeated preparation work caused by short cache lifetimes and eager preparation-worker kicks
+
+## Implemented now
+
+-   Middleware pressure reduction:
+    -   bypassed database-backed middleware work for `/api/internal/*`, `/robots.txt`, `/sitemap.xml`, `/humans.txt`, and `/manifest.webmanifest`
+    -   moved `OPTIONS` handling ahead of any database access
+    -   reused the shared server-registry client instead of building a new client in middleware
+    -   added a short-lived in-memory metadata cache (`30 s`)
+    -   loaded metadata only when the request actually needs it
+    -   validated bearer API tokens only when IP restriction would otherwise block the request
+-   Server and preparation caching:
+    -   increased `_Server` registry cache TTL from `10 s` to `60 s`
+    -   increased cached server-agent runtime and cached model-requirements TTLs from `30 s` to `5 min`
+    -   changed `waitForRunningAgentPreparation(...)` so a waiter no longer forces an immediate worker tick
+    -   reduced chat-side preparation wait timeout from `2.5 s` to `1 s` so chat reads do not stall as long behind preparation work
+-   Agent collection startup/load reduction:
+    -   restored real per-table-prefix caching in `$provideAgentCollectionForServer.ts`
+    -   shared in-flight initialization so concurrent calls reuse one initialization promise
+    -   stopped re-running default federated agent sync scheduling on every collection access
+-   Simple page/directory optimization:
+    -   changed `loadAgentOrganizationState(...)` to use the persisted `Agent.agentProfile` column instead of resolving every stored agent source on homepage and organization-sync requests
+-   Durable job worker/database optimization:
+    -   replaced the select-then-update queued job claim path with a single SQL statement using `FOR UPDATE SKIP LOCKED`
+    -   added a backwards-compatible migration `2026-03-0300-user-chat-worker-performance.sql` with indexes for:
+        -   running user-chat job lease scans
+        -   queued uncancelled user-chat job scans
+        -   running user-chat timeout lease scans
+        -   queued unpaused user-chat timeout scans
+    -   reduced assistant progress persistence cadence from `500 ms` to `1 s`
+-   Chat UI / stream pressure reduction:
+    -   the canonical active-chat stream now stays open only while the active chat actually has running work
+    -   increased stream polling cadence to `1 s` while active and `15 s` while idle
+    -   slowed fallback refresh for truly idle chats to `60 s`
+    -   made timeout-driven refresh cadence adaptive:
+        -   `5 s` only when a timeout is near due
+        -   `30 s` for longer scheduled timeouts
+-   API key validation:
+    -   switched `validateApiKey.ts` to reuse the shared server Supabase client instead of creating a new one for every validation
+
+## Remaining plan / not fixed yet
+
+-   `UserChat` persistence still writes large transcript payloads. On long conversations this remains more expensive than ideal, because progress updates still rewrite the chat row. A larger future fix would split message storage from other mutable chat state or normalize messages into their own table.
+-   True custom-domain requests still need registry/custom-domain resolution in middleware. If custom-domain traffic becomes hot, the next step should be a shared/external cache or a precomputed host-routing map instead of only process-local caching.
+-   Runtime caches are still process-local. They help warm instances a lot, but they do not survive cold starts and they do not deduplicate work across multiple server instances.
+-   Chat detail and timeout visibility are still poll-based. If Supabase pressure is still too high after this change set, the next major step should be event-driven invalidation or a push/realtime transport instead of periodic polling.
+-   There is still not enough production query telemetry around the hot paths. Adding query timing and database-stat visibility would make future regressions much easier to detect before Supabase becomes unhealthy.
+-   `npm run test-e2e` still has one unresolved cold-load failure in `api-authorization.spec.ts`: anonymous `page.goto('/')` can time out while the homepage remains in its loading shell. The failing assertion is not the metadata API check itself; the remaining issue is the initial anonymous homepage load path and should be investigated separately from the Supabase overload fixes above.
+-   I did not change timeout semantics, agent behavior, or external APIs in this task. The work here is focused on eliminating repeated work, reducing database pressure, and improving response latency without changing functionality.

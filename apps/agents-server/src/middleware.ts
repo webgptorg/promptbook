@@ -1,5 +1,4 @@
 import { TODO_any } from '@promptbook-local/types';
-import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { SUPABASE_TABLE_PREFIX } from '../config';
 import { RESERVED_PATHS } from './generated/reservedPaths';
@@ -7,7 +6,11 @@ import { buildAgentNameOrIdFilter } from './utils/agentIdentifier';
 import { isAgentVisibility, isPublicAgentVisibility, type AgentVisibility } from './utils/agentVisibility';
 import { resolveCustomDomainAgent, type CustomDomainResolution } from './utils/customDomainRouting';
 import { isIpAllowed } from './utils/isIpAllowed';
-import { listRegisteredServers, resolveRegisteredServerByHost } from './utils/serverRegistry';
+import {
+    getServerRegistryClient,
+    listRegisteredServersUsingServiceRole,
+    resolveRegisteredServerByHost,
+} from './utils/serverRegistry';
 import {
     DEFAULT_SERVER_VISIBILITY,
     isPublicServerVisibility,
@@ -16,7 +19,53 @@ import {
     type ServerVisibility,
 } from './utils/serverVisibility';
 
+/**
+ * Metadata cache lifetime reused by middleware across short bursts of requests.
+ *
+ * @private middleware optimization guard
+ */
+const MIDDLEWARE_METADATA_CACHE_TTL_MS = 30_000;
+
+/**
+ * Exact request paths that can safely bypass middleware database lookups.
+ *
+ * These routes already resolve their own visibility and server context and should
+ * not block on routing metadata when Supabase is under pressure.
+ *
+ * @private middleware optimization guard
+ */
+const MIDDLEWARE_DATABASE_BYPASS_PATHS = new Set(['/robots.txt', '/sitemap.xml', '/humans.txt', '/manifest.webmanifest']);
+
+/**
+ * Shared cached metadata snapshot keyed by server table prefix.
+ *
+ * @private middleware optimization guard
+ */
+const middlewareMetadataCache = new Map<
+    string,
+    {
+        readonly loadedAt: number;
+        readonly valuesPromise: Promise<Map<string, string | null>>;
+    }
+>();
+
 export async function middleware(req: NextRequest) {
+    // Handle OPTIONS (preflight) requests globally without touching the database.
+    if (req.method === 'OPTIONS') {
+        return new NextResponse(null, {
+            status: 200,
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Request-Id',
+            },
+        });
+    }
+
+    if (shouldBypassMiddlewareDatabaseWork(req)) {
+        return NextResponse.next();
+    }
+
     // 1. Get client IP
     let ip = (req as TODO_any).ip;
     const xForwardedFor = req.headers.get('x-forwarded-for');
@@ -37,20 +86,21 @@ export async function middleware(req: NextRequest) {
     let embeddingAllowedMetadata: string | null = null;
     let serverVisibilityMetadata: string | null = null;
 
+    const isHtmlPageRequest = isHtmlRequest(req);
+    const needsEmbeddingHeader = isEmbedChatRequest(req.nextUrl);
     const host = req.headers.get('host');
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    const supabase =
-        supabaseUrl && supabaseKey
-            ? createClient(supabaseUrl, supabaseKey, {
-                  auth: {
-                      persistSession: false,
-                      autoRefreshToken: false,
-                  },
-              })
-            : null;
+    const shouldReadMiddlewareMetadata =
+        !allowedIpsEnv || needsEmbeddingHeader || (isHtmlPageRequest && !process.env.SERVER_VISIBILITY);
+    let supabase: TODO_any | null = null;
+    let registeredServers: Awaited<ReturnType<typeof listRegisteredServersUsingServiceRole>> = [];
 
-    const registeredServers = supabase ? await listRegisteredServers(supabase) : [];
+    try {
+        registeredServers = host ? await listRegisteredServersUsingServiceRole() : [];
+        supabase = getServerRegistryClient();
+    } catch (error) {
+        console.error('Error initializing middleware Supabase access:', error);
+    }
+
     const hasRegisteredServers = registeredServers.length > 0;
     const registeredServer = resolveRegisteredServerByHost(host, registeredServers);
     let customDomainResolution: CustomDomainResolution | null = null;
@@ -77,24 +127,24 @@ export async function middleware(req: NextRequest) {
 
     if (supabase && canQueryServerTables) {
         try {
-            const { data } = await supabase
-                .from(`${tablePrefixForRequest}Metadata`)
-                .select('key, value')
-                .in('key', ['RESTRICT_IP', 'IS_EMBEDDING_ALLOWED', SERVER_VISIBILITY_METADATA_KEY]);
+            if (shouldReadMiddlewareMetadata) {
+                const metadata = await loadCachedMiddlewareMetadata({
+                    supabase,
+                    tablePrefixForRequest,
+                });
 
-            if (Array.isArray(data)) {
-                for (const row of data) {
-                    const key = row?.key;
-                    const value = row?.value;
-                    if (key === 'RESTRICT_IP' && typeof value === 'string' && value !== '') {
-                        allowedIpsMetadata = value;
-                    }
-                    if (key === 'IS_EMBEDDING_ALLOWED' && typeof value === 'string') {
-                        embeddingAllowedMetadata = value;
-                    }
-                    if (key === SERVER_VISIBILITY_METADATA_KEY && typeof value === 'string') {
-                        serverVisibilityMetadata = value;
-                    }
+                const restrictIpMetadata = metadata.get('RESTRICT_IP');
+                const embeddingMetadata = metadata.get('IS_EMBEDDING_ALLOWED');
+                const visibilityMetadata = metadata.get(SERVER_VISIBILITY_METADATA_KEY);
+
+                if (typeof restrictIpMetadata === 'string' && restrictIpMetadata !== '') {
+                    allowedIpsMetadata = restrictIpMetadata;
+                }
+                if (typeof embeddingMetadata === 'string') {
+                    embeddingAllowedMetadata = embeddingMetadata;
+                }
+                if (typeof visibilityMetadata === 'string') {
+                    serverVisibilityMetadata = visibilityMetadata;
                 }
             }
         } catch (error) {
@@ -120,22 +170,24 @@ export async function middleware(req: NextRequest) {
         });
     };
 
-    let isValidToken = false;
     const authHeader = req.headers.get('authorization');
+    const isIpAllowedResult = isIpAllowed(ip, allowedIps);
+    const isLoggedIn = req.cookies.has('sessionToken');
+    let isValidToken = false;
 
-    if (authHeader && authHeader.startsWith('Bearer ')) {
+    if (!isIpAllowedResult && !isLoggedIn && authHeader && authHeader.startsWith('Bearer ')) {
         const token = authHeader.split(' ')[1];
 
         if (token && token.startsWith('ptbk_') && supabase && canQueryServerTables) {
             try {
-                const { data } = await supabase
+                const { data, error } = await supabase
                     .from(`${tablePrefixForRequest}ApiTokens`)
                     .select('id')
                     .eq('token', token)
                     .eq('isRevoked', false)
-                    .single();
+                    .maybeSingle();
 
-                if (data) {
+                if (!error && data) {
                     isValidToken = true;
                 }
             } catch (error) {
@@ -144,21 +196,7 @@ export async function middleware(req: NextRequest) {
         }
     }
 
-    const isIpAllowedResult = isIpAllowed(ip, allowedIps);
-    const isLoggedIn = req.cookies.has('sessionToken');
     const isAccessRestricted = !isIpAllowedResult && !isLoggedIn && !isValidToken;
-
-    // Handle OPTIONS (preflight) requests globally
-    if (req.method === 'OPTIONS') {
-        return new NextResponse(null, {
-            status: 200,
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Request-Id',
-            },
-        });
-    }
 
     if (isAccessRestricted) {
         const path = req.nextUrl.pathname;
@@ -487,4 +525,70 @@ function applyEmbeddingHeader(response: NextResponse, url: URL, isAllowed: boole
 
     response.headers.set('Content-Security-Policy', "frame-ancestors 'none'");
     response.headers.set('X-Frame-Options', 'DENY');
+}
+
+/**
+ * Returns true when the middleware should skip all database-backed routing work.
+ *
+ * @param request - Incoming middleware request.
+ * @returns Whether middleware should hand the request directly to the route.
+ */
+function shouldBypassMiddlewareDatabaseWork(request: NextRequest): boolean {
+    const pathname = request.nextUrl.pathname;
+
+    if (pathname.startsWith('/api/internal/')) {
+        return true;
+    }
+
+    return MIDDLEWARE_DATABASE_BYPASS_PATHS.has(pathname);
+}
+
+/**
+ * Loads the middleware metadata snapshot with a short in-memory cache.
+ *
+ * @param options - Metadata lookup context.
+ * @returns Metadata values keyed by `Metadata.key`.
+ */
+async function loadCachedMiddlewareMetadata(options: {
+    supabase: Pick<TODO_any, 'from'>;
+    tablePrefixForRequest: string;
+}): Promise<Map<string, string | null>> {
+    const cacheKey = options.tablePrefixForRequest;
+    const cachedEntry = middlewareMetadataCache.get(cacheKey);
+
+    if (cachedEntry && Date.now() - cachedEntry.loadedAt < MIDDLEWARE_METADATA_CACHE_TTL_MS) {
+        return cachedEntry.valuesPromise;
+    }
+
+    const valuesPromise = (async (): Promise<Map<string, string | null>> => {
+        const { data, error } = await options.supabase
+            .from(`${options.tablePrefixForRequest}Metadata`)
+            .select('key, value')
+            .in('key', ['RESTRICT_IP', 'IS_EMBEDDING_ALLOWED', SERVER_VISIBILITY_METADATA_KEY]);
+
+        if (error) {
+            throw error;
+        }
+
+        const metadata = new Map<string, string | null>();
+        for (const row of data || []) {
+            metadata.set(row.key, row.value);
+        }
+
+        return metadata;
+    })().catch((error) => {
+        const latestEntry = middlewareMetadataCache.get(cacheKey);
+        if (latestEntry?.valuesPromise === valuesPromise) {
+            middlewareMetadataCache.delete(cacheKey);
+        }
+
+        throw error;
+    });
+
+    middlewareMetadataCache.set(cacheKey, {
+        loadedAt: Date.now(),
+        valuesPromise,
+    });
+
+    return valuesPromise;
 }

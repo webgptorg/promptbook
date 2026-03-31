@@ -8,12 +8,12 @@ import { resolveUserChatScope } from '../../resolveUserChatScope';
 /**
  * Faster refresh cadence used while the active chat still has background work in flight.
  */
-const ACTIVE_USER_CHAT_STREAM_POLL_INTERVAL_MS = 500;
+const ACTIVE_USER_CHAT_STREAM_POLL_INTERVAL_MS = 1_000;
 
 /**
  * Lower refresh cadence used when the active chat is idle.
  */
-const IDLE_USER_CHAT_STREAM_POLL_INTERVAL_MS = 5_000;
+const IDLE_USER_CHAT_STREAM_POLL_INTERVAL_MS = 15_000;
 
 /**
  * Allows one chat-stream response to stay open for the platform maximum.

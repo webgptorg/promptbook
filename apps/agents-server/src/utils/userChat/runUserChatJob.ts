@@ -55,7 +55,7 @@ const USER_CHAT_JOB_HEARTBEAT_INTERVAL_MS = 5_000;
  *
  * @private function of `userChat`
  */
-const USER_CHAT_JOB_ASSISTANT_MESSAGE_PERSIST_INTERVAL_MS = 500;
+const USER_CHAT_JOB_ASSISTANT_MESSAGE_PERSIST_INTERVAL_MS = 1_000;
 
 /**
  * Error name used when a running durable chat job is cancelled.

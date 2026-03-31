@@ -2,16 +2,22 @@
 
 import type { AgentCollection } from '../../../../src/collection/agent-collection/AgentCollection';
 import { AgentCollectionInSupabase } from '../../../../src/collection/agent-collection/constructors/agent-collection-in-supabase/AgentCollectionInSupabase';
-import { just } from '../../../../src/utils/organization/just';
 import { $provideSupabaseForServer } from '../database/$provideSupabaseForServer';
 import { $provideServer } from './$provideServer';
 
 /**
- * Cache of provided agent collection
+ * Cache of provided agent collections keyed by table prefix.
  *
  * @private internal cache for `$provideAgentCollectionForServer`
  */
-let agentCollection: null | AgentCollection = null;
+const agentCollectionsByTablePrefix = new Map<string, AgentCollection>();
+
+/**
+ * In-flight collection initialization keyed by table prefix.
+ *
+ * @private internal cache for `$provideAgentCollectionForServer`
+ */
+const pendingAgentCollectionsByTablePrefix = new Map<string, Promise<AgentCollection>>();
 
 /**
  * [🐱‍🚀]
@@ -23,47 +29,45 @@ export async function $provideAgentCollectionForServer(): Promise<AgentCollectio
 
     const isVerbose = false; // true; // <- TODO: [🐱‍🚀] Pass
 
-    if (agentCollection !== null && just(false /* <- TODO: [🐱‍🚀] Fix caching */)) {
-        // console.info('[🐱‍🚀] Returning cached agent collection');
-        return agentCollection;
-        // TODO: [🐱‍🚀] Be aware of options changes
+    const { publicUrl, tablePrefix } = await $provideServer();
+    const cachedAgentCollection = agentCollectionsByTablePrefix.get(tablePrefix);
+
+    if (cachedAgentCollection !== undefined) {
+        return cachedAgentCollection;
     }
 
-    // console.info('[🐱‍🚀] Creating NEW agent collection');
+    const pendingAgentCollection = pendingAgentCollectionsByTablePrefix.get(tablePrefix);
+    if (pendingAgentCollection) {
+        return pendingAgentCollection;
+    }
 
-    /*
-    // TODO: [🧟‍♂️][◽] DRY:
-    const collection = new AgentCollectionInDirectory(path, tools, {
-        isVerbose,
-        isRecursive: true,
-        isLazyLoaded: false,
-        isCrashedOnError: true,
-        // <- TODO: [🍖] Add `intermediateFilesStrategy`
-    });
-    */
+    const initialization = (async (): Promise<AgentCollection> => {
+        const supabase = $provideSupabaseForServer();
 
-    const supabase = $provideSupabaseForServer();
-    const { publicUrl, tablePrefix } = await $provideServer();
+        const providedCollection = new AgentCollectionInSupabase(supabase, {
+            isVerbose,
+            tablePrefix,
+        });
 
-    const providedCollection = new AgentCollectionInSupabase(supabase, {
-        isVerbose,
-        tablePrefix,
-    });
+        const [{ attachAgentPreparationScheduling }, { scheduleDefaultFederatedAgentsSync }] = await Promise.all([
+            import('../utils/attachAgentPreparationScheduling'),
+            import('../utils/defaultFederatedAgents/scheduleDefaultFederatedAgentsSync'),
+        ]);
 
-    agentCollection = providedCollection;
+        attachAgentPreparationScheduling(providedCollection, { tablePrefix });
+        scheduleDefaultFederatedAgentsSync({
+            tablePrefix,
+            localServerUrl: publicUrl.href,
+        });
 
-    const [{ attachAgentPreparationScheduling }, { scheduleDefaultFederatedAgentsSync }] = await Promise.all([
-        import('../utils/attachAgentPreparationScheduling'),
-        import('../utils/defaultFederatedAgents/scheduleDefaultFederatedAgentsSync'),
-    ]);
-
-    attachAgentPreparationScheduling(providedCollection, { tablePrefix });
-    scheduleDefaultFederatedAgentsSync({
-        tablePrefix,
-        localServerUrl: publicUrl.href,
+        agentCollectionsByTablePrefix.set(tablePrefix, providedCollection);
+        return providedCollection;
+    })().finally(() => {
+        pendingAgentCollectionsByTablePrefix.delete(tablePrefix);
     });
 
-    return agentCollection;
+    pendingAgentCollectionsByTablePrefix.set(tablePrefix, initialization);
+    return initialization;
 }
 
 /**

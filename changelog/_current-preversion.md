@@ -1,3 +1,13 @@
+-   Fixed critical Agents Server Supabase overload/crash behavior and improved chat responsiveness by reducing repeated database work in the hottest paths:
+
+    -   Bypassed database-heavy middleware work for internal worker routes and cheap public text routes (`/api/internal/*`, `robots.txt`, `sitemap.xml`, `humans.txt`, `manifest.webmanifest`), added short-lived middleware metadata caching, and avoided unnecessary bearer-token validation queries.
+    -   Restored real per-server agent-collection caching so the server no longer recreates the collection and re-schedules default federated sync work on repeated accesses.
+    -   Stopped homepage/organization listing requests from resolving every stored agent source and now reuse the persisted `Agent.agentProfile` snapshot for those simple directory views.
+    -   Increased hot-path server-agent runtime/model-requirements cache lifetimes and stopped chat-side preparation waits from eagerly kicking the preparation worker.
+    -   Replaced queued durable chat job claiming with a single `FOR UPDATE SKIP LOCKED` SQL claim, added new worker-supporting database indexes in `2026-03-0300-user-chat-worker-performance.sql`, and reduced assistant progress snapshot write frequency.
+    -   Reduced idle chat polling pressure by keeping the canonical chat stream open only while work is active, slowing idle stream polling, and making fallback chat refresh cadence adaptive to active jobs/timeouts.
+    -   Documented the analysis, implemented fixes, and remaining future work in [2026-03-1560-agents-server-optimize.notes-1.md](../prompts/2026-03-1560-agents-server-optimize.notes-1.md).
+
 -   Fixed Agents Server durable user-chat persistence when a chat disappears mid-save so missing chat rows no longer surface raw internal `mutate_chat` diagnostics to users:
 
     -   Durable worker finalization now treats `USER_CHAT_NOT_FOUND` as a delete/navigation race, finalizes the queued job cleanly, and skips rethrowing the internal persistence diagnostic.

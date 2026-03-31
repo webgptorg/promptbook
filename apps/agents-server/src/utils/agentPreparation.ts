@@ -31,7 +31,7 @@ const AGENT_PREPARATION_WAKEUP_BUFFER_MS = 100;
 /**
  * Maximum wait for chat routes that decide to wait for a currently running preparation.
  */
-export const AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS = 2_500;
+export const AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS = 1_000;
 
 /**
  * Default polling interval used while waiting for a running preparation.
@@ -271,6 +271,14 @@ function registerAgentPreparationPrefix(tablePrefix: string): void {
     ACTIVE_TABLE_PREFIXES.add(normalizeTablePrefix(tablePrefix));
     ensureAgentPreparationWorkerRunning();
     kickAgentPreparationWorkerTick();
+}
+
+/**
+ * Registers a prefix for future worker processing without forcing an immediate tick.
+ */
+function registerAgentPreparationPrefixWithoutKick(tablePrefix: string): void {
+    ACTIVE_TABLE_PREFIXES.add(normalizeTablePrefix(tablePrefix));
+    ensureAgentPreparationWorkerRunning();
 }
 
 /**
@@ -927,7 +935,7 @@ export async function waitForRunningAgentPreparation(
     options: WaitForRunningAgentPreparationOptions,
 ): Promise<WaitForRunningAgentPreparationResult> {
     const tablePrefix = normalizeTablePrefix(options.tablePrefix);
-    registerAgentPreparationPrefix(tablePrefix);
+    registerAgentPreparationPrefixWithoutKick(tablePrefix);
 
     const timeoutMs = Math.max(0, options.timeoutMs);
     const pollIntervalMs = Math.max(50, options.pollIntervalMs ?? AGENT_PREPARATION_WAIT_POLL_INTERVAL_MS);
