@@ -68,11 +68,11 @@ $ npx ptbk coder initialize
 
 ---
 
-[-]
+[ ]
 
-[✨🚼] bar
+[✨🚼] Do not fail `ptbk coder run` when `CODING_AGENT_` env not set
 
--   @@@
+-   When `CODING_AGENT_GIT_NAME`, `CODING_AGENT_GIT_EMAIL`, `CODING_AGENT_GPG_KEY_ID` or `CODING_AGENT_GIT_SIGNING_KEY` not set, just use default git config and after `ptbk coder run` finishes show the tip to set these variables for better commit history, but do not fail or throw an error, just show a cyan tip message in the console.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Promptbook CLI](src/cli/test/ptbk.ts)
@@ -125,5 +125,3 @@ $ npx ptbk coder initialize
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Promptbook CLI](src/cli/test/ptbk.ts)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
-
