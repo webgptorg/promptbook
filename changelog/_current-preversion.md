@@ -28,11 +28,11 @@
     -   Updated `apps/agents-server/scripts/prerender-homepage.js` to wait for the `next start` readiness log instead of probing HTTP routes that still execute Agents Server middleware.
     -   Kept the homepage snapshot attempt, but made it best-effort so builds continue when `/` cannot be captured within the bounded timeout because server-side federated agent resolution is hanging or too slow.
 
--   Unified the Agents Server mobile app menu with the chat-specific **My chats** navigation so mobile chat pages now use one shared header hamburger menu:
+-   Unified the Agents Server mobile app menu with the chat-specific **My chats** navigation so mobile pages now use one shared left-side drawer:
 
-    -   Extended the shared menu-hoisting context so pages can contribute mobile-only menu sections in addition to hoisted icon actions.
-    -   Wired the chat history page to hoist a **My chats** section into the shared mobile header menu, including new-chat, chat-pickup, delete, and filter controls.
-    -   Removed the duplicate mobile chat-sidebar trigger/overlay path while leaving the existing desktop chat sidebar behavior unchanged.
+    -   Added an app-local mobile menu hoisting context, following the same registration pattern as the existing book-menu hoisting, so route-specific mobile drawer sections can be contributed without duplicating header logic.
+    -   Reworked the mobile header menu from a top dropdown into a left drawer, moved the hamburger to the left side of the header, and added left-edge swipe opening while leaving desktop navigation unchanged.
+    -   Wired both the agent chat page and the agent profile page to hoist a **My chats** section into the shared mobile drawer, and removed the duplicate mobile chat-sidebar trigger/overlay while preserving the existing desktop chat sidebar.
 
 -   Optimized Agents Server agent chat preparation so repeated chats stop paying the same setup cost on every message:
 

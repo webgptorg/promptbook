@@ -14,6 +14,7 @@ import { $createAgentFromBookAction } from '../../../app/actions';
 import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
 import { showAlert } from '../../../components/AsyncDialogs/asyncDialogs';
 import { useChatEnterBehaviorPreferences } from '../../../components/ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
+import { useHoistedMobileMenuItems } from '../../../components/MobileMenuHoisting/MobileMenuHoistingContext';
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { executeQuickActionButton } from '../../../utils/chat/executeQuickActionButton';
@@ -21,6 +22,7 @@ import { resolveChatMessageValidationIssue } from '../../../utils/chat/validateC
 import { createDefaultSpeechRecognition } from '../../../utils/speech-to-text/createDefaultSpeechRecognition';
 import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
 import { fetchUserChats, type UserChatSummary } from '../../../utils/userChatClient';
+import { createMyChatsMobileMenuItem } from './chat/createMyChatsMobileMenuItem';
 import { setPendingProfileMessage } from './profileMessageCache';
 
 /**
@@ -168,6 +170,7 @@ export function AgentProfileChat({
     const router = useRouter();
     const [isCreatingAgent, setIsCreatingAgent] = useState(false);
     const [isNavigatingToChat, setIsNavigatingToChat] = useState(false);
+    const [isLoadingExistingChats, setIsLoadingExistingChats] = useState(false);
     const [existingChats, setExistingChats] = useState<Array<UserChatSummary>>([]);
     const { formatText } = useAgentNaming();
     const { enterBehavior, resolveEnterBehavior } = useChatEnterBehaviorPreferences();
@@ -195,6 +198,7 @@ export function AgentProfileChat({
     useEffect(() => {
         if (!isHistoryEnabled || isPrivateModeEnabled) {
             setExistingChats([]);
+            setIsLoadingExistingChats(false);
             return;
         }
 
@@ -202,6 +206,7 @@ export function AgentProfileChat({
 
         async function loadExistingChats(): Promise<void> {
             try {
+                setIsLoadingExistingChats(true);
                 const snapshot = await fetchUserChats(agentName);
                 if (!isActive) {
                     return;
@@ -209,6 +214,10 @@ export function AgentProfileChat({
                 setExistingChats(snapshot.chats);
             } catch (error) {
                 console.error('[AgentProfileChat] Failed to load existing chats', error);
+            } finally {
+                if (isActive) {
+                    setIsLoadingExistingChats(false);
+                }
             }
         }
 
@@ -279,6 +288,36 @@ export function AgentProfileChat({
         },
         [chatRoute, navigateToDestination],
     );
+    const mobileMenuItems = useMemo(
+        () => [
+            createMyChatsMobileMenuItem({
+                formatText,
+                chats: existingChats,
+                isLoading: isLoadingExistingChats,
+                isHistoryEnabled,
+                isPrivateModeEnabled,
+                formatChatTimestamp: formatRelativeTimeLabel,
+                currentTimestamp: Date.now(),
+                onOpenChat: (chatId) => {
+                    void handleContinueChat(chatId);
+                },
+                onCreateChat: () => {
+                    void navigateToChat({ shouldForceNewChat: true });
+                },
+            }),
+        ],
+        [
+            existingChats,
+            formatText,
+            handleContinueChat,
+            isHistoryEnabled,
+            isLoadingExistingChats,
+            isPrivateModeEnabled,
+            navigateToChat,
+        ],
+    );
+
+    useHoistedMobileMenuItems(mobileMenuItems);
 
     const isSpeechFeaturesEnabled = agent?.isVoiceTtsSttEnabled ?? false;
     const speechRecognition = useMemo(() => {
