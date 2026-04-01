@@ -21,6 +21,7 @@ import type { AgentChipData } from '../book-components/Chat/AgentChip/AgentChip'
 import type { AgentChipProps } from '../book-components/Chat/AgentChip/AgentChip';
 import type { ChatFeedbackResponse } from '../book-components/Chat/Chat/ChatProps';
 import type { ChatFeedbackMode } from '../book-components/Chat/Chat/ChatProps';
+import type { ChatFeedbackTranslations } from '../book-components/Chat/Chat/ChatProps';
 import type { ChatSoundSystem } from '../book-components/Chat/Chat/ChatProps';
 import type { ChatProps } from '../book-components/Chat/Chat/ChatProps';
 import type { ChatSoundToggleProps } from '../book-components/Chat/Chat/ChatSoundToggle';
@@ -447,6 +448,7 @@ export type { AgentChipData };
 export type { AgentChipProps };
 export type { ChatFeedbackResponse };
 export type { ChatFeedbackMode };
+export type { ChatFeedbackTranslations };
 export type { ChatSoundSystem };
 export type { ChatProps };
 export type { ChatSoundToggleProps };
