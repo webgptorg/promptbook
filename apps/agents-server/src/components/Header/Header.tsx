@@ -920,10 +920,28 @@ export function Header(props: HeaderProps) {
         className: string,
         style: CSSProperties,
     ) => {
+        if (item.href) {
+            return (
+                <HeadlessLink
+                    key={itemKey}
+                    href={item.href}
+                    className={className}
+                    style={style}
+                    onClick={() => {
+                        void item.onClick?.();
+                        setIsMenuOpen(false);
+                    }}
+                >
+                    {renderSubMenuItemLabel(item)}
+                </HeadlessLink>
+            );
+        }
+
         if (item.onClick) {
             return (
                 <button
                     key={itemKey}
+                    type="button"
                     className={`${className} w-full text-left`}
                     style={style}
                     onClick={() => {
@@ -933,20 +951,6 @@ export function Header(props: HeaderProps) {
                 >
                     {renderSubMenuItemLabel(item)}
                 </button>
-            );
-        }
-
-        if (item.href) {
-            return (
-                <HeadlessLink
-                    key={itemKey}
-                    href={item.href}
-                    className={className}
-                    style={style}
-                    onClick={() => setIsMenuOpen(false)}
-                >
-                    {renderSubMenuItemLabel(item)}
-                </HeadlessLink>
             );
         }
 
@@ -1015,10 +1019,27 @@ export function Header(props: HeaderProps) {
         className: string,
         onItemSelected: () => void,
     ) => {
+        if (item.href) {
+            return (
+                <HeadlessLink
+                    key={key}
+                    href={item.href}
+                    className={className}
+                    onClick={() => {
+                        void item.onClick?.();
+                        onItemSelected();
+                    }}
+                >
+                    {renderSubMenuItemLabel(item)}
+                </HeadlessLink>
+            );
+        }
+
         if (item.onClick) {
             return (
                 <button
                     key={key}
+                    type="button"
                     onClick={() => {
                         void item.onClick?.();
                         onItemSelected();
@@ -1027,14 +1048,6 @@ export function Header(props: HeaderProps) {
                 >
                     {renderSubMenuItemLabel(item)}
                 </button>
-            );
-        }
-
-        if (item.href) {
-            return (
-                <HeadlessLink key={key} href={item.href} className={className} onClick={onItemSelected}>
-                    {renderSubMenuItemLabel(item)}
-                </HeadlessLink>
             );
         }
 

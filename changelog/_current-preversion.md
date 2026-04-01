@@ -1,3 +1,9 @@
+-   Fixed Agents Server **My chats** navigation no-op clicks so links consistently route with Next.js client-side navigation:
+
+    -   Added optional `href` support to hoisted mobile **My chats** items and kept optional click callbacks for side effects.
+    -   Updated header leaf rendering to prioritize `href` navigation even when submenu items also define `onClick`.
+    -   Switched agent-profile **My chats** cards to client-side links and added a safe fallback when view transitions reject overlapping route updates.
+
 -   Refined Agents Server mobile header left drawer behavior and visual hierarchy:
 
     -   Switched mobile drawer + backdrop positioning to viewport-fixed layers so opening the drawer no longer gets cropped by header layout constraints.

@@ -17,6 +17,7 @@ import { useChatEnterBehaviorPreferences } from '../../../components/ChatEnterBe
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 import { createMyChatsMobileMenuItem } from '../../../components/Header/createMyChatsMobileMenuItem';
 import { useHoistedMobileMenuItems } from '../../../components/Header/MobileMenuHoistingContext';
+import { HeadlessLink } from '../../../components/_utils/headlessParam';
 import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { executeQuickActionButton } from '../../../utils/chat/executeQuickActionButton';
 import { resolveChatMessageValidationIssue } from '../../../utils/chat/validateChatMessageContent';
@@ -147,7 +148,12 @@ function runRouteTransition(updateCallback: () => void): void {
         return;
     }
 
-    documentWithViewTransition.startViewTransition(updateCallback);
+    try {
+        documentWithViewTransition.startViewTransition(updateCallback);
+    } catch {
+        // Fall back to direct navigation if the browser rejects overlapping view transitions.
+        updateCallback();
+    }
 }
 
 /**
@@ -273,14 +279,19 @@ export function AgentProfileChat({
         },
         [agentName, navigateToChat],
     );
-
-    const handleContinueChat = useCallback(
-        (chatId: string) => {
-            const destination = `${chatRoute}?chat=${encodeURIComponent(chatId)}`;
-            return navigateToDestination(destination);
-        },
-        [chatRoute, navigateToDestination],
+    const resolveExistingChatHref = useCallback(
+        (chatId: string) => `${chatRoute}?chat=${encodeURIComponent(chatId)}`,
+        [chatRoute],
     );
+    const newChatHref = useMemo(() => {
+        if (!isHistoryEnabled) {
+            return chatRoute;
+        }
+
+        const queryParams = new URLSearchParams();
+        queryParams.set(FORCE_NEW_CHAT_QUERY_PARAM, '1');
+        return `${chatRoute}?${queryParams.toString()}`;
+    }, [chatRoute, isHistoryEnabled]);
     const hoistedMobileMenuItems = useMemo(
         () =>
             !isDeleted && isHistoryEnabled && !isPrivateModeEnabled
@@ -288,11 +299,13 @@ export function AgentProfileChat({
                       createMyChatsMobileMenuItem({
                           formatText,
                           chats: existingChats,
-                          onSelectChat: (chatId) => {
-                              void handleContinueChat(chatId);
+                          resolveChatHref: resolveExistingChatHref,
+                          onSelectChat: () => {
+                              setIsNavigatingToChat(true);
                           },
+                          newChatHref,
                           onCreateChat: () => {
-                              void navigateToChat({ shouldForceNewChat: true });
+                              setIsNavigatingToChat(true);
                           },
                       }),
                   ]
@@ -300,11 +313,11 @@ export function AgentProfileChat({
         [
             existingChats,
             formatText,
-            handleContinueChat,
             isDeleted,
             isHistoryEnabled,
             isPrivateModeEnabled,
-            navigateToChat,
+            newChatHref,
+            resolveExistingChatHref,
         ],
     );
 
@@ -377,7 +390,10 @@ export function AgentProfileChat({
                     <ExistingChatsPanel
                         chats={existingChats}
                         formatText={formatText}
-                        onOpenChat={(chatId) => void handleContinueChat(chatId)}
+                        resolveChatHref={resolveExistingChatHref}
+                        onNavigateToChat={() => {
+                            setIsNavigatingToChat(true);
+                        }}
                         brandColorHex={brandColorHex}
                     />
                 )
@@ -439,7 +455,8 @@ export function AgentProfileChat({
 type ExistingChatsPanelProps = {
     chats: ReadonlyArray<UserChatSummary>;
     formatText: (text: string) => string;
-    onOpenChat: (chatId: string) => void;
+    resolveChatHref: (chatId: string) => string;
+    onNavigateToChat: () => void;
     brandColorHex: string_color;
 };
 
@@ -487,7 +504,13 @@ function PrivateModeChatPanel({ formatText, brandColorHex }: PrivateModeChatPane
  *
  * @private Profile chat helper.
  */
-function ExistingChatsPanel({ chats, formatText, onOpenChat, brandColorHex }: ExistingChatsPanelProps) {
+function ExistingChatsPanel({
+    chats,
+    formatText,
+    resolveChatHref,
+    onNavigateToChat,
+    brandColorHex,
+}: ExistingChatsPanelProps) {
     const scrollViewportHeight =
         PROFILE_VISIBLE_CHAT_ROWS * PROFILE_CHAT_ROW_HEIGHT_PX +
         (PROFILE_VISIBLE_CHAT_ROWS - 1) * PROFILE_CHAT_ROW_GAP_PX;
@@ -521,10 +544,10 @@ function ExistingChatsPanel({ chats, formatText, onOpenChat, brandColorHex }: Ex
                         const titleWithPreview = chat.preview ? `${title} — ${chat.preview}` : title;
 
                         return (
-                            <button
+                            <HeadlessLink
                                 key={chat.id}
-                                type="button"
-                                onClick={() => onOpenChat(chat.id)}
+                                href={resolveChatHref(chat.id)}
+                                onClick={onNavigateToChat}
                                 title={titleWithPreview}
                                 className="flex w-full flex-col gap-2 rounded-2xl border border-slate-200/70 bg-white/90 px-4 py-3 text-left shadow-sm shadow-slate-900/10 transition duration-150 hover:border-slate-400 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500/80 min-h-[96px]"
                             >
@@ -547,7 +570,7 @@ function ExistingChatsPanel({ chats, formatText, onOpenChat, brandColorHex }: Ex
                                     </time>
                                 </div>
                                 <p className="text-[0.74rem] font-medium text-slate-500 line-clamp-2">{previewText}</p>
-                            </button>
+                            </HeadlessLink>
                         );
                     })}
                 </div>

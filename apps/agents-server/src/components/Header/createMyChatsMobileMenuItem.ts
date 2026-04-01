@@ -28,9 +28,17 @@ type CreateMyChatsMobileMenuItemOptions = {
      */
     readonly activeChatId?: string | null;
     /**
-     * Opens the selected chat in the current page state.
+     * Optional Next.js route destination builder for one selected chat.
      */
-    readonly onSelectChat: (chatId: string) => void;
+    readonly resolveChatHref?: (chatId: string) => string;
+    /**
+     * Optional callback fired when one chat row is selected.
+     */
+    readonly onSelectChat?: (chatId: string) => void;
+    /**
+     * Optional Next.js route destination for creating a new chat.
+     */
+    readonly newChatHref?: string;
     /**
      * Optional action that creates a fresh chat thread.
      */
@@ -61,23 +69,32 @@ export function createMyChatsMobileMenuItem(options: CreateMyChatsMobileMenuItem
     const hasTruncatedChats = options.chats.length > visibleChats.length;
     const hiddenChatsCount = options.chats.length - visibleChats.length;
 
-    const chatItems: Array<SubMenuItem> = visibleChats.map((chat) => ({
-        label: resolveMyChatsItemLabel(chat, options.formatText, options.activeChatId || null),
-        icon: MessageSquareIcon,
-        isBold: chat.id === options.activeChatId,
-        onClick: () => {
-            options.onSelectChat(chat.id);
-        },
-    }));
+    const chatItems: Array<SubMenuItem> = visibleChats.map((chat) => {
+        const chatHref = options.resolveChatHref?.(chat.id);
+        const handleChatSelect = options.onSelectChat
+            ? () => {
+                  options.onSelectChat?.(chat.id);
+              }
+            : undefined;
+
+        return {
+            label: resolveMyChatsItemLabel(chat, options.formatText, options.activeChatId || null),
+            icon: MessageSquareIcon,
+            isBold: chat.id === options.activeChatId,
+            href: chatHref,
+            onClick: handleChatSelect,
+        };
+    });
 
     const items: Array<SubMenuItem> = [];
 
-    if (options.onCreateChat) {
+    if (options.onCreateChat || options.newChatHref) {
         items.push({
             label: options.formatText('New chat'),
             icon: MessageSquarePlusIcon,
             isBold: true,
             isBordered: chatItems.length > 0,
+            href: options.newChatHref,
             onClick: options.onCreateChat,
         });
     }
