@@ -6,7 +6,7 @@ import { loginAsAdmin } from './support/auth';
  */
 test.describe('Agents Server API authorization', () => {
     test('returns unauthorized metadata API response for anonymous users', async ({ page }) => {
-        await page.goto('/');
+        await page.goto('/', { waitUntil: 'domcontentloaded' });
         const response = await page.evaluate(async () => {
             const metadataResponse = await fetch('/api/metadata');
             return {
@@ -20,7 +20,7 @@ test.describe('Agents Server API authorization', () => {
     });
 
     test('allows admin metadata API access and blocks admin password changes through API', async ({ page }) => {
-        await page.goto('/');
+        await page.goto('/', { waitUntil: 'domcontentloaded' });
         await loginAsAdmin(page);
 
         const metadataResponse = await page.evaluate(async () => {
