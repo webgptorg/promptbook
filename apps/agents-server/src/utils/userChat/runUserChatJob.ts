@@ -46,7 +46,7 @@ import { isUserChatNotFoundScopeError } from './UserChatScopeError';
  *
  * @private function of `userChat`
  */
-const USER_CHAT_JOB_HEARTBEAT_INTERVAL_MS = 5_000;
+const USER_CHAT_JOB_HEARTBEAT_INTERVAL_MS = 15_000;
 
 /**
  * Minimum interval between persisted assistant-message snapshots while streaming.
@@ -55,7 +55,7 @@ const USER_CHAT_JOB_HEARTBEAT_INTERVAL_MS = 5_000;
  *
  * @private function of `userChat`
  */
-const USER_CHAT_JOB_ASSISTANT_MESSAGE_PERSIST_INTERVAL_MS = 500;
+const USER_CHAT_JOB_ASSISTANT_MESSAGE_PERSIST_INTERVAL_MS = 2_000;
 
 /**
  * Error name used when a running durable chat job is cancelled.

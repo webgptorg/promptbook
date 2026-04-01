@@ -1,6 +1,6 @@
 import { CHAT_STREAM_KEEP_ALIVE_INTERVAL_MS } from '@/src/constants/streaming';
-import { createUserChatDetailPayload, getUserChat, isFrozenUserChatSource } from '@/src/utils/userChat';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
+import { createUserChatDetailPayload, getUserChat, isFrozenUserChatSource } from '@/src/utils/userChat';
 import type { ChatMessage } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
 import { resolveUserChatScope } from '../../resolveUserChatScope';
@@ -8,12 +8,12 @@ import { resolveUserChatScope } from '../../resolveUserChatScope';
 /**
  * Faster refresh cadence used while the active chat still has background work in flight.
  */
-const ACTIVE_USER_CHAT_STREAM_POLL_INTERVAL_MS = 500;
+const ACTIVE_USER_CHAT_STREAM_POLL_INTERVAL_MS = 1_500;
 
 /**
  * Lower refresh cadence used when the active chat is idle.
  */
-const IDLE_USER_CHAT_STREAM_POLL_INTERVAL_MS = 5_000;
+const IDLE_USER_CHAT_STREAM_POLL_INTERVAL_MS = 10_000;
 
 /**
  * Allows one chat-stream response to stay open for the platform maximum.
@@ -35,10 +35,7 @@ type UserChatStreamFrame =
 /**
  * Streams canonical chat snapshots for one scoped user chat so multiple viewers can observe the same background turn.
  */
-export async function GET(
-    request: Request,
-    { params }: { params: Promise<{ agentName: string; chatId: string }> },
-) {
+export async function GET(request: Request, { params }: { params: Promise<{ agentName: string; chatId: string }> }) {
     if (isPrivateModeEnabledFromRequest(request)) {
         return NextResponse.json({ error: 'Private mode is enabled.' }, { status: 403 });
     }
@@ -212,9 +209,7 @@ export async function GET(
 /**
  * Builds a stable signature for the user-visible parts of a canonical chat snapshot.
  */
-function createUserChatDetailSignature(
-    payload: Awaited<ReturnType<typeof createUserChatDetailPayload>>,
-): string {
+function createUserChatDetailSignature(payload: Awaited<ReturnType<typeof createUserChatDetailPayload>>): string {
     return JSON.stringify({
         chatId: payload.chat.id,
         updatedAt: payload.chat.updatedAt,

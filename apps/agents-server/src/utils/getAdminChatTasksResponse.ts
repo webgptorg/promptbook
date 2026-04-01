@@ -1,15 +1,63 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideClientSql } from '@/src/database/$provideClientSql';
 import { recoverExpiredRunningUserChatJobs } from '@/src/utils/userChat/recoverExpiredRunningUserChatJobs';
-import { ensureUserChatTimeoutWorkerBootstrapped } from '@/src/utils/userChatTimeout/ensureUserChatTimeoutWorkerBootstrapped';
 import { recoverExpiredRunningUserChatTimeouts } from '@/src/utils/userChatTimeout';
-import type { UserChatJobStatus } from './userChat/UserChatJobRecord';
+import { ensureUserChatTimeoutWorkerBootstrapped } from '@/src/utils/userChatTimeout/ensureUserChatTimeoutWorkerBootstrapped';
 import type {
     AdminChatTaskCounters,
     AdminChatTaskListResponse,
     AdminChatTaskRecord,
     AdminChatTaskView,
 } from './chatTasksAdmin';
+import type { UserChatJobStatus } from './userChat/UserChatJobRecord';
+
+/**
+ * Minimum interval between recovery operations triggered by admin polls.
+ *
+ * @private internal admin utility of Agents Server
+ */
+const ADMIN_RECOVERY_THROTTLE_MS = 60_000;
+
+/**
+ * Timestamp of the last completed admin recovery run.
+ *
+ * @private internal admin singleton
+ */
+let lastAdminRecoveryAt = 0;
+
+/**
+ * In-flight recovery promise used to deduplicate overlapping admin polls.
+ *
+ * @private internal admin singleton
+ */
+let pendingAdminRecovery: Promise<void> | null = null;
+
+/**
+ * Runs recovery operations at most once per throttle interval, deduplicating concurrent calls.
+ *
+ * @private internal admin utility of Agents Server
+ */
+async function throttledAdminRecovery(): Promise<void> {
+    if (Date.now() - lastAdminRecoveryAt < ADMIN_RECOVERY_THROTTLE_MS) {
+        return;
+    }
+
+    if (pendingAdminRecovery) {
+        return pendingAdminRecovery;
+    }
+
+    pendingAdminRecovery = (async () => {
+        try {
+            await recoverExpiredRunningUserChatJobs();
+            await recoverExpiredRunningUserChatTimeouts();
+            lastAdminRecoveryAt = Date.now();
+        } finally {
+            pendingAdminRecovery = null;
+        }
+    })();
+
+    return pendingAdminRecovery;
+}
 
 /**
  * Default number of task rows returned per page.
@@ -137,8 +185,9 @@ export async function getAdminChatTasksResponse(
     }
 
     ensureUserChatTimeoutWorkerBootstrapped();
-    await recoverExpiredRunningUserChatJobs();
-    await recoverExpiredRunningUserChatTimeouts();
+
+    // [🧠] Recovery operations are throttled to avoid hammering the DB on every admin poll
+    await throttledAdminRecovery();
 
     const sql = await $provideClientSql();
     const userChatJobTable = quoteIdentifier(await $getTableName('UserChatJob'));

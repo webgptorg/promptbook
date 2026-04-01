@@ -1,5 +1,5 @@
 import { TODO_any } from '@promptbook-local/types';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { SUPABASE_TABLE_PREFIX } from '../config';
 import { RESERVED_PATHS } from './generated/reservedPaths';
@@ -7,7 +7,11 @@ import { buildAgentNameOrIdFilter } from './utils/agentIdentifier';
 import { isAgentVisibility, isPublicAgentVisibility, type AgentVisibility } from './utils/agentVisibility';
 import { resolveCustomDomainAgent, type CustomDomainResolution } from './utils/customDomainRouting';
 import { isIpAllowed } from './utils/isIpAllowed';
-import { listRegisteredServers, resolveRegisteredServerByHost } from './utils/serverRegistry';
+import {
+    listRegisteredServersUsingServiceRole,
+    resolveRegisteredServerByHost,
+    type ServerRecord,
+} from './utils/serverRegistry';
 import {
     DEFAULT_SERVER_VISIBILITY,
     isPublicServerVisibility,
@@ -15,6 +19,125 @@ import {
     SERVER_VISIBILITY_METADATA_KEY,
     type ServerVisibility,
 } from './utils/serverVisibility';
+
+/**
+ * In-memory cache TTL for middleware metadata lookups.
+ *
+ * @private internal middleware utility
+ */
+const MIDDLEWARE_METADATA_CACHE_TTL_MS = 30_000;
+
+/**
+ * Cached metadata result keyed by table prefix.
+ *
+ * @private internal middleware singleton
+ */
+let cachedMiddlewareMetadata: {
+    readonly loadedAt: number;
+    readonly tablePrefix: string;
+    readonly allowedIps: string | null;
+    readonly embeddingAllowed: string | null;
+    readonly serverVisibility: string | null;
+} | null = null;
+
+/**
+ * Cached Supabase client singleton for middleware.
+ *
+ * @private internal middleware singleton
+ */
+let cachedMiddlewareSupabase: SupabaseClient | null = null;
+
+/**
+ * Returns a shared Supabase client for middleware or `null` when env vars are missing.
+ *
+ * @private internal middleware utility
+ */
+function getMiddlewareSupabase(): SupabaseClient | null {
+    if (cachedMiddlewareSupabase) {
+        return cachedMiddlewareSupabase;
+    }
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+        return null;
+    }
+
+    cachedMiddlewareSupabase = createClient(supabaseUrl, supabaseKey, {
+        auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+        },
+    });
+
+    return cachedMiddlewareSupabase;
+}
+
+/**
+ * Loads metadata values for one table prefix with a short TTL cache.
+ *
+ * @private internal middleware utility
+ */
+async function loadCachedMiddlewareMetadata(
+    supabase: SupabaseClient,
+    tablePrefix: string,
+): Promise<{
+    allowedIps: string | null;
+    embeddingAllowed: string | null;
+    serverVisibility: string | null;
+}> {
+    if (
+        cachedMiddlewareMetadata &&
+        cachedMiddlewareMetadata.tablePrefix === tablePrefix &&
+        Date.now() - cachedMiddlewareMetadata.loadedAt < MIDDLEWARE_METADATA_CACHE_TTL_MS
+    ) {
+        return {
+            allowedIps: cachedMiddlewareMetadata.allowedIps,
+            embeddingAllowed: cachedMiddlewareMetadata.embeddingAllowed,
+            serverVisibility: cachedMiddlewareMetadata.serverVisibility,
+        };
+    }
+
+    let allowedIps: string | null = null;
+    let embeddingAllowed: string | null = null;
+    let serverVisibility: string | null = null;
+
+    try {
+        const { data } = await supabase
+            .from(`${tablePrefix}Metadata`)
+            .select('key, value')
+            .in('key', ['RESTRICT_IP', 'IS_EMBEDDING_ALLOWED', SERVER_VISIBILITY_METADATA_KEY]);
+
+        if (Array.isArray(data)) {
+            for (const row of data) {
+                const key = row?.key;
+                const value = row?.value;
+                if (key === 'RESTRICT_IP' && typeof value === 'string' && value !== '') {
+                    allowedIps = value;
+                }
+                if (key === 'IS_EMBEDDING_ALLOWED' && typeof value === 'string') {
+                    embeddingAllowed = value;
+                }
+                if (key === SERVER_VISIBILITY_METADATA_KEY && typeof value === 'string') {
+                    serverVisibility = value;
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error fetching metadata in middleware:', error);
+    }
+
+    cachedMiddlewareMetadata = {
+        loadedAt: Date.now(),
+        tablePrefix,
+        allowedIps,
+        embeddingAllowed,
+        serverVisibility,
+    };
+
+    return { allowedIps, embeddingAllowed, serverVisibility };
+}
 
 export async function middleware(req: NextRequest) {
     // 1. Get client IP
@@ -38,19 +161,15 @@ export async function middleware(req: NextRequest) {
     let serverVisibilityMetadata: string | null = null;
 
     const host = req.headers.get('host');
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    const supabase =
-        supabaseUrl && supabaseKey
-            ? createClient(supabaseUrl, supabaseKey, {
-                  auth: {
-                      persistSession: false,
-                      autoRefreshToken: false,
-                  },
-              })
-            : null;
+    const supabase = getMiddlewareSupabase();
 
-    const registeredServers = supabase ? await listRegisteredServers(supabase) : [];
+    // [🧠] Use 10s-cached server registry to avoid hammering DB on every request
+    let registeredServers: Array<ServerRecord> = [];
+    try {
+        registeredServers = supabase ? await listRegisteredServersUsingServiceRole() : [];
+    } catch (error) {
+        console.error('Error loading server registry in middleware:', error);
+    }
     const hasRegisteredServers = registeredServers.length > 0;
     const registeredServer = resolveRegisteredServerByHost(host, registeredServers);
     let customDomainResolution: CustomDomainResolution | null = null;
@@ -75,31 +194,12 @@ export async function middleware(req: NextRequest) {
         hasRegisteredServers && effectiveTablePrefix !== null ? effectiveTablePrefix : SUPABASE_TABLE_PREFIX;
     const canQueryServerTables = Boolean(supabase && (!hasRegisteredServers || effectiveTablePrefix !== null));
 
+    // [🧠] Use 30s-cached metadata to avoid per-request DB queries
     if (supabase && canQueryServerTables) {
-        try {
-            const { data } = await supabase
-                .from(`${tablePrefixForRequest}Metadata`)
-                .select('key, value')
-                .in('key', ['RESTRICT_IP', 'IS_EMBEDDING_ALLOWED', SERVER_VISIBILITY_METADATA_KEY]);
-
-            if (Array.isArray(data)) {
-                for (const row of data) {
-                    const key = row?.key;
-                    const value = row?.value;
-                    if (key === 'RESTRICT_IP' && typeof value === 'string' && value !== '') {
-                        allowedIpsMetadata = value;
-                    }
-                    if (key === 'IS_EMBEDDING_ALLOWED' && typeof value === 'string') {
-                        embeddingAllowedMetadata = value;
-                    }
-                    if (key === SERVER_VISIBILITY_METADATA_KEY && typeof value === 'string') {
-                        serverVisibilityMetadata = value;
-                    }
-                }
-            }
-        } catch (error) {
-            console.error('Error fetching metadata in middleware:', error);
-        }
+        const cachedMeta = await loadCachedMiddlewareMetadata(supabase, tablePrefixForRequest);
+        allowedIpsMetadata = cachedMeta.allowedIps;
+        embeddingAllowedMetadata = cachedMeta.embeddingAllowed;
+        serverVisibilityMetadata = cachedMeta.serverVisibility;
     }
 
     const allowedIps =
@@ -306,10 +406,7 @@ type ApplyVisibilityHeadersOptions = {
 /**
  * Classified agent-route shape used by robots header logic.
  */
-type AgentRouteMatch =
-    | { kind: 'none' }
-    | { kind: 'subpage' }
-    | { kind: 'profile'; agentIdentifier: string };
+type AgentRouteMatch = { kind: 'none' } | { kind: 'subpage' } | { kind: 'profile'; agentIdentifier: string };
 
 /**
  * Applies visibility-aware `X-Robots-Tag` headers to HTML responses.

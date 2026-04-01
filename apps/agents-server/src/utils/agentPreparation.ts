@@ -1,6 +1,3 @@
-import { AgentCollectionInSupabase } from '@promptbook-local/core';
-import { string_agent_permanent_id, TODO_any } from '@promptbook-local/types';
-import { serializeError } from '@promptbook-local/utils';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
 import { createServerAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/createServerAgentReferenceResolver';
@@ -12,6 +9,9 @@ import {
 import { getFederatedServers } from '@/src/utils/getFederatedServers';
 import { resolveInternalServerOrigin } from '@/src/utils/resolveInternalServerOrigin';
 import { retryWithBackoff } from '@/src/utils/retryWithBackoff';
+import { AgentCollectionInSupabase } from '@promptbook-local/core';
+import { string_agent_permanent_id, TODO_any } from '@promptbook-local/types';
+import { serializeError } from '@promptbook-local/utils';
 
 /**
  * Debounce window for agent pre-indexing.
@@ -36,7 +36,7 @@ export const AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS = 2_500;
 /**
  * Default polling interval used while waiting for a running preparation.
  */
-const AGENT_PREPARATION_WAIT_POLL_INTERVAL_MS = 250;
+const AGENT_PREPARATION_WAIT_POLL_INTERVAL_MS = 500;
 
 /**
  * Initial retry delay after one failed background preparation run.
@@ -818,7 +818,9 @@ export async function scheduleAgentPreparation(options: ScheduleAgentPreparation
         return;
     }
 
-    const existingRow = (Array.isArray(existingResult.data) ? existingResult.data[0] : null) as AgentPreparationRow | null;
+    const existingRow = (
+        Array.isArray(existingResult.data) ? existingResult.data[0] : null
+    ) as AgentPreparationRow | null;
 
     if (
         existingRow &&

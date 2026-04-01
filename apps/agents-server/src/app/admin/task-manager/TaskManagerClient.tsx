@@ -95,7 +95,7 @@ export function TaskManagerClient() {
     const [view, setView] = useState<AdminChatTaskView>('active');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(50);
-    const [pollIntervalMs, setPollIntervalMs] = useState(3_000);
+    const [pollIntervalMs, setPollIntervalMs] = useState(10_000);
     const [stuckThresholdMinutes, setStuckThresholdMinutes] = useState(5);
     const [timeWindowHours, setTimeWindowHours] = useState(24);
     const [searchInput, setSearchInput] = useState('');

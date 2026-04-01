@@ -1,3 +1,12 @@
+-   Optimized Agents Server database query volume to fix Supabase overload, unhealthy status, and server crashes:
+
+    -   Middleware now reuses a singleton Supabase client and caches the `_Server` registry (10s TTL) and `Metadata` lookups (30s TTL) instead of creating a new client and querying the database on every HTTP request.
+    -   Admin task-manager default polling interval increased from 3s to 10s, and recovery operations (`recoverExpiredRunningUserChatJobs`, `recoverExpiredRunningUserChatTimeouts`) are now throttled to at most once per 60s instead of running on every poll.
+    -   Chat stream SSE active polling interval increased from 500ms to 1,500ms and idle polling from 5s to 10s to reduce per-chat database reads.
+    -   Vercel cron schedule for timeout worker changed from every minute to every 5 minutes since local wake-up timers already handle short-duration timeouts.
+    -   Chat job heartbeat interval increased from 5s to 15s and assistant message persist throttle from 500ms to 2,000ms to reduce streaming write load.
+    -   Agent preparation wait polling interval increased from 250ms to 500ms.
+
 -   Fixed Agents Server durable user-chat persistence when a chat disappears mid-save so missing chat rows no longer surface raw internal `mutate_chat` diagnostics to users:
 
     -   Durable worker finalization now treats `USER_CHAT_NOT_FOUND` as a delete/navigation race, finalizes the queued job cleanly, and skips rethrowing the internal persistence diagnostic.
