@@ -16,6 +16,7 @@ import {
     LogIn,
     LogOut,
     Settings2,
+    XIcon,
     UserRound,
     Wrench,
     type LucideIcon,
@@ -196,6 +197,14 @@ const MOBILE_MENU_SWIPE_MAX_VERTICAL_DRIFT_PX = 44;
  * Maximum gesture duration considered a deliberate drawer swipe.
  */
 const MOBILE_MENU_SWIPE_MAX_DURATION_MS = 700;
+/**
+ * Prefix used for route-hoisted trees rendered in the mobile drawer.
+ */
+const HOISTED_MOBILE_MENU_PREFIX = 'mobile-hoisted-menu';
+/**
+ * First hoisted subtree key opened by default so chat shortcuts are immediately visible.
+ */
+const DEFAULT_HOISTED_MOBILE_MENU_KEY = `${HOISTED_MOBILE_MENU_PREFIX}-0`;
 
 /**
  * Tracks one in-progress touch gesture for mobile drawer swipe interactions.
@@ -243,6 +252,10 @@ const SYSTEM_CATEGORY_ICON_MAP: Record<SystemCategoryLabel, LucideIcon> = {
     'Developer / Debug': Code2,
     'Legal & About': Globe2,
 };
+/**
+ * Shared immutable fallback for mobile drawer sections when no route-level entries are hoisted.
+ */
+const EMPTY_HOISTED_MOBILE_MENU_ITEMS: ReadonlyArray<SubMenuItem> = [];
 
 /**
  * Propagates one fallback icon to submenu entries that do not specify their own icon.
@@ -314,6 +327,7 @@ export function Header(props: HeaderProps) {
     const headerRef = useRef<HTMLElement | null>(null);
     const mobileMenuDrawerRef = useRef<HTMLDivElement | null>(null);
     const mobileMenuSwipeGestureRef = useRef<MobileMenuSwipeGesture | null>(null);
+    const hasInitializedMobileDrawerRef = useRef(false);
 
     useEffect(() => {
         if (!isMenuOpen) {
@@ -1849,7 +1863,27 @@ export function Header(props: HeaderProps) {
             : []),
         ...(shouldShowSystemMenu ? [buildSystemMenuItem(systemMenuEntries)] : []),
     ];
-    const hoistedMobileMenuItems = mobileMenuHoisting?.menuItems || [];
+    const hoistedMobileMenuItems = mobileMenuHoisting?.menuItems || EMPTY_HOISTED_MOBILE_MENU_ITEMS;
+
+    useEffect(() => {
+        if (!isMenuOpen) {
+            hasInitializedMobileDrawerRef.current = false;
+            return;
+        }
+
+        if (hasInitializedMobileDrawerRef.current) {
+            return;
+        }
+
+        hasInitializedMobileDrawerRef.current = true;
+
+        if (hoistedMobileMenuItems.length > 0) {
+            setMobileOpenSubMenus((previous) => ({
+                ...previous,
+                [DEFAULT_HOISTED_MOBILE_MENU_KEY]: true,
+            }));
+        }
+    }, [hoistedMobileMenuItems, isMenuOpen]);
 
 
     /**
@@ -1955,17 +1989,17 @@ export function Header(props: HeaderProps) {
                     brandColorHex={activeAgent.meta.color || PROMPTBOOK_COLOR.toHex()}
                 />
             )}
-            <div className="relative w-full px-4 h-full">
-                <div className="flex h-full items-center gap-2 sm:gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-5">
+            <div className="relative h-full w-full">
+                <div className="absolute left-1.5 top-1/2 z-[60] -translate-y-1/2 lg:hidden">
+                    <HamburgerMenu
+                        isOpen={isMenuOpen}
+                        onClick={() => setIsMenuOpen((isOpen) => !isOpen)}
+                        className="rounded-xl border border-gray-200 bg-white/90 p-1.5 text-gray-600 shadow-sm transition-colors hover:bg-gray-100 hover:text-gray-900"
+                    />
+                </div>
+                <div className="flex h-full items-center gap-2 px-4 pl-10 sm:gap-4 sm:pl-11 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-5 lg:pl-4">
                     <div className="min-w-0 flex-1">
                         <div className="flex min-w-0 items-center gap-2 sm:gap-3 rounded-2xl border border-gray-200 bg-white/90 px-2 sm:px-3 md:px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm shadow-slate-200/60 backdrop-blur">
-                            <div className="lg:hidden">
-                                <HamburgerMenu
-                                    isOpen={isMenuOpen}
-                                    onClick={() => setIsMenuOpen((isOpen) => !isOpen)}
-                                    className="rounded-xl p-1.5 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
-                                />
-                            </div>
                             <div className="relative flex min-w-0 items-center gap-3">
                                 <HeadlessLink
                                     href="/"
@@ -2398,7 +2432,7 @@ export function Header(props: HeaderProps) {
                 {/* Mobile Navigation Backdrop */}
                 {isMenuOpen && (
                     <div
-                        className="lg:hidden fixed inset-0 top-16 bg-slate-900/35 backdrop-blur-sm z-40 animate-in fade-in duration-200"
+                        className="lg:hidden absolute left-0 top-0 z-40 h-[100dvh] w-screen bg-slate-900/35 backdrop-blur-sm animate-in fade-in duration-200"
                         onClick={() => setIsMenuOpen(false)}
                     />
                 )}
@@ -2407,29 +2441,48 @@ export function Header(props: HeaderProps) {
                 {isMenuOpen && (
                     <div
                         ref={mobileMenuDrawerRef}
-                        className="lg:hidden fixed top-16 bottom-0 left-0 z-50 w-[min(25rem,92vw)] border-r border-gray-200 bg-white/95 py-6 shadow-2xl animate-in slide-in-from-left-4 duration-200 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
+                        className="lg:hidden absolute left-0 top-0 z-50 flex h-[100dvh] w-[min(25rem,92vw)] max-w-full flex-col border-r border-gray-200 bg-white/95 shadow-2xl animate-in slide-in-from-left-4 duration-200"
                         style={{
                             backdropFilter: 'blur(20px)',
                             WebkitBackdropFilter: 'blur(20px)',
                         }}
                     >
-                        <nav className="mx-auto flex flex-col gap-6 px-4 pb-8">
+                        <nav className="mx-auto flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-4 py-6 pb-8 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                            {/* Hoisted Mobile Menu Trees */}
+                            {hoistedMobileMenuItems.length > 0 && (
+                                <div className="w-full py-3 border-b border-gray-200">
+                                    <div className="rounded-xl border border-gray-200 bg-gradient-to-b from-gray-50 to-white p-3 shadow-sm">
+                                        {renderMobileNestedMenuItems(hoistedMobileMenuItems, HOISTED_MOBILE_MENU_PREFIX)}
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="w-full border-b border-gray-200 pb-6">
                                 <div className="flex items-center justify-between gap-2 text-xs font-bold uppercase tracking-[0.3em] text-gray-400 mb-3">
                                     <span>{t('header.menuLabel')}</span>
-                                    {federatedServers.length > 0 && (
+                                    <div className="flex items-center gap-1">
+                                        {federatedServers.length > 0 && (
+                                            <button
+                                                className="inline-flex p-1 text-gray-500 hover:text-gray-800"
+                                                onClick={() => setIsFederatedOpen(!isFederatedOpen)}
+                                                aria-label={t('header.switchServerAria')}
+                                            >
+                                                <ChevronDown
+                                                    className={`h-4 w-4 transition-transform duration-200 ${
+                                                        isFederatedOpen ? 'rotate-180' : ''
+                                                    }`}
+                                                />
+                                            </button>
+                                        )}
                                         <button
-                                            className="inline-flex p-1 text-gray-500 hover:text-gray-800"
-                                            onClick={() => setIsFederatedOpen(!isFederatedOpen)}
-                                            aria-label={t('header.switchServerAria')}
+                                            type="button"
+                                            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
+                                            onClick={() => setIsMenuOpen(false)}
+                                            aria-label={t('common.close')}
                                         >
-                                            <ChevronDown
-                                                className={`h-4 w-4 transition-transform duration-200 ${
-                                                    isFederatedOpen ? 'rotate-180' : ''
-                                                }`}
-                                            />
+                                            <XIcon className="h-4 w-4" />
                                         </button>
-                                    )}
+                                    </div>
                                 </div>
                                 <p className="text-lg font-bold text-gray-900 truncate">{serverName}</p>
                                 {isFederatedOpen && federatedDropdownItems.length > 0 && (
@@ -2568,15 +2621,6 @@ export function Header(props: HeaderProps) {
                                             <span className="sr-only">{item.name}</span>
                                         </button>
                                     ))}
-                                </div>
-                            )}
-
-                            {/* Hoisted Mobile Menu Trees */}
-                            {hoistedMobileMenuItems.length > 0 && (
-                                <div className="w-full py-3 border-b border-gray-200">
-                                    <div className="rounded-xl border border-gray-200 bg-gradient-to-b from-gray-50 to-white p-3 shadow-sm">
-                                        {renderMobileNestedMenuItems(hoistedMobileMenuItems, 'mobile-hoisted-menu')}
-                                    </div>
                                 </div>
                             )}
 

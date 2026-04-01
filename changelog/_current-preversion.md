@@ -1,3 +1,9 @@
+-   Improved Agents Server mobile header menu usability on small screens:
+
+    -   Moved the mobile hamburger trigger to the far left edge of the header so it is consistently reachable from the page corner.
+    -   Fixed mobile menu panel cropping by switching to a full-height drawer surface (`100dvh`) with full-height backdrop coverage.
+    -   Kept click + swipe menu interactions and prioritized hoisted route content by rendering **My chats** at the top of the mobile drawer and auto-expanding its first section on open.
+
 -   Optimized Agents Server database query volume to fix Supabase overload, unhealthy status, and server crashes:
 -   Unified Agents Server mobile navigation into one shared left-side drawer opened from the header hamburger:
 
