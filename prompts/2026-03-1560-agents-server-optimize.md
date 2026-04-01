@@ -2,7 +2,7 @@
 
 ---
 
-[ ] !!
+[x] Done by Github Copilot
 
 [✨⛅️] Agents server is crashing, fix it and optimize the performance
 
