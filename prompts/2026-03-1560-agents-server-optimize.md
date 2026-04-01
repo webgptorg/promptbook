@@ -52,7 +52,7 @@
 
 ---
 
-[ ] !
+[.] _<- Note: Maybe not needed_
 
 [✨⛅️] Agents server does not start the tasks
 
