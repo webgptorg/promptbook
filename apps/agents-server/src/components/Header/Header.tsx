@@ -475,6 +475,59 @@ export function Header(props: HeaderProps) {
         };
     }, [isMenuOpen]);
 
+    /**
+     * Closes the mobile drawer when the viewport switches to desktop size.
+     */
+    useEffect(() => {
+        if (typeof window === 'undefined' || !isMenuOpen) {
+            return;
+        }
+
+        const desktopMediaQuery = window.matchMedia('(min-width: 1024px)');
+
+        if (desktopMediaQuery.matches) {
+            setIsMenuOpen(false);
+            return;
+        }
+
+        const handleViewportChange = (event: MediaQueryListEvent) => {
+            if (event.matches) {
+                setIsMenuOpen(false);
+            }
+        };
+
+        desktopMediaQuery.addEventListener('change', handleViewportChange);
+        return () => {
+            desktopMediaQuery.removeEventListener('change', handleViewportChange);
+        };
+    }, [isMenuOpen]);
+
+    /**
+     * Locks page scrolling while the mobile drawer is open so only drawer content scrolls.
+     */
+    useEffect(() => {
+        if (typeof window === 'undefined' || !isMenuOpen) {
+            return;
+        }
+
+        const originalBodyOverflow = document.body.style.overflow;
+        const originalBodyOverscrollBehavior = document.body.style.overscrollBehavior;
+        const originalRootOverflow = document.documentElement.style.overflow;
+        const originalRootOverscrollBehavior = document.documentElement.style.overscrollBehavior;
+
+        document.body.style.overflow = 'hidden';
+        document.body.style.overscrollBehavior = 'contain';
+        document.documentElement.style.overflow = 'hidden';
+        document.documentElement.style.overscrollBehavior = 'contain';
+
+        return () => {
+            document.body.style.overflow = originalBodyOverflow;
+            document.body.style.overscrollBehavior = originalBodyOverscrollBehavior;
+            document.documentElement.style.overflow = originalRootOverflow;
+            document.documentElement.style.overscrollBehavior = originalRootOverscrollBehavior;
+        };
+    }, [isMenuOpen]);
+
     useEffect(() => {
         return () => {
             if (subMenuCloseTimer.current) {
@@ -1990,11 +2043,11 @@ export function Header(props: HeaderProps) {
                 />
             )}
             <div className="relative h-full w-full">
-                <div className="absolute left-1.5 top-1/2 z-[60] -translate-y-1/2 lg:hidden">
+                <div className="absolute left-2 top-1/2 z-[65] -translate-y-1/2 lg:hidden">
                     <HamburgerMenu
                         isOpen={isMenuOpen}
                         onClick={() => setIsMenuOpen((isOpen) => !isOpen)}
-                        className="rounded-xl border border-gray-200 bg-white/90 p-1.5 text-gray-600 shadow-sm transition-colors hover:bg-gray-100 hover:text-gray-900"
+                        className="rounded-xl border border-gray-200 bg-white text-gray-700 shadow-[0_6px_18px_rgba(15,23,42,0.08)] transition duration-150 hover:bg-gray-50 hover:text-gray-900"
                     />
                 </div>
                 <div className="flex h-full items-center gap-2 px-4 pl-10 sm:gap-4 sm:pl-11 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-5 lg:pl-4">
@@ -2432,7 +2485,7 @@ export function Header(props: HeaderProps) {
                 {/* Mobile Navigation Backdrop */}
                 {isMenuOpen && (
                     <div
-                        className="lg:hidden absolute left-0 top-0 z-40 h-[100dvh] w-screen bg-slate-900/35 backdrop-blur-sm animate-in fade-in duration-200"
+                        className="lg:hidden fixed inset-0 z-[70] bg-slate-900/35 backdrop-blur-sm animate-in fade-in duration-200"
                         onClick={() => setIsMenuOpen(false)}
                     />
                 )}
@@ -2441,19 +2494,17 @@ export function Header(props: HeaderProps) {
                 {isMenuOpen && (
                     <div
                         ref={mobileMenuDrawerRef}
-                        className="lg:hidden absolute left-0 top-0 z-50 flex h-[100dvh] w-[min(25rem,92vw)] max-w-full flex-col border-r border-gray-200 bg-white/95 shadow-2xl animate-in slide-in-from-left-4 duration-200"
+                        className="lg:hidden fixed inset-y-0 left-0 z-[80] flex h-[100dvh] w-[min(25rem,92vw)] max-w-full flex-col overflow-hidden border-r border-gray-200 bg-white shadow-2xl animate-in slide-in-from-left-4 duration-200"
                         style={{
                             backdropFilter: 'blur(20px)',
                             WebkitBackdropFilter: 'blur(20px)',
                         }}
                     >
-                        <nav className="mx-auto flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-4 py-6 pb-8 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                        <nav className="mx-auto flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain px-4 py-6 pb-8 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                             {/* Hoisted Mobile Menu Trees */}
                             {hoistedMobileMenuItems.length > 0 && (
-                                <div className="w-full py-3 border-b border-gray-200">
-                                    <div className="rounded-xl border border-gray-200 bg-gradient-to-b from-gray-50 to-white p-3 shadow-sm">
-                                        {renderMobileNestedMenuItems(hoistedMobileMenuItems, HOISTED_MOBILE_MENU_PREFIX)}
-                                    </div>
+                                <div className="w-full border-b border-gray-200 pb-4">
+                                    {renderMobileNestedMenuItems(hoistedMobileMenuItems, HOISTED_MOBILE_MENU_PREFIX)}
                                 </div>
                             )}
 

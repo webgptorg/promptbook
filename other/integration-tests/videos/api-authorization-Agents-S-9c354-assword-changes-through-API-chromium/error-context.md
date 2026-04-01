@@ -1,0 +1,119 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e5]:
+        - generic [ref=e7]:
+          - link "Promptbook Agents Server Promptbook Agents Server" [ref=e9] [cursor=pointer]:
+            - /url: /
+            - img "Promptbook Agents Server" [ref=e10]
+            - generic [ref=e11]: Promptbook Agents Server
+          - img [ref=e12]
+          - link "agents" [ref=e15] [cursor=pointer]:
+            - /url: /agents
+            - generic [ref=e16]:
+              - img [ref=e18]
+              - generic [ref=e20]: agents
+        - generic [ref=e23]:
+          - generic [ref=e24]: Global search
+          - generic [ref=e25]:
+            - img
+            - combobox "Global search" [ref=e26]
+        - generic [ref=e27]:
+          - navigation [ref=e28]:
+            - button "System" [ref=e30] [cursor=pointer]:
+              - text: System
+              - img [ref=e31]
+          - button "Open global control panel" [ref=e34] [cursor=pointer]:
+            - img [ref=e35]
+            - generic [ref=e38]: Control panel
+          - button "Log in" [active] [ref=e39] [cursor=pointer]:
+            - text: Log in
+            - img [ref=e40]
+    - main [ref=e43]:
+      - generic [ref=e46]:
+        - heading "Local Agents (0) All Agents List Graph Office Pixel" [level=2] [ref=e47]:
+          - generic [ref=e48]:
+            - generic [ref=e49]:
+              - generic [ref=e50]: Local Agents (0)
+              - button "All Agents" [ref=e52] [cursor=pointer]
+            - generic [ref=e54]:
+              - button "List" [ref=e55] [cursor=pointer]:
+                - img [ref=e56]
+                - generic [ref=e58]: List
+              - button "Graph" [ref=e59] [cursor=pointer]:
+                - img [ref=e60]
+                - generic [ref=e65]: Graph
+              - button "Office" [ref=e66] [cursor=pointer]:
+                - img [ref=e67]
+                - generic [ref=e71]: Office
+              - button "Pixel" [ref=e72] [cursor=pointer]:
+                - img [ref=e73]
+                - generic [ref=e75]: Pixel
+        - status [ref=e76]
+    - contentinfo [ref=e77]:
+      - generic [ref=e78]:
+        - generic [ref=e79]:
+          - generic [ref=e80]:
+            - heading "Promptbook" [level=3] [ref=e81]
+            - paragraph [ref=e82]: Turn your company's scattered knowledge into AI ready books
+          - generic [ref=e83]:
+            - heading "Product" [level=3] [ref=e84]
+            - list [ref=e85]:
+              - listitem [ref=e86]:
+                - link "Get started" [ref=e87] [cursor=pointer]:
+                  - /url: /get-started
+              - listitem [ref=e88]:
+                - link "Manifest" [ref=e89] [cursor=pointer]:
+                  - /url: /manifest
+              - listitem [ref=e90]:
+                - link "Documentation" [ref=e91] [cursor=pointer]:
+                  - /url: https://github.com/webgptorg/promptbook
+              - listitem [ref=e92]:
+                - link "Terms of Service" [ref=e93] [cursor=pointer]:
+                  - /url: /terms
+              - listitem [ref=e94]:
+                - link "Privacy Policy" [ref=e95] [cursor=pointer]:
+                  - /url: /privacy
+          - generic [ref=e96]:
+            - heading "Company" [level=3] [ref=e97]
+            - list [ref=e98]:
+              - listitem [ref=e99]:
+                - link "AI Web, LLC" [ref=e100] [cursor=pointer]:
+                  - /url: https://or-justice-cz.translate.goog/ias/ui/rejstrik-firma.vysledky?subjektId=1223693&typ=UPLNY&_x_tr_sl=cs&_x_tr_tl=en&_x_tr_hl=en-US&_x_tr_pto=wapp
+              - listitem [ref=e101]:
+                - link "About Us" [ref=e102] [cursor=pointer]:
+                  - /url: https://ptbk.io/#about-us
+              - listitem [ref=e103]:
+                - link "Blog" [ref=e104] [cursor=pointer]:
+                  - /url: https://ptbk.io/blog
+              - listitem [ref=e105]:
+                - link "Logos & Branding" [ref=e106] [cursor=pointer]:
+                  - /url: /design
+          - generic [ref=e107]:
+            - heading "Connect" [level=3] [ref=e108]
+            - list [ref=e109]:
+              - listitem [ref=e110]:
+                - link "GitHub" [ref=e111] [cursor=pointer]:
+                  - /url: https://github.com/webgptorg/promptbook
+              - listitem [ref=e112]:
+                - link "LinkedIn" [ref=e113] [cursor=pointer]:
+                  - /url: https://linkedin.com/company/promptbook
+              - listitem [ref=e114]:
+                - link "Discord" [ref=e115] [cursor=pointer]:
+                  - /url: https://discord.gg/x3QWNaa89N
+              - listitem [ref=e116]:
+                - link "More" [ref=e117] [cursor=pointer]:
+                  - /url: /contact
+        - generic [ref=e118]:
+          - paragraph [ref=e119]:
+            - text: © 2026 Promptbook
+            - text: All rights reserved.
+            - text: Made with ❤️ in the Czech Republic.
+          - paragraph [ref=e120]: Promptbook engine version 0.112.0-29
+  - generic:
+    - region "Notifications"
+  - alert [ref=e121]
+```

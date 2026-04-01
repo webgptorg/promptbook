@@ -1,3 +1,10 @@
+-   Refined Agents Server mobile header left drawer behavior and visual hierarchy:
+
+    -   Switched mobile drawer + backdrop positioning to viewport-fixed layers so opening the drawer no longer gets cropped by header layout constraints.
+    -   Locked page/root scrolling while the drawer is open, so scrolling is constrained to the drawer content on mobile.
+    -   Flattened hoisted **My chats** rendering by removing the extra boxed wrapper, keeping it on the same visual level as other mobile menu sections.
+    -   Polished the mobile hamburger trigger styling to improve contrast and tap usability.
+
 -   Improved Agents Server mobile header menu usability on small screens:
 
     -   Moved the mobile hamburger trigger to the far left edge of the header so it is consistently reachable from the page corner.
