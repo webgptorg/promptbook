@@ -12,10 +12,11 @@
 
 ---
 
-[ ]
+[x] ~$0.2531 7 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [🪐🧩] Report issue modal in Agents server should be translated
 
 -   You are working with [Agents Server](apps/agents-server)
 
 ![alt text](prompts/screenshots/2026-03-1550-agents-server-feedback-variants.png)
+

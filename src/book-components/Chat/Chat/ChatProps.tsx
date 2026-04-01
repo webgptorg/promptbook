@@ -32,6 +32,86 @@ export type ChatFeedbackResponse = {
 export type ChatFeedbackMode = 'off' | 'stars' | 'report_issue';
 
 /**
+ * Optional text overrides for feedback UI copy.
+ *
+ * @public exported from `@promptbook/components`
+ */
+export type ChatFeedbackTranslations = {
+    /**
+     * Tooltip shown on the report-issue quick action button.
+     */
+    readonly reportIssueButtonTitle?: string;
+    /**
+     * Accessible label shown on the report-issue quick action button.
+     */
+    readonly reportIssueButtonAriaLabel?: string;
+    /**
+     * Modal heading shown when user reports an issue.
+     */
+    readonly reportIssueModalTitle?: string;
+    /**
+     * Modal heading shown when user rates a response with stars.
+     */
+    readonly rateResponseModalTitle?: string;
+    /**
+     * Label shown above the original user question preview.
+     */
+    readonly userQuestionLabel?: string;
+    /**
+     * Label for expected-answer field in report-issue mode.
+     */
+    readonly reportIssueExpectedAnswerLabel?: string;
+    /**
+     * Label for expected-answer field in stars mode.
+     */
+    readonly expectedAnswerLabel?: string;
+    /**
+     * Placeholder for expected-answer input.
+     */
+    readonly expectedAnswerPlaceholder?: string;
+    /**
+     * Label for free-form issue details in report-issue mode.
+     */
+    readonly reportIssueDetailsLabel?: string;
+    /**
+     * Label for free-form note input in stars mode.
+     */
+    readonly noteLabel?: string;
+    /**
+     * Placeholder for free-form issue details input.
+     */
+    readonly reportIssueDetailsPlaceholder?: string;
+    /**
+     * Placeholder for free-form note input.
+     */
+    readonly notePlaceholder?: string;
+    /**
+     * Cancel button label shown in the feedback modal.
+     */
+    readonly cancelLabel?: string;
+    /**
+     * Submit button label shown in report-issue mode.
+     */
+    readonly reportIssueSubmitLabel?: string;
+    /**
+     * Submit button label shown in stars mode.
+     */
+    readonly submitLabel?: string;
+    /**
+     * Toast message shown when generic feedback is stored.
+     */
+    readonly feedbackSuccessMessage?: string;
+    /**
+     * Toast message shown when issue report is stored.
+     */
+    readonly reportIssueSuccessMessage?: string;
+    /**
+     * Toast message shown when feedback storage fails.
+     */
+    readonly feedbackErrorMessage?: string;
+};
+
+/**
  * Interface for sound system that can be passed to Chat component
  * This allows the chat to trigger sounds without tight coupling
  *
@@ -353,6 +433,11 @@ export type ChatProps = {
      * @default 'stars'
      */
     readonly feedbackMode?: ChatFeedbackMode;
+
+    /**
+     * Optional localized feedback labels for buttons, modal copy, and status toasts.
+     */
+    readonly feedbackTranslations?: ChatFeedbackTranslations;
 
     /**
      * Optional callback for handling file uploads

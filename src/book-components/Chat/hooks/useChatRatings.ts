@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Promisable } from 'type-fest';
 import type { id } from '../../../types/typeAliases';
 import type { ChatMessage } from '../types/ChatMessage';
-import type { ChatFeedbackMode, ChatFeedbackResponse } from '../Chat/ChatProps';
+import type { ChatFeedbackMode, ChatFeedbackResponse, ChatProps } from '../Chat/ChatProps';
 
 /**
  * Input parameters for the chat rating hook.
@@ -29,6 +29,10 @@ export type UseChatRatingsOptions = {
      * Feedback mode currently used by the chat UI.
      */
     feedbackMode: ChatFeedbackMode;
+    /**
+     * Optional localized labels and status messages used by the feedback UI.
+     */
+    feedbackTranslations?: ChatProps['feedbackTranslations'];
     /**
      * Whether the UI should apply mobile-specific behavior.
      */
@@ -102,7 +106,7 @@ export function useChatRatings(options: UseChatRatingsOptions): {
     state: ChatRatingsState;
     actions: ChatRatingsActions;
 } {
-    const { messages, onFeedback, feedbackMode, isMobile } = options;
+    const { messages, onFeedback, feedbackMode, feedbackTranslations, isMobile } = options;
     const [ratingModalOpen, setRatingModalOpen] = useState(false);
     const [selectedMessage, setSelectedMessage] = useState<ChatMessage | null>(null);
     const [messageRatings, setMessageRatings] = useState<Map<id, number>>(new Map());
@@ -187,13 +191,16 @@ export function useChatRatings(options: UseChatRatingsOptions): {
                     message:
                         feedbackResponse?.message ??
                         (feedbackMode === 'report_issue'
-                            ? DEFAULT_REPORT_ISSUE_SUCCESS_MESSAGE
-                            : DEFAULT_FEEDBACK_SUCCESS_MESSAGE),
+                            ? (feedbackTranslations?.reportIssueSuccessMessage ?? DEFAULT_REPORT_ISSUE_SUCCESS_MESSAGE)
+                            : (feedbackTranslations?.feedbackSuccessMessage ?? DEFAULT_FEEDBACK_SUCCESS_MESSAGE)),
                     variant: 'success',
                 });
             } catch (error) {
                 console.error('Error submitting feedback:', error);
-                const message = error instanceof Error ? error.message : DEFAULT_FEEDBACK_ERROR_MESSAGE;
+                const message =
+                    error instanceof Error
+                        ? error.message
+                        : (feedbackTranslations?.feedbackErrorMessage ?? DEFAULT_FEEDBACK_ERROR_MESSAGE);
                 showFeedbackStatus({ message, variant: 'error' });
                 return;
             }
@@ -208,8 +215,8 @@ export function useChatRatings(options: UseChatRatingsOptions): {
             showFeedbackStatus({
                 message:
                     feedbackMode === 'report_issue'
-                        ? DEFAULT_REPORT_ISSUE_SUCCESS_MESSAGE
-                        : DEFAULT_FEEDBACK_SUCCESS_MESSAGE,
+                        ? (feedbackTranslations?.reportIssueSuccessMessage ?? DEFAULT_REPORT_ISSUE_SUCCESS_MESSAGE)
+                        : (feedbackTranslations?.feedbackSuccessMessage ?? DEFAULT_FEEDBACK_SUCCESS_MESSAGE),
                 variant: 'success',
             });
         }
@@ -217,7 +224,18 @@ export function useChatRatings(options: UseChatRatingsOptions): {
         setRatingModalOpen(false);
         setTextRating('');
         setSelectedMessage(null);
-    }, [feedbackMode, messages, messageRatings, onFeedback, selectedMessage, showFeedbackStatus, textRating]);
+    }, [
+        feedbackMode,
+        feedbackTranslations?.feedbackErrorMessage,
+        feedbackTranslations?.feedbackSuccessMessage,
+        feedbackTranslations?.reportIssueSuccessMessage,
+        messages,
+        messageRatings,
+        onFeedback,
+        selectedMessage,
+        showFeedbackStatus,
+        textRating,
+    ]);
 
     useEffect(() => {
         if (ratingModalOpen && isMobile) {

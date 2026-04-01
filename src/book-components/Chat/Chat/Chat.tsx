@@ -137,6 +137,7 @@ export function Chat(props: ChatProps) {
         resetRequiresConfirmation = true,
         onFeedback,
         feedbackMode = 'stars',
+        feedbackTranslations,
         onFileUpload,
         speechRecognition,
         placeholderMessageContent,
@@ -303,7 +304,13 @@ export function Chat(props: ChatProps) {
             handleRating,
             submitRating,
         },
-    } = useChatRatings({ messages, onFeedback, feedbackMode, isMobile: isMobileFromHook });
+    } = useChatRatings({
+        messages,
+        onFeedback,
+        feedbackMode,
+        feedbackTranslations,
+        isMobile: isMobileFromHook,
+    });
 
     const [toolCallModalOpen, setToolCallModalOpen] = useState(false);
     const [selectedToolCallState, setSelectedToolCallState] = useState<SelectedToolCallState | null>(null);
@@ -537,6 +544,7 @@ export function Chat(props: ChatProps) {
                         isCopyButtonEnabled={isCopyButtonEnabled}
                         isFeedbackEnabled={isFeedbackEnabled}
                         feedbackMode={feedbackMode}
+                        feedbackTranslations={feedbackTranslations}
                         onCopy={handleCopy}
                         onMessage={onMessage}
                         onActionButton={onActionButton}
@@ -625,6 +633,7 @@ export function Chat(props: ChatProps) {
                 messageRatings={messageRatings}
                 textRating={textRating}
                 feedbackMode={feedbackMode}
+                feedbackTranslations={feedbackTranslations}
                 mode={mode}
                 isMobile={isMobileFromHook}
                 onClose={() => setRatingModalOpen(false)}

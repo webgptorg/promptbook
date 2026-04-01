@@ -72,6 +72,10 @@ type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'onActionButton' | 'pa
      */
     feedbackMode?: ChatProps['feedbackMode'];
     /**
+     * Optional localized labels used by feedback controls.
+     */
+    feedbackTranslations?: ChatProps['feedbackTranslations'];
+    /**
      * Called when the copy button is pressed.
      */
     onCopy?: () => void;
@@ -689,6 +693,7 @@ export const ChatMessageItem = memo(
             isCopyButtonEnabled,
             isFeedbackEnabled,
             feedbackMode = 'stars',
+            feedbackTranslations,
             onCopy,
             onCreateAgent,
             teammates,
@@ -1453,8 +1458,11 @@ export const ChatMessageItem = memo(
                                         type="button"
                                         onClick={() => handleRating(message, 1)}
                                         className={styles.feedbackIssueButton}
-                                        aria-label="Report issue with this response"
-                                        title="Report issue"
+                                        aria-label={
+                                            feedbackTranslations?.reportIssueButtonAriaLabel ||
+                                            'Report issue with this response'
+                                        }
+                                        title={feedbackTranslations?.reportIssueButtonTitle || 'Report issue'}
                                     >
                                         ⚠
                                     </button>
@@ -1618,6 +1626,10 @@ export const ChatMessageItem = memo(
         }
 
         if (prev.feedbackMode !== next.feedbackMode) {
+            return false;
+        }
+
+        if (prev.feedbackTranslations !== next.feedbackTranslations) {
             return false;
         }
 
