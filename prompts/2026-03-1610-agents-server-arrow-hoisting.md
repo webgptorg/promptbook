@@ -42,16 +42,21 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🔯] foo
+[✨🔯] Enhance the design of the menu left panel and hamburger icon on the header bar
 
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Opened menu is weirdly cropped and its content not visible at all
+    -   The desired UI and UX is same as app panel
+    -   This side menu should be openable both by clicking on the hamburger icon and by swiping from the left edge of the screen (this is a common mobile pattern for side menus)
+    -   Opening and closing should work by swiping left-right
+    -   When the panel is opened, the scolling should be only on the panel not on the page content
+    -   My chats in this menu should not be in box but on the same level
 -   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-03-1610-agents-server-arrow-hoisting-6.png)
+![alt text](prompts/screenshots/2026-03-1610-agents-server-arrow-hoisting-7.png)
+![alt text](prompts/screenshots/2026-03-1610-agents-server-arrow-hoisting-8.png)
 
 ---
 
@@ -65,4 +70,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
