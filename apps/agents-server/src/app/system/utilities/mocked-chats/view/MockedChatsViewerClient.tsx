@@ -133,7 +133,7 @@ export function MockedChatsViewerClient(props: MockedChatsViewerClientProps) {
                                     >
                                         <p className="truncate font-semibold">{chat.name}</p>
                                         <p className="mt-1 text-xs text-slate-500">
-                                            {chat.messages.length} scripted messages
+                                            {chat.messages.length} messages
                                         </p>
                                     </Link>
                                 </li>
