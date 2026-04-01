@@ -11,3 +11,11 @@
 -   Reuse the same saving logic, if needed do a db migration
 
 ---
+
+[ ]
+
+[🪐🧩] Report issue modal in Agents server should be translated
+
+-   You are working with [Agents Server](apps/agents-server)
+
+![alt text](prompts/screenshots/2026-03-1550-agents-server-feedback-variants.png)
