@@ -23,16 +23,22 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🔯] foo
+[✨🔯] Enhance the menu on the mobile
 
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Move menu hanburger to the left corner of the page
+-   Opened menu is weirdly cropped and its content not visible at all
+    -   The desired UI and UX is same as app panel
+    -   This side menu should be openable both by clicking on the hamburger icon and by swiping from the left edge of the screen (this is a common mobile pattern for side menus)
+    -   Opening and closing should work by swiping
+    -   The opened menu should take full height of the page
+    -   My chats in this menu should be the most important part
 -   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+-   You are working with the [Agents Server](apps/agents-server) on mobile version
+
+![alt text](prompts/screenshots/2026-03-1610-agents-server-arrow-hoisting-4.png)
+![alt text](prompts/screenshots/2026-03-1610-agents-server-arrow-hoisting-5.png)
 
 ---
 
@@ -59,4 +65,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
