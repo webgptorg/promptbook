@@ -191,8 +191,8 @@ export function useChatRatings(options: UseChatRatingsOptions): {
                     message:
                         feedbackResponse?.message ??
                         (feedbackMode === 'report_issue'
-                            ? (feedbackTranslations?.reportIssueSuccessMessage ?? DEFAULT_REPORT_ISSUE_SUCCESS_MESSAGE)
-                            : (feedbackTranslations?.feedbackSuccessMessage ?? DEFAULT_FEEDBACK_SUCCESS_MESSAGE)),
+                            ? feedbackTranslations?.reportIssueSuccessMessage ?? DEFAULT_REPORT_ISSUE_SUCCESS_MESSAGE
+                            : feedbackTranslations?.feedbackSuccessMessage ?? DEFAULT_FEEDBACK_SUCCESS_MESSAGE),
                     variant: 'success',
                 });
             } catch (error) {
@@ -200,7 +200,7 @@ export function useChatRatings(options: UseChatRatingsOptions): {
                 const message =
                     error instanceof Error
                         ? error.message
-                        : (feedbackTranslations?.feedbackErrorMessage ?? DEFAULT_FEEDBACK_ERROR_MESSAGE);
+                        : feedbackTranslations?.feedbackErrorMessage ?? DEFAULT_FEEDBACK_ERROR_MESSAGE;
                 showFeedbackStatus({ message, variant: 'error' });
                 return;
             }
@@ -215,8 +215,8 @@ export function useChatRatings(options: UseChatRatingsOptions): {
             showFeedbackStatus({
                 message:
                     feedbackMode === 'report_issue'
-                        ? (feedbackTranslations?.reportIssueSuccessMessage ?? DEFAULT_REPORT_ISSUE_SUCCESS_MESSAGE)
-                        : (feedbackTranslations?.feedbackSuccessMessage ?? DEFAULT_FEEDBACK_SUCCESS_MESSAGE),
+                        ? feedbackTranslations?.reportIssueSuccessMessage ?? DEFAULT_REPORT_ISSUE_SUCCESS_MESSAGE
+                        : feedbackTranslations?.feedbackSuccessMessage ?? DEFAULT_FEEDBACK_SUCCESS_MESSAGE,
                 variant: 'success',
             });
         }

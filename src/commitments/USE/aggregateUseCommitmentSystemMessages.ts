@@ -17,7 +17,11 @@ type AggregatedUseCommitmentType = 'USE BROWSER' | 'USE SEARCH ENGINE' | 'USE TI
  *
  * @private internal constant for `aggregateUseCommitmentSystemMessages`
  */
-const AGGREGATED_USE_COMMITMENT_TYPES = ['USE BROWSER', 'USE SEARCH ENGINE', 'USE TIME'] as const satisfies ReadonlyArray<AggregatedUseCommitmentType>;
+const AGGREGATED_USE_COMMITMENT_TYPES = [
+    'USE BROWSER',
+    'USE SEARCH ENGINE',
+    'USE TIME',
+] as const satisfies ReadonlyArray<AggregatedUseCommitmentType>;
 
 /**
  * Prefix used for temporary in-system-message placeholders that preserve the first-occurrence position of aggregated `USE` sections.

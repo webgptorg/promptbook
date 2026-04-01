@@ -99,8 +99,8 @@ export function ChatRatingModal(props: ChatRatingModalProps) {
             <div className={styles.ratingModalContent}>
                 <h3>
                     {isReportIssueMode
-                        ? (feedbackTranslations?.reportIssueModalTitle ?? 'Report issue')
-                        : (feedbackTranslations?.rateResponseModalTitle ?? 'Rate this response')}
+                        ? feedbackTranslations?.reportIssueModalTitle ?? 'Report issue'
+                        : feedbackTranslations?.rateResponseModalTitle ?? 'Rate this response'}
                 </h3>
                 {!isReportIssueMode && (
                     <div className={styles.stars}>
@@ -142,8 +142,8 @@ export function ChatRatingModal(props: ChatRatingModalProps) {
                 {feedbackTranslations?.userQuestionLabel ?? 'Your question:'}
                 <textarea readOnly value={userQuestion} className={styles.ratingInput} />
                 {isReportIssueMode
-                    ? (feedbackTranslations?.reportIssueExpectedAnswerLabel ?? 'What should the answer include?')
-                    : (feedbackTranslations?.expectedAnswerLabel ?? 'Expected answer:')}
+                    ? feedbackTranslations?.reportIssueExpectedAnswerLabel ?? 'What should the answer include?'
+                    : feedbackTranslations?.expectedAnswerLabel ?? 'Expected answer:'}
                 <textarea
                     placeholder={
                         selectedMessage.content ||
@@ -159,14 +159,14 @@ export function ChatRatingModal(props: ChatRatingModalProps) {
                     className={styles.ratingInput}
                 />
                 {isReportIssueMode
-                    ? (feedbackTranslations?.reportIssueDetailsLabel ?? 'Issue details:')
-                    : (feedbackTranslations?.noteLabel ?? 'Note:')}
+                    ? feedbackTranslations?.reportIssueDetailsLabel ?? 'Issue details:'
+                    : feedbackTranslations?.noteLabel ?? 'Note:'}
                 <textarea
                     placeholder={
                         isReportIssueMode
-                            ? (feedbackTranslations?.reportIssueDetailsPlaceholder ??
-                              'Describe what went wrong (optional)')
-                            : (feedbackTranslations?.notePlaceholder ?? 'Add a note (optional)')
+                            ? feedbackTranslations?.reportIssueDetailsPlaceholder ??
+                              'Describe what went wrong (optional)'
+                            : feedbackTranslations?.notePlaceholder ?? 'Add a note (optional)'
                     }
                     defaultValue={textRating}
                     onChange={(event) => setTextRating(event.target.value)}
@@ -176,8 +176,8 @@ export function ChatRatingModal(props: ChatRatingModalProps) {
                     <button onClick={onClose}>{feedbackTranslations?.cancelLabel || 'Cancel'}</button>
                     <button onClick={submitRating}>
                         {isReportIssueMode
-                            ? (feedbackTranslations?.reportIssueSubmitLabel ?? 'Report issue')
-                            : (feedbackTranslations?.submitLabel ?? 'Submit')}
+                            ? feedbackTranslations?.reportIssueSubmitLabel ?? 'Report issue'
+                            : feedbackTranslations?.submitLabel ?? 'Submit'}
                     </button>
                 </div>
             </div>
