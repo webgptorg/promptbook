@@ -3,6 +3,7 @@ import { spaceTrim } from 'spacetrim';
 import { Color } from '../../../../../src/utils/color/Color';
 import { darken } from '../../../../../src/utils/color/operators/darken';
 import { lighten } from '../../../../../src/utils/color/operators/lighten';
+import { keepUnused } from '../../../../../src/utils/organization/keepUnused';
 
 export function useAgentBackground(colorString: string | undefined) {
     return useMemo(() => {
@@ -36,7 +37,7 @@ export function useAgentBackground(colorString: string | undefined) {
         const color2Main = color2.toHex();
         const color2Dark = color2.then(darken(0.3)).toHex();
 
-        const svgContent = spaceTrim(`
+        const svgPixalatedImage = spaceTrim(`
             <svg xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 1920 1080"
               width="1920" height="1080"
@@ -141,7 +142,11 @@ export function useAgentBackground(colorString: string | undefined) {
             </svg>
         `);
 
-        const backgroundImage = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgContent)}`;
+        keepUnused(svgPixalatedImage);
+
+        const svgBlankImage = `<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>`;
+
+        const backgroundImage = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgBlankImage)}`;
 
         return { brandColorHex, brandColorLightHex, brandColorDarkHex, backgroundImage };
     }, [colorString]);
