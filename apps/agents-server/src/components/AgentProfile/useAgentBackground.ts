@@ -182,7 +182,7 @@ export function useAgentBackground(colorString: string | undefined) {
         keepUnused(svgPixalatedImage);
         keepUnused(svgBlankImage);
 
-        const backgroundImage = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgPixalatedImage)}`;
+        const backgroundImage = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgBlankImage)}`;
 
         return { brandColorHex, brandColorLightHex, brandColorDarkHex, backgroundImage };
     }, [colorString]);
