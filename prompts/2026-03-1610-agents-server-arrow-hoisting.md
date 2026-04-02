@@ -60,7 +60,7 @@
 
 ---
 
-[ ]
+[ ] !
 
 [✨🔯] Enhance mobile menu
 
@@ -80,7 +80,7 @@
 
 ---
 
-[ ]
+[ ] !
 
 [✨🔯] In mocked chats the mocked chats should be listed in mobile menu
 
