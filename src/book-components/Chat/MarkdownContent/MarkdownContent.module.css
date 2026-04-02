@@ -299,7 +299,7 @@
 
 .MarkdownContent sup[data-citation-footnote] {
     display: inline;
-    margin: 0 0 0 0.08em;
+    margin: 0 0.7em 0 0.08em;
     font-size: 0.72em;
     font-weight: 700;
     line-height: 1;
