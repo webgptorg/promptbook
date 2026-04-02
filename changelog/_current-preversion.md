@@ -1,12 +1,3 @@
--   Further optimized Agents Server durable chat stability and latency to prevent Supabase pool exhaustion and reduce repeated database work:
-
-    -   Stopped canonical chat streams from staying open for idle chats, and removed the old healthy-stream periodic refresh loop so inactive chat tabs no longer keep polling the database.
-    -   Changed the durable chat stream route to stop server-side polling once no active jobs remain, while keeping bounded refreshes for pending `USE TIMEOUT` wake-ups.
-    -   Replaced queued durable chat-job claiming with one atomic `FOR UPDATE SKIP LOCKED` SQL claim, reducing queue round-trips and worker contention.
-    -   Reduced hot-path agent preparation waiting by returning immediately for due scheduled preparations after kicking the worker, instead of polling for them to start.
-    -   Restored effective server-agent runtime caching by reusing `AgentCollectionInSupabase` per table prefix and extending runtime/resolver cache TTLs from 30 seconds to 5 minutes.
-    -   Added partial indexes for active/running `UserChatJob` and `UserChatTimeout` scans to speed up the highest-frequency worker and chat-detail lookups.
-
 -   Fixed flaky Agents Server E2E authorization + chat-history tests by stabilizing startup and profile-to-chat assertions:
 
     -   Updated Playwright app startup command to `npm run prebuild && next build && npm run start`, preventing transient port-`4440` conflicts caused by homepage prerender startup during E2E server boot.

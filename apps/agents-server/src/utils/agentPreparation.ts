@@ -31,12 +31,12 @@ const AGENT_PREPARATION_WAKEUP_BUFFER_MS = 100;
 /**
  * Maximum wait for chat routes that decide to wait for a currently running preparation.
  */
-export const AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS = 500;
+export const AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS = 2_500;
 
 /**
  * Default polling interval used while waiting for a running preparation.
  */
-const AGENT_PREPARATION_WAIT_POLL_INTERVAL_MS = 200;
+const AGENT_PREPARATION_WAIT_POLL_INTERVAL_MS = 500;
 
 /**
  * Initial retry delay after one failed background preparation run.
@@ -964,7 +964,11 @@ export async function waitForRunningAgentPreparation(
             const runAfterTimestamp = new Date(row.runAfter).getTime();
             if (Number.isFinite(runAfterTimestamp) && runAfterTimestamp <= now) {
                 kickAgentPreparationWorkerTick();
+                const remainingMs = deadline - now;
+                await sleep(Math.min(pollIntervalMs, Math.max(1, remainingMs)));
+                continue;
             }
+
             return 'not_running';
         }
 

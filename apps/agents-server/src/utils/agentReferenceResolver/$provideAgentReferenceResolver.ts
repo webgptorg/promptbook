@@ -7,7 +7,7 @@ import { createServerAgentReferenceResolver } from './createServerAgentReference
 /**
  * Lifetime for resolver cache entries.
  */
-const CACHE_TTL_MS = 5 * 60_000;
+const CACHE_TTL_MS = 30_000;
 
 /**
  * Last successfully constructed resolver instance.

@@ -59,24 +59,14 @@ const USER_CHAT_STREAM_RECONNECT_DELAY_MS = 1_500;
 const DISCONNECTED_CHAT_REFRESH_INTERVAL_MS = 4_000;
 
 /**
+ * Periodic sidebar/list refresh cadence while the active chat stream is healthy.
+ */
+const CHAT_LIST_REFRESH_INTERVAL_MS = 20_000;
+
+/**
  * Debounce window for draft persistence.
  */
 const SAVE_DEBOUNCE_MS = 600;
-
-/**
- * Slow background refresh cadence used for chats that only have pending timeouts.
- */
-const ACTIVE_TIMEOUT_REFRESH_INTERVAL_MS = 30_000;
-
-/**
- * Maximum delay before the next due timeout schedules a refresh.
- */
-const ACTIVE_TIMEOUT_REFRESH_MAX_DELAY_MS = 15_000;
-
-/**
- * Small buffer after timeout due timestamps before reloading canonical chat state.
- */
-const ACTIVE_TIMEOUT_REFRESH_BUFFER_MS = 750;
 
 /**
  * Props for the full chat page with per-user durable history.
@@ -254,35 +244,10 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     );
     const pendingOutboundMessages = usePendingOutboundMessages(activeChatId);
     const isActiveChatReadOnly = activeChatSummary?.isReadOnly === true;
-    const hasActiveJobs = activeJobs.length > 0;
     const hasAnyActiveTimeouts = useMemo(
         () => chats.some((chat) => chat.timeoutActivity.count > 0) || activeTimeouts.length > 0,
         [activeTimeouts.length, chats],
     );
-    const nearestActiveTimeoutDueAt = useMemo(() => {
-        let nearestTimestamp: number | null = null;
-
-        for (const timeout of activeTimeouts) {
-            if (timeout.status !== 'QUEUED' && timeout.status !== 'RUNNING') {
-                continue;
-            }
-
-            if (timeout.cancelRequestedAt) {
-                continue;
-            }
-
-            const dueAtTimestamp = Date.parse(timeout.dueAt);
-            if (!Number.isFinite(dueAtTimestamp)) {
-                continue;
-            }
-
-            if (nearestTimestamp === null || dueAtTimestamp < nearestTimestamp) {
-                nearestTimestamp = dueAtTimestamp;
-            }
-        }
-
-        return nearestTimestamp;
-    }, [activeTimeouts]);
     const renderedActiveMessages = useMemo(
         () =>
             mergeCanonicalChatMessagesWithPendingOutboundMessages({
@@ -853,13 +818,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     }, [flushActiveDraft, shouldUseHistory]);
 
     useEffect(() => {
-        if (
-            !shouldUseHistory ||
-            !activeChatId ||
-            isActiveChatReadOnly ||
-            !isActiveBrowserTab ||
-            !hasActiveJobs
-        ) {
+        if (!shouldUseHistory || !activeChatId || isActiveChatReadOnly || !isActiveBrowserTab) {
             setIsActiveChatStreamConnected(false);
             return;
         }
@@ -930,7 +889,6 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         activeChatId,
         agentName,
         applyChatDetail,
-        hasActiveJobs,
         isActiveBrowserTab,
         isActiveChatReadOnly,
         refreshActiveChat,
@@ -942,6 +900,9 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             return;
         }
 
+        const pollIntervalMs = isActiveChatStreamConnected
+            ? CHAT_LIST_REFRESH_INTERVAL_MS
+            : DISCONNECTED_CHAT_REFRESH_INTERVAL_MS;
         const runRefresh = () => {
             if (typeof document !== 'undefined' && document.hidden) {
                 return;
@@ -949,6 +910,8 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
             void refreshActiveChat({ preserveDirtyDraft: true });
         };
+
+        const interval = window.setInterval(runRefresh, pollIntervalMs);
         const handleVisibilityChange = () => {
             if (typeof document !== 'undefined' && !document.hidden) {
                 runRefresh();
@@ -958,43 +921,15 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             runRefresh();
         };
 
-        let interval: number | null = null;
-        let timeout: number | null = null;
-
-        if (hasActiveJobs && !isActiveChatStreamConnected) {
-            interval = window.setInterval(runRefresh, DISCONNECTED_CHAT_REFRESH_INTERVAL_MS);
-        } else if (!hasActiveJobs && nearestActiveTimeoutDueAt !== null) {
-            const nextRefreshDelayMs = Math.min(
-                ACTIVE_TIMEOUT_REFRESH_MAX_DELAY_MS,
-                Math.max(1_000, nearestActiveTimeoutDueAt - Date.now() + ACTIVE_TIMEOUT_REFRESH_BUFFER_MS),
-            );
-
-            interval = window.setInterval(runRefresh, ACTIVE_TIMEOUT_REFRESH_INTERVAL_MS);
-            timeout = window.setTimeout(runRefresh, nextRefreshDelayMs);
-        }
-
         document.addEventListener('visibilitychange', handleVisibilityChange);
         window.addEventListener('focus', handleFocus);
 
         return () => {
-            if (interval) {
-                window.clearInterval(interval);
-            }
-            if (timeout) {
-                window.clearTimeout(timeout);
-            }
+            window.clearInterval(interval);
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             window.removeEventListener('focus', handleFocus);
         };
-    }, [
-        activeChatId,
-        hasActiveJobs,
-        isActiveChatReadOnly,
-        isActiveChatStreamConnected,
-        nearestActiveTimeoutDueAt,
-        refreshActiveChat,
-        shouldUseHistory,
-    ]);
+    }, [activeChatId, isActiveChatReadOnly, isActiveChatStreamConnected, refreshActiveChat, shouldUseHistory]);
 
     /**
      * Selects one existing chat.
