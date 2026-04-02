@@ -318,7 +318,7 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
             title: updateUrlTitle,
             message: updateUrlMessage,
             confirmLabel: formatText('Update URL'),
-            cancelLabel: 'Cancel',
+            cancelLabel: formatText('Cancel'),
         }).catch(() => false);
 
         if (confirmed) {
@@ -340,7 +340,7 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
             title: deleteAgentTitle,
             message: deleteAgentMessage,
             confirmLabel: formatText('Delete agent'),
-            cancelLabel: 'Cancel',
+            cancelLabel: formatText('Cancel'),
         }).catch(() => false);
 
         if (!confirmed) {
@@ -353,7 +353,7 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
         } catch (error) {
             console.error('Failed to delete agent:', error);
             await showAlert({
-                title: 'Delete failed',
+                title: formatText('Delete failed'),
                 message: formatText('Failed to delete agent. Please try again.'),
             }).catch(() => undefined);
         }
@@ -368,7 +368,7 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
             message: formatText('Enter a new name for this agent.'),
             defaultValue: derivedAgentName || agentName,
             confirmLabel: formatText('Rename'),
-            cancelLabel: 'Cancel',
+            cancelLabel: formatText('Cancel'),
             placeholder: formatText('Agent name'),
             inputLabel: formatText('Agent name'),
         }).catch(() => null);
@@ -400,7 +400,7 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
             onRequestClose?.();
         } catch (error) {
             await showAlert({
-                title: 'Rename failed',
+                title: formatText('Rename failed'),
                 message: error instanceof Error ? error.message : formatText('Failed to rename agent.'),
             }).catch(() => undefined);
         }
@@ -446,7 +446,7 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
                 window.location.reload();
             } catch (error) {
                 await showAlert({
-                    title: 'Update failed',
+                    title: formatText('Update failed'),
                     message: error instanceof Error ? error.message : formatText('Failed to update agent visibility.'),
                 }).catch(() => undefined);
             }
@@ -458,9 +458,9 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
     const handleRequestVisibilityUpdate = useCallback(async () => {
         const currentVisibility = agent.visibility ?? DEFAULT_AGENT_VISIBILITY;
         const selectedVisibility = await showVisibilityDialog({
-            title: 'Update visibility',
+            title: formatText('Update visibility'),
             description: `${formatText('Set visibility for agent')} "${agent.agentName}".`,
-            confirmLabel: 'Update visibility',
+            confirmLabel: formatText('Update visibility'),
             initialVisibility: currentVisibility,
         }).catch(() => null);
         if (!selectedVisibility || selectedVisibility === agent.visibility) {
@@ -475,7 +475,7 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
                       type: 'link' as const,
                       href: `/agents/${encodeURIComponent(agentName)}`,
                       icon: ExternalLinkIcon,
-                      label: 'Open in new tab',
+                      label: formatText('Open in new tab'),
                       target: '_blank',
                   },
                   { type: 'divider' as const },
@@ -489,7 +489,7 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
                   {
                       type: 'action' as const,
                       icon: MoreHorizontalIcon,
-                      label: 'Update URL',
+                      label: formatText('Update URL'),
                       onClick: handleUpdateUrl,
                       highlight: true,
                   },
@@ -510,19 +510,19 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
         {
             type: 'action' as const,
             icon: CopyIcon,
-            label: copyFeedback === 'URL' ? 'Copied!' : formatText('Copy Agent URL'),
+            label: copyFeedback === 'URL' ? formatText('Copied!') : formatText('Copy Agent URL'),
             onClick: () => handleCopy(agentUrl, 'URL'),
         },
         {
             type: 'action' as const,
             icon: MailIcon,
-            label: copyFeedback === 'Email' ? 'Copied!' : formatText('Copy Agent Email'),
+            label: copyFeedback === 'Email' ? formatText('Copied!') : formatText('Copy Agent Email'),
             onClick: () => handleCopy(agentEmail, 'Email'),
         },
         {
             type: 'action' as const,
             icon: QrCodeIcon,
-            label: 'Show QR Code',
+            label: formatText('Show QR Code'),
             onClick: onShowQrCode,
         },
 
@@ -542,25 +542,25 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
             type: 'link' as const,
             href: `/agents/${encodeURIComponent(agentName)}/chat`,
             icon: MessageSquareShareIcon,
-            label: 'Standalone Chat',
+            label: formatText('Standalone Chat'),
         },
         {
             type: 'link' as const,
             href: `/agents/${encodeURIComponent(agentName)}/chat/chatgpt-like`,
             icon: MessageSquareIcon,
-            label: 'ChatGPT-like Chat',
+            label: formatText('ChatGPT-like Chat'),
         },
         {
             type: 'link' as const,
             href: `/agents/${encodeURIComponent(agentName)}/book+chat`,
             icon: SquareSplitHorizontalIcon,
-            label: 'Edit Book & Chat',
+            label: formatText('Edit Book & Chat'),
         },
         {
             type: 'link' as const,
             href: `/agents/${encodeURIComponent(agentName)}/textarea`,
             icon: MessageSquareIcon,
-            label: 'Textarea Entry',
+            label: formatText('Textarea Entry'),
         },
         {
             type: 'link' as const,
@@ -608,19 +608,19 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
                       type: 'link' as const,
                       href: `/admin/chat-history?agentName=${encodeURIComponent(agentName)}`,
                       icon: MessageSquareIcon,
-                      label: 'Chat History',
+                      label: formatText('Chat History'),
                   },
                   {
                       type: 'link' as const,
                       href: usageAnalyticsHref,
                       icon: BarChart3Icon,
-                      label: 'Usage Analytics',
+                      label: formatText('Usage Analytics'),
                   },
                   {
                       type: 'link' as const,
                       href: `/admin/chat-feedback?agentName=${encodeURIComponent(agentName)}`,
                       icon: MessageCircleQuestionIcon,
-                      label: 'Chat Feedback',
+                      label: formatText('Chat Feedback'),
                   },
                   { type: 'divider' as const },
                   {
@@ -633,7 +633,7 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
                       type: 'link' as const,
                       href: `/agents/${encodeURIComponent(agentName)}/system-message`,
                       icon: FileTextIcon,
-                      label: 'Show System Message',
+                      label: formatText('Show System Message'),
                   },
                   {
                       type: 'link' as const,
@@ -666,6 +666,7 @@ export function AgentContextMenuButton(props: AgentContextMenuButtonProps) {
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement | null>(null);
     const { installPromptEvent, isInstalled, handleInstallApp } = useInstallPromptState();
+    const { formatText } = useAgentNaming();
 
     /**
      * Closes the menu popover.
@@ -681,7 +682,7 @@ export function AgentContextMenuButton(props: AgentContextMenuButtonProps) {
             <button
                 onClick={() => setIsOpen((prev) => !prev)}
                 className="p-3 rounded-full hover:bg-white/30 transition-all duration-200"
-                aria-label="More options"
+                aria-label={formatText('More options')}
             >
                 <MoreHorizontalIcon className="w-5 h-5 text-black" />
             </button>

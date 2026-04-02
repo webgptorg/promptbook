@@ -1,3 +1,10 @@
+-   Improved Czech (`SERVER_LANGUAGE=cs`) localization coverage in Agents Server by translating legacy hardcoded UI phrases that still flowed through `formatText(...)` / `formatAgentNamingText(...)`:
+
+    -   Added a centralized Czech legacy phrase catalog at `apps/agents-server/src/components/AgentNaming/legacyAgentTextTranslations.cs.yaml`.
+    -   Updated `AgentNamingProvider` to apply legacy phrase translation before agent-naming replacement, so existing UI strings now render in Czech without rewriting each call site.
+    -   Localized additional hardcoded labels in the agent context menu (for example copy feedback, QR action, standalone/chat links, history/analytics/feedback links, and failure dialog titles) by routing them through `formatText(...)`.
+    -   Added regression tests that automatically scan Agents Server source literals used in `formatText(...)` and `formatAgentNamingText(...)` and fail when any new literal is missing from the Czech legacy phrase catalog.
+
 -   Added server-language enforcement support in Agents Server metadata:
 
     -   Added new metadata key `IS_SERVER_LANGUAGE_ENFORCED` (`true`/`false`) with default `false`.
