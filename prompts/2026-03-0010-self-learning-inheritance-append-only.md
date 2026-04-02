@@ -2,8 +2,7 @@
 
 [🧠🧩] Fix self-learning to be inheritance-chain aware and append-only
 
--   *(@@@@ Written by agent)*
--   Update the self-learning flow so that when an agent is inheriting from another agent (via default inheritance from Adam or an explicit from-commitment), the teacher:
+-   Update the self-learning flow so that when an agent is inheriting from another agent (via default inheritance from Adam or an explicit `FROM` commitment), the teacher:
     -   sees only the parent chain sources during self-learning (teacher context includes parent chain sources)
     -   **does not materialize** the parent agent source into the child agent’s book
     -   ensures that after self-learning, the child agent book contains only changes to the child agent’s own source (parent sources remain represented only via the inheritance chain, not duplicated)
@@ -19,9 +18,3 @@
     -   explicit from-commitment inheritance
     -   assert that after self-learning the parent chain sources are not duplicated/materialized into the child’s stored book content
 -   Update the [changelog](changelog/_current-preversion.md)
--   Missing pieces to confirm with @@@:
-    -   where exactly self-learning is implemented (file path / service name)
-    -   how “append-only” content is represented in storage (book language format specifics)
-    -   how idempotency is currently handled (if at all)
-    -   what “teacher” means in code (API name / class)
-
