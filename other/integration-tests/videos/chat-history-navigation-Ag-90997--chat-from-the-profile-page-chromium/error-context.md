@@ -87,8 +87,8 @@
                               - button "Hello":
                                 - generic:
                                   - paragraph: Hello
-                          - generic "2026-04-01 20:14:22":
-                            - generic: 8:14 PM
+                          - generic "2026-04-01 22:58:24":
+                            - generic: 10:58 PM
                     - generic:
                       - generic:
                         - textbox "Write a message..."
@@ -100,11 +100,11 @@
                           - img
           - generic [ref=e120]:
             - link "Edit Book" [ref=e121] [cursor=pointer]:
-              - /url: /agents/CKKFMJDEQcfjgt/book
+              - /url: /agents/SNLq1uoJ8PiYVo/book
               - img [ref=e123]
               - generic [ref=e126]: Edit Book
             - link "Integration" [ref=e127] [cursor=pointer]:
-              - /url: /agents/CKKFMJDEQcfjgt/integration
+              - /url: /agents/SNLq1uoJ8PiYVo/integration
               - img [ref=e129]
               - generic [ref=e132]: Integration
     - contentinfo [ref=e133]:
@@ -172,7 +172,7 @@
             - text: © 2026 Promptbook
             - text: All rights reserved.
             - text: Made with ❤️ in the Czech Republic.
-          - paragraph [ref=e181]: Promptbook engine version 0.112.0-29
+          - paragraph [ref=e181]: Promptbook engine version 0.112.0-30
   - generic:
     - region "Notifications"
   - alert [ref=e182]

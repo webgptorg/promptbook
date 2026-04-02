@@ -93,5 +93,5 @@
           - text: © 2026 Promptbook
           - text: All rights reserved.
           - text: Made with ❤️ in the Czech Republic.
-        - paragraph [ref=e184]: Promptbook engine version 0.112.0-29
+        - paragraph [ref=e184]: Promptbook engine version 0.112.0-30
 ```
