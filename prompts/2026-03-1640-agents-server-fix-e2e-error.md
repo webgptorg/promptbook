@@ -1,4 +1,4 @@
-[ ]
+[x] ~$2.07 2 hours by OpenAI Codex `gpt-5.3-codex`
 
 [✨💇] Fix e2e tests
 
@@ -283,3 +283,4 @@ message immediately as sending when starting a chat from the profile page
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

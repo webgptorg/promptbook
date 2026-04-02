@@ -1,3 +1,10 @@
+-   Fixed flaky Agents Server E2E authorization + chat-history tests by stabilizing startup and profile-to-chat assertions:
+
+    -   Updated Playwright app startup command to `npm run prebuild && next build && npm run start`, preventing transient port-`4440` conflicts caused by homepage prerender startup during E2E server boot.
+    -   Hardened E2E login helpers with retry-aware login dialog opening and deterministic admin-state verification.
+    -   Reworked `api-authorization` E2E coverage to avoid page-navigation coupling for anonymous metadata checks and to use browser-context authenticated `fetch` for admin-only API assertions.
+    -   Refactored delayed-request interception in chat-history tests into one shared helper, fixed route-release/unroute race handling, and stabilized the profile-origin first-message scenario by using the profile `?message=...` entry path with durable-chat assertions.
+
 -   Enhanced Agents Server mobile header menu layout consistency and usability:
 
     -   Moved the mobile hamburger trigger into the normal header flow so it no longer overlaps the server logo area.

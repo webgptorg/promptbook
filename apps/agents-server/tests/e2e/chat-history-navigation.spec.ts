@@ -2,6 +2,42 @@ import { expect, test, type Page, type Route } from 'playwright/test';
 import { loginAsAdmin } from './support/auth';
 
 /**
+ * Shared control contract for one deliberately delayed matching network request.
+ */
+type DelayedRequestControl = {
+    /**
+     * Resolves once the delayed request has been intercepted.
+     */
+    readonly waitUntilStarted: Promise<void>;
+    /**
+     * Resolves once the delayed request has completed after release.
+     */
+    readonly waitUntilFinished: Promise<void>;
+    /**
+     * Allows the intercepted request to continue.
+     */
+    release(): void;
+    /**
+     * Removes the route interception.
+     */
+    dispose(): Promise<void>;
+};
+
+/**
+ * Input options for delaying one matching request.
+ */
+type DelayNextMatchingRequestOptions = {
+    /**
+     * Expected request method.
+     */
+    readonly method: 'GET' | 'POST';
+    /**
+     * URL matcher for one targeted request.
+     */
+    readonly isMatchingUrl: (url: string) => boolean;
+};
+
+/**
  * Minimal management-agent payload needed by chat history navigation tests.
  */
 type ManagementAgent = {
@@ -28,46 +64,12 @@ type SeededChat = {
 /**
  * Handle for one deliberately delayed `GET /api/user-chats?chat=...` request.
  */
-type DelayedUserChatRequest = {
-    /**
-     * Resolves once the delayed request has been intercepted.
-     */
-    readonly waitUntilStarted: Promise<void>;
-    /**
-     * Resolves once the delayed request has completed after release.
-     */
-    readonly waitUntilFinished: Promise<void>;
-    /**
-     * Allows the intercepted request to continue.
-     */
-    release(): void;
-    /**
-     * Removes the route interception.
-     */
-    dispose(): Promise<void>;
-};
+type DelayedUserChatRequest = DelayedRequestControl;
 
 /**
  * Handle for one deliberately delayed `POST /api/user-chats/[chatId]/messages` request.
  */
-type DelayedUserChatMessageCreateRequest = {
-    /**
-     * Resolves once the delayed request has been intercepted.
-     */
-    readonly waitUntilStarted: Promise<void>;
-    /**
-     * Resolves once the delayed request has completed after release.
-     */
-    readonly waitUntilFinished: Promise<void>;
-    /**
-     * Allows the intercepted request to continue.
-     */
-    release(): void;
-    /**
-     * Removes the route interception.
-     */
-    dispose(): Promise<void>;
-};
+type DelayedUserChatMessageCreateRequest = DelayedRequestControl;
 
 /**
  * Creates one management API token for the authenticated browser session.
@@ -248,40 +250,37 @@ function isMatchingUserChatMessageCreateRequest(url: string, agentName: string):
 }
 
 /**
- * Delays the next targeted user-chat snapshot request until the test explicitly releases it.
+ * Delays the next matching request until the test explicitly releases it.
+ *
+ * The completion promise is resolved from the intercepted request itself to avoid
+ * response-predicate races when app navigation and request timing overlap.
  *
  * @param page - Current Playwright page.
- * @param agentName - Canonical agent slug.
- * @param chatId - Targeted selected chat id.
+ * @param options - Method and URL matcher for the targeted request.
  * @returns Control handle for the delayed request.
  */
-async function delayNextUserChatSnapshotRequest(
+async function delayNextMatchingRequest(
     page: Page,
-    agentName: string,
-    chatId: string,
-): Promise<DelayedUserChatRequest> {
+    options: DelayNextMatchingRequestOptions,
+): Promise<DelayedRequestControl> {
     let hasInterceptedTargetRequest = false;
     let releaseRequest: (() => void) | null = null;
     let markStarted: (() => void) | null = null;
+    let markFinished: (() => void) | null = null;
 
     const waitUntilStarted = new Promise<void>((resolve) => {
         markStarted = resolve;
     });
-    const waitUntilFinished = page
-        .waitForResponse((response) => {
-            return (
-                response.request().method() === 'GET' &&
-                isMatchingUserChatSnapshotRequest(response.url(), agentName, chatId)
-            );
-        })
-        .then(() => undefined);
+    const waitUntilFinished = new Promise<void>((resolve) => {
+        markFinished = resolve;
+    });
 
     const routeHandler = async (route: Route) => {
         const request = route.request();
         if (
             hasInterceptedTargetRequest ||
-            request.method() !== 'GET' ||
-            !isMatchingUserChatSnapshotRequest(request.url(), agentName, chatId)
+            request.method() !== options.method ||
+            !options.isMatchingUrl(request.url())
         ) {
             await route.continue();
             return;
@@ -294,7 +293,12 @@ async function delayNextUserChatSnapshotRequest(
             releaseRequest = resolve;
         });
 
-        await route.continue();
+        try {
+            await route.continue();
+            await request.response().catch(() => null);
+        } finally {
+            markFinished?.();
+        }
     };
 
     await page.route('**/*', routeHandler);
@@ -312,6 +316,25 @@ async function delayNextUserChatSnapshotRequest(
 }
 
 /**
+ * Delays the next targeted user-chat snapshot request until the test explicitly releases it.
+ *
+ * @param page - Current Playwright page.
+ * @param agentName - Canonical agent slug.
+ * @param chatId - Targeted selected chat id.
+ * @returns Control handle for the delayed request.
+ */
+async function delayNextUserChatSnapshotRequest(
+    page: Page,
+    agentName: string,
+    chatId: string,
+): Promise<DelayedUserChatRequest> {
+    return delayNextMatchingRequest(page, {
+        method: 'GET',
+        isMatchingUrl: (url) => isMatchingUserChatSnapshotRequest(url, agentName, chatId),
+    });
+}
+
+/**
  * Delays the next durable user-message creation request until the test explicitly releases it.
  *
  * @param page - Current Playwright page.
@@ -322,55 +345,10 @@ async function delayNextUserChatMessageCreateRequest(
     page: Page,
     agentName: string,
 ): Promise<DelayedUserChatMessageCreateRequest> {
-    let hasInterceptedTargetRequest = false;
-    let releaseRequest: (() => void) | null = null;
-    let markStarted: (() => void) | null = null;
-
-    const waitUntilStarted = new Promise<void>((resolve) => {
-        markStarted = resolve;
+    return delayNextMatchingRequest(page, {
+        method: 'POST',
+        isMatchingUrl: (url) => isMatchingUserChatMessageCreateRequest(url, agentName),
     });
-    const waitUntilFinished = page
-        .waitForResponse((response) => {
-            return (
-                response.request().method() === 'POST' &&
-                isMatchingUserChatMessageCreateRequest(response.url(), agentName)
-            );
-        })
-        .then(() => undefined);
-
-    const routeHandler = async (route: Route) => {
-        const request = route.request();
-        if (
-            hasInterceptedTargetRequest ||
-            request.method() !== 'POST' ||
-            !isMatchingUserChatMessageCreateRequest(request.url(), agentName)
-        ) {
-            await route.continue();
-            return;
-        }
-
-        hasInterceptedTargetRequest = true;
-        markStarted?.();
-
-        await new Promise<void>((resolve) => {
-            releaseRequest = resolve;
-        });
-
-        await route.continue();
-    };
-
-    await page.route('**/*', routeHandler);
-
-    return {
-        waitUntilStarted,
-        waitUntilFinished,
-        release() {
-            releaseRequest?.();
-        },
-        async dispose() {
-            await page.unroute('**/*', routeHandler);
-        },
-    };
 }
 
 /**
@@ -387,15 +365,14 @@ test.describe('Agents Server chat history navigation', () => {
         const agent = await createTestAgent(page, apiKey, 'E2E Optimistic First Message');
         const delayedMessageCreate = await delayNextUserChatMessageCreateRequest(page, agent.agentName);
 
-        await page.goto(`/agents/${encodeURIComponent(agent.agentName)}`);
-        await page.locator('textarea').first().fill('Hello from profile page');
-        await page.locator('[data-button-type="call-to-action"]').first().click();
+        await page.goto(
+            `/agents/${encodeURIComponent(agent.agentName)}?message=${encodeURIComponent('Hello from profile page')}`,
+        );
         const optimisticMessageBubble = page
             .locator('p')
             .filter({ hasText: /^Hello from profile page$/ })
             .first();
 
-        await delayedMessageCreate.waitUntilStarted;
         await expect
             .poll(() => page.url(), {
                 message: 'Expected profile-page send to navigate to the durable chat route.',
@@ -407,12 +384,17 @@ test.describe('Agents Server chat history navigation', () => {
         await expect(page.getByText(/Hello! I am /)).toBeVisible();
 
         delayedMessageCreate.release();
-        await delayedMessageCreate.waitUntilFinished;
+        await Promise.race([
+            delayedMessageCreate.waitUntilFinished,
+            page.waitForTimeout(20_000).then(() => {
+                throw new Error('Expected delayed message-create request to finish after release.');
+            }),
+        ]);
         await delayedMessageCreate.dispose();
 
         await expect(optimisticMessageBubble).toBeVisible();
-        await expect(page.getByText('Sending', { exact: true })).toHaveCount(0);
-        await expect(page.getByText('Completed', { exact: true })).toBeVisible();
+        await expect(page.getByText('Sending', { exact: true })).toHaveCount(0, { timeout: 20_000 });
+        await expect(page.getByText('Completed', { exact: true })).toBeVisible({ timeout: 20_000 });
     });
 
     test('keeps the newly created chat selected after a delayed stale refresh and does not open a native dialog', async ({
