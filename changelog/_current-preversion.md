@@ -1,3 +1,13 @@
+-   Stabilized and optimized Agents Server database pressure under durable-chat load to mitigate Supabase pool exhaustion (`PGRST003`) and improve chat responsiveness:
+
+    -   Hardened middleware hot path with longer metadata/server caching, per-host custom-domain resolution caching (including negative cache), per-host in-flight resolution deduplication, strict custom-domain resolution timeout, and matcher exclusions for `/api/internal/*` and `robots.txt` to avoid unnecessary DB work on worker/internal requests.
+    -   Optimized custom-domain lookup to pre-filter DB candidates by host (`or(...)`) instead of scanning all agents per server, and reduced resolver bootstrap payload to lightweight identity rows.
+    -   Fixed `$provideAgentCollectionForServer` caching so collections are reused per `tablePrefix` instead of being effectively recreated repeatedly.
+    -   Reduced chat list payload cost by adding lightweight summary-seed loading (without full `messages` hydration) and fetching full transcript only for the active chat in `/agents/[agentName]/api/user-chats`.
+    -   Reduced durable job write pressure by increasing heartbeat/persist intervals, tolerating transient heartbeat failures, deduplicating unchanged assistant snapshot writes, and extending chat-job lease duration.
+    -   Added cron GET/auth support for `/api/internal/user-chat-jobs/run`, scheduled both durable job + timeout worker crons to 2-minute cadence, and added metadata default `USER_CHAT_BACKGROUND_CRON_INTERVAL_MINUTES=2`.
+    -   Added migration `2026-04-0010-user-chat-performance-indexes.sql` with targeted `UserChat`, `UserChatJob`, and `UserChatTimeout` indexes for queue/list hot paths.
+
 -   Fixed flaky Agents Server E2E authorization + chat-history tests by stabilizing startup and profile-to-chat assertions:
 
     -   Updated Playwright app startup command to `npm run prebuild && next build && npm run start`, preventing transient port-`4440` conflicts caused by homepage prerender startup during E2E server boot.

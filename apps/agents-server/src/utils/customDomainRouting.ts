@@ -112,6 +112,11 @@ type CustomDomainAgentRow = {
 };
 
 /**
+ * Minimal agent identity row used to initialize compact-reference resolution.
+ */
+type CustomDomainAgentReferenceRow = Pick<CustomDomainAgentRow, 'agentName' | 'permanentId'>;
+
+/**
  * Minimal resolved metadata needed for custom-domain matching.
  */
 type ResolvedCustomDomainMetadata = Pick<AgentBasicInformation, 'links' | 'meta'>;
@@ -122,7 +127,7 @@ type ResolvedCustomDomainMetadata = Pick<AgentBasicInformation, 'links' | 'meta'
  * @param agents - Stored server-owned agents.
  * @returns Lightweight collection compatible with the resolver initialization step.
  */
-function createResolverAgentCollection(agents: ReadonlyArray<CustomDomainAgentRow>): AgentCollection {
+function createResolverAgentCollection(agents: ReadonlyArray<CustomDomainAgentReferenceRow>): AgentCollection {
     return {
         async listAgents() {
             return agents.map(
@@ -278,6 +283,10 @@ export async function resolveCustomDomainAgent(
     if (candidates.domainCandidates.length === 0 && candidates.linkCandidates.length === 0) {
         return null;
     }
+    const customDomainOrFilter = createCustomDomainOrFilter(host);
+    if (!customDomainOrFilter) {
+        return null;
+    }
 
     const [federatedServers, adamAgentUrl, federatedAgentImportConfiguration] = await Promise.all([
         getFederatedServers(),
@@ -288,25 +297,37 @@ export async function resolveCustomDomainAgent(
     for (const server of servers) {
         try {
             const tableName = `${server.tablePrefix}Agent`;
-            const { data, error } = await supabase
+            const { data: matchingCandidates, error: matchingCandidatesError } = await supabase
                 .from(tableName)
                 .select('agentName, permanentId, agentSource, agentProfile')
+                .or(customDomainOrFilter)
                 .is('deletedAt', null);
 
-            if (error || !Array.isArray(data) || data.length === 0) {
+            if (matchingCandidatesError || !Array.isArray(matchingCandidates) || matchingCandidates.length === 0) {
+                continue;
+            }
+
+            const { data: resolverReferenceAgents, error: resolverReferenceError } = await supabase
+                .from(tableName)
+                .select('agentName, permanentId')
+                .is('deletedAt', null);
+
+            if (resolverReferenceError || !Array.isArray(resolverReferenceAgents)) {
                 continue;
             }
 
             const localServerUrl = createServerPublicUrl(server.domain).href;
             const agentReferenceResolver = await createServerAgentReferenceResolver({
-                agentCollection: createResolverAgentCollection(data as Array<CustomDomainAgentRow>),
+                agentCollection: createResolverAgentCollection(
+                    resolverReferenceAgents as Array<CustomDomainAgentReferenceRow>,
+                ),
                 localServerUrl,
                 federatedServers,
             });
 
             let matchedAgent: CustomDomainAgentRow | undefined;
 
-            for (const agent of data as Array<CustomDomainAgentRow>) {
+            for (const agent of matchingCandidates as Array<CustomDomainAgentRow>) {
                 const resolvedMetadata = await resolveCustomDomainMetadataForAgent(agent, {
                     localServerUrl,
                     adamAgentUrl,

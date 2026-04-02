@@ -2,9 +2,10 @@ import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import {
     createUserChat,
     createUserChatDetailPayload,
-    createUserChatSummary,
+    createUserChatSummaryFromSeed,
+    getUserChat,
     listUserChatJobActivityCounts,
-    listUserChats,
+    listUserChatSummarySeeds,
     USER_CHAT_SOURCES,
 } from '@/src/utils/userChat';
 import { listUserChatTimeoutActivities } from '@/src/utils/userChatTimeout/userChatTimeoutStore';
@@ -34,7 +35,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         const requestUrl = new URL(request.url);
         const requestedChatId = normalizeOptionalString(requestUrl.searchParams.get('chat'));
         const showExternalChats = normalizeBooleanFlag(requestUrl.searchParams.get('showExternalChats'));
-        const chats = await listUserChats({
+        const chatSummarySeeds = await listUserChatSummarySeeds({
             userId: scopeResult.scope.userId,
             viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
             agentPermanentId: scopeResult.scope.agentPermanentId,
@@ -46,20 +47,30 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
             listUserChatTimeoutActivities({
                 userId: activityUserId,
                 agentPermanentId: scopeResult.scope.agentPermanentId,
-                chatIds: chats.map((chat) => chat.id),
+                chatIds: chatSummarySeeds.map((chat) => chat.id),
             }),
             listUserChatJobActivityCounts({
                 userId: activityUserId,
                 agentPermanentId: scopeResult.scope.agentPermanentId,
-                chatIds: chats.map((chat) => chat.id),
+                chatIds: chatSummarySeeds.map((chat) => chat.id),
             }),
         ]);
 
-        const activeChat =
-            (requestedChatId ? chats.find((chat) => chat.id === requestedChatId) : null) || chats[0] || null;
+        const activeChatSummarySeed =
+            (requestedChatId ? chatSummarySeeds.find((chat) => chat.id === requestedChatId) : null) ||
+            chatSummarySeeds[0] ||
+            null;
+        const activeChat = activeChatSummarySeed
+            ? await getUserChat({
+                  userId: scopeResult.scope.userId,
+                  viewerIsAdmin: scopeResult.scope.viewerIsAdmin,
+                  agentPermanentId: scopeResult.scope.agentPermanentId,
+                  chatId: activeChatSummarySeed.id,
+              })
+            : null;
         const activeChatDetail = activeChat ? await createUserChatDetailPayload(activeChat) : null;
-        const chatSummaries = chats.map((chat) =>
-            createUserChatSummary(chat, {
+        const chatSummaries = chatSummarySeeds.map((chat) =>
+            createUserChatSummaryFromSeed(chat, {
                 timeoutActivity: timeoutActivities[chat.id],
                 activeJobCount: jobActivityCounts[chat.id],
             }),
@@ -147,8 +158,8 @@ function normalizeBooleanFlag(value: string | null): boolean {
  * Replaces one summary inside the list with a refreshed canonical version.
  */
 function replaceChatSummary(
-    chats: ReadonlyArray<ReturnType<typeof createUserChatSummary>>,
-    refreshedChat: ReturnType<typeof createUserChatSummary>,
-): Array<ReturnType<typeof createUserChatSummary>> {
+    chats: ReadonlyArray<ReturnType<typeof createUserChatSummaryFromSeed>>,
+    refreshedChat: ReturnType<typeof createUserChatSummaryFromSeed>,
+): Array<ReturnType<typeof createUserChatSummaryFromSeed>> {
     return chats.map((chat) => (chat.id === refreshedChat.id ? refreshedChat : chat));
 }

@@ -4,6 +4,7 @@ export { createUserChat } from './userChat/createUserChat';
 export { createUserChatDetailPayload } from './userChat/createUserChatDetailPayload';
 export { createUserChatJob } from './userChat/createUserChatJob';
 export { createUserChatSummary } from './userChat/createUserChatSummary';
+export { createUserChatSummaryFromSeed } from './userChat/createUserChatSummary';
 export { deleteUserChat } from './userChat/deleteUserChat';
 export { deleteUserChatJob } from './userChat/deleteUserChatJob';
 export { finalizeUserChatJob } from './userChat/finalizeUserChatJob';
@@ -13,7 +14,7 @@ export { getUserChatJobById } from './userChat/getUserChatJobById';
 export { getUserChatJobByClientMessageId } from './userChat/getUserChatJobByClientMessageId';
 export { heartbeatUserChatJob } from './userChat/heartbeatUserChatJob';
 export { listExpiredRunningUserChatJobs } from './userChat/listExpiredRunningUserChatJobs';
-export { listUserChats } from './userChat/listUserChats';
+export { listUserChats, listUserChatSummarySeeds } from './userChat/listUserChats';
 export { listUserChatJobActivityCounts, listUserChatJobs } from './userChat/listUserChatJobs';
 export { mutateUserChat } from './userChat/mutateUserChat';
 export { persistUserChatJobTerminalState } from './userChat/persistUserChatJobTerminalState';
@@ -45,6 +46,7 @@ export type {
     UserChatRunningActivity,
     UserChatSummary,
 } from './userChat/UserChatRecord';
+export type { UserChatSummarySeed } from './userChat/createUserChatSummary';
 export type {
     CreateUserChatJobOptions,
     GetUserChatJobByClientMessageIdOptions,

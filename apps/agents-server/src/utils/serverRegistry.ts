@@ -64,7 +64,7 @@ const SERVER_REGISTRY_TABLE_NAME = '_Server';
 /**
  * In-memory cache TTL for repeated registry lookups inside one runtime process.
  */
-const SERVER_REGISTRY_CACHE_TTL_MS = 10_000;
+const SERVER_REGISTRY_CACHE_TTL_MS = 60_000;
 
 /**
  * Cached service-role Supabase client used for `_Server` lookups.

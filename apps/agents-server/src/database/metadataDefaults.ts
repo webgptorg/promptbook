@@ -69,6 +69,12 @@ export const metadataDefaults = [
         type: 'TEXT',
     },
     {
+        key: 'USER_CHAT_BACKGROUND_CRON_INTERVAL_MINUTES',
+        value: '2',
+        note: 'Expected cron cadence for background durable chat workers (`/api/internal/user-chat-jobs/run` and `/api/internal/user-chat-timeouts/run`).',
+        type: 'NUMBER',
+    },
+    {
         key: 'SERVER_LOGO_URL',
         value: '',
         note: 'The URL of the logo displayed in the heading bar',

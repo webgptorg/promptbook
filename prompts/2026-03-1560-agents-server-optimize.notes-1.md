@@ -1,149 +1,182 @@
-# Agents Server Performance Analysis & Fixes
+# Agents Server overload/crash analysis and fixes
 
-## Root Cause Analysis
+Date: 2026-04-02
 
-The Supabase Nano database was being overwhelmed by excessive queries coming from multiple sources. With 11,550+ DB requests in 60 minutes (and spikes causing unhealthy status), the problem was systemic — not a single bottleneck but a compounding effect of several design issues.
+## Scope
 
----
+- Analyzed `apps/agents-server` runtime paths related to:
+  - middleware DB access frequency
+  - durable chat workers and cron triggers
+  - custom-domain routing and agent-source resolution
+  - `USE TIMEOUT` durable scheduling path
+  - chat list/request payload size and response-time impact
+- Correlated code behavior with reported production logs/screenshots (`PGRST003`, statement timeouts, unhealthy Supabase pool, slow chat responses).
 
-## Issues Found & Fixes Implemented
+## Root causes found
 
-### 1. Middleware — Uncached DB Queries on Every HTTP Request (P0, CRITICAL)
+### 1) Middleware generated high DB pressure on broad request surface
 
-**Problem:** The Next.js middleware (`src/middleware.ts`) ran on **every HTTP request** (matched by `/((?!_next/static|_next/image|favicon.ico|logo-|fonts/).*)`) and performed:
+- `middleware.ts` runs on almost all requests.
+- For unresolved hosts, it can enter expensive custom-domain resolution.
+- Internal worker routes and trivial assets were still traversing middleware.
+- Under load, this path amplified DB usage and request latency before business logic even started.
 
--   **Created a new Supabase client** on every request (no reuse)
--   **Queried `_Server` table** via `listRegisteredServers()` — bypassing the existing 10s cache in `listRegisteredServersUsingServiceRole()`
--   **Queried `${prefix}Metadata` table** for RESTRICT_IP, IS_EMBEDDING_ALLOWED, SERVER_VISIBILITY on every request
+### 2) Custom-domain resolution scanned too much data per lookup
 
-This meant every single page load, API call, polling request, and even robots.txt/sw.js generated 2-4 DB queries just from middleware.
+- `resolveCustomDomainAgent(...)` was loading full agent sets per server and only then matching host candidates.
+- It also initialized reference resolution from full agent row datasets.
+- Because metadata resolution can require inherited/imported source processing, this became expensive on unknown host requests.
 
-**Fix:**
+### 3) Chat list endpoint was pulling full chat transcripts repeatedly
 
--   Replaced per-request Supabase client creation with a **cached singleton** (`cachedMiddlewareSupabase`)
--   Switched from `listRegisteredServers()` to `listRegisteredServersUsingServiceRole()` which has a **10s in-memory cache**
--   Added **30s in-memory cache** for metadata lookups (`MIDDLEWARE_METADATA_CACHE_TTL_MS = 30_000`)
+- `/agents/[agentName]/api/user-chats` used `select('*')` chat rows, including full `messages` JSON arrays for all listed chats.
+- Chat history refreshes repeated this large payload pattern even when only sidebar summary info was needed.
+- This increased DB response cost, network payload size, and request latency.
 
-**Impact:** Eliminates 2-4 DB queries per HTTP request → near-zero middleware DB load.
+### 4) Durable chat worker had unnecessary write frequency and fragile heartbeat failure handling
 
-### 2. Admin Task Manager — 3s Polling with Heavy Queries (P1, HIGH)
+- Running jobs persisted assistant snapshots frequently even when content did not materially change.
+- Heartbeat failures aborted too aggressively, which can increase churn/retries under transient DB pressure.
 
-**Problem:** The admin task manager UI (`/admin/task-manager`) polled at **3-second intervals** by default. Each poll:
+### 5) Queue-claim/readiness patterns needed indexing
 
--   Called `recoverExpiredRunningUserChatJobs()` — SELECT + potential UPDATEs
--   Called `recoverExpiredRunningUserChatTimeouts()` — UPDATE with RETURNING
--   Executed a heavy **UNION ALL** query joining UserChatJob + UserChatTimeout + User + Agent with `COUNT(*) OVER()`
--   Executed a separate **aggregate counters** query over the same UNION ALL
+- Hot paths (`UserChat`, `UserChatJob`, `UserChatTimeout`) rely on status/time predicates and ordering.
+- Missing partial/composite indexes can force larger scans and contribute to pool/timeout issues when concurrency rises.
 
-With one admin tab open: ~1.3 heavy DB operations per second, continuously.
+### 6) Background processing cadence was incomplete for durable chat jobs
 
-**Fix:**
+- Timeout worker had cron, but durable chat jobs needed explicit cron wake-up for unattended/background queues.
+- Requirement was to process unattended background tasks roughly every 2 minutes.
 
--   Increased default polling interval from **3s → 10s**
--   **Throttled recovery operations** to run at most once per 60 seconds (`ADMIN_RECOVERY_THROTTLE_MS = 60_000`) with deduplication
--   Recovery is still triggered on the first poll and then at most every 60s
+## Fixes implemented
 
-**Impact:** ~70% reduction in admin poll DB load; recovery operations drop from every 3s to max every 60s.
+### A) Middleware and registry hardening
 
-### 3. Chat Stream SSE Polling — 500ms Polling During Active Jobs (P1, HIGH)
+- File: `apps/agents-server/src/middleware.ts`
+  - Increased metadata cache TTL from 30s to 120s.
+  - Switched metadata cache to per-`tablePrefix` map (instead of single-slot cache).
+  - Added host-level custom-domain resolution cache (including negative-cache misses) with 120s TTL.
+  - Added in-flight custom-domain lookup deduplication per host to prevent burst-triggered duplicate expensive scans.
+  - Added strict custom-domain resolution timeout (`CUSTOM_DOMAIN_RESOLUTION_TIMEOUT_MS = 1500`).
+  - Added fast skip rules to avoid expensive custom-domain resolution for:
+    - localhost/loopback
+    - `.vercel.app` / `.vercel.sh`
+    - `/api/internal/*`
+  - Removed middleware matching for:
+    - `/api/internal/*`
+    - `robots.txt`
+  - Improved host normalization robustness.
 
-**Problem:** The user chat stream route (`/api/user-chats/:chatId/stream`) polled the database at:
+- File: `apps/agents-server/src/utils/serverRegistry.ts`
+  - Increased `_Server` registry cache TTL from 10s to 60s.
 
--   **500ms** intervals when active jobs exist (2 queries per poll = 4 queries/sec per active chat)
--   **5s** intervals when idle
+### B) Agent collection cache bug fix
 
-For a single user chatting: 4 DB queries/second sustained for potentially minutes.
+- File: `apps/agents-server/src/tools/$provideAgentCollectionForServer.ts`
+  - Removed effectively disabled cache path (`just(false)`).
+  - Implemented process-local cache keyed by `tablePrefix`.
+  - Prevents repeated re-creation of collection/provider stack.
 
-**Fix:**
+### C) Custom-domain resolution query reduction
 
--   Increased active polling from **500ms → 1,500ms** (~1.3 queries/sec instead of 4)
--   Increased idle polling from **5s → 10s**
+- File: `apps/agents-server/src/utils/customDomainRouting.ts`
+  - Added early OR-filter construction from host (`createCustomDomainOrFilter(host)`).
+  - First query now fetches only matching candidate agents (instead of full table scan per server).
+  - Resolver initialization now uses compact reference rows (`agentName`, `permanentId`) instead of full rows.
 
-**Impact:** ~67% reduction in streaming DB load per active chat.
+### D) Chat list payload optimization
 
-### 4. Vercel Cron — Every-Minute Timeout Worker (P1, MEDIUM-HIGH)
+- File: `apps/agents-server/src/utils/userChat/listUserChats.ts`
+  - Added `listUserChatSummarySeeds(...)` using raw SQL summary projection without hydrating full message arrays.
+  - Returns compact seed: message count, first user content, last preview content, pending assistant count.
 
-**Problem:** The Vercel cron job (`vercel.json`) triggered `/api/internal/user-chat-timeouts/run` **every minute** (`* * * * *`). Each invocation:
+- File: `apps/agents-server/src/utils/userChat/createUserChatSummary.ts`
+  - Added `UserChatSummarySeed` type.
+  - Added `createUserChatSummaryFromSeed(...)`.
+  - Existing `createUserChatSummary(...)` now delegates through the seed path for behavior consistency.
 
--   Calls `recoverExpiredRunningUserChatTimeouts()` — 1 query
--   Loops up to 20 times calling `claimNextDueUserChatTimeout()` — 1+ query each
--   Processes each claimed timeout with multiple DB queries
+- File: `apps/agents-server/src/app/agents/[agentName]/api/user-chats/route.ts`
+  - Switched list API to `listUserChatSummarySeeds(...)`.
+  - Loads full chat only for currently active chat via `getUserChat(...)`.
+  - Keeps detail payload behavior while reducing repeated heavy list payloads.
 
-Even when idle (no pending timeouts), this generates at minimum 2 DB queries per minute.
+- File: `apps/agents-server/src/utils/userChat.ts`
+  - Exported new seed APIs/types.
 
-**Fix:** Changed cron schedule from `* * * * *` to `*/5 * * * *` (every 5 minutes). The existing local wake-up timers (`scheduleUserChatTimeoutLocalWakeup`) already handle short-duration timeouts with sub-second precision, making the 1-minute cron redundant for active timeouts.
+### E) Durable worker write/backpressure improvements
 
-**Impact:** 80% reduction in cron-triggered DB queries.
+- File: `apps/agents-server/src/utils/userChat/claimNextQueuedUserChatJob.ts`
+  - Increased lease duration to 10 minutes.
 
-### 5. Chat Job Heartbeat & Message Persist — High-Frequency Writes (P2, MEDIUM)
+- File: `apps/agents-server/src/utils/userChat/runUserChatJob.ts`
+  - Heartbeat interval: 15s -> 30s.
+  - Assistant running-state persist throttle: 2s -> 5s.
+  - Added heartbeat failure tolerance (abort only after 3 consecutive failures).
+  - Added assistant snapshot signature dedup to avoid redundant writes for unchanged running snapshots.
 
-**Problem:**
+### F) Cron and background cadence
 
--   **Heartbeat** ran every **5 seconds** during job execution → 12 UPDATE queries/minute per active job
--   **Assistant message persist** throttled at **500ms** intervals → up to 120 writes/minute during streaming
+- File: `apps/agents-server/src/app/api/internal/user-chat-jobs/run/route.ts`
+  - Added GET handler for cron invocation.
+  - Added cron-compatible authorization path (Vercel user-agent and optional `CRON_SECRET` bearer).
+  - Preserved internal token-based POST authorization.
 
-**Fix:**
+- File: `apps/agents-server/vercel.json`
+  - Added cron for `/api/internal/user-chat-jobs/run` every 2 minutes.
+  - Changed timeout cron to every 2 minutes to match required cadence.
 
--   Heartbeat interval increased from **5s → 15s** (4 writes/min instead of 12)
--   Message persist interval increased from **500ms → 2,000ms** (30 writes/min instead of 120)
+- File: `apps/agents-server/src/database/metadataDefaults.ts`
+  - Added metadata key `USER_CHAT_BACKGROUND_CRON_INTERVAL_MINUTES = 2`.
 
-The lease duration remains at 2 minutes, providing ample margin for 15s heartbeats.
+### G) Database migration for queue/query performance
 
-**Impact:** ~75% reduction in per-job DB write load.
+- File: `apps/agents-server/src/database/migrations/2026-04-0010-user-chat-performance-indexes.sql`
+  - Added `UserChat` composite index for scoped list ordering.
+  - Added partial ready/running indexes for `UserChatJob`.
+  - Added partial ready/running indexes for `UserChatTimeout`.
 
-### 6. Agent Preparation Wait Polling (P3, LOW)
+## `USE TIMEOUT` implementation analysis notes
 
-**Problem:** `waitForRunningAgentPreparation()` used a **250ms** polling interval, generating up to 10 DB queries per second while waiting for preparation to complete (max 2.5s timeout).
+- The timeout system is durable (`UserChatTimeout` table + worker route + cron).
+- The main overload issue was not timeout semantics themselves, but surrounding infrastructure pressure (middleware, query/index shape, worker cadence).
+- Index additions for timeout queue predicates reduce scan cost for due/lease-expired paths.
+- Timeout cron cadence now aligned to 2 minutes (as requested).
 
-**Fix:** Increased polling interval from **250ms → 500ms** — still responsive but halves the DB load during waits.
+## Potential recursive/infinite-loop analysis notes
 
----
+- Agent-source resolution paths were reviewed in current server code.
+- No new recursion bug was introduced by this optimization patch.
+- Existing cycle handling in inherited-source resolution remains the primary guardrail.
+- Custom-domain resolution remained expensive mostly due dataset breadth and metadata resolution cost, which is now reduced via candidate pre-filtering and caching/timeout guard in middleware.
 
-## Issues Found But NOT Fixed (Future Work)
+## Validation run
 
-### 1. `handleChatCompletion` Double API Key Validation
+- `npm run lint` (in `apps/agents-server`) -> passed.
+- `npm run test-types` (root) -> passed.
+- `npm run test-name-discrepancies` -> passed.
+- `npm run test-spellcheck` -> passed.
+- `npm run test-build` in `apps/agents-server`:
+  - Build process progressed, but final run is currently blocked by environment/runtime `EPERM` process-kill behavior during test-build/prerender stage in this machine.
+  - This does not point to a TypeScript or lint regression in modified files.
 
-The middleware validates the API key, and then `handleChatCompletion()` validates it again (`validateApiKey(request)`). This is an unnecessary redundant DB query. Fixing requires passing validation state through headers, which is a larger refactor.
+## Found but not fixed yet (future work)
 
-### 2. `getMetadataMap` No Cross-Request Cache
+### 1) Add strict fetch timeout/retry envelope for federated `importAgent` calls
 
-`loadAllMetadataValues()` uses React's `cache()` which only deduplicates within a single server request. Every new API call re-queries the full Metadata table. Adding an in-memory TTL cache (similar to what was done for middleware) would help.
+- Long federated fetches can still stall hot paths under network issues.
+- Recommendation: enforce explicit timeout + bounded retries + fallback behavior in `importAgent`.
 
-### 3. Admin UNION ALL Query Could Use Materialized Views
+### 2) Explicit Postgres pool sizing/tuning
 
-The task manager's UNION ALL over UserChatJob + UserChatTimeout with LEFT JOINs and COUNT(\*) OVER() is expensive. A materialized view or separate pre-aggregated counters table could improve performance for heavy admin usage.
+- Current pool configuration in some codepaths relies on defaults.
+- Recommendation: set explicit pool limits/idle settings per runtime profile to better control connection pressure.
 
-### 4. `resolveCustomDomainAgent` Per-Request Query
+### 3) Further reduce summary computation cost for very large `messages` arrays
 
-Custom domain resolution queries the Agent table on each request for unrecognized hosts. This could be cached with a short TTL.
+- Current summary-seed SQL avoids payload hydration but still computes from JSONB arrays.
+- Recommendation: maintain incremental summary columns/materialized metadata to eliminate repeated JSONB scans for sidebar reads.
 
-### 5. `runUserChatJob` Sequential Database Operations
+### 4) Cross-instance cache invalidation strategy
 
-The job runner performs ~15-20 database operations sequentially. Some could be parallelized (e.g., loading user data, checking tokens, loading agent context simultaneously).
-
-### 6. `countActiveUserChatTimeoutsForChat` and `countCompletedUserChatTimeoutsForChatSince`
-
-These count queries run for every timeout fire event. They could be cached or combined into a single query.
-
-### 7. SSE Stream Could Use PostgreSQL LISTEN/NOTIFY
-
-Instead of polling for chat updates, the stream route could subscribe to PostgreSQL change notifications, eliminating polling entirely. This is a significant architectural change.
-
-### 8. Connection Pooling
-
-Consider using PgBouncer or Supabase's connection pooler more aggressively to reduce connection overhead.
-
----
-
-## Estimated Total Impact
-
-| Source                        | Before (queries/min idle) | After (queries/min idle) | Reduction |
-| ----------------------------- | ------------------------- | ------------------------ | --------- |
-| Middleware (10 req/min)       | 20-40                     | 0-2                      | ~95%      |
-| Admin poll (1 tab open)       | 80+                       | 24                       | ~70%      |
-| Cron job                      | 2+                        | 0.4                      | ~80%      |
-| Active chat stream (1 user)   | 240                       | 80                       | ~67%      |
-| Job heartbeat+persist (1 job) | 132                       | 34                       | ~74%      |
-| **Total (typical idle)**      | **~340+**                 | **~60**                  | **~82%**  |
-
-These changes should bring the Supabase Nano database well within its limits for normal operation.
+- Current caches are process-local TTL caches.
+- Recommendation: for larger multi-instance deployments, consider distributed invalidation or pub/sub refresh triggers for faster consistency with low DB pressure.

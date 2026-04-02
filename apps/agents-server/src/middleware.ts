@@ -25,20 +25,75 @@ import {
  *
  * @private internal middleware utility
  */
-const MIDDLEWARE_METADATA_CACHE_TTL_MS = 30_000;
+const MIDDLEWARE_METADATA_CACHE_TTL_MS = 120_000;
 
 /**
- * Cached metadata result keyed by table prefix.
+ * In-memory cache TTL for resolved custom-domain host mappings.
+ *
+ * @private internal middleware utility
+ */
+const CUSTOM_DOMAIN_RESOLUTION_CACHE_TTL_MS = 120_000;
+
+/**
+ * Upper bound for one custom-domain resolution pass in middleware.
+ *
+ * @private internal middleware utility
+ */
+const CUSTOM_DOMAIN_RESOLUTION_TIMEOUT_MS = 1_500;
+
+/**
+ * Hostname suffixes representing platform/system hosts where custom-domain
+ * agent lookup should be skipped.
+ *
+ * @private internal middleware utility
+ */
+const CUSTOM_DOMAIN_RESOLUTION_EXCLUDED_HOST_SUFFIXES = ['.vercel.app', '.vercel.sh'];
+
+/**
+ * Cached metadata results keyed by table prefix.
  *
  * @private internal middleware singleton
  */
-let cachedMiddlewareMetadata: {
+const cachedMiddlewareMetadataByTablePrefix = new Map<
+    string,
+    {
+        readonly loadedAt: number;
+        readonly allowedIps: string | null;
+        readonly embeddingAllowed: string | null;
+        readonly serverVisibility: string | null;
+    }
+>();
+
+/**
+ * Cached custom-domain resolution records keyed by normalized request host.
+ *
+ * @private internal middleware singleton
+ */
+const cachedCustomDomainResolutionByHost = new Map<
+    string,
+    {
+        readonly loadedAt: number;
+        readonly resolution: CustomDomainResolution | null;
+    }
+>();
+
+/**
+ * In-flight custom-domain resolution promises keyed by normalized host to
+ * deduplicate concurrent expensive lookups under bursty traffic.
+ *
+ * @private internal middleware singleton
+ */
+const inFlightCustomDomainResolutionByHost = new Map<string, Promise<CustomDomainResolution | null>>();
+
+/**
+ * Parsed middleware metadata entry.
+ */
+type MiddlewareMetadataCacheEntry = {
     readonly loadedAt: number;
-    readonly tablePrefix: string;
     readonly allowedIps: string | null;
     readonly embeddingAllowed: string | null;
     readonly serverVisibility: string | null;
-} | null = null;
+};
 
 /**
  * Cached Supabase client singleton for middleware.
@@ -87,11 +142,9 @@ async function loadCachedMiddlewareMetadata(
     embeddingAllowed: string | null;
     serverVisibility: string | null;
 }> {
-    if (
-        cachedMiddlewareMetadata &&
-        cachedMiddlewareMetadata.tablePrefix === tablePrefix &&
-        Date.now() - cachedMiddlewareMetadata.loadedAt < MIDDLEWARE_METADATA_CACHE_TTL_MS
-    ) {
+    const normalizedTablePrefix = tablePrefix.trim();
+    const cachedMiddlewareMetadata = cachedMiddlewareMetadataByTablePrefix.get(normalizedTablePrefix);
+    if (cachedMiddlewareMetadata && Date.now() - cachedMiddlewareMetadata.loadedAt < MIDDLEWARE_METADATA_CACHE_TTL_MS) {
         return {
             allowedIps: cachedMiddlewareMetadata.allowedIps,
             embeddingAllowed: cachedMiddlewareMetadata.embeddingAllowed,
@@ -128,15 +181,171 @@ async function loadCachedMiddlewareMetadata(
         console.error('Error fetching metadata in middleware:', error);
     }
 
-    cachedMiddlewareMetadata = {
+    const cacheEntry: MiddlewareMetadataCacheEntry = {
         loadedAt: Date.now(),
-        tablePrefix,
         allowedIps,
         embeddingAllowed,
         serverVisibility,
     };
+    cachedMiddlewareMetadataByTablePrefix.set(normalizedTablePrefix, cacheEntry);
 
     return { allowedIps, embeddingAllowed, serverVisibility };
+}
+
+/**
+ * Normalizes one host header value to a lower-cased hostname without port.
+ *
+ * @param host - Raw request host header.
+ * @returns Normalized host or `null` when unavailable.
+ */
+function normalizeMiddlewareHost(host: string | null): string | null {
+    if (!host) {
+        return null;
+    }
+
+    const trimmedHost = host.trim().toLowerCase();
+    if (!trimmedHost) {
+        return null;
+    }
+
+    try {
+        return new URL(`http://${trimmedHost}`).hostname.toLowerCase();
+    } catch {
+        const hostWithoutPort = trimmedHost.split(':')[0];
+        return hostWithoutPort || null;
+    }
+}
+
+/**
+ * Returns true when custom-domain resolution should be skipped for one request.
+ *
+ * @param host - Normalized request hostname.
+ * @param pathname - Request pathname.
+ * @returns `true` when middleware should avoid expensive custom-domain scans.
+ */
+function shouldSkipCustomDomainResolution(host: string | null, pathname: string): boolean {
+    if (!host) {
+        return true;
+    }
+
+    if (pathname.startsWith('/api/internal/')) {
+        return true;
+    }
+
+    if (host === 'localhost' || host === '127.0.0.1' || host === '::1') {
+        return true;
+    }
+
+    return CUSTOM_DOMAIN_RESOLUTION_EXCLUDED_HOST_SUFFIXES.some((suffix) => host.endsWith(suffix));
+}
+
+/**
+ * Reads one cached custom-domain lookup when still within TTL.
+ *
+ * @param host - Normalized request hostname.
+ * @returns Cached resolution (`null` for negative cache) or `undefined` when stale/missing.
+ */
+function readCachedCustomDomainResolution(host: string): CustomDomainResolution | null | undefined {
+    const cachedResolution = cachedCustomDomainResolutionByHost.get(host);
+    if (!cachedResolution) {
+        return undefined;
+    }
+
+    if (Date.now() - cachedResolution.loadedAt >= CUSTOM_DOMAIN_RESOLUTION_CACHE_TTL_MS) {
+        cachedCustomDomainResolutionByHost.delete(host);
+        return undefined;
+    }
+
+    return cachedResolution.resolution;
+}
+
+/**
+ * Stores one custom-domain resolution (including misses) for host-level TTL reuse.
+ *
+ * @param host - Normalized request hostname.
+ * @param resolution - Resolved custom-domain mapping or `null` for miss.
+ */
+function writeCachedCustomDomainResolution(host: string, resolution: CustomDomainResolution | null): void {
+    cachedCustomDomainResolutionByHost.set(host, {
+        loadedAt: Date.now(),
+        resolution,
+    });
+}
+
+/**
+ * Resolves one custom-domain mapping with a strict middleware timeout so edge
+ * requests cannot block for long-running inheritance/import scans.
+ *
+ * @param host - Raw request host header.
+ * @param supabase - Middleware Supabase client.
+ * @param registeredServers - Cached server registry rows.
+ * @returns Resolved mapping or `null` when unresolved/timeout.
+ */
+async function resolveCustomDomainAgentWithTimeout(
+    host: string,
+    supabase: SupabaseClient,
+    registeredServers: ReadonlyArray<ServerRecord>,
+): Promise<CustomDomainResolution | null> {
+    let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
+    const timeoutPromise = new Promise<null>((resolve) => {
+        timeoutHandle = setTimeout(() => resolve(null), CUSTOM_DOMAIN_RESOLUTION_TIMEOUT_MS);
+    });
+
+    try {
+        return await Promise.race([resolveCustomDomainAgent(host, supabase, registeredServers), timeoutPromise]);
+    } finally {
+        if (timeoutHandle) {
+            clearTimeout(timeoutHandle);
+        }
+    }
+}
+
+/**
+ * Resolves one custom-domain mapping with host-level TTL cache and in-flight
+ * deduplication to avoid duplicate heavy scans during request bursts.
+ *
+ * @param host - Raw request host header.
+ * @param normalizedHost - Normalized host header value.
+ * @param supabase - Middleware Supabase client.
+ * @param registeredServers - Cached server registry rows.
+ * @returns Resolved mapping or `null` when unresolved.
+ */
+async function resolveCachedCustomDomainAgent(options: {
+    host: string;
+    normalizedHost: string | null;
+    supabase: SupabaseClient;
+    registeredServers: ReadonlyArray<ServerRecord>;
+}): Promise<CustomDomainResolution | null> {
+    const normalizedHost = options.normalizedHost;
+    if (!normalizedHost) {
+        return resolveCustomDomainAgentWithTimeout(options.host, options.supabase, options.registeredServers);
+    }
+
+    const cachedCustomDomainResolution = readCachedCustomDomainResolution(normalizedHost);
+    if (cachedCustomDomainResolution !== undefined) {
+        return cachedCustomDomainResolution;
+    }
+
+    const inFlightCustomDomainResolution = inFlightCustomDomainResolutionByHost.get(normalizedHost);
+    if (inFlightCustomDomainResolution) {
+        return inFlightCustomDomainResolution;
+    }
+
+    const nextCustomDomainResolution = resolveCustomDomainAgentWithTimeout(
+        options.host,
+        options.supabase,
+        options.registeredServers,
+    )
+        .then((resolution) => {
+            writeCachedCustomDomainResolution(normalizedHost, resolution);
+            return resolution;
+        })
+        .finally(() => {
+            inFlightCustomDomainResolutionByHost.delete(normalizedHost);
+        });
+
+    inFlightCustomDomainResolutionByHost.set(normalizedHost, nextCustomDomainResolution);
+    return nextCustomDomainResolution;
 }
 
 export async function middleware(req: NextRequest) {
@@ -161,6 +370,7 @@ export async function middleware(req: NextRequest) {
     let serverVisibilityMetadata: string | null = null;
 
     const host = req.headers.get('host');
+    const normalizedHost = normalizeMiddlewareHost(host);
     const supabase = getMiddlewareSupabase();
 
     // [🧠] Use 10s-cached server registry to avoid hammering DB on every request
@@ -177,9 +387,20 @@ export async function middleware(req: NextRequest) {
 
     if (registeredServer) {
         effectiveTablePrefix = registeredServer.tablePrefix;
-    } else if (host && hasRegisteredServers && supabase) {
+    } else if (
+        host &&
+        hasRegisteredServers &&
+        supabase &&
+        !shouldSkipCustomDomainResolution(normalizedHost, req.nextUrl.pathname)
+    ) {
         try {
-            customDomainResolution = await resolveCustomDomainAgent(host, supabase, registeredServers);
+            customDomainResolution = await resolveCachedCustomDomainAgent({
+                host,
+                normalizedHost,
+                supabase,
+                registeredServers,
+            });
+
             if (customDomainResolution) {
                 effectiveTablePrefix = customDomainResolution.server.tablePrefix;
             }
@@ -370,9 +591,11 @@ export const config = {
          * - _next/static (static files)
          * - _next/image (image optimization files)
          * - favicon.ico (favicon file)
+         * - robots.txt (should not block on middleware DB lookups)
          * - public folder
+         * - api/internal (worker/cron routes are authorized separately)
          */
-        '/((?!_next/static|_next/image|favicon.ico|logo-|fonts/).*)',
+        '/((?!_next/static|_next/image|favicon.ico|logo-|fonts/|robots.txt|api/internal).*)',
     ],
 };
 

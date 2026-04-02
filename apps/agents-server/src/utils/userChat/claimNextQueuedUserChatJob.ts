@@ -15,7 +15,7 @@ const CLAIM_USER_CHAT_JOB_CANDIDATE_LIMIT = 20;
  *
  * @private function of `userChat`
  */
-export const USER_CHAT_JOB_LEASE_DURATION_MS = 2 * 60 * 1000;
+export const USER_CHAT_JOB_LEASE_DURATION_MS = 10 * 60 * 1000;
 
 /**
  * PostgreSQL unique violation code.

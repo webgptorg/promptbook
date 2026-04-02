@@ -46,7 +46,7 @@ import { isUserChatNotFoundScopeError } from './UserChatScopeError';
  *
  * @private function of `userChat`
  */
-const USER_CHAT_JOB_HEARTBEAT_INTERVAL_MS = 15_000;
+const USER_CHAT_JOB_HEARTBEAT_INTERVAL_MS = 30_000;
 
 /**
  * Minimum interval between persisted assistant-message snapshots while streaming.
@@ -55,7 +55,14 @@ const USER_CHAT_JOB_HEARTBEAT_INTERVAL_MS = 15_000;
  *
  * @private function of `userChat`
  */
-const USER_CHAT_JOB_ASSISTANT_MESSAGE_PERSIST_INTERVAL_MS = 2_000;
+const USER_CHAT_JOB_ASSISTANT_MESSAGE_PERSIST_INTERVAL_MS = 5_000;
+
+/**
+ * Maximum number of consecutive heartbeat failures tolerated before aborting one running job.
+ *
+ * @private function of `userChat`
+ */
+const USER_CHAT_JOB_HEARTBEAT_MAX_CONSECUTIVE_FAILURES = 3;
 
 /**
  * Error name used when a running durable chat job is cancelled.
@@ -222,6 +229,8 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
     let hasQueuedCompletedPersistence = false;
     let hasPersistedCompletedState = false;
     let lastAssistantMessagePersistedAt = 0;
+    let lastPersistedAssistantSnapshotSignature: string | null = null;
+    let consecutiveHeartbeatFailures = 0;
     let hasPendingAssistantMessageUpdate = false;
     let assistantMessageUpdateTimeout: ReturnType<typeof setTimeout> | null = null;
     const abortController = new AbortController();
@@ -229,6 +238,7 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
         persistQueue = persistQueue
             .then(async () => {
                 const nextJob = await heartbeatUserChatJob(job.id);
+                consecutiveHeartbeatFailures = 0;
                 if (!nextJob) {
                     isCancellationRequested = true;
                     abortController.abort(createUserChatJobCancelledError());
@@ -241,13 +251,18 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
                 }
             })
             .catch((heartbeatError) => {
+                consecutiveHeartbeatFailures += 1;
                 console.error('[user-chat-job] Heartbeat failed', {
                     chatId: job.chatId,
                     messageId: job.userMessageId,
                     jobId: job.id,
+                    consecutiveFailures: consecutiveHeartbeatFailures,
                     error: serializeError(heartbeatError as Error),
                 });
-                abortController.abort(heartbeatError);
+
+                if (consecutiveHeartbeatFailures >= USER_CHAT_JOB_HEARTBEAT_MAX_CONSECUTIVE_FAILURES) {
+                    abortController.abort(heartbeatError);
+                }
             });
     }, USER_CHAT_JOB_HEARTBEAT_INTERVAL_MS);
 
@@ -280,6 +295,9 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
      */
     const queueAssistantMessageUpdate = (
         mutateMessage: Parameters<typeof updateUserChatAssistantMessage>[0]['mutateMessage'],
+        options: {
+            snapshotSignature?: string;
+        } = {},
     ) => {
         persistQueue = persistQueue.then(async () => {
             await updateUserChatAssistantMessage({
@@ -289,6 +307,10 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
                 assistantMessageId: job.assistantMessageId,
                 mutateMessage,
             });
+
+            if (options.snapshotSignature) {
+                lastPersistedAssistantSnapshotSignature = options.snapshotSignature;
+            }
         });
     };
 
@@ -340,6 +362,11 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
         clearScheduledAssistantMessageUpdate();
         hasPendingAssistantMessageUpdate = false;
         lastAssistantMessagePersistedAt = now;
+        const snapshotSignature = createAssistantMessageSnapshotSignature(latestContent, latestToolCalls);
+
+        if (snapshotSignature === lastPersistedAssistantSnapshotSignature) {
+            return;
+        }
 
         queueAssistantMessageUpdate((message) => ({
             ...message,
@@ -348,7 +375,9 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
             lifecycleState: 'running',
             lifecycleError: undefined,
             isComplete: false,
-        }));
+        }), {
+            snapshotSignature,
+        });
     };
 
     /**
@@ -585,6 +614,21 @@ function isUserChatJobCancelledError(error: unknown): boolean {
     }
 
     return (error as { name?: unknown }).name === USER_CHAT_JOB_CANCELLED_ERROR_NAME;
+}
+
+/**
+ * Builds a stable signature for one persisted running-assistant snapshot.
+ *
+ * @private function of `userChat`
+ */
+function createAssistantMessageSnapshotSignature(
+    content: string,
+    toolCalls: ReadonlyArray<ToolCall> | undefined,
+): string {
+    return JSON.stringify({
+        content,
+        toolCalls: toolCalls || [],
+    });
 }
 
 /**

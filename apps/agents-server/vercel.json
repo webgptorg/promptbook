@@ -3,8 +3,12 @@
     "ignoreCommand": "sh ./scripts/vercel-ignore-command.sh",
     "crons": [
         {
+            "path": "/api/internal/user-chat-jobs/run",
+            "schedule": "*/2 * * * *"
+        },
+        {
             "path": "/api/internal/user-chat-timeouts/run",
-            "schedule": "*/5 * * * *"
+            "schedule": "*/2 * * * *"
         }
     ],
     "build": {
