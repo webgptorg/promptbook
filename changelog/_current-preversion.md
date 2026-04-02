@@ -1,3 +1,10 @@
+-   Enhanced Agents Server mobile header menu layout consistency and usability:
+
+    -   Moved the mobile hamburger trigger into the normal header flow so it no longer overlaps the server logo area.
+    -   Removed boxed hamburger styling and kept one shared toggle in the same top-left position for both open and close states.
+    -   Preserved both mobile drawer dismissal paths: swipe-to-close and outside-click backdrop close.
+    -   Refined the mobile drawer to a denser left-aligned layout and extracted shared mobile drawer style tokens to keep the implementation DRY.
+
 -   Fixed Agents Server **My chats** navigation no-op clicks so links consistently route with Next.js client-side navigation:
 
     -   Added optional `href` support to hoisted mobile **My chats** items and kept optional click callbacks for side effects.

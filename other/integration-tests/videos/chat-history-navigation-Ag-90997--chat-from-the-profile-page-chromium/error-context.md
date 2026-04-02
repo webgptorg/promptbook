@@ -87,8 +87,8 @@
                               - button "Hello":
                                 - generic:
                                   - paragraph: Hello
-                          - generic "2026-04-01 22:58:24":
-                            - generic: 10:58 PM
+                          - generic "2026-04-02 10:51:07":
+                            - generic: 10:51 AM
                     - generic:
                       - generic:
                         - textbox "Write a message..."
@@ -100,11 +100,11 @@
                           - img
           - generic [ref=e120]:
             - link "Edit Book" [ref=e121] [cursor=pointer]:
-              - /url: /agents/SNLq1uoJ8PiYVo/book
+              - /url: /agents/q7wkFPwLVFn8CH/book
               - img [ref=e123]
               - generic [ref=e126]: Edit Book
             - link "Integration" [ref=e127] [cursor=pointer]:
-              - /url: /agents/SNLq1uoJ8PiYVo/integration
+              - /url: /agents/q7wkFPwLVFn8CH/integration
               - img [ref=e129]
               - generic [ref=e132]: Integration
     - contentinfo [ref=e133]:

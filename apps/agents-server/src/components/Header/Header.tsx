@@ -16,7 +16,6 @@ import {
     LogIn,
     LogOut,
     Settings2,
-    XIcon,
     UserRound,
     Wrench,
     type LucideIcon,
@@ -256,6 +255,16 @@ const SYSTEM_CATEGORY_ICON_MAP: Record<SystemCategoryLabel, LucideIcon> = {
  * Shared immutable fallback for mobile drawer sections when no route-level entries are hoisted.
  */
 const EMPTY_HOISTED_MOBILE_MENU_ITEMS: ReadonlyArray<SubMenuItem> = [];
+/**
+ * Shared style for top-level interactive rows in the mobile drawer.
+ */
+const MOBILE_DRAWER_TOP_LEVEL_BUTTON_CLASSNAME =
+    'w-full flex items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100';
+/**
+ * Shared compact panel surface used by collapsible mobile drawer sections.
+ */
+const MOBILE_DRAWER_PANEL_CLASSNAME =
+    'w-full flex flex-col gap-1 rounded-lg border border-gray-200 bg-gray-50/80 p-2.5 shadow-sm';
 
 /**
  * Propagates one fallback icon to submenu entries that do not specify their own icon.
@@ -2056,14 +2065,14 @@ export function Header(props: HeaderProps) {
                 />
             )}
             <div className="relative h-full w-full">
-                <div className="absolute left-2 top-1/2 z-[65] -translate-y-1/2 lg:hidden">
-                    <HamburgerMenu
-                        isOpen={isMenuOpen}
-                        onClick={() => setIsMenuOpen((isOpen) => !isOpen)}
-                        className="rounded-xl border border-gray-200 bg-white text-gray-700 shadow-[0_6px_18px_rgba(15,23,42,0.08)] transition duration-150 hover:bg-gray-50 hover:text-gray-900"
-                    />
-                </div>
-                <div className="flex h-full items-center gap-2 px-4 pl-10 sm:gap-4 sm:pl-11 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-5 lg:pl-4">
+                <div className="flex h-full items-center gap-2 px-3 sm:gap-4 sm:px-4 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-5 lg:px-4">
+                    <div className="relative z-[90] -ml-1 shrink-0 lg:hidden">
+                        <HamburgerMenu
+                            isOpen={isMenuOpen}
+                            onClick={() => setIsMenuOpen((isOpen) => !isOpen)}
+                            className="text-gray-600 transition-colors duration-150 hover:text-gray-900"
+                        />
+                    </div>
                     <div className="min-w-0 flex-1">
                         <div className="flex min-w-0 items-center gap-2 sm:gap-3 rounded-2xl border border-gray-200 bg-white/90 px-2 sm:px-3 md:px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm shadow-slate-200/60 backdrop-blur">
                             <div className="relative flex min-w-0 items-center gap-3">
@@ -2513,7 +2522,7 @@ export function Header(props: HeaderProps) {
                             WebkitBackdropFilter: 'blur(20px)',
                         }}
                     >
-                        <nav className="mx-auto flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain px-4 py-6 pb-8 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                        <nav className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 py-4 pb-6 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                             {/* Hoisted Mobile Menu Trees */}
                             {hoistedMobileMenuItems.length > 0 && (
                                 <div className="w-full border-b border-gray-200 pb-4">
@@ -2521,38 +2530,30 @@ export function Header(props: HeaderProps) {
                                 </div>
                             )}
 
-                            <div className="w-full border-b border-gray-200 pb-6">
-                                <div className="flex items-center justify-between gap-2 text-xs font-bold uppercase tracking-[0.3em] text-gray-400 mb-3">
+                            <div className="w-full border-b border-gray-200 pb-4">
+                                <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.3em] text-gray-400">
                                     <span>{t('header.menuLabel')}</span>
-                                    <div className="flex items-center gap-1">
-                                        {federatedServers.length > 0 && (
-                                            <button
-                                                className="inline-flex p-1 text-gray-500 hover:text-gray-800"
-                                                onClick={() => setIsFederatedOpen(!isFederatedOpen)}
-                                                aria-label={t('header.switchServerAria')}
-                                            >
-                                                <ChevronDown
-                                                    className={`h-4 w-4 transition-transform duration-200 ${
-                                                        isFederatedOpen ? 'rotate-180' : ''
-                                                    }`}
-                                                />
-                                            </button>
-                                        )}
+                                    {federatedServers.length > 0 && (
                                         <button
-                                            type="button"
-                                            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
-                                            onClick={() => setIsMenuOpen(false)}
-                                            aria-label={t('common.close')}
+                                            className="inline-flex p-1 text-gray-500 hover:text-gray-800"
+                                            onClick={() => setIsFederatedOpen(!isFederatedOpen)}
+                                            aria-label={t('header.switchServerAria')}
                                         >
-                                            <XIcon className="h-4 w-4" />
+                                            <ChevronDown
+                                                className={`h-4 w-4 transition-transform duration-200 ${
+                                                    isFederatedOpen ? 'rotate-180' : ''
+                                                }`}
+                                            />
                                         </button>
-                                    </div>
+                                    )}
                                 </div>
-                                <p className="text-lg font-bold text-gray-900 truncate">{serverName}</p>
+                                <p className="truncate text-base font-semibold text-gray-900">{serverName}</p>
                                 {isFederatedOpen && federatedDropdownItems.length > 0 && (
-                                    <div className="mt-4 w-full flex flex-col gap-1 rounded-lg border border-gray-200 bg-gradient-to-b from-gray-50 to-white p-3 shadow-sm animate-in fade-in-0 slide-in-from-top-2 duration-200">
+                                    <div
+                                        className={`${MOBILE_DRAWER_PANEL_CLASSNAME} mt-3 animate-in fade-in-0 slide-in-from-top-2 duration-200`}
+                                    >
                                         {federatedDropdownItems.map((subItem, subIndex) => {
-                                            const className = `block rounded-md px-4 py-3 text-sm text-gray-700 hover:bg-white hover:shadow-sm active:scale-98 transition-all duration-150 ${
+                                            const className = `block rounded-md px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-white hover:text-gray-900 active:bg-gray-100 ${
                                                 subItem.isBold ? 'font-semibold' : ''
                                             }`;
                                             if (subItem.href) {
@@ -2576,12 +2577,12 @@ export function Header(props: HeaderProps) {
                                     </div>
                                 )}
 
-                                <div className="mt-6 flex flex-col gap-4 w-full">
+                                <div className="mt-4 flex w-full flex-col gap-3">
                                     <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
                                         <ArrowIcon direction="right" className="h-4 w-4 text-gray-500" />
                                         {isAdmin ? (
                                             <button
-                                                className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-100 active:bg-gray-200 transition-all duration-150"
+                                                className={`${MOBILE_DRAWER_TOP_LEVEL_BUTTON_CLASSNAME} flex-1`}
                                                 onClick={() => setIsMobileAgentsOpen(!isMobileAgentsOpen)}
                                             >
                                                 <AgentNameWithAvatar
@@ -2605,7 +2606,7 @@ export function Header(props: HeaderProps) {
                                         ) : (
                                             <HeadlessLink
                                                 href={activeAgentHref}
-                                                className="flex min-w-0 items-center gap-2"
+                                                className="flex min-w-0 flex-1 items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold text-gray-900 transition-colors hover:bg-gray-50"
                                                 onClick={() => setIsMenuOpen(false)}
                                             >
                                                 <AgentNameWithAvatar
@@ -2625,17 +2626,19 @@ export function Header(props: HeaderProps) {
                                     </div>
 
                                     {isAdmin && isMobileAgentsOpen && (
-                                        <div className="w-full max-w-[90vw] flex flex-col gap-1 rounded-lg border border-gray-200 bg-gradient-to-b from-gray-50 to-white p-3 max-h-[40vh] overflow-y-auto shadow-sm animate-in fade-in-0 slide-in-from-top-2 duration-200 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                                        <div
+                                            className={`${MOBILE_DRAWER_PANEL_CLASSNAME} max-h-[40vh] overflow-y-auto animate-in fade-in-0 slide-in-from-top-2 duration-200 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100`}
+                                        >
                                             {renderMobileNestedMenuItems(hierarchyAgentMobileItems, 'mobile-agents')}
                                         </div>
                                     )}
 
                                     {activeAgentView && activeAgentViewItems.length > 0 && (
-                                        <div className="w-full max-w-[90vw] flex flex-col gap-1">
-                                            <div className="flex items-center justify-center gap-2 text-sm font-medium text-gray-700">
+                                        <div className="w-full flex flex-col gap-1">
+                                            <div className="flex items-center justify-start gap-2 text-sm font-medium text-gray-700">
                                                 <ArrowIcon direction="right" className="h-4 w-4 text-gray-500" />
                                                 <button
-                                                    className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold text-gray-900 hover:bg-gray-100 transition"
+                                                    className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-gray-900 transition-colors hover:bg-gray-100"
                                                     onClick={() => setIsMobileAgentViewOpen(!isMobileAgentViewOpen)}
                                                 >
                                                     {createAgentViewLabel(activeAgentView, t)}
@@ -2647,7 +2650,9 @@ export function Header(props: HeaderProps) {
                                                 </button>
                                             </div>
                                             {isMobileAgentViewOpen && (
-                                                <div className="flex flex-col gap-1 rounded-lg border border-gray-200 bg-gradient-to-b from-gray-50 to-white p-3 shadow-sm animate-in fade-in-0 slide-in-from-top-2 duration-200">
+                                                <div
+                                                    className={`${MOBILE_DRAWER_PANEL_CLASSNAME} animate-in fade-in-0 slide-in-from-top-2 duration-200`}
+                                                >
                                                     {renderMobileNestedMenuItems(
                                                         activeAgentViewItems,
                                                         'mobile-agent-view',
@@ -2657,7 +2662,7 @@ export function Header(props: HeaderProps) {
                                         </div>
                                     )}
 
-                                    <div className="w-full max-w-[90vw] pt-1">
+                                    <div className="w-full pt-1">
                                         <HeaderSearchBox
                                             placeholder={t('header.searchThisServerPlaceholder')}
                                             onNavigate={() => setIsMenuOpen(false)}
@@ -2668,35 +2673,37 @@ export function Header(props: HeaderProps) {
 
                             {/* Hoisted Menu Items for Mobile */}
                             {menuHoisting && menuHoisting.menu.length > 0 && (
-                                <div className="w-full py-3 border-b border-gray-200 flex justify-center gap-3 overflow-x-auto">
-                                    {menuHoisting.menu.map((item, index) => (
-                                        <button
-                                            key={index}
-                                            onClick={() => {
-                                                item.onClick();
-                                                setIsMenuOpen(false);
-                                            }}
-                                            className={`p-3 rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-all duration-150 text-gray-600 hover:text-gray-900 shadow-sm hover:shadow active:scale-95 ${
-                                                item.isActive ? 'bg-blue-50 text-blue-600 shadow' : ''
-                                            }`}
-                                            title={item.name}
-                                        >
-                                            {item.icon}
-                                            <span className="sr-only">{item.name}</span>
-                                        </button>
-                                    ))}
+                                <div className="w-full border-b border-gray-200 py-3">
+                                    <div className="flex w-full flex-wrap items-center gap-2">
+                                        {menuHoisting.menu.map((item, index) => (
+                                            <button
+                                                key={index}
+                                                onClick={() => {
+                                                    item.onClick();
+                                                    setIsMenuOpen(false);
+                                                }}
+                                                className={`inline-flex h-10 w-10 items-center justify-center rounded-lg text-gray-600 transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 ${
+                                                    item.isActive ? 'bg-blue-50 text-blue-600' : ''
+                                                }`}
+                                                title={item.name}
+                                            >
+                                                {item.icon}
+                                                <span className="sr-only">{item.name}</span>
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
 
                             {/* Login Status for Mobile */}
-                            <div className="w-full py-4 border-b border-gray-200 flex flex-col items-center gap-3">
+                            <div className="w-full border-b border-gray-200 py-4">
                                 {!currentUser && !isAdmin && (
                                     <button
                                         onClick={() => {
                                             void showLoginDialog().catch(() => undefined);
                                             setIsMenuOpen(false);
                                         }}
-                                        className="flex items-center gap-3 px-6 py-3 text-base font-semibold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-lg shadow-md hover:shadow-lg active:scale-98 transition-all duration-150"
+                                        className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 active:bg-blue-800"
                                     >
                                         <LogIn className="w-4 h-4" />
                                         {t('header.logIn')}
@@ -2704,8 +2711,8 @@ export function Header(props: HeaderProps) {
                                 )}
 
                                 {(currentUser || isAdmin) && (
-                                    <div className="w-full flex flex-col items-center gap-3 bg-gradient-to-b from-gray-50 to-white rounded-lg p-4 border border-gray-200 shadow-sm">
-                                        <div className="flex flex-col items-center gap-3 text-center">
+                                    <div className="w-full rounded-lg border border-gray-200 bg-gray-50/80 p-3 shadow-sm">
+                                        <div className="flex items-start gap-3">
                                             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-lg font-semibold text-blue-700">
                                                 {currentUserProfileImageUrl ? (
                                                     // eslint-disable-next-line @next/next/no-img-element
@@ -2718,21 +2725,22 @@ export function Header(props: HeaderProps) {
                                                     currentUserAvatarLabel
                                                 )}
                                             </div>
-                                            <div className="text-sm text-gray-700 font-medium">
+                                            <div className="min-w-0 pt-1 text-sm font-medium text-gray-700">
                                                 {t('header.loggedInAs', { username: currentUserDisplayName })}
                                                 {(currentUser?.isAdmin || isAdmin) && (
-                                                    <span className="ml-2 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full shadow-sm">
+                                                    <span className="ml-2 rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-800">
                                                         {t('common.admin')}
                                                     </span>
                                                 )}
                                             </div>
                                         </div>
+                                        <div className="mt-3 flex w-full flex-col gap-2">
                                         <button
                                             onClick={() => {
                                                 setIsChangePasswordOpen(true);
                                                 setIsMenuOpen(false);
                                             }}
-                                            className="w-full flex items-center justify-center gap-2 px-4 py-3 text-base font-semibold text-gray-700 bg-white hover:bg-gray-50 active:bg-gray-100 border border-gray-300 rounded-lg shadow-sm hover:shadow active:scale-98 transition-all duration-150"
+                                            className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 active:bg-gray-100"
                                         >
                                             <Lock className="w-4 h-4" />
                                             {t('header.changePassword')}
@@ -2742,11 +2750,12 @@ export function Header(props: HeaderProps) {
                                                 handleLogout();
                                                 setIsMenuOpen(false);
                                             }}
-                                            className="w-full flex items-center justify-center gap-2 px-4 py-3 text-base font-semibold text-red-600 bg-red-50 hover:bg-red-100 active:bg-red-200 border border-red-200 rounded-lg shadow-sm hover:shadow active:scale-98 transition-all duration-150"
+                                            className="flex w-full items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-100 active:bg-red-200"
                                         >
                                             <LogOut className="w-4 h-4" />
                                             {t('header.logOut')}
                                         </button>
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -2757,7 +2766,7 @@ export function Header(props: HeaderProps) {
                                         <HeadlessLink
                                             key={index}
                                             href={item.href}
-                                            className="block w-full text-base font-semibold text-gray-700 hover:text-blue-600 py-3 px-4 text-center rounded-lg hover:bg-gray-50 active:bg-gray-100 active:scale-98 transition-all duration-150"
+                                            className="block w-full rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:text-blue-600 active:bg-gray-100"
                                             onClick={() => setIsMenuOpen(false)}
                                         >
                                             {item.label}
@@ -2767,9 +2776,9 @@ export function Header(props: HeaderProps) {
 
                                 if (item.type === 'dropdown') {
                                     return (
-                                        <div key={index} className="w-full flex flex-col items-center gap-2">
+                                        <div key={index} className="w-full flex flex-col items-stretch gap-2">
                                             <button
-                                                className="w-full flex items-center justify-center gap-2 text-base font-semibold text-gray-700 hover:text-blue-600 py-3 px-4 rounded-lg hover:bg-gray-50 active:bg-gray-100 active:scale-98 transition-all duration-150"
+                                                className={MOBILE_DRAWER_TOP_LEVEL_BUTTON_CLASSNAME}
                                                 onClick={() => item.setIsMobileOpen(!item.isMobileOpen)}
                                             >
                                                 {item.label}
@@ -2780,7 +2789,9 @@ export function Header(props: HeaderProps) {
                                                 />
                                             </button>
                                             {item.isMobileOpen && (
-                                                <div className="w-full flex flex-col items-center gap-2 bg-gray-50 rounded-lg p-3 border border-gray-200 shadow-sm animate-in fade-in-0 slide-in-from-top-2 duration-200">
+                                                <div
+                                                    className={`${MOBILE_DRAWER_PANEL_CLASSNAME} animate-in fade-in-0 slide-in-from-top-2 duration-200`}
+                                                >
                                                     {renderMobileNestedMenuItems(item.items, `mobile-menu-${index}`)}
                                                 </div>
                                             )}
