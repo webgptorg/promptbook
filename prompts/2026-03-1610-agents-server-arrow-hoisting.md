@@ -60,14 +60,57 @@
 
 ---
 
-[-]
+[ ]
+
+[✨🔯] Enhance mobile menu
+
+-   The icon should not obstruct the server logo
+-   The icon should not be in the box
+-   On the mobile menu hamburger, the close icon on opened menu should stay on same place as was the open icon
+-   Menu must be closable by swiping
+-   Menu must be closable by clicking outside
+-   Menu should have better design
+    -   It should use space more efficiently
+    -   It should be aligned to left
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of the menu before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+![alt text](prompts/screenshots/2026-03-1610-agents-server-arrow-hoisting-9.png)
+
+---
+
+[ ]
+
+[✨🔯] In mocked chats the mocked chats should be listed in mobile menu
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, reuse the same logic as the standard chats
+-   Do a proper analysis of the current functionality of the menu before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server) for example with page https://s6.ptbk.io/system/utilities/mocked-chats/view?chat=mocked-chat-mn6sy3le-3lw9
+
+![alt text](prompts/screenshots/2026-03-1610-agents-server-arrow-hoisting-10.png)
+![alt text](prompts/screenshots/2026-03-1610-agents-server-arrow-hoisting-11.png)
+![alt text](prompts/screenshots/2026-03-1610-agents-server-arrow-hoisting-12.png)
+
+---
+
+[ ]
 
 [✨🔯] foo
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Do a proper analysis of the current functionality of the menu before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+---
+
+[ ]
+
+[✨🔯] foo
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of the menu before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
