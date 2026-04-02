@@ -14,6 +14,11 @@ controlPanel.openAriaLabel: Otevřít globální ovládací panel
 controlPanel.feedbackTitle: Odezva
 controlPanel.feedbackSubtitle: Globální nastavení zvuku a vibrací
 controlPanel.audioLabel: Zvuk
+controlPanel.soundTitle: Zvuky
+controlPanel.soundDescription: Zvuková upozornění pro odpovědi v chatu a ovládací prvky.
+controlPanel.vibrationTitle: Vibrace
+controlPanel.vibrationDescription: Vibrační odezva pro klepnutí a události agenta.
+controlPanel.vibrationDescriptionUnsupported: Ovládání vibrací na tomto zařízení není dostupné.
 controlPanel.audioLoading: Načítám nastavení zvuku…
 controlPanel.notificationsTitle: Oznámení
 controlPanel.notificationsSection: Upozornění

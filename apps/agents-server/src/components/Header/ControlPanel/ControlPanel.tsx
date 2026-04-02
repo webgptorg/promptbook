@@ -1,8 +1,7 @@
 'use client';
 
-import { ChatSoundAndVibrationPanel } from '@promptbook-local/components';
-import { Bell, ChevronDown, EyeOff, Languages, Settings2, Sparkles, SpeakerIcon, X, type LucideIcon } from 'lucide-react';
-import { useCallback, useEffect, useId, useRef, useState, type ReactNode, type RefObject } from 'react';
+import { Bell, EyeOff, Languages, Settings2, Sparkles, SpeakerIcon, Vibrate, X, type LucideIcon } from 'lucide-react';
+import { useCallback, useEffect, useId, useRef, useState, type RefObject } from 'react';
 import { confirmPrivateModeEnable } from '../../PrivateModePreferences/confirmPrivateModeEnable';
 import { usePrivateModePreferences } from '../../PrivateModePreferences/PrivateModePreferencesProvider';
 import { useBrowserPushNotifications } from '../../PushNotifications/BrowserPushNotificationsProvider';
@@ -20,28 +19,7 @@ type ControlPanelContentProps = {
 };
 
 /**
- * Stable section identifiers used to manage section expansion state.
- */
-type ControlPanelSectionId = 'feedback' | 'notifications' | 'selfLearning' | 'privateMode' | 'language';
-
-/**
- * Expansion state map for all control panel sections.
- */
-type ControlPanelExpandedSections = Record<ControlPanelSectionId, boolean>;
-
-/**
- * Default expanded/collapsed state to keep the panel compact by default.
- */
-const CONTROL_PANEL_INITIAL_EXPANDED_SECTIONS: ControlPanelExpandedSections = {
-    feedback: false,
-    notifications: false,
-    selfLearning: true,
-    privateMode: true,
-    language: false,
-};
-
-/**
- * Visual emphasis variants for compact control-panel status chips.
+ * Visual emphasis variants shared by control-panel chips and tiles.
  */
 type ControlPanelStatusTone = 'neutral' | 'informative' | 'positive' | 'danger';
 
@@ -56,7 +34,48 @@ const CONTROL_PANEL_STATUS_TONE_CLASS_MAP: Record<ControlPanelStatusTone, string
 };
 
 /**
- * Props for one compact status chip in the control panel header.
+ * Tone-specific styles used by compact control-center toggle tiles.
+ */
+type ControlPanelToggleToneClasses = {
+    readonly activeSurface: string;
+    readonly iconWrap: string;
+    readonly switchTrack: string;
+    readonly stateBadge: string;
+};
+
+/**
+ * Lookup map of all tone-specific class groups for toggle tiles.
+ */
+const CONTROL_PANEL_TOGGLE_TONE_CLASS_MAP: Record<ControlPanelStatusTone, ControlPanelToggleToneClasses> = {
+    neutral: {
+        activeSurface: 'border-slate-300 bg-gradient-to-br from-slate-100 to-white text-slate-700',
+        iconWrap: 'bg-slate-200 text-slate-700',
+        switchTrack: 'bg-slate-500',
+        stateBadge: 'border-slate-300 bg-white/85 text-slate-700',
+    },
+    informative: {
+        activeSurface: 'border-blue-200 bg-gradient-to-br from-blue-100 via-white to-blue-50 text-blue-800',
+        iconWrap: 'bg-blue-100 text-blue-700',
+        switchTrack: 'bg-blue-500',
+        stateBadge: 'border-blue-200 bg-blue-50 text-blue-700',
+    },
+    positive: {
+        activeSurface:
+            'border-emerald-200 bg-gradient-to-br from-emerald-100 via-white to-emerald-50 text-emerald-800',
+        iconWrap: 'bg-emerald-100 text-emerald-700',
+        switchTrack: 'bg-emerald-500',
+        stateBadge: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+    },
+    danger: {
+        activeSurface: 'border-rose-200 bg-gradient-to-br from-rose-100 via-white to-rose-50 text-rose-800',
+        iconWrap: 'bg-rose-100 text-rose-700',
+        switchTrack: 'bg-rose-500',
+        stateBadge: 'border-rose-200 bg-rose-50 text-rose-700',
+    },
+};
+
+/**
+ * Props for one compact status chip in the control panel summary.
  */
 type ControlPanelStatusBadgeProps = {
     readonly label: string;
@@ -64,7 +83,7 @@ type ControlPanelStatusBadgeProps = {
 };
 
 /**
- * Renders one compact status chip summarizing key panel state.
+ * Renders one compact status chip summarizing current panel state.
  *
  * @private
  */
@@ -79,143 +98,167 @@ function ControlPanelStatusBadge({ label, tone }: ControlPanelStatusBadgeProps) 
 }
 
 /**
- * Shared card shell used by each control panel section.
+ * Props for the visual switch displayed in each toggle tile.
  */
-type ControlPanelSectionCardProps = {
-    readonly icon: LucideIcon;
-    readonly title: string;
-    readonly sectionLabel: string;
-    readonly description: string;
-    readonly stateLabel?: string;
-    readonly stateTone?: ControlPanelStatusTone;
-    readonly isExpanded: boolean;
-    readonly onToggle: () => void;
-    readonly toggleLabel: string;
-    readonly children: ReactNode;
+type ControlPanelToggleSwitchProps = {
+    readonly isOn: boolean;
+    readonly tone: ControlPanelStatusTone;
+    readonly isDisabled?: boolean;
 };
 
 /**
- * Renders one visually consistent settings section card.
+ * Renders the compact switch indicator used by tile toggles.
  *
  * @private
  */
-function ControlPanelSectionCard({
-    icon: Icon,
-    title,
-    sectionLabel,
-    description,
-    stateLabel,
-    stateTone = 'neutral',
-    isExpanded,
-    onToggle,
-    toggleLabel,
-    children,
-}: ControlPanelSectionCardProps) {
+function ControlPanelToggleSwitch({ isOn, tone, isDisabled = false }: ControlPanelToggleSwitchProps) {
+    const toneClasses = CONTROL_PANEL_TOGGLE_TONE_CLASS_MAP[tone];
+
     return (
-        <section className="rounded-2xl border border-gray-100 bg-white/95 shadow-sm">
-            <button
-                type="button"
-                onClick={onToggle}
-                aria-expanded={isExpanded}
-                aria-label={toggleLabel}
-                className="w-full px-3 py-3 text-left transition hover:bg-gray-50/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
-            >
-                <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                        <div className="flex min-w-0 items-center gap-1.5 text-sm font-semibold text-gray-900">
-                            <Icon className="h-4 w-4 shrink-0 text-blue-600" />
-                            <span className="truncate">{title}</span>
-                            <span className="ml-2 shrink-0 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
-                                {sectionLabel}
-                            </span>
-                        </div>
-                        <p className="mt-1 text-xs leading-snug text-gray-500">{description}</p>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-2 pt-0.5">
-                        {stateLabel && <ControlPanelStatusBadge label={stateLabel} tone={stateTone} />}
-                        <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-                    </div>
-                </div>
-            </button>
-            {isExpanded && <div className="border-t border-gray-100 px-3 pb-3 pt-3">{children}</div>}
-        </section>
+        <span
+            className={`inline-flex h-5 w-9 items-center rounded-full border p-[1px] transition ${
+                isOn
+                    ? `${toneClasses.switchTrack} border-transparent`
+                    : 'border-gray-300 bg-gray-200'
+            } ${isDisabled ? 'opacity-70' : ''}`}
+            aria-hidden="true"
+        >
+            <span
+                className={`h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
+                    isOn ? 'translate-x-4' : 'translate-x-0'
+                }`}
+            />
+        </span>
     );
 }
 
 /**
- * Props for one toggle action button used in settings rows.
+ * Props for one compact toggle tile rendered inside the control-center grid.
  */
-type ControlPanelToggleActionProps = {
-    readonly isPressed: boolean;
-    readonly activeLabel: string;
-    readonly inactiveLabel: string;
-    readonly onClick: () => void;
+type ControlPanelToggleTileProps = {
+    readonly icon: LucideIcon;
+    readonly label: string;
+    readonly description: string;
+    readonly stateLabel: string;
+    readonly isActive: boolean;
+    readonly onToggle: () => void;
+    readonly tone?: ControlPanelStatusTone;
     readonly isDisabled?: boolean;
-    readonly isDangerTone?: boolean;
+    readonly auxiliaryDetail?: string;
+    readonly columnSpan?: 1 | 2;
 };
 
 /**
- * Renders a pill-like toggle button with shared interaction styling.
+ * Renders one visual toggle tile inspired by mobile control-center patterns.
  *
  * @private
  */
-function ControlPanelToggleAction({
-    isPressed,
-    activeLabel,
-    inactiveLabel,
-    onClick,
+function ControlPanelToggleTile({
+    icon: Icon,
+    label,
+    description,
+    stateLabel,
+    isActive,
+    onToggle,
+    tone = 'neutral',
     isDisabled = false,
-    isDangerTone = false,
-}: ControlPanelToggleActionProps) {
-    const activeClasses = isDangerTone
-        ? 'border-rose-500 bg-rose-500/10 text-rose-700 hover:bg-rose-500/20'
-        : 'border-blue-500 bg-blue-500/10 text-blue-700 hover:bg-blue-500/20';
+    auxiliaryDetail,
+    columnSpan = 1,
+}: ControlPanelToggleTileProps) {
+    const toneClasses = CONTROL_PANEL_TOGGLE_TONE_CLASS_MAP[tone];
 
     return (
         <button
             type="button"
-            onClick={onClick}
-            aria-pressed={isPressed}
+            onClick={onToggle}
+            aria-pressed={isActive}
             disabled={isDisabled}
-            className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 ${
-                isPressed
-                    ? activeClasses
-                    : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300 hover:bg-gray-100'
-            } ${isDisabled ? 'cursor-not-allowed opacity-50' : ''}`}
+            className={`flex min-h-[8.4rem] flex-col rounded-2xl border p-3 text-left shadow-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 ${
+                isActive
+                    ? toneClasses.activeSurface
+                    : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+            } ${isDisabled ? 'cursor-not-allowed opacity-60' : 'hover:-translate-y-[1px] hover:shadow-md'} ${
+                columnSpan === 2 ? 'col-span-2' : ''
+            }`}
         >
-            {isPressed ? activeLabel : inactiveLabel}
+            <div className="flex items-start justify-between gap-2">
+                <span
+                    className={`inline-flex h-9 w-9 items-center justify-center rounded-xl transition ${
+                        isActive ? toneClasses.iconWrap : 'bg-gray-100 text-gray-500'
+                    }`}
+                >
+                    <Icon className="h-4 w-4" aria-hidden="true" />
+                </span>
+
+                <ControlPanelToggleSwitch isOn={isActive} tone={tone} isDisabled={isDisabled} />
+            </div>
+
+            <div className="mt-2 min-w-0">
+                <p className="truncate text-sm font-semibold text-gray-900">{label}</p>
+                <p className="mt-0.5 text-[11px] leading-snug text-gray-600">{description}</p>
+                {auxiliaryDetail && <p className="mt-1 text-[10px] text-gray-500">{auxiliaryDetail}</p>}
+            </div>
+
+            <div className="mt-auto pt-2">
+                <span
+                    className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest ${
+                        isActive ? toneClasses.stateBadge : 'border-gray-200 bg-gray-50 text-gray-500'
+                    }`}
+                >
+                    {stateLabel}
+                </span>
+            </div>
         </button>
     );
 }
 
 /**
- * Props for one settings row that pairs state text with a single action button.
+ * Arguments accepted by the shared local toggle-state hook.
  */
-type ControlPanelStateRowProps = {
-    readonly stateLabel: string;
-    readonly detail: string;
-    readonly action: ReactNode;
+type UseControlPanelBooleanToggleProps = {
+    readonly isAvailable: boolean;
+    readonly resolveValue: () => boolean;
+    readonly toggleValue: () => boolean;
 };
 
 /**
- * Renders a compact state/action row for a setting section.
+ * Local reactive state for one external boolean preference.
+ */
+type ControlPanelBooleanToggleState = {
+    readonly isEnabled: boolean;
+    readonly toggle: () => void;
+};
+
+/**
+ * Bridges mutable external boolean preferences (sound/vibration) into React state.
  *
  * @private
  */
-function ControlPanelStateRow({ stateLabel, detail, action }: ControlPanelStateRowProps) {
-    return (
-        <div className="flex items-center justify-between gap-3">
-            <div>
-                <p className="text-sm font-semibold text-gray-900">{stateLabel}</p>
-                <p className="text-xs text-gray-500">{detail}</p>
-            </div>
-            {action}
-        </div>
-    );
+function useControlPanelBooleanToggle({
+    isAvailable,
+    resolveValue,
+    toggleValue,
+}: UseControlPanelBooleanToggleProps): ControlPanelBooleanToggleState {
+    const [isEnabled, setIsEnabled] = useState<boolean>(() => (isAvailable ? resolveValue() : false));
+
+    useEffect(() => {
+        setIsEnabled(isAvailable ? resolveValue() : false);
+    }, [isAvailable, resolveValue]);
+
+    const toggle = useCallback(() => {
+        if (!isAvailable) {
+            return;
+        }
+
+        const nextValue = toggleValue();
+        setIsEnabled(nextValue);
+    }, [isAvailable, toggleValue]);
+
+    return { isEnabled, toggle };
 }
 
 /**
- * Renders the sound and vibration toggles with contextual labels.
+ * Renders the compact control-center content used by desktop and mobile wrappers.
  *
  * @private
  */
@@ -233,10 +276,39 @@ function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanel
         permission: notificationPermission,
         setNotificationsEnabled,
     } = useBrowserPushNotifications();
+
     const languageSelectId = useId();
-    const [expandedSections, setExpandedSections] = useState<ControlPanelExpandedSections>(() => ({
-        ...CONTROL_PANEL_INITIAL_EXPANDED_SECTIONS,
-    }));
+
+    const isVibrationSupported =
+        Boolean(soundSystem?.isVibrationEnabled) &&
+        (Boolean(soundSystem?.toggleVibration) || Boolean(soundSystem?.setVibrationEnabled));
+
+    const soundToggle = useControlPanelBooleanToggle({
+        isAvailable: Boolean(soundSystem),
+        resolveValue: useCallback(() => soundSystem?.isEnabled() ?? false, [soundSystem]),
+        toggleValue: useCallback(() => soundSystem?.toggle() ?? false, [soundSystem]),
+    });
+
+    const vibrationToggle = useControlPanelBooleanToggle({
+        isAvailable: isVibrationSupported,
+        resolveValue: useCallback(() => soundSystem?.isVibrationEnabled?.() ?? false, [soundSystem]),
+        toggleValue: useCallback(() => {
+            if (typeof soundSystem?.toggleVibration === 'function') {
+                return soundSystem.toggleVibration();
+            }
+
+            if (
+                typeof soundSystem?.isVibrationEnabled === 'function' &&
+                typeof soundSystem?.setVibrationEnabled === 'function'
+            ) {
+                const nextState = !soundSystem.isVibrationEnabled();
+                soundSystem.setVibrationEnabled(nextState);
+                return nextState;
+            }
+
+            return false;
+        }, [soundSystem]),
+    });
 
     const toggleSelfLearning = useCallback(() => {
         setIsSelfLearningEnabled((value) => !value);
@@ -256,15 +328,6 @@ function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanel
         setIsPrivateModeEnabled(true);
     }, [isPrivateModeEnabled, setIsPrivateModeEnabled, t]);
 
-    const toggleSection = useCallback((sectionId: ControlPanelSectionId) => {
-        setExpandedSections((sections) => ({ ...sections, [sectionId]: !sections[sectionId] }));
-    }, []);
-
-    const getSectionToggleLabel = useCallback(
-        (sectionTitle: string, isExpanded: boolean) => `${isExpanded ? t('common.close') : t('common.more')}: ${sectionTitle}`,
-        [t],
-    );
-
     useEffect(() => {
         if (isPrivateModeEnabled && isSelfLearningEnabled) {
             setIsSelfLearningEnabled(false);
@@ -274,23 +337,19 @@ function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanel
     const selfLearningStateLabel = isPrivateModeEnabled
         ? t('controlPanel.selfLearningStateDisabledPrivate')
         : isSelfLearningEnabled
-        ? t('controlPanel.selfLearningStateLearning')
-        : t('controlPanel.selfLearningStatePaused');
+          ? t('controlPanel.selfLearningStateLearning')
+          : t('controlPanel.selfLearningStatePaused');
     const selfLearningDescription = isPrivateModeEnabled
         ? t('controlPanel.selfLearningDescriptionPrivate')
         : isSelfLearningEnabled
-        ? t('controlPanel.selfLearningDescriptionLearning')
-        : t('controlPanel.selfLearningDescriptionPaused');
-    const selfLearningDetail = isPrivateModeEnabled
-        ? t('controlPanel.selfLearningDetailPrivate')
-        : t('controlPanel.selfLearningDetailPaused');
+          ? t('controlPanel.selfLearningDescriptionLearning')
+          : t('controlPanel.selfLearningDescriptionPaused');
     const privateStateLabel = isPrivateModeEnabled
         ? t('controlPanel.privateModeStatePrivate')
         : t('controlPanel.privateModeStateStandard');
     const privateDescription = isPrivateModeEnabled
         ? t('controlPanel.privateModeDescriptionPrivate')
         : t('controlPanel.privateModeDescriptionStandard');
-    const privateDetail = t('controlPanel.privateModeDetail');
     const activeLanguageName =
         availableLanguages.find((languagePack) => languagePack.language === language)?.nativeName || language;
     const areNotificationsAvailable = isNotificationsSupported && isNotificationsConfigured;
@@ -318,16 +377,27 @@ function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanel
           : isNotificationsEnabled
             ? 'positive'
             : 'informative';
-    const summaryDescription = isPrivateModeEnabled ? t('controlPanel.privateModeDescriptionPrivate') : selfLearningDescription;
+
     const feedbackTitle = title || t('controlPanel.feedbackTitle');
+    const feedbackSubtitle = subtitle || t('controlPanel.feedbackSubtitle');
+    const genericEnabledLabel = t('controlPanel.notificationsStateEnabled');
+    const genericDisabledLabel = t('controlPanel.notificationsStateDisabled');
+    const soundStateLabel = soundToggle.isEnabled ? genericEnabledLabel : genericDisabledLabel;
+    const vibrationStateLabel = vibrationToggle.isEnabled ? genericEnabledLabel : genericDisabledLabel;
 
     return (
-        <div className={`space-y-2.5 ${isMobile ? 'pt-1' : ''}`}>
-            <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-slate-50 via-white to-blue-50 p-3 shadow-sm">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-700/80">
-                    {t('controlPanel.label')}
-                </p>
-                <p className="mt-1 text-xs text-gray-500">{summaryDescription}</p>
+        <div className={`space-y-2 ${isMobile ? 'pt-0.5' : ''}`}>
+            <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-100/90 via-white to-blue-50 p-2.5 shadow-sm">
+                <div className="flex items-start justify-between gap-2">
+                    <div>
+                        <p className="text-xs font-semibold text-slate-700">{feedbackTitle}</p>
+                        <p className="mt-0.5 text-[11px] text-slate-500">{feedbackSubtitle}</p>
+                    </div>
+                    <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/95 text-blue-600 shadow-sm">
+                        <Settings2 className="h-4 w-4" aria-hidden="true" />
+                    </span>
+                </div>
+
                 <div className="mt-2 flex flex-wrap gap-1.5">
                     <ControlPanelStatusBadge
                         tone={isPrivateModeEnabled ? 'danger' : 'positive'}
@@ -338,137 +408,94 @@ function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanel
                         label={selfLearningStateLabel}
                     />
                     <ControlPanelStatusBadge tone={notificationsStateTone} label={notificationsStateLabel} />
+                    <ControlPanelStatusBadge tone={soundToggle.isEnabled ? 'positive' : 'neutral'} label={soundStateLabel} />
                     <ControlPanelStatusBadge tone="neutral" label={activeLanguageName} />
                 </div>
             </div>
 
-            <ControlPanelSectionCard
-                icon={SpeakerIcon}
-                title={feedbackTitle}
-                sectionLabel={t('controlPanel.audioLabel')}
-                description={subtitle || t('controlPanel.feedbackSubtitle')}
-                isExpanded={expandedSections.feedback}
-                onToggle={() => toggleSection('feedback')}
-                toggleLabel={getSectionToggleLabel(feedbackTitle, expandedSections.feedback)}
-            >
-                {soundSystem ? (
-                    <div className="rounded-xl border border-gray-100 bg-gray-50/80 p-2.5 shadow-inner">
-                        <ChatSoundAndVibrationPanel soundSystem={soundSystem} />
-                    </div>
-                ) : (
-                    <p className="text-xs text-gray-500">{t('controlPanel.audioLoading')}</p>
-                )}
-            </ControlPanelSectionCard>
+            <div className="grid grid-cols-2 gap-2">
+                <ControlPanelToggleTile
+                    icon={SpeakerIcon}
+                    label={t('controlPanel.soundTitle')}
+                    description={t('controlPanel.soundDescription')}
+                    stateLabel={soundStateLabel}
+                    isActive={soundToggle.isEnabled}
+                    onToggle={soundToggle.toggle}
+                    tone={soundToggle.isEnabled ? 'positive' : 'neutral'}
+                    isDisabled={!soundSystem}
+                />
 
-            <ControlPanelSectionCard
-                icon={Bell}
-                title={t('controlPanel.notificationsTitle')}
-                sectionLabel={t('controlPanel.notificationsSection')}
-                description={notificationsDescription}
-                stateLabel={notificationsStateLabel}
-                stateTone={notificationsStateTone}
-                isExpanded={expandedSections.notifications}
-                onToggle={() => toggleSection('notifications')}
-                toggleLabel={getSectionToggleLabel(
-                    t('controlPanel.notificationsTitle'),
-                    expandedSections.notifications,
-                )}
-            >
-                <div className="space-y-2">
-                    <ControlPanelStateRow
-                        stateLabel={notificationsStateLabel}
-                        detail={t('controlPanel.notificationsDetail')}
-                        action={
-                            <ControlPanelToggleAction
-                                isPressed={isNotificationsEnabled}
-                                activeLabel={t('controlPanel.notificationsDisableAction')}
-                                inactiveLabel={t('controlPanel.notificationsEnableAction')}
-                                onClick={() => {
-                                    void setNotificationsEnabled(!isNotificationsEnabled);
-                                }}
-                                isDisabled={
-                                    isNotificationsLoading ||
-                                    isNotificationsPersisting ||
-                                    (!areNotificationsAvailable && !isNotificationsEnabled)
-                                }
-                            />
-                        }
-                    />
-                    <p className="text-xs text-gray-500">
-                        <span className="font-medium text-gray-700">
-                            {t('controlPanel.notificationsPermissionLabel')}
-                        </span>{' '}
-                        {notificationsPermissionLabel}
-                    </p>
-                </div>
-            </ControlPanelSectionCard>
+                <ControlPanelToggleTile
+                    icon={Vibrate}
+                    label={t('controlPanel.vibrationTitle')}
+                    description={
+                        isVibrationSupported
+                            ? t('controlPanel.vibrationDescription')
+                            : t('controlPanel.vibrationDescriptionUnsupported')
+                    }
+                    stateLabel={vibrationStateLabel}
+                    isActive={vibrationToggle.isEnabled}
+                    onToggle={vibrationToggle.toggle}
+                    tone={vibrationToggle.isEnabled ? 'informative' : 'neutral'}
+                    isDisabled={!isVibrationSupported}
+                />
 
-            <ControlPanelSectionCard
-                icon={Sparkles}
-                title={t('controlPanel.selfLearningTitle')}
-                sectionLabel={t('controlPanel.selfLearningSection')}
-                description={selfLearningDescription}
-                stateLabel={selfLearningStateLabel}
-                stateTone={isPrivateModeEnabled ? 'neutral' : isSelfLearningEnabled ? 'positive' : 'informative'}
-                isExpanded={expandedSections.selfLearning}
-                onToggle={() => toggleSection('selfLearning')}
-                toggleLabel={getSectionToggleLabel(t('controlPanel.selfLearningTitle'), expandedSections.selfLearning)}
-            >
-                <ControlPanelStateRow
+                <ControlPanelToggleTile
+                    icon={Bell}
+                    label={t('controlPanel.notificationsTitle')}
+                    description={notificationsDescription}
+                    auxiliaryDetail={`${t('controlPanel.notificationsPermissionLabel')} ${notificationsPermissionLabel}`}
+                    stateLabel={notificationsStateLabel}
+                    isActive={isNotificationsEnabled}
+                    onToggle={() => {
+                        void setNotificationsEnabled(!isNotificationsEnabled);
+                    }}
+                    tone={notificationsStateTone}
+                    isDisabled={
+                        isNotificationsLoading ||
+                        isNotificationsPersisting ||
+                        (!areNotificationsAvailable && !isNotificationsEnabled)
+                    }
+                />
+
+                <ControlPanelToggleTile
+                    icon={Sparkles}
+                    label={t('controlPanel.selfLearningTitle')}
+                    description={selfLearningDescription}
                     stateLabel={selfLearningStateLabel}
-                    detail={selfLearningDetail}
-                    action={
-                        <ControlPanelToggleAction
-                            isPressed={isSelfLearningEnabled}
-                            activeLabel={t('controlPanel.selfLearningPauseAction')}
-                            inactiveLabel={t('controlPanel.selfLearningEnableAction')}
-                            onClick={toggleSelfLearning}
-                            isDisabled={isPrivateModeEnabled}
-                        />
-                    }
+                    isActive={isSelfLearningEnabled && !isPrivateModeEnabled}
+                    onToggle={toggleSelfLearning}
+                    tone={isPrivateModeEnabled ? 'neutral' : isSelfLearningEnabled ? 'positive' : 'informative'}
+                    isDisabled={isPrivateModeEnabled}
                 />
-            </ControlPanelSectionCard>
 
-            <ControlPanelSectionCard
-                icon={EyeOff}
-                title={t('controlPanel.privateModeTitle')}
-                sectionLabel={t('controlPanel.privateModeSection')}
-                description={privateDescription}
-                stateLabel={privateStateLabel}
-                stateTone={isPrivateModeEnabled ? 'danger' : 'positive'}
-                isExpanded={expandedSections.privateMode}
-                onToggle={() => toggleSection('privateMode')}
-                toggleLabel={getSectionToggleLabel(t('controlPanel.privateModeTitle'), expandedSections.privateMode)}
-            >
-                <ControlPanelStateRow
+                <ControlPanelToggleTile
+                    icon={EyeOff}
+                    label={t('controlPanel.privateModeTitle')}
+                    description={privateDescription}
                     stateLabel={privateStateLabel}
-                    detail={privateDetail}
-                    action={
-                        <ControlPanelToggleAction
-                            isPressed={isPrivateModeEnabled}
-                            activeLabel={t('controlPanel.privateModeDisableAction')}
-                            inactiveLabel={t('controlPanel.privateModeEnableAction')}
-                            onClick={() => {
-                                void togglePrivateMode();
-                            }}
-                            isDangerTone
-                        />
-                    }
+                    isActive={isPrivateModeEnabled}
+                    onToggle={() => {
+                        void togglePrivateMode();
+                    }}
+                    tone={isPrivateModeEnabled ? 'danger' : 'positive'}
+                    columnSpan={2}
                 />
-            </ControlPanelSectionCard>
+            </div>
 
             {!isServerLanguageEnforced && (
-                <ControlPanelSectionCard
-                    icon={Languages}
-                    title={t('controlPanel.languageTitle')}
-                    sectionLabel={t('controlPanel.languageSection')}
-                    description={t('controlPanel.languageSubtitle')}
-                    stateLabel={activeLanguageName}
-                    isExpanded={expandedSections.language}
-                    onToggle={() => toggleSection('language')}
-                    toggleLabel={getSectionToggleLabel(t('controlPanel.languageTitle'), expandedSections.language)}
-                >
-                    <div className="space-y-2">
+                <section className="rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-sm">
+                    <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-gray-900">{t('controlPanel.languageTitle')}</p>
+                            <p className="mt-0.5 text-[11px] text-gray-600">{t('controlPanel.languageSubtitle')}</p>
+                        </div>
+                        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+                            <Languages className="h-4 w-4" aria-hidden="true" />
+                        </span>
+                    </div>
+
+                    <div className="mt-2.5 space-y-1.5">
                         <label htmlFor={languageSelectId} className="text-xs font-medium text-gray-600">
                             {t('controlPanel.languageSelectLabel')}
                         </label>
@@ -476,7 +503,7 @@ function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanel
                             id={languageSelectId}
                             value={language}
                             onChange={(event) => setLanguage(event.target.value as typeof language)}
-                            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                            className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                         >
                             {availableLanguages.map((languagePack) => (
                                 <option key={languagePack.language} value={languagePack.language}>
@@ -484,10 +511,12 @@ function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanel
                                 </option>
                             ))}
                         </select>
-                        <p className="text-xs text-gray-500">{t('controlPanel.languageHelp')}</p>
+                        <p className="text-[11px] text-gray-500">{t('controlPanel.languageHelp')}</p>
                     </div>
-                </ControlPanelSectionCard>
+                </section>
             )}
+
+            {!soundSystem && <p className="px-1 text-[11px] text-gray-500">{t('controlPanel.audioLoading')}</p>}
         </div>
     );
 }
@@ -574,25 +603,24 @@ export function HeaderControlPanelDropdown() {
                     ref={dropdownRef}
                     role="dialog"
                     aria-label={t('controlPanel.label')}
-                    className="absolute right-0 top-full z-50 mt-3 w-[24rem] max-w-[calc(100vw-1rem)] rounded-3xl border border-gray-100 bg-gradient-to-b from-white to-slate-50 p-1 shadow-2xl shadow-black/10"
+                    className="absolute right-0 top-full z-50 mt-2 w-[22rem] max-w-[calc(100vw-0.75rem)] rounded-3xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-100/80 p-2 shadow-2xl shadow-black/10"
                 >
-                    <div className="rounded-[1.35rem] bg-white/95 p-2">
-                        <div className="flex items-center justify-between px-2 pb-2 pt-1">
-                            <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">
-                                {t('controlPanel.label')}
-                            </p>
-                            <button
-                                type="button"
-                                onClick={handleClose}
-                                aria-label={t('common.close')}
-                                className="rounded-full border border-transparent p-1 text-gray-400 transition hover:border-gray-200 hover:bg-white hover:text-gray-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
-                            >
-                                <X className="h-3.5 w-3.5" />
-                            </button>
-                        </div>
-                        <div className="max-h-[min(76vh,38rem)] overflow-y-auto overscroll-contain px-2 pb-2 pr-1.5 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
-                            <ControlPanelContent />
-                        </div>
+                    <div className="flex items-center justify-between px-1 pb-2 pt-1">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                            {t('controlPanel.label')}
+                        </p>
+                        <button
+                            type="button"
+                            onClick={handleClose}
+                            aria-label={t('common.close')}
+                            className="rounded-full border border-transparent p-1 text-gray-400 transition hover:border-gray-200 hover:bg-white hover:text-gray-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                        >
+                            <X className="h-3.5 w-3.5" />
+                        </button>
+                    </div>
+
+                    <div className="max-h-[min(74vh,34rem)] overflow-y-auto overscroll-contain px-0.5 pb-0.5 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                        <ControlPanelContent />
                     </div>
                 </div>
             )}

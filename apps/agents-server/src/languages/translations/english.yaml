@@ -14,6 +14,11 @@ controlPanel.openAriaLabel: Open global control panel
 controlPanel.feedbackTitle: Feedback
 controlPanel.feedbackSubtitle: Control sounds and vibration globally
 controlPanel.audioLabel: Audio
+controlPanel.soundTitle: Sounds
+controlPanel.soundDescription: Audio cues for chat replies and controls.
+controlPanel.vibrationTitle: Vibration
+controlPanel.vibrationDescription: Vibration feedback for taps and agent events.
+controlPanel.vibrationDescriptionUnsupported: Vibration controls are not available on this device.
 controlPanel.audioLoading: Loading audio settings…
 controlPanel.notificationsTitle: Notifications
 controlPanel.notificationsSection: Alerts

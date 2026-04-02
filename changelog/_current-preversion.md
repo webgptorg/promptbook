@@ -1,3 +1,10 @@
+-   Redesigned the Agents Server header control panel into a more compact control-center layout:
+
+    -   Replaced the previous expandable section cards with visual tile toggles, so each toggle now has its own dedicated box (sound, vibration, notifications, self-learning, and private mode).
+    -   Preserved all existing behavior and constraints, including private-mode confirmation, self-learning auto-disable when private mode is active, and notifications permission-aware enable/disable logic.
+    -   Kept the language selector available as a compact dedicated card (hidden when server-language enforcement is enabled), and tightened the dropdown spacing for denser usability.
+    -   Added localized control-panel copy for the new sound/vibration tiles in both English and Czech.
+
 -   Fixed Agents Server profile-to-chat routing from `/agents/[agentName]` so profile interactions no longer no-op:
 
     -   Simplified profile chat navigation to route immediately with `router.push(...)` instead of deferred transition scheduling.
