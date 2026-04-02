@@ -1,12 +1,14 @@
 [x] ~$1.21 an hour by OpenAI Codex `gpt-5.4`
+[x] Done by Github Copilot
 
 ---
 
-[x] Done by Github Copilot
+[ ] !!!
 
 [✨⛅️] Agents server is crashing, fix it and optimize the performance
 
 -   For some reason the agent server is extremely overloaded and crashing. The number of DB requests is extremely high despite the fact that there is not much traffic and the server is doing almost nothing.
+-   Supabase crashes on `{"code":"PGRST003","details":null,"hint":null,"message":"Timed out acquiring connection from connection pool."}` and then the server becames unhealthy and unusable until the database is restarted on Supabase. This is a critical issue that needs to be fixed as soon as possible.
 -   Everything takes a lot of time, even simple requests. The server is barely usable in this state.
 -   Supabase often shows unhealthy status and then the server crashes because it can't connect to the database.
 -   Restarting the database on Supabase fixes the issue but it happens again after some time.
@@ -47,6 +49,7 @@
 ![alt text](prompts/screenshots/2026-03-1560-agents-server-optimize-12.png)
 ![alt text](prompts/screenshots/2026-03-1560-agents-server-optimize-13.png)
 ![alt text](prompts/screenshots/2026-03-1560-agents-server-optimize-14.png)
+![alt text](prompts/screenshots/2026-03-1560-agents-server-optimize-17.png)
 
 <!-- 11:11 -->
 
