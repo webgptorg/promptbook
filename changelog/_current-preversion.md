@@ -1,3 +1,9 @@
+-   Fixed Agents Server profile-to-chat routing from `/agents/[agentName]` so profile interactions no longer no-op:
+
+    -   Simplified profile chat navigation to route immediately with `router.push(...)` instead of deferred transition scheduling.
+    -   Wired profile **My chats** cards and hoisted mobile **My chats** actions to run explicit chat-route navigation callbacks.
+    -   Ensured profile quick-message buttons and composer sends consistently open `/agents/[agentName]/chat` (including relevant query params).
+
 -   Improved Czech (`SERVER_LANGUAGE=cs`) localization coverage in Agents Server by translating legacy hardcoded UI phrases that still flowed through `formatText(...)` / `formatAgentNamingText(...)`:
 
     -   Added a centralized Czech legacy phrase catalog at `apps/agents-server/src/components/AgentNaming/legacyAgentTextTranslations.cs.yaml`.
