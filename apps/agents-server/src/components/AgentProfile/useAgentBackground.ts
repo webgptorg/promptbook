@@ -37,6 +37,9 @@ export function useAgentBackground(colorString: string | undefined) {
         const color2Main = color2.toHex();
         const color2Dark = color2.then(darken(0.3)).toHex();
 
+        const SMALL_PIXEL_SIZE = 9; // Size of the "pixels" in the pattern
+        const LARGE_PIXEL_SIZE = SMALL_PIXEL_SIZE * (32 / 24); // Size of the larger "pixels" to break up the pattern
+
         const svgPixalatedImage = spaceTrim(`
             <svg xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 1920 1080"
@@ -77,50 +80,82 @@ export function useAgentBackground(colorString: string | undefined) {
 
                 <!-- Small hard pixels -->
                 <pattern id="px1" patternUnits="userSpaceOnUse" width="144" height="144">
-                  <rect x="0" y="0" width="24" height="24" fill="#ffffff" opacity="0.10" />
-                  <rect x="24" y="0" width="24" height="24" fill="#000000" opacity="0.05" />
-                  <rect x="72" y="0" width="24" height="24" fill="#ffffff" opacity="0.08" />
-                  <rect x="120" y="0" width="24" height="24" fill="#000000" opacity="0.08" />
+                  <rect x="0" y="0" width="${SMALL_PIXEL_SIZE}" height="${SMALL_PIXEL_SIZE}" fill="#ffffff" opacity="0.10" />
+                  <rect x="${SMALL_PIXEL_SIZE}" y="0" width="${SMALL_PIXEL_SIZE}" height="${SMALL_PIXEL_SIZE}" fill="#000000" opacity="0.05" />
+                  <rect x="${
+                      SMALL_PIXEL_SIZE * 3
+                  }" y="0" width="${SMALL_PIXEL_SIZE}" height="${SMALL_PIXEL_SIZE}" fill="#ffffff" opacity="0.08" />
+                  <rect x="${
+                      SMALL_PIXEL_SIZE * 5
+                  }" y="0" width="${SMALL_PIXEL_SIZE}" height="${SMALL_PIXEL_SIZE}" fill="#000000" opacity="0.08" />
 
-                  <rect x="0" y="24" width="24" height="24" fill="#000000" opacity="0.06" />
-                  <rect x="48" y="24" width="24" height="24" fill="#ffffff" opacity="0.07" />
-                  <rect x="96" y="24" width="24" height="24" fill="#ffffff" opacity="0.12" />
+                  <rect x="0" y="${SMALL_PIXEL_SIZE}" width="${SMALL_PIXEL_SIZE}" height="${SMALL_PIXEL_SIZE}" fill="#000000" opacity="0.06" />
+                  <rect x="${
+                      SMALL_PIXEL_SIZE * 2
+                  }" y="${SMALL_PIXEL_SIZE}" width="${SMALL_PIXEL_SIZE}" height="${SMALL_PIXEL_SIZE}" fill="#ffffff" opacity="0.07" />
+                  <rect x="${
+                      SMALL_PIXEL_SIZE * 4
+                  }" y="${SMALL_PIXEL_SIZE}" width="${SMALL_PIXEL_SIZE}" height="${SMALL_PIXEL_SIZE}" fill="#ffffff" opacity="0.12" />
 
-                  <rect x="24" y="48" width="24" height="24" fill="#ffffff" opacity="0.12" />
-                  <rect x="72" y="48" width="24" height="24" fill="#000000" opacity="0.05" />
-                  <rect x="120" y="48" width="24" height="24" fill="#ffffff" opacity="0.08" />
+                  <rect x="${SMALL_PIXEL_SIZE}" y="${
+            SMALL_PIXEL_SIZE * 2
+        }" width="${SMALL_PIXEL_SIZE}" height="${SMALL_PIXEL_SIZE}" fill="#ffffff" opacity="0.12" />
+                  <rect x="${SMALL_PIXEL_SIZE * 3}" y="${
+            SMALL_PIXEL_SIZE * 2
+        }" width="${SMALL_PIXEL_SIZE}" height="${SMALL_PIXEL_SIZE}" fill="#000000" opacity="0.05" />
+                  <rect x="${SMALL_PIXEL_SIZE * 5}" y="${
+            SMALL_PIXEL_SIZE * 2
+        }" width="${SMALL_PIXEL_SIZE}" height="${SMALL_PIXEL_SIZE}" fill="#ffffff" opacity="0.08" />
 
-                  <rect x="0" y="72" width="24" height="24" fill="#ffffff" opacity="0.06" />
-                  <rect x="48" y="72" width="24" height="24" fill="#000000" opacity="0.08" />
-                  <rect x="96" y="72" width="24" height="24" fill="#ffffff" opacity="0.10" />
+                  <rect x="0" y="${
+                      SMALL_PIXEL_SIZE * 3
+                  }" width="${SMALL_PIXEL_SIZE}" height="${SMALL_PIXEL_SIZE}" fill="#ffffff" opacity="0.06" />
+                  <rect x="${SMALL_PIXEL_SIZE * 2}" y="${
+            SMALL_PIXEL_SIZE * 3
+        }" width="${SMALL_PIXEL_SIZE}" height="${SMALL_PIXEL_SIZE}" fill="#000000" opacity="0.08" />
+                  <rect x="${SMALL_PIXEL_SIZE * 4}" y="${
+            SMALL_PIXEL_SIZE * 3
+        }" width="${SMALL_PIXEL_SIZE}" height="${SMALL_PIXEL_SIZE}" fill="#ffffff" opacity="0.10" />
 
-                  <rect x="24" y="96" width="24" height="24" fill="#000000" opacity="0.05" />
-                  <rect x="72" y="96" width="24" height="24" fill="#ffffff" opacity="0.09" />
-                  <rect x="120" y="96" width="24" height="24" fill="#000000" opacity="0.07" />
+                  <rect x="${SMALL_PIXEL_SIZE}" y="${
+            SMALL_PIXEL_SIZE * 4
+        }" width="${SMALL_PIXEL_SIZE}" height="${SMALL_PIXEL_SIZE}" fill="#000000" opacity="0.05" />
+                  <rect x="${SMALL_PIXEL_SIZE * 3}" y="${
+            SMALL_PIXEL_SIZE * 4
+        }" width="${SMALL_PIXEL_SIZE}" height="${SMALL_PIXEL_SIZE}" fill="#ffffff" opacity="0.09" />
+                  <rect x="${SMALL_PIXEL_SIZE * 5}" y="${
+            SMALL_PIXEL_SIZE * 4
+        }" width="${SMALL_PIXEL_SIZE}" height="${SMALL_PIXEL_SIZE}" fill="#000000" opacity="0.07" />
 
-                  <rect x="0" y="120" width="24" height="24" fill="#ffffff" opacity="0.09" />
-                  <rect x="48" y="120" width="24" height="24" fill="#ffffff" opacity="0.07" />
-                  <rect x="96" y="120" width="24" height="24" fill="#000000" opacity="0.06" />
+                  <rect x="0" y="${
+                      SMALL_PIXEL_SIZE * 5
+                  }" width="${SMALL_PIXEL_SIZE}" height="${SMALL_PIXEL_SIZE}" fill="#ffffff" opacity="0.09" />
+                  <rect x="${SMALL_PIXEL_SIZE * 2}" y="${
+            SMALL_PIXEL_SIZE * 5
+        }" width="${SMALL_PIXEL_SIZE}" height="${SMALL_PIXEL_SIZE}" fill="#ffffff" opacity="0.07" />
+                  <rect x="${SMALL_PIXEL_SIZE * 4}" y="${
+            SMALL_PIXEL_SIZE * 5
+        }" width="${SMALL_PIXEL_SIZE}" height="${SMALL_PIXEL_SIZE}" fill="#000000" opacity="0.06" />
                 </pattern>
 
                 <!-- Bigger offset pixels to break repetition -->
                 <pattern id="px2" patternUnits="userSpaceOnUse" width="224" height="224" patternTransform="translate(12 18)">
-                  <rect x="0" y="0" width="32" height="32" fill="#ffffff" opacity="0.08" />
-                  <rect x="64" y="0" width="32" height="32" fill="#000000" opacity="0.06" />
-                  <rect x="160" y="0" width="32" height="32" fill="#ffffff" opacity="0.07" />
+                  <rect x="0" y="0" width="${LARGE_PIXEL_SIZE}" height="${LARGE_PIXEL_SIZE}" fill="#ffffff" opacity="0.08" />
+                  <rect x="64" y="0" width="${LARGE_PIXEL_SIZE}" height="${LARGE_PIXEL_SIZE}" fill="#000000" opacity="0.06" />
+                  <rect x="160" y="0" width="${LARGE_PIXEL_SIZE}" height="${LARGE_PIXEL_SIZE}" fill="#ffffff" opacity="0.07" />
 
-                  <rect x="32" y="32" width="32" height="32" fill="#ffffff" opacity="0.10" />
-                  <rect x="128" y="32" width="32" height="32" fill="#000000" opacity="0.05" />
+                  <rect x="32" y="32" width="${LARGE_PIXEL_SIZE}" height="${LARGE_PIXEL_SIZE}" fill="#ffffff" opacity="0.10" />
+                  <rect x="128" y="32" width="${LARGE_PIXEL_SIZE}" height="${LARGE_PIXEL_SIZE}" fill="#000000" opacity="0.05" />
 
-                  <rect x="0" y="96" width="32" height="32" fill="#000000" opacity="0.06" />
-                  <rect x="96" y="96" width="32" height="32" fill="#ffffff" opacity="0.12" />
-                  <rect x="192" y="96" width="32" height="32" fill="#ffffff" opacity="0.07" />
+                  <rect x="0" y="96" width="${LARGE_PIXEL_SIZE}" height="${LARGE_PIXEL_SIZE}" fill="#000000" opacity="0.06" />
+                  <rect x="96" y="96" width="${LARGE_PIXEL_SIZE}" height="${LARGE_PIXEL_SIZE}" fill="#ffffff" opacity="0.12" />
+                  <rect x="192" y="96" width="${LARGE_PIXEL_SIZE}" height="${LARGE_PIXEL_SIZE}" fill="#ffffff" opacity="0.07" />
 
-                  <rect x="64" y="160" width="32" height="32" fill="#ffffff" opacity="0.08" />
-                  <rect x="160" y="160" width="32" height="32" fill="#000000" opacity="0.07" />
+                  <rect x="64" y="160" width="${LARGE_PIXEL_SIZE}" height="${LARGE_PIXEL_SIZE}" fill="#ffffff" opacity="0.08" />
+                  <rect x="160" y="160" width="${LARGE_PIXEL_SIZE}" height="${LARGE_PIXEL_SIZE}" fill="#000000" opacity="0.07" />
 
-                  <rect x="32" y="192" width="32" height="32" fill="#ffffff" opacity="0.09" />
-                  <rect x="128" y="192" width="32" height="32" fill="#ffffff" opacity="0.06" />
+                  <rect x="32" y="192" width="${LARGE_PIXEL_SIZE}" height="${LARGE_PIXEL_SIZE}" fill="#ffffff" opacity="0.09" />
+                  <rect x="128" y="192" width="${LARGE_PIXEL_SIZE}" height="${LARGE_PIXEL_SIZE}" fill="#ffffff" opacity="0.06" />
                 </pattern>
               </defs>
 
@@ -142,11 +177,12 @@ export function useAgentBackground(colorString: string | undefined) {
             </svg>
         `);
 
-        keepUnused(svgPixalatedImage);
-
         const svgBlankImage = `<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>`;
 
-        const backgroundImage = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgBlankImage)}`;
+        keepUnused(svgPixalatedImage);
+        keepUnused(svgBlankImage);
+
+        const backgroundImage = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgPixalatedImage)}`;
 
         return { brandColorHex, brandColorLightHex, brandColorDarkHex, backgroundImage };
     }, [colorString]);
