@@ -25,10 +25,11 @@
     2. Implement the fixes to solve the problem
     3. Write down the things you found in the analysis and the fixes you implemented into [this file](prompts/2026-03-1560-agents-server-optimize.notes-1.md)
     4. Write down the things you found but can not fix right now but can be fixed in the future into [this file](prompts/2026-03-1560-agents-server-optimize.notes-1.md)
--   Also chatting with agents on the Agents Server should be faster
+-   Also chatting with agents on the Agents Server should be faster:
     -   Now the response time for agent messages is quite extremely long.
     -   The preparation of agents takes unacceptably long time, we need to optimize it and make it faster
     -   Also the message response takes a long time, we need to optimize the whole flow and make it faster
+    -   **When I write something in the chat and send it, the response from the agent should come faster, ideally starts to run immediately** after I send the message, for messages processed on background (not in the active chat) there should be some cron job that starts the tasks once in a 2 minutes (add this time to the metadata configuration of the agents server)
 -   You are working with the [Agents Server](apps/agents-server)
 -   You are not changing the functionality or adding new features, you are optimizing the existing functionality and fixing the crashes, so the server is stable and performant
 -   If you need to do the database migration to fix the problem or get more information about it, do it
