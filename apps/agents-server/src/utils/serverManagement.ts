@@ -18,7 +18,10 @@ import {
     resolveDatabaseMigrationConnectionStringFromEnvironment,
     runDatabaseMigrations,
 } from '../database/runDatabaseMigrations';
-import { SERVER_LANGUAGE_METADATA_KEY } from '../languages/ServerLanguageRegistry';
+import {
+    IS_SERVER_LANGUAGE_ENFORCED_METADATA_KEY,
+    SERVER_LANGUAGE_METADATA_KEY,
+} from '../languages/ServerLanguageRegistry';
 import { getPasswordValidationMessage, hashPassword } from './auth';
 import { buildServerTablePrefix } from './buildServerTablePrefix';
 import { scheduleDefaultFederatedAgentsSync } from './defaultFederatedAgents/scheduleDefaultFederatedAgentsSync';
@@ -783,6 +786,7 @@ function buildServerMetadataSeedEntries(options: {
     const entries: Array<ServerMetadataSeedEntry> = [
         createMetadataSeedEntry('SERVER_NAME', options.name),
         createMetadataSeedEntry(SERVER_LANGUAGE_METADATA_KEY, options.language),
+        createMetadataSeedEntry(IS_SERVER_LANGUAGE_ENFORCED_METADATA_KEY, 'false'),
         createMetadataSeedEntry('CHAT_FEEDBACK_MODE', options.feedbackMode),
         createMetadataSeedEntry('IS_FEEDBACK_ENABLED', isChatFeedbackEnabled(options.feedbackMode) ? 'true' : 'false'),
     ];

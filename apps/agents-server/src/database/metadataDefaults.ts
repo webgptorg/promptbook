@@ -9,7 +9,10 @@ import {
 import { MetadataType } from '../constants/metadataTypes';
 import { NEW_AGENT_WIZZARD_METADATA_KEY } from '../constants/newAgentWizard';
 import { DEFAULT_TOOL_USAGE_LIMITS, TOOL_USAGE_LIMITS_METADATA_KEY } from '../constants/toolUsageLimits';
-import { SERVER_LANGUAGE_METADATA_KEY } from '../languages/ServerLanguageRegistry';
+import {
+    IS_SERVER_LANGUAGE_ENFORCED_METADATA_KEY,
+    SERVER_LANGUAGE_METADATA_KEY,
+} from '../languages/ServerLanguageRegistry';
 
 /**
  * Default metadata entries produced from the analytics configuration definitions.
@@ -37,6 +40,12 @@ export const metadataDefaults = [
         value: 'en',
         note: 'Default language of the server UI. Available values: en, cs.',
         type: 'TEXT_SINGLE_LINE',
+    },
+    {
+        key: IS_SERVER_LANGUAGE_ENFORCED_METADATA_KEY,
+        value: 'false',
+        note: 'When true, users cannot override SERVER_LANGUAGE in their browser and the server UI language is enforced globally.',
+        type: 'BOOLEAN',
     },
     {
         key: 'SERVER_DESCRIPTION',

@@ -45,6 +45,10 @@ type LayoutWrapperProps = {
     defaultIsVibrationOn: boolean;
     defaultIsNotificationsOn: boolean;
     defaultServerLanguage: string;
+    /**
+     * Controls whether user-level language overrides are disabled.
+     */
+    isServerLanguageEnforced: boolean;
     webPushPublicKey: string | null;
 };
 
@@ -68,6 +72,7 @@ export function LayoutWrapper({
     defaultIsVibrationOn,
     defaultIsNotificationsOn,
     defaultServerLanguage,
+    isServerLanguageEnforced,
     webPushPublicKey,
 }: LayoutWrapperProps) {
     const pathname = usePathname();
@@ -88,7 +93,10 @@ export function LayoutWrapper({
     const minimalMainClassName = isChatPage ? 'agents-server-chat-main agents-server-chat-main-minimal' : 'pt-0';
 
     return (
-        <ServerLanguageProvider defaultLanguage={defaultServerLanguage}>
+        <ServerLanguageProvider
+            defaultLanguage={defaultServerLanguage}
+            isServerLanguageEnforced={isServerLanguageEnforced}
+        >
             <AsyncDialogsProvider>
                 <AgentNamingProvider naming={agentNaming}>
                     <PrivateModePreferencesProvider>

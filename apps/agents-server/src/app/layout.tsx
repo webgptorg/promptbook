@@ -8,6 +8,8 @@ import { getAggregatedCustomStylesheetCss } from '../database/customStylesheet';
 import { getMetadataMap } from '../database/getMetadata';
 import { getServerVisibility } from '../utils/getServerVisibility';
 import {
+    IS_SERVER_LANGUAGE_ENFORCED_METADATA_KEY,
+    parseServerLanguageEnforcedMetadata,
     resolveServerLanguageCode,
     SERVER_LANGUAGE_COOKIE_NAME,
     SERVER_LANGUAGE_METADATA_KEY,
@@ -240,6 +242,7 @@ export default async function RootLayout({
         'IS_FEEDBACK_ENABLED',
         'IS_EXPERIMENTAL_PWA_APP_ENABLED',
         SERVER_LANGUAGE_METADATA_KEY,
+        IS_SERVER_LANGUAGE_ENFORCED_METADATA_KEY,
     ]);
     const currentUserPromise = getCurrentUser();
     const isAdminPromise = isUserAdmin();
@@ -328,7 +331,12 @@ export default async function RootLayout({
     const isPublicServer = isPublicServerVisibility(serverVisibility);
     const safeCustomJavascript = customJavascript.replace(/<\/script>/gi, '<\\/script>');
     const cookieLanguage = cookieStore.get(SERVER_LANGUAGE_COOKIE_NAME)?.value || null;
-    const serverLanguage = resolveServerLanguageCode(cookieLanguage || layoutMetadata[SERVER_LANGUAGE_METADATA_KEY]);
+    const isServerLanguageEnforced = parseServerLanguageEnforcedMetadata(
+        layoutMetadata[IS_SERVER_LANGUAGE_ENFORCED_METADATA_KEY],
+    );
+    const rawServerLanguage = layoutMetadata[SERVER_LANGUAGE_METADATA_KEY];
+    const preferredLanguageSource = isServerLanguageEnforced ? rawServerLanguage : cookieLanguage || rawServerLanguage;
+    const serverLanguage = resolveServerLanguageCode(preferredLanguageSource);
 
     return (
         <html lang={serverLanguage}>
@@ -354,6 +362,7 @@ export default async function RootLayout({
                     feedbackMode={feedbackMode}
                     isExperimentalPwaAppEnabled={isExperimentalPwaAppEnabled}
                     defaultServerLanguage={serverLanguage}
+                    isServerLanguageEnforced={isServerLanguageEnforced}
                     webPushPublicKey={process.env.NEXT_PUBLIC_WEB_PUSH_PUBLIC_KEY || null}
                 >
                     {children}

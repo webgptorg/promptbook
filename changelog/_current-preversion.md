@@ -1,3 +1,10 @@
+-   Added server-language enforcement support in Agents Server metadata:
+
+    -   Added new metadata key `IS_SERVER_LANGUAGE_ENFORCED` (`true`/`false`) with default `false`.
+    -   When `IS_SERVER_LANGUAGE_ENFORCED=true`, the server now ignores per-browser language overrides and always uses `SERVER_LANGUAGE`.
+    -   Hid the Control panel language section when language enforcement is enabled, so users cannot switch the UI language locally.
+    -   Seeded `IS_SERVER_LANGUAGE_ENFORCED=false` during managed-server bootstrap for newly created servers.
+
 -   Fixed Agents Server self-learning persistence for inherited agents so learning is now append-only on the child source and no longer snapshots/materializes parent-chain source into child books:
 
     -   Added shared append-only self-learning persistence utility (`resolveAppendOnlySelfLearningAgentSource`) that derives only the newly appended delta from resolved runtime source and applies it onto the unresolved stored child source.

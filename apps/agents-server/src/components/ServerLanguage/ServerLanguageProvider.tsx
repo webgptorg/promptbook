@@ -41,6 +41,10 @@ type ServerLanguageContextValue = {
      */
     readonly availableLanguages: typeof ServerLanguageRegistry;
     /**
+     * Indicates whether language overrides are disabled by server metadata.
+     */
+    readonly isServerLanguageEnforced: boolean;
+    /**
      * Resolves one translated message by key with optional template variables.
      */
     readonly t: (key: ServerTranslationKey, variables?: ServerTranslationVariables) => string;
@@ -55,6 +59,7 @@ const defaultServerLanguageContextValue: ServerLanguageContextValue = {
         void nextLanguage;
     },
     availableLanguages: ServerLanguageRegistry,
+    isServerLanguageEnforced: false,
     t: (key, variables = {}) => {
         const englishTemplate = getServerLanguagePack(DEFAULT_SERVER_LANGUAGE).translations[key];
         return formatServerTranslationTemplate(englishTemplate, variables);
@@ -75,18 +80,41 @@ type ServerLanguageProviderProps = {
      * Default language resolved on the server from metadata/cookies.
      */
     readonly defaultLanguage?: string | null;
+    /**
+     * When true, language is fixed to the server default and browser overrides are ignored.
+     */
+    readonly isServerLanguageEnforced?: boolean;
 };
 
 /**
  * Provides pluggable language packs and one shared translation helper to client UI.
  */
-export function ServerLanguageProvider({ children, defaultLanguage }: ServerLanguageProviderProps) {
-    const [language, setLanguage] = useState<ServerLanguageCode>(() => resolveServerLanguageCode(defaultLanguage));
+export function ServerLanguageProvider({
+    children,
+    defaultLanguage,
+    isServerLanguageEnforced = false,
+}: ServerLanguageProviderProps) {
+    const [language, setLanguageState] = useState<ServerLanguageCode>(() => resolveServerLanguageCode(defaultLanguage));
     const englishPack = useMemo(() => getServerLanguagePack(DEFAULT_SERVER_LANGUAGE), []);
     const activePack = useMemo(() => getServerLanguagePack(language), [language]);
 
     useEffect(() => {
+        if (!isServerLanguageEnforced) {
+            return;
+        }
+
+        const resolvedDefaultLanguage = resolveServerLanguageCode(defaultLanguage);
+        setLanguageState((currentLanguage) =>
+            currentLanguage === resolvedDefaultLanguage ? currentLanguage : resolvedDefaultLanguage,
+        );
+    }, [defaultLanguage, isServerLanguageEnforced]);
+
+    useEffect(() => {
         if (typeof window === 'undefined') {
+            return;
+        }
+
+        if (isServerLanguageEnforced) {
             return;
         }
 
@@ -96,8 +124,24 @@ export function ServerLanguageProvider({ children, defaultLanguage }: ServerLang
         }
 
         const resolvedLanguage = resolveServerLanguageCode(storedLanguage);
-        setLanguage((currentLanguage) => (currentLanguage === resolvedLanguage ? currentLanguage : resolvedLanguage));
-    }, []);
+        setLanguageState((currentLanguage) => (currentLanguage === resolvedLanguage ? currentLanguage : resolvedLanguage));
+    }, [isServerLanguageEnforced]);
+
+    const setLanguage = useCallback<Dispatch<SetStateAction<ServerLanguageCode>>>(
+        (nextLanguage) => {
+            if (isServerLanguageEnforced) {
+                return;
+            }
+
+            setLanguageState((currentLanguage) => {
+                const resolvedNextLanguage = resolveServerLanguageCode(
+                    typeof nextLanguage === 'function' ? nextLanguage(currentLanguage) : nextLanguage,
+                );
+                return currentLanguage === resolvedNextLanguage ? currentLanguage : resolvedNextLanguage;
+            });
+        },
+        [isServerLanguageEnforced],
+    );
 
     useEffect(() => {
         if (typeof window === 'undefined') {
@@ -121,9 +165,10 @@ export function ServerLanguageProvider({ children, defaultLanguage }: ServerLang
             language,
             setLanguage,
             availableLanguages: ServerLanguageRegistry,
+            isServerLanguageEnforced,
             t,
         }),
-        [language, t],
+        [isServerLanguageEnforced, language, setLanguage, t],
     );
 
     return <ServerLanguageContext.Provider value={contextValue}>{children}</ServerLanguageContext.Provider>;

@@ -221,7 +221,7 @@ function ControlPanelStateRow({ stateLabel, detail, action }: ControlPanelStateR
  */
 function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanelContentProps) {
     const { soundSystem } = useSoundSystem();
-    const { language, setLanguage, availableLanguages, t } = useServerLanguage();
+    const { language, setLanguage, availableLanguages, isServerLanguageEnforced, t } = useServerLanguage();
     const { isSelfLearningEnabled, setIsSelfLearningEnabled } = useSelfLearningPreferences();
     const { isPrivateModeEnabled, setIsPrivateModeEnabled } = usePrivateModePreferences();
     const {
@@ -457,35 +457,37 @@ function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanel
                 />
             </ControlPanelSectionCard>
 
-            <ControlPanelSectionCard
-                icon={Languages}
-                title={t('controlPanel.languageTitle')}
-                sectionLabel={t('controlPanel.languageSection')}
-                description={t('controlPanel.languageSubtitle')}
-                stateLabel={activeLanguageName}
-                isExpanded={expandedSections.language}
-                onToggle={() => toggleSection('language')}
-                toggleLabel={getSectionToggleLabel(t('controlPanel.languageTitle'), expandedSections.language)}
-            >
-                <div className="space-y-2">
-                    <label htmlFor={languageSelectId} className="text-xs font-medium text-gray-600">
-                        {t('controlPanel.languageSelectLabel')}
-                    </label>
-                    <select
-                        id={languageSelectId}
-                        value={language}
-                        onChange={(event) => setLanguage(event.target.value as typeof language)}
-                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                    >
-                        {availableLanguages.map((languagePack) => (
-                            <option key={languagePack.language} value={languagePack.language}>
-                                {languagePack.nativeName} ({languagePack.englishName})
-                            </option>
-                        ))}
-                    </select>
-                    <p className="text-xs text-gray-500">{t('controlPanel.languageHelp')}</p>
-                </div>
-            </ControlPanelSectionCard>
+            {!isServerLanguageEnforced && (
+                <ControlPanelSectionCard
+                    icon={Languages}
+                    title={t('controlPanel.languageTitle')}
+                    sectionLabel={t('controlPanel.languageSection')}
+                    description={t('controlPanel.languageSubtitle')}
+                    stateLabel={activeLanguageName}
+                    isExpanded={expandedSections.language}
+                    onToggle={() => toggleSection('language')}
+                    toggleLabel={getSectionToggleLabel(t('controlPanel.languageTitle'), expandedSections.language)}
+                >
+                    <div className="space-y-2">
+                        <label htmlFor={languageSelectId} className="text-xs font-medium text-gray-600">
+                            {t('controlPanel.languageSelectLabel')}
+                        </label>
+                        <select
+                            id={languageSelectId}
+                            value={language}
+                            onChange={(event) => setLanguage(event.target.value as typeof language)}
+                            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                        >
+                            {availableLanguages.map((languagePack) => (
+                                <option key={languagePack.language} value={languagePack.language}>
+                                    {languagePack.nativeName} ({languagePack.englishName})
+                                </option>
+                            ))}
+                        </select>
+                        <p className="text-xs text-gray-500">{t('controlPanel.languageHelp')}</p>
+                    </div>
+                </ControlPanelSectionCard>
+            )}
         </div>
     );
 }

@@ -19,6 +19,11 @@ export type ServerLanguageCode = (typeof ServerLanguageRegistry)[number]['langua
 export const SERVER_LANGUAGE_METADATA_KEY = 'SERVER_LANGUAGE';
 
 /**
+ * Metadata key controlling whether the server language can be locally overridden by the user.
+ */
+export const IS_SERVER_LANGUAGE_ENFORCED_METADATA_KEY = 'IS_SERVER_LANGUAGE_ENFORCED';
+
+/**
  * Local storage key used for per-browser language override.
  */
 export const SERVER_LANGUAGE_STORAGE_KEY = 'promptbook_agents_server_language';
@@ -52,6 +57,16 @@ export function resolveServerLanguageCode(language: string | null | undefined): 
     }
 
     return DEFAULT_SERVER_LANGUAGE;
+}
+
+/**
+ * Parses the server-language enforcement metadata value.
+ *
+ * @param value - Raw metadata value.
+ * @returns `true` only when the metadata explicitly equals `true`.
+ */
+export function parseServerLanguageEnforcedMetadata(value: string | null | undefined): boolean {
+    return value === 'true';
 }
 
 /**
