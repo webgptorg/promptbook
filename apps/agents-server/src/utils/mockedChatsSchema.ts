@@ -4,6 +4,11 @@
 export const MOCKED_CHATS_USER_DATA_KEY = 'mockedChats.v1';
 
 /**
+ * `UserData.key` prefix used for publicly shareable mocked-chat records.
+ */
+export const MOCKED_CHAT_PUBLIC_USER_DATA_KEY_PREFIX = 'mockedChats.public.v1.';
+
+/**
  * Current schema version for mocked-chat persisted payload.
  */
 export const MOCKED_CHATS_SCHEMA_VERSION = 1 as const;
@@ -178,6 +183,13 @@ export const MOCKED_CHAT_TIMING_PRESET_MULTIPLIERS: Record<MockedChatTimingPrese
  */
 export function createMockedChatId(): string {
     return createMockedChatEntityId('mocked-chat');
+}
+
+/**
+ * Builds one `UserData.key` used for looking up a public mocked chat by id.
+ */
+export function createMockedChatPublicUserDataKey(mockedChatId: string): string {
+    return `${MOCKED_CHAT_PUBLIC_USER_DATA_KEY_PREFIX}${mockedChatId}`;
 }
 
 /**

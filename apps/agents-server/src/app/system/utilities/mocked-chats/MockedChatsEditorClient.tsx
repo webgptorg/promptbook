@@ -1,7 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { AlertTriangleIcon, QrCodeIcon } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { PromptbookQrCode } from '@promptbook-local/components';
 import { showConfirm } from '@/src/components/AsyncDialogs/asyncDialogs';
 import {
     MOCKED_CHAT_VIEWPORT_PRESETS,
@@ -25,6 +27,12 @@ const MOCKED_CHATS_API_ENDPOINT = '/api/system/mocked-chats';
  * Fallback offset distance when adding new scripted messages.
  */
 const DEFAULT_NEW_MESSAGE_OFFSET_STEP_MS = 1_200;
+
+/**
+ * Warning displayed in the editor explaining public visibility.
+ */
+const MOCKED_CHATS_PUBLIC_WARNING_MESSAGE =
+    'Mocked chats are publicly viewable by URL. Never include private or sensitive information in mocked-chat data.';
 
 /**
  * Properties for mocked-chat editor client.
@@ -70,6 +78,11 @@ export function MockedChatsEditorClient(props: MockedChatsEditorClientProps) {
     }, [draftChat, selectedSavedChat]);
 
     const viewerHref = useMemo(() => buildMockedChatViewerHref(draftChat.id), [draftChat.id]);
+    const [publicViewerUrl, setPublicViewerUrl] = useState<string | null>(null);
+
+    useEffect(() => {
+        setPublicViewerUrl(buildMockedChatViewerAbsoluteUrl(viewerHref));
+    }, [viewerHref]);
 
     /**
      * Persists one full mocked-chat list and returns server-normalized records.
@@ -551,6 +564,55 @@ export function MockedChatsEditorClient(props: MockedChatsEditorClientProps) {
                             </div>
                         </div>
 
+                        <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_260px]">
+                            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                                <div className="flex items-start gap-3 text-amber-900">
+                                    <AlertTriangleIcon className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+                                    <div className="space-y-2">
+                                        <p className="text-sm font-semibold">Public visibility warning</p>
+                                        <p className="text-sm">{MOCKED_CHATS_PUBLIC_WARNING_MESSAGE}</p>
+                                        <p className="text-xs text-amber-800">
+                                            <span className="font-semibold">Public URL:</span>{' '}
+                                            <span className="break-all">
+                                                {publicViewerUrl ||
+                                                    (isDraftPersisted
+                                                        ? 'Loading public URL...'
+                                                        : 'Save the mocked chat to generate a public URL.')}
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                                <div className="mb-2 flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                    <QrCodeIcon className="h-4 w-4" aria-hidden="true" />
+                                    Share via QR
+                                </div>
+                                {isDraftPersisted && publicViewerUrl ? (
+                                    <div className="space-y-3">
+                                        <PromptbookQrCode
+                                            value={publicViewerUrl}
+                                            size={180}
+                                            className="flex justify-center"
+                                        />
+                                        <Link
+                                            href={viewerHref}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="block text-center text-xs font-semibold text-blue-700 hover:text-blue-800"
+                                        >
+                                            Open public view
+                                        </Link>
+                                    </div>
+                                ) : (
+                                    <p className="text-center text-xs text-slate-500">
+                                        Save this mocked chat first to generate its public QR code.
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
                         <div className="mt-6 space-y-8">
                             <section className="space-y-4">
                                 <h3 className="text-lg font-semibold text-slate-900">General</h3>
@@ -926,6 +988,17 @@ function buildMockedChatViewerHref(mockedChatId: string): string {
     const params = new URLSearchParams();
     params.set('chat', mockedChatId);
     return `/system/utilities/mocked-chats/view?${params.toString()}`;
+}
+
+/**
+ * Builds one absolute mocked-chat viewer URL in browser context.
+ */
+function buildMockedChatViewerAbsoluteUrl(viewerHref: string): string | null {
+    if (typeof window === 'undefined') {
+        return null;
+    }
+
+    return new URL(viewerHref, window.location.origin).toString();
 }
 
 /**

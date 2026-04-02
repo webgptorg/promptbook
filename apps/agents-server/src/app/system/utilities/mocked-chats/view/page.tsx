@@ -1,7 +1,4 @@
-import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
-import { resolveCurrentUserIdentity } from '@/src/utils/currentUserIdentity';
-import { getCurrentUser } from '@/src/utils/getCurrentUser';
-import { getMockedChatsForUser } from '@/src/utils/mockedChatsStore';
+import { getPublicMockedChatById } from '@/src/utils/mockedChatsStore';
 import { MockedChatsViewerClient } from './MockedChatsViewerClient';
 
 /**
@@ -15,18 +12,10 @@ type MockedChatsViewerPageSearchParams = Promise<{
  * Dedicated mocked-chat recording viewer route.
  */
 export default async function MockedChatsViewerPage(props: { searchParams: MockedChatsViewerPageSearchParams }) {
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-        return <ForbiddenPage />;
-    }
-
-    const identity = await resolveCurrentUserIdentity();
-    if (!identity || !identity.sessionUser) {
-        return <ForbiddenPage />;
-    }
-
     const searchParams = await props.searchParams;
-    const mockedChats = await getMockedChatsForUser(identity.userId);
+    const mockedChatId = searchParams.chat || null;
+    const mockedChat = mockedChatId ? await getPublicMockedChatById(mockedChatId) : null;
+    const mockedChats = mockedChat ? [mockedChat] : [];
 
-    return <MockedChatsViewerClient mockedChats={mockedChats} initialMockedChatId={searchParams.chat || null} />;
+    return <MockedChatsViewerClient mockedChats={mockedChats} initialMockedChatId={mockedChatId} />;
 }

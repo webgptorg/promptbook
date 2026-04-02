@@ -497,6 +497,7 @@ export async function middleware(req: NextRequest) {
         // - /swagger: Interactive management API explorer
         // - /manifest.webmanifest: Manifest
         // - /sw.js: Service Worker
+        // - /system/utilities/mocked-chats/view: Public mocked-chat viewer
         const isAllowedPath =
             path === '/' ||
             path === '/agents' ||
@@ -509,7 +510,8 @@ export async function middleware(req: NextRequest) {
             path === '/openapi.json' ||
             path === '/swagger' ||
             path === '/manifest.webmanifest' ||
-            path === '/sw.js';
+            path === '/sw.js' ||
+            path.startsWith('/system/utilities/mocked-chats/view');
 
         if (isAllowedPath) {
             const response = NextResponse.next();

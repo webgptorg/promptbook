@@ -1,3 +1,10 @@
+-   Updated Agents Server mocked-chat sharing so viewer links are public while editor/admin paths remain authenticated:
+
+    -   Made `/system/utilities/mocked-chats/view?chat=...` resolve mocked chats by public id without requiring a logged-in session, so shared URLs open for anyone.
+    -   Kept mocked-chat administration/editing behind existing authenticated paths (`/system/utilities/mocked-chats` and `/api/system/mocked-chats`).
+    -   Added public mocked-chat index synchronization in persistence (`UserData` key prefix `mockedChats.public.v1.*`) and fallback lookup for older stored chats.
+    -   Added an explicit public-visibility warning in the mocked-chat editor and a branded QR share block (`PromptbookQrCode`) for quick mobile sharing.
+
 -   Redesigned the Agents Server header control panel into a more compact control-center layout:
 
     -   Replaced the previous expandable section cards with visual tile toggles, so each toggle now has its own dedicated box (sound, vibration, notifications, self-learning, and private mode).
