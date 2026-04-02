@@ -36,8 +36,8 @@
             "cwd": "./apps/agents-server/",
             "command": "npx tsx ./src/database/migrate.ts --only=preview",
             "execute": false,
-            "onlySingle": false,
-            "focus": false
+            "onlySingle": true,
+            "focus": true
         },
         {
             "name": "(❗❗) ✨⏩ Migrate Agents server (all environments) (💤)",
