@@ -1,3 +1,8 @@
+-   Fixed Agents Server local development startup hangs caused by middleware custom-domain scans on local/private hosts:
+
+    -   Normalized bracketed IPv6 host headers (for example `[::1]:4440`) to a canonical form so loopback detection works reliably.
+    -   Skipped expensive custom-domain resolution for private-network hosts during non-production runs (for example `172.16.x.x`, `192.168.x.x`, `10.x.x.x`, `fe80::/10`, and `.local`), preventing repeated federated import/lookup work while developing locally.
+
 -   Updated Agents Server mocked-chat sharing so viewer links are public while editor/admin paths remain authenticated:
 
     -   Made `/system/utilities/mocked-chats/view?chat=...` resolve mocked chats by public id without requiring a logged-in session, so shared URLs open for anyone.

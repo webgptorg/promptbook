@@ -209,11 +209,77 @@ function normalizeMiddlewareHost(host: string | null): string | null {
     }
 
     try {
-        return new URL(`http://${trimmedHost}`).hostname.toLowerCase();
+        return normalizeMiddlewareHostname(new URL(`http://${trimmedHost}`).hostname.toLowerCase());
     } catch {
+        const ipv6HostMatch = trimmedHost.match(/^\[(.+)\](?::\d+)?$/);
+        if (ipv6HostMatch && ipv6HostMatch[1]) {
+            return normalizeMiddlewareHostname(ipv6HostMatch[1].toLowerCase());
+        }
+
         const hostWithoutPort = trimmedHost.split(':')[0];
-        return hostWithoutPort || null;
+        return normalizeMiddlewareHostname(hostWithoutPort);
     }
+}
+
+/**
+ * Normalizes one parsed hostname value used by middleware host checks.
+ *
+ * @param hostname - Parsed hostname candidate.
+ * @returns Normalized hostname, or `null` when empty.
+ */
+function normalizeMiddlewareHostname(hostname: string): string | null {
+    const normalizedHostname = hostname.trim().toLowerCase().replace(/^\[(.*)\]$/u, '$1');
+    return normalizedHostname || null;
+}
+
+/**
+ * Checks whether one normalized host points to loopback.
+ *
+ * @param host - Normalized hostname.
+ * @returns `true` when the host is one of the loopback aliases.
+ */
+function isLoopbackHost(host: string): boolean {
+    return host === 'localhost' || host === '127.0.0.1' || host === '::1';
+}
+
+/**
+ * Checks whether one normalized host points to a private-network address.
+ *
+ * This intentionally covers common local-development hosts so middleware does
+ * not spend time on expensive custom-domain scans for LAN/private URLs.
+ *
+ * @param host - Normalized hostname.
+ * @returns `true` when host belongs to a private network range.
+ */
+function isPrivateNetworkHost(host: string): boolean {
+    if (host.endsWith('.local')) {
+        return true;
+    }
+
+    const ipv4Match = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/u);
+    if (ipv4Match) {
+        const octets = ipv4Match.slice(1).map((value) => Number(value));
+        const [first, second] = octets;
+
+        if (octets.some((octet) => !Number.isInteger(octet) || octet < 0 || octet > 255)) {
+            return false;
+        }
+
+        return (
+            first === 10 ||
+            first === 127 ||
+            (first === 192 && second === 168) ||
+            (first === 172 && second >= 16 && second <= 31) ||
+            (first === 169 && second === 254)
+        );
+    }
+
+    if (!host.includes(':')) {
+        return false;
+    }
+
+    const normalizedIpv6 = host.toLowerCase();
+    return normalizedIpv6.startsWith('fc') || normalizedIpv6.startsWith('fd') || normalizedIpv6.startsWith('fe80:');
 }
 
 /**
@@ -232,7 +298,11 @@ function shouldSkipCustomDomainResolution(host: string | null, pathname: string)
         return true;
     }
 
-    if (host === 'localhost' || host === '127.0.0.1' || host === '::1') {
+    if (isLoopbackHost(host)) {
+        return true;
+    }
+
+    if (process.env.NODE_ENV !== 'production' && isPrivateNetworkHost(host)) {
         return true;
     }
 
