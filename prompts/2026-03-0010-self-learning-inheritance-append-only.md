@@ -1,4 +1,4 @@
-[ ]
+[x] ~$1.24 an hour by OpenAI Codex `gpt-5.3-codex`
 
 [🧠🧩] Fix self-learning to be inheritance-chain aware and append-only
 
@@ -18,3 +18,4 @@
     -   explicit from-commitment inheritance
     -   assert that after self-learning the parent chain sources are not duplicated/materialized into the child’s stored book content
 -   Update the [changelog](changelog/_current-preversion.md)
+

@@ -1,3 +1,10 @@
+-   Fixed Agents Server self-learning persistence for inherited agents so learning is now append-only on the child source and no longer snapshots/materializes parent-chain source into child books:
+
+    -   Added shared append-only self-learning persistence utility (`resolveAppendOnlySelfLearningAgentSource`) that derives only the newly appended delta from resolved runtime source and applies it onto the unresolved stored child source.
+    -   Wired the append-only persistence flow into all server-side learning save paths: `/agents/[agentName]/api/chat`, `/agents/[agentName]/api/voice`, OpenAI-compatible chat handler, and durable user-chat worker.
+    -   Ensured idempotency guardrails by skipping persistence when no append-only delta exists, when a non-append-only rewrite is detected, or when the same appended section is already present in stored child source.
+    -   Added regression coverage for both inheritance modes (implicit default Adam and explicit `FROM`) asserting that learned child storage is updated with child-only appended content and does not duplicate materialized parent-chain source.
+
 -   Stabilized and optimized Agents Server database pressure under durable-chat load to mitigate Supabase pool exhaustion (`PGRST003`) and improve chat responsiveness:
 
     -   Hardened middleware hot path with longer metadata/server caching, per-host custom-domain resolution caching (including negative cache), per-host in-flight resolution deduplication, strict custom-domain resolution timeout, and matcher exclusions for `/api/internal/*` and `robots.txt` to avoid unnecessary DB work on worker/internal requests.

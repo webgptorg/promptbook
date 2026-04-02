@@ -26,6 +26,7 @@ import { resolveCurrentOrInternalServerOrigin } from '@/src/utils/resolveCurrent
 import { resolveUseCalendarGoogleToken } from '@/src/utils/resolveUseCalendarGoogleToken';
 import { resolveUseEmailSmtpCredential } from '@/src/utils/resolveUseEmailSmtpCredential';
 import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithubToken';
+import { resolveAppendOnlySelfLearningAgentSource } from '@/src/utils/resolveAppendOnlySelfLearningAgentSource';
 import { prepareToolCallsForStreaming } from '@/src/utils/toolCallStreaming';
 import { Agent, computeAgentHash } from '@promptbook-local/core';
 import type { ToolCall } from '@promptbook-local/types';
@@ -134,6 +135,7 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
         fallbackResolver: baseAgentReferenceResolver,
     });
     const agentSource = resolvedAgentContext.resolvedAgentSource;
+    const unresolvedAgentSource = resolvedAgentContext.unresolvedAgentSource;
     const agentPermanentId = resolvedAgentContext.parentAgentPermanentId;
     const resolvedAgentName = resolvedAgentContext.resolvedAgentName;
     const projectRepositories = extractProjectRepositoriesFromAgentSource(agentSource);
@@ -492,9 +494,14 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
         }
 
         if (!resolvedAgentContext.isBookScopedAgent) {
-            const newAgentSource = agent.agentSource.value;
-            if (newAgentSource !== agentSource) {
-                await collection.updateAgentSource(agentPermanentId, newAgentSource);
+            const learnedAgentSource = resolveAppendOnlySelfLearningAgentSource({
+                unresolvedAgentSourceBeforeLearning: unresolvedAgentSource,
+                resolvedAgentSourceBeforeLearning: agentSource,
+                resolvedAgentSourceAfterLearning: agent.agentSource.value,
+            });
+
+            if (learnedAgentSource !== null) {
+                await collection.updateAgentSource(agentPermanentId, learnedAgentSource);
             }
         }
 

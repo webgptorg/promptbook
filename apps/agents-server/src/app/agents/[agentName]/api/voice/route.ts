@@ -24,6 +24,7 @@ import { respondIfClientVersionIsOutdated } from '../../../../../utils/clientVer
 import { textToSpeechText } from '../../../../../utils/textToSpeechText';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
+import { resolveAppendOnlySelfLearningAgentSource } from '@/src/utils/resolveAppendOnlySelfLearningAgentSource';
 
 export const maxDuration = 300;
 
@@ -100,6 +101,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         });
         const agentPermanentId = resolvedAgentContext.parentAgentPermanentId;
         const agentSource = resolvedAgentContext.resolvedAgentSource;
+        const unresolvedAgentSource = resolvedAgentContext.unresolvedAgentSource;
         const projectRepositories = extractProjectRepositoriesFromAgentSource(agentSource);
         const calendarConnections = extractUseCalendarConnectionsFromAgentSource(agentSource);
         const useEmailConfiguration = extractUseEmailConfigurationFromAgentSource(agentSource);
@@ -241,9 +243,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
         // Learning
         if (!isPrivateModeEnabled) {
-            const newAgentSource = agent.agentSource.value;
-            if (newAgentSource !== agentSource) {
-                await collection.updateAgentSource(agentName, newAgentSource);
+            const learnedAgentSource = resolveAppendOnlySelfLearningAgentSource({
+                unresolvedAgentSourceBeforeLearning: unresolvedAgentSource,
+                resolvedAgentSourceBeforeLearning: agentSource,
+                resolvedAgentSourceAfterLearning: agent.agentSource.value,
+            });
+
+            if (learnedAgentSource !== null) {
+                await collection.updateAgentSource(agentPermanentId, learnedAgentSource);
             }
         }
 

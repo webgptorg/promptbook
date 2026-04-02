@@ -55,6 +55,7 @@ import {
     resolveCachedServerAgentModelRequirements,
 } from '@/src/utils/cachedServerAgentRuntime';
 import { getTeacherRemoteAgent } from '@/src/utils/getTeacherRemoteAgent';
+import { resolveAppendOnlySelfLearningAgentSource } from '@/src/utils/resolveAppendOnlySelfLearningAgentSource';
 
 /**
  * Shape of the incoming chat API payload.
@@ -286,6 +287,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             fallbackResolver: baseAgentReferenceResolver,
         });
         const agentSource = resolvedAgentContext.resolvedAgentSource;
+        const unresolvedAgentSource = resolvedAgentContext.unresolvedAgentSource;
         const agentId = resolvedAgentContext.parentAgentPermanentId;
         const resolvedAgentName = resolvedAgentContext.resolvedAgentName;
         const projectRepositories = extractProjectRepositoriesFromAgentSource(agentSource);
@@ -667,9 +669,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
                     // Note: [🐱‍🚀] Save the learned data
                     if (!isPrivateModeEnabled && !resolvedAgentContext.isBookScopedAgent) {
-                        const newAgentSource = agent.agentSource.value;
-                        if (newAgentSource !== agentSource) {
-                            await collection.updateAgentSource(agentId, newAgentSource);
+                        const learnedAgentSource = resolveAppendOnlySelfLearningAgentSource({
+                            unresolvedAgentSourceBeforeLearning: unresolvedAgentSource,
+                            resolvedAgentSourceBeforeLearning: agentSource,
+                            resolvedAgentSourceAfterLearning: agent.agentSource.value,
+                        });
+
+                        if (learnedAgentSource !== null) {
+                            await collection.updateAgentSource(agentId, learnedAgentSource);
                         }
                     }
 

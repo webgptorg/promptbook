@@ -56,6 +56,7 @@ import {
     resolveCachedServerAgentContext,
     resolveCachedServerAgentModelRequirements,
 } from './cachedServerAgentRuntime';
+import { resolveAppendOnlySelfLearningAgentSource } from './resolveAppendOnlySelfLearningAgentSource';
 
 /**
  * Falls back to the estimated value when the original token count is unknown.
@@ -425,6 +426,7 @@ export async function handleChatCompletion(
             );
         }
         let agentSource: string_book = resolvedAgentContext.resolvedAgentSource;
+        const unresolvedAgentSource = resolvedAgentContext.unresolvedAgentSource;
         const projectRepositories = extractProjectRepositoriesFromAgentSource(agentSource);
         const calendarConnections = extractUseCalendarConnectionsFromAgentSource(agentSource);
         const useEmailConfiguration = extractUseEmailConfigurationFromAgentSource(agentSource);
@@ -764,9 +766,16 @@ export async function handleChatCompletion(
                         }
 
                         // Note: [🐱‍🚀] Save the learned data
-                        const newAgentSource = agent.agentSource.value;
-                        if (newAgentSource !== agentSource && !resolvedAgentContext.isBookScopedAgent) {
-                            await collection.updateAgentSource(agentId, newAgentSource);
+                        if (!resolvedAgentContext.isBookScopedAgent) {
+                            const learnedAgentSource = resolveAppendOnlySelfLearningAgentSource({
+                                unresolvedAgentSourceBeforeLearning: unresolvedAgentSource,
+                                resolvedAgentSourceBeforeLearning: agentSource,
+                                resolvedAgentSourceAfterLearning: agent.agentSource.value,
+                            });
+
+                            if (learnedAgentSource !== null) {
+                                await collection.updateAgentSource(agentId, learnedAgentSource);
+                            }
                         }
 
                         const doneChunkData = {
@@ -842,9 +851,16 @@ export async function handleChatCompletion(
 
             // Note: [🐱‍🚀] Save the learned data
             if (!isPrivateModeEnabled) {
-                const newAgentSource = agent.agentSource.value;
-                if (newAgentSource !== agentSource && !resolvedAgentContext.isBookScopedAgent) {
-                    await collection.updateAgentSource(agentId, newAgentSource);
+                if (!resolvedAgentContext.isBookScopedAgent) {
+                    const learnedAgentSource = resolveAppendOnlySelfLearningAgentSource({
+                        unresolvedAgentSourceBeforeLearning: unresolvedAgentSource,
+                        resolvedAgentSourceBeforeLearning: agentSource,
+                        resolvedAgentSourceAfterLearning: agent.agentSource.value,
+                    });
+
+                    if (learnedAgentSource !== null) {
+                        await collection.updateAgentSource(agentId, learnedAgentSource);
+                    }
                 }
             }
 

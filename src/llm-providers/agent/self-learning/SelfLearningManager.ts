@@ -216,6 +216,7 @@ export class SelfLearningManager {
 
                 - Decide what the agent should learn from this interaction.
                 - Append new commitments at the end of the agent source.
+                - Return only newly learned commitments, never repeat commitments that are already present.
                 - Do not modify the current agent source, just return new commitments (KNOWLEDGE, RULE, etc.).
                 - If there is nothing new to learn, return empty book code block
                 - Wrap the commitments in a book code block.
@@ -282,9 +283,46 @@ export class SelfLearningManager {
      */
     private appendToAgentSource(section: string): void {
         const currentSource = this.options.getAgentSource();
-        const newSource = padBook(validateBook(spaceTrim(currentSource) + section));
+        const normalizedSection = normalizeBookSection(section);
+        if (!normalizedSection) {
+            return;
+        }
+
+        if (containsNormalizedBookSection(currentSource, normalizedSection)) {
+            return;
+        }
+
+        const newSource = padBook(validateBook(`${normalizeBookSection(currentSource)}\n\n${normalizedSection}`));
         this.options.updateAgentSource(newSource as string_book);
     }
+}
+
+/**
+ * Normalizes one book fragment for deduplication and append composition.
+ *
+ * @param section Raw fragment from self-learning workflow.
+ * @returns Trimmed fragment, or empty string when nothing remains.
+ * @private function of Agent
+ */
+function normalizeBookSection(section: string): string {
+    return spaceTrim(section).replace(/\r\n/g, '\n');
+}
+
+/**
+ * Checks whether one normalized fragment already exists inside the current source.
+ *
+ * @param agentSource Current source.
+ * @param normalizedSection Candidate fragment expected to be normalized first.
+ * @returns True when appending would duplicate an existing fragment.
+ * @private function of Agent
+ */
+function containsNormalizedBookSection(agentSource: string_book, normalizedSection: string): boolean {
+    if (!normalizedSection) {
+        return true;
+    }
+
+    const normalizedSource = normalizeBookSection(agentSource);
+    return normalizedSource.includes(normalizedSection);
 }
 
 /**
