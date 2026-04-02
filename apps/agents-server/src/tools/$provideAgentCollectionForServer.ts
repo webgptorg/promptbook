@@ -2,16 +2,15 @@
 
 import type { AgentCollection } from '../../../../src/collection/agent-collection/AgentCollection';
 import { AgentCollectionInSupabase } from '../../../../src/collection/agent-collection/constructors/agent-collection-in-supabase/AgentCollectionInSupabase';
-import { just } from '../../../../src/utils/organization/just';
 import { $provideSupabaseForServer } from '../database/$provideSupabaseForServer';
 import { $provideServer } from './$provideServer';
 
 /**
- * Cache of provided agent collection
+ * Cached agent collections keyed by server table prefix.
  *
  * @private internal cache for `$provideAgentCollectionForServer`
  */
-let agentCollection: null | AgentCollection = null;
+const agentCollectionsByTablePrefix = new Map<string, AgentCollection>();
 
 /**
  * [🐱‍🚀]
@@ -19,17 +18,12 @@ let agentCollection: null | AgentCollection = null;
 export async function $provideAgentCollectionForServer(): Promise<AgentCollection> {
     // <- Note: This function is potentially async
 
-    // TODO: [🐱‍🚀] [🌕] DRY
-
     const isVerbose = false; // true; // <- TODO: [🐱‍🚀] Pass
-
-    if (agentCollection !== null && just(false /* <- TODO: [🐱‍🚀] Fix caching */)) {
-        // console.info('[🐱‍🚀] Returning cached agent collection');
-        return agentCollection;
-        // TODO: [🐱‍🚀] Be aware of options changes
+    const { publicUrl, tablePrefix } = await $provideServer();
+    const cachedAgentCollection = agentCollectionsByTablePrefix.get(tablePrefix);
+    if (cachedAgentCollection) {
+        return cachedAgentCollection;
     }
-
-    // console.info('[🐱‍🚀] Creating NEW agent collection');
 
     /*
     // TODO: [🧟‍♂️][◽] DRY:
@@ -43,14 +37,13 @@ export async function $provideAgentCollectionForServer(): Promise<AgentCollectio
     */
 
     const supabase = $provideSupabaseForServer();
-    const { publicUrl, tablePrefix } = await $provideServer();
 
     const providedCollection = new AgentCollectionInSupabase(supabase, {
         isVerbose,
         tablePrefix,
     });
 
-    agentCollection = providedCollection;
+    agentCollectionsByTablePrefix.set(tablePrefix, providedCollection);
 
     const [{ attachAgentPreparationScheduling }, { scheduleDefaultFederatedAgentsSync }] = await Promise.all([
         import('../utils/attachAgentPreparationScheduling'),
@@ -63,7 +56,7 @@ export async function $provideAgentCollectionForServer(): Promise<AgentCollectio
         localServerUrl: publicUrl.href,
     });
 
-    return agentCollection;
+    return providedCollection;
 }
 
 /**

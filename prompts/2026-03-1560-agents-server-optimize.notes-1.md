@@ -1,149 +1,182 @@
-# Agents Server Performance Analysis & Fixes
+# Agents Server overload analysis
 
-## Root Cause Analysis
+## Scope analyzed
 
-The Supabase Nano database was being overwhelmed by excessive queries coming from multiple sources. With 11,550+ DB requests in 60 minutes (and spikes causing unhealthy status), the problem was systemic — not a single bottleneck but a compounding effect of several design issues.
+-   Durable user-chat flow in `apps/agents-server`
+-   Canonical chat refresh and stream polling
+-   Durable chat-job claiming and worker wake-ups
+-   Agent preparation and agent-runtime warmup
+-   Planned agent events via `USE TIMEOUT`
+-   Recursive agent-source resolution paths
 
----
+## Confirmed root causes
 
-## Issues Found & Fixes Implemented
+### 1. Canonical chat polling was doing repeated database work even when chats were idle
 
-### 1. Middleware — Uncached DB Queries on Every HTTP Request (P0, CRITICAL)
+The largest load amplifier was the durable chat UI refresh model:
 
-**Problem:** The Next.js middleware (`src/middleware.ts`) ran on **every HTTP request** (matched by `/((?!_next/static|_next/image|favicon.ico|logo-|fonts/).*)`) and performed:
+-   `AgentChatHistoryClient.tsx` kept opening the canonical chat stream for the active chat whenever history was enabled.
+-   The client also triggered periodic `refreshActiveChat()` calls even while the stream was healthy.
+-   The stream route `/api/user-chats/[chatId]/stream` kept polling even after the chat became idle.
+-   Every stream poll and every manual refresh went through `getUserChat()` plus `createUserChatDetailPayload()`, which also loads active jobs and active timeouts.
 
--   **Created a new Supabase client** on every request (no reuse)
--   **Queried `_Server` table** via `listRegisteredServers()` — bypassing the existing 10s cache in `listRegisteredServersUsingServiceRole()`
--   **Queried `${prefix}Metadata` table** for RESTRICT_IP, IS_EMBEDDING_ALLOWED, SERVER_VISIBILITY on every request
+This meant one idle open chat could keep generating steady reads with no user activity, and active chats multiplied that load further.
 
-This meant every single page load, API call, polling request, and even robots.txt/sw.js generated 2-4 DB queries just from middleware.
+### 2. Claiming the next queued durable chat job used a multi-request optimistic flow
 
-**Fix:**
+`claimNextQueuedUserChatJob.ts` previously:
 
--   Replaced per-request Supabase client creation with a **cached singleton** (`cachedMiddlewareSupabase`)
--   Switched from `listRegisteredServers()` to `listRegisteredServersUsingServiceRole()` which has a **10s in-memory cache**
--   Added **30s in-memory cache** for metadata lookups (`MIDDLEWARE_METADATA_CACHE_TTL_MS = 30_000`)
+-   selected queued candidates
+-   loaded up to 20 rows
+-   tried updates one by one until one claim succeeded
 
-**Impact:** Eliminates 2-4 DB queries per HTTP request → near-zero middleware DB load.
+Under concurrency this increased round-trips and contention on the hottest queue path.
 
-### 2. Admin Task Manager — 3s Polling with Heavy Queries (P1, HIGH)
+### 3. Agent preparation added avoidable latency and extra reads to normal chats
 
-**Problem:** The admin task manager UI (`/admin/task-manager`) polled at **3-second intervals** by default. Each poll:
+`waitForRunningAgentPreparation()` waited for scheduled preparation rows by polling the database, even when the preparation was only due and not actually running yet.
 
--   Called `recoverExpiredRunningUserChatJobs()` — SELECT + potential UPDATEs
--   Called `recoverExpiredRunningUserChatTimeouts()` — UPDATE with RETURNING
--   Executed a heavy **UNION ALL** query joining UserChatJob + UserChatTimeout + User + Agent with `COUNT(*) OVER()`
--   Executed a separate **aggregate counters** query over the same UNION ALL
+That had two bad effects:
 
-With one admin tab open: ~1.3 heavy DB operations per second, continuously.
+-   extra reads on the preparation table
+-   slower chat startup because requests waited instead of immediately continuing or kicking the worker
 
-**Fix:**
+### 4. Server-side runtime caches were too short or effectively disabled
 
--   Increased default polling interval from **3s → 10s**
--   **Throttled recovery operations** to run at most once per 60 seconds (`ADMIN_RECOVERY_THROTTLE_MS = 60_000`) with deduplication
--   Recovery is still triggered on the first poll and then at most every 60s
+-   `$provideAgentCollectionForServer()` had caching intentionally disabled.
+-   Resolved server-agent context and model-requirements caches lived only 30 seconds.
+-   The agent-reference resolver cache also lived only 30 seconds.
 
-**Impact:** ~70% reduction in admin poll DB load; recovery operations drop from every 3s to max every 60s.
+This caused repeated warmups of expensive agent-resolution and preparation paths across otherwise similar requests.
 
-### 3. Chat Stream SSE Polling — 500ms Polling During Active Jobs (P1, HIGH)
+### 5. Hottest chat/timeout scans were missing targeted indexes
 
-**Problem:** The user chat stream route (`/api/user-chats/:chatId/stream`) polled the database at:
+The code frequently filters and orders by:
 
--   **500ms** intervals when active jobs exist (2 queries per poll = 4 queries/sec per active chat)
--   **5s** intervals when idle
+-   `UserChatJob.status`, `cancelRequestedAt`, `chatId`, `userId`, `agentPermanentId`, `createdAt`, `leaseExpiresAt`
+-   `UserChatTimeout.status`, `pausedAt`, `chatId`, `userId`, `agentPermanentId`, `dueAt`, `createdAt`, `leaseExpiresAt`
 
-For a single user chatting: 4 DB queries/second sustained for potentially minutes.
+Those access patterns needed dedicated partial indexes for active/running rows.
 
-**Fix:**
+## Investigated and ruled out as primary root cause
 
--   Increased active polling from **500ms → 1,500ms** (~1.3 queries/sec instead of 4)
--   Increased idle polling from **5s → 10s**
+### `USE TIMEOUT` implementation
 
-**Impact:** ~67% reduction in streaming DB load per active chat.
+The planned agent events path is not implemented as a tight permanent poll loop:
 
-### 4. Vercel Cron — Every-Minute Timeout Worker (P1, MEDIUM-HIGH)
+-   short timeouts use best-effort local wake-ups
+-   durable execution goes through `userChatTimeoutWorker`
+-   the worker prevents overlapping ticks and only claims due rows
 
-**Problem:** The Vercel cron job (`vercel.json`) triggered `/api/internal/user-chat-timeouts/run` **every minute** (`* * * * *`). Each invocation:
+It still performs several reads/writes per fired timeout, but it was not the main source of the sustained background overload.
 
--   Calls `recoverExpiredRunningUserChatTimeouts()` — 1 query
--   Loops up to 20 times calling `claimNextDueUserChatTimeout()` — 1+ query each
--   Processes each claimed timeout with multiple DB queries
+### Infinite or recursive loops in agent-source resolution
 
-Even when idle (no pending timeouts), this generates at minimum 2 DB queries per minute.
+I reviewed the inherited/imported agent-source flow and did not find an infinite recursion bug in the current path:
 
-**Fix:** Changed cron schedule from `* * * * *` to `*/5 * * * *` (every 5 minutes). The existing local wake-up timers (`scheduleUserChatTimeoutLocalWakeup`) already handle short-duration timeouts with sub-second precision, making the 1-minute cron redundant for active timeouts.
+-   `resolveInheritedAgentSource.ts` has explicit cycle detection for `FROM`
+-   imported/inherited references are tracked and bounded
 
-**Impact:** 80% reduction in cron-triggered DB queries.
+This area is expensive when caches are cold, but it was not the crash trigger here.
 
-### 5. Chat Job Heartbeat & Message Persist — High-Frequency Writes (P2, MEDIUM)
+## Fixes implemented
 
-**Problem:**
+### 1. Stopped idle durable chats from continuously polling
 
--   **Heartbeat** ran every **5 seconds** during job execution → 12 UPDATE queries/minute per active job
--   **Assistant message persist** throttled at **500ms** intervals → up to 120 writes/minute during streaming
+Changed `apps/agents-server/src/app/agents/[agentName]/chat/AgentChatHistoryClient.tsx`:
 
-**Fix:**
+-   open the canonical stream only while the active chat has active durable jobs
+-   stop doing the old unconditional periodic healthy-stream refresh
+-   when only timeouts are pending, refresh near the next due timeout instead of continuously
+-   keep the faster retry loop only for disconnected active-job streams
 
--   Heartbeat interval increased from **5s → 15s** (4 writes/min instead of 12)
--   Message persist interval increased from **500ms → 2,000ms** (30 writes/min instead of 120)
+Changed `apps/agents-server/src/app/agents/[agentName]/api/user-chats/[chatId]/stream/route.ts`:
 
-The lease duration remains at 2 minutes, providing ample margin for 15s heartbeats.
+-   stop the server-side polling loop as soon as the chat no longer has active jobs
 
-**Impact:** ~75% reduction in per-job DB write load.
+Result: idle open chats stop generating continuous stream traffic and repeated detail reloads.
 
-### 6. Agent Preparation Wait Polling (P3, LOW)
+### 2. Made durable chat-job claiming atomic
 
-**Problem:** `waitForRunningAgentPreparation()` used a **250ms** polling interval, generating up to 10 DB queries per second while waiting for preparation to complete (max 2.5s timeout).
+Changed `apps/agents-server/src/utils/userChat/claimNextQueuedUserChatJob.ts`:
 
-**Fix:** Increased polling interval from **250ms → 500ms** — still responsive but halves the DB load during waits.
+-   replaced select-then-update claiming with one raw SQL statement
+-   use `FOR UPDATE SKIP LOCKED`
+-   claim and transition one row to `RUNNING` in a single round-trip
 
----
+Result: less queue contention, fewer DB requests, and better worker behavior under concurrency.
 
-## Issues Found But NOT Fixed (Future Work)
+### 3. Reduced agent preparation waiting on the hot chat path
 
-### 1. `handleChatCompletion` Double API Key Validation
+Changed `apps/agents-server/src/utils/agentPreparation.ts`:
 
-The middleware validates the API key, and then `handleChatCompletion()` validates it again (`validateApiKey(request)`). This is an unnecessary redundant DB query. Fixing requires passing validation state through headers, which is a larger refactor.
+-   reduced chat wait timeout from `2500ms` to `500ms`
+-   reduced poll interval from `500ms` to `200ms`
+-   when preparation is only `SCHEDULED` and already due, kick the worker and return immediately instead of polling for it to start
 
-### 2. `getMetadataMap` No Cross-Request Cache
+Result: chat startup waits less and performs fewer preparation-table reads.
 
-`loadAllMetadataValues()` uses React's `cache()` which only deduplicates within a single server request. Every new API call re-queries the full Metadata table. Adding an in-memory TTL cache (similar to what was done for middleware) would help.
+### 4. Increased reuse of expensive server-agent runtime work
 
-### 3. Admin UNION ALL Query Could Use Materialized Views
+Changed `apps/agents-server/src/tools/$provideAgentCollectionForServer.ts`:
 
-The task manager's UNION ALL over UserChatJob + UserChatTimeout with LEFT JOINs and COUNT(\*) OVER() is expensive. A materialized view or separate pre-aggregated counters table could improve performance for heavy admin usage.
+-   cache `AgentCollectionInSupabase` per `tablePrefix` instead of rebuilding it repeatedly
 
-### 4. `resolveCustomDomainAgent` Per-Request Query
+Changed `apps/agents-server/src/utils/cachedServerAgentRuntime.ts`:
 
-Custom domain resolution queries the Agent table on each request for unrecognized hosts. This could be cached with a short TTL.
+-   increased resolved context cache TTL from `30s` to `5m`
+-   increased model-requirements cache TTL from `30s` to `5m`
 
-### 5. `runUserChatJob` Sequential Database Operations
+Changed `apps/agents-server/src/utils/agentReferenceResolver/$provideAgentReferenceResolver.ts`:
 
-The job runner performs ~15-20 database operations sequentially. Some could be parallelized (e.g., loading user data, checking tokens, loading agent context simultaneously).
+-   increased resolver cache TTL from `30s` to `5m`
 
-### 6. `countActiveUserChatTimeoutsForChat` and `countCompletedUserChatTimeoutsForChatSince`
+Result: repeated chats and agent requests stop redoing the same warmup work so often.
 
-These count queries run for every timeout fire event. They could be cached or combined into a single query.
+### 5. Added indexes for active chat-job and timeout worker paths
 
-### 7. SSE Stream Could Use PostgreSQL LISTEN/NOTIFY
+Added migration `apps/agents-server/src/database/migrations/2026-03-0300-user-chat-performance-indexes.sql`:
 
-Instead of polling for chat updates, the stream route could subscribe to PostgreSQL change notifications, eliminating polling entirely. This is a significant architectural change.
+-   active `UserChatJob` chat-scope index
+-   running `UserChatJob` lease-expiry index
+-   active `UserChatTimeout` chat-scope/due-time index
+-   running `UserChatTimeout` lease-expiry index
 
-### 8. Connection Pooling
+Result: lower cost for the most common active/running scans.
 
-Consider using PgBouncer or Supabase's connection pooler more aggressively to reduce connection overhead.
+## Things found but not fixed yet
 
----
+### 1. `createUserChatDetailPayload()` still fans out into multiple reads
 
-## Estimated Total Impact
+The canonical detail payload still loads chat, active jobs, and active timeouts through separate paths. It works, but it remains one of the most expensive read paths and could be consolidated later into one SQL/RPC shape.
 
-| Source                        | Before (queries/min idle) | After (queries/min idle) | Reduction |
-| ----------------------------- | ------------------------- | ------------------------ | --------- |
-| Middleware (10 req/min)       | 20-40                     | 0-2                      | ~95%      |
-| Admin poll (1 tab open)       | 80+                       | 24                       | ~70%      |
-| Cron job                      | 2+                        | 0.4                      | ~80%      |
-| Active chat stream (1 user)   | 240                       | 80                       | ~67%      |
-| Job heartbeat+persist (1 job) | 132                       | 34                       | ~74%      |
-| **Total (typical idle)**      | **~340+**                 | **~60**                  | **~82%**  |
+### 2. Timeout execution still performs several sequential DB operations per fired timeout
 
-These changes should bring the Supabase Nano database well within its limits for normal operation.
+The current `USE TIMEOUT` flow is correct and bounded, but each fired timeout still does multiple reads/writes before and after it enqueues the wake-up job. That can be optimized further later.
+
+### 3. Runtime caches are process-local only
+
+The new `5m` caches improve hot-path latency significantly, but they do not provide cross-instance invalidation. A shared cache or explicit invalidation channel would let this be more aggressive safely.
+
+### 4. Admin task-manager queries are still relatively expensive when used heavily
+
+The current crash path was not primarily the admin UI, but its query shape is still non-trivial. If this page is used heavily, it deserves its own optimization pass.
+
+### 5. SSE polling could eventually be replaced entirely
+
+The current changes greatly reduce polling, but the best long-term solution is event-driven updates such as PostgreSQL `LISTEN/NOTIFY`, Supabase Realtime, or a server-side broadcast channel.
+
+### 6. Multi-tab chat usage can still multiply some read traffic
+
+The main idle polling issue is fixed, but several open tabs still duplicate some refresh work. A browser-side shared channel could coordinate canonical state across tabs later.
+
+## Expected impact
+
+The biggest expected gains are:
+
+-   substantially fewer background reads from idle durable chat tabs
+-   fewer DB round-trips in the queue-claim hot path
+-   faster chat preparation on repeated or recently used agents
+-   lower CPU and query cost on active/running chat-timeout scans
+
+The server should now stay healthier under low and medium traffic, and chat response startup should be noticeably faster.

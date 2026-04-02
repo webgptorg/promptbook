@@ -11,11 +11,6 @@ import { resolveUserChatScope } from '../../resolveUserChatScope';
 const ACTIVE_USER_CHAT_STREAM_POLL_INTERVAL_MS = 1_500;
 
 /**
- * Lower refresh cadence used when the active chat is idle.
- */
-const IDLE_USER_CHAT_STREAM_POLL_INTERVAL_MS = 10_000;
-
-/**
  * Allows one chat-stream response to stay open for the platform maximum.
  */
 export const maxDuration = 300;
@@ -163,11 +158,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
             try {
                 let hasActiveJobs = await emitLatestSnapshot();
 
-                while (!isStreamClosed && !request.signal.aborted) {
+                while (!isStreamClosed && !request.signal.aborted && hasActiveJobs) {
                     await waitForNextUserChatStreamPoll(
-                        hasActiveJobs
-                            ? ACTIVE_USER_CHAT_STREAM_POLL_INTERVAL_MS
-                            : IDLE_USER_CHAT_STREAM_POLL_INTERVAL_MS,
+                        ACTIVE_USER_CHAT_STREAM_POLL_INTERVAL_MS,
                         request.signal,
                     );
 
