@@ -14,10 +14,10 @@
             - button "Switch server" [ref=e13] [cursor=pointer]:
               - img [ref=e14]
           - img [ref=e16]
-          - button "EzMPuyq3xYqHrJ" [ref=e20] [cursor=pointer]:
+          - button "kEuRP2vPEH9N5k" [ref=e20] [cursor=pointer]:
             - generic [ref=e21]:
               - img [ref=e23]
-              - generic [ref=e25]: EzMPuyq3xYqHrJ
+              - generic [ref=e25]: kEuRP2vPEH9N5k
             - img [ref=e26]
           - img [ref=e28]
           - button "Chat" [ref=e32] [cursor=pointer]:
