@@ -1,3 +1,9 @@
+-   Fixed Agents Server durable-chat draft composer so unsent textarea content is no longer overwritten by background draft reapply while the user is interacting:
+
+    -   Added a dedicated user-owned draft lock in `AgentChatHistoryClient` that is activated by composer `keydown` / `input` / `select` interactions.
+    -   Updated canonical snapshot/detail application to preserve the current textarea draft whenever the active draft is marked user-owned, even when autosave clears the dirty-save flag.
+    -   Reset the user-owned lock only on explicit draft ownership transitions (for example chat switch/clear or successful send), preventing back-and-forth draft flicker during editing.
+
 -   Updated Agents Server durable chat UX to run key chat actions optimistically so interactions feel instant:
 
     -   New chat creation now opens an optimistic placeholder chat immediately (instant selection + URL update) while the server chat is created in the background.

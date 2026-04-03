@@ -83,3 +83,10 @@
 - `npm run test-app-agents-server` also fails in `test-e2e` in this run after successful lint/build:
   - Playwright timeout: `tests/e2e/api-authorization.spec.ts` exceeded 60s waiting on `page.goto('/')`.
   - The failing assertion is in `returns unauthorized metadata API response for anonymous users`, while many other e2e tests in the same run passed.
+
+## 2026-04-03
+
+- `npm run test-app-agents-server` fails in this run with an unrelated existing Agents Server build/bootstrap issue:
+  - `apps/agents-server` lint passes, but `test-build` fails during `next build` page-data collection with `SyntaxError: Unexpected non-whitespace character after JSON at position 83 (line 7 column 1)`.
+  - Direct `test-e2e` execution also fails to start the web server (`Process from config.webServer was not able to start. Exit code: 1`) and logs `uncaughtException [Error: kill EPERM]`.
+  - This failure appeared while implementing draft-textarea stability and does not map to the touched `AgentChatHistoryClient` draft synchronization changes.

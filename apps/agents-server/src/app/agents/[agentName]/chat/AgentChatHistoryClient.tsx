@@ -210,6 +210,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const activeChatIdRef = useRef<string | null>(null);
     const activeChatDraftMessageRef = useRef('');
     const activeDraftDirtyRef = useRef(false);
+    const isActiveDraftUserOwnedRef = useRef(false);
     const draftSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isRefreshingRef = useRef(false);
     const failedSendByChatIdRef = useRef<Map<string, Map<string, string>>>(new Map());
@@ -329,6 +330,38 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     useEffect(() => {
         activeChatDraftMessageRef.current = activeChatDraftMessage;
     }, [activeChatDraftMessage]);
+
+    useEffect(() => {
+        if (typeof document === 'undefined') {
+            return;
+        }
+
+        /**
+         * Marks the active draft as user-owned when the main chat composer receives direct interaction.
+         */
+        const markDraftAsUserOwned = (event: Event): void => {
+            const target = event.target;
+            if (!(target instanceof HTMLTextAreaElement)) {
+                return;
+            }
+
+            if (!target.classList.contains('chat-input-textarea')) {
+                return;
+            }
+
+            isActiveDraftUserOwnedRef.current = true;
+        };
+
+        document.addEventListener('keydown', markDraftAsUserOwned, true);
+        document.addEventListener('input', markDraftAsUserOwned, true);
+        document.addEventListener('select', markDraftAsUserOwned, true);
+
+        return () => {
+            document.removeEventListener('keydown', markDraftAsUserOwned, true);
+            document.removeEventListener('input', markDraftAsUserOwned, true);
+            document.removeEventListener('select', markDraftAsUserOwned, true);
+        };
+    }, []);
 
     useEffect(() => {
         if (!activeChatId) {
@@ -561,6 +594,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 setActiveTimeouts([]);
                 setActiveChatDraftMessage('');
                 activeDraftDirtyRef.current = false;
+                isActiveDraftUserOwnedRef.current = false;
             }
 
             if (chatId) {
@@ -636,14 +670,15 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             setActiveJobs([...chatDetail.activeJobs]);
             setActiveTimeouts([...chatDetail.activeTimeouts]);
 
-            const shouldPreserveDirtyDraft =
+            const shouldPreserveUserOwnedDraft =
                 options.preserveDirtyDraft === true &&
-                activeDraftDirtyRef.current &&
+                isActiveDraftUserOwnedRef.current &&
                 currentSelectedChatId === chatDetail.chat.id;
 
-            if (!shouldPreserveDirtyDraft) {
+            if (!shouldPreserveUserOwnedDraft) {
                 const nextDraftMessage = chatDetail.draftMessage || '';
                 activeDraftDirtyRef.current = false;
+                isActiveDraftUserOwnedRef.current = false;
                 setActiveChatDraftMessage(nextDraftMessage);
             }
 
@@ -731,14 +766,15 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             setActiveJobs([...snapshot.activeJobs]);
             setActiveTimeouts([...snapshot.activeTimeouts]);
 
-            const shouldPreserveDirtyDraft =
+            const shouldPreserveUserOwnedDraft =
                 options.preserveDirtyDraft === true &&
-                activeDraftDirtyRef.current &&
+                isActiveDraftUserOwnedRef.current &&
                 currentSelectedChatId === snapshot.activeChatId;
 
-            if (!shouldPreserveDirtyDraft) {
+            if (!shouldPreserveUserOwnedDraft) {
                 const nextDraftMessage = snapshot.activeDraftMessage || '';
                 activeDraftDirtyRef.current = false;
+                isActiveDraftUserOwnedRef.current = false;
                 setActiveChatDraftMessage(nextDraftMessage);
             }
 
@@ -1312,6 +1348,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
             setActiveChatDraftMessage(draftMessage);
             activeDraftDirtyRef.current = true;
+            isActiveDraftUserOwnedRef.current = true;
 
             if (draftSaveTimerRef.current) {
                 clearTimeout(draftSaveTimerRef.current);
@@ -1402,6 +1439,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 clearFailedSendRecord(currentActiveChatId, signature);
                 clearFailedSendRecord(resolvedChatId, signature);
                 activeDraftDirtyRef.current = false;
+                isActiveDraftUserOwnedRef.current = false;
                 setActiveChatDraftMessage('');
                 setPendingNotificationHintAssistantMessageIds((assistantMessageIds) =>
                     assistantMessageIds.includes(result.job.assistantMessageId)
