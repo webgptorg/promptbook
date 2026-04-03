@@ -43,21 +43,15 @@ export function AgentChatPageLayout({
     children,
 }: AgentChatPageLayoutProps) {
     const isChatGptLike = variant === 'chatgptLike';
-    const defaultShellClassName = 'agent-chat-default-shell';
-    const defaultMainClassName = 'agent-chat-default-main';
 
     if (isHeadlessMode) {
         return (
             <div
                 className={`flex h-full min-h-0 w-full overflow-hidden ${
-                    isChatGptLike ? 'agent-chat-chatgpt-like-shell' : `${defaultShellClassName} ${defaultShellClassName}--headless`
+                    isChatGptLike ? 'agent-chat-chatgpt-like-shell' : 'bg-slate-50/80'
                 }`}
             >
-                <section
-                    className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden ${
-                        isChatGptLike ? '' : `${defaultMainClassName} ${defaultMainClassName}--headless`
-                    }`}
-                >
+                <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
                     {mainTopBar}
                     {children}
                 </section>
@@ -67,9 +61,9 @@ export function AgentChatPageLayout({
 
     if (!isChatGptLike) {
         return (
-            <div className={`${defaultShellClassName} flex h-full min-h-0 w-full overflow-hidden`}>
+            <div className="flex h-full min-h-0 w-full overflow-hidden bg-slate-50/80">
                 {sidebar}
-                <section className={`${defaultMainClassName} flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden`}>
+                <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
                     {mobileSidebarTrigger && (
                         <div className="flex shrink-0 items-center justify-start pb-2 pl-[max(env(safe-area-inset-left),0.75rem)] pr-[max(env(safe-area-inset-right),0.75rem)] pt-2 md:hidden">
                             {mobileSidebarTrigger}

@@ -27,9 +27,7 @@
 
     -   Introduced a new default chat-shell visual system with layered gradients, subtle ambient motion, and responsive spacing tuned for the chat workspace.
     -   Refined default chat sidebar surfaces and controls (header, new-chat CTA, chat rows, filters, hover/active states) while preserving all existing actions and state logic.
-    -   Centered the desktop transcript/composer lane inside a new floating main panel so wide screens no longer feel visually empty while mobile stays compact.
     -   Upgraded default chat panel styling (message bubbles, composer, send/actions, read-only banner, loading/guest wrappers) to deliver a more cohesive premium chat appearance.
-    -   Added stable Agents Server shell selectors (`agent-chat-default-shell`, `agent-chat-default-sidebar`, `agent-chat-panel--default`, etc.) to keep custom server CSS overrides practical.
 
 -   Fixed Agents Server local development startup hangs caused by middleware custom-domain scans on local/private hosts:
 

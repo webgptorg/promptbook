@@ -357,7 +357,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         <AgentChat
             key={chatKey}
             className={`agent-chat-panel__chat h-full min-h-0 w-full ${
-                isChatGptLikeVariant ? 'agent-chat-panel__chat--chatgpt-like' : 'agent-chat-panel__chat--default'
+                isChatGptLikeVariant ? 'agent-chat-panel__chat--chatgpt-like' : ''
             }`}
             style={chatBackgroundStyle}
             agent={agent}

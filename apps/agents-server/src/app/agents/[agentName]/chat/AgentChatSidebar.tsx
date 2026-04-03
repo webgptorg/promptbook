@@ -532,9 +532,9 @@ export function AgentChatSidebar({
         <>
             <aside
                 id={AGENT_CHAT_SIDEBAR_ID}
-                className={`agent-chat-default-sidebar fixed inset-y-0 left-0 z-[60] flex flex-col border-r border-slate-200 bg-white/95 shadow-xl backdrop-blur ${panelTransitionClasses} md:static md:shadow-none md:bg-white/90 ${widthClasses} ${transformClasses} md:translate-x-0`}
+                className={`fixed inset-y-0 left-0 z-[60] flex flex-col border-r border-slate-200 bg-white/95 shadow-xl backdrop-blur ${panelTransitionClasses} md:static md:shadow-none md:bg-white/90 ${widthClasses} ${transformClasses} md:translate-x-0`}
             >
-                <div className="agent-chat-default-sidebar__header flex items-center justify-between border-b border-slate-200 px-3 py-2">
+                <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2">
                     <div className="flex items-center gap-1">
                         <button
                             type="button"
@@ -547,7 +547,7 @@ export function AgentChatSidebar({
                     </div>
                 </div>
 
-                <div className="agent-chat-default-sidebar__toggle hidden md:flex absolute inset-y-0 right-0 z-10 translate-x-1/2 items-center justify-center pointer-events-none">
+                <div className="hidden md:flex absolute inset-y-0 right-0 z-10 translate-x-1/2 items-center justify-center pointer-events-none">
                     <SolidArrowButton
                         direction={isCollapsed ? 'right' : 'left'}
                         onClick={onToggleCollapse}
@@ -559,12 +559,12 @@ export function AgentChatSidebar({
                 </div>
 
                 {shouldRenderCollapsed ? (
-                    <div className="agent-chat-default-sidebar__collapsed flex min-h-0 flex-1 flex-col items-center gap-3 px-2 py-4">
+                    <div className="flex min-h-0 flex-1 flex-col items-center gap-3 px-2 py-4">
                         <button
                             type="button"
                             onClick={handleCreateAndClose}
                             disabled={isCreatingChat || isLoadingChats}
-                            className="agent-chat-default-sidebar__new-chat inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-slate-900 disabled:opacity-60"
+                            className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-slate-900 disabled:opacity-60"
                             title={formatText('New chat')}
                         >
                             <MessageSquarePlusIcon className="h-5 w-5" />
@@ -583,7 +583,7 @@ export function AgentChatSidebar({
                                                 key={chat.id}
                                                 type="button"
                                                 onClick={() => handleChatChoose(chat.id)}
-                                                className={`agent-chat-default-sidebar__compact-chat group relative flex w-full min-w-0 flex-col items-center gap-1 rounded-2xl border px-1.5 py-2 transition focus-visible:outline focus-visible:outline-blue-400 focus-visible:outline-offset-2 ${
+                                                className={`group relative flex w-full min-w-0 flex-col items-center gap-1 rounded-2xl border px-1.5 py-2 transition focus-visible:outline focus-visible:outline-blue-400 focus-visible:outline-offset-2 ${
                                                     isActive
                                                         ? 'border-blue-300 bg-blue-50 text-blue-700 shadow-sm'
                                                         : 'border-transparent bg-slate-100/80 text-slate-700 hover:border-slate-300 hover:bg-slate-100'
@@ -680,18 +680,16 @@ export function AgentChatSidebar({
                             </div>
                         )}
 
-                        <p className="agent-chat-default-sidebar__caption text-[11px] text-slate-400">
-                            {formatText('Chats')}
-                        </p>
+                        <p className="text-[11px] text-slate-400">{formatText('Chats')}</p>
                     </div>
                 ) : (
                     <>
-                        <div className="agent-chat-default-sidebar__new-chat-section p-3 border-b border-slate-200">
+                        <div className="p-3 border-b border-slate-200">
                             <button
                                 type="button"
                                 onClick={handleCreateAndClose}
                                 disabled={isCreatingChat || isLoadingChats}
-                                className="agent-chat-default-sidebar__new-chat w-full inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:opacity-60"
+                                className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:opacity-60"
                             >
                                 <MessageSquarePlusIcon className="h-4 w-4" />
                                 {isCreatingChat ? formatText('Creating...') : formatText('New chat')}
@@ -701,7 +699,7 @@ export function AgentChatSidebar({
                         {isLoadingChats ? (
                             <ChatListLoadingSkeleton rowCount={7} />
                         ) : (
-                            <div className="agent-chat-default-sidebar__list flex-1 overflow-y-auto scrollbar-hidden p-2 space-y-2">
+                            <div className="flex-1 overflow-y-auto scrollbar-hidden p-2 space-y-2">
                                 {sidebarItems.length === 0 ? (
                                     <p className="px-2 text-xs text-slate-500">{emptyStateText}</p>
                                 ) : (
@@ -709,7 +707,7 @@ export function AgentChatSidebar({
                                         return (
                                             <div
                                                 key={chat.id}
-                                                className={`agent-chat-default-sidebar__chat-row group relative rounded-xl border ${
+                                                className={`group relative rounded-xl border ${
                                                     isActive
                                                         ? 'border-blue-300 bg-blue-50 shadow-sm'
                                                         : 'border-transparent hover:border-slate-200 hover:bg-slate-100/80'
@@ -720,7 +718,7 @@ export function AgentChatSidebar({
                                                     </span>
                                                     <button
                                                         type="button"
-                                                        className="agent-chat-default-sidebar__chat-row-button w-full text-left px-3 py-3 pl-10 pr-10"
+                                                        className="w-full text-left px-3 py-3 pl-10 pr-10"
                                                         onClick={() => handleChatChoose(chat.id)}
                                                         aria-label={content.accessibilityLabel}
                                                         title={content.accessibilityLabel}
@@ -730,7 +728,7 @@ export function AgentChatSidebar({
                                                                 {content.title}
                                                             </div>
                                                             {content.sourceChipLabel && (
-                                                                <span className="agent-chat-default-sidebar__chip inline-flex flex-shrink-0 items-center rounded-full bg-slate-900 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white">
+                                                                <span className="inline-flex flex-shrink-0 items-center rounded-full bg-slate-900 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white">
                                                                     {content.sourceChipLabel}
                                                                 </span>
                                                             )}
@@ -752,13 +750,13 @@ export function AgentChatSidebar({
                                                             </div>
                                                         </div>
                                                     </button>
-                                                    {!chat.isReadOnly && (
-                                                        <button
-                                                            type="button"
-                                                            className="agent-chat-default-sidebar__delete absolute right-2 top-2 p-1.5 rounded-md text-slate-400 hover:text-red-600 hover:bg-white/90 opacity-0 group-hover:opacity-100 focus-visible:outline-offset-2 focus-visible:outline focus-visible:outline-blue-400"
-                                                            onClick={(event) => {
-                                                                event.preventDefault();
-                                                                event.stopPropagation();
+                                                {!chat.isReadOnly && (
+                                                    <button
+                                                        type="button"
+                                                        className="absolute right-2 top-2 p-1.5 rounded-md text-slate-400 hover:text-red-600 hover:bg-white/90 opacity-0 group-hover:opacity-100 focus-visible:outline-offset-2 focus-visible:outline focus-visible:outline-blue-400"
+                                                        onClick={(event) => {
+                                                            event.preventDefault();
+                                                            event.stopPropagation();
                                                             onDeleteChat(chat.id);
                                                             if (isMobileSidebarOpen) {
                                                                 onCloseMobileSidebar();
@@ -777,7 +775,7 @@ export function AgentChatSidebar({
                         )}
 
                         {shouldRenderFilters && !isLoadingChats && (
-                            <div className="agent-chat-default-sidebar__filters px-2 pb-2">
+                            <div className="px-2 pb-2">
                                 <div className="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-2">
                                     <div className="px-1 pb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
                                         {formatText('Filters')}
@@ -787,7 +785,7 @@ export function AgentChatSidebar({
                                             <button
                                                 type="button"
                                                 onClick={() => setShowEmptyChats((prev) => !prev)}
-                                                className="agent-chat-default-sidebar__filter-button w-full inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs text-slate-400 transition hover:text-slate-600 hover:bg-slate-100"
+                                                className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs text-slate-400 transition hover:text-slate-600 hover:bg-slate-100"
                                             >
                                                 {showEmptyChats ? (
                                                     <>
@@ -806,7 +804,7 @@ export function AgentChatSidebar({
                                             <button
                                                 type="button"
                                                 onClick={() => onShowExternalChatsChange(!showExternalChats)}
-                                                className={`agent-chat-default-sidebar__filter-button w-full inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs transition ${
+                                                className={`w-full inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs transition ${
                                                     showExternalChats
                                                         ? 'bg-slate-900 text-white'
                                                         : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
