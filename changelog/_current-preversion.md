@@ -1,3 +1,9 @@
+-   Enhanced the Agents Server default chat route (`/agents/[agentName]/chat`) design to improve visual hierarchy and polish without changing chat behavior:
+
+    -   Introduced a new default chat-shell visual system with layered gradients, subtle ambient motion, and responsive spacing tuned for the chat workspace.
+    -   Refined default chat sidebar surfaces and controls (header, new-chat CTA, chat rows, filters, hover/active states) while preserving all existing actions and state logic.
+    -   Upgraded default chat panel styling (message bubbles, composer, send/actions, read-only banner, loading/guest wrappers) to deliver a more cohesive premium chat appearance.
+
 -   Fixed Agents Server local development startup hangs caused by middleware custom-domain scans on local/private hosts:
 
     -   Normalized bracketed IPv6 host headers (for example `[::1]:4440`) to a canonical form so loopback detection works reliably.

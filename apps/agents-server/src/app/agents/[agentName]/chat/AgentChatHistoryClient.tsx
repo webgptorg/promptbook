@@ -1316,26 +1316,36 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     useHoistedMobileMenuItems(hoistedMobileMenuItems);
 
     if (!shouldUseHistory) {
+        const guestChatPanel = (
+            <AgentChatWrapper
+                key={`guest-${agentName}`}
+                agentName={agentName}
+                agentUrl={agentUrl}
+                autoExecuteMessage={effectiveInitialAutoExecuteMessage}
+                autoExecuteMessageAttachments={effectiveInitialAutoExecuteMessageAttachments}
+                brandColor={brandColor}
+                inputPlaceholder={inputPlaceholder}
+                thinkingMessages={thinkingMessages}
+                speechRecognitionLanguage={speechRecognitionLanguage}
+                persistenceKey={`guest-chat-${encodeURIComponent(agentName)}`}
+                areFileAttachmentsEnabled={areFileAttachmentsEnabled}
+                feedbackMode={feedbackMode}
+                onAutoExecuteMessageConsumed={handleAutoExecuteMessageConsumed}
+                layoutVariant={layoutVariant}
+            />
+        );
+
         const guestChatContent = (
             <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
                 <PrivateModeHistoryBanner formatText={formatText} />
                 <div className="flex min-h-0 flex-1 overflow-hidden">
-                    <AgentChatWrapper
-                        key={`guest-${agentName}`}
-                        agentName={agentName}
-                        agentUrl={agentUrl}
-                        autoExecuteMessage={effectiveInitialAutoExecuteMessage}
-                        autoExecuteMessageAttachments={effectiveInitialAutoExecuteMessageAttachments}
-                        brandColor={brandColor}
-                        inputPlaceholder={inputPlaceholder}
-                        thinkingMessages={thinkingMessages}
-                        speechRecognitionLanguage={speechRecognitionLanguage}
-                        persistenceKey={`guest-chat-${encodeURIComponent(agentName)}`}
-                        areFileAttachmentsEnabled={areFileAttachmentsEnabled}
-                        feedbackMode={feedbackMode}
-                        onAutoExecuteMessageConsumed={handleAutoExecuteMessageConsumed}
-                        layoutVariant={layoutVariant}
-                    />
+                    {isChatGptLikeLayout ? (
+                        guestChatPanel
+                    ) : (
+                        <div className="agent-chat-panel agent-chat-panel--default flex h-full min-h-0 w-full flex-col overflow-hidden">
+                            {guestChatPanel}
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -1366,9 +1376,19 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     }
 
     const chatSurface = (
-        <div className="relative flex min-h-0 flex-1 overflow-hidden">
+        <div
+            className={`relative flex min-h-0 flex-1 overflow-hidden ${
+                isChatGptLikeLayout ? '' : 'agent-chat-default-surface'
+            }`}
+        >
             {isActiveChatLoading ? (
-                <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm">
+                <div
+                    className={`flex h-full min-h-0 w-full flex-col overflow-hidden ${
+                        isChatGptLikeLayout
+                            ? 'rounded-[28px] border border-slate-200/80 bg-white/88 shadow-[0_24px_80px_rgba(15,23,42,0.12)] dark:border-slate-800/80 dark:bg-slate-950/88'
+                            : 'agent-chat-panel agent-chat-panel--default'
+                    }`}
+                >
                     <ChatThreadLoadingSkeleton />
                 </div>
             ) : (
