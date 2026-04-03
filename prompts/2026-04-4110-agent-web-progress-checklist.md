@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.8359 an hour by OpenAI Codex `gpt-5.3-codex`
 
 [🧩🧠] Ensure Agent progress messages use native markdown checklist (no extra boxes)
 
@@ -13,3 +13,4 @@
     -   Existing message formatting is unaffected
     -   Check that we can render nested checklists if the agent sends them
 -   Keep the tool chips intect
+

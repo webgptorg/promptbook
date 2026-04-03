@@ -228,82 +228,117 @@ function StreamingFeaturePlaceholder({ kind }: StreamingFeaturePlaceholderProps)
 }
 
 /**
- * Props for `<ProgressPanel/>`.
+ * One markdown checklist entry generated from structured progress payload.
  *
  * @private internal helper of <ChatMessageItem/>
  */
-type ProgressPanelProps = {
-    /**
-     * Structured progress card payload attached to the current message.
-     */
-    readonly progressCard: NonNullable<ChatMessage['progressCard']>;
+type ProgressChecklistEntry = {
+    readonly text: string;
+    readonly status: 'pending' | 'completed';
 };
 
 /**
- * Renders a deep-research-like progress card with now/next sections and bullet statuses.
+ * Human-facing label shown for "now" progress updates.
  *
  * @private internal helper of <ChatMessageItem/>
  */
-function ProgressPanel({ progressCard }: ProgressPanelProps) {
-    const shouldShowTitle = Boolean(progressCard.title?.trim());
-    const shouldShowNow = Boolean(progressCard.now?.trim());
-    const shouldShowNext = Boolean(progressCard.next?.trim());
-    const items = progressCard.items || [];
+const PROGRESS_NOW_LABEL = "What I'm Doing Now";
 
-    return (
-        <section className={styles.progressPanel} aria-live="polite">
-            {shouldShowTitle && (
-                <div className={styles.progressPanelTitle}>
-                    <MarkdownContent content={progressCard.title!} />
-                </div>
-            )}
+/**
+ * Human-facing label shown for "next" progress updates.
+ *
+ * @private internal helper of <ChatMessageItem/>
+ */
+const PROGRESS_NEXT_LABEL = "What I'll Do Next";
 
-            {shouldShowNow && (
-                <div className={styles.progressPanelSection}>
-                    <div className={styles.progressPanelSectionLabel}>What I&apos;m Doing Now</div>
-                    <div className={styles.progressPanelSectionBody}>
-                        <MarkdownContent content={progressCard.now!} />
-                    </div>
-                </div>
-            )}
+/**
+ * Converts one structured progress card payload into markdown checklist content.
+ *
+ * @param progressCard Structured progress card payload.
+ * @returns Markdown checklist rendered through the normal message markdown pipeline.
+ *
+ * @private internal helper of <ChatMessageItem/>
+ */
+function createProgressCardChecklistMarkdown(progressCard: NonNullable<ChatMessage['progressCard']>): string {
+    const checklistEntries = createProgressChecklistEntries(progressCard);
+    if (checklistEntries.length === 0) {
+        return '';
+    }
 
-            {shouldShowNext && (
-                <div className={styles.progressPanelSection}>
-                    <div className={styles.progressPanelSectionLabel}>What I&apos;ll Do Next</div>
-                    <div className={styles.progressPanelSectionBody}>
-                        <MarkdownContent content={progressCard.next!} />
-                    </div>
-                </div>
-            )}
+    return checklistEntries.map((entry) => createChecklistMarkdownItem(entry)).join('\n');
+}
 
-            {items.length > 0 && (
-                <ul className={styles.progressPanelList}>
-                    {items.map((item, index) => {
-                        const itemKey = item.id || `progress-item-${index}`;
-                        const isPending = item.status === 'pending';
+/**
+ * Maps one structured progress-card payload to a flat list of checklist entries.
+ *
+ * @param progressCard Structured progress card payload.
+ * @returns Ordered checklist entries ready for markdown rendering.
+ *
+ * @private internal helper of <ChatMessageItem/>
+ */
+function createProgressChecklistEntries(
+    progressCard: NonNullable<ChatMessage['progressCard']>,
+): Array<ProgressChecklistEntry> {
+    const checklistEntries: Array<ProgressChecklistEntry> = [];
+    const normalizedTitle = progressCard.title?.trim();
+    const normalizedNow = progressCard.now?.trim();
+    const normalizedNext = progressCard.next?.trim();
 
-                        return (
-                            <li key={itemKey} className={styles.progressPanelListItem}>
-                                <span className={styles.progressPanelListBullet} aria-hidden="true">
-                                    •
-                                </span>
-                                {isPending ? (
-                                    <span className={styles.progressPanelItemSpinner} aria-hidden="true" />
-                                ) : (
-                                    <span className={styles.progressPanelItemCompleted} aria-hidden="true">
-                                        ✓
-                                    </span>
-                                )}
-                                <div className={styles.progressPanelItemText}>
-                                    <MarkdownContent content={item.text} />
-                                </div>
-                            </li>
-                        );
-                    })}
-                </ul>
-            )}
-        </section>
-    );
+    if (normalizedTitle) {
+        checklistEntries.push({
+            text: `**${normalizedTitle}**`,
+            status: 'pending',
+        });
+    }
+
+    if (normalizedNow) {
+        checklistEntries.push({
+            text: `**${PROGRESS_NOW_LABEL}:** ${normalizedNow}`,
+            status: 'pending',
+        });
+    }
+
+    for (const item of progressCard.items || []) {
+        const normalizedItemText = item.text?.trim();
+        if (!normalizedItemText) {
+            continue;
+        }
+
+        checklistEntries.push({
+            text: normalizedItemText,
+            status: item.status === 'completed' ? 'completed' : 'pending',
+        });
+    }
+
+    if (normalizedNext) {
+        checklistEntries.push({
+            text: `**${PROGRESS_NEXT_LABEL}:** ${normalizedNext}`,
+            status: 'pending',
+        });
+    }
+
+    return checklistEntries;
+}
+
+/**
+ * Converts one structured checklist entry to markdown task-list syntax.
+ *
+ * @param entry Structured checklist entry.
+ * @returns Markdown checklist item including multiline continuations.
+ *
+ * @private internal helper of <ChatMessageItem/>
+ */
+function createChecklistMarkdownItem(entry: ProgressChecklistEntry): string {
+    const marker = entry.status === 'completed' ? '- [x]' : '- [ ]';
+    const lines = entry.text.split(/\r?\n/);
+    const firstLine = lines[0] || '';
+    const continuationLines = lines.slice(1).map((line) => `  ${line}`);
+
+    if (continuationLines.length === 0) {
+        return `${marker} ${firstLine}`;
+    }
+
+    return `${marker} ${firstLine}\n${continuationLines.join('\n')}`;
 }
 
 /**
@@ -795,11 +830,24 @@ export const ChatMessageItem = memo(
         const shouldShowMessageMeta = Boolean(shouldShowTiming || lifecycleBadgeLabel);
         const shouldShowParticipantLabel = (participants || []).some((entry) => entry.name === 'TEAMMATE');
         const participantLabel = participant?.fullname || participant?.name;
+        const trimmedMessageContent = message.content.trim();
+        const visibleProgressCard = isProgressCardVisible(message.progressCard) ? message.progressCard : null;
+        const shouldRenderProgressChecklist = Boolean(
+            visibleProgressCard && !isComplete && trimmedMessageContent.length === 0,
+        );
+        const progressChecklistMarkdown = useMemo(
+            () =>
+                shouldRenderProgressChecklist && visibleProgressCard
+                    ? createProgressCardChecklistMarkdown(visibleProgressCard)
+                    : '',
+            [shouldRenderProgressChecklist, visibleProgressCard],
+        );
+        const renderedMessageContent = shouldRenderProgressChecklist ? progressChecklistMarkdown : message.content;
         const color = Color.fromSafe(
             (participant && participant.color) || (isMe ? USER_CHAT_COLOR : PROMPTBOOK_CHAT_COLOR),
         );
         const colorOfText = color.then(textColor);
-        const { contentWithoutButtons, buttons } = parseMessageButtons(message.content);
+        const { contentWithoutButtons, buttons } = parseMessageButtons(renderedMessageContent);
         const sanitizedContentWithoutButtons = useMemo(
             () => sanitizeStreamingMessageContent(contentWithoutButtons, { isComplete }),
             [contentWithoutButtons, isComplete],
@@ -889,11 +937,6 @@ export const ChatMessageItem = memo(
             [buttons, consumedActionButtonIndexes, onActionButton, onMessage],
         );
         const shouldShowButtons = isLastMessage && renderableButtons.length > 0;
-        const trimmedMessageContent = message.content.trim();
-        const visibleProgressCard = isProgressCardVisible(message.progressCard) ? message.progressCard : null;
-        const shouldRenderProgressPanel = Boolean(
-            visibleProgressCard && !isComplete && trimmedMessageContent.length === 0,
-        );
         const speechPlaybackEnabled = isSpeechPlaybackEnabled ?? true;
         const shouldShowPlayButton = speechPlaybackEnabled && trimmedMessageContent.length > 0;
         const playButtonTitle = audioError ?? (isAudioPlaying ? 'Pause message playback' : 'Read message aloud');
@@ -1290,10 +1333,6 @@ export const ChatMessageItem = memo(
                                     <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
                                 </svg>
                             </div>
-                        )}
-
-                        {shouldRenderProgressPanel && visibleProgressCard && (
-                            <ProgressPanel progressCard={visibleProgressCard} />
                         )}
 
                         {message.content === LOADING_INTERACTIVE_IMAGE ? (

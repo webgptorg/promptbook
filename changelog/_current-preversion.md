@@ -1,3 +1,10 @@
+-   Updated Agents Server chat progress rendering to use native markdown checklists in the normal message flow:
+
+    -   Replaced the dedicated in-bubble progress card container with checklist markdown rendered as plain assistant message content.
+    -   Mapped structured `progressCard` payload data (`title` / `now` / `items` / `next`) to native markdown task-list syntax (`- [ ]` / `- [x]`), including multiline and nested checklist content.
+    -   Reused the same markdown rendering pipeline as standard assistant messages, so checklist items render with the same behavior/visuals as other markdown.
+    -   Added chat message tests covering: no separate progress container, checklist rendering from structured progress payload, nested checklist rendering, unchanged non-progress formatting, and preserved tool-call chips.
+
 -   Enhanced the Agents Server default chat route (`/agents/[agentName]/chat`) design to improve visual hierarchy and polish without changing chat behavior:
 
     -   Introduced a new default chat-shell visual system with layered gradients, subtle ambient motion, and responsive spacing tuned for the chat workspace.
