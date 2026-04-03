@@ -30,11 +30,12 @@
 
 ---
 
-[ ]
+[x] ~$0.00 5 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [🚧🧭] Navigation should have better UX
 
 -   Sometimes it takes a while to navigate to the chat page, and it is not clear that something is happening, we should have better UX for this, for example a color gradient loading bar simmilar to mobile app or YouTube
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with [Agents Server](apps/agents-server)
+
 
