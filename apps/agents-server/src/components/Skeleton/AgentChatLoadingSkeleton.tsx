@@ -25,7 +25,7 @@ export function AgentChatLoadingSkeleton({
 }: AgentChatLoadingSkeletonProps) {
     return (
         <div
-            className="h-full w-full min-h-0 bg-slate-50/80"
+            className="agent-chat-default-shell agent-chat-loading-shell h-full w-full min-h-0"
             role="status"
             aria-live="polite"
             aria-busy="true"
@@ -34,18 +34,28 @@ export function AgentChatLoadingSkeleton({
             <div className="flex h-full min-h-0">
                 {showSidebar && (
                     <aside
-                        className={`hidden border-r border-slate-200/80 bg-white/90 backdrop-blur md:flex md:flex-col ${
+                        className={`agent-chat-default-sidebar agent-chat-loading-shell__sidebar hidden md:flex md:flex-col ${
                             isSidebarCollapsed ? 'md:w-20' : 'md:w-72'
                         }`}
                     >
-                        <div className="border-b border-slate-200/70 p-3">
+                        <div className="agent-chat-default-sidebar__header border-b border-slate-200/70 p-3">
                             <Skeleton className="h-10 w-full rounded-lg" />
                         </div>
                         <ChatListLoadingSkeleton isCollapsed={isSidebarCollapsed} />
                     </aside>
                 )}
-                <section className="flex min-w-0 flex-1 flex-col">
-                    <ChatThreadLoadingSkeleton />
+                <section
+                    className={`agent-chat-default-main flex min-w-0 flex-1 flex-col ${
+                        showSidebar ? '' : 'agent-chat-default-main--headless'
+                    }`}
+                >
+                    <div className="agent-chat-panel agent-chat-panel--default flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden">
+                        <div className="agent-chat-panel__inner agent-chat-panel__inner--default flex min-h-0 flex-1 overflow-hidden">
+                            <div className="agent-chat-panel__chat agent-chat-panel__chat--default agent-chat-panel__chat--loading flex h-full min-h-0 w-full flex-col overflow-hidden">
+                                <ChatThreadLoadingSkeleton className="agent-chat-loading-thread" />
+                            </div>
+                        </div>
+                    </div>
                 </section>
             </div>
         </div>

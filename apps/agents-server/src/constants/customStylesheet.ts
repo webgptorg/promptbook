@@ -23,14 +23,41 @@ export type CustomStylesheetClassEntry = {
 };
 
 /**
+ * Stable Agents Server chat-shell selectors that can be safely targeted from custom CSS.
+ */
+const agentChatShellClassEntries: ReadonlyArray<CustomStylesheetClassEntry> = [
+    {
+        className: 'agent-chat-default-shell',
+        description: 'Default full-page chat shell on `/agents/[agentName]/chat`.',
+    },
+    {
+        className: 'agent-chat-default-sidebar',
+        description: 'Default chat history sidebar wrapper.',
+    },
+    {
+        className: 'agent-chat-default-sidebar__chat-row',
+        description: 'One expanded chat-history row inside the default sidebar.',
+    },
+    {
+        className: 'agent-chat-panel--default',
+        description: 'Default floating chat panel wrapper used by the main chat route.',
+    },
+    {
+        className: 'agent-chat-panel__chat--default',
+        description: 'Default chat surface element that wraps the rendered transcript and composer.',
+    },
+];
+
+/**
  * Shared list of stable chat selectors administrators can target from custom CSS.
  */
-export const customStylesheetClassEntries: ReadonlyArray<CustomStylesheetClassEntry> = Object.entries(
-    chatCssClassNames,
-).map(([key, className]) => ({
-    className,
-    description: chatCssClassDescriptions[key as keyof typeof chatCssClassDescriptions],
-}));
+export const customStylesheetClassEntries: ReadonlyArray<CustomStylesheetClassEntry> = [
+    ...Object.entries(chatCssClassNames).map(([key, className]) => ({
+        className,
+        description: chatCssClassDescriptions[key as keyof typeof chatCssClassDescriptions],
+    })),
+    ...agentChatShellClassEntries,
+];
 
 /**
  * Builds the default CSS prefill used by `/admin/custom-css`.
