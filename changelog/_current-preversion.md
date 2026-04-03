@@ -1,3 +1,10 @@
+-   Improved Agents Server navigation performance by removing redundant organization work on normal page loads:
+
+    -   Anonymous organization loading now queries only `PUBLIC` agents before resolving sources, instead of resolving private/unlisted agents that are filtered out later.
+    -   Added a short-lived active-organization snapshot cache so repeated page navigations reuse the already resolved agent/folder tree instead of rebuilding it on every request.
+    -   Added short-lived negative caching plus in-flight deduplication for failed imported-agent fallbacks, preventing repeated retries against unavailable imported agents during the same browsing session.
+    -   Added regression tests for imported-agent fallback caching and verified the Agents Server build and focused route timings after the change.
+
 -   Fixed Agents Server profile-page chat handoff when client-side routing stalls, so profile actions now always reach the standalone chat route:
 
     -   Added a guarded hard-navigation fallback in `AgentProfileChat` that triggers only if `router.push(...)` does not change the URL within a short delay.

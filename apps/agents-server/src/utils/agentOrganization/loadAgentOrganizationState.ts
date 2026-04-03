@@ -3,7 +3,6 @@ import { $getTableName } from '../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../database/$provideSupabaseForServer';
 import type { AgentsServerDatabase } from '../../database/schema';
 import { $provideAgentReferenceResolver } from '../agentReferenceResolver/$provideAgentReferenceResolver';
-import { isPublicAgentVisibility } from '../agentVisibility';
 import { getCurrentUser } from '../getCurrentUser';
 import { getWellKnownAgentUrl } from '../getWellKnownAgentUrl';
 import { resolveCurrentOrInternalServerOrigin } from '../resolveCurrentOrInternalServerOrigin';
@@ -18,6 +17,38 @@ import type {
 
 type AgentRow = AgentsServerDatabase['public']['Tables']['Agent']['Row'];
 type AgentFolderRow = AgentsServerDatabase['public']['Tables']['AgentFolder']['Row'];
+
+/**
+ * Organization visibility scopes supported by the shared loader.
+ */
+type AgentOrganizationVisibilityScope = 'all' | 'public';
+
+/**
+ * Resolved organization snapshot reused across repeated active-page navigations.
+ */
+type ResolvedAgentOrganizationSnapshot = {
+    agents: AgentOrganizationAgent[];
+    folders: AgentOrganizationFolder[];
+};
+
+/**
+ * Short-lived cache lifetime for fully resolved active organization snapshots.
+ *
+ * This keeps repeated page navigations from reparsing the same agents while
+ * still letting edits appear quickly without explicit invalidation wiring.
+ */
+const ACTIVE_ORGANIZATION_STATE_CACHE_TTL_MS = 10_000;
+
+/**
+ * In-memory cache for active organization snapshots keyed by table names and visibility scope.
+ */
+const cachedActiveOrganizationSnapshotByKey = new Map<
+    string,
+    {
+        readonly loadedAt: number;
+        readonly snapshotPromise: Promise<ResolvedAgentOrganizationSnapshot>;
+    }
+>();
 
 /**
  * Converts a database agent row into the organization payload.
@@ -62,29 +93,60 @@ function mapFolderRowToOrganizationFolder(
 }
 
 /**
- * Loads agents and folders for the organization views.
+ * Builds a stable cache key for one resolved active organization snapshot.
  *
- * @param options - Loader options for active or recycle bin data.
- * @returns Organization data for the requested status.
+ * @param options - Table names and visibility scope for the requested snapshot.
+ * @returns Stable cache key.
  */
-export async function loadAgentOrganizationState(
-    options: AgentOrganizationLoadOptions,
-): Promise<AgentOrganizationLoadResult> {
-    const currentUser = await getCurrentUser();
-    const includePrivate = options.includePrivate === true;
+function createActiveOrganizationSnapshotCacheKey(options: {
+    agentTable: string;
+    folderTable: string;
+    visibilityScope: AgentOrganizationVisibilityScope;
+}): string {
+    return [options.agentTable, options.folderTable, options.visibilityScope].join('|');
+}
 
-    if (!currentUser && options.status === 'RECYCLE_BIN') {
-        return { agents: [], folders: [], currentUser: null };
+/**
+ * Reads one cached active organization snapshot when it is still fresh.
+ *
+ * @param cacheKey - Snapshot cache key.
+ * @returns Cached snapshot promise or `null` when missing/stale.
+ */
+function readCachedActiveOrganizationSnapshot(
+    cacheKey: string,
+): Promise<ResolvedAgentOrganizationSnapshot> | null {
+    const cachedSnapshot = cachedActiveOrganizationSnapshotByKey.get(cacheKey);
+    if (!cachedSnapshot) {
+        return null;
     }
 
-    const supabase = $provideSupabaseForServer();
-    const agentTable = await $getTableName('Agent');
-    const folderTable = await $getTableName('AgentFolder');
+    if (Date.now() - cachedSnapshot.loadedAt >= ACTIVE_ORGANIZATION_STATE_CACHE_TTL_MS) {
+        cachedActiveOrganizationSnapshotByKey.delete(cacheKey);
+        return null;
+    }
 
+    return cachedSnapshot.snapshotPromise;
+}
+
+/**
+ * Loads and resolves agents/folders for one organization visibility scope.
+ *
+ * @param options - Status, tables, and visibility scope to load.
+ * @returns Fully resolved organization snapshot.
+ */
+async function loadResolvedOrganizationSnapshot(options: {
+    status: AgentOrganizationLoadOptions['status'];
+    visibilityScope: AgentOrganizationVisibilityScope;
+    agentTable: string;
+    folderTable: string;
+}): Promise<ResolvedAgentOrganizationSnapshot> {
+    const supabase = $provideSupabaseForServer();
     const agentQuery = supabase
-        .from(agentTable)
+        .from(options.agentTable)
         .select('agentName, agentSource, permanentId, visibility, folderId, sortOrder, deletedAt');
-    const folderQuery = supabase.from(folderTable).select('id, name, parentId, sortOrder, icon, color, deletedAt');
+    const folderQuery = supabase
+        .from(options.folderTable)
+        .select('id, name, parentId, sortOrder, icon, color, deletedAt');
 
     if (options.status === 'RECYCLE_BIN') {
         agentQuery.not('deletedAt', 'is', null);
@@ -92,6 +154,10 @@ export async function loadAgentOrganizationState(
     } else {
         agentQuery.is('deletedAt', null);
         folderQuery.is('deletedAt', null);
+    }
+
+    if (options.visibilityScope === 'public') {
+        agentQuery.eq('visibility', 'PUBLIC');
     }
 
     const [agentResult, folderResult] = await Promise.all([agentQuery, folderQuery]);
@@ -107,7 +173,9 @@ export async function loadAgentOrganizationState(
     const localServerUrl = await resolveCurrentOrInternalServerOrigin();
     const agentReferenceResolver = await $provideAgentReferenceResolver();
     const resolvedAgents = await resolveStoredAgentStates(
-        (agentResult.data || []) as Array<Pick<AgentRow, 'agentName' | 'agentSource' | 'permanentId' | 'visibility' | 'folderId' | 'sortOrder'>>,
+        (agentResult.data || []) as Array<
+            Pick<AgentRow, 'agentName' | 'agentSource' | 'permanentId' | 'visibility' | 'folderId' | 'sortOrder'>
+        >,
         {
             localServerUrl,
             adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
@@ -122,15 +190,14 @@ export async function loadAgentOrganizationState(
     );
     const folders = (folderResult.data || []).map(mapFolderRowToOrganizationFolder);
 
-    if (currentUser || includePrivate) {
-        return { agents, folders, currentUser };
+    if (options.visibilityScope === 'all') {
+        return { agents, folders };
     }
 
-    const publicAgents = agents.filter((agent) => isPublicAgentVisibility(agent.visibility));
     const { folderById } = buildFolderTree(folders);
     const visibleFolderIds = new Set<number>();
 
-    for (const agent of publicAgents) {
+    for (const agent of agents) {
         if (agent.folderId === null) {
             continue;
         }
@@ -140,7 +207,84 @@ export async function loadAgentOrganizationState(
         }
     }
 
-    const visibleFolders = folders.filter((folder) => visibleFolderIds.has(folder.id));
+    return {
+        agents,
+        folders: folders.filter((folder) => visibleFolderIds.has(folder.id)),
+    };
+}
 
-    return { agents: publicAgents, folders: visibleFolders, currentUser: null };
+/**
+ * Loads one active organization snapshot through the short-lived shared cache.
+ *
+ * @param options - Table names and visibility scope for the requested snapshot.
+ * @returns Cached or freshly resolved active organization snapshot.
+ */
+async function loadCachedActiveOrganizationSnapshot(options: {
+    agentTable: string;
+    folderTable: string;
+    visibilityScope: AgentOrganizationVisibilityScope;
+}): Promise<ResolvedAgentOrganizationSnapshot> {
+    const cacheKey = createActiveOrganizationSnapshotCacheKey(options);
+    const cachedSnapshot = readCachedActiveOrganizationSnapshot(cacheKey);
+    if (cachedSnapshot) {
+        return cachedSnapshot;
+    }
+
+    const snapshotPromise = loadResolvedOrganizationSnapshot({
+        status: 'ACTIVE',
+        agentTable: options.agentTable,
+        folderTable: options.folderTable,
+        visibilityScope: options.visibilityScope,
+    });
+    cachedActiveOrganizationSnapshotByKey.set(cacheKey, {
+        loadedAt: Date.now(),
+        snapshotPromise,
+    });
+
+    try {
+        return await snapshotPromise;
+    } catch (error) {
+        if (cachedActiveOrganizationSnapshotByKey.get(cacheKey)?.snapshotPromise === snapshotPromise) {
+            cachedActiveOrganizationSnapshotByKey.delete(cacheKey);
+        }
+        throw error;
+    }
+}
+
+/**
+ * Loads agents and folders for the organization views.
+ *
+ * @param options - Loader options for active or recycle bin data.
+ * @returns Organization data for the requested status.
+ */
+export async function loadAgentOrganizationState(
+    options: AgentOrganizationLoadOptions,
+): Promise<AgentOrganizationLoadResult> {
+    const currentUser = await getCurrentUser();
+    const includePrivate = options.includePrivate === true;
+
+    if (!currentUser && options.status === 'RECYCLE_BIN') {
+        return { agents: [], folders: [], currentUser: null };
+    }
+
+    const [agentTable, folderTable] = await Promise.all([$getTableName('Agent'), $getTableName('AgentFolder')]);
+    const visibilityScope: AgentOrganizationVisibilityScope = currentUser || includePrivate ? 'all' : 'public';
+    const snapshot =
+        options.status === 'ACTIVE'
+            ? await loadCachedActiveOrganizationSnapshot({
+                  agentTable,
+                  folderTable,
+                  visibilityScope,
+              })
+            : await loadResolvedOrganizationSnapshot({
+                  status: options.status,
+                  agentTable,
+                  folderTable,
+                  visibilityScope,
+              });
+
+    return {
+        ...snapshot,
+        currentUser: visibilityScope === 'all' ? currentUser : null,
+    };
 }
