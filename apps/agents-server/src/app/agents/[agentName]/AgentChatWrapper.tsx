@@ -338,7 +338,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             return (
                 <div className="agent-chat-panel agent-chat-panel--chatgpt-like flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden">
                     <div className="agent-chat-panel__inner flex min-h-0 flex-1 overflow-hidden">
-                        <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-[28px] border border-slate-200/80 bg-white/88 shadow-[0_24px_80px_rgba(15,23,42,0.12)] dark:border-slate-800/80 dark:bg-slate-950/88">
+                        <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-[28px] border border-slate-200/80 bg-white/88 shadow-[0_24px_80px_rgba(15,23,42,0.12)]">
                             <ChatThreadLoadingSkeleton />
                         </div>
                     </div>

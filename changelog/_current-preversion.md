@@ -1,3 +1,9 @@
+-   Refined Agents Server standalone chat (`/agents/[agentName]/chat`) with a light-mode-first visual refresh while keeping server custom CSS compatibility:
+
+    -   Added stable default chat shell/sidebar/panel class hooks in the chat route components so administrators can target the redesigned surfaces from `/admin/custom-css` without relying on brittle utility-class selectors.
+    -   Reworked default chat route styling in `apps/agents-server/src/app/globals.css` with improved light-mode hierarchy (shell ambience, sidebar surfaces, conversation panel, message bubbles, and composer controls) without changing chat behavior/state flow.
+    -   Removed chat-specific dark-mode overrides and chat-route `dark:*` utility usage so chat stays consistently in light mode across system color-scheme preferences.
+
 -   Improved Agents Server route-transition UX with a global top-edge loading bar for chat/navigation handoffs:
 
     -   Added a fixed gradient progress bar that appears immediately on internal navigation and completes when the target route is ready.

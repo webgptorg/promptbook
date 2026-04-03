@@ -1598,25 +1598,27 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
     if (!shouldUseHistory) {
         const guestChatContent = (
-            <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
+            <div className="agent-chat-default-guest flex h-full min-h-0 w-full flex-col overflow-hidden">
                 <PrivateModeHistoryBanner formatText={formatText} />
-                <div className="flex min-h-0 flex-1 overflow-hidden">
-                    <AgentChatWrapper
-                        key={`guest-${agentName}`}
-                        agentName={agentName}
-                        agentUrl={agentUrl}
-                        autoExecuteMessage={effectiveInitialAutoExecuteMessage}
-                        autoExecuteMessageAttachments={effectiveInitialAutoExecuteMessageAttachments}
-                        brandColor={brandColor}
-                        inputPlaceholder={inputPlaceholder}
-                        thinkingMessages={thinkingMessages}
-                        speechRecognitionLanguage={speechRecognitionLanguage}
-                        persistenceKey={`guest-chat-${encodeURIComponent(agentName)}`}
-                        areFileAttachmentsEnabled={areFileAttachmentsEnabled}
-                        feedbackMode={feedbackMode}
-                        onAutoExecuteMessageConsumed={handleAutoExecuteMessageConsumed}
-                        layoutVariant={layoutVariant}
-                    />
+                <div className="agent-chat-default-surface flex min-h-0 flex-1 overflow-hidden">
+                    <div className="agent-chat-default-panel agent-chat-default-panel--guest flex min-h-0 w-full flex-1 overflow-hidden">
+                        <AgentChatWrapper
+                            key={`guest-${agentName}`}
+                            agentName={agentName}
+                            agentUrl={agentUrl}
+                            autoExecuteMessage={effectiveInitialAutoExecuteMessage}
+                            autoExecuteMessageAttachments={effectiveInitialAutoExecuteMessageAttachments}
+                            brandColor={brandColor}
+                            inputPlaceholder={inputPlaceholder}
+                            thinkingMessages={thinkingMessages}
+                            speechRecognitionLanguage={speechRecognitionLanguage}
+                            persistenceKey={`guest-chat-${encodeURIComponent(agentName)}`}
+                            areFileAttachmentsEnabled={areFileAttachmentsEnabled}
+                            feedbackMode={feedbackMode}
+                            onAutoExecuteMessageConsumed={handleAutoExecuteMessageConsumed}
+                            layoutVariant={layoutVariant}
+                        />
+                    </div>
                 </div>
             </div>
         );
@@ -1647,9 +1649,9 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     }
 
     const chatSurface = (
-        <div className="relative flex min-h-0 flex-1 overflow-hidden">
+        <div className="agent-chat-default-surface relative flex min-h-0 flex-1 overflow-hidden">
             {isActiveChatLoading ? (
-                <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm">
+                <div className="agent-chat-default-panel agent-chat-default-panel--loading flex h-full min-h-0 w-full flex-col overflow-hidden">
                     <ChatThreadLoadingSkeleton />
                 </div>
             ) : (
@@ -1715,10 +1717,10 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 className="agent-chat-chatgpt-like-mobile-header__icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg border opacity-0"
             />
             <div className="min-w-0 flex-1 text-center">
-                <div className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+                <div className="agent-chat-chatgpt-like-mobile-header__title truncate text-sm font-semibold text-slate-900">
                     {activeChatSummary?.title || formatText('New chat')}
                 </div>
-                <div className="truncate text-[11px] uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">
+                <div className="agent-chat-chatgpt-like-mobile-header__subtitle truncate text-[11px] uppercase tracking-[0.24em] text-slate-400">
                     {formatText('ChatGPT-like')}
                 </div>
             </div>
