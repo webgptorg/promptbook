@@ -14,107 +14,96 @@
             - button "Switch server" [ref=e13] [cursor=pointer]:
               - img [ref=e14]
           - img [ref=e16]
-          - button "E2E Profile My Chats Navigation avatar E2E Profile My Chats Navigation" [ref=e20] [cursor=pointer]:
+          - button "wqK8sLCe8Eijeu" [ref=e20] [cursor=pointer]:
             - generic [ref=e21]:
-              - img "E2E Profile My Chats Navigation avatar" [ref=e23]
-              - generic [ref=e24]: E2E Profile My Chats Navigation
-            - img [ref=e25]
-          - img [ref=e27]
-          - button "Chat" [ref=e31] [cursor=pointer]:
-            - generic [ref=e32]:
-              - img [ref=e33]
-              - generic [ref=e35]: Chat
-            - img [ref=e36]
-        - generic [ref=e40]:
-          - generic [ref=e41]: Global search
-          - generic [ref=e42]:
+              - img [ref=e23]
+              - generic [ref=e25]: wqK8sLCe8Eijeu
+            - img [ref=e26]
+          - img [ref=e28]
+          - button "Chat" [ref=e32] [cursor=pointer]:
+            - generic [ref=e33]:
+              - img [ref=e34]
+              - generic [ref=e36]: Chat
+            - img [ref=e37]
+        - generic [ref=e41]:
+          - generic [ref=e42]: Global search
+          - generic [ref=e43]:
             - img
-            - combobox "Global search" [ref=e43]
-        - generic [ref=e44]:
-          - navigation [ref=e45]:
-            - button "Documentation" [ref=e47] [cursor=pointer]:
+            - combobox "Global search" [ref=e44]
+        - generic [ref=e45]:
+          - navigation [ref=e46]:
+            - button "Documentation" [ref=e48] [cursor=pointer]:
               - text: Documentation
-              - img [ref=e48]
-            - button "System" [ref=e51] [cursor=pointer]:
+              - img [ref=e49]
+            - button "System" [ref=e52] [cursor=pointer]:
               - text: System
-              - img [ref=e52]
-          - button "Open global control panel" [ref=e55] [cursor=pointer]:
-            - img [ref=e56]
-            - generic [ref=e59]: Control panel
-          - button "A admin Admin" [ref=e62] [cursor=pointer]:
-            - generic [ref=e64]: A
-            - generic [ref=e65]:
-              - generic [ref=e66]: admin
-              - generic [ref=e67]: Admin
-            - img [ref=e68]
-    - main [ref=e70]:
-      - main [ref=e71]:
-        - generic [ref=e72]:
-          - complementary [ref=e73]:
-            - button "Expand sidebar" [ref=e75] [cursor=pointer]:
-              - img [ref=e76]
-            - generic [ref=e79]:
-              - button "New chat" [ref=e80] [cursor=pointer]:
-                - img [ref=e81]
-              - button "Alpha seeded chat - Reply for Alpha seeded chat (2 messages, a few seconds ago)" [ref=e84] [cursor=pointer]:
-                - generic "2 messages" [ref=e86]: "2"
-                - generic [ref=e87]:
-                  - generic [ref=e88]: Alpha seeded chat
-                  - generic [ref=e89]: Reply for Alpha seeded chat
-                - generic [ref=e90]: a few seconds ago
-              - button "EXT" [ref=e92] [cursor=pointer]
-              - paragraph [ref=e93]: Chats
-          - generic [ref=e98]:
-            - generic [ref=e99]:
-              - button "New chat" [ref=e100] [cursor=pointer]:
-                - img [ref=e101]
-                - generic [ref=e103]: New chat
-              - button "Save" [ref=e105] [cursor=pointer]:
-                - img [ref=e106]
-                - generic [ref=e109]: Save
-            - generic [ref=e110]:
-              - generic [ref=e114]:
-                - generic [ref=e115]:
-                  - generic [ref=e116]:
-                    - button "Read message aloud" [ref=e117] [cursor=pointer]:
-                      - img [ref=e118]
-                    - button "Copy message" [ref=e120] [cursor=pointer]:
-                      - img [ref=e121]
-                  - paragraph [ref=e126]: Hello! I am E2E Profile My Chats Navigation.
-                  - generic [ref=e128] [cursor=pointer]: ⭐
-                - generic "2026-04-04 00:07:40" [ref=e129]:
-                  - generic [ref=e130]: 12:07 AM
-              - generic [ref=e132]:
-                - generic [ref=e133]:
-                  - generic [ref=e134]:
-                    - button "Read message aloud" [ref=e135] [cursor=pointer]:
-                      - img [ref=e136]
-                    - button "Copy message" [ref=e138] [cursor=pointer]:
-                      - img [ref=e139]
-                  - paragraph [ref=e144]: Alpha seeded chat
-                  - generic [ref=e146] [cursor=pointer]: ⭐
-                - generic "2026-04-04 00:07:40" [ref=e147]:
-                  - generic [ref=e148]: 12:07 AM
-              - generic [ref=e152]:
-                - generic [ref=e153]:
-                  - generic [ref=e154]:
-                    - button "Read message aloud" [ref=e155] [cursor=pointer]:
-                      - img [ref=e156]
-                    - button "Copy message" [ref=e158] [cursor=pointer]:
-                      - img [ref=e159]
-                  - paragraph [ref=e164]: Reply for Alpha seeded chat
-                  - generic [ref=e166] [cursor=pointer]: ⭐
-                - generic "2026-04-04 00:07:40" [ref=e167]:
-                  - generic [ref=e168]: 12:07 AM
-            - generic [ref=e171]:
-              - textbox "Write a message..." [active] [ref=e172]
-              - button "Attach file" [ref=e173] [cursor=pointer]:
-                - img [ref=e174]
-              - button "Start dictation" [ref=e176] [cursor=pointer]:
-                - img [ref=e177]
-              - button [ref=e180] [cursor=pointer]:
-                - img [ref=e181]
+              - img [ref=e53]
+          - button "Open global control panel" [ref=e56] [cursor=pointer]:
+            - img [ref=e57]
+            - generic [ref=e60]: Control panel
+          - button "A admin Admin" [ref=e63] [cursor=pointer]:
+            - generic [ref=e65]: A
+            - generic [ref=e66]:
+              - generic [ref=e67]: admin
+              - generic [ref=e68]: Admin
+            - img [ref=e69]
+    - main [ref=e71]:
+      - main [ref=e72]:
+        - generic [ref=e73]:
+          - complementary [ref=e74]:
+            - button "Expand sidebar" [ref=e76] [cursor=pointer]:
+              - img [ref=e77]
+            - generic [ref=e80]:
+              - button "New chat" [ref=e81] [cursor=pointer]:
+                - img [ref=e82]
+              - button "Alpha seeded chat - Reply for Alpha seeded chat (2 messages, a few seconds ago)" [ref=e85] [cursor=pointer]:
+                - generic "2 messages" [ref=e87]: "2"
+                - generic [ref=e88]:
+                  - generic [ref=e89]: Alpha seeded chat
+                  - generic [ref=e90]: Reply for Alpha seeded chat
+                - generic [ref=e91]: a few seconds ago
+              - button "EXT" [ref=e93] [cursor=pointer]
+              - paragraph [ref=e94]: Chats
+          - generic [ref=e99]:
+            - generic [ref=e100]:
+              - button "New chat" [ref=e101] [cursor=pointer]:
+                - img [ref=e102]
+                - generic [ref=e104]: New chat
+              - button "Save" [ref=e106] [cursor=pointer]:
+                - img [ref=e107]
+                - generic [ref=e110]: Save
+            - generic [ref=e111]:
+              - generic [ref=e115]:
+                - generic [ref=e116]:
+                  - button "Copy message" [ref=e118] [cursor=pointer]:
+                    - img [ref=e119]
+                  - paragraph [ref=e124]: Hello! I am wqK8sLCe8Eijeu.
+                  - generic [ref=e126] [cursor=pointer]: ⭐
+                - generic "2026-04-04 00:23:25" [ref=e127]:
+                  - generic [ref=e128]: 12:23 AM
+              - generic [ref=e130]:
+                - generic [ref=e131]:
+                  - button "Copy message" [ref=e133] [cursor=pointer]:
+                    - img [ref=e134]
+                  - paragraph [ref=e139]: Alpha seeded chat
+                  - generic [ref=e141] [cursor=pointer]: ⭐
+                - generic "2026-04-04 00:23:25" [ref=e142]:
+                  - generic [ref=e143]: 12:23 AM
+              - generic [ref=e147]:
+                - generic [ref=e148]:
+                  - button "Copy message" [ref=e150] [cursor=pointer]:
+                    - img [ref=e151]
+                  - paragraph [ref=e156]: Reply for Alpha seeded chat
+                  - generic [ref=e158] [cursor=pointer]: ⭐
+                - generic "2026-04-04 00:23:25" [ref=e159]:
+                  - generic [ref=e160]: 12:23 AM
+            - generic [ref=e163]:
+              - textbox "Write a message..." [active] [ref=e164]
+              - button "Attach file" [ref=e165] [cursor=pointer]:
+                - img [ref=e166]
+              - button [ref=e168] [cursor=pointer]:
+                - img [ref=e169]
   - generic:
     - region "Notifications"
-  - alert [ref=e183]
+  - alert [ref=e171]
 ```
