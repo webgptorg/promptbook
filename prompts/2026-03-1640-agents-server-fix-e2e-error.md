@@ -247,7 +247,7 @@ message immediately as sending when starting a chat from the profile page
 
 ---
 
-[ ]
+[x] ~$0.5641 14 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨💇] Fix e2e tests
 
@@ -527,3 +527,4 @@ $
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

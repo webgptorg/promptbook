@@ -1,3 +1,9 @@
+-   Fixed Agents Server chat-history E2E reliability when local environment SQL settings leak into Playwright runs:
+
+    -   Updated the Agents Server Playwright app environment to explicitly clear `POSTGRES_URL` / `DATABASE_URL`, so E2E runs stay isolated to the mocked Supabase backend.
+    -   Added a graceful fallback in `listUserChatSummarySeeds` that uses standard Supabase chat reads when direct SQL summary optimization is unavailable (for example missing connection env or partially migrated `UserChat` relation/columns).
+    -   Preserved the optimized SQL summary path for normal production/runtime configurations where direct PostgreSQL access is available.
+
 -   Improved Agents Server navigation performance by removing redundant organization work on normal page loads:
 
     -   Anonymous organization loading now queries only `PUBLIC` agents before resolving sources, instead of resolving private/unlisted agents that are filtered out later.
