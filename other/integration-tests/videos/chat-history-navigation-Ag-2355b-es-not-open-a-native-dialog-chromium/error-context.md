@@ -1,7 +1,7 @@
 # Page snapshot
 
 ```yaml
-- generic [active] [ref=e1]:
+- generic [ref=e1]:
   - generic [ref=e2]:
     - banner [ref=e3]:
       - generic [ref=e5]:
@@ -14,48 +14,99 @@
             - button "Switch server" [ref=e13] [cursor=pointer]:
               - img [ref=e14]
           - img [ref=e16]
-          - button "E2E Chat Navigation New Chat avatar E2E Chat Navigation New Chat" [ref=e20] [cursor=pointer]:
+          - button "EzMPuyq3xYqHrJ" [ref=e20] [cursor=pointer]:
             - generic [ref=e21]:
-              - img "E2E Chat Navigation New Chat avatar" [ref=e23]
-              - generic [ref=e24]: E2E Chat Navigation New Chat
-            - img [ref=e25]
-          - img [ref=e27]
-          - button "Chat" [ref=e31] [cursor=pointer]:
-            - generic [ref=e32]:
-              - img [ref=e33]
-              - generic [ref=e35]: Chat
-            - img [ref=e36]
-        - generic [ref=e40]:
-          - generic [ref=e41]: Global search
-          - generic [ref=e42]:
+              - img [ref=e23]
+              - generic [ref=e25]: EzMPuyq3xYqHrJ
+            - img [ref=e26]
+          - img [ref=e28]
+          - button "Chat" [ref=e32] [cursor=pointer]:
+            - generic [ref=e33]:
+              - img [ref=e34]
+              - generic [ref=e36]: Chat
+            - img [ref=e37]
+        - generic [ref=e41]:
+          - generic [ref=e42]: Global search
+          - generic [ref=e43]:
             - img
-            - combobox "Global search" [ref=e43]
-        - generic [ref=e44]:
-          - navigation [ref=e45]:
-            - button "Documentation" [ref=e47] [cursor=pointer]:
+            - combobox "Global search" [ref=e44]
+        - generic [ref=e45]:
+          - navigation [ref=e46]:
+            - button "Documentation" [ref=e48] [cursor=pointer]:
               - text: Documentation
-              - img [ref=e48]
-            - button "System" [ref=e51] [cursor=pointer]:
+              - img [ref=e49]
+            - button "System" [ref=e52] [cursor=pointer]:
               - text: System
-              - img [ref=e52]
-          - button "Open global control panel" [ref=e55] [cursor=pointer]:
-            - img [ref=e56]
-            - generic [ref=e59]: Control panel
-          - button "A admin Admin" [ref=e62] [cursor=pointer]:
-            - generic [ref=e64]: A
-            - generic [ref=e65]:
-              - generic [ref=e66]: admin
-              - generic [ref=e67]: Admin
-            - img [ref=e68]
-    - main [ref=e70]:
-      - main [ref=e71]:
-        - status "Loading chat" [ref=e72]:
-          - complementary [ref=e74]
+              - img [ref=e53]
+          - button "Open global control panel" [ref=e56] [cursor=pointer]:
+            - img [ref=e57]
+            - generic [ref=e60]: Control panel
+          - button "A admin Admin" [ref=e63] [cursor=pointer]:
+            - generic [ref=e65]: A
+            - generic [ref=e66]:
+              - generic [ref=e67]: admin
+              - generic [ref=e68]: Admin
+            - img [ref=e69]
+    - main [ref=e71]:
+      - main [ref=e72]:
+        - generic [ref=e73]:
+          - complementary [ref=e74]:
+            - button "Expand sidebar" [ref=e76] [cursor=pointer]:
+              - img [ref=e77]
+            - generic [ref=e80]:
+              - button "New chat" [ref=e81] [cursor=pointer]:
+                - img [ref=e82]
+              - generic [ref=e84]:
+                - button "New chat (0 messages, a few seconds ago)" [ref=e85] [cursor=pointer]:
+                  - generic "0 messages" [ref=e87]: "0"
+                  - generic [ref=e88]:
+                    - generic [ref=e89]: New chat
+                    - generic [ref=e90]: No messages yet
+                  - generic [ref=e91]: a few seconds ago
+                - button "Bravo seeded chat - Reply for Bravo seeded chat (2 messages, a few seconds ago)" [ref=e92] [cursor=pointer]:
+                  - generic "2 messages" [ref=e94]: "2"
+                  - generic [ref=e95]:
+                    - generic [ref=e96]: Bravo seeded chat
+                    - generic [ref=e97]: Reply for Bravo seeded chat
+                  - generic [ref=e98]: a few seconds ago
+                - button "Alpha seeded chat - Reply for Alpha seeded chat (2 messages, a few seconds ago)" [ref=e99] [cursor=pointer]:
+                  - generic "2 messages" [ref=e101]: "2"
+                  - generic [ref=e102]:
+                    - generic [ref=e103]: Alpha seeded chat
+                    - generic [ref=e104]: Reply for Alpha seeded chat
+                  - generic [ref=e105]: a few seconds ago
+              - generic [ref=e106]:
+                - button "Hide empty chats" [ref=e107] [cursor=pointer]:
+                  - img [ref=e108]
+                - button "EXT" [ref=e113] [cursor=pointer]
+              - paragraph [ref=e114]: Chats
+          - generic [ref=e119]:
+            - generic [ref=e120]:
+              - button "New chat" [active] [ref=e121] [cursor=pointer]:
+                - img [ref=e122]
+                - generic [ref=e124]: New chat
+              - button "Save" [ref=e126] [cursor=pointer]:
+                - img [ref=e127]
+                - generic [ref=e130]: Save
+            - generic [ref=e136]:
+              - generic [ref=e137]:
+                - button "Read message aloud" [ref=e138] [cursor=pointer]:
+                  - img [ref=e139]
+                - button "Copy message" [ref=e141] [cursor=pointer]:
+                  - img [ref=e142]
+              - paragraph [ref=e147]: Hello! I am E2E Chat Navigation New Chat.
+              - button "Hello" [ref=e149] [cursor=pointer]:
+                - paragraph [ref=e151]: Hello
+              - generic [ref=e153] [cursor=pointer]: ⭐
+            - generic [ref=e156]:
+              - textbox "Write a message..." [ref=e157]
+              - button "Attach file" [ref=e158] [cursor=pointer]:
+                - img [ref=e159]
+              - button "Start dictation" [ref=e161] [cursor=pointer]:
+                - img [ref=e162]
+              - button [ref=e165] [cursor=pointer]:
+                - img [ref=e166]
   - generic:
-    - region "Notifications":
-      - button "relation \"UserChat\" does not exist Dismiss notification" [ref=e106] [cursor=pointer]:
-        - generic [ref=e107]:
-          - paragraph [ref=e109]: relation "UserChat" does not exist
-          - button "Dismiss notification" [ref=e110]: X
-  - alert [ref=e111]
+    - region "Notifications"
+  - alert [ref=e168]
 ```
