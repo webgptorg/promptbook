@@ -12,7 +12,7 @@
 
 ---
 
-[ ]
+[x] ~$1.19 an hour by OpenAI Codex `gpt-5.3-codex`
 
 [🚧🧭] Navigation from agent profile page is not working
 
@@ -37,3 +37,4 @@
 -   Sometimes it takes a while to navigate to the chat page, and it is not clear that something is happening, we should have better UX for this, for example a color gradient loading bar simmilar to mobile app or YouTube
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with [Agents Server](apps/agents-server)
+

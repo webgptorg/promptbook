@@ -1,3 +1,8 @@
+-   Fixed Agents Server profile-page chat handoff when client-side routing stalls, so profile actions now always reach the standalone chat route:
+
+    -   Added a guarded hard-navigation fallback in `AgentProfileChat` that triggers only if `router.push(...)` does not change the URL within a short delay.
+    -   Applied the fallback to all profile-to-chat entry paths (`My chats`, quick buttons, and composer send), keeping pending message handoff intact.
+
 -   Fixed Agents Server durable-chat draft composer so unsent textarea content is no longer overwritten by background draft reapply while the user is interacting:
 
     -   Added a dedicated user-owned draft lock in `AgentChatHistoryClient` that is activated by composer `keydown` / `input` / `select` interactions.

@@ -5,7 +5,7 @@ import { Chat } from '@promptbook-local/components';
 import { RemoteAgent } from '@promptbook-local/core';
 import { string_book, type ChatMessage } from '@promptbook-local/types';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useState, type MouseEvent as ReactMouseEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
 import { spaceTrim } from 'spacetrim';
 import { string_agent_url, string_color } from '../../../../../../src/types/typeAliases';
 import { $getCurrentDate } from '../../../../../../src/utils/misc/$getCurrentDate';
@@ -61,6 +61,11 @@ const PROFILE_CHAT_ROW_HEIGHT_PX = 96;
  * Vertical gap between chat rows in the profile quick-access list.
  */
 const PROFILE_CHAT_ROW_GAP_PX = 12;
+
+/**
+ * Wait duration before falling back to hard navigation when SPA push stalls.
+ */
+const PROFILE_CHAT_NAVIGATION_FALLBACK_DELAY_MS = 1_200;
 
 /**
  * Describes a relative time unit used when expressing chat timestamps.
@@ -135,6 +140,21 @@ function shouldPreserveDefaultLinkNavigation(event: ReactMouseEvent<HTMLAnchorEl
 }
 
 /**
+ * Normalizes one destination URL into a comparable location suffix.
+ *
+ * @param destination - Destination URL passed to navigation helpers.
+ * @returns Path + query + hash used for current-location comparison.
+ */
+function normalizeDestinationForLocationComparison(destination: string): string {
+    try {
+        const parsedDestination = new URL(destination, window.location.href);
+        return `${parsedDestination.pathname}${parsedDestination.search}${parsedDestination.hash}`;
+    } catch {
+        return destination;
+    }
+}
+
+/**
  * Renders the compact chat preview on the agent profile and coordinates the full chat transition.
  *
  * @private Agents Server presentation logic.
@@ -155,6 +175,7 @@ export function AgentProfileChat({
     const [isCreatingAgent, setIsCreatingAgent] = useState(false);
     const [isNavigatingToChat, setIsNavigatingToChat] = useState(false);
     const [existingChats, setExistingChats] = useState<Array<UserChatSummary>>([]);
+    const pendingNavigationFallbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const { formatText } = useAgentNaming();
     const { enterBehavior, resolveEnterBehavior } = useChatEnterBehaviorPreferences();
     const { isPrivateModeEnabled } = usePrivateModePreferences();
@@ -208,15 +229,46 @@ export function AgentProfileChat({
     const hasExistingChats = !isPrivateModeEnabled && existingChats.length > 0;
 
     /**
+     * Clears any pending hard-navigation fallback timer.
+     */
+    const clearPendingNavigationFallback = useCallback(() => {
+        if (pendingNavigationFallbackTimeoutRef.current === null) {
+            return;
+        }
+
+        clearTimeout(pendingNavigationFallbackTimeoutRef.current);
+        pendingNavigationFallbackTimeoutRef.current = null;
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            clearPendingNavigationFallback();
+        };
+    }, [clearPendingNavigationFallback]);
+
+    /**
      * Navigates to one chat destination and marks the profile panel as transitioning.
      */
     const navigateToDestination = useCallback(
         (destination: string) => {
             setIsNavigatingToChat(true);
             router.push(destination);
+
+            clearPendingNavigationFallback();
+
+            const locationBeforePush = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+            const normalizedDestination = normalizeDestinationForLocationComparison(destination);
+            pendingNavigationFallbackTimeoutRef.current = setTimeout(() => {
+                pendingNavigationFallbackTimeoutRef.current = null;
+                const locationAfterPush = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+                if (locationAfterPush === locationBeforePush && locationAfterPush !== normalizedDestination) {
+                    window.location.assign(destination);
+                }
+            }, PROFILE_CHAT_NAVIGATION_FALLBACK_DELAY_MS);
+
             return Promise.resolve();
         },
-        [router],
+        [clearPendingNavigationFallback, router],
     );
 
     const navigateToChat = useCallback(
