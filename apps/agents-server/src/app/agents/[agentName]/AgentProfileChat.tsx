@@ -5,7 +5,7 @@ import { Chat } from '@promptbook-local/components';
 import { RemoteAgent } from '@promptbook-local/core';
 import { string_book, type ChatMessage } from '@promptbook-local/types';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useState, type MouseEvent as ReactMouseEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { spaceTrim } from 'spacetrim';
 import { string_agent_url, string_color } from '../../../../../../src/types/typeAliases';
 import { $getCurrentDate } from '../../../../../../src/utils/misc/$getCurrentDate';
@@ -40,6 +40,13 @@ export type AgentProfileChatProps = {
     speechRecognitionLanguage?: string;
     isHistoryEnabled?: boolean;
     areFileAttachmentsEnabled?: boolean;
+};
+
+/**
+ * Browser `Document` extension that exposes the optional View Transition API.
+ */
+type DocumentWithViewTransition = Document & {
+    startViewTransition?: (updateCallback: () => void) => void;
 };
 
 /**
@@ -127,11 +134,26 @@ function hasMessageContent(message: string | undefined): message is string {
 }
 
 /**
- * Returns true when the browser should keep default anchor navigation behavior
- * (for example opening a new tab/window via modifier keys).
+ * Executes route updates inside a browser view transition when supported.
  */
-function shouldPreserveDefaultLinkNavigation(event: ReactMouseEvent<HTMLAnchorElement>): boolean {
-    return event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+function runRouteTransition(updateCallback: () => void): void {
+    if (typeof document === 'undefined') {
+        updateCallback();
+        return;
+    }
+
+    const documentWithViewTransition = document as DocumentWithViewTransition;
+    if (!documentWithViewTransition.startViewTransition) {
+        updateCallback();
+        return;
+    }
+
+    try {
+        documentWithViewTransition.startViewTransition(updateCallback);
+    } catch {
+        // Fall back to direct navigation if the browser rejects overlapping view transitions.
+        updateCallback();
+    }
 }
 
 /**
@@ -208,13 +230,20 @@ export function AgentProfileChat({
     const hasExistingChats = !isPrivateModeEnabled && existingChats.length > 0;
 
     /**
-     * Navigates to one chat destination and marks the profile panel as transitioning.
+     * Navigates to the provided destination while coordinating the view transition state.
      */
     const navigateToDestination = useCallback(
         (destination: string) => {
             setIsNavigatingToChat(true);
-            router.push(destination);
-            return Promise.resolve();
+
+            return new Promise<void>((resolve) => {
+                requestAnimationFrame(() => {
+                    runRouteTransition(() => {
+                        router.push(destination);
+                        resolve();
+                    });
+                });
+            });
         },
         [router],
     );
@@ -271,12 +300,12 @@ export function AgentProfileChat({
                           formatText,
                           chats: existingChats,
                           resolveChatHref: resolveExistingChatHref,
-                          onSelectChat: (chatId) => {
-                              void navigateToDestination(resolveExistingChatHref(chatId));
+                          onSelectChat: () => {
+                              setIsNavigatingToChat(true);
                           },
                           newChatHref,
                           onCreateChat: () => {
-                              void navigateToDestination(newChatHref);
+                              setIsNavigatingToChat(true);
                           },
                       }),
                   ]
@@ -287,7 +316,6 @@ export function AgentProfileChat({
             isDeleted,
             isHistoryEnabled,
             isPrivateModeEnabled,
-            navigateToDestination,
             newChatHref,
             resolveExistingChatHref,
         ],
@@ -363,8 +391,8 @@ export function AgentProfileChat({
                         chats={existingChats}
                         formatText={formatText}
                         resolveChatHref={resolveExistingChatHref}
-                        onNavigateToChat={(href) => {
-                            void navigateToDestination(href);
+                        onNavigateToChat={() => {
+                            setIsNavigatingToChat(true);
                         }}
                         brandColorHex={brandColorHex}
                     />
@@ -428,23 +456,15 @@ type ExistingChatsPanelProps = {
     chats: ReadonlyArray<UserChatSummary>;
     formatText: (text: string) => string;
     resolveChatHref: (chatId: string) => string;
-    onNavigateToChat: (href: string) => void;
+    onNavigateToChat: () => void;
     brandColorHex: string_color;
 };
 
-/**
- * Props used by the private-mode informational card shown above the profile chat.
- */
 type PrivateModeChatPanelProps = {
     formatText: (text: string) => string;
     brandColorHex: string_color;
 };
 
-/**
- * Renders the private-mode note in place of the chat history quick-access panel.
- *
- * @private Profile chat helper.
- */
 function PrivateModeChatPanel({ formatText, brandColorHex }: PrivateModeChatPanelProps) {
     return (
         <section className="relative w-full overflow-hidden rounded-[28px] border border-blue-200 bg-gradient-to-br from-blue-50 to-white/80 shadow-2xl shadow-blue-200/30">
@@ -522,19 +542,12 @@ function ExistingChatsPanel({
                             ? chat.preview
                             : formatText('No messages yet - start the conversation.');
                         const titleWithPreview = chat.preview ? `${title} — ${chat.preview}` : title;
-                        const chatHref = resolveChatHref(chat.id);
 
                         return (
                             <HeadlessLink
                                 key={chat.id}
-                                href={chatHref}
-                                onClick={(event) => {
-                                    if (shouldPreserveDefaultLinkNavigation(event)) {
-                                        return;
-                                    }
-                                    event.preventDefault();
-                                    onNavigateToChat(chatHref);
-                                }}
+                                href={resolveChatHref(chat.id)}
+                                onClick={onNavigateToChat}
                                 title={titleWithPreview}
                                 className="flex w-full flex-col gap-2 rounded-2xl border border-slate-200/70 bg-white/90 px-4 py-3 text-left shadow-sm shadow-slate-900/10 transition duration-150 hover:border-slate-400 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500/80 min-h-[96px]"
                             >
