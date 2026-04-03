@@ -78,6 +78,21 @@ export type MarkPendingOutboundMessageFailedOptions = {
 };
 
 /**
+ * Input required to migrate optimistic outbound messages from one chat id to another.
+ */
+export type ReassignPendingOutboundMessagesChatIdOptions = {
+    /**
+     * Source chat identifier currently owning the optimistic messages.
+     */
+    readonly fromChatId: string;
+
+    /**
+     * Target chat identifier that should own the optimistic messages.
+     */
+    readonly toChatId: string;
+};
+
+/**
  * Subscribes one component to optimistic outbound-message store changes.
  *
  * @param listener - Callback triggered after each store mutation.
@@ -329,5 +344,50 @@ export function clearPendingOutboundMessages(chatId: string): void {
     }
 
     pendingOutboundMessagesByChatId.delete(chatId);
+    emitPendingOutboundMessagesStoreChange();
+}
+
+/**
+ * Reassigns optimistic outbound messages from one chat id to another while
+ * preserving status/error state and deduplicating by `clientMessageId`.
+ *
+ * This is used when one optimistic temporary chat id is replaced by the durable
+ * server chat id after chat creation resolves.
+ *
+ * @param options - Source and target chat identifiers for optimistic messages.
+ */
+export function reassignPendingOutboundMessagesChatId(options: ReassignPendingOutboundMessagesChatIdOptions): void {
+    if (options.fromChatId === options.toChatId) {
+        return;
+    }
+
+    const sourceMessages = pendingOutboundMessagesByChatId.get(options.fromChatId);
+    if (!sourceMessages || sourceMessages.length === 0) {
+        return;
+    }
+
+    const targetMessages = pendingOutboundMessagesByChatId.get(options.toChatId) || [];
+    const sourceMessagesWithTargetChatId = sourceMessages.map((message) => ({
+        ...message,
+        chatId: options.toChatId,
+    }));
+    const targetMessageClientMessageIds = new Set(
+        targetMessages.map((targetMessage) => targetMessage.clientMessageId),
+    );
+    const mergedMessages = [
+        ...targetMessages,
+        ...sourceMessagesWithTargetChatId.filter(
+            (sourceMessage) => !targetMessageClientMessageIds.has(sourceMessage.clientMessageId),
+        ),
+    ];
+
+    pendingOutboundMessagesByChatId.delete(options.fromChatId);
+
+    if (mergedMessages.length === 0) {
+        pendingOutboundMessagesByChatId.delete(options.toChatId);
+    } else {
+        pendingOutboundMessagesByChatId.set(options.toChatId, mergedMessages);
+    }
+
     emitPendingOutboundMessagesStoreChange();
 }

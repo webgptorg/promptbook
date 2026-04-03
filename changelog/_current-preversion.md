@@ -1,3 +1,10 @@
+-   Updated Agents Server durable chat UX to run key chat actions optimistically so interactions feel instant:
+
+    -   New chat creation now opens an optimistic placeholder chat immediately (instant selection + URL update) while the server chat is created in the background.
+    -   User messages now append to the chat immediately for all sends with lightweight lifecycle badges (`Sending` / `Failed`) instead of waiting for server roundtrips.
+    -   Failed optimistic messages now stay visible with explicit failed state and can be resent without duplicate bubbles by reusing per-chat `clientMessageId` mapping.
+    -   Added optimistic chat-id reconciliation so pending messages and failed-send metadata move from temporary chat ids to canonical server chat ids without cross-chat leakage.
+
 -   Updated Agents Server chat progress rendering to use native markdown checklists in the normal message flow:
 
     -   Replaced the dedicated in-bubble progress card container with checklist markdown rendered as plain assistant message content.

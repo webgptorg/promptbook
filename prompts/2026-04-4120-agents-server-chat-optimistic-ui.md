@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 2 hours by OpenAI Codex `gpt-5.3-codex`
 
 [🌙🧩] Make chat actions optimistic *(instant open, instant message, instant new chat)*
 
