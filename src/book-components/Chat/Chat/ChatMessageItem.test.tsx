@@ -105,9 +105,9 @@ describe('ChatMessageItem citation footnotes', () => {
 describe('ChatMessageItem progress checklist rendering', () => {
     it('renders progress as native markdown checklist content without a separate progress panel container', () => {
         const { container } = renderChatMessageItem(createAssistantProgressMessageFixture());
-        const renderedCheckboxes = Array.from(container.querySelectorAll('input[type="checkbox"]')) as Array<
-            HTMLInputElement
-        >;
+        const renderedCheckboxes = Array.from(
+            container.querySelectorAll('input[type="checkbox"]'),
+        ) as Array<HTMLInputElement>;
 
         expect(container.querySelector('section')).toBeNull();
         expect(renderedCheckboxes.length).toBe(5);
@@ -131,9 +131,9 @@ describe('ChatMessageItem progress checklist rendering', () => {
                 },
             }),
         );
-        const renderedCheckboxes = Array.from(container.querySelectorAll('input[type="checkbox"]')) as Array<
-            HTMLInputElement
-        >;
+        const renderedCheckboxes = Array.from(
+            container.querySelectorAll('input[type="checkbox"]'),
+        ) as Array<HTMLInputElement>;
 
         expect(renderedCheckboxes.length).toBe(3);
         expect(renderedCheckboxes.filter((checkbox) => checkbox.checked)).toHaveLength(1);
