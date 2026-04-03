@@ -10,6 +10,10 @@
 
 [x] ~$1.19 35 minutes by OpenAI Codex `gpt-5.4`
 
+---
+
+[ ]
+
 [🚧🧭] Navigation from agent profile page is not working
 
 -   In the agent profile page _(for example https://pavol-hejny.ptbk.io/agents/rN4iPc2CHEPVgZ)_ the clicking on
@@ -17,10 +21,19 @@
     -   Quick button
     -   Writing a message and send
     -   All of theese should lead to the chat page _(for example https://pavol-hejny.ptbk.io/agents/rN4iPc2CHEPVgZ/chat)_ with sended message from input or opened chat
--   Also clicking on quick buttons in both profile page and chat page should send the prefilled message
+-   It will do something, the chat is faded and indicates thats something is happening, but it does not navigate to the chat page, it stays on the profile page
 -   But it does nothing, fix it
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with [Agents Server](apps/agents-server)
 
 ![alt text](prompts/screenshots/2026-04-4000-agents-server-link-click-routing-1.png)
 
+---
+
+[ ]
+
+[🚧🧭] Navigation should have better UX
+
+-   Sometimes it takes a while to navigate to the chat page, and it is not clear that something is happening, we should have better UX for this, for example a color gradient loading bar simmilar to mobile app or YouTube
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with [Agents Server](apps/agents-server)
