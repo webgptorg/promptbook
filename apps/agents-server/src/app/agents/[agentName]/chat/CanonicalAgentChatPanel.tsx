@@ -476,7 +476,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
     const chatElement = (
         <Chat
             className={`agent-chat-panel__chat h-full min-h-0 w-full ${
-                isChatGptLikeVariant ? 'agent-chat-panel__chat--chatgpt-like' : 'agent-chat-panel__chat--default'
+                isChatGptLikeVariant ? 'agent-chat-panel__chat--chatgpt-like' : ''
             }`}
             style={chatBackgroundStyle}
             title={`Chat with ${agent?.meta.fullname || agent?.agentName || agentName}`}
@@ -518,7 +518,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
             }
         >
             {isReadOnly && frozenChatBannerLabel && (
-                <div className="agent-chat-readonly-banner mx-4 mt-4 rounded-2xl border border-amber-200 bg-amber-50/95 px-4 py-3 text-sm font-medium text-amber-900 shadow-sm">
+                <div className="mx-4 mt-4 rounded-2xl border border-amber-200 bg-amber-50/95 px-4 py-3 text-sm font-medium text-amber-900 shadow-sm">
                     {`Chat from ${frozenChatBannerLabel}. View-only.`}
                 </div>
             )}
@@ -532,7 +532,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
                     <div className="agent-chat-panel__inner flex min-h-0 flex-1 overflow-hidden">{chatElement}</div>
                 </div>
             ) : (
-                <div className="agent-chat-panel agent-chat-panel--default flex h-full min-h-0 w-full flex-col overflow-hidden">
+                <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm">
                     {chatElement}
                 </div>
             )}
