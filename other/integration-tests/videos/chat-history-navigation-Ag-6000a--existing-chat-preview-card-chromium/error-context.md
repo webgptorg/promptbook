@@ -1,0 +1,179 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e5]:
+        - generic [ref=e7]:
+          - generic [ref=e8]:
+            - link "Promptbook Agents Server Promptbook Agents Server" [ref=e9] [cursor=pointer]:
+              - /url: /
+              - img "Promptbook Agents Server" [ref=e10]
+              - generic [ref=e11]: Promptbook Agents Server
+            - button "Switch server" [ref=e13] [cursor=pointer]:
+              - img [ref=e14]
+          - img [ref=e16]
+          - button "E2E Profile My Chats Navigation avatar E2E Profile My Chats Navigation" [ref=e20] [cursor=pointer]:
+            - generic [ref=e21]:
+              - img "E2E Profile My Chats Navigation avatar" [ref=e23]
+              - generic [ref=e24]: E2E Profile My Chats Navigation
+            - img [ref=e25]
+          - img [ref=e27]
+          - button "Profile" [ref=e31] [cursor=pointer]:
+            - generic [ref=e32]:
+              - img [ref=e33]
+              - generic [ref=e36]: Profile
+            - img [ref=e37]
+        - generic [ref=e41]:
+          - generic [ref=e42]: Global search
+          - generic [ref=e43]:
+            - img
+            - combobox "Global search" [ref=e44]
+        - generic [ref=e45]:
+          - navigation [ref=e46]:
+            - button "Documentation" [ref=e48] [cursor=pointer]:
+              - text: Documentation
+              - img [ref=e49]
+            - button "System" [ref=e52] [cursor=pointer]:
+              - text: System
+              - img [ref=e53]
+          - button "Open global control panel" [ref=e56] [cursor=pointer]:
+            - img [ref=e57]
+            - generic [ref=e60]: Control panel
+          - generic [ref=e62]:
+            - button "A admin Admin" [expanded] [ref=e63] [cursor=pointer]:
+              - generic [ref=e65]: A
+              - generic [ref=e66]:
+                - generic [ref=e67]: admin
+                - generic [ref=e68]: Admin
+              - img [ref=e69]
+            - generic [ref=e71]:
+              - generic [ref=e72]:
+                - paragraph [ref=e73]: admin
+                - paragraph [ref=e74]: Admin
+              - button "Change Password" [ref=e75] [cursor=pointer]:
+                - img [ref=e76]
+                - text: Change Password
+              - button "Log out" [ref=e79] [cursor=pointer]:
+                - img [ref=e80]
+                - text: Log out
+    - main [ref=e83]:
+      - generic [ref=e84]:
+        - button "More options" [ref=e87] [cursor=pointer]:
+          - img [ref=e88]
+        - generic [ref=e92]:
+          - generic [ref=e94] [cursor=pointer]:
+            - generic [ref=e95]:
+              - img [ref=e98]
+              - img [ref=e101]
+            - img [ref=e111]
+          - generic [ref=e116]:
+            - heading "E2E Profile My Chats Navigation" [level=1] [ref=e117]
+            - generic [ref=e118]:
+              - paragraph [ref=e119]: You are a helpful, honest, and intelligent AI assistant. Your goal is to provide accurate, clear, and concise responses while being friendly and engaging. Think step-by-step before answering complex questions. You are a helpful, honest, and intelligent AI assistant. Your goal is to provide accurate, clear, and concis…
+              - button "Show more" [ref=e120] [cursor=pointer]
+            - generic [ref=e121]:
+              - 'link "{Void}" [ref=e122] [cursor=pointer]':
+                - /url: "{void}"
+                - 'generic "{Void}" [ref=e123]':
+                  - img [ref=e124]
+                  - generic [ref=e126]: "{Void}"
+              - generic "Time" [ref=e127]:
+                - img [ref=e128]
+                - generic [ref=e131]: Time
+          - generic [ref=e138]:
+            - generic [ref=e143]:
+              - generic [ref=e144]:
+                - paragraph [ref=e147]: Hello! I am E2E Profile My Chats Navigation.
+                - button "Hello" [ref=e149] [cursor=pointer]:
+                  - paragraph [ref=e151]: Hello
+              - generic "2026-04-03 18:02:09" [ref=e152]:
+                - generic [ref=e153]: 6:02 PM
+            - generic [ref=e156]:
+              - textbox "Write a message..." [active] [ref=e157]
+              - button "Attach file" [ref=e158] [cursor=pointer]:
+                - img [ref=e159]
+              - button "Start dictation" [ref=e161] [cursor=pointer]:
+                - img [ref=e162]
+              - button [ref=e165] [cursor=pointer]:
+                - img [ref=e166]
+          - generic [ref=e168]:
+            - link "Edit Book" [ref=e169] [cursor=pointer]:
+              - /url: /agents/RoA3nP31B61zrp/book
+              - img [ref=e171]
+              - generic [ref=e174]: Edit Book
+            - link "Integration" [ref=e175] [cursor=pointer]:
+              - /url: /agents/RoA3nP31B61zrp/integration
+              - img [ref=e177]
+              - generic [ref=e180]: Integration
+    - contentinfo [ref=e181]:
+      - generic [ref=e182]:
+        - generic [ref=e183]:
+          - generic [ref=e184]:
+            - heading "Promptbook" [level=3] [ref=e185]
+            - paragraph [ref=e186]: Turn your company's scattered knowledge into AI ready books
+          - generic [ref=e187]:
+            - heading "Product" [level=3] [ref=e188]
+            - list [ref=e189]:
+              - listitem [ref=e190]:
+                - link "Get started" [ref=e191] [cursor=pointer]:
+                  - /url: /get-started
+              - listitem [ref=e192]:
+                - link "Manifest" [ref=e193] [cursor=pointer]:
+                  - /url: /manifest
+              - listitem [ref=e194]:
+                - link "Documentation" [ref=e195] [cursor=pointer]:
+                  - /url: https://github.com/webgptorg/promptbook
+              - listitem [ref=e196]:
+                - link "Terms of Service" [ref=e197] [cursor=pointer]:
+                  - /url: /terms
+              - listitem [ref=e198]:
+                - link "Privacy Policy" [ref=e199] [cursor=pointer]:
+                  - /url: /privacy
+          - generic [ref=e200]:
+            - heading "Company" [level=3] [ref=e201]
+            - list [ref=e202]:
+              - listitem [ref=e203]:
+                - link "AI Web, LLC" [ref=e204] [cursor=pointer]:
+                  - /url: https://or-justice-cz.translate.goog/ias/ui/rejstrik-firma.vysledky?subjektId=1223693&typ=UPLNY&_x_tr_sl=cs&_x_tr_tl=en&_x_tr_hl=en-US&_x_tr_pto=wapp
+              - listitem [ref=e205]:
+                - link "About Us" [ref=e206] [cursor=pointer]:
+                  - /url: https://ptbk.io/#about-us
+              - listitem [ref=e207]:
+                - link "Blog" [ref=e208] [cursor=pointer]:
+                  - /url: https://ptbk.io/blog
+              - listitem [ref=e209]:
+                - link "Logos & Branding" [ref=e210] [cursor=pointer]:
+                  - /url: /design
+          - generic [ref=e211]:
+            - heading "Connect" [level=3] [ref=e212]
+            - list [ref=e213]:
+              - listitem [ref=e214]:
+                - link "GitHub" [ref=e215] [cursor=pointer]:
+                  - /url: https://github.com/webgptorg/promptbook
+              - listitem [ref=e216]:
+                - link "LinkedIn" [ref=e217] [cursor=pointer]:
+                  - /url: https://linkedin.com/company/promptbook
+              - listitem [ref=e218]:
+                - link "Discord" [ref=e219] [cursor=pointer]:
+                  - /url: https://discord.gg/x3QWNaa89N
+              - listitem [ref=e220]:
+                - link "More" [ref=e221] [cursor=pointer]:
+                  - /url: /contact
+          - generic [ref=e222]:
+            - heading "Links" [level=3] [ref=e223]
+            - list [ref=e224]:
+              - listitem [ref=e225]:
+                - 'link "Federated: core.ptbk.io" [ref=e226] [cursor=pointer]':
+                  - /url: https://core.ptbk.io/
+        - generic [ref=e227]:
+          - paragraph [ref=e228]:
+            - text: © 2026 Promptbook
+            - text: All rights reserved.
+            - text: Made with ❤️ in the Czech Republic.
+          - paragraph [ref=e229]: Promptbook engine version 0.112.0-31
+  - generic:
+    - region "Notifications"
+  - alert [ref=e230]
+```
