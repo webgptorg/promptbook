@@ -90,3 +90,8 @@
   - `apps/agents-server` lint passes, but `test-build` fails during `next build` page-data collection with `SyntaxError: Unexpected non-whitespace character after JSON at position 83 (line 7 column 1)`.
   - Direct `test-e2e` execution also fails to start the web server (`Process from config.webServer was not able to start. Exit code: 1`) and logs `uncaughtException [Error: kill EPERM]`.
   - This failure appeared while implementing draft-textarea stability and does not map to the touched `AgentChatHistoryClient` draft synchronization changes.
+
+- `apps/agents-server` targeted Playwright validation is currently blocked by another unrelated existing prerender/build issue:
+  - `next build` completes, but the Playwright web-server bootstrap aborts afterward with `Dynamic server usage` for `/system/utilities/mocked-chats/view`.
+  - The logged failure says that route cannot be rendered statically because it uses `headers` / awaited `searchParams`.
+  - This appeared while validating profile-to-chat routing and does not map to the touched `AgentProfileChat` or chat-history test changes in this task.

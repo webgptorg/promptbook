@@ -8,7 +8,7 @@
 
 ---
 
-[ ]
+[x] ~$1.19 35 minutes by OpenAI Codex `gpt-5.4`
 
 [🚧🧭] Navigation from agent profile page is not working
 
@@ -23,3 +23,4 @@
 -   You are working with [Agents Server](apps/agents-server)
 
 ![alt text](prompts/screenshots/2026-04-4000-agents-server-link-click-routing-1.png)
+

@@ -72,6 +72,36 @@ type DelayedUserChatRequest = DelayedRequestControl;
 type DelayedUserChatMessageCreateRequest = DelayedRequestControl;
 
 /**
+ * Visible label used by the default profile/chat quick button fixture.
+ */
+const DEFAULT_QUICK_BUTTON_LABEL = 'Hello';
+
+/**
+ * Message payload emitted by the default profile/chat quick button fixture.
+ */
+const DEFAULT_QUICK_BUTTON_MESSAGE = 'Hello, can you tell me about yourself?';
+
+/**
+ * Deterministic composer message used by profile-to-chat routing coverage.
+ */
+const PROFILE_COMPOSER_MESSAGE = 'Hello from profile composer';
+
+/**
+ * Maximum wait after releasing one delayed network request in navigation tests.
+ */
+const DELAYED_REQUEST_RELEASE_TIMEOUT_MS = 20_000;
+
+/**
+ * Escapes one literal string so it can be matched exactly inside a `RegExp`.
+ *
+ * @param value - Literal text that should be treated as plain content.
+ * @returns Escaped text safe to interpolate into a regular expression.
+ */
+function escapeForRegExp(value: string): string {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
  * Creates one management API token for the authenticated browser session.
  *
  * @param page - Current Playwright page.
@@ -352,6 +382,28 @@ async function delayNextUserChatMessageCreateRequest(
 }
 
 /**
+ * Releases one delayed request and fails if it does not finish promptly afterward.
+ *
+ * @param page - Current Playwright page.
+ * @param delayedRequest - Request control returned by a delay helper.
+ * @param failureMessage - Error message used when completion does not arrive.
+ */
+async function releaseDelayedRequestOrFail(
+    page: Page,
+    delayedRequest: DelayedRequestControl,
+    failureMessage: string,
+): Promise<void> {
+    delayedRequest.release();
+    await Promise.race([
+        delayedRequest.waitUntilFinished,
+        page.waitForTimeout(DELAYED_REQUEST_RELEASE_TIMEOUT_MS).then(() => {
+            throw new Error(failureMessage);
+        }),
+    ]);
+    await delayedRequest.dispose();
+}
+
+/**
  * Chat-history navigation regressions for explicit user-selected chats.
  */
 test.describe('Agents Server chat history navigation', () => {
@@ -383,18 +435,126 @@ test.describe('Agents Server chat history navigation', () => {
         await expect(page.getByText('Sending', { exact: true })).toBeVisible();
         await expect(page.getByText(/Hello! I am /)).toBeVisible();
 
-        delayedMessageCreate.release();
-        await Promise.race([
-            delayedMessageCreate.waitUntilFinished,
-            page.waitForTimeout(20_000).then(() => {
-                throw new Error('Expected delayed message-create request to finish after release.');
-            }),
-        ]);
-        await delayedMessageCreate.dispose();
+        await releaseDelayedRequestOrFail(
+            page,
+            delayedMessageCreate,
+            'Expected delayed message-create request to finish after release.',
+        );
 
         await expect(optimisticMessageBubble).toBeVisible();
         await expect(page.getByText('Sending', { exact: true })).toHaveCount(0, { timeout: 20_000 });
         await expect(page.getByText('Completed', { exact: true })).toBeVisible({ timeout: 20_000 });
+    });
+
+    test('navigates from the profile page when opening an existing chat preview card', async ({ page }) => {
+        await page.goto('/');
+        await loginAsAdmin(page);
+
+        const apiKey = await createManagementApiToken(page);
+        const agent = await createTestAgent(page, apiKey, 'E2E Profile My Chats Navigation');
+        const existingChat = await createSeededChat(page, agent.agentName, 'Alpha seeded chat');
+
+        await page.goto(`/agents/${encodeURIComponent(agent.agentName)}`);
+        await expect(page.getByRole('link', { name: /Alpha seeded chat/i })).toBeVisible();
+
+        await page.getByRole('link', { name: /Alpha seeded chat/i }).click();
+
+        await expect
+            .poll(() => readChatIdFromUrl(page.url()), {
+                message: 'Expected clicking a profile My chats card to open the selected durable chat.',
+            })
+            .toBe(existingChat.id);
+        await expect(page.getByText('Reply for Alpha seeded chat')).toBeVisible();
+    });
+
+    test('navigates from the profile page for quick buttons and composer sends', async ({ page }) => {
+        await page.goto('/');
+        await loginAsAdmin(page);
+
+        const apiKey = await createManagementApiToken(page);
+        const agent = await createTestAgent(page, apiKey, 'E2E Profile Entry Actions');
+
+        const delayedQuickButtonSend = await delayNextUserChatMessageCreateRequest(page, agent.agentName);
+
+        await page.goto(`/agents/${encodeURIComponent(agent.agentName)}`);
+        await expect(page.getByRole('button', { name: DEFAULT_QUICK_BUTTON_LABEL })).toBeVisible();
+
+        await page.getByRole('button', { name: DEFAULT_QUICK_BUTTON_LABEL }).click();
+
+        await expect
+            .poll(() => page.url(), {
+                message: 'Expected clicking a profile quick button to navigate to the durable chat route.',
+            })
+            .toContain(`${agent.chatUrl}?chat=`);
+        await expect(
+            page
+                .locator('p')
+                .filter({ hasText: new RegExp(`^${escapeForRegExp(DEFAULT_QUICK_BUTTON_MESSAGE)}$`) })
+                .first(),
+        ).toBeVisible();
+        await expect(page.getByText('Sending', { exact: true })).toBeVisible();
+
+        await releaseDelayedRequestOrFail(
+            page,
+            delayedQuickButtonSend,
+            'Expected delayed quick-button message-create request to finish after release.',
+        );
+
+        const delayedManualSend = await delayNextUserChatMessageCreateRequest(page, agent.agentName);
+
+        await page.goto(`/agents/${encodeURIComponent(agent.agentName)}`);
+        await expect(page.getByPlaceholder('Write a message...')).toBeVisible();
+        await page.getByPlaceholder('Write a message...').fill(PROFILE_COMPOSER_MESSAGE);
+        await page.locator('button[data-button-type="call-to-action"]').last().click();
+
+        await expect
+            .poll(() => page.url(), {
+                message: 'Expected sending a profile composer message to navigate to the durable chat route.',
+            })
+            .toContain(`${agent.chatUrl}?chat=`);
+        await expect(
+            page.locator('p').filter({ hasText: new RegExp(`^${PROFILE_COMPOSER_MESSAGE}$`) }).first(),
+        ).toBeVisible();
+        await expect(page.getByText('Sending', { exact: true })).toBeVisible();
+
+        await releaseDelayedRequestOrFail(
+            page,
+            delayedManualSend,
+            'Expected delayed profile-composer message-create request to finish after release.',
+        );
+    });
+
+    test('sends quick-button prompts from the durable chat page', async ({ page }) => {
+        await page.goto('/');
+        await loginAsAdmin(page);
+
+        const apiKey = await createManagementApiToken(page);
+        const agent = await createTestAgent(page, apiKey, 'E2E Chat Quick Button Send');
+        const delayedMessageCreate = await delayNextUserChatMessageCreateRequest(page, agent.agentName);
+
+        await page.goto(agent.chatUrl);
+        await expect(page.getByRole('button', { name: DEFAULT_QUICK_BUTTON_LABEL })).toBeVisible();
+        await expect
+            .poll(() => page.url(), {
+                message: 'Expected the durable chat page to select or create an active chat before sending.',
+            })
+            .toContain(`${agent.chatUrl}?chat=`);
+
+        await page.getByRole('button', { name: DEFAULT_QUICK_BUTTON_LABEL }).click();
+
+        await expect(
+            page
+                .locator('p')
+                .filter({ hasText: new RegExp(`^${escapeForRegExp(DEFAULT_QUICK_BUTTON_MESSAGE)}$`) })
+                .first(),
+        ).toBeVisible();
+        await expect(page.getByText('Sending', { exact: true })).toBeVisible();
+
+        await releaseDelayedRequestOrFail(
+            page,
+            delayedMessageCreate,
+            'Expected delayed chat quick-button message-create request to finish after release.',
+        );
     });
 
     test('keeps the newly created chat selected after a delayed stale refresh and does not open a native dialog', async ({

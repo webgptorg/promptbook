@@ -46,8 +46,9 @@
 -   Fixed Agents Server profile-to-chat routing from `/agents/[agentName]` so profile interactions no longer no-op:
 
     -   Simplified profile chat navigation to route immediately with `router.push(...)` instead of deferred transition scheduling.
-    -   Wired profile **My chats** cards and hoisted mobile **My chats** actions to run explicit chat-route navigation callbacks.
+    -   Wired profile **My chats** cards to use explicit chat-route navigation callbacks instead of relying on deferred default-link behavior.
     -   Ensured profile quick-message buttons and composer sends consistently open `/agents/[agentName]/chat` (including relevant query params).
+    -   Added E2E coverage for profile **My chats** cards, profile quick buttons, profile composer sends, and durable-chat quick-button sends.
 
 -   Improved Czech (`SERVER_LANGUAGE=cs`) localization coverage in Agents Server by translating legacy hardcoded UI phrases that still flowed through `formatText(...)` / `formatAgentNamingText(...)`:
 
