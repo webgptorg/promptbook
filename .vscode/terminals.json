@@ -200,15 +200,23 @@
             "focus": false
         },
         {
-            "name": "🧪 Test Unit (💤)(⏳)",
+            "name": "🧪 Unit tests (💤)(⏳)",
             "command": "npm run test-unit",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "🧪✨ Test Agents Server (💤)(⏳)",
+            "name": "🧪 Test Agents Server (💤)(⏳)",
             "command": "npm run test-app-agents-server",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🧪 Integration tests of Agents Server (💤)(⏳)",
+            "cwd": "./apps/agents-server/",
+            "command": "npm run test-e2e",
             "execute": false,
             "onlySingle": false,
             "focus": false
@@ -228,7 +236,7 @@
             "focus": false
         },
         {
-            "name": "🧪 Test Lint (💤)",
+            "name": "🧪 Lint (💤)",
             "command": "npm run test-lint",
             "execute": false,
             "onlySingle": false,
@@ -263,14 +271,14 @@
             "focus": true
         },
         {
-            "name": "🧪 (examples) Test lint ",
+            "name": "🧪 (examples) Lint ",
             "command": "npx eslint examples",
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🧪 (scripts) Test Lint",
+            "name": "🧪 (scripts) Lint",
             "command": "npx eslint scripts",
             "execute": true,
             "onlySingle": true,
