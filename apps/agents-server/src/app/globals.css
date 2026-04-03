@@ -281,6 +281,50 @@ textarea:focus-visible {
     animation: spin 1s linear infinite;
 }
 
+/* Global route-transition progress bar */
+.agents-server-navigation-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    pointer-events: none;
+    z-index: 130;
+    opacity: 0;
+    transition: opacity 120ms ease;
+}
+
+.agents-server-navigation-progress.is-visible {
+    opacity: 1;
+}
+
+.agents-server-navigation-progress__bar {
+    height: 100%;
+    width: 0;
+    border-radius: 0 999px 999px 0;
+    background: linear-gradient(90deg, #0ea5e9 0%, #06b6d4 35%, #22d3ee 55%, #38bdf8 85%, #0ea5e9 100%);
+    background-size: 220% 100%;
+    box-shadow: 0 0 16px rgba(14, 165, 233, 0.48);
+    transition: width 140ms ease-out;
+    animation: agents-server-navigation-progress-gradient-shift 1s linear infinite;
+}
+
+@keyframes agents-server-navigation-progress-gradient-shift {
+    from {
+        background-position: 0 0;
+    }
+    to {
+        background-position: 220% 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .agents-server-navigation-progress__bar {
+        animation: none;
+        transition-duration: 1ms;
+    }
+}
+
 /* Shared skeleton loading blocks */
 @keyframes skeleton-shimmer {
     0% {

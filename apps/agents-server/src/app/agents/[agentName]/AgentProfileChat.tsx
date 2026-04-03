@@ -17,6 +17,7 @@ import { useChatEnterBehaviorPreferences } from '../../../components/ChatEnterBe
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 import { createMyChatsMobileMenuItem } from '../../../components/Header/createMyChatsMobileMenuItem';
 import { useHoistedMobileMenuItems } from '../../../components/Header/MobileMenuHoistingContext';
+import { dispatchNavigationProgressStart } from '../../../components/NavigationProgress/navigationProgressEvents';
 import { HeadlessLink } from '../../../components/_utils/headlessParam';
 import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { executeQuickActionButton } from '../../../utils/chat/executeQuickActionButton';
@@ -252,6 +253,7 @@ export function AgentProfileChat({
     const navigateToDestination = useCallback(
         (destination: string) => {
             setIsNavigatingToChat(true);
+            dispatchNavigationProgressStart({ href: destination, source: 'router' });
             router.push(destination);
 
             clearPendingNavigationFallback();

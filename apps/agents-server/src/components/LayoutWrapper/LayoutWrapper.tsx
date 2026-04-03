@@ -14,6 +14,7 @@ import { Footer, type FooterLink } from '../Footer/Footer';
 import { Header } from '../Header/Header';
 import { MobileMenuHoistingProvider } from '../Header/MobileMenuHoistingContext';
 import { MetadataFlagsProvider } from '../MetadataFlags/MetadataFlagsContext';
+import { NavigationProgressBar } from '../NavigationProgress/NavigationProgressBar';
 import { NotificationsProvider } from '../Notifications/NotificationsProvider';
 import { PrivateModePreferencesProvider } from '../PrivateModePreferences/PrivateModePreferencesProvider';
 import { BrowserPushNotificationsProvider } from '../PushNotifications/BrowserPushNotificationsProvider';
@@ -113,6 +114,7 @@ export function LayoutWrapper({
                                         <ChatEnterBehaviorPreferencesProvider>
                                             <ClientVersionMismatchListener />
                                             <ViewportHeightController />
+                                            <NavigationProgressBar />
                                             <MenuHoistingProvider>
                                                 <MobileMenuHoistingProvider>
                                                     <MetadataFlagsProvider value={{ isExperimentalPwaAppEnabled }}>

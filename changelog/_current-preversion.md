@@ -1,3 +1,9 @@
+-   Improved Agents Server route-transition UX with a global top-edge loading bar for chat/navigation handoffs:
+
+    -   Added a fixed gradient progress bar that appears immediately on internal navigation and completes when the target route is ready.
+    -   Wired navigation-start signals for both internal link clicks and programmatic `router.push(...)` transitions used by shared headless helpers and profile-to-chat handoff paths.
+    -   Added a stall-safe timeout plus reduced-motion support so the indicator stays informative without lingering indefinitely.
+
 -   Fixed Agents Server chat-history E2E reliability when local environment SQL settings leak into Playwright runs:
 
     -   Updated the Agents Server Playwright app environment to explicitly clear `POSTGRES_URL` / `DATABASE_URL`, so E2E runs stay isolated to the mocked Supabase backend.
