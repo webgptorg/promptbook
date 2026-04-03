@@ -222,6 +222,14 @@
             "focus": false
         },
         {
+            "name": "🧪 Integration tests of Agents Server (not headless) (⏳)",
+            "cwd": "./apps/agents-server/",
+            "command": "npx playwright test --headed",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🧪 Test Types (💤)",
             "command": "npm run test-types",
             "execute": false,
