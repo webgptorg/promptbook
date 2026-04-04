@@ -43,3 +43,15 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with [Agents Server](apps/agents-server)
 
+---
+
+[ ]
+
+[🚧🧭] Clicking on quick buttons is sometimes not working
+
+-   The quick buttons under agent message is sometimes does nothing
+-   When I click on the quick button, it should send the prefilled message
+-   But sometimes it does nothing
+-   And sometimes it works
+-   Sometimes it does not work on the first click, second click, third click, but then it suddenly works totally fine
+-   You are working with [Agents Server](apps/agents-server) with the chat page, for example https://s6.ptbk.io/agents/hKs8wGS2xc5GhF/chat?chat=t5bVjBniLGvCfh
