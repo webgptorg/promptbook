@@ -2,7 +2,6 @@
 
 [🧩📌] Add chat visual mode toggle (BUBBLE vs ARTICLE) in Agents Server
 
--   *(@@@@ Written by agent)*
 -   You are working with [Agents Server](apps/agents-server)
 -   Problem: Currently, user and agent messages render with the same “bubble” look, so it’s hard to visually distinguish agent responses from the user.
 -   Add two chat visual modes, selected by the control panel:
@@ -33,9 +32,3 @@
     -   Control panel toggle changes rendering immediately without page reload
     -   Metadata “Chat visual mode” sets the default correctly
     -   Agent messages are borderless in ARTICLE_MODE while user bubbles remain
--   Screenshot to include in final PRD: @@@
-
-Questions / missing pieces:
--   What is the exact location/state mechanism used for the control panel settings today? (TBD after code inspection)
--   Should the selection persist per chat, per user, or only during current session? (TBD)
--   Exact constant names expected by the team: `BUBBLE_MODE`/`ARTICLE_MODE` vs something else? (TBD)
