@@ -1,3 +1,9 @@
+-   Improved Agents Server `ARTICLE_MODE` chat rendering so assistant replies feel like regular article content while keeping `BUBBLE_MODE` unchanged:
+
+    -   Centered assistant article replies on desktop with a readable max width and preserved full-width behavior on mobile.
+    -   Moved article-mode assistant actions (`read`, `copy`, `feedback` / `report issue`) into an always-visible bottom action row instead of hover-revealed overlays.
+    -   Added a shared message-action layout abstraction in `ChatMessageItem` to keep article/bubble action rendering DRY and maintainable.
+
 -   Added Agents Server chat visual mode controls with metadata-backed defaults and live rendering switch:
 
     -   Added new metadata key `CHAT_VISUAL_MODE` with supported values `BUBBLE_MODE` and `ARTICLE_MODE` (default `BUBBLE_MODE`).

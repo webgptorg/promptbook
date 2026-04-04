@@ -147,6 +147,13 @@ type RenderableMessageButton = {
 };
 
 /**
+ * Layout variants used for message-level utility actions (copy/read/feedback).
+ *
+ * @private internal helper of `<ChatMessageItem/>`
+ */
+type MessageActionsLayout = 'bubble-overlay' | 'article-footer';
+
+/**
  * Maximum characters allowed in a single ElevenLabs speech request.
  *
  * @private
@@ -946,6 +953,227 @@ export const ChatMessageItem = memo(
         const speechPlaybackEnabled = isSpeechPlaybackEnabled ?? true;
         const shouldShowPlayButton = speechPlaybackEnabled && trimmedMessageContent.length > 0;
         const playButtonTitle = audioError ?? (isAudioPlaying ? 'Pause message playback' : 'Read message aloud');
+        const messageActionsLayout: MessageActionsLayout = isAgentArticleMode ? 'article-footer' : 'bubble-overlay';
+        const shouldRenderCopyAndPlayControls = Boolean(isCopyButtonEnabled && isComplete);
+        const shouldRenderFeedbackControls = Boolean(isFeedbackEnabled && feedbackMode !== 'off' && isComplete);
+        const shouldRenderArticleActionsBar =
+            messageActionsLayout === 'article-footer' &&
+            (shouldRenderCopyAndPlayControls || shouldRenderFeedbackControls);
+
+        /**
+         * Renders the optional message utility buttons used for copy/read actions.
+         *
+         * @returns Message utility controls or `null` when disabled.
+         * @private
+         */
+        const renderMessageReadAndCopyControls = (): ReactElement | null => {
+            if (!shouldRenderCopyAndPlayControls) {
+                return null;
+            }
+
+            return (
+                <div
+                    className={classNames(
+                        styles.copyButtonContainer,
+                        messageActionsLayout === 'article-footer' && styles.articleModeMessageControls,
+                    )}
+                >
+                    <div className={styles.messageControlGroup}>
+                        {shouldShowPlayButton && (
+                            <button
+                                type="button"
+                                className={styles.playButton}
+                                title={playButtonTitle}
+                                aria-label={playButtonTitle}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    void handlePlayMessage();
+                                }}
+                                disabled={isAudioLoading}
+                            >
+                                {isAudioLoading ? (
+                                    <span className={styles.playButtonSpinner} aria-hidden="true" />
+                                ) : isAudioPlaying ? (
+                                    <Pause className={styles.playButtonIcon} aria-hidden="true" />
+                                ) : (
+                                    <Play className={styles.playButtonIcon} aria-hidden="true" />
+                                )}
+                            </button>
+                        )}
+                        <button
+                            className={styles.copyButton}
+                            title="Copy message"
+                            onClick={async (e) => {
+                                e.stopPropagation();
+
+                                if (navigator.clipboard && window.ClipboardItem) {
+                                    const clipboardItems: Record<string, Blob> = {};
+
+                                    if (contentWithoutButtonsRef.current) {
+                                        const html = contentWithoutButtonsRef.current.innerHTML;
+                                        clipboardItems['text/html'] = new Blob([html], {
+                                            type: 'text/html',
+                                        });
+                                    }
+
+                                    if (contentWithoutButtonsRef.current) {
+                                        const plain = contentWithoutButtonsRef.current.innerText;
+                                        clipboardItems['text/plain'] = new Blob([plain], {
+                                            type: 'text/plain',
+                                        });
+                                    }
+
+                                    await navigator.clipboard.write([new window.ClipboardItem(clipboardItems)]);
+                                    setCopied(true);
+                                    setTimeout(() => setCopied(false), 2000);
+
+                                    // Tooltip positioning logic
+                                    setTimeout(() => {
+                                        const tooltip = copyTooltipRef.current;
+                                        if (tooltip) {
+                                            const rect = tooltip.getBoundingClientRect();
+                                            if (rect.left < 8) {
+                                                setTooltipAlign('left');
+                                            } else if (rect.right > window.innerWidth - 8) {
+                                                setTooltipAlign('right');
+                                            } else {
+                                                setTooltipAlign('center');
+                                            }
+                                        }
+                                    }, 10);
+                                    if (typeof onCopy === 'function') {
+                                        onCopy();
+                                    }
+                                } else {
+                                    throw new Error(
+                                        `Your browser does not support copying to clipboard: navigator.clipboard && window.ClipboardItem.`,
+                                    );
+                                }
+                            }}
+                        >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                <rect
+                                    x="7"
+                                    y="7"
+                                    width="10"
+                                    height="14"
+                                    rx="2"
+                                    fill="#fff"
+                                    stroke="#bbb"
+                                    strokeWidth="1.5"
+                                />
+                                <rect
+                                    x="3"
+                                    y="3"
+                                    width="10"
+                                    height="14"
+                                    rx="2"
+                                    fill="#fff"
+                                    stroke="#bbb"
+                                    strokeWidth="1.5"
+                                />
+                            </svg>
+                            {copied && (
+                                <span
+                                    ref={copyTooltipRef}
+                                    className={
+                                        styles.copiedTooltip +
+                                        (tooltipAlign === 'left'
+                                            ? ' ' + styles.copiedTooltipLeft
+                                            : tooltipAlign === 'right'
+                                            ? ' ' + styles.copiedTooltipRight
+                                            : '')
+                                    }
+                                >
+                                    Copied!
+                                </span>
+                            )}
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        /**
+         * Renders feedback controls for one completed message.
+         *
+         * @returns Feedback controls or `null` when disabled.
+         * @private
+         */
+        const renderMessageFeedbackControls = (): ReactElement | null => {
+            if (!shouldRenderFeedbackControls) {
+                return null;
+            }
+
+            return (
+                <div
+                    className={classNames(
+                        styles.rating,
+                        messageActionsLayout === 'article-footer' && styles.articleModeRating,
+                    )}
+                    onMouseEnter={
+                        isReportIssueFeedbackMode
+                            ? undefined
+                            : () => {
+                                  setExpandedMessageId(message.id || message.content /* <-[💃] */);
+                              }
+                    }
+                    onMouseLeave={
+                        isReportIssueFeedbackMode
+                            ? undefined
+                            : () => {
+                                  setExpandedMessageId(null);
+                                  setLocalHoveredRating(0);
+                              }
+                    }
+                >
+                    {isReportIssueFeedbackMode ? (
+                        <button
+                            type="button"
+                            onClick={() => handleRating(message, 1)}
+                            className={styles.feedbackIssueButton}
+                            aria-label={
+                                feedbackTranslations?.reportIssueButtonAriaLabel || 'Report issue with this response'
+                            }
+                            title={feedbackTranslations?.reportIssueButtonTitle || 'Report issue'}
+                        >
+                            ⚠
+                        </button>
+                    ) : isExpanded ? (
+                        [1, 2, 3, 4, 5].map((star) => (
+                            <span
+                                key={star}
+                                onClick={() => handleRating(message, star)}
+                                onMouseEnter={() => setLocalHoveredRating(star)}
+                                className={classNames(
+                                    styles.ratingStar,
+                                    star <= (localHoveredRating || currentRating || 0) && styles.active,
+                                )}
+                                style={
+                                    {
+                                        '--star-inactive-color': mode === 'LIGHT' ? '#ccc' : '#555',
+                                    } as React.CSSProperties
+                                }
+                            >
+                                ⭐
+                            </span>
+                        ))
+                    ) : (
+                        <span
+                            onClick={() => handleRating(message, currentRating || 1)}
+                            className={classNames(styles.ratingStar, currentRating && styles.active)}
+                            style={
+                                {
+                                    '--star-inactive-color': mode === 'LIGHT' ? '#888' : '#666',
+                                } as React.CSSProperties
+                            }
+                        >
+                            ⭐
+                        </span>
+                    )}
+                </div>
+            );
+        };
 
         /**
          * Executes one quick action button and marks it consumed after a successful run.
@@ -1221,124 +1449,7 @@ export const ChatMessageItem = memo(
                             } as React.CSSProperties
                         }
                     >
-                        {isCopyButtonEnabled && isComplete && (
-                            <div className={styles.copyButtonContainer}>
-                                <div className={styles.messageControlGroup}>
-                                    {shouldShowPlayButton && (
-                                        <button
-                                            type="button"
-                                            className={styles.playButton}
-                                            title={playButtonTitle}
-                                            aria-label={playButtonTitle}
-                                            onClick={(event) => {
-                                                event.stopPropagation();
-                                                void handlePlayMessage();
-                                            }}
-                                            disabled={isAudioLoading}
-                                        >
-                                            {isAudioLoading ? (
-                                                <span className={styles.playButtonSpinner} aria-hidden="true" />
-                                            ) : isAudioPlaying ? (
-                                                <Pause className={styles.playButtonIcon} aria-hidden="true" />
-                                            ) : (
-                                                <Play className={styles.playButtonIcon} aria-hidden="true" />
-                                            )}
-                                        </button>
-                                    )}
-                                    <button
-                                        className={styles.copyButton}
-                                        title="Copy message"
-                                        onClick={async (e) => {
-                                            e.stopPropagation();
-
-                                            if (navigator.clipboard && window.ClipboardItem) {
-                                                const clipboardItems: Record<string, Blob> = {};
-
-                                                if (contentWithoutButtonsRef.current) {
-                                                    const html = contentWithoutButtonsRef.current.innerHTML;
-                                                    clipboardItems['text/html'] = new Blob([html], {
-                                                        type: 'text/html',
-                                                    });
-                                                }
-
-                                                if (contentWithoutButtonsRef.current) {
-                                                    const plain = contentWithoutButtonsRef.current.innerText;
-                                                    clipboardItems['text/plain'] = new Blob([plain], {
-                                                        type: 'text/plain',
-                                                    });
-                                                }
-
-                                                await navigator.clipboard.write([
-                                                    new window.ClipboardItem(clipboardItems),
-                                                ]);
-                                                setCopied(true);
-                                                setTimeout(() => setCopied(false), 2000);
-
-                                                // Tooltip positioning logic
-                                                setTimeout(() => {
-                                                    const tooltip = copyTooltipRef.current;
-                                                    if (tooltip) {
-                                                        const rect = tooltip.getBoundingClientRect();
-                                                        if (rect.left < 8) {
-                                                            setTooltipAlign('left');
-                                                        } else if (rect.right > window.innerWidth - 8) {
-                                                            setTooltipAlign('right');
-                                                        } else {
-                                                            setTooltipAlign('center');
-                                                        }
-                                                    }
-                                                }, 10);
-                                                if (typeof onCopy === 'function') {
-                                                    onCopy();
-                                                }
-                                            } else {
-                                                throw new Error(
-                                                    `Your browser does not support copying to clipboard: navigator.clipboard && window.ClipboardItem.`,
-                                                );
-                                            }
-                                        }}
-                                    >
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                                            <rect
-                                                x="7"
-                                                y="7"
-                                                width="10"
-                                                height="14"
-                                                rx="2"
-                                                fill="#fff"
-                                                stroke="#bbb"
-                                                strokeWidth="1.5"
-                                            />
-                                            <rect
-                                                x="3"
-                                                y="3"
-                                                width="10"
-                                                height="14"
-                                                rx="2"
-                                                fill="#fff"
-                                                stroke="#bbb"
-                                                strokeWidth="1.5"
-                                            />
-                                        </svg>
-                                        {copied && (
-                                            <span
-                                                ref={copyTooltipRef}
-                                                className={
-                                                    styles.copiedTooltip +
-                                                    (tooltipAlign === 'left'
-                                                        ? ' ' + styles.copiedTooltipLeft
-                                                        : tooltipAlign === 'right'
-                                                        ? ' ' + styles.copiedTooltipRight
-                                                        : '')
-                                                }
-                                            >
-                                                Copied!
-                                            </span>
-                                        )}
-                                    </button>
-                                </div>
-                            </div>
-                        )}
+                        {!shouldRenderArticleActionsBar && renderMessageReadAndCopyControls()}
                         {message.isVoiceCall && (
                             <div className={styles.voiceCallIndicator}>
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -1485,70 +1596,11 @@ export const ChatMessageItem = memo(
                             </div>
                         )}
 
-                        {isFeedbackEnabled && feedbackMode !== 'off' && isComplete && (
-                            <div
-                                className={styles.rating}
-                                onMouseEnter={
-                                    isReportIssueFeedbackMode
-                                        ? undefined
-                                        : () => {
-                                              setExpandedMessageId(message.id || message.content /* <-[💃] */);
-                                          }
-                                }
-                                onMouseLeave={
-                                    isReportIssueFeedbackMode
-                                        ? undefined
-                                        : () => {
-                                              setExpandedMessageId(null);
-                                              setLocalHoveredRating(0);
-                                          }
-                                }
-                            >
-                                {isReportIssueFeedbackMode ? (
-                                    <button
-                                        type="button"
-                                        onClick={() => handleRating(message, 1)}
-                                        className={styles.feedbackIssueButton}
-                                        aria-label={
-                                            feedbackTranslations?.reportIssueButtonAriaLabel ||
-                                            'Report issue with this response'
-                                        }
-                                        title={feedbackTranslations?.reportIssueButtonTitle || 'Report issue'}
-                                    >
-                                        ⚠
-                                    </button>
-                                ) : isExpanded ? (
-                                    [1, 2, 3, 4, 5].map((star) => (
-                                        <span
-                                            key={star}
-                                            onClick={() => handleRating(message, star)}
-                                            onMouseEnter={() => setLocalHoveredRating(star)}
-                                            className={classNames(
-                                                styles.ratingStar,
-                                                star <= (localHoveredRating || currentRating || 0) && styles.active,
-                                            )}
-                                            style={
-                                                {
-                                                    '--star-inactive-color': mode === 'LIGHT' ? '#ccc' : '#555',
-                                                } as React.CSSProperties
-                                            }
-                                        >
-                                            ⭐
-                                        </span>
-                                    ))
-                                ) : (
-                                    <span
-                                        onClick={() => handleRating(message, currentRating || 1)}
-                                        className={classNames(styles.ratingStar, currentRating && styles.active)}
-                                        style={
-                                            {
-                                                '--star-inactive-color': mode === 'LIGHT' ? '#888' : '#666',
-                                            } as React.CSSProperties
-                                        }
-                                    >
-                                        ⭐
-                                    </span>
-                                )}
+                        {!shouldRenderArticleActionsBar && renderMessageFeedbackControls()}
+                        {shouldRenderArticleActionsBar && (
+                            <div className={styles.articleModeMessageActions}>
+                                {renderMessageReadAndCopyControls()}
+                                {renderMessageFeedbackControls()}
                             </div>
                         )}
                     </div>

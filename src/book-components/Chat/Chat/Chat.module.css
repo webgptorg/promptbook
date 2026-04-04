@@ -312,12 +312,16 @@
 .chatMainFlow .chatMessage.articleModeAgentMessage {
     column-gap: 0;
     margin-bottom: 28px;
+    width: 100%;
+    justify-content: center;
+    align-items: stretch;
 }
 
 .chatMainFlow .chatMessage.articleModeAgentMessage .messageStack {
     width: min(100%, 860px);
     max-width: min(100%, 860px);
     align-items: stretch;
+    margin: 0 auto;
 }
 
 .chatMainFlow .chatMessage .avatar.articleModeAgentAvatar {
@@ -367,6 +371,11 @@
 .chatMainFlow .chatMessage.isMe .messageMeta {
     align-self: flex-end;
     text-align: right;
+}
+
+.chatMainFlow .chatMessage.articleModeAgentMessage .messageMeta {
+    margin-left: 0;
+    margin-right: 0;
 }
 
 .messageLifecycleBadge {
@@ -787,6 +796,8 @@
     min-width: 0;
     margin-bottom: 8px;
     padding: 2px 0;
+    line-height: 1.75;
+    font-size: 15.5px;
     --chat-md-link-color: #1d4ed8;
     --chat-md-inline-code-bg: rgba(15, 23, 42, 0.08);
     --chat-md-inline-code-border: rgba(15, 23, 42, 0.16);
@@ -862,11 +873,48 @@
     pointer-events: auto;
 }
 
+.articleModeMessageActions {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid color-mix(in srgb, var(--message-text-color, #0f172a) 14%, transparent);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 10px 12px;
+}
+
+.articleModeMessageControls {
+    position: static;
+    top: auto;
+    right: auto;
+    z-index: auto;
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+}
+
 .messageControlGroup {
     display: flex;
     align-items: center;
     gap: 7px;
     pointer-events: auto;
+}
+
+.articleModeMessageActions .copyButton,
+.articleModeMessageActions .playButton {
+    background: #f8fafc;
+    border-color: rgba(148, 163, 184, 0.65);
+    box-shadow: none;
+    color: #0f172a;
+}
+
+.articleModeMessageActions .playButton:hover:not(:disabled),
+.articleModeMessageActions .copyButton:hover,
+.articleModeMessageActions .copyButton:focus {
+    background: #ffffff;
+    border-color: rgba(100, 116, 139, 0.82);
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
 }
 
 .copyButton {
@@ -1157,9 +1205,31 @@
     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
+.chatMainFlow .chatMessage .rating.articleModeRating {
+    position: static;
+    bottom: auto;
+    right: auto;
+    min-width: 0;
+    z-index: auto;
+    background: rgba(248, 250, 252, 0.9);
+    border: 1px solid rgba(148, 163, 184, 0.5);
+    border-radius: 999px;
+    padding: 4px 8px;
+    backdrop-filter: none;
+    opacity: 1;
+    transform: none;
+}
+
 .chatMainFlow .chatMessage:hover .rating {
     opacity: 1;
     transform: translateY(0);
+}
+
+.chatMainFlow .chatMessage .rating.articleModeRating:hover {
+    background: rgba(241, 245, 249, 0.94);
+    border-color: rgba(100, 116, 139, 0.62);
+    padding: 4px 8px;
+    box-shadow: none;
 }
 
 .chatMainFlow .chatMessage .rating:hover {
@@ -3517,11 +3587,19 @@
     .chatMainFlow .chatMessage.articleModeAgentMessage .messageStack {
         width: 100%;
         max-width: 100%;
+        margin: 0;
     }
 
     .chatMainFlow .chatMessage .messageText.articleModeAgentMessageText {
         padding: 2px 0;
         border-radius: 0;
+        font-size: 15px;
+        line-height: 1.68;
+    }
+
+    .articleModeMessageActions {
+        justify-content: flex-start;
+        gap: 8px;
     }
 
     .chatMainFlow .chatMessage .avatar {
