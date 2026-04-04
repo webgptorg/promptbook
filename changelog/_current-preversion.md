@@ -1,3 +1,8 @@
+-   Fixed Agents Server chat-history navigation E2E assertions to match durable-chat behavior reliably:
+
+    -   Scoped the profile preview assertion to the actual message bubble, avoiding duplicate-text strict-mode failures when the same reply text appears in both the chat list and transcript.
+    -   Updated the New chat stale-refresh regression to allow the expected optimistic-to-canonical chat-id handoff while still asserting that background refresh never switches back to an existing seeded chat.
+
 -   Improved Agents Server route-transition UX with a global top-edge loading bar for chat/navigation handoffs:
 
     -   Added a fixed gradient progress bar that appears immediately on internal navigation and completes when the target route is ready.

@@ -464,7 +464,12 @@ test.describe('Agents Server chat history navigation', () => {
                 message: 'Expected clicking a profile My chats card to open the selected durable chat.',
             })
             .toBe(existingChat.id);
-        await expect(page.getByText('Reply for Alpha seeded chat')).toBeVisible();
+        await expect(
+            page
+                .locator('p')
+                .filter({ hasText: /^Reply for Alpha seeded chat$/ })
+                .first(),
+        ).toBeVisible();
     });
 
     test('navigates from the profile page for quick buttons and composer sends', async ({ page }) => {
@@ -513,7 +518,10 @@ test.describe('Agents Server chat history navigation', () => {
             })
             .toContain(`${agent.chatUrl}?chat=`);
         await expect(
-            page.locator('p').filter({ hasText: new RegExp(`^${PROFILE_COMPOSER_MESSAGE}$`) }).first(),
+            page
+                .locator('p')
+                .filter({ hasText: new RegExp(`^${PROFILE_COMPOSER_MESSAGE}$`) })
+                .first(),
         ).toBeVisible();
         await expect(page.getByText('Sending', { exact: true })).toBeVisible();
 
@@ -566,7 +574,7 @@ test.describe('Agents Server chat history navigation', () => {
         const apiKey = await createManagementApiToken(page);
         const agent = await createTestAgent(page, apiKey, 'E2E Chat Navigation New Chat');
         const firstChat = await createSeededChat(page, agent.agentName, 'Alpha seeded chat');
-        await createSeededChat(page, agent.agentName, 'Bravo seeded chat');
+        const secondChat = await createSeededChat(page, agent.agentName, 'Bravo seeded chat');
 
         await page.goto(`${agent.chatUrl}?chat=${encodeURIComponent(firstChat.id)}`);
         await expect(page.getByRole('button', { name: 'New chat' }).nth(1)).toBeVisible();
@@ -594,16 +602,34 @@ test.describe('Agents Server chat history navigation', () => {
 
         const createdChatId = readChatIdFromUrl(page.url());
         expect(createdChatId).toBeTruthy();
+        const createdChatWasInitiallyOptimistic = createdChatId?.startsWith('optimistic-user-chat:') === true;
 
         delayedRefresh.release();
         await delayedRefresh.waitUntilFinished;
         await delayedRefresh.dispose();
 
-        await expect
-            .poll(() => readChatIdFromUrl(page.url()), {
-                message: 'Expected the delayed stale refresh to be ignored after New chat.',
-            })
-            .toBe(createdChatId);
+        if (createdChatWasInitiallyOptimistic) {
+            await expect
+                .poll(
+                    () => {
+                        const currentChatId = readChatIdFromUrl(page.url());
+                        return (
+                            currentChatId !== null && currentChatId !== firstChat.id && currentChatId !== secondChat.id
+                        );
+                    },
+                    {
+                        message:
+                            'Expected the delayed stale refresh to keep a newly created chat selected instead of any existing seeded chat.',
+                    },
+                )
+                .toBe(true);
+        } else {
+            await expect
+                .poll(() => readChatIdFromUrl(page.url()), {
+                    message: 'Expected the delayed stale refresh to preserve the selected newly created chat.',
+                })
+                .toBe(createdChatId);
+        }
         expect(sawNativeDialog).toBe(false);
     });
 
