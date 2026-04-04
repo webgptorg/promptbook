@@ -33,3 +33,23 @@
     -   Metadata “Chat visual mode” sets the default correctly
     -   Agent messages are borderless in ARTICLE_MODE while user bubbles remain
 
+---
+
+[ ]
+
+[🧩📌] The `ARTICLE_MODE` should be visually better
+
+-   Now it is just message bubble without color
+-   It should be not be in the invisible chat bubble but more like regular article in the web
+-   On mobile full width
+-   On desktop take some max width and be centered, with some padding on the sides but text always start from the left edge of the message, not centered
+-   Action buttons, like feedback, report issue, read, copy,... should be on the bottom and always visible, not hidden and visible on hover
+-   Hover should be on the butons itself
+-   You are changing only Article mode, Bubble mode should stay the same
+-   Make some good common abstraction to not to much duplicate the code for the two modes, but also not to make it too complex and hard to understand
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server) with the chat page and with `Chat` component
+
+![Bubble mode](prompts/screenshots/2026-04-4125-agents-server-chat-visual-modes.png)
+![Article mode](prompts/screenshots/2026-04-4125-agents-server-chat-visual-modes-1.png)
+![ChatGPT for the inspiration](prompts/screenshots/2026-04-4125-agents-server-chat-visual-modes-2.png)
