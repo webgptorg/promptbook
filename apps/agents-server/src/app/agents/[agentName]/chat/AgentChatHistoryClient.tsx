@@ -324,10 +324,6 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     }, []);
 
     useEffect(() => {
-        activeChatIdRef.current = activeChatId;
-    }, [activeChatId]);
-
-    useEffect(() => {
         activeChatDraftMessageRef.current = activeChatDraftMessage;
     }, [activeChatDraftMessage]);
 

@@ -1,3 +1,8 @@
+-   Fixed intermittent Agents Server durable-chat quick-button no-op behavior by removing a stale ref-sync race in chat selection state:
+
+    -   Removed redundant `activeChatIdRef` synchronization from a standalone `useEffect` in `AgentChatHistoryClient`.
+    -   Kept `activeChatIdRef` sourced only from the explicit selection synchronizer, preventing outdated effect executions from temporarily overwriting the current chat id used by quick-button sends.
+
 -   Fixed Agents Server chat-history navigation E2E assertions to match durable-chat behavior reliably:
 
     -   Scoped the profile preview assertion to the actual message bubble, avoiding duplicate-text strict-mode failures when the same reply text appears in both the chat list and transcript.
