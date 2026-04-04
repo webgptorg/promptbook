@@ -1,0 +1,416 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e5]:
+        - generic [ref=e7]:
+          - generic [ref=e8]:
+            - link "Promptbook Agents Server Promptbook Agents Server" [ref=e9] [cursor=pointer]:
+              - /url: /
+              - img "Promptbook Agents Server" [ref=e10]
+              - generic [ref=e11]: Promptbook Agents Server
+            - button "Switch server" [ref=e13] [cursor=pointer]:
+              - img [ref=e14]
+          - img [ref=e16]
+          - button "agents" [ref=e20] [cursor=pointer]:
+            - generic [ref=e21]:
+              - img [ref=e23]
+              - generic [ref=e25]: agents
+            - img [ref=e26]
+        - generic [ref=e30]:
+          - generic [ref=e31]: Global search
+          - generic [ref=e32]:
+            - img
+            - combobox "Global search" [ref=e33]
+        - generic [ref=e34]:
+          - navigation [ref=e35]:
+            - button "Documentation" [ref=e37] [cursor=pointer]:
+              - text: Documentation
+              - img [ref=e38]
+            - button "System" [ref=e41] [cursor=pointer]:
+              - text: System
+              - img [ref=e42]
+          - button "Open global control panel" [ref=e45] [cursor=pointer]:
+            - img [ref=e46]
+            - generic [ref=e49]: Control panel
+          - button "A admin Admin" [ref=e52] [cursor=pointer]:
+            - generic [ref=e54]: A
+            - generic [ref=e55]:
+              - generic [ref=e56]: admin
+              - generic [ref=e57]: Admin
+            - img [ref=e58]
+    - main [ref=e60]:
+      - generic [ref=e61]:
+        - generic [ref=e64]:
+          - generic [ref=e65]:
+            - heading "Management API Explorer" [level=1] [ref=e66]
+            - paragraph [ref=e67]: Use the Swagger Authorize button with an Agents Server API key.
+          - generic [ref=e68]:
+            - generic [ref=e69]:
+              - generic [ref=e70]:
+                - generic [ref=e71]: E2E management API
+                - generic [ref=e72]: 4/4/2026, 6:36:54 PM
+              - generic [ref=e74]:
+                - textbox "API key 7" [ref=e75]: ptbk_a04d2e6dd16d4e40bddd36b251cf149f
+                - button "Show secret value" [ref=e77] [cursor=pointer]:
+                  - img [ref=e78]
+            - generic [ref=e81]:
+              - generic [ref=e82]:
+                - generic [ref=e83]: E2E chat history navigation
+                - generic [ref=e84]: 4/4/2026, 6:36:35 PM
+              - generic [ref=e86]:
+                - textbox "API key 6" [ref=e87]: ptbk_064f870783244f96922caded0724cf58
+                - button "Show secret value" [ref=e89] [cursor=pointer]:
+                  - img [ref=e90]
+            - generic [ref=e93]:
+              - generic [ref=e94]:
+                - generic [ref=e95]: E2E chat history navigation
+                - generic [ref=e96]: 4/4/2026, 6:36:25 PM
+              - generic [ref=e98]:
+                - textbox "API key 5" [ref=e99]: ptbk_250a48b0559241b78948f10a66593c28
+                - button "Show secret value" [ref=e101] [cursor=pointer]:
+                  - img [ref=e102]
+            - generic [ref=e105]:
+              - generic [ref=e106]:
+                - generic [ref=e107]: E2E chat history navigation
+                - generic [ref=e108]: 4/4/2026, 6:36:08 PM
+              - generic [ref=e110]:
+                - textbox "API key 4" [ref=e111]: ptbk_df8ee472341640fe818223dad8d68b6a
+                - button "Show secret value" [ref=e113] [cursor=pointer]:
+                  - img [ref=e114]
+            - generic [ref=e117]:
+              - generic [ref=e118]:
+                - generic [ref=e119]: E2E chat history navigation
+                - generic [ref=e120]: 4/4/2026, 6:35:33 PM
+              - generic [ref=e122]:
+                - textbox "API key 3" [ref=e123]: ptbk_4cd89d295c5f44cc9a774045acfb554b
+                - button "Show secret value" [ref=e125] [cursor=pointer]:
+                  - img [ref=e126]
+            - generic [ref=e129]:
+              - generic [ref=e130]:
+                - generic [ref=e131]: E2E chat history navigation
+                - generic [ref=e132]: 4/4/2026, 6:35:21 PM
+              - generic [ref=e134]:
+                - textbox "API key 2" [ref=e135]: ptbk_58df5eecd7c545b89d9522dabfb51ddf
+                - button "Show secret value" [ref=e137] [cursor=pointer]:
+                  - img [ref=e138]
+            - generic [ref=e141]:
+              - generic [ref=e142]:
+                - generic [ref=e143]: E2E chat history navigation
+                - generic [ref=e144]: 4/4/2026, 6:35:06 PM
+              - generic [ref=e146]:
+                - textbox "API key 1" [ref=e147]: ptbk_4564459a33d4419f9f12d9d9c4ab23ba
+                - button "Show secret value" [ref=e149] [cursor=pointer]:
+                  - img [ref=e150]
+          - generic [ref=e153]:
+            - button "Create API Key" [ref=e154] [cursor=pointer]:
+              - img [ref=e155]
+              - text: Create API Key
+            - link "Manage keys" [ref=e156] [cursor=pointer]:
+              - /url: /admin/api-tokens
+        - generic [ref=e158]:
+          - generic:
+            - img
+          - generic [ref=e159]:
+            - generic [ref=e162]:
+              - generic [ref=e163]:
+                - heading "Promptbook Agents Server Management API 1.0.0 OAS 3.1" [level=1] [ref=e164]:
+                  - text: Promptbook Agents Server Management API
+                  - generic [ref=e165]:
+                    - generic [ref=e167]: 1.0.0
+                    - generic [ref=e169]: OAS 3.1
+                - link "/openapi.json" [ref=e170] [cursor=pointer]:
+                  - /url: /openapi.json
+                  - generic [ref=e171]: /openapi.json
+              - paragraph [ref=e174]: Management API for listing, creating, organizing, updating, and deleting agents and folders on this Agents Server instance.
+              - generic [ref=e178]:
+                - heading "Warning" [level=4] [ref=e179]
+                - paragraph [ref=e180]:
+                  - strong [ref=e181]: OpenAPI.jsonSchemaDialect
+                  - text: field contains a value different from the default value of
+                  - link "https://spec.openapis.org/oas/3.1/dialect/base" [ref=e182] [cursor=pointer]:
+                    - /url: https://spec.openapis.org/oas/3.1/dialect/base
+                  - text: . Values different from the default one are currently not supported. Please either omit the field or provide it with the default value.
+            - generic [ref=e184]:
+              - generic [ref=e186]:
+                - text: Servers
+                - combobox [ref=e189]:
+                  - option "http://127.0.0.1:4440 - Current Agents Server instance" [selected]
+              - button "Authorize" [ref=e191] [cursor=pointer]:
+                - generic [ref=e192]: Authorize
+                - img [ref=e193]
+            - generic [ref=e197]:
+              - generic [ref=e198]:
+                - heading "Agents CRUD and listing operations for owned agents." [level=3] [ref=e199] [cursor=pointer]:
+                  - generic [ref=e200]: Agents
+                  - paragraph [ref=e203]: CRUD and listing operations for owned agents.
+                  - button "Collapse operation" [expanded] [ref=e204]:
+                    - img [ref=e205]
+                - generic [ref=e208]:
+                  - generic [ref=e210] [cursor=pointer]:
+                    - button "GET /api/v1/agents List agents" [ref=e211]:
+                      - generic [ref=e212]: GET
+                      - generic [ref=e213]:
+                        - generic [ref=e216]:
+                          - text: /api
+                          - text: /v1
+                          - text: /agents
+                        - generic [ref=e217]: List agents
+                    - generic "Copy to clipboard"
+                    - button "authorization button unlocked" [ref=e220]:
+                      - img [ref=e221]
+                    - button "get /api/v1/agents" [ref=e223]:
+                      - img [ref=e224]
+                  - generic [ref=e227] [cursor=pointer]:
+                    - button "POST /api/v1/agents Create agent" [ref=e228]:
+                      - generic [ref=e229]: POST
+                      - generic [ref=e230]:
+                        - generic [ref=e233]:
+                          - text: /api
+                          - text: /v1
+                          - text: /agents
+                        - generic [ref=e234]: Create agent
+                    - generic "Copy to clipboard"
+                    - button "authorization button unlocked" [ref=e237]:
+                      - img [ref=e238]
+                    - button "post /api/v1/agents" [ref=e240]:
+                      - img [ref=e241]
+                  - generic [ref=e244] [cursor=pointer]:
+                    - 'button "GET /api/v1/agents/{agentId} Get agent detail" [ref=e245]':
+                      - generic [ref=e246]: GET
+                      - generic [ref=e247]:
+                        - generic [ref=e250]:
+                          - text: /api
+                          - text: /v1
+                          - text: /agents
+                          - text: "/{agentId}"
+                        - generic [ref=e251]: Get agent detail
+                    - generic "Copy to clipboard"
+                    - button "authorization button unlocked" [ref=e254]:
+                      - img [ref=e255]
+                    - 'button "get /api/v1/agents/{agentId}" [ref=e257]':
+                      - img [ref=e258]
+                  - generic [ref=e261] [cursor=pointer]:
+                    - 'button "PATCH /api/v1/agents/{agentId} Update agent" [ref=e262]':
+                      - generic [ref=e263]: PATCH
+                      - generic [ref=e264]:
+                        - generic [ref=e267]:
+                          - text: /api
+                          - text: /v1
+                          - text: /agents
+                          - text: "/{agentId}"
+                        - generic [ref=e268]: Update agent
+                    - generic "Copy to clipboard"
+                    - button "authorization button unlocked" [ref=e271]:
+                      - img [ref=e272]
+                    - 'button "patch /api/v1/agents/{agentId}" [ref=e274]':
+                      - img [ref=e275]
+                  - generic [ref=e278] [cursor=pointer]:
+                    - 'button "DELETE /api/v1/agents/{agentId} Delete agent" [ref=e279]':
+                      - generic [ref=e280]: DELETE
+                      - generic [ref=e281]:
+                        - generic [ref=e284]:
+                          - text: /api
+                          - text: /v1
+                          - text: /agents
+                          - text: "/{agentId}"
+                        - generic [ref=e285]: Delete agent
+                    - generic "Copy to clipboard"
+                    - button "authorization button unlocked" [ref=e288]:
+                      - img [ref=e289]
+                    - 'button "delete /api/v1/agents/{agentId}" [ref=e291]':
+                      - img [ref=e292]
+              - generic [ref=e294]:
+                - heading "Folders Organization operations for owned folders." [level=3] [ref=e295] [cursor=pointer]:
+                  - generic [ref=e296]: Folders
+                  - paragraph [ref=e299]: Organization operations for owned folders.
+                  - button "Collapse operation" [expanded] [ref=e300]:
+                    - img [ref=e301]
+                - generic [ref=e304]:
+                  - generic [ref=e306] [cursor=pointer]:
+                    - button "GET /api/v1/folders List folders" [ref=e307]:
+                      - generic [ref=e308]: GET
+                      - generic [ref=e309]:
+                        - generic [ref=e312]:
+                          - text: /api
+                          - text: /v1
+                          - text: /folders
+                        - generic [ref=e313]: List folders
+                    - generic "Copy to clipboard"
+                    - button "authorization button unlocked" [ref=e316]:
+                      - img [ref=e317]
+                    - button "get /api/v1/folders" [ref=e319]:
+                      - img [ref=e320]
+                  - generic [ref=e323] [cursor=pointer]:
+                    - button "POST /api/v1/folders Create folder" [ref=e324]:
+                      - generic [ref=e325]: POST
+                      - generic [ref=e326]:
+                        - generic [ref=e329]:
+                          - text: /api
+                          - text: /v1
+                          - text: /folders
+                        - generic [ref=e330]: Create folder
+                    - generic "Copy to clipboard"
+                    - button "authorization button unlocked" [ref=e333]:
+                      - img [ref=e334]
+                    - button "post /api/v1/folders" [ref=e336]:
+                      - img [ref=e337]
+                  - generic [ref=e340] [cursor=pointer]:
+                    - 'button "PATCH /api/v1/folders/{folderId} Update folder" [ref=e341]':
+                      - generic [ref=e342]: PATCH
+                      - generic [ref=e343]:
+                        - generic [ref=e346]:
+                          - text: /api
+                          - text: /v1
+                          - text: /folders
+                          - text: "/{folderId}"
+                        - generic [ref=e347]: Update folder
+                    - generic "Copy to clipboard"
+                    - button "authorization button unlocked" [ref=e350]:
+                      - img [ref=e351]
+                    - 'button "patch /api/v1/folders/{folderId}" [ref=e353]':
+                      - img [ref=e354]
+                  - generic [ref=e357] [cursor=pointer]:
+                    - 'button "DELETE /api/v1/folders/{folderId} Delete folder" [ref=e358]':
+                      - generic [ref=e359]: DELETE
+                      - generic [ref=e360]:
+                        - generic [ref=e363]:
+                          - text: /api
+                          - text: /v1
+                          - text: /folders
+                          - text: "/{folderId}"
+                        - generic [ref=e364]: Delete folder
+                    - generic "Copy to clipboard"
+                    - button "authorization button unlocked" [ref=e367]:
+                      - img [ref=e368]
+                    - 'button "delete /api/v1/folders/{folderId}" [ref=e370]':
+                      - img [ref=e371]
+                  - generic [ref=e374] [cursor=pointer]:
+                    - 'button "POST /api/v1/folders/{folderId}/agents/{agentId} Move agent into folder" [ref=e375]':
+                      - generic [ref=e376]: POST
+                      - generic [ref=e377]:
+                        - generic [ref=e380]:
+                          - text: /api
+                          - text: /v1
+                          - text: /folders
+                          - text: "/{folderId}"
+                          - text: /agents
+                          - text: "/{agentId}"
+                        - generic [ref=e381]: Move agent into folder
+                    - generic "Copy to clipboard"
+                    - button "authorization button unlocked" [ref=e384]:
+                      - img [ref=e385]
+                    - 'button "post /api/v1/folders/{folderId}/agents/{agentId}" [ref=e387]':
+                      - img [ref=e388]
+              - generic [ref=e390]:
+                - heading "Identity Identity derived from the current API key." [level=3] [ref=e391] [cursor=pointer]:
+                  - generic [ref=e392]: Identity
+                  - paragraph [ref=e395]: Identity derived from the current API key.
+                  - button "Collapse operation" [expanded] [ref=e396]:
+                    - img [ref=e397]
+                - generic [ref=e402] [cursor=pointer]:
+                  - button "GET /api/v1/me Get API-key identity" [ref=e403]:
+                    - generic [ref=e404]: GET
+                    - generic [ref=e405]:
+                      - generic [ref=e408]:
+                        - text: /api
+                        - text: /v1
+                        - text: /me
+                      - generic [ref=e409]: Get API-key identity
+                  - generic "Copy to clipboard"
+                  - button "authorization button unlocked" [ref=e412]:
+                    - img [ref=e413]
+                  - button "get /api/v1/me" [ref=e415]:
+                    - img [ref=e416]
+              - generic [ref=e418]:
+                - heading "Instance Static runtime metadata for the current instance." [level=3] [ref=e419] [cursor=pointer]:
+                  - generic [ref=e420]: Instance
+                  - paragraph [ref=e423]: Static runtime metadata for the current instance.
+                  - button "Collapse operation" [expanded] [ref=e424]:
+                    - img [ref=e425]
+                - generic [ref=e430] [cursor=pointer]:
+                  - button "GET /api/v1/instance Get instance metadata" [ref=e431]:
+                    - generic [ref=e432]: GET
+                    - generic [ref=e433]:
+                      - generic [ref=e436]:
+                        - text: /api
+                        - text: /v1
+                        - text: /instance
+                      - generic [ref=e437]: Get instance metadata
+                  - generic "Copy to clipboard"
+                  - button "authorization button unlocked" [ref=e440]:
+                    - img [ref=e441]
+                  - button "get /api/v1/instance" [ref=e443]:
+                    - img [ref=e444]
+    - contentinfo [ref=e446]:
+      - generic [ref=e447]:
+        - generic [ref=e448]:
+          - generic [ref=e449]:
+            - heading "Promptbook" [level=3] [ref=e450]
+            - paragraph [ref=e451]: Turn your company's scattered knowledge into AI ready books
+          - generic [ref=e452]:
+            - heading "Product" [level=3] [ref=e453]
+            - list [ref=e454]:
+              - listitem [ref=e455]:
+                - link "Get started" [ref=e456] [cursor=pointer]:
+                  - /url: /get-started
+              - listitem [ref=e457]:
+                - link "Manifest" [ref=e458] [cursor=pointer]:
+                  - /url: /manifest
+              - listitem [ref=e459]:
+                - link "Documentation" [ref=e460] [cursor=pointer]:
+                  - /url: https://github.com/webgptorg/promptbook
+              - listitem [ref=e461]:
+                - link "Terms of Service" [ref=e462] [cursor=pointer]:
+                  - /url: /terms
+              - listitem [ref=e463]:
+                - link "Privacy Policy" [ref=e464] [cursor=pointer]:
+                  - /url: /privacy
+          - generic [ref=e465]:
+            - heading "Company" [level=3] [ref=e466]
+            - list [ref=e467]:
+              - listitem [ref=e468]:
+                - link "AI Web, LLC" [ref=e469] [cursor=pointer]:
+                  - /url: https://or-justice-cz.translate.goog/ias/ui/rejstrik-firma.vysledky?subjektId=1223693&typ=UPLNY&_x_tr_sl=cs&_x_tr_tl=en&_x_tr_hl=en-US&_x_tr_pto=wapp
+              - listitem [ref=e470]:
+                - link "About Us" [ref=e471] [cursor=pointer]:
+                  - /url: https://ptbk.io/#about-us
+              - listitem [ref=e472]:
+                - link "Blog" [ref=e473] [cursor=pointer]:
+                  - /url: https://ptbk.io/blog
+              - listitem [ref=e474]:
+                - link "Logos & Branding" [ref=e475] [cursor=pointer]:
+                  - /url: /design
+          - generic [ref=e476]:
+            - heading "Connect" [level=3] [ref=e477]
+            - list [ref=e478]:
+              - listitem [ref=e479]:
+                - link "GitHub" [ref=e480] [cursor=pointer]:
+                  - /url: https://github.com/webgptorg/promptbook
+              - listitem [ref=e481]:
+                - link "LinkedIn" [ref=e482] [cursor=pointer]:
+                  - /url: https://linkedin.com/company/promptbook
+              - listitem [ref=e483]:
+                - link "Discord" [ref=e484] [cursor=pointer]:
+                  - /url: https://discord.gg/x3QWNaa89N
+              - listitem [ref=e485]:
+                - link "More" [ref=e486] [cursor=pointer]:
+                  - /url: /contact
+          - generic [ref=e487]:
+            - heading "Links" [level=3] [ref=e488]
+            - list [ref=e489]:
+              - listitem [ref=e490]:
+                - 'link "Federated: core.ptbk.io" [ref=e491] [cursor=pointer]':
+                  - /url: https://core.ptbk.io/
+        - generic [ref=e492]:
+          - paragraph [ref=e493]:
+            - text: © 2026 Promptbook
+            - text: All rights reserved.
+            - text: Made with ❤️ in the Czech Republic.
+          - paragraph [ref=e494]: Promptbook engine version 0.112.0-31
+  - generic:
+    - region "Notifications"
+  - alert [ref=e495]
+```
