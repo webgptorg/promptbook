@@ -11,6 +11,7 @@ When creating new Agents server, search across the repository for [☁]
 -   [☁] Run the `_Server` -> Vercel domain sync script
 -   [☁] [Add to `.env` file](./.env)
 -   [☁] Keep `SERVER_VISIBILITY=PRIVATE` by default; switch to `SERVER_VISIBILITY=PUBLIC` (or metadata `SERVER_VISIBILITY`) only when the server should be crawlable and expose sitemap entries for public agents
+-   [☁] Optional chat default can be set via metadata `CHAT_VISUAL_MODE` (`BUBBLE_MODE` / `ARTICLE_MODE`); users can still override in the Control panel
 -   [☁] If using `USE PROJECT` auto-auth, configure [GitHub App integration](./GITHUB_APP.md)
 -   [☁] Add the server to [the list of our servers](https://docs.google.com/spreadsheets/d/1X26iMQqubsxftqD1EJNSlzPYFS94QjCFPXyKdHHDeVs/edit?gid=848307752#gid=848307752)
 -   [☁] Run migration script _(run new instance)_

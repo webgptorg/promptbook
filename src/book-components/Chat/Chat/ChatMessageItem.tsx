@@ -98,6 +98,10 @@ type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'onActionButton' | 'pa
      */
     teamAgentProfiles?: ChatProps['teamAgentProfiles'];
     /**
+     * Controls whether assistant replies render as bubbles or article blocks.
+     */
+    CHAT_VISUAL_MODE?: ChatProps['CHAT_VISUAL_MODE'];
+    /**
      * Called when a tool call chiplet is clicked.
      */
     onToolCallClick?: (toolCall: NonNullable<ChatMessage['toolCalls']>[number]) => void;
@@ -733,6 +737,7 @@ export const ChatMessageItem = memo(
             onCreateAgent,
             teammates,
             teamAgentProfiles,
+            CHAT_VISUAL_MODE = 'BUBBLE_MODE',
             onToolCallClick,
             onCitationClick,
             soundSystem,
@@ -824,6 +829,7 @@ export const ChatMessageItem = memo(
         };
 
         const isMe = participant?.isMe;
+        const isAgentArticleMode = CHAT_VISUAL_MODE === 'ARTICLE_MODE' && !isMe;
         const timingDisplay = getChatMessageTimingDisplay(message);
         const shouldShowTiming = Boolean(isComplete && timingDisplay);
         const lifecycleBadgeLabel = resolveMessageLifecycleLabel(message);
@@ -1143,6 +1149,7 @@ export const ChatMessageItem = memo(
                     isMe && styles.isMe,
                     !isComplete && styles.isNotCompleteMessage,
                     hasMapSegment && styles.messageWithMap,
+                    isAgentArticleMode && styles.articleModeAgentMessage,
                     chatCssClassNames.chatMessage,
                     isMe ? chatCssClassNames.userMessage : chatCssClassNames.agentResponse,
                 )}
@@ -1161,6 +1168,7 @@ export const ChatMessageItem = memo(
                         ref={avatarRef}
                         className={classNames(
                             styles.avatar,
+                            isAgentArticleMode && styles.articleModeAgentAvatar,
                             chatCssClassNames.messageAvatar,
                             isMe ? chatCssClassNames.userAvatar : chatCssClassNames.agentAvatar,
                         )}
@@ -1201,11 +1209,15 @@ export const ChatMessageItem = memo(
                         <div className={styles.participantLabel}>{participantLabel}</div>
                     )}
                     <div
-                        className={classNames(styles.messageText, chatCssClassNames.messageContent)}
+                        className={classNames(
+                            styles.messageText,
+                            isAgentArticleMode && styles.articleModeAgentMessageText,
+                            chatCssClassNames.messageContent,
+                        )}
                         style={
                             {
-                                '--message-bg-color': color.toHex(),
-                                '--message-text-color': colorOfText.toHex(),
+                                '--message-bg-color': isAgentArticleMode ? '#ffffff' : color.toHex(),
+                                '--message-text-color': isAgentArticleMode ? '#0f172a' : colorOfText.toHex(),
                             } as React.CSSProperties
                         }
                     >
@@ -1689,6 +1701,10 @@ export const ChatMessageItem = memo(
         }
 
         if (prev.onCitationClick !== next.onCitationClick) {
+            return false;
+        }
+
+        if (prev.CHAT_VISUAL_MODE !== next.CHAT_VISUAL_MODE) {
             return false;
         }
 

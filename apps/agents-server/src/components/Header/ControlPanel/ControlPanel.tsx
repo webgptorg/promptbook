@@ -1,7 +1,20 @@
 'use client';
 
-import { Bell, EyeOff, Languages, Settings2, Sparkles, SpeakerIcon, Vibrate, X, type LucideIcon } from 'lucide-react';
+import {
+    Bell,
+    EyeOff,
+    Languages,
+    MessageSquare,
+    Settings2,
+    Sparkles,
+    SpeakerIcon,
+    Vibrate,
+    X,
+    type LucideIcon,
+} from 'lucide-react';
 import { useCallback, useEffect, useId, useRef, useState, type RefObject } from 'react';
+import { CHAT_VISUAL_MODES, type ChatVisualMode } from '../../../constants/chatVisualMode';
+import { useChatVisualMode } from '../../ChatVisualMode/ChatVisualModeProvider';
 import { confirmPrivateModeEnable } from '../../PrivateModePreferences/confirmPrivateModeEnable';
 import { usePrivateModePreferences } from '../../PrivateModePreferences/PrivateModePreferencesProvider';
 import { useBrowserPushNotifications } from '../../PushNotifications/BrowserPushNotificationsProvider';
@@ -264,6 +277,7 @@ function useControlPanelBooleanToggle({
  */
 function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanelContentProps) {
     const { soundSystem } = useSoundSystem();
+    const { chatVisualMode, setChatVisualMode } = useChatVisualMode();
     const { language, setLanguage, availableLanguages, isServerLanguageEnforced, t } = useServerLanguage();
     const { isSelfLearningEnabled, setIsSelfLearningEnabled } = useSelfLearningPreferences();
     const { isPrivateModeEnabled, setIsPrivateModeEnabled } = usePrivateModePreferences();
@@ -278,6 +292,7 @@ function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanel
     } = useBrowserPushNotifications();
 
     const languageSelectId = useId();
+    const chatVisualModeSelectId = useId();
 
     const isVibrationSupported =
         Boolean(soundSystem?.isVibrationEnabled) &&
@@ -352,6 +367,10 @@ function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanel
         : t('controlPanel.privateModeDescriptionStandard');
     const activeLanguageName =
         availableLanguages.find((languagePack) => languagePack.language === language)?.nativeName || language;
+    const activeChatVisualModeLabel =
+        chatVisualMode === CHAT_VISUAL_MODES.ARTICLE_MODE
+            ? t('controlPanel.chatVisualModeOptionArticle')
+            : t('controlPanel.chatVisualModeOptionBubble');
     const areNotificationsAvailable = isNotificationsSupported && isNotificationsConfigured;
     const notificationsPermissionLabel = !isNotificationsConfigured
         ? t('controlPanel.notificationsPermissionUnavailable')
@@ -410,6 +429,7 @@ function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanel
                     <ControlPanelStatusBadge tone={notificationsStateTone} label={notificationsStateLabel} />
                     <ControlPanelStatusBadge tone={soundToggle.isEnabled ? 'positive' : 'neutral'} label={soundStateLabel} />
                     <ControlPanelStatusBadge tone="neutral" label={activeLanguageName} />
+                    <ControlPanelStatusBadge tone="informative" label={activeChatVisualModeLabel} />
                 </div>
             </div>
 
@@ -515,6 +535,36 @@ function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanel
                     </div>
                 </section>
             )}
+
+            <section className="rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-sm">
+                <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-gray-900">
+                            {t('controlPanel.chatVisualModeTitle')}
+                        </p>
+                        <p className="mt-0.5 text-[11px] text-gray-600">{t('controlPanel.chatVisualModeSubtitle')}</p>
+                    </div>
+                    <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+                        <MessageSquare className="h-4 w-4" aria-hidden="true" />
+                    </span>
+                </div>
+
+                <div className="mt-2.5 space-y-1.5">
+                    <label htmlFor={chatVisualModeSelectId} className="text-xs font-medium text-gray-600">
+                        {t('controlPanel.chatVisualModeSelectLabel')}
+                    </label>
+                    <select
+                        id={chatVisualModeSelectId}
+                        value={chatVisualMode}
+                        onChange={(event) => setChatVisualMode(event.target.value as ChatVisualMode)}
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    >
+                        <option value={CHAT_VISUAL_MODES.BUBBLE_MODE}>{t('controlPanel.chatVisualModeOptionBubble')}</option>
+                        <option value={CHAT_VISUAL_MODES.ARTICLE_MODE}>{t('controlPanel.chatVisualModeOptionArticle')}</option>
+                    </select>
+                    <p className="text-[11px] text-gray-500">{t('controlPanel.chatVisualModeHelp')}</p>
+                </div>
+            </section>
 
             {!soundSystem && <p className="px-1 text-[11px] text-gray-500">{t('controlPanel.audioLoading')}</p>}
         </div>

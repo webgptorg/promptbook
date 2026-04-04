@@ -14,6 +14,7 @@ import { $createAgentFromBookAction } from '../../../app/actions';
 import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
 import { showAlert } from '../../../components/AsyncDialogs/asyncDialogs';
 import { useChatEnterBehaviorPreferences } from '../../../components/ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
+import { useChatVisualMode } from '../../../components/ChatVisualMode/ChatVisualModeProvider';
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 import { createMyChatsMobileMenuItem } from '../../../components/Header/createMyChatsMobileMenuItem';
 import { useHoistedMobileMenuItems } from '../../../components/Header/MobileMenuHoistingContext';
@@ -178,6 +179,7 @@ export function AgentProfileChat({
     const [existingChats, setExistingChats] = useState<Array<UserChatSummary>>([]);
     const pendingNavigationFallbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const { formatText } = useAgentNaming();
+    const { chatVisualMode } = useChatVisualMode();
     const { enterBehavior, resolveEnterBehavior } = useChatEnterBehaviorPreferences();
     const { isPrivateModeEnabled } = usePrivateModePreferences();
     const allowFileAttachments = areFileAttachmentsEnabled;
@@ -466,6 +468,7 @@ export function AgentProfileChat({
                         enterBehavior={enterBehavior}
                         resolveEnterBehavior={resolveEnterBehavior}
                         isSpeechPlaybackEnabled={isSpeechFeaturesEnabled}
+                        CHAT_VISUAL_MODE={chatVisualMode}
                         visual={'STANDALONE'}
                     />
                 </div>

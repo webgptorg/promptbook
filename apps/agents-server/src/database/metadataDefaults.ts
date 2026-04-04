@@ -10,6 +10,11 @@ import { MetadataType } from '../constants/metadataTypes';
 import { NEW_AGENT_WIZZARD_METADATA_KEY } from '../constants/newAgentWizard';
 import { DEFAULT_TOOL_USAGE_LIMITS, TOOL_USAGE_LIMITS_METADATA_KEY } from '../constants/toolUsageLimits';
 import {
+    CHAT_VISUAL_MODE_METADATA_KEY,
+    DEFAULT_CHAT_VISUAL_MODE,
+    CHAT_VISUAL_MODES,
+} from '../constants/chatVisualMode';
+import {
     IS_SERVER_LANGUAGE_ENFORCED_METADATA_KEY,
     SERVER_LANGUAGE_METADATA_KEY,
 } from '../languages/ServerLanguageRegistry';
@@ -211,6 +216,12 @@ export const metadataDefaults = [
         value: 'false',
         note: 'Default state for browser push notifications when a user has no saved preference. When false, users must opt in before agent replies can trigger notifications.',
         type: 'BOOLEAN',
+    },
+    {
+        key: CHAT_VISUAL_MODE_METADATA_KEY,
+        value: DEFAULT_CHAT_VISUAL_MODE,
+        note: `Default chat visual mode for new browser sessions. Allowed values: ${CHAT_VISUAL_MODES.BUBBLE_MODE}, ${CHAT_VISUAL_MODES.ARTICLE_MODE}.`,
+        type: 'TEXT_SINGLE_LINE',
     },
     {
         key: 'IS_FOOTER_SHOWN',

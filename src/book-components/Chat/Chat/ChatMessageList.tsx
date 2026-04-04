@@ -41,6 +41,7 @@ export type ChatMessageListProps = {
     toolTitles?: Record<string, string>;
     teammates?: ChatProps['teammates'];
     teamAgentProfiles?: ChatProps['teamAgentProfiles'];
+    CHAT_VISUAL_MODE?: ChatProps['CHAT_VISUAL_MODE'];
     onToolCallClick?: (toolCall: NonNullable<ChatMessage['toolCalls']>[number]) => void;
     onCitationClick?: (citation: ParsedCitation) => void;
     soundSystem?: ChatProps['soundSystem'];
@@ -78,6 +79,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
         teammates,
         onToolCallClick,
         onCitationClick,
+        CHAT_VISUAL_MODE,
         soundSystem,
         isSpeechPlaybackEnabled,
         elevenLabsVoiceId,
@@ -134,6 +136,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
                         toolTitles={toolTitles}
                         teammates={teammates}
                         teamAgentProfiles={teamAgentProfiles}
+                        CHAT_VISUAL_MODE={CHAT_VISUAL_MODE}
                         onToolCallClick={onToolCallClick}
                         onCitationClick={onCitationClick}
                         soundSystem={soundSystem}

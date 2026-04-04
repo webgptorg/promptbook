@@ -64,6 +64,12 @@ controlPanel.languageSubtitle: Choose your interface language for this browser.
 controlPanel.languageSection: Locale
 controlPanel.languageSelectLabel: Server interface language
 controlPanel.languageHelp: Default comes from metadata SERVER_LANGUAGE. You can override it locally here.
+controlPanel.chatVisualModeTitle: Chat visual mode
+controlPanel.chatVisualModeSubtitle: Choose how agent replies are rendered in chat.
+controlPanel.chatVisualModeSelectLabel: Chat visual mode
+controlPanel.chatVisualModeOptionBubble: Bubble mode
+controlPanel.chatVisualModeOptionArticle: Article mode
+controlPanel.chatVisualModeHelp: Default comes from metadata CHAT_VISUAL_MODE. You can override it locally here.
 privateMode.confirmTitle: Enable private mode
 privateMode.confirmMessage: Private mode keeps this chat local to your browser.
   Chat history, user memory, and self-learning will not be saved while it is

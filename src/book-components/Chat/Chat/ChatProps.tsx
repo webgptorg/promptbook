@@ -32,6 +32,16 @@ export type ChatFeedbackResponse = {
 export type ChatFeedbackMode = 'off' | 'stars' | 'report_issue';
 
 /**
+ * Visual presentation mode used for chat messages.
+ *
+ * - `BUBBLE_MODE`: user and agent messages render as bubbles.
+ * - `ARTICLE_MODE`: user messages stay as bubbles; agent messages render as seamless article blocks.
+ *
+ * @public exported from `@promptbook/components`
+ */
+export type ChatVisualMode = 'BUBBLE_MODE' | 'ARTICLE_MODE';
+
+/**
  * Optional text overrides for feedback UI copy.
  *
  * @public exported from `@promptbook/components`
@@ -460,6 +470,16 @@ export type ChatProps = {
      * Called when a tool call chiplet is clicked.
      */
     onToolCallClick?: (toolCall: NonNullable<ChatMessage['toolCalls']>[number]) => void;
+
+    /**
+     * Visual presentation mode for chat messages.
+     *
+     * - `BUBBLE_MODE`: keeps the default bubble appearance for all messages.
+     * - `ARTICLE_MODE`: keeps user bubbles while rendering assistant replies as borderless article blocks.
+     *
+     * @default 'BUBBLE_MODE'
+     */
+    readonly CHAT_VISUAL_MODE?: ChatVisualMode;
 
     /**
      * Visual style of the chat component

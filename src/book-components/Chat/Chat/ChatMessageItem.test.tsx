@@ -168,4 +168,59 @@ describe('ChatMessageItem progress checklist rendering', () => {
         expect(screen.getByText(/custom_tool/)).toBeDefined();
         expect(container.querySelectorAll('input[type="checkbox"]').length).toBeGreaterThan(0);
     });
+
+    it('renders assistant messages as article blocks in ARTICLE_MODE', () => {
+        const { container } = render(
+            <ChatMessageItem
+                message={createAssistantMessageFixture()}
+                participant={AGENT_PARTICIPANT_FIXTURE}
+                participants={[AGENT_PARTICIPANT_FIXTURE]}
+                isLastMessage={true}
+                setExpandedMessageId={() => undefined}
+                isExpanded={false}
+                currentRating={0}
+                handleRating={() => undefined}
+                mode="LIGHT"
+                CHAT_VISUAL_MODE="ARTICLE_MODE"
+            />,
+        );
+
+        const messageContentElement = container.querySelector('.chat-message-content') as HTMLElement | null;
+        expect(messageContentElement).not.toBeNull();
+        expect(messageContentElement?.style.getPropertyValue('--message-bg-color')).toBe('#ffffff');
+        expect(messageContentElement?.style.getPropertyValue('--message-text-color')).toBe('#0f172a');
+    });
+
+    it('keeps user messages as bubbles in ARTICLE_MODE', () => {
+        const userParticipant: ChatParticipant = {
+            name: 'USER',
+            fullname: 'User',
+            color: '#115EB6',
+            isMe: true,
+        };
+
+        const { container } = render(
+            <ChatMessageItem
+                message={{
+                    id: 'user-message-1',
+                    sender: 'USER',
+                    content: 'Hello there',
+                    isComplete: true,
+                }}
+                participant={userParticipant}
+                participants={[userParticipant]}
+                isLastMessage={true}
+                setExpandedMessageId={() => undefined}
+                isExpanded={false}
+                currentRating={0}
+                handleRating={() => undefined}
+                mode="LIGHT"
+                CHAT_VISUAL_MODE="ARTICLE_MODE"
+            />,
+        );
+
+        const messageContentElement = container.querySelector('.chat-message-content') as HTMLElement | null;
+        expect(messageContentElement).not.toBeNull();
+        expect(messageContentElement?.style.getPropertyValue('--message-bg-color')).not.toBe('#ffffff');
+    });
 });

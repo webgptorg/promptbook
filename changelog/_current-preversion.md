@@ -1,3 +1,10 @@
+-   Added Agents Server chat visual mode controls with metadata-backed defaults and live rendering switch:
+
+    -   Added new metadata key `CHAT_VISUAL_MODE` with supported values `BUBBLE_MODE` and `ARTICLE_MODE` (default `BUBBLE_MODE`).
+    -   Added a new Control panel setting **Chat visual mode** that updates chat rendering immediately without page reload.
+    -   Persisted user overrides per browser (local storage + cookie) while keeping metadata as the initial default.
+    -   Extended shared `<Chat/>` API with `CHAT_VISUAL_MODE` and implemented `ARTICLE_MODE` rendering where user messages stay bubble-style and agent messages render as seamless borderless article blocks.
+
 -   Fixed intermittent Agents Server durable-chat quick-button no-op behavior by removing a stale ref-sync race in chat selection state:
 
     -   Removed redundant `activeChatIdRef` synchronization from a standalone `useEffect` in `AgentChatHistoryClient`.

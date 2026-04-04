@@ -20,6 +20,11 @@ import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../utils/a
 import { getAgentNaming } from '../utils/getAgentNaming';
 import { getCurrentUser } from '../utils/getCurrentUser';
 import { getDefaultChatPreferences } from '../utils/chatPreferences';
+import {
+    CHAT_VISUAL_MODE_COOKIE_NAME,
+    CHAT_VISUAL_MODE_METADATA_KEY,
+    resolveChatVisualMode,
+} from '../constants/chatVisualMode';
 import { parseChatFeedbackMode } from '../utils/chatFeedbackMode';
 import { getFederatedServers } from '../utils/getFederatedServers';
 import { isUserAdmin } from '../utils/isUserAdmin';
@@ -241,6 +246,7 @@ export default async function RootLayout({
         'CHAT_FEEDBACK_MODE',
         'IS_FEEDBACK_ENABLED',
         'IS_EXPERIMENTAL_PWA_APP_ENABLED',
+        CHAT_VISUAL_MODE_METADATA_KEY,
         SERVER_LANGUAGE_METADATA_KEY,
         IS_SERVER_LANGUAGE_ENFORCED_METADATA_KEY,
     ]);
@@ -330,11 +336,14 @@ export default async function RootLayout({
     const isExperimentalPwaAppEnabled = (layoutMetadata.IS_EXPERIMENTAL_PWA_APP_ENABLED ?? 'true') === 'true';
     const isPublicServer = isPublicServerVisibility(serverVisibility);
     const safeCustomJavascript = customJavascript.replace(/<\/script>/gi, '<\\/script>');
+    const chatVisualModeCookie = cookieStore.get(CHAT_VISUAL_MODE_COOKIE_NAME)?.value || null;
     const cookieLanguage = cookieStore.get(SERVER_LANGUAGE_COOKIE_NAME)?.value || null;
     const isServerLanguageEnforced = parseServerLanguageEnforcedMetadata(
         layoutMetadata[IS_SERVER_LANGUAGE_ENFORCED_METADATA_KEY],
     );
     const rawServerLanguage = layoutMetadata[SERVER_LANGUAGE_METADATA_KEY];
+    const rawChatVisualMode = layoutMetadata[CHAT_VISUAL_MODE_METADATA_KEY];
+    const defaultChatVisualMode = resolveChatVisualMode(chatVisualModeCookie || rawChatVisualMode);
     const preferredLanguageSource = isServerLanguageEnforced ? rawServerLanguage : cookieLanguage || rawServerLanguage;
     const serverLanguage = resolveServerLanguageCode(preferredLanguageSource);
 
@@ -363,6 +372,7 @@ export default async function RootLayout({
                     isExperimentalPwaAppEnabled={isExperimentalPwaAppEnabled}
                     defaultServerLanguage={serverLanguage}
                     isServerLanguageEnforced={isServerLanguageEnforced}
+                    defaultChatVisualMode={defaultChatVisualMode}
                     webPushPublicKey={process.env.NEXT_PUBLIC_WEB_PUSH_PUBLIC_KEY || null}
                 >
                     {children}

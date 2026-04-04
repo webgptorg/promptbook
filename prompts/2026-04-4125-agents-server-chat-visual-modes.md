@@ -1,4 +1,4 @@
-[ ]
+[x] ~$1.21 an hour by OpenAI Codex `gpt-5.3-codex`
 
 [🧩📌] Add chat visual mode toggle (BUBBLE vs ARTICLE) in Agents Server
 
@@ -32,3 +32,4 @@
     -   Control panel toggle changes rendering immediately without page reload
     -   Metadata “Chat visual mode” sets the default correctly
     -   Agent messages are borderless in ARTICLE_MODE while user bubbles remain
+

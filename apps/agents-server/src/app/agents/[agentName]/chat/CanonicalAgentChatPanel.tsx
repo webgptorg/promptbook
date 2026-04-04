@@ -18,6 +18,7 @@ import {
 import { spaceTrim } from 'spacetrim';
 import { useAgentBackground } from '../../../../components/AgentProfile/useAgentBackground';
 import { useChatEnterBehaviorPreferences } from '../../../../components/ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
+import { useChatVisualMode } from '../../../../components/ChatVisualMode/ChatVisualModeProvider';
 import { usePrivateModePreferences } from '../../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { useSelfLearningPreferences } from '../../../../components/SelfLearningPreferences/SelfLearningPreferencesProvider';
 import { useServerLanguage } from '../../../../components/ServerLanguage/ServerLanguageProvider';
@@ -162,6 +163,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
     const { value: agent } = usePromise(agentPromise, [agentPromise]);
     const teamAgentProfiles = useTeamAgentProfiles(agent?.capabilities);
     const { soundSystem } = useSoundSystem();
+    const { chatVisualMode } = useChatVisualMode();
     const { enterBehavior, resolveEnterBehavior } = useChatEnterBehaviorPreferences();
     const { isSelfLearningEnabled } = useSelfLearningPreferences();
     const { isPrivateModeEnabled, setIsPrivateModeEnabled } = usePrivateModePreferences();
@@ -494,6 +496,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
             participants={participants}
             buttonColor={isChatGptLikeVariant ? '#111827' : brandColorHex}
             visual="FULL_PAGE"
+            CHAT_VISUAL_MODE={chatVisualMode}
             effectConfigs={effectConfigs}
             soundSystem={soundSystem}
             speechRecognition={speechRecognition}

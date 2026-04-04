@@ -163,6 +163,7 @@ export function Chat(props: ChatProps) {
         teammates,
         teamAgentProfiles,
         visual,
+        CHAT_VISUAL_MODE = 'BUBBLE_MODE',
         effectConfigs,
         soundSystem,
         speechRecognitionLanguage,
@@ -552,6 +553,7 @@ export function Chat(props: ChatProps) {
                         toolTitles={toolTitles}
                         teammates={teammates}
                         teamAgentProfiles={teamAgentProfiles}
+                        CHAT_VISUAL_MODE={CHAT_VISUAL_MODE}
                         soundSystem={soundSystem}
                         onToolCallClick={(toolCall) => {
                             setSelectedToolCallState({

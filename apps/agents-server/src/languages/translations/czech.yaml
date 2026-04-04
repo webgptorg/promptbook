@@ -64,6 +64,12 @@ controlPanel.languageSubtitle: Vyberte jazyk rozhraní pro tento prohlížeč.
 controlPanel.languageSection: Lokalizace
 controlPanel.languageSelectLabel: Jazyk rozhraní serveru
 controlPanel.languageHelp: Výchozí hodnota je z metadat SERVER_LANGUAGE. Tady ji můžete lokálně přepsat.
+controlPanel.chatVisualModeTitle: Vizuální režim chatu
+controlPanel.chatVisualModeSubtitle: Vyberte, jak se v chatu vykreslují odpovědi agenta.
+controlPanel.chatVisualModeSelectLabel: Vizuální režim chatu
+controlPanel.chatVisualModeOptionBubble: Bublinový režim
+controlPanel.chatVisualModeOptionArticle: Článkový režim
+controlPanel.chatVisualModeHelp: Výchozí hodnota je z metadat CHAT_VISUAL_MODE. Tady ji můžete lokálně přepsat.
 privateMode.confirmTitle: Zapnout soukromý režim
 privateMode.confirmMessage: Soukromý režim ponechá tento chat pouze ve vašem
   prohlížeči. Historie chatu, uživatelská paměť a sebeučení se při zapnutí

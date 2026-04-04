@@ -9,6 +9,7 @@ import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'r
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
 import { useAgentBackground } from '../../../components/AgentProfile/useAgentBackground';
 import { useChatEnterBehaviorPreferences } from '../../../components/ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
+import { useChatVisualMode } from '../../../components/ChatVisualMode/ChatVisualModeProvider';
 import { ChatErrorDialog } from '../../../components/ChatErrorDialog';
 import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { useSelfLearningPreferences } from '../../../components/SelfLearningPreferences/SelfLearningPreferencesProvider';
@@ -261,6 +262,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
 
     const effectConfigs = useMemo(() => createDefaultChatEffects(), []);
     const { soundSystem } = useSoundSystem();
+    const { chatVisualMode } = useChatVisualMode();
     const { enterBehavior, resolveEnterBehavior } = useChatEnterBehaviorPreferences();
     const { isSelfLearningEnabled } = useSelfLearningPreferences();
     const { isPrivateModeEnabled, setIsPrivateModeEnabled } = usePrivateModePreferences();
@@ -376,6 +378,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             sendMessage={sendMessage}
             speechRecognition={speechRecognition}
             visual="FULL_PAGE"
+            CHAT_VISUAL_MODE={chatVisualMode}
             effectConfigs={effectConfigs}
             soundSystem={soundSystem}
             thinkingMessages={thinkingMessages}

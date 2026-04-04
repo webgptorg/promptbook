@@ -309,6 +309,21 @@
     max-width: 100%;
 }
 
+.chatMainFlow .chatMessage.articleModeAgentMessage {
+    column-gap: 0;
+    margin-bottom: 28px;
+}
+
+.chatMainFlow .chatMessage.articleModeAgentMessage .messageStack {
+    width: min(100%, 860px);
+    max-width: min(100%, 860px);
+    align-items: stretch;
+}
+
+.chatMainFlow .chatMessage .avatar.articleModeAgentAvatar {
+    display: none;
+}
+
 .messageWithMap {
     /* marker class applied to map messages so they can stretch wider. */
 }
@@ -429,6 +444,10 @@
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
     border-radius: 2px;
     animation: loadingPulse 1.5s ease-in-out infinite;
+}
+
+.chatMainFlow .chatMessage.articleModeAgentMessage.isNotCompleteMessage .messageText::after {
+    display: none;
 }
 
 .toolCallChips,
@@ -759,6 +778,26 @@
     --chat-md-citation-color: var(--message-text-color, #0f172a);
 }
 
+.chatMainFlow .chatMessage .messageText.articleModeAgentMessageText {
+    background: transparent !important;
+    border: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    border-radius: 0;
+    min-width: 0;
+    margin-bottom: 8px;
+    padding: 2px 0;
+    --chat-md-link-color: #1d4ed8;
+    --chat-md-inline-code-bg: rgba(15, 23, 42, 0.08);
+    --chat-md-inline-code-border: rgba(15, 23, 42, 0.16);
+    --chat-md-blockquote-bg: rgba(148, 163, 184, 0.12);
+    --chat-md-table-bg: rgba(248, 250, 252, 0.9);
+    --chat-md-table-row-alt-bg: rgba(226, 232, 240, 0.45);
+    --chat-md-table-head-bg: rgba(241, 245, 249, 0.92);
+    --chat-md-table-border: rgba(148, 163, 184, 0.45);
+    --chat-md-citation-bg: rgba(191, 219, 254, 0.24);
+}
+
 @supports (color: color-mix(in srgb, #000 50%, #fff 50%)) {
     .chatMainFlow .chatMessage .messageText {
         background: linear-gradient(
@@ -957,6 +996,11 @@
 .chatMainFlow .chatMessage .messageText:hover {
     box-shadow: var(--chat-bubble-shadow-hover), inset 0 1px 0 rgba(255, 255, 255, 0.16);
     transform: translateY(-1.5px);
+}
+
+.chatMainFlow .chatMessage .messageText.articleModeAgentMessageText:hover {
+    box-shadow: none;
+    transform: none;
 }
 
 /* Attachments styles */
@@ -3464,6 +3508,20 @@
         padding: 12px 16px;
         font-size: 14px;
         border-radius: 18px;
+    }
+
+    .chatMainFlow .chatMessage.articleModeAgentMessage {
+        margin-bottom: 20px;
+    }
+
+    .chatMainFlow .chatMessage.articleModeAgentMessage .messageStack {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .chatMainFlow .chatMessage .messageText.articleModeAgentMessageText {
+        padding: 2px 0;
+        border-radius: 0;
     }
 
     .chatMainFlow .chatMessage .avatar {

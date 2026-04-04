@@ -133,6 +133,13 @@ The markdown renderer is configured with:
 -   Links open in new windows
 -   Header IDs prefixed with `chat-header-`
 
+## Chat Visual Mode
+
+`<Chat/>` accepts `CHAT_VISUAL_MODE` with these values:
+
+-   `BUBBLE_MODE` (default): user and agent messages render as bubbles.
+-   `ARTICLE_MODE`: user messages stay in bubbles, while agent messages render as seamless article-style blocks.
+
 ## Implementation Details
 
 The markdown rendering is handled by:

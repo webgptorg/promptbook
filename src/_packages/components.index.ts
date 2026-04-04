@@ -22,6 +22,7 @@ import type { AgentChatProps } from '../book-components/Chat/AgentChat/AgentChat
 import { Chat } from '../book-components/Chat/Chat/Chat';
 import type { ChatFeedbackResponse } from '../book-components/Chat/Chat/ChatProps';
 import type { ChatFeedbackMode } from '../book-components/Chat/Chat/ChatProps';
+import type { ChatVisualMode } from '../book-components/Chat/Chat/ChatProps';
 import type { ChatFeedbackTranslations } from '../book-components/Chat/Chat/ChatProps';
 import type { ChatSoundSystem } from '../book-components/Chat/Chat/ChatProps';
 import type { ChatProps } from '../book-components/Chat/Chat/ChatProps';
@@ -106,6 +107,7 @@ export type { AgentChatProps };
 export { Chat };
 export type { ChatFeedbackResponse };
 export type { ChatFeedbackMode };
+export type { ChatVisualMode };
 export type { ChatFeedbackTranslations };
 export type { ChatSoundSystem };
 export type { ChatProps };
