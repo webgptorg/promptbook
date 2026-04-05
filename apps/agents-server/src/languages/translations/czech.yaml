@@ -3,93 +3,91 @@ common.cancel: Zrušit
 common.confirm: Potvrdit
 common.ok: OK
 common.input: Vstup
-common.admin: Administrátor
+common.admin: Správce
 common.profile: Profil
 common.chat: Chat
-chat.answerDurationLabel: "{duration} na odpověď"
+chat.answerDurationLabel: "Odpověď za {duration}"
 common.book: Kniha
 common.timeouts: Časovače
 common.more: Více
 controlPanel.label: Ovládací panel
 controlPanel.openAriaLabel: Otevřít globální ovládací panel
-controlPanel.feedbackTitle: Odezva
-controlPanel.feedbackSubtitle: Globální nastavení zvuku a vibrací
+controlPanel.feedbackTitle: Nastavení odezvy
+controlPanel.feedbackSubtitle: Globální nastavení zvuků, vibrací a dalších voleb
 controlPanel.audioLabel: Zvuk
 controlPanel.soundTitle: Zvuky
-controlPanel.soundDescription: Zvuková upozornění pro odpovědi v chatu a ovládací prvky.
+controlPanel.soundDescription: Zvukové signály pro odpovědi v chatu a ovládací prvky.
 controlPanel.vibrationTitle: Vibrace
-controlPanel.vibrationDescription: Vibrační odezva pro klepnutí a události agenta.
-controlPanel.vibrationDescriptionUnsupported: Ovládání vibrací na tomto zařízení není dostupné.
+controlPanel.vibrationDescription: Vibrační odezva při klepnutí a událostech agenta.
+controlPanel.vibrationDescriptionUnsupported: Vibrace na tomto zařízení nejsou k dispozici.
 controlPanel.audioLoading: Načítám nastavení zvuku…
 controlPanel.notificationsTitle: Oznámení
 controlPanel.notificationsSection: Upozornění
-controlPanel.notificationsDescriptionEnabled: Oznámení prohlížeče jsou zapnutá pro nové odpovědi agenta, když tento chat není aktivní.
-controlPanel.notificationsDescriptionDisabled: Zapněte oznámení prohlížeče pro odpovědi agentů na pozadí a plánovaná probuzení.
-controlPanel.notificationsDescriptionUnavailable: Push oznámení nejsou v tomto prohlížeči nebo na tomto serveru dostupná.
-controlPanel.notificationsDetail: Oznámení se posílají jen pro vaše vlastní webové chaty, když příslušný chat není aktivní.
+controlPanel.notificationsDescriptionEnabled: Oznámení prohlížeče jsou zapnutá pro nové odpovědi agenta, když tento chat nemáte otevřený.
+controlPanel.notificationsDescriptionDisabled: Zapněte oznámení prohlížeče pro odpovědi agenta na pozadí a plánovaná probuzení.
+controlPanel.notificationsDescriptionUnavailable: Push oznámení nejsou v tomto prohlížeči nebo na tomto serveru k dispozici.
+controlPanel.notificationsDetail: Oznámení se posílají jen pro vaše vlastní webové chaty, když daný chat není právě aktivní.
 controlPanel.notificationsPermissionLabel: "Oprávnění:"
-controlPanel.notificationsPermissionGranted: Uděleno
-controlPanel.notificationsPermissionDefault: Zatím neuděleno
+controlPanel.notificationsPermissionGranted: Povoleno
+controlPanel.notificationsPermissionDefault: Zatím nepovoleno
 controlPanel.notificationsPermissionDenied: Zamítnuto
-controlPanel.notificationsPermissionUnsupported: Tento prohlížeč nepodporuje oznámení
-controlPanel.notificationsPermissionUnavailable: Na tomto serveru nedostupné
+controlPanel.notificationsPermissionUnsupported: Tento prohlížeč oznámení nepodporuje
+controlPanel.notificationsPermissionUnavailable: Na tomto serveru není dostupné
 controlPanel.notificationsStateEnabled: Zapnuto
 controlPanel.notificationsStateDisabled: Vypnuto
 controlPanel.notificationsEnableAction: Zapnout oznámení
 controlPanel.notificationsDisableAction: Vypnout oznámení
-controlPanel.notificationsHint: Zapněte oznámení prohlížeče, aby vás agenti mohli upozornit po dlouhém nebo plánovaném běhu.
+controlPanel.notificationsHint: Zapněte oznámení prohlížeče, aby vás agent mohl upozornit po delší nebo naplánované práci.
 controlPanel.notificationsHintAction: Zapnout oznámení
 controlPanel.selfLearningTitle: Sebeučení
 controlPanel.selfLearningSection: Kniha
-controlPanel.selfLearningDescriptionPrivate: Soukromý režim ponechá knihu beze změn a zablokuje nové učení.
-controlPanel.selfLearningDescriptionLearning: Agent po každém chatu přidá do knihy nové commitmenty.
-controlPanel.selfLearningDescriptionPaused: Agent respektuje stávající knihu, dokud znovu nepovolíte učení.
-controlPanel.selfLearningStateDisabledPrivate: Vypnuto (Soukromý režim)
-controlPanel.selfLearningStateLearning: Učení
+controlPanel.selfLearningDescriptionPrivate: V soukromém režimu zůstává kniha beze změny a nové učení je zablokované.
+controlPanel.selfLearningDescriptionLearning: Agent po každém chatu doplní do knihy nové commitmenty.
+controlPanel.selfLearningDescriptionPaused: Agent respektuje stávající knihu, dokud učení znovu nepovolíte.
+controlPanel.selfLearningStateDisabledPrivate: Vypnuto (soukromý režim)
+controlPanel.selfLearningStateLearning: Učí se
 controlPanel.selfLearningStatePaused: Pozastaveno
-controlPanel.selfLearningDetailPrivate: Učení je vypnuté, dokud nevypnete soukromý režim.
+controlPanel.selfLearningDetailPrivate: Dokud nevypnete soukromý režim, nic nového se nenaučí.
 controlPanel.selfLearningDetailPaused: Chaty i paměť se ukládají, i když je učení pozastavené.
 controlPanel.selfLearningPauseAction: Pozastavit učení
 controlPanel.selfLearningEnableAction: Povolit učení
 controlPanel.privateModeTitle: Soukromý režim
 controlPanel.privateModeSection: Soukromí
 controlPanel.privateModeDescriptionPrivate: Chaty, paměť i učení jsou vypnuté.
-controlPanel.privateModeDescriptionStandard: Ve standardním režimu data dál proudí na server.
+controlPanel.privateModeDescriptionStandard: Ve standardním režimu se data dál odesílají na server.
 controlPanel.privateModeStatePrivate: Soukromý
 controlPanel.privateModeStateStandard: Standardní
-controlPanel.privateModeDetail: V soukromém režimu zůstane aktuální chat pouze ve vašem prohlížeči.
+controlPanel.privateModeDetail: V soukromém režimu zůstane aktuální chat jen ve vašem prohlížeči.
 controlPanel.privateModeDisableAction: Vypnout soukromý režim
 controlPanel.privateModeEnableAction: Zapnout soukromý režim
 controlPanel.languageTitle: Jazyk
 controlPanel.languageSubtitle: Vyberte jazyk rozhraní pro tento prohlížeč.
 controlPanel.languageSection: Lokalizace
 controlPanel.languageSelectLabel: Jazyk rozhraní serveru
-controlPanel.languageHelp: Výchozí hodnota je z metadat SERVER_LANGUAGE. Tady ji můžete lokálně přepsat.
-controlPanel.chatVisualModeTitle: Vizuální režim chatu
-controlPanel.chatVisualModeSubtitle: Vyberte, jak se v chatu vykreslují odpovědi agenta.
-controlPanel.chatVisualModeSelectLabel: Vizuální režim chatu
-controlPanel.chatVisualModeOptionBubble: Bublinový režim
-controlPanel.chatVisualModeOptionArticle: Článkový režim
-controlPanel.chatVisualModeHelp: Výchozí hodnota je z metadat CHAT_VISUAL_MODE. Tady ji můžete lokálně přepsat.
+controlPanel.languageHelp: Výchozí jazyk se bere z metadata `SERVER_LANGUAGE`. Tady ho můžete přepsat jen pro tento prohlížeč.
+controlPanel.chatVisualModeTitle: Vzhled chatu
+controlPanel.chatVisualModeSubtitle: Vyberte, jak se v chatu zobrazují odpovědi agenta.
+controlPanel.chatVisualModeSelectLabel: Vzhled chatu
+controlPanel.chatVisualModeOptionBubble: Bublinový
+controlPanel.chatVisualModeOptionArticle: Článkový
+controlPanel.chatVisualModeHelp: Výchozí hodnota se bere z metadata `CHAT_VISUAL_MODE`. Tady ji můžete přepsat jen pro tento prohlížeč.
 privateMode.confirmTitle: Zapnout soukromý režim
-privateMode.confirmMessage: Soukromý režim ponechá tento chat pouze ve vašem
-  prohlížeči. Historie chatu, uživatelská paměť a sebeučení se při zapnutí
-  neukládají. Pokračovat?
+privateMode.confirmMessage: Soukromý režim ponechá tento chat jen ve vašem prohlížeči. Historie chatu, uživatelská paměť ani sebeučení se po jeho zapnutí nebudou ukládat. Chcete pokračovat?
 privateMode.confirmEnableLabel: Zapnout soukromý režim
 privateMode.confirmCancelLabel: Ponechat standardní režim
 header.documentationMenuLabel: Dokumentace
 header.systemMenuLabel: Systém
 header.switchServerAria: Přepnout server
-header.currentFederatedServer: (aktuální)
+header.currentFederatedServer: (tento server)
 header.logIn: Přihlásit se
 header.logOut: Odhlásit se
 header.changePassword: Změnit heslo
-header.menuLabel: Menu
+header.menuLabel: Nabídka
 header.landingPage: Úvodní stránka
-header.userMemory: Uživatelská paměť
-header.userWallet: Uživatelská peněženka
+header.userMemory: Moje paměť
+header.userWallet: Moje peněženka
 header.utilities: Nástroje
-header.mockedChats: Mockované chaty
+header.mockedChats: Ukázkové chaty
 header.viewAllUsers: Zobrazit všechny uživatele
 header.createNewUser: Vytvořit nového uživatele
 header.servers: Servery
@@ -100,10 +98,10 @@ header.metadata: Metadata
 header.customCss: Vlastní CSS
 header.customJs: Vlastní JS
 header.chatHistory: Historie chatů
-header.usageAnalytics: Analýza využití
-header.taskManager: Správce úloh
+header.usageAnalytics: Analytika využití
+header.taskManager: Správa úloh
 header.messagesEmails: Zprávy a e-maily
-header.chatFeedback: Zpětná vazba chatu
+header.chatFeedback: Hodnocení chatu
 header.browser: Prohlížeč
 header.voiceInputTest: Test hlasového vstupu
 header.searchEngineTest: Test vyhledávače
@@ -116,171 +114,169 @@ header.story: Příběh
 header.documentationOverview: Přehled
 header.documentationApiReference: API reference
 header.documentationAll: Vše
-header.loggedInAs: Přihlášen jako {username}
+header.loggedInAs: "Přihlášen jako {username}"
 header.searchThisServerPlaceholder: Prohledat tento server…
-header.searchBoxDefaultPlaceholder: Hledat agenty, složky, dokumentaci, konverzace…
+header.searchBoxDefaultPlaceholder: Hledat agenty, složky, dokumentaci nebo konverzace…
 header.searchGlobalLabel: Globální vyhledávání
 header.searchViewAllResultsFor: Zobrazit všechny výsledky pro
-header.searchNoResultsFor: Pro dotaz nebyly nalezeny žádné výsledky
+header.searchNoResultsFor: Nic jsme nenašli pro
 header.searchUnavailable: Vyhledávání je dočasně nedostupné.
 header.agentsLabelFallback: "{agentsPlural}"
 header.viewAllAgents: Zobrazit všechny {agentsPlural}
-header.creatingAgent: Vytvářím {agentSingular}…
+header.creatingAgent: "Vytvářím {agentSingular}…"
 header.createNewAgent: Vytvořit nového {agentSingular}
-header.createFailedTitle: Vytvoření {agentSingular} selhalo
-header.createFailedMessage: Nepodařilo se vytvořit {agentSingular}. Zkuste to prosím znovu.
+header.createFailedTitle: "Nepodařilo se vytvořit {agentSingular}"
+header.createFailedMessage: "{agentSingular} se nepodařilo vytvořit. Zkuste to prosím znovu."
 asyncDialog.defaultAlertTitle: Upozornění
 asyncDialog.defaultConfirmTitle: Potvrdit akci
 asyncDialog.defaultPromptTitle: Zadejte hodnotu
 login.dialogTitle: Přihlášení
-login.dialogDescription: Zadejte přihlašovací údaje pro přístup do administrace
+login.dialogDescription: Zadejte přihlašovací údaje pro vstup do administrace.
 login.usernameLabel: Uživatelské jméno
 login.usernamePlaceholder: Zadejte uživatelské jméno
 login.passwordLabel: Heslo
 login.passwordPlaceholder: Zadejte heslo
-login.loggingIn: Přihlašuji...
+login.loggingIn: Přihlašuji…
 login.loginAction: Přihlásit se
-login.forgottenPassword: Zapomenuté heslo?
-login.registerNewUser: Registrovat nového uživatele
+login.forgottenPassword: Zapomněli jste heslo?
+login.registerNewUser: Zaregistrovat nového uživatele
 login.errorOccurred: Došlo k chybě
 login.unexpectedError: Došlo k neočekávané chybě
 forgottenPassword.title: Zapomenuté heslo
-forgottenPassword.subtitle: Obnovte své heslo
-forgottenPassword.noEmailPrefix: Tento Promptbook server nemá e-mailovou funkcionalitu.
-  Kontaktujte prosím administrátora na
-forgottenPassword.noEmailSuffix: pro reset hesla.
+forgottenPassword.subtitle: Obnovte si heslo
+forgottenPassword.noEmailPrefix: Na tomto Promptbook serveru není k dispozici e-mailové odesílání. Kontaktujte prosím správce na
+forgottenPassword.noEmailSuffix: kvůli obnovení hesla.
 registerUser.title: Registrace nového uživatele
 registerUser.subtitle: Vytvořte nový uživatelský účet
-registerUser.noEmailPrefix: Tento Promptbook server nemá e-mailovou funkcionalitu.
-  Kontaktujte prosím administrátora na
-registerUser.noEmailSuffix: pro registraci nového uživatele.
+registerUser.noEmailPrefix: Na tomto Promptbook serveru není k dispozici e-mailové odesílání. Kontaktujte prosím správce na
+registerUser.noEmailSuffix: kvůli registraci nového uživatele.
 secretInput.hideSecret: Skrýt tajnou hodnotu
 secretInput.showSecret: Zobrazit tajnou hodnotu
-agentCreation.addButtonLabel: + Přidat nového agenta
-agentCreation.preparing: Připravuji...
+agentCreation.addButtonLabel: + Nový agent
+agentCreation.preparing: Připravuji…
 agentCreation.createFailedTitle: Vytvoření se nezdařilo
-agentCreation.createFailedMessage: Nepodařilo se vytvořit agenta. Zkuste to prosím znovu.
+agentCreation.createFailedMessage: Agenta se nepodařilo vytvořit. Zkuste to prosím znovu.
 agentCreation.dialogTitle: Vytvořit nového agenta
 agentCreation.dialogCreateAction: Vytvořit agenta
-agentCreation.dialogCreating: Vytvářím...
-agentCreation.wizardEyebrow: Průvodce
+agentCreation.dialogCreating: Vytvářím…
+agentCreation.wizardEyebrow: Průvodce vytvořením
 agentCreation.wizardTitle: Vytvořit nového agenta
 agentCreation.wizard.basicTitle: Základní údaje
-agentCreation.wizard.personaTitle: Persona a schopnosti
-agentCreation.wizard.writingTitle: Styl psaní
-agentCreation.wizard.rulesTitle: Pravidla a zábrany
+agentCreation.wizard.personaTitle: Osobnost a schopnosti
+agentCreation.wizard.writingTitle: Styl odpovědí
+agentCreation.wizard.rulesTitle: Pravidla a omezení
 agentCreation.wizard.knowledgeTitle: Znalosti
 agentCreation.wizard.reviewTitle: Kontrola a vytvoření
 agentCreation.wizard.basicDescription: Nastavte základní identitu, cíl a viditelnost nového agenta, než na pozadí sestavíme zdroj knihy.
-agentCreation.wizard.personaDescription: Zvolte osobnostní rysy, režim učení a schopnosti odvozené z dostupných `USE` commitmentů.
-agentCreation.wizard.writingDescription: Vyberte přednastavené styly psaní, přidejte vlastní pokyny a prohlédněte si ukázky hlasu v maketě chatu.
-agentCreation.wizard.rulesDescription: Zvolte zábrany a přidejte vlastní pravidla jako štítky.
+agentCreation.wizard.personaDescription: Vyberte osobnostní rysy, režim učení a schopnosti odvozené z dostupných `USE` commitmentů.
+agentCreation.wizard.writingDescription: Zvolte předvolené styly odpovědí, přidejte vlastní pokyny a podívejte se na náhled tónu v ukázkovém chatu.
+agentCreation.wizard.rulesDescription: Vyberte ochranná pravidla a přidejte vlastní pravidla jako štítky.
 agentCreation.wizard.knowledgeDescription: Nahrajte soubory nebo přidejte URL, které se mají stát součástí znalostí agenta.
-agentCreation.wizard.reviewDescription: Potvrďte níže zvolené volby, nebo se před vytvořením přepněte do pokročilého editoru.
+agentCreation.wizard.reviewDescription: Zkontrolujte vybraná nastavení, nebo se před vytvořením přepněte do pokročilého editoru.
 agentCreation.wizard.basicShort: Základ
-agentCreation.wizard.personaShort: Persona
+agentCreation.wizard.personaShort: Osobnost
 agentCreation.wizard.writingShort: Styl
 agentCreation.wizard.rulesShort: Pravidla
 agentCreation.wizard.knowledgeShort: Znalosti
 agentCreation.wizard.reviewShort: Kontrola
 agentCreation.wizard.nameLabel: Název agenta
 agentCreation.wizard.namePlaceholder: Agent zákaznické podpory
-agentCreation.wizard.nameRequired: Před pokračováním zadejte název.
+agentCreation.wizard.nameRequired: Než budete pokračovat, zadejte název.
 agentCreation.wizard.descriptionLabel: Krátký popis
-agentCreation.wizard.descriptionPlaceholder: Odpovídá na dotazy zákazníků a předává složitější případy dál.
+agentCreation.wizard.descriptionPlaceholder: Odpovídá na dotazy zákazníků a složitější případy předává dál.
 agentCreation.wizard.goalLabel: Cíl
-agentCreation.wizard.goalPlaceholder: Pomáhej uživatelům rychle řešit problémy s účtem bez ztráty důležitého kontextu.
+agentCreation.wizard.goalPlaceholder: Pomáhej uživatelům rychle řešit potíže s účtem, aniž by se ztratil důležitý kontext.
 agentCreation.wizard.visibilityLabel: Viditelnost
 agentCreation.wizard.visibilityPrivate: Soukromý
-agentCreation.wizard.visibilityUnlisted: Neveřejný odkaz
+agentCreation.wizard.visibilityUnlisted: Pouze přes odkaz
 agentCreation.wizard.visibilityPublic: Veřejný
-agentCreation.wizard.traitsLabel: Přednastavené vlastnosti
+agentCreation.wizard.traitsLabel: Předvolené vlastnosti
 agentCreation.wizard.learningModeLabel: Režim učení
-agentCreation.wizard.learningModeOpen: Otevřený pro učení
-agentCreation.wizard.learningModeOpenDescription: Přidá `OPEN`, takže agent zůstane upravitelný během konverzace.
-agentCreation.wizard.learningModeClosed: Fixovaný po vytvoření
-agentCreation.wizard.learningModeClosedDescription: Přidá `CLOSED`, takže agent zůstane stabilní a bez učení.
+agentCreation.wizard.learningModeOpen: Může se učit
+agentCreation.wizard.learningModeOpenDescription: Přidá `OPEN`, takže agent půjde během konverzace dál upravovat.
+agentCreation.wizard.learningModeClosed: Bez dalšího učení
+agentCreation.wizard.learningModeClosedDescription: Přidá `CLOSED`, takže agent zůstane stabilní a nebude se dál učit.
 agentCreation.wizard.capabilitiesLabel: Schopnosti
 agentCreation.wizard.capabilitiesHint: Některé pokročilé schopnosti vyžadují další nastavení v editoru.
 agentCreation.wizard.capabilityRequiresEditor: Tuto schopnost nastavte v pokročilém editoru.
 agentCreation.wizard.customTraitLabel: Vlastní vlastnost
-agentCreation.wizard.customTraitPlaceholder: Napište vlastnost a potvrďte Enterem.
-agentCreation.wizard.traitHelpful: Ochotný
+agentCreation.wizard.customTraitPlaceholder: Napište vlastnost a potvrďte ji klávesou Enter.
+agentCreation.wizard.traitHelpful: Vstřícný
 agentCreation.wizard.traitConcise: Stručný
 agentCreation.wizard.traitProfessional: Profesionální
 agentCreation.wizard.traitFriendly: Přátelský
 agentCreation.wizard.traitAnalytical: Analytický
-agentCreation.wizard.traitTechnical: Technický
-agentCreation.wizard.traitEducational: Vysvětlující
+agentCreation.wizard.traitTechnical: Technicky zdatný
+agentCreation.wizard.traitEducational: Srozumitelný
 agentCreation.wizard.traitCreative: Kreativní
 agentCreation.wizard.traitEmpathetic: Empatický
 agentCreation.wizard.traitCurious: Zvídavý
 agentCreation.wizard.traitStrategic: Strategický
 agentCreation.wizard.traitPatient: Trpělivý
 agentCreation.wizard.traitDecisive: Rozhodný
-agentCreation.wizard.writingStylesLabel: Přednastavené styly psaní
+agentCreation.wizard.writingStylesLabel: Předvolené styly psaní
 agentCreation.wizard.writingStyleProfessional: Profesionální
 agentCreation.wizard.writingStyleFriendly: Přátelský
 agentCreation.wizard.writingStyleConcise: Stručný
-agentCreation.wizard.writingStyleDetailed: Detailní
+agentCreation.wizard.writingStyleDetailed: Podrobný
 agentCreation.wizard.writingStyleConversational: Konverzační
-agentCreation.wizard.writingStyleUpbeat: Pozitivní
-agentCreation.wizard.customWritingTraitLabel: Vlastní stylový rys
-agentCreation.wizard.customWritingTraitPlaceholder: Napište stylový rys a potvrďte Enterem.
+agentCreation.wizard.writingStyleUpbeat: Povzbuzující
+agentCreation.wizard.customWritingTraitLabel: Vlastní rys stylu
+agentCreation.wizard.customWritingTraitPlaceholder: Napište rys stylu a potvrďte ho klávesou Enter.
 agentCreation.wizard.customWritingRuleLabel: Vlastní pravidlo psaní
-agentCreation.wizard.customWritingRulePlaceholder: Napište pravidlo psaní a potvrďte Enterem.
+agentCreation.wizard.customWritingRulePlaceholder: Napište pravidlo psaní a potvrďte ho klávesou Enter.
 agentCreation.wizard.customWritingSampleLabel: Vlastní ukázka stylu
-agentCreation.wizard.customWritingSamplePlaceholder: Napište ukázkovou odpověď, která vystihuje požadovaný hlas.
+agentCreation.wizard.customWritingSamplePlaceholder: Napište ukázkovou odpověď, která vystihuje požadovaný tón.
 agentCreation.wizard.customWritingSamplePreviewTitle: Náhled vlastní ukázky
-agentCreation.wizard.writingPreviewUserMessage: Můžeš shrnout, co mám udělat dál?
-agentCreation.wizard.capabilityBrowser: Umí používat prohlížeč
-agentCreation.wizard.capabilitySearchEngine: Umí hledat na webu
-agentCreation.wizard.capabilitySpawn: Umí vytvářet nové agenty
-agentCreation.wizard.capabilityTimeout: Umí spravovat časovače
+agentCreation.wizard.writingPreviewUserMessage: Můžeš stručně shrnout, co mám udělat dál?
+agentCreation.wizard.capabilityBrowser: Používá prohlížeč
+agentCreation.wizard.capabilitySearchEngine: Vyhledává na webu
+agentCreation.wizard.capabilitySpawn: Vytváří nové agenty
+agentCreation.wizard.capabilityTimeout: Pracuje s časovači
 agentCreation.wizard.capabilityTime: Zná aktuální čas
-agentCreation.wizard.capabilityUserLocation: Umí použít polohu uživatele
-agentCreation.wizard.capabilityCalendar: Umí spravovat kalendář
-agentCreation.wizard.capabilityEmail: Umí posílat e-maily
-agentCreation.wizard.capabilityPopup: Umí otevřít popup rozhraní
-agentCreation.wizard.capabilityImageGenerator: Umí generovat obrázky
-agentCreation.wizard.capabilityPrivacy: Umí použít režim soukromí
-agentCreation.wizard.capabilityProject: Umí pracovat s projektem
-agentCreation.wizard.capabilityMcp: Umí se připojit k MCP
-agentCreation.wizard.ruleProtectPersonalData: Vyhýbat se vyžadování nebo zveřejňování osobních údajů.
+agentCreation.wizard.capabilityUserLocation: Pracuje s polohou uživatele
+agentCreation.wizard.capabilityCalendar: Pracuje s kalendářem
+agentCreation.wizard.capabilityEmail: Posílá e-maily
+agentCreation.wizard.capabilityPopup: Otevírá popup rozhraní
+agentCreation.wizard.capabilityImageGenerator: Generuje obrázky
+agentCreation.wizard.capabilityPrivacy: Používá režim soukromí
+agentCreation.wizard.capabilityProject: Pracuje s projektem
+agentCreation.wizard.capabilityMcp: Připojuje se k MCP
+agentCreation.wizard.ruleProtectPersonalData: Nežádat ani neprozrazovat osobní údaje.
 agentCreation.wizard.ruleProfessionalTone: Udržovat profesionální tón.
 agentCreation.wizard.ruleRegulatedAdvice: Vyhýbat se zdravotním, právním a finančním radám.
 agentCreation.wizard.ruleUncertainty: Otevřeně přiznat nejistotu.
-agentCreation.wizard.ruleClarifyAmbiguity: Při nejasném zadání se doptat na upřesnění.
+agentCreation.wizard.ruleClarifyAmbiguity: Když je zadání nejasné, doptat se na upřesnění.
 agentCreation.wizard.ruleCiteSources: Při použití externích informací uvádět nebo pojmenovat zdroj.
-agentCreation.wizard.ruleStayInScope: Držet se svého rozsahu a říct, kdy je potřeba eskalace.
+agentCreation.wizard.ruleStayInScope: Držet se svého rozsahu a říct, kdy je potřeba předat dotaz dál.
 agentCreation.wizard.ruleStateAssumptions: Důležité předpoklady uvádět explicitně.
-agentCreation.wizard.ruleConfirmRiskyActions: Před riskantními, drahými nebo nevratnými kroky žádat potvrzení.
+agentCreation.wizard.ruleConfirmRiskyActions: Před riskantními, drahými nebo nevratnými kroky si vyžádat potvrzení.
 agentCreation.wizard.customInstructionsLabel: Vlastní instrukce
-agentCreation.wizard.customInstructionsPlaceholder: Napište pravidlo a potvrďte Enterem.
-agentCreation.wizard.uploadLabel: Nahrát soubory se znalostmi
-agentCreation.wizard.uploadHint: Používá stejnou ingest pipeline jako editor knihy.
+agentCreation.wizard.customInstructionsPlaceholder: Napište pravidlo a potvrďte ho klávesou Enter.
+agentCreation.wizard.uploadLabel: Nahrát znalostní soubory
+agentCreation.wizard.uploadHint: Používá stejný importní proces jako editor knihy.
 agentCreation.wizard.uploadAction: Nahrát soubory
-agentCreation.wizard.uploadFailed: Nahrávání selhalo.
-agentCreation.wizard.urlsLabel: Vložit URL se znalostmi
+agentCreation.wizard.uploadFailed: Nahrávání se nezdařilo.
+agentCreation.wizard.urlsLabel: Přidat znalostní URL
 agentCreation.wizard.urlsPlaceholder: https://example.com/docs
-agentCreation.wizard.urlsHint: Vložte URL a potvrďte Enterem.
+agentCreation.wizard.urlsHint: Vložte URL a potvrďte ji klávesou Enter.
 agentCreation.wizard.addUrlsAction: Přidat URL
-agentCreation.wizard.invalidUrls: "{count} URL položek bylo přeskočeno, protože nejsou platnými HTTP(S) odkazy."
-agentCreation.wizard.noKnowledge: Zatím nejsou přidány žádné znalostní zdroje.
+agentCreation.wizard.invalidUrls: "{count} položek URL jsme přeskočili, protože nešlo o platné odkazy HTTP(S)."
+agentCreation.wizard.noKnowledge: Zatím jste nepřidali žádné znalostní zdroje.
 agentCreation.wizard.uploadedFile: Nahraný soubor
-agentCreation.wizard.uploading: Nahrávám... {progress}%
+agentCreation.wizard.uploading: "Nahrávám… {progress}%"
 agentCreation.wizard.removeKnowledgeAction: Odebrat
 agentCreation.wizard.openEditorAfterCreationLabel: Po vytvoření otevřít editor knihy
-agentCreation.wizard.openEditorAfterCreationDescription: Ponechte nezaškrtnuté, pokud chcete po vytvoření přejít na profil agenta.
+agentCreation.wizard.openEditorAfterCreationDescription: Nechte nezaškrtnuté, pokud chcete po vytvoření přejít na profil agenta.
 agentCreation.wizard.reviewBasicHeading: Základní údaje
-agentCreation.wizard.reviewPersonaHeading: Persona a vlastnosti
-agentCreation.wizard.reviewRulesHeading: Pravidla a zábrany
+agentCreation.wizard.reviewPersonaHeading: Osobnost a vlastnosti
+agentCreation.wizard.reviewRulesHeading: Pravidla a omezení
 agentCreation.wizard.reviewKnowledgeHeading: Znalosti
-agentCreation.wizard.openAdvancedEditorAction: "Pokročilé: místo toho otevřít editor"
+agentCreation.wizard.openAdvancedEditorAction: "Pokročilé: místo průvodce otevřít editor"
 agentCreation.wizard.backAction: Zpět
 agentCreation.wizard.nextAction: Další
 agentCreation.wizard.createAction: Vytvořit agenta
-agentCreation.wizard.creatingAction: Vytvářím...
+agentCreation.wizard.creatingAction: Vytvářím…
 footer.productSectionTitle: Produkt
 footer.getStarted: Začít
 footer.manifest: Manifest
@@ -290,29 +286,29 @@ footer.privacyPolicy: Zásady ochrany soukromí
 footer.companySectionTitle: Společnost
 footer.aboutUs: O nás
 footer.blog: Blog
-footer.logosAndBranding: Loga a branding
-footer.connectSectionTitle: Spojení
+footer.logosAndBranding: Loga a vizuální identita
+footer.connectSectionTitle: Spojte se s námi
 footer.linksSectionTitle: Odkazy
 footer.allRightsReserved: Všechna práva vyhrazena.
 footer.madeInCzechRepublic: Vytvořeno s ❤️ v České republice.
 footer.engineVersion: Verze jádra Promptbooku
 forbidden.title: 403 Zakázáno
 forbidden.message: Nemáte oprávnění k přístupu na tuto stránku.
-users.loadingUsers: Načítám uživatele...
-users.sectionTitle: Uživatelé ({count})
-users.adminRole: Administrátor
+users.loadingUsers: Načítám uživatele…
+users.sectionTitle: "Uživatelé ({count})"
+users.adminRole: Správce
 users.createdLabel: Vytvořeno
-users.removeAdmin: Odebrat administrátora
-users.makeAdmin: Nastavit jako administrátora
+users.removeAdmin: Odebrat roli správce
+users.makeAdmin: Nastavit jako správce
 users.delete: Smazat
 users.addNewUser: Přidat nového uživatele
 users.usernamePlaceholder: Uživatelské jméno
 users.passwordPlaceholder: Heslo
 users.passwordAriaLabel: Heslo
-users.isAdminCheckbox: Je administrátor
+users.isAdminCheckbox: Administrátor
 users.createUser: Vytvořit uživatele
 users.deleteConfirmTitle: Smazat uživatele
-users.deleteConfirmMessage: Opravdu chcete smazat uživatele {username}?
+users.deleteConfirmMessage: "Opravdu chcete smazat uživatele {username}?"
 users.deleteConfirmAction: Smazat uživatele
 users.deleteConfirmCancel: Zrušit
 users.errorOccurred: Došlo k chybě
@@ -320,7 +316,7 @@ users.errorFetchFailed: Nepodařilo se načíst uživatele
 users.errorCreateFailed: Nepodařilo se vytvořit uživatele
 users.errorDeleteFailed: Nepodařilo se smazat uživatele
 users.errorUpdateFailed: Nepodařilo se upravit uživatele
-users.userDetailLoading: Načítám uživatele...
+users.userDetailLoading: Načítám detail uživatele…
 users.userNotFound: Uživatel nebyl nalezen.
 users.backToUsers: Zpět na uživatele
 users.profileTitle: "Profil uživatele: {username}"
@@ -329,7 +325,7 @@ users.createdAtLabel: Vytvořeno
 users.lastUpdatedLabel: Naposledy upraveno
 users.unknownValue: Neznámé
 users.deleteUserAction: Smazat uživatele
-users.createdAgentsTitle: Agenti vytvoření uživatelem
-users.createdAgentsDescription: Seznam agentů vytvořených tímto uživatelem zatím není napojený na datový model.
+users.createdAgentsTitle: Agenti tohoto uživatele
+users.createdAgentsDescription: Seznam agentů vytvořených tímto uživatelem zatím není propojený s datovým modelem.
 users.activityTitle: Aktivita
-users.activityDescription: Podrobné sledování aktivity zatím není implementované. Prozatím můžete jako orientační signál změn použít výše uvedené časy vytvoření a aktualizace.
+users.activityDescription: Podrobné sledování aktivity zatím není k dispozici. Jako orientační přehled změn zatím můžete použít výše uvedené časy vytvoření a poslední úpravy.

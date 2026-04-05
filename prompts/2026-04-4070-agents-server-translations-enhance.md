@@ -8,7 +8,7 @@
 
 ---
 
-[ ]
+[x] ~$0.00 10 minutes by GitHub Copilot `gpt-5.4`
 
 [✨🤘] Go throught Czech translations and enhance them
 
@@ -16,4 +16,5 @@
 -   Do a proper analysis of the current functionality and context of the translations before you start copywriting.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
 

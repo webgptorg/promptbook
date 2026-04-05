@@ -1,3 +1,8 @@
+-   Improved Czech Agents Server UI translations to read more naturally across the localized interface:
+
+    -   Rewrote the built-in Czech language pack for menu items, control panel labels, authentication dialogs, agent-creation wizard copy, footer links, and user-management screens.
+    -   Adjusted wording based on actual UI context (for example admin-role labels, browser-local language settings, privacy-mode confirmation, and email-contact fallback messages) so the Czech copy fits the rendered components more naturally.
+
 -   Fixed Agents Server chat timestamps and response-duration labels to respect the active server language and locale:
 
     -   Wired shared `<Chat/>` timing UI to accept locale-aware timestamp formatting and translatable response-duration copy instead of hardcoded English output.
