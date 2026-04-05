@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { createContext, useContext } from 'react';
+import type { ControlPanelOptionAvailability } from '../../utils/getControlPanelOptionAvailability';
 
 /**
  * Flags derived from server metadata that control optional client flows.
@@ -13,6 +14,25 @@ export type MetadataFlags = {
      * Controls whether the experimental install-app option surfaces in agent menus.
      */
     readonly isExperimentalPwaAppEnabled: boolean;
+    /**
+     * Server-specific visibility of each control-panel option.
+     */
+    readonly controlPanelOptionAvailability: ControlPanelOptionAvailability;
+};
+
+/**
+ * Control-panel availability defaults used before server metadata is provided.
+ *
+ * @private
+ */
+const defaultControlPanelOptionAvailability: ControlPanelOptionAvailability = {
+    sound: true,
+    vibration: true,
+    notifications: true,
+    selfLearning: true,
+    privateMode: true,
+    language: true,
+    chatVisualMode: true,
 };
 
 /**
@@ -22,6 +42,7 @@ export type MetadataFlags = {
  */
 const defaultMetadataFlags: MetadataFlags = {
     isExperimentalPwaAppEnabled: true,
+    controlPanelOptionAvailability: defaultControlPanelOptionAvailability,
 };
 
 /**

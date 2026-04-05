@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 23 minutes by GitHub Copilot `gpt-5.4`
 
 [🧩🎛️] Hide disabled server options from control panel
 
@@ -9,3 +9,4 @@
     -   If an entire option group has no available options for the server, hide the group container.
     -   Do not show disabled toggles as “greyed out”. They should be removed from the UI entirely.
 -   You are working with the [Agents Server](apps/agents-server)
+

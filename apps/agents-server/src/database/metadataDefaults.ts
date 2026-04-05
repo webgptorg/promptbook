@@ -200,6 +200,48 @@ export const metadataDefaults = [
         type: 'BOOLEAN',
     },
     {
+        key: 'IS_CONTROL_PANEL_SOUND_ENABLED',
+        value: 'true',
+        note: 'Show or hide the Sound option in the user control panel for this server.',
+        type: 'BOOLEAN',
+    },
+    {
+        key: 'IS_CONTROL_PANEL_VIBRATION_ENABLED',
+        value: 'true',
+        note: 'Show or hide the Vibration option in the user control panel for this server.',
+        type: 'BOOLEAN',
+    },
+    {
+        key: 'IS_CONTROL_PANEL_NOTIFICATIONS_ENABLED',
+        value: 'true',
+        note: 'Show or hide the browser Notifications option in the user control panel for this server.',
+        type: 'BOOLEAN',
+    },
+    {
+        key: 'IS_CONTROL_PANEL_SELF_LEARNING_ENABLED',
+        value: 'true',
+        note: 'Show or hide the Self-learning option in the user control panel for this server.',
+        type: 'BOOLEAN',
+    },
+    {
+        key: 'IS_CONTROL_PANEL_PRIVATE_MODE_ENABLED',
+        value: 'true',
+        note: 'Show or hide the Private mode option in the user control panel for this server.',
+        type: 'BOOLEAN',
+    },
+    {
+        key: 'IS_CONTROL_PANEL_LANGUAGE_ENABLED',
+        value: 'true',
+        note: 'Show or hide the Language section in the user control panel for this server. The section is also hidden automatically when SERVER_LANGUAGE is enforced.',
+        type: 'BOOLEAN',
+    },
+    {
+        key: 'IS_CONTROL_PANEL_CHAT_VISUAL_MODE_ENABLED',
+        value: 'true',
+        note: 'Show or hide the Chat visual mode section in the user control panel for this server.',
+        type: 'BOOLEAN',
+    },
+    {
         key: 'DEFAULT_IS_SOUNDS_ON',
         value: 'false',
         note: 'Default state for chat sounds when a user has no saved preference. When false, sounds start muted.',

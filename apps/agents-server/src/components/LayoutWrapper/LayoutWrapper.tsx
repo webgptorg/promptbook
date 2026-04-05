@@ -24,6 +24,7 @@ import { ServerLanguageProvider } from '../ServerLanguage/ServerLanguageProvider
 import { SelfLearningPreferencesProvider } from '../SelfLearningPreferences/SelfLearningPreferencesProvider';
 import { SoundSystemProvider } from '../SoundSystemProvider/SoundSystemProvider';
 import { ViewportHeightController } from '../ViewportHeightController/ViewportHeightController';
+import type { ControlPanelOptionAvailability } from '../../utils/getControlPanelOptionAvailability';
 
 type LayoutWrapperProps = {
     children: React.ReactNode;
@@ -44,6 +45,10 @@ type LayoutWrapperProps = {
      * Indicates if the install-as-app option should be shown in agent menus.
      */
     readonly isExperimentalPwaAppEnabled: boolean;
+    /**
+     * Server-specific visibility of each control-panel option.
+     */
+    readonly controlPanelOptionAvailability: ControlPanelOptionAvailability;
     defaultIsSoundsOn: boolean;
     defaultIsVibrationOn: boolean;
     defaultIsNotificationsOn: boolean;
@@ -72,6 +77,7 @@ export function LayoutWrapper({
     isExperimental,
     feedbackMode,
     isExperimentalPwaAppEnabled,
+    controlPanelOptionAvailability,
     defaultIsSoundsOn,
     defaultIsVibrationOn,
     defaultIsNotificationsOn,
@@ -116,6 +122,7 @@ export function LayoutWrapper({
                                         <BrowserPushNotificationsProvider
                                             defaultEnabled={defaultIsNotificationsOn}
                                             pushPublicKey={webPushPublicKey}
+                                            isMetadataAvailable={controlPanelOptionAvailability.notifications}
                                         >
                                             <ChatEnterBehaviorPreferencesProvider>
                                                 <ClientVersionMismatchListener />
@@ -123,7 +130,12 @@ export function LayoutWrapper({
                                                 <NavigationProgressBar />
                                                 <MenuHoistingProvider>
                                                     <MobileMenuHoistingProvider>
-                                                        <MetadataFlagsProvider value={{ isExperimentalPwaAppEnabled }}>
+                                                        <MetadataFlagsProvider
+                                                            value={{
+                                                                isExperimentalPwaAppEnabled,
+                                                                controlPanelOptionAvailability,
+                                                            }}
+                                                        >
                                                             {shouldRenderMinimalShell ? (
                                                                 <main className={minimalMainClassName}>{children}</main>
                                                             ) : (

@@ -31,6 +31,10 @@ import { isUserAdmin } from '../utils/isUserAdmin';
 import { isUserGlobalAdmin } from '../utils/isUserGlobalAdmin';
 import { getDefaultIsNotificationsOn } from '../utils/userPushNotificationSettings';
 import { isPublicServerVisibility } from '../utils/serverVisibility';
+import {
+    CONTROL_PANEL_OPTION_AVAILABILITY_METADATA_KEYS,
+    getControlPanelOptionAvailability,
+} from '../utils/getControlPanelOptionAvailability';
 import './globals.css';
 
 const barlowCondensed = Barlow_Condensed({
@@ -249,6 +253,7 @@ export default async function RootLayout({
         CHAT_VISUAL_MODE_METADATA_KEY,
         SERVER_LANGUAGE_METADATA_KEY,
         IS_SERVER_LANGUAGE_ENFORCED_METADATA_KEY,
+        ...CONTROL_PANEL_OPTION_AVAILABILITY_METADATA_KEYS,
     ]);
     const currentUserPromise = getCurrentUser();
     const isAdminPromise = isUserAdmin();
@@ -336,6 +341,7 @@ export default async function RootLayout({
     const isExperimentalPwaAppEnabled = (layoutMetadata.IS_EXPERIMENTAL_PWA_APP_ENABLED ?? 'true') === 'true';
     const isPublicServer = isPublicServerVisibility(serverVisibility);
     const safeCustomJavascript = customJavascript.replace(/<\/script>/gi, '<\\/script>');
+    const webPushPublicKey = process.env.NEXT_PUBLIC_WEB_PUSH_PUBLIC_KEY?.trim() || null;
     const chatVisualModeCookie = cookieStore.get(CHAT_VISUAL_MODE_COOKIE_NAME)?.value || null;
     const cookieLanguage = cookieStore.get(SERVER_LANGUAGE_COOKIE_NAME)?.value || null;
     const isServerLanguageEnforced = parseServerLanguageEnforcedMetadata(
@@ -346,6 +352,10 @@ export default async function RootLayout({
     const defaultChatVisualMode = resolveChatVisualMode(chatVisualModeCookie || rawChatVisualMode);
     const preferredLanguageSource = isServerLanguageEnforced ? rawServerLanguage : cookieLanguage || rawServerLanguage;
     const serverLanguage = resolveServerLanguageCode(preferredLanguageSource);
+    const controlPanelOptionAvailability = getControlPanelOptionAvailability({
+        metadata: layoutMetadata,
+        isPushNotificationsConfigured: Boolean(webPushPublicKey),
+    });
 
     return (
         <html lang={serverLanguage}>
@@ -370,10 +380,11 @@ export default async function RootLayout({
                     isExperimental={isExperimental}
                     feedbackMode={feedbackMode}
                     isExperimentalPwaAppEnabled={isExperimentalPwaAppEnabled}
+                    controlPanelOptionAvailability={controlPanelOptionAvailability}
                     defaultServerLanguage={serverLanguage}
                     isServerLanguageEnforced={isServerLanguageEnforced}
                     defaultChatVisualMode={defaultChatVisualMode}
-                    webPushPublicKey={process.env.NEXT_PUBLIC_WEB_PUSH_PUBLIC_KEY || null}
+                    webPushPublicKey={webPushPublicKey}
                 >
                     {children}
                 </LayoutWrapper>

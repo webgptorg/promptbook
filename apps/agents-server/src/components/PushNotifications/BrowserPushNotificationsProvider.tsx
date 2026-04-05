@@ -88,6 +88,7 @@ type BrowserPushNotificationsProviderProps = {
     children: ReactNode;
     defaultEnabled: boolean;
     pushPublicKey: string | null;
+    isMetadataAvailable?: boolean;
 };
 
 /**
@@ -97,6 +98,7 @@ export function BrowserPushNotificationsProvider({
     children,
     defaultEnabled,
     pushPublicKey,
+    isMetadataAvailable = true,
 }: BrowserPushNotificationsProviderProps) {
     const [storedEnabled, setStoredEnabled] = useState<boolean | null>(null);
     const [resolvedDefaultEnabled, setResolvedDefaultEnabled] = useState(defaultEnabled);
@@ -112,7 +114,7 @@ export function BrowserPushNotificationsProvider({
     const hasConsumedAutoPromptRef = useRef(false);
 
     const isSupported = permission !== 'unsupported';
-    const isConfigured = Boolean(pushPublicKey);
+    const isConfigured = isMetadataAvailable && Boolean(pushPublicKey);
     const isEnabled = permission === 'granted' && isConfigured && (storedEnabled ?? resolvedDefaultEnabled);
 
     /**
@@ -193,7 +195,7 @@ export function BrowserPushNotificationsProvider({
      * Ensures the current browser has one stored server-side push subscription.
      */
     const ensureCurrentBrowserSubscriptionSynced = useCallback(async (): Promise<boolean> => {
-        if (!pushPublicKey) {
+        if (!isConfigured || !pushPublicKey) {
             throw new Error('Push notifications are not configured on this server.');
         }
 
@@ -230,7 +232,7 @@ export function BrowserPushNotificationsProvider({
         setSubscriptionId(response.subscriptionId);
 
         return true;
-    }, [ensureServiceWorkerRegistration, pushPublicKey, runWithPendingMutation]);
+    }, [ensureServiceWorkerRegistration, isConfigured, pushPublicKey, runWithPendingMutation]);
 
     /**
      * Prompts the user for permission and enables notifications when possible.
@@ -243,7 +245,7 @@ export function BrowserPushNotificationsProvider({
                 return false;
             }
 
-            if (!pushPublicKey) {
+            if (!isConfigured || !pushPublicKey) {
                 notifyError('Push notifications are not configured on this server.');
                 return false;
             }
@@ -283,6 +285,7 @@ export function BrowserPushNotificationsProvider({
         [
             ensureCurrentBrowserSubscriptionSynced,
             persistNotificationSettings,
+            isConfigured,
             pushPublicKey,
             removeCurrentBrowserSubscription,
         ],
@@ -317,25 +320,25 @@ export function BrowserPushNotificationsProvider({
             return;
         }
 
-        if (storedEnabled !== null || resolvedDefaultEnabled !== true || !pushPublicKey) {
+        if (storedEnabled !== null || resolvedDefaultEnabled !== true || !isConfigured) {
             return;
         }
 
         hasConsumedAutoPromptRef.current = true;
         void enableNotifications(false);
-    }, [enableNotifications, pushPublicKey, resolvedDefaultEnabled, storedEnabled]);
+    }, [enableNotifications, isConfigured, resolvedDefaultEnabled, storedEnabled]);
 
     /**
      * Persists the default-off state the first time we gently hint about notifications.
      */
     const rememberDefaultOffHintShown = useCallback(async (): Promise<boolean> => {
-        if (isLoading || resolvedDefaultEnabled || storedEnabled !== null) {
+        if (isLoading || resolvedDefaultEnabled || storedEnabled !== null || !isConfigured) {
             return false;
         }
 
         await persistNotificationSettings(false).catch(() => undefined);
         return true;
-    }, [isLoading, persistNotificationSettings, resolvedDefaultEnabled, storedEnabled]);
+    }, [isConfigured, isLoading, persistNotificationSettings, resolvedDefaultEnabled, storedEnabled]);
 
     useEffect(() => {
         if (!isBrowserPushSupported()) {

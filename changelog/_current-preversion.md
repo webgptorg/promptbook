@@ -1,3 +1,9 @@
+-   Updated the Agents Server control panel to hide server-disabled options instead of rendering greyed-out controls:
+
+    -   Added metadata-driven availability flags for each control-panel option/section and resolved them once in the app shell as the single source of truth for the active server.
+    -   Filtered status badges, toggle tiles, and section containers so only options available on the current server render, while empty groups disappear entirely.
+    -   Aligned browser-notification prompting with the same availability source so servers that hide notifications no longer surface notification-enable flows elsewhere in the UI.
+
 -   Refined Agents Server `ARTICLE_MODE` chat layout on the main chat page for a more readable article-style transcript:
 
     -   Kept article-mode chats full-width on mobile while constraining the desktop reading column to a centered max width with balanced side padding.

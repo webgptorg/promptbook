@@ -19,6 +19,7 @@ import { confirmPrivateModeEnable } from '../../PrivateModePreferences/confirmPr
 import { usePrivateModePreferences } from '../../PrivateModePreferences/PrivateModePreferencesProvider';
 import { useBrowserPushNotifications } from '../../PushNotifications/BrowserPushNotificationsProvider';
 import { useSelfLearningPreferences } from '../../SelfLearningPreferences/SelfLearningPreferencesProvider';
+import { useMetadataFlags } from '../../MetadataFlags/MetadataFlagsContext';
 import { useServerLanguage } from '../../ServerLanguage/ServerLanguageProvider';
 import { useSoundSystem } from '../../SoundSystemProvider/SoundSystemProvider';
 
@@ -276,9 +277,10 @@ function useControlPanelBooleanToggle({
  * @private
  */
 function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanelContentProps) {
+    const { controlPanelOptionAvailability } = useMetadataFlags();
     const { soundSystem } = useSoundSystem();
     const { chatVisualMode, setChatVisualMode } = useChatVisualMode();
-    const { language, setLanguage, availableLanguages, isServerLanguageEnforced, t } = useServerLanguage();
+    const { language, setLanguage, availableLanguages, t } = useServerLanguage();
     const { isSelfLearningEnabled, setIsSelfLearningEnabled } = useSelfLearningPreferences();
     const { isPrivateModeEnabled, setIsPrivateModeEnabled } = usePrivateModePreferences();
     const {
@@ -403,6 +405,122 @@ function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanel
     const genericDisabledLabel = t('controlPanel.notificationsStateDisabled');
     const soundStateLabel = soundToggle.isEnabled ? genericEnabledLabel : genericDisabledLabel;
     const vibrationStateLabel = vibrationToggle.isEnabled ? genericEnabledLabel : genericDisabledLabel;
+    const summaryBadges = (
+        [
+            {
+                key: 'private-mode',
+                isAvailable: controlPanelOptionAvailability.privateMode,
+                tone: isPrivateModeEnabled ? 'danger' : 'positive',
+                label: privateStateLabel,
+            },
+            {
+                key: 'self-learning',
+                isAvailable: controlPanelOptionAvailability.selfLearning,
+                tone: isPrivateModeEnabled ? 'neutral' : isSelfLearningEnabled ? 'positive' : 'informative',
+                label: selfLearningStateLabel,
+            },
+            {
+                key: 'notifications',
+                isAvailable: controlPanelOptionAvailability.notifications,
+                tone: notificationsStateTone,
+                label: notificationsStateLabel,
+            },
+            {
+                key: 'sound',
+                isAvailable: controlPanelOptionAvailability.sound,
+                tone: soundToggle.isEnabled ? 'positive' : 'neutral',
+                label: soundStateLabel,
+            },
+            {
+                key: 'language',
+                isAvailable: controlPanelOptionAvailability.language,
+                tone: 'neutral',
+                label: activeLanguageName,
+            },
+            {
+                key: 'chat-visual-mode',
+                isAvailable: controlPanelOptionAvailability.chatVisualMode,
+                tone: 'informative',
+                label: activeChatVisualModeLabel,
+            },
+        ] satisfies Array<ControlPanelStatusBadgeProps & { key: string; isAvailable: boolean }>
+    ).flatMap(({ isAvailable, ...badge }) => (isAvailable ? [badge] : []));
+    const toggleTiles = (
+        [
+            {
+                key: 'sound',
+                isAvailable: controlPanelOptionAvailability.sound,
+                icon: SpeakerIcon,
+                label: t('controlPanel.soundTitle'),
+                description: t('controlPanel.soundDescription'),
+                stateLabel: soundStateLabel,
+                isActive: soundToggle.isEnabled,
+                onToggle: soundToggle.toggle,
+                tone: soundToggle.isEnabled ? 'positive' : 'neutral',
+                isDisabled: !soundSystem,
+            },
+            {
+                key: 'vibration',
+                isAvailable: controlPanelOptionAvailability.vibration,
+                icon: Vibrate,
+                label: t('controlPanel.vibrationTitle'),
+                description: isVibrationSupported
+                    ? t('controlPanel.vibrationDescription')
+                    : t('controlPanel.vibrationDescriptionUnsupported'),
+                stateLabel: vibrationStateLabel,
+                isActive: vibrationToggle.isEnabled,
+                onToggle: vibrationToggle.toggle,
+                tone: vibrationToggle.isEnabled ? 'informative' : 'neutral',
+                isDisabled: !isVibrationSupported,
+            },
+            {
+                key: 'notifications',
+                isAvailable: controlPanelOptionAvailability.notifications,
+                icon: Bell,
+                label: t('controlPanel.notificationsTitle'),
+                description: notificationsDescription,
+                auxiliaryDetail: `${t('controlPanel.notificationsPermissionLabel')} ${notificationsPermissionLabel}`,
+                stateLabel: notificationsStateLabel,
+                isActive: isNotificationsEnabled,
+                onToggle: () => {
+                    void setNotificationsEnabled(!isNotificationsEnabled);
+                },
+                tone: notificationsStateTone,
+                isDisabled:
+                    isNotificationsLoading ||
+                    isNotificationsPersisting ||
+                    (!areNotificationsAvailable && !isNotificationsEnabled),
+            },
+            {
+                key: 'self-learning',
+                isAvailable: controlPanelOptionAvailability.selfLearning,
+                icon: Sparkles,
+                label: t('controlPanel.selfLearningTitle'),
+                description: selfLearningDescription,
+                stateLabel: selfLearningStateLabel,
+                isActive: isSelfLearningEnabled && !isPrivateModeEnabled,
+                onToggle: toggleSelfLearning,
+                tone: isPrivateModeEnabled ? 'neutral' : isSelfLearningEnabled ? 'positive' : 'informative',
+                isDisabled: isPrivateModeEnabled,
+            },
+            {
+                key: 'private-mode',
+                isAvailable: controlPanelOptionAvailability.privateMode,
+                icon: EyeOff,
+                label: t('controlPanel.privateModeTitle'),
+                description: privateDescription,
+                stateLabel: privateStateLabel,
+                isActive: isPrivateModeEnabled,
+                onToggle: () => {
+                    void togglePrivateMode();
+                },
+                tone: isPrivateModeEnabled ? 'danger' : 'positive',
+                columnSpan: 2,
+            },
+        ] satisfies Array<ControlPanelToggleTileProps & { key: string; isAvailable: boolean }>
+    ).flatMap(({ isAvailable, ...tile }) => (isAvailable ? [tile] : []));
+    const isAudioLoadingHintVisible =
+        (controlPanelOptionAvailability.sound || controlPanelOptionAvailability.vibration) && !soundSystem;
 
     return (
         <div className={`space-y-2 ${isMobile ? 'pt-0.5' : ''}`}>
@@ -417,93 +535,24 @@ function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanel
                     </span>
                 </div>
 
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                    <ControlPanelStatusBadge
-                        tone={isPrivateModeEnabled ? 'danger' : 'positive'}
-                        label={privateStateLabel}
-                    />
-                    <ControlPanelStatusBadge
-                        tone={isPrivateModeEnabled ? 'neutral' : isSelfLearningEnabled ? 'positive' : 'informative'}
-                        label={selfLearningStateLabel}
-                    />
-                    <ControlPanelStatusBadge tone={notificationsStateTone} label={notificationsStateLabel} />
-                    <ControlPanelStatusBadge tone={soundToggle.isEnabled ? 'positive' : 'neutral'} label={soundStateLabel} />
-                    <ControlPanelStatusBadge tone="neutral" label={activeLanguageName} />
-                    <ControlPanelStatusBadge tone="informative" label={activeChatVisualModeLabel} />
+                {summaryBadges.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                        {summaryBadges.map(({ key, tone, label }) => (
+                            <ControlPanelStatusBadge key={key} tone={tone} label={label} />
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {toggleTiles.length > 0 && (
+                <div className="grid grid-cols-2 gap-2">
+                    {toggleTiles.map(({ key, ...tileProps }) => (
+                        <ControlPanelToggleTile key={key} {...tileProps} />
+                    ))}
                 </div>
-            </div>
+            )}
 
-            <div className="grid grid-cols-2 gap-2">
-                <ControlPanelToggleTile
-                    icon={SpeakerIcon}
-                    label={t('controlPanel.soundTitle')}
-                    description={t('controlPanel.soundDescription')}
-                    stateLabel={soundStateLabel}
-                    isActive={soundToggle.isEnabled}
-                    onToggle={soundToggle.toggle}
-                    tone={soundToggle.isEnabled ? 'positive' : 'neutral'}
-                    isDisabled={!soundSystem}
-                />
-
-                <ControlPanelToggleTile
-                    icon={Vibrate}
-                    label={t('controlPanel.vibrationTitle')}
-                    description={
-                        isVibrationSupported
-                            ? t('controlPanel.vibrationDescription')
-                            : t('controlPanel.vibrationDescriptionUnsupported')
-                    }
-                    stateLabel={vibrationStateLabel}
-                    isActive={vibrationToggle.isEnabled}
-                    onToggle={vibrationToggle.toggle}
-                    tone={vibrationToggle.isEnabled ? 'informative' : 'neutral'}
-                    isDisabled={!isVibrationSupported}
-                />
-
-                <ControlPanelToggleTile
-                    icon={Bell}
-                    label={t('controlPanel.notificationsTitle')}
-                    description={notificationsDescription}
-                    auxiliaryDetail={`${t('controlPanel.notificationsPermissionLabel')} ${notificationsPermissionLabel}`}
-                    stateLabel={notificationsStateLabel}
-                    isActive={isNotificationsEnabled}
-                    onToggle={() => {
-                        void setNotificationsEnabled(!isNotificationsEnabled);
-                    }}
-                    tone={notificationsStateTone}
-                    isDisabled={
-                        isNotificationsLoading ||
-                        isNotificationsPersisting ||
-                        (!areNotificationsAvailable && !isNotificationsEnabled)
-                    }
-                />
-
-                <ControlPanelToggleTile
-                    icon={Sparkles}
-                    label={t('controlPanel.selfLearningTitle')}
-                    description={selfLearningDescription}
-                    stateLabel={selfLearningStateLabel}
-                    isActive={isSelfLearningEnabled && !isPrivateModeEnabled}
-                    onToggle={toggleSelfLearning}
-                    tone={isPrivateModeEnabled ? 'neutral' : isSelfLearningEnabled ? 'positive' : 'informative'}
-                    isDisabled={isPrivateModeEnabled}
-                />
-
-                <ControlPanelToggleTile
-                    icon={EyeOff}
-                    label={t('controlPanel.privateModeTitle')}
-                    description={privateDescription}
-                    stateLabel={privateStateLabel}
-                    isActive={isPrivateModeEnabled}
-                    onToggle={() => {
-                        void togglePrivateMode();
-                    }}
-                    tone={isPrivateModeEnabled ? 'danger' : 'positive'}
-                    columnSpan={2}
-                />
-            </div>
-
-            {!isServerLanguageEnforced && (
+            {controlPanelOptionAvailability.language && (
                 <section className="rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-sm">
                     <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
@@ -536,37 +585,43 @@ function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanel
                 </section>
             )}
 
-            <section className="rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-sm">
-                <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-gray-900">
-                            {t('controlPanel.chatVisualModeTitle')}
-                        </p>
-                        <p className="mt-0.5 text-[11px] text-gray-600">{t('controlPanel.chatVisualModeSubtitle')}</p>
+            {controlPanelOptionAvailability.chatVisualMode && (
+                <section className="rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-sm">
+                    <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-gray-900">
+                                {t('controlPanel.chatVisualModeTitle')}
+                            </p>
+                            <p className="mt-0.5 text-[11px] text-gray-600">{t('controlPanel.chatVisualModeSubtitle')}</p>
+                        </div>
+                        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+                            <MessageSquare className="h-4 w-4" aria-hidden="true" />
+                        </span>
                     </div>
-                    <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
-                        <MessageSquare className="h-4 w-4" aria-hidden="true" />
-                    </span>
-                </div>
 
-                <div className="mt-2.5 space-y-1.5">
-                    <label htmlFor={chatVisualModeSelectId} className="text-xs font-medium text-gray-600">
-                        {t('controlPanel.chatVisualModeSelectLabel')}
-                    </label>
-                    <select
-                        id={chatVisualModeSelectId}
-                        value={chatVisualMode}
-                        onChange={(event) => setChatVisualMode(event.target.value as ChatVisualMode)}
-                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                    >
-                        <option value={CHAT_VISUAL_MODES.BUBBLE_MODE}>{t('controlPanel.chatVisualModeOptionBubble')}</option>
-                        <option value={CHAT_VISUAL_MODES.ARTICLE_MODE}>{t('controlPanel.chatVisualModeOptionArticle')}</option>
-                    </select>
-                    <p className="text-[11px] text-gray-500">{t('controlPanel.chatVisualModeHelp')}</p>
-                </div>
-            </section>
+                    <div className="mt-2.5 space-y-1.5">
+                        <label htmlFor={chatVisualModeSelectId} className="text-xs font-medium text-gray-600">
+                            {t('controlPanel.chatVisualModeSelectLabel')}
+                        </label>
+                        <select
+                            id={chatVisualModeSelectId}
+                            value={chatVisualMode}
+                            onChange={(event) => setChatVisualMode(event.target.value as ChatVisualMode)}
+                            className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                        >
+                            <option value={CHAT_VISUAL_MODES.BUBBLE_MODE}>
+                                {t('controlPanel.chatVisualModeOptionBubble')}
+                            </option>
+                            <option value={CHAT_VISUAL_MODES.ARTICLE_MODE}>
+                                {t('controlPanel.chatVisualModeOptionArticle')}
+                            </option>
+                        </select>
+                        <p className="text-[11px] text-gray-500">{t('controlPanel.chatVisualModeHelp')}</p>
+                    </div>
+                </section>
+            )}
 
-            {!soundSystem && <p className="px-1 text-[11px] text-gray-500">{t('controlPanel.audioLoading')}</p>}
+            {isAudioLoadingHintVisible && <p className="px-1 text-[11px] text-gray-500">{t('controlPanel.audioLoading')}</p>}
         </div>
     );
 }
