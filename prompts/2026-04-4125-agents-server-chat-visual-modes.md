@@ -56,7 +56,7 @@
 
 ---
 
-[ ]
+[x] ~$0.00 27 minutes by GitHub Copilot `gpt-5.4`
 
 [🧩📌] The `ARTICLE_MODE` should be visually better
 
@@ -70,3 +70,4 @@
 ![Current visual of Article mode](prompts/screenshots/2026-04-4125-agents-server-chat-visual-modes-4.png)
 ![Current visual of Article mode](prompts/screenshots/2026-04-4125-agents-server-chat-visual-modes-5.png)
 ![Current visual of Article mode](prompts/screenshots/2026-04-4125-agents-server-chat-visual-modes-6.png)
+

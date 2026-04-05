@@ -1,3 +1,9 @@
+-   Refined Agents Server `ARTICLE_MODE` chat layout on the main chat page for a more readable article-style transcript:
+
+    -   Kept article-mode chats full-width on mobile while constraining the desktop reading column to a centered max width with balanced side padding.
+    -   Aligned the composer to that same centered article column so the transcript and input feel like one cohesive surface.
+    -   Left `BUBBLE_MODE` rendering unchanged.
+
 -   Improved Czech Agents Server UI translations to read more naturally across the localized interface:
 
     -   Rewrote the built-in Czech language pack for menu items, control panel labels, authentication dialogs, agent-creation wizard copy, footer links, and user-management screens.

@@ -113,6 +113,11 @@
     );
 }
 
+.constrainedArticleVisual {
+    --chat-article-layout-max-width: 54rem;
+    --chat-article-layout-padding-inline: clamp(16px, 4vw, 40px);
+}
+
 .chatMainFlow {
     width: 100%;
     height: 100%;
@@ -255,6 +260,28 @@
     overflow-y: auto;
     overflow-x: hidden;
     scroll-behavior: smooth;
+}
+
+.articleModeChatMessages {
+    padding-left: var(--chat-article-layout-padding-inline);
+    padding-right: var(--chat-article-layout-padding-inline);
+}
+
+.articleModeChatMessages .chatMessage {
+    width: min(var(--chat-article-layout-max-width), 100%);
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.articleModeChatMessages .chatMessage.articleModeAgentMessage {
+    justify-content: flex-start;
+}
+
+.articleModeChatMessages .chatMessage.articleModeAgentMessage .messageStack {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
 }
 
 .hasActionsAndFirstMessageIsLong {
@@ -1279,6 +1306,18 @@
     border-top: 1px solid rgba(148, 163, 184, 0.14);
     background: linear-gradient(180deg, rgba(248, 250, 252, 0) 0%, rgba(248, 250, 252, 0.9) 44%, rgba(248, 250, 252, 0.96) 100%);
     backdrop-filter: blur(20px);
+}
+
+.articleModeChatInput {
+    padding-left: var(--chat-article-layout-padding-inline);
+    padding-right: var(--chat-article-layout-padding-inline);
+}
+
+.articleModeChatInput > :not(.speechStatusBubble):not(.dragOverlay) {
+    width: min(var(--chat-article-layout-max-width), 100%);
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .Chat.fullPageVisual .chatMainFlow .chatInput {
@@ -3570,6 +3609,11 @@
         padding: 16px 12px;
     }
 
+    .articleModeChatMessages {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
     .chatMainFlow .chatMessage {
         margin-bottom: 16px;
     }
@@ -3618,6 +3662,11 @@
         padding-bottom: 16px;
         padding-bottom: calc(16px + env(safe-area-inset-bottom));
         gap: 10px;
+    }
+
+    .articleModeChatInput {
+        padding-left: 12px;
+        padding-right: 12px;
     }
 
     .speechStatusBubble {

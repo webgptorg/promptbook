@@ -374,6 +374,7 @@ export function Chat(props: ChatProps) {
         (isSaveButtonEnabled && postprocessedMessages.length !== 0) ||
         !!onUseTemplate ||
         !!extraActions;
+    const isConstrainedArticleMode = CHAT_VISUAL_MODE === 'ARTICLE_MODE' && visual === 'FULL_PAGE';
 
     const previousMessagesLengthRef = useRef(messages.length);
     const streamingMessageIdRef = useRef<id | null>(null);
@@ -471,6 +472,7 @@ export function Chat(props: ChatProps) {
                     styles.Chat,
                     visual === 'STANDALONE' && styles.standaloneVisual,
                     visual === 'FULL_PAGE' && styles.fullPageVisual,
+                    isConstrainedArticleMode && styles.constrainedArticleVisual,
                     getChatCssClassName('Chat'),
                     chatCssClassNames.chat,
                 )}
@@ -575,6 +577,7 @@ export function Chat(props: ChatProps) {
                         isSpeechPlaybackEnabled={isSpeechPlaybackEnabled}
                         elevenLabsVoiceId={elevenLabsVoiceId}
                         chatMessagesClassName={classNames(
+                            isConstrainedArticleMode && styles.articleModeChatMessages,
                             getChatCssClassName('chatMessages'),
                             chatCssClassNames.chatMessages,
                         )}
@@ -600,6 +603,7 @@ export function Chat(props: ChatProps) {
                             soundSystem={soundSystem}
                             onButtonClick={handleButtonClick}
                             chatInputClassName={classNames(
+                                isConstrainedArticleMode && styles.articleModeChatInput,
                                 getChatCssClassName('chatInput'),
                                 chatCssClassNames.chatInput,
                             )}
