@@ -1,4 +1,4 @@
-[ ]
+[x] By Github Copilot, manually
 
 [✨👋] Go through the Agent server and complete the translations.
 

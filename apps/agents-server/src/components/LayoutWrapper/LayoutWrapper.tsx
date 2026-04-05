@@ -7,6 +7,7 @@ import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../util
 import type { ChatFeedbackMode } from '../../utils/chatFeedbackMode';
 import type { UserInfo } from '../../utils/getCurrentUser';
 import { AgentNamingProvider } from '../AgentNaming/AgentNamingContext';
+import { LegacyUiAutoTranslator } from '../AgentNaming/LegacyUiAutoTranslator';
 import { AsyncDialogsProvider } from '../AsyncDialogs/AsyncDialogsProvider';
 import { ChatVisualModeProvider } from '../ChatVisualMode/ChatVisualModeProvider';
 import { ClientVersionMismatchListener } from '../ClientVersion/ClientVersionMismatchListener';
@@ -104,6 +105,7 @@ export function LayoutWrapper({
             <ChatVisualModeProvider defaultChatVisualMode={defaultChatVisualMode}>
                 <AsyncDialogsProvider>
                     <AgentNamingProvider naming={agentNaming}>
+                        <LegacyUiAutoTranslator />
                         <PrivateModePreferencesProvider>
                             <SelfLearningPreferencesProvider>
                                 <SoundSystemProvider

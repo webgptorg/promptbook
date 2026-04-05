@@ -1,3 +1,8 @@
+-   Improved Agents Server Czech localization coverage across legacy admin and utility screens that still rendered hardcoded UI copy:
+
+    -   Added a global legacy UI auto-translator in the Agents Server shell to localize known hardcoded literals after render without rewriting every older screen to the keyed translation API first.
+    -   Expanded the Czech legacy phrase catalog with missing admin, diagnostics, backup, gallery, message, token, and utility-page labels so previously untranslated UI text now renders in Czech.
+
 -   Added `github-copilot` as a supported `ptbk coder run` runner, including CLI validation, runner dispatch, documentation, and a ready-to-run VS Code terminal preset.
 
 -   Improved Agents Server `ARTICLE_MODE` chat rendering so assistant replies feel like regular article content while keeping `BUBBLE_MODE` unchanged:
