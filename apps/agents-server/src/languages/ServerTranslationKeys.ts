@@ -12,6 +12,7 @@ export const SERVER_TRANSLATION_KEYS = [
     "common.admin",
     "common.profile",
     "common.chat",
+    "chat.answerDurationLabel",
     "common.book",
     "common.timeouts",
     "common.more",

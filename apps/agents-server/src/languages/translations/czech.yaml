@@ -6,6 +6,7 @@ common.input: Vstup
 common.admin: Administrátor
 common.profile: Profil
 common.chat: Chat
+chat.answerDurationLabel: "{duration} na odpověď"
 common.book: Kniha
 common.timeouts: Časovače
 common.more: Více

@@ -122,6 +122,20 @@ export type ChatFeedbackTranslations = {
 };
 
 /**
+ * Optional text overrides for localized timing metadata rendered next to message timestamps.
+ *
+ * @public exported from `@promptbook/components`
+ */
+export type ChatTimingTranslations = {
+    /**
+     * Template used for assistant response duration metadata.
+     *
+     * The `{duration}` placeholder is replaced with the compact duration label.
+     */
+    readonly answerDurationLabel?: string;
+};
+
+/**
  * Interface for sound system that can be passed to Chat component
  * This allows the chat to trigger sounds without tight coupling
  *
@@ -448,6 +462,18 @@ export type ChatProps = {
      * Optional localized feedback labels for buttons, modal copy, and status toasts.
      */
     readonly feedbackTranslations?: ChatFeedbackTranslations;
+
+    /**
+     * Optional localized labels used by timestamp metadata shown under messages.
+     */
+    readonly timingTranslations?: ChatTimingTranslations;
+
+    /**
+     * Optional moment locale used when formatting message timestamps.
+     *
+     * When omitted, the current global moment locale is used.
+     */
+    readonly chatLocale?: string;
 
     /**
      * Optional callback for handling file uploads

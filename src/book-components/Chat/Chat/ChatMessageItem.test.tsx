@@ -2,6 +2,9 @@
 
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, jest } from '@jest/globals';
+import moment from 'moment';
+import 'moment/locale/cs';
+import { $getCurrentDate } from '../../../utils/misc/$getCurrentDate';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { ChatMessageItem } from './ChatMessageItem';
@@ -222,5 +225,36 @@ describe('ChatMessageItem progress checklist rendering', () => {
         const messageContentElement = container.querySelector('.chat-message-content') as HTMLElement | null;
         expect(messageContentElement).not.toBeNull();
         expect(messageContentElement?.style.getPropertyValue('--message-bg-color')).not.toBe('#ffffff');
+    });
+
+    it('renders localized timing metadata when locale and translations are provided', () => {
+        const createdAt = $getCurrentDate();
+        const expectedTimeLabel = moment(createdAt).locale('cs').format('LT');
+
+        render(
+            <ChatMessageItem
+                message={{
+                    id: 'assistant-message-timing-1',
+                    sender: 'AGENT',
+                    content: 'Localized timing metadata',
+                    createdAt,
+                    generationDurationMs: 3_300,
+                    isComplete: true,
+                }}
+                participant={AGENT_PARTICIPANT_FIXTURE}
+                participants={[AGENT_PARTICIPANT_FIXTURE]}
+                isLastMessage={true}
+                setExpandedMessageId={() => undefined}
+                isExpanded={false}
+                currentRating={0}
+                handleRating={() => undefined}
+                mode="LIGHT"
+                chatLocale="cs"
+                timingTranslations={{ answerDurationLabel: '{duration} na odpověď' }}
+            />,
+        );
+
+        expect(screen.getByText(expectedTimeLabel)).toBeDefined();
+        expect(screen.getByText('(3.3s na odpověď)')).toBeDefined();
     });
 });

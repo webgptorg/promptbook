@@ -21,8 +21,11 @@ import { useHoistedMobileMenuItems } from '../../../components/Header/MobileMenu
 import { dispatchNavigationProgressStart } from '../../../components/NavigationProgress/navigationProgressEvents';
 import { HeadlessLink } from '../../../components/_utils/headlessParam';
 import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
+import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
+import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
 import { executeQuickActionButton } from '../../../utils/chat/executeQuickActionButton';
 import { resolveChatMessageValidationIssue } from '../../../utils/chat/validateChatMessageContent';
+import { createServerLanguageMoment } from '../../../utils/localization/createServerLanguageMoment';
 import { createDefaultSpeechRecognition } from '../../../utils/speech-to-text/createDefaultSpeechRecognition';
 import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
 import { fetchUserChats, type UserChatSummary } from '../../../utils/userChatClient';
@@ -70,60 +73,18 @@ const PROFILE_CHAT_ROW_GAP_PX = 12;
 const PROFILE_CHAT_NAVIGATION_FALLBACK_DELAY_MS = 1_200;
 
 /**
- * Describes a relative time unit used when expressing chat timestamps.
- */
-type RelativeTimeSegment = {
-    /**
-     * Threshold in seconds at which this unit becomes appropriate.
-     */
-    readonly seconds: number;
-    /**
-     * Relative time format unit consumed by `Intl.RelativeTimeFormat`.
-     */
-    readonly unit: Intl.RelativeTimeFormatUnit;
-};
-
-/**
- * Shared formatter for rendering relative timestamps inside the My chats preview.
- */
-const RELATIVE_TIME_FORMATTER = new Intl.RelativeTimeFormat(undefined, {
-    numeric: 'auto',
-    style: 'short',
-});
-
-/**
- * Ordered list of relative time segments used to build friendly labels.
- */
-const RELATIVE_TIME_SEGMENTS: ReadonlyArray<RelativeTimeSegment> = [
-    { seconds: 60 * 60 * 24 * 365, unit: 'year' },
-    { seconds: 60 * 60 * 24 * 30, unit: 'month' },
-    { seconds: 60 * 60 * 24, unit: 'day' },
-    { seconds: 60 * 60, unit: 'hour' },
-    { seconds: 60, unit: 'minute' },
-    { seconds: 1, unit: 'second' },
-];
-
-/**
- * Builds a short relative label (\"2h ago\") for the supplied timestamp.
+ * Parses one profile-chat timestamp using the active Agents Server language.
  *
- * @param timestamp - ISO string describing the last chat update.
- * @returns Human-friendly label or empty string when the timestamp is invalid.
+ * @param timestamp - ISO string describing the chat update time.
+ * @param language - Active Agents Server language code.
+ * @returns Localized moment instance or `null` when the timestamp is invalid.
  */
-function formatRelativeTimeLabel(timestamp: string): string {
-    const date = new Date(timestamp);
-    const diffInSeconds = Math.round((date.getTime() - Date.now()) / 1000);
-    if (!Number.isFinite(diffInSeconds)) {
-        return '';
-    }
-
-    for (const segment of RELATIVE_TIME_SEGMENTS) {
-        if (Math.abs(diffInSeconds) >= segment.seconds || segment.seconds === 1) {
-            const value = Math.round(diffInSeconds / segment.seconds);
-            return RELATIVE_TIME_FORMATTER.format(value, segment.unit);
-        }
-    }
-
-    return '';
+function resolveProfileChatTimestampMoment(
+    timestamp: string,
+    language: ServerLanguageCode,
+): ReturnType<typeof createServerLanguageMoment> | null {
+    const parsed = createServerLanguageMoment(timestamp, language);
+    return parsed.isValid() ? parsed : null;
 }
 
 /**
@@ -179,6 +140,7 @@ export function AgentProfileChat({
     const [existingChats, setExistingChats] = useState<Array<UserChatSummary>>([]);
     const pendingNavigationFallbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const { formatText } = useAgentNaming();
+    const { language, t } = useServerLanguage();
     const { chatVisualMode } = useChatVisualMode();
     const { enterBehavior, resolveEnterBehavior } = useChatEnterBehaviorPreferences();
     const { isPrivateModeEnabled } = usePrivateModePreferences();
@@ -417,6 +379,7 @@ export function AgentProfileChat({
                     <ExistingChatsPanel
                         chats={existingChats}
                         formatText={formatText}
+                        language={language}
                         resolveChatHref={resolveExistingChatHref}
                         onNavigateToChat={(href) => {
                             void navigateToDestination(href);
@@ -444,6 +407,8 @@ export function AgentProfileChat({
                                 // <- TODO: [🧠] Maybe this shouldnt be there
                             },
                         ]}
+                        chatLocale={language}
+                        timingTranslations={{ answerDurationLabel: t('chat.answerDurationLabel') }}
                         messages={[
                             {
                                 sender: 'AGENT',
@@ -483,6 +448,7 @@ export function AgentProfileChat({
 type ExistingChatsPanelProps = {
     chats: ReadonlyArray<UserChatSummary>;
     formatText: (text: string) => string;
+    language: ServerLanguageCode;
     resolveChatHref: (chatId: string) => string;
     onNavigateToChat: (href: string) => void;
     brandColorHex: string_color;
@@ -543,6 +509,7 @@ function PrivateModeChatPanel({ formatText, brandColorHex }: PrivateModeChatPane
 function ExistingChatsPanel({
     chats,
     formatText,
+    language,
     resolveChatHref,
     onNavigateToChat,
     brandColorHex,
@@ -568,11 +535,9 @@ function ExistingChatsPanel({
                 </div>
                 <div className="mt-4 space-y-3 overflow-y-auto pr-1" style={{ maxHeight: `${scrollViewportHeight}px` }}>
                     {chats.map((chat) => {
-                        const updatedAtDate = new Date(chat.updatedAt);
-                        const isValidTimestamp = !Number.isNaN(updatedAtDate.getTime());
-                        const relativeLabel = isValidTimestamp ? formatRelativeTimeLabel(chat.updatedAt) : '';
-                        const timeLabel =
-                            relativeLabel || (isValidTimestamp ? updatedAtDate.toLocaleString() : chat.updatedAt);
+                        const updatedAtMoment = resolveProfileChatTimestampMoment(chat.updatedAt, language);
+                        const fullTimeLabel = updatedAtMoment ? updatedAtMoment.format('L LT') : chat.updatedAt;
+                        const timeLabel = updatedAtMoment ? updatedAtMoment.fromNow() || fullTimeLabel : chat.updatedAt;
                         const title = chat.title || formatText('Untitled chat');
                         const previewText = hasMessageContent(chat.preview)
                             ? chat.preview
@@ -605,8 +570,8 @@ function ExistingChatsPanel({
                                         </span>
                                     </div>
                                     <time
-                                        dateTime={isValidTimestamp ? updatedAtDate.toISOString() : chat.updatedAt}
-                                        title={isValidTimestamp ? updatedAtDate.toLocaleString() : chat.updatedAt}
+                                        dateTime={updatedAtMoment ? updatedAtMoment.toISOString() : chat.updatedAt}
+                                        title={fullTimeLabel}
                                         className="text-[0.65rem] font-semibold text-slate-400"
                                     >
                                         {timeLabel}

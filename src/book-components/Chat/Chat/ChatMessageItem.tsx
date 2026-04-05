@@ -76,6 +76,14 @@ type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'onActionButton' | 'pa
      */
     feedbackTranslations?: ChatProps['feedbackTranslations'];
     /**
+     * Optional localized labels used by timestamp metadata.
+     */
+    timingTranslations?: ChatProps['timingTranslations'];
+    /**
+     * Optional moment locale used to format message timestamps.
+     */
+    chatLocale?: ChatProps['chatLocale'];
+    /**
      * Called when the copy button is pressed.
      */
     onCopy?: () => void;
@@ -716,6 +724,29 @@ function hasToolCallErrors(toolCall: ToolCall): boolean {
 }
 
 /**
+ * Default template used for assistant response-duration metadata.
+ *
+ * @private internal helper of `<ChatMessageItem/>`
+ */
+const DEFAULT_ANSWER_DURATION_LABEL = '{duration} to answer';
+
+/**
+ * Resolves one localized assistant response-duration label.
+ *
+ * @param durationLabel - Compact duration text such as `3.3s`.
+ * @param timingTranslations - Optional translation overrides from the host application.
+ * @returns Final label rendered next to the timestamp.
+ * @private internal helper of `<ChatMessageItem/>`
+ */
+function formatAnswerDurationLabel(
+    durationLabel: string,
+    timingTranslations?: ChatProps['timingTranslations'],
+): string {
+    const template = timingTranslations?.answerDurationLabel || DEFAULT_ANSWER_DURATION_LABEL;
+    return template.replace(/\{duration\}/g, durationLabel);
+}
+
+/**
  * Renders a single chat message item with avatar, content, buttons, and rating.
  *
  * @private internal subcomponent of `<Chat>` component
@@ -740,6 +771,8 @@ export const ChatMessageItem = memo(
             isFeedbackEnabled,
             feedbackMode = 'stars',
             feedbackTranslations,
+            timingTranslations,
+            chatLocale,
             onCopy,
             onCreateAgent,
             teammates,
@@ -837,7 +870,7 @@ export const ChatMessageItem = memo(
 
         const isMe = participant?.isMe;
         const isAgentArticleMode = CHAT_VISUAL_MODE === 'ARTICLE_MODE' && !isMe;
-        const timingDisplay = getChatMessageTimingDisplay(message);
+        const timingDisplay = getChatMessageTimingDisplay(message, chatLocale);
         const shouldShowTiming = Boolean(isComplete && timingDisplay);
         const lifecycleBadgeLabel = resolveMessageLifecycleLabel(message);
         const shouldShowMessageMeta = Boolean(shouldShowTiming || lifecycleBadgeLabel);
@@ -1617,7 +1650,10 @@ export const ChatMessageItem = memo(
                                     <span className={styles.messageTimestamp}>{timingDisplay.timeLabel}</span>
                                     {!isMe && timingDisplay.durationLabel && (
                                         <span className={styles.messageDuration}>
-                                            ({timingDisplay.durationLabel} to answer)
+                                            ({formatAnswerDurationLabel(
+                                                timingDisplay.durationLabel,
+                                                timingTranslations,
+                                            )})
                                         </span>
                                     )}
                                 </>

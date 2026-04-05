@@ -168,7 +168,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
     const { isSelfLearningEnabled } = useSelfLearningPreferences();
     const { isPrivateModeEnabled, setIsPrivateModeEnabled } = usePrivateModePreferences();
     const isActiveBrowserTab = useActiveBrowserTab();
-    const { t } = useServerLanguage();
+    const { language, t } = useServerLanguage();
     const [githubAppStatus, setGithubAppStatus] = useState<GithubAppStatusResponse | null>(null);
     const [calendarOAuthStatus, setCalendarOAuthStatus] = useState<CalendarOAuthStatusResponse | null>(null);
     const effectiveSelfLearningEnabled = isSelfLearningEnabled && !isPrivateModeEnabled;
@@ -494,6 +494,8 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
             onFeedback={!isReadOnly && feedbackEnabled ? handleFeedback : undefined}
             onFileUpload={!isReadOnly && areFileAttachmentsEnabled ? handleFileUpload : undefined}
             participants={participants}
+            chatLocale={language}
+            timingTranslations={{ answerDurationLabel: t('chat.answerDurationLabel') }}
             buttonColor={isChatGptLikeVariant ? '#111827' : brandColorHex}
             visual="FULL_PAGE"
             CHAT_VISUAL_MODE={chatVisualMode}

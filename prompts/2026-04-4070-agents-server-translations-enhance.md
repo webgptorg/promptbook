@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 19 minutes by GitHub Copilot `gpt-5.4`
 
 [✨🤘] Respect the language in time formatting
 
@@ -16,3 +16,4 @@
 -   Do a proper analysis of the current functionality and context of the translations before you start copywriting.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

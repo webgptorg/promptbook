@@ -2,7 +2,6 @@
 
 import type { ChatMessage } from '@promptbook-local/types';
 import { MessageSquarePlusIcon } from 'lucide-react';
-import moment from 'moment';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAgentNaming } from '../../../../components/AgentNaming/AgentNamingContext';
 import { showConfirm } from '../../../../components/AsyncDialogs/asyncDialogs';
@@ -15,7 +14,9 @@ import { useServerLanguage } from '../../../../components/ServerLanguage/ServerL
 import { AgentChatLoadingSkeleton } from '../../../../components/Skeleton/AgentChatLoadingSkeleton';
 import { ChatThreadLoadingSkeleton } from '../../../../components/Skeleton/ChatThreadLoadingSkeleton';
 import { useActiveBrowserTab } from '../../../../hooks/useActiveBrowserTab';
+import type { ServerLanguageCode } from '../../../../languages/ServerLanguageRegistry';
 import type { ChatFeedbackMode } from '../../../../utils/chatFeedbackMode';
+import { createServerLanguageMoment } from '../../../../utils/localization/createServerLanguageMoment';
 import { consumeShareTargetPayloadFromBrowser } from '../../../../utils/shareTargetClient';
 import { USER_CHAT_SOURCES } from '../../../../utils/userChat/UserChatSource';
 import {
@@ -177,7 +178,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const isChatGptLikeLayout = layoutVariant === 'chatgptLike';
     const { formatText } = useAgentNaming();
     const { isPrivateModeEnabled } = usePrivateModePreferences();
-    const { t } = useServerLanguage();
+    const { language, t } = useServerLanguage();
     const { maybePromptAfterUserMessageGesture, rememberDefaultOffHintShown, setFocusedChat, setNotificationsEnabled } =
         useBrowserPushNotifications();
     const isActiveBrowserTab = useActiveBrowserTab();
@@ -1592,6 +1593,11 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
     useHoistedMobileMenuItems(hoistedMobileMenuItems);
 
+    const formatChatTimestamp = useCallback(
+        (timestamp: string): string => formatRelativeChatTimestamp(timestamp, language),
+        [language],
+    );
+
     if (!shouldUseHistory) {
         const guestChatContent = (
             <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
@@ -1839,10 +1845,10 @@ function replaceChatInList(chats: ReadonlyArray<UserChatSummary>, targetChat: Us
 }
 
 /**
- * Formats timestamp into a relative localized string.
+ * Formats one chat timestamp into relative text using the active server language.
  */
-function formatChatTimestamp(timestamp: string): string {
-    const parsed = moment(timestamp);
+function formatRelativeChatTimestamp(timestamp: string, language: ServerLanguageCode): string {
+    const parsed = createServerLanguageMoment(timestamp, language);
     if (!parsed.isValid()) {
         return timestamp;
     }

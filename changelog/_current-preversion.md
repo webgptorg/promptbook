@@ -1,3 +1,8 @@
+-   Fixed Agents Server chat timestamps and response-duration labels to respect the active server language and locale:
+
+    -   Wired shared `<Chat/>` timing UI to accept locale-aware timestamp formatting and translatable response-duration copy instead of hardcoded English output.
+    -   Updated Agents Server durable chat, profile preview, and chat-list relative time formatting to use `moment` with the currently selected server language (including Czech 24-hour time).
+
 -   Improved Agents Server Czech localization coverage across legacy admin and utility screens that still rendered hardcoded UI copy:
 
     -   Added a global legacy UI auto-translator in the Agents Server shell to localize known hardcoded literals after render without rewriting every older screen to the keyed translation API first.

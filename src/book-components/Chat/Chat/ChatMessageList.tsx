@@ -34,6 +34,14 @@ export type ChatMessageListProps = {
      * Optional localized labels used by feedback controls.
      */
     feedbackTranslations?: ChatProps['feedbackTranslations'];
+    /**
+     * Optional localized labels used by timestamp metadata.
+     */
+    timingTranslations?: ChatProps['timingTranslations'];
+    /**
+     * Optional moment locale used to format message timestamps.
+     */
+    chatLocale?: ChatProps['chatLocale'];
     onCopy?: () => void;
     onMessage?: (messageContent: string) => Promisable<void>;
     onActionButton?: ChatProps['onActionButton'];
@@ -71,6 +79,8 @@ export function ChatMessageList(props: ChatMessageListProps) {
         isFeedbackEnabled,
         feedbackMode,
         feedbackTranslations,
+        timingTranslations,
+        chatLocale,
         onCopy,
         onMessage,
         onActionButton,
@@ -131,6 +141,8 @@ export function ChatMessageList(props: ChatMessageListProps) {
                         isFeedbackEnabled={isFeedbackEnabled}
                         feedbackMode={feedbackMode}
                         feedbackTranslations={feedbackTranslations}
+                        timingTranslations={timingTranslations}
+                        chatLocale={chatLocale}
                         onCopy={onCopy}
                         onCreateAgent={onCreateAgent}
                         toolTitles={toolTitles}

@@ -138,7 +138,9 @@ export function Chat(props: ChatProps) {
         onFeedback,
         feedbackMode = 'stars',
         feedbackTranslations,
+        timingTranslations,
         onFileUpload,
+        chatLocale,
         speechRecognition,
         placeholderMessageContent,
         defaultMessage,
@@ -546,6 +548,8 @@ export function Chat(props: ChatProps) {
                         isFeedbackEnabled={isFeedbackEnabled}
                         feedbackMode={feedbackMode}
                         feedbackTranslations={feedbackTranslations}
+                        timingTranslations={timingTranslations}
+                        chatLocale={chatLocale}
                         onCopy={handleCopy}
                         onMessage={onMessage}
                         onActionButton={onActionButton}
