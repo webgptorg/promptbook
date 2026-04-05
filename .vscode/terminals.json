@@ -472,6 +472,9 @@
             "name": "⚡🚀 Run `GitHub Copilot with gpt-5.4` Coding Agent (💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",
+                "unset GITHUB_TOKEN",
+
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./src/cli/test/ptbk.ts coder run --agent github-copilot --model gpt-5.4 --no-wait"
             ],
             "execute": true,
