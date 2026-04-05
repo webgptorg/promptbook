@@ -54,3 +54,19 @@
 ![Article mode](prompts/screenshots/2026-04-4125-agents-server-chat-visual-modes-1.png)
 ![ChatGPT for the inspiration](prompts/screenshots/2026-04-4125-agents-server-chat-visual-modes-2.png)
 
+---
+
+[ ]
+
+[🧩📌] The `ARTICLE_MODE` should be visually better
+
+-   On mobile full width
+-   On desktop take some max width and be centered, with some padding on the sides but text always start from the left edge of the message, not centered
+-   You are changing only Article mode, Bubble mode should stay the same
+-   You are working with the [Agents Server](apps/agents-server) with the chat page and with `Chat` component
+
+![ChatGPT for the inspiration](prompts/screenshots/2026-04-4125-agents-server-chat-visual-modes-2.png)
+![Current visual of Article mode](prompts/screenshots/2026-04-4125-agents-server-chat-visual-modes-3.png)
+![Current visual of Article mode](prompts/screenshots/2026-04-4125-agents-server-chat-visual-modes-4.png)
+![Current visual of Article mode](prompts/screenshots/2026-04-4125-agents-server-chat-visual-modes-5.png)
+![Current visual of Article mode](prompts/screenshots/2026-04-4125-agents-server-chat-visual-modes-6.png)
