@@ -11,7 +11,8 @@ const USAGE =
  * Parses CLI arguments into runner options.
  */
 export function parseRunOptions(args: string[]): RunOptions {
-    let agentName: 'openai-codex' | 'cline' | 'claude-code' | 'opencode' | 'gemini' | undefined = undefined;
+    let agentName: 'openai-codex' | 'github-copilot' | 'cline' | 'claude-code' | 'opencode' | 'gemini' | undefined =
+        undefined;
     const dryRun = args.includes('--dry-run');
 
     const agentValue = readOptionValue(args, '--agent');
@@ -19,6 +20,7 @@ export function parseRunOptions(args: string[]): RunOptions {
         const value = agentValue;
         if (
             value === 'openai-codex' ||
+            value === 'github-copilot' ||
             value === 'cline' ||
             value === 'claude-code' ||
             value === 'opencode' ||
@@ -38,7 +40,9 @@ export function parseRunOptions(args: string[]): RunOptions {
     const allowDestructiveAutoMigrate = args.includes('--allow-destructive-auto-migrate');
 
     if (!agentName && !dryRun) {
-        exitWithUsageError('You must choose an agent using --agent <openai-codex|cline|claude-code|opencode|gemini>');
+        exitWithUsageError(
+            'You must choose an agent using --agent <openai-codex|github-copilot|cline|claude-code|opencode|gemini>',
+        );
     }
 
     return {

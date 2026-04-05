@@ -37,6 +37,21 @@ describe('parseRunOptions', () => {
         });
     });
 
+    it('parses GitHub Copilot as a supported runner', () => {
+        const options = parseRunOptions(['--agent', 'github-copilot', '--model', 'gpt-5.4']);
+
+        expect(options).toMatchObject({
+            dryRun: false,
+            agentName: 'github-copilot',
+            model: 'gpt-5.4',
+            priority: 0,
+            normalizeLineEndings: true,
+            allowCredits: false,
+            autoMigrate: false,
+            allowDestructiveAutoMigrate: false,
+        });
+    });
+
     it('allows running without --agent in dry-run mode', () => {
         const options = parseRunOptions(['--dry-run']);
 

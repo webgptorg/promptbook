@@ -16,9 +16,9 @@ import {
 import { printCommitMessage } from '../common/printCommitMessage';
 import { waitForEnter } from '../common/waitForEnter';
 import { checkPause, listenForPause } from '../common/waitForPause';
+import { printAgentGitIdentityTipIfNeeded } from '../git/agentGitIdentity';
 import { commitChanges } from '../git/commitChanges';
 import { ensureWorkingTreeClean } from '../git/ensureWorkingTreeClean';
-import { printAgentGitIdentityTipIfNeeded } from '../git/agentGitIdentity';
 import { runAutoMigrateTestingServers } from '../migrations/runAutoMigrateTestingServers';
 import { buildCodexPrompt } from '../prompts/buildCodexPrompt';
 import { buildCommitMessage } from '../prompts/buildCommitMessage';
@@ -39,6 +39,7 @@ import { writePromptFile } from '../prompts/writePromptFile';
 import { ClaudeCodeRunner } from '../runners/claude-code/ClaudeCodeRunner';
 import { ClineRunner } from '../runners/cline/ClineRunner';
 import { DEFAULT_GEMINI_MODEL, GeminiRunner } from '../runners/gemini/GeminiRunner';
+import { GitHubCopilotRunner } from '../runners/github-copilot/GitHubCopilotRunner';
 import { OpenAiCodexRunner } from '../runners/openai-codex/OpenAiCodexRunner';
 import { OpencodeRunner } from '../runners/opencode/OpencodeRunner';
 import type { PromptRunner } from '../runners/types/PromptRunner';
@@ -51,6 +52,7 @@ type RunnerAgentName = NonNullable<RunOptions['agentName']>;
 
 const RUNNER_LABELS: Record<RunnerAgentName, string> = {
     'openai-codex': 'OpenAI Codex',
+    'github-copilot': 'GitHub Copilot',
     cline: 'Cline',
     'claude-code': 'Claude Code',
     opencode: 'Opencode',
@@ -73,6 +75,8 @@ function getRunnerMetadata(options: RunOptions, actualModel?: string): RunnerMet
     let modelName: string | undefined;
 
     if (options.agentName === 'openai-codex') {
+        modelName = actualModel;
+    } else if (options.agentName === 'github-copilot') {
         modelName = actualModel;
     } else if (options.agentName === 'gemini') {
         modelName = actualModel;
@@ -117,8 +121,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
         }
 
         let runner: PromptRunner;
-        let actualCodexModel: string | undefined;
-        let actualGeminiModel: string | undefined;
+        let actualRunnerModel: string | undefined;
         const agentName = options.agentName;
 
         if (!agentName) {
@@ -146,7 +149,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                 modelToUse = options.model;
             }
 
-            actualCodexModel = modelToUse;
+            actualRunnerModel = modelToUse;
             runner = new OpenAiCodexRunner({
                 codexCommand: 'codex',
                 model: modelToUse,
@@ -165,6 +168,13 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
         } else if (agentName === 'cline') {
             runner = new ClineRunner({
                 model: CLINE_MODEL,
+            });
+        } else if (agentName === 'github-copilot') {
+            const modelToUse = options.model === 'default' ? undefined : options.model;
+
+            actualRunnerModel = modelToUse;
+            runner = new GitHubCopilotRunner({
+                model: modelToUse,
             });
         } else if (agentName === 'claude-code') {
             runner = new ClaudeCodeRunner();
@@ -187,7 +197,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                 modelToUse = options.model;
             }
 
-            actualGeminiModel = modelToUse;
+            actualRunnerModel = modelToUse;
             runner = new GeminiRunner({
                 model: modelToUse,
             });
@@ -196,7 +206,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
         }
 
         console.info(colors.green(`Running prompts with ${runner.name}`));
-        const runnerMetadata = getRunnerMetadata(options, actualCodexModel ?? actualGeminiModel);
+        const runnerMetadata = getRunnerMetadata(options, actualRunnerModel);
 
         let hasShownUpcomingTasks = false;
         let hasWaitedForStart = false;

@@ -22,6 +22,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
 
             Runners:
             - openai-codex: OpenAI Codex integration (requires --model)
+            - github-copilot: GitHub Copilot CLI integration
             - cline: Cline CLI integration
             - claude-code: Claude Code integration
             - opencode: Opencode integration
@@ -38,7 +39,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
     command.option('--dry-run', 'Print unwritten prompts without executing', false);
     command.option(
         '--agent <agent-name>',
-        'Select runner: openai-codex, cline, claude-code, opencode, gemini (required for non-dry-run)',
+        'Select runner: openai-codex, github-copilot, cline, claude-code, opencode, gemini (required for non-dry-run)',
     );
     command.option(
         '--model <model>',
@@ -97,11 +98,19 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             };
 
             // Validate agent
-            let agentName: 'openai-codex' | 'cline' | 'claude-code' | 'opencode' | 'gemini' | undefined = undefined;
+            let agentName:
+                | 'openai-codex'
+                | 'github-copilot'
+                | 'cline'
+                | 'claude-code'
+                | 'opencode'
+                | 'gemini'
+                | undefined = undefined;
 
             if (agent) {
                 if (
                     agent === 'openai-codex' ||
+                    agent === 'github-copilot' ||
                     agent === 'cline' ||
                     agent === 'claude-code' ||
                     agent === 'opencode' ||
@@ -111,7 +120,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 } else {
                     console.error(
                         colors.red(
-                            `Invalid agent "${agent}". Must be one of: openai-codex, cline, claude-code, opencode, gemini`,
+                            `Invalid agent "${agent}". Must be one of: openai-codex, github-copilot, cline, claude-code, opencode, gemini`,
                         ),
                     );
                     return process.exit(1);
@@ -121,7 +130,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             if (!agentName && !dryRun) {
                 console.error(
                     colors.red(
-                        'You must choose an agent using --agent <openai-codex|cline|claude-code|opencode|gemini>',
+                        'You must choose an agent using --agent <openai-codex|github-copilot|cline|claude-code|opencode|gemini>',
                     ),
                 );
                 return process.exit(1);

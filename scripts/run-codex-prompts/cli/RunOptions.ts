@@ -27,7 +27,7 @@ export type RunOptions = {
      * Allows auto-migration workflow to continue even when heuristic SQL safety checks detect destructive statements.
      */
     allowDestructiveAutoMigrate: boolean;
-    agentName?: 'openai-codex' | 'cline' | 'claude-code' | 'opencode' | 'gemini';
+    agentName?: 'openai-codex' | 'github-copilot' | 'cline' | 'claude-code' | 'opencode' | 'gemini';
     model?: string;
     /**
      * Minimum prompt priority required for processing.

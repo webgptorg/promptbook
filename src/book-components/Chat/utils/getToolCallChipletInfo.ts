@@ -1,12 +1,12 @@
 import { ASSISTANT_PREPARATION_TOOL_CALL_NAME, type ToolCall } from '../../../types/ToolCall';
 import type { AgentChipData } from '../AgentChip';
+import { buildTimeoutToolCallChipLabel, resolveTimeoutToolCallPresentation } from './timeoutToolCallPresentation';
 import {
     getToolCallResultDate,
     parseTeamToolResult,
     parseToolCallArguments,
     parseToolCallResult,
 } from './toolCallParsing';
-import { buildTimeoutToolCallChipLabel, resolveTimeoutToolCallPresentation } from './timeoutToolCallPresentation';
 import { parseWalletCredentialToolCallResult, WALLET_CREDENTIAL_TOOL_CALL_NAME } from './walletCredentialToolCall';
 
 const MEMORY_CHIP_MAX_LENGTH = 48;
@@ -46,7 +46,7 @@ export function buildToolCallChipText(chipletInfo: ToolCallChipletInfo): string 
  * @private utility of `<Chat/>` [🧠] Maybe public?
  */
 export const TOOL_TITLES: Record<string, { title: string; emoji: string }> = {
-    [ASSISTANT_PREPARATION_TOOL_CALL_NAME]: { title: 'Preparing agent', emoji: '...' },
+    [ASSISTANT_PREPARATION_TOOL_CALL_NAME]: { title: 'Preparing agent', emoji: '✨' },
     [WALLET_CREDENTIAL_TOOL_CALL_NAME]: { title: 'Credential used', emoji: '🔐' },
     'self-learning': { title: 'self-learning', emoji: '🧠' },
     retrieve_user_memory: { title: 'Reading memory', emoji: '🧠' },
@@ -73,12 +73,12 @@ export const TOOL_TITLES: Record<string, { title: string; emoji: string }> = {
     send_email: { title: 'Sending email', emoji: '📧' },
     useEmail: { title: 'Sending email', emoji: '📧' },
     spawn_agent: { title: 'Spawning agent', emoji: '🧬' },
-    project_list_files: { title: 'Listing project files', emoji: '🧑‍💻' },
-    project_read_file: { title: 'Reading project file', emoji: '🧑‍💻' },
-    project_upsert_file: { title: 'Writing project file', emoji: '🧑‍💻' },
-    project_delete_file: { title: 'Deleting project file', emoji: '🧑‍💻' },
-    project_create_branch: { title: 'Creating project branch', emoji: '🧑‍💻' },
-    project_create_pull_request: { title: 'Creating pull request', emoji: '🧑‍💻' },
+    project_list_files: { title: 'Listing project files', emoji: '📂' },
+    project_read_file: { title: 'Reading project file', emoji: '📄' },
+    project_upsert_file: { title: 'Writing project file', emoji: '✏️' },
+    project_delete_file: { title: 'Deleting project file', emoji: '🗑️' },
+    project_create_branch: { title: 'Creating project branch', emoji: '🍴' },
+    project_create_pull_request: { title: 'Creating pull request', emoji: '🔀' },
     // Add more tools here as needed
 };
 

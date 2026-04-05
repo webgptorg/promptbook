@@ -1,3 +1,5 @@
+-   Added `github-copilot` as a supported `ptbk coder run` runner, including CLI validation, runner dispatch, documentation, and a ready-to-run VS Code terminal preset.
+
 -   Improved Agents Server `ARTICLE_MODE` chat rendering so assistant replies feel like regular article content while keeping `BUBBLE_MODE` unchanged:
 
     -   Centered assistant article replies on desktop with a readable max width and preserved full-width behavior on mobile.

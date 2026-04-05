@@ -469,6 +469,16 @@
             "focus": true
         },
         {
+            "name": "⚡🚀 Run `GitHub Copilot with gpt-5.4` Coding Agent (💸)(⏳)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent github-copilot --model gpt-5.4 --no-wait"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "⚡🚀 Run `claude-4.6-opus` Coding Agent (💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",
