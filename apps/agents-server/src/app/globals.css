@@ -540,7 +540,8 @@ textarea:focus-visible {
     opacity: 0.88;
     transform: scale(1.01);
     filter: saturate(0.9);
-    pointer-events: none;
+    /* Note: pointer-events intentionally omitted — keeping interactions enabled avoids
+       permanently blocking the UI when SPA navigation stalls or is aborted. */
 }
 
 .agent-chat-chatgpt-like-shell {

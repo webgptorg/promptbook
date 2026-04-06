@@ -1,3 +1,12 @@
+-   Fixed Agents Server agent profile page navigation: clicking "My chats", quick message buttons, and the send-message composer now reliably navigates to the agent's `/chat` route.
+
+    -   Removed `pointer-events: none` from the `.agent-chat-profile-transitioning` CSS class so that subsequent clicks are never blocked when a prior SPA navigation was cancelled or aborted.
+    -   Added a `PROFILE_CHAT_NAVIGATION_STATE_RESET_MS` (2.5 s) safety-reset timeout (`startNavigatingToChat`) that resets the transitioning state back to interactive if the navigation has not completed, preventing the page from becoming permanently unresponsive.
+    -   Applied the safety-reset to every navigation trigger in `AgentProfileChat`: the main `navigateToDestination` helper, `onSelectChat`, and `onCreateChat` callbacks in the mobile-menu hoisted items.
+    -   Added `console.warn` logging at two points: when the SPA fallback hard-navigation fires and when the safety-reset timeout expires, to aid production debugging.
+    -   Added `aria-busy` to the chat-preview container while navigation is in progress.
+    -   Extracted `buildAgentChatDestinationUrl` and `normalizeDestinationForLocationComparison` as exported utilities and added regression unit tests covering URL construction and stall-detection normalisation.
+
 -   Completed Agents Server UI translations for all previously hardcoded English strings across chat dialogs and admin controls:
 
     -   Added ~96 new translation keys (English + Czech) covering `chat.feedback.*`, `chatTimeout.*`, `pseudoUserChat.*`, `metaDisclaimer.*`, `chatError.*`, `clearChatHistory.*`, `clearChatFeedback.*`, and `walletDialog.*` namespaces.

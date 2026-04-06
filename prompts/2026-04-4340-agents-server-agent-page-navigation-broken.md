@@ -1,4 +1,4 @@
-[ ] !!!!
+[x] ~$0.00 35 minutes by GitHub Copilot `claude-sonnet-4.6`
 
 [📍🧩] Fix navigation from agent pages (profile -> chat) doing nothing
 
@@ -28,3 +28,4 @@
     -   No more “click does nothing” repro on the provided agent page.
     -   Add at least one regression test (unit/integration/e2e depending on existing test setup) that simulates clicking the navigation items and verifies the URL changes to /agents/<agentId>/chat.
 -   Add note/update to changelog in `changelog/_current-preversion.md` describing the fix.
+

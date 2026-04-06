@@ -29,6 +29,7 @@ import { createServerLanguageMoment } from '../../../utils/localization/createSe
 import { createDefaultSpeechRecognition } from '../../../utils/speech-to-text/createDefaultSpeechRecognition';
 import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
 import { fetchUserChats, type UserChatSummary } from '../../../utils/userChatClient';
+import { buildAgentChatDestinationUrl, normalizeDestinationForLocationComparison } from './agentChatNavigationUtils';
 import { setPendingProfileMessage } from './profileMessageCache';
 
 /**
@@ -46,11 +47,6 @@ export type AgentProfileChatProps = {
     isHistoryEnabled?: boolean;
     areFileAttachmentsEnabled?: boolean;
 };
-
-/**
- * Query flag used to force creating a fresh history chat on full chat page entry.
- */
-const FORCE_NEW_CHAT_QUERY_PARAM = 'newChat';
 
 /**
  * Number of chat rows visible before scrolling in the profile quick-access panel.
@@ -71,6 +67,14 @@ const PROFILE_CHAT_ROW_GAP_PX = 12;
  * Wait duration before falling back to hard navigation when SPA push stalls.
  */
 const PROFILE_CHAT_NAVIGATION_FALLBACK_DELAY_MS = 1_200;
+
+/**
+ * Maximum time the component will remain in the "navigating" visual state before
+ * resetting back to interactive.  This is a safety valve that prevents the profile
+ * page from being permanently locked if the SPA navigation and its hard-navigation
+ * fallback both fail or are aborted.
+ */
+const PROFILE_CHAT_NAVIGATION_STATE_RESET_MS = 2_500;
 
 /**
  * Parses one profile-chat timestamp using the active Agents Server language.
@@ -103,21 +107,6 @@ function shouldPreserveDefaultLinkNavigation(event: ReactMouseEvent<HTMLAnchorEl
 }
 
 /**
- * Normalizes one destination URL into a comparable location suffix.
- *
- * @param destination - Destination URL passed to navigation helpers.
- * @returns Path + query + hash used for current-location comparison.
- */
-function normalizeDestinationForLocationComparison(destination: string): string {
-    try {
-        const parsedDestination = new URL(destination, window.location.href);
-        return `${parsedDestination.pathname}${parsedDestination.search}${parsedDestination.hash}`;
-    } catch {
-        return destination;
-    }
-}
-
-/**
  * Renders the compact chat preview on the agent profile and coordinates the full chat transition.
  *
  * @private Agents Server presentation logic.
@@ -139,6 +128,7 @@ export function AgentProfileChat({
     const [isNavigatingToChat, setIsNavigatingToChat] = useState(false);
     const [existingChats, setExistingChats] = useState<Array<UserChatSummary>>([]);
     const pendingNavigationFallbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const isNavigatingToChatResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const { formatText } = useAgentNaming();
     const { language, t } = useServerLanguage();
     const { chatVisualMode } = useChatVisualMode();
@@ -208,15 +198,40 @@ export function AgentProfileChat({
     useEffect(() => {
         return () => {
             clearPendingNavigationFallback();
+
+            if (isNavigatingToChatResetTimeoutRef.current !== null) {
+                clearTimeout(isNavigatingToChatResetTimeoutRef.current);
+                isNavigatingToChatResetTimeoutRef.current = null;
+            }
         };
     }, [clearPendingNavigationFallback]);
+
+    /**
+     * Marks the profile panel as navigating-to-chat, then schedules a safety reset
+     * in case the navigation stalls or is aborted.  Without the reset, a failed
+     * navigation would leave `isNavigatingToChat = true` and `pointer-events` removed,
+     * permanently blocking subsequent interactions.
+     */
+    const startNavigatingToChat = useCallback(() => {
+        setIsNavigatingToChat(true);
+
+        if (isNavigatingToChatResetTimeoutRef.current !== null) {
+            clearTimeout(isNavigatingToChatResetTimeoutRef.current);
+        }
+
+        isNavigatingToChatResetTimeoutRef.current = setTimeout(() => {
+            isNavigatingToChatResetTimeoutRef.current = null;
+            console.warn('[AgentProfileChat] Navigation to chat stalled — resetting transitioning state so the page remains interactive');
+            setIsNavigatingToChat(false);
+        }, PROFILE_CHAT_NAVIGATION_STATE_RESET_MS);
+    }, []);
 
     /**
      * Navigates to one chat destination and marks the profile panel as transitioning.
      */
     const navigateToDestination = useCallback(
         (destination: string) => {
-            setIsNavigatingToChat(true);
+            startNavigatingToChat();
             dispatchNavigationProgressStart({ href: destination, source: 'router' });
             router.push(destination);
 
@@ -228,24 +243,19 @@ export function AgentProfileChat({
                 pendingNavigationFallbackTimeoutRef.current = null;
                 const locationAfterPush = `${window.location.pathname}${window.location.search}${window.location.hash}`;
                 if (locationAfterPush === locationBeforePush && locationAfterPush !== normalizedDestination) {
+                    console.warn('[AgentProfileChat] SPA navigation stalled — falling back to hard navigation', { destination });
                     window.location.assign(destination);
                 }
             }, PROFILE_CHAT_NAVIGATION_FALLBACK_DELAY_MS);
 
             return Promise.resolve();
         },
-        [clearPendingNavigationFallback, router],
+        [clearPendingNavigationFallback, router, startNavigatingToChat],
     );
 
     const navigateToChat = useCallback(
         ({ shouldForceNewChat }: { shouldForceNewChat: boolean }) => {
-            const queryParams = new URLSearchParams();
-            if (shouldForceNewChat && isHistoryEnabled) {
-                queryParams.set(FORCE_NEW_CHAT_QUERY_PARAM, '1');
-            }
-            const query = queryParams.toString();
-            const destination = query ? `${chatRoute}?${query}` : chatRoute;
-
+            const destination = buildAgentChatDestinationUrl(chatRoute, { shouldForceNewChat, isHistoryEnabled });
             return navigateToDestination(destination);
         },
         [chatRoute, isHistoryEnabled, navigateToDestination],
@@ -272,15 +282,10 @@ export function AgentProfileChat({
         (chatId: string) => `${chatRoute}?chat=${encodeURIComponent(chatId)}`,
         [chatRoute],
     );
-    const newChatHref = useMemo(() => {
-        if (!isHistoryEnabled) {
-            return chatRoute;
-        }
-
-        const queryParams = new URLSearchParams();
-        queryParams.set(FORCE_NEW_CHAT_QUERY_PARAM, '1');
-        return `${chatRoute}?${queryParams.toString()}`;
-    }, [chatRoute, isHistoryEnabled]);
+    const newChatHref = useMemo(
+        () => buildAgentChatDestinationUrl(chatRoute, { shouldForceNewChat: true, isHistoryEnabled }),
+        [chatRoute, isHistoryEnabled],
+    );
     const hoistedMobileMenuItems = useMemo(
         () =>
             !isDeleted && isHistoryEnabled && !isPrivateModeEnabled
@@ -290,11 +295,11 @@ export function AgentProfileChat({
                           chats: existingChats,
                           resolveChatHref: resolveExistingChatHref,
                           onSelectChat: () => {
-                              setIsNavigatingToChat(true);
+                              startNavigatingToChat();
                           },
                           newChatHref,
                           onCreateChat: () => {
-                              setIsNavigatingToChat(true);
+                              startNavigatingToChat();
                           },
                       }),
                   ]
@@ -307,6 +312,7 @@ export function AgentProfileChat({
             isPrivateModeEnabled,
             newChatHref,
             resolveExistingChatHref,
+            startNavigatingToChat,
         ],
     );
 
@@ -392,6 +398,7 @@ export function AgentProfileChat({
                 className={`relative w-full h-[calc(100dvh-300px)] min-h-[350px] md:min-h-[420px] md:h-[500px] agent-chat-route-surface ${
                     isNavigatingToChat ? 'agent-chat-profile-transitioning' : ''
                 }`}
+                aria-busy={isNavigatingToChat || undefined}
             >
                 <div className="absolute inset-0 rounded-[32px] border border-white/30 bg-gradient-to-br from-white/80 via-white/70 to-slate-100/70 shadow-[0_25px_80px_rgba(15,23,42,0.25)]" />
                 <div className="relative z-10 h-full w-full rounded-[32px] border border-white/40 bg-white/80 p-4 shadow-2xl backdrop-blur-3xl">
