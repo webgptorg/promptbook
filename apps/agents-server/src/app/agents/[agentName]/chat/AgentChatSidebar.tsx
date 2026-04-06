@@ -36,10 +36,6 @@ type AgentChatSidebarProps = {
      */
     readonly activeChatId: string | null;
     /**
-     * Flag that indicates whether the server is creating a new chat.
-     */
-    readonly isCreatingChat: boolean;
-    /**
      * Flag indicating that chat summaries are still loading/refetching.
      */
     readonly isLoadingChats: boolean;
@@ -60,9 +56,11 @@ type AgentChatSidebarProps = {
      */
     readonly onSelectChat: (chatId: string) => void;
     /**
-     * Called when a new chat should be created.
+     * Href for the "New chat" link rendered in the sidebar.
+     * Using a navigable link (rather than a plain button) lets the browser
+     * show its native context-menu options such as "Open in new tab / window".
      */
-    readonly onCreateChat: () => void;
+    readonly newChatHref: string;
     /**
      * Called when a chat should be deleted.
      */
@@ -302,13 +300,11 @@ function resolveSidebarChatItemContent(
 export function AgentChatSidebar({
     chats,
     activeChatId,
-    isCreatingChat,
     isLoadingChats,
     formatText,
     formatChatTimestamp,
     currentTimestamp,
     onSelectChat,
-    onCreateChat,
     onDeleteChat,
     isAdmin,
     showExternalChats,
@@ -317,6 +313,7 @@ export function AgentChatSidebar({
     onToggleCollapse,
     isMobileSidebarOpen,
     onCloseMobileSidebar,
+    newChatHref,
     variant = 'default',
 }: AgentChatSidebarProps) {
     const isChatGptLike = variant === 'chatgptLike';
@@ -337,7 +334,6 @@ export function AgentChatSidebar({
     };
 
     const handleCreateAndClose = () => {
-        onCreateChat();
         if (isMobileSidebarOpen) {
             onCloseMobileSidebar();
         }
@@ -385,15 +381,14 @@ export function AgentChatSidebar({
                     </div>
 
                     <div className="px-3 pb-3 pt-1.5">
-                        <button
-                            type="button"
+                        <a
+                            href={newChatHref}
                             onClick={handleCreateAndClose}
-                            disabled={isCreatingChat || isLoadingChats}
-                            className="agent-chat-chatgpt-like-new-chat inline-flex w-full items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-medium transition disabled:cursor-default disabled:opacity-60"
+                            className="agent-chat-chatgpt-like-new-chat inline-flex w-full items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-medium transition"
                         >
                             <MessageSquarePlusIcon className="h-4 w-4" />
-                            {isCreatingChat ? formatText('Creating...') : formatText('New chat')}
-                        </button>
+                            {formatText('New chat')}
+                        </a>
                     </div>
 
                     {isLoadingChats ? (
@@ -560,15 +555,15 @@ export function AgentChatSidebar({
 
                 {shouldRenderCollapsed ? (
                     <div className="flex min-h-0 flex-1 flex-col items-center gap-3 px-2 py-4">
-                        <button
-                            type="button"
+                        <a
+                            href={newChatHref}
                             onClick={handleCreateAndClose}
-                            disabled={isCreatingChat || isLoadingChats}
-                            className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-slate-900 disabled:opacity-60"
+                            className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
                             title={formatText('New chat')}
+                            aria-label={formatText('New chat')}
                         >
                             <MessageSquarePlusIcon className="h-5 w-5" />
-                        </button>
+                        </a>
 
                         {isLoadingChats ? (
                             <ChatListLoadingSkeleton isCollapsed rowCount={6} />
@@ -685,15 +680,14 @@ export function AgentChatSidebar({
                 ) : (
                     <>
                         <div className="p-3 border-b border-slate-200">
-                            <button
-                                type="button"
+                            <a
+                                href={newChatHref}
                                 onClick={handleCreateAndClose}
-                                disabled={isCreatingChat || isLoadingChats}
-                                className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:opacity-60"
+                                className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
                             >
                                 <MessageSquarePlusIcon className="h-4 w-4" />
-                                {isCreatingChat ? formatText('Creating...') : formatText('New chat')}
-                            </button>
+                                {formatText('New chat')}
+                            </a>
                         </div>
 
                         {isLoadingChats ? (

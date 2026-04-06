@@ -184,6 +184,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const isActiveBrowserTab = useActiveBrowserTab();
     const shouldUseHistory = isHistoryEnabled && !isPrivateModeEnabled;
     const resolvedChatRouteBasePath = chatRouteBasePath || `/agents/${encodeURIComponent(agentName)}/chat`;
+    const newChatHref = `${resolvedChatRouteBasePath}?chat=new`;
     const pendingProfileMessage = useMemo(() => takePendingProfileMessage(agentName), [agentName]);
     const effectiveInitialAutoExecuteMessage = initialAutoExecuteMessage ?? pendingProfileMessage?.message;
     const effectiveInitialAutoExecuteMessageAttachments =
@@ -1692,14 +1693,13 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         <AgentChatSidebar
             chats={chats}
             activeChatId={activeChatId}
-            isCreatingChat={isCreatingChat}
             isLoadingChats={isChatListLoading}
             formatText={formatText}
             formatChatTimestamp={formatChatTimestamp}
             currentTimestamp={currentTimestamp}
             onSelectChat={handleSelectChatFromSidebar}
-            onCreateChat={handleCreateChat}
             onDeleteChat={handleDeleteChat}
+            newChatHref={newChatHref}
             isAdmin={isCurrentUserAdmin}
             showExternalChats={shouldShowExternalChats}
             onShowExternalChatsChange={handleShowExternalChatsChange}
@@ -1724,17 +1724,13 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                     {formatText('ChatGPT-like')}
                 </div>
             </div>
-            <button
-                type="button"
-                onClick={() => {
-                    void handleCreateChat();
-                }}
-                disabled={isCreatingChat}
-                className="agent-chat-chatgpt-like-mobile-header__icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg border transition disabled:cursor-default disabled:opacity-60"
+            <a
+                href={newChatHref}
+                className="agent-chat-chatgpt-like-mobile-header__icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg border transition"
                 aria-label={formatText('New chat')}
             >
                 <MessageSquarePlusIcon className="h-4 w-4" />
-            </button>
+            </a>
         </div>
     );
 

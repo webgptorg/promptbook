@@ -12,6 +12,7 @@ import { DeletedAgentBanner } from '../../../../../components/DeletedAgentBanner
 import { PrintHeader } from '../../../../../components/PrintHeader/PrintHeader';
 import { resolveAgentRouteTarget } from '../../../../../utils/agentRouting/resolveAgentRouteTarget';
 import { getAgentName, getAgentProfile, isAgentDeleted, parseBooleanFlag } from '../../_utils';
+import { FORCE_NEW_CHAT_QUERY_VALUE } from '../../agentChatNavigationUtils';
 import { AgentChatHistoryClient } from '../AgentChatHistoryClient';
 
 /**
@@ -62,6 +63,9 @@ export default async function AgentChatGptLikePage({
     const [agentName, currentSearchParams, requestHeaders] = await Promise.all([getAgentName(params), searchParams, requestHeadersPromise]);
     $sideEffect(requestHeaders);
     const { headless, message, chat, newChat, shareTarget } = currentSearchParams;
+
+    const isForcedNewChat = chat === FORCE_NEW_CHAT_QUERY_VALUE || parseBooleanFlag(newChat);
+    const effectiveChatId = chat === FORCE_NEW_CHAT_QUERY_VALUE ? undefined : chat;
 
     const routeTarget = await resolveAgentRouteTarget(agentName);
     if (routeTarget === null) {
@@ -139,8 +143,8 @@ export default async function AgentChatGptLikePage({
                 initialAutoExecuteMessage={initialAutoExecuteMessage}
                 initialAutoExecuteMessageAttachments={initialAutoExecuteMessageAttachments}
                 initialShareTargetId={shareTargetPayload?.id}
-                initialChatId={chat}
-                initialForceNewChat={parseBooleanFlag(newChat)}
+                initialChatId={effectiveChatId}
+                initialForceNewChat={isForcedNewChat}
                 initialAgentMessage={agentProfile.initialMessage}
                 brandColor={agentProfile.meta.color}
                 inputPlaceholder={inputPlaceholder}

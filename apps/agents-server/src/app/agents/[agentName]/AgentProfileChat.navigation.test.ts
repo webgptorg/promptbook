@@ -8,7 +8,7 @@
  * Root causes that these tests guard against:
  *  1. The destination URL must point to the agent's `/chat` route (not back to
  *     the profile route).
- *  2. `buildAgentChatDestinationUrl` must append `?newChat=1` only when both
+ *  2. `buildAgentChatDestinationUrl` must append `?chat=new` only when both
  *     `shouldForceNewChat` AND `isHistoryEnabled` are true, so history-disabled
  *     agents never receive an unexpected query parameter.
  *  3. `normalizeDestinationForLocationComparison` must strip the origin from a
@@ -41,13 +41,13 @@ describe('buildAgentChatDestinationUrl', () => {
         ).toBe('/agents/hKs8wGS2xc5GhF/chat');
     });
 
-    it('appends ?newChat=1 when forceNewChat is true and history is enabled', () => {
+    it('appends ?chat=new when forceNewChat is true and history is enabled', () => {
         expect(
             buildAgentChatDestinationUrl(CHAT_ROUTE, {
                 shouldForceNewChat: true,
                 isHistoryEnabled: true,
             }),
-        ).toBe('/agents/hKs8wGS2xc5GhF/chat?newChat=1');
+        ).toBe('/agents/hKs8wGS2xc5GhF/chat?chat=new');
     });
 
     it('percent-encodes special characters in the chat route', () => {
@@ -91,8 +91,8 @@ describe('normalizeDestinationForLocationComparison', () => {
 
     it('returns pathname+search for a full URL with query params', () => {
         expect(
-            normalizeDestinationForLocationComparison('https://example.ptbk.io/agents/abc/chat?newChat=1'),
-        ).toBe('/agents/abc/chat?newChat=1');
+            normalizeDestinationForLocationComparison('https://example.ptbk.io/agents/abc/chat?chat=new'),
+        ).toBe('/agents/abc/chat?chat=new');
     });
 
     it('resolves a relative path against the current origin', () => {
