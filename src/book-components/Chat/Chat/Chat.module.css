@@ -3589,8 +3589,8 @@
     }
 
     .articleModeChatMessages {
-        padding-left: 12px;
-        padding-right: 12px;
+        padding-left: 16px;
+        padding-right: 16px;
     }
 
     .chatMainFlow .chatMessage {
@@ -3644,8 +3644,8 @@
     }
 
     .articleModeChatInput {
-        padding-left: 12px;
-        padding-right: 12px;
+        padding-left: 16px;
+        padding-right: 16px;
     }
 
     .speechStatusBubble {
