@@ -1,15 +1,9 @@
-import { computeHash } from '../../utils/misc/computeHash';
 import { normalizeTo_snake_case } from '../../utils/normalization/normalizeTo_snake_case';
 
 /**
  * Prefix used for TEAM tool names.
  */
 const TEAM_TOOL_PREFIX = 'team_chat_';
-
-/**
- * Length of URL hash suffix appended to TEAM tool names.
- */
-const TEAM_TOOL_HASH_LENGTH = 10;
 
 /**
  * Fallback normalized name when teammate label is empty.
@@ -29,18 +23,17 @@ function normalizeTeammateToolNamePart(teammateLabel?: string): string {
 }
 
 /**
- * Builds a deterministic TEAM tool name from teammate identity.
+ * Builds a deterministic TEAM tool name from the teammate label.
  *
- * The readable part is based on teammate label while the hash suffix
- * keeps uniqueness and stable mapping for the underlying teammate URL.
+ * The tool name is derived solely from the human-readable label so that it
+ * remains stable and predictable regardless of internal technical identifiers.
  *
- * @param teammateUrl - Canonical teammate URL used at runtime.
- * @param teammateLabel - Human-readable teammate label.
- * @returns Deterministic TEAM tool name.
+ * @param _teammateUrl - Canonical teammate URL (kept for API compatibility, not used).
+ * @param teammateLabel - Human-readable teammate label used as the basis for the name.
+ * @returns TEAM tool name derived from the label.
  * @private internal utility of TEAM commitments and chat UI mapping
  */
-export function createTeamToolName(teammateUrl: string, teammateLabel?: string): string {
+export function createTeamToolName(_teammateUrl: string, teammateLabel?: string): string {
     const normalizedLabel = normalizeTeammateToolNamePart(teammateLabel);
-    const hash = computeHash(teammateUrl).substring(0, TEAM_TOOL_HASH_LENGTH);
-    return `${TEAM_TOOL_PREFIX}${normalizedLabel}_${hash}`;
+    return `${TEAM_TOOL_PREFIX}${normalizedLabel}`;
 }

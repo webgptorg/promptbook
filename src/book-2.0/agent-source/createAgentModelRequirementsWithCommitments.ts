@@ -13,12 +13,14 @@ import { extractMcpServers } from './createAgentModelRequirements';
 import type { CreateAgentModelRequirementsOptions } from './CreateAgentModelRequirementsOptions';
 import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitments';
 import { parseParameters } from './parseParameters';
+import { parseTeamCommitmentContent } from './parseTeamCommitment';
 import { removeCommentsFromSystemMessage } from './removeCommentsFromSystemMessage';
 import { inlineKnowledgeSourceToDataUrl } from '../../utils/knowledge/inlineKnowledgeSource';
 import type {
     InlineKnowledgeSourceFile,
     InlineKnowledgeSourceUploader,
 } from '../../utils/knowledge/inlineKnowledgeSource';
+import type { TeammateProfile } from './TeammateProfileResolver';
 import type { string_book } from './string_book';
 
 /**
@@ -154,6 +156,39 @@ export async function createAgentModelRequirementsWithCommitments(
         // CLOSED commitment should work only if its the last commitment in the book
         if (commitment.type === 'CLOSED' && i !== filteredCommitments.length - 1) {
             continue;
+        }
+
+        // For TEAM commitments, pre-resolve teammate profiles if a resolver is provided
+        // and store them in metadata before the commitment is applied.
+        const profileResolver = options?.teammateProfileResolver ?? options?.agentReferenceResolver;
+        if (commitment.type === 'TEAM' && profileResolver?.resolveTeammateProfile) {
+            try {
+                const parsedTeammates = parseTeamCommitmentContent(commitmentContent, { strict: false });
+                const preResolved: Record<string, TeammateProfile> = {
+                    ...(requirements._metadata?.preResolvedTeammateProfiles as Record<string, TeammateProfile> | undefined),
+                };
+
+                for (const teammate of parsedTeammates) {
+                    if (preResolved[teammate.url]) {
+                        continue;
+                    }
+
+                    const profile = await profileResolver.resolveTeammateProfile(teammate.url);
+                    if (profile) {
+                        preResolved[teammate.url] = profile;
+                    }
+                }
+
+                requirements = {
+                    ...requirements,
+                    _metadata: {
+                        ...requirements._metadata,
+                        preResolvedTeammateProfiles: preResolved,
+                    },
+                };
+            } catch (error) {
+                console.warn('Failed to pre-resolve teammate profiles for TEAM commitment:', error);
+            }
         }
 
         const definition = getCommitmentDefinition(commitment.type);

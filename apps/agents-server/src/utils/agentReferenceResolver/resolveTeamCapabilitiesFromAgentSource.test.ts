@@ -47,7 +47,7 @@ describe('resolveTeamCapabilitiesFromAgentSource', () => {
                 expect.objectContaining({
                     type: 'team',
                     iconName: 'Users',
-                    agentUrl: 'https://local.example/agents/known123',
+                    agentUrl: 'https://local.example/agents/Known%20Teammate',
                 }),
             ]),
         );

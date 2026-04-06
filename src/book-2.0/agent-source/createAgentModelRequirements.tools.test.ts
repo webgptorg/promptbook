@@ -48,7 +48,8 @@ describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
             ]),
         );
         expect(requirements.systemMessage).toContain('## Teammates:');
-        expect(requirements.systemMessage).toContain('team_chat_joe_green_');
+        expect(requirements.systemMessage).toContain('team_chat_joe_green');
+        expect(requirements.systemMessage).not.toContain('team_chat_joe_green_');
         expect(requirements.systemMessage).not.toContain('https://agents.ptbk.ik/agents/joe-green');
     });
 
@@ -82,9 +83,6 @@ describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
         );
         expect(requirements.systemMessage).toContain('## Language:');
         expect(requirements.systemMessage).toContain('## Teammates:');
-        expect(requirements.systemMessage).toContain(
-            `Ask ${pseudoUserLabel} for everything. Always asks him in English`,
-        );
         expect(requirements.systemMessage).toContain(`1) ${pseudoUserLabel} tool \`${expectedToolName}\``);
         expect(requirements.systemMessage).not.toContain('pseudo-agent.promptbook');
     });

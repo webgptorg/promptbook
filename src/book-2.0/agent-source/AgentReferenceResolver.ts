@@ -1,4 +1,5 @@
 import type { BookCommitment } from '../../commitments/_base/BookCommitment';
+import type { TeammateProfile } from './TeammateProfileResolver';
 
 /**
  * Resolves compact agent references that appear inside FROM, IMPORT, and TEAM commitments.
@@ -16,4 +17,15 @@ export type AgentReferenceResolver = {
      * @param content - Original payload of the commitment
      */
     resolveCommitmentContent(commitmentType: BookCommitment, content: string): Promise<string>;
+
+    /**
+     * Optional: returns the actual human-readable name and description for a teammate agent URL.
+     *
+     * When implemented, this enriches TEAM tool definitions with the agent's real name and
+     * persona description instead of technical IDs derived from the URL path.
+     *
+     * @param url - Canonical teammate URL from the resolved TEAM commitment content.
+     * @returns Agent profile or `null` when the URL is not resolvable locally.
+     */
+    resolveTeammateProfile?: (url: string) => Promise<TeammateProfile | null>;
 };

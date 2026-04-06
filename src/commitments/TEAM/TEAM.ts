@@ -32,6 +32,11 @@ type TeamToolEntry = {
     toolName: string_javascript_name;
     teammate: TeamTeammate;
     agentName: string;
+    /**
+     * Human-readable description of what the teammate does.
+     * Sourced from the pre-resolved agent profile (personaDescription) or TEAM commitment instructions.
+     */
+    description: string | null;
 };
 
 /**
@@ -165,15 +170,21 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
                   }>
                 | undefined) || [];
 
+        const preResolvedProfiles = (requirements._metadata?.preResolvedTeammateProfiles ||
+            {}) as Record<string, { agentName: string; personaDescription: string | null }>;
+
         const resolvedTeammates: TeamTeammate[] = resolveTeamTeammateLabels(trimmedContent, teammates);
 
         const teamEntries: TeamToolEntry[] = resolvedTeammates.map((teammate) => {
+            const profile = preResolvedProfiles[teammate.url];
+            const resolvedLabel = profile?.agentName || teammate.label;
             const existingTeammate = existingTeammates.find((entry) => entry.url === teammate.url);
             return {
                 toolName: (existingTeammate?.toolName ||
-                    createTeamToolName(teammate.url, teammate.label)) as string_javascript_name,
-                teammate,
+                    createTeamToolName(teammate.url, resolvedLabel)) as string_javascript_name,
+                teammate: { ...teammate, label: resolvedLabel },
                 agentName,
+                description: profile?.personaDescription || null,
             };
         });
 
@@ -189,9 +200,13 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
                 continue;
             }
 
+            const toolDescription = entry.description
+                ? `Consult teammate ${entry.teammate.label}\n${entry.description}`
+                : `Consult teammate ${entry.teammate.label}`;
+
             updatedTools.push({
                 name: entry.toolName,
-                description: `Consult teammate ${entry.teammate.label}`,
+                description: toolDescription,
                 parameters: {
                     type: 'object',
                     properties: {
@@ -229,10 +244,9 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
             });
         }
 
-        const teamOverviewText = createTeamOverviewText(trimmedContent, teamEntries);
         const teamSystemMessage = this.createSystemMessageSection(
             'Teammates:',
-            buildTeamSystemMessageBody(teamOverviewText, teamEntries),
+            buildTeamSystemMessageBody(teamEntries),
         );
 
         return this.appendToSystemMessage(
@@ -280,31 +294,24 @@ function resolveTeamTeammateLabels(teamContent: string, teammates: ReadonlyArray
 }
 
 /**
- * Rewrites TEAM commitment content into a URL-free teammate overview text.
- */
-function createTeamOverviewText(teamContent: string, teamEntries: ReadonlyArray<TeamToolEntry>): string {
-    let overviewText = teamContent;
-
-    for (const entry of teamEntries) {
-        overviewText = overviewText.split(entry.teammate.url).join(entry.teammate.label);
-    }
-
-    return overviewText.trim();
-}
-
-/**
  * Builds the textual TEAM section body for the final system message.
+ *
+ * Each teammate is listed with its tool name and, when available, a one-line description.
+ * Uses `spaceTrim` to ensure consistent whitespace and indentation.
  */
-function buildTeamSystemMessageBody(teamOverviewText: string, teamEntries: ReadonlyArray<TeamToolEntry>): string {
-    const teammateLines = teamEntries.map(
-        (entry, index) => `${index + 1}) ${entry.teammate.label} tool \`${entry.toolName}\``,
-    );
+function buildTeamSystemMessageBody(teamEntries: ReadonlyArray<TeamToolEntry>): string {
+    const lines = teamEntries.map((entry, index) => {
+        const toolLine = `${index + 1}) ${entry.teammate.label} tool \`${entry.toolName}\``;
+        if (!entry.description) {
+            return toolLine;
+        }
+        return spaceTrim(`
+            ${toolLine}
+               ${entry.description}
+        `);
+    });
 
-    if (!teamOverviewText) {
-        return teammateLines.join('\n');
-    }
-
-    return `${teamOverviewText}\n\n${teammateLines.join('\n')}`;
+    return lines.join('\n');
 }
 
 /**

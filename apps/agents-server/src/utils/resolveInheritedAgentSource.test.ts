@@ -177,7 +177,7 @@ describe('how `resolveInheritedAgentSource` works', () => {
         });
 
         mockFetchRoutes({
-            'https://local.example/agents/parent-1/api/book?recursionLevel=1': {
+            'https://local.example/agents/Local%20Parent/api/book?recursionLevel=1': {
                 body: book`
                     Local Parent
 
@@ -201,7 +201,7 @@ describe('how `resolveInheritedAgentSource` works', () => {
             },
         );
 
-        expect(resolvedAgentSource).toContain('NOTE Inherited FROM https://local.example/agents/parent-1');
+        expect(resolvedAgentSource).toContain('NOTE Inherited FROM https://local.example/agents/Local%20Parent');
         expect(resolvedAgentSource).toContain('RULE Parent from local server.');
         expect(resolvedAgentSource).toContain('RULE Child rule.');
     });

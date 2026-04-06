@@ -1,5 +1,6 @@
 import type { AgentReferenceResolver } from '../../../../../src/book-2.0/agent-source/AgentReferenceResolver';
 import { normalizeAgentName } from '../../../../../src/book-2.0/agent-source/normalizeAgentName';
+import type { TeammateProfile } from '../../../../../src/book-2.0/agent-source/TeammateProfileResolver';
 import {
     VOID_PSEUDO_AGENT_REFERENCE,
     createPseudoAgentUrl,
@@ -72,6 +73,7 @@ class ServerAgentReferenceResolver implements IssueTrackingAgentReferenceResolve
     private readonly federatedServers: string[];
     private readonly localNameToUrl = new Map<string, string>();
     private readonly localIdToUrl = new Map<string, string>();
+    private readonly localUrlToProfile = new Map<string, TeammateProfile>();
     private readonly remoteCaches = new Map<string, RemoteAgentLookup>();
     private readonly remoteRequests = new Map<string, Promise<RemoteAgentLookup>>();
     private readonly resolutionIssues: Array<AgentReferenceResolutionIssue> = [];
@@ -92,12 +94,20 @@ class ServerAgentReferenceResolver implements IssueTrackingAgentReferenceResolve
     public async initialize(): Promise<void> {
         const agents = await this.agentCollection.listAgents();
         for (const agent of agents) {
-            const url = this.buildLocalAgentUrl(agent.permanentId || agent.agentName);
+            // Use agent name (not permanentId) in URL so the label derived from the path segment
+            // matches the human-readable agent name rather than a technical ID.
+            const url = this.buildLocalAgentUrl(agent.agentName);
             this.localNameToUrl.set(normalizeAgentName(agent.agentName), url);
             this.localNameToUrl.set(agent.agentName, url);
             if (agent.permanentId) {
                 this.localIdToUrl.set(agent.permanentId, url);
             }
+
+            const profile: TeammateProfile = {
+                agentName: agent.agentName,
+                personaDescription: agent.personaDescription,
+            };
+            this.localUrlToProfile.set(url, profile);
         }
     }
 
@@ -108,6 +118,19 @@ class ServerAgentReferenceResolver implements IssueTrackingAgentReferenceResolve
         const issues = [...this.resolutionIssues];
         this.resolutionIssues.length = 0;
         return issues;
+    }
+
+    /**
+     * Returns the human-readable agent profile for a teammate URL if it belongs to this server.
+     *
+     * Used during TEAM commitment processing to enrich tool definitions with real agent names
+     * and persona descriptions instead of technical IDs.
+     *
+     * @param url - Canonical teammate URL from the resolved TEAM commitment content.
+     * @returns Agent profile or `null` when the URL is not a local agent.
+     */
+    public async resolveTeammateProfile(url: string): Promise<TeammateProfile | null> {
+        return this.localUrlToProfile.get(url) ?? null;
     }
 
     /**

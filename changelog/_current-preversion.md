@@ -1,3 +1,13 @@
+-   Normalized teammate consulting tool representation so human-readable agent names are used in the UI instead of technical IDs, and added persona descriptions to tool definitions and system messages:
+
+    -   Removed the URL-hash suffix from `createTeamToolName` so tool names are now `team_chat_{agentName}` instead of `team_chat_{id}_{hash}`.
+    -   Changed `ServerAgentReferenceResolver` to build local agent URLs using `agent.agentName` (not `permanentId`) so the label derived from the URL path is always the readable name.
+    -   Added `resolveTeammateProfile(url)` method to `ServerAgentReferenceResolver` (backed by `localUrlToProfile` map populated during `initialize()`) and exposed it as an optional method on the `AgentReferenceResolver` interface.
+    -   Added `TeammateProfile` and `TeammateProfileResolver` types in `src/book-2.0/agent-source/`.
+    -   In `createAgentModelRequirementsWithCommitments`, pre-resolve teammate profiles before applying each TEAM commitment and store results in `_metadata.preResolvedTeammateProfiles`.
+    -   Updated `TEAM.ts` to use pre-resolved profiles for tool names and labels, include `personaDescription` in the tool `description` field, and format the system message section with descriptions inline (using `spaceTrim`).
+    -   Delegated `resolveTeammateProfile` through `createBookScopedAgentReferenceResolver` to the fallback resolver.
+
 -   Fixed chat sound and vibration notification to fire only once when the agent finishes responding, not on every streaming chunk or intermediate message update:
 
     -   Extracted `useChatCompleteNotification` hook that plays `message_receive` sound exactly once per completed assistant message (identified by stable message id), suppressing notifications during streaming and preventing double-firing on rerenders.

@@ -243,6 +243,10 @@ export function createBookScopedAgentReferenceResolver(options: {
         scopedResolver.consumeResolutionIssues = () => fallbackResolver.consumeResolutionIssues();
     }
 
+    if (fallbackResolver?.resolveTeammateProfile) {
+        scopedResolver.resolveTeammateProfile = (url: string) => fallbackResolver.resolveTeammateProfile!(url);
+    }
+
     return scopedResolver;
 }
 
