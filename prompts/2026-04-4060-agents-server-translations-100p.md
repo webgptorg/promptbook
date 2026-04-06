@@ -1,5 +1,9 @@
 [x] By Github Copilot, manually
 
+---
+
+[ ]
+
 [✨👋] Go through the Agent server and complete the translations.
 
 -   There are a lot of missing translations in the Agents Server, go through the whole UI and find all missing translations and add them to the translation files

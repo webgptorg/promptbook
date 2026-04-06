@@ -33,3 +33,10 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+---
+
+[ ]
+
+[🚀💬] When clicking on quick button in chat it should be immediatelly optimisticly sended into chat in same way as writing throught textarea
+
+-   You are working with the [Agents Server](apps/agents-server)
