@@ -1,4 +1,11 @@
--   Updated chat page browser tab title to show "Chat" instead of the agent name:
+-   Deduplicated "Preparing agent" chip in chat so at most one preparation chip is shown per message at any time:
+
+    -   Fixed `mergeToolCalls` to replace any existing `assistant_preparation` tool call when a new one arrives, regardless of the preparation `phase` argument. Added `deduplicatePreparationToolCalls` helper that keeps only the last preparation entry when multiple appear in a single incoming list.
+    -   Fixed `ChatPersistence.loadMessages` to clear `ongoingToolCalls` from incomplete messages so stale streaming state (including preparation chips) is not restored after a page reload.
+    -   Fixed `buildOngoingToolCallChips` in `ChatMessageItem.tsx` to use a single stable chip key (`tool-snapshot:assistant_preparation`) for all `assistant_preparation` tool calls, collapsing any duplicates that survive to the render layer.
+    -   Added integration tests under `apps/agents-server/src/utils/chat/preparingAgentChipDeduplication.test.ts` covering: initial load shows exactly one chip, switching chat shows zero duplicates, streaming repeated state updates deduplicate the chip.
+
+
 
     -   Added `generateChatMetadata.ts` utility in the chat folder that exports `CHAT_PAGE_TITLE = 'Chat'` and `generateChatMetadata()` returning `{ title: 'Chat' }`.
     -   Exported `generateMetadata` from `/agents/[agentName]/chat/page.tsx` and `/agents/[agentName]/chat/chatgpt-like/page.tsx` so the page-level title overrides the agent-name title set by the `[agentName]` layout for all chat contexts (standalone, ChatGPT-like, headless/embedded).

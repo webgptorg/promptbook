@@ -8,7 +8,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { colorToDataUrl } from '../../../_packages/color.index';
 import { PROMPTBOOK_CHAT_COLOR, USER_CHAT_COLOR } from '../../../config';
 import type { ToolCall } from '../../../types/ToolCall';
-import { isAssistantPreparationToolCall } from '../../../types/ToolCall';
+import { ASSISTANT_PREPARATION_TOOL_CALL_NAME, isAssistantPreparationToolCall } from '../../../types/ToolCall';
 import type { id } from '../../../types/typeAliases';
 import { attachClientVersionHeader } from '../../../utils/clientVersion';
 import { Color } from '../../../utils/color/Color';
@@ -537,7 +537,12 @@ function buildOngoingToolCallChips(
 
     const entries = new Map<string, ToolCallChipEntry>();
     for (const toolCall of toolCalls) {
-        const key = buildToolCallChipKey(toolCall);
+        // All assistant_preparation tool calls share a single stable chip key so that
+        // duplicate preparation phases (e.g. "Creating knowledge base" followed by
+        // "Preparing AgentKit agent") are collapsed into one chip in the UI.
+        const key = isAssistantPreparationToolCall(toolCall)
+            ? `tool-snapshot:${ASSISTANT_PREPARATION_TOOL_CALL_NAME}`
+            : buildToolCallChipKey(toolCall);
         const chipletInfo = getToolCallChipletInfo(toolCall, locale);
         const label = buildToolCallChipText(chipletInfo);
         const teamAgentData = resolveTeamAgentChipData(toolCall, teammates, chipletInfo, teamAgentProfiles);

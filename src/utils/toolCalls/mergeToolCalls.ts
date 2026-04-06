@@ -1,4 +1,4 @@
-import type { ToolCall, ToolCallState } from '../../types/ToolCall';
+import { isAssistantPreparationToolCall, type ToolCall, type ToolCallState } from '../../types/ToolCall';
 import { getToolCallIdentity } from './getToolCallIdentity';
 
 /**
@@ -16,7 +16,7 @@ export function mergeToolCalls(
     incomingToolCalls: ReadonlyArray<ToolCall> | undefined,
 ): Array<ToolCall> {
     if (!existingToolCalls || existingToolCalls.length === 0) {
-        return incomingToolCalls ? [...incomingToolCalls] : [];
+        return incomingToolCalls ? deduplicatePreparationToolCalls([...incomingToolCalls]) : [];
     }
 
     if (!incomingToolCalls || incomingToolCalls.length === 0) {
@@ -26,6 +26,17 @@ export function mergeToolCalls(
     const mergedToolCalls = [...existingToolCalls];
 
     for (const incomingToolCall of incomingToolCalls) {
+        if (isAssistantPreparationToolCall(incomingToolCall)) {
+            // A new preparation phase always replaces any previous assistant_preparation tool
+            // call, regardless of phase argument, so only one chip is ever shown at a time.
+            const existingPreparationIndex = mergedToolCalls.findIndex(isAssistantPreparationToolCall);
+            if (existingPreparationIndex !== -1) {
+                mergedToolCalls.splice(existingPreparationIndex, 1);
+            }
+            mergedToolCalls.push(incomingToolCall);
+            continue;
+        }
+
         const incomingIdentity = getToolCallIdentity(incomingToolCall);
         const existingIndex = mergedToolCalls.findIndex(
             (existingToolCall) => getToolCallIdentity(existingToolCall) === incomingIdentity,
@@ -160,4 +171,31 @@ function serializeValueForMerge(value: unknown): string {
     } catch {
         return String(value);
     }
+}
+
+/**
+ * Ensures at most one `assistant_preparation` tool call survives in the list,
+ * keeping the last occurrence so the most recent preparation phase is shown.
+ *
+ * @param toolCalls - Mutable list to deduplicate in-place.
+ * @returns The same array after removing redundant preparation entries.
+ * @private helper of `mergeToolCalls`
+ */
+function deduplicatePreparationToolCalls(toolCalls: Array<ToolCall>): Array<ToolCall> {
+    let lastPreparationIndex = -1;
+
+    for (let index = toolCalls.length - 1; index >= 0; index--) {
+        if (!isAssistantPreparationToolCall(toolCalls[index]!)) {
+            continue;
+        }
+
+        if (lastPreparationIndex === -1) {
+            lastPreparationIndex = index;
+        } else {
+            // Remove earlier duplicate — keep only the last (most recent) one.
+            toolCalls.splice(index, 1);
+        }
+    }
+
+    return toolCalls;
 }

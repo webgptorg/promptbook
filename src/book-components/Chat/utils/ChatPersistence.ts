@@ -96,6 +96,9 @@ export class ChatPersistence {
             return serializableMessages.map((message) => ({
                 ...message,
                 createdAt: message.createdAt,
+                // Clear transient streaming state so stale "Preparing agent" chips are not
+                // shown after a page reload — the streaming session is gone at that point.
+                ongoingToolCalls: message.isComplete === true ? message.ongoingToolCalls : undefined,
             }));
         } catch (error) {
             console.warn('Failed to load chat messages from localStorage:', error);

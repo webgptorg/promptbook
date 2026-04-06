@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 36 minutes by GitHub Copilot `claude-sonnet-4.6`
 
 [✨🧠] Deduplicate the “preparing agent” chip in chat
 
@@ -14,3 +14,4 @@
     -   During streaming / repeated state updates, the chip is deduplicated.
 
 ![alt text](prompts/screenshots/2026-04-4460-agents-server-preparing-agent-deduplicate-chip.png)
+
