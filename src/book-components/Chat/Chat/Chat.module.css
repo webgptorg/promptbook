@@ -1,7 +1,6 @@
 @font-face {
     font-family: 'OpenMojiBlack';
-    src:
-        url('/fonts/OpenMoji-black-glyf.woff2') format('woff2'),
+    src: url('/fonts/OpenMoji-black-glyf.woff2') format('woff2'),
         url('https://s6.ptbk.io/fonts/OpenMoji-black-glyf.woff2') format('woff2'); /* <- TODO: [🐱‍🚀] Dynamically load from /servers.ts */
     font-display: swap;
     unicode-range: U+23, U+2A, U+2D, U+30-39, U+A9, U+AE, U+200D, U+203C, U+2049, U+20E3, U+2117, U+2120, U+2122, U+2139,
@@ -31,8 +30,7 @@
 
 @font-face {
     font-family: 'OpenMojiColor';
-    src:
-        url('/fonts/OpenMoji-color-cbdt.woff2') format('woff2'),
+    src: url('/fonts/OpenMoji-color-cbdt.woff2') format('woff2'),
         url('https://s6.ptbk.io/fonts/OpenMoji-color-cbdt.woff2') format('woff2');
     font-display: swap;
     unicode-range: U+23, U+2A, U+2D, U+30-39, U+A9, U+AE, U+200D, U+203C, U+2049, U+20E3, U+2117, U+2120, U+2122, U+2139,
@@ -84,7 +82,10 @@
     flex-direction: column;
     overflow: hidden;
 
-    font-family: var(--chat-font-family, var(--font-poppins, 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif)),
+    font-family: var(
+            --chat-font-family,
+            var(--font-poppins, 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif)
+        ),
         'OpenMojiColor', 'OpenMojiBlack';
 
     --chat-message-min-width: 170px;
@@ -365,16 +366,8 @@
 
 .chatMainFlow .chatMessage.messageWithMap .messageStack {
     align-items: stretch;
-    width: min(
-        90vw,
-        920px,
-        calc(100% - var(--chat-message-avatar-size) - var(--chat-message-avatar-gap))
-    );
-    max-width: min(
-        90vw,
-        920px,
-        calc(100% - var(--chat-message-avatar-size) - var(--chat-message-avatar-gap))
-    );
+    width: min(90vw, 920px, calc(100% - var(--chat-message-avatar-size) - var(--chat-message-avatar-gap)));
+    max-width: min(90vw, 920px, calc(100% - var(--chat-message-avatar-size) - var(--chat-message-avatar-gap)));
 }
 
 @media (max-width: 900px) {
@@ -784,10 +777,7 @@
     line-height: var(--chat-bubble-line-height);
     overflow-wrap: anywhere;
     hyphens: auto;
-    transition:
-        box-shadow 0.2s ease,
-        transform 0.2s ease,
-        border-color 0.2s ease;
+    transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
     font-size: var(--chat-bubble-font-size);
     font-family: inherit;
     letter-spacing: 0.0025em;
@@ -850,11 +840,7 @@
         );
         --chat-md-link-color: color-mix(in srgb, var(--message-text-color, #0f172a) 72%, #7dd3fc 28%);
         --chat-md-muted-color: color-mix(in srgb, var(--message-text-color, #0f172a) 84%, transparent);
-        --chat-md-inline-code-bg: color-mix(
-            in srgb,
-            var(--message-bg-color, #ffffff) 65%,
-            rgba(15, 23, 42, 0.2) 35%
-        );
+        --chat-md-inline-code-bg: color-mix(in srgb, var(--message-bg-color, #ffffff) 65%, rgba(15, 23, 42, 0.2) 35%);
         --chat-md-inline-code-border: color-mix(in srgb, var(--message-text-color, #0f172a) 20%, transparent);
         --chat-md-blockquote-bg: color-mix(
             in srgb,
@@ -874,11 +860,7 @@
             rgba(255, 255, 255, 0.94) 36%
         );
         --chat-md-table-border: color-mix(in srgb, var(--message-text-color, #0f172a) 18%, transparent);
-        --chat-md-citation-bg: color-mix(
-            in srgb,
-            var(--message-bg-color, #ffffff) 55%,
-            rgba(255, 255, 255, 0.94) 45%
-        );
+        --chat-md-citation-bg: color-mix(in srgb, var(--message-bg-color, #ffffff) 55%, rgba(255, 255, 255, 0.94) 45%);
     }
 }
 
@@ -1279,7 +1261,7 @@
 .feedbackIssueButton {
     border: 0;
     background: transparent;
-    color: #ffd700;
+    color: inherit;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -1287,6 +1269,7 @@
     font-size: 16px;
     line-height: 1;
     padding: 0;
+    font-family: 'OpenMojiBlack', 'Noto Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
 }
 
 /* Chat input area */
@@ -1304,7 +1287,12 @@
     gap: 12px;
     position: relative;
     border-top: 1px solid rgba(148, 163, 184, 0.14);
-    background: linear-gradient(180deg, rgba(248, 250, 252, 0) 0%, rgba(248, 250, 252, 0.9) 44%, rgba(248, 250, 252, 0.96) 100%);
+    background: linear-gradient(
+        180deg,
+        rgba(248, 250, 252, 0) 0%,
+        rgba(248, 250, 252, 0.9) 44%,
+        rgba(248, 250, 252, 0.96) 100%
+    );
     backdrop-filter: blur(20px);
 }
 
@@ -1321,7 +1309,12 @@
 }
 
 .Chat.fullPageVisual .chatMainFlow .chatInput {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.86) 60%, rgba(255, 255, 255, 0.95) 100%);
+    background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.02) 0%,
+        rgba(255, 255, 255, 0.86) 60%,
+        rgba(255, 255, 255, 0.95) 100%
+    );
 }
 
 /* File upload drag-and-drop styles */
@@ -1412,20 +1405,15 @@
     border: 1px solid rgba(148, 163, 184, 0.3);
     border-radius: 26px;
     padding: 9px 12px;
-    box-shadow:
-        0 14px 34px rgba(15, 23, 42, 0.12),
-        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .inputContainer:focus-within {
     border-color: var(--brand-color, #0ea5e9);
-    box-shadow:
-        0 18px 42px rgba(15, 23, 42, 0.16),
-        0 0 0 4px rgba(14, 165, 233, 0.16);
+    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.16), 0 0 0 4px rgba(14, 165, 233, 0.16);
     border-color: color-mix(in srgb, var(--brand-color, #0ea5e9) 58%, rgba(15, 23, 42, 0.2) 42%);
-    box-shadow:
-        0 18px 42px rgba(15, 23, 42, 0.16),
+    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.16),
         0 0 0 4px color-mix(in srgb, var(--brand-color, #0ea5e9) 16%, transparent);
     transform: translateY(-1px);
 }
@@ -3173,13 +3161,8 @@
     letter-spacing: 0.02em !important;
     line-height: 1.2 !important;
     cursor: pointer !important;
-    transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease,
-        background 0.2s ease !important;
-    box-shadow:
-        0 10px 24px rgba(14, 116, 219, 0.28),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease !important;
+    box-shadow: 0 10px 24px rgba(14, 116, 219, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
     backdrop-filter: blur(18px) !important;
     -webkit-tap-highlight-color: transparent !important;
     touch-action: manipulation !important;
@@ -3211,9 +3194,7 @@
 .useTemplateButton:hover:not(:disabled) {
     background: linear-gradient(140deg, #1a9aff 0%, #0d7de8 56%, #1168c9 100%) !important;
     transform: translateY(-1.5px);
-    box-shadow:
-        0 14px 30px rgba(14, 116, 219, 0.34),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 14px 30px rgba(14, 116, 219, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
 }
 
 .chatButton:active,
@@ -3225,9 +3206,7 @@
 .chatButton:focus,
 .useTemplateButton:focus {
     outline: none;
-    box-shadow:
-        0 10px 24px rgba(14, 116, 219, 0.32),
-        0 0 0 3px rgba(56, 189, 248, 0.28),
+    box-shadow: 0 10px 24px rgba(14, 116, 219, 0.32), 0 0 0 3px rgba(56, 189, 248, 0.28),
         inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
 }
 
