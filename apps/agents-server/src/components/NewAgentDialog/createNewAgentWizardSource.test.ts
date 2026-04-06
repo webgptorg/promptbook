@@ -38,6 +38,7 @@ describe('createNewAgentWizardSource', () => {
         expect(agentSource).toContain('PERSONA You are a helpful, analytical, strong at practical kitchen advice assistant');
         expect(agentSource).toContain('GOAL Help users cook with confidence using practical kitchen advice.');
         expect(agentSource).toContain('OPEN');
+        expect(agentSource.indexOf('OPEN')).toBeGreaterThan(agentSource.indexOf('KNOWLEDGE https://example.com/faq'));
         expect(agentSource).toContain('USE BROWSER');
         expect(agentSource).toContain('USE SEARCH ENGINE');
         expect(agentSource).toContain('USE EMAIL');
@@ -92,5 +93,6 @@ describe('createNewAgentWizardSource', () => {
         expect(agentSource).toContain('- Knowledge: No knowledge uploaded');
         expect(agentSource).toContain('PERSONA You are a helpful, concise, and professional assistant');
         expect(agentSource).toContain('CLOSED');
+        expect(agentSource.trimEnd().endsWith('CLOSED')).toBe(true);
     });
 });

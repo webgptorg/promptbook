@@ -169,13 +169,13 @@ export function createNewAgentWizardSource(options: CreateNewAgentWizardSourceOp
         '',
         createCommitment('PERSONA', personaDescription),
         ...(goal ? [createCommitment('GOAL', goal)] : []),
-        [options.isOpenToLearning ? 'OPEN' : 'CLOSED'],
         ...capabilityCommitments.map((commitment) => createCommitment(commitment)),
         ...createCommitmentLines('STYLE', writingStyleTraits),
         ...createCommitmentLines('WRITING RULES', writingRules),
         ...createCommitmentLines('WRITING SAMPLE', writingSamples),
         ...rules.map((rule) => createCommitment('RULE', rule)),
         ...knowledgeItems.map((item) => createCommitment('KNOWLEDGE', item.source)),
+        options.isOpenToLearning ? 'OPEN' : 'CLOSED',
     ].flat();
 
     return validateBook(sourceLines.join('\n'));
