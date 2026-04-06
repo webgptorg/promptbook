@@ -155,9 +155,23 @@ const INLINE_CODE_REGEX = /(`+)([\s\S]*?)(\1)/g;
 const CODE_PLACEHOLDER_PREFIX = '@@PROMPTBOOK_CODE_PLACEHOLDER__';
 const CODE_PLACEHOLDER_REGEX = new RegExp(`${CODE_PLACEHOLDER_PREFIX}(\\d+)__`, 'g');
 
+const DETAILS_BLOCK_REGEX = /<details[\s\S]*?<\/details\s*>/gi;
+const DETAILS_PLACEHOLDER_PREFIX = '@@PROMPTBOOK_DETAILS_PLACEHOLDER__';
+const DETAILS_PLACEHOLDER_REGEX = new RegExp(`${DETAILS_PLACEHOLDER_PREFIX}(\\d+)__`, 'g');
+/** Matches a Showdown-wrapped placeholder such as `<p>@@PROMPTBOOK_DETAILS_PLACEHOLDER__0__</p>` */
+const DETAILS_PLACEHOLDER_WRAPPED_REGEX = new RegExp(
+    `<p>\\s*(${DETAILS_PLACEHOLDER_PREFIX}\\d+__)\\s*<\\/p>`,
+    'g',
+);
+
 type MaskedCodeSegmentsResult = {
     masked: string_markdown;
     restore: (value: string_markdown) => string_markdown;
+};
+
+type MaskedDetailsBlocksResult = {
+    masked: string_markdown;
+    restore: (value: string_html) => string_html;
 };
 
 /**
@@ -190,6 +204,39 @@ function maskMarkdownCodeSegments(markdown: string_markdown): MaskedCodeSegments
         masked: masked as string_markdown,
         restore(value: string_markdown): string_markdown {
             return value.replace(CODE_PLACEHOLDER_REGEX, (_match, index) => segments[Number(index)] ?? '');
+        },
+    };
+}
+
+/**
+ * Masks `<details>…</details>` blocks in the markdown source so that Showdown never
+ * processes their content (which would break them with `simpleLineBreaks: true`).
+ *
+ * The original blocks are restored verbatim into the final HTML after Showdown runs,
+ * and any surrounding `<p>` wrapper that Showdown may have injected around a placeholder
+ * is stripped so the `<details>` element remains a proper block-level element.
+ *
+ * @param markdown - Markdown text that may contain raw HTML `<details>` blocks.
+ * @returns Masked markdown and a restore helper that returns `string_html`.
+ *
+ * @private utility of `MarkdownContent` component
+ */
+function maskDetailsBlocks(markdown: string_markdown): MaskedDetailsBlocksResult {
+    const blocks: string[] = [];
+
+    DETAILS_BLOCK_REGEX.lastIndex = 0;
+    const masked = markdown.replace(DETAILS_BLOCK_REGEX, (match) => {
+        const placeholder = `${DETAILS_PLACEHOLDER_PREFIX}${blocks.length}__`;
+        blocks.push(match);
+        return placeholder;
+    }) as string_markdown;
+
+    return {
+        masked,
+        restore(value: string_html): string_html {
+            return value
+                .replace(DETAILS_PLACEHOLDER_WRAPPED_REGEX, '$1')
+                .replace(DETAILS_PLACEHOLDER_REGEX, (_match, index) => blocks[Number(index)] ?? '') as string_html;
         },
     };
 }
@@ -250,7 +297,8 @@ function renderMarkdown(markdown: string_markdown): string_html {
 
     try {
         const normalizedMarkdown = normalizeMarkdownSublists(markdown);
-        const processedMarkdown = renderMathInMarkdown(normalizedMarkdown);
+        const { masked: maskedMarkdown, restore: restoreDetails } = maskDetailsBlocks(normalizedMarkdown);
+        const processedMarkdown = renderMathInMarkdown(maskedMarkdown);
         const html = chatMarkdownConverter.makeHtml(processedMarkdown);
 
         if (typeof window !== 'undefined') {
@@ -266,7 +314,8 @@ function renderMarkdown(markdown: string_markdown): string_html {
             }
         }
 
-        const sanitizedHtml = html
+        const restoredHtml = restoreDetails(html as string_html);
+        const sanitizedHtml = restoredHtml
             .replace(/<\s*(script|style|iframe|object|embed)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, '')
             .replace(/\s+on\w+="[^"]*"/gi, '')
             .replace(/\s+javascript:/gi, '')
@@ -297,6 +346,17 @@ type MarkdownContentProps = {
 };
 
 /**
+ * Returns a stable key for a `<details>` element based on its `<summary>` text.
+ * Used to identify and restore open state across re-renders.
+ *
+ * @private utility of `MarkdownContent` component
+ */
+function getDetailsKey(details: HTMLDetailsElement): string {
+    const summary = details.querySelector('summary');
+    return summary?.textContent?.trim() ?? '';
+}
+
+/**
  * Renders markdown content with support for code highlighting, math, and tables.
  *
  * @public exported from `@promptbook/components`
@@ -306,6 +366,8 @@ export function MarkdownContent(props: MarkdownContentProps) {
     const htmlContent = useMemo(() => renderMarkdown(content), [content]);
     const containerRef = useRef<HTMLDivElement>(null);
     const rootsRef = useRef<Root[]>([]);
+    /** Tracks which `<details>` elements (by summary key) are currently open */
+    const openDetailsKeysRef = useRef<Set<string>>(new Set());
 
     useEffect(() => {
         // Cleanup previous roots
@@ -315,6 +377,28 @@ export function MarkdownContent(props: MarkdownContentProps) {
         if (!containerRef.current) {
             return;
         }
+
+        // Restore previously open <details> elements that may have been closed by a
+        // streaming innerHTML update (dangerouslySetInnerHTML resets the DOM on every
+        // content change, which collapses any open <details> back to closed).
+        const detailsElements = containerRef.current.querySelectorAll<HTMLDetailsElement>('details');
+        detailsElements.forEach((details) => {
+            if (openDetailsKeysRef.current.has(getDetailsKey(details))) {
+                details.open = true;
+            }
+        });
+
+        // Keep openDetailsKeysRef in sync when the user toggles a <details> element.
+        const handleToggle = (event: Event) => {
+            const details = event.target as HTMLDetailsElement;
+            const key = getDetailsKey(details);
+            if (details.open) {
+                openDetailsKeysRef.current.add(key);
+            } else {
+                openDetailsKeysRef.current.delete(key);
+            }
+        };
+        containerRef.current.addEventListener('toggle', handleToggle, true);
 
         const preElements = containerRef.current.querySelectorAll('pre');
 
@@ -350,6 +434,7 @@ export function MarkdownContent(props: MarkdownContentProps) {
         });
 
         return () => {
+            containerRef.current?.removeEventListener('toggle', handleToggle, true);
             rootsRef.current.forEach((root) => root.unmount());
             rootsRef.current = [];
         };

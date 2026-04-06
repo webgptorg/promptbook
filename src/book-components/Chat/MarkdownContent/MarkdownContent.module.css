@@ -257,6 +257,33 @@
     opacity: 0.8;
 }
 
+.MarkdownContent details {
+    margin: 0.95em 0;
+    padding: 0.5em 0.8em;
+    border: 1px solid var(--md-table-border);
+    border-radius: 8px;
+    background: var(--md-blockquote-bg);
+}
+
+.MarkdownContent summary {
+    cursor: pointer;
+    font-weight: 500;
+    user-select: none;
+    list-style: disclosure-closed;
+    color: var(--md-link-color);
+}
+
+.MarkdownContent summary::-webkit-details-marker {
+    color: var(--md-link-color);
+}
+
+.MarkdownContent details[open] > summary {
+    list-style: disclosure-open;
+    margin-bottom: 0.5em;
+    padding-bottom: 0.5em;
+    border-bottom: 1px solid var(--md-table-border);
+}
+
 .MarkdownContent strong {
     font-weight: 650;
 }

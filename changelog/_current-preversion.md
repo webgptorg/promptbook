@@ -1,4 +1,10 @@
--   Fixed Agents Server agent profile page navigation: clicking "My chats", quick message buttons, and the send-message composer now reliably navigates to the agent's `/chat` route.
+-   Fixed `<details>` / `<summary>` elements inside chat message markdown so they expand and collapse when clicked:
+
+    -   Added `maskDetailsBlocks()` pre-processing step in `renderMarkdown()` that extracts `<details>…</details>` blocks before the Showdown converter runs and restores them verbatim afterwards; this prevents Showdown (with `simpleLineBreaks: true`) from wrapping the blocks in `<p>` tags or converting internal newlines to `<br>` elements that would break the native toggle.
+    -   Added `<details>` and `<summary>` styling to `MarkdownContent.module.css`: `cursor: pointer`, `user-select: none`, disclosure-triangle list-style, and a visual separator line under the summary when the block is open.
+    -   Added `<details>` open-state preservation in the `MarkdownContent` `useEffect`: a `toggle` event listener tracks which blocks the user has opened (by summary text key) and restores that open state after every `htmlContent` update (e.g. during streaming), preventing streaming content updates from collapsing `<details>` the user has already expanded.
+
+
 
     -   Removed `pointer-events: none` from the `.agent-chat-profile-transitioning` CSS class so that subsequent clicks are never blocked when a prior SPA navigation was cancelled or aborted.
     -   Added a `PROFILE_CHAT_NAVIGATION_STATE_RESET_MS` (2.5 s) safety-reset timeout (`startNavigatingToChat`) that resets the transitioning state back to interactive if the navigation has not completed, preventing the page from becoming permanently unresponsive.
