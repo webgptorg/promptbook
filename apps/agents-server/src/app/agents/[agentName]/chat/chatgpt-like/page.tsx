@@ -1,9 +1,10 @@
-'use server';
+﻿'use server';
 import { loadChatConfiguration } from '@/src/utils/chatConfiguration';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { peekShareTargetPayload } from '@/src/utils/shareTargetPayloads';
 import { getThinkingMessages } from '@/src/utils/thinkingMessages';
+import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { resolveSpeechRecognitionLanguage } from '../../../../../../../../src/utils/language/getBrowserPreferredSpeechRecognitionLanguage';
@@ -14,6 +15,18 @@ import { resolveAgentRouteTarget } from '../../../../../utils/agentRouting/resol
 import { getAgentName, getAgentProfile, isAgentDeleted, parseBooleanFlag } from '../../_utils';
 import { FORCE_NEW_CHAT_QUERY_VALUE } from '../../agentChatNavigationUtils';
 import { AgentChatHistoryClient } from '../AgentChatHistoryClient';
+import { generateChatMetadata } from '../generateChatMetadata';
+
+/**
+ * Generates Next.js metadata for the ChatGPT-like chat page.
+ *
+ * Overrides the agent-name title set by the `[agentName]` layout so that
+ * the browser tab shows "Chat" instead of the agent's display name.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+    return generateChatMetadata();
+}
+
 
 /**
  * Builds canonical ChatGPT-like chat path while preserving supported query parameters.

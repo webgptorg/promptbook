@@ -1,3 +1,9 @@
+-   Updated chat page browser tab title to show "Chat" instead of the agent name:
+
+    -   Added `generateChatMetadata.ts` utility in the chat folder that exports `CHAT_PAGE_TITLE = 'Chat'` and `generateChatMetadata()` returning `{ title: 'Chat' }`.
+    -   Exported `generateMetadata` from `/agents/[agentName]/chat/page.tsx` and `/agents/[agentName]/chat/chatgpt-like/page.tsx` so the page-level title overrides the agent-name title set by the `[agentName]` layout for all chat contexts (standalone, ChatGPT-like, headless/embedded).
+    -   Added `generateChatMetadata.test.ts` with three unit tests verifying the title is "Chat", is non-empty, and is consistent across navigation calls.
+
 -   Logged full raw Message tool context (called + available) in the message inspector:
 
     -   Added `availableTools?: ReadonlyArray<LlmToolDefinition>` field to the `ChatMessage` type so the complete list of tools available at each model turn is stored alongside called tools.
