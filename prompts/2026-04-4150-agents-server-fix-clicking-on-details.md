@@ -15,16 +15,19 @@
 
 ---
 
-[-]
+[ ] !!!
 
-[✨🔣] bar
+[✨🔣] Fix clicking on `<details>` section in chat message markdown
 
--   @@@
+-   Messages in chat can contain markdown with `<details>` sections (e.g. for tool response details). Currently, clicking to expand/collapse the `<details>` does not work
+-   It just blinks but does not expand
+-   The content is clearly there and the `<details>` element is rendered, but the click handler to toggle it is not functioning.
+-   Also visually enhance the `<details>` summary to make it more obvious that it is clickable and can be expanded, for example by adding a hover effect or an icon indicating it can be expanded. Enhance paddings, margins, and overall styling to make it more premium and user-friendly.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-04-4150-agents-server-fix-clicking-on-details-1.png)
 
 ---
 
@@ -52,3 +55,15 @@
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+---
+
+[-]
+
+[✨🔣] bar
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   If you need to do the database migration, do it
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
