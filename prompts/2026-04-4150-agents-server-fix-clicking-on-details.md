@@ -15,7 +15,7 @@
 
 ---
 
-[ ] !!!
+[x] ~$0.00 17 minutes by GitHub Copilot `claude-sonnet-4.6`
 
 [✨🔣] Fix clicking on `<details>` section in chat message markdown
 
@@ -67,3 +67,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
