@@ -77,7 +77,7 @@
 
 ---
 
-[ ]
+[x] ~$0.00 7 minutes by GitHub Copilot `gpt-5.4`
 
 [🧩📌] The `ARTICLE_MODE` should be visually better on mobile
 
@@ -86,3 +86,4 @@
 -   You are working with the [Agents Server](apps/agents-server) with the chat page and with `Chat` component
 
 ![alt text](prompts/screenshots/2026-04-4125-agents-server-chat-visual-modes-7.png)
+

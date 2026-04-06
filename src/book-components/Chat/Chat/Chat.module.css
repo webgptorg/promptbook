@@ -3579,6 +3579,10 @@
         --chat-input-action-size: 44px;
     }
 
+    .constrainedArticleVisual {
+        --chat-article-layout-padding-inline: clamp(20px, 5vw, 28px);
+    }
+
     .actions {
         margin: 12px 16px 0;
         gap: 6px;
@@ -3586,11 +3590,6 @@
 
     .chatMainFlow .chatMessages {
         padding: 16px 12px;
-    }
-
-    .articleModeChatMessages {
-        padding-left: 16px;
-        padding-right: 16px;
     }
 
     .chatMainFlow .chatMessage {
@@ -3641,11 +3640,6 @@
         padding-bottom: 16px;
         padding-bottom: calc(16px + env(safe-area-inset-bottom));
         gap: 10px;
-    }
-
-    .articleModeChatInput {
-        padding-left: 16px;
-        padding-right: 16px;
     }
 
     .speechStatusBubble {
