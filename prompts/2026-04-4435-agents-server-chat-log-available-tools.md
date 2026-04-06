@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 20 minutes by GitHub Copilot `claude-sonnet-4.6`
 
 [🧾🔧] Log full raw Message tool context (called + available)
 
@@ -21,3 +21,4 @@
     -   Where exactly the “message inspector” is triggered from (UI route/component) and what backend endpoint returns raw message details.
     -   The exact internal field names/types currently used for “called tools” in the raw message object.
     -   Where “available tools” already exist in-memory during the request-building flow (or whether we need to persist it for later inspection).
+
