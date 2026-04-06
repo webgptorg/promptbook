@@ -222,6 +222,13 @@ export type ChatProps = {
     onActionButton?(code: string): Promisable<void>;
 
     /**
+     * Called when user clicks a quick message button parsed from message markdown.
+     *
+     * When not provided, quick message buttons fall back to `onMessage`.
+     */
+    onQuickMessageButton?(messageContent: string): Promisable<void>;
+
+    /**
      * Optional callback
      *
      * - When set, button for resetting chat will be shown

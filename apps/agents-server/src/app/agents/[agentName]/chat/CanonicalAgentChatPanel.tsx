@@ -50,6 +50,7 @@ import { useTeamAgentProfiles } from '../useTeamAgentProfiles';
 import type { AgentChatLayoutVariant } from './AgentChatLayoutVariant';
 import { ChatTimeoutButton } from './ChatTimeoutButton';
 import { useCanonicalChatMessages } from './useCanonicalChatMessages';
+import { queuePendingOutboundMessage } from './usePendingOutboundMessages';
 
 /**
  * Props accepted by the canonical server-backed chat panel.
@@ -339,6 +340,32 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
         [effectivePromptParameters, isReadOnly, onSubmitUserTurn],
     );
 
+    /**
+     * Sends one quick-button message through the durable chat path while seeding
+     * the optimistic user bubble immediately.
+     */
+    const handleQuickMessageButton = useCallback(
+        async (message: string) => {
+            if (isReadOnly) {
+                return;
+            }
+
+            const clientMessageId = createUserChatClientMessageId();
+            queuePendingOutboundMessage({
+                chatId,
+                clientMessageId,
+                content: message,
+            });
+
+            await onSubmitUserTurn({
+                message,
+                parameters: effectivePromptParameters,
+                clientMessageId,
+            });
+        },
+        [chatId, effectivePromptParameters, isReadOnly, onSubmitUserTurn],
+    );
+
     useEffect(() => {
         handleMessagesChange(messages);
     }, [handleMessagesChange, messages]);
@@ -486,6 +513,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
             defaultMessage={draftMessage}
             placeholderMessageContent={inputPlaceholder}
             onMessage={isReadOnly ? undefined : (handleManualMessage as unknown as (message: string) => Promise<void>)}
+            onQuickMessageButton={isReadOnly ? undefined : handleQuickMessageButton}
             onActionButton={executeQuickActionButton}
             onChange={onDraftMessageChange}
             onReset={isReadOnly ? undefined : onStartNewChat}

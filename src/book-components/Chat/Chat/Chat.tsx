@@ -133,6 +133,7 @@ export function Chat(props: ChatProps) {
         onChange,
         onMessage,
         onActionButton,
+        onQuickMessageButton,
         onReset,
         resetRequiresConfirmation = true,
         onFeedback,
@@ -555,6 +556,7 @@ export function Chat(props: ChatProps) {
                         onCopy={handleCopy}
                         onMessage={onMessage}
                         onActionButton={onActionButton}
+                        onQuickMessageButton={onQuickMessageButton}
                         onCreateAgent={onCreateAgent}
                         toolTitles={toolTitles}
                         teammates={teammates}

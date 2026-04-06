@@ -50,7 +50,10 @@ import { ImagePromptRenderer } from './ImagePromptRenderer';
  *
  * @private props for internal subcomponent
  */
-type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'onActionButton' | 'participants'> & {
+type ChatMessageItemProps = Pick<
+    ChatProps,
+    'onMessage' | 'onActionButton' | 'onQuickMessageButton' | 'participants'
+> & {
     message: ChatMessage;
     participant: ChatParticipant | undefined;
     isLastMessage: boolean;
@@ -762,6 +765,7 @@ export const ChatMessageItem = memo(
             isLastMessage,
             onMessage,
             onActionButton,
+            onQuickMessageButton,
             setExpandedMessageId,
             isExpanded,
             currentRating,
@@ -966,7 +970,7 @@ export const ChatMessageItem = memo(
             () =>
                 buttons.reduce<Array<RenderableMessageButton>>((nextButtons, button, buttonIndex) => {
                     if (button.type === 'message') {
-                        if (onMessage) {
+                        if (onQuickMessageButton || onMessage) {
                             nextButtons.push({ button, buttonIndex });
                         }
 
@@ -980,7 +984,7 @@ export const ChatMessageItem = memo(
                     nextButtons.push({ button, buttonIndex });
                     return nextButtons;
                 }, []),
-            [buttons, consumedActionButtonIndexes, onActionButton, onMessage],
+            [buttons, consumedActionButtonIndexes, onActionButton, onMessage, onQuickMessageButton],
         );
         const shouldShowButtons = isLastMessage && renderableButtons.length > 0;
         const speechPlaybackEnabled = isSpeechPlaybackEnabled ?? true;
@@ -1611,8 +1615,9 @@ export const ChatMessageItem = memo(
                                             event.stopPropagation();
 
                                             if (button.type === 'message') {
-                                                if (onMessage) {
-                                                    void onMessage(button.message);
+                                                const quickMessageHandler = onQuickMessageButton || onMessage;
+                                                if (quickMessageHandler) {
+                                                    void quickMessageHandler(button.message);
                                                 }
                                                 return;
                                             }
@@ -1745,6 +1750,10 @@ export const ChatMessageItem = memo(
         }
 
         if (prev.onMessage !== next.onMessage) {
+            return false;
+        }
+
+        if (prev.onQuickMessageButton !== next.onQuickMessageButton) {
             return false;
         }
 

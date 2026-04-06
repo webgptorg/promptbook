@@ -35,8 +35,9 @@
 
 ---
 
-[ ]
+[x] ~$0.00 13 minutes by GitHub Copilot `gpt-5.4`
 
 [🚀💬] When clicking on quick button in chat it should be immediatelly optimisticly sended into chat in same way as writing throught textarea
 
 -   You are working with the [Agents Server](apps/agents-server)
+
