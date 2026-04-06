@@ -2,7 +2,7 @@
 
 ---
 
-[ ]
+[x] ~$0.00 16 minutes by GitHub Copilot `claude-sonnet-4.6`
 
 [✨👋] Go through the Agent server and complete the translations.
 
@@ -14,3 +14,4 @@
 ![alt text](prompts/screenshots/2026-04-4060-agents-server-translations-100p-1.png)
 ![alt text](prompts/screenshots/2026-04-4060-agents-server-translations-100p-2.png)
 ![alt text](prompts/screenshots/2026-04-4060-agents-server-translations-100p-3.png)
+

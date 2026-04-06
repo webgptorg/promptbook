@@ -20,6 +20,7 @@ import { useEffect, useId, useMemo, useState } from 'react';
 import { Dialog } from '../Portal/Dialog';
 import { SecretInput } from '../SecretInput/SecretInput';
 import { SecretTextarea } from '../SecretTextarea/SecretTextarea';
+import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 import { useDirtyModalGuard } from '../utils/useDirtyModalGuard';
 
 /**
@@ -182,6 +183,7 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
         isCloseBlocked: isSubmitting,
         onClose,
     });
+    const { t } = useServerLanguage();
 
     const validationError = useMemo(() => {
         if (!manualFieldsVisible) {
@@ -189,19 +191,19 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
         }
 
         if (!service.trim()) {
-            return 'Service is required.';
+            return t('walletDialog.validationServiceRequired');
         }
         if (recordType === 'USERNAME_PASSWORD' && (!username.trim() || !password.trim())) {
-            return 'Username and password are required.';
+            return t('walletDialog.validationUsernamePasswordRequired');
         }
         if (recordType === 'SESSION_COOKIE' && !cookies.trim()) {
-            return 'Cookies are required.';
+            return t('walletDialog.validationCookiesRequired');
         }
         if (recordType === 'ACCESS_TOKEN' && !secret.trim()) {
-            return 'Secret is required.';
+            return t('walletDialog.validationSecretRequired');
         }
         return null;
-    }, [cookies, manualFieldsVisible, password, recordType, secret, service, username]);
+    }, [cookies, manualFieldsVisible, password, recordType, secret, service, t, username]);
 
     if (!isOpen || !request) {
         return null;
@@ -216,8 +218,8 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                             <KeyRound className="h-4 w-4" />
                         </span>
                         <div>
-                            <p className="text-sm font-semibold text-gray-900">Wallet credential requested</p>
-                            <p className="text-xs text-gray-500">Provide private data for tool access</p>
+                            <p className="text-sm font-semibold text-gray-900">{t('walletDialog.title')}</p>
+                            <p className="text-xs text-gray-500">{t('walletDialog.subtitle')}</p>
                         </div>
                     </div>
                     <button
@@ -225,7 +227,7 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                         onClick={requestClose}
                         disabled={isSubmitting}
                         className="rounded-md p-1 text-gray-400 transition hover:bg-gray-200 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
-                        aria-label="Close"
+                        aria-label={t('walletDialog.closeAriaLabel')}
                     >
                         <X className="h-4 w-4" />
                     </button>
@@ -261,7 +263,7 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                         setError(
                             submitError instanceof Error
                                 ? submitError.message
-                                : 'Failed to store wallet credential.',
+                                : t('walletDialog.errorFailed'),
                         );
                     } finally {
                         setIsSubmitting(false);
@@ -277,7 +279,7 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                 {requestedJsonSchemaText && (
                     <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
                         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
-                            Requested JSON schema
+                            {t('walletDialog.requestedJsonSchemaLabel')}
                         </p>
                         <pre className="max-h-48 overflow-auto whitespace-pre-wrap break-all rounded bg-white p-2 font-mono text-xs text-gray-700">
                             {requestedJsonSchemaText}
@@ -298,7 +300,7 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                             className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             <Github className="h-4 w-4" />
-                            Connect with GitHub App
+                            {t('walletDialog.connectGithubAction')}
                         </button>
                         {!isManualTokenVisible && (
                             <button
@@ -308,7 +310,7 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                                 className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-amber-600 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 <KeyRound className="h-4 w-4" />
-                                Add token manually
+                                {t('walletDialog.addTokenManuallyAction')}
                             </button>
                         )}
                     </div>
@@ -317,14 +319,14 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                 {canUseCalendarOAuthConnect && (
                     <div className="space-y-3 rounded-md border border-blue-200 bg-blue-50/50 p-3">
                         <div className="space-y-1 text-xs text-blue-900">
-                            <p className="font-semibold uppercase tracking-wide">Google Calendar access requested</p>
+                            <p className="font-semibold uppercase tracking-wide">{t('walletDialog.calendarAccessTitle')}</p>
                             <p>
-                                Calendar URL:{' '}
+                                {t('walletDialog.calendarUrlLabel')}{' '}
                                 <span className="font-mono break-all">
                                     {request.calendarOAuth?.calendarUrl || 'https://calendar.google.com/calendar/u/0/r'}
                                 </span>
                             </p>
-                            <p className="font-semibold uppercase tracking-wide pt-1">Scopes</p>
+                            <p className="font-semibold uppercase tracking-wide pt-1">{t('walletDialog.calendarScopesLabel')}</p>
                             <ul className="list-disc pl-4 space-y-0.5">
                                 {(request.calendarOAuth?.scopes && request.calendarOAuth.scopes.length > 0
                                     ? request.calendarOAuth.scopes
@@ -335,8 +337,8 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                                     </li>
                                 ))}
                             </ul>
-                            <p className="font-semibold uppercase tracking-wide pt-1">Examples</p>
-                            <p>Read events, create meetings, update/delete events, and invite guests.</p>
+                            <p className="font-semibold uppercase tracking-wide pt-1">{t('walletDialog.calendarExamplesLabel')}</p>
+                            <p>{t('walletDialog.calendarExamplesDescription')}</p>
                         </div>
                         <button
                             type="button"
@@ -358,7 +360,7 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                             className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-blue-300 bg-white px-3 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             <Calendar className="h-4 w-4" />
-                            Connect Google Calendar
+                            {t('walletDialog.connectCalendarAction')}
                         </button>
                         {!isManualTokenVisible && (
                             <button
@@ -368,7 +370,7 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                                 className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-amber-600 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 <KeyRound className="h-4 w-4" />
-                                Add token manually
+                                {t('walletDialog.addTokenManuallyAction')}
                             </button>
                         )}
                     </div>
@@ -378,20 +380,20 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                     <>
                         <div className="grid gap-3 sm:grid-cols-3">
                             <div>
-                                <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">Type</label>
+                                <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">{t('walletDialog.typeLabel')}</label>
                                 <select
                                     value={recordType}
                                     onChange={(event) => setRecordType(event.target.value as WalletRecordType)}
                                     className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
                                 >
-                                    <option value="ACCESS_TOKEN">Access Token</option>
-                                    <option value="USERNAME_PASSWORD">Username + Password</option>
-                                    <option value="SESSION_COOKIE">Session Cookie</option>
+                                    <option value="ACCESS_TOKEN">{t('walletDialog.accessTokenOption')}</option>
+                                    <option value="USERNAME_PASSWORD">{t('walletDialog.usernamePasswordOption')}</option>
+                                    <option value="SESSION_COOKIE">{t('walletDialog.sessionCookieOption')}</option>
                                 </select>
                             </div>
                             <div>
                                 <label htmlFor={serviceInputId} className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                    Service
+                                    {t('walletDialog.serviceLabel')}
                                 </label>
                                 <input
                                     id={serviceInputId}
@@ -402,7 +404,7 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                             </div>
                             <div>
                                 <label htmlFor={keyInputId} className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                    Key
+                                    {t('walletDialog.keyLabel')}
                                 </label>
                                 <input
                                     id={keyInputId}
@@ -418,7 +420,7 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                                 <label className="text-sm text-gray-700">
                                     <span className="mb-1 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
                                         <UserRound className="h-3 w-3" />
-                                        Username
+                                        {t('walletDialog.usernameLabel')}
                                     </span>
                                     <input
                                         value={username}
@@ -429,7 +431,7 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                                 <label className="text-sm text-gray-700">
                                     <span className="mb-1 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
                                         <Lock className="h-3 w-3" />
-                                        Password
+                                        {t('walletDialog.passwordLabel')}
                                     </span>
                                     <SecretInput
                                         value={password}
@@ -443,11 +445,11 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                         {recordType === 'ACCESS_TOKEN' && (
                             <div className="space-y-3">
                                 <SecretTextarea
-                                    label="Secret"
+                                    label={t('walletDialog.secretLabel')}
                                     value={secret}
                                     onChange={(event) => setSecret(event.target.value)}
-                                    placeholder={isUseEmailSmtpWalletRequest ? USE_EMAIL_SMTP_WALLET_SECRET_JSON_EXAMPLE : 'Token / API key'}
-                                    helperText={isUseEmailSmtpWalletRequest ? 'Multiline JSON is supported.' : undefined}
+                                    placeholder={isUseEmailSmtpWalletRequest ? USE_EMAIL_SMTP_WALLET_SECRET_JSON_EXAMPLE : t('walletDialog.secretPlaceholder')}
+                                    helperText={isUseEmailSmtpWalletRequest ? t('walletDialog.secretHelperText') : undefined}
                                     containerClassName="text-sm text-gray-700"
                                 />
                             </div>
@@ -457,7 +459,7 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                             <label className="text-sm text-gray-700">
                                 <span className="mb-1 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
                                     <Lock className="h-3 w-3" />
-                                    Cookies
+                                    {t('walletDialog.cookiesLabel')}
                                 </span>
                                 <textarea
                                     value={cookies}
@@ -474,7 +476,7 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                                     checked={isUserScoped}
                                     onChange={(event) => setIsUserScoped(event.target.checked)}
                                 />
-                                Scope to current user
+                                {t('walletDialog.scopeToUserLabel')}
                             </label>
                             <label className="inline-flex items-center gap-2 text-sm text-gray-700">
                                 <input
@@ -482,7 +484,7 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                                     checked={!isGlobal}
                                     onChange={(event) => setIsGlobal(!event.target.checked)}
                                 />
-                                Scope to current agent
+                                {t('walletDialog.scopeToAgentLabel')}
                             </label>
                         </div>
 
@@ -493,7 +495,7 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                                 disabled={isSubmitting}
                                 className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                                Cancel
+                                {t('walletDialog.cancelLabel')}
                             </button>
                             <button
                                 type="submit"
@@ -501,7 +503,7 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                                 className="inline-flex items-center gap-2 rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 <Save className="h-4 w-4" />
-                                Save to wallet
+                                {t('walletDialog.saveAction')}
                             </button>
                         </div>
                     </>

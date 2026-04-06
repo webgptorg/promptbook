@@ -333,3 +333,97 @@ users.createdAgentsTitle: Created agents
 users.createdAgentsDescription: Listing agents created by users is not wired to the data model yet.
 users.activityTitle: Activity
 users.activityDescription: Detailed activity tracking is not implemented yet. For now, you can use the created and updated timestamps above as a basic signal of recent changes.
+chat.feedback.reportIssueButtonTitle: Report issue
+chat.feedback.reportIssueButtonAriaLabel: Report issue with this response
+chat.feedback.reportIssueModalTitle: Report issue
+chat.feedback.rateResponseModalTitle: Rate this response
+chat.feedback.userQuestionLabel: "Your question:"
+chat.feedback.reportIssueExpectedAnswerLabel: What should the answer include?
+chat.feedback.expectedAnswerLabel: "Expected answer:"
+chat.feedback.expectedAnswerPlaceholder: Expected answer (optional)
+chat.feedback.reportIssueDetailsLabel: "Issue details:"
+chat.feedback.noteLabel: "Note:"
+chat.feedback.reportIssueDetailsPlaceholder: Describe what went wrong (optional)
+chat.feedback.notePlaceholder: Add a note (optional)
+chat.feedback.cancelLabel: Cancel
+chat.feedback.reportIssueSubmitLabel: Report issue
+chat.feedback.submitLabel: Submit
+chat.feedback.feedbackSuccessMessage: Thank you for your feedback!
+chat.feedback.reportIssueSuccessMessage: Issue reported. Thank you!
+chat.feedback.feedbackErrorMessage: Failed to save feedback.
+chat.cancelJobLabel: Cancel
+chat.cancellingJobLabel: Cancelling
+chat.frozenBannerLabel: "Chat from {source}. View-only."
+chatTimeout.defaultLabel: Scheduled timeout
+chatTimeout.singleActiveLabel: 1 active timeout
+chatTimeout.multipleActiveLabel: "{count} active timeouts"
+chatTimeout.dialogTitle: Active timeouts
+chatTimeout.dialogDescriptionSingular: This chat has one active timeout.
+chatTimeout.dialogDescriptionPlural: "This chat has {count} active timeouts."
+chatTimeout.closeAriaLabel: Close active timeouts
+chatTimeout.cancellationRequested: Cancellation requested
+chatTimeout.cancellingLabel: Cancelling
+chatTimeout.cancelLabel: Cancel
+pseudoUserChat.headerTitle: Agent asks you directly
+pseudoUserChat.headerSubtitle: One reply only
+pseudoUserChat.closeAriaLabel: Close
+pseudoUserChat.replyLabel: "{userName} reply"
+pseudoUserChat.replyPlaceholder: Write one reply for the agent...
+pseudoUserChat.cancelLabel: Cancel
+pseudoUserChat.sendReplyLabel: Send reply
+metaDisclaimer.title: Please review before chatting
+metaDisclaimer.description: Review the disclaimer text before enabling the chat experience.
+metaDisclaimer.retryLabel: Retry
+metaDisclaimer.savingLabel: Saving...
+metaDisclaimer.agreeLabel: I Agree
+chatError.retryLabel: Retry
+chatError.resetLabel: Reset
+chatError.cancelLabel: Cancel
+chatError.closeLabel: Close
+clearChatHistory.buttonLabel: Clear chat history
+clearChatHistory.clearingLabel: Clearing history…
+clearChatHistory.confirmTitle: Clear chat history
+clearChatHistory.confirmMessage: "Are you sure you want to permanently delete all chat history for {agentName}?"
+clearChatHistory.confirmAction: Delete history
+clearChatHistory.confirmCancel: Cancel
+clearChatHistory.errorMessage: Failed to clear chat history
+clearChatFeedback.buttonLabel: Clear chat feedback
+clearChatFeedback.clearingLabel: Clearing feedback…
+clearChatFeedback.confirmTitle: Clear chat feedback
+clearChatFeedback.confirmMessage: "Are you sure you want to permanently delete all feedback for {agentName}?"
+clearChatFeedback.confirmAction: Delete feedback
+clearChatFeedback.confirmCancel: Cancel
+clearChatFeedback.errorMessage: Failed to clear chat feedback
+walletDialog.title: Wallet credential requested
+walletDialog.subtitle: Provide private data for tool access
+walletDialog.closeAriaLabel: Close
+walletDialog.requestedJsonSchemaLabel: Requested JSON schema
+walletDialog.connectGithubAction: Connect with GitHub App
+walletDialog.addTokenManuallyAction: Add token manually
+walletDialog.calendarAccessTitle: Google Calendar access requested
+walletDialog.calendarUrlLabel: "Calendar URL:"
+walletDialog.calendarScopesLabel: Scopes
+walletDialog.calendarExamplesLabel: Examples
+walletDialog.calendarExamplesDescription: Read events, create meetings, update/delete events, and invite guests.
+walletDialog.connectCalendarAction: Connect Google Calendar
+walletDialog.typeLabel: Type
+walletDialog.serviceLabel: Service
+walletDialog.keyLabel: Key
+walletDialog.accessTokenOption: Access Token
+walletDialog.usernamePasswordOption: Username + Password
+walletDialog.sessionCookieOption: Session Cookie
+walletDialog.usernameLabel: Username
+walletDialog.passwordLabel: Password
+walletDialog.secretLabel: Secret
+walletDialog.secretPlaceholder: Token / API key
+walletDialog.secretHelperText: Multiline JSON is supported.
+walletDialog.cookiesLabel: Cookies
+walletDialog.scopeToUserLabel: Scope to current user
+walletDialog.scopeToAgentLabel: Scope to current agent
+walletDialog.cancelLabel: Cancel
+walletDialog.saveAction: Save to wallet
+walletDialog.validationServiceRequired: Service is required.
+walletDialog.validationUsernamePasswordRequired: Username and password are required.
+walletDialog.validationCookiesRequired: Cookies are required.
+walletDialog.validationSecretRequired: Secret is required.
+walletDialog.errorFailed: Failed to store wallet credential.

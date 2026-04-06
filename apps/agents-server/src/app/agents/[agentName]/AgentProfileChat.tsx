@@ -409,6 +409,26 @@ export function AgentProfileChat({
                         ]}
                         chatLocale={language}
                         timingTranslations={{ answerDurationLabel: t('chat.answerDurationLabel') }}
+                        feedbackTranslations={{
+                            reportIssueButtonTitle: t('chat.feedback.reportIssueButtonTitle'),
+                            reportIssueButtonAriaLabel: t('chat.feedback.reportIssueButtonAriaLabel'),
+                            reportIssueModalTitle: t('chat.feedback.reportIssueModalTitle'),
+                            rateResponseModalTitle: t('chat.feedback.rateResponseModalTitle'),
+                            userQuestionLabel: t('chat.feedback.userQuestionLabel'),
+                            reportIssueExpectedAnswerLabel: t('chat.feedback.reportIssueExpectedAnswerLabel'),
+                            expectedAnswerLabel: t('chat.feedback.expectedAnswerLabel'),
+                            expectedAnswerPlaceholder: t('chat.feedback.expectedAnswerPlaceholder'),
+                            reportIssueDetailsLabel: t('chat.feedback.reportIssueDetailsLabel'),
+                            noteLabel: t('chat.feedback.noteLabel'),
+                            reportIssueDetailsPlaceholder: t('chat.feedback.reportIssueDetailsPlaceholder'),
+                            notePlaceholder: t('chat.feedback.notePlaceholder'),
+                            cancelLabel: t('chat.feedback.cancelLabel'),
+                            reportIssueSubmitLabel: t('chat.feedback.reportIssueSubmitLabel'),
+                            submitLabel: t('chat.feedback.submitLabel'),
+                            feedbackSuccessMessage: t('chat.feedback.feedbackSuccessMessage'),
+                            reportIssueSuccessMessage: t('chat.feedback.reportIssueSuccessMessage'),
+                            feedbackErrorMessage: t('chat.feedback.feedbackErrorMessage'),
+                        }}
                         messages={[
                             {
                                 sender: 'AGENT',

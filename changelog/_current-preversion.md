@@ -1,3 +1,12 @@
+-   Completed Agents Server UI translations for all previously hardcoded English strings across chat dialogs and admin controls:
+
+    -   Added ~96 new translation keys (English + Czech) covering `chat.feedback.*`, `chatTimeout.*`, `pseudoUserChat.*`, `metaDisclaimer.*`, `chatError.*`, `clearChatHistory.*`, `clearChatFeedback.*`, and `walletDialog.*` namespaces.
+    -   Wired the feedback/report-issue modal in durable chat and profile chat to the translation system via the `feedbackTranslations` prop on `<Chat/>`.
+    -   Translated the chat timeout badge/modal (`ChatTimeoutButton`), the frozen-chat banner and cancel-job button (`CanonicalAgentChatPanel`), and all timeout dialog copy.
+    -   Translated the pseudo-user direct-reply dialog (`PseudoUserChatDialog`), the disclaimer acceptance modal (`MetaDisclaimerDialog`), and the chat error dialog (`ChatErrorDialog`).
+    -   Translated the admin clear-history and clear-feedback buttons (`ClearAgentChatHistoryButton`, `ClearAgentChatFeedbackButton`), including their confirmation dialogs using `{agentName}` variable interpolation.
+    -   Translated the full wallet credential dialog (`WalletRecordDialog`), including header, all form labels, action buttons, type options, scope checkboxes, and validation error messages.
+
 -   Updated the Agents Server control panel to hide server-disabled options instead of rendering greyed-out controls:
 
     -   Added metadata-driven availability flags for each control-panel option/section and resolved them once in the app shell as the single source of truth for the active server.

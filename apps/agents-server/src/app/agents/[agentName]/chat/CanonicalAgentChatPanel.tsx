@@ -495,7 +495,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
             }}
             disabled={Boolean(cancellableJob.cancelRequestedAt)}
         >
-            {cancellableJob.cancelRequestedAt ? 'Cancelling' : 'Cancel'}
+            {cancellableJob.cancelRequestedAt ? t('chat.cancellingJobLabel') : t('chat.cancelJobLabel')}
         </button>
     );
 
@@ -524,6 +524,26 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
             participants={participants}
             chatLocale={language}
             timingTranslations={{ answerDurationLabel: t('chat.answerDurationLabel') }}
+            feedbackTranslations={{
+                reportIssueButtonTitle: t('chat.feedback.reportIssueButtonTitle'),
+                reportIssueButtonAriaLabel: t('chat.feedback.reportIssueButtonAriaLabel'),
+                reportIssueModalTitle: t('chat.feedback.reportIssueModalTitle'),
+                rateResponseModalTitle: t('chat.feedback.rateResponseModalTitle'),
+                userQuestionLabel: t('chat.feedback.userQuestionLabel'),
+                reportIssueExpectedAnswerLabel: t('chat.feedback.reportIssueExpectedAnswerLabel'),
+                expectedAnswerLabel: t('chat.feedback.expectedAnswerLabel'),
+                expectedAnswerPlaceholder: t('chat.feedback.expectedAnswerPlaceholder'),
+                reportIssueDetailsLabel: t('chat.feedback.reportIssueDetailsLabel'),
+                noteLabel: t('chat.feedback.noteLabel'),
+                reportIssueDetailsPlaceholder: t('chat.feedback.reportIssueDetailsPlaceholder'),
+                notePlaceholder: t('chat.feedback.notePlaceholder'),
+                cancelLabel: t('chat.feedback.cancelLabel'),
+                reportIssueSubmitLabel: t('chat.feedback.reportIssueSubmitLabel'),
+                submitLabel: t('chat.feedback.submitLabel'),
+                feedbackSuccessMessage: t('chat.feedback.feedbackSuccessMessage'),
+                reportIssueSuccessMessage: t('chat.feedback.reportIssueSuccessMessage'),
+                feedbackErrorMessage: t('chat.feedback.feedbackErrorMessage'),
+            }}
             buttonColor={isChatGptLikeVariant ? '#111827' : brandColorHex}
             visual="FULL_PAGE"
             CHAT_VISUAL_MODE={chatVisualMode}
@@ -552,7 +572,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
         >
             {isReadOnly && frozenChatBannerLabel && (
                 <div className="mx-4 mt-4 rounded-2xl border border-amber-200 bg-amber-50/95 px-4 py-3 text-sm font-medium text-amber-900 shadow-sm">
-                    {`Chat from ${frozenChatBannerLabel}. View-only.`}
+                    {t('chat.frozenBannerLabel', { source: frozenChatBannerLabel })}
                 </div>
             )}
         </Chat>

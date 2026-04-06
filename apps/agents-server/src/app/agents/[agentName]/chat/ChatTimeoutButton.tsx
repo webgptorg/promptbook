@@ -3,13 +3,9 @@
 import { Clock3Icon, XIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Dialog } from '../../../../components/Portal/Dialog';
+import { useServerLanguage } from '../../../../components/ServerLanguage/ServerLanguageProvider';
 import type { UserChatTimeout } from '../../../../utils/userChatClient';
 import { formatChatTimeoutRemainingTime } from './formatChatTimeoutRemainingTime';
-
-/**
- * Fallback label shown when a timeout does not carry a custom wake-up message.
- */
-const DEFAULT_TIMEOUT_LABEL = 'Scheduled timeout';
 
 /**
  * Props accepted by the compact timeout action shown in the chat action bar.
@@ -45,6 +41,7 @@ export function ChatTimeoutButton(props: ChatTimeoutButtonProps) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const sortedTimeouts = useMemo(() => [...activeTimeouts].sort(sortChatTimeoutsByDueAt), [activeTimeouts]);
     const primaryTimeout = sortedTimeouts[0] || null;
+    const { t } = useServerLanguage();
 
     useEffect(() => {
         if (activeTimeouts.length === 0) {
@@ -57,7 +54,10 @@ export function ChatTimeoutButton(props: ChatTimeoutButtonProps) {
     }
 
     const primaryTimeoutLabel = formatChatTimeoutRemainingTime(primaryTimeout.dueAt, currentTimestamp);
-    const activeTimeoutsLabel = activeTimeouts.length === 1 ? '1 active timeout' : `${activeTimeouts.length} active timeouts`;
+    const activeTimeoutsLabel =
+        activeTimeouts.length === 1
+            ? t('chatTimeout.singleActiveLabel')
+            : t('chatTimeout.multipleActiveLabel', { count: activeTimeouts.length });
 
     return (
         <>
@@ -76,18 +76,18 @@ export function ChatTimeoutButton(props: ChatTimeoutButtonProps) {
                 <Dialog onClose={() => setIsDialogOpen(false)} className="w-full max-w-lg p-5 sm:p-6">
                     <div className="flex items-start justify-between gap-4">
                         <div>
-                            <h2 className="text-lg font-semibold text-slate-900">Active timeouts</h2>
+                            <h2 className="text-lg font-semibold text-slate-900">{t('chatTimeout.dialogTitle')}</h2>
                             <p className="mt-1 text-sm text-slate-500">
                                 {activeTimeouts.length === 1
-                                    ? 'This chat has one active timeout.'
-                                    : `This chat has ${activeTimeouts.length} active timeouts.`}
+                                    ? t('chatTimeout.dialogDescriptionSingular')
+                                    : t('chatTimeout.dialogDescriptionPlural', { count: activeTimeouts.length })}
                             </p>
                         </div>
                         <button
                             type="button"
                             className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
                             onClick={() => setIsDialogOpen(false)}
-                            aria-label="Close active timeouts"
+                            aria-label={t('chatTimeout.closeAriaLabel')}
                         >
                             <XIcon className="h-4 w-4" />
                         </button>
@@ -101,14 +101,16 @@ export function ChatTimeoutButton(props: ChatTimeoutButtonProps) {
                             >
                                 <div className="min-w-0 flex-1">
                                     <div className="truncate text-sm font-semibold text-slate-900">
-                                        {timeout.message || DEFAULT_TIMEOUT_LABEL}
+                                        {timeout.message || t('chatTimeout.defaultLabel')}
                                     </div>
                                     <div className="mt-1 inline-flex items-center gap-1.5 text-xs font-medium text-amber-700">
                                         <Clock3Icon className="h-3.5 w-3.5" />
                                         <span>{formatChatTimeoutRemainingTime(timeout.dueAt, currentTimestamp)}</span>
                                     </div>
                                     {timeout.cancelRequestedAt && (
-                                        <div className="mt-1 text-[11px] text-slate-500">Cancellation requested</div>
+                                        <div className="mt-1 text-[11px] text-slate-500">
+                                            {t('chatTimeout.cancellationRequested')}
+                                        </div>
                                     )}
                                 </div>
                                 {onCancelActiveTimeout && (
@@ -120,7 +122,9 @@ export function ChatTimeoutButton(props: ChatTimeoutButtonProps) {
                                         }}
                                         disabled={Boolean(timeout.cancelRequestedAt)}
                                     >
-                                        {timeout.cancelRequestedAt ? 'Cancelling' : 'Cancel'}
+                                        {timeout.cancelRequestedAt
+                                            ? t('chatTimeout.cancellingLabel')
+                                            : t('chatTimeout.cancelLabel')}
                                     </button>
                                 )}
                             </article>

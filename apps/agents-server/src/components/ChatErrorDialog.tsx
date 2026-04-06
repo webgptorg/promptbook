@@ -3,6 +3,7 @@
 import { useId } from 'react';
 import type { FriendlyErrorMessage } from '../utils/errorMessages';
 import { Dialog } from './Portal/Dialog';
+import { useServerLanguage } from './ServerLanguage/ServerLanguageProvider';
 
 /**
  * Props accepted by the reusable chat error dialog.
@@ -36,6 +37,7 @@ type ChatErrorDialogProps = {
 export function ChatErrorDialog({ error, onRetry, onReset, onDismiss }: ChatErrorDialogProps) {
     const titleId = useId();
     const descriptionId = useId();
+    const { t } = useServerLanguage();
 
     if (!error) {
         return null;
@@ -82,7 +84,7 @@ export function ChatErrorDialog({ error, onRetry, onReset, onDismiss }: ChatErro
                             }}
                             className="flex-1 rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                         >
-                            Retry
+                            {t('chatError.retryLabel')}
                         </button>
                     )}
                     {error.canRetry && onReset && (
@@ -93,7 +95,7 @@ export function ChatErrorDialog({ error, onRetry, onReset, onDismiss }: ChatErro
                             }}
                             className="flex-1 rounded-md bg-yellow-500 px-4 py-2 text-white transition-colors hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2"
                         >
-                            Reset
+                            {t('chatError.resetLabel')}
                         </button>
                     )}
                     <button
@@ -102,7 +104,7 @@ export function ChatErrorDialog({ error, onRetry, onReset, onDismiss }: ChatErro
                             hasActions ? 'flex-1' : 'w-full'
                         } rounded-md bg-gray-200 px-4 py-2 text-gray-800 transition-colors hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2`}
                     >
-                        {hasActions ? 'Cancel' : 'Close'}
+                        {hasActions ? t('chatError.cancelLabel') : t('chatError.closeLabel')}
                     </button>
                 </div>
             </div>

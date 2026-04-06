@@ -3,6 +3,7 @@
 import { MarkdownContent } from '@promptbook-local/components';
 import { useId } from 'react';
 import { Dialog } from '../../../components/Portal/Dialog';
+import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 
 /**
  * Props for the blocking META DISCLAIMER dialog shown before chat interaction.
@@ -28,6 +29,7 @@ export function MetaDisclaimerDialog({
     const isAcceptButtonDisabled = isAccepting || Boolean(errorMessage) || !markdown;
     const titleId = useId();
     const descriptionId = useId();
+    const { t } = useServerLanguage();
 
     return (
         <Dialog
@@ -40,10 +42,10 @@ export function MetaDisclaimerDialog({
         >
             <header className="border-b border-slate-200 px-6 py-4">
                 <h2 id={titleId} className="text-lg font-semibold text-slate-900">
-                    Please review before chatting
+                    {t('metaDisclaimer.title')}
                 </h2>
                 <p id={descriptionId} className="sr-only">
-                    Review the disclaimer text before enabling the chat experience.
+                    {t('metaDisclaimer.description')}
                 </p>
             </header>
 
@@ -56,7 +58,7 @@ export function MetaDisclaimerDialog({
                             onClick={onRetry}
                             className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                         >
-                            Retry
+                            {t('metaDisclaimer.retryLabel')}
                         </button>
                     </div>
                 )}
@@ -75,7 +77,7 @@ export function MetaDisclaimerDialog({
                     onClick={onAccept}
                     className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-300"
                 >
-                    {isAccepting ? 'Saving...' : 'I Agree'}
+                    {isAccepting ? t('metaDisclaimer.savingLabel') : t('metaDisclaimer.agreeLabel')}
                 </button>
             </footer>
         </Dialog>

@@ -329,3 +329,97 @@ users.createdAgentsTitle: Agenti tohoto uživatele
 users.createdAgentsDescription: Seznam agentů vytvořených tímto uživatelem zatím není propojený s datovým modelem.
 users.activityTitle: Aktivita
 users.activityDescription: Podrobné sledování aktivity zatím není k dispozici. Jako orientační přehled změn zatím můžete použít výše uvedené časy vytvoření a poslední úpravy.
+chat.feedback.reportIssueButtonTitle: Nahlásit problém
+chat.feedback.reportIssueButtonAriaLabel: Nahlásit problém s touto odpovědí
+chat.feedback.reportIssueModalTitle: Nahlásit problém
+chat.feedback.rateResponseModalTitle: Ohodnotit odpověď
+chat.feedback.userQuestionLabel: "Vaše otázka:"
+chat.feedback.reportIssueExpectedAnswerLabel: Co by měla odpověď obsahovat?
+chat.feedback.expectedAnswerLabel: "Očekávaná odpověď:"
+chat.feedback.expectedAnswerPlaceholder: Očekávaná odpověď (nepovinné)
+chat.feedback.reportIssueDetailsLabel: "Podrobnosti problému:"
+chat.feedback.noteLabel: "Poznámka:"
+chat.feedback.reportIssueDetailsPlaceholder: Popište, co se pokazilo (nepovinné)
+chat.feedback.notePlaceholder: Přidat poznámku (nepovinné)
+chat.feedback.cancelLabel: Zrušit
+chat.feedback.reportIssueSubmitLabel: Nahlásit problém
+chat.feedback.submitLabel: Odeslat
+chat.feedback.feedbackSuccessMessage: Děkujeme za zpětnou vazbu!
+chat.feedback.reportIssueSuccessMessage: Problém nahlášen. Děkujeme!
+chat.feedback.feedbackErrorMessage: Zpětnou vazbu se nepodařilo uložit.
+chat.cancelJobLabel: Zrušit
+chat.cancellingJobLabel: Ruším
+chat.frozenBannerLabel: "Chat z {source}. Pouze pro čtení."
+chatTimeout.defaultLabel: Naplánovaný časovač
+chatTimeout.singleActiveLabel: 1 aktivní časovač
+chatTimeout.multipleActiveLabel: "{count} aktivní časovače"
+chatTimeout.dialogTitle: Aktivní časovače
+chatTimeout.dialogDescriptionSingular: Tento chat má jeden aktivní časovač.
+chatTimeout.dialogDescriptionPlural: "Tento chat má {count} aktivních časovačů."
+chatTimeout.closeAriaLabel: Zavřít aktivní časovače
+chatTimeout.cancellationRequested: Zrušení vyžádáno
+chatTimeout.cancellingLabel: Ruším
+chatTimeout.cancelLabel: Zrušit
+pseudoUserChat.headerTitle: Agent se vás přímo ptá
+pseudoUserChat.headerSubtitle: Pouze jedna odpověď
+pseudoUserChat.closeAriaLabel: Zavřít
+pseudoUserChat.replyLabel: "Odpověď od {userName}"
+pseudoUserChat.replyPlaceholder: Napište jednu odpověď pro agenta...
+pseudoUserChat.cancelLabel: Zrušit
+pseudoUserChat.sendReplyLabel: Odeslat odpověď
+metaDisclaimer.title: Před zahájením chatu si přečtěte
+metaDisclaimer.description: Před zahájením chatu si přečtěte text upozornění.
+metaDisclaimer.retryLabel: Zkusit znovu
+metaDisclaimer.savingLabel: Ukládám...
+metaDisclaimer.agreeLabel: Souhlasím
+chatError.retryLabel: Zkusit znovu
+chatError.resetLabel: Resetovat
+chatError.cancelLabel: Zrušit
+chatError.closeLabel: Zavřít
+clearChatHistory.buttonLabel: Smazat historii chatu
+clearChatHistory.clearingLabel: Mažu historii…
+clearChatHistory.confirmTitle: Smazat historii chatu
+clearChatHistory.confirmMessage: "Opravdu chcete trvale smazat celou historii chatu pro {agentName}?"
+clearChatHistory.confirmAction: Smazat historii
+clearChatHistory.confirmCancel: Zrušit
+clearChatHistory.errorMessage: Historii chatu se nepodařilo smazat
+clearChatFeedback.buttonLabel: Smazat zpětnou vazbu chatu
+clearChatFeedback.clearingLabel: Mažu zpětnou vazbu…
+clearChatFeedback.confirmTitle: Smazat zpětnou vazbu chatu
+clearChatFeedback.confirmMessage: "Opravdu chcete trvale smazat veškerou zpětnou vazbu pro {agentName}?"
+clearChatFeedback.confirmAction: Smazat zpětnou vazbu
+clearChatFeedback.confirmCancel: Zrušit
+clearChatFeedback.errorMessage: Zpětnou vazbu chatu se nepodařilo smazat
+walletDialog.title: Požadovaná přihlašovací údaje
+walletDialog.subtitle: Zadejte soukromá data pro přístup nástroje
+walletDialog.closeAriaLabel: Zavřít
+walletDialog.requestedJsonSchemaLabel: Požadované JSON schéma
+walletDialog.connectGithubAction: Připojit přes GitHub App
+walletDialog.addTokenManuallyAction: Přidat token ručně
+walletDialog.calendarAccessTitle: Požadován přístup ke Google Kalendáři
+walletDialog.calendarUrlLabel: "URL kalendáře:"
+walletDialog.calendarScopesLabel: Oprávnění
+walletDialog.calendarExamplesLabel: Příklady
+walletDialog.calendarExamplesDescription: Číst události, vytvářet schůzky, upravovat/mazat události a zvát hosty.
+walletDialog.connectCalendarAction: Připojit Google Kalendář
+walletDialog.typeLabel: Typ
+walletDialog.serviceLabel: Služba
+walletDialog.keyLabel: Klíč
+walletDialog.accessTokenOption: Přístupový token
+walletDialog.usernamePasswordOption: Uživatelské jméno + Heslo
+walletDialog.sessionCookieOption: Cookie relace
+walletDialog.usernameLabel: Uživatelské jméno
+walletDialog.passwordLabel: Heslo
+walletDialog.secretLabel: Tajný klíč
+walletDialog.secretPlaceholder: Token / API klíč
+walletDialog.secretHelperText: Podporováno víceřádkové JSON.
+walletDialog.cookiesLabel: Cookies
+walletDialog.scopeToUserLabel: Omezit na aktuálního uživatele
+walletDialog.scopeToAgentLabel: Omezit na aktuálního agenta
+walletDialog.cancelLabel: Zrušit
+walletDialog.saveAction: Uložit do peněženky
+walletDialog.validationServiceRequired: Služba je povinná.
+walletDialog.validationUsernamePasswordRequired: Uživatelské jméno a heslo jsou povinné.
+walletDialog.validationCookiesRequired: Cookies jsou povinné.
+walletDialog.validationSecretRequired: Tajný klíč je povinný.
+walletDialog.errorFailed: Přihlašovací údaje se nepodařilo uložit do peněženky.
