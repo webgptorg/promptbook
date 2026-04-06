@@ -12,10 +12,10 @@ import { ChatEffectsSystem } from '../effects/ChatEffectsSystem';
 import type { ChatEffectConfig } from '../effects/types/ChatEffectConfig';
 import { useChatActionsOverlap } from '../hooks/useChatActionsOverlap';
 import { useChatAutoScroll } from '../hooks/useChatAutoScroll';
+import { useChatCompleteNotification } from '../hooks/useChatCompleteNotification';
 import { useChatRatings } from '../hooks/useChatRatings';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ToolCall } from '../../../types/ToolCall';
-import type { id } from '../../../types/typeAliases';
 import type { ParsedCitation } from '../utils/parseCitationsFromContent';
 import { extractCitationsFromMessage } from '../utils/parseCitationsFromContent';
 import { resolveToolCallFromChatMessages } from '../utils/resolveToolCallFromChatMessages';
@@ -378,70 +378,7 @@ export function Chat(props: ChatProps) {
         !!extraActions;
     const isConstrainedArticleMode = CHAT_VISUAL_MODE === 'ARTICLE_MODE' && visual === 'FULL_PAGE';
 
-    const previousMessagesLengthRef = useRef(messages.length);
-    const streamingMessageIdRef = useRef<id | null>(null);
-    const streamingMessageContentRef = useRef<string | null>(null);
-
-    useEffect(() => {
-        if (!soundSystem || messages.length === 0) {
-            return;
-        }
-
-        const lastMessage = messages[messages.length - 1];
-        if (!lastMessage) {
-            return;
-        }
-
-        if (messages.length > previousMessagesLengthRef.current) {
-            if (lastMessage.sender !== 'USER') {
-                if (lastMessage.isComplete) {
-                    /* not await */ soundSystem.play('message_receive');
-                } else {
-                    /* not await */ soundSystem.play('message_typing');
-                }
-            }
-        } else if (messages.length === previousMessagesLengthRef.current && lastMessage.sender !== 'USER') {
-            if (lastMessage.isComplete) {
-                /* not await */ soundSystem.play('message_receive');
-            }
-        }
-
-        previousMessagesLengthRef.current = messages.length;
-    }, [messages, soundSystem]);
-
-    useEffect(() => {
-        if (!soundSystem) {
-            streamingMessageIdRef.current = null;
-            streamingMessageContentRef.current = null;
-            return;
-        }
-
-        if (postprocessedMessages.length === 0) {
-            streamingMessageIdRef.current = null;
-            streamingMessageContentRef.current = null;
-            return;
-        }
-
-        const lastMessage = postprocessedMessages[postprocessedMessages.length - 1];
-        if (!lastMessage || lastMessage.sender === 'USER' || lastMessage.isComplete) {
-            streamingMessageIdRef.current = null;
-            streamingMessageContentRef.current = null;
-            return;
-        }
-
-        const lastMessageId = lastMessage.id ?? null;
-
-        if (streamingMessageIdRef.current !== lastMessageId) {
-            streamingMessageIdRef.current = lastMessageId;
-            streamingMessageContentRef.current = lastMessage.content;
-            return;
-        }
-
-        if (streamingMessageContentRef.current !== lastMessage.content) {
-            streamingMessageContentRef.current = lastMessage.content;
-            soundSystem.vibrate?.('message_stream_chunk');
-        }
-    }, [postprocessedMessages, soundSystem]);
+    useChatCompleteNotification(messages, soundSystem);
 
     return (
         <>

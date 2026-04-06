@@ -1,3 +1,9 @@
+-   Fixed chat sound and vibration notification to fire only once when the agent finishes responding, not on every streaming chunk or intermediate message update:
+
+    -   Extracted `useChatCompleteNotification` hook that plays `message_receive` sound exactly once per completed assistant message (identified by stable message id), suppressing notifications during streaming and preventing double-firing on rerenders.
+    -   Removed the per-chunk `vibrate('message_stream_chunk')` call and the `message_typing` sound that previously fired at streaming start.
+    -   Added unit tests for `useChatCompleteNotification` covering: fires once on completion, never during streaming chunks, idempotent on rerenders, silent for user messages, and once per response across multiple sequential exchanges.
+
 -   Completed Agents Server chat page translations for previously hardcoded English strings:
 
     -   Added `ChatUiTranslations` type to `ChatProps` with fields for input placeholder, save/new-chat button labels, lifecycle state badges (Sending/Queued/Running/Failed/Cancelled/Completed), and tool call modal controls (title, close, copy, save, advanced/simple toggle).

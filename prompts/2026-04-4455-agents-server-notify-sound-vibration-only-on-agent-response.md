@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.00 12 minutes by GitHub Copilot `claude-sonnet-4.6`
 
 [🧠🔔] Play sound/vibration only when the agent finishes responding
 
@@ -12,3 +12,4 @@
     -   once per completed response even if UI rerenders
 -   You are working with [Agents Server](apps/agents-server)
 -   Please update the [changelog](changelog/_current-preversion.md) with a short entry about the fix.
+
