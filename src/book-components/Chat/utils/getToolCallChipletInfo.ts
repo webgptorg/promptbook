@@ -1,6 +1,7 @@
 import { ASSISTANT_PREPARATION_TOOL_CALL_NAME, type ToolCall } from '../../../types/ToolCall';
 import type { AgentChipData } from '../AgentChip';
 import { buildTimeoutToolCallChipLabel, resolveTimeoutToolCallPresentation } from './timeoutToolCallPresentation';
+import { formatToolCallLocalTime } from './formatToolCallLocalTime';
 import {
     getToolCallResultDate,
     parseTeamToolResult,
@@ -85,9 +86,12 @@ export const TOOL_TITLES: Record<string, { title: string; emoji: string }> = {
 /**
  * Gets the chiplet information including text and agent data (for team tools).
  *
+ * @param toolCall - Tool call to build chiplet info for.
+ * @param locale - Optional BCP-47 locale string used to format time labels.
+ *
  * @private [🧠] Maybe public?
  */
-export function getToolCallChipletInfo(toolCall: ToolCall): ToolCallChipletInfo {
+export function getToolCallChipletInfo(toolCall: ToolCall, locale?: string): ToolCallChipletInfo {
     const toolInfo = TOOL_TITLES[toolCall.name];
     const baseTitle = toolInfo?.title || toolCall.name;
     const emoji = toolInfo?.emoji || '🛠️';
@@ -104,6 +108,7 @@ export function getToolCallChipletInfo(toolCall: ToolCall): ToolCallChipletInfo 
               args,
               resultRaw,
               currentDate: new Date(),
+              locale,
           })
         : null;
     const walletCredentialResult = parseWalletCredentialToolCallResult(resultRaw);
@@ -132,7 +137,7 @@ export function getToolCallChipletInfo(toolCall: ToolCall): ToolCallChipletInfo 
 
         if (resultDate) {
             return {
-                text: `${emoji} ${resultDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+                text: `${emoji} ${formatToolCallLocalTime(resultDate, locale)}`,
             };
         }
     }

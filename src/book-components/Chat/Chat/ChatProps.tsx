@@ -217,6 +217,94 @@ export type ChatUiTranslations = {
      * @default "Simple"
      */
     readonly toolCallModalSimpleLabel?: string;
+
+    // ── Timeout tool-call modal ──────────────────────────────────────────────
+
+    /**
+     * Title shown when a timeout has been successfully scheduled.
+     * @default "Timeout scheduled"
+     */
+    readonly toolCallTimeoutTitle?: string;
+
+    /**
+     * Title shown when a timeout has been cancelled.
+     * @default "Timeout cancelled"
+     */
+    readonly toolCallTimeoutCancelledTitle?: string;
+
+    /**
+     * Title shown when a timeout status update is received.
+     * @default "Timeout update"
+     */
+    readonly toolCallTimeoutUpdateTitle?: string;
+
+    /**
+     * Label for the "Cancel" quick-action button inside the timeout modal.
+     * @default "Cancel"
+     */
+    readonly toolCallTimeoutCancelButton?: string;
+
+    /**
+     * Label for the "Snooze" quick-action button inside the timeout modal.
+     * @default "Snooze"
+     */
+    readonly toolCallTimeoutSnoozeButton?: string;
+
+    /**
+     * Label for the "View advanced" quick-action button inside the timeout modal.
+     * @default "View advanced"
+     */
+    readonly toolCallTimeoutViewAdvancedButton?: string;
+
+    /**
+     * Message shown in the timeout modal when presentation data is still loading.
+     * @default "Timeout details are still loading."
+     */
+    readonly toolCallTimeoutLoadingMessage?: string;
+
+    /**
+     * Message shown in the timeout modal when the scheduled time is unavailable.
+     * @default "Scheduled time is unavailable."
+     */
+    readonly toolCallTimeoutUnavailableMessage?: string;
+
+    /**
+     * Label prefix for the due date line in the timeout modal (e.g. "Date: 1/1/2025").
+     * @default "Date:"
+     */
+    readonly toolCallTimeoutDateLabel?: string;
+
+    /**
+     * Label prefix for the message line in the timeout modal.
+     * @default "Message:"
+     */
+    readonly toolCallTimeoutMessageLabel?: string;
+
+    /**
+     * Label prefix for the timezone line in the timeout modal.
+     * @default "Timezone:"
+     */
+    readonly toolCallTimeoutTimezoneLabel?: string;
+
+    // ── Time tool-call modal ─────────────────────────────────────────────────
+
+    /**
+     * Header title shown in the time-check modal.
+     * @default "Time at call"
+     */
+    readonly toolCallTimeTitle?: string;
+
+    /**
+     * Shown in the time modal when the time value is unknown.
+     * @default "Unknown time"
+     */
+    readonly toolCallTimeUnknown?: string;
+
+    /**
+     * Label prefix for the exact timestamp line in the time modal.
+     * @default "Timestamp of call:"
+     */
+    readonly toolCallTimeTimestampLabel?: string;
 };
 
 /**

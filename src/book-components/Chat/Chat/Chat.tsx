@@ -569,6 +569,7 @@ export function Chat(props: ChatProps) {
                 buttonColor={buttonColor}
                 teamAgentProfiles={teamAgentProfiles}
                 chatUiTranslations={chatUiTranslations}
+                locale={chatLocale}
             />
 
             <ChatCitationModal

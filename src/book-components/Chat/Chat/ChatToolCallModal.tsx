@@ -48,6 +48,11 @@ export type ChatToolCallModalProps = {
      * Optional localized labels for the tool call modal UI elements.
      */
     chatUiTranslations?: import('./ChatProps').ChatUiTranslations;
+    /**
+     * Optional BCP-47 locale string used to format time labels in the modal.
+     * When omitted the browser/OS default locale is used.
+     */
+    locale?: string;
 };
 
 /**
@@ -80,6 +85,7 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
         buttonColor,
         teamAgentProfiles,
         chatUiTranslations,
+        locale,
     } = props;
     const [teamProfiles, setTeamProfiles] = useState<Record<string, AgentProfileData>>({});
     const [selectedTeamToolCall, setSelectedTeamToolCall] = useState<TransitiveToolCall | null>(null);
@@ -274,6 +280,8 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
                 onRequestAdvancedView: () => {
                     setViewMode('advanced');
                 },
+                locale,
+                chatUiTranslations,
             })
         );
 

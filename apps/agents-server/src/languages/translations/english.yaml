@@ -369,6 +369,20 @@ chat.toolCallModalCopyLabel: Copy
 chat.toolCallModalSaveLabel: Save
 chat.toolCallModalAdvancedLabel: Advanced
 chat.toolCallModalSimpleLabel: Simple
+chat.toolCallTimeoutTitle: Timeout scheduled
+chat.toolCallTimeoutCancelledTitle: Timeout cancelled
+chat.toolCallTimeoutUpdateTitle: Timeout update
+chat.toolCallTimeoutCancelButton: Cancel
+chat.toolCallTimeoutSnoozeButton: Snooze
+chat.toolCallTimeoutViewAdvancedButton: View advanced
+chat.toolCallTimeoutLoadingMessage: Timeout details are still loading.
+chat.toolCallTimeoutUnavailableMessage: Scheduled time is unavailable.
+chat.toolCallTimeoutDateLabel: "Date:"
+chat.toolCallTimeoutMessageLabel: "Message:"
+chat.toolCallTimeoutTimezoneLabel: "Timezone:"
+chat.toolCallTimeTitle: Time at call
+chat.toolCallTimeUnknown: Unknown time
+chat.toolCallTimeTimestampLabel: "Timestamp of call:"
 chat.toolTitle.assistantPreparation: Preparing agent
 chat.toolTitle.walletCredentialUsed: Credential used
 chat.toolTitle.webSearch: Searching the web

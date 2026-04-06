@@ -265,7 +265,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     const { enterBehavior, resolveEnterBehavior } = useChatEnterBehaviorPreferences();
     const { isSelfLearningEnabled } = useSelfLearningPreferences();
     const { isPrivateModeEnabled, setIsPrivateModeEnabled } = usePrivateModePreferences();
-    const { t } = useServerLanguage();
+    const { t, language } = useServerLanguage();
     const effectiveSelfLearningEnabled = isSelfLearningEnabled && !isPrivateModeEnabled;
 
     const {
@@ -379,6 +379,20 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 toolCallModalSaveLabel: t('chat.toolCallModalSaveLabel'),
                 toolCallModalAdvancedLabel: t('chat.toolCallModalAdvancedLabel'),
                 toolCallModalSimpleLabel: t('chat.toolCallModalSimpleLabel'),
+                toolCallTimeoutTitle: t('chat.toolCallTimeoutTitle'),
+                toolCallTimeoutCancelledTitle: t('chat.toolCallTimeoutCancelledTitle'),
+                toolCallTimeoutUpdateTitle: t('chat.toolCallTimeoutUpdateTitle'),
+                toolCallTimeoutCancelButton: t('chat.toolCallTimeoutCancelButton'),
+                toolCallTimeoutSnoozeButton: t('chat.toolCallTimeoutSnoozeButton'),
+                toolCallTimeoutViewAdvancedButton: t('chat.toolCallTimeoutViewAdvancedButton'),
+                toolCallTimeoutLoadingMessage: t('chat.toolCallTimeoutLoadingMessage'),
+                toolCallTimeoutUnavailableMessage: t('chat.toolCallTimeoutUnavailableMessage'),
+                toolCallTimeoutDateLabel: t('chat.toolCallTimeoutDateLabel'),
+                toolCallTimeoutMessageLabel: t('chat.toolCallTimeoutMessageLabel'),
+                toolCallTimeoutTimezoneLabel: t('chat.toolCallTimeoutTimezoneLabel'),
+                toolCallTimeTitle: t('chat.toolCallTimeTitle'),
+                toolCallTimeUnknown: t('chat.toolCallTimeUnknown'),
+                toolCallTimeTimestampLabel: t('chat.toolCallTimeTimestampLabel'),
             }}
             toolTitles={{
                 assistant_preparation: t('chat.toolTitle.assistantPreparation'),
@@ -413,6 +427,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             soundSystem={soundSystem}
             thinkingMessages={thinkingMessages}
             speechRecognitionLanguage={speechRecognitionLanguage}
+            chatLocale={language}
             enterBehavior={enterBehavior}
             resolveEnterBehavior={resolveEnterBehavior}
             isSpeechPlaybackEnabled={isSpeechFeaturesEnabled}

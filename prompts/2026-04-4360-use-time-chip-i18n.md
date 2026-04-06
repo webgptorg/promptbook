@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 25 minutes by GitHub Copilot `claude-sonnet-4.6`
 
 [🌙🕒] Fix USE TIME chip + popup modal translation and language-aware time formatting
 
@@ -17,3 +17,4 @@
     -   Verify advanced fields still show correct exact UTC due timestamp and milliseconds if present.
 -   Use the existing i18n/formatting patterns from any similar timeout chip work; if there is no existing shared utility, create one minimally and update both components to use it.
 -   Do NOT change any backend behavior; keep this UI/formatting + i18n update only.
+

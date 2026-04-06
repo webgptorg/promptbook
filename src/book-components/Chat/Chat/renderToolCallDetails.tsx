@@ -13,6 +13,7 @@ import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletInfo';
+import { formatToolCallLocalTime } from '../utils/formatToolCallLocalTime';
 import { resolveToolCallState } from '../utils/resolveToolCallState';
 import {
     buildTimeoutToolPrimarySentence,
@@ -651,6 +652,11 @@ type ToolCallClockPanelOptions = {
      * Optional timezone label shown below the date.
      */
     timezoneLabel?: string | null;
+    /**
+     * Optional BCP-47 locale string used to format the local time display.
+     * When omitted the browser/OS default locale is used.
+     */
+    locale?: string;
 };
 
 /**
@@ -661,17 +667,14 @@ type ToolCallClockPanelOptions = {
  * @private internal utility of `<ChatToolCallModal/>`
  */
 function renderToolCallClockPanel(options: ToolCallClockPanelOptions): ReactElement {
-    const { date, relativeLabel, timezoneLabel } = options;
+    const { date, relativeLabel, timezoneLabel, locale } = options;
 
     return (
         <div className={styles.toolCallClockPanel}>
             <ClockIcon date={date} size={150} />
             <div className={styles.toolCallClockLabels}>
                 <div className={styles.toolCallClockPrimary}>
-                    {date.toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                    })}
+                    {formatToolCallLocalTime(date, locale)}
                 </div>
                 <div className={styles.toolCallClockSecondary}>{date.toLocaleDateString()}</div>
                 {relativeLabel && <div className={styles.toolCallClockMeta}>({relativeLabel})</div>}
@@ -751,6 +754,15 @@ type ToolCallDetailsOptions = {
      * Requests switching the modal into advanced technical mode.
      */
     onRequestAdvancedView?: () => void;
+    /**
+     * Optional BCP-47 locale string used to format time labels.
+     * When omitted the browser/OS default locale is used.
+     */
+    locale?: string;
+    /**
+     * Optional localized label overrides for the tool call modal UI.
+     */
+    chatUiTranslations?: import('./ChatProps').ChatUiTranslations;
 };
 
 /**
@@ -1109,7 +1121,7 @@ function renderRunBrowserToolCall(options: {
  * @private function of ChatToolCallModal
  */
 export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactElement {
-    const { toolCall, toolTitles, agentParticipant, buttonColor, onRequestAdvancedView } = options;
+    const { toolCall, toolTitles, agentParticipant, buttonColor, onRequestAdvancedView, locale, chatUiTranslations } = options;
     const resultRaw = parseToolCallResult(toolCall.result);
     const args = parseToolCallArguments(toolCall);
     const toolCallDate = getToolCallTimestamp(toolCall);
@@ -1348,12 +1360,18 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
         const displayDate = timeResultDate || toolCallDate;
         const isValidDate = !!displayDate && !isNaN(displayDate.getTime());
         const relativeLabel = toolCallDate ? `called ${moment(toolCallDate).fromNow()}` : null;
+        const timezoneArg = typeof args.timezone === 'string' && args.timezone.trim() ? args.timezone.trim() : null;
+        const timezoneLabel = timezoneArg
+            ? `${chatUiTranslations?.toolCallTimeoutTimezoneLabel || 'Timezone:'} ${timezoneArg}`
+            : null;
 
         return (
             <>
                 <div className={styles.searchModalHeader}>
                     <span className={styles.searchModalIcon}>⏰</span>
-                    <h3 className={styles.searchModalQuery}>Time at call</h3>
+                    <h3 className={styles.searchModalQuery}>
+                        {chatUiTranslations?.toolCallTimeTitle || 'Time at call'}
+                    </h3>
                 </div>
 
                 <div className={styles.searchModalContent}>
@@ -1361,21 +1379,23 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
                         renderToolCallClockPanel({
                             date: displayDate,
                             relativeLabel,
-                            timezoneLabel:
-                                typeof args.timezone === 'string' && args.timezone.trim()
-                                    ? `Timezone: ${args.timezone.trim()}`
-                                    : null,
+                            timezoneLabel,
+                            locale,
                         })
                     ) : (
-                        <p className={styles.toolCallEmpty}>Unknown time</p>
+                        <p className={styles.toolCallEmpty}>
+                            {chatUiTranslations?.toolCallTimeUnknown || 'Unknown time'}
+                        </p>
                     )}
                     <div className={styles.toolCallDetails}>
                         <p>
-                            <strong>Timestamp of call:</strong>
+                            <strong>
+                                {chatUiTranslations?.toolCallTimeTimestampLabel || 'Timestamp of call:'}
+                            </strong>
                         </p>
                         <div className={styles.toolCallDataContainer}>
                             <pre className={styles.toolCallData}>
-                                {toolCallDate ? toolCallDate.toLocaleString() : 'Unknown'}
+                                {toolCallDate ? toolCallDate.toLocaleString(locale || undefined) : 'Unknown'}
                             </pre>
                         </div>
                     </div>
@@ -1390,24 +1410,28 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
             args,
             resultRaw,
             currentDate: new Date(),
+            locale,
         });
         const clockDate = timeoutPresentation?.dueAtDate || toolCallDate;
         const isValidClockDate = !!clockDate && !Number.isNaN(clockDate.getTime());
         const title =
             timeoutPresentation?.action === 'cancel'
                 ? timeoutPresentation.status === 'cancelled'
-                    ? 'Timeout cancelled'
-                    : 'Timeout update'
-                : 'Timeout scheduled';
+                    ? (chatUiTranslations?.toolCallTimeoutCancelledTitle || 'Timeout cancelled')
+                    : (chatUiTranslations?.toolCallTimeoutUpdateTitle || 'Timeout update')
+                : (chatUiTranslations?.toolCallTimeoutTitle || 'Timeout scheduled');
         const primarySentence = timeoutPresentation
             ? buildTimeoutToolPrimarySentence(timeoutPresentation)
-            : 'Timeout details are still loading.';
+            : (chatUiTranslations?.toolCallTimeoutLoadingMessage || 'Timeout details are still loading.');
         const scheduleSentence = timeoutPresentation ? buildTimeoutToolScheduleSentence(timeoutPresentation) : null;
         const cancelCommand =
             timeoutPresentation?.timeoutId && timeoutPresentation.action !== 'cancel'
                 ? createCancelTimeoutQuickActionCommand(timeoutPresentation.timeoutId)
                 : null;
         const snoozeCommand = createSnoozeTimeoutQuickActionCommand(timeoutPresentation?.message || undefined);
+        const timezoneLine = timeoutPresentation?.localTimezone
+            ? `${chatUiTranslations?.toolCallTimeoutTimezoneLabel || 'Timezone:'} ${timeoutPresentation.localTimezone}`
+            : null;
 
         return (
             <>
@@ -1421,12 +1445,13 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
                         renderToolCallClockPanel({
                             date: clockDate,
                             relativeLabel: timeoutPresentation?.relativeDueLabel || null,
-                            timezoneLabel: timeoutPresentation?.localTimezone
-                                ? `Timezone: ${timeoutPresentation.localTimezone}`
-                                : null,
+                            timezoneLabel: timezoneLine,
+                            locale,
                         })
                     ) : (
-                        <p className={styles.toolCallEmpty}>Scheduled time is unavailable.</p>
+                        <p className={styles.toolCallEmpty}>
+                            {chatUiTranslations?.toolCallTimeoutUnavailableMessage || 'Scheduled time is unavailable.'}
+                        </p>
                     )}
 
                     <div className={styles.timeoutToolSummary}>
@@ -1434,12 +1459,14 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
                         {scheduleSentence && <p className={styles.timeoutToolSecondarySentence}>{scheduleSentence}</p>}
                         {timeoutPresentation?.localDueDateLabel && (
                             <p className={styles.timeoutToolSecondarySentence}>
-                                Date: {timeoutPresentation.localDueDateLabel}
+                                {chatUiTranslations?.toolCallTimeoutDateLabel || 'Date:'}{' '}
+                                {timeoutPresentation.localDueDateLabel}
                             </p>
                         )}
                         {timeoutPresentation?.message && (
                             <p className={styles.timeoutToolSecondarySentence}>
-                                Message: {timeoutPresentation.message}
+                                {chatUiTranslations?.toolCallTimeoutMessageLabel || 'Message:'}{' '}
+                                {timeoutPresentation.message}
                             </p>
                         )}
                     </div>
@@ -1458,7 +1485,7 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
                             disabled={!cancelCommand}
                             aria-label="Cancel timeout"
                         >
-                            Cancel
+                            {chatUiTranslations?.toolCallTimeoutCancelButton || 'Cancel'}
                         </button>
                         <button
                             type="button"
@@ -1468,7 +1495,7 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
                             }}
                             aria-label="Snooze timeout"
                         >
-                            Snooze
+                            {chatUiTranslations?.toolCallTimeoutSnoozeButton || 'Snooze'}
                         </button>
                         {onRequestAdvancedView && (
                             <button
@@ -1477,7 +1504,7 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
                                 onClick={onRequestAdvancedView}
                                 aria-label="View advanced timeout details"
                             >
-                                View advanced
+                                {chatUiTranslations?.toolCallTimeoutViewAdvancedButton || 'View advanced'}
                             </button>
                         )}
                     </div>

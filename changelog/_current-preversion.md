@@ -1,3 +1,14 @@
+-   Fixed USE TIME chip rendering bug and added i18n + locale-aware time formatting for timeout/time tool-call chips and modals:
+
+    -   Fixed broken chip rendering (`  : PM`) caused by `toLocaleTimeString([], {...})` passing an empty array as locale in three locations (`getToolCallChipletInfo.ts`, `timeoutToolCallPresentation.ts`, `renderToolCallDetails.tsx`). The empty array caused browsers to omit the hour component.
+    -   Introduced shared `formatToolCallLocalTime(date, locale?)` utility in `src/book-components/Chat/utils/formatToolCallLocalTime.ts` used by all three locations to ensure consistent, well-formed time strings.
+    -   Added optional `locale?: string` parameter to `getToolCallChipletInfo`, `resolveTimeoutToolCallPresentation`, `renderToolCallClockPanel`, `renderToolCallDetails`, and `ChatToolCallModal` so locale threads through the full render chain.
+    -   Added `locale` prop to `ChatToolCallModal` and wired `chatLocale` from `Chat.tsx` into it.
+    -   Updated `buildOngoingToolCallChips` and `buildFinalToolCallChips` in `ChatMessageItem.tsx` to accept and forward `chatLocale`.
+    -   Added 14 new `ChatUiTranslations` fields for timeout modal titles (`toolCallTimeoutTitle`, `toolCallTimeoutCancelledTitle`, `toolCallTimeoutUpdateTitle`), button labels (`toolCallTimeoutCancelButton`, `toolCallTimeoutSnoozeButton`, `toolCallTimeoutViewAdvancedButton`), messages, and labels, plus 3 time-check modal fields (`toolCallTimeTitle`, `toolCallTimeUnknown`, `toolCallTimeTimestampLabel`).
+    -   Added corresponding keys to `ServerTranslationKeys.ts` and English/Czech YAML translation files.
+    -   Wired all new translation keys in `AgentChatWrapper.tsx` and passed `language` as `chatLocale` to the `Chat` component.
+
 -   Normalized teammate consulting tool representation so human-readable agent names are used in the UI instead of technical IDs, and added persona descriptions to tool definitions and system messages:
 
     -   Removed the URL-hash suffix from `createTeamToolName` so tool names are now `team_chat_{agentName}` instead of `team_chat_{id}_{hash}`.

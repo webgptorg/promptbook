@@ -365,6 +365,20 @@ chat.toolCallModalCopyLabel: Kopírovat
 chat.toolCallModalSaveLabel: Uložit
 chat.toolCallModalAdvancedLabel: Pokročilý pohled
 chat.toolCallModalSimpleLabel: Jednoduchý pohled
+chat.toolCallTimeoutTitle: Časovač naplánován
+chat.toolCallTimeoutCancelledTitle: Časovač zrušen
+chat.toolCallTimeoutUpdateTitle: Aktualizace časovače
+chat.toolCallTimeoutCancelButton: Zrušit
+chat.toolCallTimeoutSnoozeButton: Odložit
+chat.toolCallTimeoutViewAdvancedButton: Zobrazit podrobnosti
+chat.toolCallTimeoutLoadingMessage: Podrobnosti časovače se načítají.
+chat.toolCallTimeoutUnavailableMessage: Naplánovaný čas není k dispozici.
+chat.toolCallTimeoutDateLabel: "Datum:"
+chat.toolCallTimeoutMessageLabel: "Zpráva:"
+chat.toolCallTimeoutTimezoneLabel: "Časová zóna:"
+chat.toolCallTimeTitle: Čas při volání
+chat.toolCallTimeUnknown: Čas není znám
+chat.toolCallTimeTimestampLabel: "Časová značka volání:"
 chat.toolTitle.assistantPreparation: Příprava agenta
 chat.toolTitle.walletCredentialUsed: Použité přihlašovací údaje
 chat.toolTitle.webSearch: Prohledávání webu

@@ -1,4 +1,5 @@
 import type { TODO_any } from '../../../utils/organization/TODO_any';
+import { formatToolCallLocalTime } from './formatToolCallLocalTime';
 
 /**
  * Tool names handled by timeout-specific chat presentation.
@@ -153,6 +154,12 @@ type ResolveTimeoutToolCallPresentationOptions = {
      * Current date used to calculate relative labels.
      */
     readonly currentDate?: Date;
+
+    /**
+     * Optional BCP-47 locale string used to format local-time labels.
+     * When omitted the browser/OS default locale is used.
+     */
+    readonly locale?: string;
 };
 
 /**
@@ -181,7 +188,7 @@ export function isTimeoutToolCallName(toolName: string): boolean {
 export function resolveTimeoutToolCallPresentation(
     options: ResolveTimeoutToolCallPresentationOptions,
 ): TimeoutToolCallPresentation | null {
-    const { toolCallName, args, resultRaw } = options;
+    const { toolCallName, args, resultRaw, locale } = options;
     if (!isTimeoutToolCallName(toolCallName)) {
         return null;
     }
@@ -216,12 +223,7 @@ export function resolveTimeoutToolCallPresentation(
         compactDurationLabel: milliseconds !== null ? formatTimeoutDurationCompact(milliseconds) : null,
         humanDurationLabel: milliseconds !== null ? formatTimeoutDurationHuman(milliseconds) : null,
         relativeDueLabel: dueAtDate ? formatTimeoutRelativeDueLabel(dueAtDate, effectiveCurrentDate) : null,
-        localDueTimeLabel: dueAtDate
-            ? dueAtDate.toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-              })
-            : null,
+        localDueTimeLabel: dueAtDate ? formatToolCallLocalTime(dueAtDate, locale) : null,
         localDueDateLabel: dueAtDate ? dueAtDate.toLocaleDateString() : null,
     };
 }
