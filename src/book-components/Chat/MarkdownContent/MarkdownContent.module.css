@@ -259,29 +259,89 @@
 
 .MarkdownContent details {
     margin: 0.95em 0;
-    padding: 0.5em 0.8em;
     border: 1px solid var(--md-table-border);
-    border-radius: 8px;
-    background: var(--md-blockquote-bg);
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--md-table-bg) 82%, rgba(255, 255, 255, 0.3) 18%);
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+    overflow: hidden;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
 }
 
-.MarkdownContent summary {
+.MarkdownContent details:hover,
+.MarkdownContent details:focus-within {
+    border-color: color-mix(in srgb, var(--md-link-color) 24%, var(--md-table-border) 76%);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+}
+
+.MarkdownContent details > summary {
+    display: flex;
+    align-items: center;
+    gap: 0.72rem;
+    padding: 0.9em 1.05em;
     cursor: pointer;
-    font-weight: 500;
+    font-weight: 600;
     user-select: none;
-    list-style: disclosure-closed;
     color: var(--md-link-color);
+    list-style: none;
+    background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--md-table-head-bg) 88%, rgba(255, 255, 255, 0.85) 12%),
+        color-mix(in srgb, var(--md-table-bg) 82%, rgba(255, 255, 255, 0.7) 18%)
+    );
+    transition: background 0.18s ease, color 0.18s ease;
 }
 
-.MarkdownContent summary::-webkit-details-marker {
-    color: var(--md-link-color);
+.MarkdownContent details > summary::before {
+    content: '';
+    width: 0.62rem;
+    height: 0.62rem;
+    flex: 0 0 auto;
+    margin-top: -0.04rem;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(-45deg);
+    opacity: 0.82;
+    transition: transform 0.18s ease, opacity 0.18s ease;
+}
+
+.MarkdownContent details > summary:hover,
+.MarkdownContent details > summary:focus-visible {
+    background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--md-table-head-bg) 76%, rgba(255, 255, 255, 0.95) 24%),
+        color-mix(in srgb, var(--md-table-bg) 74%, rgba(255, 255, 255, 0.82) 26%)
+    );
+}
+
+.MarkdownContent details > summary:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--md-link-color) 52%, transparent);
+    outline-offset: -2px;
+}
+
+.MarkdownContent details > summary::-webkit-details-marker {
+    display: none;
 }
 
 .MarkdownContent details[open] > summary {
-    list-style: disclosure-open;
-    margin-bottom: 0.5em;
-    padding-bottom: 0.5em;
-    border-bottom: 1px solid var(--md-table-border);
+    border-bottom: 1px solid color-mix(in srgb, var(--md-table-border) 88%, transparent);
+}
+
+.MarkdownContent details[open] > summary::before {
+    transform: rotate(45deg);
+    opacity: 1;
+}
+
+.MarkdownContent details > :not(summary) {
+    margin-left: 1.05em;
+    margin-right: 1.05em;
+}
+
+.MarkdownContent details > summary + * {
+    margin-top: 0.95em;
+}
+
+.MarkdownContent details > :last-child {
+    margin-bottom: 1.05em;
 }
 
 .MarkdownContent strong {

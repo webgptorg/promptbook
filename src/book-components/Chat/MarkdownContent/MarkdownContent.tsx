@@ -164,6 +164,13 @@ const DETAILS_PLACEHOLDER_WRAPPED_REGEX = new RegExp(
     'g',
 );
 
+/**
+ * Selector used by the delegated summary click handler.
+ *
+ * @private utility of `MarkdownContent` component
+ */
+const DETAILS_SUMMARY_SELECTOR = 'summary';
+
 type MaskedCodeSegmentsResult = {
     masked: string_markdown;
     restore: (value: string_markdown) => string_markdown;
@@ -357,6 +364,45 @@ function getDetailsKey(details: HTMLDetailsElement): string {
 }
 
 /**
+ * Synchronizes the stored open-state registry with the current state of one `<details>` element.
+ *
+ * @param details - The `<details>` element whose open state should be tracked.
+ * @param openDetailsKeys - Mutable registry of currently open details keys.
+ * @private utility of `MarkdownContent` component
+ */
+function syncTrackedDetailsOpenState(details: HTMLDetailsElement, openDetailsKeys: Set<string>): void {
+    const key = getDetailsKey(details);
+
+    if (details.open) {
+        openDetailsKeys.add(key);
+    } else {
+        openDetailsKeys.delete(key);
+    }
+}
+
+/**
+ * Resolves the `<details>` element that owns the clicked `<summary>`, if any.
+ *
+ * @param target - Event target received from the delegated click listener.
+ * @param container - Markdown container that owns the rendered HTML.
+ * @returns Matching `<details>` element or `null` when the click happened elsewhere.
+ * @private utility of `MarkdownContent` component
+ */
+function resolveClickedDetailsElement(target: EventTarget | null, container: HTMLElement): HTMLDetailsElement | null {
+    if (!(target instanceof Element)) {
+        return null;
+    }
+
+    const summary = target.closest(DETAILS_SUMMARY_SELECTOR);
+    if (!(summary instanceof HTMLElement) || !container.contains(summary)) {
+        return null;
+    }
+
+    const details = summary.closest('details');
+    return details instanceof HTMLDetailsElement ? details : null;
+}
+
+/**
  * Renders markdown content with support for code highlighting, math, and tables.
  *
  * @public exported from `@promptbook/components`
@@ -374,14 +420,16 @@ export function MarkdownContent(props: MarkdownContentProps) {
         rootsRef.current.forEach((root) => root.unmount());
         rootsRef.current = [];
 
-        if (!containerRef.current) {
+        const containerElement = containerRef.current;
+
+        if (!containerElement) {
             return;
         }
 
         // Restore previously open <details> elements that may have been closed by a
         // streaming innerHTML update (dangerouslySetInnerHTML resets the DOM on every
         // content change, which collapses any open <details> back to closed).
-        const detailsElements = containerRef.current.querySelectorAll<HTMLDetailsElement>('details');
+        const detailsElements = containerElement.querySelectorAll<HTMLDetailsElement>('details');
         detailsElements.forEach((details) => {
             if (openDetailsKeysRef.current.has(getDetailsKey(details))) {
                 details.open = true;
@@ -390,17 +438,33 @@ export function MarkdownContent(props: MarkdownContentProps) {
 
         // Keep openDetailsKeysRef in sync when the user toggles a <details> element.
         const handleToggle = (event: Event) => {
-            const details = event.target as HTMLDetailsElement;
-            const key = getDetailsKey(details);
-            if (details.open) {
-                openDetailsKeysRef.current.add(key);
-            } else {
-                openDetailsKeysRef.current.delete(key);
+            const details = event.target;
+            if (!(details instanceof HTMLDetailsElement) || !containerElement.contains(details)) {
+                return;
             }
-        };
-        containerRef.current.addEventListener('toggle', handleToggle, true);
 
-        const preElements = containerRef.current.querySelectorAll('pre');
+            syncTrackedDetailsOpenState(details, openDetailsKeysRef.current);
+        };
+
+        // Native `<details>` toggling can be lost when the surrounding chat bubble rerenders
+        // during the same interaction. Delegating summary clicks here keeps toggling explicit
+        // and lets us persist the state immediately.
+        const handleSummaryClick = (event: MouseEvent) => {
+            const details = resolveClickedDetailsElement(event.target, containerElement);
+            if (!details) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            details.open = !details.open;
+            syncTrackedDetailsOpenState(details, openDetailsKeysRef.current);
+        };
+
+        containerElement.addEventListener('toggle', handleToggle, true);
+        containerElement.addEventListener('click', handleSummaryClick);
+
+        const preElements = containerElement.querySelectorAll('pre');
 
         preElements.forEach((pre) => {
             // Check if it is a code block (has code element)
@@ -434,7 +498,8 @@ export function MarkdownContent(props: MarkdownContentProps) {
         });
 
         return () => {
-            containerRef.current?.removeEventListener('toggle', handleToggle, true);
+            containerElement.removeEventListener('toggle', handleToggle, true);
+            containerElement.removeEventListener('click', handleSummaryClick);
             rootsRef.current.forEach((root) => root.unmount());
             rootsRef.current = [];
         };

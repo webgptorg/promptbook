@@ -58,14 +58,9 @@
 
 -   Fixed `<details>` / `<summary>` elements inside chat message markdown so they expand and collapse when clicked:
 
-
-
-    -   Removed `pointer-events: none` from the `.agent-chat-profile-transitioning` CSS class so that subsequent clicks are never blocked when a prior SPA navigation was cancelled or aborted.
-    -   Added a `PROFILE_CHAT_NAVIGATION_STATE_RESET_MS` (2.5 s) safety-reset timeout (`startNavigatingToChat`) that resets the transitioning state back to interactive if the navigation has not completed, preventing the page from becoming permanently unresponsive.
-    -   Applied the safety-reset to every navigation trigger in `AgentProfileChat`: the main `navigateToDestination` helper, `onSelectChat`, and `onCreateChat` callbacks in the mobile-menu hoisted items.
-    -   Added `console.warn` logging at two points: when the SPA fallback hard-navigation fires and when the safety-reset timeout expires, to aid production debugging.
-    -   Added `aria-busy` to the chat-preview container while navigation is in progress.
-    -   Extracted `buildAgentChatDestinationUrl` and `normalizeDestinationForLocationComparison` as exported utilities and added regression unit tests covering URL construction and stall-detection normalisation.
+    -   Updated the shared chat `MarkdownContent` renderer to handle `<summary>` clicks explicitly, so chat-message `<details>` blocks no longer blink shut during rerenders and their open state is still preserved across streaming updates.
+    -   Refined the shared markdown styling for `<details>` blocks with a clearer card-like container, richer spacing, hover/focus feedback, and a custom chevron indicator so expandable sections look obviously interactive in Agents Server chat messages.
+    -   Added regression tests covering summary-click toggling and preserving an open `<details>` block across markdown rerenders.
 
 -   Completed Agents Server UI translations for all previously hardcoded English strings across chat dialogs and admin controls:
 
