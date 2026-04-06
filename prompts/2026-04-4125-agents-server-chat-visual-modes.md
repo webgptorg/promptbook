@@ -75,11 +75,14 @@
 
 [x] ~$0.00 7 minutes by GitHub Copilot `claude-sonnet-4.6`
 
+---
+
+[ ]
+
 [🧩📌] The `ARTICLE_MODE` should be visually better on mobile
 
--   Add there a bit more padding from edges of the screen, so it does not look like the text is touching the edges of the screen, but still keep it full width, so the text start from the left edge of the message, not centered
+-   Add there a bit more margin from edges of the screen, so it does not look like the text is touching the edges of the screen, but still keep it full width, so the text start from the left edge of the message, not centered
 -   You are changing only Article mode, Bubble mode should stay the same
 -   You are working with the [Agents Server](apps/agents-server) with the chat page and with `Chat` component
 
 ![alt text](prompts/screenshots/2026-04-4125-agents-server-chat-visual-modes-7.png)
-
