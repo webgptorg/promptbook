@@ -1,13 +1,12 @@
-[ ]
+[ ] !!!!
 
 [📍🧩] Fix navigation from agent pages (profile -> chat) doing nothing
 
--   *(@@@@ Written by agent)*
 -   You are working with [Agents Server](apps/agents-server)
 -   Problem: On agent profile page (example: https://s6.ptbk.io/agents/hKs8wGS2xc5GhF/...), clicking navigation links (e.g. “My chats”, quick buttons, “Writing a message and send”, etc.) does nothing: no loading indicator, no route change, UI may fade briefly and then stays on the profile page.
 -   Repro notes from report:
     -   URL examples: https://s6.ptbk.io/agents/hKs8wGS2xc5GhF/chat?chat=HkfqGyiefo8AzY and https://s6.ptbk.io/agents/hKs8wGS2xc5GhF/...
-    -   Expected: client-side navigation to the /chat page for the same agent (and optionally open the chat indicated by query params like chat=@@@).
+    -   Expected: client-side navigation to the /chat page for the same agent
     -   Actual: click handler sometimes does not trigger navigation (or navigation occurs but fails / is immediately overwritten).
 -   Requirements:
     -   Always perform navigation to the target /agents/<agentId>/chat route when user clicks the agent-page navigation UI.
@@ -24,9 +23,8 @@
     -   Check for conditions that prevent navigation (disabled state, overlay capturing pointer events, focus traps, preventDefault/stopPropagation, overlays/modals).
 -   Acceptance criteria:
     -   Clicking navigation items on an agent profile page always navigates to the chat page (within normal client-side navigation latency).
+        -   Clicking at header bar, menu, quick buttons, and any other navigation UI should work.
     -   When navigation has a known precondition (e.g. chat must be created first), the UI shows loading and then arrives at the chat page.
     -   No more “click does nothing” repro on the provided agent page.
     -   Add at least one regression test (unit/integration/e2e depending on existing test setup) that simulates clicking the navigation items and verifies the URL changes to /agents/<agentId>/chat.
 -   Add note/update to changelog in `changelog/_current-preversion.md` describing the fix.
-
--   *(@@@@ Written by agent)*

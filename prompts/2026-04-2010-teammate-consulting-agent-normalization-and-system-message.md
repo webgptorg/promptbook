@@ -2,24 +2,59 @@
 
 [🤝🧩] Normalize teammate consulting tool representation (no technical IDs in UI) + inject teammate system message
 
--   *(@@@@ Written by agent)*
 -   You are working with [Agents Server](apps/agents-server)
 -   When the system provides a "consult a teammate" capability/tool, its UI representation must:
-    -   Use the teammate’s *human agent name* (normalized) rather than any internal/technical ID.
-    -   Ensure the teammate name is presented consistently across the product (chat, tool picker, conversation UI, etc.).
+    -   Use the teammate’s human agent name rather than any internal/technical ID.
+-   Use `spaceTrim` to format the system message for the teammate consulting tool, ensuring it is clear and well-structured for display in the UI.
+-   Do a proper analysis of the current functionality before you start implementing.
 -   The "consult teammate" tool definition must also include the teammate’s:
     -   introduced system message
     -   description
     -   profile
--   The implementation must ensure the teammate content is passed to the runtime/invocation layer exactly as provided (no omission of the above fields).
--   Acceptance criteria
-    -   No UI surface shows teammate technical IDs.
-    -   When a user triggers “consult teammate”, the prompt/context sent to the teammate includes the introduced system message, description, and profile.
-    -   Add tests/fixtures to cover: name normalization + presence of system message/description/profile in the tool invocation payload.
--   Open questions / placeholders (need confirmation)
-    -   What is the current data structure for a teammate entity (field names for introduced system message / description / profile)? Use placeholder: @@@
-    -   Where in the UI is the teammate displayed (tool picker, chat message, side panel, etc.)? Use placeholder: @@@
-    -   Which existing endpoint/function builds the tool schema/payload for “consult teammate”? Use placeholder: @@@
--   Documentation / references
-    -   Follow existing Promptbook/Agents Server patterns for how agent source commitments are parsed into model requirements (only if relevant for this change). See: 【some-common-things-about-promptbook.txt】
 
+**Currently:**
+
+```
+You are xTeam manager
+You can provide Activation and Bypass codes for the user
+
+Rule: Ask your team for the codes
+
+## Teammates:
+Agent XNJG6hijicV6Js can provide you Activation code
+Agent 344xWrqqLx9R3t can provide you Bypass code
+Agent JAsx1o4iURALu3
+
+1) XNJG6hijicV6Js tool `team_chat_xnjg6hijic_v6js_a4e80fa3a2`
+2) 344xWrqqLx9R3t tool `team_chat_344x_wrqq_lx9r3t_10ec8e0730`
+3) JAsx1o4iURALu3 tool `team_chat_jasx1o4i_uralu3_c204b11e8c`
+
+Rule: Always say bro after each sentence
+```
+
+**Desired State:**
+
+```
+You are xTeam manager
+You can provide Activation and Bypass codes for the user
+
+Rule: Ask your team for the codes
+
+## Teammates:
+
+1) Activation code agent tool `team_chat_activation_code_agent`
+   Provides activation codes to the user upon request.
+2) Bypass code agent tool `team_chat_bypass_code_agent`
+   Provides bypass codes to the user upon request.
+
+Rule: Always say bro after each sentence
+```
+
+```json
+...
+    "tools": [
+        {
+            "name": "team_chat_activation_code_agent",
+            "description": "Consult teammate Activation code\nProvides activation codes to the user upon request.",
+...
+```

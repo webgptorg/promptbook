@@ -2,7 +2,6 @@
 
 [🧾🔧] Log full raw Message tool context (called + available)
 
--   *(@@@@ Written by agent)*
 -   You are working with [Agents Server](apps/agents-server)
 -   When a user clicks a chat message (e.g., to open raw details / message inspector), the server/client logging should include not only the tool(s) that were actually called, but also the tool(s) that were available for the model at that step.
 -   Required logging contents for the raw Message object:
@@ -21,4 +20,4 @@
 -   Missing pieces to confirm during implementation (to avoid wrong assumptions):
     -   Where exactly the “message inspector” is triggered from (UI route/component) and what backend endpoint returns raw message details.
     -   The exact internal field names/types currently used for “called tools” in the raw message object.
-    -   Where “available tools” already exist in-memory during the request-building flow (or whether we need to persist it for later inspection). 
+    -   Where “available tools” already exist in-memory during the request-building flow (or whether we need to persist it for later inspection).
