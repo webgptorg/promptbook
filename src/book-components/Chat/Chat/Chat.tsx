@@ -172,6 +172,7 @@ export function Chat(props: ChatProps) {
         speechRecognitionLanguage,
         isSpeechPlaybackEnabled = true,
         elevenLabsVoiceId,
+        chatUiTranslations,
     } = props;
 
     const buttonColor = useMemo(() => Color.from(buttonColorRaw || '#0066cc'), [buttonColorRaw]);
@@ -536,6 +537,7 @@ export function Chat(props: ChatProps) {
                         isSaveButtonEnabled={isSaveButtonEnabled}
                         shouldFadeActions={shouldFadeActions}
                         shouldDisableActions={shouldDisableActions}
+                        chatUiTranslations={chatUiTranslations}
                         onButtonClick={handleButtonClick}
                     />
 
@@ -578,6 +580,7 @@ export function Chat(props: ChatProps) {
                         onScroll={handleChatScroll}
                         isSpeechPlaybackEnabled={isSpeechPlaybackEnabled}
                         elevenLabsVoiceId={elevenLabsVoiceId}
+                        chatUiTranslations={chatUiTranslations}
                         chatMessagesClassName={classNames(
                             isConstrainedArticleMode && styles.articleModeChatMessages,
                             getChatCssClassName('chatMessages'),
@@ -596,7 +599,9 @@ export function Chat(props: ChatProps) {
                             defaultMessage={defaultMessage}
                             enterBehavior={enterBehavior}
                             resolveEnterBehavior={resolveEnterBehavior}
-                            placeholderMessageContent={placeholderMessageContent}
+                            placeholderMessageContent={
+                                placeholderMessageContent || chatUiTranslations?.inputPlaceholder
+                            }
                             isFocusedOnLoad={isFocusedOnLoad}
                             isMobile={isMobileFromHook}
                             isVoiceCalling={isVoiceCalling}
@@ -626,6 +631,7 @@ export function Chat(props: ChatProps) {
                 agentParticipant={agentParticipant}
                 buttonColor={buttonColor}
                 teamAgentProfiles={teamAgentProfiles}
+                chatUiTranslations={chatUiTranslations}
             />
 
             <ChatCitationModal

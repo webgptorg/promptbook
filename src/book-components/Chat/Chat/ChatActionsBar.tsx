@@ -13,6 +13,7 @@ import type { string_chat_format_name } from '../save/_common/string_chat_format
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import styles from './Chat.module.css';
+import type { ChatUiTranslations } from './ChatProps';
 
 /**
  * Props for the Chat actions toolbar.
@@ -36,6 +37,10 @@ export type ChatActionsBarProps = {
      * Disables action interactions while scroll is active.
      */
     shouldDisableActions: boolean;
+    /**
+     * Optional localized labels for Chat UI strings such as button labels.
+     */
+    chatUiTranslations?: ChatUiTranslations;
     onButtonClick: (
         handler?: (event: MouseEvent<HTMLButtonElement>) => void,
     ) => (event: MouseEvent<HTMLButtonElement>) => void;
@@ -61,6 +66,7 @@ export function ChatActionsBar(props: ChatActionsBarProps) {
         isSaveButtonEnabled,
         shouldFadeActions,
         shouldDisableActions,
+        chatUiTranslations,
         onButtonClick,
     } = props;
     const [showSaveMenu, setShowSaveMenu] = useState(false);
@@ -137,7 +143,7 @@ export function ChatActionsBar(props: ChatActionsBarProps) {
                     })}
                 >
                     <ResetIcon />
-                    <span className={styles.chatButtonText}>New chat</span>
+                    <span className={styles.chatButtonText}>{chatUiTranslations?.newChatButtonLabel || 'New chat'}</span>
                 </button>
             )}
 
@@ -150,7 +156,7 @@ export function ChatActionsBar(props: ChatActionsBarProps) {
                         aria-expanded={showSaveMenu}
                     >
                         <SaveIcon size={18} />
-                        <span className={styles.chatButtonText}>Save</span>
+                        <span className={styles.chatButtonText}>{chatUiTranslations?.saveButtonLabel || 'Save'}</span>
                     </button>
                     {showSaveMenu && (
                         <div className={styles.saveMenu}>

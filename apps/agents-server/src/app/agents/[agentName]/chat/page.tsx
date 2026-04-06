@@ -1,7 +1,6 @@
 'use server';
 import { loadChatConfiguration } from '@/src/utils/chatConfiguration';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
-import { resolveAgentChatInputPlaceholder } from '@/src/utils/agentChatInputPlaceholder';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { peekShareTargetPayload } from '@/src/utils/shareTargetPayloads';
 import { getThinkingMessages } from '@/src/utils/thinkingMessages';
@@ -123,7 +122,7 @@ export default async function AgentChatPage({
         shareTargetPayloadPromise,
     ]);
     const agentDisplayName = agentProfile.meta.fullname || agentProfile.agentName || canonicalAgentId;
-    const inputPlaceholder = resolveAgentChatInputPlaceholder(agentProfile.meta.inputPlaceholder);
+    const inputPlaceholder = agentProfile.meta.inputPlaceholder?.trim() || undefined;
     const initialAutoExecuteMessage = shareTargetPayload?.message || message;
     const initialAutoExecuteMessageAttachments = shareTargetPayload?.attachments;
 

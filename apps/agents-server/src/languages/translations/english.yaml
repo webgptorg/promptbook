@@ -354,6 +354,32 @@ chat.feedback.feedbackErrorMessage: Failed to save feedback.
 chat.cancelJobLabel: Cancel
 chat.cancellingJobLabel: Cancelling
 chat.frozenBannerLabel: "Chat from {source}. View-only."
+chat.inputPlaceholder: Write a message...
+chat.saveButtonLabel: Save
+chat.newChatButtonLabel: New chat
+chat.lifecycleSending: Sending
+chat.lifecycleQueued: Queued
+chat.lifecycleRunning: Running
+chat.lifecycleFailed: Failed
+chat.lifecycleCancelled: Cancelled
+chat.lifecycleCompleted: Completed
+chat.toolCallModalTitle: Tool call details
+chat.toolCallModalCloseLabel: Close tool call details
+chat.toolCallModalCopyLabel: Copy
+chat.toolCallModalSaveLabel: Save
+chat.toolCallModalAdvancedLabel: Advanced
+chat.toolCallModalSimpleLabel: Simple
+chat.toolTitle.assistantPreparation: Preparing agent
+chat.toolTitle.walletCredentialUsed: Credential used
+chat.toolTitle.webSearch: Searching the web
+chat.toolTitle.websiteScraping: Browsing the web
+chat.toolTitle.imageGenerator: Generating image
+chat.toolTitle.locationProvider: Checking location
+chat.toolTitle.calendarReader: Reading calendar
+chat.toolTitle.calendarWriter: Writing calendar
+chat.toolTitle.emailSender: Sending email
+chat.toolTitle.emailChecker: Checking email
+chat.toolTitle.teamMember: Team member
 chatTimeout.defaultLabel: Scheduled timeout
 chatTimeout.singleActiveLabel: 1 active timeout
 chatTimeout.multipleActiveLabel: "{count} active timeouts"

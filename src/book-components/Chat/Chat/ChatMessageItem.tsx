@@ -130,6 +130,10 @@ type ChatMessageItemProps = Pick<
      */
     isSpeechPlaybackEnabled?: ChatProps['isSpeechPlaybackEnabled'];
     readonly elevenLabsVoiceId?: ChatProps['elevenLabsVoiceId'];
+    /**
+     * Optional localized labels for Chat UI elements such as lifecycle badges.
+     */
+    chatUiTranslations?: ChatProps['chatUiTranslations'];
 };
 
 /**
@@ -478,22 +482,25 @@ type ToolCallChipEntry = {
  *
  * @private internal helper of `<ChatMessageItem/>`
  */
-function resolveMessageLifecycleLabel(message: ChatMessage): string | null {
+function resolveMessageLifecycleLabel(
+    message: ChatMessage,
+    chatUiTranslations?: import('./ChatProps').ChatUiTranslations,
+): string | null {
     if (message.sender === 'USER' && message.lifecycleState === 'queued') {
-        return 'Sending';
+        return chatUiTranslations?.lifecycleSending || 'Sending';
     }
 
     switch (message.lifecycleState) {
         case 'queued':
-            return 'Queued';
+            return chatUiTranslations?.lifecycleQueued || 'Queued';
         case 'running':
-            return 'Running';
+            return chatUiTranslations?.lifecycleRunning || 'Running';
         case 'failed':
-            return 'Failed';
+            return chatUiTranslations?.lifecycleFailed || 'Failed';
         case 'cancelled':
-            return 'Cancelled';
+            return chatUiTranslations?.lifecycleCancelled || 'Cancelled';
         case 'completed':
-            return 'Completed';
+            return chatUiTranslations?.lifecycleCompleted || 'Completed';
         default:
             return null;
     }
@@ -787,6 +794,7 @@ export const ChatMessageItem = memo(
             soundSystem,
             isSpeechPlaybackEnabled,
             elevenLabsVoiceId,
+            chatUiTranslations,
         } = props;
         const {
             isComplete = true,
@@ -876,7 +884,7 @@ export const ChatMessageItem = memo(
         const isAgentArticleMode = CHAT_VISUAL_MODE === 'ARTICLE_MODE' && !isMe;
         const timingDisplay = getChatMessageTimingDisplay(message, chatLocale);
         const shouldShowTiming = Boolean(isComplete && timingDisplay);
-        const lifecycleBadgeLabel = resolveMessageLifecycleLabel(message);
+        const lifecycleBadgeLabel = resolveMessageLifecycleLabel(message, chatUiTranslations);
         const shouldShowMessageMeta = Boolean(shouldShowTiming || lifecycleBadgeLabel);
         const shouldShowParticipantLabel = (participants || []).some((entry) => entry.name === 'TEAMMATE');
         const participantLabel = participant?.fullname || participant?.name;

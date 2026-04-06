@@ -56,6 +56,10 @@ export type ChatMessageListProps = {
     soundSystem?: ChatProps['soundSystem'];
     isSpeechPlaybackEnabled?: ChatProps['isSpeechPlaybackEnabled'];
     elevenLabsVoiceId?: ChatProps['elevenLabsVoiceId'];
+    /**
+     * Optional localized labels for Chat UI elements such as lifecycle badges.
+     */
+    chatUiTranslations?: ChatProps['chatUiTranslations'];
     setChatMessagesElement: (element: HTMLDivElement | null) => void;
     onScroll: (event: UIEvent<HTMLDivElement>) => void;
     chatMessagesClassName?: string;
@@ -100,6 +104,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
         onScroll,
         chatMessagesClassName,
         hasActions,
+        chatUiTranslations,
     } = props;
 
     const firstMessage = messages[0];
@@ -157,6 +162,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
                         soundSystem={soundSystem}
                         isSpeechPlaybackEnabled={isSpeechPlaybackEnabled}
                         elevenLabsVoiceId={elevenLabsVoiceId}
+                        chatUiTranslations={chatUiTranslations}
                     />
                 );
             })}

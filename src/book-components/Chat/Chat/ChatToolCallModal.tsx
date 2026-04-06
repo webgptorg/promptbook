@@ -44,6 +44,10 @@ export type ChatToolCallModalProps = {
      * Optional cached team agent metadata keyed by TEAM tool name.
      */
     teamAgentProfiles?: Record<string, AgentChipData>;
+    /**
+     * Optional localized labels for the tool call modal UI elements.
+     */
+    chatUiTranslations?: import('./ChatProps').ChatUiTranslations;
 };
 
 /**
@@ -75,6 +79,7 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
         agentParticipant,
         buttonColor,
         teamAgentProfiles,
+        chatUiTranslations,
     } = props;
     const [teamProfiles, setTeamProfiles] = useState<Record<string, AgentProfileData>>({});
     const [selectedTeamToolCall, setSelectedTeamToolCall] = useState<TransitiveToolCall | null>(null);
@@ -286,14 +291,14 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
                 className={classNames(styles.ratingModalContent, styles.toolCallModal)}
                 role="dialog"
                 aria-modal="true"
-                aria-label="Tool call details"
+                aria-label={chatUiTranslations?.toolCallModalTitle || 'Tool call details'}
                 tabIndex={-1}
             >
                 <button
                     type="button"
                     className={styles.modalCloseButton}
                     onClick={onClose}
-                    aria-label="Close tool call details"
+                    aria-label={chatUiTranslations?.toolCallModalCloseLabel || 'Close tool call details'}
                 >
                     <CloseIcon />
                 </button>
@@ -308,7 +313,7 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
                                     void handleAdvancedToolCallReportExport('clipboard');
                                 }}
                             >
-                                Copy
+                                {chatUiTranslations?.toolCallModalCopyLabel || 'Copy'}
                             </button>
                             <button
                                 type="button"
@@ -317,7 +322,7 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
                                     void handleAdvancedToolCallReportExport('file');
                                 }}
                             >
-                                Save
+                                {chatUiTranslations?.toolCallModalSaveLabel || 'Save'}
                             </button>
                         </>
                     )}
@@ -328,7 +333,9 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
                             setViewMode((previous) => (previous === 'simple' ? 'advanced' : 'simple'));
                         }}
                     >
-                        {viewMode === 'simple' ? 'Advanced' : 'Simple'}
+                        {viewMode === 'simple'
+                            ? (chatUiTranslations?.toolCallModalAdvancedLabel || 'Advanced')
+                            : (chatUiTranslations?.toolCallModalSimpleLabel || 'Simple')}
                     </button>
                 </div>
             </div>

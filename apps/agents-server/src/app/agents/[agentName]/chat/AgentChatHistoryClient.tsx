@@ -83,7 +83,7 @@ type AgentChatHistoryClientProps = {
     agentName: string;
     agentUrl: string;
     brandColor?: string;
-    inputPlaceholder: string;
+    inputPlaceholder: string | undefined;
     thinkingMessages?: ReadonlyArray<string>;
     speechRecognitionLanguage?: string;
     initialChatId?: string;

@@ -60,7 +60,7 @@ type CanonicalAgentChatPanelProps = {
     agentName: string;
     agentUrl: string;
     brandColor?: string;
-    inputPlaceholder: string;
+    inputPlaceholder: string | undefined;
     thinkingMessages?: ReadonlyArray<string>;
     speechRecognitionLanguage?: string;
     initialAgentMessage?: string | null;
@@ -512,6 +512,37 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
             messages={renderedMessages}
             defaultMessage={draftMessage}
             placeholderMessageContent={inputPlaceholder}
+            chatUiTranslations={{
+                inputPlaceholder: t('chat.inputPlaceholder'),
+                saveButtonLabel: t('chat.saveButtonLabel'),
+                newChatButtonLabel: t('chat.newChatButtonLabel'),
+                lifecycleSending: t('chat.lifecycleSending'),
+                lifecycleQueued: t('chat.lifecycleQueued'),
+                lifecycleRunning: t('chat.lifecycleRunning'),
+                lifecycleFailed: t('chat.lifecycleFailed'),
+                lifecycleCancelled: t('chat.lifecycleCancelled'),
+                lifecycleCompleted: t('chat.lifecycleCompleted'),
+                toolCallModalTitle: t('chat.toolCallModalTitle'),
+                toolCallModalCloseLabel: t('chat.toolCallModalCloseLabel'),
+                toolCallModalCopyLabel: t('chat.toolCallModalCopyLabel'),
+                toolCallModalSaveLabel: t('chat.toolCallModalSaveLabel'),
+                toolCallModalAdvancedLabel: t('chat.toolCallModalAdvancedLabel'),
+                toolCallModalSimpleLabel: t('chat.toolCallModalSimpleLabel'),
+            }}
+            toolTitles={{
+                assistant_preparation: t('chat.toolTitle.assistantPreparation'),
+                wallet_credential_used: t('chat.toolTitle.walletCredentialUsed'),
+                web_search: t('chat.toolTitle.webSearch'),
+                useSearchEngine: t('chat.toolTitle.webSearch'),
+                search: t('chat.toolTitle.webSearch'),
+                useBrowser: t('chat.toolTitle.websiteScraping'),
+                browse: t('chat.toolTitle.websiteScraping'),
+                fetch_url_content: t('chat.toolTitle.websiteScraping'),
+                run_browser: t('chat.toolTitle.websiteScraping'),
+                get_user_location: t('chat.toolTitle.locationProvider'),
+                send_email: t('chat.toolTitle.emailSender'),
+                useEmail: t('chat.toolTitle.emailSender'),
+            }}
             onMessage={isReadOnly ? undefined : (handleManualMessage as unknown as (message: string) => Promise<void>)}
             onQuickMessageButton={isReadOnly ? undefined : handleQuickMessageButton}
             onActionButton={executeQuickActionButton}

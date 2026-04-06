@@ -1,8 +1,13 @@
--   Fixed `<details>` / `<summary>` elements inside chat message markdown so they expand and collapse when clicked:
+-   Completed Agents Server chat page translations for previously hardcoded English strings:
 
-    -   Added `maskDetailsBlocks()` pre-processing step in `renderMarkdown()` that extracts `<details>…</details>` blocks before the Showdown converter runs and restores them verbatim afterwards; this prevents Showdown (with `simpleLineBreaks: true`) from wrapping the blocks in `<p>` tags or converting internal newlines to `<br>` elements that would break the native toggle.
-    -   Added `<details>` and `<summary>` styling to `MarkdownContent.module.css`: `cursor: pointer`, `user-select: none`, disclosure-triangle list-style, and a visual separator line under the summary when the block is open.
-    -   Added `<details>` open-state preservation in the `MarkdownContent` `useEffect`: a `toggle` event listener tracks which blocks the user has opened (by summary text key) and restores that open state after every `htmlContent` update (e.g. during streaming), preventing streaming content updates from collapsing `<details>` the user has already expanded.
+    -   Added `ChatUiTranslations` type to `ChatProps` with fields for input placeholder, save/new-chat button labels, lifecycle state badges (Sending/Queued/Running/Failed/Cancelled/Completed), and tool call modal controls (title, close, copy, save, advanced/simple toggle).
+    -   Added `chatUiTranslations?: ChatUiTranslations` prop to `<Chat/>`, threaded it through `ChatActionsBar`, `ChatMessageList`, `ChatMessageItem`, and `ChatToolCallModal`.
+    -   Replaced all hardcoded English strings in those components with `chatUiTranslations?.xxx || 'fallback'` expressions.
+    -   Added 31 new translation keys under `chat.*` namespace to `ServerTranslationKeys.ts` with English and Czech values (including all tool-chip titles via existing `toolTitles` prop).
+    -   Wired translations in both `CanonicalAgentChatPanel` and `AgentChatWrapper` via `chatUiTranslations={...}` and `toolTitles={...}` using `t()`.
+    -   Fixed the input placeholder to pass through the translation fallback: server pages now pass `agentProfile.meta.inputPlaceholder` directly (`undefined` when unset) so `chatUiTranslations.inputPlaceholder` is used as the translated default.
+
+-   Fixed `<details>` / `<summary>` elements inside chat message markdown so they expand and collapse when clicked:
 
 
 

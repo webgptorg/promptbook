@@ -350,6 +350,32 @@ chat.feedback.feedbackErrorMessage: Zpětnou vazbu se nepodařilo uložit.
 chat.cancelJobLabel: Zrušit
 chat.cancellingJobLabel: Ruším
 chat.frozenBannerLabel: "Chat z {source}. Pouze pro čtení."
+chat.inputPlaceholder: Napište zprávu...
+chat.saveButtonLabel: Uložit
+chat.newChatButtonLabel: Nový chat
+chat.lifecycleSending: Odesílám
+chat.lifecycleQueued: Ve frontě
+chat.lifecycleRunning: Probíhá
+chat.lifecycleFailed: Selhalo
+chat.lifecycleCancelled: Zrušeno
+chat.lifecycleCompleted: Dokončeno
+chat.toolCallModalTitle: Detail volání nástroje
+chat.toolCallModalCloseLabel: Zavřít detail volání nástroje
+chat.toolCallModalCopyLabel: Kopírovat
+chat.toolCallModalSaveLabel: Uložit
+chat.toolCallModalAdvancedLabel: Pokročilý pohled
+chat.toolCallModalSimpleLabel: Jednoduchý pohled
+chat.toolTitle.assistantPreparation: Příprava agenta
+chat.toolTitle.walletCredentialUsed: Použité přihlašovací údaje
+chat.toolTitle.webSearch: Prohledávání webu
+chat.toolTitle.websiteScraping: Procházení webu
+chat.toolTitle.imageGenerator: Generování obrázku
+chat.toolTitle.locationProvider: Zjišťování polohy
+chat.toolTitle.calendarReader: Čtení kalendáře
+chat.toolTitle.calendarWriter: Zápis do kalendáře
+chat.toolTitle.emailSender: Odesílání e-mailu
+chat.toolTitle.emailChecker: Kontrola e-mailu
+chat.toolTitle.teamMember: Člen týmu
 chatTimeout.defaultLabel: Naplánovaný časovač
 chatTimeout.singleActiveLabel: 1 aktivní časovač
 chatTimeout.multipleActiveLabel: "{count} aktivní časovače"

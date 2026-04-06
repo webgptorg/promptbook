@@ -16,7 +16,6 @@ import { useSelfLearningPreferences } from '../../../components/SelfLearningPref
 import { ChatThreadLoadingSkeleton } from '../../../components/Skeleton/ChatThreadLoadingSkeleton';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { useSoundSystem } from '../../../components/SoundSystemProvider/SoundSystemProvider';
-import { resolveAgentChatInputPlaceholder } from '../../../utils/agentChatInputPlaceholder';
 import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatEffects';
 import {
     isChatFeedbackEnabled,
@@ -110,7 +109,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         onAutoExecuteMessageConsumed,
         layoutVariant = 'default',
     } = props;
-    const effectiveInputPlaceholder = resolveAgentChatInputPlaceholder(inputPlaceholder);
+    const effectiveInputPlaceholder = inputPlaceholder?.trim() || undefined;
     const isChatGptLikeVariant = layoutVariant === 'chatgptLike';
 
     const shouldEnableFeedback = isChatFeedbackEnabled(feedbackMode);
@@ -364,6 +363,37 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             style={chatBackgroundStyle}
             agent={agent}
             placeholderMessageContent={effectiveInputPlaceholder}
+            chatUiTranslations={{
+                inputPlaceholder: t('chat.inputPlaceholder'),
+                saveButtonLabel: t('chat.saveButtonLabel'),
+                newChatButtonLabel: t('chat.newChatButtonLabel'),
+                lifecycleSending: t('chat.lifecycleSending'),
+                lifecycleQueued: t('chat.lifecycleQueued'),
+                lifecycleRunning: t('chat.lifecycleRunning'),
+                lifecycleFailed: t('chat.lifecycleFailed'),
+                lifecycleCancelled: t('chat.lifecycleCancelled'),
+                lifecycleCompleted: t('chat.lifecycleCompleted'),
+                toolCallModalTitle: t('chat.toolCallModalTitle'),
+                toolCallModalCloseLabel: t('chat.toolCallModalCloseLabel'),
+                toolCallModalCopyLabel: t('chat.toolCallModalCopyLabel'),
+                toolCallModalSaveLabel: t('chat.toolCallModalSaveLabel'),
+                toolCallModalAdvancedLabel: t('chat.toolCallModalAdvancedLabel'),
+                toolCallModalSimpleLabel: t('chat.toolCallModalSimpleLabel'),
+            }}
+            toolTitles={{
+                assistant_preparation: t('chat.toolTitle.assistantPreparation'),
+                wallet_credential_used: t('chat.toolTitle.walletCredentialUsed'),
+                web_search: t('chat.toolTitle.webSearch'),
+                useSearchEngine: t('chat.toolTitle.webSearch'),
+                search: t('chat.toolTitle.webSearch'),
+                useBrowser: t('chat.toolTitle.websiteScraping'),
+                browse: t('chat.toolTitle.websiteScraping'),
+                fetch_url_content: t('chat.toolTitle.websiteScraping'),
+                run_browser: t('chat.toolTitle.websiteScraping'),
+                get_user_location: t('chat.toolTitle.locationProvider'),
+                send_email: t('chat.toolTitle.emailSender'),
+                useEmail: t('chat.toolTitle.emailSender'),
+            }}
             feedbackMode={toChatComponentFeedbackMode(feedbackMode)}
             onFeedback={shouldEnableFeedback ? handleFeedback : undefined}
             onFileUpload={allowFileAttachments ? handleFileUpload : undefined}

@@ -122,6 +122,104 @@ export type ChatFeedbackTranslations = {
 };
 
 /**
+ * Optional text overrides for general Chat UI strings such as button labels, lifecycle
+ * state badges, tool call modal controls, and the default input placeholder.
+ *
+ * @public exported from `@promptbook/components`
+ */
+export type ChatUiTranslations = {
+    /**
+     * Default placeholder shown in the message input when no custom placeholder is provided.
+     * @default "Write a message..."
+     */
+    readonly inputPlaceholder?: string;
+
+    /**
+     * Label for the "Save" button in the chat actions bar.
+     * @default "Save"
+     */
+    readonly saveButtonLabel?: string;
+
+    /**
+     * Label for the "New chat" button in the chat actions bar.
+     * @default "New chat"
+     */
+    readonly newChatButtonLabel?: string;
+
+    /**
+     * Lifecycle badge label for messages being sent by the user.
+     * @default "Sending"
+     */
+    readonly lifecycleSending?: string;
+
+    /**
+     * Lifecycle badge label for queued messages.
+     * @default "Queued"
+     */
+    readonly lifecycleQueued?: string;
+
+    /**
+     * Lifecycle badge label for running messages.
+     * @default "Running"
+     */
+    readonly lifecycleRunning?: string;
+
+    /**
+     * Lifecycle badge label for failed messages.
+     * @default "Failed"
+     */
+    readonly lifecycleFailed?: string;
+
+    /**
+     * Lifecycle badge label for cancelled messages.
+     * @default "Cancelled"
+     */
+    readonly lifecycleCancelled?: string;
+
+    /**
+     * Lifecycle badge label for completed messages.
+     * @default "Completed"
+     */
+    readonly lifecycleCompleted?: string;
+
+    /**
+     * Accessible label for the tool call details modal dialog.
+     * @default "Tool call details"
+     */
+    readonly toolCallModalTitle?: string;
+
+    /**
+     * Accessible label for the close button in the tool call details modal.
+     * @default "Close tool call details"
+     */
+    readonly toolCallModalCloseLabel?: string;
+
+    /**
+     * Label for the "Copy" button in the tool call details modal footer.
+     * @default "Copy"
+     */
+    readonly toolCallModalCopyLabel?: string;
+
+    /**
+     * Label for the "Save" button in the tool call details modal footer.
+     * @default "Save"
+     */
+    readonly toolCallModalSaveLabel?: string;
+
+    /**
+     * Label for switching to the advanced view in the tool call details modal.
+     * @default "Advanced"
+     */
+    readonly toolCallModalAdvancedLabel?: string;
+
+    /**
+     * Label for switching back to the simple view in the tool call details modal.
+     * @default "Simple"
+     */
+    readonly toolCallModalSimpleLabel?: string;
+};
+
+/**
  * Optional text overrides for localized timing metadata rendered next to message timestamps.
  *
  * @public exported from `@promptbook/components`
@@ -474,6 +572,12 @@ export type ChatProps = {
      * Optional localized labels used by timestamp metadata shown under messages.
      */
     readonly timingTranslations?: ChatTimingTranslations;
+
+    /**
+     * Optional localized labels for general Chat UI elements such as button labels,
+     * lifecycle state badges, tool call modal strings, and the default input placeholder.
+     */
+    readonly chatUiTranslations?: ChatUiTranslations;
 
     /**
      * Optional moment locale used when formatting message timestamps.

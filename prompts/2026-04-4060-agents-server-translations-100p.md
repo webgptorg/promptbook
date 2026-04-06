@@ -17,7 +17,7 @@
 
 ---
 
-[ ] !!
+[x] ~$0.00 21 minutes by GitHub Copilot `claude-sonnet-4.6`
 
 [✨👋] Go through the Agent server and complete the translations.
 
@@ -30,3 +30,4 @@
     -   Also corresponding popup modals from theese chips are missing translation
     -   "Save" the entire chat button is missing translation
 -   You are working with the [Agents Server](apps/agents-server)
+
