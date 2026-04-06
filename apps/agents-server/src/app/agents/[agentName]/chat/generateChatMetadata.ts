@@ -1,4 +1,4 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
 
 /**
  * Title shown in the browser tab for all chat pages.

@@ -1,4 +1,4 @@
-﻿'use server';
+'use server';
 import { loadChatConfiguration } from '@/src/utils/chatConfiguration';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';

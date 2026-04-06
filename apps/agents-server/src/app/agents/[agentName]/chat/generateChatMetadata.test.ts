@@ -1,4 +1,4 @@
-﻿import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
 import { CHAT_PAGE_TITLE, generateChatMetadata } from './generateChatMetadata';
 
 describe('generateChatMetadata', () => {
