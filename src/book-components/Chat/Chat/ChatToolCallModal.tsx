@@ -53,6 +53,13 @@ export type ChatToolCallModalProps = {
      * When omitted the browser/OS default locale is used.
      */
     locale?: string;
+    /**
+     * Optional list of tools that were available to the model during the turn that produced this tool call.
+     *
+     * When provided, the advanced view includes an "Available tools" payload section so developers can
+     * inspect what capabilities the model had access to at the exact moment of the request.
+     */
+    availableTools?: ChatMessage['availableTools'];
 };
 
 /**
@@ -86,6 +93,7 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
         teamAgentProfiles,
         chatUiTranslations,
         locale,
+        availableTools,
     } = props;
     const [teamProfiles, setTeamProfiles] = useState<Record<string, AgentProfileData>>({});
     const [selectedTeamToolCall, setSelectedTeamToolCall] = useState<TransitiveToolCall | null>(null);
@@ -255,6 +263,7 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
             renderAdvancedToolCallDetails({
                 toolCall: focusedToolCall,
                 toolTitles,
+                availableTools,
             })
         ) : teamResult?.teammate ? (
             <TeamToolCallModalContent

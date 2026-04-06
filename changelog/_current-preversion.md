@@ -1,3 +1,12 @@
+-   Logged full raw Message tool context (called + available) in the message inspector:
+
+    -   Added `availableTools?: ReadonlyArray<LlmToolDefinition>` field to the `ChatMessage` type so the complete list of tools available at each model turn is stored alongside called tools.
+    -   In `runUserChatJob.ts`, computed `availableTools` by combining `preparedAgentModelRequirements.modelRequirements.tools` (agent-commitment tools: browser, calendar, team, etc.) with `runtimeTools` (attachment and progress tools) immediately after the runtime tools are created — capturing the exact tool set passed to the model.
+    -   Stored `availableTools` in the initial assistant-message write and in all terminal-state persistence calls (COMPLETED, FAILED, CANCELLED) via `persistUserChatJobTerminalState`.
+    -   Extended `renderAdvancedToolCallDetails` with an "Available tools" section (id `available-tools`) rendered between "Model payload" and "Full event" in the advanced view of `ChatToolCallModal`.
+    -   Added `availableTools` prop to `ChatToolCallModal` and wired it from `Chat.tsx` via a `selectedMessageAvailableTools` memo that resolves the parent message of the selected tool call.
+    -   Added two unit tests in `ChatToolCallModal.test.tsx` verifying that the "Available tools" section appears in advanced view both when tools are provided and when the prop is omitted (shows empty array).
+
 -   Fixed USE TIME chip rendering bug and added i18n + locale-aware time formatting for timeout/time tool-call chips and modals:
 
     -   Fixed broken chip rendering (`  : PM`) caused by `toLocaleTimeString([], {...})` passing an empty array as locale in three locations (`getToolCallChipletInfo.ts`, `timeoutToolCallPresentation.ts`, `renderToolCallDetails.tsx`). The empty array caused browsers to omit the hour component.

@@ -1,4 +1,5 @@
 import { Message } from '../../../types/Message';
+import type { LlmToolDefinition } from '../../../types/LlmToolDefinition';
 import type { ToolCall } from '../../../types/ToolCall';
 import type { id, string_date_iso8601, string_markdown } from '../../../types/typeAliases';
 
@@ -197,6 +198,15 @@ export type ChatMessage = Omit<Message<id>, 'direction' | 'recipients' | 'thread
      * Optional structured progress-card payload shown while a response is still in progress.
      */
     readonly progressCard?: ChatProgressCard;
+
+    /**
+     * Optional list of tools that were available to the model when generating this message.
+     *
+     * This field is populated by the server from the exact tool definitions passed to the LLM
+     * request so developers can inspect what capabilities the model had access to during
+     * each conversation turn.
+     */
+    readonly availableTools?: ReadonlyArray<LlmToolDefinition>;
 };
 
 /**

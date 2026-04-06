@@ -29,7 +29,7 @@ import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithu
 import { resolveAppendOnlySelfLearningAgentSource } from '@/src/utils/resolveAppendOnlySelfLearningAgentSource';
 import { prepareToolCallsForStreaming } from '@/src/utils/toolCallStreaming';
 import { Agent, computeAgentHash } from '@promptbook-local/core';
-import type { ToolCall } from '@promptbook-local/types';
+import type { LlmToolDefinition, ToolCall } from '@promptbook-local/types';
 import { serializeError } from '@promptbook-local/utils';
 import type { ChatPromptResult } from '../../../../../src/execution/PromptResult';
 import { mergeToolCalls } from '../../../../../src/utils/toolCalls/mergeToolCalls';
@@ -160,6 +160,19 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
             : Promise.resolve(undefined),
     ]);
     const runtimeTools = createAgentProgressTools(createChatAttachmentTools([], userMessage.attachments || []));
+
+    /**
+     * Full list of tools that were available to the model for this chat turn.
+     *
+     * Combines agent-commitment tools (e.g. browser, calendar, team) with runtime tools
+     * (attachment handlers, progress markers) to match exactly what the LLM sees.
+     * Captured here from the exact objects used to construct the model request so the
+     * message inspector can show accurate tool availability per turn.
+     */
+    const availableTools: ReadonlyArray<LlmToolDefinition> = [
+        ...(preparedAgentModelRequirements.modelRequirements.tools ?? []),
+        ...runtimeTools,
+    ];
     const promptParameters = composePromptParametersWithMemoryContext({
         baseParameters: job.parameters,
         currentUserIdentity: {
@@ -280,6 +293,7 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
             lifecycleState: 'running',
             lifecycleError: undefined,
             isComplete: false,
+            availableTools,
         }),
     });
 
@@ -402,6 +416,7 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
                 status: 'COMPLETED',
                 content: latestContent,
                 toolCalls: latestToolCalls,
+                availableTools,
                 provider,
                 generationDurationMs: Date.now() - startedAt,
             });
@@ -479,6 +494,7 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
                 status: 'COMPLETED',
                 content: responseContentWithSuffix,
                 toolCalls: finalToolCalls,
+                availableTools,
                 provider,
                 generationDurationMs,
             });
@@ -560,6 +576,7 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
                 status: 'CANCELLED',
                 content: latestContent,
                 toolCalls: latestToolCalls,
+                availableTools,
                 provider,
                 failureReason,
                 generationDurationMs,
@@ -581,6 +598,7 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
             status: 'FAILED',
             content: latestContent,
             toolCalls: latestToolCalls,
+            availableTools,
             provider,
             failureReason,
             generationDurationMs,

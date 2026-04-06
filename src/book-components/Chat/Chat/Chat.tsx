@@ -332,6 +332,30 @@ export function Chat(props: ChatProps) {
         [postprocessedMessages, selectedToolCallState],
     );
 
+    const selectedMessageAvailableTools = useMemo((): ChatMessage['availableTools'] => {
+        const identity = selectedToolCallState?.identity;
+        if (!identity) {
+            return undefined;
+        }
+
+        for (let index = postprocessedMessages.length - 1; index >= 0; index -= 1) {
+            const message = postprocessedMessages[index]!;
+            const candidateToolCalls = [
+                ...(message.toolCalls || []),
+                ...(message.completedToolCalls || []),
+                ...(message.ongoingToolCalls || []),
+            ];
+
+            for (const candidateToolCall of candidateToolCalls) {
+                if (getToolCallIdentity(candidateToolCall) === identity) {
+                    return message.availableTools;
+                }
+            }
+        }
+
+        return undefined;
+    }, [postprocessedMessages, selectedToolCallState]);
+
     useEffect(() => {
         handleMessagesChange(isStreamingAgentMessage);
 
@@ -570,6 +594,7 @@ export function Chat(props: ChatProps) {
                 teamAgentProfiles={teamAgentProfiles}
                 chatUiTranslations={chatUiTranslations}
                 locale={chatLocale}
+                availableTools={selectedMessageAvailableTools}
             />
 
             <ChatCitationModal

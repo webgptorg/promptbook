@@ -22,6 +22,10 @@ type AdvancedToolCallDetailsOptions = {
      * Optional mapping of tool titles.
      */
     toolTitles?: Record<string, string>;
+    /**
+     * Optional list of tools that were available to the model during the turn that produced this tool call.
+     */
+    availableTools?: ChatMessage['availableTools'];
 };
 
 /**
@@ -141,7 +145,7 @@ const TOOL_CALL_REPORT_FILENAME_UNSAFE_CHARACTER_PATTERN = /[^a-zA-Z0-9_-]/g;
 export function renderAdvancedToolCallDetails(options: AdvancedToolCallDetailsOptions): ReactElement {
     const { toolCall } = options;
     const header = resolveAdvancedToolCallHeader(options);
-    const payloadSections = createAdvancedToolCallPayloadSections(toolCall);
+    const payloadSections = createAdvancedToolCallPayloadSections(toolCall, options.availableTools);
 
     return (
         <>
@@ -187,7 +191,7 @@ export function renderAdvancedToolCallDetails(options: AdvancedToolCallDetailsOp
 export function createAdvancedToolCallReportMarkdown(options: AdvancedToolCallDetailsOptions): string {
     const { toolCall } = options;
     const header = resolveAdvancedToolCallHeader(options);
-    const payloadSections = createAdvancedToolCallPayloadSections(toolCall);
+    const payloadSections = createAdvancedToolCallPayloadSections(toolCall, options.availableTools);
     const reportLines: Array<string> = [
         '# Tool call report',
         '',
@@ -263,11 +267,13 @@ function resolveAdvancedToolCallHeader(options: AdvancedToolCallDetailsOptions):
  * Builds the shared payload sections shown in advanced view and exported reports.
  *
  * @param toolCall - Tool call currently selected in the modal.
+ * @param availableTools - Optional list of tools that were available during the turn.
  * @returns Ordered list of payload sections.
  * @private function of ChatToolCallModal
  */
 function createAdvancedToolCallPayloadSections(
     toolCall: NonNullable<ChatMessage['toolCalls']>[number],
+    availableTools?: ChatMessage['availableTools'],
 ): Array<AdvancedToolCallPayloadSection> {
     const parsedArguments = parseToolCallArguments(toolCall);
     const parsedResult = parseToolCallResult(toolCall.result);
@@ -281,6 +287,7 @@ function createAdvancedToolCallPayloadSections(
         { id: 'logs', title: 'Streamed logs', payload: toolCall.logs ?? [] },
         { id: 'result', title: 'Output payload', payload: toolCall.result },
         { id: 'raw-model', title: 'Model payload', payload: toolCall.rawToolCall },
+        { id: 'available-tools', title: 'Available tools', payload: availableTools ?? [] },
         { id: 'event', title: 'Full event', payload: toolCall },
     ];
 

@@ -42,6 +42,69 @@ function createTimeoutToolCallFixture(): ToolCall {
     };
 }
 
+describe('ChatToolCallModal available tools in advanced view', () => {
+    it('shows available tools section when availableTools are provided and Advanced mode is active', () => {
+        render(
+            <ChatToolCallModal
+                isOpen={true}
+                toolCall={createTimeoutToolCallFixture()}
+                toolCallIdentity="tool-call-timeout-avail"
+                onClose={() => undefined}
+                buttonColor={Color.from('#0066cc')}
+                availableTools={[
+                    {
+                        name: 'web_search',
+                        description: 'Search the web for information',
+                        parameters: {
+                            type: 'object',
+                            properties: {
+                                query: { type: 'string', description: 'The search query' },
+                            },
+                            required: ['query'],
+                        },
+                    },
+                    {
+                        name: 'set_timeout',
+                        description: 'Schedule a timeout',
+                        parameters: {
+                            type: 'object',
+                            properties: {
+                                milliseconds: { type: 'number', description: 'Delay in ms' },
+                            },
+                            required: ['milliseconds'],
+                        },
+                    },
+                ]}
+            />,
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: 'Advanced' }));
+
+        const availableToolsSection = screen.getByText('Available tools').closest('section');
+        expect(availableToolsSection).toBeTruthy();
+        expect(availableToolsSection?.textContent).toContain('"web_search"');
+        expect(availableToolsSection?.textContent).toContain('"set_timeout"');
+    });
+
+    it('shows available tools section with empty array when no availableTools are provided', () => {
+        render(
+            <ChatToolCallModal
+                isOpen={true}
+                toolCall={createTimeoutToolCallFixture()}
+                toolCallIdentity="tool-call-timeout-no-avail"
+                onClose={() => undefined}
+                buttonColor={Color.from('#0066cc')}
+            />,
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: 'Advanced' }));
+
+        const availableToolsSection = screen.getByText('Available tools').closest('section');
+        expect(availableToolsSection).toBeTruthy();
+        expect(availableToolsSection?.textContent?.trim()).toContain('[]');
+    });
+});
+
 describe('ChatToolCallModal timeout rendering', () => {
     it('renders a friendly default timeout view with accessible dialog controls', () => {
         const onClose = jest.fn();
