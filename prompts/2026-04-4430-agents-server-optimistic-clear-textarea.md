@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.00 6 minutes by GitHub Copilot `claude-sonnet-4.6`
 
 [⚡️🧽] Optimistically clear chat message textarea immediately on send
 
@@ -12,3 +12,4 @@
     -   Subsequent messages should use the latest textarea content without being blocked by the previous request’s lifecycle.
 -   Ensure keyboard flow remains correct:
     -   Enter key + Shift+Enter behavior must not be affected by this change
+

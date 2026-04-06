@@ -1157,13 +1157,13 @@ export function ChatInputArea(props: ChatInputAreaProps) {
                 /* not await */ soundSystem.play('message_send');
             }
 
-            await (
-                onMessage as unknown as (
-                    message: string,
-                    attachments: Array<{ name: string; type: string; url: string }>,
-                ) => Promise<void>
-            )(messageContent, attachments);
+            // Capture content before optimistically clearing the textarea
+            const contentToSend = messageContent;
+            const attachmentsToSend = attachments;
 
+            // Optimistically clear the textarea immediately on send,
+            // without waiting for the server to confirm receipt.
+            // On server failure the error state is shown in the chat — the text is not restored.
             setMessageContent('');
             setUploadedFiles([]);
             onChange?.('');
@@ -1171,6 +1171,13 @@ export function ChatInputArea(props: ChatInputAreaProps) {
             if (wasTextareaFocused) {
                 textareaElement.focus();
             }
+
+            await (
+                onMessage as unknown as (
+                    message: string,
+                    attachments: Array<{ name: string; type: string; url: string }>,
+                ) => Promise<void>
+            )(contentToSend, attachmentsToSend);
         } catch (error) {
             if (!(error instanceof Error)) {
                 throw error;
