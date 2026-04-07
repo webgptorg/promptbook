@@ -1,3 +1,8 @@
+-   Refactored Agents Server `BookEditorWrapper` into smaller private modules without changing editor behavior:
+
+    -   Extracted the stateful autosave / diagnostics / history orchestration into a dedicated private `useBookEditorWrapper` hook so the wrapper component now reads as a thin composition layer.
+    -   Moved the missing referenced-agent UI into a dedicated private `BookEditorMissingReferences` component and kept the existing desktop/mobile rendering behavior intact.
+
 -   Refactored `apps/agents-server/scripts/sync-vercel-domains.ts` into smaller focused modules without changing its external behavior:
 
     -   Extracted Vercel domain planning/API logic, Cloudflare DNS planning/execution logic, reporting, logging, and shared domain normalization into dedicated script modules so the entrypoint is easier to follow and maintain.
