@@ -1,3 +1,8 @@
+-   Hid the finished chat lifecycle chip under messages so completed Agents Server replies no longer show redundant `Finished` / `Dokončeno` badges:
+
+    -   Updated the shared `<ChatMessageItem/>` lifecycle-badge resolver to return no badge for `completed` messages while preserving queued, running, failed, and cancelled badges.
+    -   Added a regression test proving completed lifecycle badges stay hidden while queued and running badges still render.
+
 -   Fixed Agents Server chat `<details>` blocks so their expanded body renders as real markdown instead of plain text:
 
     -   Updated the shared `MarkdownContent` renderer to keep masking raw `<details>` blocks for structural safety, but now convert the block body through the normal markdown pipeline before restoring it.

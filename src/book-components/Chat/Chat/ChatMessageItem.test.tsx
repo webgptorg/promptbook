@@ -4,6 +4,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, jest } from '@jest/globals';
 import moment from 'moment';
 import 'moment/locale/cs';
+import type { ComponentProps } from 'react';
 import { $getCurrentDate } from '../../../utils/misc/$getCurrentDate';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
@@ -76,7 +77,10 @@ function createAssistantProgressMessageFixture(overrides: Partial<ChatMessage> =
 /**
  * Renders one chat message item with stable defaults used by these tests.
  */
-function renderChatMessageItem(message: ChatMessage) {
+function renderChatMessageItem(
+    message: ChatMessage,
+    overrides: Partial<ComponentProps<typeof ChatMessageItem>> = {},
+) {
     return render(
         <ChatMessageItem
             message={message}
@@ -88,6 +92,7 @@ function renderChatMessageItem(message: ChatMessage) {
             currentRating={0}
             handleRating={() => undefined}
             mode="LIGHT"
+            {...overrides}
         />,
     );
 }
@@ -102,6 +107,57 @@ describe('ChatMessageItem citation footnotes', () => {
         expect(screen.getAllByTitle('document123.doc')).toHaveLength(1);
         expect(screen.getByTitle('document123.doc').textContent).not.toContain('[0:0]');
         expect(screen.getByTitle('document123.doc').textContent).not.toContain('[8:13]');
+    });
+});
+
+describe('ChatMessageItem lifecycle badges', () => {
+    it('hides completed lifecycle badges while keeping queued and running badges visible', () => {
+        const chatUiTranslations = {
+            lifecycleCompleted: 'Finished',
+            lifecycleQueued: 'Queued',
+            lifecycleRunning: 'Running',
+        };
+
+        const completedRender = renderChatMessageItem(
+            {
+                id: 'assistant-message-completed-1',
+                sender: 'AGENT',
+                content: 'Final answer',
+                isComplete: true,
+                lifecycleState: 'completed',
+            },
+            { chatUiTranslations },
+        );
+
+        expect(screen.queryByText('Finished')).toBeNull();
+        completedRender.unmount();
+
+        const queuedRender = renderChatMessageItem(
+            {
+                id: 'assistant-message-queued-1',
+                sender: 'AGENT',
+                content: '',
+                isComplete: false,
+                lifecycleState: 'queued',
+            },
+            { chatUiTranslations },
+        );
+
+        expect(screen.getByText('Queued')).toBeDefined();
+        queuedRender.unmount();
+
+        renderChatMessageItem(
+            {
+                id: 'assistant-message-running-1',
+                sender: 'AGENT',
+                content: '',
+                isComplete: false,
+                lifecycleState: 'running',
+            },
+            { chatUiTranslations },
+        );
+
+        expect(screen.getByText('Running')).toBeDefined();
     });
 });
 

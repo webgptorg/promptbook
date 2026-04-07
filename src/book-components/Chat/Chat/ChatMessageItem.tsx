@@ -480,6 +480,8 @@ type ToolCallChipEntry = {
 /**
  * Resolves the compact lifecycle badge label rendered below durable chat messages.
  *
+ * Completed messages intentionally return `null` so the UI stays focused on active or exceptional states.
+ *
  * @private internal helper of `<ChatMessageItem/>`
  */
 function resolveMessageLifecycleLabel(
@@ -500,7 +502,7 @@ function resolveMessageLifecycleLabel(
         case 'cancelled':
             return chatUiTranslations?.lifecycleCancelled || 'Cancelled';
         case 'completed':
-            return chatUiTranslations?.lifecycleCompleted || 'Completed';
+            return null;
         default:
             return null;
     }
