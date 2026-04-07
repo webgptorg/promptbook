@@ -3,26 +3,10 @@
 import promptbookLogoBlueTransparent from '@/public/logo-blue-white-256.png';
 import { logoutAction } from '@/src/app/actions';
 import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
-import {
-    ArrowRight,
-    BarChart3,
-    ChevronDown,
-    ChevronRight,
-    Code2,
-    FolderIcon,
-    Globe2,
-    KeyRound,
-    Lock,
-    LogIn,
-    LogOut,
-    Settings2,
-    UserRound,
-    Wrench,
-    type LucideIcon,
-} from 'lucide-react';
+import { ArrowRight, ChevronDown, FolderIcon, Lock, LogIn, LogOut } from 'lucide-react';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import type { CSSProperties, MouseEvent, ReactNode } from 'react';
+import type { MouseEvent } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { HamburgerMenu } from '../../../../../src/book-components/_common/HamburgerMenu/HamburgerMenu';
 import { useMenuHoisting } from '../../../../../src/book-components/_common/MenuHoisting/MenuHoistingContext';
@@ -31,11 +15,9 @@ import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/reso
 import { just } from '../../../../../src/utils/organization/just';
 import { RESERVED_PATHS } from '../../generated/reservedPaths';
 import { buildAgentFolderContext } from '../../utils/agentOrganization/agentFolderContext';
-import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
-import type { ChatFeedbackMode } from '../../utils/chatFeedbackMode';
-import type { UserInfo } from '../../utils/getCurrentUser';
+import type { AgentOrganizationAgent } from '../../utils/agentOrganization/types';
 import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
-import { appendHeadlessParam, HeadlessLink, pushWithHeadless, useIsHeadless } from '../_utils/headlessParam';
+import { HeadlessLink, pushWithHeadless, useIsHeadless } from '../_utils/headlessParam';
 import {
     useAgentContextMenuItems,
     useInstallPromptState,
@@ -47,7 +29,7 @@ import { showAlert, showLoginDialog } from '../AsyncDialogs/asyncDialogs';
 import { ChangePasswordDialog } from '../ChangePasswordDialog/ChangePasswordDialog';
 import { useNewAgentDialog } from '../NewAgentDialog/useNewAgentDialog';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
-import { DropdownSubMenuPortal } from './DropdownSubMenuPortal';
+import { buildHeaderSystemMenuItems } from './buildHeaderSystemMenuItems';
 import {
     AgentDirectoryDropdown,
     AgentNameWithAvatar,
@@ -63,103 +45,19 @@ import {
     resolveActiveAgentNavigation,
     type HeaderAgentMenuFolder,
 } from './buildAgentMenuStructure';
+import { createHeaderDropdownRenderers } from './createHeaderDropdownRenderers';
 import { buildDocumentationDropdownItems } from './buildDocumentationDropdownItems';
 import { HeaderControlPanelDropdown } from './ControlPanel/ControlPanel';
+import { HeaderDesktopTopMenuNavigation } from './HeaderDesktopTopMenuNavigation';
+import { HeaderMobileDrawer } from './HeaderMobileDrawer';
 import { HeaderSearchBox } from './HeaderSearchBox';
+import type { DropdownInteractionMode, HeaderProps, MenuItem, OpenSubMenuState } from './HeaderTypes';
 import { useMobileMenuHoisting } from './MobileMenuHoistingContext';
 import type { SubMenuItem } from './SubMenuItem';
 import { useHeaderDropdownPortalContainer } from './useHeaderDropdownPortalContainer';
 import { useHeaderTouchInput } from './useHeaderTouchInput';
 
-type HeaderProps = {
-    /**
-     * Is the user an admin
-     */
-    isAdmin?: boolean;
-    /**
-     * Whether the current admin is the environment-backed super-admin.
-     */
-    isGlobalAdmin?: boolean;
-
-    /**
-     * Current user info (if logged in)
-     */
-    currentUser?: UserInfo | null;
-
-    /**
-     * The name of the server
-     */
-    serverName: string;
-
-    /**
-     * The URL of the logo displayed in the heading bar
-     */
-    serverLogoUrl: string | null;
-
-    /**
-     * List of agents
-     */
-    agents: Array<AgentOrganizationAgent>;
-
-    /**
-     * List of folders that organize local agents.
-     */
-    agentFolders: Array<AgentOrganizationFolder>;
-
-    /**
-     * List of federated servers for navigation dropdown
-     */
-    federatedServers: Array<{ url: string; title: string; logoUrl?: string | null }>;
-
-    /**
-     * Is the experimental app enabled
-     */
-    isExperimental?: boolean;
-    /**
-     * Determines which chat feedback mode is active.
-     */
-    feedbackMode?: ChatFeedbackMode;
-};
-
 /* TODO: [🐱‍🚀] Make this Agents server native  */
-
-type MenuItemBase = {
-    /**
-     * @private Unique identifier used for hover timers and shared actions.
-     */
-    readonly id: string;
-};
-
-type MenuItem =
-    | (MenuItemBase & {
-          type: 'link';
-          label: ReactNode;
-          href: string;
-      })
-    | (MenuItemBase & {
-          type: 'dropdown';
-          label: ReactNode;
-          isOpen: boolean;
-          setIsOpen: (isOpen: boolean) => void;
-          isMobileOpen: boolean;
-          setIsMobileOpen: (isOpen: boolean) => void;
-          items: Array<SubMenuItem>;
-          renderMenu?: () => ReactNode;
-      });
-
-/**
- * Tracks the currently open nested dropdown along with its anchor rectangle.
- */
-type OpenSubMenuState = {
-    key: string;
-    rect: DOMRect;
-    items: SubMenuItem[];
-};
-
-/**
- * Shared interaction mode used by desktop dropdowns and nested submenus.
- */
-type DropdownInteractionMode = 'preview' | 'interactive';
 
 /**
  * Delay before hover opens a top-level desktop dropdown in preview mode.
@@ -177,10 +75,6 @@ const SUBMENU_HOVER_OPEN_DELAY_MS = 140;
  */
 const HEADER_DROPDOWN_CLOSE_DELAY_MS = 280;
 /**
- * Horizontal indentation applied for each nested submenu level in mobile navigation.
- */
-const MOBILE_SUBMENU_INDENT_PX = 14;
-/**
  * Maximum horizontal distance from the left viewport edge that can start an "open drawer" swipe.
  */
 const MOBILE_MENU_EDGE_SWIPE_START_X_PX = 24;
@@ -196,14 +90,7 @@ const MOBILE_MENU_SWIPE_MAX_VERTICAL_DRIFT_PX = 44;
  * Maximum gesture duration considered a deliberate drawer swipe.
  */
 const MOBILE_MENU_SWIPE_MAX_DURATION_MS = 700;
-/**
- * Prefix used for route-hoisted trees rendered in the mobile drawer.
- */
-const HOISTED_MOBILE_MENU_PREFIX = 'mobile-hoisted-menu';
-/**
- * First hoisted subtree key opened by default so chat shortcuts are immediately visible.
- */
-const DEFAULT_HOISTED_MOBILE_MENU_KEY = `${HOISTED_MOBILE_MENU_PREFIX}-0`;
+const DEFAULT_HOISTED_MOBILE_MENU_KEY = 'mobile-hoisted-menu-0';
 
 /**
  * Tracks one in-progress touch gesture for mobile drawer swipe interactions.
@@ -228,60 +115,9 @@ type MobileMenuSwipeGesture = {
 };
 
 /**
- * Supported category names inside the System dropdown.
- */
-type SystemCategoryLabel =
-    | 'My Account'
-    | 'Utilities'
-    | 'Administration'
-    | 'Monitoring & Usage'
-    | 'Integrations & Keys'
-    | 'Developer / Debug'
-    | 'Legal & About';
-
-/**
- * Default icon used for each System dropdown category.
- */
-const SYSTEM_CATEGORY_ICON_MAP: Record<SystemCategoryLabel, LucideIcon> = {
-    'My Account': UserRound,
-    Utilities: Wrench,
-    Administration: Settings2,
-    'Monitoring & Usage': BarChart3,
-    'Integrations & Keys': KeyRound,
-    'Developer / Debug': Code2,
-    'Legal & About': Globe2,
-};
-/**
  * Shared immutable fallback for mobile drawer sections when no route-level entries are hoisted.
  */
 const EMPTY_HOISTED_MOBILE_MENU_ITEMS: ReadonlyArray<SubMenuItem> = [];
-/**
- * Shared style for top-level interactive rows in the mobile drawer.
- */
-const MOBILE_DRAWER_TOP_LEVEL_BUTTON_CLASSNAME =
-    'w-full flex items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100';
-/**
- * Shared compact panel surface used by collapsible mobile drawer sections.
- */
-const MOBILE_DRAWER_PANEL_CLASSNAME =
-    'w-full flex flex-col gap-1 rounded-lg border border-gray-200 bg-gray-50/80 p-2.5 shadow-sm';
-
-/**
- * Propagates one fallback icon to submenu entries that do not specify their own icon.
- */
-function applyFallbackSubMenuIcon(
-    items: ReadonlyArray<SubMenuItem>,
-    fallbackIcon: NonNullable<SubMenuItem['icon']>,
-): SubMenuItem[] {
-    return items.map((item) => {
-        const resolvedIcon = item.icon ?? fallbackIcon;
-        return {
-            ...item,
-            icon: resolvedIcon,
-            items: item.items ? applyFallbackSubMenuIcon(item.items, resolvedIcon) : item.items,
-        };
-    });
-}
 
 /**
  * Reserved top-level routes that cannot be interpreted as an agent alias.
@@ -893,363 +729,40 @@ export function Header(props: HeaderProps) {
             [key]: !previous[key],
         }));
     };
+    const closeInteractiveSubMenu = useCallback((key: string) => {
+        setOpenSubMenu(null);
+        setSubMenuMode(key, null);
+    }, []);
 
-    /**
-     * Returns consistent left padding for one mobile menu depth level.
-     */
-    const createMobileMenuItemPaddingStyle = (depth: number) => ({
-        paddingLeft: `${12 + depth * MOBILE_SUBMENU_INDENT_PX}px`,
-    });
-
-    /**
-     * Renders one submenu label with a consistent optional leading icon.
-     */
-    const renderSubMenuItemLabel = (item: SubMenuItem): ReactNode => {
-        const ItemIcon = item.icon;
-
-        if (!ItemIcon) {
-            return item.label;
-        }
-
-        return (
-            <span className="flex min-w-0 items-center gap-2">
-                <ItemIcon className="h-4 w-4 shrink-0 text-gray-500" aria-hidden />
-                <span className="min-w-0">{item.label}</span>
-            </span>
-        );
-    };
-
-    /**
-     * Renders one leaf mobile menu item as link, action button, or plain label.
-     */
-    const renderMobileMenuLeafItem = (
-        item: SubMenuItem,
-        itemKey: string,
-        depth: number,
-        className: string,
-        style: CSSProperties,
-    ) => {
-        if (item.href) {
-            return (
-                <HeadlessLink
-                    key={itemKey}
-                    href={item.href}
-                    className={className}
-                    style={style}
-                    onClick={() => {
-                        void item.onClick?.();
-                        setIsMenuOpen(false);
-                    }}
-                >
-                    {renderSubMenuItemLabel(item)}
-                </HeadlessLink>
-            );
-        }
-
-        if (item.onClick) {
-            return (
-                <button
-                    key={itemKey}
-                    type="button"
-                    className={`${className} w-full text-left`}
-                    style={style}
-                    onClick={() => {
-                        void item.onClick?.();
-                        setIsMenuOpen(false);
-                    }}
-                >
-                    {renderSubMenuItemLabel(item)}
-                </button>
-            );
-        }
-
-        return (
-            <span key={itemKey} className={className} style={createMobileMenuItemPaddingStyle(depth)}>
-                {renderSubMenuItemLabel(item)}
-            </span>
-        );
-    };
-
-    /**
-     * Renders nested mobile submenu items with click-to-toggle behavior.
-     */
-    const renderMobileNestedMenuItems = (
-        items: ReadonlyArray<SubMenuItem>,
-        keyPrefix: string,
-        depth = 0,
-    ): ReactNode => {
-        return (
-            <div className={`w-full flex flex-col gap-1 ${depth > 0 ? 'mt-1 border-l border-gray-200 pl-1.5' : ''}`}>
-                {items.map((item, index) => {
-                    const itemKey = `${keyPrefix}-${index}`;
-                    const hasChildren = Boolean(item.items && item.items.length > 0);
-                    const isSubMenuOpen = Boolean(mobileOpenSubMenus[itemKey]);
-                    const borderClass = item.isBordered ? 'border-b border-gray-200' : '';
-                    const leafClassName =
-                        `block rounded-md py-2.5 pr-3 text-sm transition-all duration-150 hover:shadow-sm active:scale-98 ${
-                            item.isBold
-                                ? 'font-semibold text-gray-900 hover:bg-blue-50 hover:text-blue-600'
-                                : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                        } ${borderClass}`.trim();
-                    const indentationStyle = createMobileMenuItemPaddingStyle(depth);
-
-                    if (!hasChildren) {
-                        return renderMobileMenuLeafItem(item, itemKey, depth, leafClassName, indentationStyle);
-                    }
-
-                    return (
-                        <div key={itemKey} className={`w-full flex flex-col ${borderClass}`}>
-                            <button
-                                className="w-full flex items-center justify-between gap-2 rounded-md py-2.5 pr-3 text-left text-sm font-semibold text-gray-800 hover:bg-white hover:text-blue-600 active:bg-gray-100 active:scale-98 transition-all duration-150"
-                                style={indentationStyle}
-                                onClick={() => toggleMobileSubMenu(itemKey)}
-                            >
-                                <span className="min-w-0 flex-1">{renderSubMenuItemLabel(item)}</span>
-                                <ChevronDown
-                                    className={`w-4 h-4 flex-shrink-0 transition-transform duration-200 ${
-                                        isSubMenuOpen ? 'rotate-180' : ''
-                                    }`}
-                                />
-                            </button>
-                            {isSubMenuOpen && renderMobileNestedMenuItems(item.items || [], itemKey, depth + 1)}
-                        </div>
-                    );
-                })}
-            </div>
-        );
-    };
-
-    /**
-     * Renders one leaf action/link/label inside a desktop dropdown tree.
-     */
-    const renderDesktopDropdownLeaf = (
-        item: SubMenuItem,
-        key: string,
-        className: string,
-        onItemSelected: () => void,
-    ) => {
-        if (item.href) {
-            const navigateToItemHref = () => {
-                void item.onClick?.();
-                onItemSelected();
-
-                const destination = appendHeadlessParam(item.href as string, isHeadless);
-                if (typeof window !== 'undefined') {
-                    window.location.assign(destination);
-                    return;
-                }
-
-                pushWithHeadless(router, item.href as string, isHeadless);
-            };
-
-            return (
-                <button
-                    key={key}
-                    type="button"
-                    className={`${className} w-full text-left`}
-                    onMouseDown={(event) => {
-                        if (event.button !== 0 || event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) {
-                            return;
-                        }
-                        event.preventDefault();
-                        navigateToItemHref();
-                    }}
-                    onClick={(event) => {
-                        if (event.defaultPrevented) {
-                            return;
-                        }
-                        event.preventDefault();
-                        navigateToItemHref();
-                    }}
-                >
-                    {renderSubMenuItemLabel(item)}
-                </button>
-            );
-        }
-
-        if (item.onClick) {
-            return (
-                <button
-                    key={key}
-                    type="button"
-                    onClick={() => {
-                        void item.onClick?.();
-                        onItemSelected();
-                    }}
-                    className={`${className} w-full text-left`}
-                >
-                    {renderSubMenuItemLabel(item)}
-                </button>
-            );
-        }
-
-        return (
-            <span key={key} className={className}>
-                {renderSubMenuItemLabel(item)}
-            </span>
-        );
-    };
-
-    /**
-     * Renders nested dropdown branches for touch-first desktop navigation.
-     */
-    const renderTouchDesktopDropdownItems = (
-        items: ReadonlyArray<SubMenuItem>,
-        keyPrefix: string,
-        onItemSelected: () => void,
-        depth = 0,
-    ): ReactNode => (
-        <div className={`grid auto-rows-min gap-1 ${depth > 0 ? 'mt-1 border-l border-gray-200 pl-2' : ''}`}>
-            {items.map((item, index) => {
-                const itemKey = `${keyPrefix}-${index}`;
-                const hasChildren = Boolean(item.items && item.items.length > 0);
-                const borderClass = item.isBordered ? 'border-b border-gray-100 pb-1' : '';
-                const leafClassName = `block rounded-lg px-3 py-2 text-sm ${
-                    item.isBold ? 'font-medium text-gray-900' : 'text-gray-700'
-                } hover:bg-white hover:text-gray-900 transition-colors ${borderClass}`;
-
-                if (!hasChildren) {
-                    return renderDesktopDropdownLeaf(item, itemKey, leafClassName, onItemSelected);
-                }
-
-                const isNestedOpen = Boolean(desktopExpandedSubMenus[itemKey]);
-                return (
-                    <div key={itemKey} className={borderClass}>
-                        <button
-                            type="button"
-                            onClick={() => toggleDesktopSubMenu(itemKey)}
-                            className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-medium text-gray-700 transition-colors hover:bg-white hover:text-gray-900"
-                        >
-                            <span className="min-w-0 flex-1">{renderSubMenuItemLabel(item)}</span>
-                            <ChevronDown
-                                className={`h-3 w-3 text-gray-400 transition-transform ${
-                                    isNestedOpen ? 'rotate-180' : ''
-                                }`}
-                            />
-                        </button>
-                        {isNestedOpen &&
-                            renderTouchDesktopDropdownItems(item.items || [], itemKey, onItemSelected, depth + 1)}
-                    </div>
-                );
-            })}
-        </div>
+    const fallbackNavigateToHref = useCallback(
+        (href: string) => {
+            pushWithHeadless(router, href, isHeadless);
+        },
+        [isHeadless, router],
     );
 
-    /**
-     * Renders shared desktop dropdown content used by top-level and breadcrumb menus.
-     */
-    const renderDesktopDropdownItems = (
-        items: ReadonlyArray<SubMenuItem>,
-        menuId: string,
-        keyPrefix: string,
-        closeMenu: () => void,
-    ): ReactNode =>
-        items.map((item, index) => {
-            const itemKey = `${keyPrefix}-${index}`;
-            const borderClass = item.isBordered ? 'border-b border-gray-100' : '';
-            const baseClassName = `mx-1 block rounded-lg px-3 py-2.5 text-sm ${
-                item.isBold ? 'font-medium text-gray-900' : 'text-gray-600'
-            } hover:bg-gray-50 hover:text-gray-900 transition-colors ${borderClass}`;
-            const childItems = item.items || [];
-            const hasChildren = childItems.length > 0;
-
-            if (!hasChildren) {
-                return renderDesktopDropdownLeaf(item, itemKey, baseClassName, closeMenu);
-            }
-
-            const isSubMenuOpen = !isTouchInput && openSubMenu?.key === itemKey;
-            const isTapSubMenuOpen = Boolean(desktopExpandedSubMenus[itemKey]);
-            const isSubMenuInteractive = isNestedSubMenuInteractive(itemKey);
-            const isSubMenuPointerEnabled = isNestedSubMenuPointerEnabled(itemKey);
-
-            return (
-                <div
-                    key={itemKey}
-                    className={`relative mx-1 rounded-lg ${borderClass}`}
-                    onMouseEnter={(event) => {
-                        if (isTouchInput) {
-                            return;
-                        }
-                        scheduleSubMenuPreviewOpen(itemKey, childItems, event);
-                        cancelMenuClose(menuId);
-                    }}
-                    onMouseLeave={() => {
-                        if (isTouchInput) {
-                            return;
-                        }
-                        scheduleSubMenuClose(itemKey);
-                    }}
-                >
-                    <button
-                        type="button"
-                        className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm ${
-                            item.isBold ? 'font-medium text-gray-900' : 'text-gray-600'
-                        } hover:bg-gray-50 hover:text-gray-900 transition-colors`}
-                        onClick={(event) => {
-                            cancelMenuClose(menuId);
-                            if (isTouchInput) {
-                                toggleDesktopSubMenu(itemKey);
-                                return;
-                            }
-
-                            const rect = (event.currentTarget.parentElement ?? event.currentTarget).getBoundingClientRect();
-                            if (openSubMenu?.key === itemKey && isSubMenuInteractive) {
-                                setOpenSubMenu(null);
-                                setSubMenuMode(itemKey, null);
-                                return;
-                            }
-                            openInteractiveSubMenu(itemKey, childItems, rect);
-                        }}
-                    >
-                        <span className="min-w-0 flex-1">{renderSubMenuItemLabel(item)}</span>
-                        <ChevronRight
-                            className={`h-3 w-3 text-gray-400 transition-transform ${
-                                isTouchInput && isTapSubMenuOpen ? 'rotate-90' : ''
-                            }`}
-                        />
-                    </button>
-
-                    {isTouchInput && isTapSubMenuOpen && (
-                        <div className="mx-1 mb-2 rounded-xl border border-gray-100 bg-gradient-to-b from-white to-gray-50/80 p-2">
-                            {renderTouchDesktopDropdownItems(childItems, itemKey, closeMenu)}
-                        </div>
-                    )}
-
-                    {isSubMenuOpen && openSubMenu && (
-                        <DropdownSubMenuPortal
-                            anchorRect={openSubMenu.rect}
-                            container={dropdownPortalContainer}
-                            isInteractive={isSubMenuPointerEnabled}
-                            onMouseEnter={() => {
-                                keepSubMenuOpen();
-                                cancelMenuClose(menuId);
-                            }}
-                            onMouseLeave={() => {
-                                handleSubMenuPortalLeave();
-                                scheduleMenuClose(menuId, closeMenu);
-                            }}
-                        >
-                            <div
-                                className={`max-h-[70vh] w-[min(320px,calc(100vw-4rem))] overflow-y-auto rounded-xl border border-gray-100 bg-white/95 p-2 shadow-xl shadow-slate-900/10 backdrop-blur ${
-                                    isSubMenuPointerEnabled ? 'pointer-events-auto' : 'pointer-events-none'
-                                }`}
-                            >
-                                <div className="flex flex-col gap-1">
-                                    {childItems.map((child, childIndex) =>
-                                        renderDesktopDropdownLeaf(
-                                            child,
-                                            `${itemKey}-portal-child-${childIndex}`,
-                                            'block rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors',
-                                            closeMenu,
-                                        ),
-                                    )}
-                                </div>
-                            </div>
-                        </DropdownSubMenuPortal>
-                    )}
-                </div>
-            );
-        });
+    const { renderMobileNestedMenuItems, renderDesktopDropdownItems } = createHeaderDropdownRenderers({
+        isTouchInput,
+        openSubMenu,
+        mobileOpenSubMenus,
+        desktopExpandedSubMenus,
+        dropdownPortalContainer,
+        toggleMobileSubMenu,
+        toggleDesktopSubMenu,
+        closeMobileMenu,
+        isNestedSubMenuInteractive,
+        isNestedSubMenuPointerEnabled,
+        scheduleSubMenuPreviewOpen,
+        cancelMenuClose,
+        scheduleSubMenuClose,
+        openInteractiveSubMenu,
+        closeInteractiveSubMenu,
+        keepSubMenuOpen,
+        handleSubMenuPortalLeave,
+        scheduleMenuClose,
+        fallbackNavigateToHref,
+        isHeadless,
+    });
 
     const agentMenuStructure = useMemo(() => buildAgentMenuStructure(agents, agentFolders), [agents, agentFolders]);
     const agentFolderById = useMemo(
@@ -1282,6 +795,7 @@ export function Header(props: HeaderProps) {
         ? createAgentHierarchyLabel(activeAgent, agentFolderById)
         : activeAgentIdentifier || t('header.agentsLabelFallback', { agentsPlural: naming.plural });
     const activeAgentView = activeAgentNavigation.view;
+    const activeAgentViewLabel = activeAgentView ? createAgentViewLabel(activeAgentView, t) : null;
     const activeAgentFallback = useMemo(() => createFallbackAgent(activeAgentNavigationId), [activeAgentNavigationId]);
     const activeAgentMenuAgent = activeAgent || activeAgentFallback;
     const activeAgentFolderContext = useMemo(
@@ -1303,6 +817,10 @@ export function Header(props: HeaderProps) {
     const currentUserDisplayName = currentUser?.username || t('common.admin');
     const currentUserAvatarLabel = currentUserDisplayName.slice(0, 1).toUpperCase();
     const currentUserProfileImageUrl = currentUser?.profileImageUrl?.trim() || null;
+    const isCurrentUserAdmin = Boolean(currentUser?.isAdmin || isAdmin);
+    const closeMobileMenu = useCallback(() => {
+        setIsMenuOpen(false);
+    }, []);
     /**
      * Opens the active agent QR code modal.
      */
@@ -1670,98 +1188,6 @@ export function Header(props: HeaderProps) {
     });
 
     /**
-     * @private Creates one category entry inside the System dropdown when there are items to show.
-     */
-    const createSystemCategory = (
-        label: SystemCategoryLabel,
-        items: ReadonlyArray<SubMenuItem>,
-    ): SubMenuItem[] => {
-        if (items.length === 0) {
-            return [];
-        }
-
-        const categoryIcon = SYSTEM_CATEGORY_ICON_MAP[label];
-        return [
-            {
-                label,
-                icon: categoryIcon,
-                items: applyFallbackSubMenuIcon(items, categoryIcon),
-            },
-        ];
-    };
-
-    /**
-     * @private Personal settings available for every browser user, with account-only links added when authenticated.
-     */
-    const userAccountSystemItems: SubMenuItem[] = [
-        {
-            label: 'Settings',
-            href: '/system/settings',
-            isBold: true,
-        },
-        ...(currentUser
-            ? [
-                  {
-                      label: t('common.profile'),
-                      href: '/system/profile',
-                  },
-                  {
-                      label: t('header.userMemory'),
-                      href: '/system/user-memory',
-                  },
-                  {
-                      label: t('header.userWallet'),
-                      href: '/system/user-wallet',
-                  },
-              ]
-            : []),
-    ];
-
-    /**
-     * @private Informational links grouped under the Legal & About category.
-     */
-    const legalAndAboutSystemItems: SubMenuItem[] = [
-        ...(isAdmin
-            ? [
-                  {
-                      label: t('header.versionInfo'),
-                      href: '/admin/about',
-                  } as SubMenuItem,
-              ]
-            : []),
-        {
-            label: t('header.landingPage'),
-            href: 'https://ptbk.io/',
-        },
-    ];
-
-    /**
-     * @private Utility links available to authenticated users.
-     */
-    const utilitiesSystemItems: SubMenuItem[] = currentUser
-        ? [
-              {
-                  label: t('header.utilities'),
-                  href: '/system/utilities',
-                  isBold: true,
-              },
-              {
-                  label: t('header.mockedChats'),
-                  href: '/system/utilities/mocked-chats',
-              },
-          ]
-        : [];
-
-    /**
-     * @private System menu entries exposed to non-admin users.
-     */
-    const userSystemItems: SubMenuItem[] = [
-        ...createSystemCategory('My Account', userAccountSystemItems),
-        ...createSystemCategory('Utilities', utilitiesSystemItems),
-        ...createSystemCategory('Legal & About', legalAndAboutSystemItems),
-    ];
-
-    /**
      * @private Shared dropdown props that keep every System menu item wired to the same open/close state.
      */
     const systemDropdownBase: Omit<Extract<MenuItem, { type: 'dropdown' }>, 'items'> = {
@@ -1782,165 +1208,19 @@ export function Header(props: HeaderProps) {
         items,
     });
 
-    /**
-     * @private Administration-focused actions shown inside the System dropdown.
-     */
-    const administrationSystemItems: SubMenuItem[] = [
-        /*
-        Note: [🙍] `/dashboard` is available but intentionally not linked from the header
-
-        {
-            label: 'Dashboard',
-            href: '/dashboard',
-            isBold: true,
-            isBordered: true,
-        } as SubMenuItem,
-        */
-        ...(isGlobalAdmin
-            ? [
-                  {
-                      label: t('header.servers'),
-                      href: '/admin/servers',
-                      isBold: true,
-                  } as SubMenuItem,
-              ]
-            : []),
-        {
-            label: t('header.models'),
-            href: '/admin/models',
-        },
-        {
-            label: t('header.metadata'),
-            href: '/admin/metadata',
-        },
-        {
-            label: 'Tool limits',
-            href: '/admin/tool-limits',
-        },
-        {
-            label: t('header.messagesEmails'),
-            href: '/admin/messages',
-        },
-        {
-            label: 'Backups',
-            href: '/admin/backup',
-            isBordered: true,
-        },
-        {
-            label: t('header.users'),
-            href: '/admin/users',
-            isBold: true,
-            isBordered: true,
-        },
-        {
-            label: t('header.customCss'),
-            href: '/admin/custom-css',
-        },
-        {
-            label: t('header.customJs'),
-            href: '/admin/custom-js',
-        },
-        {
-            label: t('header.imagesGallery'),
-            href: '/admin/images',
-        },
-        {
-            label: t('header.files'),
-            href: '/admin/files',
-        },
-    ];
-
-    /**
-     * @private Monitoring and analytics links shown inside the System dropdown.
-     */
-    const monitoringAndUsageSystemItems: SubMenuItem[] = [
-        {
-            label: t('header.usageAnalytics'),
-            href: '/admin/usage',
-        },
-        {
-            label: t('header.taskManager'),
-            href: '/admin/task-manager',
-        },
-        {
-            label: t('header.chatHistory'),
-            href: '/admin/chat-history',
-        },
-        ...(feedbackMode !== 'off'
-            ? [
-                  {
-                      label: t('header.chatFeedback'),
-                      href: '/admin/chat-feedback',
-                  } as SubMenuItem,
-              ]
-            : []),
-    ];
-
-    /**
-     * @private API and external integration entry points shown inside the System dropdown.
-     */
-    const integrationsAndKeysSystemItems: SubMenuItem[] = [
-        {
-            label: t('header.apiTokens'),
-            href: '/admin/api-tokens',
-        },
-        {
-            label: t('header.openApiDocumentation'),
-            href: '/swagger',
-        },
-    ];
-
-    /**
-     * @private Developer and debugging tools shown inside the System dropdown.
-     */
-    const developerDebugSystemItems: SubMenuItem[] = [
-        {
-            label: t('header.browser'),
-            href: '/admin/browser-test',
-        },
-        {
-            label: t('header.voiceInputTest'),
-            href: '/admin/voice-input-test',
-        },
-        // Note: Commented out because image generator can became a paid feature later for the clients
-        // {
-        //     label: 'Image Generator Test',
-        //     href: '/admin/image-generator-test',
-        // },
-        {
-            label: t('header.searchEngineTest'),
-            href: '/admin/search-engine-test',
-        },
-        {
-            label: 'Error simulation',
-            href: '/admin/error-simulation',
-        },
-        ...(isExperimental
-            ? [
-                  {
-                      label: t('header.story'),
-                      href: '/experiments/story',
-                      isBold: true,
-                  } as SubMenuItem,
-              ]
-            : []),
-    ];
-
-    /**
-     * @private System menu entries exposed to admins.
-     */
-    const adminSystemMenuItems: SubMenuItem[] = [
-        ...createSystemCategory('My Account', userAccountSystemItems),
-        ...createSystemCategory('Utilities', utilitiesSystemItems),
-        ...createSystemCategory('Administration', administrationSystemItems),
-        ...createSystemCategory('Monitoring & Usage', monitoringAndUsageSystemItems),
-        ...createSystemCategory('Integrations & Keys', integrationsAndKeysSystemItems),
-        ...createSystemCategory('Developer / Debug', developerDebugSystemItems),
-        ...createSystemCategory('Legal & About', legalAndAboutSystemItems),
-    ];
-
     const hasMenuAccess = Boolean(currentUser || isAdmin);
-    const systemMenuEntries = isAdmin ? adminSystemMenuItems : userSystemItems;
+    const systemMenuEntries = useMemo(
+        () =>
+            buildHeaderSystemMenuItems({
+                translate: t,
+                currentUser,
+                isAdmin,
+                isGlobalAdmin,
+                isExperimental,
+                feedbackMode,
+            }),
+        [currentUser, feedbackMode, isAdmin, isExperimental, isGlobalAdmin, t],
+    );
     const shouldShowSystemMenu = systemMenuEntries.length > 0;
 
     // Menu items configuration (DRY principle)
@@ -1982,93 +1262,6 @@ export function Header(props: HeaderProps) {
             }));
         }
     }, [hoistedMobileMenuItems, isMenuOpen]);
-
-
-    /**
-     * Renders desktop top-level navigation entries shown to the right of the centered search slot.
-     */
-    const renderDesktopTopMenuNavigation = () => (
-        <nav className="hidden lg:flex items-center gap-4 xl:gap-6">
-            {menuItems.map((item, index) => {
-                if (item.type === 'link') {
-                    return (
-                        <HeadlessLink
-                            key={index}
-                            href={item.href}
-                            className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                        >
-                            {item.label}
-                        </HeadlessLink>
-                    );
-                }
-
-                if (item.type === 'dropdown') {
-                    const dropdownItems = item.items ?? [];
-                    const closeDropdown = () => {
-                        closeDesktopDropdownNow(item.id, () => item.setIsOpen(false));
-                    };
-                    const toggleDropdown = () => {
-                        if (item.isOpen && isDesktopDropdownInteractive(item.id)) {
-                            closeDropdown();
-                            return;
-                        }
-                        openInteractiveDesktopDropdown(item.id, () => item.setIsOpen(true));
-                    };
-                    const isDropdownPointerEnabled = isDesktopDropdownPointerEnabled(item.id);
-
-                    return (
-                        <div
-                            key={index}
-                            className="relative"
-                            onMouseEnter={() => {
-                                startDesktopDropdownPreview(item.id, item.isOpen, () => item.setIsOpen(true));
-                            }}
-                            onMouseLeave={() => scheduleMenuClose(item.id, () => item.setIsOpen(false))}
-                        >
-                            <button
-                                type="button"
-                                className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                                onClick={toggleDropdown}
-                                onMouseEnter={() => {
-                                    startDesktopDropdownPreview(item.id, item.isOpen, () => item.setIsOpen(true));
-                                }}
-                                onBlur={() => scheduleMenuClose(item.id, () => item.setIsOpen(false))}
-                                aria-expanded={item.isOpen}
-                            >
-                                {item.label}
-                                <ChevronDown className="w-4 h-4" />
-                            </button>
-
-                            {item.isOpen && (
-                                <div
-                                    className={`absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-2xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 backdrop-blur ${
-                                        isDropdownPointerEnabled ? 'pointer-events-auto' : 'pointer-events-none'
-                                    }`}
-                                    onMouseEnter={() => cancelMenuClose(item.id)}
-                                    onMouseLeave={() => scheduleMenuClose(item.id, () => item.setIsOpen(false))}
-                                >
-                                    {item.renderMenu ? (
-                                        <div className="relative">{item.renderMenu()}</div>
-                                    ) : (
-                                        <div className="max-h-[80vh] overflow-y-auto overflow-x-visible">
-                                            {renderDesktopDropdownItems(
-                                                dropdownItems,
-                                                item.id,
-                                                `${item.id}-dropdown`,
-                                                closeDropdown,
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    );
-                }
-
-                return null;
-            })}
-        </nav>
-    );
 
     return (
         <header
@@ -2387,7 +1580,17 @@ export function Header(props: HeaderProps) {
 
                     {/* CTA Button & Mobile Menu Toggle */}
                     <div className="ml-auto flex items-center gap-2 sm:gap-3 md:gap-4 flex-shrink-0 lg:ml-0 lg:justify-self-end">
-                        {renderDesktopTopMenuNavigation()}
+                        <HeaderDesktopTopMenuNavigation
+                            items={menuItems}
+                            isDesktopDropdownInteractive={isDesktopDropdownInteractive}
+                            openInteractiveDesktopDropdown={openInteractiveDesktopDropdown}
+                            closeDesktopDropdownNow={closeDesktopDropdownNow}
+                            startDesktopDropdownPreview={startDesktopDropdownPreview}
+                            scheduleMenuClose={scheduleMenuClose}
+                            cancelMenuClose={cancelMenuClose}
+                            isDesktopDropdownPointerEnabled={isDesktopDropdownPointerEnabled}
+                            renderDesktopDropdownItems={renderDesktopDropdownItems}
+                        />
                         {menuHoisting && menuHoisting.menu.length > 0 && (
                             <div className="hidden lg:flex items-center gap-2 border-r border-gray-200 pr-4 mr-2">
                                 {menuHoisting.menu.map((item, index) => (
@@ -2527,317 +1730,51 @@ export function Header(props: HeaderProps) {
                     </div>
                 </div>
 
-                {/* Mobile Navigation Backdrop */}
-                {isMenuOpen && (
-                    <div
-                        className="lg:hidden fixed inset-0 z-[70] bg-slate-900/35 backdrop-blur-sm animate-in fade-in duration-200"
-                        onClick={() => setIsMenuOpen(false)}
-                    />
-                )}
-
-                {/* Mobile Navigation */}
-                {isMenuOpen && (
-                    <div
-                        ref={mobileMenuDrawerRef}
-                        className="lg:hidden fixed inset-y-0 left-0 z-[80] flex h-[100dvh] w-[min(25rem,92vw)] max-w-full flex-col overflow-hidden border-r border-gray-200 bg-white shadow-2xl animate-in slide-in-from-left-4 duration-200"
-                        style={{
-                            backdropFilter: 'blur(20px)',
-                            WebkitBackdropFilter: 'blur(20px)',
-                        }}
-                    >
-                        <nav className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 py-4 pb-6 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-                            {/* Hoisted Mobile Menu Trees */}
-                            {hoistedMobileMenuItems.length > 0 && (
-                                <div className="w-full border-b border-gray-200 pb-4">
-                                    {renderMobileNestedMenuItems(hoistedMobileMenuItems, HOISTED_MOBILE_MENU_PREFIX)}
-                                </div>
-                            )}
-
-                            <div className="w-full border-b border-gray-200 pb-4">
-                                <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.3em] text-gray-400">
-                                    <span>{t('header.menuLabel')}</span>
-                                    {federatedServers.length > 0 && (
-                                        <button
-                                            className="inline-flex p-1 text-gray-500 hover:text-gray-800"
-                                            onClick={() => setIsFederatedOpen(!isFederatedOpen)}
-                                            aria-label={t('header.switchServerAria')}
-                                        >
-                                            <ChevronDown
-                                                className={`h-4 w-4 transition-transform duration-200 ${
-                                                    isFederatedOpen ? 'rotate-180' : ''
-                                                }`}
-                                            />
-                                        </button>
-                                    )}
-                                </div>
-                                <p className="truncate text-base font-semibold text-gray-900">{serverName}</p>
-                                {isFederatedOpen && federatedDropdownItems.length > 0 && (
-                                    <div
-                                        className={`${MOBILE_DRAWER_PANEL_CLASSNAME} mt-3 animate-in fade-in-0 slide-in-from-top-2 duration-200`}
-                                    >
-                                        {federatedDropdownItems.map((subItem, subIndex) => {
-                                            const className = `block rounded-md px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-white hover:text-gray-900 active:bg-gray-100 ${
-                                                subItem.isBold ? 'font-semibold' : ''
-                                            }`;
-                                            if (subItem.href) {
-                                                return (
-                                                    <HeadlessLink
-                                                        key={`mobile-federated-${subIndex}`}
-                                                        href={subItem.href}
-                                                        className={className}
-                                                        onClick={() => setIsMenuOpen(false)}
-                                                    >
-                                                        {subItem.label}
-                                                    </HeadlessLink>
-                                                );
-                                            }
-                                            return (
-                                                <span key={`mobile-federated-${subIndex}`} className={className}>
-                                                    {subItem.label}
-                                                </span>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-
-                                <div className="mt-4 flex w-full flex-col gap-3">
-                                    <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
-                                        <ArrowIcon direction="right" className="h-4 w-4 text-gray-500" />
-                                        {isAdmin ? (
-                                            <button
-                                                className={`${MOBILE_DRAWER_TOP_LEVEL_BUTTON_CLASSNAME} flex-1`}
-                                                onClick={() => setIsMobileAgentsOpen(!isMobileAgentsOpen)}
-                                            >
-                                                <AgentNameWithAvatar
-                                                    label={activeAgentLabel}
-                                                    avatarUrl={activeAgentAvatarUrl}
-                                                    avatarSizeClassName="h-6 w-6"
-                                                    textClassName="text-sm font-semibold text-gray-900"
-                                                    maxWidthClassName="max-w-[12rem]"
-                                                    fallbackIcon={
-                                                        !activeAgent ? (
-                                                            <FolderIcon className="h-4 w-4 text-gray-500" aria-hidden />
-                                                        ) : undefined
-                                                    }
-                                                />
-                                                <ChevronDown
-                                                    className={`h-4 w-4 transition-transform duration-200 ${
-                                                        isMobileAgentsOpen ? 'rotate-180' : ''
-                                                    }`}
-                                                />
-                                            </button>
-                                        ) : (
-                                            <HeadlessLink
-                                                href={activeAgentHref}
-                                                className="flex min-w-0 flex-1 items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold text-gray-900 transition-colors hover:bg-gray-50"
-                                                onClick={() => setIsMenuOpen(false)}
-                                            >
-                                                <AgentNameWithAvatar
-                                                    label={activeAgentLabel}
-                                                    avatarUrl={activeAgentAvatarUrl}
-                                                    avatarSizeClassName="h-6 w-6"
-                                                    textClassName="text-sm font-semibold text-gray-900"
-                                                    maxWidthClassName="max-w-[12rem]"
-                                                    fallbackIcon={
-                                                        !activeAgent ? (
-                                                            <FolderIcon className="h-4 w-4 text-gray-500" aria-hidden />
-                                                        ) : undefined
-                                                    }
-                                                />
-                                            </HeadlessLink>
-                                        )}
-                                    </div>
-
-                                    {isAdmin && isMobileAgentsOpen && (
-                                        <div
-                                            className={`${MOBILE_DRAWER_PANEL_CLASSNAME} max-h-[40vh] overflow-y-auto animate-in fade-in-0 slide-in-from-top-2 duration-200 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100`}
-                                        >
-                                            {renderMobileNestedMenuItems(hierarchyAgentMobileItems, 'mobile-agents')}
-                                        </div>
-                                    )}
-
-                                    {activeAgentView && activeAgentViewItems.length > 0 && (
-                                        <div className="w-full flex flex-col gap-1">
-                                            <div className="flex items-center justify-start gap-2 text-sm font-medium text-gray-700">
-                                                <ArrowIcon direction="right" className="h-4 w-4 text-gray-500" />
-                                                <button
-                                                    className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-gray-900 transition-colors hover:bg-gray-100"
-                                                    onClick={() => setIsMobileAgentViewOpen(!isMobileAgentViewOpen)}
-                                                >
-                                                    {createAgentViewLabel(activeAgentView, t)}
-                                                    <ChevronDown
-                                                        className={`h-4 w-4 transition-transform duration-200 ${
-                                                            isMobileAgentViewOpen ? 'rotate-180' : ''
-                                                        }`}
-                                                    />
-                                                </button>
-                                            </div>
-                                            {isMobileAgentViewOpen && (
-                                                <div
-                                                    className={`${MOBILE_DRAWER_PANEL_CLASSNAME} animate-in fade-in-0 slide-in-from-top-2 duration-200`}
-                                                >
-                                                    {renderMobileNestedMenuItems(
-                                                        activeAgentViewItems,
-                                                        'mobile-agent-view',
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    <div className="w-full pt-1">
-                                        <HeaderSearchBox
-                                            placeholder={t('header.searchThisServerPlaceholder')}
-                                            onNavigate={() => setIsMenuOpen(false)}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Hoisted Menu Items for Mobile */}
-                            {menuHoisting && menuHoisting.menu.length > 0 && (
-                                <div className="w-full border-b border-gray-200 py-3">
-                                    <div className="flex w-full flex-wrap items-center gap-2">
-                                        {menuHoisting.menu.map((item, index) => (
-                                            <button
-                                                key={index}
-                                                onClick={() => {
-                                                    item.onClick();
-                                                    setIsMenuOpen(false);
-                                                }}
-                                                className={`inline-flex h-10 w-10 items-center justify-center rounded-lg text-gray-600 transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 ${
-                                                    item.isActive ? 'bg-blue-50 text-blue-600' : ''
-                                                }`}
-                                                title={item.name}
-                                            >
-                                                {item.icon}
-                                                <span className="sr-only">{item.name}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Login Status for Mobile */}
-                            <div className="w-full border-b border-gray-200 py-4">
-                                {!currentUser && !isAdmin && (
-                                    <button
-                                        onClick={() => {
-                                            void showLoginDialog().catch(() => undefined);
-                                            setIsMenuOpen(false);
-                                        }}
-                                        className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 active:bg-blue-800"
-                                    >
-                                        <LogIn className="w-4 h-4" />
-                                        {t('header.logIn')}
-                                    </button>
-                                )}
-
-                                {(currentUser || isAdmin) && (
-                                    <div className="w-full rounded-lg border border-gray-200 bg-gray-50/80 p-3 shadow-sm">
-                                        <div className="flex items-start gap-3">
-                                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-lg font-semibold text-blue-700">
-                                                {currentUserProfileImageUrl ? (
-                                                    // eslint-disable-next-line @next/next/no-img-element
-                                                    <img
-                                                        src={currentUserProfileImageUrl}
-                                                        alt={`${currentUserDisplayName} avatar`}
-                                                        className="h-12 w-12 rounded-full object-cover border border-gray-200"
-                                                    />
-                                                ) : (
-                                                    currentUserAvatarLabel
-                                                )}
-                                            </div>
-                                            <div className="min-w-0 pt-1 text-sm font-medium text-gray-700">
-                                                {t('header.loggedInAs', { username: currentUserDisplayName })}
-                                                {(currentUser?.isAdmin || isAdmin) && (
-                                                    <span className="ml-2 rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-800">
-                                                        {t('common.admin')}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <div className="mt-3 flex w-full flex-col gap-2">
-                                        <button
-                                            onClick={() => {
-                                                setIsChangePasswordOpen(true);
-                                                setIsMenuOpen(false);
-                                            }}
-                                            className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 active:bg-gray-100"
-                                        >
-                                            <Lock className="w-4 h-4" />
-                                            {t('header.changePassword')}
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                handleLogout();
-                                                setIsMenuOpen(false);
-                                            }}
-                                            className="flex w-full items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-100 active:bg-red-200"
-                                        >
-                                            <LogOut className="w-4 h-4" />
-                                            {t('header.logOut')}
-                                        </button>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {menuItems.map((item, index) => {
-                                if (item.type === 'link') {
-                                    return (
-                                        <HeadlessLink
-                                            key={index}
-                                            href={item.href}
-                                            className="block w-full rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:text-blue-600 active:bg-gray-100"
-                                            onClick={() => setIsMenuOpen(false)}
-                                        >
-                                            {item.label}
-                                        </HeadlessLink>
-                                    );
-                                }
-
-                                if (item.type === 'dropdown') {
-                                    return (
-                                        <div key={index} className="w-full flex flex-col items-stretch gap-2">
-                                            <button
-                                                className={MOBILE_DRAWER_TOP_LEVEL_BUTTON_CLASSNAME}
-                                                onClick={() => item.setIsMobileOpen(!item.isMobileOpen)}
-                                            >
-                                                {item.label}
-                                                <ChevronDown
-                                                    className={`w-4 h-4 transition-transform duration-200 ${
-                                                        item.isMobileOpen ? 'rotate-180' : ''
-                                                    }`}
-                                                />
-                                            </button>
-                                            {item.isMobileOpen && (
-                                                <div
-                                                    className={`${MOBILE_DRAWER_PANEL_CLASSNAME} animate-in fade-in-0 slide-in-from-top-2 duration-200`}
-                                                >
-                                                    {renderMobileNestedMenuItems(item.items, `mobile-menu-${index}`)}
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                }
-
-                                return null;
-                            })}
-
-                            {just(false /* TODO: [🧠] Figure out what to do with these links */) && (
-                                <a
-                                    href="https://ptbk.io/"
-                                    target="_blank"
-                                    className="text-base font-medium text-gray-600 hover:text-gray-900 py-2 text-center"
-                                    onClick={() => setIsMenuOpen(false)}
-                                >
-                                    Create your server
-                                </a>
-                            )}
-                        </nav>
-                    </div>
-                )}
+                <HeaderMobileDrawer
+                    isOpen={isMenuOpen}
+                    mobileMenuDrawerRef={mobileMenuDrawerRef}
+                    serverName={serverName}
+                    isAdmin={isAdmin}
+                    activeAgent={activeAgent}
+                    activeAgentLabel={activeAgentLabel}
+                    activeAgentAvatarUrl={activeAgentAvatarUrl}
+                    activeAgentHref={activeAgentHref}
+                    activeAgentView={activeAgentView}
+                    activeAgentViewLabel={activeAgentViewLabel}
+                    activeAgentViewItems={activeAgentViewItems}
+                    isMobileAgentsOpen={isMobileAgentsOpen}
+                    setIsMobileAgentsOpen={setIsMobileAgentsOpen}
+                    isMobileAgentViewOpen={isMobileAgentViewOpen}
+                    setIsMobileAgentViewOpen={setIsMobileAgentViewOpen}
+                    federatedServers={federatedServers}
+                    federatedDropdownItems={federatedDropdownItems}
+                    isFederatedOpen={isFederatedOpen}
+                    setIsFederatedOpen={setIsFederatedOpen}
+                    hoistedMobileMenuItems={hoistedMobileMenuItems}
+                    hierarchyAgentMobileItems={hierarchyAgentMobileItems}
+                    menuHoistingItems={menuHoisting?.menu || []}
+                    currentUser={currentUser}
+                    currentUserDisplayName={currentUserDisplayName}
+                    currentUserProfileImageUrl={currentUserProfileImageUrl}
+                    currentUserAvatarLabel={currentUserAvatarLabel}
+                    isCurrentUserAdmin={isCurrentUserAdmin}
+                    menuItems={menuItems}
+                    translate={t}
+                    closeMenu={closeMobileMenu}
+                    onLogin={() => {
+                        void showLoginDialog().catch(() => undefined);
+                        closeMobileMenu();
+                    }}
+                    onLogout={() => {
+                        void handleLogout();
+                        closeMobileMenu();
+                    }}
+                    onOpenChangePassword={() => {
+                        setIsChangePasswordOpen(true);
+                        closeMobileMenu();
+                    }}
+                    renderMobileNestedMenuItems={renderMobileNestedMenuItems}
+                />
             </div>
             {newAgentDialog}
         </header>

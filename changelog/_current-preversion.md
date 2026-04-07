@@ -1,3 +1,8 @@
+-   Refactored Agents Server `<Header/>` into smaller focused private modules without changing header behavior:
+
+    -   Extracted shared header types, recursive dropdown/mobile-menu rendering, desktop top navigation, mobile drawer rendering, and System-menu item building into dedicated `Header` modules so `Header.tsx` is easier to read and maintain.
+    -   Kept the existing agent hierarchy, federated-server switcher, profile actions, and mobile/desktop navigation behavior intact while preserving private JSDoc annotations for the extracted internals.
+
 -   Fixed Agents Server durable chat jobs so long-running turns no longer fail with a stale "Background worker lease expired before the chat turn finished." error while the worker is still active:
 
     -   Extracted the running-job lease renewal into a dedicated serialized heartbeat controller so heartbeats stay independent from slower assistant-message persistence under load.
