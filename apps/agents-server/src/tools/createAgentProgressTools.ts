@@ -37,7 +37,8 @@ export function createAgentProgressTools(
                     },
                     title: {
                         type: 'string',
-                        description: 'Optional panel title in markdown.',
+                        description:
+                            'Optional panel title in markdown. In scoped web chat runtimes, this also sets the current chat title.',
                     },
                     now: {
                         type: 'string',

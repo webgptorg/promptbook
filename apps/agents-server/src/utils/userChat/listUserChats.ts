@@ -98,6 +98,7 @@ export async function listUserChatSummarySeeds(options: ListUserChatsOptions): P
                     "createdAt",
                     "updatedAt",
                     "lastMessageAt",
+                    "title",
                     "source",
                     COALESCE(jsonb_array_length("messages"), 0) AS "messagesCount",
                     COALESCE(
@@ -160,6 +161,7 @@ type UserChatSummarySeedSqlRow = {
     createdAt: string;
     updatedAt: string;
     lastMessageAt: string | null;
+    title: string | null;
     source: UserChatSource;
     messagesCount: number | string;
     firstUserMessageContent: string | null;
@@ -178,6 +180,7 @@ function mapUserChatSummarySeedSqlRow(row: UserChatSummarySeedSqlRow): UserChatS
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
         lastMessageAt: row.lastMessageAt,
+        title: row.title,
         source: row.source,
         messagesCount: parseNonNegativeInteger(row.messagesCount),
         firstUserMessageContent: row.firstUserMessageContent || '',
@@ -278,6 +281,7 @@ function createUserChatSummarySeedFromChatRecord(chat: UserChatRecord): UserChat
         createdAt: chat.createdAt,
         updatedAt: chat.updatedAt,
         lastMessageAt: chat.lastMessageAt,
+        title: chat.title,
         source: chat.source,
         messagesCount: chat.messages.length,
         firstUserMessageContent: resolveFirstUserMessageContent(chat.messages),

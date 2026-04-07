@@ -62,6 +62,7 @@ export type UserChatSummarySeed = {
     createdAt: string;
     updatedAt: string;
     lastMessageAt: string | null;
+    title: string | null;
     source: UserChatRecord['source'];
     messagesCount: number;
     firstUserMessageContent: string;
@@ -86,6 +87,7 @@ export function createUserChatSummary(
             createdAt: chat.createdAt,
             updatedAt: chat.updatedAt,
             lastMessageAt: chat.lastMessageAt,
+            title: chat.title,
             source: chat.source,
             messagesCount: chat.messages.length,
             firstUserMessageContent: firstUserMessage?.content || '',
@@ -104,6 +106,7 @@ export function createUserChatSummaryFromSeed(
     options: CreateUserChatSummaryOptions = {},
 ): UserChatSummary {
     const timeoutActivity = options.timeoutActivity || EMPTY_TIMEOUT_ACTIVITY;
+    const storedTitle = textToPreviewText(chat.title || '');
     const titleSource = textToPreviewText(chat.firstUserMessageContent || '');
     const previewSource = textToPreviewText(chat.lastPreviewMessageContent || '');
     const runningActivityCount =
@@ -119,7 +122,7 @@ export function createUserChatSummaryFromSeed(
         source: chat.source,
         isReadOnly: isFrozenUserChatSource(chat.source),
         messagesCount: chat.messagesCount,
-        title: shortenText(titleSource || DEFAULT_CHAT_TITLE, CHAT_TITLE_MAX_LENGTH),
+        title: shortenText(storedTitle || titleSource || DEFAULT_CHAT_TITLE, CHAT_TITLE_MAX_LENGTH),
         preview: shortenText(previewSource, CHAT_PREVIEW_MAX_LENGTH),
         runningActivity: {
             count: runningActivityCount,

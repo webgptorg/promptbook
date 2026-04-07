@@ -42,6 +42,7 @@ import { AgentChatPageLayout } from './AgentChatPageLayout';
 import { AgentChatSidebar } from './AgentChatSidebar';
 import { CanonicalAgentChatPanel } from './CanonicalAgentChatPanel';
 import { mergeCanonicalChatMessagesWithPendingOutboundMessages } from './mergeCanonicalChatMessagesWithPendingOutboundMessages';
+import { useChatDocumentTitle } from './useChatDocumentTitle';
 import {
     clearPendingOutboundMessages,
     markPendingOutboundMessageFailed,
@@ -81,6 +82,7 @@ const OPTIMISTIC_CHAT_ID_PREFIX = 'optimistic-user-chat';
  */
 type AgentChatHistoryClientProps = {
     agentName: string;
+    agentTitle: string;
     agentUrl: string;
     brandColor?: string;
     inputPlaceholder: string | undefined;
@@ -156,6 +158,7 @@ function replaceBrowserUrlWithoutNavigation(nextRelativeUrl: string): void {
 export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const {
         agentName,
+        agentTitle,
         agentUrl,
         brandColor,
         inputPlaceholder,
@@ -413,6 +416,12 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         () => chats.find((chat) => chat.id === activeChatId) || null,
         [activeChatId, chats],
     );
+    const untitledChatTitle = formatText('New chat');
+    useChatDocumentTitle({
+        agentTitle,
+        activeChatTitle: activeChatSummary?.title,
+        untitledChatTitle,
+    });
     const pendingOutboundMessages = usePendingOutboundMessages(activeChatId);
     const isActiveChatReadOnly = activeChatSummary?.isReadOnly === true;
     const hasAnyActiveTimeouts = useMemo(
@@ -1744,7 +1753,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             />
             <div className="min-w-0 flex-1 text-center">
                 <div className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
-                    {activeChatSummary?.title || formatText('New chat')}
+                    {activeChatSummary?.title || untitledChatTitle}
                 </div>
                 <div className="truncate text-[11px] uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">
                     {formatText('ChatGPT-like')}

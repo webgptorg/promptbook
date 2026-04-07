@@ -431,6 +431,7 @@ export type AgentsServerDatabase = {
                     createdAt: string;
                     updatedAt: string;
                     lastMessageAt: string | null;
+                    title: string | null;
                     userId: number;
                     agentPermanentId: string;
                     source: 'WEB_UI' | 'OPENAI_API' | 'TEAM_MEMBER';
@@ -442,6 +443,7 @@ export type AgentsServerDatabase = {
                     createdAt?: string;
                     updatedAt?: string;
                     lastMessageAt?: string | null;
+                    title?: string | null;
                     userId: number;
                     agentPermanentId: string;
                     source?: 'WEB_UI' | 'OPENAI_API' | 'TEAM_MEMBER';
@@ -453,6 +455,7 @@ export type AgentsServerDatabase = {
                     createdAt?: string;
                     updatedAt?: string;
                     lastMessageAt?: string | null;
+                    title?: string | null;
                     userId?: number;
                     agentPermanentId?: string;
                     source?: 'WEB_UI' | 'OPENAI_API' | 'TEAM_MEMBER';

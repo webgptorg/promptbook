@@ -20,6 +20,7 @@ type MutateUserChatPatch = {
     messages?: ReadonlyArray<ChatMessage>;
     draftMessage?: string | null;
     lastMessageAt?: string | null;
+    title?: string | null;
     updatedAt?: string;
 };
 
@@ -74,6 +75,7 @@ export async function mutateUserChat(options: MutateUserChatOptions): Promise<Us
                 : patch.messages
                 ? { lastMessageAt: resolveLastMessageAt(nextMessages, nowIso) }
                 : {}),
+            ...(patch.title !== undefined ? { title: patch.title } : {}),
             ...(touchUpdatedAt ? { updatedAt: patch.updatedAt || nowIso } : {}),
         };
 

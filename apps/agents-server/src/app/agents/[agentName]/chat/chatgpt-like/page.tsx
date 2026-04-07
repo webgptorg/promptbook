@@ -1,4 +1,5 @@
 'use server';
+import type { Metadata } from 'next';
 import { loadChatConfiguration } from '@/src/utils/chatConfiguration';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
@@ -14,6 +15,16 @@ import { resolveAgentRouteTarget } from '../../../../../utils/agentRouting/resol
 import { getAgentName, getAgentProfile, isAgentDeleted, parseBooleanFlag } from '../../_utils';
 import { FORCE_NEW_CHAT_QUERY_VALUE } from '../../agentChatNavigationUtils';
 import { AgentChatHistoryClient } from '../AgentChatHistoryClient';
+import { generateChatMetadata } from '../generateChatMetadata';
+
+/**
+ * Generates chat-page metadata that overrides the shared agent-name route title.
+ *
+ * @returns Metadata for the ChatGPT-like agent chat route.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+    return generateChatMetadata();
+}
 
 /**
  * Builds canonical ChatGPT-like chat path while preserving supported query parameters.
@@ -139,6 +150,7 @@ export default async function AgentChatGptLikePage({
             <PrintHeader title={`Chat with ${agentDisplayName}`} />
             <AgentChatHistoryClient
                 agentName={canonicalAgentId}
+                agentTitle={agentDisplayName}
                 agentUrl={agentUrl}
                 initialAutoExecuteMessage={initialAutoExecuteMessage}
                 initialAutoExecuteMessageAttachments={initialAutoExecuteMessageAttachments}

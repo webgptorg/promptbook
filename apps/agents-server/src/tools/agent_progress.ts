@@ -94,6 +94,7 @@ type AgentProgressToolResult =
  *
  * The payload is validated strictly and never throws to the model for invalid inputs.
  * Instead, it returns a structured `ignored` result and logs the issue server-side.
+ * When the payload includes `title`, the same value is also persisted as the chat title.
  */
 export async function agent_progress(args: AgentProgressToolArgs): Promise<string> {
     const runtimeScope = resolveAgentProgressRuntimeScope(args);
@@ -133,6 +134,7 @@ export async function agent_progress(args: AgentProgressToolArgs): Promise<strin
             agentPermanentId: runtimeScope.agentPermanentId,
             chatId: runtimeScope.chatId,
             assistantMessageId: runtimeScope.assistantMessageId,
+            ...(payload.title !== undefined ? { chatTitle: payload.title } : {}),
             mutateMessage: (message) => {
                 const updatedAt = new Date().toISOString() as ChatProgressCard['updatedAt'];
                 return applyAgentProgressPayloadToMessage(message, payload, updatedAt);

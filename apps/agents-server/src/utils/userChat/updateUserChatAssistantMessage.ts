@@ -13,6 +13,7 @@ export async function updateUserChatAssistantMessage(options: {
     assistantMessageId: string;
     mutateMessage: (message: ChatMessage) => ChatMessage;
     lastMessageAt?: string | null;
+    chatTitle?: string | null;
 }): Promise<UserChatRecord> {
     return mutateUserChat({
         userId: options.userId,
@@ -25,6 +26,7 @@ export async function updateUserChatAssistantMessage(options: {
                 options.mutateMessage,
             ),
             ...(options.lastMessageAt !== undefined ? { lastMessageAt: options.lastMessageAt } : {}),
+            ...(options.chatTitle !== undefined ? { title: options.chatTitle } : {}),
         }),
     });
 }

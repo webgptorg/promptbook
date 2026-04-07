@@ -9,6 +9,7 @@ export type UserChatRecord = {
     createdAt: string;
     updatedAt: string;
     lastMessageAt: string | null;
+    title: string | null;
     userId: number;
     agentPermanentId: string;
     source: UserChatSource;

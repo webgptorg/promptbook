@@ -15,6 +15,7 @@ export function mapUserChatRow(row: UserChatRow): UserChatRecord {
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
         lastMessageAt: row.lastMessageAt,
+        title: row.title,
         userId: row.userId,
         agentPermanentId: row.agentPermanentId,
         source: row.source || USER_CHAT_SOURCES.WEB_UI,

@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 15 minutes by GitHub Copilot `gpt-5.4`
 
 [🚀🍀] Update chat HTML title to reflect the chat (not the agent)
 
@@ -10,3 +10,4 @@
 -   Do a analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add/adjust a small automated test (unit/integration) that asserts the title string changes when navigating between “Chat” contexts and does not include the agent name
+

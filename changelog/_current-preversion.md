@@ -1,3 +1,9 @@
+-   Updated Agents Server chat browser-tab titles to follow the current chat context instead of the selected agent name:
+
+    -   Added chat-page metadata overrides plus a client-side chat-title sync so standalone, ChatGPT-like, and headless embedded chat routes now use `Chat` / `Chat: {session title}` wording without leaking the agent name into the browser tab.
+    -   Added backwards-compatible persisted `UserChat.title` support and now let the `agent_progress.title` payload set the durable chat title used by chat summaries and tab titles.
+    -   Added a jsdom regression test covering title updates across chat-context switches and asserting the agent name is removed from the computed document title.
+
 -   Logged the full durable Agents Server chat prompt into raw message inspection payloads:
 
     -   Added a `prompt` snapshot to persisted chat messages so raw inspection now includes the turn title, chat content, resolved parameters, model requirements, thread, attachments, runtime prompt tools, full `availableTools`, and the related `toolCalls` / `completedToolCalls`.
