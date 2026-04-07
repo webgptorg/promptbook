@@ -394,6 +394,26 @@ chat.toolTitle.calendarWriter: Writing calendar
 chat.toolTitle.emailSender: Sending email
 chat.toolTitle.emailChecker: Checking email
 chat.toolTitle.teamMember: Team member
+chat.toolTitle.selfLearning: Self-learning
+chat.toolTitle.memoryReader: Reading memory
+chat.toolTitle.memoryWriter: Storing memory
+chat.toolTitle.walletReader: Reading wallet
+chat.toolTitle.walletWriter: Storing wallet
+chat.toolTitle.walletUpdater: Updating wallet
+chat.toolTitle.walletDeleter: Deleting wallet
+chat.toolTitle.walletRequester: Requesting wallet
+chat.toolTitle.timeChecker: Checking time
+chat.toolTitle.timeoutSetter: Setting timer
+chat.toolTitle.timeoutCanceller: Cancelling timer
+chat.toolTitle.timeoutLister: Listing timers
+chat.toolTitle.timeoutUpdater: Updating timer
+chat.toolTitle.agentSpawner: Spawning agent
+chat.toolTitle.projectFileLister: Listing project files
+chat.toolTitle.projectFileReader: Reading project file
+chat.toolTitle.projectFileWriter: Writing project file
+chat.toolTitle.projectFileDeleter: Deleting project file
+chat.toolTitle.projectBranchCreator: Creating project branch
+chat.toolTitle.projectPullRequestCreator: Creating pull request
 chatTimeout.defaultLabel: Scheduled timeout
 chatTimeout.singleActiveLabel: 1 active timeout
 chatTimeout.multipleActiveLabel: "{count} active timeouts"

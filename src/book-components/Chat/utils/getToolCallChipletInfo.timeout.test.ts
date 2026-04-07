@@ -27,4 +27,18 @@ describe('getToolCallChipletInfo timeout labels', () => {
 
         expect(buildToolCallChipText(info)).toBe('⏱️ Timeout: 5s');
     });
+
+    it('prefers localized title overrides for non-dynamic chip labels', () => {
+        const info = getToolCallChipletInfo(
+            {
+                name: 'assistant_preparation',
+            },
+            undefined,
+            {
+                assistant_preparation: 'Priprava agenta',
+            },
+        );
+
+        expect(buildToolCallChipText(info)).toBe('✨ Priprava agenta');
+    });
 });

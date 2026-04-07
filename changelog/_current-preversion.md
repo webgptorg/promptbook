@@ -1,3 +1,10 @@
+-   Completed Agents Server chat chip translations so localized tool labels are used under messages instead of falling back to hardcoded English:
+
+    -   Updated the shared chat chip renderer to respect the `toolTitles` overrides already passed from Agents Server when building ongoing, completed, transitive, and TEAM tool-call chips.
+    -   Added missing Agents Server translation keys (English + Czech) for the remaining tool-chip labels used in chat, including memory, wallet, time, timeout, agent spawning, and project actions.
+    -   Extended the Agents Server chat-page `toolTitles` mappings in both durable chat and live agent chat so all supported chip labels resolve through `t(...)`.
+    -   Added a regression test proving translated tool-title overrides are used for assistant-preparation chips.
+
 -   Updated chat page browser tab title to show "Chat" instead of the agent name:
 
     -   Added `generateChatMetadata.ts` utility in the chat folder that exports `CHAT_PAGE_TITLE = 'Chat'` and `generateChatMetadata()` returning `{ title: 'Chat' }`.

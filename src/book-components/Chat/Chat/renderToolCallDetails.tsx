@@ -1579,7 +1579,7 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
         );
     }
 
-    const chipletInfo = getToolCallChipletInfo(toolCall);
+    const chipletInfo = getToolCallChipletInfo(toolCall, undefined, toolTitles);
     const toolMetadata = TOOL_TITLES[toolCall.name];
     const headerEmoji = toolMetadata?.emoji || extractLeadingEmoji(chipletInfo.text) || '🛠️';
     const headerTitle = toolTitles?.[toolCall.name] || toolMetadata?.title || chipletInfo.text || toolCall.name;

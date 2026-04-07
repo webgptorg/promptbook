@@ -253,7 +253,7 @@ function resolveAdvancedToolCallHeader(options: AdvancedToolCallDetailsOptions):
     subtitle: string;
 } {
     const { toolCall, toolTitles } = options;
-    const chipletInfo = getToolCallChipletInfo(toolCall);
+    const chipletInfo = getToolCallChipletInfo(toolCall, undefined, toolTitles);
     const toolMetadata = TOOL_TITLES[toolCall.name];
 
     return {

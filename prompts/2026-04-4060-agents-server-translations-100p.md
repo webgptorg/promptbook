@@ -33,10 +33,11 @@
 
 ---
 
-[ ]
+[x] ~$0.00 13 minutes by GitHub Copilot `gpt-5.4`
 
 [✨👋] Go through the Agent server and complete the translations.
 
 -   There are some missing translations in the Agents Server chatting page:
     -   Chips under the messages like "preparing agent" or "tool calls" are missing translation
 -   You are working with the [Agents Server](apps/agents-server)
+

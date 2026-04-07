@@ -530,6 +530,7 @@ function buildOngoingToolCallChips(
     teammates: TeammatesMap | undefined,
     teamAgentProfiles: ChatProps['teamAgentProfiles'] | undefined,
     locale?: string,
+    toolTitles?: ChatProps['toolTitles'],
 ): Array<ToolCallChipEntry> {
     if (!toolCalls || toolCalls.length === 0) {
         return [];
@@ -543,7 +544,7 @@ function buildOngoingToolCallChips(
         const key = isAssistantPreparationToolCall(toolCall)
             ? `tool-snapshot:${ASSISTANT_PREPARATION_TOOL_CALL_NAME}`
             : buildToolCallChipKey(toolCall);
-        const chipletInfo = getToolCallChipletInfo(toolCall, locale);
+        const chipletInfo = getToolCallChipletInfo(toolCall, locale, toolTitles);
         const label = buildToolCallChipText(chipletInfo);
         const teamAgentData = resolveTeamAgentChipData(toolCall, teammates, chipletInfo, teamAgentProfiles);
         const toolCallState = resolveToolCallState(toolCall);
@@ -572,13 +573,14 @@ function buildFinalToolCallChips(
     teammates: TeammatesMap | undefined,
     teamAgentProfiles: ChatProps['teamAgentProfiles'] | undefined,
     locale?: string,
+    toolTitles?: ChatProps['toolTitles'],
 ): Array<ToolCallChipEntry> {
     const entries: Array<ToolCallChipEntry> = [];
 
     if (completedToolCalls && completedToolCalls.length > 0) {
         for (const toolCall of completedToolCalls) {
             const key = buildToolCallChipKey(toolCall);
-            const chipletInfo = getToolCallChipletInfo(toolCall, locale);
+            const chipletInfo = getToolCallChipletInfo(toolCall, locale, toolTitles);
             const label = buildToolCallChipText(chipletInfo);
             const teamAgentData = resolveTeamAgentChipData(toolCall, teammates, chipletInfo, teamAgentProfiles);
 
@@ -595,7 +597,7 @@ function buildFinalToolCallChips(
         const walletCredentialToolCalls = createDeduplicatedWalletCredentialToolCalls(completedToolCalls);
         for (const walletCredentialToolCall of walletCredentialToolCalls) {
             const walletKey = buildToolCallChipKey(walletCredentialToolCall);
-            const walletChipletInfo = getToolCallChipletInfo(walletCredentialToolCall, locale);
+            const walletChipletInfo = getToolCallChipletInfo(walletCredentialToolCall, locale, toolTitles);
             const walletLabel = buildToolCallChipText(walletChipletInfo);
 
             entries.push({
@@ -612,7 +614,7 @@ function buildFinalToolCallChips(
     if (transitiveToolCalls && transitiveToolCalls.length > 0) {
         for (const transitive of transitiveToolCalls) {
             const key = buildToolCallChipKey(transitive.toolCall, { originLabel: transitive.origin.label });
-            const chipletInfo = getToolCallChipletInfo(transitive.toolCall, locale);
+            const chipletInfo = getToolCallChipletInfo(transitive.toolCall, locale, toolTitles);
             const label = buildToolCallChipText(chipletInfo);
             const agentData: AgentChipData = {
                 url: transitive.origin.url || 'about:blank',
@@ -793,6 +795,7 @@ export const ChatMessageItem = memo(
             chatLocale,
             onCopy,
             onCreateAgent,
+            toolTitles,
             teammates,
             teamAgentProfiles,
             CHAT_VISUAL_MODE = 'BUBBLE_MODE',
@@ -972,12 +975,20 @@ export const ChatMessageItem = memo(
         const isReportIssueFeedbackMode = feedbackMode === 'report_issue';
 
         const ongoingToolCallChips = useMemo(
-            () => buildOngoingToolCallChips(message.ongoingToolCalls, teammates, teamAgentProfiles, chatLocale),
-            [message.ongoingToolCalls, teammates, teamAgentProfiles, chatLocale],
+            () => buildOngoingToolCallChips(message.ongoingToolCalls, teammates, teamAgentProfiles, chatLocale, toolTitles),
+            [message.ongoingToolCalls, teammates, teamAgentProfiles, chatLocale, toolTitles],
         );
         const finalToolCallChips = useMemo(
-            () => buildFinalToolCallChips(completedToolCalls, transitiveToolCalls, teammates, teamAgentProfiles, chatLocale),
-            [completedToolCalls, transitiveToolCalls, teammates, teamAgentProfiles, chatLocale],
+            () =>
+                buildFinalToolCallChips(
+                    completedToolCalls,
+                    transitiveToolCalls,
+                    teammates,
+                    teamAgentProfiles,
+                    chatLocale,
+                    toolTitles,
+                ),
+            [completedToolCalls, transitiveToolCalls, teammates, teamAgentProfiles, chatLocale, toolTitles],
         );
         const toolCallChips = isComplete ? finalToolCallChips : ongoingToolCallChips;
         const toolCallChipCount = toolCallChips.length;

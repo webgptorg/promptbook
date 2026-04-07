@@ -180,7 +180,7 @@ export function TeamToolCallModalContent(options: TeamToolCallModalContentOption
                                 <div className={styles.teamToolCallHeading}>Actions</div>
                                 <div className={styles.teamToolCallChips}>
                                     {teamToolCalls.map((toolCallEntry, index) => {
-                                        const chipletInfo = getToolCallChipletInfo(toolCallEntry.toolCall);
+                                        const chipletInfo = getToolCallChipletInfo(toolCallEntry.toolCall, undefined, toolTitles);
                                         const chipletText = buildToolCallChipText(chipletInfo);
 
                                         return (

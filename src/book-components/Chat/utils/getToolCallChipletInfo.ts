@@ -31,6 +31,13 @@ export type ToolCallChipletInfo = {
 };
 
 /**
+ * Optional user-facing title overrides for technical tool names.
+ *
+ * @private utility of `<Chat/>`
+ */
+type ToolCallTitleOverrides = Readonly<Record<string, string>>;
+
+/**
  * Builds display text for a tool call chiplet.
  *
  * @param chipletInfo - Chiplet metadata for the tool call.
@@ -88,12 +95,17 @@ export const TOOL_TITLES: Record<string, { title: string; emoji: string }> = {
  *
  * @param toolCall - Tool call to build chiplet info for.
  * @param locale - Optional BCP-47 locale string used to format time labels.
+ * @param titleOverrides - Optional localized titles keyed by tool name.
  *
  * @private [🧠] Maybe public?
  */
-export function getToolCallChipletInfo(toolCall: ToolCall, locale?: string): ToolCallChipletInfo {
+export function getToolCallChipletInfo(
+    toolCall: ToolCall,
+    locale?: string,
+    titleOverrides?: ToolCallTitleOverrides,
+): ToolCallChipletInfo {
     const toolInfo = TOOL_TITLES[toolCall.name];
-    const baseTitle = toolInfo?.title || toolCall.name;
+    const baseTitle = titleOverrides?.[toolCall.name] || toolInfo?.title || toolCall.name;
     const emoji = toolInfo?.emoji || '🛠️';
 
     const args = parseToolCallArguments(toolCall);

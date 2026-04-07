@@ -390,6 +390,26 @@ chat.toolTitle.calendarWriter: Zápis do kalendáře
 chat.toolTitle.emailSender: Odesílání e-mailu
 chat.toolTitle.emailChecker: Kontrola e-mailu
 chat.toolTitle.teamMember: Člen týmu
+chat.toolTitle.selfLearning: Sebeučení
+chat.toolTitle.memoryReader: Čtení paměti
+chat.toolTitle.memoryWriter: Ukládání do paměti
+chat.toolTitle.walletReader: Čtení peněženky
+chat.toolTitle.walletWriter: Ukládání do peněženky
+chat.toolTitle.walletUpdater: Aktualizace peněženky
+chat.toolTitle.walletDeleter: Mazání z peněženky
+chat.toolTitle.walletRequester: Vyžádání z peněženky
+chat.toolTitle.timeChecker: Zjišťování času
+chat.toolTitle.timeoutSetter: Nastavení časovače
+chat.toolTitle.timeoutCanceller: Rušení časovače
+chat.toolTitle.timeoutLister: Přehled časovačů
+chat.toolTitle.timeoutUpdater: Aktualizace časovače
+chat.toolTitle.agentSpawner: Spouštění agenta
+chat.toolTitle.projectFileLister: Výpis souborů projektu
+chat.toolTitle.projectFileReader: Čtení souboru projektu
+chat.toolTitle.projectFileWriter: Zápis souboru projektu
+chat.toolTitle.projectFileDeleter: Mazání souboru projektu
+chat.toolTitle.projectBranchCreator: Vytvoření větve projektu
+chat.toolTitle.projectPullRequestCreator: Vytvoření pull requestu
 chatTimeout.defaultLabel: Naplánovaný časovač
 chatTimeout.singleActiveLabel: 1 aktivní časovač
 chatTimeout.multipleActiveLabel: "{count} aktivní časovače"
