@@ -171,6 +171,11 @@ body {
     font-family: var(--font-poppins), 'Poppins', system-ui, -apple-system, sans-serif;
 }
 
+.agent-avatar-pixelated {
+    image-rendering: crisp-edges;
+    image-rendering: pixelated;
+}
+
 /* Custom utilities */
 .line-clamp-2 {
     display: -webkit-box;

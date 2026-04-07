@@ -52,7 +52,7 @@ export function AgentGraphNode({ data }: NodeProps<AgentNodeData>) {
                         <img
                             src={imageSrc}
                             alt={data.name}
-                            className="h-full w-full object-cover"
+                            className="agent-avatar-pixelated h-full w-full object-cover"
                             onError={handleImageError}
                         />
                     </div>

@@ -86,7 +86,11 @@ export function TeamCommitmentChip({
         >
             {imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={imageUrl} alt={agentLabel} className={`${iconSizeClass} rounded-full object-cover opacity-90`} />
+                <img
+                    src={imageUrl}
+                    alt={agentLabel}
+                    className={`agent-avatar-pixelated ${iconSizeClass} rounded-full object-cover opacity-90`}
+                />
             ) : (
                 <Users className={`${iconSizeClass} opacity-70`} />
             )}

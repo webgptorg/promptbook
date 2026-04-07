@@ -128,7 +128,7 @@ export function AgentCodePageClient({ agentName, publicUrl }: AgentCodePageClien
                             )}/images/default-avatar.png`
                         }
                         alt={agentProfile.meta.fullname || agentName}
-                        className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+                        className="w-16 h-16 rounded-full object-cover border-2 border-gray-200 agent-avatar-pixelated"
                     />
 
                     <div className="flex-1">

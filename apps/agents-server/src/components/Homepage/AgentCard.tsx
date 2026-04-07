@@ -106,7 +106,7 @@ export function AgentCard({
                     >
                         {imageUrl ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={imageUrl} alt={fullname} className="w-full h-full object-cover" />
+                            <img src={imageUrl} alt={fullname} className="agent-avatar-pixelated w-full h-full object-cover" />
                         ) : (
                             <div
                                 className="w-full h-full flex items-center justify-center text-lg font-semibold text-white/90"

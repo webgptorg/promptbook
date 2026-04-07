@@ -99,7 +99,7 @@ export function FolderCard({
                                         <img
                                             src={imageUrl! /* <- TODO: Do the real check */}
                                             alt={agent.agentName}
-                                            className="w-full h-full object-cover"
+                                            className="agent-avatar-pixelated w-full h-full object-cover"
                                         />
                                     </div>
                                 );

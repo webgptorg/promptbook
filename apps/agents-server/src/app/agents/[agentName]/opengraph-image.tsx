@@ -57,6 +57,7 @@ export default async function Image({ params }: { params: Promise<{ agentName: s
                                 backgroundColor: agentColor.toHex(),
                                 borderRadius: '50%',
                                 aspectRatio: '1 / 1',
+                                imageRendering: 'pixelated',
                             }}
                             src={
                                 resolveAgentAvatarImageUrl({ agent: agentProfile, baseUrl: publicUrl.href }) ||

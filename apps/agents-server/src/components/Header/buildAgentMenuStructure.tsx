@@ -138,7 +138,7 @@ export function AgentNameWithAvatar({
                     <Image
                         src={avatarUrl}
                         alt={`${safeLabel} avatar`}
-                        className="h-full w-full object-cover"
+                        className="agent-avatar-pixelated h-full w-full object-cover"
                         width={64}
                         height={64}
                         unoptimized

@@ -79,7 +79,7 @@ export default async function AgentSystemMessagePage({ params }: { params: Promi
                             )}/images/default-avatar.png`
                         }
                         alt={agentProfile.meta.fullname || agentName}
-                        className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+                        className="w-16 h-16 rounded-full object-cover border-2 border-gray-200 agent-avatar-pixelated"
                     />
                     <div className="flex-1">
                         <h1 className="text-2xl font-bold text-gray-900">{agentProfile.meta.fullname || agentName}</h1>

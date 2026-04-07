@@ -652,7 +652,11 @@ function OfficeTooltip(props: {
                 <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-slate-100">
                     {avatarUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
+                        <img
+                            src={avatarUrl}
+                            alt={displayName}
+                            className="agent-avatar-pixelated h-full w-full object-cover"
+                        />
                     ) : (
                         <span className="text-sm font-bold text-slate-700">{displayName.charAt(0).toUpperCase()}</span>
                     )}

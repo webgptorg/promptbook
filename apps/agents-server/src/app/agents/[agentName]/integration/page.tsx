@@ -277,7 +277,7 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
                             )}/images/default-avatar.png`
                         }
                         alt={agentProfile.meta.fullname || agentName}
-                        className="w-16 h-16 rounded-full object-cover border-2"
+                        className="w-16 h-16 rounded-full object-cover border-2 agent-avatar-pixelated"
                         style={{ borderColor: primaryColor }}
                     />
                     <div className="flex-1">

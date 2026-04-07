@@ -93,7 +93,7 @@ export function AgentProfileImage({ src, alt, className, style }: AgentProfileIm
                 <img
                     src={imageSrc}
                     alt={alt}
-                    className="w-full h-full object-cover"
+                    className="agent-avatar-pixelated w-full h-full object-cover"
                     // We don't pass style here because it is applied to container
                 />
             )}
