@@ -77,10 +77,7 @@ function createAssistantProgressMessageFixture(overrides: Partial<ChatMessage> =
 /**
  * Renders one chat message item with stable defaults used by these tests.
  */
-function renderChatMessageItem(
-    message: ChatMessage,
-    overrides: Partial<ComponentProps<typeof ChatMessageItem>> = {},
-) {
+function renderChatMessageItem(message: ChatMessage, overrides: Partial<ComponentProps<typeof ChatMessageItem>> = {}) {
     return render(
         <ChatMessageItem
             message={message}

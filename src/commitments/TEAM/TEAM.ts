@@ -170,8 +170,10 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
                   }>
                 | undefined) || [];
 
-        const preResolvedProfiles = (requirements._metadata?.preResolvedTeammateProfiles ||
-            {}) as Record<string, { agentName: string; personaDescription: string | null }>;
+        const preResolvedProfiles = (requirements._metadata?.preResolvedTeammateProfiles || {}) as Record<
+            string,
+            { agentName: string; personaDescription: string | null }
+        >;
 
         const resolvedTeammates: TeamTeammate[] = resolveTeamTeammateLabels(trimmedContent, teammates);
 

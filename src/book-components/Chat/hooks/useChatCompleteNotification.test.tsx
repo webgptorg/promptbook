@@ -199,10 +199,7 @@ describe('useChatCompleteNotification', () => {
         await act(async () => {
             root = createRoot(container);
             root.render(
-                <HookHarness
-                    messages={[makeMessage({ id: 'msg-1', isComplete: true })]}
-                    soundSystem={soundSystem}
-                />,
+                <HookHarness messages={[makeMessage({ id: 'msg-1', isComplete: true })]} soundSystem={soundSystem} />,
             );
         });
 

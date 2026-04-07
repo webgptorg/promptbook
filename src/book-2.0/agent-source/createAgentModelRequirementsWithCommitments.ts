@@ -165,7 +165,9 @@ export async function createAgentModelRequirementsWithCommitments(
             try {
                 const parsedTeammates = parseTeamCommitmentContent(commitmentContent, { strict: false });
                 const preResolved: Record<string, TeammateProfile> = {
-                    ...(requirements._metadata?.preResolvedTeammateProfiles as Record<string, TeammateProfile> | undefined),
+                    ...(requirements._metadata?.preResolvedTeammateProfiles as
+                        | Record<string, TeammateProfile>
+                        | undefined),
                 };
 
                 for (const teammate of parsedTeammates) {

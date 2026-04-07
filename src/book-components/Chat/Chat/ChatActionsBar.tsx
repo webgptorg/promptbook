@@ -143,7 +143,9 @@ export function ChatActionsBar(props: ChatActionsBarProps) {
                     })}
                 >
                     <ResetIcon />
-                    <span className={styles.chatButtonText}>{chatUiTranslations?.newChatButtonLabel || 'New chat'}</span>
+                    <span className={styles.chatButtonText}>
+                        {chatUiTranslations?.newChatButtonLabel || 'New chat'}
+                    </span>
                 </button>
             )}
 

@@ -351,8 +351,8 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
                         }}
                     >
                         {viewMode === 'simple'
-                            ? (chatUiTranslations?.toolCallModalAdvancedLabel || 'Advanced')
-                            : (chatUiTranslations?.toolCallModalSimpleLabel || 'Simple')}
+                            ? chatUiTranslations?.toolCallModalAdvancedLabel || 'Advanced'
+                            : chatUiTranslations?.toolCallModalSimpleLabel || 'Simple'}
                     </button>
                 </div>
             </div>

@@ -415,8 +415,7 @@ function syncTrackedDetailsOpenState(details: HTMLDetailsElement, openDetailsKey
  * @private utility of `MarkdownContent` component
  */
 function resolveClickedDetailsElement(target: EventTarget | null, container: HTMLElement): HTMLDetailsElement | null {
-    const targetElement =
-        target instanceof Element ? target : target instanceof Node ? target.parentElement : null;
+    const targetElement = target instanceof Element ? target : target instanceof Node ? target.parentElement : null;
 
     if (!(targetElement instanceof Element)) {
         return null;
