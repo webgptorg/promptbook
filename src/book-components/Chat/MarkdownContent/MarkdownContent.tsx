@@ -1,7 +1,7 @@
 'use client';
 
 import katex from 'katex';
-import { useEffect, useMemo, useRef } from 'react';
+import { memo, useEffect, useMemo, useRef } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { Converter as ShowdownConverter } from 'showdown';
 import type { string_html, string_markdown } from '../../../types/typeAliases';
@@ -159,10 +159,7 @@ const DETAILS_BLOCK_REGEX = /<details[\s\S]*?<\/details\s*>/gi;
 const DETAILS_PLACEHOLDER_PREFIX = '@@PROMPTBOOK_DETAILS_PLACEHOLDER__';
 const DETAILS_PLACEHOLDER_REGEX = new RegExp(`${DETAILS_PLACEHOLDER_PREFIX}(\\d+)__`, 'g');
 /** Matches a Showdown-wrapped placeholder such as `<p>@@PROMPTBOOK_DETAILS_PLACEHOLDER__0__</p>` */
-const DETAILS_PLACEHOLDER_WRAPPED_REGEX = new RegExp(
-    `<p>\\s*(${DETAILS_PLACEHOLDER_PREFIX}\\d+__)\\s*<\\/p>`,
-    'g',
-);
+const DETAILS_PLACEHOLDER_WRAPPED_REGEX = new RegExp(`<p>\\s*(${DETAILS_PLACEHOLDER_PREFIX}\\d+__)\\s*<\\/p>`, 'g');
 
 /**
  * Selector used by the delegated summary click handler.
@@ -407,13 +404,15 @@ function resolveClickedDetailsElement(target: EventTarget | null, container: HTM
  *
  * @public exported from `@promptbook/components`
  */
-export function MarkdownContent(props: MarkdownContentProps) {
+export const MarkdownContent = memo(function MarkdownContent(props: MarkdownContentProps) {
     const { content, className, onCreateAgent } = props;
     const htmlContent = useMemo(() => renderMarkdown(content), [content]);
     const containerRef = useRef<HTMLDivElement>(null);
     const rootsRef = useRef<Root[]>([]);
     /** Tracks which `<details>` elements (by summary key) are currently open */
     const openDetailsKeysRef = useRef<Set<string>>(new Set());
+    const onCreateAgentRef = useRef(onCreateAgent);
+    onCreateAgentRef.current = onCreateAgent;
 
     useEffect(() => {
         // Cleanup previous roots
@@ -493,7 +492,7 @@ export function MarkdownContent(props: MarkdownContentProps) {
 
             // Render CodeBlock
             const root = createRoot(mountPoint);
-            root.render(<CodeBlock code={code} language={language} onCreateAgent={onCreateAgent} />);
+            root.render(<CodeBlock code={code} language={language} onCreateAgent={onCreateAgentRef.current} />);
             rootsRef.current.push(root);
         });
 
@@ -503,7 +502,7 @@ export function MarkdownContent(props: MarkdownContentProps) {
             rootsRef.current.forEach((root) => root.unmount());
             rootsRef.current = [];
         };
-    }, [htmlContent, onCreateAgent]);
+    }, [htmlContent]);
 
     return (
         <div
@@ -514,7 +513,7 @@ export function MarkdownContent(props: MarkdownContentProps) {
             }}
         />
     );
-}
+});
 
 /**
  * TODO: !!! Split into multiple files
