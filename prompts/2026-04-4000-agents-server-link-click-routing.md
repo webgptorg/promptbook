@@ -56,3 +56,14 @@
 -   Sometimes it does not work on the first click, second click, third click, but then it suddenly works totally fine
 -   You are working with [Agents Server](apps/agents-server) with the chat page, for example https://s6.ptbk.io/agents/hKs8wGS2xc5GhF/chat?chat=t5bVjBniLGvCfh
 
+---
+
+[ ]
+
+[🚧🧭] Clicking on menu does not work in Agent pages
+
+-   The links in the Agent profile and chat page in the menu arent doing anything when clicked, for example
+-   When I click on the links in the menu, it should navigate to the corresponding page, but novigation happens, it just stays on the same page, no error, no navigation, nothing happens
+-   You are working with [Agents Server](apps/agents-server) with the agent pages
+    -   for example https://s6.ptbk.io/agents/hKs8wGS2xc5GhF/
+    -   for example https://s6.ptbk.io/agents/hKs8wGS2xc5GhF/chat?chat=t5bVjBniLGvCfh
