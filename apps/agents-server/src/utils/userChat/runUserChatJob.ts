@@ -34,6 +34,7 @@ import { serializeError } from '@promptbook-local/utils';
 import type { ChatPromptResult } from '../../../../../src/execution/PromptResult';
 import { mergeToolCalls } from '../../../../../src/utils/toolCalls/mergeToolCalls';
 import { createUserChatJobFailureDetails } from './createUserChatJobFailureDetails';
+import { createUserChatMessagePrompt } from './createUserChatMessagePrompt';
 import { finalizeUserChatJob } from './finalizeUserChatJob';
 import { getUserChat } from './getUserChat';
 import { heartbeatUserChatJob } from './heartbeatUserChatJob';
@@ -197,6 +198,28 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
         calendarConnections,
         chatAttachments: userMessage.attachments,
     });
+    const chatPromptForInspection = {
+        title: `Chat with agent ${resolvedAgentName}`,
+        parameters: promptParameters,
+        modelRequirements: {
+            modelVariant: 'CHAT' as const,
+        },
+        content: userMessage.content,
+        thread,
+        attachments: userMessage.attachments,
+        ...(runtimeTools.length > 0 ? { tools: runtimeTools } : {}),
+    };
+    const createPromptSnapshot = (options: {
+        toolCalls?: ReadonlyArray<ToolCall>;
+        completedToolCalls?: ReadonlyArray<ToolCall>;
+        rawPromptContent?: ChatPromptResult['rawPromptContent'];
+        rawRequest?: ChatPromptResult['rawRequest'];
+    } = {}) =>
+        createUserChatMessagePrompt({
+            prompt: chatPromptForInspection,
+            availableTools,
+            ...options,
+        });
     const agentKitCacheManager = new AgentKitCacheManager({ isVerbose: true });
     const baseOpenAiToolsPromise = $provideOpenAiAgentKitExecutionToolsForServer();
     const agentHash = computeAgentHash(agentSource);
@@ -295,6 +318,7 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
             lifecycleError: undefined,
             isComplete: false,
             availableTools,
+            prompt: createPromptSnapshot(),
         }),
     });
 
@@ -392,6 +416,9 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
             lifecycleState: 'running',
             lifecycleError: undefined,
             isComplete: false,
+            prompt: createPromptSnapshot({
+                toolCalls: latestToolCalls,
+            }),
         }), {
             snapshotSignature,
         });
@@ -417,6 +444,10 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
                 status: 'COMPLETED',
                 content: latestContent,
                 toolCalls: latestToolCalls,
+                prompt: createPromptSnapshot({
+                    toolCalls: latestToolCalls,
+                    completedToolCalls: latestToolCalls,
+                }),
                 availableTools,
                 provider,
                 generationDurationMs: Date.now() - startedAt,
@@ -487,6 +518,12 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
                 toolCalls: finalToolCalls ?? message.toolCalls,
                 completedToolCalls: finalToolCalls ?? message.completedToolCalls,
                 generationDurationMs,
+                prompt: createPromptSnapshot({
+                    toolCalls: finalToolCalls,
+                    completedToolCalls: finalToolCalls,
+                    rawPromptContent: response.rawPromptContent,
+                    rawRequest: response.rawRequest,
+                }),
             }));
             await persistQueue;
         } else {
@@ -495,6 +532,12 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
                 status: 'COMPLETED',
                 content: responseContentWithSuffix,
                 toolCalls: finalToolCalls,
+                prompt: createPromptSnapshot({
+                    toolCalls: finalToolCalls,
+                    completedToolCalls: finalToolCalls,
+                    rawPromptContent: response.rawPromptContent,
+                    rawRequest: response.rawRequest,
+                }),
                 availableTools,
                 provider,
                 generationDurationMs,
@@ -585,6 +628,10 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
                 status: 'CANCELLED',
                 content: latestContent,
                 toolCalls: latestToolCalls,
+                prompt: createPromptSnapshot({
+                    toolCalls: latestToolCalls,
+                    completedToolCalls: latestToolCalls,
+                }),
                 availableTools,
                 provider,
                 failureReason,
@@ -607,6 +654,10 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
             status: 'FAILED',
             content: latestContent,
             toolCalls: latestToolCalls,
+            prompt: createPromptSnapshot({
+                toolCalls: latestToolCalls,
+                completedToolCalls: latestToolCalls,
+            }),
             availableTools,
             provider,
             failureReason,

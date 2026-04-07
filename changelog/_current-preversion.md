@@ -1,3 +1,9 @@
+-   Logged the full durable Agents Server chat prompt into raw message inspection payloads:
+
+    -   Added a `prompt` snapshot to persisted chat messages so raw inspection now includes the turn title, chat content, resolved parameters, model requirements, thread, attachments, runtime prompt tools, full `availableTools`, and the related `toolCalls` / `completedToolCalls`.
+    -   Stored provider-facing `rawPromptContent` and `rawRequest` in that same `prompt` payload when a durable chat turn completes, and kept prompt snapshots updated across running/completed/failed/cancelled terminal states.
+    -   Cleared stale prompt snapshots when retrying failed durable chat jobs and taught the shared chat tool-call modal to fall back to `message.prompt.availableTools` for future compatibility.
+
 -   Fixed Agents Server rapid consecutive message sends on freshly created chats so the second message no longer races a stale chat id and fails with `Chat not found.`:
 
     -   The durable chat client now treats optimistic placeholder chat ids as equivalent to their resolved server chat ids when applying canonical snapshots and send results.

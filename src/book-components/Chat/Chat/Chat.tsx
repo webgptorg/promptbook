@@ -348,7 +348,7 @@ export function Chat(props: ChatProps) {
 
             for (const candidateToolCall of candidateToolCalls) {
                 if (getToolCallIdentity(candidateToolCall) === identity) {
-                    return message.availableTools;
+                    return message.prompt?.availableTools || message.availableTools;
                 }
             }
         }

@@ -1,4 +1,4 @@
-import type { LlmToolDefinition, ToolCall } from '@promptbook-local/types';
+import type { ChatMessage, LlmToolDefinition, ToolCall } from '@promptbook-local/types';
 import { sendUserChatPushNotification } from '../sendUserChatPushNotification';
 import type { UserChatJobRecord } from './UserChatJobRecord';
 import { isUserChatNotFoundScopeError } from './UserChatScopeError';
@@ -14,6 +14,7 @@ export async function persistUserChatJobTerminalState(options: {
     status: 'COMPLETED' | 'FAILED' | 'CANCELLED';
     content?: string;
     toolCalls?: ReadonlyArray<ToolCall>;
+    prompt?: ChatMessage['prompt'];
     /**
      * Complete list of tools that were available to the model during this turn.
      *
@@ -46,6 +47,7 @@ export async function persistUserChatJobTerminalState(options: {
                 generationDurationMs: options.generationDurationMs ?? message.generationDurationMs,
                 progressCard: undefined,
                 availableTools: options.availableTools ?? message.availableTools,
+                prompt: options.prompt ?? message.prompt,
             }),
         });
     } catch (error) {

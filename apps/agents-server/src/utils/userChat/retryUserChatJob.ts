@@ -62,6 +62,7 @@ export async function retryUserChatJob(jobId: string): Promise<UserChatJobRecord
             ongoingToolCalls: undefined,
             toolCalls: undefined,
             completedToolCalls: undefined,
+            prompt: undefined,
             generationDurationMs: undefined,
         }),
     });

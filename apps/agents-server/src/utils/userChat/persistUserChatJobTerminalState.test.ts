@@ -66,4 +66,56 @@ describe('persistUserChatJobTerminalState', () => {
         });
         expect(sendUserChatPushNotificationMock).not.toHaveBeenCalled();
     });
+
+    it('persists the prompt snapshot into the assistant message payload', async () => {
+        const prompt: NonNullable<Parameters<typeof persistUserChatJobTerminalState>[0]['prompt']> = {
+            title: 'Chat with agent Example',
+            content: 'Hello there',
+            parameters: { language: 'en' },
+            modelRequirements: { modelVariant: 'CHAT' },
+            availableTools: [
+                {
+                    name: 'web_search',
+                    description: 'Search the web',
+                    parameters: {
+                        type: 'object',
+                        properties: {},
+                    },
+                },
+            ],
+            toolCalls: [{ name: 'web_search', arguments: { query: 'hello' } }],
+            completedToolCalls: [{ name: 'web_search', arguments: { query: 'hello' }, result: 'done' }],
+            rawPromptContent: 'SYSTEM\nHello there',
+            rawRequest: { provider: 'test' },
+        };
+
+        updateUserChatAssistantMessageMock.mockResolvedValue({
+            id: 'chat-123',
+            userId: 3,
+            messages: [],
+        });
+
+        await persistUserChatJobTerminalState({
+            job: {
+                id: 'job-123',
+                userId: 3,
+                agentPermanentId: 'agent-123',
+                chatId: 'chat-123',
+                assistantMessageId: 'assistant-123',
+            },
+            status: 'COMPLETED',
+            prompt,
+        });
+
+        const mutateMessage = (updateUserChatAssistantMessageMock.mock.calls[0]?.[0] as {
+            mutateMessage: (message: Record<string, unknown>) => Record<string, unknown>;
+        }).mutateMessage;
+
+        expect(
+            mutateMessage({
+                content: '',
+                isComplete: false,
+            }).prompt,
+        ).toBe(prompt);
+    });
 });

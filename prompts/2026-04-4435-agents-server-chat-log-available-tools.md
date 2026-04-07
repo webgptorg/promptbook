@@ -24,7 +24,7 @@
 
 ---
 
-[ ]
+[x] ~$0.00 16 minutes by GitHub Copilot `gpt-5.4`
 
 [🧾🔧] Log full prompt into raw message inspection payload
 
@@ -33,3 +33,4 @@
 -   You are working with [Agents Server](apps/agents-server)
 
 ![alt text](prompts/screenshots/2026-04-4435-agents-server-chat-log-available-tools.png)
+
