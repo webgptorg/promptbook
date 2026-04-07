@@ -446,6 +446,70 @@ test.describe('Agents Server chat history navigation', () => {
         await expect(page.getByText('Completed', { exact: true })).toBeVisible({ timeout: 20_000 });
     });
 
+    test('processes two rapid sends on a freshly created chat without a chat-not-found failure', async ({ page }) => {
+        await page.goto('/');
+        await loginAsAdmin(page);
+
+        const apiKey = await createManagementApiToken(page);
+        const agent = await createTestAgent(page, apiKey, 'E2E Rapid Consecutive Sends');
+        const delayedFirstMessageCreate = await delayNextUserChatMessageCreateRequest(page, agent.agentName);
+        const dialogMessages: Array<string> = [];
+        const messageCreateStatuses: Array<number> = [];
+
+        page.on('dialog', async (dialog) => {
+            dialogMessages.push(dialog.message());
+            await dialog.dismiss();
+        });
+        page.on('response', (response) => {
+            if (
+                response.request().method() === 'POST' &&
+                isMatchingUserChatMessageCreateRequest(response.url(), agent.agentName)
+            ) {
+                messageCreateStatuses.push(response.status());
+            }
+        });
+
+        await page.goto(
+            `/agents/${encodeURIComponent(agent.agentName)}?message=${encodeURIComponent('First rapid message')}`,
+        );
+        await delayedFirstMessageCreate.waitUntilStarted;
+
+        await expect
+            .poll(() => page.url(), {
+                message:
+                    'Expected the rapid-send regression to navigate to the durable chat route before the second send.',
+            })
+            .toContain('/chat?chat=');
+
+        const composer = page.locator('textarea.chat-input-textarea');
+        await expect(composer).toBeVisible();
+        await composer.fill('Second rapid message');
+        await page.locator('button.chat-input-send-button').click({ force: true });
+
+        await expect(
+            page
+                .locator('p')
+                .filter({ hasText: /^Second rapid message$/ })
+                .first(),
+        ).toBeVisible();
+
+        await releaseDelayedRequestOrFail(
+            page,
+            delayedFirstMessageCreate,
+            'Expected the delayed first message-create request to finish after release in the rapid-send regression.',
+        );
+
+        await expect
+            .poll(() => messageCreateStatuses.length, {
+                message: 'Expected both rapid-send message-create requests to complete.',
+            })
+            .toBe(2);
+
+        expect(messageCreateStatuses).toEqual([202, 202]);
+        expect(dialogMessages).toEqual([]);
+        await expect(page.getByText('Failed', { exact: true })).toHaveCount(0);
+    });
+
     test('navigates from the profile page when opening an existing chat preview card', async ({ page }) => {
         await page.goto('/');
         await loginAsAdmin(page);

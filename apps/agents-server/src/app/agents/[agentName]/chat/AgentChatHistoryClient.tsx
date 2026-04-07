@@ -218,6 +218,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const failedSendByChatIdRef = useRef<Map<string, Map<string, string>>>(new Map());
     const pendingOptimisticChatCreationsRef = useRef<Map<string, Promise<UserChatDetail>>>(new Map());
     const resolvedOptimisticChatIdsRef = useRef<Map<string, string>>(new Map());
+    const submitUserTurnQueueRef = useRef<Promise<void>>(Promise.resolve());
     const selectionIntentRef = useRef<ChatSelectionIntent>({
         sequence: 0,
         kind: 'BOOTSTRAP',
@@ -227,25 +228,22 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     /**
      * Resolves a failed-send record by chat id and outbound payload signature.
      */
-    const resolveFailedSendRecord = useCallback(
-        (chatId: string, signature: string): FailedSendRecord | null => {
-            const chatFailures = failedSendByChatIdRef.current.get(chatId);
-            if (!chatFailures) {
-                return null;
-            }
+    const resolveFailedSendRecord = useCallback((chatId: string, signature: string): FailedSendRecord | null => {
+        const chatFailures = failedSendByChatIdRef.current.get(chatId);
+        if (!chatFailures) {
+            return null;
+        }
 
-            const clientMessageId = chatFailures.get(signature);
-            if (!clientMessageId) {
-                return null;
-            }
+        const clientMessageId = chatFailures.get(signature);
+        if (!clientMessageId) {
+            return null;
+        }
 
-            return {
-                signature,
-                clientMessageId,
-            };
-        },
-        [],
-    );
+        return {
+            signature,
+            clientMessageId,
+        };
+    }, []);
 
     /**
      * Stores one failed-send record for the given chat and message signature.
@@ -323,6 +321,22 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         const createdChat = await pendingCreation;
         resolvedOptimisticChatIdsRef.current.set(chatId, createdChat.chat.id);
         return createdChat.chat.id;
+    }, []);
+
+    /**
+     * Returns true when the active selection already refers to the same canonical
+     * chat, even if the browser still renders an optimistic placeholder id.
+     */
+    const isEquivalentSelectedChat = useCallback((selectedChatId: string | null, resolvedChatId: string): boolean => {
+        if (selectedChatId === resolvedChatId) {
+            return true;
+        }
+
+        if (!selectedChatId || !isOptimisticChatId(selectedChatId)) {
+            return false;
+        }
+
+        return resolvedOptimisticChatIdsRef.current.get(selectedChatId) === resolvedChatId;
     }, []);
 
     useEffect(() => {
@@ -415,7 +429,13 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     );
 
     useEffect(() => {
-        if (!shouldUseHistory || !activeChatId || isActiveChatReadOnly || isActiveChatOptimistic || !isActiveBrowserTab) {
+        if (
+            !shouldUseHistory ||
+            !activeChatId ||
+            isActiveChatReadOnly ||
+            isActiveChatOptimistic ||
+            !isActiveBrowserTab
+        ) {
             setFocusedChat(null);
             return;
         }
@@ -649,7 +669,10 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             }
 
             const currentSelectedChatId = activeChatIdRef.current;
-            if (options.allowSelectionAdoption !== true && currentSelectedChatId !== chatDetail.chat.id) {
+            if (
+                options.allowSelectionAdoption !== true &&
+                !isEquivalentSelectedChat(currentSelectedChatId, chatDetail.chat.id)
+            ) {
                 logChatSelection('selection_skip_detail_selection_mismatch', {
                     reason,
                     expectedChatId: currentSelectedChatId,
@@ -671,7 +694,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             const shouldPreserveUserOwnedDraft =
                 options.preserveDirtyDraft === true &&
                 isActiveDraftUserOwnedRef.current &&
-                currentSelectedChatId === chatDetail.chat.id;
+                isEquivalentSelectedChat(currentSelectedChatId, chatDetail.chat.id);
 
             if (!shouldPreserveUserOwnedDraft) {
                 const nextDraftMessage = chatDetail.draftMessage || '';
@@ -689,7 +712,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
             return true;
         },
-        [isSelectionIntentCurrent, logChatSelection, syncActiveChatSelection],
+        [isEquivalentSelectedChat, isSelectionIntentCurrent, logChatSelection, syncActiveChatSelection],
     );
 
     /**
@@ -747,7 +770,10 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             }
 
             const currentSelectedChatId = activeChatIdRef.current;
-            if (options.allowSelectionAdoption !== true && currentSelectedChatId !== snapshot.activeChatId) {
+            if (
+                options.allowSelectionAdoption !== true &&
+                !isEquivalentSelectedChat(currentSelectedChatId, snapshot.activeChatId)
+            ) {
                 logChatSelection('selection_skip_snapshot_selection_mismatch', {
                     reason,
                     expectedChatId: currentSelectedChatId,
@@ -767,7 +793,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             const shouldPreserveUserOwnedDraft =
                 options.preserveDirtyDraft === true &&
                 isActiveDraftUserOwnedRef.current &&
-                currentSelectedChatId === snapshot.activeChatId;
+                isEquivalentSelectedChat(currentSelectedChatId, snapshot.activeChatId);
 
             if (!shouldPreserveUserOwnedDraft) {
                 const nextDraftMessage = snapshot.activeDraftMessage || '';
@@ -785,7 +811,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
             return true;
         },
-        [isSelectionIntentCurrent, logChatSelection, syncActiveChatSelection],
+        [isEquivalentSelectedChat, isSelectionIntentCurrent, logChatSelection, syncActiveChatSelection],
     );
 
     /**
@@ -1325,14 +1351,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 setIsChatListLoading(false);
             }
         },
-        [
-            agentName,
-            bootstrapChats,
-            clearFailedSendRecordsForChat,
-            formatText,
-            issueSelectionIntent,
-            refreshActiveChat,
-        ],
+        [agentName, bootstrapChats, clearFailedSendRecordsForChat, formatText, issueSelectionIntent, refreshActiveChat],
     );
 
     /**
@@ -1415,65 +1434,72 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 maybePromptAfterUserMessageGesture();
             }
 
-            let resolvedChatId = currentActiveChatId;
-            try {
-                resolvedChatId = await resolveDurableChatId(currentActiveChatId);
+            const submitPromise = submitUserTurnQueueRef.current
+                .catch(() => undefined)
+                .then(async () => {
+                    let resolvedChatId = currentActiveChatId;
+                    try {
+                        resolvedChatId = await resolveDurableChatId(currentActiveChatId);
 
-                if (resolvedChatId !== currentActiveChatId) {
-                    reassignPendingOutboundMessagesChatId({
-                        fromChatId: currentActiveChatId,
-                        toChatId: resolvedChatId,
-                    });
-                    reassignFailedSendRecordsToChatId(currentActiveChatId, resolvedChatId);
-                }
+                        if (resolvedChatId !== currentActiveChatId) {
+                            reassignPendingOutboundMessagesChatId({
+                                fromChatId: currentActiveChatId,
+                                toChatId: resolvedChatId,
+                            });
+                            reassignFailedSendRecordsToChatId(currentActiveChatId, resolvedChatId);
+                        }
 
-                const result = await sendUserChatMessage(agentName, resolvedChatId, {
-                    clientMessageId,
-                    message: payload.message,
-                    attachments: payload.attachments,
-                    parameters: payload.parameters,
+                        const result = await sendUserChatMessage(agentName, resolvedChatId, {
+                            clientMessageId,
+                            message: payload.message,
+                            attachments: payload.attachments,
+                            parameters: payload.parameters,
+                        });
+
+                        clearFailedSendRecord(currentActiveChatId, signature);
+                        clearFailedSendRecord(resolvedChatId, signature);
+                        activeDraftDirtyRef.current = false;
+                        isActiveDraftUserOwnedRef.current = false;
+                        setActiveChatDraftMessage('');
+                        setPendingNotificationHintAssistantMessageIds((assistantMessageIds) =>
+                            assistantMessageIds.includes(result.job.assistantMessageId)
+                                ? assistantMessageIds
+                                : [...assistantMessageIds, result.job.assistantMessageId],
+                        );
+                        applyChatDetail(result, {
+                            preserveDirtyDraft: false,
+                            reason: 'send_user_turn',
+                        });
+                    } catch (error) {
+                        const failedSend: FailedSendRecord = {
+                            signature,
+                            clientMessageId,
+                        };
+                        const errorMessage = resolveErrorMessage(error, 'Failed to send chat message.');
+                        rememberFailedSendRecord(resolvedChatId, failedSend);
+                        if (resolvedChatId !== currentActiveChatId) {
+                            rememberFailedSendRecord(currentActiveChatId, failedSend);
+                        }
+
+                        markPendingOutboundMessageFailed({
+                            chatId: currentActiveChatId,
+                            clientMessageId,
+                            errorMessage,
+                        });
+                        if (resolvedChatId !== currentActiveChatId) {
+                            markPendingOutboundMessageFailed({
+                                chatId: resolvedChatId,
+                                clientMessageId,
+                                errorMessage,
+                            });
+                        }
+
+                        throw error;
+                    }
                 });
 
-                clearFailedSendRecord(currentActiveChatId, signature);
-                clearFailedSendRecord(resolvedChatId, signature);
-                activeDraftDirtyRef.current = false;
-                isActiveDraftUserOwnedRef.current = false;
-                setActiveChatDraftMessage('');
-                setPendingNotificationHintAssistantMessageIds((assistantMessageIds) =>
-                    assistantMessageIds.includes(result.job.assistantMessageId)
-                        ? assistantMessageIds
-                        : [...assistantMessageIds, result.job.assistantMessageId],
-                );
-                applyChatDetail(result, {
-                    preserveDirtyDraft: false,
-                    reason: 'send_user_turn',
-                });
-            } catch (error) {
-                const failedSend: FailedSendRecord = {
-                    signature,
-                    clientMessageId,
-                };
-                const errorMessage = resolveErrorMessage(error, 'Failed to send chat message.');
-                rememberFailedSendRecord(resolvedChatId, failedSend);
-                if (resolvedChatId !== currentActiveChatId) {
-                    rememberFailedSendRecord(currentActiveChatId, failedSend);
-                }
-
-                markPendingOutboundMessageFailed({
-                    chatId: currentActiveChatId,
-                    clientMessageId,
-                    errorMessage,
-                });
-                if (resolvedChatId !== currentActiveChatId) {
-                    markPendingOutboundMessageFailed({
-                        chatId: resolvedChatId,
-                        clientMessageId,
-                        errorMessage,
-                    });
-                }
-
-                throw error;
-            }
+            submitUserTurnQueueRef.current = submitPromise.catch(() => undefined);
+            await submitPromise;
         },
         [
             agentName,

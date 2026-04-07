@@ -1,3 +1,9 @@
+-   Fixed Agents Server rapid consecutive message sends on freshly created chats so the second message no longer races a stale chat id and fails with `Chat not found.`:
+
+    -   The durable chat client now treats optimistic placeholder chat ids as equivalent to their resolved server chat ids when applying canonical snapshots and send results.
+    -   Rapid user sends are now serialized through the durable chat client so multiple quick thoughts keep their order, wait for optimistic chat creation to resolve, and submit against the correct chat id.
+    -   Added an Agents Server E2E regression covering two quick sends while the first message-create request is still delayed.
+
 -   Hid the redundant `agent_progress` chip under Agents Server chat messages while keeping all other chips and the inline streaming progress rendering intact:
 
     -   Updated the shared chat tool-chip builder to treat `agent_progress` as a hidden chip-only tool so progress continues rendering through the message body without adding a duplicate badge under the message.
