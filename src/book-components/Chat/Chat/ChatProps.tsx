@@ -286,6 +286,96 @@ export type ChatUiTranslations = {
      */
     readonly toolCallTimeoutTimezoneLabel?: string;
 
+    /**
+     * Template used for timeout chips, for example `"Timeout: {time}"`.
+     * @default "Timeout: {time}"
+     */
+    readonly toolCallTimeoutChipLabel?: string;
+
+    /**
+     * Chip text used when a timeout has been cancelled.
+     * @default "Timeout cancelled"
+     */
+    readonly toolCallTimeoutChipCancelledLabel?: string;
+
+    /**
+     * Chip text used when a timeout is already inactive.
+     * @default "Timeout inactive"
+     */
+    readonly toolCallTimeoutChipInactiveLabel?: string;
+
+    /**
+     * Chip text used when a timeout status update is received.
+     * @default "Timeout update"
+     */
+    readonly toolCallTimeoutChipUpdatedLabel?: string;
+
+    /**
+     * Chip text used when no specific timeout time is available yet.
+     * @default "Timeout scheduled"
+     */
+    readonly toolCallTimeoutChipFallbackLabel?: string;
+
+    /**
+     * Primary timeout summary template shown in the modal, for example `"Scheduled for {time}."`.
+     * @default "Scheduled for {time}."
+     */
+    readonly toolCallTimeoutPrimaryScheduledLabel?: string;
+
+    /**
+     * Secondary timeout summary template shown in the modal, for example `"Will retry in {duration}."`.
+     * @default "Will retry in {duration}."
+     */
+    readonly toolCallTimeoutSecondaryDurationLabel?: string;
+
+    /**
+     * Primary timeout summary shown after cancellation.
+     * @default "The timeout has been cancelled."
+     */
+    readonly toolCallTimeoutPrimaryCancelledLabel?: string;
+
+    /**
+     * Primary timeout summary shown when the timeout is already inactive.
+     * @default "This timeout was already inactive."
+     */
+    readonly toolCallTimeoutPrimaryInactiveLabel?: string;
+
+    /**
+     * Primary timeout summary shown for generic timeout updates.
+     * @default "The timeout status has been updated."
+     */
+    readonly toolCallTimeoutPrimaryUpdatedLabel?: string;
+
+    /**
+     * Primary timeout summary shown when only limited data is available.
+     * @default "The timeout has been scheduled."
+     */
+    readonly toolCallTimeoutPrimaryFallbackLabel?: string;
+
+    /**
+     * Accessible label for the timeout quick-action button group.
+     * @default "Timeout quick actions"
+     */
+    readonly toolCallTimeoutActionGroupLabel?: string;
+
+    /**
+     * Accessible label for the "Cancel" timeout quick action.
+     * @default "Cancel timeout"
+     */
+    readonly toolCallTimeoutCancelAriaLabel?: string;
+
+    /**
+     * Accessible label for the "Snooze" timeout quick action.
+     * @default "Snooze timeout"
+     */
+    readonly toolCallTimeoutSnoozeAriaLabel?: string;
+
+    /**
+     * Accessible label for the "View advanced" timeout quick action.
+     * @default "View advanced timeout details"
+     */
+    readonly toolCallTimeoutViewAdvancedAriaLabel?: string;
+
     // ── Time tool-call modal ─────────────────────────────────────────────────
 
     /**
@@ -305,6 +395,18 @@ export type ChatUiTranslations = {
      * @default "Timestamp of call:"
      */
     readonly toolCallTimeTimestampLabel?: string;
+
+    /**
+     * Template used for the time chip, for example `"Time: {time}"`.
+     * @default "{time}"
+     */
+    readonly toolCallTimeChipLabel?: string;
+
+    /**
+     * Template shown under the time clock panel for relative context.
+     * @default "Called {relative}"
+     */
+    readonly toolCallTimeRelativeLabel?: string;
 };
 
 /**

@@ -1,6 +1,7 @@
 import { ASSISTANT_PREPARATION_TOOL_CALL_NAME, type ToolCall } from '../../../types/ToolCall';
 import type { AgentChipData } from '../AgentChip';
 import { buildTimeoutToolCallChipLabel, resolveTimeoutToolCallPresentation } from './timeoutToolCallPresentation';
+import { formatToolCallTranslationTemplate } from './formatToolCallTranslationTemplate';
 import { formatToolCallLocalTime } from './formatToolCallLocalTime';
 import {
     getToolCallResultDate,
@@ -36,6 +37,20 @@ export type ToolCallChipletInfo = {
  * @private utility of `<Chat/>`
  */
 type ToolCallTitleOverrides = Readonly<Record<string, string>>;
+
+/**
+ * Optional localized labels used for user-facing chip text.
+ *
+ * @private utility of `<Chat/>`
+ */
+type ToolCallChipTranslations = {
+    readonly toolCallTimeChipLabel?: string;
+    readonly toolCallTimeoutChipLabel?: string;
+    readonly toolCallTimeoutChipCancelledLabel?: string;
+    readonly toolCallTimeoutChipInactiveLabel?: string;
+    readonly toolCallTimeoutChipUpdatedLabel?: string;
+    readonly toolCallTimeoutChipFallbackLabel?: string;
+};
 
 /**
  * Builds display text for a tool call chiplet.
@@ -96,6 +111,7 @@ export const TOOL_TITLES: Record<string, { title: string; emoji: string }> = {
  * @param toolCall - Tool call to build chiplet info for.
  * @param locale - Optional BCP-47 locale string used to format time labels.
  * @param titleOverrides - Optional localized titles keyed by tool name.
+ * @param chipTranslations - Optional localized chip templates for time-related tools.
  *
  * @private [🧠] Maybe public?
  */
@@ -103,6 +119,7 @@ export function getToolCallChipletInfo(
     toolCall: ToolCall,
     locale?: string,
     titleOverrides?: ToolCallTitleOverrides,
+    chipTranslations?: ToolCallChipTranslations,
 ): ToolCallChipletInfo {
     const toolInfo = TOOL_TITLES[toolCall.name];
     const baseTitle = titleOverrides?.[toolCall.name] || toolInfo?.title || toolCall.name;
@@ -149,7 +166,12 @@ export function getToolCallChipletInfo(
 
         if (resultDate) {
             return {
-                text: `${emoji} ${formatToolCallLocalTime(resultDate, locale)}`,
+                text: `${emoji} ${formatToolCallTranslationTemplate(
+                    chipTranslations?.toolCallTimeChipLabel || '{time}',
+                    {
+                        time: formatToolCallLocalTime(resultDate, locale),
+                    },
+                )}`,
             };
         }
     }
@@ -174,7 +196,7 @@ export function getToolCallChipletInfo(
 
     if (isTimeoutTool && timeoutPresentation) {
         return {
-            text: `${emoji} ${buildTimeoutToolCallChipLabel(timeoutPresentation)}`,
+            text: `${emoji} ${buildTimeoutToolCallChipLabel(timeoutPresentation, chipTranslations)}`,
         };
     }
 

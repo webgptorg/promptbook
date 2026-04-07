@@ -23,9 +23,13 @@ function createSetTimeoutToolCall(): ToolCall {
 
 describe('getToolCallChipletInfo timeout labels', () => {
     it('shows a concise timeout chip label without internal ids', () => {
-        const info = getToolCallChipletInfo(createSetTimeoutToolCall());
+        const info = getToolCallChipletInfo(createSetTimeoutToolCall(), 'en-US');
+        const expectedLocalTime = new Intl.DateTimeFormat('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+        }).format(new Date('2026-03-21T14:05:00.000Z'));
 
-        expect(buildToolCallChipText(info)).toBe('⏱️ Timeout: 5s');
+        expect(buildToolCallChipText(info)).toBe(`⏱️ Timeout: ${expectedLocalTime}`);
     });
 
     it('prefers localized title overrides for non-dynamic chip labels', () => {
@@ -35,10 +39,10 @@ describe('getToolCallChipletInfo timeout labels', () => {
             },
             undefined,
             {
-                assistant_preparation: 'Priprava agenta',
+                assistant_preparation: 'Preparing agent',
             },
         );
 
-        expect(buildToolCallChipText(info)).toBe('✨ Priprava agenta');
+        expect(buildToolCallChipText(info)).toBe('✨ Preparing agent');
     });
 });

@@ -21,9 +21,13 @@ describe('timeoutToolCallPresentation', () => {
         });
 
         expect(presentation).not.toBeNull();
-        expect(buildTimeoutToolCallChipLabel(presentation!)).toBe('Timeout: 5s');
-        expect(buildTimeoutToolPrimarySentence(presentation!)).toBe('Will retry in 5 seconds.');
-        expect(buildTimeoutToolScheduleSentence(presentation!)).toContain('Scheduled for');
+        const expectedLocalTime = new Intl.DateTimeFormat(undefined, {
+            hour: 'numeric',
+            minute: '2-digit',
+        }).format(new Date('2026-03-21T14:05:00.000Z'));
+        expect(buildTimeoutToolCallChipLabel(presentation!)).toBe(`Timeout: ${expectedLocalTime}`);
+        expect(buildTimeoutToolPrimarySentence(presentation!)).toBe(`Scheduled for ${expectedLocalTime}.`);
+        expect(buildTimeoutToolScheduleSentence(presentation!)).toBe('Will retry in 5 seconds.');
     });
 
     it('formats cancel_timeout with non-technical chip text', () => {
@@ -53,5 +57,25 @@ describe('timeoutToolCallPresentation', () => {
         });
 
         expect(presentation).toBeNull();
+    });
+
+    it('formats localized timeout chip text from translation templates', () => {
+        const presentation = resolveTimeoutToolCallPresentation({
+            toolCallName: 'set_timeout',
+            args: { milliseconds: 5_000 },
+            resultRaw: {
+                action: 'set',
+                status: 'set',
+                timeoutId: 'tmo_123',
+                dueAt: '2026-03-21T14:05:00.000Z',
+            },
+            currentDate: new Date('2026-03-21T14:00:00.000Z'),
+            locale: 'cs',
+        });
+
+        expect(presentation).not.toBeNull();
+        expect(buildTimeoutToolCallChipLabel(presentation!, { toolCallTimeoutChipLabel: 'Timer: {time}' })).toMatch(
+            /^Timer: .+/,
+        );
     });
 });

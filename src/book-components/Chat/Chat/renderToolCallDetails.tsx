@@ -1,4 +1,3 @@
-import moment from 'moment';
 import { type ReactElement } from 'react';
 import { validateBook } from '../../../book-2.0/agent-source/string_book';
 import { Color } from '../../../utils/color/Color';
@@ -13,7 +12,8 @@ import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletInfo';
-import { formatToolCallLocalTime } from '../utils/formatToolCallLocalTime';
+import { formatToolCallDateTime } from '../utils/formatToolCallDateTime';
+import { formatToolCallTranslationTemplate } from '../utils/formatToolCallTranslationTemplate';
 import { resolveToolCallState } from '../utils/resolveToolCallState';
 import {
     buildTimeoutToolPrimarySentence,
@@ -668,15 +668,14 @@ type ToolCallClockPanelOptions = {
  */
 function renderToolCallClockPanel(options: ToolCallClockPanelOptions): ReactElement {
     const { date, relativeLabel, timezoneLabel, locale } = options;
+    const formattedDateTime = formatToolCallDateTime(date, { locale });
 
     return (
         <div className={styles.toolCallClockPanel}>
             <ClockIcon date={date} size={150} />
             <div className={styles.toolCallClockLabels}>
-                <div className={styles.toolCallClockPrimary}>
-                    {formatToolCallLocalTime(date, locale)}
-                </div>
-                <div className={styles.toolCallClockSecondary}>{date.toLocaleDateString()}</div>
+                <div className={styles.toolCallClockPrimary}>{formattedDateTime.localTimeLabel}</div>
+                <div className={styles.toolCallClockSecondary}>{formattedDateTime.localDateLabel}</div>
                 {relativeLabel && <div className={styles.toolCallClockMeta}>({relativeLabel})</div>}
                 {timezoneLabel && <div className={styles.toolCallClockMeta}>{timezoneLabel}</div>}
             </div>
@@ -1121,7 +1120,8 @@ function renderRunBrowserToolCall(options: {
  * @private function of ChatToolCallModal
  */
 export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactElement {
-    const { toolCall, toolTitles, agentParticipant, buttonColor, onRequestAdvancedView, locale, chatUiTranslations } = options;
+    const { toolCall, toolTitles, agentParticipant, buttonColor, onRequestAdvancedView, locale, chatUiTranslations } =
+        options;
     const resultRaw = parseToolCallResult(toolCall.result);
     const args = parseToolCallArguments(toolCall);
     const toolCallDate = getToolCallTimestamp(toolCall);
@@ -1359,7 +1359,19 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
         const timeResultDate = getToolCallResultDate(resultRaw);
         const displayDate = timeResultDate || toolCallDate;
         const isValidDate = !!displayDate && !isNaN(displayDate.getTime());
-        const relativeLabel = toolCallDate ? `called ${moment(toolCallDate).fromNow()}` : null;
+        const toolCallDateLabels = toolCallDate
+            ? formatToolCallDateTime(toolCallDate, { locale, currentDate: new Date() })
+            : null;
+        const relativeLabel =
+            toolCallDateLabels?.relativeTimeLabel && chatUiTranslations?.toolCallTimeRelativeLabel
+                ? formatToolCallTranslationTemplate(chatUiTranslations.toolCallTimeRelativeLabel, {
+                      relative: toolCallDateLabels.relativeTimeLabel,
+                  })
+                : toolCallDateLabels?.relativeTimeLabel
+                ? formatToolCallTranslationTemplate('Called {relative}', {
+                      relative: toolCallDateLabels.relativeTimeLabel,
+                  })
+                : null;
         const timezoneArg = typeof args.timezone === 'string' && args.timezone.trim() ? args.timezone.trim() : null;
         const timezoneLabel = timezoneArg
             ? `${chatUiTranslations?.toolCallTimeoutTimezoneLabel || 'Timezone:'} ${timezoneArg}`
@@ -1389,13 +1401,13 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
                     )}
                     <div className={styles.toolCallDetails}>
                         <p>
-                            <strong>
-                                {chatUiTranslations?.toolCallTimeTimestampLabel || 'Timestamp of call:'}
-                            </strong>
+                            <strong>{chatUiTranslations?.toolCallTimeTimestampLabel || 'Timestamp of call:'}</strong>
                         </p>
                         <div className={styles.toolCallDataContainer}>
                             <pre className={styles.toolCallData}>
-                                {toolCallDate ? toolCallDate.toLocaleString(locale || undefined) : 'Unknown'}
+                                {toolCallDateLabels?.localDateTimeLabel ||
+                                    chatUiTranslations?.toolCallTimeUnknown ||
+                                    'Unknown time'}
                             </pre>
                         </div>
                     </div>
@@ -1417,13 +1429,15 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
         const title =
             timeoutPresentation?.action === 'cancel'
                 ? timeoutPresentation.status === 'cancelled'
-                    ? (chatUiTranslations?.toolCallTimeoutCancelledTitle || 'Timeout cancelled')
-                    : (chatUiTranslations?.toolCallTimeoutUpdateTitle || 'Timeout update')
-                : (chatUiTranslations?.toolCallTimeoutTitle || 'Timeout scheduled');
+                    ? chatUiTranslations?.toolCallTimeoutCancelledTitle || 'Timeout cancelled'
+                    : chatUiTranslations?.toolCallTimeoutUpdateTitle || 'Timeout update'
+                : chatUiTranslations?.toolCallTimeoutTitle || 'Timeout scheduled';
         const primarySentence = timeoutPresentation
-            ? buildTimeoutToolPrimarySentence(timeoutPresentation)
-            : (chatUiTranslations?.toolCallTimeoutLoadingMessage || 'Timeout details are still loading.');
-        const scheduleSentence = timeoutPresentation ? buildTimeoutToolScheduleSentence(timeoutPresentation) : null;
+            ? buildTimeoutToolPrimarySentence(timeoutPresentation, chatUiTranslations)
+            : chatUiTranslations?.toolCallTimeoutLoadingMessage || 'Timeout details are still loading.';
+        const scheduleSentence = timeoutPresentation
+            ? buildTimeoutToolScheduleSentence(timeoutPresentation, chatUiTranslations)
+            : null;
         const cancelCommand =
             timeoutPresentation?.timeoutId && timeoutPresentation.action !== 'cancel'
                 ? createCancelTimeoutQuickActionCommand(timeoutPresentation.timeoutId)
@@ -1471,7 +1485,11 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
                         )}
                     </div>
 
-                    <div className={styles.timeoutToolActionRow} role="group" aria-label="Timeout quick actions">
+                    <div
+                        className={styles.timeoutToolActionRow}
+                        role="group"
+                        aria-label={chatUiTranslations?.toolCallTimeoutActionGroupLabel || 'Timeout quick actions'}
+                    >
                         <button
                             type="button"
                             className={styles.timeoutToolActionButton}
@@ -1483,7 +1501,7 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
                                 copyTimeoutQuickActionCommand(cancelCommand);
                             }}
                             disabled={!cancelCommand}
-                            aria-label="Cancel timeout"
+                            aria-label={chatUiTranslations?.toolCallTimeoutCancelAriaLabel || 'Cancel timeout'}
                         >
                             {chatUiTranslations?.toolCallTimeoutCancelButton || 'Cancel'}
                         </button>
@@ -1493,7 +1511,7 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
                             onClick={() => {
                                 copyTimeoutQuickActionCommand(snoozeCommand);
                             }}
-                            aria-label="Snooze timeout"
+                            aria-label={chatUiTranslations?.toolCallTimeoutSnoozeAriaLabel || 'Snooze timeout'}
                         >
                             {chatUiTranslations?.toolCallTimeoutSnoozeButton || 'Snooze'}
                         </button>
@@ -1502,7 +1520,10 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
                                 type="button"
                                 className={styles.timeoutToolActionButton}
                                 onClick={onRequestAdvancedView}
-                                aria-label="View advanced timeout details"
+                                aria-label={
+                                    chatUiTranslations?.toolCallTimeoutViewAdvancedAriaLabel ||
+                                    'View advanced timeout details'
+                                }
                             >
                                 {chatUiTranslations?.toolCallTimeoutViewAdvancedButton || 'View advanced'}
                             </button>
@@ -1579,7 +1600,7 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
         );
     }
 
-    const chipletInfo = getToolCallChipletInfo(toolCall, undefined, toolTitles);
+    const chipletInfo = getToolCallChipletInfo(toolCall, locale, toolTitles, chatUiTranslations);
     const toolMetadata = TOOL_TITLES[toolCall.name];
     const headerEmoji = toolMetadata?.emoji || extractLeadingEmoji(chipletInfo.text) || '🛠️';
     const headerTitle = toolTitles?.[toolCall.name] || toolMetadata?.title || chipletInfo.text || toolCall.name;

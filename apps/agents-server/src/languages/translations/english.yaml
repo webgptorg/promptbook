@@ -6,7 +6,7 @@ common.input: Input
 common.admin: Admin
 common.profile: Profile
 common.chat: Chat
-chat.answerDurationLabel: "{duration} to answer"
+chat.answerDurationLabel: '{duration} to answer'
 common.book: Book
 common.timeouts: Timeouts
 common.more: More
@@ -27,7 +27,7 @@ controlPanel.notificationsDescriptionEnabled: Browser notifications are on for n
 controlPanel.notificationsDescriptionDisabled: Turn on browser notifications for background agent replies and scheduled wake-ups.
 controlPanel.notificationsDescriptionUnavailable: Push notifications are not available in this browser or on this server.
 controlPanel.notificationsDetail: Notifications are sent only for your own web chats when the relevant chat is not focused.
-controlPanel.notificationsPermissionLabel: "Permission:"
+controlPanel.notificationsPermissionLabel: 'Permission:'
 controlPanel.notificationsPermissionGranted: Granted
 controlPanel.notificationsPermissionDefault: Not granted yet
 controlPanel.notificationsPermissionDenied: Denied
@@ -73,8 +73,8 @@ controlPanel.chatVisualModeOptionArticle: Article mode
 controlPanel.chatVisualModeHelp: Default comes from metadata CHAT_VISUAL_MODE. You can override it locally here.
 privateMode.confirmTitle: Enable private mode
 privateMode.confirmMessage: Private mode keeps this chat local to your browser.
-  Chat history, user memory, and self-learning will not be saved while it is
-  enabled. Continue?
+    Chat history, user memory, and self-learning will not be saved while it is
+    enabled. Continue?
 privateMode.confirmEnableLabel: Enable private mode
 privateMode.confirmCancelLabel: Keep standard mode
 header.documentationMenuLabel: Documentation
@@ -123,7 +123,7 @@ header.searchGlobalLabel: Global search
 header.searchViewAllResultsFor: View all results for
 header.searchNoResultsFor: No results found for
 header.searchUnavailable: Search is temporarily unavailable.
-header.agentsLabelFallback: "{agentsPlural}"
+header.agentsLabelFallback: '{agentsPlural}'
 header.viewAllAgents: View all {agentsPlural}
 header.creatingAgent: Creating {agentSingular}...
 header.createNewAgent: Create new {agentSingular}
@@ -147,12 +147,12 @@ login.unexpectedError: An unexpected error occurred
 forgottenPassword.title: Forgotten Password
 forgottenPassword.subtitle: Reset your password
 forgottenPassword.noEmailPrefix: This Promptbook server has no email capability.
-  Please contact the administrator at
+    Please contact the administrator at
 forgottenPassword.noEmailSuffix: to reset your password.
 registerUser.title: Register New User
 registerUser.subtitle: Create a new user account
 registerUser.noEmailPrefix: This Promptbook server has no email capability.
-  Please contact the administrator at
+    Please contact the administrator at
 registerUser.noEmailSuffix: to register new user.
 secretInput.hideSecret: Hide secret value
 secretInput.showSecret: Show secret value
@@ -265,7 +265,7 @@ agentCreation.wizard.urlsLabel: Paste knowledge URLs
 agentCreation.wizard.urlsPlaceholder: https://example.com/docs
 agentCreation.wizard.urlsHint: Paste a URL and press Enter to add it.
 agentCreation.wizard.addUrlsAction: Add URLs
-agentCreation.wizard.invalidUrls: "{count} URL entries were skipped because they are not valid HTTP(S) links."
+agentCreation.wizard.invalidUrls: '{count} URL entries were skipped because they are not valid HTTP(S) links.'
 agentCreation.wizard.noKnowledge: No knowledge sources added yet.
 agentCreation.wizard.uploadedFile: Uploaded file
 agentCreation.wizard.uploading: Uploading... {progress}%
@@ -276,7 +276,7 @@ agentCreation.wizard.reviewBasicHeading: Basic info
 agentCreation.wizard.reviewPersonaHeading: Persona & traits
 agentCreation.wizard.reviewRulesHeading: Rules & guardrails
 agentCreation.wizard.reviewKnowledgeHeading: Knowledge
-agentCreation.wizard.openAdvancedEditorAction: "Advanced: open editor instead"
+agentCreation.wizard.openAdvancedEditorAction: 'Advanced: open editor instead'
 agentCreation.wizard.backAction: Back
 agentCreation.wizard.nextAction: Next
 agentCreation.wizard.createAction: Create agent
@@ -323,7 +323,7 @@ users.errorUpdateFailed: Failed to update user
 users.userDetailLoading: Loading user...
 users.userNotFound: User not found.
 users.backToUsers: Back to users
-users.profileTitle: "User profile: {username}"
+users.profileTitle: 'User profile: {username}'
 users.idLabel: ID
 users.createdAtLabel: Created
 users.lastUpdatedLabel: Last updated
@@ -337,12 +337,12 @@ chat.feedback.reportIssueButtonTitle: Report issue
 chat.feedback.reportIssueButtonAriaLabel: Report issue with this response
 chat.feedback.reportIssueModalTitle: Report issue
 chat.feedback.rateResponseModalTitle: Rate this response
-chat.feedback.userQuestionLabel: "Your question:"
+chat.feedback.userQuestionLabel: 'Your question:'
 chat.feedback.reportIssueExpectedAnswerLabel: What should the answer include?
-chat.feedback.expectedAnswerLabel: "Expected answer:"
+chat.feedback.expectedAnswerLabel: 'Expected answer:'
 chat.feedback.expectedAnswerPlaceholder: Expected answer (optional)
-chat.feedback.reportIssueDetailsLabel: "Issue details:"
-chat.feedback.noteLabel: "Note:"
+chat.feedback.reportIssueDetailsLabel: 'Issue details:'
+chat.feedback.noteLabel: 'Note:'
 chat.feedback.reportIssueDetailsPlaceholder: Describe what went wrong (optional)
 chat.feedback.notePlaceholder: Add a note (optional)
 chat.feedback.cancelLabel: Cancel
@@ -353,7 +353,7 @@ chat.feedback.reportIssueSuccessMessage: Issue reported. Thank you!
 chat.feedback.feedbackErrorMessage: Failed to save feedback.
 chat.cancelJobLabel: Cancel
 chat.cancellingJobLabel: Cancelling
-chat.frozenBannerLabel: "Chat from {source}. View-only."
+chat.frozenBannerLabel: 'Chat from {source}. View-only.'
 chat.inputPlaceholder: Write a message...
 chat.saveButtonLabel: Save
 chat.newChatButtonLabel: New chat
@@ -377,12 +377,29 @@ chat.toolCallTimeoutSnoozeButton: Snooze
 chat.toolCallTimeoutViewAdvancedButton: View advanced
 chat.toolCallTimeoutLoadingMessage: Timeout details are still loading.
 chat.toolCallTimeoutUnavailableMessage: Scheduled time is unavailable.
-chat.toolCallTimeoutDateLabel: "Date:"
-chat.toolCallTimeoutMessageLabel: "Message:"
-chat.toolCallTimeoutTimezoneLabel: "Timezone:"
+chat.toolCallTimeoutDateLabel: 'Date:'
+chat.toolCallTimeoutMessageLabel: 'Message:'
+chat.toolCallTimeoutTimezoneLabel: 'Timezone:'
+chat.toolCallTimeoutChipLabel: 'Timeout: {time}'
+chat.toolCallTimeoutChipCancelledLabel: Timeout cancelled
+chat.toolCallTimeoutChipInactiveLabel: Timeout inactive
+chat.toolCallTimeoutChipUpdatedLabel: Timeout update
+chat.toolCallTimeoutChipFallbackLabel: Timeout scheduled
+chat.toolCallTimeoutPrimaryScheduledLabel: 'Scheduled for {time}.'
+chat.toolCallTimeoutSecondaryDurationLabel: 'Will retry in {duration}.'
+chat.toolCallTimeoutPrimaryCancelledLabel: The timeout has been cancelled.
+chat.toolCallTimeoutPrimaryInactiveLabel: This timeout was already inactive.
+chat.toolCallTimeoutPrimaryUpdatedLabel: The timeout status has been updated.
+chat.toolCallTimeoutPrimaryFallbackLabel: The timeout has been scheduled.
+chat.toolCallTimeoutActionGroupLabel: Timeout quick actions
+chat.toolCallTimeoutCancelAriaLabel: Cancel timeout
+chat.toolCallTimeoutSnoozeAriaLabel: Snooze timeout
+chat.toolCallTimeoutViewAdvancedAriaLabel: View advanced timeout details
 chat.toolCallTimeTitle: Time at call
 chat.toolCallTimeUnknown: Unknown time
-chat.toolCallTimeTimestampLabel: "Timestamp of call:"
+chat.toolCallTimeTimestampLabel: 'Timestamp of call:'
+chat.toolCallTimeChipLabel: '{time}'
+chat.toolCallTimeRelativeLabel: 'Called {relative}'
 chat.toolTitle.assistantPreparation: Preparing agent
 chat.toolTitle.walletCredentialUsed: Credential used
 chat.toolTitle.webSearch: Searching the web
@@ -416,10 +433,10 @@ chat.toolTitle.projectBranchCreator: Creating project branch
 chat.toolTitle.projectPullRequestCreator: Creating pull request
 chatTimeout.defaultLabel: Scheduled timeout
 chatTimeout.singleActiveLabel: 1 active timeout
-chatTimeout.multipleActiveLabel: "{count} active timeouts"
+chatTimeout.multipleActiveLabel: '{count} active timeouts'
 chatTimeout.dialogTitle: Active timeouts
 chatTimeout.dialogDescriptionSingular: This chat has one active timeout.
-chatTimeout.dialogDescriptionPlural: "This chat has {count} active timeouts."
+chatTimeout.dialogDescriptionPlural: 'This chat has {count} active timeouts.'
 chatTimeout.closeAriaLabel: Close active timeouts
 chatTimeout.cancellationRequested: Cancellation requested
 chatTimeout.cancellingLabel: Cancelling
@@ -427,7 +444,7 @@ chatTimeout.cancelLabel: Cancel
 pseudoUserChat.headerTitle: Agent asks you directly
 pseudoUserChat.headerSubtitle: One reply only
 pseudoUserChat.closeAriaLabel: Close
-pseudoUserChat.replyLabel: "{userName} reply"
+pseudoUserChat.replyLabel: '{userName} reply'
 pseudoUserChat.replyPlaceholder: Write one reply for the agent...
 pseudoUserChat.cancelLabel: Cancel
 pseudoUserChat.sendReplyLabel: Send reply
@@ -443,14 +460,14 @@ chatError.closeLabel: Close
 clearChatHistory.buttonLabel: Clear chat history
 clearChatHistory.clearingLabel: Clearing history…
 clearChatHistory.confirmTitle: Clear chat history
-clearChatHistory.confirmMessage: "Are you sure you want to permanently delete all chat history for {agentName}?"
+clearChatHistory.confirmMessage: 'Are you sure you want to permanently delete all chat history for {agentName}?'
 clearChatHistory.confirmAction: Delete history
 clearChatHistory.confirmCancel: Cancel
 clearChatHistory.errorMessage: Failed to clear chat history
 clearChatFeedback.buttonLabel: Clear chat feedback
 clearChatFeedback.clearingLabel: Clearing feedback…
 clearChatFeedback.confirmTitle: Clear chat feedback
-clearChatFeedback.confirmMessage: "Are you sure you want to permanently delete all feedback for {agentName}?"
+clearChatFeedback.confirmMessage: 'Are you sure you want to permanently delete all feedback for {agentName}?'
 clearChatFeedback.confirmAction: Delete feedback
 clearChatFeedback.confirmCancel: Cancel
 clearChatFeedback.errorMessage: Failed to clear chat feedback
@@ -461,7 +478,7 @@ walletDialog.requestedJsonSchemaLabel: Requested JSON schema
 walletDialog.connectGithubAction: Connect with GitHub App
 walletDialog.addTokenManuallyAction: Add token manually
 walletDialog.calendarAccessTitle: Google Calendar access requested
-walletDialog.calendarUrlLabel: "Calendar URL:"
+walletDialog.calendarUrlLabel: 'Calendar URL:'
 walletDialog.calendarScopesLabel: Scopes
 walletDialog.calendarExamplesLabel: Examples
 walletDialog.calendarExamplesDescription: Read events, create meetings, update/delete events, and invite guests.

@@ -30,7 +30,10 @@ import { fetchGithubAppStatus, type GithubAppStatusResponse } from '../../../uti
 import { executeQuickActionButton } from '../../../utils/chat/executeQuickActionButton';
 import { createDefaultSpeechRecognition } from '../../../utils/speech-to-text/createDefaultSpeechRecognition';
 import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
-import { serializeUserLocationPromptParameter, USER_LOCATION_PROMPT_PARAMETER } from '../../../utils/userLocationPromptParameter';
+import {
+    serializeUserLocationPromptParameter,
+    USER_LOCATION_PROMPT_PARAMETER,
+} from '../../../utils/userLocationPromptParameter';
 import { MetaDisclaimerDialog } from './MetaDisclaimerDialog';
 import { PseudoUserChatDialog } from './PseudoUserChatDialog';
 import { useAgentChatMetaDisclaimer } from './useAgentChatMetaDisclaimer';
@@ -390,9 +393,26 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 toolCallTimeoutDateLabel: t('chat.toolCallTimeoutDateLabel'),
                 toolCallTimeoutMessageLabel: t('chat.toolCallTimeoutMessageLabel'),
                 toolCallTimeoutTimezoneLabel: t('chat.toolCallTimeoutTimezoneLabel'),
+                toolCallTimeoutChipLabel: t('chat.toolCallTimeoutChipLabel'),
+                toolCallTimeoutChipCancelledLabel: t('chat.toolCallTimeoutChipCancelledLabel'),
+                toolCallTimeoutChipInactiveLabel: t('chat.toolCallTimeoutChipInactiveLabel'),
+                toolCallTimeoutChipUpdatedLabel: t('chat.toolCallTimeoutChipUpdatedLabel'),
+                toolCallTimeoutChipFallbackLabel: t('chat.toolCallTimeoutChipFallbackLabel'),
+                toolCallTimeoutPrimaryScheduledLabel: t('chat.toolCallTimeoutPrimaryScheduledLabel'),
+                toolCallTimeoutSecondaryDurationLabel: t('chat.toolCallTimeoutSecondaryDurationLabel'),
+                toolCallTimeoutPrimaryCancelledLabel: t('chat.toolCallTimeoutPrimaryCancelledLabel'),
+                toolCallTimeoutPrimaryInactiveLabel: t('chat.toolCallTimeoutPrimaryInactiveLabel'),
+                toolCallTimeoutPrimaryUpdatedLabel: t('chat.toolCallTimeoutPrimaryUpdatedLabel'),
+                toolCallTimeoutPrimaryFallbackLabel: t('chat.toolCallTimeoutPrimaryFallbackLabel'),
+                toolCallTimeoutActionGroupLabel: t('chat.toolCallTimeoutActionGroupLabel'),
+                toolCallTimeoutCancelAriaLabel: t('chat.toolCallTimeoutCancelAriaLabel'),
+                toolCallTimeoutSnoozeAriaLabel: t('chat.toolCallTimeoutSnoozeAriaLabel'),
+                toolCallTimeoutViewAdvancedAriaLabel: t('chat.toolCallTimeoutViewAdvancedAriaLabel'),
                 toolCallTimeTitle: t('chat.toolCallTimeTitle'),
                 toolCallTimeUnknown: t('chat.toolCallTimeUnknown'),
                 toolCallTimeTimestampLabel: t('chat.toolCallTimeTimestampLabel'),
+                toolCallTimeChipLabel: t('chat.toolCallTimeChipLabel'),
+                toolCallTimeRelativeLabel: t('chat.toolCallTimeRelativeLabel'),
             }}
             toolTitles={{
                 assistant_preparation: t('chat.toolTitle.assistantPreparation'),

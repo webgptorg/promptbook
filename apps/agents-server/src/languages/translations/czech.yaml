@@ -6,7 +6,7 @@ common.input: Vstup
 common.admin: Správce
 common.profile: Profil
 common.chat: Chat
-chat.answerDurationLabel: "Odpověď za {duration}"
+chat.answerDurationLabel: 'Odpověď za {duration}'
 common.book: Kniha
 common.timeouts: Časovače
 common.more: Více
@@ -27,7 +27,7 @@ controlPanel.notificationsDescriptionEnabled: Oznámení prohlížeče jsou zapn
 controlPanel.notificationsDescriptionDisabled: Zapněte oznámení prohlížeče pro odpovědi agenta na pozadí a plánovaná probuzení.
 controlPanel.notificationsDescriptionUnavailable: Push oznámení nejsou v tomto prohlížeči nebo na tomto serveru k dispozici.
 controlPanel.notificationsDetail: Oznámení se posílají jen pro vaše vlastní webové chaty, když daný chat není právě aktivní.
-controlPanel.notificationsPermissionLabel: "Oprávnění:"
+controlPanel.notificationsPermissionLabel: 'Oprávnění:'
 controlPanel.notificationsPermissionGranted: Povoleno
 controlPanel.notificationsPermissionDefault: Zatím nepovoleno
 controlPanel.notificationsPermissionDenied: Zamítnuto
@@ -114,19 +114,19 @@ header.story: Příběh
 header.documentationOverview: Přehled
 header.documentationApiReference: API reference
 header.documentationAll: Vše
-header.loggedInAs: "Přihlášen jako {username}"
+header.loggedInAs: 'Přihlášen jako {username}'
 header.searchThisServerPlaceholder: Prohledat tento server…
 header.searchBoxDefaultPlaceholder: Hledat agenty, složky, dokumentaci nebo konverzace…
 header.searchGlobalLabel: Globální vyhledávání
 header.searchViewAllResultsFor: Zobrazit všechny výsledky pro
 header.searchNoResultsFor: Nic jsme nenašli pro
 header.searchUnavailable: Vyhledávání je dočasně nedostupné.
-header.agentsLabelFallback: "{agentsPlural}"
+header.agentsLabelFallback: '{agentsPlural}'
 header.viewAllAgents: Zobrazit všechny {agentsPlural}
-header.creatingAgent: "Vytvářím {agentSingular}…"
+header.creatingAgent: 'Vytvářím {agentSingular}…'
 header.createNewAgent: Vytvořit nového {agentSingular}
-header.createFailedTitle: "Nepodařilo se vytvořit {agentSingular}"
-header.createFailedMessage: "{agentSingular} se nepodařilo vytvořit. Zkuste to prosím znovu."
+header.createFailedTitle: 'Nepodařilo se vytvořit {agentSingular}'
+header.createFailedMessage: '{agentSingular} se nepodařilo vytvořit. Zkuste to prosím znovu.'
 asyncDialog.defaultAlertTitle: Upozornění
 asyncDialog.defaultConfirmTitle: Potvrdit akci
 asyncDialog.defaultPromptTitle: Zadejte hodnotu
@@ -261,10 +261,10 @@ agentCreation.wizard.urlsLabel: Přidat znalostní URL
 agentCreation.wizard.urlsPlaceholder: https://example.com/docs
 agentCreation.wizard.urlsHint: Vložte URL a potvrďte ji klávesou Enter.
 agentCreation.wizard.addUrlsAction: Přidat URL
-agentCreation.wizard.invalidUrls: "{count} položek URL jsme přeskočili, protože nešlo o platné odkazy HTTP(S)."
+agentCreation.wizard.invalidUrls: '{count} položek URL jsme přeskočili, protože nešlo o platné odkazy HTTP(S).'
 agentCreation.wizard.noKnowledge: Zatím jste nepřidali žádné znalostní zdroje.
 agentCreation.wizard.uploadedFile: Nahraný soubor
-agentCreation.wizard.uploading: "Nahrávám… {progress}%"
+agentCreation.wizard.uploading: 'Nahrávám… {progress}%'
 agentCreation.wizard.removeKnowledgeAction: Odebrat
 agentCreation.wizard.openEditorAfterCreationLabel: Po vytvoření otevřít editor knihy
 agentCreation.wizard.openEditorAfterCreationDescription: Nechte nezaškrtnuté, pokud chcete po vytvoření přejít na profil agenta.
@@ -272,7 +272,7 @@ agentCreation.wizard.reviewBasicHeading: Základní údaje
 agentCreation.wizard.reviewPersonaHeading: Osobnost a vlastnosti
 agentCreation.wizard.reviewRulesHeading: Pravidla a omezení
 agentCreation.wizard.reviewKnowledgeHeading: Znalosti
-agentCreation.wizard.openAdvancedEditorAction: "Pokročilé: místo průvodce otevřít editor"
+agentCreation.wizard.openAdvancedEditorAction: 'Pokročilé: místo průvodce otevřít editor'
 agentCreation.wizard.backAction: Zpět
 agentCreation.wizard.nextAction: Další
 agentCreation.wizard.createAction: Vytvořit agenta
@@ -295,7 +295,7 @@ footer.engineVersion: Verze jádra Promptbooku
 forbidden.title: 403 Zakázáno
 forbidden.message: Nemáte oprávnění k přístupu na tuto stránku.
 users.loadingUsers: Načítám uživatele…
-users.sectionTitle: "Uživatelé ({count})"
+users.sectionTitle: 'Uživatelé ({count})'
 users.adminRole: Správce
 users.createdLabel: Vytvořeno
 users.removeAdmin: Odebrat roli správce
@@ -308,7 +308,7 @@ users.passwordAriaLabel: Heslo
 users.isAdminCheckbox: Administrátor
 users.createUser: Vytvořit uživatele
 users.deleteConfirmTitle: Smazat uživatele
-users.deleteConfirmMessage: "Opravdu chcete smazat uživatele {username}?"
+users.deleteConfirmMessage: 'Opravdu chcete smazat uživatele {username}?'
 users.deleteConfirmAction: Smazat uživatele
 users.deleteConfirmCancel: Zrušit
 users.errorOccurred: Došlo k chybě
@@ -319,7 +319,7 @@ users.errorUpdateFailed: Nepodařilo se upravit uživatele
 users.userDetailLoading: Načítám detail uživatele…
 users.userNotFound: Uživatel nebyl nalezen.
 users.backToUsers: Zpět na uživatele
-users.profileTitle: "Profil uživatele: {username}"
+users.profileTitle: 'Profil uživatele: {username}'
 users.idLabel: ID
 users.createdAtLabel: Vytvořeno
 users.lastUpdatedLabel: Naposledy upraveno
@@ -333,12 +333,12 @@ chat.feedback.reportIssueButtonTitle: Nahlásit problém
 chat.feedback.reportIssueButtonAriaLabel: Nahlásit problém s touto odpovědí
 chat.feedback.reportIssueModalTitle: Nahlásit problém
 chat.feedback.rateResponseModalTitle: Ohodnotit odpověď
-chat.feedback.userQuestionLabel: "Vaše otázka:"
+chat.feedback.userQuestionLabel: 'Vaše otázka:'
 chat.feedback.reportIssueExpectedAnswerLabel: Co by měla odpověď obsahovat?
-chat.feedback.expectedAnswerLabel: "Očekávaná odpověď:"
+chat.feedback.expectedAnswerLabel: 'Očekávaná odpověď:'
 chat.feedback.expectedAnswerPlaceholder: Očekávaná odpověď (nepovinné)
-chat.feedback.reportIssueDetailsLabel: "Podrobnosti problému:"
-chat.feedback.noteLabel: "Poznámka:"
+chat.feedback.reportIssueDetailsLabel: 'Podrobnosti problému:'
+chat.feedback.noteLabel: 'Poznámka:'
 chat.feedback.reportIssueDetailsPlaceholder: Popište, co se pokazilo (nepovinné)
 chat.feedback.notePlaceholder: Přidat poznámku (nepovinné)
 chat.feedback.cancelLabel: Zrušit
@@ -349,7 +349,7 @@ chat.feedback.reportIssueSuccessMessage: Problém nahlášen. Děkujeme!
 chat.feedback.feedbackErrorMessage: Zpětnou vazbu se nepodařilo uložit.
 chat.cancelJobLabel: Zrušit
 chat.cancellingJobLabel: Ruším
-chat.frozenBannerLabel: "Chat z {source}. Pouze pro čtení."
+chat.frozenBannerLabel: 'Chat z {source}. Pouze pro čtení.'
 chat.inputPlaceholder: Napište zprávu...
 chat.saveButtonLabel: Uložit
 chat.newChatButtonLabel: Nový chat
@@ -373,12 +373,29 @@ chat.toolCallTimeoutSnoozeButton: Odložit
 chat.toolCallTimeoutViewAdvancedButton: Zobrazit podrobnosti
 chat.toolCallTimeoutLoadingMessage: Podrobnosti časovače se načítají.
 chat.toolCallTimeoutUnavailableMessage: Naplánovaný čas není k dispozici.
-chat.toolCallTimeoutDateLabel: "Datum:"
-chat.toolCallTimeoutMessageLabel: "Zpráva:"
-chat.toolCallTimeoutTimezoneLabel: "Časová zóna:"
+chat.toolCallTimeoutDateLabel: 'Datum:'
+chat.toolCallTimeoutMessageLabel: 'Zpráva:'
+chat.toolCallTimeoutTimezoneLabel: 'Časová zóna:'
+chat.toolCallTimeoutChipLabel: 'Časovač: {time}'
+chat.toolCallTimeoutChipCancelledLabel: Časovač zrušen
+chat.toolCallTimeoutChipInactiveLabel: Časovač není aktivní
+chat.toolCallTimeoutChipUpdatedLabel: Aktualizace časovače
+chat.toolCallTimeoutChipFallbackLabel: Časovač naplánován
+chat.toolCallTimeoutPrimaryScheduledLabel: 'Naplánováno na {time}.'
+chat.toolCallTimeoutSecondaryDurationLabel: 'Znovu se spustí za {duration}.'
+chat.toolCallTimeoutPrimaryCancelledLabel: Časovač byl zrušen.
+chat.toolCallTimeoutPrimaryInactiveLabel: Tento časovač už nebyl aktivní.
+chat.toolCallTimeoutPrimaryUpdatedLabel: Stav časovače byl aktualizován.
+chat.toolCallTimeoutPrimaryFallbackLabel: Časovač byl naplánován.
+chat.toolCallTimeoutActionGroupLabel: Rychlé akce časovače
+chat.toolCallTimeoutCancelAriaLabel: Zrušit časovač
+chat.toolCallTimeoutSnoozeAriaLabel: Odložit časovač
+chat.toolCallTimeoutViewAdvancedAriaLabel: Zobrazit pokročilé podrobnosti časovače
 chat.toolCallTimeTitle: Čas při volání
 chat.toolCallTimeUnknown: Čas není znám
-chat.toolCallTimeTimestampLabel: "Časová značka volání:"
+chat.toolCallTimeTimestampLabel: 'Časová značka volání:'
+chat.toolCallTimeChipLabel: '{time}'
+chat.toolCallTimeRelativeLabel: 'Voláno {relative}'
 chat.toolTitle.assistantPreparation: Příprava agenta
 chat.toolTitle.walletCredentialUsed: Použité přihlašovací údaje
 chat.toolTitle.webSearch: Prohledávání webu
@@ -412,10 +429,10 @@ chat.toolTitle.projectBranchCreator: Vytvoření větve projektu
 chat.toolTitle.projectPullRequestCreator: Vytvoření pull requestu
 chatTimeout.defaultLabel: Naplánovaný časovač
 chatTimeout.singleActiveLabel: 1 aktivní časovač
-chatTimeout.multipleActiveLabel: "{count} aktivní časovače"
+chatTimeout.multipleActiveLabel: '{count} aktivní časovače'
 chatTimeout.dialogTitle: Aktivní časovače
 chatTimeout.dialogDescriptionSingular: Tento chat má jeden aktivní časovač.
-chatTimeout.dialogDescriptionPlural: "Tento chat má {count} aktivních časovačů."
+chatTimeout.dialogDescriptionPlural: 'Tento chat má {count} aktivních časovačů.'
 chatTimeout.closeAriaLabel: Zavřít aktivní časovače
 chatTimeout.cancellationRequested: Zrušení vyžádáno
 chatTimeout.cancellingLabel: Ruším
@@ -423,7 +440,7 @@ chatTimeout.cancelLabel: Zrušit
 pseudoUserChat.headerTitle: Agent se vás přímo ptá
 pseudoUserChat.headerSubtitle: Pouze jedna odpověď
 pseudoUserChat.closeAriaLabel: Zavřít
-pseudoUserChat.replyLabel: "Odpověď od {userName}"
+pseudoUserChat.replyLabel: 'Odpověď od {userName}'
 pseudoUserChat.replyPlaceholder: Napište jednu odpověď pro agenta...
 pseudoUserChat.cancelLabel: Zrušit
 pseudoUserChat.sendReplyLabel: Odeslat odpověď
@@ -439,14 +456,14 @@ chatError.closeLabel: Zavřít
 clearChatHistory.buttonLabel: Smazat historii chatu
 clearChatHistory.clearingLabel: Mažu historii…
 clearChatHistory.confirmTitle: Smazat historii chatu
-clearChatHistory.confirmMessage: "Opravdu chcete trvale smazat celou historii chatu pro {agentName}?"
+clearChatHistory.confirmMessage: 'Opravdu chcete trvale smazat celou historii chatu pro {agentName}?'
 clearChatHistory.confirmAction: Smazat historii
 clearChatHistory.confirmCancel: Zrušit
 clearChatHistory.errorMessage: Historii chatu se nepodařilo smazat
 clearChatFeedback.buttonLabel: Smazat zpětnou vazbu chatu
 clearChatFeedback.clearingLabel: Mažu zpětnou vazbu…
 clearChatFeedback.confirmTitle: Smazat zpětnou vazbu chatu
-clearChatFeedback.confirmMessage: "Opravdu chcete trvale smazat veškerou zpětnou vazbu pro {agentName}?"
+clearChatFeedback.confirmMessage: 'Opravdu chcete trvale smazat veškerou zpětnou vazbu pro {agentName}?'
 clearChatFeedback.confirmAction: Smazat zpětnou vazbu
 clearChatFeedback.confirmCancel: Zrušit
 clearChatFeedback.errorMessage: Zpětnou vazbu chatu se nepodařilo smazat
@@ -457,7 +474,7 @@ walletDialog.requestedJsonSchemaLabel: Požadované JSON schéma
 walletDialog.connectGithubAction: Připojit přes GitHub App
 walletDialog.addTokenManuallyAction: Přidat token ručně
 walletDialog.calendarAccessTitle: Požadován přístup ke Google Kalendáři
-walletDialog.calendarUrlLabel: "URL kalendáře:"
+walletDialog.calendarUrlLabel: 'URL kalendáře:'
 walletDialog.calendarScopesLabel: Oprávnění
 walletDialog.calendarExamplesLabel: Příklady
 walletDialog.calendarExamplesDescription: Číst události, vytvářet schůzky, upravovat/mazat události a zvát hosty.

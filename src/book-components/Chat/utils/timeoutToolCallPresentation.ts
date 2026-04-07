@@ -1,5 +1,6 @@
 import type { TODO_any } from '../../../utils/organization/TODO_any';
-import { formatToolCallLocalTime } from './formatToolCallLocalTime';
+import { formatToolCallDateTime } from './formatToolCallDateTime';
+import { formatToolCallTranslationTemplate } from './formatToolCallTranslationTemplate';
 
 /**
  * Tool names handled by timeout-specific chat presentation.
@@ -130,6 +131,25 @@ export type TimeoutToolCallPresentation = {
 };
 
 /**
+ * Optional localized labels used by timeout chips and friendly modal copy.
+ *
+ * @private internal utility of `<Chat/>`
+ */
+type TimeoutToolCallTranslations = {
+    readonly toolCallTimeoutChipLabel?: string;
+    readonly toolCallTimeoutChipCancelledLabel?: string;
+    readonly toolCallTimeoutChipInactiveLabel?: string;
+    readonly toolCallTimeoutChipUpdatedLabel?: string;
+    readonly toolCallTimeoutChipFallbackLabel?: string;
+    readonly toolCallTimeoutPrimaryScheduledLabel?: string;
+    readonly toolCallTimeoutSecondaryDurationLabel?: string;
+    readonly toolCallTimeoutPrimaryCancelledLabel?: string;
+    readonly toolCallTimeoutPrimaryInactiveLabel?: string;
+    readonly toolCallTimeoutPrimaryUpdatedLabel?: string;
+    readonly toolCallTimeoutPrimaryFallbackLabel?: string;
+};
+
+/**
  * Inputs required to derive timeout presentation metadata.
  *
  * @private internal timeout-chat type
@@ -161,15 +181,6 @@ type ResolveTimeoutToolCallPresentationOptions = {
      */
     readonly locale?: string;
 };
-
-/**
- * Shared relative-time formatter for timeout labels.
- *
- * @private internal timeout-chat singleton
- */
-const timeoutRelativeTimeFormatter = new Intl.RelativeTimeFormat(undefined, {
-    numeric: 'auto',
-});
 
 /**
  * Determines whether a tool name belongs to the timeout commitment.
@@ -210,6 +221,9 @@ export function resolveTimeoutToolCallPresentation(
     const dueAtRaw = normalizeStringValue(resultObject?.dueAt) ?? normalizeStringValue(args.dueAt) ?? null;
     const dueAtDate = dueAtRaw ? parseDateValue(dueAtRaw) : null;
     const effectiveCurrentDate = options.currentDate || new Date();
+    const dueAtLabels = dueAtDate
+        ? formatToolCallDateTime(dueAtDate, { locale, currentDate: effectiveCurrentDate })
+        : null;
 
     return {
         action,
@@ -222,9 +236,9 @@ export function resolveTimeoutToolCallPresentation(
         localTimezone: resolveLocalTimezone(),
         compactDurationLabel: milliseconds !== null ? formatTimeoutDurationCompact(milliseconds) : null,
         humanDurationLabel: milliseconds !== null ? formatTimeoutDurationHuman(milliseconds) : null,
-        relativeDueLabel: dueAtDate ? formatTimeoutRelativeDueLabel(dueAtDate, effectiveCurrentDate) : null,
-        localDueTimeLabel: dueAtDate ? formatToolCallLocalTime(dueAtDate, locale) : null,
-        localDueDateLabel: dueAtDate ? dueAtDate.toLocaleDateString() : null,
+        relativeDueLabel: dueAtLabels?.relativeTimeLabel || null,
+        localDueTimeLabel: dueAtLabels?.localTimeLabel || null,
+        localDueDateLabel: dueAtLabels?.localDateLabel || null,
     };
 }
 
@@ -233,28 +247,33 @@ export function resolveTimeoutToolCallPresentation(
  *
  * @private internal utility of `<Chat/>`
  */
-export function buildTimeoutToolCallChipLabel(presentation: TimeoutToolCallPresentation): string {
+export function buildTimeoutToolCallChipLabel(
+    presentation: TimeoutToolCallPresentation,
+    translations?: TimeoutToolCallTranslations,
+): string {
     if (presentation.action === 'cancel') {
         if (presentation.status === 'cancelled') {
-            return 'Timeout cancelled';
+            return translations?.toolCallTimeoutChipCancelledLabel || 'Timeout cancelled';
         }
 
         if (presentation.status === 'not_found') {
-            return 'Timeout inactive';
+            return translations?.toolCallTimeoutChipInactiveLabel || 'Timeout inactive';
         }
 
-        return 'Timeout update';
+        return translations?.toolCallTimeoutChipUpdatedLabel || 'Timeout update';
     }
 
-    if (presentation.compactDurationLabel) {
-        return `Timeout: ${presentation.compactDurationLabel}`;
+    if (presentation.localDueTimeLabel) {
+        return formatToolCallTranslationTemplate(translations?.toolCallTimeoutChipLabel || 'Timeout: {time}', {
+            time: presentation.localDueTimeLabel,
+        });
     }
 
     if (presentation.relativeDueLabel) {
         return `Scheduled: ${presentation.relativeDueLabel}`;
     }
 
-    return 'Timeout scheduled';
+    return translations?.toolCallTimeoutChipFallbackLabel || 'Timeout scheduled';
 }
 
 /**
@@ -262,28 +281,45 @@ export function buildTimeoutToolCallChipLabel(presentation: TimeoutToolCallPrese
  *
  * @private internal utility of `<Chat/>`
  */
-export function buildTimeoutToolPrimarySentence(presentation: TimeoutToolCallPresentation): string {
+export function buildTimeoutToolPrimarySentence(
+    presentation: TimeoutToolCallPresentation,
+    translations?: TimeoutToolCallTranslations,
+): string {
     if (presentation.action === 'cancel') {
         if (presentation.status === 'cancelled') {
-            return 'The timeout has been cancelled.';
+            return translations?.toolCallTimeoutPrimaryCancelledLabel || 'The timeout has been cancelled.';
         }
 
         if (presentation.status === 'not_found') {
-            return 'This timeout was already inactive.';
+            return translations?.toolCallTimeoutPrimaryInactiveLabel || 'This timeout was already inactive.';
         }
 
-        return 'The timeout status has been updated.';
+        return translations?.toolCallTimeoutPrimaryUpdatedLabel || 'The timeout status has been updated.';
+    }
+
+    if (presentation.localDueTimeLabel) {
+        return formatToolCallTranslationTemplate(
+            translations?.toolCallTimeoutPrimaryScheduledLabel || 'Scheduled for {time}.',
+            {
+                time: presentation.localDueTimeLabel,
+            },
+        );
     }
 
     if (presentation.humanDurationLabel) {
-        return `Will retry in ${presentation.humanDurationLabel}.`;
+        return formatToolCallTranslationTemplate(
+            translations?.toolCallTimeoutSecondaryDurationLabel || 'Will retry in {duration}.',
+            {
+                duration: presentation.humanDurationLabel,
+            },
+        );
     }
 
     if (presentation.relativeDueLabel) {
         return `Scheduled ${presentation.relativeDueLabel}.`;
     }
 
-    return 'The timeout has been scheduled.';
+    return translations?.toolCallTimeoutPrimaryFallbackLabel || 'The timeout has been scheduled.';
 }
 
 /**
@@ -291,13 +327,20 @@ export function buildTimeoutToolPrimarySentence(presentation: TimeoutToolCallPre
  *
  * @private internal utility of `<Chat/>`
  */
-export function buildTimeoutToolScheduleSentence(presentation: TimeoutToolCallPresentation): string | null {
-    if (!presentation.localDueTimeLabel) {
+export function buildTimeoutToolScheduleSentence(
+    presentation: TimeoutToolCallPresentation,
+    translations?: TimeoutToolCallTranslations,
+): string | null {
+    if (presentation.action === 'cancel' || !presentation.humanDurationLabel) {
         return null;
     }
 
-    const relativeSuffix = presentation.relativeDueLabel ? ` (${presentation.relativeDueLabel})` : '';
-    return `Scheduled for ${presentation.localDueTimeLabel} local time${relativeSuffix}.`;
+    return formatToolCallTranslationTemplate(
+        translations?.toolCallTimeoutSecondaryDurationLabel || 'Will retry in {duration}.',
+        {
+            duration: presentation.humanDurationLabel,
+        },
+    );
 }
 
 /**
@@ -374,34 +417,6 @@ function formatTimeoutDurationHuman(milliseconds: number): string {
     }
 
     return `${formatTimeoutUnit(days, 'day')} ${formatTimeoutUnit(hours, 'hour')}`;
-}
-
-/**
- * Formats timeout date into relative text (`in 5 minutes`, `2 hours ago`).
- *
- * @private internal timeout-chat helper
- */
-function formatTimeoutRelativeDueLabel(dueAtDate: Date, currentDate: Date): string {
-    const millisecondsDifference = dueAtDate.getTime() - currentDate.getTime();
-    const secondsDifference = Math.round(millisecondsDifference / SECOND_IN_MILLISECONDS);
-    const absoluteSecondsDifference = Math.abs(secondsDifference);
-
-    if (absoluteSecondsDifference < MINUTE_IN_SECONDS) {
-        return timeoutRelativeTimeFormatter.format(secondsDifference, 'second');
-    }
-
-    if (absoluteSecondsDifference < HOUR_IN_SECONDS) {
-        const minutesDifference = Math.round(secondsDifference / MINUTE_IN_SECONDS);
-        return timeoutRelativeTimeFormatter.format(minutesDifference, 'minute');
-    }
-
-    if (absoluteSecondsDifference < DAY_IN_SECONDS) {
-        const hoursDifference = Math.round(secondsDifference / HOUR_IN_SECONDS);
-        return timeoutRelativeTimeFormatter.format(hoursDifference, 'hour');
-    }
-
-    const daysDifference = Math.round(secondsDifference / DAY_IN_SECONDS);
-    return timeoutRelativeTimeFormatter.format(daysDifference, 'day');
 }
 
 /**

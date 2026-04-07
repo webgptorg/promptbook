@@ -151,4 +151,47 @@ describe('ChatToolCallModal timeout rendering', () => {
         expect(timeoutMetadataSection?.textContent).toContain('"timeoutId": "tmo_example_123"');
         expect(timeoutMetadataSection?.textContent).toContain('"idempotencyKey": "tool-call-timeout-1"');
     });
+
+    it('renders locale-aware timeout details with translated accessibility labels', () => {
+        const dueAtDate = new Date('2026-03-21T14:05:00.000Z');
+        const expectedLocalTime = new Intl.DateTimeFormat('cs', {
+            hour: 'numeric',
+            minute: '2-digit',
+        }).format(dueAtDate);
+
+        render(
+            <ChatToolCallModal
+                isOpen={true}
+                toolCall={createTimeoutToolCallFixture()}
+                toolCallIdentity="tool-call-timeout-cs"
+                onClose={() => undefined}
+                buttonColor={Color.from('#0066cc')}
+                locale="cs"
+                chatUiTranslations={{
+                    toolCallModalTitle: 'Tool call details',
+                    toolCallModalCloseLabel: 'Close tool call details',
+                    toolCallModalAdvancedLabel: 'Advanced view',
+                    toolCallTimeoutTitle: 'Timeout scheduled',
+                    toolCallTimeoutCancelButton: 'Cancel',
+                    toolCallTimeoutSnoozeButton: 'Snooze',
+                    toolCallTimeoutViewAdvancedButton: 'View advanced',
+                    toolCallTimeoutActionGroupLabel: 'Timeout quick actions',
+                    toolCallTimeoutCancelAriaLabel: 'Cancel timeout',
+                    toolCallTimeoutSnoozeAriaLabel: 'Snooze timeout',
+                    toolCallTimeoutViewAdvancedAriaLabel: 'View advanced timeout details',
+                    toolCallTimeoutPrimaryScheduledLabel: 'Scheduled for {time}.',
+                    toolCallTimeoutSecondaryDurationLabel: 'Will retry in {duration}.',
+                    toolCallTimeoutDateLabel: 'Date:',
+                    toolCallTimeoutMessageLabel: 'Message:',
+                    toolCallTimeoutTimezoneLabel: 'Timezone:',
+                }}
+            />,
+        );
+
+        expect(screen.getByRole('dialog', { name: 'Tool call details' })).toBeTruthy();
+        expect(screen.getByText(`Scheduled for ${expectedLocalTime}.`)).toBeTruthy();
+        expect(screen.getByRole('button', { name: 'Cancel timeout' })).toBeTruthy();
+        expect(screen.getByRole('button', { name: 'Snooze timeout' })).toBeTruthy();
+        expect(screen.getByRole('button', { name: 'View advanced timeout details' })).toBeTruthy();
+    });
 });
