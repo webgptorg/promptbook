@@ -30,27 +30,26 @@ import { ChangePasswordDialog } from '../ChangePasswordDialog/ChangePasswordDial
 import { useNewAgentDialog } from '../NewAgentDialog/useNewAgentDialog';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 import { buildHeaderSystemMenuItems } from './buildHeaderSystemMenuItems';
-import {
-    AgentDirectoryDropdown,
-    AgentNameWithAvatar,
-    appendFolderActionNodes,
-    buildAgentMenuStructure,
-    createChatGptLikeViewLabel,
-    createAgentHierarchyLabel,
-    createAgentHierarchyMobileItems,
-    createAgentViewLabel,
-    createFallbackAgent,
-    getAgentNavigationId,
-    mapContextMenuItemsToSubMenuItems,
-    resolveActiveAgentNavigation,
-    type HeaderAgentMenuFolder,
-} from './buildAgentMenuStructure';
+import { AgentDirectoryDropdown } from './AgentDirectoryDropdown';
+import { AgentNameWithAvatar } from './AgentNameWithAvatar';
+import type { HeaderAgentMenuFolder } from './AgentMenuStructure';
+import { appendFolderActionNodes } from './appendFolderActionNodes';
+import { buildAgentMenuStructure } from './buildAgentMenuStructure';
+import { createAgentHierarchyMobileItems } from './createAgentHierarchyMobileItems';
+import { createAgentViewLabel, createChatGptLikeViewLabel } from './createAgentViewLabel';
 import { createHeaderDropdownRenderers } from './createHeaderDropdownRenderers';
 import { buildDocumentationDropdownItems } from './buildDocumentationDropdownItems';
 import { HeaderControlPanelDropdown } from './ControlPanel/ControlPanel';
 import { HeaderDesktopTopMenuNavigation } from './HeaderDesktopTopMenuNavigation';
 import { HeaderMobileDrawer } from './HeaderMobileDrawer';
 import { HeaderSearchBox } from './HeaderSearchBox';
+import { mapContextMenuItemsToSubMenuItems } from './mapContextMenuItemsToSubMenuItems';
+import {
+    createAgentHierarchyLabel,
+    createFallbackAgent,
+    getAgentNavigationId,
+    resolveActiveAgentNavigation,
+} from './resolveActiveAgentNavigation';
 import type { DropdownInteractionMode, HeaderProps, MenuItem, OpenSubMenuState } from './HeaderTypes';
 import { useMobileMenuHoisting } from './MobileMenuHoistingContext';
 import type { SubMenuItem } from './SubMenuItem';
@@ -1577,7 +1576,6 @@ export function Header(props: HeaderProps) {
                         </div>
                     </div>
 
-
                     {/* CTA Button & Mobile Menu Toggle */}
                     <div className="ml-auto flex items-center gap-2 sm:gap-3 md:gap-4 flex-shrink-0 lg:ml-0 lg:justify-self-end">
                         <HeaderDesktopTopMenuNavigation
@@ -1726,7 +1724,6 @@ export function Header(props: HeaderProps) {
                                 </div>
                             </div>
                         )}
-
                     </div>
                 </div>
 

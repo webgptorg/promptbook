@@ -5,10 +5,11 @@ import type { ReactNode, RefObject } from 'react';
 import type { HoistedMenuItem } from '../../../../../src/book-components/_common/MenuHoisting/MenuHoistingContext';
 import { ArrowIcon } from '../../../../../src/book-components/icons/ArrowIcon';
 import { just } from '../../../../../src/utils/organization/just';
+import { AgentNameWithAvatar } from './AgentNameWithAvatar';
+import type { AgentHierarchyView } from './createAgentViewLabel';
+import { HeadlessLink } from '../_utils/headlessParam';
 import { HeaderSearchBox } from './HeaderSearchBox';
 import type { MenuItem } from './HeaderTypes';
-import { AgentNameWithAvatar, type AgentHierarchyView } from './buildAgentMenuStructure';
-import { HeadlessLink } from '../_utils/headlessParam';
 import type { SubMenuItem } from './SubMenuItem';
 
 /**

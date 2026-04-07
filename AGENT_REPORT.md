@@ -95,3 +95,10 @@
   - `next build` completes, but the Playwright web-server bootstrap aborts afterward with `Dynamic server usage` for `/system/utilities/mocked-chats/view`.
   - The logged failure says that route cannot be rendered statically because it uses `headers` / awaited `searchParams`.
   - This appeared while validating profile-to-chat routing and does not map to the touched `AgentProfileChat` or chat-history test changes in this task.
+
+## 2026-04-07
+
+- `apps/agents-server` `npm run test-build` fails in this run with an unrelated existing module-resolution/typecheck issue:
+  - Next.js reaches the build type-validation phase, then reports `Type error: Cannot find module '../../../utils/userLocationPromptParameter' or its corresponding type declarations.`
+  - The reported import is in `apps/agents-server/src/app/agents/[agentName]/useAgentChatToolInteractions.ts:9`.
+  - This failure surfaced while validating the header-menu refactor and does not map to the touched `src/components/Header/*` files.

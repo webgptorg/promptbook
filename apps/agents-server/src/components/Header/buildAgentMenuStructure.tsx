@@ -1,33 +1,18 @@
-import {
-    ChevronRight,
-    Clock3Icon,
-    FileTextIcon,
-    MessageSquareIcon,
-    MoreHorizontalIcon,
-    NotebookPenIcon,
-} from 'lucide-react';
-import Image from 'next/image';
 import type { ReactNode } from 'react';
-import { useEffect, useState } from 'react';
 import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
-import { RESERVED_PATHS } from '../../generated/reservedPaths';
-import type { ServerTranslationKey } from '../../languages/ServerTranslationKeys';
 import { buildFolderPath, getFolderPathSegments } from '../../utils/agentOrganization/folderPath';
-import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
-import { HeadlessLink } from '../_utils/headlessParam';
+import type { AgentOrganizationAgent } from '../../utils/agentOrganization/types';
 import { FolderAppearanceIcon } from '../FolderAppearance/FolderAppearanceIcon';
-import type { SubMenuItem } from './SubMenuItem';
-
-export { mapContextMenuItemsToSubMenuItems } from './mapContextMenuItemsToSubMenuItems';
-
-type HeaderAgentMenuAgent = AgentOrganizationAgent;
-
-/**
- * Folder data required for the folder-organized header menu.
- *
- * @private function of Header
- */
-export type HeaderAgentMenuFolder = Pick<AgentOrganizationFolder, 'id' | 'name' | 'parentId' | 'sortOrder' | 'icon' | 'color'>;
+import { AgentNameWithAvatar } from './AgentNameWithAvatar';
+import type {
+    AgentMenuAgentNode,
+    AgentMenuFolderNode,
+    AgentMenuStructure,
+    AgentMenuTreeNode,
+    HeaderAgentMenuFolder,
+} from './AgentMenuStructure';
+import { getAgentMenuLabel } from './getAgentMenuLabel';
+import { getAgentNavigationId } from './resolveActiveAgentNavigation';
 
 /**
  * Pixel offset used for each depth level in nested menu labels.
@@ -56,288 +41,11 @@ const AGENT_MENU_TEXT_CLASS = 'text-sm font-semibold text-gray-900';
 const AGENT_MENU_MAX_WIDTH_CLASS = 'max-w-[220px]';
 
 /**
- * Views that can be selected for one active agent in the hierarchy.
+ * Internal agent shape used while building the header menu.
  *
- * @private function of Header
+ * @private type of buildAgentMenuStructure
  */
-export type AgentHierarchyView = 'Profile' | 'Chat' | 'Book' | 'Timeouts' | 'More';
-
-/**
- * Icon displayed next to each hierarchy view label.
- *
- * @private function of Header
- */
-const AGENT_VIEW_ICON_MAP: Record<AgentHierarchyView, typeof FileTextIcon> = {
-    Profile: FileTextIcon,
-    Chat: MessageSquareIcon,
-    Book: NotebookPenIcon,
-    Timeouts: Clock3Icon,
-    More: MoreHorizontalIcon,
-};
-
-/**
- * Props for the agent label that includes its avatar.
- *
- * @private function of Header
- */
-type AgentNameWithAvatarProps = {
-    /**
-     * Human-readable label for the agent.
-     */
-    readonly label: string;
-    /**
-     * Resolved avatar image URL or null when missing.
-     */
-    readonly avatarUrl: string | null;
-    /**
-     * Tailwind classes used to size the avatar element.
-     */
-    readonly avatarSizeClassName?: string;
-    /**
-     * Tailwind classes that style the text portion of the label.
-     */
-    readonly textClassName?: string;
-    /**
-     * Tailwind classes that limit the label width.
-     */
-    readonly maxWidthClassName?: string;
-
-    /**
-     * Optional fallback content when no avatar URL is provided.
-     */
-    readonly fallbackIcon?: ReactNode;
-};
-
-/**
- * Renders an agent label with a rounded avatar circle preceding the text.
- *
- * @private function of Header
- */
-export function AgentNameWithAvatar({
-    label,
-    avatarUrl,
-    avatarSizeClassName,
-    textClassName,
-    maxWidthClassName,
-    fallbackIcon,
-}: AgentNameWithAvatarProps) {
-    const safeLabel = label || 'Agent';
-    const fallbackLetter = safeLabel.split('/').pop()?.trim().charAt(0)?.toUpperCase() || 'A';
-    const avatarSize = avatarSizeClassName ?? 'h-5 w-5';
-    const textClasses = `truncate ${textClassName ?? 'text-sm font-semibold text-gray-900'} ${
-        maxWidthClassName ?? ''
-    }`.trim();
-    const fallbackContent = fallbackIcon ?? fallbackLetter;
-
-    return (
-        <span className="flex min-w-0 items-center gap-2">
-            <span
-                className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-white text-xs font-semibold uppercase text-gray-500 ${avatarSize}`}
-            >
-                {avatarUrl ? (
-                    <Image
-                        src={avatarUrl}
-                        alt={`${safeLabel} avatar`}
-                        className="agent-avatar-pixelated h-full w-full object-cover"
-                        width={64}
-                        height={64}
-                        unoptimized
-                        loading="lazy"
-                        decoding="async"
-                    />
-                ) : (
-                    fallbackContent
-                )}
-            </span>
-            <span className={textClasses}>{safeLabel}</span>
-        </span>
-    );
-}
-
-/**
- * Builds a labeled view switcher entry that includes an icon.
- *
- * @private function of Header
- */
-export function createAgentViewLabel(view: AgentHierarchyView, translate: (key: ServerTranslationKey) => string) {
-    const Icon = AGENT_VIEW_ICON_MAP[view];
-    const translationKeyByView: Record<AgentHierarchyView, ServerTranslationKey> = {
-        Profile: 'common.profile',
-        Chat: 'common.chat',
-        Book: 'common.book',
-        Timeouts: 'common.timeouts',
-        More: 'common.more',
-    };
-    return (
-        <span className="flex items-center gap-2">
-            <Icon className="h-4 w-4 text-gray-500" aria-hidden />
-            <span>{translate(translationKeyByView[view])}</span>
-        </span>
-    );
-}
-
-/**
- * Builds the dedicated ChatGPT-like view switcher label.
- *
- * @private function of Header
- */
-export function createChatGptLikeViewLabel() {
-    return (
-        <span className="flex items-center gap-2">
-            <MessageSquareIcon className="h-4 w-4 text-gray-500" aria-hidden />
-            <span>ChatGPT-like</span>
-        </span>
-    );
-}
-
-/**
- * Builds a minimal agent payload for menu rendering fallback scenarios.
- *
- * @param agentIdentifier - Active agent identifier when available.
- * @returns Placeholder agent data to satisfy menu helpers.
- * @private function of Header
- */
-export function createFallbackAgent(agentIdentifier: string | null): AgentOrganizationAgent {
-    return {
-        agentName: agentIdentifier || 'Agent',
-        agentHash: '',
-        personaDescription: null,
-        initialMessage: null,
-        meta: {},
-        links: [],
-        parameters: [],
-        capabilities: [],
-        samples: [],
-        knowledgeSources: [],
-        visibility: 'UNLISTED',
-        folderId: null,
-        sortOrder: 0,
-    };
-}
-
-/**
- * Resolved route context used to render hierarchy crumbs.
- *
- * @private function of Header
- */
-export type ActiveAgentNavigation = {
-    agentIdentifier: string | null;
-    view: AgentHierarchyView | null;
-};
-
-/**
- * Reserved top-level routes that cannot be interpreted as an agent alias.
- */
-const RESERVED_PATH_SET = new Set<string>(RESERVED_PATHS);
-
-/**
- * Returns canonical identifier used in routes for one agent.
- *
- * @param agent - Agent used in the menu hierarchy.
- * @returns Permanent id when available, otherwise agent name.
- * @private function of Header
- */
-export function getAgentNavigationId(agent: HeaderAgentMenuAgent): string {
-    return agent.permanentId || agent.agentName;
-}
-
-/**
- * Resolves the hierarchy view label from URL segment.
- *
- * @param segment - Route segment after the agent identifier.
- * @returns Human-friendly view label, or null when unsupported.
- */
-function resolveAgentHierarchyView(segment: string | undefined): AgentHierarchyView | null {
-    if (!segment) {
-        return 'Profile';
-    }
-
-    if (segment === 'chat') {
-        return 'Chat';
-    }
-
-    if (segment === 'book') {
-        return 'Book';
-    }
-
-    if (segment === 'timeouts') {
-        return 'Timeouts';
-    }
-
-    return 'More';
-}
-
-/**
- * Parses current pathname and extracts active agent + hierarchy view context.
- *
- * @param pathname - Current browser pathname.
- * @returns Navigation context for hierarchy crumbs.
- * @private function of Header
- */
-export function resolveActiveAgentNavigation(pathname: string | null): ActiveAgentNavigation {
-    if (!pathname) {
-        return { agentIdentifier: null, view: null };
-    }
-
-    const pathSegments = pathname.split('/').filter(Boolean);
-    const firstPathSegment = pathSegments[0];
-
-    if (!firstPathSegment) {
-        return { agentIdentifier: null, view: null };
-    }
-
-    if (firstPathSegment === 'agents') {
-        if (!pathSegments[1]) {
-            return { agentIdentifier: null, view: null };
-        }
-
-        return {
-            agentIdentifier: decodeURIComponent(pathSegments[1]),
-            view: resolveAgentHierarchyView(pathSegments[2]),
-        };
-    }
-
-    if (RESERVED_PATH_SET.has(firstPathSegment)) {
-        return { agentIdentifier: null, view: null };
-    }
-
-    return {
-        agentIdentifier: decodeURIComponent(firstPathSegment),
-        view: resolveAgentHierarchyView(pathSegments[1]),
-    };
-}
-
-/**
- * Builds hierarchy label for the active agent, including folder path when available.
- *
- * @param agent - Active agent metadata.
- * @param folderById - Folder lookup table.
- * @returns Display label for breadcrumb-like hierarchy.
- * @private function of Header
- */
-export function createAgentHierarchyLabel(
-    agent: HeaderAgentMenuAgent,
-    folderById: Map<number, HeaderAgentMenuFolder>,
-): string {
-    const folderSegments = getFolderPathSegments(agent.folderId, folderById).map((folder) => folder.name);
-    const agentLabel = getAgentMenuLabel(agent);
-
-    if (folderSegments.length === 0) {
-        return agentLabel;
-    }
-
-    return `${folderSegments.join(' / ')} / ${agentLabel}`;
-}
-
-/**
- * Resolves the display label for an agent in the menu.
- *
- * @param agent - Agent shown in the header menu.
- * @returns Human-friendly agent label.
- */
-function getAgentMenuLabel(agent: HeaderAgentMenuAgent): string {
-    return agent.meta?.fullname || agent.agentName;
-}
+type HeaderAgentMenuAgent = AgentOrganizationAgent;
 
 /**
  * Sorts folder or agent items by sortOrder and then by a human-friendly label.
@@ -420,62 +128,7 @@ function createAgentMenuEntryLabel(label: string, avatarUrl: string | null, dept
 }
 
 /**
- * @private function of Header
- * Node representing a folder inside the header menu hierarchy.
- */
-export type AgentMenuFolderNode = {
-    type: 'folder';
-    id: number;
-    label: string;
-    renderLabel?: ReactNode;
-    href: string;
-    children: AgentMenuTreeNode[];
-};
-
-/**
- * @private function of Header
- * Node representing an agent inside the header menu hierarchy.
- */
-export type AgentMenuAgentNode = {
-    type: 'agent';
-    agentName: string;
-    label: string;
-    renderLabel?: ReactNode;
-    href: string;
-};
-
-/**
- * @private function of Header
- * Node representing a folder-level action entry inside the header menu hierarchy.
- */
-export type AgentMenuActionNode = {
-    type: 'action';
-    id: string;
-    label: string;
-    renderLabel?: ReactNode;
-    href?: string;
-    onClick?: () => void | Promise<void>;
-    isBold?: boolean;
-    isBordered?: boolean;
-};
-
-/**
- * @private function of Header
- * Unified node type for the agent menu tree.
- */
-export type AgentMenuTreeNode = AgentMenuFolderNode | AgentMenuAgentNode | AgentMenuActionNode;
-
-/**
- * @private function of Header
- * Structure describing the agent menu tree and flat submenu items.
- */
-export type AgentMenuStructure = {
-    tree: AgentMenuTreeNode[];
-    items: Array<SubMenuItem>;
-};
-
-/**
- * @private function of Header
+ * @private type of Header
  * Indexes used to build the agent menu structure.
  */
 type AgentMenuData = {
@@ -534,31 +187,88 @@ function prepareAgentMenuData(
 }
 
 /**
+ * Creates a stable folder traversal order that starts with real roots and
+ * falls back to any disconnected or cyclic folders.
+ *
  * @private function of Header
- * Builds the hierarchical and flat agent menu data for the header.
  */
-export function buildAgentMenuStructure(
-    agents: ReadonlyArray<HeaderAgentMenuAgent>,
+function createMenuRootFolderIds(
     folders: ReadonlyArray<HeaderAgentMenuFolder>,
-): AgentMenuStructure {
-    const { folderById, sortedFolderIdsByParentId, agentsByFolderId } = prepareAgentMenuData(agents, folders);
+    sortedFolderIdsByParentId: ReadonlyMap<number | null, number[]>,
+): number[] {
+    const rootFolderIds = [...(sortedFolderIdsByParentId.get(null) || [])];
+    const includedFolderIds = new Set<number>(rootFolderIds);
 
-    const agentAvatarByIdentifier = new Map<string, string | null>();
-    for (const agent of agents) {
-        const identifier = getAgentNavigationId(agent);
-        agentAvatarByIdentifier.set(identifier, resolveAgentAvatarImageUrl({ agent }));
+    for (const folder of sortBySortOrderAndLabel(folders, (currentFolder) => currentFolder.name)) {
+        if (includedFolderIds.has(folder.id)) {
+            continue;
+        }
+
+        includedFolderIds.add(folder.id);
+        rootFolderIds.push(folder.id);
     }
 
-    const getAgentAvatarUrl = (agent: HeaderAgentMenuAgent): string | null =>
-        agentAvatarByIdentifier.get(getAgentNavigationId(agent)) ?? null;
+    return rootFolderIds;
+}
 
-    const items: Array<SubMenuItem> = [];
+/**
+ * Resolves the folder href used by both tree and flat menu items.
+ *
+ * @private function of Header
+ */
+function createFolderHref(folderId: number, folderById: Map<number, HeaderAgentMenuFolder>): string {
+    const folderPath = buildFolderPath(getFolderPathSegments(folderId, folderById).map((segment) => segment.name));
+    return `/?folder=${folderPath}`;
+}
+
+/**
+ * Resolves the agent href used by both tree and flat menu items.
+ *
+ * @private function of Header
+ */
+function createAgentHref(agent: HeaderAgentMenuAgent): string {
+    return `/agents/${encodeURIComponent(getAgentNavigationId(agent))}`;
+}
+
+/**
+ * Computes agent avatar URLs keyed by their route navigation identifier.
+ *
+ * @private function of Header
+ */
+function createAgentAvatarByIdentifier(agents: ReadonlyArray<HeaderAgentMenuAgent>): Map<string, string | null> {
+    const agentAvatarByIdentifier = new Map<string, string | null>();
+
+    for (const agent of agents) {
+        agentAvatarByIdentifier.set(getAgentNavigationId(agent), resolveAgentAvatarImageUrl({ agent }));
+    }
+
+    return agentAvatarByIdentifier;
+}
+
+/**
+ * Creates a flat submenu representation used by the mobile and legacy menu
+ * renderers.
+ *
+ * @private function of Header
+ */
+function createAgentMenuItems(
+    folders: ReadonlyArray<HeaderAgentMenuFolder>,
+    { folderById, sortedFolderIdsByParentId, agentsByFolderId }: AgentMenuData,
+    getAgentAvatarUrl: (agent: HeaderAgentMenuAgent) => string | null,
+): Array<{
+    label: ReactNode;
+    href: string;
+    isBold?: boolean;
+}> {
+    const items: Array<{ label: ReactNode; href: string; isBold?: boolean }> = [];
     const visitedFolderIds = new Set<number>();
+    const rootFolderIds = createMenuRootFolderIds(folders, sortedFolderIdsByParentId);
 
-    const appendFolderBranch = (folderId: number, depth: number): void => {
+    const appendFolderBranchItems = (folderId: number, depth: number): void => {
         if (visitedFolderIds.has(folderId)) {
             return;
         }
+
         visitedFolderIds.add(folderId);
 
         const folder = folderById.get(folderId);
@@ -566,452 +276,153 @@ export function buildAgentMenuStructure(
             return;
         }
 
-        const folderPath = buildFolderPath(getFolderPathSegments(folderId, folderById).map((segment) => segment.name));
-
         items.push({
             label: createFolderMenuEntryLabel(folder, depth),
-            href: `/?folder=${folderPath}`,
+            href: createFolderHref(folderId, folderById),
             isBold: true,
         });
 
-        const folderAgents = agentsByFolderId.get(folderId) || [];
-        for (const agent of folderAgents) {
+        for (const agent of agentsByFolderId.get(folderId) || []) {
             items.push({
                 label: createAgentMenuEntryLabel(getAgentMenuLabel(agent), getAgentAvatarUrl(agent), depth + 1),
-                href: `/agents/${encodeURIComponent(getAgentNavigationId(agent))}`,
+                href: createAgentHref(agent),
             });
         }
 
-        const childFolderIds = sortedFolderIdsByParentId.get(folderId) || [];
-        for (const childFolderId of childFolderIds) {
-            appendFolderBranch(childFolderId, depth + 1);
+        for (const childFolderId of sortedFolderIdsByParentId.get(folderId) || []) {
+            appendFolderBranchItems(childFolderId, depth + 1);
         }
     };
 
-    const rootFolderIds = sortedFolderIdsByParentId.get(null) || [];
     for (const rootFolderId of rootFolderIds) {
-        appendFolderBranch(rootFolderId, 0);
-    }
-    for (const folder of sortBySortOrderAndLabel(folders, (currentFolder) => currentFolder.name)) {
-        if (!visitedFolderIds.has(folder.id)) {
-            appendFolderBranch(folder.id, 0);
-        }
+        appendFolderBranchItems(rootFolderId, 0);
     }
 
-    const rootAgents = agentsByFolderId.get(null) || [];
-    for (const agent of rootAgents) {
+    for (const agent of agentsByFolderId.get(null) || []) {
         items.push({
             label: createAgentMenuEntryLabel(getAgentMenuLabel(agent), getAgentAvatarUrl(agent), 0),
-            href: `/agents/${encodeURIComponent(getAgentNavigationId(agent))}`,
+            href: createAgentHref(agent),
         });
     }
 
-    const treeVisitedFolderIds = new Set<number>();
-    const createAgentNode = (agent: HeaderAgentMenuAgent): AgentMenuAgentNode => {
-        const label = getAgentMenuLabel(agent);
-        return {
-            type: 'agent',
-            agentName: agent.agentName,
-            label,
-            renderLabel: createAgentMenuEntryLabel(label, getAgentAvatarUrl(agent), 0),
-            href: `/agents/${encodeURIComponent(getAgentNavigationId(agent))}`,
-        };
+    return items;
+}
+
+/**
+ * Creates one tree node for an agent branch leaf.
+ *
+ * @private function of Header
+ */
+function createAgentNode(
+    agent: HeaderAgentMenuAgent,
+    getAgentAvatarUrl: (agent: HeaderAgentMenuAgent) => string | null,
+): AgentMenuAgentNode {
+    const label = getAgentMenuLabel(agent);
+
+    return {
+        type: 'agent',
+        agentName: agent.agentName,
+        label,
+        renderLabel: createAgentMenuEntryLabel(label, getAgentAvatarUrl(agent), 0),
+        href: createAgentHref(agent),
     };
+}
 
-    const createFolderNode = (folderId: number): AgentMenuFolderNode | null => {
-        if (treeVisitedFolderIds.has(folderId)) {
-            return null;
+/**
+ * Recursively creates a folder tree branch while guarding against repeated
+ * visits caused by inconsistent data.
+ *
+ * @private function of Header
+ */
+function createFolderNode(
+    folderId: number,
+    { folderById, sortedFolderIdsByParentId, agentsByFolderId }: AgentMenuData,
+    visitedFolderIds: Set<number>,
+    getAgentAvatarUrl: (agent: HeaderAgentMenuAgent) => string | null,
+): AgentMenuFolderNode | null {
+    if (visitedFolderIds.has(folderId)) {
+        return null;
+    }
+
+    const folder = folderById.get(folderId);
+    if (!folder) {
+        return null;
+    }
+
+    visitedFolderIds.add(folderId);
+
+    const childNodes: AgentMenuTreeNode[] = [];
+
+    for (const childFolderId of sortedFolderIdsByParentId.get(folderId) || []) {
+        const childNode = createFolderNode(
+            childFolderId,
+            { folderById, sortedFolderIdsByParentId, agentsByFolderId },
+            visitedFolderIds,
+            getAgentAvatarUrl,
+        );
+        if (childNode) {
+            childNodes.push(childNode);
         }
+    }
 
-        const folder = folderById.get(folderId);
-        if (!folder) {
-            return null;
-        }
+    childNodes.push(
+        ...(agentsByFolderId.get(folderId) || []).map((agent) => createAgentNode(agent, getAgentAvatarUrl)),
+    );
 
-        treeVisitedFolderIds.add(folderId);
-        const folderPath = buildFolderPath(getFolderPathSegments(folderId, folderById).map((segment) => segment.name));
-
-        const childNodes: AgentMenuTreeNode[] = [];
-        const childFolderIds = sortedFolderIdsByParentId.get(folderId) || [];
-        for (const childFolderId of childFolderIds) {
-            const childNode = createFolderNode(childFolderId);
-            if (childNode) {
-                childNodes.push(childNode);
-            }
-        }
-
-        const folderAgents = agentsByFolderId.get(folderId) || [];
-        childNodes.push(...folderAgents.map(createAgentNode));
-
-        return {
-            type: 'folder',
-            id: folder.id,
-            label: folder.name,
-            renderLabel: createFolderMenuEntryLabel(folder, 0),
-            href: `/?folder=${folderPath}`,
-            children: childNodes,
-        };
+    return {
+        type: 'folder',
+        id: folder.id,
+        label: folder.name,
+        renderLabel: createFolderMenuEntryLabel(folder, 0),
+        href: createFolderHref(folderId, folderById),
+        children: childNodes,
     };
+}
 
+/**
+ * Creates the hierarchical agent tree used by the desktop dropdown.
+ *
+ * @private function of Header
+ */
+function createAgentTree(
+    folders: ReadonlyArray<HeaderAgentMenuFolder>,
+    agentMenuData: AgentMenuData,
+    getAgentAvatarUrl: (agent: HeaderAgentMenuAgent) => string | null,
+): AgentMenuTreeNode[] {
     const treeRoots: AgentMenuTreeNode[] = [];
-    for (const rootFolderId of rootFolderIds) {
-        const node = createFolderNode(rootFolderId);
+    const visitedFolderIds = new Set<number>();
+
+    for (const rootFolderId of createMenuRootFolderIds(folders, agentMenuData.sortedFolderIdsByParentId)) {
+        const node = createFolderNode(rootFolderId, agentMenuData, visitedFolderIds, getAgentAvatarUrl);
         if (node) {
             treeRoots.push(node);
         }
     }
-    for (const folder of sortBySortOrderAndLabel(folders, (currentFolder) => currentFolder.name)) {
-        if (!treeVisitedFolderIds.has(folder.id)) {
-            const node = createFolderNode(folder.id);
-            if (node) {
-                treeRoots.push(node);
-            }
-        }
-    }
 
-    treeRoots.push(...rootAgents.map(createAgentNode));
+    treeRoots.push(
+        ...(agentMenuData.agentsByFolderId.get(null) || []).map((agent) => createAgentNode(agent, getAgentAvatarUrl)),
+    );
+
+    return treeRoots;
+}
+
+/**
+ * Builds the hierarchical and flat agent menu data for the header.
+ *
+ * @private function of Header
+ */
+export function buildAgentMenuStructure(
+    agents: ReadonlyArray<HeaderAgentMenuAgent>,
+    folders: ReadonlyArray<HeaderAgentMenuFolder>,
+): AgentMenuStructure {
+    const agentMenuData = prepareAgentMenuData(agents, folders);
+    const agentAvatarByIdentifier = createAgentAvatarByIdentifier(agents);
+
+    const getAgentAvatarUrl = (agent: HeaderAgentMenuAgent): string | null =>
+        agentAvatarByIdentifier.get(getAgentNavigationId(agent)) ?? null;
 
     return {
-        tree: treeRoots,
-        items,
+        tree: createAgentTree(folders, agentMenuData, getAgentAvatarUrl),
+        items: createAgentMenuItems(folders, agentMenuData, getAgentAvatarUrl),
     };
-}
-
-/**
- * Configuration for injecting reusable folder action nodes into each folder branch.
- *
- * @private function of Header
- */
-export type FolderActionNodeConfig = {
-    /**
-     * Label displayed for the "view all agents in this folder" action.
-     */
-    readonly viewAllLabel: string;
-    /**
-     * Text fallback displayed for the "create new agent" action.
-     */
-    readonly createLabel: string;
-    /**
-     * Optional richer node displayed for the create action.
-     */
-    readonly renderCreateLabel?: ReactNode;
-    /**
-     * Optional callback that opens the create flow scoped to a folder.
-     */
-    readonly onCreateInFolder?: (folderId: number) => void;
-};
-
-/**
- * Appends "View all agents" and optional "Create new agent" actions to each folder branch.
- *
- * @param nodes - Existing folder/agent hierarchy.
- * @param config - Labels and callbacks used for action injection.
- * @returns New hierarchy with per-folder action nodes.
- * @private function of Header
- */
-export function appendFolderActionNodes(
-    nodes: ReadonlyArray<AgentMenuTreeNode>,
-    config: FolderActionNodeConfig,
-): AgentMenuTreeNode[] {
-    return nodes.map((node) => {
-        if (node.type !== 'folder') {
-            return node;
-        }
-
-        const nestedChildren = appendFolderActionNodes(node.children, config);
-        const actionNodes: AgentMenuActionNode[] = [
-            {
-                type: 'action',
-                id: `folder-${node.id}-view-all`,
-                label: config.viewAllLabel,
-                href: node.href,
-                isBold: true,
-                isBordered: nestedChildren.length > 0,
-            },
-        ];
-
-        if (config.onCreateInFolder) {
-            actionNodes.push({
-                type: 'action',
-                id: `folder-${node.id}-create`,
-                label: config.createLabel,
-                renderLabel: config.renderCreateLabel,
-                onClick: () => config.onCreateInFolder?.(node.id),
-                isBold: true,
-            });
-        }
-
-        return {
-            ...node,
-            children: [...nestedChildren, ...actionNodes],
-        };
-    });
-}
-
-/**
- * @private function of Header
- * Props for the agent directory dropdown renderer.
- */
-type AgentDirectoryDropdownProps = {
-    nodes: ReadonlyArray<AgentMenuTreeNode>;
-    onNavigate: () => void;
-    isTouchInput: boolean;
-};
-
-/**
- * @private function of Header
- * Renders the nested agents menu with hover columns on pointer devices and
- * tap-expand behavior on touch-first devices.
- */
-export function AgentDirectoryDropdown({ nodes, onNavigate, isTouchInput }: AgentDirectoryDropdownProps) {
-    const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
-
-    useEffect(() => {
-        setExpandedFolders({});
-    }, [nodes, isTouchInput]);
-
-    /**
-     * Toggles one folder subtree visibility in touch-first mode.
-     */
-    const toggleFolder = (folderKey: string) => {
-        setExpandedFolders((previous) => ({
-            ...previous,
-            [folderKey]: !previous[folderKey],
-        }));
-    };
-
-    return (
-        <div className="pointer-events-auto">
-            <AgentMenuColumn
-                nodes={nodes}
-                onNavigate={onNavigate}
-                depth={0}
-                isTouchInput={isTouchInput}
-                keyPrefix="root"
-                expandedFolders={expandedFolders}
-                toggleFolder={toggleFolder}
-            />
-        </div>
-    );
-}
-
-/**
- * @private function of Header
- * Props for a single column in the agent menu tree.
- */
-type AgentMenuColumnProps = AgentDirectoryDropdownProps & {
-    depth: number;
-    keyPrefix: string;
-    expandedFolders: Record<string, boolean>;
-    toggleFolder: (folderKey: string) => void;
-};
-
-/**
- * @private function of Header
- * Renders one column of the agent tree, showing folders and agents.
- */
-function AgentMenuColumn({
-    nodes,
-    onNavigate,
-    depth,
-    isTouchInput,
-    keyPrefix,
-    expandedFolders,
-    toggleFolder,
-}: AgentMenuColumnProps) {
-    return (
-        <div
-            className={`relative flex flex-col gap-1 px-1 py-1 ${
-                isTouchInput && depth > 0 ? 'bg-transparent' : 'bg-white'
-            }`}
-            style={{ minWidth: isTouchInput ? undefined : depth === 0 ? 260 : 240 }}
-        >
-            {nodes.map((node) => {
-                if (node.type === 'folder') {
-                    const folderKey = `${keyPrefix}-folder-${node.id}`;
-                    const hasChildren = node.children.length > 0;
-                    const isExpanded = Boolean(expandedFolders[folderKey]);
-
-                    return (
-                        <div key={`folder-${node.id}`} className={`relative ${isTouchInput ? '' : 'group'}`}>
-                            <HeadlessLink
-                                href={node.href}
-                                onClick={(event) => {
-                                    if (isTouchInput && hasChildren && !isExpanded) {
-                                        event.preventDefault();
-                                        toggleFolder(folderKey);
-                                        return;
-                                    }
-                                    onNavigate();
-                                }}
-                                className={`flex w-full items-center justify-between gap-2 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold transition-colors ${
-                                    isTouchInput
-                                        ? 'text-gray-800 hover:bg-white active:bg-gray-100'
-                                        : 'text-gray-800 hover:border-gray-200 hover:bg-gray-50 hover:text-gray-900'
-                                }`}
-                                title={node.label}
-                            >
-                                <span className="min-w-0">
-                                    {node.renderLabel ?? <span className="truncate">{node.label}</span>}
-                                </span>
-                                {hasChildren && (
-                                    <ChevronRight
-                                        className={`h-4 w-4 text-gray-400 transition-transform duration-150 ${
-                                            isTouchInput && isExpanded ? 'rotate-90' : ''
-                                        }`}
-                                    />
-                                )}
-                            </HeadlessLink>
-
-                            {hasChildren &&
-                                (isTouchInput ? (
-                                    <div
-                                        className={`ml-3 border-l border-gray-200 pl-2 ${
-                                            isExpanded ? 'mt-1 block' : 'hidden'
-                                        }`}
-                                    >
-                                        <AgentMenuColumn
-                                            nodes={node.children}
-                                            onNavigate={onNavigate}
-                                            depth={depth + 1}
-                                            isTouchInput={isTouchInput}
-                                            keyPrefix={folderKey}
-                                            expandedFolders={expandedFolders}
-                                            toggleFolder={toggleFolder}
-                                        />
-                                    </div>
-                                ) : (
-                                    <div className="absolute left-full top-0 z-50 mt-0 hidden w-[260px] rounded-xl border border-gray-100 bg-white shadow-xl shadow-slate-900/10 group-hover:block">
-                                        <AgentMenuColumn
-                                            nodes={node.children}
-                                            onNavigate={onNavigate}
-                                            depth={depth + 1}
-                                            isTouchInput={isTouchInput}
-                                            keyPrefix={folderKey}
-                                            expandedFolders={expandedFolders}
-                                            toggleFolder={toggleFolder}
-                                        />
-                                    </div>
-                                ))}
-                        </div>
-                    );
-                }
-
-                if (node.type === 'action') {
-                    const baseClassName =
-                        `flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm transition-colors ${
-                            node.isBold ? 'font-semibold text-gray-900' : 'text-gray-700'
-                        } ${
-                            isTouchInput
-                                ? 'hover:bg-white active:bg-gray-100'
-                                : 'hover:border-gray-200 hover:bg-gray-50 hover:text-gray-900 border border-transparent'
-                        }`.trim();
-
-                    if (node.onClick) {
-                        return (
-                            <button
-                                key={`action-${node.id}`}
-                                type="button"
-                                onClick={() => {
-                                    void node.onClick?.();
-                                    onNavigate();
-                                }}
-                                className={`${baseClassName} w-full text-left ${
-                                    node.isBordered ? 'mt-1 border-t border-gray-100 pt-3' : ''
-                                }`}
-                                title={node.label}
-                            >
-                                <span className="min-w-0">
-                                    {node.renderLabel ?? <span className="truncate">{node.label}</span>}
-                                </span>
-                            </button>
-                        );
-                    }
-
-                    if (node.href) {
-                        return (
-                            <HeadlessLink
-                                key={`action-${node.id}`}
-                                href={node.href}
-                                onClick={onNavigate}
-                                className={`${baseClassName} ${
-                                    node.isBordered ? 'mt-1 border-t border-gray-100 pt-3' : ''
-                                }`}
-                                title={node.label}
-                            >
-                                <span className="min-w-0">
-                                    {node.renderLabel ?? <span className="truncate">{node.label}</span>}
-                                </span>
-                            </HeadlessLink>
-                        );
-                    }
-
-                    return (
-                        <span
-                            key={`action-${node.id}`}
-                            className={`${baseClassName} ${
-                                node.isBordered ? 'mt-1 border-t border-gray-100 pt-3' : ''
-                            }`}
-                            title={node.label}
-                        >
-                            <span className="min-w-0">
-                                {node.renderLabel ?? <span className="truncate">{node.label}</span>}
-                            </span>
-                        </span>
-                    );
-                }
-
-                return (
-                    <HeadlessLink
-                        key={`agent-${node.agentName}`}
-                        href={node.href}
-                        onClick={onNavigate}
-                        className={`flex w-full items-center gap-2 rounded-xl border border-transparent px-3 py-2.5 text-sm transition-colors ${
-                            isTouchInput
-                                ? 'text-gray-700 hover:bg-white active:bg-gray-100'
-                                : 'text-gray-600 hover:border-gray-200 hover:bg-gray-50 hover:text-gray-900'
-                        }`}
-                        title={node.label}
-                    >
-                        <span className="min-w-0">
-                            {node.renderLabel ?? <span className="truncate">{node.label}</span>}
-                        </span>
-                    </HeadlessLink>
-                );
-            })}
-        </div>
-    );
-}
-
-/**
- * @private function of Header
- * Converts agent tree nodes into nested submenu items used by mobile rendering.
- */
-export function createAgentHierarchyMobileItems(nodes: ReadonlyArray<AgentMenuTreeNode>): SubMenuItem[] {
-    return nodes.map((node) => {
-        if (node.type === 'folder') {
-            const childItems = createAgentHierarchyMobileItems(node.children);
-            return {
-                label: node.renderLabel ?? node.label,
-                href: node.href,
-                isBold: true,
-                items: childItems.length > 0 ? childItems : undefined,
-            };
-        }
-
-        if (node.type === 'action') {
-            return {
-                label: node.renderLabel ?? node.label,
-                href: node.href,
-                onClick: node.onClick,
-                isBold: node.isBold,
-                isBordered: node.isBordered,
-            };
-        }
-
-        return {
-            label: node.renderLabel ?? node.label,
-            href: node.href,
-        };
-    });
 }
