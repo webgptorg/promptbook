@@ -33,6 +33,7 @@ import type { LlmToolDefinition, ToolCall } from '@promptbook-local/types';
 import { serializeError } from '@promptbook-local/utils';
 import type { ChatPromptResult } from '../../../../../src/execution/PromptResult';
 import { mergeToolCalls } from '../../../../../src/utils/toolCalls/mergeToolCalls';
+import { createUserChatJobFailureDetails } from './createUserChatJobFailureDetails';
 import { finalizeUserChatJob } from './finalizeUserChatJob';
 import { getUserChat } from './getUserChat';
 import { heartbeatUserChatJob } from './heartbeatUserChatJob';
@@ -569,6 +570,14 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
         }
 
         const failureReason = resolveUserChatJobFailureReason(error);
+        const failureDetails = createUserChatJobFailureDetails({
+            job,
+            summary: failureReason,
+            source: 'runUserChatJob',
+            provider,
+            generationDurationMs,
+            error,
+        });
 
         if (isCancellationRequested || isUserChatJobCancelledError(error)) {
             await persistUserChatJobTerminalState({
@@ -601,6 +610,7 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
             availableTools,
             provider,
             failureReason,
+            failureDetails,
             generationDurationMs,
         });
 

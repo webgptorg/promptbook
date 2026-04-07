@@ -53,6 +53,7 @@ describe('persistUserChatJobTerminalState', () => {
                 },
                 status: 'FAILED',
                 failureReason: 'Chat missing.',
+                failureDetails: '{\n  "summary": "Chat missing."\n}',
             }),
         ).resolves.toBeUndefined();
 
@@ -61,6 +62,7 @@ describe('persistUserChatJobTerminalState', () => {
             status: 'FAILED',
             provider: undefined,
             failureReason: 'Chat missing.',
+            failureDetails: '{\n  "summary": "Chat missing."\n}',
         });
         expect(sendUserChatPushNotificationMock).not.toHaveBeenCalled();
     });

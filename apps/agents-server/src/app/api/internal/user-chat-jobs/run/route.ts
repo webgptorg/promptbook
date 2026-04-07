@@ -1,5 +1,6 @@
 import {
     claimNextQueuedUserChatJob,
+    createUserChatJobFailureDetails,
     finalizeUserChatJob,
     persistUserChatJobTerminalState,
     recoverExpiredRunningUserChatJobs,
@@ -60,6 +61,13 @@ async function handleUserChatJobWorkerRequest(request: Request) {
             await runUserChatJob(claimedJob);
         } catch (error) {
             const failureReason = error instanceof Error ? error.message : 'Chat generation failed.';
+            const failureDetails = createUserChatJobFailureDetails({
+                job: claimedJob,
+                summary: failureReason,
+                source: 'userChatJobWorkerRoute',
+                provider: claimedJob.provider,
+                error,
+            });
 
             console.error('[user-chat-job] unexpected worker failure', {
                 chatId: claimedJob.chatId,
@@ -72,11 +80,13 @@ async function handleUserChatJobWorkerRequest(request: Request) {
                 job: claimedJob,
                 status: 'FAILED',
                 failureReason,
+                failureDetails,
             }).catch(async () => {
                 await finalizeUserChatJob({
                     jobId: claimedJob.id,
                     status: 'FAILED',
                     failureReason,
+                    failureDetails,
                 });
             });
         }

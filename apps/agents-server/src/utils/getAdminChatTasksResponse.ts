@@ -148,6 +148,7 @@ type AdminChatTaskSqlRow = {
     recurrenceIntervalMs: string | number | null;
     attemptCount: number;
     lastErrorSummary: string | null;
+    lastErrorDetails: string | null;
     userId: number;
     username: string | null;
     agentPermanentId: string;
@@ -482,6 +483,7 @@ function mapAdminChatTaskSqlRow(row: AdminChatTaskSqlRow): AdminChatTaskRecord {
         attemptCount: row.attemptCount,
         retryCount: Math.max(0, row.attemptCount - 1),
         lastErrorSummary: row.lastErrorSummary,
+        lastErrorDetails: row.lastErrorDetails,
         userId: row.userId,
         username: row.username,
         agentPermanentId: row.agentPermanentId,
@@ -579,6 +581,7 @@ function createAdminChatTaskBaseQuery(options: {
             NULL::BIGINT AS "recurrenceIntervalMs",
             job."attemptCount" AS "attemptCount",
             job."failureReason" AS "lastErrorSummary",
+            job."failureDetails" AS "lastErrorDetails",
             job."userId" AS "userId",
             "user"."username" AS "username",
             job."agentPermanentId" AS "agentPermanentId",
@@ -606,6 +609,7 @@ function createAdminChatTaskBaseQuery(options: {
             timeout."recurrenceIntervalMs" AS "recurrenceIntervalMs",
             timeout."attemptCount" AS "attemptCount",
             timeout."failureReason" AS "lastErrorSummary",
+            NULL::TEXT AS "lastErrorDetails",
             timeout."userId" AS "userId",
             "user"."username" AS "username",
             timeout."agentPermanentId" AS "agentPermanentId",

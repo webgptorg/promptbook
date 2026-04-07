@@ -1,4 +1,5 @@
 import type { ChatMessage } from '@promptbook-local/types';
+import { createUserChatJobFailureDetails } from './createUserChatJobFailureDetails';
 import { finalizeUserChatJob } from './finalizeUserChatJob';
 import { persistUserChatJobTerminalState } from './persistUserChatJobTerminalState';
 import type { UserChatJobRecord } from './UserChatJobRecord';
@@ -85,6 +86,13 @@ async function failExpiredRunningUserChatJob(
         | undefined,
 ): Promise<boolean> {
     try {
+        const failureDetails = createUserChatJobFailureDetails({
+            job,
+            summary: EXPIRED_RUNNING_USER_CHAT_JOB_FAILURE_REASON,
+            source: 'reconcileUserChatActiveJobs',
+            provider: job.provider,
+        });
+
         await persistUserChatJobTerminalState({
             job,
             status: 'FAILED',
@@ -92,6 +100,7 @@ async function failExpiredRunningUserChatJob(
             toolCalls: assistantMessage ? resolveUserChatMessageToolCalls(assistantMessage) : undefined,
             provider: job.provider,
             failureReason: EXPIRED_RUNNING_USER_CHAT_JOB_FAILURE_REASON,
+            failureDetails,
         });
         return true;
     } catch (error) {

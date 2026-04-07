@@ -1,3 +1,9 @@
+-   Logged richer durable diagnostics for failed Agents Server chat turns so admin task inspection no longer stops at the generic lease-expired summary:
+
+    -   Added backwards-compatible `failureDetails` storage for `UserChatJob` rows and now persist structured JSON diagnostics containing the failure summary, serialized error payload (message/name/stack when available), provider, timing, and chat-turn identifiers.
+    -   Reused the same diagnostics builder for runtime failures, unexpected worker-route failures, and expired-lease recovery paths to keep failure logging DRY and consistent.
+    -   Extended the admin task manager to surface the stored diagnostics under failed chat-completion tasks via an expandable "Show details" panel in the Last error column.
+
 -   Hid the finished chat lifecycle chip under messages so completed Agents Server replies no longer show redundant `Finished` / `Dokončeno` badges:
 
     -   Updated the shared `<ChatMessageItem/>` lifecycle-badge resolver to return no badge for `completed` messages while preserving queued, running, failed, and cancelled badges.
@@ -2018,3 +2024,8 @@
 -   Resolved `zod` peer dependency conflicts between `@ai-sdk/deepseek` and `@openai/agents` by using `overrides` in `package.json`.
 -   Fixed `node-fetch` declaration issue in `LindatAutomaticTranslator.ts` by using native `URLSearchParams` and removing `node-fetch` import.
 -   Stabilized Agents Server under low traffic by removing constant 5-second DB polling from timeout/preparation workers, restoring durable timeout wake-ups through Vercel cron, fixing agent-source cycle detection across canonical/name URLs, and reducing agent-reference resolver churn.
+-   Logged richer durable diagnostics for failed Agents Server chat turns so admin task inspection no longer stops at the generic lease-expired summary:
+
+    -   Added backwards-compatible `failureDetails` storage for `UserChatJob` rows and now persist structured JSON diagnostics containing the failure summary, serialized error payload (message/name/stack when available), provider, timing, and chat-turn identifiers.
+    -   Reused the same diagnostics builder for runtime failures, unexpected worker-route failures, and expired-lease recovery paths to keep failure logging DRY and consistent.
+    -   Extended the admin task manager to surface the stored diagnostics under failed chat-completion tasks via an expandable "Show details" panel in the Last error column.

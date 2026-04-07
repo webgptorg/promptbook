@@ -23,6 +23,7 @@ export async function persistUserChatJobTerminalState(options: {
     availableTools?: ReadonlyArray<LlmToolDefinition>;
     provider?: string | null;
     failureReason?: string | null;
+    failureDetails?: string | null;
     generationDurationMs?: number;
 }): Promise<void> {
     let updatedChat: Awaited<ReturnType<typeof updateUserChatAssistantMessage>> | null = null;
@@ -58,6 +59,7 @@ export async function persistUserChatJobTerminalState(options: {
         status: options.status,
         provider: options.provider,
         failureReason: options.failureReason,
+        failureDetails: options.failureDetails,
     });
 
     if (options.status === 'COMPLETED' && updatedChat) {

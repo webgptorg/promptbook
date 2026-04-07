@@ -37,6 +37,7 @@ export type AdminChatTaskRecord = {
     attemptCount: number;
     retryCount: number;
     lastErrorSummary: string | null;
+    lastErrorDetails: string | null;
     userId: number;
     username: string | null;
     agentPermanentId: string;

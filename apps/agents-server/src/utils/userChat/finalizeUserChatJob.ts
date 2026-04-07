@@ -1,7 +1,6 @@
+import { $getTableName } from '@/src/database/$getTableName';
+import { $provideClientSql } from '@/src/database/$provideClientSql';
 import type { UserChatJobRecord, UserChatJobStatus } from './UserChatJobRecord';
-import type { UserChatJobRow } from './UserChatJobRow';
-import { mapUserChatJobRow } from './mapUserChatJobRow';
-import { provideUserChatJobTable } from './provideUserChatJobTable';
 
 /**
  * Final status values accepted when finishing one durable job.
@@ -16,26 +15,70 @@ export async function finalizeUserChatJob(options: {
     status: FinalUserChatJobStatus;
     provider?: string | null;
     failureReason?: string | null;
+    failureDetails?: string | null;
 }): Promise<UserChatJobRecord | null> {
     const nowIso = new Date().toISOString();
-    const userChatJobTable = await provideUserChatJobTable();
-    const { data, error } = await userChatJobTable
-        .update({
-            status: options.status,
-            updatedAt: nowIso,
-            completedAt: nowIso,
-            lastHeartbeatAt: nowIso,
-            leaseExpiresAt: nowIso,
-            provider: options.provider ?? null,
-            failureReason: options.failureReason ?? null,
-        })
-        .eq('id', options.jobId)
-        .select('*')
-        .maybeSingle();
+    try {
+        const sql = await $provideClientSql();
+        const userChatJobTable = quoteIdentifier(await $getTableName('UserChatJob'));
+        const rows = await sql.raw<Array<UserChatJobRecord>>(
+            `
+                UPDATE ${userChatJobTable}
+                SET
+                    "status" = $1,
+                    "updatedAt" = $2,
+                    "completedAt" = $2,
+                    "lastHeartbeatAt" = $2,
+                    "leaseExpiresAt" = $2,
+                    "provider" = $3,
+                    "failureReason" = $4,
+                    "failureDetails" = $5
+                WHERE "id" = $6
+                RETURNING
+                    "id",
+                    "createdAt",
+                    "updatedAt",
+                    "chatId",
+                    "userId",
+                    "agentPermanentId",
+                    "userMessageId",
+                    "assistantMessageId",
+                    "clientMessageId",
+                    "status",
+                    "parameters",
+                    "queuedAt",
+                    "startedAt",
+                    "completedAt",
+                    "cancelRequestedAt",
+                    "lastHeartbeatAt",
+                    "leaseExpiresAt",
+                    "attemptCount",
+                    "provider",
+                    "failureReason"
+            `,
+            [
+                options.status,
+                nowIso,
+                options.provider ?? null,
+                options.failureReason ?? null,
+                options.failureDetails ?? null,
+                options.jobId,
+            ],
+        );
 
-    if (error) {
-        throw new Error(`Failed to finalize user chat job "${options.jobId}": ${error.message}`);
+        return rows[0] || null;
+    } catch (error) {
+        throw new Error(
+            `Failed to finalize user chat job "${options.jobId}": ${error instanceof Error ? error.message : 'Unknown error.'}`,
+        );
     }
+}
 
-    return data ? mapUserChatJobRow(data as UserChatJobRow) : null;
+/**
+ * Quotes one trusted internal SQL identifier.
+ *
+ * @private function of `userChat`
+ */
+function quoteIdentifier(identifier: string): string {
+    return `"${identifier.replace(/"/g, '""')}"`;
 }

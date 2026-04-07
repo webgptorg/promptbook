@@ -2,6 +2,7 @@ export { appendQueuedUserChatTurn } from './userChat/appendQueuedUserChatTurn';
 export { claimNextQueuedUserChatJob, USER_CHAT_JOB_LEASE_DURATION_MS } from './userChat/claimNextQueuedUserChatJob';
 export { createUserChat } from './userChat/createUserChat';
 export { createUserChatDetailPayload } from './userChat/createUserChatDetailPayload';
+export { createUserChatJobFailureDetails } from './userChat/createUserChatJobFailureDetails';
 export { createUserChatJob } from './userChat/createUserChatJob';
 export { createUserChatSummary } from './userChat/createUserChatSummary';
 export { createUserChatSummaryFromSeed } from './userChat/createUserChatSummary';

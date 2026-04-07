@@ -515,7 +515,25 @@ export function TaskManagerClient() {
                                                 ])}
                                             </td>
                                             <td className="max-w-xs px-4 py-3 align-top text-[11px] leading-relaxed text-gray-600">
-                                                {task.lastErrorSummary ? truncateText(task.lastErrorSummary, 220) : '—'}
+                                                {task.lastErrorSummary || task.lastErrorDetails ? (
+                                                    <div className="space-y-2">
+                                                        {task.lastErrorSummary ? (
+                                                            <div>{truncateText(task.lastErrorSummary, 220)}</div>
+                                                        ) : null}
+                                                        {task.lastErrorDetails ? (
+                                                            <details className="rounded-md border border-gray-200 bg-gray-50 p-2">
+                                                                <summary className="cursor-pointer font-medium text-gray-700">
+                                                                    Show details
+                                                                </summary>
+                                                                <pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-words text-[10px] leading-relaxed text-gray-600">
+                                                                    {task.lastErrorDetails}
+                                                                </pre>
+                                                            </details>
+                                                        ) : null}
+                                                    </div>
+                                                ) : (
+                                                    '—'
+                                                )}
                                             </td>
                                             <td className="px-4 py-3 align-top">
                                                 <div className="flex justify-end gap-2">
