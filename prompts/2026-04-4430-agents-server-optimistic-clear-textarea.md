@@ -13,3 +13,14 @@
 -   Ensure keyboard flow remains correct:
     -   Enter key + Shift+Enter behavior must not be affected by this change
 
+---
+
+[ ]
+
+[⚡️🧽] Allow to send rapidly multiple messages
+
+-   Now user can send multiple messages rapidly without waiting for server response, and the textarea will be cleared immediately on each send. This allows for a more fluid conversation flow, especially when user has multiple quick thoughts to share.
+-   But when this happen, the second message fails with "Chat not found."
+-   Fix the issue so that multiple messages can be sent rapidly without errors, and each message is processed correctly by the server.
+-   Do a deep analysis of the current message sending flow and current functionality to identify the root cause of the "Chat not found" error when sending multiple messages rapidly.
+-   You are working with the [Agents Server](apps/agents-server)
