@@ -23,6 +23,7 @@ import type { ChatFeedbackResponse } from '../book-components/Chat/Chat/ChatProp
 import type { ChatFeedbackMode } from '../book-components/Chat/Chat/ChatProps';
 import type { ChatVisualMode } from '../book-components/Chat/Chat/ChatProps';
 import type { ChatFeedbackTranslations } from '../book-components/Chat/Chat/ChatProps';
+import type { ChatUiTranslations } from '../book-components/Chat/Chat/ChatProps';
 import type { ChatTimingTranslations } from '../book-components/Chat/Chat/ChatProps';
 import type { ChatSoundSystem } from '../book-components/Chat/Chat/ChatProps';
 import type { ChatProps } from '../book-components/Chat/Chat/ChatProps';
@@ -452,6 +453,7 @@ export type { ChatFeedbackResponse };
 export type { ChatFeedbackMode };
 export type { ChatVisualMode };
 export type { ChatFeedbackTranslations };
+export type { ChatUiTranslations };
 export type { ChatTimingTranslations };
 export type { ChatSoundSystem };
 export type { ChatProps };

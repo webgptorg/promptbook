@@ -41,71 +41,60 @@
           - button "Open global control panel" [ref=e56] [cursor=pointer]:
             - img [ref=e57]
             - generic [ref=e60]: Control panel
-          - generic [ref=e62]:
-            - button "A admin Admin" [expanded] [ref=e63] [cursor=pointer]:
-              - generic [ref=e65]: A
-              - generic [ref=e66]:
-                - generic [ref=e67]: admin
-                - generic [ref=e68]: Admin
-              - img [ref=e69]
-            - generic [ref=e71]:
-              - generic [ref=e72]:
-                - paragraph [ref=e73]: admin
-                - paragraph [ref=e74]: Admin
-              - button "Change Password" [ref=e75] [cursor=pointer]:
-                - img [ref=e76]
-                - text: Change Password
-              - button "Log out" [ref=e79] [cursor=pointer]:
-                - img [ref=e80]
-                - text: Log out
-    - main [ref=e83]:
-      - main [ref=e84]:
-        - generic [ref=e85]:
-          - complementary [ref=e86]:
-            - button "Expand sidebar" [ref=e88] [cursor=pointer]:
-              - img [ref=e89]
-            - generic [ref=e92]:
-              - link "New chat" [ref=e93] [cursor=pointer]:
+          - button "A admin Admin" [ref=e63] [cursor=pointer]:
+            - generic [ref=e65]: A
+            - generic [ref=e66]:
+              - generic [ref=e67]: admin
+              - generic [ref=e68]: Admin
+            - img [ref=e69]
+    - main [ref=e71]:
+      - main [ref=e72]:
+        - generic [ref=e73]:
+          - complementary [ref=e74]:
+            - button "Expand sidebar" [ref=e76] [cursor=pointer]:
+              - img [ref=e77]
+            - generic [ref=e80]:
+              - link "New chat" [ref=e81] [cursor=pointer]:
                 - /url: /agents/e2e-chat-quick-button-send/chat?chat=new
-                - img [ref=e94]
-              - button "New chat (0 messages, a few seconds ago)" [ref=e97] [cursor=pointer]:
-                - generic "0 messages" [ref=e99]: "0"
-                - generic [ref=e100]:
-                  - generic [ref=e101]: New chat
-                  - generic [ref=e102]: No messages yet
-                - generic [ref=e103]: a few seconds ago
-              - generic [ref=e104]:
-                - button "Hide empty chats" [ref=e105] [cursor=pointer]:
-                  - img [ref=e106]
-                - button "EXT" [ref=e111] [cursor=pointer]
-              - paragraph [ref=e112]: Chats
-          - generic [ref=e117]:
-            - generic [ref=e118]:
-              - button "New chat" [ref=e119] [cursor=pointer]:
-                - img [ref=e120]
-                - generic [ref=e122]: New chat
-              - button "Save" [ref=e124] [cursor=pointer]:
-                - img [ref=e125]
-                - generic [ref=e128]: Save
-            - generic [ref=e134]:
-              - generic [ref=e135]:
-                - button "Read message aloud" [ref=e136] [cursor=pointer]:
-                  - img [ref=e137]
-                - button "Copy message" [ref=e139] [cursor=pointer]:
-                  - img [ref=e140]
-              - paragraph [ref=e145]: Hello! I am E2E Chat Quick Button Send.
-              - button "Hello" [ref=e147] [cursor=pointer]:
-                - paragraph [ref=e149]: Hello
-              - generic [ref=e151] [cursor=pointer]: ⭐
-            - generic [ref=e154]:
-              - textbox "Write a message..." [active] [ref=e155]
-              - button "Attach file" [ref=e156] [cursor=pointer]:
-                - img [ref=e157]
-              - button "Start dictation" [ref=e159] [cursor=pointer]:
-                - img [ref=e160]
-              - button [ref=e163] [cursor=pointer]:
-                - img [ref=e164]
+                - img [ref=e82]
+              - button "New chat (0 messages, a few seconds ago)" [ref=e85] [cursor=pointer]:
+                - generic "0 messages" [ref=e87]: "0"
+                - generic [ref=e88]:
+                  - generic [ref=e89]: New chat
+                  - generic [ref=e90]: No messages yet
+                - generic [ref=e91]: a few seconds ago
+              - generic [ref=e92]:
+                - button "Hide empty chats" [ref=e93] [cursor=pointer]:
+                  - img [ref=e94]
+                - button "EXT" [ref=e99] [cursor=pointer]
+              - paragraph [ref=e100]: Chats
+          - generic [ref=e105]:
+            - generic [ref=e106]:
+              - button "New chat" [ref=e107] [cursor=pointer]:
+                - img [ref=e108]
+                - generic [ref=e110]: New chat
+              - button "Save" [ref=e112] [cursor=pointer]:
+                - img [ref=e113]
+                - generic [ref=e116]: Save
+            - generic [ref=e122]:
+              - generic [ref=e123]:
+                - button "Read message aloud" [ref=e124] [cursor=pointer]:
+                  - img [ref=e125]
+                - button "Copy message" [ref=e127] [cursor=pointer]:
+                  - img [ref=e128]
+              - paragraph [ref=e133]: Hello! I am E2E Chat Quick Button Send.
+              - button "Hello" [ref=e135] [cursor=pointer]:
+                - paragraph [ref=e137]: Hello
+              - generic [ref=e139] [cursor=pointer]: ⭐
+            - generic [ref=e142]:
+              - textbox "Write a message..." [active] [ref=e143]
+              - button "Attach file" [ref=e144] [cursor=pointer]:
+                - img [ref=e145]
+              - button "Start dictation" [ref=e147] [cursor=pointer]:
+                - img [ref=e148]
+              - button [ref=e151] [cursor=pointer]:
+                - img [ref=e152]
   - generic:
     - region "Notifications"
-  - alert [ref=e166]
+  - alert [ref=e154]
 ```

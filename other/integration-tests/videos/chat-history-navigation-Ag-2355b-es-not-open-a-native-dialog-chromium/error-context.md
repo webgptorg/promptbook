@@ -1,0 +1,139 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e5]:
+        - generic [ref=e7]:
+          - generic [ref=e8]:
+            - link "Promptbook Agents Server Promptbook Agents Server" [ref=e9] [cursor=pointer]:
+              - /url: /
+              - img "Promptbook Agents Server" [ref=e10]
+              - generic [ref=e11]: Promptbook Agents Server
+            - button "Switch server" [ref=e13] [cursor=pointer]:
+              - img [ref=e14]
+          - img [ref=e16]
+          - button "e2e-chat-navigation-new-chat" [ref=e20] [cursor=pointer]:
+            - generic [ref=e21]:
+              - img [ref=e23]
+              - generic [ref=e25]: e2e-chat-navigation-new-chat
+            - img [ref=e26]
+          - img [ref=e28]
+          - button "Chat" [ref=e32] [cursor=pointer]:
+            - generic [ref=e33]:
+              - img [ref=e34]
+              - generic [ref=e36]: Chat
+            - img [ref=e37]
+        - generic [ref=e41]:
+          - generic [ref=e42]: Global search
+          - generic [ref=e43]:
+            - img
+            - combobox "Global search" [ref=e44]
+        - generic [ref=e45]:
+          - navigation [ref=e46]:
+            - button "Documentation" [ref=e48] [cursor=pointer]:
+              - text: Documentation
+              - img [ref=e49]
+            - button "System" [ref=e52] [cursor=pointer]:
+              - text: System
+              - img [ref=e53]
+          - button "Open global control panel" [ref=e56] [cursor=pointer]:
+            - img [ref=e57]
+            - generic [ref=e60]: Control panel
+          - generic [ref=e62]:
+            - button "A admin Admin" [expanded] [ref=e63] [cursor=pointer]:
+              - generic [ref=e65]: A
+              - generic [ref=e66]:
+                - generic [ref=e67]: admin
+                - generic [ref=e68]: Admin
+              - img [ref=e69]
+            - generic [ref=e71]:
+              - generic [ref=e72]:
+                - paragraph [ref=e73]: admin
+                - paragraph [ref=e74]: Admin
+              - button "Change Password" [ref=e75] [cursor=pointer]:
+                - img [ref=e76]
+                - text: Change Password
+              - button "Log out" [ref=e79] [cursor=pointer]:
+                - img [ref=e80]
+                - text: Log out
+    - main [ref=e83]:
+      - main [ref=e84]:
+        - generic [ref=e85]:
+          - complementary [ref=e86]:
+            - button "Expand sidebar" [ref=e88] [cursor=pointer]:
+              - img [ref=e89]
+            - generic [ref=e92]:
+              - link "New chat" [ref=e93] [cursor=pointer]:
+                - /url: /agents/e2e-chat-navigation-new-chat/chat?chat=new
+                - img [ref=e94]
+              - generic [ref=e96]:
+                - button "Alpha seeded chat - Reply for Alpha seeded chat (2 messages, a few seconds ago)" [ref=e97] [cursor=pointer]:
+                  - generic "2 messages" [ref=e99]: "2"
+                  - generic [ref=e100]:
+                    - generic [ref=e101]: Alpha seeded chat
+                    - generic [ref=e102]: Reply for Alpha seeded chat
+                  - generic [ref=e103]: a few seconds ago
+                - button "Bravo seeded chat - Reply for Bravo seeded chat (2 messages, a few seconds ago)" [ref=e104] [cursor=pointer]:
+                  - generic "2 messages" [ref=e106]: "2"
+                  - generic [ref=e107]:
+                    - generic [ref=e108]: Bravo seeded chat
+                    - generic [ref=e109]: Reply for Bravo seeded chat
+                  - generic [ref=e110]: a few seconds ago
+              - button "EXT" [ref=e112] [cursor=pointer]
+              - paragraph [ref=e113]: Chats
+          - generic [ref=e118]:
+            - generic [ref=e119]:
+              - button "New chat" [ref=e120] [cursor=pointer]:
+                - img [ref=e121]
+                - generic [ref=e123]: New chat
+              - button "Save" [ref=e125] [cursor=pointer]:
+                - img [ref=e126]
+                - generic [ref=e129]: Save
+            - generic [ref=e130]:
+              - generic [ref=e134]:
+                - generic [ref=e135]:
+                  - generic [ref=e136]:
+                    - button "Read message aloud" [ref=e137] [cursor=pointer]:
+                      - img [ref=e138]
+                    - button "Copy message" [ref=e140] [cursor=pointer]:
+                      - img [ref=e141]
+                  - paragraph [ref=e146]: Hello! I am E2E Chat Navigation New Chat.
+                  - generic [ref=e148] [cursor=pointer]: ⭐
+                - generic "04/07/2026 6:37:27 AM" [ref=e149]:
+                  - generic [ref=e150]: 6:37 AM
+              - generic [ref=e152]:
+                - generic [ref=e153]:
+                  - generic [ref=e154]:
+                    - button "Read message aloud" [ref=e155] [cursor=pointer]:
+                      - img [ref=e156]
+                    - button "Copy message" [ref=e158] [cursor=pointer]:
+                      - img [ref=e159]
+                  - paragraph [ref=e164]: Alpha seeded chat
+                  - generic [ref=e166] [cursor=pointer]: ⭐
+                - generic "04/07/2026 6:37:27 AM" [ref=e167]:
+                  - generic [ref=e168]: 6:37 AM
+              - generic [ref=e172]:
+                - generic [ref=e173]:
+                  - generic [ref=e174]:
+                    - button "Read message aloud" [ref=e175] [cursor=pointer]:
+                      - img [ref=e176]
+                    - button "Copy message" [ref=e178] [cursor=pointer]:
+                      - img [ref=e179]
+                  - paragraph [ref=e184]: Reply for Alpha seeded chat
+                  - generic [ref=e186] [cursor=pointer]: ⭐
+                - generic "04/07/2026 6:37:27 AM" [ref=e187]:
+                  - generic [ref=e188]: 6:37 AM
+            - generic [ref=e191]:
+              - textbox "Write a message..." [active] [ref=e192]
+              - button "Attach file" [ref=e193] [cursor=pointer]:
+                - img [ref=e194]
+              - button "Start dictation" [ref=e196] [cursor=pointer]:
+                - img [ref=e197]
+              - button [ref=e200] [cursor=pointer]:
+                - img [ref=e201]
+  - generic:
+    - region "Notifications"
+  - alert [ref=e203]
+```
