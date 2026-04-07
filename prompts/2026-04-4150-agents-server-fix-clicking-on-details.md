@@ -54,16 +54,14 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🔣] bar
+[✨🔣] Format `<details>` as markdown
 
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+-   The content inside `<details>` is currently rendered as plain text, it should be rendered as markdown, so it can contain code blocks, lists, links, etc. and be properly formatted.
+-   You are working with the [Agents Server](apps/agents-server) with markdown and chat component
+
+![alt text](prompts/screenshots/2026-04-4150-agents-server-fix-clicking-on-details-4.png)
 
 ---
 
