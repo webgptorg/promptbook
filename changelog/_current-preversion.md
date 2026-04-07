@@ -1,3 +1,8 @@
+-   Refactored Agents Server `buildOfficeLayout` into smaller focused private modules without changing the rendered office behavior:
+
+    -   Extracted the office layout types, shared agent/server helpers, room grouping, room geometry, and visual/state generation into dedicated Homepage modules so `buildOfficeLayout.ts` now acts as a thin orchestration entrypoint.
+    -   Kept the existing office-room placement, activity-state assignment, desk/path generation, and local/federated route behavior intact while preserving private JSDoc annotations for the extracted internals.
+
 -   Refactored Agents Server `<Header/>` into smaller focused private modules without changing header behavior:
 
     -   Extracted shared header types, recursive dropdown/mobile-menu rendering, desktop top navigation, mobile drawer rendering, and System-menu item building into dedicated `Header` modules so `Header.tsx` is easier to read and maintain.
