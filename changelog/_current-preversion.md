@@ -1,3 +1,8 @@
+-   Refactored `apps/agents-server/scripts/sync-vercel-domains.ts` into smaller focused modules without changing its external behavior:
+
+    -   Extracted Vercel domain planning/API logic, Cloudflare DNS planning/execution logic, reporting, logging, and shared domain normalization into dedicated script modules so the entrypoint is easier to follow and maintain.
+    -   Kept the existing public sync helpers re-exported from `sync-vercel-domains.ts`, preserving the current test surface and CLI behavior.
+
 -   Fixed Agents Server agent-page header menu navigation so the Profile / Chat view switcher links reliably change pages again:
 
     -   Hardened the shared `HeadlessLink` wrapper to perform imperative same-origin navigation for internal links after preserving the `?headless` flag, which keeps navigation working even when header dropdowns synchronously close and unmount on click.
