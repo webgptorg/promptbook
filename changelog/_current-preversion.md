@@ -1,3 +1,8 @@
+-   Improved mobile spacing for Agents Server `ARTICLE_MODE` chat so article text no longer feels flush against screen edges:
+
+    -   Increased the mobile-only article-mode inline padding in the shared `<Chat/>` layout, which gives the transcript and composer more breathing room while keeping article messages full-width and left-aligned.
+    -   Left `BUBBLE_MODE` rendering unchanged.
+
 -   Completed Agents Server chat chip translations so localized tool labels are used under messages instead of falling back to hardcoded English:
 
     -   Updated the shared chat chip renderer to respect the `toolTitles` overrides already passed from Agents Server when building ongoing, completed, transitive, and TEAM tool-call chips.

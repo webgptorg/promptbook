@@ -3580,7 +3580,7 @@
     }
 
     .constrainedArticleVisual {
-        --chat-article-layout-padding-inline: clamp(20px, 5vw, 28px);
+        --chat-article-layout-padding-inline: clamp(24px, 6vw, 36px);
     }
 
     .actions {
