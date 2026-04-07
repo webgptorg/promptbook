@@ -22,3 +22,14 @@
     -   The exact internal field names/types currently used for “called tools” in the raw message object.
     -   Where “available tools” already exist in-memory during the request-building flow (or whether we need to persist it for later inspection).
 
+---
+
+[ ]
+
+[🧾🔧] Log full prompt into raw message inspection payload
+
+-   Log the prompt from which the message was generated
+-   The `availableTools`, `completedToolCalls` and `toolCalls` should be under this new `prompt` field, which should contain the full prompt sent to the model, including:
+-   You are working with [Agents Server](apps/agents-server)
+
+![alt text](prompts/screenshots/2026-04-4435-agents-server-chat-log-available-tools.png)
