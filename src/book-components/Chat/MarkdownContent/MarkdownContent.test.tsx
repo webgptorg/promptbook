@@ -4,7 +4,11 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it } from '@jest/globals';
 
 jest.mock('../CodeBlock/CodeBlock', () => ({
-    CodeBlock: () => null,
+    CodeBlock: ({ code, language }: { code: string; language?: string }) => (
+        <div data-language={language} data-testid="codeblock">
+            {code}
+        </div>
+    ),
 }));
 
 import { MarkdownContent } from './MarkdownContent';
@@ -44,5 +48,26 @@ describe('MarkdownContent details rendering', () => {
         const rerenderedDetails = container.querySelector<HTMLDetailsElement>('details');
         expect(rerenderedDetails?.open).toBe(true);
         expect(screen.getByText('Updated payload')).toBeTruthy();
+    });
+
+    it('renders markdown inside details blocks', async () => {
+        const { container } = render(
+            <MarkdownContent
+                content={
+                    '<details open><summary>Tool response</summary>\n- First item\n- Second item\n\n```ts\nconst value = 1;\n```\n\n[Read docs](https://example.com)</details>'
+                }
+            />,
+        );
+
+        await waitFor(() => expect(screen.getByTestId('codeblock')).toBeTruthy());
+
+        const details = container.querySelector('details');
+        const link = screen.getByRole('link', { name: 'Read docs' });
+        const codeBlock = screen.getByTestId('codeblock');
+
+        expect(details?.querySelectorAll('ul li')).toHaveLength(2);
+        expect(link.getAttribute('href')).toBe('https://example.com');
+        expect(codeBlock.textContent).toContain('const value = 1;');
+        expect(codeBlock.getAttribute('data-language')).toBe('ts');
     });
 });

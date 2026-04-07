@@ -179,6 +179,34 @@ type MaskedDetailsBlocksResult = {
 };
 
 /**
+ * Renders the body of one raw `<details>` block as markdown while keeping the
+ * outer `<details>` and optional `<summary>` markup untouched.
+ *
+ * @param detailsBlock - Raw `<details>...</details>` HTML captured from markdown.
+ * @returns `<details>` HTML whose body has been converted from markdown to HTML.
+ *
+ * @private utility of `MarkdownContent` component
+ */
+function renderDetailsBlock(detailsBlock: string): string_html {
+    const openTagMatch = detailsBlock.match(/^<details\b[^>]*>/i);
+    const closeTagMatch = detailsBlock.match(/<\/details\s*>$/i);
+
+    if (!openTagMatch || !closeTagMatch) {
+        return detailsBlock as string_html;
+    }
+
+    const openTag = openTagMatch[0];
+    const closeTag = closeTagMatch[0];
+    const innerContent = detailsBlock.slice(openTag.length, detailsBlock.length - closeTag.length);
+    const summaryMatch = innerContent.match(/^(\s*<summary\b[^>]*>[\s\S]*?<\/summary\s*>)([\s\S]*)$/i);
+    const summaryHtml = summaryMatch?.[1] ?? '';
+    const bodyMarkdown = (summaryMatch?.[2] ?? innerContent) as string_markdown;
+    const renderedBody = renderMarkdown(bodyMarkdown);
+
+    return `${openTag}${summaryHtml}${renderedBody}${closeTag}` as string_html;
+}
+
+/**
  * Masks inline and fenced code segments so math rendering never touches them.
  *
  * @param markdown - Markdown text to mask.
@@ -216,9 +244,10 @@ function maskMarkdownCodeSegments(markdown: string_markdown): MaskedCodeSegments
  * Masks `<details>…</details>` blocks in the markdown source so that Showdown never
  * processes their content (which would break them with `simpleLineBreaks: true`).
  *
- * The original blocks are restored verbatim into the final HTML after Showdown runs,
- * and any surrounding `<p>` wrapper that Showdown may have injected around a placeholder
- * is stripped so the `<details>` element remains a proper block-level element.
+ * The original blocks are replaced with placeholders before Showdown runs, then restored
+ * afterwards with their non-summary body converted through the normal markdown pipeline.
+ * Any surrounding `<p>` wrapper that Showdown may have injected around a placeholder is
+ * stripped so the `<details>` element remains a proper block-level element.
  *
  * @param markdown - Markdown text that may contain raw HTML `<details>` blocks.
  * @returns Masked markdown and a restore helper that returns `string_html`.
@@ -226,12 +255,12 @@ function maskMarkdownCodeSegments(markdown: string_markdown): MaskedCodeSegments
  * @private utility of `MarkdownContent` component
  */
 function maskDetailsBlocks(markdown: string_markdown): MaskedDetailsBlocksResult {
-    const blocks: string[] = [];
+    const blocks: string_html[] = [];
 
     DETAILS_BLOCK_REGEX.lastIndex = 0;
     const masked = markdown.replace(DETAILS_BLOCK_REGEX, (match) => {
         const placeholder = `${DETAILS_PLACEHOLDER_PREFIX}${blocks.length}__`;
-        blocks.push(match);
+        blocks.push(renderDetailsBlock(match));
         return placeholder;
     }) as string_markdown;
 

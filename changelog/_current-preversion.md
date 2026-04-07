@@ -1,3 +1,9 @@
+-   Fixed Agents Server chat `<details>` blocks so their expanded body renders as real markdown instead of plain text:
+
+    -   Updated the shared `MarkdownContent` renderer to keep masking raw `<details>` blocks for structural safety, but now convert the block body through the normal markdown pipeline before restoring it.
+    -   Preserved native `<summary>` / `<details>` behavior and existing open-state restoration across streaming rerenders.
+    -   Added a regression test covering markdown lists, links, and fenced code blocks rendered inside a `<details>` block.
+
 -   Improved mobile spacing for Agents Server `ARTICLE_MODE` chat so article text no longer feels flush against screen edges:
 
     -   Increased the mobile-only article-mode inline padding in the shared `<Chat/>` layout, which gives the transcript and composer more breathing room while keeping article messages full-width and left-aligned.
