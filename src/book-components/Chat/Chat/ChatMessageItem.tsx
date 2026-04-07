@@ -523,6 +523,22 @@ function buildToolCallChipKey(toolCall: ToolCall, options?: { originLabel?: stri
 }
 
 /**
+ * Tool calls that should stay available in message data but never render as chips under the message.
+ *
+ * @private internal helper of `<ChatMessageItem/>`
+ */
+const HIDDEN_TOOL_CALL_CHIP_NAMES = new Set(['agent_progress']);
+
+/**
+ * Determines whether one tool call should render as a chip under the message.
+ *
+ * @private internal helper of `<ChatMessageItem/>`
+ */
+function shouldRenderToolCallChip(toolCall: ToolCall): boolean {
+    return !HIDDEN_TOOL_CALL_CHIP_NAMES.has(toolCall.name);
+}
+
+/**
  * Converts ongoing tool calls into chip entries consumed by the UI.
  *
  * @private internal helper of `<ChatMessageItem/>`
@@ -540,6 +556,10 @@ function buildOngoingToolCallChips(
 
     const entries = new Map<string, ToolCallChipEntry>();
     for (const toolCall of toolCalls) {
+        if (!shouldRenderToolCallChip(toolCall)) {
+            continue;
+        }
+
         // All assistant_preparation tool calls share a single stable chip key so that
         // duplicate preparation phases (e.g. "Creating knowledge base" followed by
         // "Preparing AgentKit agent") are collapsed into one chip in the UI.
@@ -581,6 +601,10 @@ function buildFinalToolCallChips(
 
     if (completedToolCalls && completedToolCalls.length > 0) {
         for (const toolCall of completedToolCalls) {
+            if (!shouldRenderToolCallChip(toolCall)) {
+                continue;
+            }
+
             const key = buildToolCallChipKey(toolCall);
             const chipletInfo = getToolCallChipletInfo(toolCall, locale, toolTitles);
             const label = buildToolCallChipText(chipletInfo);

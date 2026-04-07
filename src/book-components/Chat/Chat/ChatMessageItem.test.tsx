@@ -228,6 +228,59 @@ describe('ChatMessageItem progress checklist rendering', () => {
         expect(container.querySelectorAll('input[type="checkbox"]').length).toBeGreaterThan(0);
     });
 
+    it('hides agent_progress chips while keeping other tool chips and inline progress content visible', () => {
+        const { container, rerender } = renderChatMessageItem(
+            createAssistantProgressMessageFixture({
+                ongoingToolCalls: [
+                    {
+                        name: 'agent_progress',
+                        state: 'PENDING',
+                    },
+                    {
+                        name: 'custom_tool',
+                        state: 'PENDING',
+                    },
+                ],
+            }),
+        );
+
+        expect(screen.queryByText(/agent_progress/)).toBeNull();
+        expect(screen.getByText(/custom_tool/)).toBeDefined();
+        expect(container.querySelectorAll('input[type="checkbox"]').length).toBeGreaterThan(0);
+
+        rerender(
+            <ChatMessageItem
+                message={createAssistantProgressMessageFixture({
+                    isComplete: true,
+                    ongoingToolCalls: [],
+                    toolCalls: [
+                        {
+                            name: 'agent_progress',
+                            state: 'COMPLETE',
+                            result: '{"ok":true}',
+                        },
+                        {
+                            name: 'custom_tool',
+                            state: 'COMPLETE',
+                            result: '{"ok":true}',
+                        },
+                    ],
+                })}
+                participant={AGENT_PARTICIPANT_FIXTURE}
+                participants={[AGENT_PARTICIPANT_FIXTURE]}
+                isLastMessage={true}
+                setExpandedMessageId={() => undefined}
+                isExpanded={false}
+                currentRating={0}
+                handleRating={() => undefined}
+                mode="LIGHT"
+            />,
+        );
+
+        expect(screen.queryByText(/agent_progress/)).toBeNull();
+        expect(screen.getByText(/custom_tool/)).toBeDefined();
+    });
+
     it('renders assistant messages as article blocks in ARTICLE_MODE', () => {
         const { container } = render(
             <ChatMessageItem

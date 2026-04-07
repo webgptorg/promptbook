@@ -1,3 +1,9 @@
+-   Hid the redundant `agent_progress` chip under Agents Server chat messages while keeping all other chips and the inline streaming progress rendering intact:
+
+    -   Updated the shared chat tool-chip builder to treat `agent_progress` as a hidden chip-only tool so progress continues rendering through the message body without adding a duplicate badge under the message.
+    -   Kept the change DRY by reusing one visibility helper for both ongoing and completed tool-call chip lists.
+    -   Added regression tests proving `agent_progress` stays hidden for in-progress and completed assistant messages while ordinary tool chips still render.
+
 -   Logged richer durable diagnostics for failed Agents Server chat turns so admin task inspection no longer stops at the generic lease-expired summary:
 
     -   Added backwards-compatible `failureDetails` storage for `UserChatJob` rows and now persist structured JSON diagnostics containing the failure summary, serialized error payload (message/name/stack when available), provider, timing, and chat-turn identifiers.
