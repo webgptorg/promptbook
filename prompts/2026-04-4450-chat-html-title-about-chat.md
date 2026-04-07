@@ -1,4 +1,4 @@
-[x] ~$0.00 13 minutes by GitHub Copilot `claude-sonnet-4.6`
+[ ]
 
 [🚀🍀] Update chat HTML title to reflect the chat (not the agent)
 
@@ -8,4 +8,3 @@
     -   Keep existing base title/prefix behavior (if any) but replace the “agent name” part with a “chat” wording
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add/adjust a small automated test (unit/integration) that asserts the title string changes when navigating between “Chat” contexts and does not include the agent name
-
