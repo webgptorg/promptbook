@@ -1,5 +1,10 @@
 [x] ~$0.00 25 minutes by GitHub Copilot `claude-sonnet-4.6`
 
+
+---
+
+[ ]
+
 [🌙🕒] Fix USE TIME chip + popup modal translation and language-aware time formatting
 
 -   You are working with [Agents Server](apps/agents-server)
@@ -18,3 +23,6 @@
 -   Use the existing i18n/formatting patterns from any similar timeout chip work; if there is no existing shared utility, create one minimally and update both components to use it.
 -   Do NOT change any backend behavior; keep this UI/formatting + i18n update only.
 
+![alt text](prompts/screenshots/2026-04-4360-use-time-chip-i18n.png)
+![alt text](prompts/screenshots/2026-04-4360-use-time-chip-i18n-1.png)
+![alt text](prompts/screenshots/2026-04-4360-use-time-chip-i18n-2.png)
