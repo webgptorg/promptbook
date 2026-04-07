@@ -1,3 +1,8 @@
+-   Refactored Agents Server `agentPreparation.ts` into smaller focused private modules without changing preparation behavior:
+
+    -   Extracted the shared preparation constants/types, Supabase persistence helpers, worker orchestration, and wait/scheduling entrypoints into dedicated `agentPreparation` utility modules so the public facade is easier to read and maintain.
+    -   Kept the existing pre-index debounce, retry, worker wake-up, and chat-time wait behavior intact while preserving the same public imports from `apps/agents-server/src/utils/agentPreparation.ts`.
+
 -   Refactored Agents Server `buildOfficeLayout` into smaller focused private modules without changing the rendered office behavior:
 
     -   Extracted the office layout types, shared agent/server helpers, room grouping, room geometry, and visual/state generation into dedicated Homepage modules so `buildOfficeLayout.ts` now acts as a thin orchestration entrypoint.
