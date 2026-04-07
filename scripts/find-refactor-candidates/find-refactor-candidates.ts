@@ -149,6 +149,7 @@ export async function findRefactorCandidates(): Promise<void> {
     const { selectedEmojis } = await getFreshPromptEmojiTags({
         count: candidatesToWrite.length,
         rootDir,
+        tagPrefix: '🧹',
     });
 
     await mkdir(promptsDir, { recursive: true });
@@ -164,7 +165,7 @@ export async function findRefactorCandidates(): Promise<void> {
         if (!selectedEmoji) {
             throw new Error(`Missing emoji for prompt candidate #${index + 1}`);
         }
-        const emojiTag = formatPromptEmojiTag(selectedEmoji);
+        const emojiTag = formatPromptEmojiTag(selectedEmoji, '🧹');
         const promptContent = buildPromptContent(candidate, emojiTag);
 
         await writeFile(promptPath, promptContent, 'utf-8');
@@ -237,6 +238,7 @@ function buildPromptGuidance(candidate: RefactorCandidate): ReadonlyArray<string
         '    2. All the things you have moved to new files but are private things to the outside world should have `@private function of TheMainThing` JSDoc comment.',
         '- Keep in mind DRY *(Do not repeat yourself)* and SOLID principles while refactoring.',
         '- **Do not change the external behavior** of the code. Focus solely on improving the internal structure and organization of the code.',
+        '- Before you start refactoring, make sure to read the code carefully and understand its current structure and functionality. Do a analysis of the current functionality before you start.',
         // <- TODO: !!!!!!!!!! Is this prompt working as expected?
     );
     // <- TODO: Leverage `spaceTrim` here
