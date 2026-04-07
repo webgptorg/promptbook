@@ -22,10 +22,11 @@ export function createAgentProgressTools(
         {
             name: AGENT_PROGRESS_TOOL_NAME,
             description: spaceTrim(`
-                Update a user-facing progress panel while you work on a long response.
+                Update to user while you work on a response.
 
-                Use this to communicate only concise progress updates visible to the user.
-                Do NOT include private reasoning or chain-of-thought.
+                - Use this to communicate only concise progress updates visible to the user.
+                - Include what you are doing now, and what you will do next.
+                - Be informative and make update before any chunk of work that might take more than a few seconds.
             `),
             parameters: {
                 type: 'object',
