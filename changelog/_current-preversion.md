@@ -1,3 +1,8 @@
+-   Fixed Agents Server agent-page header menu navigation so the Profile / Chat view switcher links reliably change pages again:
+
+    -   Hardened the shared `HeadlessLink` wrapper to perform imperative same-origin navigation for internal links after preserving the `?headless` flag, which keeps navigation working even when header dropdowns synchronously close and unmount on click.
+    -   Added an Agents Server E2E regression covering the active-agent breadcrumb menu switching from Chat to Profile and back to Chat.
+
 -   Updated Agents Server chat browser-tab titles to follow the current chat context instead of the selected agent name:
 
     -   Added chat-page metadata overrides plus a client-side chat-title sync so standalone, ChatGPT-like, and headless embedded chat routes now use `Chat` / `Chat: {session title}` wording without leaking the agent name into the browser tab.

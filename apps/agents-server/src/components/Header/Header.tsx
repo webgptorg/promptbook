@@ -35,7 +35,7 @@ import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../util
 import type { ChatFeedbackMode } from '../../utils/chatFeedbackMode';
 import type { UserInfo } from '../../utils/getCurrentUser';
 import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
-import { HeadlessLink, pushWithHeadless, useIsHeadless } from '../_utils/headlessParam';
+import { appendHeadlessParam, HeadlessLink, pushWithHeadless, useIsHeadless } from '../_utils/headlessParam';
 import {
     useAgentContextMenuItems,
     useInstallPromptState,
@@ -1029,18 +1029,41 @@ export function Header(props: HeaderProps) {
         onItemSelected: () => void,
     ) => {
         if (item.href) {
+            const navigateToItemHref = () => {
+                void item.onClick?.();
+                onItemSelected();
+
+                const destination = appendHeadlessParam(item.href as string, isHeadless);
+                if (typeof window !== 'undefined') {
+                    window.location.assign(destination);
+                    return;
+                }
+
+                pushWithHeadless(router, item.href as string, isHeadless);
+            };
+
             return (
-                <HeadlessLink
+                <button
                     key={key}
-                    href={item.href}
-                    className={className}
-                    onClick={() => {
-                        void item.onClick?.();
-                        onItemSelected();
+                    type="button"
+                    className={`${className} w-full text-left`}
+                    onMouseDown={(event) => {
+                        if (event.button !== 0 || event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) {
+                            return;
+                        }
+                        event.preventDefault();
+                        navigateToItemHref();
+                    }}
+                    onClick={(event) => {
+                        if (event.defaultPrevented) {
+                            return;
+                        }
+                        event.preventDefault();
+                        navigateToItemHref();
                     }}
                 >
                     {renderSubMenuItemLabel(item)}
-                </HeadlessLink>
+                </button>
             );
         }
 

@@ -58,7 +58,7 @@
 
 ---
 
-[ ]
+[x] ~$0.00 an hour by GitHub Copilot `gpt-5.4`
 
 [🚧🧭] Clicking on menu does not work in Agent pages
 
@@ -67,3 +67,4 @@
 -   You are working with [Agents Server](apps/agents-server) with the agent pages
     -   for example https://s6.ptbk.io/agents/hKs8wGS2xc5GhF/
     -   for example https://s6.ptbk.io/agents/hKs8wGS2xc5GhF/chat?chat=t5bVjBniLGvCfh
+
