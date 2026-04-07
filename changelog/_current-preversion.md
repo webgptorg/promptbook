@@ -1,3 +1,9 @@
+-   Fixed Agents Server durable chat jobs so long-running turns no longer fail with a stale "Background worker lease expired before the chat turn finished." error while the worker is still active:
+
+    -   Extracted the running-job lease renewal into a dedicated serialized heartbeat controller so heartbeats stay independent from slower assistant-message persistence under load.
+    -   Started the durable chat heartbeat loop earlier in `runUserChatJob.ts` so long agent preparation phases also keep renewing the worker lease.
+    -   Added regression tests covering serialized heartbeats, failure-threshold behavior, and ignoring late completions after the heartbeat loop stops.
+
 -   Refactored Agents Server `BookEditorWrapper` into smaller private modules without changing editor behavior:
 
     -   Extracted the stateful autosave / diagnostics / history orchestration into a dedicated private `useBookEditorWrapper` hook so the wrapper component now reads as a thin composition layer.

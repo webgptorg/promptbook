@@ -34,6 +34,11 @@ import { serializeError } from '@promptbook-local/utils';
 import type { ChatPromptResult } from '../../../../../src/execution/PromptResult';
 import { mergeToolCalls } from '../../../../../src/utils/toolCalls/mergeToolCalls';
 import { createUserChatJobFailureDetails } from './createUserChatJobFailureDetails';
+import {
+    createUserChatJobHeartbeatController,
+    DEFAULT_USER_CHAT_JOB_HEARTBEAT_INTERVAL_MS,
+    DEFAULT_USER_CHAT_JOB_HEARTBEAT_MAX_CONSECUTIVE_FAILURES,
+} from './createUserChatJobHeartbeatController';
 import { createUserChatMessagePrompt } from './createUserChatMessagePrompt';
 import { finalizeUserChatJob } from './finalizeUserChatJob';
 import { getUserChat } from './getUserChat';
@@ -45,13 +50,6 @@ import { resolvePromptThreadBeforeUserMessage } from './userChatMessageLifecycle
 import { isUserChatNotFoundScopeError } from './UserChatScopeError';
 
 /**
- * Heartbeat cadence used while one chat job is actively streaming.
- *
- * @private function of `userChat`
- */
-const USER_CHAT_JOB_HEARTBEAT_INTERVAL_MS = 30_000;
-
-/**
  * Minimum interval between persisted assistant-message snapshots while streaming.
  *
  * Throttling this write path avoids overwhelming Supabase with token-level updates.
@@ -59,13 +57,6 @@ const USER_CHAT_JOB_HEARTBEAT_INTERVAL_MS = 30_000;
  * @private function of `userChat`
  */
 const USER_CHAT_JOB_ASSISTANT_MESSAGE_PERSIST_INTERVAL_MS = 5_000;
-
-/**
- * Maximum number of consecutive heartbeat failures tolerated before aborting one running job.
- *
- * @private function of `userChat`
- */
-const USER_CHAT_JOB_HEARTBEAT_MAX_CONSECUTIVE_FAILURES = 3;
 
 /**
  * Error name used when a running durable chat job is cancelled.
@@ -120,488 +111,460 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
     }
 
     const thread = resolvePromptThreadBeforeUserMessage(chat.messages, job.userMessageId);
-    const [localServerUrl, collection, baseAgentReferenceResolver] = await Promise.all([
-        resolveCurrentOrInternalServerOrigin(),
-        $provideAgentCollectionForServer(),
-        $provideAgentReferenceResolver(),
-    ]);
-    const resolvedAgentContext = await resolveCachedServerAgentContext({
-        collection,
-        agentIdentifier: job.agentPermanentId,
-        localServerUrl,
-        fallbackResolver: baseAgentReferenceResolver,
-    });
-    const preparedAgentModelRequirements = await resolveCachedServerAgentModelRequirements({
-        resolvedAgentContext,
-        localServerUrl,
-        fallbackResolver: baseAgentReferenceResolver,
-    });
-    const agentSource = resolvedAgentContext.resolvedAgentSource;
-    const unresolvedAgentSource = resolvedAgentContext.unresolvedAgentSource;
-    const agentPermanentId = resolvedAgentContext.parentAgentPermanentId;
-    const resolvedAgentName = resolvedAgentContext.resolvedAgentName;
-    const projectRepositories = extractProjectRepositoriesFromAgentSource(agentSource);
-    const calendarConnections = extractUseCalendarConnectionsFromAgentSource(agentSource);
-    const useEmailConfiguration = extractUseEmailConfigurationFromAgentSource(agentSource);
-    const [projectGithubToken, calendarGoogleAccessToken, emailSmtpCredential] = await Promise.all([
-        resolveUseProjectGithubToken({
-            userId: job.userId,
-            agentPermanentId,
-        }),
-        calendarConnections.length > 0
-            ? resolveUseCalendarGoogleToken({
-                  userId: job.userId,
-                  agentPermanentId,
-              })
-            : Promise.resolve(undefined),
-        useEmailConfiguration.isEnabled
-            ? resolveUseEmailSmtpCredential({
-                  userId: job.userId,
-                  agentPermanentId,
-              })
-            : Promise.resolve(undefined),
-    ]);
-    const runtimeTools = createAgentProgressTools(createChatAttachmentTools([], userMessage.attachments || []));
-
-    /**
-     * Full list of tools that were available to the model for this chat turn.
-     *
-     * Combines agent-commitment tools (e.g. browser, calendar, team) with runtime tools
-     * (attachment handlers, progress markers) to match exactly what the LLM sees.
-     * Captured here from the exact objects used to construct the model request so the
-     * message inspector can show accurate tool availability per turn.
-     */
-    const availableTools: ReadonlyArray<LlmToolDefinition> = [
-        ...(preparedAgentModelRequirements.modelRequirements.tools ?? []),
-        ...runtimeTools,
-    ];
-    const promptParameters = composePromptParametersWithMemoryContext({
-        baseParameters: job.parameters,
-        currentUserIdentity: {
-            userId: userRow.id,
-            user: {
-                username: userRow.username,
-                isAdmin: userRow.isAdmin,
-                profileImageUrl: userRow.profileImageUrl,
-            },
-        },
-        agentPermanentId,
-        agentName: resolvedAgentName,
-        chatId: job.chatId,
-        assistantMessageId: job.assistantMessageId,
-        isPrivateModeEnabled: false,
-        projectRepositories,
-        projectGithubToken,
-        emailSmtpCredential,
-        emailFromAddress: useEmailConfiguration.senderEmail,
-        calendarGoogleAccessToken,
-        calendarConnections,
-        chatAttachments: userMessage.attachments,
-    });
-    const chatPromptForInspection = {
-        title: `Chat with agent ${resolvedAgentName}`,
-        parameters: promptParameters,
-        modelRequirements: {
-            modelVariant: 'CHAT' as const,
-        },
-        content: userMessage.content,
-        thread,
-        attachments: userMessage.attachments,
-        ...(runtimeTools.length > 0 ? { tools: runtimeTools } : {}),
-    };
-    const createPromptSnapshot = (options: {
-        toolCalls?: ReadonlyArray<ToolCall>;
-        completedToolCalls?: ReadonlyArray<ToolCall>;
-        rawPromptContent?: ChatPromptResult['rawPromptContent'];
-        rawRequest?: ChatPromptResult['rawRequest'];
-    } = {}) =>
-        createUserChatMessagePrompt({
-            prompt: chatPromptForInspection,
-            availableTools,
-            ...options,
-        });
-    const agentKitCacheManager = new AgentKitCacheManager({ isVerbose: true });
-    const baseOpenAiToolsPromise = $provideOpenAiAgentKitExecutionToolsForServer();
-    const agentHash = computeAgentHash(agentSource);
-    const tablePrefix = resolveAgentCollectionTablePrefix(collection);
-    const preparationWaitResult = await waitForRunningAgentPreparation({
-        tablePrefix,
-        agentPermanentId,
-        fingerprint: agentHash,
-        timeoutMs: AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS,
-    });
-
-    if (preparationWaitResult !== 'not_running') {
-        console.info('[user-chat-job]', 'preparation_wait', {
-            chatId: job.chatId,
-            messageId: job.userMessageId,
-            agentPermanentId,
-            preparationWaitResult,
-        });
-    }
-
-    const agentKitResult = await agentKitCacheManager.getOrCreateAgentKitAgent(
-        agentSource,
-        resolvedAgentName,
-        await baseOpenAiToolsPromise,
-        {
-            includeDynamicContext: true,
-            agentId: agentPermanentId,
-            modelRequirements: preparedAgentModelRequirements.modelRequirements,
-        },
-    );
-    const provider: string | null = agentKitResult.tools.title;
-    const agent = new Agent({
-        isVerbose: true,
-        assistantPreparationMode: 'external',
-        executionTools: {
-            llm: agentKitResult.tools,
-        },
-        agentSource,
-        teacherAgent: await getTeacherRemoteAgent(),
-    });
-    const startedAt = Date.now();
-    let latestContent = '';
-    let latestToolCalls: ReadonlyArray<ToolCall> | undefined;
     let isCancellationRequested = job.cancelRequestedAt !== null;
-    let persistQueue: Promise<void> = Promise.resolve();
     let hasQueuedCompletedPersistence = false;
     let hasPersistedCompletedState = false;
-    let lastAssistantMessagePersistedAt = 0;
-    let lastPersistedAssistantSnapshotSignature: string | null = null;
-    let consecutiveHeartbeatFailures = 0;
-    let hasPendingAssistantMessageUpdate = false;
-    let assistantMessageUpdateTimeout: ReturnType<typeof setTimeout> | null = null;
     const abortController = new AbortController();
-    const heartbeatTimer = setInterval(() => {
-        persistQueue = persistQueue
-            .then(async () => {
-                const nextJob = await heartbeatUserChatJob(job.id);
-                consecutiveHeartbeatFailures = 0;
-                if (!nextJob) {
-                    isCancellationRequested = true;
-                    abortController.abort(createUserChatJobCancelledError());
-                    return;
-                }
-
-                if (nextJob.cancelRequestedAt) {
-                    isCancellationRequested = true;
-                    abortController.abort(createUserChatJobCancelledError());
-                }
-            })
-            .catch((heartbeatError) => {
-                consecutiveHeartbeatFailures += 1;
-                console.error('[user-chat-job] Heartbeat failed', {
-                    chatId: job.chatId,
-                    messageId: job.userMessageId,
-                    jobId: job.id,
-                    consecutiveFailures: consecutiveHeartbeatFailures,
-                    error: serializeError(heartbeatError as Error),
-                });
-
-                if (consecutiveHeartbeatFailures >= USER_CHAT_JOB_HEARTBEAT_MAX_CONSECUTIVE_FAILURES) {
-                    abortController.abort(heartbeatError);
-                }
-            });
-    }, USER_CHAT_JOB_HEARTBEAT_INTERVAL_MS);
-
-    heartbeatTimer.unref?.();
-
-    await updateUserChatAssistantMessage({
-        userId: job.userId,
-        agentPermanentId: job.agentPermanentId,
-        chatId: job.chatId,
-        assistantMessageId: job.assistantMessageId,
-        mutateMessage: (message) => ({
-            ...message,
-            lifecycleState: 'running',
-            lifecycleError: undefined,
-            isComplete: false,
-            availableTools,
-            prompt: createPromptSnapshot(),
-        }),
-    });
-
-    console.info('[user-chat-job] start', {
-        chatId: job.chatId,
-        messageId: job.userMessageId,
+    const heartbeatController = createUserChatJobHeartbeatController({
         jobId: job.id,
-        provider,
-    });
+        heartbeat: heartbeatUserChatJob,
+        intervalMs: DEFAULT_USER_CHAT_JOB_HEARTBEAT_INTERVAL_MS,
+        maxConsecutiveFailures: DEFAULT_USER_CHAT_JOB_HEARTBEAT_MAX_CONSECUTIVE_FAILURES,
+        onCancellationRequested: () => {
+            if (hasQueuedCompletedPersistence || hasPersistedCompletedState) {
+                return;
+            }
 
-    /**
-     * Queues one assistant-message mutation behind any earlier persistence work.
-     *
-     * @private function of `runUserChatJob`
-     */
-    const queueAssistantMessageUpdate = (
-        mutateMessage: Parameters<typeof updateUserChatAssistantMessage>[0]['mutateMessage'],
-        options: {
-            snapshotSignature?: string;
-        } = {},
-    ) => {
-        persistQueue = persistQueue.then(async () => {
-            await updateUserChatAssistantMessage({
-                userId: job.userId,
-                agentPermanentId: job.agentPermanentId,
+            isCancellationRequested = true;
+            abortController.abort(createUserChatJobCancelledError());
+        },
+        onHeartbeatFailure: async (heartbeatError, consecutiveFailures) => {
+            if (hasQueuedCompletedPersistence || hasPersistedCompletedState) {
+                return;
+            }
+
+            console.error('[user-chat-job] Heartbeat failed', {
                 chatId: job.chatId,
-                assistantMessageId: job.assistantMessageId,
-                mutateMessage,
+                messageId: job.userMessageId,
+                jobId: job.id,
+                consecutiveFailures,
+                error: serializeError(heartbeatError as Error),
             });
-
-            if (options.snapshotSignature) {
-                lastPersistedAssistantSnapshotSignature = options.snapshotSignature;
-            }
-        });
-    };
-
-    /**
-     * Cancels any scheduled delayed assistant-message persistence timer.
-     *
-     * @private function of `runUserChatJob`
-     */
-    const clearScheduledAssistantMessageUpdate = (): void => {
-        if (!assistantMessageUpdateTimeout) {
-            return;
-        }
-
-        clearTimeout(assistantMessageUpdateTimeout);
-        assistantMessageUpdateTimeout = null;
-    };
-
-    /**
-     * Persists the latest assistant-message snapshot with write throttling.
-     *
-     * @private function of `runUserChatJob`
-     */
-    const scheduleAssistantMessageUpdate = (force = false): void => {
-        if (hasQueuedCompletedPersistence || hasPersistedCompletedState) {
-            clearScheduledAssistantMessageUpdate();
-            hasPendingAssistantMessageUpdate = false;
-            return;
-        }
-
-        const now = Date.now();
-        const remainingDelayMs =
-            USER_CHAT_JOB_ASSISTANT_MESSAGE_PERSIST_INTERVAL_MS - (now - lastAssistantMessagePersistedAt);
-
-        if (!force && remainingDelayMs > 0) {
-            hasPendingAssistantMessageUpdate = true;
-
-            if (!assistantMessageUpdateTimeout) {
-                assistantMessageUpdateTimeout = setTimeout(() => {
-                    assistantMessageUpdateTimeout = null;
-                    scheduleAssistantMessageUpdate(true);
-                }, remainingDelayMs);
-
-                assistantMessageUpdateTimeout.unref?.();
+        },
+        onFailureLimitReached: (heartbeatError) => {
+            if (hasQueuedCompletedPersistence || hasPersistedCompletedState) {
+                return;
             }
 
-            return;
-        }
-
-        clearScheduledAssistantMessageUpdate();
-        hasPendingAssistantMessageUpdate = false;
-        lastAssistantMessagePersistedAt = now;
-        const snapshotSignature = createAssistantMessageSnapshotSignature(latestContent, latestToolCalls);
-
-        if (snapshotSignature === lastPersistedAssistantSnapshotSignature) {
-            return;
-        }
-
-        queueAssistantMessageUpdate((message) => ({
-            ...message,
-            content: latestContent,
-            ongoingToolCalls: latestToolCalls,
-            lifecycleState: 'running',
-            lifecycleError: undefined,
-            isComplete: false,
-            prompt: createPromptSnapshot({
-                toolCalls: latestToolCalls,
-            }),
-        }), {
-            snapshotSignature,
-        });
-    };
-
-    /**
-     * Persists the durable completion state immediately after the visible output stream ends.
-     *
-     * @private function of `runUserChatJob`
-     */
-    const queueCompletedPersistence = (): void => {
-        if (hasQueuedCompletedPersistence) {
-            return;
-        }
-
-        hasQueuedCompletedPersistence = true;
-        clearScheduledAssistantMessageUpdate();
-        hasPendingAssistantMessageUpdate = false;
-        clearInterval(heartbeatTimer);
-        persistQueue = persistQueue.then(async () => {
-            await persistUserChatJobTerminalState({
-                job,
-                status: 'COMPLETED',
-                content: latestContent,
-                toolCalls: latestToolCalls,
-                prompt: createPromptSnapshot({
-                    toolCalls: latestToolCalls,
-                    completedToolCalls: latestToolCalls,
-                }),
-                availableTools,
-                provider,
-                generationDurationMs: Date.now() - startedAt,
-            });
-            hasPersistedCompletedState = true;
-        });
-    };
+            abortController.abort(heartbeatError);
+        },
+    });
 
     try {
-        const response = await agent.callChatModelStream!(
-            {
-                title: `Chat with agent ${resolvedAgentName}`,
-                parameters: promptParameters,
-                modelRequirements: {
-                    modelVariant: 'CHAT',
-                },
-                content: userMessage.content,
-                thread,
-                attachments: userMessage.attachments,
-                ...(runtimeTools.length > 0 ? { tools: runtimeTools } : {}),
-            },
-            (chunk: ChatPromptResult & { isFinished?: boolean }) => {
-                latestContent = chunk.content ?? latestContent;
-                latestToolCalls = chunk.toolCalls
-                    ? mergeToolCalls(latestToolCalls, prepareToolCallsForStreaming(chunk.toolCalls))
-                    : latestToolCalls;
-
-                if (chunk.isFinished === true) {
-                    scheduleAssistantMessageUpdate(true);
-                    queueCompletedPersistence();
-                    return;
-                }
-
-                scheduleAssistantMessageUpdate();
-            },
-            { signal: abortController.signal },
-        );
-
-        clearInterval(heartbeatTimer);
-        if (hasPendingAssistantMessageUpdate) {
-            scheduleAssistantMessageUpdate(true);
-        } else {
-            clearScheduledAssistantMessageUpdate();
-        }
-        await persistQueue;
-
-        const normalizedResponse = ensureNonEmptyChatContent({
-            content: response.content,
-            context: `Durable agent chat ${resolvedAgentName}`,
+        const [localServerUrl, collection, baseAgentReferenceResolver] = await Promise.all([
+            resolveCurrentOrInternalServerOrigin(),
+            $provideAgentCollectionForServer(),
+            $provideAgentReferenceResolver(),
+        ]);
+        const resolvedAgentContext = await resolveCachedServerAgentContext({
+            collection,
+            agentIdentifier: job.agentPermanentId,
+            localServerUrl,
+            fallbackResolver: baseAgentReferenceResolver,
         });
-        const responseContentWithSuffix = appendMessageSuffix(
-            normalizedResponse.content,
-            resolveMessageSuffixFromAgentSource(agentSource),
-        );
-        const finalToolCalls = response.toolCalls
-            ? mergeToolCalls(latestToolCalls, prepareToolCallsForStreaming(response.toolCalls))
-            : latestToolCalls;
-        const generationDurationMs = Date.now() - startedAt;
-
-        if (hasQueuedCompletedPersistence) {
-            queueAssistantMessageUpdate((message) => ({
-                ...message,
-                content: responseContentWithSuffix,
-                isComplete: true,
-                lifecycleState: 'completed',
-                lifecycleError: undefined,
-                ongoingToolCalls: undefined,
-                toolCalls: finalToolCalls ?? message.toolCalls,
-                completedToolCalls: finalToolCalls ?? message.completedToolCalls,
-                generationDurationMs,
-                prompt: createPromptSnapshot({
-                    toolCalls: finalToolCalls,
-                    completedToolCalls: finalToolCalls,
-                    rawPromptContent: response.rawPromptContent,
-                    rawRequest: response.rawRequest,
-                }),
-            }));
-            await persistQueue;
-        } else {
-            await persistUserChatJobTerminalState({
-                job,
-                status: 'COMPLETED',
-                content: responseContentWithSuffix,
-                toolCalls: finalToolCalls,
-                prompt: createPromptSnapshot({
-                    toolCalls: finalToolCalls,
-                    completedToolCalls: finalToolCalls,
-                    rawPromptContent: response.rawPromptContent,
-                    rawRequest: response.rawRequest,
-                }),
-                availableTools,
-                provider,
-                generationDurationMs,
-            });
-            hasPersistedCompletedState = true;
-        }
-
-        if (response.toolCalls && response.toolCalls.length > 0) {
-            await logCalendarToolCallsActivity({
+        const preparedAgentModelRequirements = await resolveCachedServerAgentModelRequirements({
+            resolvedAgentContext,
+            localServerUrl,
+            fallbackResolver: baseAgentReferenceResolver,
+        });
+        const agentSource = resolvedAgentContext.resolvedAgentSource;
+        const unresolvedAgentSource = resolvedAgentContext.unresolvedAgentSource;
+        const agentPermanentId = resolvedAgentContext.parentAgentPermanentId;
+        const resolvedAgentName = resolvedAgentContext.resolvedAgentName;
+        const projectRepositories = extractProjectRepositoriesFromAgentSource(agentSource);
+        const calendarConnections = extractUseCalendarConnectionsFromAgentSource(agentSource);
+        const useEmailConfiguration = extractUseEmailConfigurationFromAgentSource(agentSource);
+        const [projectGithubToken, calendarGoogleAccessToken, emailSmtpCredential] = await Promise.all([
+            resolveUseProjectGithubToken({
                 userId: job.userId,
                 agentPermanentId,
-                toolCalls: response.toolCalls,
+            }),
+            calendarConnections.length > 0
+                ? resolveUseCalendarGoogleToken({
+                      userId: job.userId,
+                      agentPermanentId,
+                  })
+                : Promise.resolve(undefined),
+            useEmailConfiguration.isEnabled
+                ? resolveUseEmailSmtpCredential({
+                      userId: job.userId,
+                      agentPermanentId,
+                  })
+                : Promise.resolve(undefined),
+        ]);
+        const runtimeTools = createAgentProgressTools(createChatAttachmentTools([], userMessage.attachments || []));
+
+        /**
+         * Full list of tools that were available to the model for this chat turn.
+         *
+         * Combines agent-commitment tools (e.g. browser, calendar, team) with runtime tools
+         * (attachment handlers, progress markers) to match exactly what the LLM sees.
+         * Captured here from the exact objects used to construct the model request so the
+         * message inspector can show accurate tool availability per turn.
+         */
+        const availableTools: ReadonlyArray<LlmToolDefinition> = [
+            ...(preparedAgentModelRequirements.modelRequirements.tools ?? []),
+            ...runtimeTools,
+        ];
+        const promptParameters = composePromptParametersWithMemoryContext({
+            baseParameters: job.parameters,
+            currentUserIdentity: {
+                userId: userRow.id,
+                user: {
+                    username: userRow.username,
+                    isAdmin: userRow.isAdmin,
+                    profileImageUrl: userRow.profileImageUrl,
+                },
+            },
+            agentPermanentId,
+            agentName: resolvedAgentName,
+            chatId: job.chatId,
+            assistantMessageId: job.assistantMessageId,
+            isPrivateModeEnabled: false,
+            projectRepositories,
+            projectGithubToken,
+            emailSmtpCredential,
+            emailFromAddress: useEmailConfiguration.senderEmail,
+            calendarGoogleAccessToken,
+            calendarConnections,
+            chatAttachments: userMessage.attachments,
+        });
+        const chatPromptForInspection = {
+            title: `Chat with agent ${resolvedAgentName}`,
+            parameters: promptParameters,
+            modelRequirements: {
+                modelVariant: 'CHAT' as const,
+            },
+            content: userMessage.content,
+            thread,
+            attachments: userMessage.attachments,
+            ...(runtimeTools.length > 0 ? { tools: runtimeTools } : {}),
+        };
+        const createPromptSnapshot = (
+            options: {
+                toolCalls?: ReadonlyArray<ToolCall>;
+                completedToolCalls?: ReadonlyArray<ToolCall>;
+                rawPromptContent?: ChatPromptResult['rawPromptContent'];
+                rawRequest?: ChatPromptResult['rawRequest'];
+            } = {},
+        ) =>
+            createUserChatMessagePrompt({
+                prompt: chatPromptForInspection,
+                availableTools,
+                ...options,
+            });
+        const agentKitCacheManager = new AgentKitCacheManager({ isVerbose: true });
+        const baseOpenAiToolsPromise = $provideOpenAiAgentKitExecutionToolsForServer();
+        const agentHash = computeAgentHash(agentSource);
+        const tablePrefix = resolveAgentCollectionTablePrefix(collection);
+        const preparationWaitResult = await waitForRunningAgentPreparation({
+            tablePrefix,
+            agentPermanentId,
+            fingerprint: agentHash,
+            timeoutMs: AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS,
+        });
+
+        if (preparationWaitResult !== 'not_running') {
+            console.info('[user-chat-job]', 'preparation_wait', {
+                chatId: job.chatId,
+                messageId: job.userMessageId,
+                agentPermanentId,
+                preparationWaitResult,
             });
         }
 
-        if (!resolvedAgentContext.isBookScopedAgent) {
-            const learnedAgentSource = resolveAppendOnlySelfLearningAgentSource({
-                unresolvedAgentSourceBeforeLearning: unresolvedAgentSource,
-                resolvedAgentSourceBeforeLearning: agentSource,
-                resolvedAgentSourceAfterLearning: agent.agentSource.value,
-            });
+        const agentKitResult = await agentKitCacheManager.getOrCreateAgentKitAgent(
+            agentSource,
+            resolvedAgentName,
+            await baseOpenAiToolsPromise,
+            {
+                includeDynamicContext: true,
+                agentId: agentPermanentId,
+                modelRequirements: preparedAgentModelRequirements.modelRequirements,
+            },
+        );
+        const provider: string | null = agentKitResult.tools.title;
+        const agent = new Agent({
+            isVerbose: true,
+            assistantPreparationMode: 'external',
+            executionTools: {
+                llm: agentKitResult.tools,
+            },
+            agentSource,
+            teacherAgent: await getTeacherRemoteAgent(),
+        });
+        const startedAt = Date.now();
+        let latestContent = '';
+        let latestToolCalls: ReadonlyArray<ToolCall> | undefined;
+        let persistQueue: Promise<void> = Promise.resolve();
+        let lastAssistantMessagePersistedAt = 0;
+        let lastPersistedAssistantSnapshotSignature: string | null = null;
+        let hasPendingAssistantMessageUpdate = false;
+        let assistantMessageUpdateTimeout: ReturnType<typeof setTimeout> | null = null;
 
-            if (learnedAgentSource !== null) {
-                await collection.updateAgentSource(agentPermanentId, learnedAgentSource);
-            }
-        }
+        await updateUserChatAssistantMessage({
+            userId: job.userId,
+            agentPermanentId: job.agentPermanentId,
+            chatId: job.chatId,
+            assistantMessageId: job.assistantMessageId,
+            mutateMessage: (message) => ({
+                ...message,
+                lifecycleState: 'running',
+                lifecycleError: undefined,
+                isComplete: false,
+                availableTools,
+                prompt: createPromptSnapshot(),
+            }),
+        });
 
-        console.info('[user-chat-job] completed', {
+        console.info('[user-chat-job] start', {
             chatId: job.chatId,
             messageId: job.userMessageId,
             jobId: job.id,
             provider,
-            durationMs: generationDurationMs,
         });
 
-        return 'completed';
-    } catch (error) {
-        clearInterval(heartbeatTimer);
-        clearScheduledAssistantMessageUpdate();
-        await persistQueue.catch(() => undefined);
+        /**
+         * Queues one assistant-message mutation behind any earlier persistence work.
+         *
+         * @private function of `runUserChatJob`
+         */
+        const queueAssistantMessageUpdate = (
+            mutateMessage: Parameters<typeof updateUserChatAssistantMessage>[0]['mutateMessage'],
+            options: {
+                snapshotSignature?: string;
+            } = {},
+        ) => {
+            persistQueue = persistQueue.then(async () => {
+                await updateUserChatAssistantMessage({
+                    userId: job.userId,
+                    agentPermanentId: job.agentPermanentId,
+                    chatId: job.chatId,
+                    assistantMessageId: job.assistantMessageId,
+                    mutateMessage,
+                });
 
-        if (hasPersistedCompletedState) {
-            console.error('[user-chat-job] follow-up failed after completion', {
-                chatId: job.chatId,
-                messageId: job.userMessageId,
-                jobId: job.id,
-                provider,
-                error: serializeError(error as Error),
+                if (options.snapshotSignature) {
+                    lastPersistedAssistantSnapshotSignature = options.snapshotSignature;
+                }
             });
+        };
 
-            return 'completed';
-        }
+        /**
+         * Cancels any scheduled delayed assistant-message persistence timer.
+         *
+         * @private function of `runUserChatJob`
+         */
+        const clearScheduledAssistantMessageUpdate = (): void => {
+            if (!assistantMessageUpdateTimeout) {
+                return;
+            }
 
-        const generationDurationMs = Date.now() - startedAt;
+            clearTimeout(assistantMessageUpdateTimeout);
+            assistantMessageUpdateTimeout = null;
+        };
 
-        if (isUserChatNotFoundScopeError(error)) {
-            await finalizeUserChatJob({
-                jobId: job.id,
-                status: 'CANCELLED',
-                provider,
-                failureReason: USER_CHAT_JOB_MISSING_CHAT_FAILURE_REASON,
+        /**
+         * Persists the latest assistant-message snapshot with write throttling.
+         *
+         * @private function of `runUserChatJob`
+         */
+        const scheduleAssistantMessageUpdate = (force = false): void => {
+            if (hasQueuedCompletedPersistence || hasPersistedCompletedState) {
+                clearScheduledAssistantMessageUpdate();
+                hasPendingAssistantMessageUpdate = false;
+                return;
+            }
+
+            const now = Date.now();
+            const remainingDelayMs =
+                USER_CHAT_JOB_ASSISTANT_MESSAGE_PERSIST_INTERVAL_MS - (now - lastAssistantMessagePersistedAt);
+
+            if (!force && remainingDelayMs > 0) {
+                hasPendingAssistantMessageUpdate = true;
+
+                if (!assistantMessageUpdateTimeout) {
+                    assistantMessageUpdateTimeout = setTimeout(() => {
+                        assistantMessageUpdateTimeout = null;
+                        scheduleAssistantMessageUpdate(true);
+                    }, remainingDelayMs);
+
+                    assistantMessageUpdateTimeout.unref?.();
+                }
+
+                return;
+            }
+
+            clearScheduledAssistantMessageUpdate();
+            hasPendingAssistantMessageUpdate = false;
+            lastAssistantMessagePersistedAt = now;
+            const snapshotSignature = createAssistantMessageSnapshotSignature(latestContent, latestToolCalls);
+
+            if (snapshotSignature === lastPersistedAssistantSnapshotSignature) {
+                return;
+            }
+
+            queueAssistantMessageUpdate(
+                (message) => ({
+                    ...message,
+                    content: latestContent,
+                    ongoingToolCalls: latestToolCalls,
+                    lifecycleState: 'running',
+                    lifecycleError: undefined,
+                    isComplete: false,
+                    prompt: createPromptSnapshot({
+                        toolCalls: latestToolCalls,
+                    }),
+                }),
+                {
+                    snapshotSignature,
+                },
+            );
+        };
+
+        /**
+         * Persists the durable completion state immediately after the visible output stream ends.
+         *
+         * @private function of `runUserChatJob`
+         */
+        const queueCompletedPersistence = (): void => {
+            if (hasQueuedCompletedPersistence) {
+                return;
+            }
+
+            hasQueuedCompletedPersistence = true;
+            clearScheduledAssistantMessageUpdate();
+            hasPendingAssistantMessageUpdate = false;
+            heartbeatController.stop();
+            persistQueue = persistQueue.then(async () => {
+                await persistUserChatJobTerminalState({
+                    job,
+                    status: 'COMPLETED',
+                    content: latestContent,
+                    toolCalls: latestToolCalls,
+                    prompt: createPromptSnapshot({
+                        toolCalls: latestToolCalls,
+                        completedToolCalls: latestToolCalls,
+                    }),
+                    availableTools,
+                    provider,
+                    generationDurationMs: Date.now() - startedAt,
+                });
+                hasPersistedCompletedState = true;
             });
+        };
 
-            console.info('[user-chat-job] cancelled_missing_chat_during_run', {
+        try {
+            const response = await agent.callChatModelStream!(
+                {
+                    title: `Chat with agent ${resolvedAgentName}`,
+                    parameters: promptParameters,
+                    modelRequirements: {
+                        modelVariant: 'CHAT',
+                    },
+                    content: userMessage.content,
+                    thread,
+                    attachments: userMessage.attachments,
+                    ...(runtimeTools.length > 0 ? { tools: runtimeTools } : {}),
+                },
+                (chunk: ChatPromptResult & { isFinished?: boolean }) => {
+                    latestContent = chunk.content ?? latestContent;
+                    latestToolCalls = chunk.toolCalls
+                        ? mergeToolCalls(latestToolCalls, prepareToolCallsForStreaming(chunk.toolCalls))
+                        : latestToolCalls;
+
+                    if (chunk.isFinished === true) {
+                        scheduleAssistantMessageUpdate(true);
+                        queueCompletedPersistence();
+                        return;
+                    }
+
+                    scheduleAssistantMessageUpdate();
+                },
+                { signal: abortController.signal },
+            );
+
+            heartbeatController.stop();
+            if (hasPendingAssistantMessageUpdate) {
+                scheduleAssistantMessageUpdate(true);
+            } else {
+                clearScheduledAssistantMessageUpdate();
+            }
+            await persistQueue;
+            await heartbeatController.whenIdle().catch(() => undefined);
+
+            const normalizedResponse = ensureNonEmptyChatContent({
+                content: response.content,
+                context: `Durable agent chat ${resolvedAgentName}`,
+            });
+            const responseContentWithSuffix = appendMessageSuffix(
+                normalizedResponse.content,
+                resolveMessageSuffixFromAgentSource(agentSource),
+            );
+            const finalToolCalls = response.toolCalls
+                ? mergeToolCalls(latestToolCalls, prepareToolCallsForStreaming(response.toolCalls))
+                : latestToolCalls;
+            const generationDurationMs = Date.now() - startedAt;
+
+            if (hasQueuedCompletedPersistence) {
+                queueAssistantMessageUpdate((message) => ({
+                    ...message,
+                    content: responseContentWithSuffix,
+                    isComplete: true,
+                    lifecycleState: 'completed',
+                    lifecycleError: undefined,
+                    ongoingToolCalls: undefined,
+                    toolCalls: finalToolCalls ?? message.toolCalls,
+                    completedToolCalls: finalToolCalls ?? message.completedToolCalls,
+                    generationDurationMs,
+                    prompt: createPromptSnapshot({
+                        toolCalls: finalToolCalls,
+                        completedToolCalls: finalToolCalls,
+                        rawPromptContent: response.rawPromptContent,
+                        rawRequest: response.rawRequest,
+                    }),
+                }));
+                await persistQueue;
+            } else {
+                await persistUserChatJobTerminalState({
+                    job,
+                    status: 'COMPLETED',
+                    content: responseContentWithSuffix,
+                    toolCalls: finalToolCalls,
+                    prompt: createPromptSnapshot({
+                        toolCalls: finalToolCalls,
+                        completedToolCalls: finalToolCalls,
+                        rawPromptContent: response.rawPromptContent,
+                        rawRequest: response.rawRequest,
+                    }),
+                    availableTools,
+                    provider,
+                    generationDurationMs,
+                });
+                hasPersistedCompletedState = true;
+            }
+
+            if (response.toolCalls && response.toolCalls.length > 0) {
+                await logCalendarToolCallsActivity({
+                    userId: job.userId,
+                    agentPermanentId,
+                    toolCalls: response.toolCalls,
+                });
+            }
+
+            if (!resolvedAgentContext.isBookScopedAgent) {
+                const learnedAgentSource = resolveAppendOnlySelfLearningAgentSource({
+                    unresolvedAgentSourceBeforeLearning: unresolvedAgentSource,
+                    resolvedAgentSourceBeforeLearning: agentSource,
+                    resolvedAgentSourceAfterLearning: agent.agentSource.value,
+                });
+
+                if (learnedAgentSource !== null) {
+                    await collection.updateAgentSource(agentPermanentId, learnedAgentSource);
+                }
+            }
+
+            console.info('[user-chat-job] completed', {
                 chatId: job.chatId,
                 messageId: job.userMessageId,
                 jobId: job.id,
@@ -609,23 +572,86 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
                 durationMs: generationDurationMs,
             });
 
-            return 'cancelled';
-        }
+            return 'completed';
+        } catch (error) {
+            heartbeatController.stop();
+            clearScheduledAssistantMessageUpdate();
+            await persistQueue.catch(() => undefined);
+            await heartbeatController.whenIdle().catch(() => undefined);
 
-        const failureReason = resolveUserChatJobFailureReason(error);
-        const failureDetails = createUserChatJobFailureDetails({
-            job,
-            summary: failureReason,
-            source: 'runUserChatJob',
-            provider,
-            generationDurationMs,
-            error,
-        });
+            if (hasPersistedCompletedState) {
+                console.error('[user-chat-job] follow-up failed after completion', {
+                    chatId: job.chatId,
+                    messageId: job.userMessageId,
+                    jobId: job.id,
+                    provider,
+                    error: serializeError(error as Error),
+                });
 
-        if (isCancellationRequested || isUserChatJobCancelledError(error)) {
+                return 'completed';
+            }
+
+            const generationDurationMs = Date.now() - startedAt;
+
+            if (isUserChatNotFoundScopeError(error)) {
+                await finalizeUserChatJob({
+                    jobId: job.id,
+                    status: 'CANCELLED',
+                    provider,
+                    failureReason: USER_CHAT_JOB_MISSING_CHAT_FAILURE_REASON,
+                });
+
+                console.info('[user-chat-job] cancelled_missing_chat_during_run', {
+                    chatId: job.chatId,
+                    messageId: job.userMessageId,
+                    jobId: job.id,
+                    provider,
+                    durationMs: generationDurationMs,
+                });
+
+                return 'cancelled';
+            }
+
+            const failureReason = resolveUserChatJobFailureReason(error);
+            const failureDetails = createUserChatJobFailureDetails({
+                job,
+                summary: failureReason,
+                source: 'runUserChatJob',
+                provider,
+                generationDurationMs,
+                error,
+            });
+
+            if (isCancellationRequested || isUserChatJobCancelledError(error)) {
+                await persistUserChatJobTerminalState({
+                    job,
+                    status: 'CANCELLED',
+                    content: latestContent,
+                    toolCalls: latestToolCalls,
+                    prompt: createPromptSnapshot({
+                        toolCalls: latestToolCalls,
+                        completedToolCalls: latestToolCalls,
+                    }),
+                    availableTools,
+                    provider,
+                    failureReason,
+                    generationDurationMs,
+                });
+
+                console.info('[user-chat-job] cancelled', {
+                    chatId: job.chatId,
+                    messageId: job.userMessageId,
+                    jobId: job.id,
+                    provider,
+                    durationMs: generationDurationMs,
+                });
+
+                return 'cancelled';
+            }
+
             await persistUserChatJobTerminalState({
                 job,
-                status: 'CANCELLED',
+                status: 'FAILED',
                 content: latestContent,
                 toolCalls: latestToolCalls,
                 prompt: createPromptSnapshot({
@@ -635,46 +661,24 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
                 availableTools,
                 provider,
                 failureReason,
+                failureDetails,
                 generationDurationMs,
             });
 
-            console.info('[user-chat-job] cancelled', {
+            console.error('[user-chat-job] failed', {
                 chatId: job.chatId,
                 messageId: job.userMessageId,
                 jobId: job.id,
                 provider,
                 durationMs: generationDurationMs,
+                error: serializeError(error as Error),
             });
 
-            return 'cancelled';
+            return 'failed';
         }
-
-        await persistUserChatJobTerminalState({
-            job,
-            status: 'FAILED',
-            content: latestContent,
-            toolCalls: latestToolCalls,
-            prompt: createPromptSnapshot({
-                toolCalls: latestToolCalls,
-                completedToolCalls: latestToolCalls,
-            }),
-            availableTools,
-            provider,
-            failureReason,
-            failureDetails,
-            generationDurationMs,
-        });
-
-        console.error('[user-chat-job] failed', {
-            chatId: job.chatId,
-            messageId: job.userMessageId,
-            jobId: job.id,
-            provider,
-            durationMs: generationDurationMs,
-            error: serializeError(error as Error),
-        });
-
-        return 'failed';
+    } finally {
+        heartbeatController.stop();
+        await heartbeatController.whenIdle().catch(() => undefined);
     }
 }
 
