@@ -386,11 +386,14 @@ function syncTrackedDetailsOpenState(details: HTMLDetailsElement, openDetailsKey
  * @private utility of `MarkdownContent` component
  */
 function resolveClickedDetailsElement(target: EventTarget | null, container: HTMLElement): HTMLDetailsElement | null {
-    if (!(target instanceof Element)) {
+    const targetElement =
+        target instanceof Element ? target : target instanceof Node ? target.parentElement : null;
+
+    if (!(targetElement instanceof Element)) {
         return null;
     }
 
-    const summary = target.closest(DETAILS_SUMMARY_SELECTOR);
+    const summary = targetElement.closest(DETAILS_SUMMARY_SELECTOR);
     if (!(summary instanceof HTMLElement) || !container.contains(summary)) {
         return null;
     }
@@ -445,19 +448,32 @@ export const MarkdownContent = memo(function MarkdownContent(props: MarkdownCont
             syncTrackedDetailsOpenState(details, openDetailsKeysRef.current);
         };
 
-        // Native `<details>` toggling can be lost when the surrounding chat bubble rerenders
-        // during the same interaction. Delegating summary clicks here keeps toggling explicit
-        // and lets us persist the state immediately.
+        const pendingToggleFallbackTimeoutIds = new Set<number>();
+
+        // Let the browser perform the native `<details>` toggle, but stop the click from bubbling
+        // into surrounding chat-level handlers. When the environment does not implement native
+        // `<summary>` toggling (for example JSDOM tests), a short fallback keeps behavior covered.
         const handleSummaryClick = (event: MouseEvent) => {
             const details = resolveClickedDetailsElement(event.target, containerElement);
             if (!details) {
                 return;
             }
 
-            event.preventDefault();
             event.stopPropagation();
-            details.open = !details.open;
-            syncTrackedDetailsOpenState(details, openDetailsKeysRef.current);
+
+            const previousOpenState = details.open;
+            const fallbackTimeoutId = window.setTimeout(() => {
+                pendingToggleFallbackTimeoutIds.delete(fallbackTimeoutId);
+
+                if (!details.isConnected || details.open !== previousOpenState) {
+                    return;
+                }
+
+                details.open = !previousOpenState;
+                syncTrackedDetailsOpenState(details, openDetailsKeysRef.current);
+            }, 0);
+
+            pendingToggleFallbackTimeoutIds.add(fallbackTimeoutId);
         };
 
         containerElement.addEventListener('toggle', handleToggle, true);
@@ -499,6 +515,8 @@ export const MarkdownContent = memo(function MarkdownContent(props: MarkdownCont
         return () => {
             containerElement.removeEventListener('toggle', handleToggle, true);
             containerElement.removeEventListener('click', handleSummaryClick);
+            pendingToggleFallbackTimeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
+            pendingToggleFallbackTimeoutIds.clear();
             rootsRef.current.forEach((root) => root.unmount());
             rootsRef.current = [];
         };

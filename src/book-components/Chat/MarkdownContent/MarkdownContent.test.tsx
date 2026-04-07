@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it } from '@jest/globals';
 
 jest.mock('../CodeBlock/CodeBlock', () => ({
@@ -10,7 +10,7 @@ jest.mock('../CodeBlock/CodeBlock', () => ({
 import { MarkdownContent } from './MarkdownContent';
 
 describe('MarkdownContent details rendering', () => {
-    it('toggles details blocks when their summary is clicked', () => {
+    it('toggles details blocks when their summary is clicked', async () => {
         const { container } = render(
             <MarkdownContent content={'<details><summary>Tool response</summary>Hidden payload</details>'} />,
         );
@@ -22,13 +22,13 @@ describe('MarkdownContent details rendering', () => {
         expect(details?.open).toBe(false);
 
         fireEvent.click(summary);
-        expect(details?.open).toBe(true);
+        await waitFor(() => expect(details?.open).toBe(true));
 
         fireEvent.click(summary);
-        expect(details?.open).toBe(false);
+        await waitFor(() => expect(details?.open).toBe(false));
     });
 
-    it('preserves opened details across markdown rerenders', () => {
+    it('preserves opened details across markdown rerenders', async () => {
         const { container, rerender } = render(
             <MarkdownContent content={'<details><summary>Debug info</summary>Initial payload</details>'} />,
         );
@@ -37,7 +37,7 @@ describe('MarkdownContent details rendering', () => {
         const initialSummary = screen.getByText('Debug info');
 
         fireEvent.click(initialSummary);
-        expect(initialDetails?.open).toBe(true);
+        await waitFor(() => expect(initialDetails?.open).toBe(true));
 
         rerender(<MarkdownContent content={'<details><summary>Debug info</summary>Updated payload</details>'} />);
 

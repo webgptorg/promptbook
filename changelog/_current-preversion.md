@@ -63,9 +63,10 @@
 
 -   Fixed `<details>` / `<summary>` elements inside chat message markdown so they expand and collapse when clicked:
 
-    -   Updated the shared chat `MarkdownContent` renderer to handle `<summary>` clicks explicitly, so chat-message `<details>` blocks no longer blink shut during rerenders and their open state is still preserved across streaming updates.
+    -   Updated the shared chat `MarkdownContent` renderer to rely on the browser's native `<summary>` toggle instead of force-toggling `<details>` in the click handler, while still stopping summary clicks from bubbling into surrounding chat-message handlers.
+    -   Added a tiny non-browser fallback for environments without native `<summary>` toggling (such as JSDOM), so regression tests still cover click-to-toggle behavior and open-state preservation across markdown rerenders.
     -   Refined the shared markdown styling for `<details>` blocks with a clearer card-like container, richer spacing, hover/focus feedback, and a custom chevron indicator so expandable sections look obviously interactive in Agents Server chat messages.
-    -   Added regression tests covering summary-click toggling and preserving an open `<details>` block across markdown rerenders.
+    -   Added regression tests covering summary-click toggling inside both the standalone markdown renderer and the full chat-message item, plus preserving an open `<details>` block across markdown rerenders.
 
 -   Completed Agents Server UI translations for all previously hardcoded English strings across chat dialogs and admin controls:
 

@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, jest } from '@jest/globals';
 import moment from 'moment';
 import 'moment/locale/cs';
@@ -225,6 +225,35 @@ describe('ChatMessageItem progress checklist rendering', () => {
         const messageContentElement = container.querySelector('.chat-message-content') as HTMLElement | null;
         expect(messageContentElement).not.toBeNull();
         expect(messageContentElement?.style.getPropertyValue('--message-bg-color')).not.toBe('#ffffff');
+    });
+
+    it('toggles message markdown details without bubbling to the outer chat message click handler', async () => {
+        const consoleGroupSpy = jest.spyOn(console, 'group').mockImplementation(() => undefined);
+        const consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation(() => undefined);
+        const consoleGroupEndSpy = jest.spyOn(console, 'groupEnd').mockImplementation(() => undefined);
+
+        try {
+            const { container } = renderChatMessageItem({
+                id: 'assistant-message-details-1',
+                sender: 'AGENT',
+                content: '<details><summary>Tool response</summary>Hidden payload</details>',
+                isComplete: true,
+            });
+
+            const details = container.querySelector<HTMLDetailsElement>('details');
+            const summary = screen.getByText('Tool response');
+
+            expect(details?.open).toBe(false);
+
+            fireEvent.click(summary);
+
+            await waitFor(() => expect(details?.open).toBe(true));
+            expect(consoleGroupSpy).not.toHaveBeenCalled();
+        } finally {
+            consoleGroupSpy.mockRestore();
+            consoleInfoSpy.mockRestore();
+            consoleGroupEndSpy.mockRestore();
+        }
     });
 
     it('renders localized timing metadata when locale and translations are provided', () => {
