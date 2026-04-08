@@ -9,6 +9,7 @@ import { AgentNameWithAvatar } from './AgentNameWithAvatar';
 import type { AgentHierarchyView } from './createAgentViewLabel';
 import { HeadlessLink } from '../_utils/headlessParam';
 import { HeaderSearchBox } from './HeaderSearchBox';
+import type { ServerTranslationKey } from '../../languages/ServerTranslationKeys';
 import type { MenuItem } from './HeaderTypes';
 import type { SubMenuItem } from './SubMenuItem';
 
@@ -29,7 +30,7 @@ const MOBILE_DRAWER_PANEL_CLASSNAME =
  *
  * @private type of Header
  */
-type HeaderTranslate = (key: string, variables?: Record<string, string>) => string;
+type HeaderTranslate = (key: ServerTranslationKey, variables?: Record<string, string>) => string;
 
 /**
  * Props for the extracted mobile header drawer.
