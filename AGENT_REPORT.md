@@ -114,3 +114,8 @@
   - Next.js compiles successfully, then fails in the type-validation phase with `Type error: Cannot find module '../../../utils/userLocationPromptParameter' or its corresponding type declarations.`
   - The reported import in this run is `apps/agents-server/src/app/agents/[agentName]/useAgentChatToolInteractions/requestBrowserUserLocationPromptParameter.ts:1`.
   - This failure appeared while validating the `getAdminChatTasksResponse` refactor and does not map to the touched `src/utils/getAdminChatTasksResponse*` files.
+
+- `apps/agents-server` `npm run test-build` fails in this run with the same unrelated missing-module problem during build validation:
+  - Next.js compiles successfully, then fails in the type-validation phase with `Type error: Cannot find module '../../../utils/userLocationPromptParameter' or its corresponding type declarations.`
+  - The reported import in this run is `apps/agents-server/src/app/agents/[agentName]/useAgentChatToolInteractions/requestBrowserUserLocationPromptParameter.ts:1`.
+  - This failure surfaced while validating the `userChatClient` refactor and does not map to the touched `src/utils/userChatClient*` files.
