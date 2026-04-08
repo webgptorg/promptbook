@@ -1,3 +1,8 @@
+-   Refactored Agents Server `useBookEditorWrapper` into smaller private editor modules without changing Book editor behavior:
+
+    -   Extracted dedicated private `useBookEditorSaving`, `useBookEditorDiagnostics`, and `useBookEditorHistory` hooks plus focused Monaco-path and API-error helpers so the wrapper hook now reads as a small orchestration layer.
+    -   Kept the existing `useBookEditorWrapper` hook API and editor flows intact, including autosave, unsaved-change guarding, unresolved-reference creation, history filtering, named versions, and version restore behavior.
+
 -   Refactored `apps/agents-server/scripts/createVercelDomainSyncPlan.ts` into smaller focused Vercel sync modules without changing external behavior:
 
     -   Extracted Vercel sync contracts, API request helpers, project/domain loading, environment-binding resolution, and domain-diff planning into dedicated private script modules so the entry facade is easier to follow and maintain.

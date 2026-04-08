@@ -3,11 +3,12 @@
 import type { string_book } from '@promptbook-local/types';
 import { AlertTriangleIcon, CheckCircle2Icon, Clock3Icon, HistoryIcon, Loader2Icon } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { showAlert, showConfirm, showPrompt } from '@/src/components/AsyncDialogs/asyncDialogs';
-import type { MissingAgentReference } from '../../../../utils/agentReferenceResolver/createUnresolvedAgentReferenceDiagnostics';
+import { useCallback, useMemo } from 'react';
 import { useUnsavedChangesGuard } from '../../../../components/utils/useUnsavedChangesGuard';
-import type { BookEditorHistoryVersionItem } from './BookEditorHistoryPanel';
+import { createAgentBookMonacoModelPath } from './createAgentBookMonacoModelPath';
+import { useBookEditorDiagnostics } from './useBookEditorDiagnostics';
+import { useBookEditorHistory } from './useBookEditorHistory';
+import { type SaveStatus, useBookEditorSaving } from './useBookEditorSaving';
 
 /**
  * Input consumed by `useBookEditorWrapper`.
@@ -26,89 +27,6 @@ type UseBookEditorWrapperProps = {
 };
 
 /**
- * Monaco marker payload accepted by `<BookEditor/>`.
- */
-type BookEditorDiagnostic = {
-    startLineNumber: number;
-    startColumn: number;
-    endLineNumber: number;
-    endColumn: number;
-    message: string;
-    source?: string;
-};
-
-/**
- * API response returned by `/reference-diagnostics`.
- */
-type AgentReferenceDiagnosticsResponse = {
-    diagnostics?: Array<BookEditorDiagnostic>;
-    missingAgentReferences?: Array<MissingAgentReference>;
-};
-
-/**
- * Optional flags accepted by `requestDiagnostics`.
- */
-type RequestDiagnosticsOptions = {
-    /**
-     * Forces server-side resolver rebuild before running diagnostics.
-     */
-    readonly forceRefresh?: boolean;
-};
-
-/**
- * Save status shown in the Book editor status bar.
- */
-type SaveStatus = 'idle' | 'pending' | 'saving' | 'saved' | 'error';
-
-/**
- * Queued save request payload tracked by the autosave worker.
- */
-type PendingSave = {
-    readonly source: string_book;
-    readonly version: number;
-    readonly versionName: string | null;
-};
-
-/**
- * Minimal API error payload used by Book-related endpoints.
- */
-type ApiErrorPayload = {
-    message?: string;
-    error?: string;
-};
-
-/**
- * One book snapshot item returned by the history API.
- */
-type AgentHistoryEntry = {
-    id: number;
-    createdAt: string;
-    agentName: string;
-    agentHash: string;
-    previousAgentHash: string | null;
-    agentSource: string_book;
-    promptbookEngineVersion: string;
-    versionName?: string | null;
-};
-
-/**
- * API response returned by `/api/book/history`.
- */
-type AgentHistoryResponse = {
-    history?: Array<AgentHistoryEntry>;
-};
-
-/**
- * API response returned when restoring one history snapshot.
- */
-type RestoreAgentHistoryResponse = {
-    isSuccessful?: boolean;
-    agentSource?: string_book;
-    message?: string;
-    error?: string;
-};
-
-/**
  * One hoisted Book editor menu action.
  */
 type BookEditorHoistedMenuItem = {
@@ -120,176 +38,11 @@ type BookEditorHoistedMenuItem = {
 };
 
 /**
- * Delay used before autosave sends a new request after typing.
- */
-const SAVE_DEBOUNCE_DELAY_MS = 1000;
-
-/**
- * Delay used before refreshing reference diagnostics after typing.
- */
-const DIAGNOSTICS_DEBOUNCE_DELAY_MS = 350;
-
-/**
- * Visibility duration of the temporary "saved" status.
- */
-const SAVE_SUCCESS_STATUS_VISIBLE_MS = 2000;
-
-/**
- * Characters that are unsafe inside Monaco in-memory model URI segments.
- */
-const INVALID_MONACO_MODEL_PATH_CHARACTER_PATTERN = /[^a-zA-Z0-9._-]/g;
-
-/**
- * Creates a stable Monaco in-memory model path for one agent book.
- *
- * Stable model paths let Monaco restore view state (cursor/scroll) after unmount/remount.
- *
- * @param nextAgentName - Agent route identifier.
- * @returns Monaco model URI for the book editor.
- */
-function createAgentBookMonacoModelPath(nextAgentName: string): string {
-    const safeAgentName = nextAgentName.replace(INVALID_MONACO_MODEL_PATH_CHARACTER_PATTERN, '-');
-    const normalizedAgentName = safeAgentName || 'agent';
-    return `memory://agents-server/book-editor/${normalizedAgentName}.book`;
-}
-
-/**
- * Normalizes diagnostics payload shape returned by the diagnostics API.
- *
- * @param payload - Raw response payload.
- * @returns Always-array diagnostics payload.
- */
-function normalizeDiagnosticsPayload(payload: AgentReferenceDiagnosticsResponse): {
-    readonly diagnostics: Array<BookEditorDiagnostic>;
-    readonly missingAgentReferences: Array<MissingAgentReference>;
-} {
-    return {
-        diagnostics: Array.isArray(payload.diagnostics) ? payload.diagnostics : [],
-        missingAgentReferences: Array.isArray(payload.missingAgentReferences) ? payload.missingAgentReferences : [],
-    };
-}
-
-/**
- * Normalizes the history payload shape returned by the history API.
- *
- * @param payload - Raw history payload.
- * @returns Always-array history payload.
- */
-function normalizeHistoryPayload(payload: AgentHistoryResponse): Array<AgentHistoryEntry> {
-    return Array.isArray(payload.history) ? payload.history : [];
-}
-
-/**
- * Normalizes optional history version name.
- *
- * @param versionName - Raw value from API/user input.
- * @returns Trimmed non-empty version name, otherwise `null`.
- */
-function normalizeHistoryVersionName(versionName: string | null | undefined): string | null {
-    if (typeof versionName !== 'string') {
-        return null;
-    }
-
-    const normalizedVersionName = versionName.trim();
-    return normalizedVersionName.length > 0 ? normalizedVersionName : null;
-}
-
-/**
- * Builds save endpoint URL and appends optional `versionName` query param.
- *
- * @param agentName - Current agent route identifier.
- * @param versionName - Optional name for the history snapshot.
- * @returns Relative save URL for the current agent.
- */
-function createAgentBookSaveUrl(agentName: string, versionName: string | null): string {
-    const baseUrl = `/agents/${encodeURIComponent(agentName)}/api/book`;
-    if (!versionName) {
-        return baseUrl;
-    }
-
-    return `${baseUrl}?versionName=${encodeURIComponent(versionName)}`;
-}
-
-/**
- * Extracts a human-readable API error from a failed HTTP response.
- *
- * @param response - Failed API response.
- * @param fallbackMessage - Fallback message used when the payload cannot be parsed.
- * @returns Friendly error message for UI.
- */
-async function resolveApiErrorMessage(response: Response, fallbackMessage: string): Promise<string> {
-    const fallback = `${fallbackMessage}: ${response.status} ${response.statusText}`.trim();
-
-    try {
-        const payload = (await response.json()) as ApiErrorPayload;
-        const payloadMessage = payload?.message || payload?.error;
-        if (payloadMessage && payloadMessage.trim().length > 0) {
-            return payloadMessage.trim();
-        }
-    } catch {
-        // Ignore JSON parsing failures and fall back to status-based message.
-    }
-
-    return fallback;
-}
-
-/**
- * Converts raw history entries into UI-ready version items with explicit version labels.
- *
- * @param historyEntries - Snapshots returned by history API ordered from newest to oldest.
- * @returns Version items consumed by history panel.
- */
-function buildHistoryVersionItems(
-    historyEntries: ReadonlyArray<AgentHistoryEntry>,
-): Array<BookEditorHistoryVersionItem> {
-    const totalVersions = historyEntries.length;
-
-    return historyEntries.map((entry, index) => ({
-        id: entry.id,
-        versionName: normalizeHistoryVersionName(entry.versionName),
-        versionLabel: `Version ${totalVersions - index}`,
-        createdAtLabel: new Date(entry.createdAt).toLocaleString(),
-        hash: entry.agentHash,
-        hashPreview: entry.agentHash.slice(0, 8),
-        source: entry.agentSource,
-    }));
-}
-
-/**
- * Filters history items by optional "named only" and case-insensitive name query.
- *
- * @param versions - Version items ready for rendering.
- * @param options - Optional named/search filters.
- * @returns Filtered version items preserving original order.
- */
-function filterHistoryVersionItems(
-    versions: ReadonlyArray<BookEditorHistoryVersionItem>,
-    options: {
-        readonly namedOnly: boolean;
-        readonly nameQuery: string;
-    },
-): Array<BookEditorHistoryVersionItem> {
-    const normalizedNameQuery = options.nameQuery.trim().toLowerCase();
-
-    return versions.filter((version) => {
-        if (options.namedOnly && !version.versionName) {
-            return false;
-        }
-
-        if (normalizedNameQuery.length === 0) {
-            return true;
-        }
-
-        const normalizedVersionName = (version.versionName || '').toLowerCase();
-        return normalizedVersionName.includes(normalizedNameQuery);
-    });
-}
-
-/**
  * Resolves human-visible status label for current save state.
  *
  * @param saveStatus - Current state of autosave state machine.
  * @returns Short status text shown in the Book toolbar.
+ * @private function of BookEditorWrapper
  */
 function resolveSaveStatusLabel(saveStatus: SaveStatus): string {
     if (saveStatus === 'pending') {
@@ -309,6 +62,7 @@ function resolveSaveStatusLabel(saveStatus: SaveStatus): string {
  *
  * @param saveStatus - Current state of autosave state machine.
  * @returns Icon for the current save state.
+ * @private function of BookEditorWrapper
  */
 function resolveSaveStatusMenuIcon(saveStatus: SaveStatus): ReactNode {
     if (saveStatus === 'saving') {
@@ -333,549 +87,63 @@ function resolveSaveStatusMenuIcon(saveStatus: SaveStatus): ReactNode {
  */
 export function useBookEditorWrapper({ agentName, initialAgentSource }: UseBookEditorWrapperProps) {
     const monacoModelPath = createAgentBookMonacoModelPath(agentName);
-    const [agentSource, setAgentSource] = useState<string_book>(initialAgentSource);
-    const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
-    const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
-    const [currentSourceVersion, setCurrentSourceVersion] = useState(0);
-    const [lastConfirmedSourceVersion, setLastConfirmedSourceVersion] = useState(0);
-    const [isSaveInFlight, setIsSaveInFlight] = useState(false);
-    const [isSaveDebounced, setIsSaveDebounced] = useState(false);
-    const [diagnostics, setDiagnostics] = useState<Array<BookEditorDiagnostic>>([]);
-    const [missingAgentReferences, setMissingAgentReferences] = useState<Array<MissingAgentReference>>([]);
-    const [creatingReference, setCreatingReference] = useState<string | null>(null);
-    const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-    const [isHistoryLoading, setIsHistoryLoading] = useState(false);
-    const [historyEntries, setHistoryEntries] = useState<Array<AgentHistoryEntry>>([]);
-    const [selectedHistoryId, setSelectedHistoryId] = useState<number | null>(null);
-    const [historyErrorMessage, setHistoryErrorMessage] = useState<string | null>(null);
-    const [isRestoringHistoryVersion, setIsRestoringHistoryVersion] = useState(false);
-    const [historyNameQuery, setHistoryNameQuery] = useState('');
-    const [isNamedHistoryOnly, setIsNamedHistoryOnly] = useState(false);
-    const [historyRefreshVersion, setHistoryRefreshVersion] = useState(0);
-
-    // Debounce timer refs so pending jobs can be canceled before scheduling a newer one.
-    const debounceTimerRef = useRef<number | null>(null);
-    const diagnosticsDebounceTimerRef = useRef<number | null>(null);
-    const diagnosticsAbortControllerRef = useRef<AbortController | null>(null);
-    const historyAbortControllerRef = useRef<AbortController | null>(null);
-    const pendingSaveRef = useRef<PendingSave | null>(null);
-    const isSaveWorkerRunningRef = useRef(false);
-    const sourceVersionRef = useRef(0);
-    const isHistoryOpenRef = useRef(false);
-
-    /**
-     * Flushes queued autosave requests in-order and confirms server-saved versions.
-     *
-     * @private function of BookEditorWrapper
-     */
-    const flushSaveQueue = useCallback(async () => {
-        if (isSaveWorkerRunningRef.current || !pendingSaveRef.current) {
-            return;
-        }
-
-        isSaveWorkerRunningRef.current = true;
-        setIsSaveInFlight(true);
-
-        try {
-            while (pendingSaveRef.current) {
-                const pendingSave = pendingSaveRef.current;
-                pendingSaveRef.current = null;
-
-                setSaveStatus('saving');
-                setSaveErrorMessage(null);
-
-                try {
-                    const response = await fetch(createAgentBookSaveUrl(agentName, pendingSave.versionName), {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'text/plain' },
-                        body: pendingSave.source,
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(await resolveApiErrorMessage(response, 'Failed to save'));
-                    }
-
-                    setLastConfirmedSourceVersion((previousVersion) =>
-                        pendingSave.version > previousVersion ? pendingSave.version : previousVersion,
-                    );
-                    setSaveStatus('saved');
-                    if (isHistoryOpenRef.current) {
-                        setHistoryRefreshVersion((previousVersion) => previousVersion + 1);
-                    }
-                } catch (error) {
-                    console.error('Error saving agent source:', error);
-                    const errorMessage =
-                        error instanceof Error ? error.message : 'Failed to save the current book on the server.';
-                    setSaveErrorMessage(errorMessage);
-                    setSaveStatus('error');
-                }
-            }
-        } finally {
-            isSaveWorkerRunningRef.current = false;
-            setIsSaveInFlight(false);
-        }
-    }, [agentName]);
+    const {
+        agentSource,
+        saveStatus,
+        saveErrorMessage,
+        currentSourceVersion,
+        lastConfirmedSourceVersion,
+        isSaveInFlight,
+        isSaveDebounced,
+        successfulSaveSequence,
+        isBookSavedOnServer,
+        handleSourceChange,
+        retrySaveNow,
+        cancelPendingSave,
+        saveCurrentSourceAsNamedVersion,
+        replaceWithRestoredSource,
+    } = useBookEditorSaving({
+        agentName,
+        initialAgentSource,
+    });
+    const {
+        diagnostics,
+        missingAgentReferences,
+        creatingReference,
+        requestDiagnostics,
+        scheduleDiagnostics,
+        handleCreateReferencedAgent,
+    } = useBookEditorDiagnostics({
+        agentName,
+        initialAgentSource,
+        agentSource,
+    });
+    const { isHistoryOpen, historyVersionCount, toggleHistoryPanel, historyPanelProps } = useBookEditorHistory({
+        agentName,
+        isSaveInFlight,
+        isSaveDebounced,
+        currentSourceVersion,
+        lastConfirmedSourceVersion,
+        successfulSaveSequence,
+        saveCurrentSourceAsNamedVersion,
+        cancelPendingSave,
+        replaceWithRestoredSource,
+        requestDiagnostics,
+    });
 
     /**
-     * Queues the newest source revision for persistence and starts the save worker.
-     *
-     * @private function of BookEditorWrapper
-     */
-    const enqueueSave = useCallback(
-        (source: string_book, version: number, versionName: string | null = null) => {
-            pendingSaveRef.current = { source, version, versionName };
-            setIsSaveDebounced(false);
-            void flushSaveQueue();
-        },
-        [flushSaveQueue],
-    );
-
-    /**
-     * Debounces autosave while the user edits.
-     *
-     * @private function of BookEditorWrapper
-     */
-    const scheduleSave = useCallback(
-        (nextSource: string_book, version: number) => {
-            if (debounceTimerRef.current) {
-                clearTimeout(debounceTimerRef.current);
-            }
-
-            setIsSaveDebounced(true);
-            setSaveStatus('pending');
-
-            debounceTimerRef.current = window.setTimeout(() => {
-                debounceTimerRef.current = null;
-                enqueueSave(nextSource, version, null);
-            }, SAVE_DEBOUNCE_DELAY_MS);
-        },
-        [enqueueSave],
-    );
-
-    /**
-     * Retries saving the current editor content immediately.
-     *
-     * @private function of BookEditorWrapper
-     */
-    const retrySaveNow = useCallback(() => {
-        if (debounceTimerRef.current) {
-            clearTimeout(debounceTimerRef.current);
-            debounceTimerRef.current = null;
-        }
-
-        setIsSaveDebounced(false);
-        pendingSaveRef.current = { source: agentSource, version: sourceVersionRef.current, versionName: null };
-        void flushSaveQueue();
-    }, [agentSource, flushSaveQueue]);
-
-    /**
-     * Prompts for a version name and saves the current source as a named snapshot.
-     *
-     * @private function of BookEditorWrapper
-     */
-    const saveNamedVersion = useCallback(async () => {
-        if (isRestoringHistoryVersion) {
-            return;
-        }
-
-        const promptValue = await showPrompt({
-            title: 'Save named version',
-            message: 'Name this snapshot so you can quickly find it in history later.',
-            confirmLabel: 'Save version',
-            cancelLabel: 'Cancel',
-            placeholder: 'For example: Baseline prompt before TEAM refactor',
-            inputLabel: 'Version name',
-        }).catch(() => null);
-
-        if (promptValue === null) {
-            return;
-        }
-
-        const versionName = normalizeHistoryVersionName(promptValue);
-        if (!versionName) {
-            await showAlert({
-                title: 'Version name required',
-                message: 'Enter a non-empty name to save a named version.',
-            });
-            return;
-        }
-
-        if (debounceTimerRef.current) {
-            clearTimeout(debounceTimerRef.current);
-            debounceTimerRef.current = null;
-        }
-
-        enqueueSave(agentSource, sourceVersionRef.current, versionName);
-    }, [agentSource, enqueueSave, isRestoringHistoryVersion]);
-
-    /**
-     * Loads the complete version history for the current agent.
-     *
-     * @private function of BookEditorWrapper
-     */
-    const requestHistory = useCallback(async () => {
-        historyAbortControllerRef.current?.abort();
-        const abortController = new AbortController();
-        historyAbortControllerRef.current = abortController;
-
-        setIsHistoryLoading(true);
-        setHistoryErrorMessage(null);
-
-        try {
-            const response = await fetch(`/agents/${encodeURIComponent(agentName)}/api/book/history`, {
-                method: 'GET',
-                headers: { Accept: 'application/json' },
-                signal: abortController.signal,
-                cache: 'no-store',
-            });
-
-            if (!response.ok) {
-                throw new Error(await resolveApiErrorMessage(response, 'Failed to load history'));
-            }
-
-            const payload = (await response.json()) as AgentHistoryResponse;
-            const normalizedHistory = normalizeHistoryPayload(payload);
-            setHistoryEntries(normalizedHistory);
-            setSelectedHistoryId((currentHistoryId) => {
-                if (normalizedHistory.length === 0) {
-                    return null;
-                }
-
-                if (currentHistoryId && normalizedHistory.some((item) => item.id === currentHistoryId)) {
-                    return currentHistoryId;
-                }
-
-                return normalizedHistory[0]!.id;
-            });
-        } catch (error) {
-            if (error instanceof Error && error.name === 'AbortError') {
-                return;
-            }
-
-            console.error('Failed to load book history:', error);
-            const errorMessage = error instanceof Error ? error.message : 'Failed to load book history.';
-            setHistoryErrorMessage(errorMessage);
-        } finally {
-            if (historyAbortControllerRef.current === abortController) {
-                historyAbortControllerRef.current = null;
-            }
-            setIsHistoryLoading(false);
-        }
-    }, [agentName]);
-
-    /**
-     * Requests unresolved compact-reference diagnostics from the server.
-     *
-     * @private function of BookEditorWrapper
-     */
-    const requestDiagnostics = useCallback(
-        async (sourceToInspect: string_book, options: RequestDiagnosticsOptions = {}) => {
-            diagnosticsAbortControllerRef.current?.abort();
-            const abortController = new AbortController();
-            diagnosticsAbortControllerRef.current = abortController;
-
-            try {
-                const diagnosticsUrl = new URL(
-                    `/agents/${encodeURIComponent(agentName)}/api/book/reference-diagnostics`,
-                    window.location.origin,
-                );
-
-                if (options.forceRefresh) {
-                    diagnosticsUrl.searchParams.set('forceRefresh', '1');
-                }
-
-                const response = await fetch(diagnosticsUrl.toString(), {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: sourceToInspect,
-                    signal: abortController.signal,
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Failed to load diagnostics: ${response.statusText}`);
-                }
-
-                const payload = (await response.json()) as AgentReferenceDiagnosticsResponse;
-                const normalizedPayload = normalizeDiagnosticsPayload(payload);
-
-                setDiagnostics(normalizedPayload.diagnostics);
-                setMissingAgentReferences(normalizedPayload.missingAgentReferences);
-            } catch (error) {
-                if (error instanceof Error && error.name === 'AbortError') {
-                    return;
-                }
-
-                console.error('Error loading reference diagnostics:', error);
-                setDiagnostics([]);
-                setMissingAgentReferences([]);
-            } finally {
-                if (diagnosticsAbortControllerRef.current === abortController) {
-                    diagnosticsAbortControllerRef.current = null;
-                }
-            }
-        },
-        [agentName],
-    );
-
-    /**
-     * Debounces diagnostics updates while the user edits the source.
-     *
-     * @private function of BookEditorWrapper
-     */
-    const scheduleDiagnostics = useCallback(
-        (nextSource: string_book) => {
-            if (diagnosticsDebounceTimerRef.current) {
-                clearTimeout(diagnosticsDebounceTimerRef.current);
-            }
-
-            diagnosticsDebounceTimerRef.current = window.setTimeout(() => {
-                void requestDiagnostics(nextSource);
-            }, DIAGNOSTICS_DEBOUNCE_DELAY_MS);
-        },
-        [requestDiagnostics],
-    );
-
-    /**
-     * Restores one selected history snapshot and updates local editor state.
-     *
-     * @param historyId - Identifier of the snapshot to restore.
-     * @private function of BookEditorWrapper
-     */
-    const restoreHistoryVersion = useCallback(
-        async (historyId: number) => {
-            if (isSaveInFlight) {
-                await showAlert({
-                    title: 'Saving in progress',
-                    message: 'Wait until the current save finishes, then try restoring this version again.',
-                });
-                return;
-            }
-
-            const hasUnsavedLocalChanges =
-                isSaveDebounced || isSaveInFlight || currentSourceVersion !== lastConfirmedSourceVersion;
-            const confirmed = await showConfirm({
-                title: 'Restore version',
-                message: hasUnsavedLocalChanges
-                    ? 'Current local edits are not fully saved yet. Restoring will discard them. Continue?'
-                    : 'Restore this version? The current source will be saved into history automatically.',
-                confirmLabel: 'Restore version',
-                cancelLabel: 'Cancel',
-            }).catch(() => false);
-
-            if (!confirmed) {
-                return;
-            }
-
-            setIsRestoringHistoryVersion(true);
-
-            try {
-                if (debounceTimerRef.current) {
-                    clearTimeout(debounceTimerRef.current);
-                    debounceTimerRef.current = null;
-                }
-
-                pendingSaveRef.current = null;
-                setIsSaveDebounced(false);
-
-                const response = await fetch(`/agents/${encodeURIComponent(agentName)}/api/book/history`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ historyId }),
-                });
-
-                if (!response.ok) {
-                    throw new Error(await resolveApiErrorMessage(response, 'Failed to restore version'));
-                }
-
-                const payload = (await response.json()) as RestoreAgentHistoryResponse;
-                if (typeof payload.agentSource !== 'string') {
-                    throw new Error('History restore endpoint returned an invalid source payload.');
-                }
-
-                const restoredSource = payload.agentSource as string_book;
-                sourceVersionRef.current += 1;
-                const restoredVersion = sourceVersionRef.current;
-
-                setAgentSource(restoredSource);
-                setCurrentSourceVersion(restoredVersion);
-                setLastConfirmedSourceVersion(restoredVersion);
-                setSaveStatus('saved');
-                setSaveErrorMessage(null);
-
-                await requestDiagnostics(restoredSource, { forceRefresh: true });
-                setHistoryRefreshVersion((previousVersion) => previousVersion + 1);
-                setSelectedHistoryId(historyId);
-            } catch (error) {
-                console.error('Failed to restore book history version:', error);
-                const errorMessage = error instanceof Error ? error.message : 'Failed to restore selected version.';
-                await showAlert({
-                    title: 'Restore failed',
-                    message: errorMessage,
-                });
-            } finally {
-                setIsRestoringHistoryVersion(false);
-            }
-        },
-        [
-            agentName,
-            currentSourceVersion,
-            isSaveDebounced,
-            isSaveInFlight,
-            lastConfirmedSourceVersion,
-            requestDiagnostics,
-        ],
-    );
-
-    /**
-     * Updates local state and schedules a save for editor changes.
+     * Updates local state and schedules save plus diagnostics for editor changes.
      *
      * @private function of BookEditorWrapper
      */
     const handleChange = useCallback(
         (newSource: string_book) => {
-            sourceVersionRef.current += 1;
-            setCurrentSourceVersion(sourceVersionRef.current);
-            setAgentSource(newSource);
-            scheduleSave(newSource, sourceVersionRef.current);
+            handleSourceChange(newSource);
             scheduleDiagnostics(newSource);
         },
-        [scheduleDiagnostics, scheduleSave],
+        [handleSourceChange, scheduleDiagnostics],
     );
 
-    /**
-     * Creates a missing referenced agent and refreshes diagnostics.
-     *
-     * @private function of BookEditorWrapper
-     */
-    const handleCreateReferencedAgent = useCallback(
-        async (reference: MissingAgentReference) => {
-            if (!reference.reference) {
-                return;
-            }
-
-            setCreatingReference(reference.reference);
-
-            try {
-                const response = await fetch(`/agents/${encodeURIComponent(agentName)}/api/book/missing-agent`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: reference.reference }),
-                });
-
-                if (!response.ok) {
-                    let message = response.statusText;
-                    try {
-                        const payload = await response.json();
-                        if (payload?.message) {
-                            message = payload.message;
-                        }
-                    } catch {
-                        // Ignore parse errors.
-                    }
-
-                    throw new Error(message || 'Failed to create referenced agent');
-                }
-
-                await requestDiagnostics(agentSource, { forceRefresh: true });
-            } catch (error) {
-                console.error('Failed to create referenced agent:', error);
-                const errorMessage =
-                    error instanceof Error ? error.message : 'An unknown error occurred while creating the agent.';
-
-                await showAlert({
-                    title: 'Create agent failed',
-                    message: `Unable to create ${reference.reference}. ${errorMessage}`,
-                });
-            } finally {
-                setCreatingReference(null);
-            }
-        },
-        [agentName, agentSource, requestDiagnostics],
-    );
-
-    useEffect(() => {
-        void requestDiagnostics(initialAgentSource);
-    }, [initialAgentSource, requestDiagnostics]);
-
-    /**
-     * Mirrors history panel visibility inside a ref so the save worker can trigger refreshes.
-     */
-    useEffect(() => {
-        isHistoryOpenRef.current = isHistoryOpen;
-    }, [isHistoryOpen]);
-
-    /**
-     * Loads history whenever the panel opens or a refresh is requested.
-     */
-    useEffect(() => {
-        if (!isHistoryOpen) {
-            return;
-        }
-
-        void requestHistory();
-    }, [historyRefreshVersion, isHistoryOpen, requestHistory]);
-
-    /**
-     * Supports ESC key closing for the history side panel.
-     */
-    useEffect(() => {
-        if (!isHistoryOpen) {
-            return;
-        }
-
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
-                setIsHistoryOpen(false);
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isHistoryOpen]);
-
-    /**
-     * Hides the short-lived success status once the editor is safely in sync.
-     */
-    useEffect(() => {
-        if (saveStatus !== 'saved') {
-            return;
-        }
-
-        const resetTimer = window.setTimeout(() => {
-            setSaveStatus((currentStatus) => {
-                if (currentStatus !== 'saved') {
-                    return currentStatus;
-                }
-
-                if (!isSaveDebounced && !isSaveInFlight && currentSourceVersion === lastConfirmedSourceVersion) {
-                    return 'idle';
-                }
-
-                return currentStatus;
-            });
-        }, SAVE_SUCCESS_STATUS_VISIBLE_MS);
-
-        return () => clearTimeout(resetTimer);
-    }, [currentSourceVersion, isSaveDebounced, isSaveInFlight, lastConfirmedSourceVersion, saveStatus]);
-
-    /**
-     * Cleans up pending timers and in-flight requests on unmount.
-     */
-    useEffect(() => {
-        return () => {
-            if (debounceTimerRef.current) {
-                clearTimeout(debounceTimerRef.current);
-            }
-            if (diagnosticsDebounceTimerRef.current) {
-                clearTimeout(diagnosticsDebounceTimerRef.current);
-            }
-            diagnosticsAbortControllerRef.current?.abort();
-            historyAbortControllerRef.current?.abort();
-        };
-    }, []);
-
-    const isBookSavedOnServer =
-        !isSaveDebounced && !isSaveInFlight && currentSourceVersion === lastConfirmedSourceVersion;
     const shouldPreventLeavingPage = !isBookSavedOnServer;
     const leaveGuardMessage =
         saveStatus === 'error'
@@ -888,42 +156,7 @@ export function useBookEditorWrapper({ agentName, initialAgentSource }: UseBookE
         message: leaveGuardMessage,
     });
 
-    const historyVersions = useMemo(() => buildHistoryVersionItems(historyEntries), [historyEntries]);
-    const filteredHistoryVersions = useMemo(
-        () =>
-            filterHistoryVersionItems(historyVersions, {
-                namedOnly: isNamedHistoryOnly,
-                nameQuery: historyNameQuery,
-            }),
-        [historyNameQuery, historyVersions, isNamedHistoryOnly],
-    );
-
-    /**
-     * Keeps selected history row valid after list filtering changes.
-     */
-    useEffect(() => {
-        if (filteredHistoryVersions.length === 0) {
-            setSelectedHistoryId(null);
-            return;
-        }
-
-        if (selectedHistoryId && filteredHistoryVersions.some((version) => version.id === selectedHistoryId)) {
-            return;
-        }
-
-        setSelectedHistoryId(filteredHistoryVersions[0]!.id);
-    }, [filteredHistoryVersions, selectedHistoryId]);
-
     const saveStatusLabel = resolveSaveStatusLabel(saveStatus);
-
-    /**
-     * Toggles the visibility of the history side panel.
-     *
-     * @private function of BookEditorWrapper
-     */
-    const toggleHistoryPanel = useCallback(() => {
-        setIsHistoryOpen((isCurrentlyOpen) => !isCurrentlyOpen);
-    }, []);
 
     /**
      * Retries save directly from the hoisted status menu.
@@ -951,16 +184,14 @@ export function useBookEditorWrapper({ agentName, initialAgentSource }: UseBookE
             {
                 key: 'book-history-toggle',
                 icon: <HistoryIcon className="h-4 w-4" />,
-                name: isHistoryOpen
-                    ? `Hide history (${historyVersions.length})`
-                    : `Show history (${historyVersions.length})`,
+                name: isHistoryOpen ? `Hide history (${historyVersionCount})` : `Show history (${historyVersionCount})`,
                 onClick: toggleHistoryPanel,
                 isActive: isHistoryOpen,
             },
         ],
         [
             handleSaveStatusMenuClick,
-            historyVersions.length,
+            historyVersionCount,
             isHistoryOpen,
             saveErrorMessage,
             saveStatus,
@@ -981,26 +212,6 @@ export function useBookEditorWrapper({ agentName, initialAgentSource }: UseBookE
         missingAgentReferences,
         creatingReference,
         handleCreateReferencedAgent,
-        historyPanelProps: {
-            isOpen: isHistoryOpen,
-            isLoading: isHistoryLoading,
-            errorMessage: historyErrorMessage,
-            versions: filteredHistoryVersions,
-            selectedVersionId: selectedHistoryId,
-            isRestoring: isRestoringHistoryVersion || isSaveInFlight,
-            isNamedOnly: isNamedHistoryOnly,
-            nameQuery: historyNameQuery,
-            onNamedOnlyChange: setIsNamedHistoryOnly,
-            onNameQueryChange: setHistoryNameQuery,
-            onClose: () => setIsHistoryOpen(false),
-            onRefresh: () => setHistoryRefreshVersion((previousVersion) => previousVersion + 1),
-            onSaveNamedVersion: () => void saveNamedVersion(),
-            isSaveNamedVersionDisabled: isRestoringHistoryVersion || isSaveInFlight,
-            onSelectVersion: (historyId: number) => setSelectedHistoryId(historyId),
-            onRestoreVersion: (historyId: number) => void restoreHistoryVersion(historyId),
-        },
+        historyPanelProps,
     };
 }
-
-// TODO: Prompt: Use `import { debounce } from '@promptbook-local/utils';` instead of custom debounce implementation
-// TODO: [🚗] Transfer the saving logic to `<BookEditor/>` be aware of CRDT / yjs approach to be implementable in future
