@@ -7,6 +7,6 @@ import type { string_parameter_value_private } from './string_parameter_value_pr
  *
  * Note: [🚉] This is fully serializable as JSON
  *
- * @private internal utility of `string_parameter_name.ts`
+ * @private internal utility of `Parameters.ts`
  */
 export type ReservedParameters_private = Record<string_reserved_parameter_name_private, string_parameter_value_private>;

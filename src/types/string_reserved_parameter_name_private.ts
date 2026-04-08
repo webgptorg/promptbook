@@ -7,6 +7,6 @@ import { RESERVED_PARAMETER_NAMES } from '../constants';
  *
  * For example `"context"`
  *
- * @private internal utility of `string_parameter_name.ts`
+ * @private internal utility of `string_name.ts`
  */
 export type string_reserved_parameter_name_private = TupleToUnion<typeof RESERVED_PARAMETER_NAMES>;

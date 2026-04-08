@@ -3,7 +3,7 @@
  *
  * For example `"gpt-4"`
  *
- * @private internal utility of `string_parameter_name.ts`
+ * @private internal utility of `string_model_name.ts`
  */
 export type string_model_name_private =
     | 'gpt-4'

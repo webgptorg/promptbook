@@ -4,6 +4,6 @@
  *
  * For example `"Ai*nautes"`
  *
- * @private internal utility of `string_parameter_name.ts`
+ * @private internal utility of `string_title.ts`
  */
 export type string_title_private = string;

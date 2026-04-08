@@ -3,6 +3,6 @@
  *
  * For example `"a"`
  *
- * @private internal utility of `string_parameter_name.ts`
+ * @private internal utility of `string_page.ts`
  */
 export type string_char_private = string;

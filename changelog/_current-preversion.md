@@ -65,7 +65,7 @@
 -   Refactored `src/types/string_parameter_name.ts` into focused semantic type modules without changing external behavior:
 
     -   Extracted each semantic string alias and parameter-mapping type into dedicated `src/types/*.ts` files so each file has one clear responsibility and the dense mixed-purpose implementation is easier to follow.
-    -   Kept `src/types/string_parameter_name.ts` as the compatibility facade preserving the same exported names and import path while the extracted modules carry explicit public JSDoc annotations.
+    -   Kept `src/types/string_parameter_name.ts` as the compatibility facade preserving the same exported names and import path while the extracted modules keep their per-type JSDoc documentation.
 
 -   Refactored `src/types/number_usd.ts` into smaller focused numeric-alias modules without changing external behavior:
 

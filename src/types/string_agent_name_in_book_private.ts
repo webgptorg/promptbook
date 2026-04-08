@@ -3,7 +3,7 @@
  *
  * For example `"My AI Assistant"`
  *
- * @private internal utility of `string_parameter_name.ts`
+ * @private internal utility of `string_agent_name.ts`
  */
 export type string_agent_name_in_book_private = string;
 

@@ -1,5 +1,5 @@
 import type { ReservedParameters_private } from './ReservedParameters_private';
-import type { string_parameter_name } from './string_parameter_name';
+import type { string_parameter_name } from './string_name';
 import type { string_parameter_value_private } from './string_parameter_value_private';
 
 /**
@@ -14,7 +14,7 @@ import type { string_parameter_value_private } from './string_parameter_value_pr
  *
  * @see https://ptbk.io/parameters
  *
- * @private internal utility of `string_parameter_name.ts`
+ * @private internal utility of `Parameters.ts`
  */
 export type Parameters_private = Exclude<Record<string_parameter_name, string_parameter_value_private>, ReservedParameters_private>;
 
