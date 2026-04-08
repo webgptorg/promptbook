@@ -4,6 +4,7 @@ import {
     PSEUDO_AGENT_USER_URL,
     resolvePseudoAgentKindFromUrl,
 } from '../../../../../../src/book-2.0/agent-source/pseudoAgentReferences';
+import { createToolCallMarker } from './createToolCallMarker';
 import { parseToolResultObject } from './parseToolResultObject';
 
 /**
@@ -125,7 +126,7 @@ type UseAgentChatPseudoUserInteractionResult = {
     /**
      * Opens the pseudo-user interaction dialog for the supplied tool call.
      */
-    readonly openPendingPseudoUserInteraction: (toolCall: ToolCall, marker: string) => void;
+    readonly openPendingPseudoUserInteraction: (toolCall: ToolCall) => void;
     /**
      * Submits pseudo-user reply.
      */
@@ -217,9 +218,9 @@ export function useAgentChatPseudoUserInteraction({
      * @private function of AgentChatWrapper
      */
     const openPendingPseudoUserInteraction = useCallback(
-        (toolCall: ToolCall, marker: string) => {
+        (toolCall: ToolCall) => {
             setPendingPseudoUserInteraction({
-                marker,
+                marker: createToolCallMarker(toolCall),
                 prompt: getPseudoUserPromptText(toolCall),
                 agentName: agent?.meta?.fullname || agent?.agentName || 'Agent',
                 teammateLabel: getPseudoUserLabel(toolCall),
