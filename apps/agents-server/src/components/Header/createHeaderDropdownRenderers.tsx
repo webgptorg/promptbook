@@ -1,7 +1,7 @@
 'use client';
 
-import type { CSSProperties, MouseEvent, ReactNode } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
+import type { CSSProperties, MouseEvent, ReactNode } from 'react';
 import { appendHeadlessParam, HeadlessLink } from '../_utils/headlessParam';
 import { DropdownSubMenuPortal } from './DropdownSubMenuPortal';
 import type { OpenSubMenuState } from './HeaderTypes';
@@ -28,11 +28,7 @@ type CreateHeaderDropdownRenderersOptions = {
     readonly closeMobileMenu: () => void;
     readonly isNestedSubMenuInteractive: (key: string) => boolean;
     readonly isNestedSubMenuPointerEnabled: (key: string) => boolean;
-    readonly scheduleSubMenuPreviewOpen: (
-        key: string,
-        items: SubMenuItem[],
-        event: MouseEvent<HTMLDivElement>,
-    ) => void;
+    readonly scheduleSubMenuPreviewOpen: (key: string, items: SubMenuItem[], event: MouseEvent<HTMLDivElement>) => void;
     readonly cancelMenuClose: (menuId: string) => void;
     readonly scheduleSubMenuClose: (key: string) => void;
     readonly openInteractiveSubMenu: (key: string, items: SubMenuItem[], rect: DOMRect) => void;
@@ -212,13 +208,13 @@ export function createHeaderDropdownRenderers({
                 void item.onClick?.();
                 onItemSelected();
 
-                const destination = appendHeadlessParam(item.href, isHeadless);
+                const destination = appendHeadlessParam(item.href!, isHeadless);
                 if (typeof window !== 'undefined') {
                     window.location.assign(destination);
                     return;
                 }
 
-                fallbackNavigateToHref(item.href);
+                fallbackNavigateToHref(item.href!);
             };
 
             return (
@@ -365,7 +361,9 @@ export function createHeaderDropdownRenderers({
                                 return;
                             }
 
-                            const rect = (event.currentTarget.parentElement ?? event.currentTarget).getBoundingClientRect();
+                            const rect = (
+                                event.currentTarget.parentElement ?? event.currentTarget
+                            ).getBoundingClientRect();
                             if (openSubMenu?.key === itemKey && isSubMenuInteractive) {
                                 closeInteractiveSubMenu(itemKey);
                                 return;
