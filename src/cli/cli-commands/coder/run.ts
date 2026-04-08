@@ -55,7 +55,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
         'Append extra instructions either inline or from a file path relative to the current project',
     );
     command.option('--priority <minimum-priority>', 'Filter prompts by minimum priority level', parseIntOption, 0);
-    command.option('--no-wait', 'Skip user prompts between processing', false);
+    command.option('--no-wait', 'Skip user prompts between processing');
     command.option('--ignore-git-changes', 'Skip clean working tree check before running prompts', false);
     command.option(
         '--allow-credits',
