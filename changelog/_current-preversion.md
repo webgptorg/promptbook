@@ -1,3 +1,8 @@
+-   Refactored Agents Server `serverManagement.ts` into smaller focused private modules without changing managed-server behavior:
+
+    -   Extracted the public facade, shared input normalization, registry operations, migration/delete helpers, and global-admin/error utilities into dedicated `serverManagement` modules so the entry file is easier to scan.
+    -   Kept the create-server bootstrap flow grouped in `createManagedServer.ts`, where its migration, seeding, SQL-dump, and failure-handling helpers now live beside the orchestration that uses them.
+
 -   Refactored Agents Server `calendarConnections.ts` into smaller focused private modules without changing calendar connection behavior:
 
     -   Extracted the calendar connection/activity types, Supabase table providers, row mappers, normalization helpers, and per-operation persistence functions into dedicated calendar utility modules so the public facade is easier to read and maintain.
