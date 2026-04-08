@@ -25,6 +25,9 @@
 -   Add the file identification and the reason why this code should not be published to certain packages, this will help to understand the context and avoid confusion in the future.
 -   Search for all the places in the codebase where there are comments that mark code as not publishable, and modify them to include the file identification and the reason.
 -   You can use Markdown formatting
+-   Keep this IN ONE LINE comment, do not make it multiline
+-   Also it should be short and concise, do not write long explanations, just a brief identification
+-   It must have format "Note: [⚫] Code ... should never be published ..."
 -   There are several markers that makes code unpublishable:
     -   [⚫] Code in this file should never be published in any package
     -   [🟢] Code in this file should never be published into packages that could be imported into browser environment
