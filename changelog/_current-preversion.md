@@ -1,3 +1,8 @@
+-   Refactored `apps/agents-server/scripts/createCloudflareDnsRecordSyncPlan.ts` into smaller focused Cloudflare sync modules without changing external behavior:
+
+    -   Extracted shared Cloudflare DNS sync contracts, automation-marker helpers, API request/list/create/update helpers, desired-record resolution, and record-diff planning into dedicated private script modules so the entry facade is easier to follow and maintain.
+    -   Kept the existing `createCloudflareDnsRecordSyncPlan.ts` import path and exported sync helpers intact for the sync CLI, tests, and report rendering.
+
 -   Refactored Agents Server `useAgentChatToolInteractions` into smaller focused private chat-interaction modules without changing external behavior:
 
     -   Extracted actionable tool-call analysis plus dedicated browser-location, private-mode confirmation, TEAM pseudo-user, wallet-request, and shared tool-result helper modules so the main hook is easier to read and maintain.
