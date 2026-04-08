@@ -3,47 +3,35 @@
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
 import { Pause, Play } from 'lucide-react';
-import type { ReactElement } from 'react';
+import type { CSSProperties, ReactElement } from 'react';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { colorToDataUrl } from '../../../_packages/color.index';
 import { PROMPTBOOK_CHAT_COLOR, USER_CHAT_COLOR } from '../../../config';
-import type { ToolCall } from '../../../types/ToolCall';
-import { ASSISTANT_PREPARATION_TOOL_CALL_NAME, isAssistantPreparationToolCall } from '../../../types/ToolCall';
 import type { id } from '../../../types/typeAliases';
-import { attachClientVersionHeader } from '../../../utils/clientVersion';
 import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
-import { resolveToolCallIdempotencyKey } from '../../../utils/toolCalls/resolveToolCallIdempotencyKey';
 import { classNames } from '../../_common/react-utils/classNames';
 import { AvatarProfileTooltip } from '../../AvatarProfile/AvatarProfile/AvatarProfileTooltip';
-import { AgentChip, type AgentChipData } from '../AgentChip';
-import { CodeBlock } from '../CodeBlock/CodeBlock';
 import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import { SourceChip } from '../SourceChip';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
-import { collectTeamToolCallSummary, type TransitiveToolCall } from '../utils/collectTeamToolCallSummary';
-import { isTeamToolName } from '../utils/createTeamToolNameFromUrl';
 import { getChatMessageTimingDisplay } from '../utils/getChatMessageTimingDisplay';
-import type { ToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
-import { buildToolCallChipText, getToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
-import { resolveToolCallState } from '../utils/resolveToolCallState';
-import { createDeduplicatedWalletCredentialToolCalls } from '../utils/walletCredentialToolCall';
 import { createCitationFootnoteRenderModel } from '../utils/createCitationFootnoteRenderModel';
 import { parseMessageButtons, type MessageButton } from '../utils/parseMessageButtons';
 import { type ParsedCitation } from '../utils/parseCitationsFromContent';
-import {
-    getLatestStreamingFeatureBoundary,
-    sanitizeStreamingMessageContent,
-    type StreamingFeatureBoundary,
-} from '../utils/sanitizeStreamingMessageContent';
+import { getLatestStreamingFeatureBoundary, sanitizeStreamingMessageContent } from '../utils/sanitizeStreamingMessageContent';
 import { splitMessageContentIntoSegments } from '../utils/splitMessageContentIntoSegments';
 import styles from './Chat.module.css';
 import { chatCssClassNames } from './chatCssClassNames';
-import { ChatMessageMap } from './ChatMessageMap';
+import { ChatMessageRichContent } from './ChatMessageRichContent';
+import { ChatMessageToolCallChips } from './ChatMessageToolCallChips';
 import type { ChatProps } from './ChatProps';
-import { LOADING_INTERACTIVE_IMAGE } from './constants';
-import { ImagePromptRenderer } from './ImagePromptRenderer';
+import { createChatMessageToolCallRenderModel } from './createChatMessageToolCallRenderModel';
+import { createProgressCardChecklistMarkdown, isProgressCardVisible } from './createProgressCardChecklistMarkdown';
+import { resolveStreamingFeaturePlaceholderKind } from './StreamingFeaturePlaceholder';
+import { useChatMessageAvatarTooltip } from './useChatMessageAvatarTooltip';
+import { useChatMessageSpeechPlayback } from './useChatMessageSpeechPlayback';
 
 /**
  * Props for the `ChatMessageItem` component
@@ -103,7 +91,7 @@ type ChatMessageItemProps = Pick<
      * Optional metadata about teammates for team tool calls
      * Maps tool name to agent information
      */
-    teammates?: TeammatesMap;
+    teammates?: ChatProps['teammates'];
     /**
      * Optional cached metadata keyed by TEAM tool names to enrich tool call chips.
      */
@@ -137,21 +125,6 @@ type ChatMessageItemProps = Pick<
 };
 
 /**
- * Metadata for a teammate agent tool.
- */
-type TeammateMetadata = {
-    url: string;
-    label?: string;
-    instructions?: string;
-    toolName: string;
-};
-
-/**
- * Lookup map of teammate metadata by tool name.
- */
-type TeammatesMap = Record<string, TeammateMetadata>;
-
-/**
  * One quick button entry paired with its stable index inside the current message.
  *
  * @private internal helper of `<ChatMessageItem/>`
@@ -167,315 +140,6 @@ type RenderableMessageButton = {
  * @private internal helper of `<ChatMessageItem/>`
  */
 type MessageActionsLayout = 'bubble-overlay' | 'article-footer';
-
-/**
- * Maximum characters allowed in a single ElevenLabs speech request.
- *
- * @private
- */
-const MAX_MESSAGE_SPEECH_LENGTH = 4500;
-
-/**
- * Placeholder types that describe which rich feature is still streaming.
- *
- * @private internal helper of <ChatMessageItem/>
- */
-type StreamingFeaturePlaceholderKind = 'map' | 'image' | 'math' | 'feature';
-
-/**
- * Human-friendly labels associated with each streaming rich feature kind.
- *
- * @private internal helper of <ChatMessageItem/>
- */
-const STREAMING_FEATURE_PLACEHOLDER_LABELS: Record<StreamingFeaturePlaceholderKind, string> = {
-    map: 'Map preview',
-    image: 'Image generation',
-    math: 'Math formula',
-    feature: 'Rich content',
-};
-
-/**
- * Resolves which rich feature is still streaming so the UI can render the matching placeholder.
- *
- * @param boundary - Streaming metadata returned by the sanitizer.
- * @param source - Original message content that contains the pending markup.
- * @returns Friendly placeholder kind to render inside the chat bubble.
- * @private internal helper of <ChatMessageItem/>
- */
-function resolveStreamingFeaturePlaceholderKind(
-    boundary: StreamingFeatureBoundary,
-    source: string,
-): StreamingFeaturePlaceholderKind {
-    if (boundary.kind === 'imagePrompt') {
-        return 'image';
-    }
-
-    if (boundary.kind === 'math') {
-        return 'math';
-    }
-
-    if (boundary.kind === 'codeFence') {
-        const snippet = source.slice(boundary.index, boundary.index + 20).toLowerCase();
-        if (snippet.includes('geojson')) {
-            return 'map';
-        }
-    }
-
-    return 'feature';
-}
-
-/**
- * Props for `<StreamingFeaturePlaceholder/>`.
- *
- * @private internal helper of <ChatMessageItem/>
- */
-type StreamingFeaturePlaceholderProps = {
-    /**
-     * Kind of the placeholder to render.
-     */
-    readonly kind: StreamingFeaturePlaceholderKind;
-};
-
-/**
- * Renders the placeholder UI for streaming rich features.
- *
- * @private internal helper of <ChatMessageItem/>
- */
-function StreamingFeaturePlaceholder({ kind }: StreamingFeaturePlaceholderProps) {
-    return (
-        <div className={styles.richFeaturePlaceholder} aria-live="polite">
-            <span className={styles.richFeaturePlaceholderSpinner} aria-hidden="true" />
-            <div className={styles.richFeaturePlaceholderCopy}>
-                <span className={styles.richFeaturePlaceholderTitle}>{STREAMING_FEATURE_PLACEHOLDER_LABELS[kind]}</span>
-                <span className={styles.richFeaturePlaceholderStatus}>Waiting for the agent…</span>
-            </div>
-        </div>
-    );
-}
-
-/**
- * One markdown checklist entry generated from structured progress payload.
- *
- * @private internal helper of <ChatMessageItem/>
- */
-type ProgressChecklistEntry = {
-    readonly text: string;
-    readonly status: 'pending' | 'completed';
-};
-
-/**
- * Human-facing label shown for "now" progress updates.
- *
- * @private internal helper of <ChatMessageItem/>
- */
-const PROGRESS_NOW_LABEL = "What I'm Doing Now";
-
-/**
- * Human-facing label shown for "next" progress updates.
- *
- * @private internal helper of <ChatMessageItem/>
- */
-const PROGRESS_NEXT_LABEL = "What I'll Do Next";
-
-/**
- * Converts one structured progress card payload into markdown checklist content.
- *
- * @param progressCard Structured progress card payload.
- * @returns Markdown checklist rendered through the normal message markdown pipeline.
- *
- * @private internal helper of <ChatMessageItem/>
- */
-function createProgressCardChecklistMarkdown(progressCard: NonNullable<ChatMessage['progressCard']>): string {
-    const checklistEntries = createProgressChecklistEntries(progressCard);
-    if (checklistEntries.length === 0) {
-        return '';
-    }
-
-    return checklistEntries.map((entry) => createChecklistMarkdownItem(entry)).join('\n');
-}
-
-/**
- * Maps one structured progress-card payload to a flat list of checklist entries.
- *
- * @param progressCard Structured progress card payload.
- * @returns Ordered checklist entries ready for markdown rendering.
- *
- * @private internal helper of <ChatMessageItem/>
- */
-function createProgressChecklistEntries(
-    progressCard: NonNullable<ChatMessage['progressCard']>,
-): Array<ProgressChecklistEntry> {
-    const checklistEntries: Array<ProgressChecklistEntry> = [];
-    const normalizedTitle = progressCard.title?.trim();
-    const normalizedNow = progressCard.now?.trim();
-    const normalizedNext = progressCard.next?.trim();
-
-    if (normalizedTitle) {
-        checklistEntries.push({
-            text: `**${normalizedTitle}**`,
-            status: 'pending',
-        });
-    }
-
-    if (normalizedNow) {
-        checklistEntries.push({
-            text: `**${PROGRESS_NOW_LABEL}:** ${normalizedNow}`,
-            status: 'pending',
-        });
-    }
-
-    for (const item of progressCard.items || []) {
-        const normalizedItemText = item.text?.trim();
-        if (!normalizedItemText) {
-            continue;
-        }
-
-        checklistEntries.push({
-            text: normalizedItemText,
-            status: item.status === 'completed' ? 'completed' : 'pending',
-        });
-    }
-
-    if (normalizedNext) {
-        checklistEntries.push({
-            text: `**${PROGRESS_NEXT_LABEL}:** ${normalizedNext}`,
-            status: 'pending',
-        });
-    }
-
-    return checklistEntries;
-}
-
-/**
- * Converts one structured checklist entry to markdown task-list syntax.
- *
- * @param entry Structured checklist entry.
- * @returns Markdown checklist item including multiline continuations.
- *
- * @private internal helper of <ChatMessageItem/>
- */
-function createChecklistMarkdownItem(entry: ProgressChecklistEntry): string {
-    const marker = entry.status === 'completed' ? '- [x]' : '- [ ]';
-    const lines = entry.text.split(/\r?\n/);
-    const firstLine = lines[0] || '';
-    const continuationLines = lines.slice(1).map((line) => `  ${line}`);
-
-    if (continuationLines.length === 0) {
-        return `${marker} ${firstLine}`;
-    }
-
-    return `${marker} ${firstLine}\n${continuationLines.join('\n')}`;
-}
-
-/**
- * Returns true when one progress card should currently be rendered.
- *
- * @private internal helper of <ChatMessageItem/>
- */
-function isProgressCardVisible(
-    progressCard: ChatMessage['progressCard'],
-): progressCard is NonNullable<ChatMessage['progressCard']> {
-    return Boolean(progressCard && progressCard.isVisible !== false);
-}
-
-/**
- * Finds teammate metadata by tool name, falling back to the toolName field when needed.
- */
-function findTeammateByToolName(teammates: TeammatesMap | undefined, toolName: string): TeammateMetadata | undefined {
-    if (!teammates) {
-        return undefined;
-    }
-
-    return teammates[toolName] || Object.values(teammates).find((teammate) => teammate.toolName === toolName);
-}
-
-/**
- * Resolves agent chip data for TEAM tool calls using tool results or teammate metadata.
- */
-function resolveTeamAgentChipData(
-    toolCall: NonNullable<ChatMessage['toolCalls']>[number],
-    teammates: TeammatesMap | undefined,
-    chipletInfo?: ToolCallChipletInfo,
-    teamAgentProfiles?: ChatProps['teamAgentProfiles'],
-): AgentChipData | null {
-    const resolvedChipletInfo = chipletInfo || getToolCallChipletInfo(toolCall);
-    const baseAgentData = resolvedChipletInfo.agentData;
-    const profileOverride = teamAgentProfiles?.[toolCall.name];
-
-    if (profileOverride) {
-        const fallbackUrl = profileOverride.url || baseAgentData?.url;
-        if (!fallbackUrl) {
-            return null;
-        }
-
-        return {
-            url: fallbackUrl,
-            label: profileOverride.label || baseAgentData?.label,
-            imageUrl: profileOverride.imageUrl ?? baseAgentData?.imageUrl,
-            publicUrl: profileOverride.publicUrl ?? baseAgentData?.publicUrl,
-        };
-    }
-
-    if (baseAgentData) {
-        return baseAgentData;
-    }
-
-    if (!isTeamToolName(toolCall.name)) {
-        return null;
-    }
-
-    const teammate = findTeammateByToolName(teammates, toolCall.name);
-    if (!teammate?.url) {
-        return null;
-    }
-
-    return {
-        url: teammate.url,
-        label: teammate.label,
-    };
-}
-
-/**
- * Ongoing tool call entry used for grouping.
- */
-type OngoingToolCall = NonNullable<ChatMessage['ongoingToolCalls']>[number];
-
-/**
- * Status variants for tool call chips.
- */
-type ToolCallChipStatus = 'ongoing' | 'done' | 'error';
-
-/**
- * Metadata rendered inside a single tool call chip.
- *
- * @private internal helper of `<ChatMessageItem/>`
- */
-type ToolCallChipEntry = {
-    /**
-     * Stable key for React rendering.
-     */
-    key: string;
-    /**
-     * Tool call represented by this chip.
-     */
-    toolCall: ToolCall;
-    /**
-     * Chip label text.
-     */
-    label: string;
-    /**
-     * Current status of the tool call.
-     */
-    status: ToolCallChipStatus;
-    /**
-     * Optional agent metadata for TEAM or transitive tool calls.
-     */
-    teamAgentData: AgentChipData | null;
-    /**
-     * Marks entries built for transitive tool calls.
-     */
-    isTransitive: boolean;
-};
 
 /**
  * Resolves the compact lifecycle badge label rendered below durable chat messages.
@@ -506,273 +170,6 @@ function resolveMessageLifecycleLabel(
         default:
             return null;
     }
-}
-
-/**
- * Builds a stable key used for rendering a tool call chip.
- *
- * @private internal helper of `<ChatMessageItem/>`
- */
-function buildToolCallChipKey(toolCall: ToolCall, options?: { originLabel?: string }): string {
-    const baseKey = getToolCallSnapshotKey(toolCall);
-    if (options?.originLabel) {
-        return `${baseKey}::${options.originLabel}`;
-    }
-
-    return baseKey;
-}
-
-/**
- * Tool calls that should stay available in message data but never render as chips under the message.
- *
- * @private internal helper of `<ChatMessageItem/>`
- */
-const HIDDEN_TOOL_CALL_CHIP_NAMES = new Set(['agent_progress']);
-
-/**
- * Determines whether one tool call should render as a chip under the message.
- *
- * @private internal helper of `<ChatMessageItem/>`
- */
-function shouldRenderToolCallChip(toolCall: ToolCall): boolean {
-    return !HIDDEN_TOOL_CALL_CHIP_NAMES.has(toolCall.name);
-}
-
-/**
- * Converts ongoing tool calls into chip entries consumed by the UI.
- *
- * @private internal helper of `<ChatMessageItem/>`
- */
-function buildOngoingToolCallChips(
-    toolCalls: ReadonlyArray<OngoingToolCall> | undefined,
-    teammates: TeammatesMap | undefined,
-    teamAgentProfiles: ChatProps['teamAgentProfiles'] | undefined,
-    locale?: string,
-    toolTitles?: ChatProps['toolTitles'],
-    chatUiTranslations?: ChatProps['chatUiTranslations'],
-): Array<ToolCallChipEntry> {
-    if (!toolCalls || toolCalls.length === 0) {
-        return [];
-    }
-
-    const entries = new Map<string, ToolCallChipEntry>();
-    for (const toolCall of toolCalls) {
-        if (!shouldRenderToolCallChip(toolCall)) {
-            continue;
-        }
-
-        // All assistant_preparation tool calls share a single stable chip key so that
-        // duplicate preparation phases (e.g. "Creating knowledge base" followed by
-        // "Preparing AgentKit agent") are collapsed into one chip in the UI.
-        const key = isAssistantPreparationToolCall(toolCall)
-            ? `tool-snapshot:${ASSISTANT_PREPARATION_TOOL_CALL_NAME}`
-            : buildToolCallChipKey(toolCall);
-        const chipletInfo = getToolCallChipletInfo(toolCall, locale, toolTitles, chatUiTranslations);
-        const label = buildToolCallChipText(chipletInfo);
-        const teamAgentData = resolveTeamAgentChipData(toolCall, teammates, chipletInfo, teamAgentProfiles);
-        const toolCallState = resolveToolCallState(toolCall);
-
-        entries.set(key, {
-            key,
-            toolCall,
-            label,
-            status: toolCallState === 'ERROR' ? 'error' : toolCallState === 'COMPLETE' ? 'done' : 'ongoing',
-            teamAgentData,
-            isTransitive: false,
-        });
-    }
-
-    return Array.from(entries.values());
-}
-
-/**
- * Builds the final tool call chips that are shown when a message completes.
- *
- * @private internal helper of `<ChatMessageItem/>`
- */
-function buildFinalToolCallChips(
-    completedToolCalls: Array<ToolCall> | undefined,
-    transitiveToolCalls: ReadonlyArray<TransitiveToolCall>,
-    teammates: TeammatesMap | undefined,
-    teamAgentProfiles: ChatProps['teamAgentProfiles'] | undefined,
-    locale?: string,
-    toolTitles?: ChatProps['toolTitles'],
-    chatUiTranslations?: ChatProps['chatUiTranslations'],
-): Array<ToolCallChipEntry> {
-    const entries: Array<ToolCallChipEntry> = [];
-
-    if (completedToolCalls && completedToolCalls.length > 0) {
-        for (const toolCall of completedToolCalls) {
-            if (!shouldRenderToolCallChip(toolCall)) {
-                continue;
-            }
-
-            const key = buildToolCallChipKey(toolCall);
-            const chipletInfo = getToolCallChipletInfo(toolCall, locale, toolTitles, chatUiTranslations);
-            const label = buildToolCallChipText(chipletInfo);
-            const teamAgentData = resolveTeamAgentChipData(toolCall, teammates, chipletInfo, teamAgentProfiles);
-
-            entries.push({
-                key,
-                toolCall,
-                label,
-                status: resolveToolCallState(toolCall) === 'ERROR' || hasToolCallErrors(toolCall) ? 'error' : 'done',
-                teamAgentData,
-                isTransitive: false,
-            });
-        }
-
-        const walletCredentialToolCalls = createDeduplicatedWalletCredentialToolCalls(completedToolCalls);
-        for (const walletCredentialToolCall of walletCredentialToolCalls) {
-            const walletKey = buildToolCallChipKey(walletCredentialToolCall);
-            const walletChipletInfo = getToolCallChipletInfo(
-                walletCredentialToolCall,
-                locale,
-                toolTitles,
-                chatUiTranslations,
-            );
-            const walletLabel = buildToolCallChipText(walletChipletInfo);
-
-            entries.push({
-                key: walletKey,
-                toolCall: walletCredentialToolCall,
-                label: walletLabel,
-                status: 'done',
-                teamAgentData: null,
-                isTransitive: false,
-            });
-        }
-    }
-
-    if (transitiveToolCalls && transitiveToolCalls.length > 0) {
-        for (const transitive of transitiveToolCalls) {
-            const key = buildToolCallChipKey(transitive.toolCall, { originLabel: transitive.origin.label });
-            const chipletInfo = getToolCallChipletInfo(transitive.toolCall, locale, toolTitles, chatUiTranslations);
-            const label = buildToolCallChipText(chipletInfo);
-            const agentData: AgentChipData = {
-                url: transitive.origin.url || 'about:blank',
-                label: transitive.origin.label,
-            };
-
-            entries.push({
-                key,
-                toolCall: transitive.toolCall,
-                label,
-                status:
-                    resolveToolCallState(transitive.toolCall) === 'ERROR' || hasToolCallErrors(transitive.toolCall)
-                        ? 'error'
-                        : 'done',
-                teamAgentData: agentData,
-                isTransitive: true,
-            });
-        }
-    }
-
-    return entries;
-}
-
-/**
- * Renders a single tool call chip.
- *
- * @private internal helper of `<ChatMessageItem/>`
- */
-function renderToolCallChip(
-    chip: ToolCallChipEntry,
-    onToolCallClick?: (toolCall: NonNullable<ChatMessage['toolCalls']>[number]) => void,
-): ReactElement {
-    const isOngoing = chip.status === 'ongoing';
-    const hasErrors = chip.status === 'error';
-
-    return (
-        <button
-            key={chip.key}
-            type="button"
-            className={classNames(
-                styles.toolCallChip,
-                chip.teamAgentData && styles.teamToolCall,
-                chip.isTransitive && styles.transitiveToolCall,
-                hasErrors && styles.toolCallWithError,
-                isOngoing && styles.toolCallChipOngoing,
-            )}
-            onClick={(event) => {
-                event.stopPropagation();
-                if (onToolCallClick) {
-                    onToolCallClick(chip.toolCall);
-                }
-            }}
-            aria-busy={isOngoing}
-        >
-            {chip.teamAgentData && (
-                <AgentChip
-                    agent={chip.teamAgentData}
-                    className={chip.isTransitive ? styles.transitiveAgentChip : styles.teamAgentChip}
-                    isClickable={false}
-                />
-            )}
-            <span className={styles.toolCallLabel}>{chip.label}</span>
-            <span className={styles.toolCallChipStatus}>
-                {isOngoing ? (
-                    <span className={styles.toolCallChipSpinner} aria-hidden="true" />
-                ) : hasErrors ? (
-                    '⚠️'
-                ) : null}
-            </span>
-        </button>
-    );
-}
-
-/**
- * Builds the stable key used to detect duplicate snapshots for a tool call.
- *
- * @private internal utility of `<ChatMessageItem/>`
- */
-function getToolCallSnapshotKey(toolCall: ToolCall): string {
-    const providedIdempotencyKey = typeof toolCall.idempotencyKey === 'string' ? toolCall.idempotencyKey.trim() : '';
-    const normalizedKey = providedIdempotencyKey || resolveToolCallIdempotencyKey(toolCall);
-    return `tool-snapshot:${normalizedKey}`;
-}
-
-/**
- * Deduplicates a list of tool calls by their idempotency key, keeping only the most recent
- * non-error snapshot for each invocation and dropping errored snapshots once a counterpart
- * with the same key succeeds.
- *
- * @private internal utility of `<ChatMessageItem/>`
- */
-function dedupeToolCalls(toolCalls: ReadonlyArray<ToolCall> | undefined): Array<ToolCall> {
-    if (!toolCalls || toolCalls.length === 0) {
-        return [];
-    }
-
-    const seen = new Map<string, ToolCall>();
-    for (const toolCall of toolCalls) {
-        const key = getToolCallSnapshotKey(toolCall);
-        const existing = seen.get(key);
-        if (existing) {
-            const existingHasErrors = hasToolCallErrors(existing);
-            const incomingHasErrors = hasToolCallErrors(toolCall);
-            if (!existingHasErrors && incomingHasErrors) {
-                continue;
-            }
-            seen.delete(key);
-        }
-
-        seen.set(key, toolCall);
-    }
-
-    return Array.from(seen.values());
-}
-
-/**
- * Determines whether a tool call reported execution errors.
- *
- * @param toolCall - Tool call to inspect.
- * @returns `true` when the tool call contains at least one error entry.
- *
- * @private internal helper of `<ChatMessageItem/>`
- */
-function hasToolCallErrors(toolCall: ToolCall): boolean {
-    return Array.isArray(toolCall.errors) && toolCall.errors.length > 0;
 }
 
 /**
@@ -844,84 +241,16 @@ export const ChatMessageItem = memo(
             // <- TODO: Destruct all `messages` properties like `isComplete`
         } = message;
         const avatarSrc = participant?.avatarSrc || null;
-        const [isAvatarTooltipVisible, setIsAvatarTooltipVisible] = useState(false);
-        const [avatarTooltipPosition, setAvatarTooltipPosition] = useState<{ top: number; left: number } | null>(null);
-        const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-        const avatarRef = useRef<HTMLDivElement>(null);
-        const tooltipRef = useRef<HTMLDivElement>(null);
+        const {
+            avatarRef,
+            tooltipRef,
+            isAvatarTooltipVisible,
+            avatarTooltipPosition,
+            showTooltip,
+            handleMouseEnter,
+            handleMouseLeave,
+        } = useChatMessageAvatarTooltip();
         const toolCallChipCountRef = useRef(0);
-
-        useEffect(() => {
-            const closeTooltip = () => {
-                setIsAvatarTooltipVisible(false);
-                setAvatarTooltipPosition(null);
-            };
-
-            const handleClickOutside = (event: MouseEvent) => {
-                if (
-                    avatarRef.current &&
-                    !avatarRef.current.contains(event.target as Node) &&
-                    tooltipRef.current &&
-                    !tooltipRef.current.contains(event.target as Node)
-                ) {
-                    closeTooltip();
-                }
-            };
-
-            const handleKeyDown = (event: KeyboardEvent) => {
-                if (event.key === 'Escape') {
-                    closeTooltip();
-                }
-            };
-
-            const handleScroll = () => {
-                closeTooltip();
-            };
-
-            if (isAvatarTooltipVisible) {
-                document.addEventListener('mousedown', handleClickOutside);
-                document.addEventListener('keydown', handleKeyDown);
-                window.addEventListener('scroll', handleScroll, true);
-            } else {
-                document.removeEventListener('mousedown', handleClickOutside);
-                document.removeEventListener('keydown', handleKeyDown);
-                window.removeEventListener('scroll', handleScroll, true);
-            }
-
-            return () => {
-                document.removeEventListener('mousedown', handleClickOutside);
-                document.removeEventListener('keydown', handleKeyDown);
-                window.removeEventListener('scroll', handleScroll, true);
-            };
-        }, [isAvatarTooltipVisible]);
-
-        const showTooltip = () => {
-            if (hoverTimeoutRef.current) {
-                clearTimeout(hoverTimeoutRef.current);
-            }
-            if (avatarRef.current) {
-                const rect = avatarRef.current.getBoundingClientRect();
-                setAvatarTooltipPosition({
-                    top: rect.bottom + 5 /* <- 5px offset */,
-                    left: rect.left,
-                });
-                setIsAvatarTooltipVisible(true);
-            }
-        };
-
-        const handleMouseEnter = () => {
-            if (hoverTimeoutRef.current) {
-                clearTimeout(hoverTimeoutRef.current);
-            }
-            hoverTimeoutRef.current = setTimeout(showTooltip, 800);
-        };
-
-        const handleMouseLeave = () => {
-            if (hoverTimeoutRef.current) {
-                clearTimeout(hoverTimeoutRef.current);
-            }
-            // Note: Do not hide tooltip on mouse leave, it will be hidden by clicking outside
-        };
 
         const isMe = participant?.isMe;
         const isAgentArticleMode = CHAT_VISUAL_MODE === 'ARTICLE_MODE' && !isMe;
@@ -983,64 +312,29 @@ export const ChatMessageItem = memo(
             () => contentSegments.some((segment) => segment.type === 'map'),
             [contentSegments],
         );
-        const completedToolCalls = dedupeToolCalls(
-            (message.toolCalls || message.completedToolCalls)?.filter(
-                (toolCall) => !isAssistantPreparationToolCall(toolCall),
-            ),
-        );
-        const teamToolCallSummary = useMemo(() => collectTeamToolCallSummary(completedToolCalls), [completedToolCalls]);
-        const transitiveToolCalls = teamToolCallSummary.toolCalls;
-        const transitiveCitations = teamToolCallSummary.citations;
         const [localHoveredRating, setLocalHoveredRating] = useState(0);
         const [copied, setCopied] = useState(false);
         const [tooltipAlign, setTooltipAlign] = useState<'center' | 'left' | 'right'>('center');
         const copyTooltipRef = useRef<HTMLSpanElement>(null);
         const contentWithoutButtonsRef = useRef<HTMLDivElement>(null);
-        const audioRef = useRef<HTMLAudioElement | null>(null);
-        const [audioUrl, setAudioUrl] = useState<string | null>(null);
-        const [isAudioLoading, setIsAudioLoading] = useState(false);
-        const [isAudioPlaying, setIsAudioPlaying] = useState(false);
-        const [audioError, setAudioError] = useState<string | null>(null);
         const [pendingActionButtonIndex, setPendingActionButtonIndex] = useState<number | null>(null);
         const [consumedActionButtonIndexes, setConsumedActionButtonIndexes] = useState<ReadonlySet<number>>(
             () => new Set(),
         );
         const isReportIssueFeedbackMode = feedbackMode === 'report_issue';
 
-        const ongoingToolCallChips = useMemo(
+        const { toolCallChips, transitiveCitations } = useMemo(
             () =>
-                buildOngoingToolCallChips(
-                    message.ongoingToolCalls,
+                createChatMessageToolCallRenderModel({
+                    message,
                     teammates,
                     teamAgentProfiles,
-                    chatLocale,
+                    locale: chatLocale,
                     toolTitles,
                     chatUiTranslations,
-                ),
-            [message.ongoingToolCalls, teammates, teamAgentProfiles, chatLocale, toolTitles, chatUiTranslations],
+                }),
+            [message, teammates, teamAgentProfiles, chatLocale, toolTitles, chatUiTranslations],
         );
-        const finalToolCallChips = useMemo(
-            () =>
-                buildFinalToolCallChips(
-                    completedToolCalls,
-                    transitiveToolCalls,
-                    teammates,
-                    teamAgentProfiles,
-                    chatLocale,
-                    toolTitles,
-                    chatUiTranslations,
-                ),
-            [
-                completedToolCalls,
-                transitiveToolCalls,
-                teammates,
-                teamAgentProfiles,
-                chatLocale,
-                toolTitles,
-                chatUiTranslations,
-            ],
-        );
-        const toolCallChips = isComplete ? finalToolCallChips : ongoingToolCallChips;
         const toolCallChipCount = toolCallChips.length;
         const renderableButtons = useMemo<ReadonlyArray<RenderableMessageButton>>(
             () =>
@@ -1065,6 +359,12 @@ export const ChatMessageItem = memo(
         const shouldShowButtons = isLastMessage && renderableButtons.length > 0;
         const speechPlaybackEnabled = isSpeechPlaybackEnabled ?? true;
         const shouldShowPlayButton = speechPlaybackEnabled && trimmedMessageContent.length > 0;
+        const { audioError, isAudioLoading, isAudioPlaying, handlePlayMessage } = useChatMessageSpeechPlayback({
+            trimmedMessageContent,
+            contentRef: contentWithoutButtonsRef,
+            shouldShowPlayButton,
+            elevenLabsVoiceId,
+        });
         const playButtonTitle = audioError ?? (isAudioPlaying ? 'Pause message playback' : 'Read message aloud');
         const messageActionsLayout: MessageActionsLayout = isAgentArticleMode ? 'article-footer' : 'bubble-overlay';
         const shouldRenderCopyAndPlayControls = Boolean(isCopyButtonEnabled && isComplete);
@@ -1265,7 +565,7 @@ export const ChatMessageItem = memo(
                                 style={
                                     {
                                         '--star-inactive-color': mode === 'LIGHT' ? '#ccc' : '#555',
-                                    } as React.CSSProperties
+                                    } as CSSProperties
                                 }
                             >
                                 ⭐
@@ -1278,7 +578,7 @@ export const ChatMessageItem = memo(
                             style={
                                 {
                                     '--star-inactive-color': mode === 'LIGHT' ? '#888' : '#666',
-                                } as React.CSSProperties
+                                } as CSSProperties
                             }
                         >
                             ⭐
@@ -1320,158 +620,11 @@ export const ChatMessageItem = memo(
             [onActionButton, pendingActionButtonIndex],
         );
 
-        /**
-         * Attaches playback listeners to keep the UI in sync with the audio element.
-         *
-         * @private
-         */
-        const attachMessageAudioListeners = useCallback((element: HTMLAudioElement) => {
-            element.onplay = () => {
-                setIsAudioPlaying(true);
-            };
-            element.onpause = () => {
-                setIsAudioPlaying(false);
-            };
-            element.onended = () => {
-                setIsAudioPlaying(false);
-                element.currentTime = 0;
-            };
-        }, []);
-
-        /**
-         * Derives the plain text that should be spoken, preferring the rendered node over raw markdown.
-         *
-         * @private
-         */
-        const getMessageTextForSpeech = useCallback(() => {
-            const renderedText = contentWithoutButtonsRef.current?.innerText?.trim();
-            if (renderedText) {
-                return renderedText;
-            }
-
-            return trimmedMessageContent;
-        }, [trimmedMessageContent]);
-
-        /**
-         * Fetches ElevenLabs speech audio (or replays cached audio) when the play button is pressed.
-         *
-         * @private
-         */
-        const handlePlayMessage = useCallback(async () => {
-            if (isAudioLoading) {
-                return;
-            }
-
-            if (!shouldShowPlayButton) {
-                setAudioError('Nothing to read aloud.');
-                return;
-            }
-
-            const speechText = getMessageTextForSpeech();
-            if (!speechText) {
-                setAudioError('Nothing to read aloud.');
-                return;
-            }
-
-            const payloadText =
-                speechText.length > MAX_MESSAGE_SPEECH_LENGTH
-                    ? speechText.slice(0, MAX_MESSAGE_SPEECH_LENGTH).trim()
-                    : speechText;
-
-            if (!payloadText) {
-                setAudioError('Nothing to read aloud.');
-                return;
-            }
-
-            setAudioError(null);
-
-            const playAudio = async (element: HTMLAudioElement) => {
-                try {
-                    await element.play();
-                } catch (playError) {
-                    setAudioError(playError instanceof Error ? playError.message : 'Browser blocked audio playback.');
-                }
-            };
-
-            if (audioUrl) {
-                const audio = audioRef.current ?? new Audio(audioUrl);
-                audioRef.current = audio;
-                attachMessageAudioListeners(audio);
-
-                if (audio.paused) {
-                    await playAudio(audio);
-                } else {
-                    audio.pause();
-                }
-
-                return;
-            }
-
-            setIsAudioLoading(true);
-            try {
-                const response = await fetch('/api/elevenlabs/tts', {
-                    method: 'POST',
-                    headers: attachClientVersionHeader({
-                        'Content-Type': 'application/json',
-                    }),
-                    body: JSON.stringify({ text: payloadText, voiceId: elevenLabsVoiceId }),
-                });
-
-                if (!response.ok) {
-                    const body = await response.text();
-                    throw new Error(body || 'Unable to request speech audio.');
-                }
-
-                const buffer = await response.arrayBuffer();
-                const blob = new Blob([buffer], { type: 'audio/mpeg' });
-                const url = URL.createObjectURL(blob);
-                const audio = new Audio(url);
-                audioRef.current = audio;
-                attachMessageAudioListeners(audio);
-
-                setAudioUrl((previousUrl) => {
-                    if (previousUrl) {
-                        URL.revokeObjectURL(previousUrl);
-                    }
-
-                    return url;
-                });
-
-                await playAudio(audio);
-            } catch (error) {
-                setAudioError(error instanceof Error ? error.message : 'Failed to generate speech.');
-            } finally {
-                setIsAudioLoading(false);
-            }
-        }, [
-            attachMessageAudioListeners,
-            audioUrl,
-            elevenLabsVoiceId,
-            getMessageTextForSpeech,
-            isAudioLoading,
-            shouldShowPlayButton,
-        ]);
-
         useEffect(() => {
             if (!isExpanded) {
                 setLocalHoveredRating(0);
             }
         }, [isExpanded]);
-
-        useEffect(() => {
-            return () => {
-                audioRef.current?.pause();
-                audioRef.current = null;
-            };
-        }, []);
-
-        useEffect(() => {
-            return () => {
-                if (audioUrl) {
-                    URL.revokeObjectURL(audioUrl);
-                }
-            };
-        }, [audioUrl]);
 
         useEffect(() => {
             if (toolCallChipCount > toolCallChipCountRef.current) {
@@ -1532,7 +685,7 @@ export const ChatMessageItem = memo(
                                     borderRadius: '50%',
                                     backgroundPosition: '50% 20%', // <- Note: Center avatar image to the head
                                     '--avatar-bg-color': color.toHex(), // <- TODO: Maybe remove these deprecated CSS variables
-                                } as React.CSSProperties
+                                } as CSSProperties
                             }
                         />
                         {isAvatarTooltipVisible && participant?.agentSource && avatarTooltipPosition && (
@@ -1559,7 +712,7 @@ export const ChatMessageItem = memo(
                             {
                                 '--message-bg-color': isAgentArticleMode ? '#ffffff' : color.toHex(),
                                 '--message-text-color': isAgentArticleMode ? '#0f172a' : colorOfText.toHex(),
-                            } as React.CSSProperties
+                            } as CSSProperties
                         }
                     >
                         {!shouldRenderArticleActionsBar && renderMessageReadAndCopyControls()}
@@ -1571,58 +724,14 @@ export const ChatMessageItem = memo(
                             </div>
                         )}
 
-                        {message.content === LOADING_INTERACTIVE_IMAGE ? (
-                            <>
-                                {/* Loading Case: B */}
-                                {/* <LoadingInteractiveImage width={50} height={50} isLoading /> */}
-                            </>
-                        ) : (
-                            <>
-                                <div ref={contentWithoutButtonsRef}>
-                                    {contentSegments.map((segment, segmentIndex) => {
-                                        if (segment.type === 'text') {
-                                            return (
-                                                <MarkdownContent
-                                                    key={`text-${segmentIndex}`}
-                                                    content={segment.content}
-                                                    onCreateAgent={onCreateAgent}
-                                                />
-                                            );
-                                        }
-
-                                        if (segment.type === 'code') {
-                                            return (
-                                                <CodeBlock
-                                                    key={`code-${segmentIndex}`}
-                                                    code={segment.code}
-                                                    language={segment.language}
-                                                    onCreateAgent={onCreateAgent}
-                                                />
-                                            );
-                                        }
-
-                                        if (segment.type === 'image') {
-                                            return (
-                                                <ImagePromptRenderer
-                                                    key={`image-${segmentIndex}`}
-                                                    alt={segment.alt}
-                                                    prompt={segment.prompt}
-                                                />
-                                            );
-                                        }
-
-                                        if (segment.type === 'map') {
-                                            return <ChatMessageMap key={`map-${segmentIndex}`} data={segment.data} />;
-                                        }
-
-                                        return null;
-                                    })}
-                                </div>
-                                {streamingFeaturePlaceholderKind && (
-                                    <StreamingFeaturePlaceholder kind={streamingFeaturePlaceholderKind} />
-                                )}
-                            </>
-                        )}
+                        <div ref={contentWithoutButtonsRef}>
+                            <ChatMessageRichContent
+                                content={message.content}
+                                contentSegments={contentSegments}
+                                streamingFeaturePlaceholderKind={streamingFeaturePlaceholderKind}
+                                onCreateAgent={onCreateAgent}
+                            />
+                        </div>
 
                         {message.attachments && message.attachments.length > 0 && (
                             <div className={styles.attachments}>
@@ -1642,11 +751,7 @@ export const ChatMessageItem = memo(
                             </div>
                         )}
 
-                        {toolCallChips.length > 0 && (
-                            <div className={styles.toolCallChips}>
-                                {toolCallChips.map((chip) => renderToolCallChip(chip, onToolCallClick))}
-                            </div>
-                        )}
+                        <ChatMessageToolCallChips chips={toolCallChips} onToolCallClick={onToolCallClick} />
                         {citationFootnoteRenderModel.footnotes.length > 0 && (
                             <div className={styles.citationFootnotes}>
                                 {citationFootnoteRenderModel.footnotes.map((footnote) => (
