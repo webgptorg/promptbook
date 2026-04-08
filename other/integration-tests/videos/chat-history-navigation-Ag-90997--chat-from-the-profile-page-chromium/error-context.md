@@ -1,0 +1,125 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e5]:
+        - generic [ref=e7]:
+          - generic [ref=e8]:
+            - link "Promptbook Agents Server Promptbook Agents Server" [ref=e9] [cursor=pointer]:
+              - /url: /
+              - img "Promptbook Agents Server" [ref=e10]
+              - generic [ref=e11]: Promptbook Agents Server
+            - button "Switch server" [ref=e13] [cursor=pointer]:
+              - img [ref=e14]
+          - img [ref=e16]
+          - button "e2e-optimistic-first-message" [ref=e20] [cursor=pointer]:
+            - generic [ref=e21]:
+              - img [ref=e23]
+              - generic [ref=e25]: e2e-optimistic-first-message
+            - img [ref=e26]
+          - img [ref=e28]
+          - button "Chat" [ref=e32] [cursor=pointer]:
+            - generic [ref=e33]:
+              - img [ref=e34]
+              - generic [ref=e36]: Chat
+            - img [ref=e37]
+        - generic [ref=e41]:
+          - generic [ref=e42]: Global search
+          - generic [ref=e43]:
+            - img
+            - combobox "Global search" [ref=e44]
+        - generic [ref=e45]:
+          - navigation [ref=e46]:
+            - button "Documentation" [ref=e48] [cursor=pointer]:
+              - text: Documentation
+              - img [ref=e49]
+            - button "System" [ref=e52] [cursor=pointer]:
+              - text: System
+              - img [ref=e53]
+          - button "Open global control panel" [ref=e56] [cursor=pointer]:
+            - img [ref=e57]
+            - generic [ref=e60]: Control panel
+          - generic [ref=e62]:
+            - button "A admin Admin" [expanded] [ref=e63] [cursor=pointer]:
+              - generic [ref=e65]: A
+              - generic [ref=e66]:
+                - generic [ref=e67]: admin
+                - generic [ref=e68]: Admin
+              - img [ref=e69]
+            - generic [ref=e71]:
+              - generic [ref=e72]:
+                - paragraph [ref=e73]: admin
+                - paragraph [ref=e74]: Admin
+              - button "Change Password" [ref=e75] [cursor=pointer]:
+                - img [ref=e76]
+                - text: Change Password
+              - button "Log out" [ref=e79] [cursor=pointer]:
+                - img [ref=e80]
+                - text: Log out
+    - main [ref=e83]:
+      - main [ref=e84]:
+        - generic [ref=e85]:
+          - complementary [ref=e86]:
+            - button "Expand sidebar" [ref=e88] [cursor=pointer]:
+              - img [ref=e89]
+            - generic [ref=e92]:
+              - link "New chat" [ref=e93] [cursor=pointer]:
+                - /url: /agents/e2e-optimistic-first-message/chat?chat=new
+                - img [ref=e94]
+              - button "New chat (0 messages, a few seconds ago)" [ref=e97] [cursor=pointer]:
+                - generic "0 messages" [ref=e99]: "0"
+                - generic [ref=e100]:
+                  - generic [ref=e101]: New chat
+                  - generic [ref=e102]: No messages yet
+                - generic [ref=e103]: a few seconds ago
+              - generic [ref=e104]:
+                - button "Hide empty chats" [ref=e105] [cursor=pointer]:
+                  - img [ref=e106]
+                - button "EXT" [ref=e111] [cursor=pointer]
+              - paragraph [ref=e112]: Chats
+          - generic [ref=e117]:
+            - generic [ref=e118]:
+              - button "New chat" [ref=e119] [cursor=pointer]:
+                - img [ref=e120]
+                - generic [ref=e122]: New chat
+              - button "Save" [ref=e124] [cursor=pointer]:
+                - img [ref=e125]
+                - generic [ref=e128]: Save
+            - generic [ref=e129]:
+              - generic [ref=e133]:
+                - generic [ref=e134]:
+                  - generic [ref=e135]:
+                    - button "Read message aloud" [ref=e136] [cursor=pointer]:
+                      - img [ref=e137]
+                    - button "Copy message" [ref=e139] [cursor=pointer]:
+                      - img [ref=e140]
+                  - paragraph [ref=e145]: Hello! I am E2E Optimistic First Message.
+                  - generic [ref=e147] [cursor=pointer]: ⭐
+                - generic "04/08/2026 1:50:27 PM" [ref=e148]:
+                  - generic [ref=e149]: 1:50 PM
+              - generic [ref=e151]:
+                - generic [ref=e152]:
+                  - generic [ref=e153]:
+                    - button "Read message aloud" [ref=e154] [cursor=pointer]:
+                      - img [ref=e155]
+                    - button "Copy message" [ref=e157] [cursor=pointer]:
+                      - img [ref=e158]
+                  - paragraph [ref=e163]: Hello from profile page
+                  - generic [ref=e165] [cursor=pointer]: ⭐
+                - generic "04/08/2026 1:50:27 PM" [ref=e166]:
+                  - generic [ref=e167]: Sending
+                  - generic [ref=e168]: 1:50 PM
+            - generic [ref=e171]:
+              - textbox "Write a message..." [active] [ref=e172]
+              - button "Attach file" [ref=e173] [cursor=pointer]:
+                - img [ref=e174]
+              - button "Start dictation" [ref=e176] [cursor=pointer]:
+                - img [ref=e177]
+              - button [ref=e180] [cursor=pointer]:
+                - img [ref=e181]
+  - generic:
+    - region "Notifications"
+  - alert [ref=e183]
+```
