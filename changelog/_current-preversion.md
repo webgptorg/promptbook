@@ -1,3 +1,8 @@
+-   Refactored Agents Server `useAgentChatToolInteractions` into smaller focused private chat-interaction modules without changing external behavior:
+
+    -   Extracted actionable tool-call analysis plus dedicated browser-location, private-mode confirmation, TEAM pseudo-user, wallet-request, and shared tool-result helper modules so the main hook is easier to read and maintain.
+    -   Kept `apps/agents-server/src/app/agents/[agentName]/useAgentChatToolInteractions.ts` as the orchestration facade preserving the same hook API and runtime behavior for both chat wrappers.
+
 -   Added main `README.md` instructions for running `ptbk coder` locally in this repository and from an installed `ptbk` package, with a link to the dedicated `coder run` documentation.
 -   Fixed `ptbk coder run` so interactive waits are enabled by default again and `--no-wait` now correctly disables them for both local CLI usage and installed `ptbk` binaries.
 -   Added configurable `--context` support to `ptbk coder run`, so extra coding instructions can now be passed inline or loaded from a project file such as `AGENTS.md`; Promptbook now stores its own coder context in [`AGENTS.md`](AGENTS.md) and the local VS Code coder workflows pass `--context AGENTS.md` instead of relying on hardcoded runner context.
