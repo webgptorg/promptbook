@@ -1,3 +1,8 @@
+-   Refactored `src/types/string_url.ts` into smaller focused semantic type modules without changing external behavior:
+
+    -   Extracted MIME, data-URL, host/network, generic URL, and email aliases into dedicated private `src/types/*_private.ts` modules so the public facade is easier to scan and maintain.
+    -   Kept `src/types/string_url.ts` as the compatibility facade preserving the same exported type aliases and import path while the extracted internals carry explicit private JSDoc annotations.
+
 -   Refactored `src/types/string_parameter_name.ts` into focused semantic type modules without changing external behavior:
 
     -   Extracted each semantic string alias and parameter-mapping type into dedicated `src/types/*.ts` files so each file has one clear responsibility and the dense mixed-purpose implementation is easier to follow.
