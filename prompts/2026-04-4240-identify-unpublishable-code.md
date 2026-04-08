@@ -35,3 +35,32 @@
     -   [🟡] Code in this file should never be published outside of `@promptbook/cli`
     -   But search just for tags like "[⚫]"
 
+---
+
+[ ]
+
+[✨🦈] Normalize the comments acoss the project
+
+**JSDoc comments should look like this:**
+
+```typescript
+/**
+ * ...
+ * ...
+ *
+ * @public ...
+ */
+function example() {
+    // ... some code ...
+}
+```
+
+**Comments at the end of the file should look like this:**
+
+```typescript
+// ... some code ...
+
+// Note: ...
+// TODO: ...
+// TODO: ...
+```
