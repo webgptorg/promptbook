@@ -20,6 +20,4 @@ export type RefactorCandidate = {
     readonly reasons: ReadonlyArray<string>;
 };
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for repository script [RefactorCandidate](scripts/find-refactor-candidates/RefactorCandidate.ts) should never be published in any package */

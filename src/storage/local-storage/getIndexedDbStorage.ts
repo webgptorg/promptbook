@@ -33,6 +33,4 @@ export function getIndexedDbStorage<TItem>(options: IndexedDbStorageOptions): Pr
     return storage;
 }
 
-/**
- * Note: [🔵] Code in this file should never be published outside of `@promptbook/browser`
- */
+/** Note: [🔵] Code for browser storage helper [getIndexedDbStorage](src/storage/local-storage/getIndexedDbStorage.ts) should never be published outside of `@promptbook/browser` */

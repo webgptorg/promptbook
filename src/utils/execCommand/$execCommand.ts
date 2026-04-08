@@ -132,6 +132,4 @@ export function $execCommand(options: ExecCommandOptions): Promise<$side_effect 
     });
 }
 
-/**
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */
+/** Note: [🟢] Code for Node command-execution helper [$execCommand](src/utils/execCommand/$execCommand.ts) should never be published into packages that could be imported into browser environment */

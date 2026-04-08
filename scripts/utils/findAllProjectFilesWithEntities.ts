@@ -24,6 +24,4 @@ export async function findAllProjectFilesWithEntities(): Promise<
     return Object.entries(entitiesByFile).map(([filename, entities]) => ({ filename, entities }));
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for repository script [findAllProjectFilesWithEntities](scripts/utils/findAllProjectFilesWithEntities.ts) should never be published in any package */

@@ -59,9 +59,9 @@ export function $initializeAboutCommand(program: Program): $side_effect {
     );
 }
 
+/** Note: [🟡] Code for CLI command [about](src/cli/cli-commands/about.ts) should never be published outside of `@promptbook/cli` */
 /**
  * TODO: [🕋] Use here `aboutPromptbookInformation`
  * TODO: [🗽] Unite branding and make single place for it
  * Note: [💞] Ignore a discrepancy between file name and entity name
- * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
  */

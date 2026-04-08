@@ -138,8 +138,8 @@ async function generateExampleBookc({
     console.info(`[ Done 📖  Convert examples .book.md -> .bookc]`);
 }
 
+/** Note: [⚫] Code for repository script [generate-examples-bookc](scripts/generate-examples-bookc/generate-examples-bookc.ts) should never be published in any package */
 /**
  * Note: [🍠] Example pipelines demonstrate usage patterns to end users, while the pipelines in the books directory provide core functionality for the Promptbook engine itself
  * TODO: [🍥] When using current time in `preparations` it changes all .bookc files each time so until some more elegant solution omit the time from prepared pipeline
- * Note: [⚫] Code in this file should never be published in any package
  */

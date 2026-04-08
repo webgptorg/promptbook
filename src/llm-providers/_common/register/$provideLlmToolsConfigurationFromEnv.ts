@@ -39,6 +39,4 @@ export async function $provideLlmToolsConfigurationFromEnv(): Promise<LlmToolsCo
     return llmToolsConfiguration;
 }
 
-/**
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */
+/** Note: [🟢] Code for Node environment helper [$provideLlmToolsConfigurationFromEnv](src/llm-providers/_common/register/$provideLlmToolsConfigurationFromEnv.ts) should never be published into packages that could be imported into browser environment */

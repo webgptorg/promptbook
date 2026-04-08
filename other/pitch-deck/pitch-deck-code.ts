@@ -102,6 +102,4 @@ async function playground() {
     console.info(`[ Done 🧸  Playground ]`);
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for pitch-deck generator [pitch-deck-code](other/pitch-deck/pitch-deck-code.ts) should never be published in any package */

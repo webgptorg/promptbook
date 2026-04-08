@@ -72,10 +72,10 @@ export async function promptbookCli(): Promise<void> {
     program.parse(process.argv);
 }
 
+/** Note: [🟡] Code for CLI program [promptbookCli](src/cli/promptbookCli.ts) should never be published outside of `@promptbook/cli` */
 /**
  * TODO: [🧠] Maybe `run` command the default, instead of `ptbk run ./foo.book` -> `ptbk ./foo.book`
  * TODO: [🥠] Do not export, its just for CLI script
  * TODO: [🕌] When more functionalities, rename
  * Note: 11:11
- * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
  */

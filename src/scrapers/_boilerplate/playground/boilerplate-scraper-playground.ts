@@ -73,6 +73,4 @@ async function playground() {
     //========================================/
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for playground [boilerplate-scraper-playground](src/scrapers/_boilerplate/playground/boilerplate-scraper-playground.ts) should never be published in any package */

@@ -210,7 +210,5 @@ export async function $getCompiledBook(
     );
 }
 
-/**
- * TODO: Write unit test
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */
+/** Note: [🟢] Code for Node wizard helper [$getCompiledBook](src/wizard/$getCompiledBook.ts) should never be published into packages that could be imported into browser environment */
+/** TODO: Write unit test */

@@ -43,7 +43,5 @@ export async function locateAppOnMacOs({
     }
 }
 
-/**
- * TODO: [🧠][♿] Maybe export through `@promptbook/node`
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */
+/** Note: [🟢] Code for Node executable locator [locateAppOnMacOs](src/executables/platforms/locateAppOnMacOs.ts) should never be published into packages that could be imported into browser environment */
+/** TODO: [🧠][♿] Maybe export through `@promptbook/node` */

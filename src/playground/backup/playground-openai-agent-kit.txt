@@ -70,6 +70,4 @@ async function playground() {
     console.info(`[ Done 🧸  Playground ]`);
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for archived playground [playground-openai-agent-kit](src/playground/backup/playground-openai-agent-kit.txt) should never be published in any package */

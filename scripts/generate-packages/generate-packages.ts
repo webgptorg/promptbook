@@ -1496,10 +1496,10 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
     }
 }
 
+/** Note: [⚫] Code for repository script [generate-packages](scripts/generate-packages/generate-packages.ts) should never be published in any package */
 /**
  * TODO: [👵] test before publish
  * TODO: Add warning to the copy/generated files
  * TODO: Use prettier to format the generated files
  * TODO: Normalize order of keys in package.json
- * Note: [⚫] Code in this file should never be published in any package
  */

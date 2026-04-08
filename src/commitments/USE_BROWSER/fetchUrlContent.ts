@@ -137,6 +137,4 @@ export async function fetchUrlContent(url: string): Promise<string> {
     }
 }
 
-/**
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */
+/** Note: [🟢] Code for Node browser-fetch helper [fetchUrlContent](src/commitments/USE_BROWSER/fetchUrlContent.ts) should never be published into packages that could be imported into browser environment */

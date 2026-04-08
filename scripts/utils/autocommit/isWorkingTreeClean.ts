@@ -9,6 +9,4 @@ export async function isWorkingTreeClean(path: string): Promise<boolean> {
     return gitStatus.includes(`working tree clean`);
 }
 
-/**
- * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
- */
+/** Note: [🟡] Code for CLI support script [isWorkingTreeClean](scripts/utils/autocommit/isWorkingTreeClean.ts) should never be published outside of `@promptbook/cli` */

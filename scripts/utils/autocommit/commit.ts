@@ -60,6 +60,4 @@ export async function commit(addPaths: ReadonlyArray<string>, message: string): 
     }
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for repository script [commit](scripts/utils/autocommit/commit.ts) should never be published in any package */

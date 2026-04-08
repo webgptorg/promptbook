@@ -84,6 +84,4 @@ function logRefactorCandidates(candidates: ReadonlyArray<RefactorCandidate>): vo
     }
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for repository script [find-refactor-candidates](scripts/find-refactor-candidates/find-refactor-candidates.ts) should never be published in any package */

@@ -137,10 +137,10 @@ async function makePipelineCollection({
     console.info(`[ Done 📖 Make Promptbook collection ]`);
 }
 
+/** Note: [⚫] Code for repository script [make-promptbook-collection](scripts/make-promptbook-collection/make-promptbook-collection.ts) should never be published in any package */
 /**
  * TODO: [🐱‍🚀] Also make Agent collection here during build step
  * Note: [🍠] Example pipelines demonstrate usage patterns to end users, while the pipelines in the books directory provide core functionality for the Promptbook engine itself
  * TODO: [🌼] Maybe use `ptbk make --no-interactive` cli command instead of this script (but figure out what to do with nessesity to have collection commited here)
  * TODO: [main] !!3 Use `ptbk make --no-interactive` cli command this in WebGPT and Promptbook
- * Note: [⚫] Code in this file should never be published in any package
  */

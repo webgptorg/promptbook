@@ -47,7 +47,5 @@ export async function $provideScrapersForNode(
     return scrapers;
 }
 
-/**
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- * TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming
- */
+/** Note: [🟢] Code for Node scraper registration helper [$provideScrapersForNode](src/scrapers/_common/register/$provideScrapersForNode.ts) should never be published into packages that could be imported into browser environment */
+/** TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming */

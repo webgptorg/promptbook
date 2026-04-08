@@ -197,6 +197,4 @@ async function fetchGitHubDiscussions(): Promise<GitHubDiscussion[]> {
     return data.data.repository.discussions.nodes;
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for repository script [generate-documentation](scripts/generate-documentation/generate-documentation.ts) should never be published in any package */

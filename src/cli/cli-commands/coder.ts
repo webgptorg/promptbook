@@ -58,7 +58,5 @@ export function $initializeCoderCommand(program: Program): $side_effect {
     });
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
- */
+/** Note: [🟡] Code for CLI command [coder](src/cli/cli-commands/coder.ts) should never be published outside of `@promptbook/cli` */
+/** Note: [💞] Ignore a discrepancy between file name and entity name */

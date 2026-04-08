@@ -61,6 +61,4 @@ backupSupabase(runtimeOptions)
         process.exit(0);
     });
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for repository script [backup-supabase](scripts/backup-supabase/backup-supabase.ts) should never be published in any package */

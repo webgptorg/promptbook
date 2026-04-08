@@ -117,6 +117,4 @@ async function playground() {
 }
 
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for archived playground [playground-write-pavolhejny-bio](src/playground/backup/playground-write-pavolhejny-bio.txt) should never be published in any package */

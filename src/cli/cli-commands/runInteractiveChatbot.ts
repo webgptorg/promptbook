@@ -157,8 +157,8 @@ export async function runInteractiveChatbot(options: RunInteractiveChatbotOption
     }
 }
 
+/** Note: [🟡] Code for CLI command [runInteractiveChatbot](src/cli/cli-commands/runInteractiveChatbot.ts) should never be published outside of `@promptbook/cli` */
 /**
  * TODO: Saving reports from the chatbot conversation
  * TODO: [⛲️] This is the right place to start implementing INK
- * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
  */

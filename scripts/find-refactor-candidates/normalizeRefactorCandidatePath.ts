@@ -8,6 +8,4 @@ export function normalizeRefactorCandidatePath(pathValue: string): string {
     return normalized.replace(/^\.\//, '');
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for repository script [normalizeRefactorCandidatePath](scripts/find-refactor-candidates/normalizeRefactorCandidatePath.ts) should never be published in any package */

@@ -66,20 +66,18 @@ export async function $provideLlmToolsFromEnv(
     return createLlmToolsFromConfiguration(configuration, options);
 }
 
+/** Note: [🟢] Code for Node environment helper [$provideLlmToolsFromEnv](src/llm-providers/_common/register/$provideLlmToolsFromEnv.ts) should never be published into packages that could be imported into browser environment */
 /**
  * TODO: The architecture for LLM tools configuration consists of three key functions:
  * 1. `$provideLlmToolsFromEnv` - High-level function that detects available providers from env vars and returns ready-to-use LLM tools
  * 2. `$provideLlmToolsConfigurationFromEnv` - Middle layer that extracts configuration objects from environment variables
  * 3. `createLlmToolsFromConfiguration` - Low-level function that instantiates LLM tools from explicit configuration
- *
  * This layered approach allows flexibility in how tools are configured:
  * - Use $provideLlmToolsFromEnv for automatic detection and setup in Node.js environments
  * - Use $provideLlmToolsConfigurationFromEnv to extract config objects for modification before instantiation
  * - Use createLlmToolsFromConfiguration for explicit control over tool configurations
- *
  * TODO: [🧠][🍛] Which name is better `$provideLlmToolsFromEnv` or `$provideLlmToolsFromEnvironment`?
  * TODO: [🧠] Is there some meaningfull way how to test this util
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  * TODO: [🥃] Allow `ptbk make` without llm tools
  * TODO: This should be maybe not under `_common` but under `utils`
  * TODO: [®] DRY Register logic

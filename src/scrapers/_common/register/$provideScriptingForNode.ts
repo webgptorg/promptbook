@@ -29,7 +29,5 @@ export async function $provideScriptingForNode(
     return [new JavascriptExecutionTools({ ...options, functions: getAllCommitmentsToolFunctionsForNode() })];
 }
 
-/**
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- * TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming
- */
+/** Note: [🟢] Code for Node scraper registration helper [$provideScriptingForNode](src/scrapers/_common/register/$provideScriptingForNode.ts) should never be published into packages that could be imported into browser environment */
+/** TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming */

@@ -86,6 +86,4 @@ async function playground() {
     //========================================/
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for permanent playground [agent-with-browser-playground](src/playground/permanent/agent-with-browser-playground.ts) should never be published in any package */

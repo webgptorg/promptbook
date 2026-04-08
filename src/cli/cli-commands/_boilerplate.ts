@@ -34,7 +34,5 @@ export function $initializeBoilerplateCommand(program: Program): $side_effect {
     );
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
- */
+/** Note: [🟡] Code for CLI command [_boilerplate](src/cli/cli-commands/_boilerplate.ts) should never be published outside of `@promptbook/cli` */
+/** Note: [💞] Ignore a discrepancy between file name and entity name */

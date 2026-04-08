@@ -66,7 +66,5 @@ export function locateApp(
     }
 }
 
-/**
- * TODO: [🧠][♿] Maybe export through `@promptbook/node`
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */
+/** Note: [🟢] Code for Node executable locator [locateApp](src/executables/locateApp.ts) should never be published into packages that could be imported into browser environment */
+/** TODO: [🧠][♿] Maybe export through `@promptbook/node` */

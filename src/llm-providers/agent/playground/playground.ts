@@ -184,9 +184,9 @@ async function playground() {
     console.info(colors.bgCyan(` ${agentTools.title}: `) + '\n' + colors.green(result.content));
 }
 
+/** Note: [⚫] Code for playground [agent playground](src/llm-providers/agent/playground/playground.ts) should never be published in any package */
 /**
  * TODO: [🧠] Add more complex agent scenarios
  * TODO: [🧠] Add parameter substitution demo
  * TODO: [🧠] Add multi-turn conversation demo
- * Note: [⚫] Code in this file should never be published in any package
  */

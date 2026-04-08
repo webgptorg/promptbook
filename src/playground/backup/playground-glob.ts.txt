@@ -39,6 +39,4 @@ async function playground() {
     //========================================/
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for archived playground [playground-glob.ts](src/playground/backup/playground-glob.ts.txt) should never be published in any package */

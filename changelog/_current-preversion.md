@@ -1,3 +1,7 @@
+-   Clarified unpublishable-package marker comments across the codebase:
+
+    -   Updated `[⚫]`, `[🟢]`, `[🔵]`, and `[🟡]` notes to one-line comments that identify the related file and briefly explain why the code must stay out of specific packages.
+
 -   Refactored `src/types/string_url.ts` into smaller focused semantic type modules without changing external behavior:
 
     -   Extracted MIME, data-URL, host/network, generic URL, and email aliases into dedicated private `src/types/*_private.ts` modules so the public facade is easier to scan and maintain.
