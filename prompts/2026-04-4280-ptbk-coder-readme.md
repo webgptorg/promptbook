@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.1905 5 minutes by OpenAI Codex `gpt-5.4`
 
 [✨😗] Add instructions for using `ptbk coder` into main README
 
@@ -48,3 +48,4 @@ $ ptbk coder run
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
+
