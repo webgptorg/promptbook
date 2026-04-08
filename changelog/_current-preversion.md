@@ -1,3 +1,8 @@
+-   Normalized project comment style across the TypeScript and JavaScript codebase:
+
+    -   Rewrote top-level JSDoc blocks into a consistent multiline format, added missing entity documentation, and ensured exported `src` entities carry explicit `@public` or `@private` annotations.
+    -   Converted end-of-file note blocks to `// Note:` / `// TODO:` line comments so repository markers use one consistent trailing-comment style.
+
 -   Clarified unpublishable-package marker comments across the codebase:
 
     -   Updated `[⚫]`, `[🟢]`, `[🔵]`, and `[🟡]` notes to one-line comments that identify the related file and briefly explain why the code must stay out of specific packages.

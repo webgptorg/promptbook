@@ -1,6 +1,9 @@
 import { string_char_emoji } from '@promptbook-local/types';
 import { DetailedHTMLProps, HTMLAttributes } from 'react';
 
+/**
+ * Props for open moji icon.
+ */
 type OpenMojiIconProps = DetailedHTMLProps<HTMLAttributes<HTMLSpanElement>, HTMLSpanElement> & {
     /**
      * The OpenMoji character to display

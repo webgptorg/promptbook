@@ -35,6 +35,7 @@ type UsageClientAnalyticsState = {
 
 /**
  * Query-string and API-query builders for `<UsageClient/>`.
+ *
  * @private function of UsageClient
  */
 export const UsageClientQuery = {

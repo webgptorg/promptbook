@@ -20,6 +20,9 @@ jest.mock('../LlmChat/LlmChat', () => ({
 import { Agent } from '../../../llm-providers/agent/Agent';
 import { book } from '../../../pipeline/book-notation';
 
+/**
+ * Props for captured Llm chat.
+ */
 type CapturedLlmChatProps = {
     messages?: ReadonlyArray<ChatMessage>;
     onReset?: () => Promise<void> | void;

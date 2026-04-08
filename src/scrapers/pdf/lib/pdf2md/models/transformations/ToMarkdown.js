@@ -1,6 +1,12 @@
 // @flow
 
+/**
+ * Constant for transformation.
+ */
 const Transformation = require('./Transformation');
+/**
+ * Constant for parse result.
+ */
 const ParseResult = require('../ParseResult');
 
 module.exports = class ToMarkdown extends Transformation {

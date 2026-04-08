@@ -14,6 +14,7 @@ const renderBullets = (items: readonly string[]) => items.map((item) => `-  ${it
  *
  * @param agent - Basic agent information used to personalize the portrait.
  * @returns A prompt string describing the high-end, cinematic, and symbolic avatar.
+ *
  * @private @@@
  */
 export function getAgentDefaultAvatarPrompt(agent: AgentBasicInformation): string_prompt_image {

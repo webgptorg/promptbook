@@ -3,13 +3,19 @@ import moment from 'moment';
 import { clearLine, cursorTo } from 'readline';
 import type { PromptStats } from '../prompts/types/PromptStats';
 
-/** Refresh interval for the progress header in milliseconds. */
+/**
+ * Refresh interval for the progress header in milliseconds.
+ */
 const PROGRESS_REFRESH_INTERVAL_MS = 1000;
 
-/** Number of terminal lines reserved for the sticky progress header. */
+/**
+ * Number of terminal lines reserved for the sticky progress header.
+ */
 const PROGRESS_HEADER_RESERVED_LINES = 1;
 
-/** Calendar formats used when displaying the estimated completion time. */
+/**
+ * Calendar formats used when displaying the estimated completion time.
+ */
 const ESTIMATED_DONE_CALENDAR_FORMATS = {
     sameDay: '[Today] h:mm',
     nextDay: '[Tomorrow] h:mm',

@@ -5,6 +5,7 @@ import { normalizeServerSearchText } from '../createServerSearchMatcher';
  *
  * @param value Value to stringify.
  * @returns Normalized text suitable for search matching.
+ *
  * @private function of createDefaultServerSearchProviders
  */
 export function stringifyJsonForSearch(value: unknown): string {

@@ -42,8 +42,9 @@ const ANTHROPIC_PROVIDER_PROFILE: ChatParticipant = {
 /**
  * Execution Tools for calling Anthropic Claude API.
  *
- * @public exported from `@promptbook/anthropic-claude`
  * @deprecated use `createAnthropicClaudeExecutionTools` instead
+ *
+ * @public exported from `@promptbook/anthropic-claude`
  */
 export class AnthropicClaudeExecutionTools implements LlmExecutionTools /* <- TODO: [🍚] `, Destroyable` */ {
     /**
@@ -239,12 +240,10 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools /* <- TO
     // <- Note: [🤖] getDefaultXxxModel
 }
 
-/**
- * TODO:  [🍆] JSON mode
- * TODO: [🧠] Maybe handle errors via transformAnthropicError (like transformAzureError)
- * TODO: Maybe Create some common util for callChatModel and callCompletionModel
- * TODO: Maybe make custom OpenAiError
- * TODO: [🧠][🈁] Maybe use `isDeterministic` from options
- * TODO: [🧠][🌰] Allow to pass `title` for tracking purposes
- * TODO: [📅] Maybe instead of `RemoteLlmExecutionToolsOptions` use `proxyWithAnonymousRemoteServer` (if implemented)
- */
+// TODO:  [🍆] JSON mode
+// TODO: [🧠] Maybe handle errors via transformAnthropicError (like transformAzureError)
+// TODO: Maybe Create some common util for callChatModel and callCompletionModel
+// TODO: Maybe make custom OpenAiError
+// TODO: [🧠][🈁] Maybe use `isDeterministic` from options
+// TODO: [🧠][🌰] Allow to pass `title` for tracking purposes
+// TODO: [📅] Maybe instead of `RemoteLlmExecutionToolsOptions` use `proxyWithAnonymousRemoteServer` (if implemented)

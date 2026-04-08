@@ -13,6 +13,4 @@ export type PipelineExecutor = {
     (inputParameters: InputParameters): ExecutionTask;
 };
 
-/**
- * TODO: [🧠] Should this file be in /execution or /types folder?
- */
+// TODO: [🧠] Should this file be in /execution or /types folder?

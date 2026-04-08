@@ -46,6 +46,4 @@ export type ChatParticipant = {
     knowledgeSources?: Array<{ url: string; filename: string }>;
 };
 
-/**
- * TODO: [🕛] Unite `AgentBasicInformation`, `ChatParticipant`, `LlmExecutionTools` +  `LlmToolsMetadata`
- */
+// TODO: [🕛] Unite `AgentBasicInformation`, `ChatParticipant`, `LlmExecutionTools` +  `LlmToolsMetadata`

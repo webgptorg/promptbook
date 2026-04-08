@@ -11,6 +11,7 @@ import { UsageAnalyticsQuery } from './UsageAnalyticsQuery';
 
 /**
  * Call-level derivation and metric extraction helpers.
+ *
  * @private function of getUsageAnalyticsResponse
  */
 export const UsageAnalyticsCallMetrics = {

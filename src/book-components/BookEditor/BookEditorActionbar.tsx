@@ -19,6 +19,9 @@ import { HoistedMenuItem, useMenuHoisting } from '../_common/MenuHoisting/MenuHo
 import { Modal } from '../_common/Modal/Modal';
 import styles from './BookEditor.module.css';
 
+/**
+ * Props for book editor actionbar.
+ */
 type BookEditorActionbarProps = {
     value: string | undefined;
     isDownloadButtonShown?: boolean;
@@ -34,6 +37,7 @@ type BookEditorActionbarProps = {
 };
 
 /**
+ * Handles book editor actionbar.
  *
  * @private Internal component used by `BookEditor`
  */

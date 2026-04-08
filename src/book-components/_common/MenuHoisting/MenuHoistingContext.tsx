@@ -32,6 +32,9 @@ export type HoistedMenuItem = {
     isActive?: boolean;
 };
 
+/**
+ * Type describing menu hoisting context type.
+ */
 type MenuHoistingContextType = {
     /**
      * The currently hoisted menu items
@@ -44,6 +47,9 @@ type MenuHoistingContextType = {
     setMenu: (items: HoistedMenuItem[]) => void;
 };
 
+/**
+ * Constant for menu hoisting context.
+ */
 const MenuHoistingContext = createContext<MenuHoistingContextType | null>(null);
 
 /**
@@ -66,6 +72,4 @@ export function useMenuHoisting() {
     return useContext(MenuHoistingContext);
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

@@ -2,6 +2,9 @@ import type { DependencyList } from 'react';
 import { useEffect, useState } from 'react';
 import type { Promisable } from 'type-fest';
 
+/**
+ * Result of use promise.
+ */
 export type IUsePromiseResult<TValue> =
     | { isComplete: false; value: undefined; error: undefined }
     | { isComplete: true; value: null; error: Error }
@@ -70,6 +73,4 @@ export function usePromise<TValue>(
     return result;
 }
 
-/**
- * TODO: [🧠] Should be exported from `@promptbook/components`
- */
+// TODO: [🧠] Should be exported from `@promptbook/components`

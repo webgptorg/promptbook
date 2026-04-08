@@ -51,6 +51,7 @@ export type CreateLlmToolsFromConfigurationOptions = {
  * @param configuration Array of LLM tool configurations to instantiate
  * @param options Additional options for configuring the LLM tools
  * @returns A unified interface combining all successfully instantiated LLM tools
+ *
  * @public exported from `@promptbook/core`
  */
 export function createLlmToolsFromConfiguration(

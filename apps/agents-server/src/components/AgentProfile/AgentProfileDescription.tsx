@@ -4,8 +4,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { spaceTrim } from 'spacetrim';
 import { shortenText } from '../../utils/shortenText';
 
+/**
+ * Length of agent profile description collapse.
+ */
 const AGENT_PROFILE_DESCRIPTION_COLLAPSE_LENGTH = 320;
 
+/**
+ * Props for agent profile description.
+ */
 type AgentProfileDescriptionProps = {
     /**
      * Text that should appear in the agent description slot.

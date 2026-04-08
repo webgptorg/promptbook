@@ -41,6 +41,7 @@ type RenderSelfLearningToolCallDetailsOptions = {
  *
  * @param options - Self-learning tool call data.
  * @returns Self-learning summary UI.
+ *
  * @private function of ChatToolCallModal
  */
 export function renderSelfLearningToolCallDetails(options: RenderSelfLearningToolCallDetailsOptions): ReactElement {

@@ -7,16 +7,25 @@ import { MonacoEditorWithShadowDom } from '../../../../components/_utils/MonacoE
 import { AgentCodeViewerLoadingSkeleton } from '../../../../components/Skeleton/AgentCodeViewerLoadingSkeleton';
 import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 
+/**
+ * Type describing transpiler.
+ */
 type Transpiler = {
     name: string;
     title: string;
 };
 
+/**
+ * Result of transpilation.
+ */
 type TranspilationResult = {
     code: string;
     transpiler: Transpiler;
 };
 
+/**
+ * Gets language from transpiler.
+ */
 function getLanguageFromTranspiler(transpilerName?: string): string {
     if (!transpilerName) return 'plaintext';
 
@@ -29,6 +38,9 @@ function getLanguageFromTranspiler(transpilerName?: string): string {
     return 'plaintext';
 }
 
+/**
+ * Props for agent code page client.
+ */
 type AgentCodePageClientProps = {
     /**
      * The name of the agent
@@ -43,6 +55,9 @@ type AgentCodePageClientProps = {
     readonly publicUrl: string_url;
 };
 
+/**
+ * Handles agent code page client.
+ */
 export function AgentCodePageClient({ agentName, publicUrl }: AgentCodePageClientProps) {
     const [agentProfile, setAgentProfile] = useState<AgentBasicInformation | null>(null);
     const [transpilers, setTranspilers] = useState<Transpiler[]>([]);

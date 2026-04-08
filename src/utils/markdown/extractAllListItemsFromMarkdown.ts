@@ -10,6 +10,7 @@ import type { string_markdown, string_markdown_text } from '../../types/typeAlia
  *
  * @param markdown any valid markdown
  * @returns An array of strings, each representing an individual list item found in the markdown
+ *
  * @public exported from `@promptbook/markdown-utils`
  */
 export function extractAllListItemsFromMarkdown(markdown: string_markdown): string_markdown_text[] {

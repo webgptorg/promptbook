@@ -4,6 +4,9 @@ import { $getTableName } from '@/src/database/$getTableName';
 import { TODO_any } from '@promptbook-local/types';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
 
+/**
+ * Type describing file with agent.
+ */
 export type FileWithAgent = {
     id: number;
     createdAt: string;
@@ -21,6 +24,9 @@ export type FileWithAgent = {
     } | null;
 };
 
+/**
+ * Lists files.
+ */
 export async function listFiles(options: {
     page: number;
     limit: number;

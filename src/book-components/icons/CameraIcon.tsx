@@ -1,3 +1,6 @@
+/**
+ * Props for camera icon.
+ */
 type CameraIconProps = {
     size?: number;
     color?: string;
@@ -10,6 +13,7 @@ type CameraIconProps = {
  * or selection.
  *
  * @param props - SVG properties augmented with an optional `size`
+ *
  * @private internal subcomponent used by various components
  */
 export function CameraIcon({ size = 24, color = 'currentColor' }: CameraIconProps) {

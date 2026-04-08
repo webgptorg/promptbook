@@ -84,4 +84,4 @@ function logRefactorCandidates(candidates: ReadonlyArray<RefactorCandidate>): vo
     }
 }
 
-/** Note: [🟡] Code for repository script [find-refactor-candidates](scripts/find-refactor-candidates/find-refactor-candidates.ts) should never be published outside of `@promptbook/cli` */
+// Note: [🟡] Code for repository script [find-refactor-candidates](scripts/find-refactor-candidates/find-refactor-candidates.ts) should never be published outside of `@promptbook/cli`

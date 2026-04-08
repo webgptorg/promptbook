@@ -12,6 +12,4 @@ export function humanizeAiTextEllipsis(aiText: string_markdown): string_markdown
     return aiText.replace(/[…⋯]/g, '...').replace(/\.\s+\.\s+\./g, '...');
 }
 
-/**
- * Note: [🏂] This function is not tested by itself but together with other cleanup functions with `humanizeAiText`
- */
+// Note: [🏂] This function is not tested by itself but together with other cleanup functions with `humanizeAiText`

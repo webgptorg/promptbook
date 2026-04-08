@@ -5,6 +5,9 @@ import { darken } from '../../../../../src/utils/color/operators/darken';
 import { lighten } from '../../../../../src/utils/color/operators/lighten';
 import { keepUnused } from '../../../../../src/utils/organization/keepUnused';
 
+/**
+ * Uses agent background.
+ */
 export function useAgentBackground(colorString: string | undefined) {
     return useMemo(() => {
         // [🧠] Default color should be imported constant, but for now hardcoded fallback

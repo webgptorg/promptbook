@@ -10,6 +10,7 @@ import { isUserAdmin } from '../../../utils/isUserAdmin';
 
 /**
  * Serialized custom JavaScript file returned by the API.
+ *
  * @private
  */
 type CustomJavascriptFilePayload = {
@@ -22,6 +23,7 @@ type CustomJavascriptFilePayload = {
 
 /**
  * API payload returned by `GET /api/custom-js`.
+ *
  * @private
  */
 type CustomJavascriptReadResponse = {
@@ -32,6 +34,7 @@ type CustomJavascriptReadResponse = {
 
 /**
  * API payload returned by `POST`/`PUT /api/custom-js`.
+ *
  * @private
  */
 type CustomJavascriptSaveResponse = {
@@ -42,6 +45,7 @@ type CustomJavascriptSaveResponse = {
 
 /**
  * API payload returned by `DELETE /api/custom-js`.
+ *
  * @private
  */
 type CustomJavascriptDeleteResponse = {
@@ -51,6 +55,7 @@ type CustomJavascriptDeleteResponse = {
 
 /**
  * Returns currently configured global custom JavaScript files.
+ *
  * @private
  */
 export async function GET() {
@@ -77,6 +82,7 @@ export async function GET() {
 
 /**
  * Creates a new custom JavaScript file.
+ *
  * @private
  */
 export async function POST(request: NextRequest) {
@@ -104,6 +110,7 @@ export async function POST(request: NextRequest) {
 
 /**
  * Updates an existing custom JavaScript file.
+ *
  * @private
  */
 export async function PUT(request: NextRequest) {
@@ -137,6 +144,7 @@ export async function PUT(request: NextRequest) {
 
 /**
  * Deletes a saved custom JavaScript file.
+ *
  * @private
  */
 export async function DELETE(request: NextRequest) {

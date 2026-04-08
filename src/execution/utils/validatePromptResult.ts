@@ -64,6 +64,7 @@ export type ValidatePromptResultResult = {
  *
  * @param options - The validation options including result string, expectations, and format
  * @returns Validation result with processed string and validity status
+ *
  * @private internal function of `createPipelineExecutor` and `cacheLlmTools`
  */
 export function validatePromptResult(options: ValidatePromptResultOptions): ValidatePromptResultResult {

@@ -15,10 +15,21 @@ import { loadArchive } from '../archive/loadArchive';
  * Note: Using sync version is 💩 in the production code, but it's ok here in tests
  *
  * @param path - The path to the file relative to examples/pipelines directory
+ *
  * @private internal function of tests
  */
 export async function importPipelineWithoutPreparation(path: `${string}.book`): Promise<PipelineString>;
+/**
+ * Imports pipeline without preparation.
+ *
+ * @private internal utility of `_importPipeline`
+ */
 export async function importPipelineWithoutPreparation(path: `${string}.bookc`): Promise<PipelineJson>;
+/**
+ * Imports pipeline without preparation.
+ *
+ * @private internal utility of `_importPipeline`
+ */
 export async function importPipelineWithoutPreparation(path: string_filename): Promise<PipelineString | PipelineJson> {
     const examplesDir = '../../../examples/pipelines'; // <- TODO: [🚏] DRY, to config
     const filePath = join(__dirname, examplesDir, path);
@@ -73,5 +84,5 @@ ex_port async function importPipelineJsonAsString(path: `${string}.bookc`): Prom
 }
 */
 
-/** Note: [⚫] Code for private pipeline import shim [_importPipeline](src/conversion/validation/_importPipeline.ts) should never be published in any package */
-/** Note: [💞] Ignore a discrepancy between file name and entity name */
+// Note: [⚫] Code for private pipeline import shim [_importPipeline](src/conversion/validation/_importPipeline.ts) should never be published in any package
+// Note: [💞] Ignore a discrepancy between file name and entity name

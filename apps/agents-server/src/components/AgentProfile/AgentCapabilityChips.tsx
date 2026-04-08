@@ -31,8 +31,14 @@ export const HOMEPAGE_CAPABILITY_CHIPS_LIMIT = 3;
  */
 export const AGENT_PROFILE_CAPABILITY_CHIPS_LIMIT = 7;
 
+/**
+ * Constant for max individual knowledge chips.
+ */
 const MAX_INDIVIDUAL_KNOWLEDGE_CHIPS = 2;
 
+/**
+ * Collection of capability priority buckets.
+ */
 const CAPABILITY_PRIORITY_BUCKETS: ReadonlyArray<ReadonlyArray<AgentCapability['type']>> = [
     ['team'],
     ['inheritance', 'import'],

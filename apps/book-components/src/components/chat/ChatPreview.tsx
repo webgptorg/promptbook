@@ -20,6 +20,9 @@ import {
     shortMessagesScenario,
 } from './scenarios';
 
+/**
+ * Handles chat preview.
+ */
 export default function ChatPreview() {
     const [scenario, setScenario] = useState<string>('empty');
     const [messages, setMessages] = useState<ChatMessage[]>([]);

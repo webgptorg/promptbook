@@ -3,6 +3,9 @@ import fs from 'fs';
 import yaml from 'js-yaml';
 import path from 'path';
 
+/**
+ * Type describing component metadata.
+ */
 export type ComponentMetadata = {
     id: string;
     name: string;
@@ -34,6 +37,9 @@ export type ComponentMetadata = {
     }>;
 };
 
+/**
+ * Gets all components.
+ */
 export function getAllComponents(): ComponentMetadata[] {
     const componentsDir = path.join(process.cwd(), 'src/components');
 
@@ -99,11 +105,17 @@ export function getAllComponents(): ComponentMetadata[] {
     return components.sort((a, b) => a.name.localeCompare(b.name));
 }
 
+/**
+ * Gets component by Id.
+ */
 export function getComponentById(id: string): ComponentMetadata | null {
     const components = getAllComponents();
     return components.find((component) => component.id === id) || null;
 }
 
+/**
+ * Gets components by category.
+ */
 export function getComponentsByCategory(): Record<string, ComponentMetadata[]> {
     const components = getAllComponents();
     const categorized: Record<string, ComponentMetadata[]> = {};
@@ -118,6 +130,9 @@ export function getComponentsByCategory(): Record<string, ComponentMetadata[]> {
     return categorized;
 }
 
+/**
+ * Handles search components.
+ */
 export function searchComponents(query: string): ComponentMetadata[] {
     const components = getAllComponents();
     const lowercaseQuery = query.toLowerCase();

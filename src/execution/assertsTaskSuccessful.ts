@@ -10,6 +10,7 @@ import type { PipelineExecutorResult } from './PipelineExecutorResult';
  *
  * @param executionResult - The partial result of the Promptbook execution
  * @throws {PipelineExecutionError} If the execution is not successful or if multiple errors occurred
+ *
  * @private internal helper function of `asPromise` method of `ExecutionTask`
  */
 export function assertsTaskSuccessful(
@@ -53,6 +54,4 @@ export function assertsTaskSuccessful(
     }
 }
 
-/**
- * TODO: [🧠] Can this return type be better typed than void
- */
+// TODO: [🧠] Can this return type be better typed than void

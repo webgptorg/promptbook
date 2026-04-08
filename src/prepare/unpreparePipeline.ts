@@ -7,6 +7,7 @@ import { exportJson } from '../utils/serialization/exportJson';
  * Unprepare just strips the preparation data of the pipeline
  *
  * @deprecated In future version this function will be removed or deprecated
+ *
  * @public exported from `@promptbook/core`
  */
 export function unpreparePipeline(pipeline: PipelineJson): PipelineJson {
@@ -45,8 +46,6 @@ export function unpreparePipeline(pipeline: PipelineJson): PipelineJson {
     });
 }
 
-/**
- * TODO: [🧿] Maybe do same process with same granularity and subfinctions as `preparePipeline`
- * TODO: Write tests for `preparePipeline`
- * TODO: [🍙] Make some standard order of json properties
- */
+// TODO: [🧿] Maybe do same process with same granularity and subfinctions as `preparePipeline`
+// TODO: Write tests for `preparePipeline`
+// TODO: [🍙] Make some standard order of json properties

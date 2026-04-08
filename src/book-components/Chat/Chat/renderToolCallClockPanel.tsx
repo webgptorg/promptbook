@@ -32,6 +32,7 @@ type RenderToolCallClockPanelOptions = {
  *
  * @param options - Clock panel rendering options.
  * @returns Clock section with local date/time labels.
+ *
  * @private function of ChatToolCallModal
  */
 export function renderToolCallClockPanel(options: RenderToolCallClockPanelOptions): ReactElement {

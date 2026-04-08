@@ -3,7 +3,13 @@ import { uncertainNumber } from '../../../../src/execution/utils/uncertainNumber
 import { UNCERTAIN_USAGE } from '../../../../src/execution/utils/usage-constants';
 import { OPENAI_MODELS } from '../../../../src/llm-providers/openai/openai-models';
 
+/**
+ * Pattern matching codex tokens value matcher.
+ */
 const CODEX_TOKENS_VALUE_MATCHER = /(?<count>\d[\d,]*)/;
+/**
+ * Constant for codex fallback pricing model.
+ */
 const CODEX_FALLBACK_PRICING_MODEL = 'gpt-5.1';
 
 /**
@@ -12,6 +18,9 @@ const CODEX_FALLBACK_PRICING_MODEL = 'gpt-5.1';
  */
 export const DEFAULT_CODEX_COMPLETION_SHARE = 0.1;
 
+/**
+ * Type describing codex token breakdown.
+ */
 type CodexTokenBreakdown = {
     total?: number;
     prompt?: number;
@@ -19,6 +28,9 @@ type CodexTokenBreakdown = {
     cached?: number;
 };
 
+/**
+ * Type describing codex token counts.
+ */
 type CodexTokenCounts = {
     readonly totalTokens: number;
     readonly promptTokens: number;

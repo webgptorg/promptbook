@@ -10,7 +10,9 @@ import type { AutomaticTranslator } from './automatic-translators/AutomaticTrans
 import type { TranslatorOptions } from './automatic-translators/TranslatorOptions';
 
 /**
- * @private still in development [🏳]
+ * Still in development [🏳].
+ *
+ * @private
  */
 export async function translateMessages({
     automaticTranslator,
@@ -49,5 +51,5 @@ export async function translateMessages({
     }
 }
 
-/** Note: [🟢] Code for Node translation helper [translateMessages](src/execution/translation/automatic-translate/translateMessages.ts) should never be published into packages that could be imported into browser environment */
-/** TODO: [😶] Unite folder listing */
+// Note: [🟢] Code for Node translation helper [translateMessages](src/execution/translation/automatic-translate/translateMessages.ts) should never be published into packages that could be imported into browser environment
+// TODO: [😶] Unite folder listing

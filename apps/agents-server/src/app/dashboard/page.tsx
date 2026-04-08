@@ -1,3 +1,6 @@
+/**
+ * Constant for dynamic.
+ */
 export const dynamic = 'force-dynamic';
 
 import { getSingleLlmExecutionTools } from '@promptbook-local/core';
@@ -21,6 +24,9 @@ import { isUserAdmin } from '../../utils/isUserAdmin';
 import { getHomePageAgents } from '../_data/getHomePageAgents';
 
 // Add calendar formats that include seconds
+/**
+ * Map of calendar with seconds.
+ */
 const calendarWithSeconds = {
     sameDay: '[Today at] LTS',
     nextDay: '[Tomorrow at] LTS',

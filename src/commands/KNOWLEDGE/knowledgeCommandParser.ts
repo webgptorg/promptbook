@@ -15,6 +15,7 @@ import { knowledgeSourceContentToName } from './utils/knowledgeSourceContentToNa
  * Parses the knowledge command
  *
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/editable`
  */
 export const knowledgeCommandParser: PipelineHeadCommandParser<KnowledgeCommand> = {
@@ -122,6 +123,4 @@ export const knowledgeCommandParser: PipelineHeadCommandParser<KnowledgeCommand>
     },
 };
 
-/**
- * Note: [⛱] There are two types of KNOWLEDGE commands *...(read more in [⛱])*
- */
+// Note: [⛱] There are two types of KNOWLEDGE commands *...(read more in [⛱])*

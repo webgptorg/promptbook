@@ -6,6 +6,7 @@ import type { TODO_any } from '../../../../utils/organization/TODO_any';
  *
  * @param toolCall - Tool call carrying raw arguments.
  * @returns Parsed argument map or an empty object.
+ *
  * @private function of toolCallParsing
  */
 export function parseToolCallArguments(toolCall: Pick<ToolCall, 'arguments'>): Record<string, TODO_any> {

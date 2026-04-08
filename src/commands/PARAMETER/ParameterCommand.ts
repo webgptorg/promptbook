@@ -5,6 +5,7 @@ import type { string_name } from '../../types/typeAliases';
  * Parsed PARAMETER command
  *
  * @see ./parameterCommandParser.ts for more details
+ *
  * @public exported from `@promptbook/editable`
  */
 export type ParameterCommand = {

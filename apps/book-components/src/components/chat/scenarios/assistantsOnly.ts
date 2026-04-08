@@ -1,6 +1,9 @@
 import { spaceTrim } from 'spacetrim';
 import type { ChatMessage } from '../../../../../../src/book-components/Chat/types/ChatMessage';
 
+/**
+ * Map of assistants only scenario.
+ */
 export const assistantsOnlyScenario = {
     name: 'AI Avatars discussing together (without user)',
     messages: [

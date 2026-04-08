@@ -41,12 +41,18 @@ export type AgentReferenceDiagnostic = {
     readonly source?: string;
 };
 
+/**
+ * Type describing missing agent reference.
+ */
 export type MissingAgentReference = {
     readonly reference: string;
     readonly token: string;
     readonly commitmentType: BookCommitment;
 };
 
+/**
+ * Result of agent reference diagnostics.
+ */
 export type AgentReferenceDiagnosticsResult = {
     readonly diagnostics: Array<AgentReferenceDiagnostic>;
     readonly missingAgentReferences: Array<MissingAgentReference>;

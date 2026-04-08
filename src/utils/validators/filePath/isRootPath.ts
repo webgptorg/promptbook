@@ -5,6 +5,7 @@ import type { string_filename } from '../../../types/typeAliases';
  * Determines if the given path is a root path.
  *
  * Note: This does not check if the file exists only if the path is valid
+ *
  * @public exported from `@promptbook/utils`
  */
 export function isRootPath(value: string_dirname | string_filename): boolean {
@@ -19,6 +20,4 @@ export function isRootPath(value: string_dirname | string_filename): boolean {
     return false;
 }
 
-/**
- * TODO: [🍏] Make for MacOS paths
- */
+// TODO: [🍏] Make for MacOS paths

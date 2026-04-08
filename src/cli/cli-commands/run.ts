@@ -414,11 +414,9 @@ export function $initializeRunCommand(program: Program): $side_effect {
     );
 }
 
-/** Note: [🟡] Code for CLI command [run](src/cli/cli-commands/run.ts) should never be published outside of `@promptbook/cli` */
-/**
- * TODO: !!5 Catch and wrap all errors from CLI
- * TODO: [🧠] Pass `maxExecutionAttempts`, `csvSettings`
- * TODO: [🥃][main] !!3 Allow `ptbk run` without configuring any llm tools
- * Note: [💞] Ignore a discrepancy between file name and entity name
- * TODO: [🖇] What about symlinks? Maybe flag --follow-symlinks
- */
+// Note: [🟡] Code for CLI command [run](src/cli/cli-commands/run.ts) should never be published outside of `@promptbook/cli`
+// TODO: !!5 Catch and wrap all errors from CLI
+// TODO: [🧠] Pass `maxExecutionAttempts`, `csvSettings`
+// TODO: [🥃][main] !!3 Allow `ptbk run` without configuring any llm tools
+// Note: [💞] Ignore a discrepancy between file name and entity name
+// TODO: [🖇] What about symlinks? Maybe flag --follow-symlinks

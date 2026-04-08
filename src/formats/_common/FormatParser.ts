@@ -7,11 +7,12 @@ import type { FormatSubvalueParser } from './FormatSubvalueParser';
 /**
  * A format definition is a set of functions that define how to validate, heal and convert response from LLM.
  *
- * @remarks
  * - "settings" are runtime options that affect parsing (e.g., delimiter for CSV).
  * - "schema" is a structural definition or contract for the data (e.g., expected fields in JSON).
  *
+ * @remarks
  * @see https://github.com/webgptorg/promptbook/discussions/36
+ *
  * @private still in development [🏢]
  */
 export type FormatParser<
@@ -75,11 +76,9 @@ export type FormatParser<
     readonly subvalueParsers: ReadonlyArray<FormatSubvalueParser<TValue, TSettings>>;
 };
 
-/**
- * TODO: [♏] Add some prepare hook to modify prompt according to the format
- * TODO: [🍓]`name` and `aliases` should be UPPERCASE only and interpreted as case-insensitive (via normalization)
- * TODO: [🍓][👨‍⚖️] Compute TPartialValue dynamically - PartialString<TValue>
- * TODO: [🍓][🧠] Should execution tools be available to heal, canBeValid and isValid?
- * TODO: [🍓][🧠] llm Provider Bindings
- * TODO: [🍓][🔼] Export via some package
- */
+// TODO: [♏] Add some prepare hook to modify prompt according to the format
+// TODO: [🍓]`name` and `aliases` should be UPPERCASE only and interpreted as case-insensitive (via normalization)
+// TODO: [🍓][👨‍⚖️] Compute TPartialValue dynamically - PartialString<TValue>
+// TODO: [🍓][🧠] Should execution tools be available to heal, canBeValid and isValid?
+// TODO: [🍓][🧠] llm Provider Bindings
+// TODO: [🍓][🔼] Export via some package

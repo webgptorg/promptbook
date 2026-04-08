@@ -52,6 +52,7 @@ import { extractParameterNamesFromTask } from './utils/extractParameterNamesFrom
  * @param pipelineString {Promptbook} in string markdown format (.book.md)
  * @returns {Promptbook} compiled in JSON format (.bookc)
  * @throws {ParseError} if the promptbook string is not valid
+ *
  * @public exported from `@promptbook/core`
  */
 export function parsePipeline(pipelineString: PipelineString): PipelineJson {
@@ -631,14 +632,12 @@ export function parsePipeline(pipelineString: PipelineString): PipelineJson {
     });
 }
 
-/**
- * TODO: [🧠] Maybe more things here can be refactored as high-level abstractions
- * TODO: [main] !!4 Warn if used only sync version
- * TODO: [🚞] Report here line/column of error
- * TODO: Use spaceTrim more effectively
- * TODO: [🧠] Parameter flags - isInput, isOutput, isInternal
- * TODO: [🥞] Not optimal parsing because `splitMarkdownIntoSections` is executed twice with same string, once through `flattenMarkdown` and second directly here
- * TODO: [♈] Probably move expectations from tasks to parameters
- * TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools
- * TODO: [🍙] Make some standard order of json properties
- */
+// TODO: [🧠] Maybe more things here can be refactored as high-level abstractions
+// TODO: [main] !!4 Warn if used only sync version
+// TODO: [🚞] Report here line/column of error
+// TODO: Use spaceTrim more effectively
+// TODO: [🧠] Parameter flags - isInput, isOutput, isInternal
+// TODO: [🥞] Not optimal parsing because `splitMarkdownIntoSections` is executed twice with same string, once through `flattenMarkdown` and second directly here
+// TODO: [♈] Probably move expectations from tasks to parameters
+// TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools
+// TODO: [🍙] Make some standard order of json properties

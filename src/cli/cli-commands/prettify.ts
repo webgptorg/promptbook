@@ -80,9 +80,7 @@ export function $initializePrettifyCommand(program: Program): $side_effect {
     );
 }
 
-/** Note: [🟡] Code for CLI command [prettify](src/cli/cli-commands/prettify.ts) should never be published outside of `@promptbook/cli` */
-/**
- * TODO: [😶] Unite folder listing
- * Note: [💞] Ignore a discrepancy between file name and entity name
- * TODO: [🖇] What about symlinks? Maybe flag --follow-symlinks
- */
+// Note: [🟡] Code for CLI command [prettify](src/cli/cli-commands/prettify.ts) should never be published outside of `@promptbook/cli`
+// TODO: [😶] Unite folder listing
+// Note: [💞] Ignore a discrepancy between file name and entity name
+// TODO: [🖇] What about symlinks? Maybe flag --follow-symlinks

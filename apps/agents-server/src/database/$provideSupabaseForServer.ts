@@ -5,8 +5,9 @@ import { AgentsServerDatabase } from './schema';
 /**
  * Internal cache for `$provideSupabaseForServer`
  *
- * @private
  * @singleton
+ *
+ * @private
  */
 let supabase: SupabaseClient<AgentsServerDatabase>;
 
@@ -47,6 +48,4 @@ export function $provideSupabaseForServer(): SupabaseClient<AgentsServerDatabase
     return supabase;
 }
 
-/**
- * TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming
- */
+// TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming

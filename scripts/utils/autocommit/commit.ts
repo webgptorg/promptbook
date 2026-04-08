@@ -5,6 +5,9 @@ import { spaceTrim } from 'spacetrim';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
 import { isWorkingTreeClean } from './isWorkingTreeClean';
 
+/**
+ * Handles commit.
+ */
 export async function commit(addPaths: ReadonlyArray<string>, message: string): Promise<void> {
     console.log(colors.blue('--- Commit ---'));
     console.log(colors.blue(message));
@@ -60,4 +63,4 @@ export async function commit(addPaths: ReadonlyArray<string>, message: string): 
     }
 }
 
-/** Note: [⚫] Code for repository script [commit](scripts/utils/autocommit/commit.ts) should never be published in any package */
+// Note: [⚫] Code for repository script [commit](scripts/utils/autocommit/commit.ts) should never be published in any package

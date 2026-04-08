@@ -245,8 +245,6 @@ export function executionReportJsonToString(
     return executionReportString as ExecutionReportString;
 }
 
-/**
- * TODO: Add mermaid chart for every report
- * TODO: [🧠] Allow to filter out some parts of the report by options
- * TODO: [🧠] Should be in generated file GENERATOR_WARNING
- */
+// TODO: Add mermaid chart for every report
+// TODO: [🧠] Allow to filter out some parts of the report by options
+// TODO: [🧠] Should be in generated file GENERATOR_WARNING

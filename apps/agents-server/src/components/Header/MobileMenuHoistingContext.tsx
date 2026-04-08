@@ -19,6 +19,9 @@ type MobileMenuHoistingContextValue = {
     readonly setMenuItems: (items: Array<SubMenuItem>) => void;
 };
 
+/**
+ * Constant for mobile menu hoisting context.
+ */
 const MobileMenuHoistingContext = createContext<MobileMenuHoistingContextValue | null>(null);
 
 /**

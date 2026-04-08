@@ -1,5 +1,8 @@
 import { OpenAIRealtimeAgent } from '../../components/OpenAIRealtimeAgent';
 
+/**
+ * Handles open AI realtime agent page.
+ */
 export default function OpenAIRealtimeAgentPage() {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">

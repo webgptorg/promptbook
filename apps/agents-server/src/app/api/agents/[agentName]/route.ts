@@ -12,6 +12,9 @@ import { NextResponse } from 'next/server';
 import { buildAgentNameOrIdFilter } from '@/src/utils/agentIdentifier';
 import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
 
+/**
+ * Handles patch.
+ */
 export async function PATCH(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     const { agentName } = await params;
 
@@ -75,6 +78,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
     }
 }
 
+/**
+ * Handles delete.
+ */
 export async function DELETE(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     const { agentName } = await params;
     const collection = await $provideAgentCollectionForServer();

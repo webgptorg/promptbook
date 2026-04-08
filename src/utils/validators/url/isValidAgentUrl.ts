@@ -36,6 +36,4 @@ export function isValidAgentUrl(url: really_unknown): url is string_agent_url {
     return true;
 }
 
-/**
- * TODO: [🐠] Maybe more info why the URL is invalid
- */
+// TODO: [🐠] Maybe more info why the URL is invalid

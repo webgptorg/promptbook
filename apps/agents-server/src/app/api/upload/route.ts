@@ -119,6 +119,9 @@ function resolveUploadClientPayload(clientPayload: string | null | undefined): {
     };
 }
 
+/**
+ * Handles post.
+ */
 export async function POST(request: NextRequest) {
     try {
         const body = (await request.json()) as HandleUploadBody;
@@ -298,11 +301,9 @@ export async function POST(request: NextRequest) {
     }
 }
 
-/**
- * TODO: !!!! Change uploaded URLs from `storageUrl` to `shortUrl`
- * TODO: !!!! Record both `storageUrl` (actual storage location) and `shortUrl` in `File` table
- * TODO: !!!! Record `purpose` in `File` table
- * TODO: !!!! Record `userId` in `File` table
- * TODO: !!!! Record all things into `File` table
- * TODO: !!!! File type (mime type) of `.book` files should be `application/book` <- [🧠] !!!! Best mime type?!
- */
+// TODO: !!!! Change uploaded URLs from `storageUrl` to `shortUrl`
+// TODO: !!!! Record both `storageUrl` (actual storage location) and `shortUrl` in `File` table
+// TODO: !!!! Record `purpose` in `File` table
+// TODO: !!!! Record `userId` in `File` table
+// TODO: !!!! Record all things into `File` table
+// TODO: !!!! File type (mime type) of `.book` files should be `application/book` <- [🧠] !!!! Best mime type?!

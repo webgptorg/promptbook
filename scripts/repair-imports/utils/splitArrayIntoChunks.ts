@@ -17,4 +17,4 @@ export function splitArrayIntoChunks<TItem>(
     return chunks;
 }
 
-/** Note: [⚫] Code for repository script [splitArrayIntoChunks](scripts/repair-imports/utils/splitArrayIntoChunks.ts) should never be published in any package */
+// Note: [⚫] Code for repository script [splitArrayIntoChunks](scripts/repair-imports/utils/splitArrayIntoChunks.ts) should never be published in any package

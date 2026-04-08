@@ -16,6 +16,7 @@ const MIGRATIONS_DIRECTORY_CANDIDATES = [
  * Finds migrations directory in known runtime locations.
  *
  * @returns Absolute path to migrations directory.
+ *
  * @private function of runDatabaseMigrations
  */
 export function resolveMigrationsDirectory(): string {
@@ -37,6 +38,7 @@ export function resolveMigrationsDirectory(): string {
  *
  * @param migrationsDirectory Directory containing SQL migrations.
  * @returns Sorted SQL migration filenames.
+ *
  * @private function of runDatabaseMigrations
  */
 export function readMigrationFiles(migrationsDirectory: string): Array<string> {
@@ -51,6 +53,7 @@ export function readMigrationFiles(migrationsDirectory: string): Array<string> {
  *
  * @param value Absolute or relative file-system path.
  * @returns Path with forward slashes.
+ *
  * @private function of runDatabaseMigrations
  */
 function normalizePathForLogs(value: string): string {

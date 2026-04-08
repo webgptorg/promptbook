@@ -8,6 +8,7 @@ import type { FileSecurityCheckResult } from '../FileSecurityCheckResult';
  * File security checker that uses VirusTotal API.
  *
  * @see https://developers.virustotal.com/reference/overview
+ *
  * @public exported from `@promptbook/core`
  */
 export class VirusTotalFileSecurityChecker implements FileSecurityChecker {

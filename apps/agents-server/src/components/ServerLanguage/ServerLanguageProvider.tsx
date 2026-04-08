@@ -66,6 +66,9 @@ const defaultServerLanguageContextValue: ServerLanguageContextValue = {
     },
 };
 
+/**
+ * Constant for server language context.
+ */
 const ServerLanguageContext = createContext<ServerLanguageContextValue>(defaultServerLanguageContextValue);
 
 /**

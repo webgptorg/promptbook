@@ -1,3 +1,6 @@
+/**
+ * Constant for { normalized char code array }.
+ */
 const { normalizedCharCodeArray } = require('../util/string-functions');
 
 module.exports = class HeadlineFinder {

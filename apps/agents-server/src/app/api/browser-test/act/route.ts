@@ -2,8 +2,14 @@ import { $provideBrowserForServer } from '@/src/tools/$provideBrowserForServer';
 import { NextRequest, NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
 
+/**
+ * Constant for max duration.
+ */
 export const maxDuration = 60; // Allow longer timeout for agent actions
 
+/**
+ * Handles post.
+ */
 export async function POST(request: NextRequest) {
     try {
         const { goal, action, plan } = await request.json();

@@ -1,5 +1,8 @@
 import ComponentPreview from '@/components/ComponentPreview';
 
+/**
+ * Handles playground page.
+ */
 export default function PlaygroundPage() {
     return (
         <div>

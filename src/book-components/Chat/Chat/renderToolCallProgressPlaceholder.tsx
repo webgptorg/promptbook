@@ -27,6 +27,7 @@ type RenderToolCallProgressPlaceholderOptions = {
  *
  * @param options - Placeholder copy and optional badge label.
  * @returns Placeholder JSX.
+ *
  * @private function of ChatToolCallModal
  */
 export function renderToolCallProgressPlaceholder(

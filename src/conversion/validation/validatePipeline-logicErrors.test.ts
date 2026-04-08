@@ -32,6 +32,4 @@ describe('validatePipeline with logic errors', () => {
     }
 });
 
-/**
- * TODO: [🚏] DRY
- */
+// TODO: [🚏] DRY

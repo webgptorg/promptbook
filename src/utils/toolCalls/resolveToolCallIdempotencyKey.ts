@@ -1,5 +1,8 @@
 import type { ToolCall } from '../../types/ToolCall';
 
+/**
+ * Constant for raw tool call ID fields.
+ */
 const RAW_TOOL_CALL_ID_FIELDS = ['callId', 'call_id', 'id'] as const;
 
 /**
@@ -43,6 +46,9 @@ export function resolveToolCallIdempotencyKey(toolCall: ToolCall): string {
     return `fallback:${toolCall.name}`;
 }
 
+/**
+ * Gets arguments key.
+ */
 function getArgumentsKey(value: string | Record<string, unknown> | undefined): string {
     if (typeof value === 'string') {
         return value;

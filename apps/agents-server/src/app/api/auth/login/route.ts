@@ -2,6 +2,9 @@ import { authenticateUser } from '../../../../utils/authenticateUser';
 import { setSession } from '../../../../utils/session';
 import { NextResponse } from 'next/server';
 
+/**
+ * Handles post.
+ */
 export async function POST(request: Request) {
     try {
         const body = await request.json();

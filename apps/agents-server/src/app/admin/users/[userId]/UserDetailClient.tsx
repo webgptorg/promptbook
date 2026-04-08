@@ -8,6 +8,9 @@ import { Section } from '../../../../components/Homepage/Section';
 import { useServerLanguage } from '../../../../components/ServerLanguage/ServerLanguageProvider';
 import { useUsersAdmin } from '../../../../components/UsersList/useUsersAdmin';
 
+/**
+ * Props for user detail client.
+ */
 type UserDetailClientProps = {
     /**
      * User identifier from the URL.
@@ -18,6 +21,9 @@ type UserDetailClientProps = {
     userId: string;
 };
 
+/**
+ * Handles user detail client.
+ */
 export function UserDetailClient({ userId }: UserDetailClientProps) {
     const router = useRouter();
     const { t } = useServerLanguage();

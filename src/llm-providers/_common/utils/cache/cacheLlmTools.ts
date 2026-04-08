@@ -30,6 +30,7 @@ import type { CacheLlmToolsOptions } from './CacheLlmToolsOptions';
  *
  * @param llmTools LLM tools to be intercepted with usage counting, it can contain extra methods like `totalUsage`
  * @returns Full proxy of LLM tools with same functionality with added caching
+ *
  * @public exported from `@promptbook/core`
  */
 export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(

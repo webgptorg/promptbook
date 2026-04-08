@@ -4,6 +4,9 @@ import { string_agent_url } from '@promptbook-local/types';
 import { useState } from 'react';
 import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
 
+/**
+ * Handles agent Url copy.
+ */
 export function AgentUrlCopy({ agentUrl }: { agentUrl: string_agent_url }) {
     const [copied, setCopied] = useState(false);
     const { formatText } = useAgentNaming();

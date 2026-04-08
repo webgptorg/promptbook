@@ -26,6 +26,9 @@ function getTextColor(bgColor: string): string {
     return luminance > 186 ? '#0f172a' : '#f8fafc';
 }
 
+/**
+ * Constant for hero illustration SVG.
+ */
 const HERO_ILLUSTRATION_SVG = spaceTrim(
     () => `
     <svg width="320" height="220" viewBox="0 0 320 220" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -47,6 +50,9 @@ const HERO_ILLUSTRATION_SVG = spaceTrim(
 `,
 );
 
+/**
+ * Constant for brand mark SVG.
+ */
 const BRAND_MARK_SVG = spaceTrim(
     () => `
     <svg width="92" height="92" viewBox="0 0 92 92" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -70,15 +76,27 @@ const BRAND_MARK_SVG = spaceTrim(
 `,
 );
 
+/**
+ * Constant for hero illustration URL.
+ */
 const HERO_ILLUSTRATION_URL = createSvgDataUrl(HERO_ILLUSTRATION_SVG);
+/**
+ * Constant for brand mark URL.
+ */
 const BRAND_MARK_URL = createSvgDataUrl(BRAND_MARK_SVG);
 
+/**
+ * Map of role color fallbacks.
+ */
 const ROLE_COLOR_FALLBACKS: Record<string, string> = {
     USER: '#0ea5e9',
     ASSISTANT: '#2563eb',
     SYSTEM: '#475569',
 };
 
+/**
+ * Type describing participant visuals.
+ */
 type ParticipantVisuals = {
     readonly displayName: string;
     readonly avatarLabel: string;
@@ -815,6 +833,4 @@ export const htmlSaveFormatDefinition = {
     fileExtension: 'html',
 } as const satisfies ChatSaveFormatDefinition;
 
-/**
- * TODO: Enhance branding
- */
+// TODO: Enhance branding

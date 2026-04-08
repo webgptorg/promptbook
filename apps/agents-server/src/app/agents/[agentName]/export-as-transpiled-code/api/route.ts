@@ -11,6 +11,9 @@ import { keepUnused } from '../../../../../../../../src/utils/organization/keepU
 // Note: Ensure transpilers are registered
 $sideEffect(_OpenAiSdkTranspilerRegistration);
 
+/**
+ * Handles get.
+ */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ agentName: string }> }) {
     keepUnused(request);
     keepUnused(params);
@@ -30,6 +33,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 }
 
+/**
+ * Handles post.
+ */
 export async function POST(request: NextRequest, { params }: { params: Promise<{ agentName: string }> }) {
     const agentName = (await params).agentName;
 

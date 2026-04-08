@@ -12,11 +12,12 @@ import type { $TaskJson, CommandParserInput, PipelineTaskCommandParser } from '.
 import type { ExpectCommand } from './ExpectCommand';
 
 /**
-import { WrappedError } from '../../errors/WrappedError';
-import { assertsError } from '../../errors/assertsError';
+ * import { WrappedError } from '../../errors/WrappedError';
+ * import { assertsError } from '../../errors/assertsError';
  * Parses the expect command
  *
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/editable`
  */
 export const expectCommandParser: PipelineTaskCommandParser<ExpectCommand> = {

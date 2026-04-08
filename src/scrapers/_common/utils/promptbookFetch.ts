@@ -40,6 +40,4 @@ export const promptbookFetch: PromptbookFetch = async (
     }
 };
 
-/**
- * TODO: [🧠] Maybe rename because it is not used only for scrapers but also in `$getCompiledBook`
- */
+// TODO: [🧠] Maybe rename because it is not used only for scrapers but also in `$getCompiledBook`

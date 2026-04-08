@@ -38,8 +38,6 @@ export async function saveArchive(
     await fs.writeFile(filePath, data);
 }
 
-/** Note: [🟢] Code for Node archive helper [saveArchive](src/conversion/archive/saveArchive.ts) should never be published into packages that could be imported into browser environment */
-/**
- * TODO: Add metadata to zip
- * TODO: Compression level and other zip options from config
- */
+// Note: [🟢] Code for Node archive helper [saveArchive](src/conversion/archive/saveArchive.ts) should never be published into packages that could be imported into browser environment
+// TODO: Add metadata to zip
+// TODO: Compression level and other zip options from config

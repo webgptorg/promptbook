@@ -95,6 +95,4 @@ export function SelfLearningAvatar({
     );
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name, BUT maybe split to multiple files
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name, BUT maybe split to multiple files

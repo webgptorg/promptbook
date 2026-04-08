@@ -7,7 +7,9 @@ import { just } from '../../utils/organization/just';
 import { PromptbookAgentSeamlessIntegration } from './PromptbookAgentSeamlessIntegration';
 
 /**
- * @private props of PromptbookAgentIntegration component
+ * Props of PromptbookAgentIntegration component.
+ *
+ * @private
  */
 export type PromptbookAgentIntegrationProps = {
     /**
@@ -132,7 +134,5 @@ export function PromptbookAgentIntegration(props: PromptbookAgentIntegrationProp
     }
 }
 
-/**
- * TODO: !!! Load the full branding
- * TODO: !!! <promptbook-agent> element
- */
+// TODO: !!! Load the full branding
+// TODO: !!! <promptbook-agent> element

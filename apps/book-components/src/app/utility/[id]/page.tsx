@@ -6,12 +6,18 @@ import { getUtilityById } from '@/lib/utilities';
 import { Code, Download, Eye, Tag, User } from 'lucide-react';
 import { notFound } from 'next/navigation';
 
+/**
+ * Props for utility page.
+ */
 type UtilityPageProps = {
     params: Promise<{
         id: string;
     }>;
 };
 
+/**
+ * Handles utility page.
+ */
 export default async function UtilityPage({ params }: UtilityPageProps) {
     const { id } = await params;
     const utility = getUtilityById(id);

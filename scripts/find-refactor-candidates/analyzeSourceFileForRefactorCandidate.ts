@@ -196,4 +196,4 @@ function normalizeAbsolutePath(pathValue: string): string {
     return process.platform === 'win32' ? normalized.toLowerCase() : normalized;
 }
 
-/** Note: [🟡] Code for repository script [analyzeSourceFileForRefactorCandidate](scripts/find-refactor-candidates/analyzeSourceFileForRefactorCandidate.ts) should never be published outside of `@promptbook/cli` */
+// Note: [🟡] Code for repository script [analyzeSourceFileForRefactorCandidate](scripts/find-refactor-candidates/analyzeSourceFileForRefactorCandidate.ts) should never be published outside of `@promptbook/cli`

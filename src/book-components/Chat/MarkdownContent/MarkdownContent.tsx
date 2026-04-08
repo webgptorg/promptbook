@@ -138,11 +138,17 @@ function createChatMarkdownConverter(): ShowdownConverter {
  */
 const chatMarkdownConverter = createChatMarkdownConverter();
 
+/**
+ * Definition of math delimiter.
+ */
 type MathDelimiterDefinition = {
     regex: RegExp;
     displayMode: boolean;
 };
 
+/**
+ * Collection of math delimiter definitions.
+ */
 const mathDelimiterDefinitions: ReadonlyArray<MathDelimiterDefinition> = [
     { regex: /(^|[^\\])\$\$([\s\S]+?)\$\$/g, displayMode: true },
     { regex: /(^|[^\\])\\\[([\s\S]+?)\\\]/g, displayMode: true },
@@ -150,15 +156,38 @@ const mathDelimiterDefinitions: ReadonlyArray<MathDelimiterDefinition> = [
     { regex: /(^|[^\\])\$([^$\n]+?)\$/g, displayMode: false },
 ];
 
+/**
+ * Pattern matching CODE FENCE.
+ */
 const CODE_FENCE_REGEX = /(`{3,}|~{3,})(?:[^\n\r]*)\r?\n[\s\S]*?\r?\n\1[^\n\r]*/g;
+/**
+ * Pattern matching INLINE CODE.
+ */
 const INLINE_CODE_REGEX = /(`+)([\s\S]*?)(\1)/g;
+/**
+ * Prefix for CODE PLACEHOLDER.
+ */
 const CODE_PLACEHOLDER_PREFIX = '@@PROMPTBOOK_CODE_PLACEHOLDER__';
+/**
+ * Pattern matching CODE PLACEHOLDER.
+ */
 const CODE_PLACEHOLDER_REGEX = new RegExp(`${CODE_PLACEHOLDER_PREFIX}(\\d+)__`, 'g');
 
+/**
+ * Pattern matching DETAILS BLOCK.
+ */
 const DETAILS_BLOCK_REGEX = /<details[\s\S]*?<\/details\s*>/gi;
+/**
+ * Prefix for DETAILS PLACEHOLDER.
+ */
 const DETAILS_PLACEHOLDER_PREFIX = '@@PROMPTBOOK_DETAILS_PLACEHOLDER__';
+/**
+ * Pattern matching DETAILS PLACEHOLDER.
+ */
 const DETAILS_PLACEHOLDER_REGEX = new RegExp(`${DETAILS_PLACEHOLDER_PREFIX}(\\d+)__`, 'g');
-/** Matches a Showdown-wrapped placeholder such as `<p>@@PROMPTBOOK_DETAILS_PLACEHOLDER__0__</p>` */
+/**
+ * Matches a Showdown-wrapped placeholder such as `<p>@@PROMPTBOOK_DETAILS_PLACEHOLDER__0__</p>`
+ */
 const DETAILS_PLACEHOLDER_WRAPPED_REGEX = new RegExp(`<p>\\s*(${DETAILS_PLACEHOLDER_PREFIX}\\d+__)\\s*<\\/p>`, 'g');
 
 /**
@@ -168,11 +197,17 @@ const DETAILS_PLACEHOLDER_WRAPPED_REGEX = new RegExp(`<p>\\s*(${DETAILS_PLACEHOL
  */
 const DETAILS_SUMMARY_SELECTOR = 'summary';
 
+/**
+ * Result of masked code segments.
+ */
 type MaskedCodeSegmentsResult = {
     masked: string_markdown;
     restore: (value: string_markdown) => string_markdown;
 };
 
+/**
+ * Result of masked details blocks.
+ */
 type MaskedDetailsBlocksResult = {
     masked: string_markdown;
     restore: (value: string_html) => string_html;
@@ -274,6 +309,9 @@ function maskDetailsBlocks(markdown: string_markdown): MaskedDetailsBlocksResult
     };
 }
 
+/**
+ * Replaces math delimiter.
+ */
 function replaceMathDelimiter(md: string, delimiter: MathDelimiterDefinition): string {
     return md.replace(delimiter.regex, (...args) => {
         const match = args[0] ?? '';
@@ -317,11 +355,12 @@ function renderMathInMarkdown(md: string): string {
 /**
  * Convert markdown content to HTML
  *
+ * TODO: [🧠] Maybe export from `@promptbook/markdown-utils`
+ *
  * @param markdown - The markdown content to convert
  * @returns HTML string ready for rendering
  *
  * @public exported from `@promptbook/components`
- *         <- TODO: [🧠] Maybe export from `@promptbook/markdown-utils`
  */
 function renderMarkdown(markdown: string_markdown): string_html {
     if (!markdown || typeof markdown !== 'string') {
@@ -371,6 +410,9 @@ function renderMarkdown(markdown: string_markdown): string_html {
     }
 }
 
+/**
+ * Props for markdown content.
+ */
 type MarkdownContentProps = {
     content: string_markdown;
 
@@ -394,6 +436,7 @@ function getDetailsKey(details: HTMLDetailsElement): string {
  *
  * @param details - The `<details>` element whose open state should be tracked.
  * @param openDetailsKeys - Mutable registry of currently open details keys.
+ *
  * @private utility of `MarkdownContent` component
  */
 function syncTrackedDetailsOpenState(details: HTMLDetailsElement, openDetailsKeys: Set<string>): void {
@@ -412,6 +455,7 @@ function syncTrackedDetailsOpenState(details: HTMLDetailsElement, openDetailsKey
  * @param target - Event target received from the delegated click listener.
  * @param container - Markdown container that owns the rendered HTML.
  * @returns Matching `<details>` element or `null` when the click happened elsewhere.
+ *
  * @private utility of `MarkdownContent` component
  */
 function resolveClickedDetailsElement(target: EventTarget | null, container: HTMLElement): HTMLDetailsElement | null {
@@ -561,6 +605,4 @@ export const MarkdownContent = memo(function MarkdownContent(props: MarkdownCont
     );
 });
 
-/**
- * TODO: !!! Split into multiple files
- */
+// TODO: !!! Split into multiple files

@@ -3,6 +3,9 @@ import { $provideSupabaseForServer } from '../../../../../database/$provideSupab
 import { parseInboundSendgridEmail } from '../../../../../message-providers/email/sendgrid/parseInboundSendgridEmail';
 import { NextRequest, NextResponse } from 'next/server';
 
+/**
+ * Handles post.
+ */
 export async function POST(request: NextRequest) {
     try {
         const formData = await request.formData();

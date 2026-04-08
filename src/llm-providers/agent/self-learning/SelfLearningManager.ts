@@ -302,6 +302,7 @@ export class SelfLearningManager {
  *
  * @param section Raw fragment from self-learning workflow.
  * @returns Trimmed fragment, or empty string when nothing remains.
+ *
  * @private function of Agent
  */
 function normalizeBookSection(section: string): string {
@@ -314,6 +315,7 @@ function normalizeBookSection(section: string): string {
  * @param agentSource Current source.
  * @param normalizedSection Candidate fragment expected to be normalized first.
  * @returns True when appending would duplicate an existing fragment.
+ *
  * @private function of Agent
  */
 function containsNormalizedBookSection(agentSource: string_book, normalizedSection: string): boolean {
@@ -330,6 +332,7 @@ function containsNormalizedBookSection(agentSource: string_book, normalizedSecti
  *
  * @param responseFormat Prompt response format requirements
  * @returns True when JSON schema mode is active
+ *
  * @private function of Agent
  */
 function isJsonSchemaResponseFormat(
@@ -344,6 +347,7 @@ function isJsonSchemaResponseFormat(
  * @param content Original agent answer content
  * @param isJsonMode Whether the interaction requested JSON schema output
  * @returns Agent answer, wrapped in a formatted JSON code block when possible
+ *
  * @private function of Agent
  */
 function formatAgentMessageForJsonMode(content: string, isJsonMode: boolean): string {
@@ -376,6 +380,7 @@ function formatAgentMessageForJsonMode(content: string, isJsonMode: boolean): st
  *
  * @param content Text to parse as JSON
  * @returns Parsed JSON value or null when parsing fails
+ *
  * @private function of Agent
  */
 function tryParseJson(content: string): unknown | null {
@@ -391,6 +396,7 @@ function tryParseJson(content: string): unknown | null {
  *
  * @param options - Normalized sample parts.
  * @returns Book-language sample section ready to append into agent source.
+ *
  * @private function of Agent
  */
 function formatSelfLearningSample(options: {
@@ -420,6 +426,7 @@ function formatSelfLearningSample(options: {
  *
  * @param internalMessage Internal trace payload.
  * @returns Book-language INTERNAL MESSAGE block.
+ *
  * @private function of Agent
  */
 function formatInternalLearningMessage(internalMessage: InternalLearningMessagePayload): string {
@@ -436,6 +443,7 @@ function formatInternalLearningMessage(internalMessage: InternalLearningMessageP
  *
  * @param result Final chat result used in self-learning.
  * @returns Internal payloads that capture request/response/tool-call context.
+ *
  * @private function of Agent
  */
 function buildInternalLearningMessages(result: ChatPromptResult): Array<InternalLearningMessagePayload> {
@@ -468,6 +476,7 @@ function buildInternalLearningMessages(result: ChatPromptResult): Array<Internal
  *
  * @param toolCall Tool call produced during execution.
  * @returns Sanitized and serializable tool-call payload.
+ *
  * @private function of Agent
  */
 function sanitizeToolCallForLearning(toolCall: ToolCall): Record<string, unknown> {
@@ -488,6 +497,7 @@ function sanitizeToolCallForLearning(toolCall: ToolCall): Record<string, unknown
  *
  * @param payload Internal payload to serialize.
  * @returns Pretty JSON string that can be embedded in BOOK.
+ *
  * @private function of Agent
  */
 function stringifyInternalLearningPayload(payload: unknown): string {
@@ -551,6 +561,7 @@ function createEmptySelfLearningCommitmentCounts(): MutableSelfLearningCommitmen
  * Normalizes teacher commitments into trimmed, display-ready lines.
  *
  * @param commitments Raw teacher output
+ *
  * @private function of Agent
  */
 function getTeacherCommitmentLines(commitments: string): Array<string> {
@@ -564,6 +575,7 @@ function getTeacherCommitmentLines(commitments: string): Array<string> {
  * Summarizes teacher commitment lines into user-friendly counts for self-learning.
  *
  * @param lines Parsed teacher commitment lines
+ *
  * @private function of Agent
  */
 function summarizeTeacherCommitmentLines(lines: ReadonlyArray<string>): SelfLearningCommitmentTypeCounts {
@@ -597,6 +609,7 @@ function summarizeTeacherCommitmentLines(lines: ReadonlyArray<string>): SelfLear
  * @param commitments Raw teacher commitments
  * @param used Whether the teacher was invoked
  * @returns Summary of learned commitments
+ *
  * @private function of Agent
  */
 function buildTeacherSummary(commitments: string, used: boolean): SelfLearningTeacherSummary {

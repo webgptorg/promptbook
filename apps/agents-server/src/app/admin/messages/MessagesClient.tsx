@@ -8,6 +8,9 @@ import {
     type MessageSendAttemptRow,
 } from '../../../utils/messagesAdmin';
 
+/**
+ * Formats date.
+ */
 function formatDate(dateString: string | null | undefined): string {
     if (!dateString) return '-';
     const date = new Date(dateString);
@@ -15,11 +18,17 @@ function formatDate(dateString: string | null | undefined): string {
     return date.toLocaleString();
 }
 
+/**
+ * Gets message preview.
+ */
 function getMessagePreview(content: string, maxLength = 120): string {
     if (!content) return '-';
     return content.length > maxLength ? `${content.slice(0, maxLength)}…` : content;
 }
 
+/**
+ * Gets status badge.
+ */
 function getStatusBadge(attempts: MessageSendAttemptRow[] | undefined) {
     if (!attempts || attempts.length === 0) {
         return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">Pending</span>;
@@ -31,6 +40,9 @@ function getStatusBadge(attempts: MessageSendAttemptRow[] | undefined) {
     return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Failed ({attempts.length})</span>;
 }
 
+/**
+ * Handles messages client.
+ */
 export function MessagesClient() {
     const [items, setItems] = useState<MessageRow[]>([]);
     const [total, setTotal] = useState(0);

@@ -48,6 +48,9 @@ program.option(
 );
 program.parse(process.argv);
 
+/**
+ * Constant for runtime options.
+ */
 const runtimeOptions = parseBackupSupabaseRuntimeOptions(program.opts() as BackupSupabaseCommandOptions);
 
 backupSupabase(runtimeOptions)
@@ -61,4 +64,4 @@ backupSupabase(runtimeOptions)
         process.exit(0);
     });
 
-/** Note: [⚫] Code for repository script [backup-supabase](scripts/backup-supabase/backup-supabase.ts) should never be published in any package */
+// Note: [⚫] Code for repository script [backup-supabase](scripts/backup-supabase/backup-supabase.ts) should never be published in any package

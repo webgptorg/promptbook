@@ -21,8 +21,6 @@ export function getUserFileCdnKey(file: Buffer, originalFilename: string): strin
     return `user/files/${nameToSubfolderPath(hash).join('/')}/${filename}`;
 }
 
-/**
- * TODO: [🌍] Unite this logic in one place
- * TODO: Way to garbage unused uploaded files
- * TODO: Probably separate util countBufferHash
- */
+// TODO: [🌍] Unite this logic in one place
+// TODO: Way to garbage unused uploaded files
+// TODO: Probably separate util countBufferHash

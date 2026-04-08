@@ -42,6 +42,9 @@ export const VOID_PSEUDO_AGENT_ALIAS_KEYS = ['void', 'null', 'none', 'nil'] as c
  */
 const LEGACY_VOID_ALIASES = new Set<string>(VOID_PSEUDO_AGENT_ALIAS_KEYS);
 
+/**
+ * Constant for void alias entries.
+ */
 const VOID_ALIAS_ENTRIES: Array<[string, PseudoAgentKind]> = VOID_PSEUDO_AGENT_ALIAS_KEYS.map((alias) => [
     alias,
     'VOID',
@@ -104,6 +107,7 @@ function normalizePseudoReferenceKey(rawReference: string): string {
  *
  * @param rawReference - Raw reference token or payload.
  * @returns Pseudo-agent kind or `null` when the reference is not pseudo.
+ *
  * @private internal utility of pseudo-agent resolution
  */
 export function resolvePseudoAgentKindFromReference(rawReference: string): PseudoAgentKind | null {
@@ -120,6 +124,7 @@ export function resolvePseudoAgentKindFromReference(rawReference: string): Pseud
  *
  * @param agentUrl - URL to inspect.
  * @returns Pseudo-agent kind or `null` when the URL is not pseudo.
+ *
  * @private internal utility of pseudo-agent resolution
  */
 export function resolvePseudoAgentKindFromUrl(agentUrl: string): PseudoAgentKind | null {
@@ -141,6 +146,7 @@ export function resolvePseudoAgentKindFromUrl(agentUrl: string): PseudoAgentKind
  *
  * @param agentUrl - URL to inspect.
  * @returns True when the URL identifies a pseudo-agent.
+ *
  * @private internal utility of pseudo-agent resolution
  */
 export function isPseudoAgentUrl(agentUrl: string): boolean {
@@ -152,6 +158,7 @@ export function isPseudoAgentUrl(agentUrl: string): boolean {
  *
  * @param pseudoAgentKind - Pseudo-agent kind.
  * @returns Canonical pseudo-agent URL.
+ *
  * @private internal utility of pseudo-agent resolution
  */
 export function createPseudoAgentUrl(pseudoAgentKind: PseudoAgentKind): string {
@@ -166,6 +173,7 @@ export function createPseudoAgentUrl(pseudoAgentKind: PseudoAgentKind): string {
  *
  * @param teamCommitmentContent - TEAM commitment content after reference resolution.
  * @returns Deterministic English full name representing pseudo-user in that TEAM context.
+ *
  * @private internal utility of TEAM commitment rendering
  */
 export function createPseudoUserTeammateLabel(teamCommitmentContent: string): string {
@@ -184,6 +192,7 @@ export function createPseudoUserTeammateLabel(teamCommitmentContent: string): st
  *
  * @param rawReference - Raw reference content.
  * @returns True when the reference maps to void.
+ *
  * @private internal utility of pseudo-agent resolution
  */
 export function isVoidPseudoAgentReference(rawReference: string): boolean {
@@ -205,6 +214,7 @@ export function isVoidPseudoAgentReference(rawReference: string): boolean {
  *
  * @param rawReference - Raw reference content.
  * @returns True when the reference maps to user.
+ *
  * @private internal utility of pseudo-agent resolution
  */
 export function isUserPseudoAgentReference(rawReference: string): boolean {
@@ -219,6 +229,7 @@ export function isUserPseudoAgentReference(rawReference: string): boolean {
  * @param pseudoAgentKind - Pseudo-agent kind to validate.
  * @param commitmentType - Commitment where it is used.
  * @returns True when the pseudo-agent is allowed in the commitment.
+ *
  * @private internal utility of pseudo-agent resolution
  */
 export function isPseudoAgentAllowedInCommitment(
@@ -232,6 +243,4 @@ export function isPseudoAgentAllowedInCommitment(
     return true;
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

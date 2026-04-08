@@ -6,6 +6,9 @@ import {
     getStoryTitleFromContent,
 } from '../../../experiments/story/storyUtils';
 
+/**
+ * Constant for experimental notice.
+ */
 const EXPERIMENTAL_NOTICE = `
 ---
 **EXPERIMENTAL**

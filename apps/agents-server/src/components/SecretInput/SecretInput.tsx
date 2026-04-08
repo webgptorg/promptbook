@@ -6,6 +6,7 @@ import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 
 /**
  * Props used to configure the shared secret input field.
+ *
  * @private Internal props for the Agents Server secret input helper.
  */
 export type SecretInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> & {
@@ -29,6 +30,7 @@ export type SecretInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type
 
 /**
  * Renders an input whose value can be masked and toggled for password- or token-style fields.
+ *
  * @private Shared helper for Password and token controls inside the Agents Server UI.
  */
 export const SecretInput = forwardRef<HTMLInputElement, SecretInputProps>(function SecretInput(

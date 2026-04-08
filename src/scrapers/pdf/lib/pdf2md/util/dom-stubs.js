@@ -6,6 +6,9 @@
  * Any copyright is dedicated to the Public Domain.
  * http://creativecommons.org/publicdomain/zero/1.0/ */
 
+/**
+ * Handles xml encode.
+ */
 function xmlEncode(s) {
     var i = 0,
         ch;
@@ -54,6 +57,9 @@ function xmlEncode(s) {
     return buf;
 }
 
+/**
+ * Handles DOM element.
+ */
 function DOMElement(name) {
     this.nodeName = name;
     this.childNodes = [];
@@ -144,6 +150,9 @@ DOMElement.prototype = {
     },
 };
 
+/**
+ * Handles DOM element serializer.
+ */
 function DOMElementSerializer(node) {
     this._node = node;
     this._state = 0;
@@ -217,6 +226,9 @@ DOMElementSerializer.prototype = {
     },
 };
 
+/**
+ * Map of document.
+ */
 const document = {
     childNodes: [],
 
@@ -245,6 +257,9 @@ const document = {
     },
 };
 
+/**
+ * Handles image.
+ */
 function Image() {
     this._src = null;
     this.onload = null;
@@ -264,6 +279,9 @@ Image.prototype = {
 exports.document = document;
 exports.Image = Image;
 
+/**
+ * Constant for exported symbols.
+ */
 var exported_symbols = Object.keys(exports);
 
 exports.setStubs = function (namespace) {

@@ -3,6 +3,7 @@
  *
  * @param messageText Flattened conversation text.
  * @returns Human-friendly title candidate.
+ *
  * @private function of createDefaultServerSearchProviders
  */
 export function extractConversationTitle(messageText: string): string {

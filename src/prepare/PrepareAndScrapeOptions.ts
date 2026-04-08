@@ -53,7 +53,5 @@ export type PrepareAndScrapeOptions = {
     readonly isVerbose?: boolean;
 };
 
-/**
- * TODO: [🧠] Maybe extend from `CommonToolsOptions`
- * TODO: [🧠] Maybe split `PrepareAndScrapeOptions` and `ScrapeOptions` (`ScrapeOptions` should be extended from `PrepareAndScrapeOptions`)
- */
+// TODO: [🧠] Maybe extend from `CommonToolsOptions`
+// TODO: [🧠] Maybe split `PrepareAndScrapeOptions` and `ScrapeOptions` (`ScrapeOptions` should be extended from `PrepareAndScrapeOptions`)

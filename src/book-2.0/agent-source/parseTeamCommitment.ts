@@ -22,9 +22,21 @@ export type ParseTeamCommitmentOptions = {
     strict?: boolean;
 };
 
+/**
+ * Pattern matching agent URLs inside TEAM commitment content.
+ */
 const urlRegex = /https?:\/\/[^\s]+/gi;
+/**
+ * Pattern matching punctuation that often trails teammate URLs in prose.
+ */
 const trailingPunctuationRegex = /[),.;!?]+$/;
+/**
+ * Clause separators used while splitting TEAM instruction context.
+ */
 const clauseSeparators = ['.', '?', '!', ';', ','];
+/**
+ * Conjunction separators used while splitting TEAM instruction context.
+ */
 const conjunctionSeparators = [' and ', ' or '];
 
 /**
@@ -83,6 +95,9 @@ export function parseTeamCommitmentContent(content: string, options: ParseTeamCo
     return teammates;
 }
 
+/**
+ * Extracts the instruction fragment associated with one teammate URL.
+ */
 function extractInstructionContext(line: string, matches: RegExpMatchArray[], matchIndex: number): string {
     const match = matches[matchIndex];
     if (!match || match.index === undefined) {
@@ -116,6 +131,9 @@ function extractInstructionContext(line: string, matches: RegExpMatchArray[], ma
     return `${prefix} ${suffix}`.trim();
 }
 
+/**
+ * Trims content after the last detected clause delimiter.
+ */
 function trimAfterLastDelimiter(text: string): string {
     const match = findLastDelimiter(text);
     if (!match) {
@@ -125,6 +143,9 @@ function trimAfterLastDelimiter(text: string): string {
     return text.slice(match.index + match.length);
 }
 
+/**
+ * Trims content before the last detected clause delimiter.
+ */
 function trimBeforeLastDelimiter(text: string): string {
     const cleaned = text.replace(/^[,;:]\s*/g, '');
     const match = findLastDelimiter(cleaned);
@@ -135,6 +156,9 @@ function trimBeforeLastDelimiter(text: string): string {
     return cleaned.slice(0, match.index);
 }
 
+/**
+ * Finds the last clause or conjunction delimiter in a string.
+ */
 function findLastDelimiter(text: string): { index: number; length: number } | null {
     let bestIndex = -1;
     let bestLength = 0;
@@ -163,6 +187,9 @@ function findLastDelimiter(text: string): { index: number; length: number } | nu
     return { index: bestIndex, length: bestLength };
 }
 
+/**
+ * Normalizes teammate instruction text after URL extraction.
+ */
 function normalizeInstructionText(text: string): string {
     if (!text) {
         return '';
@@ -180,6 +207,9 @@ function normalizeInstructionText(text: string): string {
     return normalized;
 }
 
+/**
+ * Creates a readable teammate label from an agent URL.
+ */
 function createTeammateLabel(url: string): string {
     try {
         const parsed = new URL(url);
@@ -200,6 +230,4 @@ function createTeammateLabel(url: string): string {
     }
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

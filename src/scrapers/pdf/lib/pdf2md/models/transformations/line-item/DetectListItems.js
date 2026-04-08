@@ -1,11 +1,32 @@
 // @flow
 
+/**
+ * Constant for to line item transformation.
+ */
 const ToLineItemTransformation = require('../ToLineItemTransformation');
+/**
+ * Constant for parse result.
+ */
 const ParseResult = require('../../ParseResult');
+/**
+ * Constant for line item.
+ */
 const LineItem = require('../../LineItem');
+/**
+ * Constant for word.
+ */
 const Word = require('../../Word');
+/**
+ * Constant for { removed annotation, added annotation, detected annotation }.
+ */
 const { REMOVED_ANNOTATION, ADDED_ANNOTATION, DETECTED_ANNOTATION } = require('../../Annotation');
+/**
+ * Constant for block type.
+ */
 const BlockType = require('../../markdown/BlockType');
+/**
+ * Constant for { is list item character, is numbered list item }.
+ */
 const { isListItemCharacter, isNumberedListItem } = require('../../../util/string-functions');
 
 // Detect items starting with -, •, etc...

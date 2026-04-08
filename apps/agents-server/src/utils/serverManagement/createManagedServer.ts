@@ -31,6 +31,9 @@ import { resolveManagedServerErrorStatus } from './resolveManagedServerErrorStat
 import { resolveManagedServerConnectionString } from './resolveManagedServerConnectionString';
 import { SERVER_REGISTRY_TABLE_NAME } from './SERVER_REGISTRY_TABLE_NAME';
 
+/**
+ * Constant for boolean feature flag metadata key by field.
+ */
 const BOOLEAN_FEATURE_FLAG_METADATA_KEY_BY_FIELD = {
     isFileAttachmentsEnabled: 'IS_FILE_ATTACHEMENTS_ENABLED',
     isExperimentalPwaAppEnabled: 'IS_EXPERIMENTAL_PWA_APP_ENABLED',

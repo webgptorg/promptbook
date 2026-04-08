@@ -362,6 +362,4 @@ export function BookEditor(props: BookEditorProps) {
     return isFullscreen && typeof document !== 'undefined' ? createPortal(editorContent, document.body) : editorContent;
 }
 
-/**
- * TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)
- */
+// TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)

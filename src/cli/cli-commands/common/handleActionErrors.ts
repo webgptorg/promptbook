@@ -5,6 +5,9 @@ import type {
 import { assertsError } from '../../../errors/assertsError';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 
+/**
+ * Type describing action callback function.
+ */
 type actionCallbackFunction = Parameters<Program['action']>[0];
 
 /**
@@ -12,6 +15,7 @@ type actionCallbackFunction = Parameters<Program['action']>[0];
  *
  * @param action Action to be wrapped in error handling
  * @returns Wrapped action
+ *
  * @private internal helper function for CLI commands
  */
 export function handleActionErrors(action: actionCallbackFunction): actionCallbackFunction {

@@ -48,4 +48,4 @@ function escapeRegExp(value: string): string {
     return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-/** Note: [🟡] Code for repository script [loadExistingPromptTargets](scripts/find-refactor-candidates/loadExistingPromptTargets.ts) should never be published outside of `@promptbook/cli` */
+// Note: [🟡] Code for repository script [loadExistingPromptTargets](scripts/find-refactor-candidates/loadExistingPromptTargets.ts) should never be published outside of `@promptbook/cli`

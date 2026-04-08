@@ -1,6 +1,9 @@
 import { Code as CodeIcon } from 'lucide-react';
 import { Code } from '../Code/Code';
 
+/**
+ * Handles humanize Ai text code samples.
+ */
 export default function HumanizeAiTextCodeSamples() {
     const samples = [
         {

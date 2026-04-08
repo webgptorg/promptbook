@@ -11,8 +11,8 @@ import type { ExecutionTools } from '../ExecutionTools';
 
 /**
  * Note: There is unfortunately no equivalent for this function in the browser environment
- *       because it is not possible automatically detect configured LLM providers
- *       you need to provide them manually BUT you can help by utilities like `$provideScrapersForBrowser`
+ * because it is not possible automatically detect configured LLM providers
+ * you need to provide them manually BUT you can help by utilities like `$provideScrapersForBrowser`
  *
  * @public exported from `@promptbook/node`
  */
@@ -41,5 +41,5 @@ export async function $provideExecutionToolsForNode(options?: PrepareAndScrapeOp
     return tools;
 }
 
-/** Note: [🟢] Code for Node execution helper [$provideExecutionToolsForNode](src/execution/utils/$provideExecutionToolsForNode.ts) should never be published into packages that could be imported into browser environment */
-/** TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming */
+// Note: [🟢] Code for Node execution helper [$provideExecutionToolsForNode](src/execution/utils/$provideExecutionToolsForNode.ts) should never be published into packages that could be imported into browser environment
+// TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming

@@ -4,6 +4,7 @@
  * @param prefix Folder path prefix.
  * @param snippet Search snippet.
  * @returns Snippet with optional path marker.
+ *
  * @private function of createDefaultServerSearchProviders
  */
 export function prefixSnippet(prefix: string, snippet: string): string {

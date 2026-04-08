@@ -46,6 +46,7 @@ export type LocalOrganizationSearchDataset = {
  *
  * @param options Include-private option for visibility filtering.
  * @returns Prepared searchable organization dataset.
+ *
  * @private function of createDefaultServerSearchProviders
  */
 export async function loadLocalOrganizationSearchDataset(options: {

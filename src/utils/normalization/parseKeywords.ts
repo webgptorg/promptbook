@@ -9,6 +9,7 @@ import { parseKeywordsFromString } from './parseKeywordsFromString';
  *
  * @param input of any kind
  * @returns {Set} of keywords without diacritics in lowercase
+ *
  * @public exported from `@promptbook/utils`
  */
 export function parseKeywords(input: really_unknown): Keywords {
@@ -27,7 +28,5 @@ export function parseKeywords(input: really_unknown): Keywords {
     }
 }
 
-/**
- * Note: Not using spread in input param because of keeping second parameter for options
- * TODO: [🌺] Use some intermediate util splitWords
- */
+// Note: Not using spread in input param because of keeping second parameter for options
+// TODO: [🌺] Use some intermediate util splitWords

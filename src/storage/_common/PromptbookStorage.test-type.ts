@@ -2,12 +2,13 @@ import { keepUnused } from '../../utils/organization/keepUnused';
 import type { PromptbookStorage } from './PromptbookStorage';
 
 // Note: Checking that `localStorage` and `sessionStorage` are implementing `PromptbookStorage<string>`
+/**
+ * Constant for storage.
+ */
 let storage: PromptbookStorage<string>;
 storage = localStorage;
 storage = sessionStorage;
 keepUnused(storage);
 
-/**
- * Note: [⚪] This should never be in any released package
- * TODO: Is this a good pattern to do type testing?
- */
+// Note: [⚪] This should never be in any released package
+// TODO: Is this a good pattern to do type testing?

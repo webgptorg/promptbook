@@ -47,6 +47,7 @@ type AgentChatLinkRow = Pick<
  * Creates provider for conversations (user chats and admin chat history).
  *
  * @returns Configured conversation search provider.
+ *
  * @private function of createDefaultServerSearchProviders
  */
 export function createConversationsSearchProvider(): ServerSearchProvider {
@@ -69,6 +70,7 @@ export function createConversationsSearchProvider(): ServerSearchProvider {
  *
  * @param context Provider context.
  * @returns Matching user conversation items.
+ *
  * @private function of createDefaultServerSearchProviders
  */
 async function searchUserConversations(
@@ -147,6 +149,7 @@ async function searchUserConversations(
  *
  * @param context Provider context.
  * @returns Matching admin conversation items.
+ *
  * @private function of createDefaultServerSearchProviders
  */
 async function searchAdminConversations(

@@ -26,11 +26,17 @@ if (process.cwd() !== join(__dirname, '../..')) {
     process.exit(1);
 }
 
+/**
+ * Constant for program.
+ */
 const program = new commander.Command();
 program.option('--commit', `Auto commit`, false);
 program.option('--ignore-git-changes', `Ignore dirty working tree when using --commit`, false);
 program.parse(process.argv);
 
+/**
+ * Constant for { commit: is commited, ignore git changes }.
+ */
 const { commit: isCommited, ignoreGitChanges } = program.opts();
 
 /**
@@ -47,6 +53,9 @@ prettifyAll({ isCommited, ignoreGitChanges })
         process.exit(0);
     });
 
+/**
+ * Prettifies all.
+ */
 async function prettifyAll({
     isCommited,
     ignoreGitChanges,
@@ -81,5 +90,5 @@ async function prettifyAll({
     }
 }
 
-/** Note: [⚫] Code for repository script [prettify-all](scripts/prettify-all/prettify-all.ts) should never be published in any package */
-/** TODO: Prettify also the `/apps` and `/scripts` folders */
+// Note: [⚫] Code for repository script [prettify-all](scripts/prettify-all/prettify-all.ts) should never be published in any package
+// TODO: Prettify also the `/apps` and `/scripts` folders

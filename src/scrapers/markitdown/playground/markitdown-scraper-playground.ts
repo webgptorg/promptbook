@@ -27,6 +27,9 @@ playground()
         process.exit(0);
     });
 
+/**
+ * Handles playground.
+ */
 async function playground() {
     console.info(`🧸  Scrape knowledge by Markitdown (playground)`);
 
@@ -85,4 +88,4 @@ async function playground() {
     //========================================/
 }
 
-/** Note: [⚫] Code for playground [markitdown-scraper-playground](src/scrapers/markitdown/playground/markitdown-scraper-playground.ts) should never be published in any package */
+// Note: [⚫] Code for playground [markitdown-scraper-playground](src/scrapers/markitdown/playground/markitdown-scraper-playground.ts) should never be published in any package

@@ -334,7 +334,9 @@ export async function createAgentModelRequirementsWithCommitments(
 }
 
 /**
- * @private Attempts to upload inline knowledge entries, falling back to legacy data URLs when the upload fails or is not configured.
+ * Attempts to upload inline knowledge entries, falling back to legacy data URLs when the upload fails or is not configured.
+ *
+ * @private
  */
 async function applyPendingInlineKnowledgeSources(
     requirements: AgentModelRequirements,
@@ -361,6 +363,9 @@ async function applyPendingInlineKnowledgeSources(
     };
 }
 
+/**
+ * Handles upload inline knowledge source with fallback.
+ */
 async function uploadInlineKnowledgeSourceWithFallback(
     inlineSource: InlineKnowledgeSourceFile,
     uploader: InlineKnowledgeSourceUploader,
@@ -376,6 +381,9 @@ async function uploadInlineKnowledgeSourceWithFallback(
     }
 }
 
+/**
+ * Extracts inline knowledge sources.
+ */
 function extractInlineKnowledgeSources(metadata?: Record<string, chococake>): InlineKnowledgeSourceFile[] {
     if (!metadata) {
         return [];
@@ -385,6 +393,9 @@ function extractInlineKnowledgeSources(metadata?: Record<string, chococake>): In
     return Array.isArray(value) ? (value as InlineKnowledgeSourceFile[]) : [];
 }
 
+/**
+ * Strips inline knowledge metadata.
+ */
 function stripInlineKnowledgeMetadata(metadata?: Record<string, chococake>): Record<string, chococake> | undefined {
     if (!metadata || !Object.prototype.hasOwnProperty.call(metadata, 'inlineKnowledgeSources')) {
         return metadata;

@@ -14,14 +14,14 @@ import { WebsiteScraper } from '../../scrapers/website/WebsiteScraper';
  * 3. Uses the appropriate scraper to convert to markdown
  * 4. Returns the scraped markdown content
  *
+ * WARNING: This function should NOT be used directly in browser environments.
+ * For browser environments, use fetchUrlContentViaBrowser which proxies through
+ * the Agents Server API endpoint at /api/scrape
+ *
  * @param url The URL to fetch and scrape
  * @returns Markdown content from the URL
  *
  * @private internal utility for USE BROWSER commitment
- *
- * WARNING: This function should NOT be used directly in browser environments.
- * For browser environments, use fetchUrlContentViaBrowser which proxies through
- * the Agents Server API endpoint at /api/scrape
  */
 export async function fetchUrlContent(url: string): Promise<string> {
     try {
@@ -137,4 +137,4 @@ export async function fetchUrlContent(url: string): Promise<string> {
     }
 }
 
-/** Note: [🟢] Code for Node browser-fetch helper [fetchUrlContent](src/commitments/USE_BROWSER/fetchUrlContent.ts) should never be published into packages that could be imported into browser environment */
+// Note: [🟢] Code for Node browser-fetch helper [fetchUrlContent](src/commitments/USE_BROWSER/fetchUrlContent.ts) should never be published into packages that could be imported into browser environment

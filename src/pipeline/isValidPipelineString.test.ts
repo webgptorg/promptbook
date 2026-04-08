@@ -17,6 +17,4 @@ describe('how `isValidPipelineString` works', () => {
         ).toBe(true));
 });
 
-/**
- * TODO: [🧠][🈴] Where is the best location for this file
- */
+// TODO: [🧠][🈴] Where is the best location for this file

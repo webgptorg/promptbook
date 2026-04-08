@@ -12,6 +12,9 @@ import { spaceTrim } from 'spacetrim';
 import { buildPromptFilename, getPromptNumbering } from '../utils/prompts/getPromptNumbering';
 import { formatPromptEmojiTag, getFreshPromptEmojiTags } from '../utils/prompts/promptEmojiTags';
 
+/**
+ * Type describing prompt template.
+ */
 type PromptTemplate = 'common' | 'agents-server';
 
 if (process.cwd() !== join(__dirname, '../..')) {
@@ -29,16 +32,28 @@ if (process.cwd() !== join(__dirname, '../..')) {
     process.exit(1);
 }
 
+/**
+ * Constant for program.
+ */
 const program = new commander.Command();
 program.option('--count <count>', `Number of prompt boilerplate files to generate`, '5');
 program.option('--template <template>', `Prompt template to use: common | agents-server`, 'common');
 program.parse(process.argv);
 
+/**
+ * Constant for { count: count option, template: template option }.
+ */
 const { count: countOption, template: templateOption } = program.opts<{
     readonly count: string;
     readonly template: string;
 }>();
+/**
+ * Constant for files count.
+ */
 const filesCount = parseFilesCount(countOption);
+/**
+ * Constant for template.
+ */
 const template = parsePromptTemplate(templateOption);
 
 generatePromptBoilerplate({ filesCount, template })

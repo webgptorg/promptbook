@@ -24,6 +24,7 @@ type RenderWalletCredentialToolCallDetailsOptions = {
  *
  * @param options - Credential payload and optional timestamp.
  * @returns Credential details section for the tool modal.
+ *
  * @private function of ChatToolCallModal
  */
 export function renderWalletCredentialToolCallDetails(
@@ -87,6 +88,7 @@ export function renderWalletCredentialToolCallDetails(
  *
  * @param credential - Credential payload from the synthetic wallet tool call.
  * @returns Ordered unique source tool names.
+ *
  * @private function of ChatToolCallModal
  */
 function normalizeWalletCredentialSourceToolNames(credential: WalletCredentialToolCallResult): Array<string> {
@@ -117,6 +119,7 @@ function normalizeWalletCredentialSourceToolNames(credential: WalletCredentialTo
  *
  * @param service - Technical service identifier.
  * @returns Friendly service label.
+ *
  * @private function of ChatToolCallModal
  */
 function formatWalletCredentialService(service: string): string {

@@ -9,6 +9,7 @@ import { renderBackupSupabaseTableSql } from './renderBackupSupabaseTableSql';
  * @param client Connected PostgreSQL client.
  * @param tableReference Target table reference.
  * @returns SQL file text.
+ *
  * @private function of backupSupabase
  */
 export async function createBackupSupabaseTableSqlFileContent(

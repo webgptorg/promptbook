@@ -14,8 +14,6 @@ import { createMarkitdownScraper } from './createMarkitdownScraper';
  */
 export const _MarkitdownScraperRegistration: Registration = $scrapersRegister.register(createMarkitdownScraper);
 
-/**
- * TODO: [🧠][🌜] Export only from `@promptbook/markitdown` or `@promptbook/pdf` NOT both
- * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// TODO: [🧠][🌜] Export only from `@promptbook/markitdown` or `@promptbook/pdf` NOT both
+// TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
+// Note: [💞] Ignore a discrepancy between file name and entity name

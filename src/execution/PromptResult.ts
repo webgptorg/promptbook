@@ -25,7 +25,7 @@ export type PromptResult =
 export type CompletionPromptResult = CommonPromptResult;
 
 /**
- *Chat prompt result
+ * Chat prompt result
  *
  * Note: [🚉] This is fully serializable as JSON
  */
@@ -127,11 +127,9 @@ export type CommonPromptResult = {
     readonly rawResponse: TODO_object;
 };
 
-/**
- * TODO: [🧠] Maybe timing more accurate then seconds?
- * TODO: [🧠] Should here be link to the prompt?
- * TODO: [🧠] Maybe type `rawResponse` properly - not onject but OpenAI.result.whatever
- * TODO: [🧠] Maybe remove redundant raw.choices.text
- * TODO: Log raw even if prompt failed - log the raw error
- * TODO: [🏳] Add `TranslationPromptResult`
- */
+// TODO: [🧠] Maybe timing more accurate then seconds?
+// TODO: [🧠] Should here be link to the prompt?
+// TODO: [🧠] Maybe type `rawResponse` properly - not onject but OpenAI.result.whatever
+// TODO: [🧠] Maybe remove redundant raw.choices.text
+// TODO: Log raw even if prompt failed - log the raw error
+// TODO: [🏳] Add `TranslationPromptResult`

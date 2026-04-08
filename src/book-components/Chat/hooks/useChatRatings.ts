@@ -62,8 +62,17 @@ export type FeedbackStatus = {
     readonly variant: FeedbackStatusVariant;
 };
 
+/**
+ * Constant for default feedback success message.
+ */
 const DEFAULT_FEEDBACK_SUCCESS_MESSAGE = 'Thank you for your feedback!';
+/**
+ * Constant for default report issue success message.
+ */
 const DEFAULT_REPORT_ISSUE_SUCCESS_MESSAGE = 'Issue report submitted. Thank you!';
+/**
+ * Constant for default feedback error message.
+ */
 const DEFAULT_FEEDBACK_ERROR_MESSAGE = 'Failed to save feedback. Please try again.';
 
 /**

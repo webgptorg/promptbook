@@ -9,6 +9,7 @@ import type { BookParameter } from './AgentBasicInformation';
  *
  * @param text - Text to extract parameters from
  * @returns Array of parsed parameters with unified representation
+ *
  * @public exported from `@promptbook/core`
  */
 export function parseParameters(text: string): BookParameter[] {

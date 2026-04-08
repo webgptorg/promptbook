@@ -26,6 +26,7 @@ type RenderEmailToolCallDetailsOptions = {
  *
  * @param options - Email tool call data.
  * @returns Email preview UI.
+ *
  * @private function of ChatToolCallModal
  */
 export function renderEmailToolCallDetails(options: RenderEmailToolCallDetailsOptions): ReactElement {

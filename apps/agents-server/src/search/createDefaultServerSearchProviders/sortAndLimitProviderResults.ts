@@ -6,6 +6,7 @@ import type { ServerSearchResultItem } from '../ServerSearchResultItem';
  * @param items Candidate results.
  * @param limit Maximum result count.
  * @returns Sorted and trimmed result list.
+ *
  * @private function of createDefaultServerSearchProviders
  */
 export function sortAndLimitProviderResults(

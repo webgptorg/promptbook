@@ -71,6 +71,4 @@ export const UNCERTAIN_USAGE = $deepFreeze({
     },
 } as const satisfies Usage);
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

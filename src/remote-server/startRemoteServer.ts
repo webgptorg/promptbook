@@ -55,6 +55,7 @@ keepTypeImported<PromptbookServer_ListModels_Response>(); // <- Note: [🤛]
  * This is useful to make all logic on browser side but not expose your API keys or no need to use customer's GPU.
  *
  * @see https://github.com/webgptorg/promptbook#remote-server
+ *
  * @public exported from `@promptbook/remote-server`
  */
 export function startRemoteServer<TCustomOptions = undefined>(
@@ -796,18 +797,16 @@ export function startRemoteServer<TCustomOptions = undefined>(
     };
 }
 
-/** Note: [🟢] Code for Node server bootstrap [startRemoteServer](src/remote-server/startRemoteServer.ts) should never be published into packages that could be imported into browser environment */
-/**
- * TODO: [🕋] Use here `aboutPromptbookInformation`
- * TODO: [🌡] Add CORS and security - probably via `helmet`
- * TODO: Split this file into multiple functions - handler for each request
- * TODO: Maybe use `$exportJson`
- * TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`
- * TODO: [⚖] Expose the collection to be able to connect to same collection via createPipelineCollectionFromUrl
- * TODO: Handle progress - support streaming
- * TODO: [🗯] Do not hang up immediately but wait until client closes OR timeout
- * TODO: [🗯] Timeout on chat to free up resources
- * TODO: [🃏] Pass here some security token to prevent malitious usage and/or DDoS
- * TODO: [0] Set unavailable models as undefined in `RemoteLlmExecutionTools` NOT throw error here
- * TODO: Allow to constrain anonymous mode for specific models / providers
- */
+// Note: [🟢] Code for Node server bootstrap [startRemoteServer](src/remote-server/startRemoteServer.ts) should never be published into packages that could be imported into browser environment
+// TODO: [🕋] Use here `aboutPromptbookInformation`
+// TODO: [🌡] Add CORS and security - probably via `helmet`
+// TODO: Split this file into multiple functions - handler for each request
+// TODO: Maybe use `$exportJson`
+// TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`
+// TODO: [⚖] Expose the collection to be able to connect to same collection via createPipelineCollectionFromUrl
+// TODO: Handle progress - support streaming
+// TODO: [🗯] Do not hang up immediately but wait until client closes OR timeout
+// TODO: [🗯] Timeout on chat to free up resources
+// TODO: [🃏] Pass here some security token to prevent malitious usage and/or DDoS
+// TODO: [0] Set unavailable models as undefined in `RemoteLlmExecutionTools` NOT throw error here
+// TODO: Allow to constrain anonymous mode for specific models / providers

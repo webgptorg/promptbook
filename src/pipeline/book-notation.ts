@@ -17,6 +17,7 @@ import { prompt } from './prompt-notation';
  * @param strings The static string parts of the template literal
  * @param values The dynamic values embedded within the template literal used as data
  * @returns the pipeline string
+ *
  * @public exported from `@promptbook/core`
  */
 export function book(strings: TemplateStringsArray, ...values: Array<string>): string_book & PipelineString {
@@ -51,7 +52,5 @@ export function book(strings: TemplateStringsArray, ...values: Array<string>): s
     return padBook(bookString) as string_book & PipelineString;
 }
 
-/**
- * TODO: [🧠][🈴] Where is the best location for this file
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// TODO: [🧠][🈴] Where is the best location for this file
+// Note: [💞] Ignore a discrepancy between file name and entity name

@@ -1,5 +1,8 @@
 import type { Json } from '../database/schema';
 
+/**
+ * Type describing message row.
+ */
 export type MessageRow = {
     id: number;
     createdAt: string;
@@ -14,6 +17,9 @@ export type MessageRow = {
     sendAttempts?: MessageSendAttemptRow[];
 };
 
+/**
+ * Type describing message send attempt row.
+ */
 export type MessageSendAttemptRow = {
     id: number;
     createdAt: string;
@@ -23,6 +29,9 @@ export type MessageSendAttemptRow = {
     raw: Json;
 };
 
+/**
+ * Response for messages list.
+ */
 export type MessagesListResponse = {
     items: MessageRow[];
     total: number;
@@ -30,6 +39,9 @@ export type MessagesListResponse = {
     pageSize: number;
 };
 
+/**
+ * Type describing messages list params.
+ */
 export type MessagesListParams = {
     page?: number;
     pageSize?: number;

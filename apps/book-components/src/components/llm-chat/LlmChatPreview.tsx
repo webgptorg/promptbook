@@ -10,8 +10,14 @@ import { MockedEchoLlmExecutionTools } from '../../../../../src/llm-providers/mo
 import { MockedFackedLlmExecutionTools } from '../../../../../src/llm-providers/mocked/MockedFackedLlmExecutionTools';
 import { OpenAiExecutionTools } from '../../../../../src/llm-providers/openai/OpenAiExecutionTools';
 
+/**
+ * Constant for openai API key storage key.
+ */
 const OPENAI_API_KEY_STORAGE_KEY = 'llm-chat-preview-openai-api-key';
 
+/**
+ * Handles Llm chat preview.
+ */
 export default function LlmChatPreview() {
     type ScenarioKey = 'mock-basic' | 'mock-persistent' | 'fake-llm' | 'openai' | 'pavol-hejny-agent';
     const [scenario, setScenario] = useState<ScenarioKey>('mock-basic');
@@ -394,6 +400,4 @@ export default function LlmChatPreview() {
     );
 }
 
-/**
- * TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)
- */
+// TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)

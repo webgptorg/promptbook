@@ -12,7 +12,6 @@ import type { ExecCommandOptions } from './ExecCommandOptions';
 /**
  * Run one command in a shell
  *
- *
  * Note: There are 2 similar functions in the codebase:
  * - `$execCommand` which runs a single command
  * - `$execCommands` which runs multiple commands
@@ -132,4 +131,4 @@ export function $execCommand(options: ExecCommandOptions): Promise<$side_effect 
     });
 }
 
-/** Note: [🟢] Code for Node command-execution helper [$execCommand](src/utils/execCommand/$execCommand.ts) should never be published into packages that could be imported into browser environment */
+// Note: [🟢] Code for Node command-execution helper [$execCommand](src/utils/execCommand/$execCommand.ts) should never be published into packages that could be imported into browser environment

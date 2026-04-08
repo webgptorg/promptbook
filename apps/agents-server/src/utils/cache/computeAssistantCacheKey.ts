@@ -2,7 +2,13 @@ import { parseAgentSource } from '@promptbook-local/core';
 import { string_book } from '@promptbook-local/types';
 import { computeHash } from '@promptbook-local/utils';
 
+/**
+ * Length of assistant name hash.
+ */
 const ASSISTANT_NAME_HASH_LENGTH = 8;
+/**
+ * Constant for assistant cache key version.
+ */
 const ASSISTANT_CACHE_KEY_VERSION = 'assistant-cache-v2';
 
 /**

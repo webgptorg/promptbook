@@ -59,4 +59,4 @@ export async function $provideEnvFilename(): Promise<string_filename | null> {
     return null;
 }
 
-/** Note: [🟢] Code for Node environment helper [$provideEnvFilename](src/llm-providers/_common/register/$provideEnvFilename.ts) should never be published into packages that could be imported into browser environment */
+// Note: [🟢] Code for Node environment helper [$provideEnvFilename](src/llm-providers/_common/register/$provideEnvFilename.ts) should never be published into packages that could be imported into browser environment

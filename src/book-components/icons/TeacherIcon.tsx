@@ -10,6 +10,7 @@ type TeacherIconProps = {
  * Renders a teacher/graduation cap icon.
  *
  * @param props - SVG properties augmented with an optional `size`
+ *
  * @private internal subcomponent used by various components
  */
 export function TeacherIcon({ size = 24, color = 'currentColor' }: TeacherIconProps) {

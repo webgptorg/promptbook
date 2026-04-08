@@ -20,6 +20,7 @@ export type OrderJsonOptions<TObject extends JsonObject | JsonArray> = {
  * Orders JSON object by keys
  *
  * @returns The same type of object as the input re-ordered
+ *
  * @public exported from `@promptbook/utils`
  */
 export function orderJson<TObject extends JsonObject | JsonArray>(options: OrderJsonOptions<TObject>): TObject {

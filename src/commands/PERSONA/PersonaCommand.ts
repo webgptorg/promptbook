@@ -5,6 +5,7 @@ import type { string_persona_description } from '../../types/typeAliases';
  * Parsed PERSONA command
  *
  * @see ./personaCommandParser.ts for more details
+ *
  * @public exported from `@promptbook/editable`
  */
 export type PersonaCommand = {

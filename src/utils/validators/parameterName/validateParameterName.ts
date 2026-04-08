@@ -16,6 +16,7 @@ import { removeQuotes } from '../../normalization/removeQuotes';
  * @param parameterName The parameter name to validate and normalize.
  * @returns The validated and normalized parameter name.
  * @throws {ParseError} If the parameter name is empty, reserved, or contains invalid characters.
+ *
  * @private within the repository
  */
 export function validateParameterName(parameterName: string): string_parameter_name {

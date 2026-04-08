@@ -1,6 +1,9 @@
 import { spaceTrim } from 'spacetrim';
 import { GENERATOR_WARNING } from '../../src/config';
 
+/**
+ * Type describing git hub issue for formatting.
+ */
 type GitHubIssueForFormatting = {
     number: number;
     title: string;
@@ -24,6 +27,7 @@ type GitHubIssueForFormatting = {
 
 /**
  * Formats a GitHub issue as Markdown with metadata and optional comments.
+ *
  * @private function of ImportGitHub
  */
 export function formatGitHubIssue(issue: GitHubIssueForFormatting): string {

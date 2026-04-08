@@ -32,7 +32,7 @@ import { createPipelineCollectionFromPromise } from './createPipelineCollectionF
  * Options for `createPipelineCollectionFromDirectory` function
  *
  * Note: `rootDirname` is not needed because it is the folder in which `.book` or `.book` file is located
- *       This is not same as `path` which is the first argument of `createPipelineCollectionFromDirectory` - it can be a subfolder
+ * This is not same as `path` which is the first argument of `createPipelineCollectionFromDirectory` - it can be a subfolder
  */
 type CreatePipelineCollectionFromDirectoryOptions = Omit<PrepareAndScrapeOptions, 'rootDirname'> & {
     /**
@@ -85,6 +85,7 @@ type CreatePipelineCollectionFromDirectoryOptions = Omit<PrepareAndScrapeOptions
  * @param tools - Execution tools to be used for pipeline preparation if needed - If not provided, `$provideExecutionToolsForNode` will be used
  * @param options - Options for the collection creation
  * @returns PipelineCollection
+ *
  * @public exported from `@promptbook/node`
  */
 export async function createPipelineCollectionFromDirectory(
@@ -347,7 +348,5 @@ export async function createPipelineCollectionFromDirectory(
     return collection;
 }
 
-/**
- * TODO: [🖇] What about symlinks? Maybe option `isSymlinksFollowed`
- * TODO: Maybe move from `@promptbook/node` to `@promptbook/core` as we removes direct dependency on `fs`
- */
+// TODO: [🖇] What about symlinks? Maybe option `isSymlinksFollowed`
+// TODO: Maybe move from `@promptbook/node` to `@promptbook/core` as we removes direct dependency on `fs`

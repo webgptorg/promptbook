@@ -181,5 +181,5 @@ function parseIntOption(value: string): number {
     return parsed;
 }
 
-/** Note: [🟡] Code for CLI command [run](src/cli/cli-commands/coder/run.ts) should never be published outside of `@promptbook/cli` */
-/** Note: [💞] Ignore a discrepancy between file name and entity name */
+// Note: [🟡] Code for CLI command [run](src/cli/cli-commands/coder/run.ts) should never be published outside of `@promptbook/cli`
+// Note: [💞] Ignore a discrepancy between file name and entity name

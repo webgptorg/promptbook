@@ -11,6 +11,4 @@ export class ParseError extends Error {
     }
 }
 
-/**
- * TODO: Maybe split `ParseError` and `ApplyError`
- */
+// TODO: Maybe split `ParseError` and `ApplyError`

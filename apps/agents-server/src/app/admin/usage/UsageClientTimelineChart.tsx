@@ -30,6 +30,7 @@ type UsageClientTimelineChartProps = {
 
 /**
  * Usage timeline chart.
+ *
  * @private function of UsageClient
  */
 export function UsageClientTimelineChart(props: UsageClientTimelineChartProps) {

@@ -264,6 +264,7 @@ type CloudflareApiEnvelope<TResult> = {
  * Resolves optional Cloudflare sync configuration from environment variables.
  *
  * @returns Loaded configuration or a human-readable skip reason.
+ *
  * @private function of `sync-vercel-domains`
  */
 export function resolveCloudflareSyncConfiguration(): CloudflareSyncConfigurationResolution {
@@ -295,6 +296,7 @@ export function resolveCloudflareSyncConfiguration(): CloudflareSyncConfiguratio
  *
  * @param options - Cloudflare/Vercel sync options.
  * @returns Planned/applied Cloudflare DNS changes.
+ *
  * @private function of `sync-vercel-domains`
  */
 export async function syncCloudflareDnsRecords(options: {
@@ -521,6 +523,7 @@ export async function createCloudflareDnsRecordSyncPlan(options: {
  * @param type - DNS record type.
  * @param content - Raw record content.
  * @returns Normalized content.
+ *
  * @private function of `sync-vercel-domains`
  */
 export function normalizeCloudflareDnsRecordContent(type: string, content: string): string {

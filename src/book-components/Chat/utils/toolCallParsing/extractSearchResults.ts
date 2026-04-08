@@ -15,6 +15,7 @@ type SearchResultsExtraction = {
  *
  * @param text - Raw search text.
  * @returns Parsed search records.
+ *
  * @private function of extractSearchResults
  */
 function parseSearchResultsFromText(text: string): Array<TODO_any> {
@@ -83,6 +84,7 @@ function parseSearchResultsFromText(text: string): Array<TODO_any> {
  *
  * @param text - JSON candidate text.
  * @returns Parsed result list or `null`.
+ *
  * @private function of extractSearchResults
  */
 function parseSearchResultsFromJson(text: string): Array<TODO_any> | null {
@@ -106,6 +108,7 @@ function parseSearchResultsFromJson(text: string): Array<TODO_any> | null {
  *
  * @param resultRaw - Raw object payload.
  * @returns Extracted result list.
+ *
  * @private function of extractSearchResults
  */
 function getResultsFromObject(resultRaw: Record<string, TODO_any>): Array<TODO_any> {
@@ -142,6 +145,7 @@ function getResultsFromObject(resultRaw: Record<string, TODO_any>): Array<TODO_a
  *
  * @param resultRaw - Raw object payload.
  * @returns Raw text or `null`.
+ *
  * @private function of extractSearchResults
  */
 function getRawSearchText(resultRaw: Record<string, TODO_any>): string | null {
@@ -168,6 +172,7 @@ function getRawSearchText(resultRaw: Record<string, TODO_any>): string | null {
  *
  * @param resultRaw - Raw search tool output.
  * @returns Normalized extraction object.
+ *
  * @private function of toolCallParsing
  */
 export function extractSearchResults(resultRaw: TODO_any): SearchResultsExtraction {

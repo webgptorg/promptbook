@@ -6,6 +6,9 @@ import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingConte
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { $clearAgentChatFeedback } from '../../../utils/chatFeedbackAdmin';
 
+/**
+ * Props for clear agent chat feedback button.
+ */
 type ClearAgentChatFeedbackButtonProps = {
     /**
      * Agent name for which the chat feedback should be cleared.

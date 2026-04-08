@@ -34,6 +34,4 @@ export type PostprocessingFunction =
  */
 export type ToolFunction = (args: TODO_any) => Promise<TODO_any>;
 
-/**
- * TODO: [🧠][💙] Distinct between options passed into ExecutionTools and to ExecutionTools.execute
- */
+// TODO: [🧠][💙] Distinct between options passed into ExecutionTools and to ExecutionTools.execute

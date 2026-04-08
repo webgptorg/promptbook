@@ -151,7 +151,5 @@ export const COMMITMENT_REGISTRY = [
     // <- TODO: Prompt: Leverage aliases instead of duplicating commitment definitions
 ] as const satisfies ReadonlyArray<CommitmentDefinition>;
 
-/**
- * TODO: [🧠] Maybe create through standardized $register
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// TODO: [🧠] Maybe create through standardized $register
+// Note: [💞] Ignore a discrepancy between file name and entity name

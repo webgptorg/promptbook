@@ -4,8 +4,14 @@
 import LineItemBlock from '../LineItemBlock'
 */
 
+/**
+ * Constant for { enum }.
+ */
 const { Enum } = require('enumify');
 
+/**
+ * Handles first format.
+ */
 function firstFormat(lineItem) {
     if (lineItem.words.length === 0) {
         return null;
@@ -13,6 +19,9 @@ function firstFormat(lineItem) {
     return lineItem.words[0].format;
 }
 
+/**
+ * Checks punctation character.
+ */
 function isPunctationCharacter(string) {
     if (string.length !== 1) {
         return false;
@@ -20,6 +29,9 @@ function isPunctationCharacter(string) {
     return string[0] === '.' || string[0] === '!' || string[0] === '?';
 }
 
+/**
+ * Handles lines to text.
+ */
 function linesToText(lineItems, disableInlineFormats) {
     var text = '';
     var openFormat;
@@ -64,6 +76,9 @@ function linesToText(lineItems, disableInlineFormats) {
 }
 
 // An Markdown block
+/**
+ * Class implementing block type.
+ */
 class BlockType extends Enum {}
 
 module.exports = BlockType;

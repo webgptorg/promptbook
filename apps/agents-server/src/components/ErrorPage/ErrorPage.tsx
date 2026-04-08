@@ -1,5 +1,8 @@
 import type { ReactNode } from 'react';
 
+/**
+ * Props for error page.
+ */
 type ErrorPageProps = {
     /**
      * The title of the error page (e.g. "404 Not Found")

@@ -17,6 +17,7 @@ import { pdfScraperMetadata } from './register-metadata';
  * Scraper for .pdf files
  *
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/pdf`
  */
 export class PdfScraper implements Converter, Scraper {
@@ -69,9 +70,7 @@ export class PdfScraper implements Converter, Scraper {
     }
 }
 
-/** Note: [🟢] Code for Node scraper implementation [PdfScraper](src/scrapers/pdf/PdfScraper.ts) should never be published into packages that could be imported into browser environment */
-/**
- * TODO: [👣] Converted pdf documents can act as cached items - there is no need to run conversion each time
- * TODO: [🪂] Do it in parallel 11:11
- * Note: No need to aggregate usage here, it is done by intercepting the llmTools
- */
+// Note: [🟢] Code for Node scraper implementation [PdfScraper](src/scrapers/pdf/PdfScraper.ts) should never be published into packages that could be imported into browser environment
+// TODO: [👣] Converted pdf documents can act as cached items - there is no need to run conversion each time
+// TODO: [🪂] Do it in parallel 11:11
+// Note: No need to aggregate usage here, it is done by intercepting the llmTools

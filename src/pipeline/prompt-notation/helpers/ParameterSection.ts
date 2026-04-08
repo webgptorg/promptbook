@@ -12,6 +12,7 @@ type StructuredParameterEntry = { name: string; value: string; jsonValue: string
  * Formats the placeholder used in the prompt body for a parameter.
  *
  * @param name Parameter placeholder name.
+ *
  * @private function of ParameterSection
  */
 function formatParameterPlaceholder(name: string): string {
@@ -22,6 +23,7 @@ function formatParameterPlaceholder(name: string): string {
  * Formats a single line entry for structured parameters.
  *
  * @param item Parameter entry data.
+ *
  * @private function of ParameterSection
  */
 function formatParameterListItem(item: StructuredParameterEntry): string {
@@ -35,6 +37,7 @@ function formatParameterListItem(item: StructuredParameterEntry): string {
  * Builds the structured parameters section appended to the prompt.
  *
  * @param items Parameter entries to include.
+ *
  * @private function of ParameterSection
  */
 function buildParametersSection(items: StructuredParameterEntry[]): string {

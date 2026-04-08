@@ -5,6 +5,7 @@ import { spaceTrim } from 'spacetrim';
  *
  * @param content - Explicit 1:1 sample text.
  * @returns Writing-sample guidance ready for one system-message section.
+ *
  * @private internal utility of writing commitments
  */
 export function createWritingSampleSection(content: string): string {
@@ -23,6 +24,7 @@ export function createWritingSampleSection(content: string): string {
  *
  * @param content - Writing-only instructions.
  * @returns Writing-rules guidance ready for one system-message section.
+ *
  * @private internal utility of writing commitments
  */
 export function createWritingRulesSection(content: string): string {
@@ -36,6 +38,4 @@ export function createWritingRulesSection(content: string): string {
     `);
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

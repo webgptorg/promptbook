@@ -2,6 +2,7 @@ import { Client } from 'pg';
 
 /**
  * One physical table selected for backup.
+ *
  * @private type of backupSupabase
  */
 export type TableReference = {
@@ -22,6 +23,7 @@ export type TableReference = {
  * @param client Connected PostgreSQL client.
  * @param schemaNames Schemas selected for backup.
  * @returns Ordered table references.
+ *
  * @private function of backupSupabase
  */
 export async function fetchBackupSupabaseTableReferences(

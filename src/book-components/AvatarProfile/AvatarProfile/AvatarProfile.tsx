@@ -98,6 +98,4 @@ export function AvatarProfile(props: AvatarProfileProps) {
     );
 }
 
-/**
- * TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)
- */
+// TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)

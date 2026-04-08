@@ -9,8 +9,17 @@ import { parseHexColor } from './parsers/parseHexColor';
 import { parseHslColor } from './parsers/parseHslColor';
 import { parseRgbColor, parseRgbaColor } from './parsers/parseRgbColor';
 
+/**
+ * Pattern matching hsl regex.
+ */
 const HSL_REGEX_PATTERN = /^hsl\(\s*([0-9.]+)\s*,\s*([0-9.]+)%\s*,\s*([0-9.]+)%\s*\)$/;
+/**
+ * Pattern matching RGB regex.
+ */
 const RGB_REGEX_PATTERN = /^rgb\(\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*\)$/;
+/**
+ * Pattern matching rgba regex.
+ */
 const RGBA_REGEX_PATTERN = /^rgba\(\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*\)$/;
 
 /**

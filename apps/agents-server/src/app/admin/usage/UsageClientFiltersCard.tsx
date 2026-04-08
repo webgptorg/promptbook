@@ -55,6 +55,7 @@ type UsageClientFiltersCardProps = {
 
 /**
  * Filter controls and scope chips for `<UsageClient/>`.
+ *
  * @private function of UsageClient
  */
 export function UsageClientFiltersCard(props: UsageClientFiltersCardProps) {

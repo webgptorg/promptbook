@@ -29,6 +29,7 @@ const detectTouchFirstInput = () => {
  * Tracks whether interactions should prioritize tap/click expansion over hover behavior.
  *
  * @returns True for touch-first or coarse-pointer devices.
+ *
  * @private function of Header
  */
 export function useHeaderTouchInput() {

@@ -6,6 +6,9 @@ import { MessageProvider } from '../../interfaces/MessageProvider';
 import { OutboundEmail } from '../_common/Email';
 import { parseEmailAddress } from '../_common/utils/parseEmailAddress';
 
+/**
+ * Class implementing sendgrid message provider.
+ */
 export class SendgridMessageProvider implements MessageProvider {
     constructor(private readonly apiKey: string) {
         sendgridEmailClient.setApiKey(this.apiKey);

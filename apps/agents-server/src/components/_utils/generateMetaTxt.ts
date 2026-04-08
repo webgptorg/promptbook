@@ -112,6 +112,4 @@ export async function generateHumansTxt(): Promise<string> {
     );
 }
 
-/**
- * TODO: Use `spaceTrim`
- */
+// TODO: Use `spaceTrim`

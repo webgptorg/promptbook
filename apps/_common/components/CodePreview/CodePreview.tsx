@@ -2,11 +2,17 @@
 
 import Editor from '@monaco-editor/react';
 
+/**
+ * Props for code preview.
+ */
 type CodePreviewProps = {
     code: string;
     language?: string;
 };
 
+/**
+ * Handles code preview.
+ */
 export function CodePreview(props: CodePreviewProps) {
     const { code, language } = props;
     return (

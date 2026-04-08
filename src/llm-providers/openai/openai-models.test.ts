@@ -8,6 +8,4 @@ describe('OPENAI_MODELS', () => {
     });
 });
 
-/**
- * TODO: [🧠] Maybe do this test for all model providers + boilerplate
- */
+// TODO: [🧠] Maybe do this test for all model providers + boilerplate

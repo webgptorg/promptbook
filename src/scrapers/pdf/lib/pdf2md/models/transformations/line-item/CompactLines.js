@@ -1,11 +1,32 @@
 // @flow
 
+/**
+ * Constant for to line item transformation.
+ */
 const ToLineItemTransformation = require('../ToLineItemTransformation');
+/**
+ * Constant for parse result.
+ */
 const ParseResult = require('../../ParseResult');
+/**
+ * Constant for line item.
+ */
 const LineItem = require('../../LineItem');
+/**
+ * Constant for text item line grouper.
+ */
 const TextItemLineGrouper = require('../../TextItemLineGrouper');
+/**
+ * Constant for line converter.
+ */
 const LineConverter = require('../../LineConverter');
+/**
+ * Constant for block type.
+ */
 const BlockType = require('../../markdown/BlockType');
+/**
+ * Constant for { removed annotation, added annotation }.
+ */
 const { REMOVED_ANNOTATION, ADDED_ANNOTATION } = require('../../Annotation');
 
 // gathers text items on the same y line to one line item

@@ -9,6 +9,9 @@ import type { ChatFeedbackMode } from '../../../../utils/chatFeedbackMode';
 import { AgentChatWrapper } from '../AgentChatWrapper';
 import { BookEditorWrapper } from '../book/BookEditorWrapper';
 
+/**
+ * Props for agent book and chat.
+ */
 type AgentBookAndChatProps = {
     agentName: string;
     initialAgentSource: string_book;
@@ -20,6 +23,9 @@ type AgentBookAndChatProps = {
     feedbackMode: ChatFeedbackMode;
 };
 
+/**
+ * Handles agent book and chat.
+ */
 export function AgentBookAndChat(props: AgentBookAndChatProps) {
     const {
         agentName,

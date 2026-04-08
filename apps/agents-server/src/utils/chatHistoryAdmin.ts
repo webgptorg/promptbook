@@ -1,9 +1,21 @@
 import type { AgentsServerDatabase } from '../database/schema';
 
+/**
+ * Type describing chat history row.
+ */
 export type ChatHistoryRow = AgentsServerDatabase['public']['Tables']['ChatHistory']['Row'];
+/**
+ * Type describing chat history sort field.
+ */
 export type ChatHistorySortField = 'createdAt' | 'agentName' | 'id';
+/**
+ * Type describing chat history sort order.
+ */
 export type ChatHistorySortOrder = 'asc' | 'desc';
 
+/**
+ * Response for chat history list.
+ */
 export type ChatHistoryListResponse = {
     items: ChatHistoryRow[];
     total: number;
@@ -13,6 +25,9 @@ export type ChatHistoryListResponse = {
     sortOrder: ChatHistorySortOrder;
 };
 
+/**
+ * Type describing chat history list params.
+ */
 export type ChatHistoryListParams = {
     page?: number;
     pageSize?: number;

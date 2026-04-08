@@ -1,11 +1,38 @@
+/**
+ * Constant for text item.
+ */
 const TextItem = require('./TextItem');
+/**
+ * Constant for word.
+ */
 const Word = require('./Word');
+/**
+ * Constant for word type.
+ */
 const WordType = require('./markdown/WordType');
+/**
+ * Constant for word format.
+ */
 const WordFormat = require('./markdown/WordFormat');
+/**
+ * Constant for line item.
+ */
 const LineItem = require('./LineItem');
+/**
+ * Constant for stashing stream.
+ */
 const StashingStream = require('./StashingStream');
+/**
+ * Constant for parsed elements.
+ */
 const ParsedElements = require('./ParsedElements');
+/**
+ * Constant for { is number, is list item character }.
+ */
 const { isNumber, isListItemCharacter } = require('../util/string-functions');
+/**
+ * Constant for { sort by x }.
+ */
 const { sortByX } = require('../util/page-item-functions');
 
 // Converts text items which have been grouped to a line (through TextItemLineGrouper) to a single LineItem doing inline transformations like
@@ -46,6 +73,9 @@ module.exports = class LineConverter {
     }
 };
 
+/**
+ * Class implementing word detection stream.
+ */
 class WordDetectionStream extends StashingStream {
     constructor(fontToFormats) {
         super();
@@ -143,6 +173,9 @@ class WordDetectionStream extends StashingStream {
     }
 }
 
+/**
+ * Handles combine text.
+ */
 function combineText(textItems) {
     var text = '';
     var lastItem;

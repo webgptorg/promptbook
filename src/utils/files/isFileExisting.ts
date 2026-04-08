@@ -24,8 +24,6 @@ export async function isFileExisting(filename: string_filename, fs: FilesystemTo
     return isFile;
 }
 
-/**
- * Note: Not [~🟢~] because it is not directly dependent on `fs
- * TODO: [🐠] This can be a validator - with variants that return true/false and variants that throw errors with meaningless messages
- * TODO: [🖇] What about symlinks?
- */
+// Note: Not [~🟢~] because it is not directly dependent on `fs
+// TODO: [🐠] This can be a validator - with variants that return true/false and variants that throw errors with meaningless messages
+// TODO: [🖇] What about symlinks?

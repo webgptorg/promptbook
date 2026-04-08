@@ -18,6 +18,4 @@ export type LlmCall = {
     readonly report: ExecutionPromptReportJson;
 };
 
-/**
- * TODO: !!! Maybe different shape of LlmCall
- */
+// TODO: !!! Maybe different shape of LlmCall

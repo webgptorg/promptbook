@@ -11,7 +11,9 @@ import type { string_parameter_value_private } from './string_parameter_value_pr
  * - **OUTPUT PARAMETERs** are not used internally in the pipeline, but are returned as the result of the pipeline execution.
  *
  * Note: [🚉] This is fully serializable as JSON
+ *
  * @see https://ptbk.io/parameters
+ *
  * @private internal utility of `string_parameter_name.ts`
  */
 export type Parameters_private = Exclude<Record<string_parameter_name, string_parameter_value_private>, ReservedParameters_private>;

@@ -2,6 +2,9 @@ import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import styles from './Tooltip.module.css';
 
+/**
+ * Props for tooltip.
+ */
 type TooltipProps = {
     /**
      * The content to display in the tooltip

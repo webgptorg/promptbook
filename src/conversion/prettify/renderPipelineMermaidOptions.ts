@@ -146,10 +146,8 @@ export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: re
     return promptbookMermaid;
 }
 
-/**
- * TODO: [🧠] FOREACH in mermaid graph
- * TODO: [🧠] Knowledge in mermaid graph
- * TODO: [🧠] Personas in mermaid graph
- * TODO: Maybe use some Mermaid package instead of string templating
- * TODO: [🕌] When more than 2 functionalities, split into separate functions
- */
+// TODO: [🧠] FOREACH in mermaid graph
+// TODO: [🧠] Knowledge in mermaid graph
+// TODO: [🧠] Personas in mermaid graph
+// TODO: Maybe use some Mermaid package instead of string templating
+// TODO: [🕌] When more than 2 functionalities, split into separate functions

@@ -1,6 +1,9 @@
 import { ReactNode } from 'react';
 import { Header } from '../Header/Header';
 
+/**
+ * Handles utility page layout.
+ */
 export function UtilityPageLayout({
     title,
     description,

@@ -138,6 +138,7 @@ const MEMORY_STATUS_CLASS_BY_TONE: Record<MemoryStatusTone, string> = {
  *
  * @param options - View fragments required to render the memory modal.
  * @returns Memory-specific modal JSX or `null` when the tool is unrelated.
+ *
  * @private function of ChatToolCallModal
  */
 export function renderMemoryToolCallDetails(options: RenderMemoryToolCallDetailsOptions): ReactElement | null {
@@ -189,6 +190,7 @@ export function renderMemoryToolCallDetails(options: RenderMemoryToolCallDetails
  *
  * @param options - Store action payload and arguments.
  * @returns Store-specific memory modal content.
+ *
  * @private function of ChatToolCallModal
  */
 function renderMemoryStoreSection(options: {
@@ -229,6 +231,7 @@ function renderMemoryStoreSection(options: {
  *
  * @param options - Retrieve action payload and arguments.
  * @returns Retrieve-specific memory modal content.
+ *
  * @private function of ChatToolCallModal
  */
 function renderMemoryRetrieveSection(options: {
@@ -299,6 +302,7 @@ function renderMemoryRetrieveSection(options: {
  * @param raw - Raw data returned by the tool call.
  * @param fallbackAction - Action to assume when the payload does not declare one.
  * @returns Normalized memory details.
+ *
  * @private function of ChatToolCallModal
  */
 function buildMemoryToolResult(raw: TODO_any, fallbackAction: 'store' | 'retrieve'): MemoryToolResult | null {
@@ -342,6 +346,7 @@ function buildMemoryToolResult(raw: TODO_any, fallbackAction: 'store' | 'retriev
  *
  * @param entry - Input record from the memory tool.
  * @returns Normalized record or `null` when the entry is invalid.
+ *
  * @private function of ChatToolCallModal
  */
 function normalizeMemoryRecord(entry: TODO_any): MemoryRecord | null {
@@ -364,6 +369,7 @@ function normalizeMemoryRecord(entry: TODO_any): MemoryRecord | null {
  * @param status - Raw status string returned by the tool.
  * @param action - Optional action to better describe neutral statuses.
  * @returns Label and tone for badge styling.
+ *
  * @private function of ChatToolCallModal
  */
 function buildMemoryStatusInfo(status: MemoryStatusValue, action: 'store' | 'retrieve'): MemoryStatusInfo {
@@ -396,6 +402,7 @@ function buildMemoryStatusInfo(status: MemoryStatusValue, action: 'store' | 'ret
  *
  * @param value - Potential ISO timestamp string.
  * @returns Formatted label or `null` when the timestamp is invalid.
+ *
  * @private function of ChatToolCallModal
  */
 function formatMemoryTimestamp(value?: string): string | null {

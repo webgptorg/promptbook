@@ -95,6 +95,4 @@ export function buildPromptFilename(datePrefix: string, number: number, slug: st
     return `${datePrefix}-${formatPromptNumber(number)}-${slug}.md`;
 }
 
-/**
- * Note: [?] Code in this file should never be published in any package
- */
+// Note: [?] Code in this file should never be published in any package

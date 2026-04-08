@@ -15,4 +15,4 @@ describe('how splitting of array works', () => {
     });
 });
 
-/** Note: [⚫] Code for repository script [splitArrayIntoChunks.test](scripts/repair-imports/utils/splitArrayIntoChunks.test.ts) should never be published in any package */
+// Note: [⚫] Code for repository script [splitArrayIntoChunks.test](scripts/repair-imports/utils/splitArrayIntoChunks.test.ts) should never be published in any package

@@ -1,6 +1,9 @@
 import { spaceTrim } from 'spacetrim';
 import type { ChatMessage } from '../../../../../../src/book-components/Chat/types/ChatMessage';
 
+/**
+ * Map of rich formatting scenario.
+ */
 export const richFormattingScenario = {
     name: 'Rich Formatting Showcase',
     messages: [

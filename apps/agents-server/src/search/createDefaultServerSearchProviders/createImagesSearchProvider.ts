@@ -21,6 +21,7 @@ type ImageSearchRow = Pick<
  * Creates provider for generated images (admin-only).
  *
  * @returns Configured images search provider.
+ *
  * @private function of createDefaultServerSearchProviders
  */
 export function createImagesSearchProvider(): ServerSearchProvider {

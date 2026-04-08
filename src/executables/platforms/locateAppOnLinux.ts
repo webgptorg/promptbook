@@ -23,5 +23,5 @@ export async function locateAppOnLinux({
     }
 }
 
-/** Note: [🟢] Code for Node executable locator [locateAppOnLinux](src/executables/platforms/locateAppOnLinux.ts) should never be published into packages that could be imported into browser environment */
-/** TODO: [🧠][♿] Maybe export through `@promptbook/node` */
+// Note: [🟢] Code for Node executable locator [locateAppOnLinux](src/executables/platforms/locateAppOnLinux.ts) should never be published into packages that could be imported into browser environment
+// TODO: [🧠][♿] Maybe export through `@promptbook/node`

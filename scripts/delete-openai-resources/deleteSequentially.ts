@@ -3,6 +3,7 @@ import { formatError } from './formatError';
 
 /**
  * Captures a deletion failure for a specific resource.
+ *
  * @private type of DeleteOpenAiResources
  */
 export type DeletionFailure<TSummary extends { id: string }> = {
@@ -12,6 +13,7 @@ export type DeletionFailure<TSummary extends { id: string }> = {
 
 /**
  * Result of a bulk deletion run.
+ *
  * @private type of DeleteOpenAiResources
  */
 export type DeletionResult<TSummary extends { id: string }> = {
@@ -21,6 +23,7 @@ export type DeletionResult<TSummary extends { id: string }> = {
 
 /**
  * Configuration for a sequential deletion task.
+ *
  * @private type of DeleteOpenAiResources
  */
 export type DeletionTask<TSummary extends { id: string }> = {
@@ -33,6 +36,7 @@ export type DeletionTask<TSummary extends { id: string }> = {
 
 /**
  * Deletes resources sequentially, logging each deletion outcome.
+ *
  * @private function of DeleteOpenAiResources
  */
 export async function deleteSequentially<TSummary extends { id: string }>(

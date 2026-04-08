@@ -5,6 +5,9 @@ import { useMemo } from 'react';
 import { parseAgentSource } from '../../../../../src/book-2.0/agent-source/parseAgentSource';
 import { AgentProfile } from './AgentProfile';
 
+/**
+ * Props for agent profile from source.
+ */
 type AgentProfileFromSourceProps = Omit<React.ComponentProps<typeof AgentProfile>, 'agent'> & {
     /**
      * Source code of the agent (book)
@@ -12,6 +15,9 @@ type AgentProfileFromSourceProps = Omit<React.ComponentProps<typeof AgentProfile
     readonly source: string_book;
 };
 
+/**
+ * Handles agent profile from source.
+ */
 export function AgentProfileFromSource(props: AgentProfileFromSourceProps) {
     const { source, ...rest } = props;
 

@@ -5,6 +5,9 @@ import {
     resolvePromptThreadBeforeUserMessage,
 } from './userChatMessageLifecycle';
 
+/**
+ * Message payload for user chat.
+ */
 type UserChatMessage = Parameters<typeof resolvePromptThreadBeforeUserMessage>[0][number];
 
 describe('userChatMessageLifecycle', () => {

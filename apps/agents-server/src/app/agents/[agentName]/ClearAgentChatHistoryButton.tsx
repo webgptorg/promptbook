@@ -6,6 +6,9 @@ import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingConte
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { $clearAgentChatHistory } from '../../../utils/chatHistoryAdmin';
 
+/**
+ * Props for clear agent chat history button.
+ */
 type ClearAgentChatHistoryButtonProps = {
     /**
      * Agent name for which the chat history should be cleared.

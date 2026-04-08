@@ -48,6 +48,7 @@ export function $invalidateProvidedAgentReferenceResolverCache(): void {
  *
  * @param options - Control cache invalidation behavior
  * @returns Resolver that expands `{name}`/`@id` tokens into URLs
+ *
  * @private
  */
 export async function $provideAgentReferenceResolver(options?: {

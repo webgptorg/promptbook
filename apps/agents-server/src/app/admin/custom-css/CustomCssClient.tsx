@@ -11,6 +11,9 @@ import {
 } from '../../../constants/customStylesheet';
 import { CUSTOM_RESOURCE_INPUT_CLASS_NAME, readJsonResponse } from '../custom-resource/shared';
 
+/**
+ * Constant for new file base name.
+ */
 const NEW_FILE_BASE_NAME = 'custom-stylesheet';
 
 /**

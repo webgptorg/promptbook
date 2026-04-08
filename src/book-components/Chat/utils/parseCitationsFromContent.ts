@@ -134,6 +134,4 @@ export function extractCitationsFromMessage(message: ChatMessage): ChatMessage {
     };
 }
 
-/**
- * TODO: Maybe spread into multiple files
- */
+// TODO: Maybe spread into multiple files

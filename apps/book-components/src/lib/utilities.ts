@@ -3,6 +3,9 @@ import fs from 'fs';
 import yaml from 'js-yaml';
 import path from 'path';
 
+/**
+ * Type describing utility metadata.
+ */
 export type UtilityMetadata = {
     id: string;
     name: string;
@@ -33,6 +36,9 @@ export type UtilityMetadata = {
     type: 'miniapp' | 'documentation';
 };
 
+/**
+ * Gets all utilities.
+ */
 export function getAllUtilities(): UtilityMetadata[] {
     const utilitiesDir = path.join(process.cwd(), 'src/utilities');
 
@@ -98,11 +104,17 @@ export function getAllUtilities(): UtilityMetadata[] {
     return utilities.sort((a, b) => a.name.localeCompare(b.name));
 }
 
+/**
+ * Gets utility by Id.
+ */
 export function getUtilityById(id: string): UtilityMetadata | null {
     const utilities = getAllUtilities();
     return utilities.find((utility) => utility.id === id) || null;
 }
 
+/**
+ * Gets utilities by category.
+ */
 export function getUtilitiesByCategory(): Record<string, UtilityMetadata[]> {
     const utilities = getAllUtilities();
     const categorized: Record<string, UtilityMetadata[]> = {};
@@ -117,6 +129,9 @@ export function getUtilitiesByCategory(): Record<string, UtilityMetadata[]> {
     return categorized;
 }
 
+/**
+ * Handles search utilities.
+ */
 export function searchUtilities(query: string): UtilityMetadata[] {
     const utilities = getAllUtilities();
     const lowercaseQuery = query.toLowerCase();

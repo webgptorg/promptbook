@@ -4,6 +4,9 @@
 import TextItem from './TextItem'
 */
 
+/**
+ * Constant for { sort by x }.
+ */
 const { sortByX } = require('../util/page-item-functions');
 
 // Groups all text items which are on the same y line

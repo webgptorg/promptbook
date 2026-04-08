@@ -9,6 +9,9 @@ import { isAgentDeleted } from '../_utils';
 import { BookEditorWrapper } from './BookEditorWrapper';
 import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
 
+/**
+ * Handles agent book page.
+ */
 export default async function AgentBookPage({ params }: { params: Promise<{ agentName: string }> }) {
     $sideEffect(headers());
 
@@ -40,6 +43,4 @@ export default async function AgentBookPage({ params }: { params: Promise<{ agen
     );
 }
 
-/**
- * TODO: [🚗] Components and pages here should be just tiny UI wrapper around proper agent logic and components
- */
+// TODO: [🚗] Components and pages here should be just tiny UI wrapper around proper agent logic and components

@@ -69,9 +69,9 @@ const PCM_U8_MIDPOINT = 128;
 /**
  * Speech recognition using OpenAI Whisper API to transcribe audio into text
  *
- * @private because it requires server-client communication with a proxy endpoint
- *
  * Note: This implementation uses a server-side proxy to avoid exposing the OpenAI API key on the client.
+ *
+ * @private because it requires server-client communication with a proxy endpoint
  */
 export class OpenAiSpeechRecognition implements SpeechRecognition {
     private mediaRecorder: MediaRecorder | null = null;
@@ -427,6 +427,7 @@ const ISO_639_1_CODE_PATTERN = /^[a-z]{2}$/i;
  *
  * @param language Optional language tag reported by the browser or headers.
  * @returns A normalized ISO-639-1 language code or `undefined` when the input cannot be simplified.
+ *
  * @private
  */
 function resolveSpeechRecognitionLanguageTagForOpenAi(language?: string): string | undefined {
@@ -457,6 +458,7 @@ function resolveSpeechRecognitionLanguageTagForOpenAi(language?: string): string
  *
  * @param error Unknown browser/runtime error.
  * @returns Stable speech-recognition code.
+ *
  * @private internal helper of `OpenAiSpeechRecognition`
  */
 function resolveSpeechRecognitionErrorCode(error: unknown): 'permission-denied' | 'audio-capture' | 'unknown' {

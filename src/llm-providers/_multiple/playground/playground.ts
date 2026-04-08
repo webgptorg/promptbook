@@ -25,6 +25,9 @@ playground()
         process.exit(0);
     });
 
+/**
+ * Handles playground.
+ */
 async function playground() {
     console.info(`🧸  Multiple LLMs Playground`);
 
@@ -135,4 +138,4 @@ async function playground() {
     //========================================/
 }
 
-/** Note: [⚫] Code for playground [_multiple playground](src/llm-providers/_multiple/playground/playground.ts) should never be published in any package */
+// Note: [⚫] Code for playground [_multiple playground](src/llm-providers/_multiple/playground/playground.ts) should never be published in any package

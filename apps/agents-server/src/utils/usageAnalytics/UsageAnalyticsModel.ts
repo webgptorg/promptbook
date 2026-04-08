@@ -108,6 +108,7 @@ export type UsageAnalyticsCall = {
 
 /**
  * Shared constants for usage analytics.
+ *
  * @private function of getUsageAnalyticsResponse
  */
 export const UsageAnalyticsModel = {

@@ -15,7 +15,13 @@ import type {
     AgentOrganizationLoadResult,
 } from './types';
 
+/**
+ * Type describing agent row.
+ */
 type AgentRow = AgentsServerDatabase['public']['Tables']['Agent']['Row'];
+/**
+ * Type describing agent folder row.
+ */
 type AgentFolderRow = AgentsServerDatabase['public']['Tables']['AgentFolder']['Row'];
 
 /**

@@ -140,6 +140,7 @@ const TOOL_CALL_REPORT_FILENAME_UNSAFE_CHARACTER_PATTERN = /[^a-zA-Z0-9_-]/g;
  * Renders a technical view with raw tool input/output payloads.
  *
  * @param options - Rendering options for advanced mode.
+ *
  * @private function of ChatToolCallModal
  */
 export function renderAdvancedToolCallDetails(options: AdvancedToolCallDetailsOptions): ReactElement {
@@ -186,6 +187,7 @@ export function renderAdvancedToolCallDetails(options: AdvancedToolCallDetailsOp
  *
  * @param options - Rendering options for advanced mode.
  * @returns Markdown report content.
+ *
  * @private function of ChatToolCallModal
  */
 export function createAdvancedToolCallReportMarkdown(options: AdvancedToolCallDetailsOptions): string {
@@ -230,6 +232,7 @@ export function createAdvancedToolCallReportMarkdown(options: AdvancedToolCallDe
  *
  * @param toolCall - Tool call currently selected in the modal.
  * @returns Safe markdown filename.
+ *
  * @private function of ChatToolCallModal
  */
 export function createAdvancedToolCallReportFilename(toolCall: NonNullable<ChatMessage['toolCalls']>[number]): string {
@@ -245,6 +248,7 @@ export function createAdvancedToolCallReportFilename(toolCall: NonNullable<ChatM
  *
  * @param options - Rendering options for advanced mode.
  * @returns Resolved display metadata for the selected tool call.
+ *
  * @private function of ChatToolCallModal
  */
 function resolveAdvancedToolCallHeader(options: AdvancedToolCallDetailsOptions): {
@@ -269,6 +273,7 @@ function resolveAdvancedToolCallHeader(options: AdvancedToolCallDetailsOptions):
  * @param toolCall - Tool call currently selected in the modal.
  * @param availableTools - Optional list of tools that were available during the turn.
  * @returns Ordered list of payload sections.
+ *
  * @private function of ChatToolCallModal
  */
 function createAdvancedToolCallPayloadSections(
@@ -342,6 +347,7 @@ type RenderAdvancedToolCallPayloadOptions = {
  *
  * @param options - Rendering options for one payload section.
  * @returns Monaco-backed payload renderer.
+ *
  * @private function of ChatToolCallModal
  */
 function renderAdvancedToolCallPayload(options: RenderAdvancedToolCallPayloadOptions): ReactElement {
@@ -375,6 +381,7 @@ function renderAdvancedToolCallPayload(options: RenderAdvancedToolCallPayloadOpt
  *
  * @param content - Editor payload content.
  * @returns Height in pixels.
+ *
  * @private function of ChatToolCallModal
  */
 function resolveToolCallPayloadEditorHeight(content: string): number {
@@ -412,6 +419,7 @@ type CreateToolCallPayloadMonacoPathOptions = {
  *
  * @param options - Path composition inputs.
  * @returns Stable in-memory Monaco model URI.
+ *
  * @private function of ChatToolCallModal
  */
 function createToolCallPayloadMonacoPath(options: CreateToolCallPayloadMonacoPathOptions): string {
@@ -430,6 +438,7 @@ function createToolCallPayloadMonacoPath(options: CreateToolCallPayloadMonacoPat
  *
  * @param value - Raw segment value.
  * @returns Monaco-safe segment string.
+ *
  * @private function of ChatToolCallModal
  */
 function sanitizeMonacoPathPart(value: string): string {
@@ -441,6 +450,7 @@ function sanitizeMonacoPathPart(value: string): string {
  *
  * @param value - Raw string payload.
  * @returns Parsed payload when string is JSON, otherwise `undefined`.
+ *
  * @private function of ChatToolCallModal
  */
 function tryParseJsonString(value: string): TODO_any | undefined {
@@ -463,6 +473,7 @@ function tryParseJsonString(value: string): TODO_any | undefined {
  *
  * @param value - Raw payload value.
  * @returns Monaco language + formatted content.
+ *
  * @private function of ChatToolCallModal
  */
 function formatToolCallPayload(value: TODO_any): FormattedToolCallPayload {
@@ -509,6 +520,7 @@ function formatToolCallPayload(value: TODO_any): FormattedToolCallPayload {
  *
  * @param text - Chiplet label text.
  * @returns First character or `null` when empty.
+ *
  * @private function of ChatToolCallModal
  */
 function extractLeadingEmoji(text?: string): string | null {

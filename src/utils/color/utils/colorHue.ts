@@ -4,7 +4,6 @@ import { Color } from '../Color';
  * Calculates hue of the color
  *
  * @returns hue in degrees <0-360)
- *
  * @see https://en.wikipedia.org/wiki/HSL_and_HSV#Hue_and_chroma
  *
  * @public exported from `@promptbook/color`

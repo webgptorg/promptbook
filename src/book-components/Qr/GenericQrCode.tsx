@@ -1,5 +1,8 @@
 import { useQrCode } from './useQrCode';
 
+/**
+ * Props for generic qr code.
+ */
 type GenericQrCodeProps = {
     value: string | number;
     size?: number;
@@ -7,6 +10,8 @@ type GenericQrCodeProps = {
 };
 
 /**
+ * Handles generic qr code.
+ *
  * @public exported from `@promptbook/components`
  */
 export function GenericQrCode({ value, size = 250, className }: GenericQrCodeProps) {

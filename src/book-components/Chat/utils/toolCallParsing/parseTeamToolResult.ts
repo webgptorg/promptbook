@@ -6,6 +6,7 @@ import type { TeamToolResult } from './TeamToolResult';
  *
  * @param resultRaw - Decoded tool result payload.
  * @returns TEAM payload or `null` when shape does not match.
+ *
  * @private function of toolCallParsing
  */
 export function parseTeamToolResult(resultRaw: TODO_any): TeamToolResult | null {

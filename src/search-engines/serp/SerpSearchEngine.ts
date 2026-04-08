@@ -57,7 +57,9 @@ export class SerpSearchEngine implements SearchEngine {
 }
 
 /**
- * @see https://serpapi.com/search-api
+ * Https://serpapi.com/search-api.
+ *
+ * @see
  */
 type SerpSearchResponse = {
     organic_results?: Array<{

@@ -12,6 +12,7 @@ import { TODO_USE } from '../../utils/organization/TODO_USE';
  *
  * @param task - The task for which the context is being generated. This should be a deeply immutable TaskJson object.
  * @returns The context as a string, formatted as markdown and parameter value.
+ *
  * @private internal utility of `createPipelineExecutor`
  */
 export async function getContextForTask(

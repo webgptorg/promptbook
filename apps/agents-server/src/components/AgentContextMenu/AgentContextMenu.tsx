@@ -40,6 +40,9 @@ import {
 } from '../ContextMenu/contextMenuUtils';
 import { useMetadataFlags } from '../MetadataFlags/MetadataFlagsContext';
 
+/**
+ * Event payload for before install prompt.
+ */
 type BeforeInstallPromptEvent = Event & {
     prompt: () => Promise<void>;
     userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;

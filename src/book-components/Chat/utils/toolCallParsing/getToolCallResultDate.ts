@@ -6,6 +6,7 @@ import type { TODO_any } from '../../../../utils/organization/TODO_any';
  *
  * @param result - Tool result to inspect.
  * @returns Parsed date or `null` when no valid timestamp is found.
+ *
  * @private function of toolCallParsing
  */
 export function getToolCallResultDate(result: ToolCall['result']): Date | null {

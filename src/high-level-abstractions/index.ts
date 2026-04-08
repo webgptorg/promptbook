@@ -12,7 +12,5 @@ export const HIGH_LEVEL_ABSTRACTIONS = [
     // <- Note: [♓️][💩] This is the order of the application of high-level abstractions application on pipeline JSON
 ] as const;
 
-/**
- * TODO: Test that all sync high-level abstractions are before async high-level abstractions
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// TODO: Test that all sync high-level abstractions are before async high-level abstractions
+// Note: [💞] Ignore a discrepancy between file name and entity name

@@ -6,6 +6,7 @@ import type { really_unknown } from '../../organization/really_unknown';
  *
  * @param javascriptName The value to check for JavaScript identifier validity.
  * @returns `true` if the value is a valid JavaScript name, false otherwise.
+ *
  * @public exported from `@promptbook/utils`
  */
 export function isValidJavascriptName(javascriptName: really_unknown): javascriptName is string_javascript_name {

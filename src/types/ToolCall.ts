@@ -84,8 +84,6 @@ export type ToolCall = {
 
     /**
      * Idempotency identifier that should not change between partial updates of the same tool call.
-     *
-     * @public exported from `@promptbook/types`
      */
     readonly idempotencyKey?: string;
 

@@ -44,12 +44,27 @@ import { OpenAiCodexRunner } from '../runners/openai-codex/OpenAiCodexRunner';
 import { OpencodeRunner } from '../runners/opencode/OpencodeRunner';
 import type { PromptRunner } from '../runners/types/PromptRunner';
 
+/**
+ * Constant for prompts dir.
+ */
 const PROMPTS_DIR = join(process.cwd(), 'prompts');
+/**
+ * Constant for default codex model.
+ */
 const DEFAULT_CODEX_MODEL = 'gpt-5.2-codex';
+/**
+ * Constant for cline model.
+ */
 const CLINE_MODEL = 'gemini:gemini-3-flash-preview';
 
+/**
+ * Type describing runner agent name.
+ */
 type RunnerAgentName = NonNullable<RunOptions['agentName']>;
 
+/**
+ * Map of runner labels.
+ */
 const RUNNER_LABELS: Record<RunnerAgentName, string> = {
     'openai-codex': 'OpenAI Codex',
     'github-copilot': 'GitHub Copilot',
@@ -93,6 +108,7 @@ function getRunnerMetadata(options: RunOptions, actualModel?: string): RunnerMet
  * Main entry point for running prompts with the selected agent.
  *
  * @param providedOptions - Optional pre-parsed options. If not provided, will parse from process.argv
+ *
  * @public exported from `@promptbook/cli`
  */
 export async function runCodexPrompts(providedOptions?: RunOptions): Promise<void> {

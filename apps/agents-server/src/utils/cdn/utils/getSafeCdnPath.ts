@@ -1,5 +1,8 @@
 import { computeHash } from '@promptbook-local/utils';
 
+/**
+ * Length of default max pathname.
+ */
 const DEFAULT_MAX_PATHNAME_LENGTH = 950;
 
 /**

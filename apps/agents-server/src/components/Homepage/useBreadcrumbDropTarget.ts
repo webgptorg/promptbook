@@ -12,6 +12,9 @@ export type BreadcrumbDropTargetData = {
     folderId: number | null;
 };
 
+/**
+ * Prefix for breadcrumb drag ID.
+ */
 const BREADCRUMB_DRAG_ID_PREFIX = 'breadcrumb:';
 
 /**
@@ -19,6 +22,7 @@ const BREADCRUMB_DRAG_ID_PREFIX = 'breadcrumb:';
  *
  * @param folderId - Folder id represented by the breadcrumb.
  * @returns Drag identifier string.
+ *
  * @private function of AgentsList
  */
 const getBreadcrumbDragId = (folderId: number | null) =>
@@ -30,6 +34,7 @@ const getBreadcrumbDragId = (folderId: number | null) =>
  * @param folderId - Folder id represented by the drop target.
  * @param canOrganize - Whether drag-and-drop organization is enabled.
  * @returns Droppable state for the target.
+ *
  * @private function of AgentsList
  */
 export function useBreadcrumbDropTarget(folderId: number | null, canOrganize: boolean) {

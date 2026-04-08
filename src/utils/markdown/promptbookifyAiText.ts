@@ -1,6 +1,8 @@
 import type { string_markdown } from '../../types/typeAliases';
 
 /**
+ * Map of promptbook pseudotoken substitution.
+ *
  * @private
  */
 const PROMPTBOOK_PSEUDOTOKEN_SUBSTITUTION = {
@@ -59,6 +61,4 @@ export function promptbookifyAiText(text: string_markdown): string_markdown {
     return promptbookifiedTextTokens.join('');
 }
 
-/**
- * TODO: [🧠][✌️] Make some Promptbook-native token system
- */
+// TODO: [🧠][✌️] Make some Promptbook-native token system

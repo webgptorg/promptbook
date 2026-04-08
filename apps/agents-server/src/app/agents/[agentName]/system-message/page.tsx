@@ -16,6 +16,9 @@ import { keepUnused } from '../../../../../../../src/utils/organization/keepUnus
 import { getAgentName, getAgentProfile } from '../_utils';
 import { SystemMessageBookEditor } from './SystemMessageBookEditor';
 
+/**
+ * Handles agent system message page.
+ */
 export default async function AgentSystemMessagePage({ params }: { params: Promise<{ agentName: string }> }) {
     $sideEffect(headers());
 

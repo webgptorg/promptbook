@@ -10,6 +10,7 @@ const ABSOLUTE_URL_PATTERN = /^https?:\/\//i;
  *
  * @param pathOrUrl - Artifact path or URL.
  * @returns Resolved URL path for browser display.
+ *
  * @private function of toolCallParsing
  */
 export function resolveRunBrowserArtifactUrl(pathOrUrl: string): string {

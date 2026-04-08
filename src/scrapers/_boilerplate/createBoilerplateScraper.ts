@@ -19,6 +19,4 @@ export const createBoilerplateScraper = Object.assign(
     boilerplateScraperMetadata,
 ) satisfies ScraperConstructor; /* <- Note: [🤛] */
 
-/**
- * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
- */
+// TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

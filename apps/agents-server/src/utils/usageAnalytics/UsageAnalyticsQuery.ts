@@ -28,6 +28,7 @@ export type UsageAnalyticsQueryParseResult =
 
 /**
  * Query parsing and formatting helpers for usage analytics.
+ *
  * @private function of getUsageAnalyticsResponse
  */
 export const UsageAnalyticsQuery = {

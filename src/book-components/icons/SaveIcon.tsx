@@ -8,6 +8,7 @@ import React from 'react';
  * configurations, or agent sources.
  *
  * @param props - SVG properties augmented with an optional `size`
+ *
  * @private internal subcomponent used by various components
  */
 export function SaveIcon({

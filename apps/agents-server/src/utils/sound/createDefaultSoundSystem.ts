@@ -1,5 +1,8 @@
 import { SoundSystem } from './SoundSystem';
 
+/**
+ * Options for create default sound system.
+ */
 type CreateDefaultSoundSystemOptions = {
     readonly initialIsSoundsOn?: boolean;
     readonly initialIsVibrationOn?: boolean;

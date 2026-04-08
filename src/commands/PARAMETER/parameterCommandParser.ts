@@ -18,6 +18,7 @@ import type { ParameterCommand } from './ParameterCommand';
  * Parses the parameter command
  *
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/editable`
  */
 export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand> = {

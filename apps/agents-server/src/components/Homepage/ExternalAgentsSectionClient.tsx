@@ -9,16 +9,25 @@ import { HOMEPAGE_AGENT_GRID_CLASS } from './gridLayout';
 import { string_url } from '@promptbook-local/types';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 
+/**
+ * Response for federated servers.
+ */
 type FederatedServersResponse = {
     federatedServers: string[];
 };
 
+/**
+ * State for server.
+ */
 type ServerState = {
     status: 'loading' | 'success' | 'error';
     agents: AgentsByServer['agents'];
     error?: string;
 };
 
+/**
+ * Props for external agents section client.
+ */
 type ExternalAgentsSectionClientProps = {
     /**
      * Base URL of the agents server
@@ -33,6 +42,9 @@ type ExternalAgentsSectionClientProps = {
  */
 const FEDERATED_SERVER_LOADING_CARD_COUNT = 4;
 
+/**
+ * Handles external agents section client.
+ */
 export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientProps) {
     const { publicUrl } = props;
     const [servers, setServers] = useState<Record<string, ServerState>>({});

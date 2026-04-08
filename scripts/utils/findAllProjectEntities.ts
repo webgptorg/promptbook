@@ -6,7 +6,7 @@ import { readAllProjectFiles } from './readAllProjectFiles';
 type EntityType = 'const' | 'let' | 'class' | 'function' | 'interface' | 'type' /* <- TODO: More */;
 
 /**
- *  Metadata of entity in javascript and typescript
+ * Metadata of entity in javascript and typescript
  */
 export type EntityMetadata = {
     /**
@@ -127,5 +127,5 @@ export async function findAllProjectEntities(): Promise<ReadonlyArray<EntityMeta
     return entitities;
 }
 
-/** Note: [⚫] Code for repository script [findAllProjectEntities](scripts/utils/findAllProjectEntities.ts) should never be published in any package */
-/** TODO: [🧠][🍡][💩] Some better (non-hardcoded) way how to filter non-entities looking like entities */
+// Note: [⚫] Code for repository script [findAllProjectEntities](scripts/utils/findAllProjectEntities.ts) should never be published in any package
+// TODO: [🧠][🍡][💩] Some better (non-hardcoded) way how to filter non-entities looking like entities

@@ -114,7 +114,5 @@ export type CommonTaskJson = {
     readonly resultingParameterName: string_name;
 };
 
-/**
- * TODO: use one helper type> (string_prompt | string_javascript | string_markdown) & string_template
- * TODO: [♈] Probably move expectations from tasks to parameters
- */
+// TODO: use one helper type> (string_prompt | string_javascript | string_markdown) & string_template
+// TODO: [♈] Probably move expectations from tasks to parameters

@@ -3,6 +3,9 @@ import { spaceTrim } from 'spacetrim';
 import { useStateWithDeps } from 'use-state-with-deps';
 import { $isRunningInBrowser } from '../../../src/_packages/utils.index';
 
+/**
+ * Options for set state.
+ */
 export type SetStateOptions = {
     /**
      * Is the state persisted in the browser storage
@@ -15,6 +18,9 @@ export type SetStateOptions = {
     isBroadcasted?: boolean;
 };
 
+/**
+ * Uses state in local storage.
+ */
 export function useStateInLocalStorage<T extends string>(
     key: string,
     getInitialState: () => T,
@@ -98,8 +104,14 @@ export function useStateInLocalStorage<T extends string>(
     return [state, persistState];
 }
 
+/**
+ * Constant for channels.
+ */
 const channels = new Map<string, BroadcastChannel>();
 
+/**
+ * Gets channel for state in local storage.
+ */
 export function getChannelForStateInLocalStorage(key: string): BroadcastChannel {
     let channel = channels.get('sync-for-useStateInLocalStorage-' + key);
     if (!channel) {
@@ -109,7 +121,5 @@ export function getChannelForStateInLocalStorage(key: string): BroadcastChannel 
     return channel;
 }
 
-/**
- * TODO: [🧠] Maybe leverage PromptbookStorage here `getLocalStorage`
- * TODO: [🧠] Maybe use some library for storage - ask + [🧠] which one and which to use to sync with backend
- */
+// TODO: [🧠] Maybe leverage PromptbookStorage here `getLocalStorage`
+// TODO: [🧠] Maybe use some library for storage - ask + [🧠] which one and which to use to sync with backend

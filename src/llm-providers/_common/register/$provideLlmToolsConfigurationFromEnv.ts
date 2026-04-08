@@ -18,6 +18,7 @@ import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
  *
  * @see Environment variables documentation or .env file for required variables.
  * @returns A promise that resolves to the LLM tools configuration, or null if configuration is incomplete or missing.
+ *
  * @public exported from `@promptbook/node`
  */
 export async function $provideLlmToolsConfigurationFromEnv(): Promise<LlmToolsConfiguration> {
@@ -39,4 +40,4 @@ export async function $provideLlmToolsConfigurationFromEnv(): Promise<LlmToolsCo
     return llmToolsConfiguration;
 }
 
-/** Note: [🟢] Code for Node environment helper [$provideLlmToolsConfigurationFromEnv](src/llm-providers/_common/register/$provideLlmToolsConfigurationFromEnv.ts) should never be published into packages that could be imported into browser environment */
+// Note: [🟢] Code for Node environment helper [$provideLlmToolsConfigurationFromEnv](src/llm-providers/_common/register/$provideLlmToolsConfigurationFromEnv.ts) should never be published into packages that could be imported into browser environment

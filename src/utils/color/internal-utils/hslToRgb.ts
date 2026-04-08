@@ -47,6 +47,4 @@ export function hslToRgb(
     return [Math.round(red * 255), Math.round(green * 255), Math.round(blue * 255)];
 }
 
-/**
- * TODO: Properly name all used internal variables
- */
+// TODO: Properly name all used internal variables

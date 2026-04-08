@@ -122,6 +122,4 @@ export class MessageCommitmentDefinition extends BaseCommitmentDefinition<'MESSA
     }
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

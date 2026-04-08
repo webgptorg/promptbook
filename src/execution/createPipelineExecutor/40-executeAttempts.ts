@@ -110,6 +110,7 @@ const allFailedResults: Array<{ result: string | null; error: ExpectError }> = [
  *
  * @param options - The options for execution, including task, parameters, pipeline, and configuration.
  * @returns The result string of the executed task.
+ *
  * @private internal utility of `createPipelineExecutor`
  */
 export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<TODO_string> {
@@ -558,6 +559,4 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
     return $ongoingTaskResult.$resultString;
 }
 
-/**
- * TODO: Break into smaller functions
- */
+// TODO: Break into smaller functions

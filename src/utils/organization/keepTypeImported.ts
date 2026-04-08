@@ -5,6 +5,7 @@ import { keepUnused } from './keepUnused';
  * [🤛] This is a workaround for the issue.
  *
  * @returns void
+ *
  * @private within the repository
  */
 export function keepTypeImported<TTypeToKeep>(): void {

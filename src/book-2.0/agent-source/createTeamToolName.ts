@@ -15,6 +15,7 @@ const TEAM_TOOL_FALLBACK_NAME = 'teammate';
  *
  * @param teammateLabel - Human-readable teammate label.
  * @returns Normalized teammate identifier for TEAM tool names.
+ *
  * @private internal helper of TEAM tool-name generation
  */
 function normalizeTeammateToolNamePart(teammateLabel?: string): string {
@@ -31,6 +32,7 @@ function normalizeTeammateToolNamePart(teammateLabel?: string): string {
  * @param _teammateUrl - Canonical teammate URL (kept for API compatibility, not used).
  * @param teammateLabel - Human-readable teammate label used as the basis for the name.
  * @returns TEAM tool name derived from the label.
+ *
  * @private internal utility of TEAM commitments and chat UI mapping
  */
 export function createTeamToolName(_teammateUrl: string, teammateLabel?: string): string {

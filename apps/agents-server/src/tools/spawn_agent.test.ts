@@ -20,12 +20,21 @@ jest.mock('../utils/isUserAdmin', () => ({
     isUserAdmin: jest.fn(),
 }));
 
+/**
+ * Constant for provide agent collection for server mock.
+ */
 const provideAgentCollectionForServerMock = $provideAgentCollectionForServer as jest.MockedFunction<
     typeof $provideAgentCollectionForServer
 >;
+/**
+ * Constant for create agent with default visibility mock.
+ */
 const createAgentWithDefaultVisibilityMock = createAgentWithDefaultVisibility as jest.MockedFunction<
     typeof createAgentWithDefaultVisibility
 >;
+/**
+ * Constant for is user admin mock.
+ */
 const isUserAdminMock = isUserAdmin as jest.MockedFunction<typeof isUserAdmin>;
 
 describe('spawn_agent tool', () => {

@@ -173,6 +173,4 @@ export class UseTimeCommitmentDefinition extends BaseCommitmentDefinition<'USE T
     }
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

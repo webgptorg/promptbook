@@ -38,13 +38,14 @@ export type SourceChipProps = {
  * This component is used to display RAG source citations in chat messages.
  * It displays the source document name and citation ID.
  *
- * @example
  * ```tsx
  * <SourceChip
- *   citation={{ id: '5:13', source: 'document.pdf' }}
- *   onClick={(citation) => console.log('clicked', citation)}
+ * citation={{ id: '5:13', source: 'document.pdf' }}
+ * onClick={(citation) => console.log('clicked', citation)}
  * />
  * ```
+ *
+ * @example
  *
  * @private utility of `ChatMessageItem` component
  */

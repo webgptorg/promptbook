@@ -63,6 +63,7 @@ function createDocumentationCommitmentItem(group: DocumentationCommitmentGroup):
  *
  * @param groups Visible commitment definitions.
  * @returns Ordered list of submenu items for the Documentation dropdown.
+ *
  * @private function of Header
  */
 export function buildDocumentationDropdownItems(

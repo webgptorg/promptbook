@@ -2,6 +2,9 @@ import { createClient } from '@supabase/supabase-js';
 import { NextRequest } from 'next/server';
 import { $getTableName } from '../database/$getTableName';
 
+/**
+ * Result of Api key validation.
+ */
 export type ApiKeyValidationResult = {
     isValid: boolean;
     token?: string;

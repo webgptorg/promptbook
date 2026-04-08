@@ -82,6 +82,4 @@ export const _AzureOpenAiMetadataRegistration: Registration = $llmToolsMetadataR
     },
 });
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

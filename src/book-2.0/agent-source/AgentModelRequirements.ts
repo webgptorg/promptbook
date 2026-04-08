@@ -89,7 +89,5 @@ export type AgentModelRequirements = {
 };
 // <- TODO: In future this will be ModelRequirements from `@promptbook/type`s, but for now we keep it here
 
-/**
- * TODO: [🐤] DRY `AgentModelRequirements` and `ModelRequirements`
- * TODO: [🧠] `isClosed` and `parentAgentUrl` doesn't truly belong to `AgentModelRequirements` nor agent profile but it is in the `AgentModelRequirements` because of some legacy - maybe figure out better place
- */
+// TODO: [🐤] DRY `AgentModelRequirements` and `ModelRequirements`
+// TODO: [🧠] `isClosed` and `parentAgentUrl` doesn't truly belong to `AgentModelRequirements` nor agent profile but it is in the `AgentModelRequirements` because of some legacy - maybe figure out better place

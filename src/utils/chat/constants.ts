@@ -44,6 +44,4 @@ export const CHAT_STREAM_WHITESPACE_DECODERS: ReadonlyArray<{ token: string; val
     { token: CHAT_STREAM_WHITESPACE_TOKEN_SPACE, value: ' ' },
 ];
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

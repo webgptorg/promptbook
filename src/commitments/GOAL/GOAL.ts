@@ -106,6 +106,4 @@ export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL' | 
     }
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

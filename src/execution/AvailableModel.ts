@@ -60,7 +60,5 @@ export type AvailableModel = {
     readonly isDeprecated?: boolean;
 };
 
-/**
- * TODO: [🕛] Extend this from sth like `AgentBasicInformation` / `ModelBasicInformation`
- * TODO: [🧠] Maybe rename to something else - like `ModelInformation` or `ModelMetadata`
- */
+// TODO: [🕛] Extend this from sth like `AgentBasicInformation` / `ModelBasicInformation`
+// TODO: [🧠] Maybe rename to something else - like `ModelInformation` or `ModelMetadata`

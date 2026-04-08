@@ -6,6 +6,9 @@ import {
 } from '../../../../../../src/book-components/Chat/utils/loadAgentProfile';
 import { isValidAgentUrl } from '../../../../../../src/utils/validators/url/isValidAgentUrl';
 
+/**
+ * Response for team agent profile.
+ */
 type TeamAgentProfileResponse = {
     url: string;
     label?: string;

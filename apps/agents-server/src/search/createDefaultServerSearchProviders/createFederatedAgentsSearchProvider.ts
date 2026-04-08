@@ -14,6 +14,7 @@ import { sortAndLimitProviderResults } from './sortAndLimitProviderResults';
  * Creates provider for agents fetched from federated servers.
  *
  * @returns Configured federated-agents search provider.
+ *
  * @private function of createDefaultServerSearchProviders
  */
 export function createFederatedAgentsSearchProvider(): ServerSearchProvider {

@@ -1,5 +1,6 @@
 /**
  * Normalizes a string into a filesystem-safe slug string.
+ *
  * @private function of ImportGitHub
  */
 export function slugify(text: string): string {

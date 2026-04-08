@@ -17,6 +17,7 @@ import type { PersonaCommand } from './PersonaCommand';
  * Parses the persona command
  *
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/editable`
  */
 export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {

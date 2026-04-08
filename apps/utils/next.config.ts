@@ -1,6 +1,9 @@
 import type { NextConfig } from 'next';
 import path from 'path';
 
+/**
+ * Map of next config.
+ */
 const nextConfig: NextConfig = {
     experimental: {
         externalDir: true,

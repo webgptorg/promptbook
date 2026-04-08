@@ -15,6 +15,9 @@ import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { isValidEmail } from '../../utils/validators/email/isValidEmail';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 
+/**
+ * Options for provide Llm tools for Cli.
+ */
 type ProvideLlmToolsForCliOptions = Pick<CacheLlmToolsOptions, 'isCacheReloaded'> & {
     /**
      * If true, user will be always prompted for login
@@ -35,6 +38,8 @@ type ProvideLlmToolsForCliOptions = Pick<CacheLlmToolsOptions, 'isCacheReloaded'
 };
 
 /**
+ * Handles provide Llm tools for Cli.
+ *
  * @private utility of CLI
  */
 export async function $provideLlmToolsForCli(options: ProvideLlmToolsForCliOptions): Promise<{

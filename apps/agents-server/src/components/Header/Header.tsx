@@ -63,6 +63,9 @@ import { useHeaderTouchInput } from './useHeaderTouchInput';
  */
 const HEADER_DROPDOWN_HOVER_OPEN_DELAY_MS = 140;
 
+/**
+ * Constant for submenu close delay ms.
+ */
 const SUBMENU_CLOSE_DELAY_MS = 240;
 /**
  * Delay before hover opens a nested submenu in preview mode.
@@ -70,7 +73,9 @@ const SUBMENU_CLOSE_DELAY_MS = 240;
 const SUBMENU_HOVER_OPEN_DELAY_MS = 140;
 
 /**
- * @private Delay used when the user leaves a header dropdown so it stays open long enough to reach the panel.
+ * Delay used when the user leaves a header dropdown so it stays open long enough to reach the panel.
+ *
+ * @private
  */
 const HEADER_DROPDOWN_CLOSE_DELAY_MS = 280;
 /**
@@ -89,6 +94,9 @@ const MOBILE_MENU_SWIPE_MAX_VERTICAL_DRIFT_PX = 44;
  * Maximum gesture duration considered a deliberate drawer swipe.
  */
 const MOBILE_MENU_SWIPE_MAX_DURATION_MS = 700;
+/**
+ * Constant for default hoisted mobile menu key.
+ */
 const DEFAULT_HOISTED_MOBILE_MENU_KEY = 'mobile-hoisted-menu-0';
 
 /**
@@ -123,6 +131,9 @@ const EMPTY_HOISTED_MOBILE_MENU_ITEMS: ReadonlyArray<SubMenuItem> = [];
  */
 const RESERVED_PATH_SET = new Set<string>(RESERVED_PATHS);
 
+/**
+ * Handles header.
+ */
 export function Header(props: HeaderProps) {
     const {
         isAdmin = false,

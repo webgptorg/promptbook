@@ -1,9 +1,17 @@
 import { isValidUrl } from './isValidUrl';
 
-/** @private Matches URL-like candidates inside arbitrary text. */
+/**
+ * Matches URL-like candidates inside arbitrary text.
+ *
+ * @private
+ */
 const URL_CANDIDATE_PATTERN = /https?:\/\/[^\s<>"'`]+/g;
 
-/** @private Trims punctuation that commonly trails URLs in prose. */
+/**
+ * Trims punctuation that commonly trails URLs in prose.
+ *
+ * @private
+ */
 const TRAILING_PUNCTUATION_PATTERN = /[.,!?;:'"`]+$/;
 
 /**
@@ -11,6 +19,7 @@ const TRAILING_PUNCTUATION_PATTERN = /[.,!?;:'"`]+$/;
  *
  * @param text - Input text that may contain one or more URLs.
  * @returns Unique URLs in their first-seen order.
+ *
  * @private utility of KNOWLEDGE parsing
  */
 export function extractUrlsFromText(text: string): string[] {
@@ -49,7 +58,9 @@ export function extractUrlsFromText(text: string): string[] {
 }
 
 /**
- * @private Normalizes one extracted URL candidate by stripping trailing punctuation and unmatched closing wrappers.
+ * Normalizes one extracted URL candidate by stripping trailing punctuation and unmatched closing wrappers.
+ *
+ * @private
  */
 function normalizeUrlCandidate(candidate: string): string {
     let normalized = candidate.trim();
@@ -75,7 +86,9 @@ function normalizeUrlCandidate(candidate: string): string {
 }
 
 /**
- * @private Removes trailing closing wrappers when they are unmatched in the candidate.
+ * Removes trailing closing wrappers when they are unmatched in the candidate.
+ *
+ * @private
  */
 function stripTrailingUnmatchedClosing(candidate: string, openingChar: string, closingChar: string): string {
     let normalized = candidate;
@@ -95,7 +108,9 @@ function stripTrailingUnmatchedClosing(candidate: string, openingChar: string, c
 }
 
 /**
- * @private Counts character occurrences in a string.
+ * Counts character occurrences in a string.
+ *
+ * @private
  */
 function countOccurrences(value: string, searchedChar: string): number {
     let count = 0;

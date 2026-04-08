@@ -651,7 +651,5 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
     // as specified in the requirements - this agent wrapper only supports chat interactions
 }
 
-/**
- * TODO: [🍚] Implement Destroyable pattern to free resources
- * TODO: [🧠] Adding parameter substitution support (here or should be responsibility of the underlying LLM Tools)
- */
+// TODO: [🍚] Implement Destroyable pattern to free resources
+// TODO: [🧠] Adding parameter substitution support (here or should be responsibility of the underlying LLM Tools)

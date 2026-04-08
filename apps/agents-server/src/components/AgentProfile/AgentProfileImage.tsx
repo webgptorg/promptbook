@@ -1,6 +1,9 @@
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+/**
+ * Props for agent profile image.
+ */
 type AgentProfileImageProps = {
     readonly src: string;
     readonly alt: string;
@@ -8,6 +11,9 @@ type AgentProfileImageProps = {
     readonly style?: React.CSSProperties;
 };
 
+/**
+ * Handles agent profile image.
+ */
 export function AgentProfileImage({ src, alt, className, style }: AgentProfileImageProps) {
     const [imageSrc, setImageSrc] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);

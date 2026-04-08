@@ -5,6 +5,7 @@ import type { ToolCall } from '../../../../types/ToolCall';
  *
  * @param toolCall - Tool call carrying `createdAt`.
  * @returns Parsed date or `null` when timestamp is missing/invalid.
+ *
  * @private function of toolCallParsing
  */
 export function getToolCallTimestamp(toolCall: Pick<ToolCall, 'createdAt'>): Date | null {

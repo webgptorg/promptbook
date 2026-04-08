@@ -55,6 +55,9 @@ type AsyncDialogsProviderProps = {
     readonly children: ReactNode;
 };
 
+/**
+ * Constant for async dialogs context.
+ */
 const AsyncDialogsContext = createContext<ModalController | null>(null);
 
 /**

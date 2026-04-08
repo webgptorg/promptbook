@@ -16,17 +16,23 @@ export type GetFederatedServersOptions = {
 };
 
 /**
- * @private Metadata key storing the core server URL.
+ * Metadata key storing the core server URL.
+ *
+ * @private
  */
 const CORE_SERVER_METADATA_KEY = 'CORE_SERVER';
 
 /**
- * @private Metadata key storing the comma-separated federated servers list.
+ * Metadata key storing the comma-separated federated servers list.
+ *
+ * @private
  */
 const FEDERATED_SERVERS_METADATA_KEY = 'FEDERATED_SERVERS';
 
 /**
- * @private Metadata key indicating whether the core server should be hidden from UI lists.
+ * Metadata key indicating whether the core server should be hidden from UI lists.
+ *
+ * @private
  */
 const IS_CORE_SERVER_HIDDEN_METADATA_KEY = 'IS_CORE_SERVER_HIDDEN';
 

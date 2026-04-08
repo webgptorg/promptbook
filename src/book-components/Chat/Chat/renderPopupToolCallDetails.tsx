@@ -31,6 +31,7 @@ type RenderPopupToolCallDetailsOptions = {
  *
  * @param options - Popup tool call data.
  * @returns Popup preview UI.
+ *
  * @private function of ChatToolCallModal
  */
 export function renderPopupToolCallDetails(options: RenderPopupToolCallDetailsOptions): ReactElement {

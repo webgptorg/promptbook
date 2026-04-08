@@ -1,6 +1,9 @@
 import { getMetadata } from '../../../database/getMetadata';
 import { NextResponse } from 'next/server';
 
+/**
+ * Handles get.
+ */
 export async function GET() {
     try {
         const adminEmail = await getMetadata('ADMIN_EMAIL');

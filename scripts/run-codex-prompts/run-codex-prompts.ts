@@ -41,8 +41,6 @@ runCodexPrompts()
  */
 export { toPosixPath } from './common/runGoScript/toPosixPath';
 
-/**
- * TODO: !!!!! Codex is just one runner, rename to `runCodexPrompts` -> `runAgentPrompts`
- * TODO: !!!!! Remake using commander `import commander from 'commander';`
- * Note: [?] Code in this file should never be published in any package
- */
+// TODO: !!!!! Codex is just one runner, rename to `runCodexPrompts` -> `runAgentPrompts`
+// TODO: !!!!! Remake using commander `import commander from 'commander';`
+// Note: [?] Code in this file should never be published in any package

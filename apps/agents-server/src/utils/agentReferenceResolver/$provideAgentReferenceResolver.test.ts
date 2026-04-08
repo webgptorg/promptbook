@@ -25,9 +25,21 @@ import {
 } from './$provideAgentReferenceResolver';
 import { createServerAgentReferenceResolver } from './createServerAgentReferenceResolver';
 
+/**
+ * Constant for mock provide agent collection for server.
+ */
 const mockProvideAgentCollectionForServer = jest.mocked($provideAgentCollectionForServer);
+/**
+ * Constant for mock provide server.
+ */
 const mockProvideServer = jest.mocked($provideServer);
+/**
+ * Constant for mock get federated servers.
+ */
 const mockGetFederatedServers = jest.mocked(getFederatedServers);
+/**
+ * Constant for mock create server agent reference resolver.
+ */
 const mockCreateServerAgentReferenceResolver = jest.mocked(createServerAgentReferenceResolver);
 
 /**

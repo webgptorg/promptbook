@@ -41,4 +41,4 @@ export async function loadArchive(
     return collectionJson;
 }
 
-/** Note: [🟢] Code for Node archive helper [loadArchive](src/conversion/archive/loadArchive.ts) should never be published into packages that could be imported into browser environment */
+// Note: [🟢] Code for Node archive helper [loadArchive](src/conversion/archive/loadArchive.ts) should never be published into packages that could be imported into browser environment

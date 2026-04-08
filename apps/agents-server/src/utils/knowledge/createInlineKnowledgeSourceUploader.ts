@@ -4,11 +4,17 @@ import type { string_knowledge_source_link } from '../../../../../src/types/type
 import { getSafeCdnPath } from '../cdn/utils/getSafeCdnPath';
 import { getUserFileCdnKey } from '../cdn/utils/getUserFileCdnKey';
 
+/**
+ * Options for create inline knowledge uploader.
+ */
 type CreateInlineKnowledgeUploaderOptions = {
     readonly purpose?: string;
     readonly userId?: number;
 };
 
+/**
+ * Constant for upload cache.
+ */
 const uploadCache = new Map<string, Promise<string_knowledge_source_link>>();
 
 /**

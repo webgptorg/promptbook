@@ -16,6 +16,7 @@ export type UsageAnalyticsOrganizationScope = {
 
 /**
  * Data loading utilities for usage analytics.
+ *
  * @private function of getUsageAnalyticsResponse
  */
 export const UsageAnalyticsSource = {

@@ -5,6 +5,9 @@ import { TODO_USE } from '../../../../src/utils/organization/TODO_USE';
 import { ResizablePanels } from '../ResizablePanels/ResizablePanels';
 import styles from './ResizablePanelsAuto.module.css';
 
+/**
+ * Props for resizable panels auto.
+ */
 type ResizablePanelsAutoProps = {
     /**
      * Content of panels

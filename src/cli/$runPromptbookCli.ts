@@ -21,4 +21,4 @@ export async function $runPromptbookCli(): Promise<void> {
     await promptbookCli();
 }
 
-/** Note: [🟡] Code for CLI bootstrap [$runPromptbookCli](src/cli/$runPromptbookCli.ts) should never be published outside of `@promptbook/cli` */
+// Note: [🟡] Code for CLI bootstrap [$runPromptbookCli](src/cli/$runPromptbookCli.ts) should never be published outside of `@promptbook/cli`

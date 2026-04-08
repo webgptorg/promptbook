@@ -1,6 +1,9 @@
 import { Code as CodeIcon } from 'lucide-react';
 import { Code } from '../Code/Code';
 
+/**
+ * Handles counting utilities code samples.
+ */
 export default function CountingUtilitiesCodeSamples() {
     const samples = [
         {

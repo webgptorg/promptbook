@@ -1,5 +1,8 @@
 import type { ChatMessage } from '../../../../../../src/book-components/Chat/types/ChatMessage';
 
+/**
+ * Map of loading scenario.
+ */
 export const loadingScenario = {
     name: 'Loading Message',
     messages: [

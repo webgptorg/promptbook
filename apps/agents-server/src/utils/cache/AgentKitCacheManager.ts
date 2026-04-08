@@ -17,7 +17,13 @@ import { createInlineKnowledgeSourceUploader } from '@/src/utils/knowledge/creat
 import { resolveWebsiteKnowledgeSourcesForServer } from '@/src/utils/knowledge/resolveWebsiteKnowledgeSourcesForServer';
 import type { AgentReferenceResolver } from '../../../../../src/book-2.0/agent-source/AgentReferenceResolver';
 
+/**
+ * Constant for knowledge source hash timeout ms.
+ */
 const KNOWLEDGE_SOURCE_HASH_TIMEOUT_MS = 30000;
+/**
+ * Constant for vector store hash version.
+ */
 const VECTOR_STORE_HASH_VERSION = 'vector-store-v1';
 
 /**
@@ -100,8 +106,14 @@ function withSourceCitationPolicy(
  */
 type AgentExternalType = 'VECTOR_STORE';
 
+/**
+ * Constant for vector store external type.
+ */
 const VECTOR_STORE_EXTERNAL_TYPE: AgentExternalType = 'VECTOR_STORE';
 
+/**
+ * Constant for vector store source hash table.
+ */
 const VECTOR_STORE_SOURCE_HASH_TABLE = 'VectorStoreKnowledgeSourceHashes';
 
 /**

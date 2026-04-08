@@ -12,6 +12,7 @@ import type { ExecutionPromptReportJson } from './ExecutionPromptReportJson';
  * -   _(this)_ **JSON** format
  *
  * Note: [🚉] This is fully serializable as JSON
+ *
  * @see https://github.com/webgptorg/promptbook#execution-report
  */
 export type ExecutionReportJson = {

@@ -85,8 +85,17 @@ type TeamToolArgs = {
     [TOOL_RUNTIME_CONTEXT_ARGUMENT]?: unknown;
 };
 
+/**
+ * Map of team tool functions.
+ */
 const teamToolFunctions: Record<string_javascript_name, ToolFunction> = {};
+/**
+ * Map of team tool titles.
+ */
 const teamToolTitles: Record<string_javascript_name, string> = {};
+/**
+ * Constant for remote agents by Url.
+ */
 const remoteAgentsByUrl = new Map<string, Promise<RemoteAgent>>();
 
 /**
@@ -529,6 +538,4 @@ function createTeamToolFunction(entry: TeamToolEntry): ToolFunction {
     };
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

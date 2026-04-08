@@ -10,6 +10,7 @@ import type { string_book } from './string_book';
  *
  * @param agentSource - The raw agent book source
  * @returns The trimmed instructions or `null` when no instructive `OPEN` commitment exists.
+ *
  * @private Internal helper shared between self-learning and related features.
  */
 export function extractOpenTeacherInstructions(agentSource: string_book): string | null {

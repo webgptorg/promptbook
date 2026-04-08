@@ -13,7 +13,5 @@ export function countPages(text: string): ExpectationAmount {
     return Math.ceil(countLines(text) / LINES_PER_STANDARD_PAGE);
 }
 
-/**
- * TODO: [🥴] Implement counting in formats - like JSON, CSV, XML,...
- * TODO: [🧠][✌️] Make some Promptbook-native token system
- */
+// TODO: [🥴] Implement counting in formats - like JSON, CSV, XML,...
+// TODO: [🧠][✌️] Make some Promptbook-native token system

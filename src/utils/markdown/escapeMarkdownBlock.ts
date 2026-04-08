@@ -12,6 +12,4 @@ export function escapeMarkdownBlock(value: string_markdown_text): string_markdow
     return value.replace(/```/g, '\\`\\`\\`');
 }
 
-/**
- * TODO: [🏛] This can be part of markdown builder
- */
+// TODO: [🏛] This can be part of markdown builder

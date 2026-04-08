@@ -2,6 +2,7 @@
  * The pricing for Gemini models per 1 million tokens in USD.
  *
  * Note: This is an estimation.
+ *
  * @see https://ai.google.dev/pricing
  */
 export const GEMINI_PRICING = {

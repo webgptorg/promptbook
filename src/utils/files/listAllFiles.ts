@@ -9,6 +9,7 @@ import { isDirectoryExisting } from './isDirectoryExisting';
  * @param path
  * @param isRecursive
  * @returns List of all files in the directory
+ *
  * @private internal function of `AgentCollectionInDirectory` and `createPipelineCollectionFromDirectory`
  */
 export async function listAllFiles(
@@ -39,8 +40,6 @@ export async function listAllFiles(
     return fileNames;
 }
 
-/**
- * TODO: [😶] Unite folder listing
- * Note: Not [~🟢~] because it is not directly dependent on `fs
- * TODO: [🖇] What about symlinks?
- */
+// TODO: [😶] Unite folder listing
+// Note: Not [~🟢~] because it is not directly dependent on `fs
+// TODO: [🖇] What about symlinks?

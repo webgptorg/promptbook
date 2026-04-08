@@ -12,6 +12,9 @@ import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
 import { isAgentDeleted } from '../_utils';
 import { AgentBookAndChat } from './AgentBookAndChat';
 
+/**
+ * Handles agent book and chat page.
+ */
 export default async function AgentBookAndChatPage({ params }: { params: Promise<{ agentName: string }> }) {
     const requestHeaders = await headers();
     $sideEffect(requestHeaders);

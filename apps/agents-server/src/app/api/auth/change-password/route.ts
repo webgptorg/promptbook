@@ -5,6 +5,9 @@ import { AgentsServerDatabase } from '../../../../database/schema';
 import { getPasswordValidationMessage, hashPassword, verifyPassword } from '../../../../utils/auth';
 import { getCurrentUser } from '../../../../utils/getCurrentUser';
 
+/**
+ * Handles post.
+ */
 export async function POST(request: Request) {
     try {
         const user = await getCurrentUser();

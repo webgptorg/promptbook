@@ -255,6 +255,9 @@ const ADJECTIVES = [
     'mini',
 ];
 
+/**
+ * Collection of nouns.
+ */
 const NOUNS = [
     'apple',
     'sky',
@@ -495,6 +498,9 @@ const NOUNS = [
     'floor',
 ];
 
+/**
+ * Collection of verbs.
+ */
 const VERBS = [
     'jumping',
     'dancing',
@@ -692,6 +698,4 @@ export const LINGUISTIC_HASH_WORD_LISTS_EN: LinguisticHashWordLists = {
     verb: VERBS,
 };
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

@@ -1,5 +1,8 @@
 import { ConfigChecker } from 'configchecker';
 
+/**
+ * Constant for config.
+ */
 const config = ConfigChecker.from({
     ...process.env,
 

@@ -21,6 +21,7 @@ let cachedRunBrowserToolError: Error | null = null;
  * Attempts to load the server-side `run_browser` tool lazily.
  *
  * @returns Loaded `run_browser` implementation
+ *
  * @private internal utility for USE BROWSER commitment
  */
 function loadRunBrowserToolForNode(): ToolFunction {

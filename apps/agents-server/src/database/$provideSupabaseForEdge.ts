@@ -4,8 +4,9 @@ import { AgentsServerDatabase } from './schema';
 /**
  * Internal cache for `$provideSupabaseForEdge`
  *
- * @private
  * @singleton
+ *
+ * @private
  */
 let supabase: SupabaseClient<AgentsServerDatabase>;
 
@@ -14,8 +15,8 @@ let supabase: SupabaseClient<AgentsServerDatabase>;
  *
  * Note: The client is cached, so it's safe to call this function multiple times
  * Note: This function is intended for use in Edge Runtime environments (e.g., Next.js middleware)
- *       where neither Node.js APIs nor browser globals are available.
- *       Uses service role key when available, falls back to anon key.
+ * where neither Node.js APIs nor browser globals are available.
+ * Uses service role key when available, falls back to anon key.
  *
  * @returns instance of supabase client
  *

@@ -54,6 +54,7 @@ export function DragHandle({ attributes, listeners, label, className = '' }: Dra
  * @param attributes - Attributes supplied by the drag sensor.
  * @param listeners - Event listeners supplied by the drag sensor.
  * @returns Props that can be spread onto the card wrapper, or an empty object.
+ *
  * @private function of AgentsList
  */
 export const buildCardDragProps = (

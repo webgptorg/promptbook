@@ -11,6 +11,7 @@ import { extractParameterNames } from '../../utils/parameters/extractParameterNa
  * @param task the task with used parameters
  * @returns the set of parameter names
  * @throws {ParseError} if the script is invalid
+ *
  * @public exported from `@promptbook/core` <- Note: [👖] This utility is so tightly interconnected with the Promptbook that it is not exported as util but in core
  */
 export function extractParameterNamesFromTask(
@@ -65,6 +66,4 @@ export function extractParameterNamesFromTask(
     return parameterNames;
 }
 
-/**
- * TODO: [🔣] If script require contentLanguage
- */
+// TODO: [🔣] If script require contentLanguage

@@ -2,6 +2,7 @@ import type { AgentVisibility } from '../../utils/agentVisibility';
 
 /**
  * Configuration for an async alert dialog.
+ *
  * @private @@@
  */
 export type AlertDialogOptions = {
@@ -21,6 +22,7 @@ export type AlertDialogOptions = {
 
 /**
  * Configuration for an async confirm dialog.
+ *
  * @private @@@
  */
 export type ConfirmDialogOptions = {
@@ -44,6 +46,7 @@ export type ConfirmDialogOptions = {
 
 /**
  * Configuration for an async prompt dialog.
+ *
  * @private @@@
  */
 export type PromptDialogOptions = {
@@ -79,6 +82,7 @@ export type PromptDialogOptions = {
 
 /**
  * Configuration for an async login dialog.
+ *
  * @private @@@
  */
 export type LoginDialogOptions = {
@@ -104,6 +108,7 @@ export type LoginDialogOptions = {
 
 /**
  * Configuration for an async visibility dialog.
+ *
  * @private @@@
  */
 export type VisibilityDialogOptions = {
@@ -131,6 +136,7 @@ export type VisibilityDialogOptions = {
 
 /**
  * Internal modal request types used by the async dialogs system.
+ *
  * @private @@@
  */
 export type ModalRequest =
@@ -142,6 +148,7 @@ export type ModalRequest =
 
 /**
  * Result map for each dialog kind.
+ *
  * @private @@@
  */
 export type ModalResultMap = {
@@ -154,12 +161,14 @@ export type ModalResultMap = {
 
 /**
  * Modal request narrowed by dialog kind.
+ *
  * @private @@@
  */
 export type ModalRequestByKind<T extends ModalRequest['kind']> = Extract<ModalRequest, { kind: T }>;
 
 /**
  * Controller interface implemented by the async dialogs provider.
+ *
  * @private @@@
  */
 export type ModalController = {
@@ -174,6 +183,7 @@ export type ModalController = {
 
 /**
  * Error thrown when a dialog is dismissed without completing.
+ *
  * @private @@@
  */
 export class ModalDismissedError extends Error {
@@ -194,12 +204,16 @@ export class ModalDismissedError extends Error {
     }
 }
 
+/**
+ * Constant for modal controller.
+ */
 let modalController: ModalController | null = null;
 
 /**
  * Register the active modal controller from the provider.
  *
  * @param controller - Controller to register, or null to clear it.
+ *
  * @private @@@
  */
 export function registerModalController(controller: ModalController | null): void {
@@ -224,6 +238,7 @@ function getModalController(): ModalController {
  *
  * @param options - Alert dialog options.
  * @returns Promise that resolves when the dialog is acknowledged.
+ *
  * @private @@@
  */
 export function showAlert(options: AlertDialogOptions): Promise<void> {
@@ -235,6 +250,7 @@ export function showAlert(options: AlertDialogOptions): Promise<void> {
  *
  * @param options - Confirm dialog options.
  * @returns Promise that resolves when the user confirms.
+ *
  * @private @@@
  */
 export function showConfirm(options: ConfirmDialogOptions): Promise<boolean> {
@@ -246,6 +262,7 @@ export function showConfirm(options: ConfirmDialogOptions): Promise<boolean> {
  *
  * @param options - Prompt dialog options.
  * @returns Promise that resolves with the input value.
+ *
  * @private @@@
  */
 export function showPrompt(options: PromptDialogOptions): Promise<string> {
@@ -257,6 +274,7 @@ export function showPrompt(options: PromptDialogOptions): Promise<string> {
  *
  * @param options - Login dialog options.
  * @returns Promise that resolves when the user successfully logs in.
+ *
  * @private @@@
  */
 export function showLoginDialog(options: LoginDialogOptions = {}): Promise<void> {
@@ -268,6 +286,7 @@ export function showLoginDialog(options: LoginDialogOptions = {}): Promise<void>
  *
  * @param options - Visibility dialog options.
  * @returns Promise that resolves with the selected visibility.
+ *
  * @private @@@
  */
 export function showVisibilityDialog(options: VisibilityDialogOptions): Promise<AgentVisibility> {

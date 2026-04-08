@@ -5,10 +5,16 @@ import { assertsError } from '../../../../../../../src/errors/assertsError';
 import { locateChrome } from '../../../../../../../src/executables/browsers/locateChrome';
 
 // Use globalThis to persist the browser instance across hot reloads in development
+/**
+ * Constant for global for browser.
+ */
 const globalForBrowser = globalThis as unknown as {
     _browserInstance: Browser | undefined;
 };
 
+/**
+ * Handles get.
+ */
 export async function GET() {
     try {
         if (!globalForBrowser._browserInstance || !globalForBrowser._browserInstance.isConnected()) {

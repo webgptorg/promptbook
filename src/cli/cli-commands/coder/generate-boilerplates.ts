@@ -8,6 +8,9 @@ import { spaceTrim } from 'spacetrim';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { handleActionErrors } from '../common/handleActionErrors';
 
+/**
+ * Type describing prompt template.
+ */
 type PromptTemplate = 'common' | 'agents-server';
 
 /**
@@ -213,5 +216,5 @@ function buildPromptSlug(template: PromptTemplate, title: string): string {
     return `${template}-${title}`;
 }
 
-/** Note: [🟡] Code for CLI command [generate-boilerplates](src/cli/cli-commands/coder/generate-boilerplates.ts) should never be published outside of `@promptbook/cli` */
-/** Note: [💞] Ignore a discrepancy between file name and entity name */
+// Note: [🟡] Code for CLI command [generate-boilerplates](src/cli/cli-commands/coder/generate-boilerplates.ts) should never be published outside of `@promptbook/cli`
+// Note: [💞] Ignore a discrepancy between file name and entity name

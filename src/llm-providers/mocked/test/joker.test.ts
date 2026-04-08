@@ -37,6 +37,9 @@ describe('createPipelineExecutor + MockedEchoExecutionTools with example chat pr
     });
 });
 
+/**
+ * Gets pipeline executor.
+ */
 async function getPipelineExecutor() {
     const pipeline = await compilePipeline(
         spaceTrim(`
@@ -75,6 +78,4 @@ async function getPipelineExecutor() {
     });
 }
 
-/**
- * TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPipelineExecutor.test.ts"
- */
+// TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPipelineExecutor.test.ts"

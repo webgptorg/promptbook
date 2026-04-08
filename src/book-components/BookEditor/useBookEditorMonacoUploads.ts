@@ -7,10 +7,19 @@ import { DEFAULT_MAX_CONCURRENT_UPLOADS } from '../../config';
 import { BookEditorMonacoConstants } from './BookEditorMonacoConstants';
 import { BookEditorMonacoFormatting } from './BookEditorMonacoFormatting';
 
+/**
+ * Type describing monaco editor.
+ */
 type MonacoEditor = typeof import('monaco-editor');
 
+/**
+ * Type describing upload status.
+ */
 type UploadStatus = 'queued' | 'uploading' | 'paused' | 'completed' | 'failed';
 
+/**
+ * Type describing upload item.
+ */
 export type UploadItem = {
     readonly id: string;
     readonly fileName: string;
@@ -24,18 +33,27 @@ export type UploadItem = {
     readonly errorMessage?: string;
 };
 
+/**
+ * Type describing upload progress update.
+ */
 type UploadProgressUpdate = {
     readonly progress: number;
     readonly loadedBytes: number;
     readonly totalBytes: number;
 };
 
+/**
+ * Type describing upload replacement.
+ */
 type UploadReplacement = {
     readonly uploadId: string;
     readonly decorationId: string;
     readonly replacementText: string;
 };
 
+/**
+ * Type describing upload stats.
+ */
 export type UploadStats = {
     readonly totalFiles: number;
     readonly queuedFiles: number;
@@ -50,6 +68,9 @@ export type UploadStats = {
     readonly speedBytesPerSecond: number;
 };
 
+/**
+ * Type describing book editor monaco upload progress callback.
+ */
 type BookEditorMonacoUploadProgressCallback = (
     progress: number,
     stats?: {
@@ -58,16 +79,25 @@ type BookEditorMonacoUploadProgressCallback = (
     },
 ) => void;
 
+/**
+ * Options for book editor monaco upload.
+ */
 type BookEditorMonacoUploadOptions = {
     readonly onProgress?: BookEditorMonacoUploadProgressCallback;
     readonly abortSignal?: AbortSignal;
 };
 
+/**
+ * Type describing book editor monaco on file upload.
+ */
 type BookEditorMonacoOnFileUpload = (
     file: File,
     options?: BookEditorMonacoUploadOptions | BookEditorMonacoUploadProgressCallback,
 ) => Promisable<string>;
 
+/**
+ * Props for use book editor monaco uploads.
+ */
 type UseBookEditorMonacoUploadsProps = {
     readonly editor: editor.IStandaloneCodeEditor | null;
     readonly monaco: MonacoEditor | null;

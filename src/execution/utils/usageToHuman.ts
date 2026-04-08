@@ -69,11 +69,9 @@ export function usageToHuman(usage: PartialUsage): string_markdown {
     );
 }
 
-/**
- * TODO: [🍓][🧞‍♂️] Use "$1" not "1 USD"
- * TODO: [🍓][🧞‍♂️] Use markdown formatting like "Cost approximately **$1**"
- * TODO: [🍓][🧞‍♂️] Report in minutes, seconds, days NOT 0.1 hours
- * TODO: [🧠] Maybe make from `uncertainNumberToHuman` separate exported utility
- * TODO: [🧠] Maybe use "~" instead of "approximately"
- * TODO: [🏛] Maybe make some markdown builder
- */
+// TODO: [🍓][🧞‍♂️] Use "$1" not "1 USD"
+// TODO: [🍓][🧞‍♂️] Use markdown formatting like "Cost approximately **$1**"
+// TODO: [🍓][🧞‍♂️] Report in minutes, seconds, days NOT 0.1 hours
+// TODO: [🧠] Maybe make from `uncertainNumberToHuman` separate exported utility
+// TODO: [🧠] Maybe use "~" instead of "approximately"
+// TODO: [🏛] Maybe make some markdown builder

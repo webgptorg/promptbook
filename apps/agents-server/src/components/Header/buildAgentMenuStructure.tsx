@@ -72,6 +72,7 @@ function sortBySortOrderAndLabel<TItem extends { sortOrder: number }>(
  * @param content - Node rendered inside the label.
  * @param depth - Nesting depth used for indentation.
  * @returns Renderable menu label node.
+ *
  * @private function of Header
  */
 function createIndentedMenuLabel(content: ReactNode, depth: number): ReactNode {
@@ -88,6 +89,7 @@ function createIndentedMenuLabel(content: ReactNode, depth: number): ReactNode {
  * @param folder - Folder metadata used to render label and icon styling.
  * @param depth - Nesting depth used for indentation.
  * @returns React node representing the folder label.
+ *
  * @private function of Header
  */
 function createFolderMenuEntryLabel(folder: HeaderAgentMenuFolder, depth: number): ReactNode {
@@ -112,6 +114,7 @@ function createFolderMenuEntryLabel(folder: HeaderAgentMenuFolder, depth: number
  * @param avatarUrl - Resolved avatar URL or null.
  * @param depth - Nesting depth used for indentation.
  * @returns React node representing the agent label.
+ *
  * @private function of Header
  */
 function createAgentMenuEntryLabel(label: string, avatarUrl: string | null, depth: number): ReactNode {
@@ -128,8 +131,9 @@ function createAgentMenuEntryLabel(label: string, avatarUrl: string | null, dept
 }
 
 /**
- * @private type of Header
  * Indexes used to build the agent menu structure.
+ *
+ * @private type of Header
  */
 type AgentMenuData = {
     folderById: Map<number, HeaderAgentMenuFolder>;
@@ -138,8 +142,9 @@ type AgentMenuData = {
 };
 
 /**
- * @private function of Header
  * Builds lookup tables that speed up folder and agent ordering.
+ *
+ * @private function of Header
  */
 function prepareAgentMenuData(
     agents: ReadonlyArray<HeaderAgentMenuAgent>,

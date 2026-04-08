@@ -29,11 +29,20 @@ if (process.cwd() !== join(__dirname, '../..')) {
     process.exit(1);
 }
 
+/**
+ * Constant for promptbook examples dir.
+ */
 const PROMPTBOOK_EXAMPLES_DIR = join(process.cwd(), 'examples/pipelines');
 
+/**
+ * Constant for program.
+ */
 const program = new commander.Command();
 program.option('--commit', `Autocommit changes`, false);
 program.parse(process.argv);
+/**
+ * Constant for { commit: is commited }.
+ */
 const { commit: isCommited } = program.opts();
 
 generateExampleJsons({ isCommited })
@@ -46,6 +55,9 @@ generateExampleJsons({ isCommited })
         process.exit(0);
     });
 
+/**
+ * Generates example jsons.
+ */
 async function generateExampleJsons({ isCommited }: { isCommited: boolean }) {
     console.info(`🏭📖  Generate reports .report.json -> .report.md`);
 
@@ -68,4 +80,4 @@ async function generateExampleJsons({ isCommited }: { isCommited: boolean }) {
     console.info(`[ Done 📖  Generate reports .report.json -> .report.md]`);
 }
 
-/** Note: [⚫] Code for repository script [generate-example-reports](scripts/generate-example-reports/generate-example-reports.ts) should never be published in any package */
+// Note: [⚫] Code for repository script [generate-example-reports](scripts/generate-example-reports/generate-example-reports.ts) should never be published in any package

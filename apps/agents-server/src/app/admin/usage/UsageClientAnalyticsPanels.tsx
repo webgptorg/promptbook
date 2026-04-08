@@ -15,6 +15,7 @@ type UsageClientAnalyticsPanelsProps = {
 
 /**
  * Analytics cards, charts, and tables rendered by `<UsageClient/>`.
+ *
  * @private function of UsageClient
  */
 export function UsageClientAnalyticsPanels(props: UsageClientAnalyticsPanelsProps) {

@@ -7,6 +7,9 @@ import { serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 
+/**
+ * Handles options.
+ */
 export async function OPTIONS(request: Request) {
     keepUnused(request);
     return new Response(null, {
@@ -19,6 +22,9 @@ export async function OPTIONS(request: Request) {
     });
 }
 
+/**
+ * Handles get.
+ */
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     keepUnused(request /* <- Note: We dont need `request` parameter */);
     let { agentName } = await params;
@@ -93,6 +99,4 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
     }
 }
 
-/**
- * TODO: [🍞] DRY - Make some common utility for API on one agent
- */
+// TODO: [🍞] DRY - Make some common utility for API on one agent

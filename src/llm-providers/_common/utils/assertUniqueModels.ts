@@ -24,6 +24,4 @@ export function assertUniqueModels(models: ReadonlyArray<AvailableModel>) {
     }
 }
 
-/**
- * Note: [⚪] This should never be in any released package
- */
+// Note: [⚪] This should never be in any released package

@@ -18,6 +18,9 @@ export type ErrorCategory =
     | 'TIMEOUT_ERROR'
     | 'UNKNOWN_ERROR';
 
+/**
+ * Message payload for friendly error.
+ */
 export type FriendlyErrorMessage = {
     title: string;
     message: string;

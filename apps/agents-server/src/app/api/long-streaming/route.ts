@@ -1,6 +1,9 @@
 import { forTime } from 'waitasecond';
 import { just } from '../../../../../../src/utils/organization/just';
 
+/**
+ * Handles get.
+ */
 export async function GET() {
     const readableStream = new ReadableStream({
         async start(controller) {

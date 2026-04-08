@@ -4,6 +4,7 @@ import type { BookCommitment } from '../_base/BookCommitment';
 
 /**
  * Gets all available commitment types
+ *
  * @returns Array of all commitment types
  *
  * @public exported from `@promptbook/core`

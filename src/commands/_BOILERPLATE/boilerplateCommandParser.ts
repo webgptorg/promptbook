@@ -17,6 +17,7 @@ import type { BoilerplateCommand } from './BoilerplateCommand';
  * Note: @@ This command is used as boilerplate for new commands - it should NOT be used in any `.book` file
  *
  * @see `documentationUrl` for more details
+ *
  * @private within the commands folder
  */
 export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateCommand> = {

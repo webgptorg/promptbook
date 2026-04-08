@@ -65,6 +65,7 @@ const WALLET_CREDENTIAL_DEDUPLICATION_IDEMPOTENCY_PREFIX = 'wallet-credential';
  *
  * @param result - Raw tool result payload.
  * @returns Parsed credential metadata or `null`.
+ *
  * @private internal helper reused by chip and modal rendering
  */
 export function parseWalletCredentialToolCallResult(result: unknown): WalletCredentialToolCallResult | null {
@@ -105,6 +106,7 @@ export function parseWalletCredentialToolCallResult(result: unknown): WalletCred
  *
  * @param toolCall - Original tool call.
  * @returns Synthetic credential chip tool call or `null`.
+ *
  * @private internal helper for chat message chip composition
  */
 export function createWalletCredentialToolCall(toolCall: ToolCall): ToolCall | null {
@@ -130,6 +132,7 @@ export function createWalletCredentialToolCall(toolCall: ToolCall): ToolCall | n
  *
  * @param toolCalls - Completed tool calls in one assistant message.
  * @returns Deduplicated synthetic credential chip tool calls.
+ *
  * @private internal helper for chat message chip composition
  */
 export function createDeduplicatedWalletCredentialToolCalls(
@@ -198,6 +201,7 @@ export function createDeduplicatedWalletCredentialToolCalls(
  *
  * @param toolCall - Original tool call.
  * @returns Parsed credential metadata or `null`.
+ *
  * @private internal helper reused by credential chip creators
  */
 function createWalletCredentialToolCallResult(toolCall: ToolCall): WalletCredentialToolCallResult | null {
@@ -237,6 +241,7 @@ function createWalletCredentialToolCallResult(toolCall: ToolCall): WalletCredent
  *
  * @param options - Prepared credential metadata and origin.
  * @returns Synthetic wallet-credential tool call.
+ *
  * @private internal helper for credential chip creation
  */
 function createWalletCredentialToolCallFromResult(options: {
@@ -266,6 +271,7 @@ function createWalletCredentialToolCallFromResult(options: {
  *
  * @param result - Credential metadata to group by.
  * @returns Stable key based on credential service and scope key.
+ *
  * @private internal helper
  */
 function createWalletCredentialDeduplicationKey(
@@ -279,6 +285,7 @@ function createWalletCredentialDeduplicationKey(
  *
  * @param value - Raw deduplication key segment.
  * @returns Normalized segment.
+ *
  * @private internal helper
  */
 function normalizeDeduplicationSegment(value: string): string {
@@ -291,6 +298,7 @@ function normalizeDeduplicationSegment(value: string): string {
  * @param sourceToolNames - Optional source tool names.
  * @param fallbackSourceToolName - Fallback source tool name.
  * @returns Normalized source tool names list.
+ *
  * @private internal helper
  */
 function normalizeSourceToolNames(
@@ -323,6 +331,7 @@ function normalizeSourceToolNames(
  *
  * @param result - Raw tool result payload.
  * @returns `true` when credential was not available/used.
+ *
  * @private internal helper
  */
 function isWalletCredentialRequiredResult(result: unknown): boolean {
@@ -330,6 +339,4 @@ function isWalletCredentialRequiredResult(result: unknown): boolean {
     return parsedResult?.status === WALLET_CREDENTIAL_REQUIRED_STATUS;
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

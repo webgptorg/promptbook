@@ -31,7 +31,7 @@ import type { JavascriptExecutionToolsOptions } from './JavascriptExecutionTools
  * ScriptExecutionTools for JavaScript implemented via eval
  *
  * Warning: It is used for testing and mocking
- *          **NOT intended to use in the production** due to its unsafe nature, use `JavascriptExecutionTools` instead.
+ * **NOT intended to use in the production** due to its unsafe nature, use `JavascriptExecutionTools` instead.
  *
  * @public exported from `@promptbook/javascript`
  */
@@ -285,7 +285,5 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
     }
 }
 
-/**
- * TODO: Put predefined functions (like removeQuotes, spaceTrim, etc.) into annotation OR pass into constructor
- * TODO: [🧠][💙] Distinct between options passed into ExecutionTools and to ExecutionTools.execute
- */
+// TODO: Put predefined functions (like removeQuotes, spaceTrim, etc.) into annotation OR pass into constructor
+// TODO: [🧠][💙] Distinct between options passed into ExecutionTools and to ExecutionTools.execute

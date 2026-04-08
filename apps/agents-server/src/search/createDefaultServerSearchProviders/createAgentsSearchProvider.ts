@@ -26,6 +26,7 @@ type AgentSearchRow = Pick<
  * Creates provider for local agents (profile and book).
  *
  * @returns Configured local-agent search provider.
+ *
  * @private function of createDefaultServerSearchProviders
  */
 export function createAgentsSearchProvider(): ServerSearchProvider {

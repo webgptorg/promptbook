@@ -132,10 +132,8 @@ export async function getScraperIntermediateSource(
     return fileHandler;
 }
 
-/** Note: [🟢] Code for Node scraper helper [getScraperIntermediateSource](src/scrapers/_common/utils/getScraperIntermediateSource.ts) should never be published into packages that could be imported into browser environment */
-/**
- * Note: Not using `FileCacheStorage` for two reasons:
- * 1) Need to store more than serialized JSONs
- * 2) Need to switch between a `rootDirname` and `cacheDirname` <- TODO: [😡]
- * TODO: [🐱‍🐉][🧠] Make some smart crop
- */
+// Note: [🟢] Code for Node scraper helper [getScraperIntermediateSource](src/scrapers/_common/utils/getScraperIntermediateSource.ts) should never be published into packages that could be imported into browser environment
+// Note: Not using `FileCacheStorage` for two reasons:
+// 1. Need to store more than serialized JSONs.
+// 2. Need to switch between a `rootDirname` and `cacheDirname` <- TODO: [😡]
+// TODO: [🐱‍🐉][🧠] Make some smart crop

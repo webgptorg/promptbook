@@ -2,13 +2,22 @@
 
 import { FormEvent, useMemo, useState } from 'react';
 
+/**
+ * Length of max profile image URL.
+ */
 const MAX_PROFILE_IMAGE_URL_LENGTH = 2048;
 
+/**
+ * Props for user profile client.
+ */
 type UserProfileClientProps = {
     username: string;
     initialProfileImageUrl: string | null;
 };
 
+/**
+ * Handles user profile client.
+ */
 export function UserProfileClient({ username, initialProfileImageUrl }: UserProfileClientProps) {
     const [profileImageUrl, setProfileImageUrl] = useState(initialProfileImageUrl ?? '');
     const [isSaving, setIsSaving] = useState(false);

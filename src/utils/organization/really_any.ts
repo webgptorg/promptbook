@@ -2,6 +2,7 @@
  * Organizational helper to tell to use intentionally `any`
  *
  * @alias really_any
+ *
  * @private within the repository
  */
 export type chococake = really_any;

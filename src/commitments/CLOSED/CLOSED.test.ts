@@ -30,6 +30,4 @@ describe('CLOSED commitment', () => {
     });
 });
 
-/**
- * TODO: !!!! Must be last commitment to take effect
- */
+// TODO: !!!! Must be last commitment to take effect

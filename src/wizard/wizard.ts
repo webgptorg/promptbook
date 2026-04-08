@@ -171,9 +171,10 @@ class Wizard {
  * Note: This works only in Node.js environment and looks for the configuration, environment, tools and cache in the Node.js environment
  *
  * @singleton
+ *
  * @public exported from `@promptbook/wizard`
  */
 export const wizard = new Wizard();
 
-/** Note: [🟢] Code for Node wizard helper [wizard](src/wizard/wizard.ts) should never be published into packages that could be imported into browser environment */
-/** TODO: [🧠] Maybe some way how to handle the progress and streaming? */
+// Note: [🟢] Code for Node wizard helper [wizard](src/wizard/wizard.ts) should never be published into packages that could be imported into browser environment
+// TODO: [🧠] Maybe some way how to handle the progress and streaming?

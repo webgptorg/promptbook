@@ -7,6 +7,9 @@ import { $detectRuntimeEnvironment } from '../environment/$detectRuntimeEnvironm
 import { valueToString } from '../parameters/valueToString';
 // [😺]> import logoAsset from './logo-blue-white-256.png';
 
+/**
+ * Options for about promptbook information.
+ */
 export type AboutPromptbookInformationOptions = {
     /**
      * Include information about available servers
@@ -95,6 +98,4 @@ export function aboutPromptbookInformation(options?: AboutPromptbookInformationO
     return fullInfo;
 }
 
-/**
- * TODO: [🗽] Unite branding and make single place for it
- */
+// TODO: [🗽] Unite branding and make single place for it

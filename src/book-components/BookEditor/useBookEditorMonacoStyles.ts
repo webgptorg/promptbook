@@ -8,6 +8,9 @@ import { PROMPTBOOK_SYNTAX_COLORS } from '../../config';
  */
 const BACKGROUND_POSITION_Y_MULTIPLIER = -0.1;
 
+/**
+ * Props for use book editor monaco styles.
+ */
 type UseBookEditorMonacoStylesProps = {
     readonly instanceClass: string;
     readonly scaledLineHeight: number;

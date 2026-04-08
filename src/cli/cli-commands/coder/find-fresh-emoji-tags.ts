@@ -44,5 +44,5 @@ export function $initializeCoderFindFreshEmojiTagCommand(program: Program): $sid
     );
 }
 
-/** Note: [🟡] Code for CLI command [find-fresh-emoji-tags](src/cli/cli-commands/coder/find-fresh-emoji-tags.ts) should never be published outside of `@promptbook/cli` */
-/** Note: [💞] Ignore a discrepancy between file name and entity name */
+// Note: [🟡] Code for CLI command [find-fresh-emoji-tags](src/cli/cli-commands/coder/find-fresh-emoji-tags.ts) should never be published outside of `@promptbook/cli`
+// Note: [💞] Ignore a discrepancy between file name and entity name

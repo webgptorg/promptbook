@@ -4,6 +4,9 @@ import type { string_javascript } from '../../types/typeAliases';
 import { Color } from '../color/Color';
 import type { TODO_any } from '../organization/TODO_any';
 
+/**
+ * Type describing serialize to promptbook javascript return.
+ */
 type SerializeToPromptbookJavascriptReturn = {
     /**
      * Array of import statements required for the `value` to work
@@ -80,6 +83,4 @@ export function serializeToPromptbookJavascript(value: TODO_any): SerializeToPro
     return { imports: uniqueImports, value: serializedValue };
 }
 
-/**
- * TODO: Dynamic indentation passable through options in a second argument
- */
+// TODO: Dynamic indentation passable through options in a second argument

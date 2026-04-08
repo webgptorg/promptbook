@@ -16,5 +16,5 @@ export function locateLibreoffice(): Promise<string_executable_path | null> {
     });
 }
 
-/** Note: [🟢] Code for Node executable locator [locateLibreoffice](src/executables/apps/locateLibreoffice.ts) should never be published into packages that could be imported into browser environment */
-/** TODO: [🧠][♿] Maybe export through `@promptbook/node` OR `@promptbook/legacy-documents` */
+// Note: [🟢] Code for Node executable locator [locateLibreoffice](src/executables/apps/locateLibreoffice.ts) should never be published into packages that could be imported into browser environment
+// TODO: [🧠][♿] Maybe export through `@promptbook/node` OR `@promptbook/legacy-documents`

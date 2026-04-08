@@ -3,19 +3,40 @@ import type { ParsedCitation } from './parseCitationsFromContent';
 import { resolveCitationUrl } from './resolveCitationUrl';
 import { simplifyKnowledgeLabel } from '../../../utils/knowledge/simplifyKnowledgeLabel';
 
+/**
+ * Maximum length of plain-text citation labels before truncation.
+ */
 const TEXT_LABEL_LENGTH = 30;
+/**
+ * Ellipsis appended to truncated citation labels.
+ */
 const LABEL_ELLIPSIS = '…';
+/**
+ * Pattern matching file extensions at the end of a citation source.
+ */
 const FILE_EXTENSION_REGEX = /\.([a-z0-9]{1,10})$/i;
+/**
+ * Pattern matching punctuation that should be trimmed from citation tails.
+ */
 const TRAILING_PUNCTUATION_REGEX = /[.,;:!?)+\]]+$/;
 
+/**
+ * Collapses consecutive whitespace into single spaces.
+ */
 function collapseWhitespace(value: string): string {
     return value.replace(/\s+/g, ' ');
 }
 
+/**
+ * Trims a value before further citation normalization.
+ */
 function trimToNormalized(value: string): string {
     return value.trim();
 }
 
+/**
+ * Checks whether a citation source ends with a file extension.
+ */
 function hasFileExtension(value: string): boolean {
     const trimmed = trimToNormalized(value);
     if (!trimmed) {
@@ -33,6 +54,7 @@ function hasFileExtension(value: string): boolean {
  *
  * @param value - Candidate string to inspect.
  * @returns True when the value parses as an HTTP or HTTPS URL.
+ *
  * @private utility of `<Chat/>` citation rendering
  */
 export function isCitationUrl(value: string): boolean {
@@ -54,6 +76,7 @@ export function isCitationUrl(value: string): boolean {
  *
  * @param citation - Parsed citation metadata.
  * @returns True when the citation looks like inline text instead of a document or URL.
+ *
  * @private utility of `<Chat/>` citation rendering
  */
 export function isPlainTextCitation(citation: ParsedCitation): boolean {
@@ -78,6 +101,7 @@ export function isPlainTextCitation(citation: ParsedCitation): boolean {
  *
  * @param citation - Parsed citation metadata.
  * @returns The friendly label shown on chips and modal headers.
+ *
  * @private utility of `<Chat/>` citation rendering
  */
 export function getCitationLabel(citation: ParsedCitation): string {
@@ -104,6 +128,7 @@ export function getCitationLabel(citation: ParsedCitation): string {
  * @param citation - Parsed citation metadata.
  * @param participants - Known chat participants for agent knowledge lookup.
  * @returns URL string suitable for iframe preview or null when unavailable.
+ *
  * @private utility of `<Chat/>` citation rendering
  */
 export function resolveCitationPreviewUrl(
@@ -118,6 +143,4 @@ export function resolveCitationPreviewUrl(
     return explicitUrl || literalUrl || knowledgeUrl || null;
 }
 
-/**
- * TODO: [💞] Spread into multiple files
- */
+// TODO: [💞] Spread into multiple files

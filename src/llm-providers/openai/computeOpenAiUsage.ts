@@ -18,6 +18,7 @@ import { OPENAI_MODELS } from './openai-models';
  * @param rawResponse The raw response from OpenAI API
  * @param duration The duration of the execution
  * @throws {PipelineExecutionError} If the usage is not defined in the response from OpenAI
+ *
  * @private internal utility of `OpenAiExecutionTools`
  */
 export function computeOpenAiUsage(
@@ -85,6 +86,4 @@ export function computeOpenAiUsage(
     };
 }
 
-/**
- * TODO: [🤝] DRY Maybe some common abstraction between `computeOpenAiUsage` and `computeAnthropicClaudeUsage`
- */
+// TODO: [🤝] DRY Maybe some common abstraction between `computeOpenAiUsage` and `computeAnthropicClaudeUsage`

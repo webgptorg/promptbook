@@ -2,6 +2,7 @@ import { createInterface } from 'readline';
 
 /**
  * Prompts for a yes/no confirmation using stdin.
+ *
  * @private function of DeleteOpenAiResources
  */
 export async function promptForConfirmation(promptText: string): Promise<boolean> {
@@ -12,6 +13,7 @@ export async function promptForConfirmation(promptText: string): Promise<boolean
 
 /**
  * Asks a single question on stdin and resolves with the user response.
+ *
  * @private function of DeleteOpenAiResources
  */
 async function askQuestion(promptText: string): Promise<string> {

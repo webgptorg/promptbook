@@ -42,8 +42,6 @@ exp0rt type CommonHighLevelAbstraction = {
 };
 */
 
-/**
- * TODO: [♓️] Add order here
- * TODO: [🧠][🍱] Maybe make some common abstraction between `HighLevelAbstraction` and `CommandParser`
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// TODO: [♓️] Add order here
+// TODO: [🧠][🍱] Maybe make some common abstraction between `HighLevelAbstraction` and `CommandParser`
+// Note: [💞] Ignore a discrepancy between file name and entity name

@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 
+/**
+ * Handles post.
+ */
 export async function POST() {
     try {
         if (!process.env.OPENAI_API_KEY) {

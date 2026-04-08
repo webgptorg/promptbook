@@ -2,6 +2,9 @@ import { del, put } from '@vercel/blob';
 import { validateMimeType } from '../../validators/validateMimeType';
 import type { IFile, IIFilesStorageWithCdn } from '../interfaces/IFilesStorage';
 
+/**
+ * Configuration for vercel blob storage.
+ */
 type IVercelBlobStorageConfig = {
     readonly token: string;
     readonly cdnPublicUrl: URL;
@@ -9,6 +12,9 @@ type IVercelBlobStorageConfig = {
     // Note: Vercel Blob automatically handles compression/serving
 };
 
+/**
+ * Class implementing vercel blob storage.
+ */
 export class VercelBlobStorage implements IIFilesStorageWithCdn {
     public get cdnPublicUrl() {
         return this.config.cdnPublicUrl;

@@ -10,6 +10,7 @@ type EmailIconProps = {
  * Renders an email/envelope icon.
  *
  * @param props - SVG properties augmented with an optional `size`
+ *
  * @private internal subcomponent used by various components
  */
 export function EmailIcon({ size = 24, color = 'currentColor' }: EmailIconProps) {

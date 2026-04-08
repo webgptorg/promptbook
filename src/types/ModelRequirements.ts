@@ -8,6 +8,7 @@ import type OpenAI from 'openai';
  * It does not specify the LLM with concrete version itself, only the requirements for the LLM.
  *
  * Note: [🚉] This is fully serializable as JSON
+ *
  * @see https://github.com/webgptorg/promptbook#model-requirements
  */
 export type ModelRequirements =

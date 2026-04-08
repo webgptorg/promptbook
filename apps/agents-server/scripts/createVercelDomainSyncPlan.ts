@@ -315,6 +315,7 @@ type ListProjectsResponse =
  * Loads Vercel API configuration from environment variables.
  *
  * @returns Validated Vercel API configuration.
+ *
  * @private function of `sync-vercel-domains`
  */
 export function loadVercelApiConfiguration(): VercelApiConfiguration {
@@ -342,6 +343,7 @@ export function loadVercelApiConfiguration(): VercelApiConfiguration {
  *
  * @param configuration - Vercel API configuration.
  * @returns Normalized project metadata.
+ *
  * @private function of `sync-vercel-domains`
  */
 export async function loadProjectMetadata(configuration: VercelApiConfiguration): Promise<VercelProjectMetadata> {
@@ -552,6 +554,7 @@ export function resolveDesiredProjectDomain(
  *
  * @param configuration - Vercel API configuration.
  * @returns Current project domains.
+ *
  * @private function of `sync-vercel-domains`
  */
 export async function listProjectDomains(configuration: VercelApiConfiguration): Promise<Array<VercelProjectDomain>> {
@@ -604,6 +607,7 @@ export async function listProjectDomains(configuration: VercelApiConfiguration):
  * @param configuration - Vercel API configuration.
  * @param domain - Domain to attach to the project.
  * @returns Created/attached Vercel project domain.
+ *
  * @private function of `sync-vercel-domains`
  */
 export async function addProjectDomain(
@@ -632,6 +636,7 @@ export async function addProjectDomain(
  *
  * @param configuration - Vercel API configuration.
  * @param domain - Domain to verify.
+ *
  * @private function of `sync-vercel-domains`
  */
 export async function verifyProjectDomain(configuration: VercelApiConfiguration, domain: string): Promise<void> {
@@ -649,6 +654,7 @@ export async function verifyProjectDomain(configuration: VercelApiConfiguration,
  *
  * @param configuration - Vercel API configuration.
  * @param domain - Domain to remove.
+ *
  * @private function of `sync-vercel-domains`
  */
 export async function removeProjectDomain(configuration: VercelApiConfiguration, domain: string): Promise<void> {
@@ -667,6 +673,7 @@ export async function removeProjectDomain(configuration: VercelApiConfiguration,
  * @param configuration - Vercel API configuration.
  * @param domain - Managed domain name.
  * @returns Vercel domain DNS recommendations.
+ *
  * @private function of `sync-vercel-domains`
  */
 export async function getVercelDomainConfiguration(
@@ -689,6 +696,7 @@ export async function getVercelDomainConfiguration(
  *
  * @param domain - Existing or desired domain payload.
  * @returns Normalized branch/custom-environment binding.
+ *
  * @private function of `sync-vercel-domains`
  */
 export function normalizeVercelDomainBinding(domain: {

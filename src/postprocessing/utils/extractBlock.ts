@@ -12,8 +12,9 @@ import { extractOneBlockFromMarkdown } from '../../utils/markdown/extractOneBloc
  * - `extractOneBlockFromMarkdown` extracts exactly one code block with language of the code block
  * - `extractAllBlocksFromMarkdown` extracts all code blocks with language of the code block
  *
- * @public exported from `@promptbook/markdown-utils`
  * @throws {ParseError} if there is not exactly one code block in the markdown
+ *
+ * @public exported from `@promptbook/markdown-utils`
  */
 export function extractBlock(markdown: string_markdown): string {
     const { content } = extractOneBlockFromMarkdown(markdown);

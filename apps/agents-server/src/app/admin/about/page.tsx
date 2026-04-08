@@ -32,6 +32,9 @@ import { isUserAdmin } from '../../../utils/isUserAdmin';
 import { getSession } from '../../../utils/session';
 import { listRegisteredServersUsingServiceRole } from '../../../utils/serverRegistry';
 
+/**
+ * Constant for promptbook about text.
+ */
 const promptbookAboutText = aboutPromptbookInformation({
     isServersInfoIncluded: false,
     isRuntimeEnvironmentInfoIncluded: false,
@@ -77,6 +80,9 @@ const formatOptionalValue = (value?: string | URL | null): string => {
  */
 const formatMemory = (bytes: number): string => `${(bytes / 1024 / 1024 / 1024).toFixed(1)} GB`;
 
+/**
+ * Type describing request headers.
+ */
 type RequestHeaders = Awaited<ReturnType<typeof headers>>;
 
 /**

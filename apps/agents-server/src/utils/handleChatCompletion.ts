@@ -121,6 +121,9 @@ function createCompatibilityUsage(
     };
 }
 
+/**
+ * Definition of open AI chat tool.
+ */
 type OpenAIChatToolDefinition = OpenAI.Chat.Completions.ChatCompletionTool & OpenAI.Beta.AssistantTool;
 
 /**
@@ -131,6 +134,9 @@ type OpenAiCompatibilityMessageLike = {
     content?: unknown;
 };
 
+/**
+ * Handles convert open Ai tools.
+ */
 function convertOpenAiTools(rawTools: unknown): Array<LlmToolDefinition> | undefined {
     if (!Array.isArray(rawTools)) {
         return undefined;
@@ -143,6 +149,9 @@ function convertOpenAiTools(rawTools: unknown): Array<LlmToolDefinition> | undef
     return converted.length > 0 ? converted : undefined;
 }
 
+/**
+ * Handles convert open Ai tool.
+ */
 function convertOpenAiTool(rawTool: unknown): LlmToolDefinition | null {
     const tool = rawTool as OpenAIChatToolDefinition;
     if (!tool || tool.type !== 'function') {
@@ -198,6 +207,9 @@ function convertOpenAiTool(rawTool: unknown): LlmToolDefinition | null {
     };
 }
 
+/**
+ * Parses open Ai tool choice.
+ */
 function parseOpenAiToolChoice(value: unknown): OpenAI.Chat.Completions.ChatCompletionToolChoiceOption | undefined {
     if (value === undefined || value === null) {
         return undefined;
@@ -322,6 +334,9 @@ function createFrozenOpenAiCompatibilityMessages(
     return messages;
 }
 
+/**
+ * Handles chat completion.
+ */
 export async function handleChatCompletion(
     request: NextRequest,
     params: { agentName?: string },
@@ -891,6 +906,4 @@ export async function handleChatCompletion(
     }
 }
 
-/**
- * TODO: [🈹] Maybe move chat thread handling here
- */
+// TODO: [🈹] Maybe move chat thread handling here

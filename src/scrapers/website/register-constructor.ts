@@ -13,7 +13,5 @@ import { createWebsiteScraper } from './createWebsiteScraper';
  */
 export const _WebsiteScraperRegistration: Registration = $scrapersRegister.register(createWebsiteScraper);
 
-/**
- * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
+// Note: [💞] Ignore a discrepancy between file name and entity name

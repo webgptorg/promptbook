@@ -1,9 +1,21 @@
 import { beforeAll, describe, expect, it, jest } from '@jest/globals';
 import { SERVER_ENVIRONMENT } from '../src/utils/serverRegistry';
 
+/**
+ * Constant for create vercel domain sync plan.
+ */
 let createVercelDomainSyncPlan: typeof import('./sync-vercel-domains').createVercelDomainSyncPlan;
+/**
+ * Constant for create cloudflare Dns record sync plan.
+ */
 let createCloudflareDnsRecordSyncPlan: typeof import('./sync-vercel-domains').createCloudflareDnsRecordSyncPlan;
+/**
+ * Constant for resolve desired cloudflare Dns record.
+ */
 let resolveDesiredCloudflareDnsRecord: typeof import('./sync-vercel-domains').resolveDesiredCloudflareDnsRecord;
+/**
+ * Constant for resolve desired project domain.
+ */
 let resolveDesiredProjectDomain: typeof import('./sync-vercel-domains').resolveDesiredProjectDomain;
 
 beforeAll(async () => {

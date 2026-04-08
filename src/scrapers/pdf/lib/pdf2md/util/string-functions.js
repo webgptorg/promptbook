@@ -1,7 +1,22 @@
+/**
+ * Constant for min digit char code.
+ */
 const MIN_DIGIT_CHAR_CODE = 48;
+/**
+ * Constant for max digit char code.
+ */
 const MAX_DIGIT_CHAR_CODE = 57;
+/**
+ * Constant for whitespace char code.
+ */
 const WHITESPACE_CHAR_CODE = 32;
+/**
+ * Constant for tab char code.
+ */
 const TAB_CHAR_CODE = 9;
+/**
+ * Constant for dot char code.
+ */
 const DOT_CHAR_CODE = 46;
 
 exports.removeLeadingWhitespaces = function removeLeadingWhitespaces(string) {

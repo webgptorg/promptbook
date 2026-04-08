@@ -272,6 +272,4 @@ export const HTTP_STATUS_CODES = {
     TOO_MANY_REQUESTS: 429,
 } as const;
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

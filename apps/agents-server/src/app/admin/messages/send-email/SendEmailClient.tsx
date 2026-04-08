@@ -4,6 +4,9 @@ import { useState } from 'react';
 import { assertsError } from '../../../../../../../src/errors/assertsError';
 import { sendEmailAction } from './actions';
 
+/**
+ * Handles send email client.
+ */
 export function SendEmailClient() {
     const [status, setStatus] = useState<'IDLE' | 'LOADING' | 'SUCCESS' | 'ERROR'>('IDLE');
     const [errorMessage, setErrorMessage] = useState<string | null>(null);

@@ -4,6 +4,9 @@ import { ForbiddenPage } from '../../../../components/ForbiddenPage/ForbiddenPag
 import { isUserAdmin } from '../../../../utils/isUserAdmin';
 import { UserDetailClient } from './UserDetailClient';
 
+/**
+ * Handles user detail page.
+ */
 export default async function UserDetailPage({
     params,
 }: {

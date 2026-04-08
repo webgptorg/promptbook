@@ -29,6 +29,7 @@ export type FederatedServerStatus = {
  * @param initialExternalAgents - Initial external agents provided by the server.
  * @param refreshKey - Optional key used to force refetch while enabled.
  * @returns Loaded federated agents and server statuses.
+ *
  * @private function of AgentsList
  */
 export function useFederatedAgents(

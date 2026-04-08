@@ -28,6 +28,7 @@ const STREAMING_FEATURE_PLACEHOLDER_LABELS: Record<StreamingFeaturePlaceholderKi
  * @param boundary - Streaming metadata returned by the sanitizer.
  * @param source - Original message content that contains the pending markup.
  * @returns Friendly placeholder kind to render inside the chat bubble.
+ *
  * @private internal helper of `<ChatMessageItem/>`
  */
 export function resolveStreamingFeaturePlaceholderKind(

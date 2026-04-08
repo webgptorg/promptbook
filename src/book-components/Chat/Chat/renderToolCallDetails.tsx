@@ -102,6 +102,7 @@ type ToolCallIssue = {
  *
  * @param options - Rendering options for the tool call.
  * @returns Simple tool-call detail JSX.
+ *
  * @private function of ChatToolCallModal
  */
 export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactElement {
@@ -244,6 +245,7 @@ type RenderGenericToolCallDetailsOptions = {
  *
  * @param options - Generic tool call rendering inputs.
  * @returns Generic summary UI.
+ *
  * @private function of ChatToolCallModal
  */
 function renderGenericToolCallDetails(options: RenderGenericToolCallDetailsOptions): ReactElement {
@@ -346,6 +348,7 @@ function renderGenericToolCallDetails(options: RenderGenericToolCallDetailsOptio
  *
  * @param toolName - Raw tool name.
  * @returns `true` when the tool is a search-like tool.
+ *
  * @private function of ChatToolCallModal
  */
 function isSearchToolCallName(toolName: string): boolean {
@@ -357,6 +360,7 @@ function isSearchToolCallName(toolName: string): boolean {
  *
  * @param toolName - Raw tool name.
  * @returns `true` when the tool is a time-like tool.
+ *
  * @private function of ChatToolCallModal
  */
 function isTimeToolCallName(toolName: string): boolean {
@@ -368,6 +372,7 @@ function isTimeToolCallName(toolName: string): boolean {
  *
  * @param toolName - Raw tool name.
  * @returns `true` when the tool is a timeout-like tool.
+ *
  * @private function of ChatToolCallModal
  */
 function isTimeoutToolCallName(toolName: string): boolean {
@@ -379,6 +384,7 @@ function isTimeoutToolCallName(toolName: string): boolean {
  *
  * @param toolName - Raw tool name.
  * @returns `true` when the tool is an email-like tool.
+ *
  * @private function of ChatToolCallModal
  */
 function isEmailToolCallName(toolName: string): boolean {
@@ -390,6 +396,7 @@ function isEmailToolCallName(toolName: string): boolean {
  *
  * @param toolName - Raw tool name.
  * @returns `true` when the tool is a popup-like tool.
+ *
  * @private function of ChatToolCallModal
  */
 function isPopupToolCallName(toolName: string): boolean {
@@ -401,6 +408,7 @@ function isPopupToolCallName(toolName: string): boolean {
  *
  * @param args - Parsed tool call arguments.
  * @returns Array of display-ready argument entries.
+ *
  * @private function of ChatToolCallModal
  */
 function buildArgumentEntries(args: Record<string, TODO_any>): Array<ToolCallArgumentEntry> {
@@ -415,6 +423,7 @@ function buildArgumentEntries(args: Record<string, TODO_any>): Array<ToolCallArg
  *
  * @param key - Raw argument key.
  * @returns Humanized label.
+ *
  * @private function of ChatToolCallModal
  */
 function formatArgumentLabel(key: string): string {
@@ -427,6 +436,7 @@ function formatArgumentLabel(key: string): string {
  *
  * @param value - Arbitrary tool call argument value.
  * @returns Friendly string.
+ *
  * @private function of ChatToolCallModal
  */
 function formatArgumentValue(value: TODO_any): string {
@@ -466,6 +476,7 @@ function formatArgumentValue(value: TODO_any): string {
  *
  * @param resultRaw - Decoded tool call result.
  * @returns Friendly summary or `null` when nothing suitable is found.
+ *
  * @private function of ChatToolCallModal
  */
 function buildToolCallResultSummary(resultRaw: TODO_any): string | null {
@@ -502,6 +513,7 @@ function buildToolCallResultSummary(resultRaw: TODO_any): string | null {
  * @param value - Object to scan.
  * @param keys - Keys to try in order.
  * @returns First matching string or `null`.
+ *
  * @private function of ChatToolCallModal
  */
 function findStringCandidate(value: TODO_any, keys: string[]): string | null {
@@ -524,6 +536,7 @@ function findStringCandidate(value: TODO_any, keys: string[]): string | null {
  *
  * @param resultRaw - Tool call result payload.
  * @returns Item count or `null` when the result is not a collection.
+ *
  * @private function of ChatToolCallModal
  */
 function getResultItemCount(resultRaw: TODO_any): number | null {
@@ -549,6 +562,7 @@ function getResultItemCount(resultRaw: TODO_any): number | null {
  *
  * @param toolCall - Tool call payload to inspect.
  * @returns Array of structured issues.
+ *
  * @private function of ChatToolCallModal
  */
 function normalizeToolCallIssues(toolCall: NonNullable<ChatMessage['toolCalls']>[number]): Array<ToolCallIssue> {
@@ -580,6 +594,7 @@ function normalizeToolCallIssues(toolCall: NonNullable<ChatMessage['toolCalls']>
  *
  * @param value - Raw issue payload.
  * @returns String suitable for badge display.
+ *
  * @private function of ChatToolCallModal
  */
 function formatIssueValue(value: TODO_any): string {
@@ -600,6 +615,7 @@ function formatIssueValue(value: TODO_any): string {
  *
  * @param text - Chiplet label text.
  * @returns First character or `null` when empty.
+ *
  * @private function of ChatToolCallModal
  */
 function extractLeadingEmoji(text?: string): string | null {

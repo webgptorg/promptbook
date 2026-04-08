@@ -5,12 +5,18 @@ import { DocsToolbar } from '../../../components/DocsToolbar/DocsToolbar';
 import { PrintHeader } from '../../../components/PrintHeader/PrintHeader';
 import { DocumentationContent } from '../../../components/DocumentationContent/DocumentationContent';
 
+/**
+ * Props for doc page.
+ */
 type DocPageProps = {
     params: Promise<{
         docId: string;
     }>;
 };
 
+/**
+ * Handles doc page.
+ */
 export default async function DocPage(props: DocPageProps) {
     const { docId } = await props.params;
 

@@ -533,7 +533,5 @@ export async function resolveInheritedAgentSource(
     return newAgentSource;
 }
 
-/**
- * TODO: [🈲] Create a function that can manipulate books by modifying commitments, splitting the book up into commitments or syntactic tokens, and editing or deleting these via object methods.
- * TODO: [🐱‍🚀][⏩] This function should be in `/src` and exported from `@promptbook/core`
- */
+// TODO: [🈲] Create a function that can manipulate books by modifying commitments, splitting the book up into commitments or syntactic tokens, and editing or deleting these via object methods.
+// TODO: [🐱‍🚀][⏩] This function should be in `/src` and exported from `@promptbook/core`

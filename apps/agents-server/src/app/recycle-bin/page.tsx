@@ -5,10 +5,16 @@ import { RecycleBinList } from '../../components/Homepage/RecycleBinList';
 import { isUserAdmin } from '../../utils/isUserAdmin';
 import { getRecycleBinItems } from './_data/getRecycleBinItems';
 
+/**
+ * Map of metadata.
+ */
 export const metadata = {
     title: 'Recycle Bin',
 };
 
+/**
+ * Handles recycle bin page.
+ */
 export default async function RecycleBinPage() {
     const { publicUrl } = await $provideServer();
     const { agents, folders, currentUser } = await getRecycleBinItems();

@@ -3,6 +3,9 @@ import { computeHash } from '../misc/computeHash';
 import { $randomItem } from './$randomItem';
 import type { GenerateNameResult, NamePool } from './NamePool';
 
+/**
+ * Collection of firstnames.
+ */
 const FIRSTNAMES: ReadonlyArray<string_person_firstname> = [
     'Paul',
     'George',
@@ -40,6 +43,9 @@ const FIRSTNAMES: ReadonlyArray<string_person_firstname> = [
     'Christopher',
 ];
 
+/**
+ * Collection of lastnames with colors.
+ */
 const LASTNAMES_WITH_COLORS: ReadonlyArray<{ lastname: string_person_lastname; color: string_color }> = [
     { lastname: 'Green', color: '#008000' },
     { lastname: 'Brown', color: '#A52A2A' },
@@ -69,6 +75,7 @@ function pickDeterministicItem<T>(hash: string, startIndex: number, list: Readon
  *
  * @param seed - Input seed used to derive a stable pseudonym.
  * @returns Deterministic English full name with color metadata.
+ *
  * @private internal helper for deterministic pseudonym generation
  */
 export function generateDeterministicEnglishName(seed: string): GenerateNameResult {

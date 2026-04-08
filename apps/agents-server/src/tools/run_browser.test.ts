@@ -24,15 +24,39 @@ jest.mock('../../../../src/commitments/USE_BROWSER/fetchUrlContent', () => ({
     fetchUrlContent: jest.fn(),
 }));
 
+/**
+ * Constant for random UUID mock.
+ */
 const randomUUIDMock = randomUUID as jest.MockedFunction<typeof randomUUID>;
+/**
+ * Constant for mkdir mock.
+ */
 const mkdirMock = mkdir as jest.MockedFunction<typeof mkdir>;
+/**
+ * Constant for provide browser for server mock.
+ */
 const provideBrowserForServerMock = $provideBrowserForServer as jest.MockedFunction<typeof $provideBrowserForServer>;
+/**
+ * Constant for fetch Url content mock.
+ */
 const fetchUrlContentMock = fetchUrlContent as jest.MockedFunction<typeof fetchUrlContent>;
 
+/**
+ * Type describing async void fn.
+ */
 type AsyncVoidFn = () => Promise<void>;
+/**
+ * Type describing fill fn.
+ */
 type FillFn = (text: string) => Promise<void>;
+/**
+ * Type describing wheel fn.
+ */
 type WheelFn = (x: number, y: number) => Promise<void>;
 
+/**
+ * Type describing locator mock.
+ */
 type LocatorMock = {
     first: jest.MockedFunction<
         () => {
@@ -43,6 +67,9 @@ type LocatorMock = {
     >;
 };
 
+/**
+ * Type describing page mock.
+ */
 type PageMock = Pick<
     Page,
     'goto' | 'locator' | 'waitForTimeout' | 'screenshot' | 'title' | 'close' | 'url' | 'setDefaultNavigationTimeout' | 'setDefaultTimeout'
@@ -52,6 +79,9 @@ type PageMock = Pick<
     };
 };
 
+/**
+ * Type describing browser context mock.
+ */
 type BrowserContextMock = Pick<BrowserContext, 'newPage'>;
 
 /**

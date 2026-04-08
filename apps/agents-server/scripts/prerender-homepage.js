@@ -1,18 +1,45 @@
 'use strict';
 
+/**
+ * Constant for { spawn }.
+ */
 const { spawn } = require('node:child_process');
+/**
+ * Constant for { mkdir, write file }.
+ */
 const { mkdir, writeFile } = require('node:fs/promises');
+/**
+ * Constant for path.
+ */
 const path = require('node:path');
 
+/**
+ * Constant for app root.
+ */
 const APP_ROOT = path.resolve(__dirname, '..');
+/**
+ * Constant for port.
+ */
 const PORT = Number.parseInt(process.env.PRE_RENDER_PORT ?? '4440', 10) || 4440;
+/**
+ * Constant for home URL.
+ */
 const HOME_URL = `http://127.0.0.1:${PORT}/`;
 /**
  * Marker printed by `next start` once the production server accepts requests.
  */
 const SERVER_READY_MARKER = 'Ready in';
+/**
+ * Constant for output dir.
+ */
 const OUTPUT_DIR = path.join(APP_ROOT, '.next', 'prerendered');
+/**
+ * Constant for output file.
+ */
 const OUTPUT_FILE = path.join(OUTPUT_DIR, 'home.html');
+/**
+ * Constant for wait timeout ms.
+ */
 const WAIT_TIMEOUT_MS = 15000;
 /**
  * Timeout for the final homepage download once the server is confirmed ready.

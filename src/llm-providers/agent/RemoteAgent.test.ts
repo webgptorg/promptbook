@@ -4,9 +4,21 @@ import type { Prompt } from '../../types/Prompt';
 import type { Parameters, string_agent_url } from '../../types/typeAliases';
 import { RemoteAgent } from './RemoteAgent';
 
+/**
+ * Constant for split index one.
+ */
 const SPLIT_INDEX_ONE = 10;
+/**
+ * Constant for split index two.
+ */
 const SPLIT_INDEX_TWO = 1000;
+/**
+ * Size of large payload.
+ */
 const LARGE_PAYLOAD_SIZE = 1000;
+/**
+ * Constant for HTTP status payload too large.
+ */
 const HTTP_STATUS_PAYLOAD_TOO_LARGE = 413;
 
 /**

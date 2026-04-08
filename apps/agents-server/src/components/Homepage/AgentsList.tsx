@@ -111,10 +111,25 @@ type FolderEditDialogState = {
     readonly initialValues: FolderEditValues;
 };
 
+/**
+ * Prefix for agent drag ID.
+ */
 const AGENT_DRAG_ID_PREFIX = 'agent:';
+/**
+ * Prefix for folder drag ID.
+ */
 const FOLDER_DRAG_ID_PREFIX = 'folder:';
+/**
+ * Constant for drag start distance px.
+ */
 const DRAG_START_DISTANCE_PX = 8;
+/**
+ * Constant for touch drag delay ms.
+ */
 const TOUCH_DRAG_DELAY_MS = 250;
+/**
+ * Constant for touch drag tolerance px.
+ */
 const TOUCH_DRAG_TOLERANCE_PX = 6;
 
 /**

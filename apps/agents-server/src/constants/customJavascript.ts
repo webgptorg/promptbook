@@ -1,5 +1,6 @@
 /**
  * Builds the default JavaScript prefill used by `/admin/custom-js`.
+ *
  * @private
  */
 export function createDefaultCustomJavascript(): string {

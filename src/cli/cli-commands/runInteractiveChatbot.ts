@@ -31,6 +31,7 @@ type RunInteractiveChatbotOptions = {
  * Run the interactive chatbot in CLI
  *
  * @returns Never-ending promise or process exit
+ *
  * @private internal function of `promptbookCli` and `initializeRunCommand`
  */
 export async function runInteractiveChatbot(options: RunInteractiveChatbotOptions): Promise<void | never> {
@@ -157,8 +158,6 @@ export async function runInteractiveChatbot(options: RunInteractiveChatbotOption
     }
 }
 
-/** Note: [🟡] Code for CLI command [runInteractiveChatbot](src/cli/cli-commands/runInteractiveChatbot.ts) should never be published outside of `@promptbook/cli` */
-/**
- * TODO: Saving reports from the chatbot conversation
- * TODO: [⛲️] This is the right place to start implementing INK
- */
+// Note: [🟡] Code for CLI command [runInteractiveChatbot](src/cli/cli-commands/runInteractiveChatbot.ts) should never be published outside of `@promptbook/cli`
+// TODO: Saving reports from the chatbot conversation
+// TODO: [⛲️] This is the right place to start implementing INK

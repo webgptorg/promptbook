@@ -5,6 +5,9 @@ import { $provideSupabaseForServer } from '../database/$provideSupabaseForServer
 import type { AgentsServerDatabase } from '../database/schema';
 import { getSession } from './session';
 
+/**
+ * Type describing user profile row.
+ */
 type UserProfileRow = Pick<AgentsServerDatabase['public']['Tables']['User']['Row'], 'id' | 'profileImageUrl'>;
 
 /**

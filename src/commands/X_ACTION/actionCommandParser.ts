@@ -11,6 +11,7 @@ import type { ActionCommand } from './ActionCommand';
  * Parses the action command
  *
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/editable`
  */
 export const actionCommandParser: PipelineHeadCommandParser<ActionCommand> = {
@@ -84,6 +85,4 @@ export const actionCommandParser: PipelineHeadCommandParser<ActionCommand> = {
     },
 };
 
-/**
- * Note: [⛱] There are two types of ACTION commands *...(read more in [⛱])*
- */
+// Note: [⛱] There are two types of ACTION commands *...(read more in [⛱])*

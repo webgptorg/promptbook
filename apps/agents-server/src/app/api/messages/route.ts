@@ -3,9 +3,18 @@ import { $getTableName } from '../../../database/$getTableName';
 import { $provideSupabase } from '../../../database/$provideSupabase';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
 
+/**
+ * Size of default page.
+ */
 const DEFAULT_PAGE_SIZE = 20;
+/**
+ * Size of max page.
+ */
 const MAX_PAGE_SIZE = 100;
 
+/**
+ * Parses positive int.
+ */
 function parsePositiveInt(value: string | null, fallback: number): number {
     if (!value) return fallback;
     const parsed = parseInt(value, 10);

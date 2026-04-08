@@ -20,6 +20,7 @@ type MetadataSearchRow = Pick<
  * Creates provider for metadata entries (admin-only).
  *
  * @returns Configured metadata search provider.
+ *
  * @private function of createDefaultServerSearchProviders
  */
 export function createMetadataSearchProvider(): ServerSearchProvider {

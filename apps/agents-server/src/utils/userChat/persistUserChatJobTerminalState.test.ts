@@ -1,8 +1,17 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import { UserChatScopeError } from './UserChatScopeError';
 
+/**
+ * Constant for finalize user chat job mock.
+ */
 const finalizeUserChatJobMock = jest.fn<(options: unknown) => Promise<unknown>>();
+/**
+ * Constant for send user chat push notification mock.
+ */
 const sendUserChatPushNotificationMock = jest.fn<(options: unknown) => Promise<void>>();
+/**
+ * Constant for update user chat assistant message mock.
+ */
 const updateUserChatAssistantMessageMock = jest.fn<(options: unknown) => Promise<unknown>>();
 
 jest.mock('./finalizeUserChatJob', () => ({

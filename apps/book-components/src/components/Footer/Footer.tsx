@@ -3,6 +3,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import logo from '../../../public/logos/logo-blue-white-256.png';
 
+/**
+ * Handles footer.
+ */
 export function Footer() {
     return (
         <footer className="bg-gray-900 text-white">

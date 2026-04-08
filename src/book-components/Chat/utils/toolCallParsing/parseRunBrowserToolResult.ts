@@ -32,6 +32,7 @@ const RUN_BROWSER_ARTIFACT_PATH_PATTERN = /\.playwright-cli\/[^\s)\]]+\.(png|jpg
  *
  * @param action - Raw action payload.
  * @returns Human-readable action summary.
+ *
  * @private function of parseRunBrowserToolResult
  */
 function formatRunBrowserActionSummary(action: Record<string, TODO_any>): string {
@@ -77,6 +78,7 @@ function formatRunBrowserActionSummary(action: Record<string, TODO_any>): string
  *
  * @param path - Artifact path or URL-like value.
  * @returns Artifact kind.
+ *
  * @private function of parseRunBrowserToolResult
  */
 function resolveRunBrowserArtifactKind(path: string): RunBrowserToolArtifact['kind'] {
@@ -93,6 +95,7 @@ function resolveRunBrowserArtifactKind(path: string): RunBrowserToolArtifact['ki
  * @param rawArtifact - Raw artifact payload.
  * @param index - Artifact index for fallback labels.
  * @returns Normalized artifact or `null` when path is missing.
+ *
  * @private function of parseRunBrowserToolResult
  */
 function normalizeRunBrowserArtifact(
@@ -130,6 +133,7 @@ function normalizeRunBrowserArtifact(
  *
  * @param payloadRecord - Browser payload object.
  * @returns Normalized browser error.
+ *
  * @private function of parseRunBrowserToolResult
  */
 function parseRunBrowserError(payloadRecord: Record<string, TODO_any>): RunBrowserToolError | null {
@@ -163,6 +167,7 @@ function parseRunBrowserError(payloadRecord: Record<string, TODO_any>): RunBrows
  *
  * @param payload - Candidate browser payload object.
  * @returns Normalized browser payload or `null`.
+ *
  * @private function of parseRunBrowserToolResult
  */
 function parseRunBrowserPayloadObject(payload: TODO_any): RunBrowserToolResult | null {
@@ -222,6 +227,7 @@ function parseRunBrowserPayloadObject(payload: TODO_any): RunBrowserToolResult |
  * @param normalized - Normalized markdown text.
  * @param pattern - Capture pattern to apply.
  * @returns Captured value or `null`.
+ *
  * @private function of parseRunBrowserToolResult
  */
 function readRunBrowserLineValue(normalized: string, pattern: RegExp): string | null {
@@ -234,6 +240,7 @@ function readRunBrowserLineValue(normalized: string, pattern: RegExp): string | 
  *
  * @param markdown - Legacy markdown payload.
  * @returns Parsed browser payload or `null`.
+ *
  * @private function of parseRunBrowserToolResult
  */
 function parseRunBrowserLegacyMarkdown(markdown: string): RunBrowserToolResult | null {
@@ -312,6 +319,7 @@ function parseRunBrowserLegacyMarkdown(markdown: string): RunBrowserToolResult |
  * @param primary - Structured payload.
  * @param secondary - Legacy markdown payload.
  * @returns Merged payload.
+ *
  * @private function of parseRunBrowserToolResult
  */
 function mergeRunBrowserToolResult(
@@ -342,6 +350,7 @@ function mergeRunBrowserToolResult(
  *
  * @param markdown - Markdown payload with potential JSON fences.
  * @returns Parsed structured browser payload or `null`.
+ *
  * @private function of parseRunBrowserToolResult
  */
 function parseRunBrowserEmbeddedJson(markdown: string): RunBrowserToolResult | null {
@@ -372,6 +381,7 @@ function parseRunBrowserEmbeddedJson(markdown: string): RunBrowserToolResult | n
  *
  * @param resultRaw - Raw tool result payload.
  * @returns Normalized browser payload or `null`.
+ *
  * @private function of toolCallParsing
  */
 export function parseRunBrowserToolResult(resultRaw: TODO_any): RunBrowserToolResult | null {

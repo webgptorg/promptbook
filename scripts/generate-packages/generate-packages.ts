@@ -40,11 +40,17 @@ if (process.cwd() !== join(__dirname, '../..')) {
     process.exit(1);
 }
 
+/**
+ * Constant for program.
+ */
 const program = new commander.Command();
 program.option('--commit', `Autocommit changes`, false);
 program.option('--skip-bundler', `Skip the build process of bundler`, false);
 program.parse(process.argv);
 
+/**
+ * Constant for { commit: is commited, skip bundler: is bundler skipped }.
+ */
 const { commit: isCommited, skipBundler: isBundlerSkipped } = program.opts();
 
 /**
@@ -113,6 +119,7 @@ generatePackages({ isCommited, isBundlerSkipped })
  *
  * @param durationMs - Duration in milliseconds
  * @returns Human-readable duration string
+ *
  * @private internal utility of package generation
  */
 function formatDurationForLog(durationMs: number): string {
@@ -144,6 +151,7 @@ function formatDurationForLog(durationMs: number): string {
  *
  * @param now - Timestamp used as the diagnostic reference point
  * @returns Formatted diagnostic summary
+ *
  * @private internal utility of package generation
  */
 function summarizeActiveRollupBuild(now: number): string {
@@ -181,6 +189,7 @@ function summarizeActiveRollupBuild(now: number): string {
  * @param packageBasename - Basename of the package to build
  * @param packageFullname - Full package name used in logs
  * @returns Promise resolved when the bundle process finishes successfully
+ *
  * @private internal utility of package generation
  */
 async function buildPackageBundle(packageBasename: string, packageFullname: string): Promise<void> {
@@ -474,6 +483,7 @@ async function buildPackageBundle(packageBasename: string, packageFullname: stri
  * Generates all package files and bundles used in the monorepo.
  *
  * @param options - Package generation options
+ *
  * @private internal utility of package generation
  */
 async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: boolean; isBundlerSkipped: boolean }) {
@@ -1496,10 +1506,8 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
     }
 }
 
-/** Note: [⚫] Code for repository script [generate-packages](scripts/generate-packages/generate-packages.ts) should never be published in any package */
-/**
- * TODO: [👵] test before publish
- * TODO: Add warning to the copy/generated files
- * TODO: Use prettier to format the generated files
- * TODO: Normalize order of keys in package.json
- */
+// Note: [⚫] Code for repository script [generate-packages](scripts/generate-packages/generate-packages.ts) should never be published in any package
+// TODO: [👵] test before publish
+// TODO: Add warning to the copy/generated files
+// TODO: Use prettier to format the generated files
+// TODO: Normalize order of keys in package.json

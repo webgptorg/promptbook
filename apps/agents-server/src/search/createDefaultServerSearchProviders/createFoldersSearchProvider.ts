@@ -9,6 +9,7 @@ import { sortAndLimitProviderResults } from './sortAndLimitProviderResults';
  * Creates provider for agent folders.
  *
  * @returns Configured folder search provider.
+ *
  * @private function of createDefaultServerSearchProviders
  */
 export function createFoldersSearchProvider(): ServerSearchProvider {

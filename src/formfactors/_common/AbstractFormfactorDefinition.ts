@@ -10,6 +10,7 @@ import type { string_SCREAMING_CASE } from '../../utils/normalization/normalizeT
  * implemented by specific form factors.
  *
  * Note: [🚉] This is fully serializable as JSON
+ *
  * @see https://github.com/webgptorg/promptbook/discussions/172
  */
 export type AbstractFormfactorDefinition = {
@@ -53,6 +54,4 @@ export type AbstractFormfactorDefinition = {
     // <- TODO: [🍼] Add here CLI interactive behavior definition
 };
 
-/**
- * TODO: [🧠][🤓] How to pass optional parameters - for example summary in FORMFACTOR Translator
- */
+// TODO: [🧠][🤓] How to pass optional parameters - for example summary in FORMFACTOR Translator

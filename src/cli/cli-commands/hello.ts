@@ -39,8 +39,6 @@ export function $initializeHelloCommand(program: Program): $side_effect {
     );
 }
 
-/** Note: [🟡] Code for CLI command [hello](src/cli/cli-commands/hello.ts) should never be published outside of `@promptbook/cli` */
-/**
- * TODO: [🧠][🐣] Make here some easter egg with generated hello greeting via LLM models
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [🟡] Code for CLI command [hello](src/cli/cli-commands/hello.ts) should never be published outside of `@promptbook/cli`
+// TODO: [🧠][🐣] Make here some easter egg with generated hello greeting via LLM models
+// Note: [💞] Ignore a discrepancy between file name and entity name

@@ -5,6 +5,9 @@ import { $getCurrentDate } from '../../../utils/misc/$getCurrentDate';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { LlmChatProps } from './LlmChatProps';
 
+/**
+ * Props for captured chat.
+ */
 type CapturedChatProps = {
     messages: ReadonlyArray<ChatMessage>;
     onReset?: () => Promise<void> | void;

@@ -6,6 +6,7 @@ import type { DropIntent } from './DropIndicator';
  * @param activeRect - Active drag rectangle.
  * @param overRect - Target drop rectangle.
  * @returns Drop intent for inside/before/after placement.
+ *
  * @private function of AgentsList
  */
 export const getDropIntentFromRects = (activeRect: ClientRect | null, overRect: ClientRect): DropIntent => {

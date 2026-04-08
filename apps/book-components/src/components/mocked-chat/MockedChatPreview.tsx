@@ -8,6 +8,9 @@ import { MOCKED_CHAT_DELAY_CONFIGS } from '../../../../../src/book-components/Ch
 import type { ChatMessage } from '../../../../../src/book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../../../../../src/book-components/Chat/types/ChatParticipant';
 
+/**
+ * Handles mocked chat preview.
+ */
 export default function MockedChatPreview() {
     const PREDEFINED_CONFIG_NAMES = Object.keys(MOCKED_CHAT_DELAY_CONFIGS);
 

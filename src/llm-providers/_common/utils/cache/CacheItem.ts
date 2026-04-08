@@ -34,6 +34,4 @@ export type CacheItem = {
     promptResult: PromptResult;
 };
 
-/**
- * TODO: [🧠] Should be this exported alongsite `cacheLlmTools` through `@promptbook/utils` OR through `@promptbook/types`
- */
+// TODO: [🧠] Should be this exported alongsite `cacheLlmTools` through `@promptbook/utils` OR through `@promptbook/types`

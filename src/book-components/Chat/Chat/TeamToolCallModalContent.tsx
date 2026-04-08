@@ -39,6 +39,7 @@ type TeamToolCallModalContentOptions = {
  * Renders TEAM conversation details, nested actions, and citations.
  *
  * @param options - TEAM modal rendering options.
+ *
  * @private function of ChatToolCallModal
  */
 export function TeamToolCallModalContent(options: TeamToolCallModalContentOptions): ReactElement {

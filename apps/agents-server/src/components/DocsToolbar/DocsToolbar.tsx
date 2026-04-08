@@ -4,6 +4,9 @@ import { Download, PrinterIcon } from 'lucide-react';
 import Link from 'next/link';
 import { OpenMojiIcon } from '../OpenMojiIcon/OpenMojiIcon';
 
+/**
+ * Handles docs toolbar.
+ */
 export function DocsToolbar() {
     return (
         <div className="flex flex-wrap items-center justify-between gap-4 p-4 mb-8 bg-white rounded-xl shadow-sm border border-gray-100 print:hidden">

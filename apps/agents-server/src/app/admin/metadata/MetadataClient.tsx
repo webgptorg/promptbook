@@ -10,6 +10,9 @@ import { normalizeUploadFilename } from '../../../utils/normalization/normalizeU
 import { MetadataType } from '../../../constants/metadataTypes';
 import { SERVER_VISIBILITY_METADATA_KEY } from '../../../utils/serverVisibility';
 
+/**
+ * Type describing metadata entry.
+ */
 type MetadataEntry = {
     id: number;
     key: string;

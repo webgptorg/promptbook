@@ -3,17 +3,33 @@ import type { ChatMessage } from '../../types/ChatMessage';
 import type { ChatParticipant } from '../../types/ChatParticipant';
 import { messagesToText } from '../../utils/messagesToText';
 
+/**
+ * Constant for PDF page margin pt.
+ */
 const PDF_PAGE_MARGIN_PT = 40;
+/**
+ * Constant for PDF font size pt.
+ */
 const PDF_FONT_SIZE_PT = 10;
+/**
+ * Constant for PDF line height multiplier.
+ */
 const PDF_LINE_HEIGHT_MULTIPLIER = 1.3;
+/**
+ * Constant for PDF paragraph spacing multiplier.
+ */
 const PDF_PARAGRAPH_SPACING_MULTIPLIER = 0.25;
 
+/**
+ * Constant for PDF line height pt.
+ */
 const PDF_LINE_HEIGHT_PT = PDF_FONT_SIZE_PT * PDF_LINE_HEIGHT_MULTIPLIER;
 
 /**
  * Builds the share URL used inside exported files.
  *
  * @returns The current page URL or a fallback to Promptbook home when unavailable.
+ *
  * @private Internal helper used by chat save format implementations.
  */
 function resolveShareUrl(): string {
@@ -30,6 +46,7 @@ function resolveShareUrl(): string {
  * @param messages - Messages that should be included in the PDF export.
  * @param participants - Optional participant metadata to resolve sender names.
  * @returns Binary data for the generated PDF file.
+ *
  * @private Internal helper used by `pdfSaveFormatDefinition`.
  */
 export function buildChatPdf(

@@ -6,6 +6,9 @@ import {
     resolveChatMessageValidationIssue,
 } from './validateChatMessageContent';
 
+/**
+ * Constant for one character over limit.
+ */
 const ONE_CHARACTER_OVER_LIMIT = 1;
 
 describe('validateChatMessageContent', () => {

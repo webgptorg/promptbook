@@ -1,6 +1,9 @@
 import type { string_persona_description } from '../../types/typeAliases';
 import { $randomItem } from './$randomItem';
 
+/**
+ * Map of personalities.
+ */
 const PERSONALITIES: Record<string, ReadonlyArray<string_persona_description>> = {
     ENGLISH: [
         'Friendly and helpful AI agent.',
@@ -38,6 +41,7 @@ const PERSONALITIES: Record<string, ReadonlyArray<string_persona_description>> =
  *
  * @param language - The language code (e.g. 'ENGLISH', 'CZECH')
  * @returns A string describing the agent's persona
+ *
  * @private internal helper function
  */
 export function $randomAgentPersona(language = 'ENGLISH'): string_persona_description {
@@ -46,6 +50,4 @@ export function $randomAgentPersona(language = 'ENGLISH'): string_persona_descri
     return $randomItem(...personalities);
 }
 
-/**
- * TODO: [🤶] Maybe export through `@promptbook/utils` or `@promptbook/random` package
- */
+// TODO: [🤶] Maybe export through `@promptbook/utils` or `@promptbook/random` package

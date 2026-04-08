@@ -49,7 +49,5 @@ export async function prettifyPipelineString(
     return pipelineString;
 }
 
-/**
- * TODO: Maybe use some Mermaid package instead of string templating
- * TODO: [🕌] When more than 2 functionalities, split into separate functions
- */
+// TODO: Maybe use some Mermaid package instead of string templating
+// TODO: [🕌] When more than 2 functionalities, split into separate functions

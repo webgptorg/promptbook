@@ -1,13 +1,22 @@
 import { $randomBase58 } from '../../../../src/utils/random/$randomBase58';
 
+/**
+ * Type describing cookie reader.
+ */
 type CookieReader = {
     get(name: string): { value: string } | undefined;
 };
 
+/**
+ * Type describing cookie store.
+ */
 type CookieStore = CookieReader & {
     set?: (cookie: { name: string; value: string; httpOnly?: boolean; path?: string; maxAge?: number }) => void;
 };
 
+/**
+ * Type describing header reader.
+ */
 type HeaderReader = Pick<Headers, 'get'>;
 
 /**
@@ -20,8 +29,17 @@ export const ANONYMOUS_USER_COOKIE_NAME = 'anonymousUsername';
  */
 export const ANONYMOUS_USERNAME_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365 * 2;
 
+/**
+ * Prefix for anonymous user.
+ */
 const ANONYMOUS_USER_PREFIX = 'anonymous-';
+/**
+ * Length of anonymous ID.
+ */
 const ANONYMOUS_ID_LENGTH = 14;
+/**
+ * Pattern matching anonymous suffix.
+ */
 const ANONYMOUS_SUFFIX_PATTERN = /^[1-9A-HJ-NP-Za-km-z]+$/;
 
 /**

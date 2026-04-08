@@ -1,11 +1,26 @@
 // @flow
 
+/**
+ * Constant for to line item transformation.
+ */
 const ToLineItemTransformation = require('../ToLineItemTransformation');
+/**
+ * Constant for parse result.
+ */
 const ParseResult = require('../../ParseResult');
+/**
+ * Constant for { removed annotation }.
+ */
 const { REMOVED_ANNOTATION } = require('../../Annotation');
 
+/**
+ * Constant for { is digit }.
+ */
 const { isDigit } = require('../../../util/string-functions');
 
+/**
+ * Checks h code ignoring spaces and numbers.
+ */
 function hashCodeIgnoringSpacesAndNumbers(string) {
     var hash = 0;
     if (string.trim().length === 0) return hash;

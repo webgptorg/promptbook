@@ -137,6 +137,4 @@ function collectUsedPromptEmojis(filePaths: ReadonlyArray<string>, tagPrefix: st
     return usedEmojis;
 }
 
-/**
- * Note: [?] Code in this file should never be published in any package
- */
+// Note: [?] Code in this file should never be published in any package

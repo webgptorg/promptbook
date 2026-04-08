@@ -26,6 +26,7 @@ type DeprecatedCommitmentDiagnostic = {
  *
  * @param agentSource - Current editor content.
  * @returns Warning markers for deprecated commitment keywords.
+ *
  * @private internal utility of `BookEditorMonaco`
  */
 export function createDeprecatedCommitmentDiagnostics(

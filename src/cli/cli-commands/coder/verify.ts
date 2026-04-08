@@ -51,5 +51,5 @@ export function $initializeCoderVerifyCommand(program: Program): $side_effect {
     );
 }
 
-/** Note: [🟡] Code for CLI command [verify](src/cli/cli-commands/coder/verify.ts) should never be published outside of `@promptbook/cli` */
-/** Note: [💞] Ignore a discrepancy between file name and entity name */
+// Note: [🟡] Code for CLI command [verify](src/cli/cli-commands/coder/verify.ts) should never be published outside of `@promptbook/cli`
+// Note: [💞] Ignore a discrepancy between file name and entity name

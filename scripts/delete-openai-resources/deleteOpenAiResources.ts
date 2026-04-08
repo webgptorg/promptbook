@@ -9,6 +9,7 @@ import { promptForConfirmation } from './promptForConfirmation';
 
 /**
  * Orchestrates listing, confirmation, and deletion of OpenAI resources.
+ *
  * @private function of DeleteOpenAiResources
  */
 export async function deleteOpenAiResources(): Promise<void> {

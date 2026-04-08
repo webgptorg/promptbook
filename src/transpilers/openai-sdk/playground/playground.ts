@@ -26,6 +26,9 @@ playground()
         process.exit(0);
     });
 
+/**
+ * Handles playground.
+ */
 async function playground() {
     console.info(`🧸  Transpile book -> OpenAiSdk`);
 
@@ -79,4 +82,4 @@ async function playground() {
     //========================================/
 }
 
-/** Note: [⚫] Code for playground [openai-sdk playground](src/transpilers/openai-sdk/playground/playground.ts) should never be published in any package */
+// Note: [⚫] Code for playground [openai-sdk playground](src/transpilers/openai-sdk/playground/playground.ts) should never be published in any package

@@ -259,5 +259,5 @@ async function isExistingDirectory(path: string): Promise<boolean> {
     }
 }
 
-/** Note: [🟡] Code for CLI command [init](src/cli/cli-commands/coder/init.ts) should never be published outside of `@promptbook/cli` */
-/** Note: [💞] Ignore a discrepancy between file name and entity name */
+// Note: [🟡] Code for CLI command [init](src/cli/cli-commands/coder/init.ts) should never be published outside of `@promptbook/cli`
+// Note: [💞] Ignore a discrepancy between file name and entity name

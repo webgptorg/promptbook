@@ -18,6 +18,7 @@ import type { string_title } from './typeAliases';
  * Prompt in a text along with model requirements, but without any execution or templating logic.
  *
  * Note: [🚉] This is fully serializable as JSON
+ *
  * @see https://github.com/webgptorg/promptbook#prompt
  */
 export type Prompt = CompletionPrompt | ChatPrompt | ImagePrompt | EmbeddingPrompt /* <- [🤖] */;
@@ -170,9 +171,7 @@ export type CommonPrompt = {
     // <- Note: [🧆] Look here when adding new properties to `Prompt`
 };
 
-/**
- * TODO: [🧄] Replace all "github.com/webgptorg/promptbook#xxx" with "ptbk.io/xxx"
- * TODO: [✔] Check ModelRequirements in runtime
- * TODO: [🏳] Add options for translation - maybe create `TranslationPrompt`
- * TODO: [🧠][🤺] Maybe allow overriding of `userId` for each prompt
- */
+// TODO: [🧄] Replace all "github.com/webgptorg/promptbook#xxx" with "ptbk.io/xxx"
+// TODO: [✔] Check ModelRequirements in runtime
+// TODO: [🏳] Add options for translation - maybe create `TranslationPrompt`
+// TODO: [🧠][🤺] Maybe allow overriding of `userId` for each prompt

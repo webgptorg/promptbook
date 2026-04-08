@@ -1,4 +1,10 @@
+/**
+ * Constant for { parse }.
+ */
 const { parse } = require('./util/pdf');
+/**
+ * Constant for { make transformations, transform }.
+ */
 const { makeTransformations, transform } = require('./util/transformations');
 if (typeof document === 'undefined') {
     require('./util/dom-stubs').setStubs(global);

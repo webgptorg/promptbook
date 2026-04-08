@@ -28,6 +28,7 @@ import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUr
  * @param pipeline valid or invalid PipelineJson
  * @returns the same pipeline if it is logically valid
  * @throws {PipelineLogicError} on logical error in the pipeline
+ *
  * @public exported from `@promptbook/core`
  */
 export function validatePipeline(pipeline: PipelineJson): PipelineJson {
@@ -57,6 +58,8 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
 }
 
 /**
+ * Validates pipeline inner function.
+ *
  * @private internal function for `validatePipeline`
  */
 export function validatePipeline_InnerFunction(pipeline: PipelineJson): void {
@@ -441,12 +444,10 @@ export function validatePipeline_InnerFunction(pipeline: PipelineJson): void {
  *     >  ex port function validatePipeline(promptbook: really_unknown): asserts promptbook is PipelineJson {
  */
 
-/**
- * TODO: [🧳][main] !!4 Validate that all examples match expectations
- * TODO: [🧳][🐝][main] !!4 Validate that knowledge is valid (non-void)
- * TODO: [🧳][main] !!4 Validate that persona can be used only with CHAT variant
- * TODO: [🧳][main] !!4 Validate that parameter with reserved name not used RESERVED_PARAMETER_NAMES
- * TODO: [🧳][main] !!4 Validate that reserved parameter is not used as joker
- * TODO: [🧠] Validation not only logic itself but imports around - files and websites and rerefenced pipelines exists
- * TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools
- */
+// TODO: [🧳][main] !!4 Validate that all examples match expectations
+// TODO: [🧳][🐝][main] !!4 Validate that knowledge is valid (non-void)
+// TODO: [🧳][main] !!4 Validate that persona can be used only with CHAT variant
+// TODO: [🧳][main] !!4 Validate that parameter with reserved name not used RESERVED_PARAMETER_NAMES
+// TODO: [🧳][main] !!4 Validate that reserved parameter is not used as joker
+// TODO: [🧠] Validation not only logic itself but imports around - files and websites and rerefenced pipelines exists
+// TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools

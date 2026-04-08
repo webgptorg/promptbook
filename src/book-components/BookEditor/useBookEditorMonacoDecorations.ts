@@ -1,8 +1,14 @@
 import type { editor } from 'monaco-editor';
 import { useEffect, useRef } from 'react';
 
+/**
+ * Type describing monaco editor.
+ */
 type MonacoEditor = typeof import('monaco-editor');
 
+/**
+ * Props for use book editor monaco decorations.
+ */
 type UseBookEditorMonacoDecorationsProps = {
     readonly editor: editor.IStandaloneCodeEditor | null;
     readonly monaco: MonacoEditor | null;

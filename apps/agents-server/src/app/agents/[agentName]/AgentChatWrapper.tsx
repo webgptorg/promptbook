@@ -535,6 +535,4 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     );
 }
 
-/**
- * TODO: [🚗] Transfer the saving logic to `<BookEditor/>` be aware of CRDT / yjs approach to be implementable in future
- */
+// TODO: [🚗] Transfer the saving logic to `<BookEditor/>` be aware of CRDT / yjs approach to be implementable in future

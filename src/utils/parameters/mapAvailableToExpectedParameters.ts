@@ -26,6 +26,7 @@ type MakeapAvailableToExpectedParametersOptions = {
  * 2) Then, if there are unmatched expected and available parameters, map them by order.
  *
  * @throws {PipelineExecutionError} If the number of unmatched expected and available parameters does not match, or mapping is ambiguous.
+ *
  * @private within the repository used in `createPipelineExecutor`
  */
 export function mapAvailableToExpectedParameters(

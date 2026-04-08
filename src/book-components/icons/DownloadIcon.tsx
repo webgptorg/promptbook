@@ -9,6 +9,7 @@ import { SVGProps } from 'react';
  * of files or assets.
  *
  * @param props - SVG properties augmented with an optional `size`
+ *
  * @private internal subcomponent used by various components
  */
 export function DownloadIcon(props: SVGProps<SVGSVGElement> & { size?: number }) {

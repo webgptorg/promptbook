@@ -13,6 +13,9 @@ import { getGeneratedImageCdnKey } from '../../../../../utils/cdn/utils/getGener
 import { ensureGeneratedImage } from '../../../../../utils/imageGeneration/ensureGeneratedImage';
 import { getAgentDefaultAvatarPrompt } from './getAgentDefaultAvatarPrompt';
 
+/**
+ * Handles get.
+ */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ agentName: string }> }) {
     try {
         let { agentName } = await params;

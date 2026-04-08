@@ -52,6 +52,9 @@ const normalizeUploadOptions = (
  */
 type UploadPathBuilder = (normalizedFilename: string, pathPrefix: string) => string;
 
+/**
+ * Constant for build default user file path.
+ */
 const buildDefaultUserFilePath: UploadPathBuilder = (normalizedFilename, pathPrefix) =>
     pathPrefix ? `${pathPrefix}/user/files/${normalizedFilename}` : `user/files/${normalizedFilename}`;
 
@@ -67,6 +70,9 @@ type SharedUploadHandlerConfig = {
     shortUrlPrefix?: string;
 };
 
+/**
+ * Prefix for default short URL.
+ */
 const DEFAULT_SHORT_URL_PREFIX = 'https://ptbk.io/k/';
 
 /**

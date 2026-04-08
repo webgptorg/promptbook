@@ -71,15 +71,16 @@ export type AgentChipProps = {
  * This component is used to display agent interactions in chat messages.
  * It fetches the agent profile if needed and displays the agent's avatar and name.
  *
- * @example
  * ```tsx
  * <AgentChip
- *   agent={{ url: 'https://agents.example.com/joe', label: 'Joe' }}
- *   isOngoing={false}
- *   isClickable={true}
- *   onClick={() => console.log('clicked')}
+ * agent={{ url: 'https://agents.example.com/joe', label: 'Joe' }}
+ * isOngoing={false}
+ * isClickable={true}
+ * onClick={() => console.log('clicked')}
  * />
  * ```
+ *
+ * @example
  *
  * @private utility of `ChatMessageItem` component
  */

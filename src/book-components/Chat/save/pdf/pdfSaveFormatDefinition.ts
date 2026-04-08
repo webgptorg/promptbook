@@ -14,7 +14,5 @@ export const pdfSaveFormatDefinition = {
     fileExtension: 'pdf',
 } as const satisfies ChatSaveFormatDefinition;
 
-/**
- * TODO: !!! Add QR code with branding to the footer
- * TODO: !!! Add print option
- */
+// TODO: !!! Add QR code with branding to the footer
+// TODO: !!! Add print option

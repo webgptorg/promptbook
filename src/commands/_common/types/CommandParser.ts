@@ -237,7 +237,5 @@ export type CommandParserInput = {
     readonly args: Array<string_name>;
 };
 
-/**
- * TODO: [♓️] Add order here
- * TODO: [🧠][🍱] Maybe make some common abstraction between `HighLevelAbstraction` and `CommandParser`
- */
+// TODO: [♓️] Add order here
+// TODO: [🧠][🍱] Maybe make some common abstraction between `HighLevelAbstraction` and `CommandParser`

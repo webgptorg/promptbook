@@ -59,6 +59,7 @@ export function mergeToolCalls(
  * @param existingToolCall - Previous snapshot.
  * @param incomingToolCall - New snapshot.
  * @returns One merged snapshot.
+ *
  * @private helper of `mergeToolCalls`
  */
 function mergeToolCallSnapshot(existingToolCall: ToolCall, incomingToolCall: ToolCall): ToolCall {
@@ -84,6 +85,7 @@ function mergeToolCallSnapshot(existingToolCall: ToolCall, incomingToolCall: Too
  * @param existingToolCall - Previous snapshot.
  * @param incomingToolCall - New snapshot.
  * @returns Resolved lifecycle state or `undefined` when neither snapshot provides enough data.
+ *
  * @private helper of `mergeToolCalls`
  */
 function resolveMergedToolCallState(existingToolCall: ToolCall, incomingToolCall: ToolCall): ToolCallState | undefined {
@@ -100,6 +102,7 @@ function resolveMergedToolCallState(existingToolCall: ToolCall, incomingToolCall
  *
  * @param toolCall - Tool call snapshot to inspect.
  * @returns Inferred lifecycle state or `undefined`.
+ *
  * @private helper of `mergeToolCalls`
  */
 function inferToolCallState(toolCall: ToolCall): ToolCallState | undefined {
@@ -128,6 +131,7 @@ function inferToolCallState(toolCall: ToolCall): ToolCallState | undefined {
  * @param existingValues - Previous list.
  * @param incomingValues - Incoming list.
  * @returns Deduplicated merged list or `undefined`.
+ *
  * @private helper of `mergeToolCalls`
  */
 function mergeUnknownLists<T>(
@@ -163,6 +167,7 @@ function mergeUnknownLists<T>(
  *
  * @param value - Value to serialize.
  * @returns String signature.
+ *
  * @private helper of `mergeToolCalls`
  */
 function serializeValueForMerge(value: unknown): string {
@@ -179,6 +184,7 @@ function serializeValueForMerge(value: unknown): string {
  *
  * @param toolCalls - Mutable list to deduplicate in-place.
  * @returns The same array after removing redundant preparation entries.
+ *
  * @private helper of `mergeToolCalls`
  */
 function deduplicatePreparationToolCalls(toolCalls: Array<ToolCall>): Array<ToolCall> {

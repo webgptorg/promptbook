@@ -11,6 +11,7 @@ import type { FormatCommand } from './FormatCommand';
  * Parses the format command
  *
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/editable`
  */
 export const formatCommandParser: PipelineTaskCommandParser<FormatCommand> = {

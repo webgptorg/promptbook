@@ -14,7 +14,13 @@ import {
     type LinguisticHashLanguage,
 } from '../../../../../src/utils/misc/linguisticHash';
 
+/**
+ * Constant for default input.
+ */
 const defaultInput = 'Promptbook is awesome!';
+/**
+ * Constant for language query param.
+ */
 const LANGUAGE_QUERY_PARAM = 'lang';
 
 /**

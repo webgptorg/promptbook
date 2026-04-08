@@ -9,6 +9,9 @@ import { $randomAgentPersona } from './$randomAgentPersona';
 import { $randomAgentRule } from './$randomAgentRule';
 import { getNamePool } from './getNamePool';
 
+/**
+ * Options for generate book boilerplate.
+ */
 type GenerateBookBoilerplateOptions = PartialDeep<Omit<AgentBasicInformation, 'parameters'>> & {
     /**
      * Name of the parent agent to inherit from
@@ -82,6 +85,4 @@ export function $generateBookBoilerplate(options?: GenerateBookBoilerplateOption
     return agentSource;
 }
 
-/**
- * TODO: [🤶] Maybe export through `@promptbook/utils` or `@promptbook/random` package
- */
+// TODO: [🤶] Maybe export through `@promptbook/utils` or `@promptbook/random` package

@@ -11,12 +11,13 @@ import { valueToString } from './valueToString';
  * Replaces parameters in template with values from parameters object
  *
  * Note: This function is not places strings into string,
- *       It's more complex and can handle this operation specifically for LLM models
+ * It's more complex and can handle this operation specifically for LLM models
  *
  * @param template the template with parameters in {curly} braces
  * @param parameters the object with parameters
  * @returns the template with replaced parameters
  * @throws {PipelineExecutionError} if parameter is not defined, not closed, or not opened
+ *
  * @public exported from `@promptbook/utils`
  */
 export function templateParameters(

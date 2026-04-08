@@ -84,6 +84,4 @@ describe('how creating knowledge from docx works', () => {
         ]));
 });
 
-/**
- * TODO: [📓] Maybe test all file in examples (not just 10-simple.doc)
- */
+// TODO: [📓] Maybe test all file in examples (not just 10-simple.doc)

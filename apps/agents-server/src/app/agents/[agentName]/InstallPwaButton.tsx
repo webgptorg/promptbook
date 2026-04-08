@@ -4,11 +4,17 @@ import { TODO_any } from '@promptbook-local/types';
 import { ShoppingBagIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
+/**
+ * Event payload for before install prompt.
+ */
 type BeforeInstallPromptEvent = Event & {
     prompt: () => Promise<void>;
     userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
 };
 
+/**
+ * Handles install pwa button.
+ */
 export function InstallPwaButton() {
     const [installPromptEvent, setInstallPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
     const [isInstalled, setIsInstalled] = useState(false);

@@ -18,6 +18,7 @@ import { CUSTOM_RESOURCE_INPUT_CLASS_NAME, readJsonResponse } from '../custom-re
 
 /**
  * Serialized custom JavaScript file returned by the API.
+ *
  * @private
  */
 type CustomJavascriptFilePayload = {
@@ -30,6 +31,7 @@ type CustomJavascriptFilePayload = {
 
 /**
  * API payload returned by `GET /api/custom-js`.
+ *
  * @private
  */
 type CustomJavascriptReadResponse = {
@@ -40,6 +42,7 @@ type CustomJavascriptReadResponse = {
 
 /**
  * API payload returned by `POST`/`PUT /api/custom-js`.
+ *
  * @private
  */
 type CustomJavascriptSaveResponse = {
@@ -50,6 +53,7 @@ type CustomJavascriptSaveResponse = {
 
 /**
  * API payload returned by `DELETE /api/custom-js`.
+ *
  * @private
  */
 type CustomJavascriptDeleteResponse = {
@@ -59,6 +63,7 @@ type CustomJavascriptDeleteResponse = {
 
 /**
  * UI state for a custom JavaScript file, tracked across unsaved edits.
+ *
  * @private
  */
 type CustomJavascriptFileState = {
@@ -70,10 +75,14 @@ type CustomJavascriptFileState = {
     updatedAt?: string | null;
 };
 
+/**
+ * Constant for new file base name.
+ */
 const NEW_FILE_BASE_NAME = 'custom-script';
 
 /**
  * Represents the UI status message shown after analytics operations.
+ *
  * @private
  */
 type AnalyticsStatusMessage = {
@@ -81,10 +90,14 @@ type AnalyticsStatusMessage = {
     text: string;
 };
 
+/**
+ * Type describing analytics note map.
+ */
 type AnalyticsNoteMap = Partial<Record<AnalyticsMetadataKey, string | null>>;
 
 /**
  * API metadata row used to populate analytics settings.
+ *
  * @private
  */
 type AnalyticsMetadataResponse = {
@@ -95,6 +108,7 @@ type AnalyticsMetadataResponse = {
 
 /**
  * Determines whether two analytics settings snapshots are identical.
+ *
  * @private
  */
 function areAnalyticsSettingsEqual(first: AnalyticsSettings, second: AnalyticsSettings): boolean {
@@ -111,6 +125,7 @@ function areAnalyticsSettingsEqual(first: AnalyticsSettings, second: AnalyticsSe
 
 /**
  * Creates a short unique identifier used only for client-side tracking.
+ *
  * @private
  */
 function buildLocalId(): string {
@@ -119,6 +134,7 @@ function buildLocalId(): string {
 
 /**
  * Maps a persisted API file into local editor state.
+ *
  * @private
  */
 function mapPayloadToState(file: CustomJavascriptFilePayload): CustomJavascriptFileState {
@@ -134,6 +150,7 @@ function mapPayloadToState(file: CustomJavascriptFilePayload): CustomJavascriptF
 
 /**
  * Picks a new file name that does not collide with existing entries.
+ *
  * @private
  */
 function pickUniqueFileName(existing: CustomJavascriptFileState[]): string {
@@ -152,6 +169,7 @@ function pickUniqueFileName(existing: CustomJavascriptFileState[]): string {
 
 /**
  * Builds a fresh editor state for a new custom JavaScript file.
+ *
  * @private
  */
 function createNewFileState(existing: CustomJavascriptFileState[], template: string): CustomJavascriptFileState {
@@ -165,6 +183,7 @@ function createNewFileState(existing: CustomJavascriptFileState[], template: str
 
 /**
  * Renders the admin custom JavaScript editor and saves global script settings.
+ *
  * @private
  */
 export function CustomJsClient() {

@@ -11,7 +11,13 @@ import {
 } from './toolCallParsing';
 import { parseWalletCredentialToolCallResult, WALLET_CREDENTIAL_TOOL_CALL_NAME } from './walletCredentialToolCall';
 
+/**
+ * Length of memory chip max.
+ */
 const MEMORY_CHIP_MAX_LENGTH = 48;
+/**
+ * Length of memory chip truncate.
+ */
 const MEMORY_CHIP_TRUNCATE_LENGTH = 45;
 
 /**

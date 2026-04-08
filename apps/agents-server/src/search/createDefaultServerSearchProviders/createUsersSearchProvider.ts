@@ -20,6 +20,7 @@ type UserSearchRow = Pick<
  * Creates provider for users (admin-only).
  *
  * @returns Configured users search provider.
+ *
  * @private function of createDefaultServerSearchProviders
  */
 export function createUsersSearchProvider(): ServerSearchProvider {

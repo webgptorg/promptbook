@@ -20,6 +20,9 @@ import {
  */
 type BrowserConnectionMode = { readonly type: 'local' } | { readonly type: 'remote'; readonly wsEndpoint: string };
 
+/**
+ * Constant for default browser user data dir.
+ */
 const DEFAULT_BROWSER_USER_DATA_DIR = join(tmpdir(), 'promptbook', 'browser', 'user-data');
 
 /**

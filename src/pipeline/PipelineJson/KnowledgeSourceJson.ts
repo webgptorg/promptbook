@@ -43,6 +43,4 @@ export type KnowledgeSourcePreparedJson = KnowledgeSourceJson & {
     readonly preparationIds: ReadonlyArray<number_id>;
 };
 
-/**
- * TODO: [🍙] Make some standard order of json properties
- */
+// TODO: [🍙] Make some standard order of json properties

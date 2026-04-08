@@ -11,6 +11,7 @@ import type { InstrumentCommand } from './InstrumentCommand';
  * Parses the instrument command
  *
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/editable`
  */
 export const instrumentCommandParser: PipelineHeadCommandParser<InstrumentCommand> = {
@@ -85,6 +86,4 @@ export const instrumentCommandParser: PipelineHeadCommandParser<InstrumentComman
     },
 };
 
-/**
- * Note: [⛱] There are two types of INSTRUMENT commands *...(read more in [⛱])*
- */
+// Note: [⛱] There are two types of INSTRUMENT commands *...(read more in [⛱])*

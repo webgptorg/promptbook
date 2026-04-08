@@ -5,6 +5,9 @@ import { formatAgentNamingText } from '../../utils/agentNaming';
 import { getAgentNaming } from '../../utils/getAgentNaming';
 import { HOMEPAGE_AGENT_GRID_CLASS } from './gridLayout';
 
+/**
+ * Props for external agents section.
+ */
 type ExternalAgentsSectionProps = {
     /**
      * Agents grouped by their originating server for federated display
@@ -17,6 +20,9 @@ type ExternalAgentsSectionProps = {
     readonly publicUrl: URL;
 };
 
+/**
+ * Handles external agents section.
+ */
 export async function ExternalAgentsSection(props: ExternalAgentsSectionProps) {
     const { agentsByServer, publicUrl } = props;
     const agentNaming = await getAgentNaming();

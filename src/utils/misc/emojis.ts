@@ -6,9 +6,9 @@ import type { TODO_any } from '../organization/TODO_any';
  * Note: this will be needed to update annually - now updated at 2022-01-19
  *
  * @see https://getemoji.com/
+ * @deprecated Use /\p{Extended_Pictographic}/ instead
  *
  * @private within the repository
- * @deprecated Use /\p{Extended_Pictographic}/ instead
  */
 export const EMOJIS_IN_CATEGORIES: Record<string, ReadonlyArray<string_char_emoji>> = {
     Smileys:
@@ -114,16 +114,14 @@ export const EMOJIS_IN_CATEGORIES: Record<string, ReadonlyArray<string_char_emoj
 };
 
 /**
- *
  * All possible emoji chars like "🍆", "🍡", "🍤"...
  *
- * @private within the repository
  * @deprecated Use /\p{Extended_Pictographic}/ instead
+ *
+ * @private within the repository
  */
 export const EMOJIS: Set<string_char_emoji> = new Set(Object.values(EMOJIS_IN_CATEGORIES).flat());
 
-/**
- * TODO: [💴] DRY - just one version of emojis.ts
- * TODO: Mirror from Collboard or some common package
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// TODO: [💴] DRY - just one version of emojis.ts
+// TODO: Mirror from Collboard or some common package
+// Note: [💞] Ignore a discrepancy between file name and entity name

@@ -32,6 +32,9 @@ if (process.cwd() !== join(__dirname, '../..')) {
     process.exit(1);
 }
 
+/**
+ * Constant for program.
+ */
 const program = new commander.Command();
 program.parse(process.argv);
 
@@ -46,6 +49,9 @@ usePackages()
         process.exit(0);
     });
 
+/**
+ * Uses packages.
+ */
 async function usePackages() {
     console.info(`🔼🆚  Using packages`);
 
@@ -265,11 +271,9 @@ async function usePackages() {
     }
 }
 
-/** Note: [⚫] Code for repository script [use-packages](scripts/use-packages/use-packages.ts) should never be published in any package */
-/**
- * TODO: [🤣] Update in all places
- * TODO: [👵] test before publish
- * TODO: Add warning to the copy/used files
- * TODO: Use prettier to format the used files
- * TODO: Normalize order of keys in package.json
- */
+// Note: [⚫] Code for repository script [use-packages](scripts/use-packages/use-packages.ts) should never be published in any package
+// TODO: [🤣] Update in all places
+// TODO: [👵] test before publish
+// TODO: Add warning to the copy/used files
+// TODO: Use prettier to format the used files
+// TODO: Normalize order of keys in package.json

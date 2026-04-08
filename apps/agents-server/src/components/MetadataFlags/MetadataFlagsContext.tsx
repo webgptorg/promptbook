@@ -74,6 +74,7 @@ type MetadataFlagsProviderProps = {
  * @param props - Provider properties.
  * @param props.value - Flags derived from server metadata.
  * @param props.children - Descendent components that can read the flags.
+ *
  * @private
  */
 export function MetadataFlagsProvider({ value, children }: MetadataFlagsProviderProps) {
@@ -84,6 +85,7 @@ export function MetadataFlagsProvider({ value, children }: MetadataFlagsProvider
  * Returns the metadata flags for the current layout tree.
  *
  * @returns Metadata flags exposed by `MetadataFlagsProvider`.
+ *
  * @private
  */
 export function useMetadataFlags(): MetadataFlags {

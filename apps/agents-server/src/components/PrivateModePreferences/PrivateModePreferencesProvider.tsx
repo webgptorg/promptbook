@@ -3,13 +3,22 @@
 import { createContext, type Dispatch, type ReactNode, type SetStateAction, useContext, useEffect, useMemo, useState } from 'react';
 import { PRIVATE_MODE_COOKIE_NAME, PRIVATE_MODE_STORAGE_KEY } from '@/src/constants/privateMode';
 
+/**
+ * Type describing private mode preferences context value.
+ */
 type PrivateModePreferencesContextValue = {
     readonly isPrivateModeEnabled: boolean;
     readonly setIsPrivateModeEnabled: Dispatch<SetStateAction<boolean>>;
 };
 
+/**
+ * Constant for private mode preferences context.
+ */
 const PrivateModePreferencesContext = createContext<PrivateModePreferencesContextValue | null>(null);
 
+/**
+ * Props for private mode preferences provider.
+ */
 type PrivateModePreferencesProviderProps = {
     readonly children: ReactNode;
 };

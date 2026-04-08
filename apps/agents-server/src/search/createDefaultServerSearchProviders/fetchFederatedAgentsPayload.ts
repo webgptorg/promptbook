@@ -21,6 +21,7 @@ export type FederatedAgentSearchRow = {
  *
  * @param serverUrl Remote server URL.
  * @returns Normalized agents list or `null` on fetch/validation failure.
+ *
  * @private function of createDefaultServerSearchProviders
  */
 export async function fetchFederatedAgentsPayload(serverUrl: string): Promise<ReadonlyArray<FederatedAgentSearchRow> | null> {

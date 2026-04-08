@@ -15,6 +15,7 @@ export type CommitmentToolFunctions = Record<string_javascript_name, ToolFunctio
  * Collects tool functions from all commitment definitions.
  *
  * @returns Map of tool function implementations.
+ *
  * @private internal helper for commitment tool registry
  */
 export function collectCommitmentToolFunctions(): CommitmentToolFunctions {
@@ -43,6 +44,7 @@ export function collectCommitmentToolFunctions(): CommitmentToolFunctions {
  *
  * @param getFunctions - Provider of current tool functions.
  * @returns Proxy exposing tool functions as properties.
+ *
  * @private internal helper for commitment tool registry
  */
 export function createToolFunctionsProxy(getFunctions: () => CommitmentToolFunctions): CommitmentToolFunctions {
@@ -86,6 +88,4 @@ export function createToolFunctionsProxy(getFunctions: () => CommitmentToolFunct
     });
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

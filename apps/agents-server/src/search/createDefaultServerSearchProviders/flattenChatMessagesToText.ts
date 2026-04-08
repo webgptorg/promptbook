@@ -6,6 +6,7 @@ import { stringifyJsonForSearch } from './stringifyJsonForSearch';
  *
  * @param rawMessages Raw message payload.
  * @returns Normalized searchable conversation text.
+ *
  * @private function of createDefaultServerSearchProviders
  */
 export function flattenChatMessagesToText(rawMessages: unknown): string {
@@ -33,6 +34,7 @@ export function flattenChatMessagesToText(rawMessages: unknown): string {
  *
  * @param rawMessage One message payload value.
  * @returns Extracted text.
+ *
  * @private function of createDefaultServerSearchProviders
  */
 function flattenSingleMessageToText(rawMessage: unknown): string {

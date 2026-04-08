@@ -12,6 +12,9 @@ import { isPublicServerVisibility } from '@/src/utils/serverVisibility';
 import { NextRequest, NextResponse } from 'next/server';
 import { spaceTrim } from 'spacetrim';
 
+/**
+ * Constant for dynamic.
+ */
 export const dynamic = 'force-dynamic';
 
 /**
@@ -98,6 +101,9 @@ function createSitemapXmlResponse(xml: string): NextResponse {
     });
 }
 
+/**
+ * Handles get.
+ */
 export async function GET(request: NextRequest) {
     const [{ publicUrl }, serverVisibility] = await Promise.all([$provideServer(), getServerVisibility()]);
     if (!isPublicServerVisibility(serverVisibility)) {

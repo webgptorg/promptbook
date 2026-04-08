@@ -35,6 +35,9 @@ export function constructImageFilename(params: {
     );
 }
 
+/**
+ * Checks h attachments.
+ */
 function hashAttachments(attachments: Array<{ url: string }>): string {
     const urls = attachments
         .map((a) => a.url)

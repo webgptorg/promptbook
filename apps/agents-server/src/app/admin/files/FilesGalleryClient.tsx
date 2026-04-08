@@ -6,8 +6,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
 import { FileWithAgent, listFiles } from './actions';
 
+/**
+ * Type describing view mode.
+ */
 type ViewMode = 'TABLE' | 'GRID';
 
+/**
+ * Handles files gallery client.
+ */
 export function FilesGalleryClient() {
     const [viewMode, setViewMode] = useState<ViewMode>('TABLE');
     const [files, setFiles] = useState<FileWithAgent[]>([]);

@@ -185,7 +185,5 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
     // <- Note: [🤖] callXxxModel
 }
 
-/**
- * TODO: [🧠][🈁] Maybe use `isDeterministic` from options
- * TODO: Allow in spaceTrim: nesting with > ${block(prompt.request)}, same as replace params
- */
+// TODO: [🧠][🈁] Maybe use `isDeterministic` from options
+// TODO: Allow in spaceTrim: nesting with > ${block(prompt.request)}, same as replace params

@@ -6,6 +6,7 @@ import { nameToUriPart } from './nameToUriPart';
  * @param name The name to be converted into URI parts.
  * @returns An array of URI-compatible parts derived from the name.
  * @example 'Example Name' -> ['example', 'name']
+ *
  * @public exported from `@promptbook/utils`
  */
 export function nameToUriParts(name: string): string[] {

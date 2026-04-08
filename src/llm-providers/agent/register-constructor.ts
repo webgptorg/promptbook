@@ -11,7 +11,5 @@ import { createAgentLlmExecutionTools } from './createAgentLlmExecutionTools';
  */
 export const _AgentRegistration: Registration = $llmToolsRegister.register(createAgentLlmExecutionTools);
 
-/**
- * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
+// Note: [💞] Ignore a discrepancy between file name and entity name

@@ -30,6 +30,9 @@ export type EnsureNonEmptyChatContentResult = {
     wasEmpty: boolean;
 };
 
+/**
+ * Constant for default fallback message.
+ */
 const DEFAULT_FALLBACK_MESSAGE = 'Sorry, I could not generate a response. Please try again.';
 
 /**

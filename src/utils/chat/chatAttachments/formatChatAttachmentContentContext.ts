@@ -59,6 +59,7 @@ function formatResolvedChatAttachmentContent(contentResolution: ResolvedChatAtta
  *
  * @param {ReadonlyArray<ResolvedChatAttachmentContent>} resolvedContents - The resolved contents to format.
  * @returns {string} The formatted context.
+ *
  * @public exported from `@promptbook/core`
  */
 export function formatChatAttachmentContentContext(

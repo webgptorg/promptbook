@@ -36,6 +36,7 @@ export function validateBook(source: string): string_book {
  * Default book
  *
  * @deprecated Use `$generateBookBoilerplate` instead
+ *
  * @public exported from `@promptbook/core`
  */
 export const DEFAULT_BOOK = padBook(

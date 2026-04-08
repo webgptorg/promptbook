@@ -56,7 +56,9 @@ export class BingSearchEngine implements SearchEngine {
 }
 
 /**
- * @see https://learn.microsoft.com/en-us/bing/search-apis/bing-web-search/reference/response-objects
+ * Https://learn.microsoft.com/en-us/bing/search-apis/bing-web-search/reference/response-objects.
+ *
+ * @see
  */
 type BingSearchResponse = {
     webPages?: {

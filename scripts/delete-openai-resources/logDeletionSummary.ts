@@ -3,6 +3,7 @@ import { DeletionFailure, DeletionResult } from './deleteSequentially';
 
 /**
  * Logs a summary of deletion successes and failures.
+ *
  * @private function of DeleteOpenAiResources
  */
 export function logDeletionSummary<TSummary extends { id: string }>(
@@ -22,6 +23,7 @@ export function logDeletionSummary<TSummary extends { id: string }>(
 
 /**
  * Formats a deletion failure into a single display line.
+ *
  * @private function of DeleteOpenAiResources
  */
 function formatDeletionFailure<TSummary extends { id: string }>(failure: DeletionFailure<TSummary>): string {

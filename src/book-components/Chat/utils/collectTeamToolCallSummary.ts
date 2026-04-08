@@ -73,6 +73,7 @@ export type TeamToolCallSummary = {
  * Collects tool calls and citations from TEAM tool call results, resolving nested teammate chains.
  *
  * @param toolCalls - Tool calls from the top-level agent message.
+ *
  * @private utility of `<Chat/>`
  */
 export function collectTeamToolCallSummary(toolCalls: ReadonlyArray<ToolCall> | undefined): TeamToolCallSummary {

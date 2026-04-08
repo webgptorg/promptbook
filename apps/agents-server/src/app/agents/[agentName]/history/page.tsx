@@ -16,6 +16,9 @@ export async function generateMetadata() {
     };
 }
 
+/**
+ * Handles agent history page.
+ */
 export default async function AgentHistoryPage({ params }: { params: Promise<{ agentName: string }> }) {
     const { agentName } = await params;
     const collection = await $provideAgentCollectionForServer();

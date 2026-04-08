@@ -7,6 +7,9 @@ import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognitio
 import { SpeechRecognition, SpeechRecognitionEvent } from '../../../../../../src/types/SpeechRecognition';
 import { resolveSpeechRecognitionLanguage } from '../../../../../../src/utils/language/getBrowserPreferredSpeechRecognitionLanguage';
 
+/**
+ * Handles voice input test client.
+ */
 export function VoiceInputTestClient() {
     const [transcribedText, setTranscribedText] = useState('');
     const [isRecording, setIsRecording] = useState(false);

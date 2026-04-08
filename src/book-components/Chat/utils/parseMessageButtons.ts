@@ -33,6 +33,7 @@ export type MessageButton = MessageQuickButton | ActionQuickButton;
  * @param text The visible button label.
  * @param query Raw query-string payload captured from markdown.
  * @returns Parsed quick button definition or `null` when the link is not a supported quick button.
+ *
  * @private internal helper of `parseMessageButtons`
  */
 function parseQuickButtonDefinition(text: string, query: string): MessageButton | null {

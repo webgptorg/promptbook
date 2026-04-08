@@ -1,5 +1,6 @@
 /**
  * Shared textarea styles for custom resource editors.
+ *
  * @private
  */
 export const CUSTOM_RESOURCE_INPUT_CLASS_NAME =
@@ -7,6 +8,7 @@ export const CUSTOM_RESOURCE_INPUT_CLASS_NAME =
 
 /**
  * Reads JSON body from a fetch response with a typed fallback.
+ *
  * @private
  */
 export async function readJsonResponse<T>(response: Response): Promise<T> {

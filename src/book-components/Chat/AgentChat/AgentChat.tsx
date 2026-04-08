@@ -86,6 +86,4 @@ export function AgentChat(props: AgentChatProps) {
     );
 }
 
-/**
- * TODO: !!!! Search ACRY ".meta.color" and make sure that we count that we count color can be array
- */
+// TODO: !!!! Search ACRY ".meta.color" and make sure that we count that we count color can be array

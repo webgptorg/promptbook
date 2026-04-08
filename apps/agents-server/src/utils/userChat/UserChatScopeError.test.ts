@@ -6,6 +6,9 @@ import {
     type UserChatScopeErrorDetails,
 } from './UserChatScopeError';
 
+/**
+ * Map of base details.
+ */
 const BASE_DETAILS: UserChatScopeErrorDetails = {
     operation: 'mutate_chat',
     requestedScope: {

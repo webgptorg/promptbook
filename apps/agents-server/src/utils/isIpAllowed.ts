@@ -35,6 +35,9 @@ export function isIpAllowed(clientIp: string, allowedIps: string | null | undefi
     return false;
 }
 
+/**
+ * Checks ip in cidr.
+ */
 function isIpInCidr(ip: string, cidr: string): boolean {
     try {
         const [range, bitsStr] = cidr.split('/');
@@ -56,6 +59,9 @@ function isIpInCidr(ip: string, cidr: string): boolean {
     return false;
 }
 
+/**
+ * Handles ip to long.
+ */
 function ipToLong(ip: string): number {
     return (
         ip.split('.').reduce((acc, octet) => {
@@ -64,6 +70,9 @@ function ipToLong(ip: string): number {
     );
 }
 
+/**
+ * Checks pv4 in cidr.
+ */
 function isIPv4InCidr(ip: string, range: string, bits: number): boolean {
     const mask = ~((1 << (32 - bits)) - 1);
     const ipLong = ipToLong(ip);
@@ -72,6 +81,9 @@ function isIPv4InCidr(ip: string, range: string, bits: number): boolean {
     return (ipLong & mask) === (rangeLong & mask);
 }
 
+/**
+ * Parses pv6.
+ */
 function parseIPv6(ip: string): bigint {
     // Expand ::
     let fullIp = ip;
@@ -92,6 +104,9 @@ function parseIPv6(ip: string): bigint {
     return value;
 }
 
+/**
+ * Checks pv6 in cidr.
+ */
 function isIPv6InCidr(ip: string, range: string, bits: number): boolean {
     const ipBigInt = parseIPv6(ip);
     const rangeBigInt = parseIPv6(range);

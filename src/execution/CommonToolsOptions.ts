@@ -26,8 +26,6 @@ export type CommonToolsOptions = {
     // <- TODO: [👱] Use in all places using CommonToolsOptions OR Omit this from there
 };
 
-/**
- * TODO: [🧠][🤺] Maybe allow overriding of `userId` for each prompt
- * TODO: [🈁] Maybe add here `isDeterministic`
- * TODO: [🧠][💙] Distinct between options passed into ExecutionTools and to ExecutionTools.execute
- */
+// TODO: [🧠][🤺] Maybe allow overriding of `userId` for each prompt
+// TODO: [🈁] Maybe add here `isDeterministic`
+// TODO: [🧠][💙] Distinct between options passed into ExecutionTools and to ExecutionTools.execute

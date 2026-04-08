@@ -4,6 +4,9 @@ import { $getTableName } from '@/src/database/$getTableName';
 import { TODO_any } from '@promptbook-local/types';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
 
+/**
+ * Type describing image with agent.
+ */
 export type ImageWithAgent = {
     id: number;
     createdAt: string;
@@ -20,6 +23,9 @@ export type ImageWithAgent = {
     } | null;
 };
 
+/**
+ * Lists images.
+ */
 export async function listImages(options: {
     page: number;
     limit: number;

@@ -15,6 +15,9 @@ import {
     type ChatFeedbackSortOrder,
 } from '../../../utils/chatFeedbackAdmin';
 
+/**
+ * Props for chat feedback client.
+ */
 type ChatFeedbackClientProps = {
     /**
      * Optional initial agent filter, taken from the URL query.
@@ -22,11 +25,17 @@ type ChatFeedbackClientProps = {
     initialAgentName?: string;
 };
 
+/**
+ * Information about admin agent.
+ */
 type AdminAgentInfo = {
     agentName: string;
     fullname?: string | null;
 };
 
+/**
+ * Response for agents Api.
+ */
 type AgentsApiResponse = {
     agents: Array<{
         agentName: string;
@@ -34,6 +43,9 @@ type AgentsApiResponse = {
     }>;
 };
 
+/**
+ * Formats date.
+ */
 function formatDate(dateString: string | null | undefined): string {
     if (!dateString) return '-';
     const date = new Date(dateString);
@@ -41,6 +53,9 @@ function formatDate(dateString: string | null | undefined): string {
     return date.toLocaleString();
 }
 
+/**
+ * Gets text preview.
+ */
 function getTextPreview(value: unknown, maxLength = 160): string {
     if (value == null) return '-';
 
@@ -56,6 +71,9 @@ function getTextPreview(value: unknown, maxLength = 160): string {
     return text.length > maxLength ? `${text.slice(0, maxLength)}…` : text;
 }
 
+/**
+ * Handles chat feedback client.
+ */
 export function ChatFeedbackClient({ initialAgentName }: ChatFeedbackClientProps) {
     const [items, setItems] = useState<ChatFeedbackRow[]>([]);
     const [total, setTotal] = useState(0);

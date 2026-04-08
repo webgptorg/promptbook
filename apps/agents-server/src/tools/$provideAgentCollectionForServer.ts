@@ -64,6 +64,4 @@ export async function $provideAgentCollectionForServer(): Promise<AgentCollectio
     return providedCollection;
 }
 
-/**
- * TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming
- */
+// TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming

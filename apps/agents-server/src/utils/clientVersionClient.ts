@@ -18,8 +18,14 @@ export type ClientVersionMismatchInfo = {
     readonly message: string;
 };
 
+/**
+ * Type describing client version mismatch listener.
+ */
 type ClientVersionMismatchListener = (info: ClientVersionMismatchInfo) => void;
 
+/**
+ * Constant for listeners.
+ */
 const listeners = new Set<ClientVersionMismatchListener>();
 
 /**

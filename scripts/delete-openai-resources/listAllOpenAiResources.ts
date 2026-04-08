@@ -2,18 +2,21 @@ import OpenAI from 'openai';
 
 /**
  * Max number of assistants fetched per page.
+ *
  * @private constant of DeleteOpenAiResources
  */
 const ASSISTANTS_PAGE_LIMIT = 100;
 
 /**
  * Max number of vector stores fetched per page.
+ *
  * @private constant of DeleteOpenAiResources
  */
 const VECTOR_STORES_PAGE_LIMIT = 100;
 
 /**
  * Lightweight metadata for a single assistant listed from the API.
+ *
  * @private type of DeleteOpenAiResources
  */
 export type AssistantSummary = {
@@ -25,6 +28,7 @@ export type AssistantSummary = {
 
 /**
  * Lightweight metadata for a single vector store listed from the API.
+ *
  * @private type of DeleteOpenAiResources
  */
 export type VectorStoreSummary = {
@@ -38,6 +42,7 @@ export type VectorStoreSummary = {
 
 /**
  * Lightweight metadata for a single file listed from the API.
+ *
  * @private type of DeleteOpenAiResources
  */
 export type FileSummary = {
@@ -50,6 +55,7 @@ export type FileSummary = {
 
 /**
  * Grouped OpenAI resources fetched by the script.
+ *
  * @private type of DeleteOpenAiResources
  */
 export type ListedOpenAiResources = {
@@ -60,24 +66,28 @@ export type ListedOpenAiResources = {
 
 /**
  * OpenAI assistant payload used by this script.
+ *
  * @private type of DeleteOpenAiResources
  */
 type OpenAiAssistantListItem = OpenAI.Beta.Assistant;
 
 /**
  * OpenAI vector store payload used by this script.
+ *
  * @private type of DeleteOpenAiResources
  */
 type OpenAiVectorStoreListItem = OpenAI.Beta.VectorStore;
 
 /**
  * OpenAI file payload used by this script.
+ *
  * @private type of DeleteOpenAiResources
  */
 type OpenAiFileListItem = OpenAI.FileObject;
 
 /**
  * Fetches all OpenAI resources used by this cleanup script.
+ *
  * @private function of DeleteOpenAiResources
  */
 export async function listAllOpenAiResources(client: OpenAI): Promise<ListedOpenAiResources> {
@@ -90,6 +100,7 @@ export async function listAllOpenAiResources(client: OpenAI): Promise<ListedOpen
 
 /**
  * Fetches all assistants from the OpenAI API, following cursor pagination.
+ *
  * @private function of DeleteOpenAiResources
  */
 export async function listAllAssistants(client: OpenAI): Promise<AssistantSummary[]> {
@@ -105,6 +116,7 @@ export async function listAllAssistants(client: OpenAI): Promise<AssistantSummar
 
 /**
  * Fetches all vector stores from the OpenAI API, following cursor pagination.
+ *
  * @private function of DeleteOpenAiResources
  */
 export async function listAllVectorStores(client: OpenAI): Promise<VectorStoreSummary[]> {
@@ -120,6 +132,7 @@ export async function listAllVectorStores(client: OpenAI): Promise<VectorStoreSu
 
 /**
  * Fetches all files from the OpenAI API.
+ *
  * @private function of DeleteOpenAiResources
  */
 export async function listAllFiles(client: OpenAI): Promise<FileSummary[]> {
@@ -135,6 +148,7 @@ export async function listAllFiles(client: OpenAI): Promise<FileSummary[]> {
 
 /**
  * Maps the OpenAI assistant payload into the local summary shape.
+ *
  * @private function of DeleteOpenAiResources
  */
 function mapAssistantToSummary(assistant: OpenAiAssistantListItem): AssistantSummary {
@@ -148,6 +162,7 @@ function mapAssistantToSummary(assistant: OpenAiAssistantListItem): AssistantSum
 
 /**
  * Maps the OpenAI vector store payload into the local summary shape.
+ *
  * @private function of DeleteOpenAiResources
  */
 function mapVectorStoreToSummary(vectorStore: OpenAiVectorStoreListItem): VectorStoreSummary {
@@ -163,6 +178,7 @@ function mapVectorStoreToSummary(vectorStore: OpenAiVectorStoreListItem): Vector
 
 /**
  * Maps the OpenAI file payload into the local summary shape.
+ *
  * @private function of DeleteOpenAiResources
  */
 function mapFileToSummary(file: OpenAiFileListItem): FileSummary {

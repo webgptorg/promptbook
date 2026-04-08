@@ -8,6 +8,7 @@ import type { ChatEffectType } from '../types/ChatEffectType';
  * @param message - The chat message to analyze
  * @param effectConfigs - Array of effect configurations
  * @returns Array of unique effect types to trigger
+ *
  * @private utility function of Effects system
  */
 export function detectEffects(message: ChatMessage, effectConfigs: ReadonlyArray<ChatEffectConfig>): ChatEffectType[] {

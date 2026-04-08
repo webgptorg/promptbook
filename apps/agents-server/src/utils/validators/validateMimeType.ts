@@ -19,6 +19,4 @@ export function validateMimeType(value: unknown): string_mime_type {
     return value as string_mime_type;
 }
 
-/**
- * TODO: [🧠] Move to main Promptbook utils
- */
+// TODO: [🧠] Move to main Promptbook utils

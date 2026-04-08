@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 
+/**
+ * Handles test browser page.
+ */
 export default function TestBrowserPage() {
     const [imageUrl, setImageUrl] = useState<string | null>(null);
 

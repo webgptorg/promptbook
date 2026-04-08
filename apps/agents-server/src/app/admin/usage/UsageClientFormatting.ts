@@ -26,6 +26,7 @@ const usageCompactFormatter = new Intl.NumberFormat(undefined, { notation: 'comp
 
 /**
  * Shared formatting and value-resolution helpers for `<UsageClient/>`.
+ *
  * @private function of UsageClient
  */
 export const UsageClientFormatting = {

@@ -12,8 +12,9 @@ import { isValidCsvString } from './utils/isValidCsvString';
 /**
  * Definition for CSV spreadsheet
  *
+ * TODO: [🏢] Export from package `@promptbook/csv`
+ *
  * @public exported from `@promptbook/core`
- *                          <- TODO: [🏢] Export from package `@promptbook/csv`
  */
 export const CsvFormatParser: FormatParser<
     string /* <- [0] */,
@@ -154,10 +155,8 @@ export const CsvFormatParser: FormatParser<
     ],
 };
 
-/**
- * TODO: [🍓] In `CsvFormatParser` implement simple `isValid`
- * TODO: [🍓] In `CsvFormatParser` implement partial `canBeValid`
- * TODO: [🍓] In `CsvFormatParser` implement `heal
- * TODO: [🍓] In `CsvFormatParser` implement `subvalueParsers`
- * TODO: [🏢] Allow to expect something inside CSV objects and other formats
- */
+// TODO: [🍓] In `CsvFormatParser` implement simple `isValid`
+// TODO: [🍓] In `CsvFormatParser` implement partial `canBeValid`
+// TODO: [🍓] In `CsvFormatParser` implement `heal
+// TODO: [🍓] In `CsvFormatParser` implement `subvalueParsers`
+// TODO: [🏢] Allow to expect something inside CSV objects and other formats

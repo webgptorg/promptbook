@@ -1,6 +1,9 @@
 import { OpenAI } from 'openai';
 import { forTime } from 'waitasecond';
 
+/**
+ * Handles get.
+ */
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const message = searchParams.get('message') || 'Hello, who are you?';
@@ -43,6 +46,4 @@ export async function GET(request: Request) {
     });
 }
 
-/**
- * Note: [🐚] This is how streaming is implemented correctly
- */
+// Note: [🐚] This is how streaming is implemented correctly

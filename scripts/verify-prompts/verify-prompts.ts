@@ -10,28 +10,41 @@ import type { PromptSection } from '../run-codex-prompts/prompts/types/PromptSec
 import type { PromptSelection } from '../run-codex-prompts/prompts/types/PromptSelection';
 import { writePromptFile } from '../run-codex-prompts/prompts/writePromptFile';
 
-/** Path to the directory that holds the prompt markdown files. */
+/**
+ * Path to the directory that holds the prompt markdown files.
+ */
 const PROMPTS_DIR = join(process.cwd(), 'prompts');
 
-/** Destination directory for resolved prompts. */
+/**
+ * Destination directory for resolved prompts.
+ */
 const DONE_PROMPTS_DIR = join(PROMPTS_DIR, 'done');
 
-/** Maximum number of characters to display when previewing a prompt block. */
+/**
+ * Maximum number of characters to display when previewing a prompt block.
+ */
 const SNIPPET_CHAR_LIMIT = 900;
 
-/** Maximum number of file names to show in the pending-files preview. */
+/**
+ * Maximum number of file names to show in the pending-files preview.
+ */
 const MAX_PENDING_FILE_NAMES = 8;
 
-/** Possible user decisions after reviewing a prompt section. */
+/**
+ * Possible user decisions after reviewing a prompt section.
+ */
 type PromptDecision = 'done' | 'not-done';
 
-/** Parse command-line arguments */
+/**
+ * Parse command-line arguments
+ */
 const REVERSE_ORDER = process.argv.includes('--reverse');
 
 /**
  * Starts the verification loop and exits when no `[ ]` prompts remain.
  *
  * @param reverse - Process files in reverse order
+ *
  * @public exported from `@promptbook/cli`
  */
 export async function verifyPrompts(reverse: boolean = REVERSE_ORDER): Promise<void> {

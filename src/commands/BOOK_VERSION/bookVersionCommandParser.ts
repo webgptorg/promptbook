@@ -13,6 +13,7 @@ import type { BookVersionCommand } from './BookVersionCommand';
  * Parses the BOOK_VERSION command
  *
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/editable`
  */
 export const bookVersionCommandParser: PipelineHeadCommandParser<BookVersionCommand> = {

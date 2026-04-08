@@ -37,6 +37,7 @@ type AgentSourcePrelude = {
  *
  * @param agentSource - Raw agent source.
  * @returns Parsed prelude with shared line metadata.
+ *
  * @private internal utility of book agent-source parsing
  */
 export function parseAgentSourcePrelude(agentSource: string_book): AgentSourcePrelude {

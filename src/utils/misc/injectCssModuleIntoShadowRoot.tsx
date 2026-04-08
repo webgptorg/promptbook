@@ -1,6 +1,9 @@
 import { collectCssTextsForClass } from '../../book-components/_common/react-utils/collectCssTextsForClass';
 import type { string_css_class } from '../../types/typeAliases';
 
+/**
+ * Options for inject Css module into shadow root.
+ */
 export type InjectCssModuleIntoShadowRootOptions = {
     /**
      * The shadow root where the styles should be injected
@@ -18,9 +21,11 @@ export type InjectCssModuleIntoShadowRootOptions = {
  * This allows CSS modules (which are normally emitted into the document head) to be
  * available inside the component's shadow DOM.
  *
- * @public exported from `@promptbook/components`
- *         <- TODO: [🧠] Make `@promptbook/components-utils`
+ * TODO: [🧠] Make `@promptbook/components-utils`
+ *
  * @deprecated This was used for BookEditor shadow DOM support, which is no longer needed
+ *
+ * @public exported from `@promptbook/components`
  */
 export function injectCssModuleIntoShadowRoot(options: InjectCssModuleIntoShadowRootOptions) {
     const { shadowRoot, styles } = options;

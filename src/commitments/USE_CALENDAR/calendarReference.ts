@@ -272,6 +272,4 @@ function removeTokenFromLine(line: string, token: string): string {
     return filteredTokens.join(' ').trim();
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

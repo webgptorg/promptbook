@@ -39,6 +39,4 @@ export type PipelineExecutorResult = AbstractTaskResult & {
     readonly preparedPipeline: ReadonlyDeep<PipelineJson>;
 };
 
-/**
- * TODO: [🧠] Should this file be in /execution or /types folder?
- */
+// TODO: [🧠] Should this file be in /execution or /types folder?

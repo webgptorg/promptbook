@@ -6,6 +6,9 @@ import { parseEmailAddresses } from '../../../../message-providers/email/_common
 import { stringifyEmailAddress } from '../../../../message-providers/email/_common/utils/stringifyEmailAddress';
 import { sendMessage } from '../../../../utils/messages/sendMessage';
 
+/**
+ * Handles send email action.
+ */
 export async function sendEmailAction(formData: FormData) {
     const from = formData.get('from') as string;
     const to = formData.get('to') as string;

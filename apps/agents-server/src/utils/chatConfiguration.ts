@@ -1,9 +1,21 @@
 import { getMetadataMap } from '../database/getMetadata';
 import { parseChatFeedbackMode, type ChatFeedbackMode } from './chatFeedbackMode';
 
+/**
+ * Constant for chat fail message key.
+ */
 const CHAT_FAIL_MESSAGE_KEY = 'CHAT_FAIL_MESSAGE';
+/**
+ * Constant for is file attachements enabled key.
+ */
 const IS_FILE_ATTACHEMENTS_ENABLED_KEY = 'IS_FILE_ATTACHEMENTS_ENABLED';
+/**
+ * Constant for chat feedback mode key.
+ */
 const CHAT_FEEDBACK_MODE_KEY = 'CHAT_FEEDBACK_MODE';
+/**
+ * Constant for is feedback enabled key.
+ */
 const IS_FEEDBACK_ENABLED_KEY = 'IS_FEEDBACK_ENABLED';
 
 /**
@@ -12,6 +24,7 @@ const IS_FEEDBACK_ENABLED_KEY = 'IS_FEEDBACK_ENABLED';
  * @param raw - The metadata value read from the database.
  * @param fallback - The default value when the metadata is missing or malformed.
  * @returns The normalized boolean flag.
+ *
  * @private Internal helper used by chat metadata loaders.
  */
 function parseBooleanMetadata(raw: string | null, fallback: boolean): boolean {
@@ -44,6 +57,7 @@ export type ChatConfiguration = {
  * Loads the shared chat metadata configuration from the database.
  *
  * @returns The chat metadata values for the current Agents Server instance.
+ *
  * @private Internal helper for the `apps/agents-server` chat routes.
  */
 export async function loadChatConfiguration(): Promise<ChatConfiguration> {

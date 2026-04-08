@@ -448,6 +448,4 @@ function normalizeMetaDomain(content: string): string {
     return normalizeDomainForMatching(trimmed) || trimmed.toLowerCase();
 }
 
-/**
- * TODO: [🕛] Unite `AgentBasicInformation`, `ChatParticipant`, `LlmExecutionTools` +  `LlmToolsMetadata`
- */
+// TODO: [🕛] Unite `AgentBasicInformation`, `ChatParticipant`, `LlmExecutionTools` +  `LlmToolsMetadata`

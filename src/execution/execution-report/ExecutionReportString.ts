@@ -12,6 +12,4 @@ export type ExecutionReportString = string & {
     readonly _type: 'ExecutionReportString' /* <- TODO: [🏟] What is the best shape of the additional object in branded types */;
 };
 
-/**
- * TODO: [💩] Better validation or remove branded type and make it just string
- */
+// TODO: [💩] Better validation or remove branded type and make it just string

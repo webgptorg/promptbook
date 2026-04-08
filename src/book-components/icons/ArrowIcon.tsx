@@ -63,6 +63,7 @@ const ARROW_ROTATION_BY_DIRECTION: Record<ArrowDirection, number> = {
  *
  * @param direction - Raw direction value.
  * @returns Lowercase arrow direction.
+ *
  * @private internal helper for `<ArrowIcon/>`
  */
 function normalizeArrowDirection(direction: ArrowDirectionInput): ArrowDirection {

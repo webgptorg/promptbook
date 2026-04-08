@@ -14,6 +14,7 @@ import type { FormfactorCommand } from './FormfactorCommand';
  * Note: This command is used as a formfactor for new commands and defines the app type format - it should NOT be used in any `.book` file
  *
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/editable`
  */
 export const formfactorCommandParser: PipelineHeadCommandParser<FormfactorCommand> = {

@@ -3,7 +3,7 @@ import { jsonParse } from '../../formats/json/utils/jsonParse';
 
 /**
  * Recursively converts JSON strings to JSON objects
-
+ *
  * @public exported from `@promptbook/utils`
  */
 export function jsonStringsToJsons<T>(object: T): T {
@@ -32,6 +32,4 @@ export function jsonStringsToJsons<T>(object: T): T {
     return newObject as T;
 }
 
-/**
- * TODO: Type the return type correctly
- */
+// TODO: Type the return type correctly

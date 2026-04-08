@@ -5,6 +5,7 @@ import type { VercelExecutionToolsOptions } from '../vercel/VercelExecutionTools
  * Options for `createDeepseekExecutionTools`
  *
  * This combines options for Promptbook, Deepseek and Vercel together
+ *
  * @public exported from `@promptbook/deepseek`
  */
 export type DeepseekExecutionToolsOptions = Omit<

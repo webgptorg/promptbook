@@ -49,5 +49,5 @@ export function $initializeCoderFindRefactorCandidatesCommand(program: Program):
     );
 }
 
-/** Note: [🟡] Code for CLI command [find-refactor-candidates](src/cli/cli-commands/coder/find-refactor-candidates.ts) should never be published outside of `@promptbook/cli` */
-/** Note: [💞] Ignore a discrepancy between file name and entity name */
+// Note: [🟡] Code for CLI command [find-refactor-candidates](src/cli/cli-commands/coder/find-refactor-candidates.ts) should never be published outside of `@promptbook/cli`
+// Note: [💞] Ignore a discrepancy between file name and entity name

@@ -3,6 +3,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import logo from '../../../public/logos/logo-blue-transparent-256.png';
 
+/**
+ * Handles header.
+ */
 export function Header() {
     return (
         <header className="bg-white shadow-sm border-b">

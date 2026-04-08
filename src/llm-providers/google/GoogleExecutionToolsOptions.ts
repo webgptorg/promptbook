@@ -5,6 +5,7 @@ import type { VercelExecutionToolsOptions } from '../vercel/VercelExecutionTools
  * Options for `createGoogleExecutionTools`
  *
  * This combines options for Promptbook, Google and Vercel together
+ *
  * @public exported from `@promptbook/google`
  */
 export type GoogleExecutionToolsOptions = Omit<

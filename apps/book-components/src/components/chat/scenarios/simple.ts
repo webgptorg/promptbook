@@ -1,5 +1,8 @@
 import type { ChatMessage } from '../../../../../../src/book-components/Chat/types/ChatMessage';
 
+/**
+ * Map of simple scenario.
+ */
 export const simpleScenario = {
     name: 'Simple Chat',
     messages: [

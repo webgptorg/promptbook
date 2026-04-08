@@ -18,6 +18,9 @@ function resolveDefaultImageModelName(llmTools: LlmExecutionTools): string {
     return llmTools.title.includes('Google') ? 'gemini-3-pro-image-preview' : 'dall-e-3';
 }
 
+/**
+ * Handles get.
+ */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ filename: string }> }) {
     try {
         const { filename } = await params;

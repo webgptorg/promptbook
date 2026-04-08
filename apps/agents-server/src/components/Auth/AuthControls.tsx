@@ -3,10 +3,16 @@
 import { useState } from 'react';
 import { SecretInput } from '@/src/components/SecretInput/SecretInput';
 
+/**
+ * Props for auth controls.
+ */
 type AuthControlsProps = {
     initialUser: { username: string; isAdmin: boolean } | null;
 };
 
+/**
+ * Handles auth controls.
+ */
 export function AuthControls({ initialUser }: AuthControlsProps) {
     // const router = useRouter();
     const [user] = useState(initialUser);

@@ -36,6 +36,7 @@ export type AgentScreenshotOrientation = 'landscape' | 'portrait';
  *
  * @param params - Route parameters containing the agent name.
  * @returns Shared context describing the agent and color scheme.
+ *
  * @private @@@
  */
 export async function getAgentImageContext(params: Promise<{ agentName: string }>): Promise<AgentImageContext> {
@@ -67,6 +68,7 @@ export async function getAgentImageContext(params: Promise<{ agentName: string }
  *
  * @param context - Shared agent image context.
  * @returns A React node suitable for `next/og` responses.
+ *
  * @private @@@
  */
 export function createAgentIconLayout(context: AgentImageContext): ReactNode {
@@ -175,6 +177,7 @@ export function createAgentIconLayout(context: AgentImageContext): ReactNode {
  * @param context - Shared agent image context.
  * @param orientation - Layout orientation.
  * @returns A React node representing the screenshot.
+ *
  * @private @@@
  */
 export function createAgentScreenshotLayout(

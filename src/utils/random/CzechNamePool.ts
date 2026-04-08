@@ -6,17 +6,35 @@ import czechLastFemaleNames from './data/czech-last-female-names.json';
 import czechLastMaleNames from './data/czech-last-male-names.json';
 import type { GenerateNameResult, NamePool } from './NamePool';
 
+/**
+ * Type describing name entry.
+ */
 type NameEntry = {
     name: string;
     count: number;
 };
 
 // Precompute total counts for weighting
+/**
+ * Constant for get total count.
+ */
 const getTotalCount = (names: ReadonlyArray<NameEntry>) => names.reduce((sum, entry) => sum + entry.count, 0);
 
+/**
+ * Constant for first female total.
+ */
 const firstFemaleTotal = getTotalCount(czechFirstFemaleNames);
+/**
+ * Constant for first male total.
+ */
 const firstMaleTotal = getTotalCount(czechFirstMaleNames);
+/**
+ * Constant for last female total.
+ */
 const lastFemaleTotal = getTotalCount(czechLastFemaleNames);
+/**
+ * Constant for last male total.
+ */
 const lastMaleTotal = getTotalCount(czechLastMaleNames);
 
 /**
@@ -34,6 +52,9 @@ function pickWeightedName(names: ReadonlyArray<NameEntry>, totalCount: number): 
     return names[0]!.name;
 }
 
+/**
+ * Collection of colors.
+ */
 const COLORS: ReadonlyArray<string_color> = [
     '#e0e0e0', // Light gray
     '#f5f5f5', // Very light gray

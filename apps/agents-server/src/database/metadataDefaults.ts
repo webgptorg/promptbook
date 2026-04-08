@@ -21,6 +21,7 @@ import {
 
 /**
  * Default metadata entries produced from the analytics configuration definitions.
+ *
  * @private
  */
 const analyticsMetadataDefaults = ANALYTICS_METADATA_KEYS.map((key) => {
@@ -33,6 +34,9 @@ const analyticsMetadataDefaults = ANALYTICS_METADATA_KEYS.map((key) => {
     };
 });
 
+/**
+ * Constant for metadata defaults.
+ */
 export const metadataDefaults = [
     {
         key: 'SERVER_NAME',

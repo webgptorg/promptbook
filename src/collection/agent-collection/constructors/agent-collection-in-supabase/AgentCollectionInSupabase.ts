@@ -89,8 +89,9 @@ type AgentHistorySnapshot = AgentHistoryMetadata & {
  *
  * Note: This object can work both from Node.js and browser environment depending on the Supabase client provided.
  *
+ * TODO: [🐱‍🚀] Move to `@promptbook/supabase` package
+ *
  * @public exported from `@promptbook/core`
- * <- TODO: [🐱‍🚀] Move to `@promptbook/supabase` package
  */
 export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements AgentCollection */ {
     /**
@@ -632,8 +633,6 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
     }
 }
 
-/**
- * TODO: [🐱‍🚀] Implement it here correctly and update JSDoc comments here, and on interface + other implementations
- * TODO: Write unit test
- * TODO: [🧠][🚙] `AgentXxx` vs `AgentsXxx` naming convention
- */
+// TODO: [🐱‍🚀] Implement it here correctly and update JSDoc comments here, and on interface + other implementations
+// TODO: Write unit test
+// TODO: [🧠][🚙] `AgentXxx` vs `AgentsXxx` naming convention

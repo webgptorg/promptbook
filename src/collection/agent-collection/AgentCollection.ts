@@ -45,6 +45,4 @@ export type AgentCollection = AgentCollectionInSupabase;
 };
 */
 
-/**
- * TODO: [🧠][🚙] `AgentXxx` vs `AgentsXxx` naming convention
- */
+// TODO: [🧠][🚙] `AgentXxx` vs `AgentsXxx` naming convention

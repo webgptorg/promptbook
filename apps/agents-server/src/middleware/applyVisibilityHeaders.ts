@@ -43,6 +43,7 @@ type AgentRouteMatch = { kind: 'none' } | { kind: 'subpage' } | { kind: 'profile
  * Applies visibility-aware `X-Robots-Tag` headers to HTML responses.
  *
  * @param options - Response and visibility context.
+ *
  * @private function of middleware
  */
 export async function applyVisibilityHeaders(options: ApplyVisibilityHeadersOptions): Promise<void> {
@@ -83,6 +84,7 @@ export async function applyVisibilityHeaders(options: ApplyVisibilityHeadersOpti
  *
  * @param request - Incoming middleware request.
  * @returns `true` when response robots headers should be evaluated.
+ *
  * @private function of applyVisibilityHeaders
  */
 function isHtmlRequest(request: NextRequest): boolean {
@@ -94,6 +96,7 @@ function isHtmlRequest(request: NextRequest): boolean {
  *
  * @param pathname - Request pathname.
  * @returns Agent route classification.
+ *
  * @private function of applyVisibilityHeaders
  */
 function resolveAgentRouteMatch(pathname: string): AgentRouteMatch {
@@ -117,6 +120,7 @@ function resolveAgentRouteMatch(pathname: string): AgentRouteMatch {
  *
  * @param options - Agent lookup options.
  * @returns Agent visibility, or `null` when unavailable.
+ *
  * @private function of applyVisibilityHeaders
  */
 async function resolveAgentVisibilityForIndexing(options: {
@@ -157,6 +161,7 @@ async function resolveAgentVisibilityForIndexing(options: {
  *
  * @param value - Encoded path segment.
  * @returns Decoded value or original text when decoding fails.
+ *
  * @private function of applyVisibilityHeaders
  */
 function decodeURIComponentSafe(value: string): string {

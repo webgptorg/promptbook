@@ -11,6 +11,7 @@ import type { JokerCommand } from './JokerCommand';
  * Parses the joker command
  *
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/editable`
  */
 export const jokerCommandParser: PipelineTaskCommandParser<JokerCommand> = {

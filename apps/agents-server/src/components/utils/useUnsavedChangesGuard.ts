@@ -9,6 +9,7 @@ const DEFAULT_UNSAVED_CHANGES_MESSAGE = 'You have unsaved changes. Closing will 
 
 /**
  * Options that control how the unsaved changes guard behaves.
+ *
  * @private @@@
  */
 export type UseUnsavedChangesGuardOptions = {
@@ -28,6 +29,7 @@ export type UseUnsavedChangesGuardOptions = {
 
 /**
  * Result returned by the useUnsavedChangesGuard hook.
+ *
  * @private @@@
  */
 export type UseUnsavedChangesGuardResult = {
@@ -114,6 +116,7 @@ function shouldGuardAnchorNavigation(anchor: HTMLAnchorElement): boolean {
 
 /**
  * React hook that blocks modal closing and browser unloads when unsaved changes exist.
+ *
  * @private @@@
  */
 export function useUnsavedChangesGuard(options: UseUnsavedChangesGuardOptions): UseUnsavedChangesGuardResult {

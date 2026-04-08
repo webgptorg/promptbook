@@ -6,12 +6,18 @@ import { getComponentById } from '@/lib/components';
 import { Code, Download, Eye, Settings, Tag, User } from 'lucide-react';
 import { notFound } from 'next/navigation';
 
+/**
+ * Props for component page.
+ */
 type ComponentPageProps = {
     params: Promise<{
         id: string;
     }>;
 };
 
+/**
+ * Handles component page.
+ */
 export default async function ComponentPage({ params }: ComponentPageProps) {
     const { id } = await params;
     const component = getComponentById(id);
@@ -199,6 +205,4 @@ export default async function ComponentPage({ params }: ComponentPageProps) {
     );
 }
 
-/**
- * TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)
- */
+// TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)

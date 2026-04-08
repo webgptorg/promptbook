@@ -26,6 +26,9 @@ playground()
         process.exit(0);
     });
 
+/**
+ * Handles playground.
+ */
 async function playground() {
     console.info(`🧸  Remote server playground`);
 
@@ -138,4 +141,4 @@ async function playground() {
     //========================================/
 }
 
-/** Note: [⚫] Code for playground [remote playground](src/llm-providers/remote/playground/playground.ts) should never be published in any package */
+// Note: [⚫] Code for playground [remote playground](src/llm-providers/remote/playground/playground.ts) should never be published in any package

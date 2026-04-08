@@ -1,5 +1,8 @@
 import { getSafeCdnPath } from './getSafeCdnPath';
 
+/**
+ * Prefix for generated images.
+ */
 const GENERATED_IMAGES_PREFIX = 'generated-images';
 
 /**

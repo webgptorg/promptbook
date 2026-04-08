@@ -37,6 +37,9 @@ export type CallChatModelStreamOptions = {
     readonly signal?: AbortSignal;
 };
 
+/**
+ * Type describing Llm execution tools.
+ */
 export type LlmExecutionTools = {
     /**
      * Title of the model provider
@@ -111,12 +114,10 @@ export type LlmExecutionTools = {
     callEmbeddingModel?(prompt: Prompt /* <- TODO: [🩱] EmbeddingPrompt */): Promise<EmbeddingPromptResult>;
 };
 
-/**
- * TODO: [🕛] Extend this from sth class -  like `AgentBasicInformation` / `ModelBasicInformation``
- * TODO: [🍚] Implement destroyable pattern to free resources
- * TODO: [🏳] Add `callTranslationModel`
- * TODO: [🧠] Emulation of one type of model with another one - emuate chat with completion; emulate translation with chat
- * TODO: [🍓][♐] Some heuristic to pick the best model in listed models
- * TODO: [🧠] Should or should not there be a word "GPT" in both callCompletionModel and callChatModel
- * TODO: [🧠][🪐] Should be common things like types, utils in folder containing A,B,C,.. or else outside this listing folder?
- */
+// TODO: [🕛] Extend this from sth class -  like `AgentBasicInformation` / `ModelBasicInformation``
+// TODO: [🍚] Implement destroyable pattern to free resources
+// TODO: [🏳] Add `callTranslationModel`
+// TODO: [🧠] Emulation of one type of model with another one - emuate chat with completion; emulate translation with chat
+// TODO: [🍓][♐] Some heuristic to pick the best model in listed models
+// TODO: [🧠] Should or should not there be a word "GPT" in both callCompletionModel and callChatModel
+// TODO: [🧠][🪐] Should be common things like types, utils in folder containing A,B,C,.. or else outside this listing folder?

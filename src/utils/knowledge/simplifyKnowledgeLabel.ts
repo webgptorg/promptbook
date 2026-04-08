@@ -63,6 +63,7 @@ const TRAILING_DELIMITER_REGEX = /[-_]+$/;
  *
  * @param label - Raw knowledge label or source value.
  * @returns Display-friendly chip label.
+ *
  * @private utility of knowledge/source chip rendering
  */
 export function simplifyKnowledgeLabel(label: string): string {
@@ -85,6 +86,7 @@ export function simplifyKnowledgeLabel(label: string): string {
  *
  * @param text - Candidate value (typically a filename segment).
  * @returns `'HUMAN'`, `'ID'`, or `'UNKNOWN'`.
+ *
  * @private utility of knowledge/source chip rendering
  */
 export function isHumanOrID(text: string): 'HUMAN' | 'ID' | 'UNKNOWN' {
@@ -137,6 +139,7 @@ export function isHumanOrID(text: string): 'HUMAN' | 'ID' | 'UNKNOWN' {
  *
  * @param value - Raw label value.
  * @returns The extracted filename candidate.
+ *
  * @private utility of knowledge/source chip rendering
  */
 function extractFileNameCandidate(value: string): string {
@@ -163,6 +166,7 @@ function extractFileNameCandidate(value: string): string {
  *
  * @param value - Filename candidate.
  * @returns Filename without extension.
+ *
  * @private utility of knowledge/source chip rendering
  */
 function removeExtension(value: string): string {
@@ -174,6 +178,7 @@ function removeExtension(value: string): string {
  *
  * @param value - URL/path tail.
  * @returns Cleaned value without query/hash.
+ *
  * @private utility of knowledge/source chip rendering
  */
 function stripQueryAndHash(value: string): string {
@@ -194,6 +199,7 @@ function stripQueryAndHash(value: string): string {
  *
  * @param value - Filename candidate without extension.
  * @returns Filename candidate without trailing ID segments.
+ *
  * @private utility of knowledge/source chip rendering
  */
 function removeTrailingIdSegment(value: string): string {
@@ -218,6 +224,7 @@ function removeTrailingIdSegment(value: string): string {
  *
  * @param value - Filename candidate.
  * @returns Cleaned filename candidate.
+ *
  * @private utility of knowledge/source chip rendering
  */
 function stripTrailingDelimiters(value: string): string {
@@ -229,6 +236,7 @@ function stripTrailingDelimiters(value: string): string {
  *
  * @param value - Knowledge label candidate.
  * @returns Final chip label.
+ *
  * @private utility of knowledge/source chip rendering
  */
 function truncateKnowledgeLabel(value: string): string {
@@ -244,6 +252,7 @@ function truncateKnowledgeLabel(value: string): string {
  *
  * @param value - Possibly encoded text.
  * @returns Decoded text, or original value when decoding fails.
+ *
  * @private utility of knowledge/source chip rendering
  */
 function decodeUriComponentSafe(value: string): string {

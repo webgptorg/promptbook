@@ -5,6 +5,9 @@ import { TODO_USE } from '../../../../../../src/utils/organization/TODO_USE';
 import { validateMimeType } from '../../validators/validateMimeType';
 import type { IFile, IIFilesStorageWithCdn } from '../interfaces/IFilesStorage';
 
+/**
+ * Configuration for digital ocean spaces.
+ */
 type IDigitalOceanSpacesConfig = {
     readonly bucket: string;
     readonly pathPrefix: string;
@@ -17,6 +20,9 @@ type IDigitalOceanSpacesConfig = {
     // TODO: [⛳️] Probbably prefix should be in this config not on the consumer side
 };
 
+/**
+ * Class implementing digital ocean spaces.
+ */
 export class DigitalOceanSpaces implements IIFilesStorageWithCdn {
     public get cdnPublicUrl() {
         return this.config.cdnPublicUrl;
@@ -113,7 +119,5 @@ export class DigitalOceanSpaces implements IIFilesStorageWithCdn {
     }
 }
 
-/**
- * TODO: Implement Read-only mode
- * TODO: [☹️] Unite with `PromptbookStorage` and move to `/src/...`
- */
+// TODO: Implement Read-only mode
+// TODO: [☹️] Unite with `PromptbookStorage` and move to `/src/...`

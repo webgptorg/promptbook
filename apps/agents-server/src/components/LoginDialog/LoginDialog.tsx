@@ -7,6 +7,9 @@ import { Dialog } from '../Portal/Dialog';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 import { useDirtyModalGuard } from '../utils/useDirtyModalGuard';
 
+/**
+ * Props for login dialog.
+ */
 type LoginDialogProps = {
     /**
      * Optional heading shown in the dialog.
@@ -34,6 +37,7 @@ type LoginDialogProps = {
  * Renders the login dialog inside the async modal shell.
  *
  * @param props - Dialog configuration.
+ *
  * @private @@@
  */
 export function LoginDialog(props: LoginDialogProps) {

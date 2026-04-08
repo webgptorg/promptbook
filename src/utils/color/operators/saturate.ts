@@ -23,6 +23,4 @@ export function saturate(amount: number_percent): ColorTransformer {
     };
 }
 
-/**
- * TODO: Maybe implement by mix+hsl
- */
+// TODO: Maybe implement by mix+hsl

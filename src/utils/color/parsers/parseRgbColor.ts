@@ -1,7 +1,13 @@
 import type { string_color } from '../../../types/typeAliases';
 import type { ColorChannelSet } from './ColorChannelSet';
 
+/**
+ * Pattern matching RGB.
+ */
 const RGB_REGEX = /^rgb\(\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*\)$/;
+/**
+ * Pattern matching rgba.
+ */
 const RGBA_REGEX = /^rgba\(\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*\)$/;
 
 /**
@@ -48,6 +54,9 @@ export function parseRgbaColor(rgba: string_color): ColorChannelSet {
     };
 }
 
+/**
+ * Parses channel value.
+ */
 function parseChannelValue(value: string): number {
     if (value.endsWith('%')) {
         const percent = parseFloat(value);
@@ -57,6 +66,9 @@ function parseChannelValue(value: string): number {
     return Math.round(parseFloat(value));
 }
 
+/**
+ * Parses alpha value.
+ */
 function parseAlphaValue(value: string): number {
     if (value.endsWith('%')) {
         const percent = parseFloat(value);

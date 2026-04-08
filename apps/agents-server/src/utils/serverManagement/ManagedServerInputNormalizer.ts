@@ -8,6 +8,9 @@ import {
     type ServerEnvironment,
 } from '../serverRegistry';
 
+/**
+ * Pattern matching server table prefix.
+ */
 const SERVER_TABLE_PREFIX_PATTERN = /^[A-Za-z][A-Za-z0-9_]*_$/;
 
 /**

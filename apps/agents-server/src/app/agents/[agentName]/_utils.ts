@@ -22,8 +22,14 @@ type AgentRow = AgentsServerDatabase['public']['Tables']['Agent']['Row'];
  */
 type AgentFolderRow = AgentsServerDatabase['public']['Tables']['AgentFolder']['Row'];
 
+/**
+ * Collection of agent actions.
+ */
 export const AGENT_ACTIONS = ['Emails', 'Web chat', 'Read documents', 'Browser', 'WhatsApp', '<Coding/>'];
 
+/**
+ * Gets agent name.
+ */
 export async function getAgentName(params: Promise<{ agentName: string }>) {
     const { agentName } = await params;
     return decodeURIComponent(agentName);
@@ -190,6 +196,4 @@ export function parseBooleanFlag(value?: string | null): boolean {
     return normalized === '1' || normalized === 'true' || normalized === 'yes';
 }
 
-/**
- * TODO: Split to multiple files, refactor
- */
+// TODO: Split to multiple files, refactor

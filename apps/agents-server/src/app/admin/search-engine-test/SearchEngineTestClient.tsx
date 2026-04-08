@@ -5,6 +5,9 @@ import { SearchResult } from '../../../../../../src/search-engines/SearchResult'
 import { Card } from '../../../components/Homepage/Card';
 import { search } from './actions';
 
+/**
+ * Handles search engine test client.
+ */
 export function SearchEngineTestClient() {
     const [query, setQuery] = useState('');
     const [location, setLocation] = useState('');

@@ -12,12 +12,18 @@ import {
     PromptNotationExample,
 } from './promptNotationExamples';
 
+/**
+ * Constant for prompt notation install note.
+ */
 const PROMPT_NOTATION_INSTALL_NOTE = spaceTrim(`
     // Note 🔽: To install Promptbook run:
     //         > npm install ptbk
     //         OR
     //         > npm install @promptbook/utils
 `);
+/**
+ * Constant for prompt notation import line.
+ */
 const PROMPT_NOTATION_IMPORT_LINE = "import { prompt } from '@promptbook/utils';";
 
 /**

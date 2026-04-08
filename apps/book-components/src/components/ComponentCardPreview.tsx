@@ -3,29 +3,53 @@
 import { Package } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
+/**
+ * Constant for mermaid social graph.
+ */
 const MermaidSocialGraph = dynamic(() => import('@/components/mermaid-social-graph/MermaidSocialGraph'), {
     ssr: false,
 });
+/**
+ * Constant for book editor preview.
+ */
 const BookEditorPreview = dynamic(() => import('@/components/book-editor/BookEditorPreview'), {
     ssr: false,
 });
+/**
+ * Constant for avatar chip preview.
+ */
 const AvatarChipPreview = dynamic(() => import('@/components/avatar-chip/AvatarChipPreview'), {
     ssr: false,
 });
+/**
+ * Constant for avatar profile preview.
+ */
 const AvatarProfilePreview = dynamic(() => import('@/components/avatar-profile/AvatarProfilePreview'), {
     ssr: false,
 });
+/**
+ * Constant for chat preview.
+ */
 const ChatPreview = dynamic(() => import('@/components/chat/ChatPreview'), {
     ssr: false,
 });
+/**
+ * Constant for Llm chat preview.
+ */
 const LlmChatPreview = dynamic(() => import('@/components/llm-chat/LlmChatPreview'), {
     ssr: false,
 });
 
+/**
+ * Props for component card preview.
+ */
 type ComponentCardPreviewProps = {
     componentId: string;
 };
 
+/**
+ * Handles component card preview.
+ */
 export default function ComponentCardPreview({ componentId }: ComponentCardPreviewProps) {
     const renderComponentPreview = () => {
         switch (componentId) {
@@ -105,7 +129,5 @@ export default function ComponentCardPreview({ componentId }: ComponentCardPrevi
     );
 }
 
-/**
- * TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)
- * TODO: [🙉] DRY - make some index / register for component previews, DO not duplicate switch cases in multiple places
- */
+// TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)
+// TODO: [🙉] DRY - make some index / register for component previews, DO not duplicate switch cases in multiple places

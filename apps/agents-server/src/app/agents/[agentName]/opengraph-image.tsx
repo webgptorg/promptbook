@@ -12,14 +12,26 @@ import { getAgentName, getAgentProfile } from './_utils';
 // export const runtime = 'edge';
 // <- Note: On Vercel Edge runtime some modules are not working *(like `crypto`)*
 
+/**
+ * Constant for alt.
+ */
 export const alt = 'Agent Profile';
+/**
+ * Map of size.
+ */
 export const size = {
     width: 1200,
     height: 630,
 };
 
+/**
+ * Constant for content type.
+ */
 export const contentType = 'image/png';
 
+/**
+ * Handles image.
+ */
 export default async function Image({ params }: { params: Promise<{ agentName: string }> }) {
     try {
         const agentName = await getAgentName(params);
@@ -105,6 +117,4 @@ export default async function Image({ params }: { params: Promise<{ agentName: s
     }
 }
 
-/**
- * TODO: [🦚] DRY
- */
+// TODO: [🦚] DRY

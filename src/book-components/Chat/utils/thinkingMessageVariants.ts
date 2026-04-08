@@ -27,6 +27,7 @@ const THINKING_MESSAGE_DELAY_MAX_MS = 5_000;
  *
  * @param thinkingMessages Raw thinking-message variants.
  * @returns Trimmed non-empty variants or the shared defaults.
+ *
  * @private internal helper for Promptbook chat placeholders
  */
 export function normalizeThinkingMessageVariants(thinkingMessages?: ReadonlyArray<string>): ReadonlyArray<string> {
@@ -45,6 +46,7 @@ export function normalizeThinkingMessageVariants(thinkingMessages?: ReadonlyArra
  * Returns a random delay used between browser-side thinking-message rotations.
  *
  * @returns Delay in milliseconds.
+ *
  * @private internal helper for Promptbook chat placeholders
  */
 export function getRandomThinkingMessageDelayMs(): number {
@@ -58,6 +60,7 @@ export function getRandomThinkingMessageDelayMs(): number {
  * @param variants Available thinking-message variants.
  * @param excludeVariant Variant to avoid repeating immediately.
  * @returns Selected thinking-message variant.
+ *
  * @private internal helper for Promptbook chat placeholders
  */
 export function getRandomThinkingMessageVariant(variants: ReadonlyArray<string>, excludeVariant?: string): string {

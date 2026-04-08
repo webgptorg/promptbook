@@ -1,9 +1,24 @@
 // @flow
 
+/**
+ * Constant for to line item block transformation.
+ */
 const ToLineItemBlockTransformation = require('../ToLineItemBlockTransformation');
+/**
+ * Constant for parse result.
+ */
 const ParseResult = require('../../ParseResult');
+/**
+ * Constant for line item block.
+ */
 const LineItemBlock = require('../../LineItemBlock');
+/**
+ * Constant for { detected annotation }.
+ */
 const { DETECTED_ANNOTATION } = require('../../Annotation');
+/**
+ * Constant for { min x from page items }.
+ */
 const { minXFromPageItems } = require('../../../util/page-item-functions');
 
 // Gathers lines to blocks
@@ -50,6 +65,9 @@ module.exports = class GatherBlocks extends ToLineItemBlockTransformation {
     }
 };
 
+/**
+ * Checks flush block.
+ */
 function shouldFlushBlock(stashedBlock, item, minX, mostUsedDistance) {
     if (stashedBlock.type && stashedBlock.type.mergeFollowingNonTypedItems && !item.type) {
         return false;
@@ -74,6 +92,9 @@ function shouldFlushBlock(stashedBlock, item, minX, mostUsedDistance) {
     }
 }
 
+/**
+ * Handles big distance.
+ */
 function bigDistance(lastItem, item, minX, mostUsedDistance) {
     const distance = lastItem.y - item.y;
     if (distance < 0 - mostUsedDistance / 2) {

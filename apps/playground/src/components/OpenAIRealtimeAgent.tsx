@@ -2,10 +2,16 @@
 
 import { useRef, useState } from 'react';
 
+/**
+ * Props for open AI realtime agent.
+ */
 type OpenAIRealtimeAgentProps = {
     systemMessage?: string;
 };
 
+/**
+ * Constant for open AI realtime agent.
+ */
 export const OpenAIRealtimeAgent = ({ systemMessage }: OpenAIRealtimeAgentProps) => {
     const [status, setStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
     const pcRef = useRef<RTCPeerConnection | null>(null);

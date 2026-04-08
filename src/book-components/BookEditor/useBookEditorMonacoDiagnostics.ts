@@ -2,8 +2,14 @@ import type { editor, MarkerSeverity } from 'monaco-editor';
 import { useEffect } from 'react';
 import { BookEditorMonacoConstants } from './BookEditorMonacoConstants';
 
+/**
+ * Type describing monaco editor.
+ */
 type MonacoEditor = typeof import('monaco-editor');
 
+/**
+ * Type describing book editor monaco diagnostic.
+ */
 type BookEditorMonacoDiagnostic = {
     readonly startLineNumber: number;
     readonly startColumn: number;
@@ -14,12 +20,18 @@ type BookEditorMonacoDiagnostic = {
     readonly severity?: 'error' | 'warning' | 'info' | 'hint';
 };
 
+/**
+ * Props for use book editor monaco diagnostics.
+ */
 type UseBookEditorMonacoDiagnosticsProps = {
     readonly monaco: MonacoEditor | null;
     readonly editor: editor.IStandaloneCodeEditor | null;
     readonly diagnostics?: ReadonlyArray<BookEditorMonacoDiagnostic>;
 };
 
+/**
+ * Constant for to monaco marker severity.
+ */
 const toMonacoMarkerSeverity = (
     monaco: MonacoEditor,
     severity: BookEditorMonacoDiagnostic['severity'],

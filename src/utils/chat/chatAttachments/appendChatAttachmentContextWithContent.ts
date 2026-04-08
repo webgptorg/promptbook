@@ -14,6 +14,7 @@ import { resolveChatAttachmentContents } from './resolveChatAttachmentContents';
  * @param {ReadonlyArray<ChatAttachment>} attachments - The attachments to append.
  * @param {ResolveChatAttachmentOptions} options - Options for resolution.
  * @returns {Promise<string>} The updated message content.
+ *
  * @public exported from `@promptbook/core`
  */
 export async function appendChatAttachmentContextWithContent(

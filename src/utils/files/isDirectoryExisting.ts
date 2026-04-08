@@ -24,9 +24,7 @@ export async function isDirectoryExisting(directoryPath: string_dirname, fs: Fil
     return isDirectory;
 }
 
-/**
- * Note: Not [~🟢~] because it is not directly dependent on `fs
- * TODO: [🐠] This can be a validator - with variants that return true/false and variants that throw errors with meaningless messages
- * TODO: [🧠][📂] "directory" vs "folder"
- * TODO: [🖇] What about symlinks?
- */
+// Note: Not [~🟢~] because it is not directly dependent on `fs
+// TODO: [🐠] This can be a validator - with variants that return true/false and variants that throw errors with meaningless messages
+// TODO: [🧠][📂] "directory" vs "folder"
+// TODO: [🖇] What about symlinks?

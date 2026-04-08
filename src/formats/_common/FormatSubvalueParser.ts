@@ -83,6 +83,4 @@ TODO: Maybe implement `extractValues` and make helper util which automatically c
     > extractValues(value: TValue): Parameters;
 */
 
-/**
- * Note: [👩🏾‍🤝‍🧑🏽]
- */
+// Note: [👩🏾‍🤝‍🧑🏽]

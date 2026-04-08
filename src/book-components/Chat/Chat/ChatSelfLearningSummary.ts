@@ -83,6 +83,4 @@ export function buildSelfLearningSummary(
     };
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name, BUT maybe rename to `buildSelfLearningSummary`
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name, BUT maybe rename to `buildSelfLearningSummary`

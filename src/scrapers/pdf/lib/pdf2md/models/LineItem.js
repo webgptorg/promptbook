@@ -1,4 +1,10 @@
+/**
+ * Constant for page item.
+ */
 const PageItem = require('./PageItem');
+/**
+ * Constant for word.
+ */
 const Word = require('./Word');
 
 // A line within a page

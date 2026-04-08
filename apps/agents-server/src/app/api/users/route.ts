@@ -4,6 +4,9 @@ import { getPasswordValidationMessage, hashPassword } from '../../../utils/auth'
 import { isUserAdmin } from '../../../utils/isUserAdmin';
 import { NextResponse } from 'next/server';
 
+/**
+ * Handles get.
+ */
 export async function GET() {
     if (!(await isUserAdmin())) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -27,6 +30,9 @@ export async function GET() {
     }
 }
 
+/**
+ * Handles post.
+ */
 export async function POST(request: Request) {
     if (!(await isUserAdmin())) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

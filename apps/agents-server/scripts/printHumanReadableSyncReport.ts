@@ -44,6 +44,7 @@ type HumanReadableReportSection = {
  * Prints a colorized human-readable summary for interactive terminal runs.
  *
  * @param options - Sync execution options and computed plans.
+ *
  * @private function of `sync-vercel-domains`
  */
 export function printHumanReadableSyncReport(options: {

@@ -44,6 +44,4 @@ describe('validatePipeline with valid examples', () => {
     }
 });
 
-/**
- * TODO: [🚏] DRY
- */
+// TODO: [🚏] DRY

@@ -24,6 +24,4 @@ export const FORMFACTOR_DEFINITIONS = [
     // <- [🛬] When making new formfactor, copy the _boilerplate and link it here
 ] as const;
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

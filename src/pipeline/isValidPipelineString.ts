@@ -8,6 +8,7 @@ import { validatePipelineString } from './validatePipelineString';
  *
  * @param {string} pipelineString the candidate for a pipeline string
  * @returns {boolean} if the string is a valid pipeline string
+ *
  * @public exported from `@promptbook/core`
  */
 export function isValidPipelineString(pipelineString: string): pipelineString is PipelineString {
@@ -21,6 +22,4 @@ export function isValidPipelineString(pipelineString: string): pipelineString is
     }
 }
 
-/**
- * TODO: [🧠][🈴] Where is the best location for this file
- */
+// TODO: [🧠][🈴] Where is the best location for this file

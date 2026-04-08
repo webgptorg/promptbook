@@ -8,6 +8,7 @@ import {
 
 /**
  * Prints all resource summaries that are about to be deleted.
+ *
  * @private function of DeleteOpenAiResources
  */
 export function printOpenAiResourceSummaries(resources: ListedOpenAiResources): void {
@@ -28,6 +29,7 @@ export function printOpenAiResourceSummaries(resources: ListedOpenAiResources): 
 
 /**
  * Prints a summary list of resources scheduled for deletion.
+ *
  * @private function of DeleteOpenAiResources
  */
 function printSummary<TSummary>(heading: string, items: TSummary[], formatLine: (item: TSummary) => string): void {
@@ -40,6 +42,7 @@ function printSummary<TSummary>(heading: string, items: TSummary[], formatLine: 
 
 /**
  * Formats an assistant summary into a single display line.
+ *
  * @private function of DeleteOpenAiResources
  */
 function formatAssistantSummaryLine(assistant: AssistantSummary): string {
@@ -50,6 +53,7 @@ function formatAssistantSummaryLine(assistant: AssistantSummary): string {
 
 /**
  * Formats a vector store summary into a single display line.
+ *
  * @private function of DeleteOpenAiResources
  */
 function formatVectorStoreSummaryLine(vectorStore: VectorStoreSummary): string {
@@ -61,6 +65,7 @@ function formatVectorStoreSummaryLine(vectorStore: VectorStoreSummary): string {
 
 /**
  * Formats a file summary into a single display line.
+ *
  * @private function of DeleteOpenAiResources
  */
 function formatFileSummaryLine(file: FileSummary): string {
@@ -71,6 +76,7 @@ function formatFileSummaryLine(file: FileSummary): string {
 
 /**
  * Formats bytes into a human-readable string.
+ *
  * @private function of DeleteOpenAiResources
  */
 function formatBytes(bytes: number): string {

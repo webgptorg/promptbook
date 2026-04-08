@@ -185,6 +185,7 @@ const DEFAULT_ANSWER_DURATION_LABEL = '{duration} to answer';
  * @param durationLabel - Compact duration text such as `3.3s`.
  * @param timingTranslations - Optional translation overrides from the host application.
  * @returns Final label rendered next to the timestamp.
+ *
  * @private internal helper of `<ChatMessageItem/>`
  */
 function formatAnswerDurationLabel(

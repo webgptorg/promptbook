@@ -29,6 +29,7 @@ const MULTIPLE_PROVIDER_PROFILE: ChatParticipant = {
  * Multiple LLM Execution Tools is a proxy server that uses multiple execution tools internally and exposes the executor interface externally.
  *
  * Note: Internal utility of `joinLlmExecutionTools` but exposed type
+ *
  * @public exported from `@promptbook/core`
  */
 export class MultipleLlmExecutionTools implements LlmExecutionTools /* <- TODO: [🍚] `, Destroyable` */ {

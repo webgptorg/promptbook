@@ -3,6 +3,9 @@ import { $getTableName } from '../../../database/$getTableName';
 import { AgentsServerDatabase } from '../../../database/schema';
 import type { IFile, IIFilesStorageWithCdn } from '../interfaces/IFilesStorage';
 
+/**
+ * Class implementing tracked files storage.
+ */
 export class TrackedFilesStorage implements IIFilesStorageWithCdn {
     public constructor(
         private readonly inner: IIFilesStorageWithCdn,

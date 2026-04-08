@@ -24,6 +24,7 @@ export type UsageAnalyticsResponseOptions = {
 
 /**
  * Response builders and aggregation helpers for usage analytics.
+ *
  * @private function of getUsageAnalyticsResponse
  */
 export const UsageAnalyticsAggregation = {

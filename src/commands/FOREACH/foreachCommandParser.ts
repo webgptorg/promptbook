@@ -19,6 +19,7 @@ import type { ForeachCommand } from './ForeachCommand';
  * Parses the foreach command
  *
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/editable`
  */
 export const foreachCommandParser: PipelineTaskCommandParser<ForeachCommand> = {
@@ -230,6 +231,4 @@ export const foreachCommandParser: PipelineTaskCommandParser<ForeachCommand> = {
     },
 };
 
-/**
- * TODO: [🍭] Make .book.md file with examples of the FOREACH with wrong parsing and logic
- */
+// TODO: [🍭] Make .book.md file with examples of the FOREACH with wrong parsing and logic

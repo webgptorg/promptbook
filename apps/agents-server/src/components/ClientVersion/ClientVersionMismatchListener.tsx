@@ -9,9 +9,21 @@ import {
     reportClientVersionMismatch,
 } from '../../utils/clientVersionClient';
 
+/**
+ * Constant for auto refresh delay ms.
+ */
 const AUTO_REFRESH_DELAY_MS = 7000;
+/**
+ * Constant for countdown interval ms.
+ */
 const COUNTDOWN_INTERVAL_MS = 1000;
+/**
+ * Constant for required version header.
+ */
 const REQUIRED_VERSION_HEADER = 'x-promptbook-required-version';
+/**
+ * Constant for fallback message.
+ */
 const FALLBACK_MESSAGE =
     'Promptbook has been updated on the server. We will refresh the page automatically so you get the latest experience.';
 
@@ -227,6 +239,9 @@ export function ClientVersionMismatchListener() {
     );
 }
 
+/**
+ * Handles inspect client version mismatch.
+ */
 async function inspectClientVersionMismatch(response: Response): Promise<ClientVersionMismatchInfo | null> {
     const requiredVersionFromHeader = response.headers.get(REQUIRED_VERSION_HEADER);
     if (requiredVersionFromHeader) {
@@ -270,6 +285,9 @@ async function inspectClientVersionMismatch(response: Response): Promise<ClientV
     return null;
 }
 
+/**
+ * Normalizes client version.
+ */
 function normalizeClientVersion(headers: Headers): string | null {
     const value = headers.get(CLIENT_VERSION_HEADER);
     return value ? value.trim() : null;

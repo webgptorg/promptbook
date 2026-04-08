@@ -1,13 +1,40 @@
 // @flow
 
+/**
+ * Constant for to line item transformation.
+ */
 const ToLineItemTransformation = require('../ToLineItemTransformation');
+/**
+ * Constant for parse result.
+ */
 const ParseResult = require('../../ParseResult');
+/**
+ * Constant for line item.
+ */
 const LineItem = require('../../LineItem');
+/**
+ * Constant for word.
+ */
 const Word = require('../../Word');
+/**
+ * Constant for headline finder.
+ */
 const HeadlineFinder = require('../../HeadlineFinder');
+/**
+ * Constant for { removed annotation, added annotation }.
+ */
 const { REMOVED_ANNOTATION, ADDED_ANNOTATION } = require('../../Annotation');
+/**
+ * Constant for block type.
+ */
 const BlockType = require('../../markdown/BlockType');
+/**
+ * Constant for { headline by level }.
+ */
 const { headlineByLevel } = require('../../markdown/BlockType');
+/**
+ * Constant for { is digit, is number, word match, has only }.
+ */
 const { isDigit, isNumber, wordMatch, hasOnly } = require('../../../util/string-functions');
 
 // Detect table of contents pages plus linked headlines
@@ -235,6 +262,9 @@ module.exports = class DetectTOC extends ToLineItemTransformation {
 };
 
 // Find out how the TOC page link actually translates to the page.index
+/**
+ * Detects page mapping number.
+ */
 function detectPageMappingNumber(pages, tocLinks) {
     for (var tocLink of tocLinks) {
         const page = findPageWithHeadline(pages, tocLink.lineItem.text());
@@ -245,6 +275,9 @@ function detectPageMappingNumber(pages, tocLinks) {
     return null;
 }
 
+/**
+ * Finds page with headline.
+ */
 function findPageWithHeadline(pages, headline) {
     for (var page of pages) {
         if (findHeadlineItems(page, headline)) {
@@ -254,6 +287,9 @@ function findPageWithHeadline(pages, headline) {
     return null;
 }
 
+/**
+ * Finds headline items.
+ */
 function findHeadlineItems(page, headline) {
     const headlineFinder = new HeadlineFinder({ headline });
     var lineIndex = 0;
@@ -267,6 +303,9 @@ function findHeadlineItems(page, headline) {
     return null;
 }
 
+/**
+ * Handles add headline items.
+ */
 function addHeadlineItems(page, tocLink, foundItems, headlineTypeToHeightRange) {
     foundItems.headlineItems.forEach((item) => (item.annotation = REMOVED_ANNOTATION));
     const headlineType = headlineByLevel(tocLink.level + 2);
@@ -295,6 +334,9 @@ function addHeadlineItems(page, tocLink, foundItems, headlineTypeToHeightRange) 
     }
 }
 
+/**
+ * Finds page and line from headline.
+ */
 function findPageAndLineFromHeadline(pages, tocLink, heightRange, fromPage, toPage) {
     const linkText = tocLink.lineItem.text().toUpperCase();
     for (var i = fromPage; i <= toPage; i++) {
@@ -318,6 +360,9 @@ function findPageAndLineFromHeadline(pages, tocLink, heightRange, fromPage, toPa
     return [-1, -1];
 }
 
+/**
+ * Class implementing link leveler.
+ */
 class LinkLeveler {
     constructor() {
         this.levelByMethod = null;
@@ -384,6 +429,9 @@ class LinkLeveler {
     }
 }
 
+/**
+ * Class implementing toc link.
+ */
 class TocLink {
     constructor(options) {
         this.lineItem = options.lineItem;

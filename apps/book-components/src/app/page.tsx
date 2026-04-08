@@ -7,6 +7,9 @@ import Link from 'next/link';
 import { classNames } from '../../../../src/book-components/_common/react-utils/classNames';
 import { Footer } from '../components/Footer/Footer';
 
+/**
+ * Handles home.
+ */
 export default function Home() {
     const components = getAllComponents();
     const componentsByCategory = getComponentsByCategory();

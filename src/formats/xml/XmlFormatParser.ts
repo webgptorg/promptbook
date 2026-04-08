@@ -42,14 +42,12 @@ export const XmlFormatParser: FormatParser<
     subvalueParsers: [],
 };
 
-/**
- * TODO: [🧠] Maybe proper instance of object
- * TODO: [0] Make string_serialized_xml
- * TODO: [1] Make type for XML Settings and Schema
- * TODO: [🧠] What to use for validating XMLs - XSD,...
- * TODO: [🍓] In `XmlFormatParser` implement simple `isValid`
- * TODO: [🍓] In `XmlFormatParser` implement partial `canBeValid`
- * TODO: [🍓] In `XmlFormatParser` implement `heal
- * TODO: [🍓] In `XmlFormatParser` implement `subvalueParsers`
- * TODO: [🏢] Allow to expect something inside XML and other formats
- */
+// TODO: [🧠] Maybe proper instance of object
+// TODO: [0] Make string_serialized_xml
+// TODO: [1] Make type for XML Settings and Schema
+// TODO: [🧠] What to use for validating XMLs - XSD,...
+// TODO: [🍓] In `XmlFormatParser` implement simple `isValid`
+// TODO: [🍓] In `XmlFormatParser` implement partial `canBeValid`
+// TODO: [🍓] In `XmlFormatParser` implement `heal
+// TODO: [🍓] In `XmlFormatParser` implement `subvalueParsers`
+// TODO: [🏢] Allow to expect something inside XML and other formats

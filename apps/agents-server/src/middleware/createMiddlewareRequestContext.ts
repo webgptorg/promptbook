@@ -134,6 +134,7 @@ type MiddlewareMetadata = {
  *
  * @param request - Incoming middleware request.
  * @returns Request-scoped middleware context.
+ *
  * @private function of middleware
  */
 export async function createMiddlewareRequestContext(request: NextRequest): Promise<MiddlewareRequestContext> {
@@ -189,6 +190,7 @@ export async function createMiddlewareRequestContext(request: NextRequest): Prom
  * Returns a shared Supabase client for middleware or `null` when env vars are missing.
  *
  * @returns Shared middleware Supabase client when configured.
+ *
  * @private function of createMiddlewareRequestContext
  */
 function getMiddlewareSupabase(): SupabaseClient | null {
@@ -218,6 +220,7 @@ function getMiddlewareSupabase(): SupabaseClient | null {
  *
  * @param request - Incoming middleware request.
  * @returns Best-effort client IP address.
+ *
  * @private function of createMiddlewareRequestContext
  */
 function getRequestIp(request: NextRequest): string {
@@ -238,6 +241,7 @@ function getRequestIp(request: NextRequest): string {
  * Loads registered servers while preserving the middleware fallback behavior on failure.
  *
  * @returns Registered servers, or an empty list when unavailable.
+ *
  * @private function of createMiddlewareRequestContext
  */
 async function loadRegisteredServers(): Promise<Array<ServerRecord>> {
@@ -254,6 +258,7 @@ async function loadRegisteredServers(): Promise<Array<ServerRecord>> {
  *
  * @param options - Host, pathname, and lookup dependencies.
  * @returns Routing context used by subsequent metadata and auth checks.
+ *
  * @private function of createMiddlewareRequestContext
  */
 async function resolveMiddlewareServerRouting(options: {
@@ -307,6 +312,7 @@ async function resolveMiddlewareServerRouting(options: {
  *
  * @param options - Supabase client and table-routing state.
  * @returns Metadata values used by access and header policies.
+ *
  * @private function of createMiddlewareRequestContext
  */
 async function loadMiddlewareMetadata(options: {
@@ -331,6 +337,7 @@ async function loadMiddlewareMetadata(options: {
  * @param supabase - Supabase client used to query metadata.
  * @param tablePrefix - Table prefix for the current server.
  * @returns Cached metadata values for access and visibility checks.
+ *
  * @private function of createMiddlewareRequestContext
  */
 async function loadCachedMiddlewareMetadata(
@@ -397,6 +404,7 @@ async function loadCachedMiddlewareMetadata(
  *
  * @param options - Token-validation dependencies.
  * @returns `true` when a non-revoked token exists for the request.
+ *
  * @private function of createMiddlewareRequestContext
  */
 async function isRequestAuthorizedByApiToken(options: {
@@ -435,6 +443,7 @@ async function isRequestAuthorizedByApiToken(options: {
  *
  * @param host - Raw request host header.
  * @returns Normalized host or `null` when unavailable.
+ *
  * @private function of createMiddlewareRequestContext
  */
 function normalizeMiddlewareHost(host: string | null): string | null {
@@ -465,6 +474,7 @@ function normalizeMiddlewareHost(host: string | null): string | null {
  *
  * @param hostname - Parsed hostname candidate.
  * @returns Normalized hostname, or `null` when empty.
+ *
  * @private function of createMiddlewareRequestContext
  */
 function normalizeMiddlewareHostname(hostname: string): string | null {
@@ -477,6 +487,7 @@ function normalizeMiddlewareHostname(hostname: string): string | null {
  *
  * @param host - Normalized hostname.
  * @returns `true` when the host is one of the loopback aliases.
+ *
  * @private function of createMiddlewareRequestContext
  */
 function isLoopbackHost(host: string): boolean {
@@ -488,6 +499,7 @@ function isLoopbackHost(host: string): boolean {
  *
  * @param host - Normalized hostname.
  * @returns `true` when host belongs to a private network range.
+ *
  * @private function of createMiddlewareRequestContext
  */
 function isPrivateNetworkHost(host: string): boolean {
@@ -527,6 +539,7 @@ function isPrivateNetworkHost(host: string): boolean {
  * @param host - Normalized request hostname.
  * @param pathname - Request pathname.
  * @returns `true` when middleware should avoid expensive custom-domain scans.
+ *
  * @private function of createMiddlewareRequestContext
  */
 function shouldSkipCustomDomainResolution(host: string | null, pathname: string): boolean {
@@ -554,6 +567,7 @@ function shouldSkipCustomDomainResolution(host: string | null, pathname: string)
  *
  * @param host - Normalized request hostname.
  * @returns Cached resolution (`null` for negative cache) or `undefined` when stale or missing.
+ *
  * @private function of createMiddlewareRequestContext
  */
 function readCachedCustomDomainResolution(host: string): CustomDomainResolution | null | undefined {
@@ -575,6 +589,7 @@ function readCachedCustomDomainResolution(host: string): CustomDomainResolution 
  *
  * @param host - Normalized request hostname.
  * @param resolution - Resolved custom-domain mapping or `null` for miss.
+ *
  * @private function of createMiddlewareRequestContext
  */
 function writeCachedCustomDomainResolution(host: string, resolution: CustomDomainResolution | null): void {
@@ -592,6 +607,7 @@ function writeCachedCustomDomainResolution(host: string, resolution: CustomDomai
  * @param supabase - Middleware Supabase client.
  * @param registeredServers - Cached server registry rows.
  * @returns Resolved mapping or `null` when unresolved or timed out.
+ *
  * @private function of createMiddlewareRequestContext
  */
 async function resolveCustomDomainAgentWithTimeout(
@@ -619,6 +635,7 @@ async function resolveCustomDomainAgentWithTimeout(
  *
  * @param options - Host normalization and Supabase dependencies.
  * @returns Resolved mapping or `null` when unresolved.
+ *
  * @private function of createMiddlewareRequestContext
  */
 async function resolveCachedCustomDomainAgent(options: {
@@ -665,6 +682,7 @@ async function resolveCachedCustomDomainAgent(options: {
  * @param raw - Raw metadata text.
  * @param fallback - Value used when the metadata does not contain a usable boolean.
  * @returns Parsed boolean setting.
+ *
  * @private function of createMiddlewareRequestContext
  */
 function parseBooleanMetadataValue(raw: string | null | undefined, fallback: boolean): boolean {

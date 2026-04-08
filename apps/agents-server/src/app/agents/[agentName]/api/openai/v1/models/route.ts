@@ -88,6 +88,4 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 }
 
-/**
- * TODO: [🧠] Consider listing all available agents as models when agentName is a wildcard or special value
- */
+// TODO: [🧠] Consider listing all available agents as models when agentName is a wildcard or special value

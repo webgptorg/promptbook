@@ -6,6 +6,9 @@ import { buildPromptSummary } from './buildPromptSummary';
 import type { PromptFile } from './types/PromptFile';
 import type { PromptSection } from './types/PromptSection';
 
+/**
+ * Options for write prompt error log.
+ */
 type WritePromptErrorLogOptions = {
     file: PromptFile;
     section: PromptSection;

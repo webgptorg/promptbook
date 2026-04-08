@@ -5,6 +5,7 @@
  * @param {number} maxBytes - Maximum number of bytes to capture.
  * @param {{ captureOverflowByte?: boolean }} [options] - Optional capture behavior.
  * @returns {Promise<{ bytes: Uint8Array }>} Captured bytes, optionally including one overflow byte.
+ *
  * @private internal utility for bounded response reads
  */
 export async function readResponseBytes(

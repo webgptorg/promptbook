@@ -4,12 +4,18 @@ import { Loader2, Lock } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { SecretInput } from '@/src/components/SecretInput/SecretInput';
 
+/**
+ * Props for change password form.
+ */
 type ChangePasswordFormProps = {
     onSuccess?: () => void;
     className?: string;
     onDirtyChange?: (hasUnsavedChanges: boolean) => void;
 };
 
+/**
+ * Handles change password form.
+ */
 export function ChangePasswordForm(props: ChangePasswordFormProps) {
     const { onSuccess, className, onDirtyChange } = props;
     const [isLoading, setIsLoading] = useState(false);

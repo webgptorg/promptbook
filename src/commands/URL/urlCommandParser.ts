@@ -12,6 +12,7 @@ import type { UrlCommand } from './UrlCommand';
  * Parses the url command
  *
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/editable`
  */
 export const urlCommandParser: PipelineHeadCommandParser<UrlCommand> = {

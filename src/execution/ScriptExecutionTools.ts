@@ -38,7 +38,5 @@ export type ScriptExecutionToolsExecuteOptions = {
     readonly script: string_script;
 };
 
-/**
- * TODO: [🧠][💙] Distinct between options passed into ExecutionTools and to ExecutionTools.execute
- * TODO: [🧠][🪐] Should be common things like types, utils in folder containing A,B,C,.. or else outside this listing folder?
- */
+// TODO: [🧠][💙] Distinct between options passed into ExecutionTools and to ExecutionTools.execute
+// TODO: [🧠][🪐] Should be common things like types, utils in folder containing A,B,C,.. or else outside this listing folder?

@@ -25,6 +25,7 @@ const RESERVED_PATH_SET = new Set<string>(RESERVED_PATHS);
  *
  * @param segment - Route segment after the agent identifier.
  * @returns Human-friendly view label, or null when unsupported.
+ *
  * @private function of Header
  */
 function resolveAgentHierarchyView(segment: string | undefined): AgentHierarchyView | null {
@@ -52,6 +53,7 @@ function resolveAgentHierarchyView(segment: string | undefined): AgentHierarchyV
  *
  * @param agent - Agent used in the menu hierarchy.
  * @returns Permanent id when available, otherwise agent name.
+ *
  * @private function of Header
  */
 export function getAgentNavigationId(agent: AgentOrganizationAgent): string {
@@ -63,6 +65,7 @@ export function getAgentNavigationId(agent: AgentOrganizationAgent): string {
  *
  * @param pathname - Current browser pathname.
  * @returns Navigation context for hierarchy crumbs.
+ *
  * @private function of Header
  */
 export function resolveActiveAgentNavigation(pathname: string | null): ActiveAgentNavigation {
@@ -104,6 +107,7 @@ export function resolveActiveAgentNavigation(pathname: string | null): ActiveAge
  * @param agent - Active agent metadata.
  * @param folderById - Folder lookup table.
  * @returns Display label for breadcrumb-like hierarchy.
+ *
  * @private function of Header
  */
 export function createAgentHierarchyLabel(
@@ -125,6 +129,7 @@ export function createAgentHierarchyLabel(
  *
  * @param agentIdentifier - Active agent identifier when available.
  * @returns Placeholder agent data to satisfy menu helpers.
+ *
  * @private function of Header
  */
 export function createFallbackAgent(agentIdentifier: string | null): AgentOrganizationAgent {

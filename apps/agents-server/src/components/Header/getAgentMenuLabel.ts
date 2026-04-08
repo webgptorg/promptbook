@@ -5,6 +5,7 @@ import type { AgentOrganizationAgent } from '../../utils/agentOrganization/types
  *
  * @param agent - Agent shown in the header menu.
  * @returns Human-friendly agent label.
+ *
  * @private function of Header
  */
 export function getAgentMenuLabel(agent: AgentOrganizationAgent): string {

@@ -59,6 +59,9 @@ export type HeaderProps = {
     feedbackMode?: ChatFeedbackMode;
 };
 
+/**
+ * Type describing menu item base.
+ */
 type MenuItemBase = {
     /**
      * Unique identifier used for hover timers and shared actions.

@@ -5,6 +5,9 @@ import { $execCommand } from '../../src/utils/execCommand/$execCommand';
 import { splitArrayIntoChunks } from '../repair-imports/utils/splitArrayIntoChunks';
 import { prettify } from './prettify';
 
+/**
+ * Writes all project files.
+ */
 export async function writeAllProjectFiles(
     files: ReadonlyArray<{ path: string; content: string }>,
     isOrganized: boolean,
@@ -36,4 +39,4 @@ export async function writeAllProjectFiles(
     }
 }
 
-/** Note: [⚫] Code for repository script [writeAllProjectFiles](scripts/utils/writeAllProjectFiles.ts) should never be published in any package */
+// Note: [⚫] Code for repository script [writeAllProjectFiles](scripts/utils/writeAllProjectFiles.ts) should never be published in any package

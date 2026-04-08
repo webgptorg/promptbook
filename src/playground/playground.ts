@@ -37,6 +37,9 @@ playground()
         process.exit(0);
     });
 
+/**
+ * Handles playground.
+ */
 async function playground() {
     console.info(`🧸  Playground`);
 
@@ -103,5 +106,5 @@ function getPublicIpV4(): Promise<string> {
     });
 }
 
-/** Note: [⚫] Code for playground [main playground](src/playground/playground.ts) should never be published in any package */
-/** TODO: !!!!!!! Extract to `other` and append DigitalOcean instructions */
+// Note: [⚫] Code for playground [main playground](src/playground/playground.ts) should never be published in any package
+// TODO: !!!!!!! Extract to `other` and append DigitalOcean instructions

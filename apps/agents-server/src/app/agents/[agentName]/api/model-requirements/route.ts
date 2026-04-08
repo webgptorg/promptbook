@@ -8,6 +8,9 @@ import {
     resolveCachedServerAgentModelRequirements,
 } from '@/src/utils/cachedServerAgentRuntime';
 
+/**
+ * Handles get.
+ */
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     let { agentName } = await params;
     agentName = decodeURIComponent(agentName);
@@ -70,6 +73,4 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
     }
 }
 
-/**
- * TODO: [🍞] DRY - Make some common utility for API on one agent
- */
+// TODO: [🍞] DRY - Make some common utility for API on one agent

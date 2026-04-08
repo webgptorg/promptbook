@@ -39,6 +39,7 @@ type RenderTimeToolCallDetailsOptions = {
  *
  * @param options - Time tool call data.
  * @returns Time visualization UI.
+ *
  * @private function of ChatToolCallModal
  */
 export function renderTimeToolCallDetails(options: RenderTimeToolCallDetailsOptions): ReactElement {

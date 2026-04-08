@@ -37,6 +37,9 @@ import {
 } from '../utils/getControlPanelOptionAvailability';
 import './globals.css';
 
+/**
+ * Constant for barlow condensed.
+ */
 const barlowCondensed = Barlow_Condensed({
     subsets: ['latin'],
     weight: ['300', '400', '500', '600', '700'],
@@ -45,6 +48,9 @@ const barlowCondensed = Barlow_Condensed({
     variable: '--font-barlow-condensed',
 });
 
+/**
+ * Constant for poppins.
+ */
 const poppins = Poppins({
     subsets: ['latin'],
     weight: ['400', '500', '600', '700', '800'],
@@ -176,6 +182,9 @@ async function resolveOptionalLayoutText(label: string, loader: () => Promise<st
     }
 }
 
+/**
+ * Generates metadata.
+ */
 export async function generateMetadata(): Promise<Metadata> {
     const [{ publicUrl }, metadata, serverVisibility] = await Promise.all([
         $provideServer(),
@@ -235,6 +244,9 @@ export async function generateMetadata(): Promise<Metadata> {
     };
 }
 
+/**
+ * Handles root layout.
+ */
 export default async function RootLayout({
     children,
 }: Readonly<{

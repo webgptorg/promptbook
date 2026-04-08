@@ -156,6 +156,4 @@ export const CSS_COLORS = {
     yellowgreen: '#9acd32',
 } as const;
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

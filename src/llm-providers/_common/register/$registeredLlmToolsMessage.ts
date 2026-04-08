@@ -191,7 +191,5 @@ export function $registeredLlmToolsMessage(): string_markdown {
     );
 }
 
-/**
- * TODO: [®] DRY Register logic
- * TODO: [🧠][⚛] Maybe pass env as argument
- */
+// TODO: [®] DRY Register logic
+// TODO: [🧠][⚛] Maybe pass env as argument

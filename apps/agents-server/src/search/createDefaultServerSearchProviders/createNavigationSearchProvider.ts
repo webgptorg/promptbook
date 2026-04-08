@@ -22,6 +22,7 @@ type NavigationSearchItem = {
  * Creates provider for static navigation destinations.
  *
  * @returns Configured navigation search provider.
+ *
  * @private function of createDefaultServerSearchProviders
  */
 export function createNavigationSearchProvider(): ServerSearchProvider {
@@ -72,6 +73,7 @@ export function createNavigationSearchProvider(): ServerSearchProvider {
  * Provides static navigation candidates used by the navigation provider.
  *
  * @returns List of navigation entries with auth/admin visibility markers.
+ *
  * @private function of createDefaultServerSearchProviders
  */
 function createNavigationItems(): ReadonlyArray<NavigationSearchItem> {

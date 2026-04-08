@@ -38,8 +38,6 @@ export function $initializeLoginCommand(program: Program): $side_effect {
     );
 }
 
-/** Note: [🟡] Code for CLI command [login](src/cli/cli-commands/login.ts) should never be published outside of `@promptbook/cli` */
-/**
- * TODO: Implement non-interactive login
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [🟡] Code for CLI command [login](src/cli/cli-commands/login.ts) should never be published outside of `@promptbook/cli`
+// TODO: Implement non-interactive login
+// Note: [💞] Ignore a discrepancy between file name and entity name

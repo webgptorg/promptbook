@@ -1,6 +1,9 @@
 import { spaceTrim } from 'spacetrim';
 import { COMMITMENT_REGISTRY } from '../../../../../src/commitments';
 
+/**
+ * Handles voice instructions to create book page.
+ */
 export default function VoiceInstructionsToCreateBookPage() {
     const rules = spaceTrim(`
 

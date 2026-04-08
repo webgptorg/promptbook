@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 
 /**
  * Creates an authenticated OpenAI API client for this script.
+ *
  * @private function of DeleteOpenAiResources
  */
 export function createOpenAiClient(): OpenAI {
@@ -10,6 +11,7 @@ export function createOpenAiClient(): OpenAI {
 
 /**
  * Reads the OpenAI API key from the environment.
+ *
  * @private function of DeleteOpenAiResources
  */
 function getOpenAiApiKey(): string {

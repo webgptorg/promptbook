@@ -13,6 +13,7 @@ import { capitalize } from '../utils/normalization/capitalize';
  * @deprecated TODO: [🥍][🧠] Backup original files in `PipelineJson` same as in Promptbook.studio
  * @param pipelineJson Promptbook in JSON format (.bookc)
  * @returns Promptbook in string format (.book.md)
+ *
  * @public exported from `@promptbook/core`
  */
 export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString {
@@ -155,6 +156,8 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
 }
 
 /**
+ * Handles task parameter Json to string.
+ *
  * @private internal utility of `pipelineJsonToString`
  */
 function taskParameterJsonToString(taskParameterJson: ParameterJson): string {
@@ -168,10 +171,8 @@ function taskParameterJsonToString(taskParameterJson: ParameterJson): string {
     return parameterString;
 }
 
-/**
- * TODO: [🛋] Implement new features and commands into `pipelineJsonToString` + `taskParameterJsonToString` , use `stringifyCommand`
- * TODO: [🧠] Is there a way to auto-detect missing features in pipelineJsonToString
- * TODO: [🏛] Maybe make some markdown builder
- * TODO: [🏛] Escape all
- * TODO: [🧠] Should be in generated .book.md file GENERATOR_WARNING
- */
+// TODO: [🛋] Implement new features and commands into `pipelineJsonToString` + `taskParameterJsonToString` , use `stringifyCommand`
+// TODO: [🧠] Is there a way to auto-detect missing features in pipelineJsonToString
+// TODO: [🏛] Maybe make some markdown builder
+// TODO: [🏛] Escape all
+// TODO: [🧠] Should be in generated .book.md file GENERATOR_WARNING

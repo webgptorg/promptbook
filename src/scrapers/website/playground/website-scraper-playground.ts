@@ -25,6 +25,9 @@ playground()
         process.exit(0);
     });
 
+/**
+ * Handles playground.
+ */
 async function playground() {
     console.info(`🧸  Scrape knowledge from websites (playground)`);
 
@@ -76,4 +79,4 @@ async function playground() {
     //========================================/
 }
 
-/** Note: [⚫] Code for playground [website-scraper-playground](src/scrapers/website/playground/website-scraper-playground.ts) should never be published in any package */
+// Note: [⚫] Code for playground [website-scraper-playground](src/scrapers/website/playground/website-scraper-playground.ts) should never be published in any package

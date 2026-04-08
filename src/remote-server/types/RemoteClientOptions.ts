@@ -20,8 +20,6 @@ export type RemoteClientOptions<TCustomOptions> = CommonToolsOptions & {
     readonly identification: Identification<TCustomOptions>;
 };
 
-/**
- * TODO: Pass more options from Socket.io to `RemoteClientOptions` (like `transports`)
- * TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`
- * TODO: [🧠][🧜‍♂️] Maybe join remoteServerUrl and path into single value
- */
+// TODO: Pass more options from Socket.io to `RemoteClientOptions` (like `transports`)
+// TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`
+// TODO: [🧠][🧜‍♂️] Maybe join remoteServerUrl and path into single value

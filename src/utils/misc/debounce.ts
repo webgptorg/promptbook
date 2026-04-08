@@ -1,6 +1,8 @@
 import type { TODO_any } from '../organization/TODO_any';
 
 /**
+ * Handles debounce.
+ *
  * @public exported from `@promptbook/utils`
  */
 export function debounce<T extends (...args: TODO_any[]) => void>(fn: T, delay: number) {

@@ -5,7 +5,6 @@ import { colorHue } from './colorHue';
  * Calculates hue distance of two colors
  *
  * @returns hue distance in degrees <0-180)
- *
  * @see https://en.wikipedia.org/wiki/HSL_and_HSV#Hue_and_chroma
  *
  * @public exported from `@promptbook/color`

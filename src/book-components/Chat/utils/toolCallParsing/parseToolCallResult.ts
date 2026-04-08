@@ -6,6 +6,7 @@ import type { TODO_any } from '../../../../utils/organization/TODO_any';
  *
  * @param result - Raw tool result payload.
  * @returns Parsed payload when possible, otherwise original value.
+ *
  * @private function of toolCallParsing
  */
 export function parseToolCallResult(result: ToolCall['result']): TODO_any {

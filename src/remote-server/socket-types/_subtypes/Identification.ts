@@ -37,7 +37,7 @@ export type ApplicationModeIdentification<TCustomOptions> = ApplicationRemoteSer
  * Anonymous mode is when you run arbitrary user books without api keys from user
  *
  * Note: This is useful in situations when the LLM provider does not allow to call the API requests from the client side
- *       It is kind of a proxy mode
+ * It is kind of a proxy mode
  *
  * @public exported from `@promptbook/remote-server`
  * @public exported from `@promptbook/remote-client`
@@ -63,7 +63,5 @@ export type AnonymousModeIdentification = {
     readonly llmToolsConfiguration: LlmToolsConfiguration;
 };
 
-/**
- * TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`
- * TODO: [🧠][🤺] Maybe allow overriding of `userId` for each prompt - Pass `userId` in `PromptbookServer_ListModels_Request`
- */
+// TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`
+// TODO: [🧠][🤺] Maybe allow overriding of `userId` for each prompt - Pass `userId` in `PromptbookServer_ListModels_Request`

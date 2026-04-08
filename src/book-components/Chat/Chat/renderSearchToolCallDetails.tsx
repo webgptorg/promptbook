@@ -33,6 +33,7 @@ type RenderSearchToolCallDetailsOptions = {
  *
  * @param options - Search tool call data.
  * @returns Search results or pending state UI.
+ *
  * @private function of ChatToolCallModal
  */
 export function renderSearchToolCallDetails(options: RenderSearchToolCallDetailsOptions): ReactElement {

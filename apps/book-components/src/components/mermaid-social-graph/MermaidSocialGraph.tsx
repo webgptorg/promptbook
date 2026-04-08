@@ -3,12 +3,18 @@
 import mermaid from 'mermaid';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+/**
+ * Type describing node.
+ */
 type Node = {
     id: string;
     label: string;
     type?: 'person' | 'organization' | 'group';
 };
 
+/**
+ * Type describing edge.
+ */
 type Edge = {
     from: string;
     to: string;
@@ -16,6 +22,9 @@ type Edge = {
     type?: 'friend' | 'colleague' | 'family' | 'follows' | 'member';
 };
 
+/**
+ * Props for mermaid social graph.
+ */
 type MermaidSocialGraphProps = {
     nodes: Node[];
     edges: Edge[];
@@ -24,6 +33,9 @@ type MermaidSocialGraphProps = {
     direction?: 'TB' | 'TD' | 'BT' | 'RL' | 'LR';
 };
 
+/**
+ * Collection of default nodes.
+ */
 const defaultNodes: Node[] = [
     { id: 'alice', label: 'Alice', type: 'person' },
     { id: 'bob', label: 'Bob', type: 'person' },
@@ -34,6 +46,9 @@ const defaultNodes: Node[] = [
     { id: 'team', label: 'Dev Team', type: 'group' },
 ];
 
+/**
+ * Collection of default edges.
+ */
 const defaultEdges: Edge[] = [
     { from: 'alice', to: 'bob', label: 'friends', type: 'friend' },
     { from: 'bob', to: 'charlie', label: 'colleagues', type: 'colleague' },
@@ -45,6 +60,9 @@ const defaultEdges: Edge[] = [
     { from: 'diana', to: 'eve', label: 'friends', type: 'friend' },
 ];
 
+/**
+ * Handles mermaid social graph.
+ */
 export default function MermaidSocialGraph({
     nodes = defaultNodes,
     edges = defaultEdges,
@@ -186,6 +204,4 @@ export default function MermaidSocialGraph({
     );
 }
 
-/**
- * TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)
- */
+// TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)

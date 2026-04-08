@@ -33,6 +33,9 @@ const AGENT_REFERENCE_COMMITMENT_TYPES: ReadonlySet<BookCommitment> = new Set<Bo
  */
 type AgentSourceCollection = Pick<AgentCollection, 'getAgentPermanentId' | 'getAgentSource'>;
 
+/**
+ * Type describing issue tracking resolver.
+ */
 type IssueTrackingResolver = AgentReferenceResolver & {
     consumeResolutionIssues(): unknown[];
 };

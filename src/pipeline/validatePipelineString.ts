@@ -14,6 +14,7 @@ import type { PipelineString } from './PipelineString';
  * @param {string} pipelineString the candidate for a pipeline string
  * @returns {PipelineString} the same string as input, but validated as valid
  * @throws {ParseError} if the string is not a valid pipeline string
+ *
  * @public exported from `@promptbook/core`
  */
 export function validatePipelineString(pipelineString: string): PipelineString {
@@ -32,6 +33,4 @@ export function validatePipelineString(pipelineString: string): PipelineString {
     return pipelineString as PipelineString;
 }
 
-/**
- * TODO: [🧠][🈴] Where is the best location for this file
- */
+// TODO: [🧠][🈴] Where is the best location for this file

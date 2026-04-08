@@ -82,6 +82,9 @@ export type PseudoAgentDescriptor = {
     readonly aliasExamples: ReadonlyArray<string>;
 };
 
+/**
+ * Collection of void pseudo agent alias examples.
+ */
 const VOID_PSEUDO_AGENT_ALIAS_EXAMPLES: ReadonlyArray<string> = [
     '{Void}',
     '{Null}',
@@ -94,6 +97,9 @@ const VOID_PSEUDO_AGENT_ALIAS_EXAMPLES: ReadonlyArray<string> = [
     ...VOID_PSEUDO_AGENT_ALIAS_KEYS.filter((alias) => alias !== 'void' && alias !== 'null'),
 ];
 
+/**
+ * Map of pseudo agent descriptor by kind.
+ */
 const PSEUDO_AGENT_DESCRIPTOR_BY_KIND: Readonly<Record<PseudoAgentKind, PseudoAgentDescriptor>> = {
     USER: {
         kind: 'USER',
@@ -141,6 +147,7 @@ const PSEUDO_AGENT_DESCRIPTOR_BY_KIND: Readonly<Record<PseudoAgentKind, PseudoAg
  *
  * @param kind - Pseudo-agent kind to render.
  * @returns Descriptor that drives the profile page.
+ *
  * @private internal helper for pseudo-agent rendering
  */
 export function getPseudoAgentDescriptor(kind: PseudoAgentKind): PseudoAgentDescriptor {
@@ -152,6 +159,7 @@ export function getPseudoAgentDescriptor(kind: PseudoAgentKind): PseudoAgentDesc
  *
  * @param reference - User-provided pseudo-agent reference (case-insensitive).
  * @returns Descriptor plus canonical name, or null when the reference is not pseudo.
+ *
  * @private internal helper for pseudo-agent routing
  */
 export function resolvePseudoAgentDescriptor(
@@ -173,6 +181,7 @@ export function resolvePseudoAgentDescriptor(
  *
  * @param kind - Pseudo-agent kind.
  * @returns Canonical pseudo-agent URL.
+ *
  * @private internal helper for pseudo-agent routing
  */
 export function getPseudoAgentUrl(kind: PseudoAgentKind): string {

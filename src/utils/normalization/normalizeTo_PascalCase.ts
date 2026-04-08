@@ -5,6 +5,7 @@ import { normalizeTo_camelCase } from './normalizeTo_camelCase';
  *
  * @example 'HelloWorld'
  * @example 'ILovePromptbook'
+ *
  * @public exported from `@promptbook/utils`
  */
 export type string_PascalCase = string;
@@ -18,6 +19,7 @@ export type string_PascalCase = string;
  * @returns
  * @example 'HelloWorld'
  * @example 'ILovePromptbook'
+ *
  * @public exported from `@promptbook/utils`
  */
 export function normalizeTo_PascalCase(text: string): string_PascalCase {

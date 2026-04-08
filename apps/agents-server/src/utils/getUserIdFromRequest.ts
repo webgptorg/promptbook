@@ -4,6 +4,9 @@ import { $getTableName } from '../database/$getTableName';
 import { $provideSupabaseForServer } from '../database/$provideSupabaseForServer';
 import { getSession } from './session';
 
+/**
+ * Gets user Id from request.
+ */
 export async function getUserIdFromRequest(request: NextRequest): Promise<number | null> {
     keepUnused(request); // Unused because we get user from session cookie for now
 

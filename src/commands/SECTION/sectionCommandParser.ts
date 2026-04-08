@@ -21,6 +21,7 @@ import type { SectionCommand } from './SectionCommand';
  * Parses the section command
  *
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/editable`
  */
 export const sectionCommandParser: PipelineTaskCommandParser<SectionCommand> = {

@@ -5,8 +5,14 @@ import { PROMPTBOOK_SYNTAX_COLORS } from '../../config';
 import { BookEditorMonacoConstants } from './BookEditorMonacoConstants';
 import { BookEditorMonacoTokenization } from './BookEditorMonacoTokenization';
 
+/**
+ * Type describing monaco editor.
+ */
 type MonacoEditor = typeof import('monaco-editor');
 
+/**
+ * Props for use book editor monaco language.
+ */
 type UseBookEditorMonacoLanguageProps = {
     readonly monaco: MonacoEditor | null;
 };
@@ -93,6 +99,7 @@ type MonacoEditorWithBookEditorLanguageState = MonacoEditor & {
  *
  * @param commitmentTypes - Commitment keyword list to include.
  * @returns Compiled regex for Monaco tokenizer rules.
+ *
  * @private function of BookEditorMonaco
  */
 function createCommitmentRegex(commitmentTypes: ReadonlyArray<string>): RegExp {
@@ -113,6 +120,7 @@ function createCommitmentRegex(commitmentTypes: ReadonlyArray<string>): RegExp {
  *
  * @param commitmentTypes - All known commitment types.
  * @returns Tokenization metadata for TODO/NOTE-like commitment groups.
+ *
  * @private function of BookEditorMonaco
  */
 function createNoteLikeCommitmentStates(commitmentTypes: ReadonlyArray<string>): Array<NoteLikeCommitmentState> {
@@ -143,6 +151,7 @@ function createNoteLikeCommitmentStates(commitmentTypes: ReadonlyArray<string>):
  * @param agentReferenceCommitmentRegex - Regex for commitments supporting compact references.
  * @param commitmentRegex - Regex for standard executable commitments.
  * @returns Shared transition rules reused by body-like tokenizer states.
+ *
  * @private function of BookEditorMonaco
  */
 function createCommitmentTransitionRules(
@@ -163,6 +172,7 @@ function createCommitmentTransitionRules(
  * @param token - Token emitted for plain lines in this note-like state.
  * @param commitmentTransitionRules - Shared transitions to other commitment states.
  * @returns Monaco tokenizer rules for one note-like body state.
+ *
  * @private function of BookEditorMonaco
  */
 function createNoteLikeBodyRules(
@@ -370,6 +380,7 @@ type EnsureBookEditorMonacoLanguageForEditorProps = {
  * Book editor tree is restored from App Router cache without a full remount.
  *
  * @param props - Monaco runtime and mounted editor instance.
+ *
  * @private function of BookEditorMonaco
  */
 export function ensureBookEditorMonacoLanguageForEditor(props: EnsureBookEditorMonacoLanguageForEditorProps): void {

@@ -8,19 +8,31 @@ type SanitizeStreamingMessageContentOptions = {
     isComplete?: boolean;
 };
 
+/**
+ * Type describing fence delimiter.
+ */
 type FenceDelimiter = '```' | '~~~';
 
+/**
+ * Type describing code fence streaming boundary.
+ */
 type CodeFenceStreamingBoundary = {
     readonly kind: 'codeFence';
     readonly index: number;
     readonly delimiter: FenceDelimiter;
 };
 
+/**
+ * Type describing math streaming boundary.
+ */
 type MathStreamingBoundary = {
     readonly kind: 'math';
     readonly index: number;
 };
 
+/**
+ * Type describing image prompt streaming boundary.
+ */
 type ImagePromptStreamingBoundary = {
     readonly kind: 'imagePrompt';
     readonly index: number;
@@ -124,6 +136,7 @@ function findLastUnclosedDoubleDollar(content: string): MathStreamingBoundary | 
  *
  * @param content - Message text that may still be streaming.
  * @returns Metadata describing the richest streaming feature or `null` when nothing is being hidden.
+ *
  * @private internal helper of <ChatMessageItem/>
  */
 export function getLatestStreamingFeatureBoundary(content: string): StreamingFeatureBoundary | null {
@@ -148,6 +161,7 @@ export function getLatestStreamingFeatureBoundary(content: string): StreamingFea
  * @param content - Full markdown text produced by the assistant.
  * @param options - Sanitization options (streaming state).
  * @returns Text that is safe to render during streaming.
+ *
  * @private internal helper of <ChatMessageItem/>
  */
 export function sanitizeStreamingMessageContent(

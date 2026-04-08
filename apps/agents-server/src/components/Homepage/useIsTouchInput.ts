@@ -13,6 +13,7 @@ const TOUCH_INPUT_MEDIA_QUERY = '(hover: none) and (pointer: coarse)';
  * Determines whether the current environment exposes a touch-first or coarse-pointer input surface.
  *
  * @returns True when touch points or the touch media query indicate a touch-centric experience.
+ *
  * @private function of AgentsList
  */
 const detectTouchFirstInput = () => {
@@ -33,6 +34,7 @@ const detectTouchFirstInput = () => {
  * Tracks whether the current environment prefers touch-first input devices.
  *
  * @returns True when the viewport or device indicates a touch- or coarse-pointer input.
+ *
  * @private function of AgentsList
  */
 export function useIsTouchInput() {

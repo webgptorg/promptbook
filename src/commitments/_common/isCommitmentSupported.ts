@@ -3,6 +3,7 @@ import type { BookCommitment } from '../_base/BookCommitment';
 
 /**
  * Checks if a commitment type is supported
+ *
  * @param type The commitment type to check
  * @returns True if the commitment type is supported
  *

@@ -1,6 +1,9 @@
 import type { CommitmentToolFunctions } from './commitmentToolFunctions';
 import { collectCommitmentToolFunctions, createToolFunctionsProxy } from './commitmentToolFunctions';
 
+/**
+ * Constant for commitment tool functions proxy.
+ */
 const commitmentToolFunctionsProxy = createToolFunctionsProxy(collectCommitmentToolFunctions);
 
 /**

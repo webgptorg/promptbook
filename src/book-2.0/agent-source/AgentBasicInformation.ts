@@ -81,6 +81,9 @@ export type AgentCapability = {
     // <- Note: When creating new capabilities, look for [🪀] to add new icons
 };
 
+/**
+ * Information about agent basic.
+ */
 export type AgentBasicInformation = {
     /**
      * Name of the agent
@@ -165,7 +168,5 @@ export type AgentBasicInformation = {
     knowledgeSources: Array<{ url: string; filename: string }>;
 };
 
-/**
- * TODO: [🐱‍🚀] Make all properties of `AgentBasicInformation` readonly
- * TODO: [🕛] Unite `AgentBasicInformation`, `ChatParticipant`, `LlmExecutionTools` +  `LlmToolsMetadata`
- */
+// TODO: [🐱‍🚀] Make all properties of `AgentBasicInformation` readonly
+// TODO: [🕛] Unite `AgentBasicInformation`, `ChatParticipant`, `LlmExecutionTools` +  `LlmToolsMetadata`

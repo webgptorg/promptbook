@@ -10,6 +10,9 @@ import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
 import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
 
 // Using local SVG components because they might not be exported from @promptbook-local/components
+/**
+ * Handles camera icon.
+ */
 function CameraIcon({ size = 24, color = 'currentColor' }: { size?: number; color?: string }) {
     return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -31,6 +34,9 @@ function CameraIcon({ size = 24, color = 'currentColor' }: { size?: number; colo
     );
 }
 
+/**
+ * Handles close icon.
+ */
 function CloseIcon({ size = 24, color = 'currentColor' }: { size?: number; color?: string }) {
     return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -45,8 +51,14 @@ function CloseIcon({ size = 24, color = 'currentColor' }: { size?: number; color
     );
 }
 
+/**
+ * Type describing generation status.
+ */
 type GenerationStatus = 'pending' | 'loading' | 'success' | 'error';
 
+/**
+ * Type describing generated image.
+ */
 type GeneratedImage = {
     id: string;
     prompt: string;
@@ -57,6 +69,9 @@ type GeneratedImage = {
     generatedFilename: string | null;
 };
 
+/**
+ * Type describing prompt input.
+ */
 type PromptInput = {
     id: string;
     value: string;
@@ -68,6 +83,9 @@ type PromptInput = {
     }>;
 };
 
+/**
+ * Handles image generator test client.
+ */
 export function ImageGeneratorTestClient() {
     const [mode, setMode] = useState<'single' | 'multiple'>('single');
     const [prompts, setPrompts] = useState<PromptInput[]>([
@@ -493,12 +511,18 @@ export function ImageGeneratorTestClient() {
     );
 }
 
+/**
+ * Props for image attachments editor.
+ */
 type ImageAttachmentsEditorProps = {
     attachments: PromptInput['attachments'];
     onChange: (attachments: PromptInput['attachments']) => void;
     disabled?: boolean;
 };
 
+/**
+ * Handles image attachments editor.
+ */
 function ImageAttachmentsEditor({ attachments, onChange, disabled }: ImageAttachmentsEditorProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isUploading, setIsUploading] = useState(false);

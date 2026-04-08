@@ -17,8 +17,9 @@ import { extractAllBlocksFromMarkdown } from './extractAllBlocksFromMarkdown';
  *
  * @param markdown any valid markdown
  * @returns code block with language and content
- * @public exported from `@promptbook/markdown-utils`
  * @throws {ParseError} if there is not exactly one code block in the markdown
+ *
+ * @public exported from `@promptbook/markdown-utils`
  */
 export function extractOneBlockFromMarkdown(markdown: string_markdown): MarkdownCodeBlock {
     const codeBlocks = extractAllBlocksFromMarkdown(markdown);
@@ -39,6 +40,4 @@ export function extractOneBlockFromMarkdown(markdown: string_markdown): Markdown
     return codeBlocks[0]!;
 }
 
-/***
- * TODO: [🍓][🌻] Decide of this is internal utility, external util OR validator/postprocessor
- */
+// TODO: [🍓][🌻] Decide of this is internal utility, external util OR validator/postprocessor

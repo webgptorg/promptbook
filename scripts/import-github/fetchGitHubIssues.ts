@@ -1,5 +1,8 @@
 import { makeGitHubGraphQLRequest } from './makeGitHubGraphQLRequest';
 
+/**
+ * Type describing git hub issue.
+ */
 type GitHubIssue = {
     number: number;
     title: string;
@@ -21,6 +24,9 @@ type GitHubIssue = {
     };
 };
 
+/**
+ * Response for git hub issues.
+ */
 type GitHubIssuesResponse = {
     repository: {
         issues: {
@@ -35,6 +41,7 @@ type GitHubIssuesResponse = {
 
 /**
  * Fetches all GitHub issues for the Promptbook repository via pagination.
+ *
  * @private function of ImportGitHub
  */
 export async function fetchGitHubIssues(): Promise<GitHubIssue[]> {

@@ -199,6 +199,7 @@ export function serializeToolRuntimeContext(context: ToolRuntimeContext): string
  *
  * @param listener - Listener notified about tool progress.
  * @returns Hidden token used to route progress updates.
+ *
  * @private internal runtime wiring for commitment tools
  */
 export function registerToolCallProgressListener(listener: ToolCallProgressListener): string {
@@ -212,6 +213,7 @@ export function registerToolCallProgressListener(listener: ToolCallProgressListe
  * Unregisters one in-memory progress listener.
  *
  * @param token - Token previously created by `registerToolCallProgressListener`.
+ *
  * @private internal runtime wiring for commitment tools
  */
 export function unregisterToolCallProgressListener(token: string): void {
@@ -224,6 +226,7 @@ export function unregisterToolCallProgressListener(token: string): void {
  * @param args - Raw tool arguments including hidden runtime keys.
  * @param update - Incremental progress update.
  * @returns `true` when a listener was found and notified.
+ *
  * @private internal runtime wiring for commitment tools
  */
 export function emitToolCallProgressFromToolArgs(
@@ -244,6 +247,4 @@ export function emitToolCallProgressFromToolArgs(
     return true;
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

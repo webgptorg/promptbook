@@ -21,6 +21,7 @@ const CHAT_ATTACHMENT_MAX_INLINE_CHARACTERS_TOTAL = 24_000;
  * @param {ReadonlyArray<ChatAttachment>} attachments - The attachments to resolve.
  * @param {ResolveChatAttachmentOptions} options - Options for resolution.
  * @returns {Promise<Array<ResolvedChatAttachmentContent>>} The resolved contents.
+ *
  * @public exported from `@promptbook/core`
  */
 export async function resolveChatAttachmentContents(

@@ -5,6 +5,7 @@ import type { TableReference } from './fetchBackupSupabaseTableReferences';
 
 /**
  * All metadata and row data required to render one table backup SQL file.
+ *
  * @private type of backupSupabase
  */
 export type BackupSupabaseTableSnapshot = {
@@ -68,36 +69,42 @@ export type BackupSupabaseTableSnapshot = {
 
 /**
  * Column metadata used while assembling table DDL and data export.
+ *
  * @private type of backupSupabase
  */
 type TableColumn = BackupSupabaseTableSnapshot['tableColumns'][number];
 
 /**
  * Constraint metadata used in `CREATE TABLE`.
+ *
  * @private type of backupSupabase
  */
 type TableConstraint = BackupSupabaseTableSnapshot['tableConstraints'][number];
 
 /**
  * Index metadata for standalone indexes.
+ *
  * @private type of backupSupabase
  */
 type TableIndex = BackupSupabaseTableSnapshot['tableIndexes'][number];
 
 /**
  * Trigger metadata for one table.
+ *
  * @private type of backupSupabase
  */
 type TableTrigger = BackupSupabaseTableSnapshot['tableTriggers'][number];
 
 /**
  * Sequence metadata needed to recreate serial-like defaults.
+ *
  * @private type of backupSupabase
  */
 type TableSequence = BackupSupabaseTableSnapshot['tableSequences'][number];
 
 /**
  * Parsed `nextval(...::regclass)` sequence reference.
+ *
  * @private type of backupSupabase
  */
 type SequenceReference = {
@@ -118,6 +125,7 @@ type SequenceReference = {
  * @param client Connected PostgreSQL client.
  * @param tableReference Table being exported.
  * @returns Fully populated table snapshot.
+ *
  * @private function of backupSupabase
  */
 export async function fetchBackupSupabaseTableSnapshot(
@@ -155,6 +163,7 @@ export async function fetchBackupSupabaseTableSnapshot(
  * @param client Connected PostgreSQL client.
  * @param tableReference Table being exported.
  * @returns Ordered table columns.
+ *
  * @private function of backupSupabase
  */
 async function fetchTableColumns(client: Client, tableReference: TableReference): Promise<Array<TableColumn>> {
@@ -193,6 +202,7 @@ async function fetchTableColumns(client: Client, tableReference: TableReference)
  * @param client Connected PostgreSQL client.
  * @param tableReference Table being exported.
  * @returns Ordered constraint definitions.
+ *
  * @private function of backupSupabase
  */
 async function fetchTableConstraints(client: Client, tableReference: TableReference): Promise<Array<TableConstraint>> {
@@ -230,6 +240,7 @@ async function fetchTableConstraints(client: Client, tableReference: TableRefere
  * @param client Connected PostgreSQL client.
  * @param tableReference Table being exported.
  * @returns Set of index names to skip from standalone export.
+ *
  * @private function of backupSupabase
  */
 async function fetchConstraintBackedIndexNames(client: Client, tableReference: TableReference): Promise<Set<string>> {
@@ -260,6 +271,7 @@ async function fetchConstraintBackedIndexNames(client: Client, tableReference: T
  * @param client Connected PostgreSQL client.
  * @param tableReference Table being exported.
  * @returns Index DDL statements.
+ *
  * @private function of backupSupabase
  */
 async function fetchTableIndexes(client: Client, tableReference: TableReference): Promise<Array<TableIndex>> {
@@ -285,6 +297,7 @@ async function fetchTableIndexes(client: Client, tableReference: TableReference)
  * @param client Connected PostgreSQL client.
  * @param tableReference Table being exported.
  * @returns Trigger DDL statements.
+ *
  * @private function of backupSupabase
  */
 async function fetchTableTriggers(client: Client, tableReference: TableReference): Promise<Array<TableTrigger>> {
@@ -315,6 +328,7 @@ async function fetchTableTriggers(client: Client, tableReference: TableReference
  * @param client Connected PostgreSQL client.
  * @param tableReference Table being exported.
  * @returns Ordered primary-key column names.
+ *
  * @private function of backupSupabase
  */
 async function fetchTablePrimaryKeyColumns(client: Client, tableReference: TableReference): Promise<Array<string>> {
@@ -351,6 +365,7 @@ async function fetchTablePrimaryKeyColumns(client: Client, tableReference: Table
  * @param tableColumns Ordered table columns.
  * @param tablePrimaryKeyColumns Ordered primary-key columns for deterministic output.
  * @returns Rows keyed by column names with text-or-null values.
+ *
  * @private function of backupSupabase
  */
 async function fetchTableRowsAsText(
@@ -385,6 +400,7 @@ async function fetchTableRowsAsText(
  * @param tableReference Table being exported.
  * @param tableColumns Ordered table columns.
  * @returns Sequence metadata for serial-like defaults.
+ *
  * @private function of backupSupabase
  */
 async function fetchTableSequences(
@@ -434,6 +450,7 @@ async function fetchTableSequences(
  * @param defaultExpression Column default expression.
  * @param fallbackSchema Fallback schema when schema is omitted in the expression.
  * @returns Sequence reference or `null` when the expression is not a `nextval`.
+ *
  * @private function of backupSupabase
  */
 function parseNextvalSequenceReference(defaultExpression: string, fallbackSchema: string): SequenceReference | null {
@@ -486,6 +503,7 @@ function parseNextvalSequenceReference(defaultExpression: string, fallbackSchema
  * @param sequenceSchemaName Sequence schema.
  * @param sequenceName Sequence name.
  * @returns Sequence metadata required to recreate the sequence state.
+ *
  * @private function of backupSupabase
  */
 async function fetchSequenceMetadata(
@@ -525,6 +543,7 @@ async function fetchSequenceMetadata(
  *
  * @param identifier Raw identifier.
  * @returns Quoted identifier.
+ *
  * @private function of backupSupabase
  */
 function quoteIdentifier(identifier: string): string {
@@ -537,6 +556,7 @@ function quoteIdentifier(identifier: string): string {
  * @param schemaName Schema name.
  * @param objectName Relation or object name.
  * @returns Quoted schema-qualified identifier.
+ *
  * @private function of backupSupabase
  */
 function quoteQualifiedIdentifier(schemaName: string, objectName: string): string {

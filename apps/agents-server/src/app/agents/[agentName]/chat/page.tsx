@@ -59,6 +59,9 @@ function buildCanonicalAgentChatPath(
     return query ? `${pathname}?${query}` : pathname;
 }
 
+/**
+ * Handles agent chat page.
+ */
 export default async function AgentChatPage({
     params,
     searchParams,
@@ -168,6 +171,4 @@ export default async function AgentChatPage({
     );
 }
 
-/**
- * TODO: [🚗] Components and pages here should be just tiny UI wraper around proper agent logic and conponents
- */
+// TODO: [🚗] Components and pages here should be just tiny UI wraper around proper agent logic and conponents

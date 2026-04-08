@@ -1,12 +1,18 @@
 import { NEXT_PUBLIC_SITE_URL } from '@/config';
 import type { Metadata } from 'next';
 
+/**
+ * Map of metadata.
+ */
 export const metadata: Metadata = {
     metadataBase: NEXT_PUBLIC_SITE_URL,
     title: 'Test OG Image',
     description: 'Testing og-image',
 };
 
+/**
+ * Handles test page.
+ */
 export default function TestPage() {
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-100">

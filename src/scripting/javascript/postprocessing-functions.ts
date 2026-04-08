@@ -19,6 +19,9 @@ import { removeEmojis } from '../../utils/normalization/removeEmojis';
 import { removeQuotes } from '../../utils/normalization/removeQuotes';
 import { unwrapResult } from '../../utils/normalization/unwrapResult';
 
+/**
+ * Constant for parse keywords.
+ */
 const parseKeywords = (input: string) =>
     // TODO: DRY [🍯]
     Array.from(parseKeywordsFromString(input)).join(
@@ -26,9 +29,15 @@ const parseKeywords = (input: string) =>
     ); /* <- TODO: [🧠] What is the best format comma list, bullet list,...? */
 
 // TODO: DRY [🍯]
+/**
+ * Constant for trim.
+ */
 const trim = (str: string) => str.trim();
 
 // TODO: DRY [🍯]
+/**
+ * Constant for reverse.
+ */
 const reverse = (str: string) => str.split('').reverse().join('');
 
 /**
@@ -65,7 +74,5 @@ export const POSTPROCESSING_FUNCTIONS = {
     extractBlock, // <- [🍓] Remove balast in all other functions, use this one as example
 };
 
-/**
- * TODO: DRY [🍯], [🧠] Where should be POSTPROCESSING_FUNCTIONS located and how it should be named
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// TODO: DRY [🍯], [🧠] Where should be POSTPROCESSING_FUNCTIONS located and how it should be named
+// Note: [💞] Ignore a discrepancy between file name and entity name

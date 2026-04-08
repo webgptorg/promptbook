@@ -26,8 +26,14 @@ import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
 import { resolveAppendOnlySelfLearningAgentSource } from '@/src/utils/resolveAppendOnlySelfLearningAgentSource';
 
+/**
+ * Constant for max duration.
+ */
 export const maxDuration = 300;
 
+/**
+ * Handles options.
+ */
 export async function OPTIONS(request: Request) {
     keepUnused(request);
 
@@ -41,6 +47,9 @@ export async function OPTIONS(request: Request) {
     });
 }
 
+/**
+ * Handles post.
+ */
 export async function POST(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     const metadata = await getMetadataMap([
         'IS_EXPERIMENTAL_VOICE_CALLING_ENABLED',

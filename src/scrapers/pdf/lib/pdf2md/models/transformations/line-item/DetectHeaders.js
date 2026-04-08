@@ -1,10 +1,28 @@
 // @flow
 
+/**
+ * Constant for to line item transformation.
+ */
 const ToLineItemTransformation = require('../ToLineItemTransformation');
+/**
+ * Constant for parse result.
+ */
 const ParseResult = require('../../ParseResult');
+/**
+ * Constant for { detected annotation }.
+ */
 const { DETECTED_ANNOTATION } = require('../../Annotation');
+/**
+ * Constant for block type.
+ */
 const BlockType = require('../../markdown/BlockType');
+/**
+ * Constant for { headline by level }.
+ */
 const { headlineByLevel } = require('../../markdown/BlockType');
+/**
+ * Constant for { is list item }.
+ */
 const { isListItem } = require('../../../util/string-functions');
 
 // Detect headlines based on heights
@@ -127,6 +145,9 @@ module.exports = class DetectHeaders extends ToLineItemTransformation {
     }
 };
 
+/**
+ * Finds pages with max height.
+ */
 function findPagesWithMaxHeight(pages, maxHeight) {
     const maxHeaderPagesSet = new Set();
     pages.forEach((page) => {

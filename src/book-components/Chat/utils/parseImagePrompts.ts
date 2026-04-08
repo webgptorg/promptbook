@@ -34,8 +34,14 @@ export type ImagePromptImageSegment = {
     prompt: string;
 };
 
+/**
+ * Pattern matching image prompt.
+ */
 const IMAGE_PROMPT_REGEX = /!\[([^\]]*)\]\(\?image-prompt=([^)]+)\)/gi;
 
+/**
+ * Decodes prompt.
+ */
 function decodePrompt(value: string): string {
     try {
         return decodeURIComponent(value);
@@ -49,6 +55,7 @@ function decodePrompt(value: string): string {
  *
  * @param content - Raw markdown string produced by the agent.
  * @returns Ordered list of segments that preserves the original message flow.
+ *
  * @private internal helper of `<ChatMessageItem/>`
  */
 export function splitMessageContentByImagePrompts(content: string): ReadonlyArray<ImagePromptSegment> {
@@ -99,6 +106,4 @@ export function splitMessageContentByImagePrompts(content: string): ReadonlyArra
     return segments;
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

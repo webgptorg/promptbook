@@ -12,7 +12,5 @@ export const CHARACTERS_PER_STANDARD_LINE = 63;
  */
 export const LINES_PER_STANDARD_PAGE = 44;
 
-/**
- * TODO: [🧠] Should be this `constants.ts` or `config.ts`?
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// TODO: [🧠] Should be this `constants.ts` or `config.ts`?
+// Note: [💞] Ignore a discrepancy between file name and entity name

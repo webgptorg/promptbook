@@ -4,12 +4,14 @@ import { spaceTrim } from 'spacetrim';
 
 /**
  * Absolute path of the repository root.
+ *
  * @private constant of DeleteOpenAiResources
  */
 const ROOT_DIR = join(__dirname, '../..');
 
 /**
  * Ensures the script is executed from the repository root.
+ *
  * @private function of DeleteOpenAiResources
  */
 export function assertRootCwd(): void {

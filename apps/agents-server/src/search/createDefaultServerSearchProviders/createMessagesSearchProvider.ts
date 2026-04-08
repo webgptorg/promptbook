@@ -22,6 +22,7 @@ type MessageSearchRow = Pick<
  * Creates provider for outbound messages/emails (admin-only).
  *
  * @returns Configured messages search provider.
+ *
  * @private function of createDefaultServerSearchProviders
  */
 export function createMessagesSearchProvider(): ServerSearchProvider {

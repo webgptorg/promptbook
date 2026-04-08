@@ -4,6 +4,7 @@ import type { TableReference } from './fetchBackupSupabaseTableReferences';
 
 /**
  * CSV token used by PostgreSQL `COPY ... NULL`.
+ *
  * @private constant of backupSupabase
  */
 const BACKUP_SUPABASE_COPY_NULL_TOKEN = '\\N';
@@ -14,6 +15,7 @@ const BACKUP_SUPABASE_COPY_NULL_TOKEN = '\\N';
  * @param tableReference Table being exported.
  * @param snapshot Preloaded table metadata and row data.
  * @returns SQL file text.
+ *
  * @private function of backupSupabase
  */
 export function renderBackupSupabaseTableSql(
@@ -79,6 +81,7 @@ export function renderBackupSupabaseTableSql(
  * @param tableColumns Ordered table columns.
  * @param tableConstraints Ordered constraints.
  * @returns Complete `CREATE TABLE ...` SQL statement.
+ *
  * @private function of backupSupabase
  */
 function renderCreateTableStatement(
@@ -108,6 +111,7 @@ function renderCreateTableStatement(
  *
  * @param tableColumn Table column metadata.
  * @returns Column definition SQL fragment.
+ *
  * @private function of backupSupabase
  */
 function renderColumnDefinition(tableColumn: BackupSupabaseTableSnapshot['tableColumns'][number]): string {
@@ -136,6 +140,7 @@ function renderColumnDefinition(tableColumn: BackupSupabaseTableSnapshot['tableC
  * @param tableReference Table being exported.
  * @param tableSequence Sequence metadata for the table.
  * @returns Sequence SQL statements.
+ *
  * @private function of backupSupabase
  */
 function renderTableSequence(
@@ -166,6 +171,7 @@ function renderTableSequence(
  *
  * @param values Row values in table-column order.
  * @returns One CSV line.
+ *
  * @private function of backupSupabase
  */
 function serializeCsvRow(values: ReadonlyArray<string | null>): string {
@@ -177,6 +183,7 @@ function serializeCsvRow(values: ReadonlyArray<string | null>): string {
  *
  * @param value Value to serialize.
  * @returns CSV field payload.
+ *
  * @private function of backupSupabase
  */
 function serializeCsvField(value: string | null): string {
@@ -197,6 +204,7 @@ function serializeCsvField(value: string | null): string {
  *
  * @param identifier Raw identifier.
  * @returns Quoted identifier.
+ *
  * @private function of backupSupabase
  */
 function quoteIdentifier(identifier: string): string {
@@ -209,6 +217,7 @@ function quoteIdentifier(identifier: string): string {
  * @param schemaName Schema name.
  * @param objectName Relation or object name.
  * @returns Quoted schema-qualified identifier.
+ *
  * @private function of backupSupabase
  */
 function quoteQualifiedIdentifier(schemaName: string, objectName: string): string {
@@ -220,6 +229,7 @@ function quoteQualifiedIdentifier(schemaName: string, objectName: string): strin
  *
  * @param value Raw string value.
  * @returns SQL-safe string literal.
+ *
  * @private function of backupSupabase
  */
 function toSqlStringLiteral(value: string): string {
@@ -231,6 +241,7 @@ function toSqlStringLiteral(value: string): string {
  *
  * @param statement Raw SQL statement.
  * @returns SQL statement ending with a semicolon.
+ *
  * @private function of backupSupabase
  */
 function appendStatementSemicolon(statement: string): string {

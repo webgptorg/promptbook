@@ -4,6 +4,9 @@ import type { PipelineJson } from '../../../pipeline/PipelineJson/PipelineJson';
 import type { string_name } from '../../../types/typeAliases';
 import type { TODO_remove_as } from '../../organization/TODO_remove_as';
 
+/**
+ * Options for rename parameter.
+ */
 type RenameParameterOptions = {
     /**
      * Pipeline to search and replace for parameters
@@ -27,6 +30,7 @@ type RenameParameterOptions = {
  * In other words, it will find all parameters that are not used in the task itseld and all its dependencies
  *
  * @throws {PipelineLogicError} If the new parameter name is already used in the pipeline
+ *
  * @public exported from `@promptbook/editable`
  */
 export function renamePipelineParameter(options: RenameParameterOptions): PipelineJson {
@@ -73,6 +77,4 @@ export function renamePipelineParameter(options: RenameParameterOptions): Pipeli
     return renamedPipeline as TODO_remove_as<PipelineJson>;
 }
 
-/**
- * TODO: Also variant for `edit-pipeline-string`
- */
+// TODO: Also variant for `edit-pipeline-string`

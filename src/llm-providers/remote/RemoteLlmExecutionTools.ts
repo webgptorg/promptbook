@@ -39,6 +39,7 @@ keepTypeImported<PromptbookServer_Prompt_Request<chococake>>();
  * This is useful to make all logic on browser side but not expose your API keys or no need to use customer's GPU.
  *
  * @see https://github.com/webgptorg/promptbook#remote-server
+ *
  * @public exported from `@promptbook/remote-client`
  */
 export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmExecutionTools {
@@ -162,12 +163,10 @@ export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmE
     }
 }
 
-/**
- * TODO: [🕴] Deprecate pipeline server and all of its components
- * TODO: Maybe use `$exportJson`
- * TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`
- * TODO: [🍓] Allow to list compatible models with each variant
- * TODO: [🗯] RemoteLlmExecutionTools should extend Destroyable and implement IDestroyable
- * TODO: [🧠][🌰] Allow to pass `title` for tracking purposes
- * TODO: [🧠] Maybe remove `@promptbook/remote-client` and just use `@promptbook/core`
- */
+// TODO: [🕴] Deprecate pipeline server and all of its components
+// TODO: Maybe use `$exportJson`
+// TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`
+// TODO: [🍓] Allow to list compatible models with each variant
+// TODO: [🗯] RemoteLlmExecutionTools should extend Destroyable and implement IDestroyable
+// TODO: [🧠][🌰] Allow to pass `title` for tracking purposes
+// TODO: [🧠] Maybe remove `@promptbook/remote-client` and just use `@promptbook/core`

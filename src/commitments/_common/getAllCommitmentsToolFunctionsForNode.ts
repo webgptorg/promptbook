@@ -10,6 +10,9 @@ import {
     type CommitmentToolFunctions,
 } from './commitmentToolFunctions';
 
+/**
+ * Map of node tool functions.
+ */
 const nodeToolFunctions: CommitmentToolFunctions = {
     /**
      * @@@
@@ -48,6 +51,9 @@ const nodeToolFunctions: CommitmentToolFunctions = {
     // TODO: !!!! Unhardcode, make proper server function register from definitions
 };
 
+/**
+ * Constant for node tool functions proxy.
+ */
 const nodeToolFunctionsProxy = createToolFunctionsProxy(() => ({
     ...collectCommitmentToolFunctions(),
     ...nodeToolFunctions,
@@ -76,7 +82,5 @@ export function getAllCommitmentsToolFunctionsForNode(): CommitmentToolFunctions
     return nodeToolFunctionsProxy;
 }
 
-/**
- * Note: [??] Code in this file should never be never released in packages that could be imported into browser environment
- * TODO: [??] Unite `xxxForServer` and `xxxForNode` naming
- */
+// Note: [??] Code in this file should never be never released in packages that could be imported into browser environment
+// TODO: [??] Unite `xxxForServer` and `xxxForNode` naming

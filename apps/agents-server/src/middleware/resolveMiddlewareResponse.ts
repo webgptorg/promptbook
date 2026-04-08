@@ -15,6 +15,7 @@ type ApplyResponseHeaders = (response: NextResponse) => Promise<void>;
  *
  * @param options - Request state, routing context, and shared header callback.
  * @returns Final middleware response.
+ *
  * @private function of middleware
  */
 export async function resolveMiddlewareResponse(options: {
@@ -50,6 +51,7 @@ export async function resolveMiddlewareResponse(options: {
  *
  * @param request - Incoming middleware request.
  * @returns Redirect response, or `null` when the path should not be redirected.
+ *
  * @private function of resolveMiddlewareResponse
  */
 function createRootAgentRedirectResponse(request: NextRequest): NextResponse | null {
@@ -77,6 +79,7 @@ function createRootAgentRedirectResponse(request: NextRequest): NextResponse | n
  * @param request - Incoming middleware request.
  * @param customDomainResolution - Resolved custom-domain mapping.
  * @returns Rewrite response, or `null` when no custom-domain mapping exists.
+ *
  * @private function of resolveMiddlewareResponse
  */
 function createCustomDomainRewriteResponse(

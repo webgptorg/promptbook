@@ -9,6 +9,7 @@ import { pricing } from '../_common/utils/pricing';
  * Note: Synced with official API docs at 2026-03-22
  *
  * @see https://www.deepseek.com/models
+ *
  * @public exported from `@promptbook/deepseek`
  */
 export const DEEPSEEK_MODELS: ReadonlyArray<
@@ -191,9 +192,7 @@ export const DEEPSEEK_MODELS: ReadonlyArray<
     ],
 });
 
-/**
- * TODO: [🧠] Add information about context window sizes, capabilities, and relative performance characteristics
- * TODO: [🎰] Some mechanism to auto-update available models
- * TODO: [🧠] Verify pricing information is current with Deepseek's official documentation
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// TODO: [🧠] Add information about context window sizes, capabilities, and relative performance characteristics
+// TODO: [🎰] Some mechanism to auto-update available models
+// TODO: [🧠] Verify pricing information is current with Deepseek's official documentation
+// Note: [💞] Ignore a discrepancy between file name and entity name

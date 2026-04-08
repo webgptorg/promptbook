@@ -105,4 +105,4 @@ function hashString(value: string): string {
     return (hash >>> 0).toString(36);
 }
 
-/** Note: [🟡] Code for repository script [writeRefactorCandidatePrompts](scripts/find-refactor-candidates/writeRefactorCandidatePrompts.ts) should never be published outside of `@promptbook/cli` */
+// Note: [🟡] Code for repository script [writeRefactorCandidatePrompts](scripts/find-refactor-candidates/writeRefactorCandidatePrompts.ts) should never be published outside of `@promptbook/cli`

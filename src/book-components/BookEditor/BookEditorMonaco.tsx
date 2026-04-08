@@ -95,6 +95,7 @@ function isBookEditorMonacoDebugEnabled(): boolean {
  * Prints one BookEditor Monaco debug line when the dev debug flag is enabled.
  *
  * @param message - Human-readable lifecycle message.
+ *
  * @private Internal utility of `BookEditorMonaco`.
  */
 function logBookEditorMonacoDebug(message: string): void {
@@ -260,6 +261,8 @@ async function resolveClipboardUploadFiles(dataTransfer: DataTransfer): Promise<
 }
 
 /**
+ * Handles book editor monaco.
+ *
  * @private Internal component used by `BookEditor`
  */
 export function BookEditorMonaco(props: BookEditorProps) {

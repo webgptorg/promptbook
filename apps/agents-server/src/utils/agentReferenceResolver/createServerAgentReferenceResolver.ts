@@ -54,6 +54,7 @@ const FEDERATED_AGENT_LOOKUP_TIMEOUT_MS = 1_500;
  *
  * @param options - Resolver dependencies
  * @returns Agent reference resolver for the current agents server instance
+ *
  * @private
  */
 export async function createServerAgentReferenceResolver(

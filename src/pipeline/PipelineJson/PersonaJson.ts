@@ -47,6 +47,4 @@ export type PersonaPreparedJson = PersonaJson & {
     readonly preparationIds: ReadonlyArray<number_id>;
 };
 
-/**
- * TODO: [🍙] Make some standard order of json properties
- */
+// TODO: [🍙] Make some standard order of json properties

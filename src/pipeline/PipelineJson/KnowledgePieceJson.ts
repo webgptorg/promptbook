@@ -80,7 +80,5 @@ export type KnowledgePiecePreparedJson = {
     readonly preparationIds: ReadonlyArray<number_id>;
 };
 
-/**
- * TODO: [🍙] Make some standard order of json properties
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// TODO: [🍙] Make some standard order of json properties
+// Note: [💞] Ignore a discrepancy between file name and entity name

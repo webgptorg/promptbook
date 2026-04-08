@@ -10,7 +10,6 @@ export type string_html = string;
  *
  * For example `"<foo>bar</foo>"`
  *
- *
  * TODO: [🎞️] Probably use some object-based method for working with XMLs
  */
 export type string_xml = string;

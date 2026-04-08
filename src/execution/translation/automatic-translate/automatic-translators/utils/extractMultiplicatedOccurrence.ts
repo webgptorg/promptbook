@@ -1,10 +1,12 @@
 import { PipelineExecutionError } from '../../../../../errors/PipelineExecutionError';
 
 /**
+ * Extracts multiplicated occurrence.
  *
  * @param message
  * @returns
  * @throws {PipelineExecutionError}
+ *
  * @private still in development [🏳]
  */
 export function extractMultiplicatedOccurrence(message: string): string {

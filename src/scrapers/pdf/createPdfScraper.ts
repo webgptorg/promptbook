@@ -20,6 +20,4 @@ export const createPdfScraper = Object.assign(
     pdfScraperMetadata,
 ) satisfies ScraperConstructor; /* <- Note: [🤛] */
 
-/**
- * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
- */
+// TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

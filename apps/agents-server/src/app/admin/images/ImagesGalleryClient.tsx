@@ -7,8 +7,14 @@ import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingConte
 import { extractParametersFromFilename } from '../../../utils/normalization/extractParametersFromFilename';
 import { ImageWithAgent, listImages } from './actions';
 
+/**
+ * Type describing view mode.
+ */
 type ViewMode = 'TABLE' | 'GRID';
 
+/**
+ * Handles images gallery client.
+ */
 export function ImagesGalleryClient() {
     const [viewMode, setViewMode] = useState<ViewMode>('GRID');
     const [images, setImages] = useState<ImageWithAgent[]>([]);

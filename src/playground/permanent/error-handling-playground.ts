@@ -42,6 +42,9 @@ playground()
         process.exit(0);
     });
 
+/**
+ * Handles playground.
+ */
 async function playground() {
     console.info(`🧸  Error handling Playground`);
 
@@ -97,4 +100,4 @@ async function playground() {
     //========================================/
 }
 
-/** Note: [⚫] Code for permanent playground [error-handling-playground](src/playground/permanent/error-handling-playground.ts) should never be published in any package */
+// Note: [⚫] Code for permanent playground [error-handling-playground](src/playground/permanent/error-handling-playground.ts) should never be published in any package

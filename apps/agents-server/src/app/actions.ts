@@ -123,7 +123,5 @@ export async function logoutAction() {
     revalidatePath('/', 'layout');
 }
 
-/**
- * TODO: [🐱‍🚀] Reorganize actions.ts files
- * TODO: [🐱‍🚀] [🧠] Study how Next.js actions work
- */
+// TODO: [🐱‍🚀] Reorganize actions.ts files
+// TODO: [🐱‍🚀] [🧠] Study how Next.js actions work

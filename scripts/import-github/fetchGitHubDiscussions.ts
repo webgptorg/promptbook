@@ -1,5 +1,8 @@
 import { makeGitHubGraphQLRequest } from './makeGitHubGraphQLRequest';
 
+/**
+ * Type describing git hub discussion.
+ */
 type GitHubDiscussion = {
     number: number;
     title: string;
@@ -19,6 +22,9 @@ type GitHubDiscussion = {
     };
 };
 
+/**
+ * Response for git hub discussions.
+ */
 type GitHubDiscussionsResponse = {
     repository: {
         discussions: {
@@ -33,6 +39,7 @@ type GitHubDiscussionsResponse = {
 
 /**
  * Fetches all GitHub discussions for the Promptbook repository via pagination.
+ *
  * @private function of ImportGitHub
  */
 export async function fetchGitHubDiscussions(): Promise<GitHubDiscussion[]> {

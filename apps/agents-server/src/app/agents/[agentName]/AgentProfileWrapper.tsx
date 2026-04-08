@@ -73,6 +73,9 @@ type AgentProfileWrapperProps = {
     readonly children: React.ReactNode;
 };
 
+/**
+ * Handles agent profile wrapper.
+ */
 export function AgentProfileWrapper(props: AgentProfileWrapperProps) {
     const { agent, agentUrl, publicUrl, agentEmail, agentName, isAdmin, isHeadless, folderContext, actions, children } =
         props;

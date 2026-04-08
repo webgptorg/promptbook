@@ -53,5 +53,5 @@ export async function GET(request: NextRequest) {
     }
 }
 
-/** Note: [🟢] Code for Agents Server scrape API route [scrape route](apps/agents-server/src/app/api/scrape/route.ts) should never be published into packages that could be imported into browser environment */
-/** It proxies server-side scraping functionality safely */
+// Note: [🟢] Code for Agents Server scrape API route [scrape route](apps/agents-server/src/app/api/scrape/route.ts) should never be published into packages that could be imported into browser environment
+// Note: It proxies server-side scraping functionality safely.

@@ -13,7 +13,5 @@ import { createAzureOpenAiExecutionTools } from './createAzureOpenAiExecutionToo
  */
 export const _AzureOpenAiRegistration: Registration = $llmToolsRegister.register(createAzureOpenAiExecutionTools);
 
-/**
- * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
+// Note: [💞] Ignore a discrepancy between file name and entity name

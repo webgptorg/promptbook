@@ -9,6 +9,7 @@ import { getTemplatesPipelineCollection } from './getTemplatesPipelineCollection
  * Internal cache for the `getBookTemplates` function, storing retrieved pipelines.
  *
  * @singleton
+ *
  * @private internal cache of `getBookTemplate`
  */
 export let pipelines: Array<SetRequired<PipelineJson, 'pipelineUrl'>> | null = null;
@@ -18,6 +19,7 @@ export let pipelines: Array<SetRequired<PipelineJson, 'pipelineUrl'>> | null = n
  *
  * @param formfactorName - optional filter for FORMFACTOR - get only pipelines for this formfactor
  * @returns list of pipelines
+ *
  * @public exported from `@promptbook/templates`
  */
 export function getBookTemplates(
@@ -41,8 +43,6 @@ export function getBookTemplates(
     }
 }
 
-/**
- * TODO: Unit test + test that what we guarantee - always return non-empty array is true for e
- * TODO: [🧠] Which is the best place for this function
- * TODO: !!6 For GENERIC template ensure at least one pipeline is present for typescript in `getBookTemplates`
- */
+// TODO: Unit test + test that what we guarantee - always return non-empty array is true for e
+// TODO: [🧠] Which is the best place for this function
+// TODO: !!6 For GENERIC template ensure at least one pipeline is present for typescript in `getBookTemplates`

@@ -26,6 +26,9 @@ import { SoundSystemProvider } from '../SoundSystemProvider/SoundSystemProvider'
 import { ViewportHeightController } from '../ViewportHeightController/ViewportHeightController';
 import type { ControlPanelOptionAvailability } from '../../utils/getControlPanelOptionAvailability';
 
+/**
+ * Props for layout wrapper.
+ */
 type LayoutWrapperProps = {
     children: React.ReactNode;
     isAdmin: boolean;
@@ -61,6 +64,9 @@ type LayoutWrapperProps = {
     webPushPublicKey: string | null;
 };
 
+/**
+ * Handles layout wrapper.
+ */
 export function LayoutWrapper({
     children,
     isAdmin,

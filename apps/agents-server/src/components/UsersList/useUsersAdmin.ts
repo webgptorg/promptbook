@@ -2,6 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { showConfirm } from '../AsyncDialogs/asyncDialogs';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 
+/**
+ * Type describing admin user.
+ */
 export type AdminUser = {
     id: number;
     username: string;
@@ -10,6 +13,9 @@ export type AdminUser = {
     isAdmin: boolean;
 };
 
+/**
+ * Payload for create user.
+ */
 type CreateUserPayload = {
     username: string;
     password: string;

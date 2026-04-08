@@ -49,9 +49,9 @@ function hasMatchingEtag(request: Request, etag: string): boolean {
 }
 
 /**
- * @@@
- *
  * Note: [🕺] This route gives the agent source *(with resolved inheritance)*
+ *
+ * @@@
  */
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     try {
@@ -136,6 +136,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
     }
 }
 
+/**
+ * Handles put.
+ */
 export async function PUT(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     let { agentName } = await params;
     agentName = decodeURIComponent(agentName);

@@ -65,7 +65,9 @@ export class GoogleSearchEngine implements SearchEngine {
 }
 
 /**
- * @see https://developers.google.com/custom-search/v1/reference/rest/v1/Search
+ * Https://developers.google.com/custom-search/v1/reference/rest/v1/Search.
+ *
+ * @see
  */
 type GoogleSearchResponse = {
     items?: Array<{

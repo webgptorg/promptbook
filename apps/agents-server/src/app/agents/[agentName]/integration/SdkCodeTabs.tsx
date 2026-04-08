@@ -3,12 +3,18 @@
 import { CodePreview } from '../../../../../../_common/components/CodePreview/CodePreview';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../../../_common/components/Tabs/Tabs';
 
+/**
+ * Props for Sdk code tabs.
+ */
 type SdkCodeTabsProps = {
     curlCode: string;
     pythonCode: string;
     jsCode: string;
 };
 
+/**
+ * Handles Sdk code tabs.
+ */
 export function SdkCodeTabs({ curlCode, pythonCode, jsCode }: SdkCodeTabsProps) {
     return (
         <Tabs defaultValue="curl" className="w-full">

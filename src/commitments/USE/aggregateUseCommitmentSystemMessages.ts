@@ -35,6 +35,7 @@ const AGGREGATED_USE_COMMITMENT_PLACEHOLDER_PREFIX = '# AGGREGATED USE COMMITMEN
  *
  * @param type - Commitment type to check.
  * @returns `true` when the commitment participates in `USE` system-message aggregation.
+ *
  * @private internal utility of `aggregateUseCommitmentSystemMessages`
  */
 function isAggregatedUseCommitmentType(type: ParsedCommitment['type']): type is AggregatedUseCommitmentType {
@@ -46,6 +47,7 @@ function isAggregatedUseCommitmentType(type: ParsedCommitment['type']): type is 
  *
  * @param type - Aggregated `USE` commitment type.
  * @returns Single-line placeholder comment stored in the interim system message.
+ *
  * @private internal utility of `appendAggregatedUseCommitmentPlaceholder`
  */
 function getAggregatedUseCommitmentPlaceholder(type: AggregatedUseCommitmentType): string {
@@ -57,6 +59,7 @@ function getAggregatedUseCommitmentPlaceholder(type: AggregatedUseCommitmentType
  *
  * @param additionalInstructions - Deduplicated instruction blocks collected from the agent source.
  * @returns Combined instruction text ready for `formatOptionalInstructionBlock`.
+ *
  * @private internal utility of `createAggregatedUseCommitmentSystemMessage`
  */
 function combineAdditionalInstructions(additionalInstructions: ReadonlyArray<string>): string {
@@ -69,6 +72,7 @@ function combineAdditionalInstructions(additionalInstructions: ReadonlyArray<str
  * @param type - Aggregated `USE` commitment type.
  * @param additionalInstructions - Distinct additional instructions in source order.
  * @returns Final system-message block for the commitment type.
+ *
  * @private internal utility of `aggregateUseCommitmentSystemMessages`
  */
 function createAggregatedUseCommitmentSystemMessage(
@@ -120,6 +124,7 @@ function createAggregatedUseCommitmentSystemMessage(
  * @param requirements - Current model requirements.
  * @param type - Aggregated `USE` commitment type being applied.
  * @returns Requirements with the placeholder inserted when it was not already present.
+ *
  * @private internal utility of `USE` commitments
  */
 export function appendAggregatedUseCommitmentPlaceholder(
@@ -150,6 +155,7 @@ export function appendAggregatedUseCommitmentPlaceholder(
  * @param requirements - Model requirements produced by commitment-by-commitment application.
  * @param commitments - Filtered commitments in their original source order.
  * @returns Requirements with aggregated `USE` system-message sections.
+ *
  * @private internal utility of `createAgentModelRequirementsWithCommitments`
  */
 export function aggregateUseCommitmentSystemMessages(

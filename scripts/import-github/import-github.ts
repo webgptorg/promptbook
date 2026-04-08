@@ -34,10 +34,16 @@ if (process.cwd() !== join(__dirname, '../..')) {
     process.exit(1);
 }
 
+/**
+ * Constant for program.
+ */
 const program = new commander.Command();
 program.option('--commit', `Autocommit changes`, false);
 program.parse(process.argv);
 
+/**
+ * Constant for { commit: is commited }.
+ */
 const { commit: isCommited } = program.opts();
 
 importGitHub({ isCommited })
@@ -51,6 +57,9 @@ importGitHub({ isCommited })
         process.exit(0);
     });
 
+/**
+ * Imports git hub.
+ */
 async function importGitHub({ isCommited }: { isCommited: boolean }) {
     console.info(`🐙  Importing GitHub discussions and issues`);
 

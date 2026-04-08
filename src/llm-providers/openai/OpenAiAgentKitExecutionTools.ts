@@ -47,6 +47,9 @@ import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCo
 import { OpenAiVectorStoreHandler } from './OpenAiVectorStoreHandler';
 import { buildToolInvocationScript } from './utils/buildToolInvocationScript';
 
+/**
+ * Constant for default agent kit model name.
+ */
 const DEFAULT_AGENT_KIT_MODEL_NAME = 'gpt-5.4-nano' as string_model_name;
 
 /**
@@ -113,6 +116,9 @@ function resolveFinalToolCallState(options: {
  */
 export type AgentOutputType = 'text' | JsonSchemaDefinition;
 
+/**
+ * Type describing Json schema definition entry.
+ */
 type JsonSchemaDefinitionEntry = {
     type?: string;
     description?: string;
@@ -122,6 +128,9 @@ type JsonSchemaDefinitionEntry = {
     [key: string]: TODO_any;
 };
 
+/**
+ * Definition of Json schema.
+ */
 type JsonSchemaDefinition = {
     type: 'json_schema';
     name: string;
@@ -157,8 +166,14 @@ type JsonSchemaDefinitionInput = {
     required?: Array<string>;
 };
 
+/**
+ * Type describing open Ai chat response format.
+ */
 type OpenAiChatResponseFormat = OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming['response_format'];
 
+/**
+ * Constant for default JSON schema name.
+ */
 const DEFAULT_JSON_SCHEMA_NAME = 'StructuredOutput';
 
 /**
@@ -356,6 +371,7 @@ function buildJsonSchemaDefinition(jsonSchema?: JsonSchemaDefinitionInput): Json
  *
  * @param responseFormat - The OpenAI `response_format` payload from the user request.
  * @returns An Agent output type compatible with the requested schema or `undefined` when no impact is required.
+ *
  * @private utility of Open AI
  */
 export function mapResponseFormatToAgentOutputType(

@@ -19,11 +19,17 @@ type AgentNamingContextValue = {
     readonly formatText: (text: string) => string;
 };
 
+/**
+ * Map of default context value.
+ */
 const DEFAULT_CONTEXT_VALUE: AgentNamingContextValue = {
     naming: DEFAULT_AGENT_NAMING,
     formatText: (text: string) => formatAgentNamingText(text, DEFAULT_AGENT_NAMING),
 };
 
+/**
+ * Constant for agent naming context.
+ */
 const AgentNamingContext = createContext<AgentNamingContextValue>(DEFAULT_CONTEXT_VALUE);
 
 /**

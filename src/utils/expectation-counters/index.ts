@@ -21,7 +21,5 @@ export const CountUtils: Record<ExpectationUnit, (text: string) => ExpectationAm
     PAGES: countPages,
 };
 
-/**
- * TODO: [🧠][🤠] This should be probably as part of `TextFormatParser`
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// TODO: [🧠][🤠] This should be probably as part of `TextFormatParser`
+// Note: [💞] Ignore a discrepancy between file name and entity name

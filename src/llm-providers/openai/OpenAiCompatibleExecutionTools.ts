@@ -51,7 +51,13 @@ import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCo
 import { buildToolInvocationScript } from './utils/buildToolInvocationScript';
 import { mapToolsToOpenAi } from './utils/mapToolsToOpenAi';
 
+/**
+ * Type describing structured clone function.
+ */
 type StructuredCloneFunction = <T>(value: T) => T;
+/**
+ * Type describing streamed tool call.
+ */
 type StreamedToolCall = NonNullable<ChatPromptResult['toolCalls']>[number];
 
 /**
@@ -1528,10 +1534,8 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
     }
 }
 
-/**
- * TODO: [🛄] Some way how to re-wrap the errors from `OpenAiCompatibleExecutionTools`
- * TODO: [🛄] Maybe make custom `OpenAiCompatibleError`
- * TODO: [🧠][🈁] Maybe use `isDeterministic` from options
- * TODO: [🧠][🌰] Allow to pass `title` for tracking purposes
- * TODO: [🧠][🦢] Make reverse adapter from LlmExecutionTools to OpenAI-compatible:
- */
+// TODO: [🛄] Some way how to re-wrap the errors from `OpenAiCompatibleExecutionTools`
+// TODO: [🛄] Maybe make custom `OpenAiCompatibleError`
+// TODO: [🧠][🈁] Maybe use `isDeterministic` from options
+// TODO: [🧠][🌰] Allow to pass `title` for tracking purposes
+// TODO: [🧠][🦢] Make reverse adapter from LlmExecutionTools to OpenAI-compatible:

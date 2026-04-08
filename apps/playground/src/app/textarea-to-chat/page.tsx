@@ -5,6 +5,9 @@ import type { ChatMessage } from '@promptbook-local/components';
 import { Chat } from '@promptbook-local/components';
 import { useMemo, useState } from 'react';
 
+/**
+ * Handles textarea to chat page.
+ */
 export default function TextareaToChatPage() {
     const [textareaContent, setTextareaContent] = useState<string>('Hello, this is a test message!');
 

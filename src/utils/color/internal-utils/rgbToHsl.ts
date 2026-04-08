@@ -53,6 +53,4 @@ export function rgbToHsl(
     return [hue, saturation, lightness];
 }
 
-/**
- * TODO: Properly name all used internal variables
- */
+// TODO: Properly name all used internal variables

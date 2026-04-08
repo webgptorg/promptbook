@@ -8,9 +8,21 @@ import type { OpenAiCompatibleExecutionToolsOptions } from './OpenAiCompatibleEx
 import { OpenAiExecutionTools } from './OpenAiExecutionTools';
 import { isDataUrlKnowledgeSource, parseDataUrlKnowledgeSource } from '../../utils/knowledge/inlineKnowledgeSource';
 
+/**
+ * Constant for default knowledge source download timeout ms.
+ */
 const DEFAULT_KNOWLEDGE_SOURCE_DOWNLOAD_TIMEOUT_MS = 30000;
+/**
+ * Constant for default knowledge source upload timeout ms.
+ */
 const DEFAULT_KNOWLEDGE_SOURCE_UPLOAD_TIMEOUT_MS = 900000;
+/**
+ * Constant for vector store progress log interval min ms.
+ */
 const VECTOR_STORE_PROGRESS_LOG_INTERVAL_MIN_MS = 15000;
+/**
+ * Constant for vector store stall log threshold ms.
+ */
 const VECTOR_STORE_STALL_LOG_THRESHOLD_MS = 30000;
 
 /**

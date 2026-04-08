@@ -79,4 +79,4 @@ export class ObjectUrl extends Registration implements IDestroyable {
     }
 }
 
-/** Note: [🔵] Code for browser file helper [ObjectUrl](src/utils/files/ObjectUrl.ts) should never be published outside of `@promptbook/browser` */
+// Note: [🔵] Code for browser file helper [ObjectUrl](src/utils/files/ObjectUrl.ts) should never be published outside of `@promptbook/browser`

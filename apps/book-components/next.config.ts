@@ -2,6 +2,9 @@ import NextBundleAnalyzer from '@next/bundle-analyzer';
 import type { NextConfig } from 'next';
 import path from 'path';
 
+/**
+ * Map of next config.
+ */
 const nextConfig: NextConfig = {
     output: 'standalone',
     experimental: {
@@ -35,6 +38,9 @@ const nextConfig: NextConfig = {
     /**/
 };
 
+/**
+ * Constant for with bundle analyzer.
+ */
 const withBundleAnalyzer = NextBundleAnalyzer({
     enabled: true, //process.env.ANALYZE === 'true',
 });

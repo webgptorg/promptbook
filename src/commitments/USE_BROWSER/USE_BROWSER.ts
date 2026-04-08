@@ -252,6 +252,4 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
     }
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

@@ -12,6 +12,4 @@ export function $randomSeed(): number_seed {
     return Math.random();
 }
 
-/**
- * TODO: [🤶] Maybe export through `@promptbook/utils` or `@promptbook/random` package
- */
+// TODO: [🤶] Maybe export through `@promptbook/utils` or `@promptbook/random` package

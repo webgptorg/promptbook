@@ -1,8 +1,14 @@
 import { resolveAgentRouteTarget } from './resolveAgentRouteTarget';
 import { createBookScopedAgentIdentifier } from '../agentReferenceResolver/bookScopedAgentReferences';
 
+/**
+ * Constant for public URL.
+ */
 const PUBLIC_URL = new URL('https://local.example/');
 
+/**
+ * Map of mock agent collection.
+ */
 const mockAgentCollection = {
     listAgents: jest.fn(async () => [
         {

@@ -52,6 +52,4 @@ const rgbDataURL = (r: number, g: number, b: number): string_data_url & string_u
         triplet(0, r, g) + triplet(b, 255, 255)
     }/yH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==`;
 
-/**
- * TODO: Make as functions NOT const
- */
+// TODO: Make as functions NOT const

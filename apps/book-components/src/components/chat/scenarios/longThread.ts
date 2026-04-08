@@ -1,5 +1,8 @@
 import type { ChatMessage } from '../../../../../../src/book-components/Chat/types/ChatMessage';
 
+/**
+ * Map of long thread scenario.
+ */
 export const longThreadScenario = {
     name: 'Looooooong Thread',
     messages: [

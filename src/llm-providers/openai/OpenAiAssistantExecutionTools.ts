@@ -41,6 +41,9 @@ import { buildToolInvocationScript } from './utils/buildToolInvocationScript';
 import { mapToolsToOpenAi } from './utils/mapToolsToOpenAi';
 import { uploadFilesToOpenAi } from './utils/uploadFilesToOpenAi';
 
+/**
+ * Type describing streamed tool call.
+ */
 type StreamedToolCall = NonNullable<ChatPromptResult['toolCalls']>[number];
 
 /**
@@ -111,6 +114,7 @@ function resolveFinalToolCallState(options: {
  * - `RemoteAgent` - which is an `Agent` that connects to a Promptbook Agents Server
  *
  * @deprecated Use `OpenAiAgentKitExecutionTools` instead.
+ *
  * @public exported from `@promptbook/openai`
  */
 export class OpenAiAssistantExecutionTools extends OpenAiVectorStoreHandler implements LlmExecutionTools {
@@ -984,11 +988,9 @@ export class OpenAiAssistantExecutionTools extends OpenAiVectorStoreHandler impl
  */
 const DISCRIMINANT = 'OPEN_AI_ASSISTANT_V1';
 
-/**
- * TODO: !!!!! [✨🥚] Knowledge should work both with and without scrapers
- * TODO: [🙎] In `OpenAiAssistantExecutionTools` Allow to create abstract assistants with `isCreatingNewAssistantsAllowed`
- * TODO: [🧠][🧙‍♂️] Maybe there can be some wizard for those who want to use just OpenAI
- * TODO: Maybe make custom OpenAiError
- * TODO: [🧠][🈁] Maybe use `isDeterministic` from options
- * TODO: [🧠][🌰] Allow to pass `title` for tracking purposes
- */
+// TODO: !!!!! [✨🥚] Knowledge should work both with and without scrapers
+// TODO: [🙎] In `OpenAiAssistantExecutionTools` Allow to create abstract assistants with `isCreatingNewAssistantsAllowed`
+// TODO: [🧠][🧙‍♂️] Maybe there can be some wizard for those who want to use just OpenAI
+// TODO: Maybe make custom OpenAiError
+// TODO: [🧠][🈁] Maybe use `isDeterministic` from options
+// TODO: [🧠][🌰] Allow to pass `title` for tracking purposes

@@ -5,6 +5,7 @@ import { PRIVATE_MODE_COOKIE_NAME } from '@/src/constants/privateMode';
  *
  * @param cookieHeader - Raw Cookie header value.
  * @returns Map of cookie names to their decoded values.
+ *
  * @private Internal helper shared by private mode utilities.
  */
 function parseCookieHeader(cookieHeader?: string | null): Record<string, string> {
@@ -39,6 +40,7 @@ function parseCookieHeader(cookieHeader?: string | null): Record<string, string>
  *
  * @param cookieHeader - Value of the `Cookie` header.
  * @returns True when private mode is enabled in the cookie.
+ *
  * @private Internal helper for private mode guards.
  */
 export function isPrivateModeEnabledFromCookieHeader(cookieHeader?: string | null): boolean {
@@ -57,6 +59,7 @@ export function isPrivateModeEnabledFromCookieHeader(cookieHeader?: string | nul
  *
  * @param headers - Headers instance or init object.
  * @returns True when private mode cookie is present and enabled.
+ *
  * @private Internal helper for private mode guards.
  */
 export function isPrivateModeEnabledFromHeaders(headers?: Headers | HeadersInit | null): boolean {
@@ -73,6 +76,7 @@ export function isPrivateModeEnabledFromHeaders(headers?: Headers | HeadersInit 
  *
  * @param request - HTTP request sent by the browser.
  * @returns True when the request carries the private mode cookie.
+ *
  * @private Internal helper for private mode guards.
  */
 export function isPrivateModeEnabledFromRequest(request?: Request | null): boolean {

@@ -4,6 +4,9 @@ import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+/**
+ * Props for portal.
+ */
 type PortalProps = {
     children: ReactNode;
     /**

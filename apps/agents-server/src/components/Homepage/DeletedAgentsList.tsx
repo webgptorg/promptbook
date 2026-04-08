@@ -8,6 +8,9 @@ import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 
+/**
+ * Props for deleted agents list.
+ */
 type DeletedAgentsListProps = {
     /**
      * List of deleted agents available for restoration
@@ -25,6 +28,9 @@ type DeletedAgentsListProps = {
     readonly publicUrl: URL;
 };
 
+/**
+ * Handles deleted agents list.
+ */
 export function DeletedAgentsList(props: DeletedAgentsListProps) {
     const { agents: initialAgents, isAdmin, publicUrl } = props;
     const [agents, setAgents] = useState(Array.from(initialAgents));

@@ -1002,7 +1002,5 @@ export function useBookEditorWrapper({ agentName, initialAgentSource }: UseBookE
     };
 }
 
-/**
- * TODO: Prompt: Use `import { debounce } from '@promptbook-local/utils';` instead of custom debounce implementation
- * TODO: [🚗] Transfer the saving logic to `<BookEditor/>` be aware of CRDT / yjs approach to be implementable in future
- */
+// TODO: Prompt: Use `import { debounce } from '@promptbook-local/utils';` instead of custom debounce implementation
+// TODO: [🚗] Transfer the saving logic to `<BookEditor/>` be aware of CRDT / yjs approach to be implementable in future

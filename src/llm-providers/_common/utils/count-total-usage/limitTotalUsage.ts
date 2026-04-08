@@ -96,10 +96,8 @@ export function limitTotalUsage(
     return proxyTools;
 }
 
-/**
- * TODO: Maybe internally use `countTotalUsage`
- * TODO: [🧠][💸] Maybe make some common abstraction `interceptLlmTools` and use here (or use javascript Proxy?)
- * TODO: [🧠] Is there some meaningfull way how to test this util
- * TODO: [🧠][🌯] Maybe a way how to hide ability to `get totalUsage`
- * TODO: [👷‍♂️] Write a comprehensive manual about the construction of LLM tools
- */
+// TODO: Maybe internally use `countTotalUsage`
+// TODO: [🧠][💸] Maybe make some common abstraction `interceptLlmTools` and use here (or use javascript Proxy?)
+// TODO: [🧠] Is there some meaningfull way how to test this util
+// TODO: [🧠][🌯] Maybe a way how to hide ability to `get totalUsage`
+// TODO: [👷‍♂️] Write a comprehensive manual about the construction of LLM tools

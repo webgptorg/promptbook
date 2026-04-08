@@ -13,7 +13,5 @@ import { createLegacyDocumentScraper } from './createLegacyDocumentScraper';
  */
 export const _LegacyDocumentScraperRegistration: Registration = $scrapersRegister.register(createLegacyDocumentScraper);
 
-/**
- * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
+// Note: [💞] Ignore a discrepancy between file name and entity name

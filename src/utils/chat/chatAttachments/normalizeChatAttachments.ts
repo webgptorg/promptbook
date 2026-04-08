@@ -95,6 +95,7 @@ function normalizeChatAttachment(rawAttachment: unknown): ChatAttachment | null 
  *
  * @param {unknown} rawAttachments - The raw attachments to normalize.
  * @returns {Array<ChatAttachment>} The normalized attachments.
+ *
  * @public exported from `@promptbook/core`
  */
 export function normalizeChatAttachments(rawAttachments: unknown): Array<ChatAttachment> {

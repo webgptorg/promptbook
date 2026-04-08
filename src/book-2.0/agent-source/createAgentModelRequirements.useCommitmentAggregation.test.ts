@@ -8,6 +8,7 @@ import { validateBook } from './string_book';
  * @param haystack - Full text to scan.
  * @param needle - Exact substring to count.
  * @returns Number of literal matches.
+ *
  * @private test utility of `createAgentModelRequirements.useCommitmentAggregation.test.ts`
  */
 function countOccurrences(haystack: string, needle: string): number {

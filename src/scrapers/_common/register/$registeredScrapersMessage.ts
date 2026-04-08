@@ -155,6 +155,4 @@ export function $registeredScrapersMessage(availableScrapers: ReadonlyArray<Scra
     );
 }
 
-/**
- * TODO: [®] DRY Register logic
- */
+// TODO: [®] DRY Register logic

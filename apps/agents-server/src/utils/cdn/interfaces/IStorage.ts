@@ -1,4 +1,7 @@
 // Note: This is a simplified version of the IStorage interface based on the usage in the project.
+/**
+ * Type describing storage.
+ */
 export type IStorage<T> = {
     readonly length: Promise<number>;
     clear(): Promise<void>;
@@ -8,7 +11,4 @@ export type IStorage<T> = {
     setItem(key: string, value: T): Promise<void>;
 };
 
-
-/**
- * TODO: [☹️] Unite with `PromptbookStorage` and move to `/src/...`
- */
+// TODO: [☹️] Unite with `PromptbookStorage` and move to `/src/...`

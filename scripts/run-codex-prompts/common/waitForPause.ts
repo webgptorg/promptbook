@@ -1,6 +1,9 @@
 import colors from 'colors';
 import * as readline from 'readline';
 
+/**
+ * Constant for pause state.
+ */
 let pauseState: 'RUNNING' | 'PAUSING' | 'PAUSED' = 'RUNNING';
 
 /**

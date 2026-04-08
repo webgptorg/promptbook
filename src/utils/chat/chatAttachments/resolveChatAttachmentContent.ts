@@ -68,6 +68,7 @@ function createAttachmentContentFailure(
  * @param {number} maxInlineCharacters - Maximum number of characters to inline.
  * @param {ResolveChatAttachmentOptions} options - Options for resolution.
  * @returns {Promise<ResolvedChatAttachmentContent>} The resolved content.
+ *
  * @private function of resolveChatAttachmentContents
  */
 export async function resolveChatAttachmentContent(

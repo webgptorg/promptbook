@@ -36,6 +36,4 @@ export function isValidPipelineUrl(url: really_unknown): url is string_pipeline_
     return true;
 }
 
-/**
- * TODO: [🐠] Maybe more info why the URL is invalid
- */
+// TODO: [🐠] Maybe more info why the URL is invalid

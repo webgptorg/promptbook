@@ -6,6 +6,4 @@
 export const DEFAULT_CHAT_FAIL_MESSAGE =
     'Sorry, I encountered an error processing your message. Please, try again later.';
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

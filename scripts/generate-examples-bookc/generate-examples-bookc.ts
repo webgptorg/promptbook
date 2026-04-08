@@ -40,14 +40,23 @@ if (process.cwd() !== join(__dirname, '../..')) {
     process.exit(1);
 }
 
+/**
+ * Constant for promptbook examples dir.
+ */
 const PROMPTBOOK_EXAMPLES_DIR = join(process.cwd(), 'examples/pipelines');
 
+/**
+ * Constant for program.
+ */
 const program = new commander.Command();
 program.option('--commit', `Autocommit changes`, false);
 program.option('--reload', `Use LLM models even if cached `, false);
 program.option('--verbose', `Is verbose`, false);
 
 program.parse(process.argv);
+/**
+ * Constant for { commit: is commited, reload cache: is cache reloaded, verbose: is verbose }.
+ */
 const { commit: isCommited, reloadCache: isCacheReloaded, verbose: isVerbose } = program.opts();
 
 generateExampleBookc({ isCommited, isCacheReloaded, isVerbose })
@@ -60,6 +69,9 @@ generateExampleBookc({ isCommited, isCacheReloaded, isVerbose })
         process.exit(0);
     });
 
+/**
+ * Generates example bookc.
+ */
 async function generateExampleBookc({
     isCommited,
     isCacheReloaded,
@@ -138,8 +150,6 @@ async function generateExampleBookc({
     console.info(`[ Done 📖  Convert examples .book.md -> .bookc]`);
 }
 
-/** Note: [⚫] Code for repository script [generate-examples-bookc](scripts/generate-examples-bookc/generate-examples-bookc.ts) should never be published in any package */
-/**
- * Note: [🍠] Example pipelines demonstrate usage patterns to end users, while the pipelines in the books directory provide core functionality for the Promptbook engine itself
- * TODO: [🍥] When using current time in `preparations` it changes all .bookc files each time so until some more elegant solution omit the time from prepared pipeline
- */
+// Note: [⚫] Code for repository script [generate-examples-bookc](scripts/generate-examples-bookc/generate-examples-bookc.ts) should never be published in any package
+// Note: [🍠] Example pipelines demonstrate usage patterns to end users, while the pipelines in the books directory provide core functionality for the Promptbook engine itself
+// TODO: [🍥] When using current time in `preparations` it changes all .bookc files each time so until some more elegant solution omit the time from prepared pipeline

@@ -64,8 +64,6 @@ export type ScraperSourceHandler = {
     asText(): Promisable<string>;
 };
 
-/**
- * TODO: [🧠] Maybe split `ScraperSourceHandler` into `ScraperWebsiteSourceHandler` + `ScraperFileSourceHandler`
- * TODO: [🥽] Add ` asBlob(): Promisable<Blob>;` or asFile
- * TODO: [🔼] Export via types
- */
+// TODO: [🧠] Maybe split `ScraperSourceHandler` into `ScraperWebsiteSourceHandler` + `ScraperFileSourceHandler`
+// TODO: [🥽] Add ` asBlob(): Promisable<Blob>;` or asFile
+// TODO: [🔼] Export via types

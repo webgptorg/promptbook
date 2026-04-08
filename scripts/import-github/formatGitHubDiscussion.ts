@@ -1,6 +1,9 @@
 import { spaceTrim } from 'spacetrim';
 import { GENERATOR_WARNING } from '../../src/config';
 
+/**
+ * Type describing git hub discussion for formatting.
+ */
 type GitHubDiscussionForFormatting = {
     number: number;
     title: string;
@@ -22,6 +25,7 @@ type GitHubDiscussionForFormatting = {
 
 /**
  * Formats a GitHub discussion as Markdown with metadata and optional comments.
+ *
  * @private function of ImportGitHub
  */
 export function formatGitHubDiscussion(discussion: GitHubDiscussionForFormatting): string {

@@ -19,6 +19,7 @@ export type OpenAiCompatibleExecutionToolsOptions =
  * Options for directly used `OpenAiCompatibleExecutionTools`
  *
  * This extends OpenAI's `ClientOptions` with are directly passed to the OpenAI client.
+ *
  * @public exported from `@promptbook/openai`
  */
 export type OpenAiCompatibleExecutionToolsNonProxiedOptions = CommonToolsOptions &
@@ -47,6 +48,7 @@ export type OpenAiCompatibleExecutionToolsNonProxiedOptions = CommonToolsOptions
  * Options for proxied `OpenAiCompatibleExecutionTools`
  *
  * This extends OpenAI's `ClientOptions` with are directly passed to the OpenAI client.
+ *
  * @public exported from `@promptbook/openai`
  */
 export type OpenAiCompatibleExecutionToolsProxiedOptions = CommonToolsOptions &

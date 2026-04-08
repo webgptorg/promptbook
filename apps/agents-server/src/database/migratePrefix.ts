@@ -68,6 +68,7 @@ type EnsureMigrationsTableSchemaOptions = {
  *
  * @param options Prefix migration options.
  * @returns Number of newly applied migrations.
+ *
  * @private function of runDatabaseMigrations
  */
 export async function applyPendingMigrationsForPrefix(options: MigratePrefixOptions): Promise<number> {
@@ -116,6 +117,7 @@ export async function applyPendingMigrationsForPrefix(options: MigratePrefixOpti
  *
  * @param options Prefix migration options.
  * @returns Number of newly applied migrations.
+ *
  * @private function of runDatabaseMigrations
  */
 export async function migratePrefix(options: MigratePrefixOptions): Promise<number> {
@@ -136,6 +138,7 @@ export async function migratePrefix(options: MigratePrefixOptions): Promise<numb
  * This keeps the `appliedBy` column present even on old installations.
  *
  * @param options Migration table schema options.
+ *
  * @private function of runDatabaseMigrations
  */
 async function ensureMigrationsTableSchema(options: EnsureMigrationsTableSchemaOptions): Promise<void> {
@@ -183,6 +186,7 @@ async function ensureMigrationsTableSchema(options: EnsureMigrationsTableSchemaO
  * @param client Connected PostgreSQL client.
  * @param logger Logger used for rollback warnings.
  * @param prefix Prefix currently being migrated.
+ *
  * @private function of runDatabaseMigrations
  */
 async function safeRollbackTransaction(client: Client, logger: DatabaseMigrationLogger, prefix: string): Promise<void> {
@@ -199,6 +203,7 @@ async function safeRollbackTransaction(client: Client, logger: DatabaseMigration
  *
  * @param identifier Raw identifier.
  * @returns Quoted identifier.
+ *
  * @private function of runDatabaseMigrations
  */
 function quoteIdentifier(identifier: string): string {

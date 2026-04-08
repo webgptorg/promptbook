@@ -1,6 +1,9 @@
 import type { string_persona_description } from '../../types/typeAliases';
 import { $randomItem } from './$randomItem';
 
+/**
+ * Map of rules.
+ */
 const RULES: Record<string, ReadonlyArray<string>> = {
     ENGLISH: [
         'Always prioritize user privacy and data security.',
@@ -25,6 +28,7 @@ const RULES: Record<string, ReadonlyArray<string>> = {
  *
  * @param language - The language code (e.g. 'ENGLISH', 'CZECH')
  * @returns A string describing the agent's rule
+ *
  * @private internal helper function
  */
 export function $randomAgentRule(language = 'ENGLISH'): string_persona_description {
@@ -33,6 +37,4 @@ export function $randomAgentRule(language = 'ENGLISH'): string_persona_descripti
     return $randomItem(...rules);
 }
 
-/**
- * TODO: [🤶] Maybe export through `@promptbook/utils` or `@promptbook/random` package
- */
+// TODO: [🤶] Maybe export through `@promptbook/utils` or `@promptbook/random` package

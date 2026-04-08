@@ -5,6 +5,7 @@ import { defaultServerSearchProviderConfig } from './defaultServerSearchProvider
  *
  * @param serverUrl Raw URL.
  * @returns Normalized origin or empty string for invalid URLs.
+ *
  * @private function of createDefaultServerSearchProviders
  */
 export function normalizeServerUrl(serverUrl: string): string {

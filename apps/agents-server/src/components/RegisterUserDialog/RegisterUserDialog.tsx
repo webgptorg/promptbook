@@ -4,11 +4,17 @@ import { X } from 'lucide-react';
 import { Dialog } from '../Portal/Dialog';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 
+/**
+ * Props for register user dialog.
+ */
 type RegisterUserDialogProps = {
     onClose: () => void;
     adminEmail: string;
 };
 
+/**
+ * Handles register user dialog.
+ */
 export function RegisterUserDialog(props: RegisterUserDialogProps) {
     const { onClose, adminEmail } = props;
     const { t } = useServerLanguage();

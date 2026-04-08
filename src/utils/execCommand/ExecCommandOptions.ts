@@ -1,5 +1,7 @@
 /**
- * @deprecated Use sth from type-fest or move this to type helpers
+ * Use sth from type-fest or move this to type helpers.
+ *
+ * @deprecated
  */
 type RequiredAndOptional<TBase, TRequired extends keyof TBase, TOptional extends keyof TBase> = Pick<TBase, TRequired> &
     Partial<Pick<TBase, TOptional>>;
@@ -63,6 +65,4 @@ export type ExecCommandOptionsAdvanced = {
     readonly env?: Record<string, string>;
 };
 
-/**
- * TODO: [⏳] Make DEFAULT_TIMEOUT_MS as global constant
- */
+// TODO: [⏳] Make DEFAULT_TIMEOUT_MS as global constant

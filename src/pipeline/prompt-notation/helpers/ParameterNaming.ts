@@ -18,6 +18,7 @@ type ParameterNameStrategy = {
  * Builds numeric parameter names (1, 2, ...).
  *
  * @param index Zero-based parameter index.
+ *
  * @private function of ParameterNaming
  */
 function buildNumericParameterName(index: number): string {
@@ -28,6 +29,7 @@ function buildNumericParameterName(index: number): string {
  * Builds alphabetic parameter names (a, b, ..., aa).
  *
  * @param index Zero-based parameter index.
+ *
  * @private function of ParameterNaming
  */
 function buildAlphabeticParameterName(index: number): string {
@@ -47,6 +49,7 @@ function buildAlphabeticParameterName(index: number): string {
  * Converts a positive integer into a Roman numeral string.
  *
  * @param value Positive integer value.
+ *
  * @private function of ParameterNaming
  */
 function toRomanNumeral(value: number): string {
@@ -83,6 +86,7 @@ function toRomanNumeral(value: number): string {
  * Builds Roman numeral parameter names (I, II, ...).
  *
  * @param index Zero-based parameter index.
+ *
  * @private function of ParameterNaming
  */
 function buildRomanParameterName(index: number): string {
@@ -94,6 +98,7 @@ function buildRomanParameterName(index: number): string {
  *
  * @param prefix Prefix string.
  * @param builder Base builder function.
+ *
  * @private function of ParameterNaming
  */
 function buildPrefixedParameterName(prefix: string, builder: (index: number) => string): (index: number) => string {
@@ -117,6 +122,7 @@ const PARAMETER_NAME_STRATEGIES: ParameterNameStrategy[] = [
  * Collects bracketed tokens from parameter values to avoid placeholder collisions.
  *
  * @param values Parameter values to scan.
+ *
  * @private function of ParameterNaming
  */
 function collectBracketedParameterTokens(values: string[]): Set<string> {
@@ -142,6 +148,7 @@ function collectBracketedParameterTokens(values: string[]): Set<string> {
  * Builds placeholder names while avoiding collisions with parameter content.
  *
  * @param values Parameter values to scan for conflicting tokens.
+ *
  * @private function of ParameterNaming
  */
 function buildParameterNames(values: string[]): string[] {

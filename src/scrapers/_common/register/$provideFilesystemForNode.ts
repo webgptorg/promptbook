@@ -33,5 +33,5 @@ export function $provideFilesystemForNode(options?: Pick<PrepareAndScrapeOptions
     };
 }
 
-/** Note: [🟢] Code for Node scraper registration helper [$provideFilesystemForNode](src/scrapers/_common/register/$provideFilesystemForNode.ts) should never be published into packages that could be imported into browser environment */
-/** TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming */
+// Note: [🟢] Code for Node scraper registration helper [$provideFilesystemForNode](src/scrapers/_common/register/$provideFilesystemForNode.ts) should never be published into packages that could be imported into browser environment
+// TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming

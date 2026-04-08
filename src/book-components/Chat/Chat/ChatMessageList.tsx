@@ -182,6 +182,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
  *
  * @param message - Rendered chat message.
  * @returns Stable React key for the message row.
+ *
  * @private component of `<Chat/>`
  */
 function resolveRenderedMessageKey(message: ChatMessage): id {

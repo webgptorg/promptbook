@@ -2,13 +2,22 @@
 
 import { createContext, ReactNode, useContext, useState } from 'react';
 
+/**
+ * Type describing tabs context type.
+ */
 type TabsContextType = {
     activeTab: string;
     setActiveTab: (value: string) => void;
 };
 
+/**
+ * Constant for tabs context.
+ */
 const TabsContext = createContext<TabsContextType | undefined>(undefined);
 
+/**
+ * Uses tabs context.
+ */
 function useTabsContext() {
     const context = useContext(TabsContext);
     if (!context) {
@@ -17,12 +26,18 @@ function useTabsContext() {
     return context;
 }
 
+/**
+ * Props for tabs.
+ */
 type TabsProps = {
     defaultValue: string;
     children: ReactNode;
     className?: string;
 };
 
+/**
+ * Handles tabs.
+ */
 export function Tabs({ defaultValue, children, className = '' }: TabsProps) {
     const [activeTab, setActiveTab] = useState(defaultValue);
 
@@ -33,11 +48,17 @@ export function Tabs({ defaultValue, children, className = '' }: TabsProps) {
     );
 }
 
+/**
+ * Props for tabs list.
+ */
 type TabsListProps = {
     children: ReactNode;
     className?: string;
 };
 
+/**
+ * Handles tabs list.
+ */
 export function TabsList({ children, className = '' }: TabsListProps) {
     return (
         <div
@@ -49,12 +70,18 @@ export function TabsList({ children, className = '' }: TabsListProps) {
     );
 }
 
+/**
+ * Props for tabs trigger.
+ */
 type TabsTriggerProps = {
     value: string;
     children: ReactNode;
     className?: string;
 };
 
+/**
+ * Handles tabs trigger.
+ */
 export function TabsTrigger({ value, children, className = '' }: TabsTriggerProps) {
     const { activeTab, setActiveTab } = useTabsContext();
     const isActive = activeTab === value;
@@ -73,12 +100,18 @@ export function TabsTrigger({ value, children, className = '' }: TabsTriggerProp
     );
 }
 
+/**
+ * Props for tabs content.
+ */
 type TabsContentProps = {
     value: string;
     children: ReactNode;
     className?: string;
 };
 
+/**
+ * Handles tabs content.
+ */
 export function TabsContent({ value, children, className = '' }: TabsContentProps) {
     const { activeTab } = useTabsContext();
 

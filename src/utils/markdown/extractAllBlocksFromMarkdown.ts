@@ -35,6 +35,7 @@ export type MarkdownCodeBlock = {
  * @param markdown any valid markdown
  * @returns code blocks with language and content
  * @throws {ParseError} if block is not closed properly
+ *
  * @public exported from `@promptbook/markdown-utils`
  */
 export function extractAllBlocksFromMarkdown(markdown: string_markdown): ReadonlyArray<MarkdownCodeBlock> {
@@ -102,6 +103,4 @@ export function extractAllBlocksFromMarkdown(markdown: string_markdown): Readonl
     return codeBlocks;
 }
 
-/**
- * TODO: Maybe name for `blockNotation` instead of  '```' and '>'
- */
+// TODO: Maybe name for `blockNotation` instead of  '```' and '>'

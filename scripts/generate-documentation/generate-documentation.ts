@@ -35,11 +35,17 @@ if (process.cwd() !== join(__dirname, '../..')) {
     process.exit(1);
 }
 
+/**
+ * Constant for program.
+ */
 const program = new commander.Command();
 program.option('--commit', `Autocommit changes`, false);
 program.option('--skip-bundler', `Skip the build process of bundler`, false);
 program.parse(process.argv);
 
+/**
+ * Constant for { commit: is commited }.
+ */
 const { commit: isCommited } = program.opts();
 
 generateDocumentation({ isCommited })
@@ -53,6 +59,9 @@ generateDocumentation({ isCommited })
         process.exit(0);
     });
 
+/**
+ * Generates documentation.
+ */
 async function generateDocumentation({ isCommited }: { isCommited: boolean }) {
     console.info(`📚  Generating documentation`);
 
@@ -137,6 +146,9 @@ async function generateDocumentation({ isCommited }: { isCommited: boolean }) {
     }
 }
 
+/**
+ * Type describing git hub discussion.
+ */
 type GitHubDiscussion = {
     id: string;
     title: string;
@@ -148,6 +160,9 @@ type GitHubDiscussion = {
     updatedAt: string;
 };
 
+/**
+ * Fetches git hub discussions.
+ */
 async function fetchGitHubDiscussions(): Promise<GitHubDiscussion[]> {
     // TODO: [💆] Paginate through all discussions (Maybe @JorgeSquared)
     const query = `
@@ -197,4 +212,4 @@ async function fetchGitHubDiscussions(): Promise<GitHubDiscussion[]> {
     return data.data.repository.discussions.nodes;
 }
 
-/** Note: [⚫] Code for repository script [generate-documentation](scripts/generate-documentation/generate-documentation.ts) should never be published in any package */
+// Note: [⚫] Code for repository script [generate-documentation](scripts/generate-documentation/generate-documentation.ts) should never be published in any package

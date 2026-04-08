@@ -24,6 +24,4 @@ export function generatePlaceholderAgentProfileImageUrl(
     return `${agentsServerUrl.href}agents/${agentIdOrName}/images/default-avatar.png`;
 }
 
-/**
- * TODO: [🤹] Figure out best placeholder image generator https://i.pravatar.cc/1000?u=568
- */
+// TODO: [🤹] Figure out best placeholder image generator https://i.pravatar.cc/1000?u=568

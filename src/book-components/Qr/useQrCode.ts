@@ -3,6 +3,9 @@ import QRCode from 'qrcode';
 import { useEffect, useRef } from 'react';
 import type { string_url_image } from '../../types/typeAliases';
 
+/**
+ * Options for qr code.
+ */
 export type QrCodeOptions = QRCodeRenderersOptions & {
     value: string | number;
 
@@ -10,7 +13,7 @@ export type QrCodeOptions = QRCodeRenderersOptions & {
 };
 
 /**
- *
+ * Uses qr code.
  *
  * @private utility of QR code components
  */

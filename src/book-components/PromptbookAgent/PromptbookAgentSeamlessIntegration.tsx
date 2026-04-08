@@ -9,7 +9,9 @@ import { PromptbookAgentIntegrationProps } from './PromptbookAgentIntegration';
 import styles from './PromptbookAgentSeamlessIntegration.module.css';
 
 /**
- * @private props of PromptbookAgentSeamlessIntegration
+ * Props of PromptbookAgentSeamlessIntegration.
+ *
+ * @private
  */
 type PromptbookAgentSeamlessIntegrationProps = Omit<PromptbookAgentIntegrationProps, 'formfactor'> & {
     /**
@@ -314,7 +316,5 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
     );
 }
 
-/**
- * TODO: !!! Load the full branding
- * TODO: !!! <promptbook-agent> element
- */
+// TODO: !!! Load the full branding
+// TODO: !!! <promptbook-agent> element

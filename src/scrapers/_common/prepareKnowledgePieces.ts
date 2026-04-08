@@ -16,6 +16,7 @@ import { makeKnowledgeSourceHandler } from './utils/makeKnowledgeSourceHandler';
  * Prepares the knowledge pieces
  *
  * @see https://github.com/webgptorg/promptbook/discussions/41
+ *
  * @public exported from `@promptbook/core`
  */
 export async function prepareKnowledgePieces(

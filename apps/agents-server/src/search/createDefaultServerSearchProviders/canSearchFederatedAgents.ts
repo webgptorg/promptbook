@@ -6,6 +6,7 @@ import { $provideSupabaseForServer } from '../../database/$provideSupabaseForSer
  *
  * @param isAuthenticated Whether requester is authenticated.
  * @returns True when federated search is allowed.
+ *
  * @private function of createDefaultServerSearchProviders
  */
 export async function canSearchFederatedAgents(isAuthenticated: boolean): Promise<boolean> {

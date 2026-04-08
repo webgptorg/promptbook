@@ -161,9 +161,7 @@ export type { number_bytes, number_gigabytes, number_kilobytes, number_megabytes
 
 export type { number_usd } from './number_usd';
 
-/**
- * TODO: [main] !!3 Change "For example" to @example
- * TODO: Change to branded types
- * TODO: Delete type aliases that are not exported or used internally
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// TODO: [main] !!3 Change "For example" to @example
+// TODO: Change to branded types
+// TODO: Delete type aliases that are not exported or used internally
+// Note: [💞] Ignore a discrepancy between file name and entity name

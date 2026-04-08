@@ -241,7 +241,5 @@ export async function importAgent(
     }
 }
 
-/**
- * TODO: [🐱‍🚀][⏩] This function should be in `/src` and exported from `@promptbook/core`
- * TODO: [🐱‍🚀][🏠] Implement local requesting agents by name and permanent ID
- */
+// TODO: [🐱‍🚀][⏩] This function should be in `/src` and exported from `@promptbook/core`
+// TODO: [🐱‍🚀][🏠] Implement local requesting agents by name and permanent ID

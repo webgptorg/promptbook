@@ -7,6 +7,7 @@ import { DIACRITIC_VARIANTS_LETTERS } from './DIACRITIC_VARIANTS_LETTERS';
  *
  * @param input The string containing diacritics to be normalized.
  * @returns The string with diacritics removed or normalized.
+ *
  * @public exported from `@promptbook/utils`
  */
 export function removeDiacritics(input: string): string {
@@ -16,6 +17,4 @@ export function removeDiacritics(input: string): string {
     });
 }
 
-/**
- * TODO: [Ж] Variant for cyrillic (and in general non-latin) letters
- */
+// TODO: [Ж] Variant for cyrillic (and in general non-latin) letters

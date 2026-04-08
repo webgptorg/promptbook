@@ -1,6 +1,9 @@
 import type { string_color } from '../../../types/typeAliases';
 import type { ColorChannelSet } from './ColorChannelSet';
 
+/**
+ * Pattern matching hsl.
+ */
 const HSL_REGEX = /^hsl\(\s*([0-9.]+)\s*,\s*([0-9.]+)%\s*,\s*([0-9.]+)%\s*\)$/;
 
 /**
@@ -31,6 +34,9 @@ export function parseHslColor(hsl: string_color): ColorChannelSet {
     };
 }
 
+/**
+ * Handles convert hsl to Rgb.
+ */
 function convertHslToRgb(h: number, s: number, l: number) {
     const c = (1 - Math.abs(2 * l - 1)) * s;
     const x = c * (1 - Math.abs(((h / 60) % 2) - 1));

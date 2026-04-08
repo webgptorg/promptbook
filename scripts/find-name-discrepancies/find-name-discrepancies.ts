@@ -24,6 +24,9 @@ if (process.cwd() !== join(__dirname, '../..')) {
     process.exit(1);
 }
 
+/**
+ * Constant for program.
+ */
 const program = new commander.Command();
 program.parse(process.argv);
 
@@ -42,6 +45,9 @@ findNameDiscrepancies()
         process.exit(0);
     });
 
+/**
+ * Finds name discrepancies.
+ */
 async function findNameDiscrepancies() {
     console.info(`🔎🩹 Find name discrepancies`);
 
@@ -140,4 +146,4 @@ async function findNameDiscrepancies() {
     }
 }
 
-/** Note: [⚫] Code for repository script [find-name-discrepancies](scripts/find-name-discrepancies/find-name-discrepancies.ts) should never be published in any package */
+// Note: [⚫] Code for repository script [find-name-discrepancies](scripts/find-name-discrepancies/find-name-discrepancies.ts) should never be published in any package

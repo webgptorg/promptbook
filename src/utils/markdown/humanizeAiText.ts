@@ -25,6 +25,4 @@ export function humanizeAiText(aiText: string_markdown): string_markdown {
     return cleanedText;
 }
 
-/**
- * TODO: [🧠] Maybe this should be exported from `@promptbook/utils` not `@promptbook/markdown-utils`
- */
+// TODO: [🧠] Maybe this should be exported from `@promptbook/utils` not `@promptbook/markdown-utils`

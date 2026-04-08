@@ -22,6 +22,9 @@ playground()
         process.exit(0);
     });
 
+/**
+ * Handles playground.
+ */
 async function playground() {
     console.info(`🧸  Anthropic Claude Playground`);
 
@@ -91,8 +94,6 @@ async function playground() {
     //========================================/
 }
 
-/** Note: [⚫] Code for playground [anthropic-claude playground](src/llm-providers/anthropic-claude/playground/playground.ts) should never be published in any package */
-/**
- * TODO: [main] !!3 Playground with WebGPT / Promptbook.studio anonymous server
- * TODO: [main] !!3 Test here that `systemMessage`, `temperature` and `seed` are working correctly
- */
+// Note: [⚫] Code for playground [anthropic-claude playground](src/llm-providers/anthropic-claude/playground/playground.ts) should never be published in any package
+// TODO: [main] !!3 Playground with WebGPT / Promptbook.studio anonymous server
+// TODO: [main] !!3 Test here that `systemMessage`, `temperature` and `seed` are working correctly

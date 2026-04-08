@@ -24,6 +24,9 @@ playground()
         process.exit(0);
     });
 
+/**
+ * Handles playground.
+ */
 async function playground() {
     console.info(`🧸  Vercel Playground`);
 
@@ -126,5 +129,5 @@ async function playground() {
     //========================================/
 }
 
-/** Note: [⚫] Code for playground [vercel playground](src/llm-providers/vercel/playground/playground.ts) should never be published in any package */
-/** TODO: [main] !!3 Test here that `systemMessage`, `temperature` and `seed` are working correctly */
+// Note: [⚫] Code for playground [vercel playground](src/llm-providers/vercel/playground/playground.ts) should never be published in any package
+// TODO: [main] !!3 Test here that `systemMessage`, `temperature` and `seed` are working correctly

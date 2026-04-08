@@ -6,6 +6,7 @@ import { resolveToolCallState } from '../utils/resolveToolCallState';
  *
  * @param toolCall - Tool call currently rendered in the modal.
  * @returns Friendly progress message for the current tool state.
+ *
  * @private function of ChatToolCallModal
  */
 export function resolveToolCallProgressMessage(toolCall: NonNullable<ChatMessage['toolCalls']>[number]): string {

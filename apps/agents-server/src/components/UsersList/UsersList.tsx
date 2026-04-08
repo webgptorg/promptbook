@@ -7,6 +7,9 @@ import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 import { SecretInput } from '@/src/components/SecretInput/SecretInput';
 import { useUsersAdmin } from './useUsersAdmin';
 
+/**
+ * Props for users list.
+ */
 type UsersListProps = {
     /**
      * Whether the UI should allow creating new users.
@@ -17,6 +20,9 @@ type UsersListProps = {
     allowCreate?: boolean;
 };
 
+/**
+ * Handles users list.
+ */
 export function UsersList({ allowCreate = true }: UsersListProps) {
     const { users, loading, error, createUser, deleteUser, toggleAdmin } = useUsersAdmin();
     const { t } = useServerLanguage();

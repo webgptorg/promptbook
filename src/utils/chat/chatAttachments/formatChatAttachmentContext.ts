@@ -28,6 +28,7 @@ function formatChatAttachmentLine(attachment: ChatAttachment): string {
  *
  * @param {ReadonlyArray<ChatAttachment>} attachments - The attachments to format.
  * @returns {string} The formatted context.
+ *
  * @public exported from `@promptbook/core`
  */
 export function formatChatAttachmentContext(attachments: ReadonlyArray<ChatAttachment>): string {

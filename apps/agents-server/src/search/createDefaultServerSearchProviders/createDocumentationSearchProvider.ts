@@ -8,6 +8,7 @@ import { sortAndLimitProviderResults } from './sortAndLimitProviderResults';
  * Creates provider for commitment documentation pages.
  *
  * @returns Configured documentation search provider.
+ *
  * @private function of createDefaultServerSearchProviders
  */
 export function createDocumentationSearchProvider(): ServerSearchProvider {

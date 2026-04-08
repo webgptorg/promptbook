@@ -33,6 +33,4 @@ describe('how `orderJson` works', () => {
         ).toBe(`{"d":4,"a":1,"b":2,"c":3}`));
 });
 
-/**
- * TODO: [🧠] Is there a way how to test order of value better way than via `JSON.stringify`
- */
+// TODO: [🧠] Is there a way how to test order of value better way than via `JSON.stringify`

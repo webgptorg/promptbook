@@ -1,6 +1,9 @@
 import { spaceTrim } from '@promptbook-local/utils';
 import type { ChatMessage } from '../../../../../../src/book-components/Chat/types/ChatMessage';
 
+/**
+ * Map of chat buttons scenario.
+ */
 export const chatButtonsScenario = {
     name: 'Chat with Buttons',
     messages: [
@@ -30,6 +33,4 @@ export const chatButtonsScenario = {
     ] satisfies Array<ChatMessage>,
 };
 
-/**
- * TODO: !!! Chat buttons colors
- */
+// TODO: !!! Chat buttons colors

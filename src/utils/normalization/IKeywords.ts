@@ -18,6 +18,4 @@ export type string_keyword = string;
  */
 export type Keywords = Set<string_keyword>;
 
-/**
- * TODO: [🌮] Keywords with weight
- */
+// TODO: [🌮] Keywords with weight

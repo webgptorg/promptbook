@@ -39,6 +39,4 @@ describe('validatePipeline with parse errors', () => {
     }
 });
 
-/**
- * TODO: [🚏] DRY
- */
+// TODO: [🚏] DRY

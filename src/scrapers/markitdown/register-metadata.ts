@@ -39,6 +39,4 @@ export const markitdownScraperMetadata = $deepFreeze({
 export const _MarkitdownScraperMetadataRegistration: Registration =
     $scrapersMetadataRegister.register(markitdownScraperMetadata);
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

@@ -56,6 +56,7 @@ export const chatCssClassDescriptions: Record<keyof typeof chatCssClassNames, st
  *
  * @param suffix - Legacy chat class suffix.
  * @returns Legacy global class name prefixed with `chat-`.
+ *
  * @private Internal helper for backward-compatible chat selectors.
  */
 export function getChatCssClassName(suffix: string): string {

@@ -63,11 +63,20 @@ type AgentReferenceMatch = {
  * @private function of BookEditorMonaco
  */
 const AGENT_URL_REFERENCE_REGEX = new RegExp(`^${AGENT_REFERENCE_URL_PATTERN}$`, 'i');
+/**
+ * Pattern matching agent reference token.
+ */
 const AGENT_REFERENCE_TOKEN_REGEX = new RegExp(
     `${AGENT_REFERENCE_BRACED_PATTERN}|${AGENT_REFERENCE_AT_PATTERN}|${AGENT_REFERENCE_URL_PATTERN}`,
     'g',
 );
+/**
+ * Pattern matching agent reference braced.
+ */
 const AGENT_REFERENCE_BRACED_REGEX = /^\{([\s\S]+)\}$/;
+/**
+ * Constant for agent reference highlight regexes.
+ */
 const AGENT_REFERENCE_HIGHLIGHT_REGEXES = [
     new RegExp(AGENT_REFERENCE_BRACED_PATTERN),
     new RegExp(AGENT_REFERENCE_URL_PATTERN),
@@ -79,6 +88,7 @@ const AGENT_REFERENCE_HIGHLIGHT_REGEXES = [
  *
  * @param token - Matched reference token.
  * @returns Normalized reference payload.
+ *
  * @private function of BookEditorMonaco
  */
 const extractAgentReferenceValue = (token: string): string => {
@@ -99,6 +109,7 @@ const extractAgentReferenceValue = (token: string): string => {
  *
  * @param referenceValue - Token payload extracted from compact syntax.
  * @returns Absolute/local agent URL or null for invalid values.
+ *
  * @private function of BookEditorMonaco
  */
 const resolveAgentReferenceToUrl = (referenceValue: string): string | null => {
@@ -126,6 +137,7 @@ const resolveAgentReferenceToUrl = (referenceValue: string): string | null => {
  *
  * @param content - Full source currently open in BookEditor.
  * @returns Matched references with source offsets.
+ *
  * @private function of BookEditorMonaco
  */
 const extractAgentReferenceMatches = (content: string): Array<AgentReferenceMatch> => {
@@ -200,6 +212,7 @@ const extractAgentReferenceMatches = (content: string): Array<AgentReferenceMatc
  * @param content - Full source text.
  * @param sourceLines - Source split by newlines.
  * @returns Offsets aligned with `sourceLines`.
+ *
  * @private function of BookEditorMonaco
  */
 function collectLineStartOffsets(content: string, sourceLines: ReadonlyArray<string>): Array<number> {
@@ -229,6 +242,7 @@ function collectLineStartOffsets(content: string, sourceLines: ReadonlyArray<str
  * @param content - Full source text.
  * @param sourceLines - Source split by newlines.
  * @returns Line ranges that should be scanned for references.
+ *
  * @private function of BookEditorMonaco
  */
 function collectAgentReferenceCommitmentLineRanges(

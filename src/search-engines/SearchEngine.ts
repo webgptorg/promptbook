@@ -2,6 +2,9 @@ import type { Promisable } from 'type-fest';
 import type { string_markdown, string_markdown_text, string_title } from '../types/typeAliases';
 import type { SearchResult } from './SearchResult';
 
+/**
+ * Type describing search engine.
+ */
 export type SearchEngine = {
     readonly title: string_title & string_markdown_text;
     readonly description?: string_markdown;

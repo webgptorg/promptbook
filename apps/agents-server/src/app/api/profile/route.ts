@@ -3,8 +3,14 @@ import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
 
+/**
+ * Length of max profile image URL.
+ */
 const MAX_PROFILE_IMAGE_URL_LENGTH = 2048;
 
+/**
+ * Normalizes profile image Url.
+ */
 function normalizeProfileImageUrl(value: unknown): string | null {
     if (typeof value !== 'string') {
         return null;
@@ -28,6 +34,9 @@ function normalizeProfileImageUrl(value: unknown): string | null {
     return trimmed;
 }
 
+/**
+ * Handles get.
+ */
 export async function GET() {
     const currentUser = await getCurrentUser();
     if (!currentUser) {
@@ -41,6 +50,9 @@ export async function GET() {
     });
 }
 
+/**
+ * Handles patch.
+ */
 export async function PATCH(request: Request) {
     const currentUser = await getCurrentUser();
     if (!currentUser) {

@@ -2,6 +2,9 @@ import { SendgridMessageProvider } from './email/sendgrid/SendgridMessageProvide
 import { ZeptomailMessageProvider } from './email/zeptomail/ZeptomailMessageProvider';
 import { MessageProvider } from './interfaces/MessageProvider';
 
+/**
+ * Map of email providers.
+ */
 export const EMAIL_PROVIDERS: Record<string, MessageProvider> = {};
 
 if (process.env.ZEPTOMAIL_API_KEY) {

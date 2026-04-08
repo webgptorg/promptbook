@@ -13,6 +13,4 @@ describe('how `isRootPath` works', () => {
     });
 });
 
-/**
- * TODO: [🍏] Make for MacOS paths
- */
+// TODO: [🍏] Make for MacOS paths

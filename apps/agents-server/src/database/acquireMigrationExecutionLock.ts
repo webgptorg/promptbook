@@ -13,6 +13,7 @@ const DATABASE_MIGRATION_LOCK_KEY = 'promptbook_agents_server_migrations';
  *
  * @param client Connected PostgreSQL client.
  * @param logger Logger used for progress output.
+ *
  * @private function of runDatabaseMigrations
  */
 export async function acquireMigrationExecutionLock(client: Client, logger: DatabaseMigrationLogger): Promise<void> {
@@ -26,6 +27,7 @@ export async function acquireMigrationExecutionLock(client: Client, logger: Data
  *
  * @param client Connected PostgreSQL client.
  * @param logger Logger used for warnings.
+ *
  * @private function of runDatabaseMigrations
  */
 export async function releaseMigrationExecutionLock(client: Client, logger: DatabaseMigrationLogger): Promise<void> {

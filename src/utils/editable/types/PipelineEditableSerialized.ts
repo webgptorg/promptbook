@@ -7,8 +7,8 @@ import type { string_date_iso8601 } from '../../../types/typeAliases';
  *
  * This is simple extension of PipelineJson with additional metadata
  * Note: There are two similar entities:
- *       1) Type (interface) `PipelineEditableSerialized` which represents just data in database
- *       2) Class `PipelineEditable` which implements `PipelineEditableSerialized` and adds error handling and editing capabilities
+ * 1) Type (interface) `PipelineEditableSerialized` which represents just data in database
+ * 2) Class `PipelineEditable` which implements `PipelineEditableSerialized` and adds error handling and editing capabilities
  *
  * @public exported from `@promptbook/editable`
  */

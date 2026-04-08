@@ -1,6 +1,12 @@
 import { getMetadataMap } from '../database/getMetadata';
 
+/**
+ * Constant for default is sounds on key.
+ */
 const DEFAULT_IS_SOUNDS_ON_KEY = 'DEFAULT_IS_SOUNDS_ON';
+/**
+ * Constant for default is vibration on key.
+ */
 const DEFAULT_IS_VIBRATION_ON_KEY = 'DEFAULT_IS_VIBRATION_ON';
 
 /**
@@ -17,6 +23,9 @@ export type ChatPreferenceDefaults = {
     readonly defaultIsVibrationOn: boolean;
 };
 
+/**
+ * Parses boolean metadata.
+ */
 function parseBooleanMetadata(raw: string | null, fallback: boolean): boolean {
     if (raw === 'true') {
         return true;

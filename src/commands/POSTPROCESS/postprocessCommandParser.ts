@@ -11,6 +11,7 @@ import type { PostprocessCommand } from './PostprocessCommand';
  * Parses the postprocess command
  *
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/editable`
  */
 export const postprocessCommandParser: PipelineTaskCommandParser<PostprocessCommand> = {

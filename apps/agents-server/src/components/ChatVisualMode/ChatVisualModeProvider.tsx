@@ -56,6 +56,9 @@ const defaultChatVisualModeContextValue: ChatVisualModeContextValue = {
     },
 };
 
+/**
+ * Constant for chat visual mode context.
+ */
 const ChatVisualModeContext = createContext<ChatVisualModeContextValue>(defaultChatVisualModeContextValue);
 
 /**

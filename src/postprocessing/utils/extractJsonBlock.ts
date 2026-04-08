@@ -18,8 +18,9 @@ import type { really_unknown } from '../../utils/organization/really_unknown';
  * - `extractOneBlockFromMarkdown` extracts exactly one code block with language of the code block
  * - `extractAllBlocksFromMarkdown` extracts all code blocks with language of the code block
  *
- * @public exported from `@promptbook/markdown-utils`
  * @throws {ParseError} if there is no valid JSON block in the markdown
+ *
+ * @public exported from `@promptbook/markdown-utils`
  */
 export function extractJsonBlock(markdown: string_markdown): string_json<really_unknown> {
     if (isValidJsonString(markdown)) {
@@ -44,7 +45,5 @@ export function extractJsonBlock(markdown: string_markdown): string_json<really_
     return jsonBlocks[0]!.content as string_json<really_unknown>;
 }
 
-/**
- * TODO: Add some auto-healing logic + extract YAML, JSON5, TOML, etc.
- * TODO: [🏢] Make this logic part of `JsonFormatParser` or `isValidJsonString`
- */
+// TODO: Add some auto-healing logic + extract YAML, JSON5, TOML, etc.
+// TODO: [🏢] Make this logic part of `JsonFormatParser` or `isValidJsonString`

@@ -111,6 +111,4 @@ export class $EnvStorage<TItem> implements PromptbookStorage<TItem> {
     }
 }
 
-/**
- * TODO: Write file more securely - ensure that there can be no accidental overwriting of existing variables and other content
- */
+// TODO: Write file more securely - ensure that there can be no accidental overwriting of existing variables and other content

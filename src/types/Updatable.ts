@@ -13,6 +13,7 @@ export type Updatable<TValue> = TValue | BehaviorSubject<TValue> | [TValue, (val
  * Restricts an Updatable to a (2) BehaviorSubject variant
  *
  * @see Updatable
+ *
  * @private internal utility <- TODO: [🧠] Maybe export from `@promptbook/types`
  */
 export function asUpdatableSubject<TValue>(value: Updatable<TValue>): BehaviorSubject<TValue> {
@@ -38,6 +39,4 @@ export function asUpdatableSubject<TValue>(value: Updatable<TValue>): BehaviorSu
     }
 }
 
-/**
- * TODO: [🧠] Maybe `BehaviorSubject` is too heavy for this use case, maybe just tuple `[value,setValue]` is enough
- */
+// TODO: [🧠] Maybe `BehaviorSubject` is too heavy for this use case, maybe just tuple `[value,setValue]` is enough

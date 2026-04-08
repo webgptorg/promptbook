@@ -6,6 +6,9 @@ import { useState } from 'react';
 import { spaceTrim } from 'spacetrim';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 
+/**
+ * Props for agent qr code.
+ */
 type AgentQrCodeProps = Pick<AgentBasicInformation, 'agentName' | 'personaDescription' | 'meta'> & {
     agentUrl: string;
     agentEmail: string;
@@ -13,6 +16,9 @@ type AgentQrCodeProps = Pick<AgentBasicInformation, 'agentName' | 'personaDescri
     isJustVcardShown?: boolean;
 };
 
+/**
+ * Handles agent qr code.
+ */
 export function AgentQrCode(props: AgentQrCodeProps) {
     const { agentName, agentUrl, agentEmail, personaDescription, meta, isJustVcardShown } = props;
     const [mode, setMode] = useState<'contact' | 'link'>('contact');

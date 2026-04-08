@@ -4,6 +4,7 @@ import type { CommitmentDefinition } from '../_base/CommitmentDefinition';
 
 /**
  * Gets all available commitment definitions
+ *
  * @returns Array of all commitment definitions
  *
  * @public exported from `@promptbook/core`

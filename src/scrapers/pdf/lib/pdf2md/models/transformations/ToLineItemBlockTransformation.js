@@ -4,8 +4,17 @@
 import ParseResult from '../../ParseResult'
 */
 
+/**
+ * Constant for transformation.
+ */
 const Transformation = require('./Transformation');
+/**
+ * Constant for line item block.
+ */
 const LineItemBlock = require('../LineItemBlock');
+/**
+ * Constant for { removed annotation }.
+ */
 const { REMOVED_ANNOTATION } = require('../Annotation');
 
 // Abstract class for transformations producing LineItemBlock(s) to be shown in the LineItemBlockPageView

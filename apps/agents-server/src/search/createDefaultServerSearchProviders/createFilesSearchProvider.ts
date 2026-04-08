@@ -21,6 +21,7 @@ type FileSearchRow = Pick<
  * Creates provider for uploaded files (admin-only).
  *
  * @returns Configured files search provider.
+ *
  * @private function of createDefaultServerSearchProviders
  */
 export function createFilesSearchProvider(): ServerSearchProvider {

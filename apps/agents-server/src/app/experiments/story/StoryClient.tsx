@@ -16,6 +16,9 @@ import {
     type StoryMode,
 } from './storyUtils';
 
+/**
+ * Constant for story export formats.
+ */
 const STORY_EXPORT_FORMATS = [
     { format: 'txt', label: 'Plain text (.txt)' },
     { format: 'md', label: 'Markdown (.md)' },

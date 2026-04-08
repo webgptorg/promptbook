@@ -13,6 +13,9 @@ import { QrCodeModal } from './QrCodeModal';
 import { useAgentBackground } from './useAgentBackground';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 
+/**
+ * Props for agent profile.
+ */
 type AgentProfileProps = {
     /**
      * The agent to display
@@ -69,6 +72,9 @@ type AgentProfileProps = {
     readonly className?: string;
 };
 
+/**
+ * Handles agent profile.
+ */
 export function AgentProfile(props: AgentProfileProps) {
     const { formatText } = useAgentNaming();
     const {
@@ -271,6 +277,4 @@ export function AgentProfile(props: AgentProfileProps) {
     );
 }
 
-/**
- * TODO: !!!! Use 3D badge @see https://vercel.com/blog/building-an-interactive-3d-event-badge-with-react-three-fiber
- */
+// TODO: !!!! Use 3D badge @see https://vercel.com/blog/building-an-interactive-3d-event-badge-with-react-three-fiber

@@ -8,7 +8,7 @@ import type { UserInterfaceToolsPromptDialogOptions } from '../../execution/User
  * Wrapper around `window.prompt` synchronous function that interacts with the user via browser prompt
  *
  * Warning: It is used for testing and mocking
- *          **NOT intended to use in the production** due to its synchronous nature.
+ * **NOT intended to use in the production** due to its synchronous nature.
  *
  * @public exported from `@promptbook/browser`
  */
@@ -48,4 +48,4 @@ export class SimplePromptInterfaceTools implements UserInterfaceTools {
     }
 }
 
-/** Note: [🔵] Code for browser dialog helper [SimplePromptInterfaceTools](src/dialogs/simple-prompt/SimplePromptInterfaceTools.ts) should never be published outside of `@promptbook/browser` */
+// Note: [🔵] Code for browser dialog helper [SimplePromptInterfaceTools](src/dialogs/simple-prompt/SimplePromptInterfaceTools.ts) should never be published outside of `@promptbook/browser`

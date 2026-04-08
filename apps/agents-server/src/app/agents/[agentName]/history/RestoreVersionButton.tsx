@@ -6,11 +6,17 @@ import { useState } from 'react';
 import { showAlert, showConfirm } from '../../../../components/AsyncDialogs/asyncDialogs';
 import { restoreAgentVersion } from './actions';
 
+/**
+ * Props for restore version button.
+ */
 type RestoreVersionButtonProps = {
     agentName: string;
     historyId: number;
 };
 
+/**
+ * Handles restore version button.
+ */
 export function RestoreVersionButton({ agentName, historyId }: RestoreVersionButtonProps) {
     const router = useRouter();
     const [isRestoring, setIsRestoring] = useState(false);

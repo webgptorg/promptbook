@@ -8,6 +8,9 @@ import { OpenMojiIcon } from '../../components/OpenMojiIcon/OpenMojiIcon';
 import { PrintHeader } from '../../components/PrintHeader/PrintHeader';
 import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
 
+/**
+ * Handles docs page.
+ */
 export default function DocsPage() {
     const groupedCommitments = getVisibleCommitmentDefinitions();
 

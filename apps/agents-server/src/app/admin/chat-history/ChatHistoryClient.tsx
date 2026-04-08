@@ -15,6 +15,9 @@ import {
     type ChatHistorySortOrder,
 } from '../../../utils/chatHistoryAdmin';
 
+/**
+ * Props for chat history client.
+ */
 type ChatHistoryClientProps = {
     /**
      * Optional initial agent filter, taken from the URL query.
@@ -22,11 +25,17 @@ type ChatHistoryClientProps = {
     initialAgentName?: string;
 };
 
+/**
+ * Information about admin agent.
+ */
 type AdminAgentInfo = {
     agentName: string;
     fullname?: string | null;
 };
 
+/**
+ * Response for agents Api.
+ */
 type AgentsApiResponse = {
     agents: Array<{
         agentName: string;
@@ -34,6 +43,9 @@ type AgentsApiResponse = {
     }>;
 };
 
+/**
+ * Formats date.
+ */
 function formatDate(dateString: string | null | undefined): string {
     if (!dateString) return '-';
     const date = new Date(dateString);
@@ -41,6 +53,9 @@ function formatDate(dateString: string | null | undefined): string {
     return date.toLocaleString();
 }
 
+/**
+ * Gets message role.
+ */
 function getMessageRole(message: unknown): string {
     if (!message || typeof message !== 'object') return '-';
     // Chat route stores { role, content }
@@ -48,6 +63,9 @@ function getMessageRole(message: unknown): string {
     return role || '-';
 }
 
+/**
+ * Gets message preview.
+ */
 function getMessagePreview(message: unknown, maxLength = 120): string {
     if (message == null) return '-';
 
@@ -74,6 +92,9 @@ function getMessagePreview(message: unknown, maxLength = 120): string {
     return String(message);
 }
 
+/**
+ * Handles chat history client.
+ */
 export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) {
     const [items, setItems] = useState<ChatHistoryRow[]>([]);
     const [total, setTotal] = useState(0);

@@ -6,6 +6,7 @@ import type { Json } from '../../database/schema';
  *
  * @param rawProfile Serialized profile JSON value.
  * @returns Parsed profile when shape is object-like.
+ *
  * @private function of createDefaultServerSearchProviders
  */
 export function toAgentProfile(rawProfile: Json): Partial<AgentBasicInformation> {

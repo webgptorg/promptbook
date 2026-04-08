@@ -5,10 +5,16 @@ import { useRouter } from 'next/navigation';
 import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
 import { promptCloneAgent } from '../../../components/AgentCloning/cloneAgent';
 
+/**
+ * Props for clone agent button.
+ */
 type CloneAgentButtonProps = {
     agentName: string;
 };
 
+/**
+ * Handles clone agent button.
+ */
 export function CloneAgentButton({ agentName }: CloneAgentButtonProps) {
     const router = useRouter();
     const { formatText } = useAgentNaming();

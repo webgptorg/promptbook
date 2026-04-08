@@ -16,6 +16,7 @@ import type { TODO_any } from '../utils/organization/TODO_any';
  * Prepares the persona for the pipeline
  *
  * @see https://github.com/webgptorg/promptbook/discussions/22
+ *
  * @public exported from `@promptbook/core`
  */
 export async function preparePersona(
@@ -94,10 +95,8 @@ export async function preparePersona(
     };
 }
 
-/**
- * TODO: [😩] DRY `preparePersona` and `selectBestModelFromAvailable`
- * TODO: [🔃][main] If the persona was prepared with different version or different set of models, prepare it once again
- * TODO: [🏢] Check validity of `modelName` in pipeline
- * TODO: [🏢] Check validity of `systemMessage` in pipeline
- * TODO: [🏢] Check validity of `temperature` in pipeline
- */
+// TODO: [😩] DRY `preparePersona` and `selectBestModelFromAvailable`
+// TODO: [🔃][main] If the persona was prepared with different version or different set of models, prepare it once again
+// TODO: [🏢] Check validity of `modelName` in pipeline
+// TODO: [🏢] Check validity of `systemMessage` in pipeline
+// TODO: [🏢] Check validity of `temperature` in pipeline

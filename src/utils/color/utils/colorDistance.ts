@@ -3,10 +3,10 @@ import { Color } from '../Color';
 /**
  * Calculates distance between two colors
  *
+ * Note: This function is inefficient. Use colorDistanceSquared instead if possible.
+ *
  * @param color1 first color
  * @param color2 second color
- *
- * Note: This function is inefficient. Use colorDistanceSquared instead if possible.
  *
  * @public exported from `@promptbook/color`
  */

@@ -69,6 +69,7 @@ type SelectedToolCallState = {
  *
  * @param count - Number of unseen messages.
  * @returns Labels tailored to the current unseen message count.
+ *
  * @private
  */
 function buildScrollIndicatorText(count: number): ScrollIndicatorText {
@@ -94,6 +95,7 @@ function buildScrollIndicatorText(count: number): ScrollIndicatorText {
  * @param chatMessagesElement - Scrollable chat messages container.
  * @param messageSelector - Selector that targets chat message nodes.
  * @returns `true` when any part of the latest message is visible.
+ *
  * @private
  */
 function isLatestMessageVisible(chatMessagesElement: HTMLDivElement | null, messageSelector: string): boolean {

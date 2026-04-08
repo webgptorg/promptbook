@@ -6,6 +6,9 @@ import { $provideSupabase } from '../../../database/$provideSupabase';
 import { resolveCurrentUserIdentity } from '../../../utils/currentUserIdentity';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
 
+/**
+ * Handles get.
+ */
 export async function GET(request: NextRequest) {
     keepUnused(request);
 
@@ -34,6 +37,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(data);
 }
 
+/**
+ * Handles post.
+ */
 export async function POST(request: NextRequest) {
     if (!(await isUserAdmin())) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -69,6 +75,9 @@ export async function POST(request: NextRequest) {
     }
 }
 
+/**
+ * Handles delete.
+ */
 export async function DELETE(request: NextRequest) {
     if (!(await isUserAdmin())) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

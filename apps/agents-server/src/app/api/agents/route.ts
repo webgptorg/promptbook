@@ -3,8 +3,14 @@ import { NextResponse } from 'next/server';
 import { loadLocalOrganizationSearchDataset } from '../../../search/createDefaultServerSearchProviders/loadLocalOrganizationSearchDataset';
 import { getFederatedServers } from '../../../utils/getFederatedServers';
 
+/**
+ * Constant for dynamic.
+ */
 export const dynamic = 'force-dynamic';
 
+/**
+ * Handles get.
+ */
 export async function GET() {
     try {
         const dataset = await loadLocalOrganizationSearchDataset({ includePrivate: false });
@@ -34,6 +40,9 @@ export async function GET() {
     }
 }
 
+/**
+ * Handles options.
+ */
 export async function OPTIONS() {
     const response = new NextResponse(null, { status: 200 });
     response.headers.set('Access-Control-Allow-Origin', '*');

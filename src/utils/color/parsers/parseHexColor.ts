@@ -1,7 +1,13 @@
 import type { string_color } from '../../../types/typeAliases';
 import type { ColorChannelSet } from './ColorChannelSet';
 
+/**
+ * Constant for short hex lengths.
+ */
 const SHORT_HEX_LENGTHS = new Set([3, 4]);
+/**
+ * Constant for long hex lengths.
+ */
 const LONG_HEX_LENGTHS = new Set([6, 8]);
 
 /**
@@ -39,6 +45,9 @@ export function parseHexColor(hex: string_color): ColorChannelSet {
     return throwInvalidHex();
 }
 
+/**
+ * Parses short hex channel.
+ */
 function parseShortHexChannel(char: string, onError: () => never): number {
     if (!char) {
         return onError();
@@ -52,6 +61,9 @@ function parseShortHexChannel(char: string, onError: () => never): number {
     return parsed * 16;
 }
 
+/**
+ * Parses long hex channel.
+ */
 function parseLongHexChannel(hex: string, start: number, onError: () => never): number {
     const segment = hex.substr(start, 2);
 

@@ -7,8 +7,10 @@ import type { LocateAppOptions } from '../locateApp';
 
 // Note: Module `userhome` has no types available, so it is imported using `require`
 //       @see https://stackoverflow.com/questions/37000981/how-to-import-node-module-in-typescript-without-type-definitions
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const userhome = require('userhome');
+/**
+ * Constant for userhome.
+ */
+const userhome = require('userhome'); // eslint-disable-line @typescript-eslint/no-var-requires
 
 /**
  * Attempts to locate the specified application on a macOS system by checking standard application paths and using mdfind.
@@ -43,5 +45,5 @@ export async function locateAppOnMacOs({
     }
 }
 
-/** Note: [🟢] Code for Node executable locator [locateAppOnMacOs](src/executables/platforms/locateAppOnMacOs.ts) should never be published into packages that could be imported into browser environment */
-/** TODO: [🧠][♿] Maybe export through `@promptbook/node` */
+// Note: [🟢] Code for Node executable locator [locateAppOnMacOs](src/executables/platforms/locateAppOnMacOs.ts) should never be published into packages that could be imported into browser environment
+// TODO: [🧠][♿] Maybe export through `@promptbook/node`

@@ -30,6 +30,7 @@ import { executePipeline } from './10-executePipeline';
  *
  * @returns The executor function
  * @throws {PipelineLogicError} on logical error in the pipeline
+ *
  * @public exported from `@promptbook/core`
  */
 export function createPipelineExecutor(options: CreatePipelineExecutorOptions): PipelineExecutor {

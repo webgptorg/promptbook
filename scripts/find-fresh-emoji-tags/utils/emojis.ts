@@ -121,8 +121,6 @@ export const EMOJIS_OF_SINGLE_PICTOGRAM: Set<string_char_emoji> = new Set(
     Array.from(EMOJIS).filter((emoji) => emoji.length <= 2),
 );
 
-/**
- * TODO: [💴] DRY - just one version of emojis.ts
- * TODO: Mirror from Collboard or some common package
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// TODO: [💴] DRY - just one version of emojis.ts
+// TODO: Mirror from Collboard or some common package
+// Note: [💞] Ignore a discrepancy between file name and entity name

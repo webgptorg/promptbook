@@ -4,6 +4,9 @@ import { $provideSupabaseForServer } from '../../../../database/$provideSupabase
 import { getPasswordValidationMessage, hashPassword } from '../../../../utils/auth';
 import { isUserAdmin } from '../../../../utils/isUserAdmin';
 
+/**
+ * Handles patch.
+ */
 export async function PATCH(request: Request, { params }: { params: Promise<{ username: string }> }) {
     if (!(await isUserAdmin())) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -55,6 +58,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ us
     }
 }
 
+/**
+ * Handles delete.
+ */
 export async function DELETE(request: Request, { params }: { params: Promise<{ username: string }> }) {
     if (!(await isUserAdmin())) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

@@ -2,10 +2,16 @@
 
 import { useAgentNaming } from './AgentNaming/AgentNamingContext';
 
+/**
+ * Props for deleted agent banner.
+ */
 type DeletedAgentBannerProps = {
     message?: string;
 };
 
+/**
+ * Handles deleted agent banner.
+ */
 export function DeletedAgentBanner({
     message,
 }: DeletedAgentBannerProps) {

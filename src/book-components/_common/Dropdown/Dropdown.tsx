@@ -5,6 +5,9 @@ import { HamburgerMenu } from '../HamburgerMenu/HamburgerMenu';
 import { classNames } from '../react-utils/classNames';
 import styles from './Dropdown.module.css';
 
+/**
+ * Props for dropdown.
+ */
 type DropdownProps = {
     actions: Array<{
         icon: ReactNode;
@@ -20,6 +23,7 @@ type DropdownProps = {
  * the menu automatically closes.
  *
  * @param props - Contains an array of actions with icons, names, and click handlers
+ *
  * @private internal subcomponent used by various components
  */
 export function Dropdown({ actions }: DropdownProps) {

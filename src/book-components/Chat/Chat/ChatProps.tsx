@@ -466,6 +466,8 @@ type ChatEnterBehavior = 'SEND' | 'NEWLINE';
 type ChatEnterBehaviorResolver = () => Promisable<ChatEnterBehavior | null | undefined>;
 
 /**
+ * Props for chat.
+ *
  * @public exported from `@promptbook/components`
  */
 export type ChatProps = {
@@ -856,6 +858,4 @@ export type ChatProps = {
     readonly soundSystem?: ChatSoundSystem;
 };
 
-/**
- * TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)
- */
+// TODO: [☁️] Export component prop types only to `@promptbook/components` (not `@promptbook/types`)

@@ -24,6 +24,7 @@ import { markdownScraperMetadata } from './register-metadata';
  * Scraper for markdown files
  *
  * @see `documentationUrl` for more details
+ *
  * @public exported from `@promptbook/markdown-utils`
  */
 export class MarkdownScraper implements Scraper {
@@ -195,7 +196,5 @@ export class MarkdownScraper implements Scraper {
     }
 }
 
-/**
- * TODO: [🪂] Do it in parallel 11:11
- * Note: No need to aggregate usage here, it is done by intercepting the llmTools
- */
+// TODO: [🪂] Do it in parallel 11:11
+// Note: No need to aggregate usage here, it is done by intercepting the llmTools

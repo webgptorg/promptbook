@@ -9,6 +9,7 @@ import { SVGProps } from 'react';
  * or "about" details to the user.
  *
  * @param props - SVG properties augmented with an optional `size`
+ *
  * @private internal subcomponent used by various components
  */
 export function AboutIcon(props: SVGProps<SVGSVGElement> & { size?: number }) {

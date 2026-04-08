@@ -4,6 +4,7 @@ import type { CommitmentDefinition } from '../_base/CommitmentDefinition';
 
 /**
  * Gets a commitment definition by its type
+ *
  * @param type The commitment type to look up
  * @returns The commitment definition or null if not found
  *

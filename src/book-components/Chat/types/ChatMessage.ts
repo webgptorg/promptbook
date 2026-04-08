@@ -12,6 +12,9 @@ import type {
     string_title,
 } from '../../../types/typeAliases';
 
+/**
+ * Type describing chat tool call.
+ */
 export type ChatToolCall = ToolCall;
 
 /**
@@ -295,8 +298,6 @@ export type ChatMessage = Omit<Message<id>, 'direction' | 'recipients' | 'thread
     readonly prompt?: ChatMessagePrompt;
 };
 
-/**
- * TODO: Make all fields readonly
- * TODO: Delete `expectedAnswer` from ChatMessage
- * TODO: Rename `date` into `created`+`modified`
- */
+// TODO: Make all fields readonly
+// TODO: Delete `expectedAnswer` from ChatMessage
+// TODO: Rename `date` into `created`+`modified`

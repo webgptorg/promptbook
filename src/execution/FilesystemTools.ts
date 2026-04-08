@@ -8,6 +8,4 @@ export type FilesystemTools = Pick<
     'access' | 'constants' | 'readFile' | 'writeFile' | 'stat' | 'readdir' | 'mkdir' | 'watch'
 >;
 
-/**
- * TODO: Implement destroyable pattern to free resources
- */
+// TODO: Implement destroyable pattern to free resources

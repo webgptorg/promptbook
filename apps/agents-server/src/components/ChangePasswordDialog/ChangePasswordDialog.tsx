@@ -6,10 +6,16 @@ import { ChangePasswordForm } from '../ChangePasswordForm/ChangePasswordForm';
 import { Dialog } from '../Portal/Dialog';
 import { useDirtyModalGuard } from '../utils/useDirtyModalGuard';
 
+/**
+ * Props for change password dialog.
+ */
 type ChangePasswordDialogProps = {
     onClose: () => void;
 };
 
+/**
+ * Handles change password dialog.
+ */
 export function ChangePasswordDialog(props: ChangePasswordDialogProps) {
     const { onClose } = props;
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);

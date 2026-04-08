@@ -4,8 +4,17 @@
 import ParseResult from '../ParseResult'
 */
 
+/**
+ * Constant for transformation.
+ */
 const Transformation = require('./Transformation');
+/**
+ * Constant for text item.
+ */
 const TextItem = require('../TextItem');
+/**
+ * Constant for { removed annotation }.
+ */
 const { REMOVED_ANNOTATION } = require('../Annotation');
 
 // Abstract class for transformations producing TextItem(s) to be shown in the TextItemPageView

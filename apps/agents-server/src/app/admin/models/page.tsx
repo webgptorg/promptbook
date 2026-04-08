@@ -4,6 +4,9 @@ import { ModelsSection } from '../../../components/Homepage/ModelsSection';
 import { $provideExecutionToolsForServer } from '../../../tools/$provideExecutionToolsForServer';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
 
+/**
+ * Handles admin models page.
+ */
 export default async function AdminModelsPage() {
     const isAdmin = await isUserAdmin();
 

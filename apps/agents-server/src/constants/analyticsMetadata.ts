@@ -2,24 +2,28 @@ import { MetadataType } from './metadataTypes';
 
 /**
  * Metadata key for the Google Analytics measurement ID.
+ *
  * @private
  */
 export const ANALYTICS_GOOGLE_MEASUREMENT_ID_KEY = 'ANALYTICS_GOOGLE_MEASUREMENT_ID';
 
 /**
  * Metadata key that controls whether Google Analytics automatically records page views.
+ *
  * @private
  */
 export const ANALYTICS_GOOGLE_AUTO_PAGEVIEW_KEY = 'ANALYTICS_GOOGLE_AUTO_PAGEVIEW';
 
 /**
  * Metadata key toggling IP anonymization inside Google Analytics.
+ *
  * @private
  */
 export const ANALYTICS_GOOGLE_ANONYMIZE_IP_KEY = 'ANALYTICS_GOOGLE_ANONYMIZE_IP';
 
 /**
  * Metadata key that exposes the allow_ad_personalization_signals flag for gtag.js.
+ *
  * @private
  */
 export const ANALYTICS_GOOGLE_ALLOW_AD_PERSONALIZATION_KEY =
@@ -27,24 +31,28 @@ export const ANALYTICS_GOOGLE_ALLOW_AD_PERSONALIZATION_KEY =
 
 /**
  * Metadata key for the Smartsapp workspace identifier.
+ *
  * @private
  */
 export const ANALYTICS_SMARTSAPP_WORKSPACE_ID_KEY = 'ANALYTICS_SMARTSAPP_WORKSPACE_ID';
 
 /**
  * Metadata key that controls Smartsapp automatic page view tracking.
+ *
  * @private
  */
 export const ANALYTICS_SMARTSAPP_AUTO_PAGEVIEW_KEY = 'ANALYTICS_SMARTSAPP_AUTO_PAGEVIEW';
 
 /**
  * Metadata key for toggling Smartsapp error/session captures.
+ *
  * @private
  */
 export const ANALYTICS_SMARTSAPP_CAPTURE_ERRORS_KEY = 'ANALYTICS_SMARTSAPP_CAPTURE_ERRORS';
 
 /**
  * Ordered list of analytics metadata keys that drive the built-in integrations.
+ *
  * @private
  */
 export const ANALYTICS_METADATA_KEYS = [
@@ -59,16 +67,23 @@ export const ANALYTICS_METADATA_KEYS = [
 
 /**
  * Union over the supported analytics metadata keys.
+ *
  * @private
  */
 export type AnalyticsMetadataKey = (typeof ANALYTICS_METADATA_KEYS)[number];
 
+/**
+ * Definition of analytics metadata.
+ */
 type AnalyticsMetadataDefinition = {
     type: MetadataType;
     defaultValue: string;
     note: string;
 };
 
+/**
+ * Map of analytics metadata definitions.
+ */
 const analyticsMetadataDefinitions: Record<AnalyticsMetadataKey, AnalyticsMetadataDefinition> = {
     [ANALYTICS_GOOGLE_MEASUREMENT_ID_KEY]: {
         type: 'TEXT_SINGLE_LINE',
@@ -109,6 +124,7 @@ const analyticsMetadataDefinitions: Record<AnalyticsMetadataKey, AnalyticsMetada
 
 /**
  * Runtime representation of the curated analytics configuration.
+ *
  * @private
  */
 export type AnalyticsSettings = {
@@ -123,6 +139,7 @@ export type AnalyticsSettings = {
 
 /**
  * Default analytics settings mirroring the metadata defaults.
+ *
  * @private
  */
 export const DEFAULT_ANALYTICS_SETTINGS: AnalyticsSettings = {
@@ -137,6 +154,7 @@ export const DEFAULT_ANALYTICS_SETTINGS: AnalyticsSettings = {
 
 /**
  * Converts a metadata flag into a boolean while falling back to a provided default.
+ *
  * @private
  */
 export function parseBooleanFlag(value: string | null | undefined, fallback: boolean): boolean {
@@ -151,6 +169,7 @@ export function parseBooleanFlag(value: string | null | undefined, fallback: boo
 
 /**
  * Serializes a boolean into the stored metadata string.
+ *
  * @private
  */
 export function formatBooleanFlag(value: boolean): 'true' | 'false' {
@@ -159,6 +178,7 @@ export function formatBooleanFlag(value: boolean): 'true' | 'false' {
 
 /**
  * Builds the runtime analytics settings from metadata values.
+ *
  * @private
  */
 export function mapMetadataToAnalyticsSettings(
@@ -193,6 +213,7 @@ export function mapMetadataToAnalyticsSettings(
 
 /**
  * Converts analytics settings into metadata-friendly string values.
+ *
  * @private
  */
 export function mapAnalyticsSettingsToMetadataPayload(
@@ -213,6 +234,7 @@ export function mapAnalyticsSettingsToMetadataPayload(
 
 /**
  * Returns the stored metadata definition for the given analytics key.
+ *
  * @private
  */
 export function getAnalyticsMetadataDefinition(key: AnalyticsMetadataKey): AnalyticsMetadataDefinition {
@@ -221,6 +243,7 @@ export function getAnalyticsMetadataDefinition(key: AnalyticsMetadataKey): Analy
 
 /**
  * Returns the human-friendly note for an analytics metadata key.
+ *
  * @private
  */
 export function getAnalyticsMetadataNote(key: AnalyticsMetadataKey): string {

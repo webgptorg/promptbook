@@ -47,5 +47,5 @@ export function $initializeListModelsCommand(program: Program): $side_effect {
     );
 }
 
-/** Note: [🟡] Code for CLI command [list-models](src/cli/cli-commands/list-models.ts) should never be published outside of `@promptbook/cli` */
-/** Note: [💞] Ignore a discrepancy between file name and entity name */
+// Note: [🟡] Code for CLI command [list-models](src/cli/cli-commands/list-models.ts) should never be published outside of `@promptbook/cli`
+// Note: [💞] Ignore a discrepancy between file name and entity name

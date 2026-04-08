@@ -1,11 +1,17 @@
 import React from 'react';
 
+/**
+ * Props for card.
+ */
 type CardProps = {
     children: React.ReactNode;
     className?: string;
     style?: React.CSSProperties;
 };
 
+/**
+ * Handles card.
+ */
 export function Card({ children, className = '', style }: CardProps) {
     return (
         <div

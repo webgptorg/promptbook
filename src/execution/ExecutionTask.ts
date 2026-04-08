@@ -278,6 +278,7 @@ export type ExecutionTask = AbstractTask<PipelineExecutorResult> & {
 
 /**
  * Represents a task that prepares a pipeline
+ *
  * @deprecated TODO: [🐚] Currently unused - use
  */
 export type PreparationTask = AbstractTask<PipelineExecutorResult> & {
@@ -399,9 +400,10 @@ export type AbstractTask<TTaskResult extends AbstractTaskResult> = {
     // <- TODO: asMutableObject(): PartialDeep<TTaskResult>;
 };
 
+/**
+ * Type describing task.
+ */
 export type Task = ExecutionTask | PreparationTask;
 
-/**
- * TODO: Maybe allow to terminate the task and add getter `isFinished` or `status`
- * TODO: [🐚] Split into more files and make `PrepareTask` & `RemoteTask` + split the function
- */
+// TODO: Maybe allow to terminate the task and add getter `isFinished` or `status`
+// TODO: [🐚] Split into more files and make `PrepareTask` & `RemoteTask` + split the function

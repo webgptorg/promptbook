@@ -5,8 +5,14 @@ import { getServerVisibility } from '@/src/utils/getServerVisibility';
 import { isPublicServerVisibility } from '@/src/utils/serverVisibility';
 import { NextResponse } from 'next/server';
 
+/**
+ * Constant for dynamic.
+ */
 export const dynamic = 'force-dynamic';
 
+/**
+ * Handles get.
+ */
 export async function GET() {
     const [txt, serverVisibility] = await Promise.all([generateRobotsTxt(), getServerVisibility()]);
     const isPublicServer = isPublicServerVisibility(serverVisibility);

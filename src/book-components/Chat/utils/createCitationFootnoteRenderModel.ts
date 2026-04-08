@@ -61,6 +61,7 @@ export type CitationFootnoteRenderModel = {
  *
  * @param message - Message content plus optional structured citation metadata.
  * @returns Render-ready content and matching footnote entries.
+ *
  * @private utility of `<Chat/>`
  */
 export function createCitationFootnoteRenderModel(message: CitationFootnoteMessage): CitationFootnoteRenderModel {
@@ -119,6 +120,7 @@ export function createCitationFootnoteRenderModel(message: CitationFootnoteMessa
  *
  * @param message - Message content plus optional citation metadata.
  * @returns Citation lookup keyed by normalized citation id.
+ *
  * @private utility of `<Chat/>`
  */
 function createCitationLookup(message: CitationFootnoteMessage): Map<string, ParsedCitation> {
@@ -145,6 +147,7 @@ function createCitationLookup(message: CitationFootnoteMessage): Map<string, Par
  * @param bracketCitationId - Optional id captured from `[x:y]` notation.
  * @param citationsById - Structured citation lookup.
  * @returns Resolved citation metadata or `null` when the token is invalid.
+ *
  * @private utility of `<Chat/>`
  */
 function resolveCitationForToken(
@@ -179,6 +182,7 @@ function resolveCitationForToken(
  *
  * @param citation - Citation to normalize.
  * @returns Citation with trimmed string fields.
+ *
  * @private utility of `<Chat/>`
  */
 function normalizeParsedCitation(citation: ParsedCitation): ParsedCitation {
@@ -196,6 +200,7 @@ function normalizeParsedCitation(citation: ParsedCitation): ParsedCitation {
  * @param currentCitation - Existing citation metadata.
  * @param incomingCitation - Newly discovered citation metadata.
  * @returns Reused citation when unchanged, otherwise the merged citation.
+ *
  * @private utility of `<Chat/>`
  */
 function mergeParsedCitations(currentCitation: ParsedCitation, incomingCitation: ParsedCitation): ParsedCitation {
@@ -224,6 +229,7 @@ function mergeParsedCitations(currentCitation: ParsedCitation, incomingCitation:
  * @param currentCitation - Existing citation metadata.
  * @param incomingCitation - Newly discovered citation metadata.
  * @returns Preferred source label.
+ *
  * @private utility of `<Chat/>`
  */
 function resolvePreferredCitationSource(currentCitation: ParsedCitation, incomingCitation: ParsedCitation): string {
@@ -250,6 +256,7 @@ function resolvePreferredCitationSource(currentCitation: ParsedCitation, incomin
  *
  * @param source - Human-readable citation source.
  * @returns Stable source key.
+ *
  * @private utility of `<Chat/>`
  */
 function normalizeCitationSourceKey(source: string): string {
@@ -261,6 +268,7 @@ function normalizeCitationSourceKey(source: string): string {
  *
  * @param number - Visible footnote number.
  * @returns HTML snippet injected into the markdown renderer output.
+ *
  * @private utility of `<Chat/>`
  */
 function buildCitationFootnoteReferenceMarkup(number: number): string {

@@ -56,6 +56,7 @@ type RenderTimeoutToolCallDetailsOptions = {
  *
  * @param options - Timeout tool call data.
  * @returns Timeout visualization UI.
+ *
  * @private function of ChatToolCallModal
  */
 export function renderTimeoutToolCallDetails(options: RenderTimeoutToolCallDetailsOptions): ReactElement {
@@ -178,6 +179,7 @@ export function renderTimeoutToolCallDetails(options: RenderTimeoutToolCallDetai
  * Copies one quick action command to clipboard when supported.
  *
  * @param command - Command text copied for the user.
+ *
  * @private function of ChatToolCallModal
  */
 function copyTimeoutQuickActionCommand(command: string): void {
@@ -193,6 +195,7 @@ function copyTimeoutQuickActionCommand(command: string): void {
  *
  * @param timeoutId - Timeout identifier to cancel.
  * @returns Helper command text.
+ *
  * @private function of ChatToolCallModal
  */
 function createCancelTimeoutQuickActionCommand(timeoutId: string): string {
@@ -204,6 +207,7 @@ function createCancelTimeoutQuickActionCommand(timeoutId: string): string {
  *
  * @param message - Optional timeout wake-up message.
  * @returns Helper command text.
+ *
  * @private function of ChatToolCallModal
  */
 function createSnoozeTimeoutQuickActionCommand(message?: string): string {

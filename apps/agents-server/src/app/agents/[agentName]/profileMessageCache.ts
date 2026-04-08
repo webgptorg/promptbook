@@ -4,8 +4,14 @@
  */
 import type { ChatMessage } from '@promptbook-local/types';
 
+/**
+ * Prefix for storage key.
+ */
 const STORAGE_KEY_PREFIX = 'agents-server:agent-profile-message';
 
+/**
+ * Payload for pending profile message.
+ */
 type PendingProfileMessagePayload = {
     message?: string;
     attachments?: ChatMessage['attachments'];

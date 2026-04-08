@@ -1,3 +1,6 @@
+/**
+ * Information about server.
+ */
 export type ServerInfo = {
     bookLanguageVersion: string;
     promptbookEngineVersion: string;

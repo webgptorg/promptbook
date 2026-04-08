@@ -26,6 +26,7 @@ import type { string_book } from './string_book';
  * @param availableModels - Models that could fulfill the agent.
  * @param llmTools - Execution tools used when selecting a best model.
  * @param options - Optional hooks such as the agent reference resolver.
+ *
  * @public exported from `@promptbook/core`
  */
 export async function createAgentModelRequirements(
@@ -53,6 +54,7 @@ export async function createAgentModelRequirements(
  * @param agentSource The agent source to derive persona description from
  * @param llmTools LLM tools for preparing persona
  * @returns The name of the best selected model
+ *
  * @private function of `createAgentModelRequirements`
  */
 async function selectBestModelUsingPersona(
@@ -115,7 +117,9 @@ export function extractMcpServers(agentSource: string_book): string[] {
 
 /**
  * Creates a system message for an agent based on its source
+ *
  * @deprecated Use createAgentModelRequirements instead
+ *
  * @private
  */
 export async function createAgentSystemMessage(agentSource: string_book): Promise<string_system_message> {
@@ -125,7 +129,9 @@ export async function createAgentSystemMessage(agentSource: string_book): Promis
 
 /**
  * Extracts the agent name from the first non-empty line of the agent source.
+ *
  * @deprecated Use parseAgentSource instead
+ *
  * @private
  */
 export function extractAgentName(agentSource: string_book): string_agent_name {
@@ -140,9 +146,11 @@ export function extractAgentName(agentSource: string_book): string_agent_name {
 
 /**
  * Extracts the profile image URL from agent source or returns default avatar fallback
+ *
  * @param agentSource The agent source string that may contain META IMAGE line
  * @returns Profile image URL (from source or default avatar fallback)
  * @deprecated Use parseAgentSource instead
+ *
  * @private
  */
 export function extractAgentProfileImage(agentSource: string_book): string_url_image | null {

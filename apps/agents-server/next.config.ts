@@ -9,6 +9,9 @@ import path from 'path';
  */
 const nextDistDir = process.env.NEXT_DIST_DIR || '.next';
 
+/**
+ * Map of next config.
+ */
 const nextConfig: NextConfig = {
     // output: 'standalone',
     // <- TODO: [🐱‍🚀][🧠] How to properly build Next.js app, for both Vercel and Doceker?

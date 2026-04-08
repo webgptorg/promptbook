@@ -5,8 +5,9 @@ import { AgentsServerDatabase } from './schema';
 /**
  * Internal cache for `$provideSupabaseForWorker`
  *
- * @private
  * @singleton
+ *
+ * @private
  */
 let supabase: SupabaseClient<AgentsServerDatabase>;
 

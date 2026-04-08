@@ -3,6 +3,9 @@
 import { useEffect, useState } from 'react';
 import styles from './HeartsEffect.module.css';
 
+/**
+ * Type describing heart particle.
+ */
 type HeartParticle = {
     id: number;
     left: number;
@@ -12,6 +15,9 @@ type HeartParticle = {
     scale: number;
 };
 
+/**
+ * Props for hearts effect.
+ */
 type HeartsEffectProps = {
     /**
      * Unique identifier for this effect instance
@@ -24,8 +30,17 @@ type HeartsEffectProps = {
     onComplete?: () => void;
 };
 
+/**
+ * Collection of heart emojis.
+ */
 const HEART_EMOJIS = ['❤️', '💙', '💚', '💛', '💜', '🧡', '💖', '💗', '💕', '💓'];
+/**
+ * Count of particle.
+ */
 const PARTICLE_COUNT = 20;
+/**
+ * Constant for effect duration.
+ */
 const EFFECT_DURATION = 3000;
 
 /**

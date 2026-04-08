@@ -210,5 +210,5 @@ export async function $getCompiledBook(
     );
 }
 
-/** Note: [🟢] Code for Node wizard helper [$getCompiledBook](src/wizard/$getCompiledBook.ts) should never be published into packages that could be imported into browser environment */
-/** TODO: Write unit test */
+// Note: [🟢] Code for Node wizard helper [$getCompiledBook](src/wizard/$getCompiledBook.ts) should never be published into packages that could be imported into browser environment
+// TODO: Write unit test

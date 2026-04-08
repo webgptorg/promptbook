@@ -1,5 +1,8 @@
 import { createOpenAiExecutionTools } from '@promptbook-local/openai';
 
+/**
+ * Handles get.
+ */
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const message = searchParams.get('message') || 'Hello, who are you?';

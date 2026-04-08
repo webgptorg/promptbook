@@ -34,6 +34,7 @@ export type FolderActionNodeConfig = {
  * @param nodes - Existing folder/agent hierarchy.
  * @param config - Labels and callbacks used for action injection.
  * @returns New hierarchy with per-folder action nodes.
+ *
  * @private function of Header
  */
 export function appendFolderActionNodes(

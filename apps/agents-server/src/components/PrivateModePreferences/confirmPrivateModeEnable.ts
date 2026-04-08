@@ -20,6 +20,7 @@ const resolvePrivateModeTranslationInEnglish: PrivateModeTranslationResolver = (
  *
  * @param resolveTranslation - Translation resolver for dialog text.
  * @returns True when user confirms enabling private mode.
+ *
  * @private shared helper for Agents Server private mode UX
  */
 export async function confirmPrivateModeEnable(

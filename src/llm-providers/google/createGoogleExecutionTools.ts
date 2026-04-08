@@ -79,7 +79,13 @@ type GoogleImageData = {
     readonly contentType: string;
 };
 
+/**
+ * Constant for default google generative AI base URL.
+ */
 const DEFAULT_GOOGLE_GENERATIVE_AI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta';
+/**
+ * Map of google image response modalities.
+ */
 const GOOGLE_IMAGE_RESPONSE_MODALITIES: GoogleImageGenerationRequest['generationConfig'] = {
     responseModalities: ['TEXT', 'IMAGE'],
 };
@@ -279,7 +285,5 @@ export const createGoogleExecutionTools = Object.assign(
     },
 ) satisfies LlmExecutionToolsConstructor;
 
-/**
- * TODO: !!!!! Rename to `createGoogleLlmExecutionTools`, `...GoogleLlmExecutionTools`
- * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
- */
+// TODO: !!!!! Rename to `createGoogleLlmExecutionTools`, `...GoogleLlmExecutionTools`
+// TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

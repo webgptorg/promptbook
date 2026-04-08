@@ -13,30 +13,35 @@ import { fetchBackupSupabaseTableReferences } from './fetchBackupSupabaseTableRe
 
 /**
  * Maximum DEFLATE compression level used for ZIP output.
+ *
  * @private constant of backupSupabase
  */
 const BACKUP_SUPABASE_ZIP_COMPRESSION_LEVEL = 9;
 
 /**
  * Placeholder token for full date+time value in the output filename pattern.
+ *
  * @private constant of backupSupabase
  */
 const BACKUP_SUPABASE_FILENAME_PATTERN_TOKEN_TIMESTAMP = '%timestamp%';
 
 /**
  * Placeholder token for date-only value in the output filename pattern.
+ *
  * @private constant of backupSupabase
  */
 const BACKUP_SUPABASE_FILENAME_PATTERN_TOKEN_DATE = '%date%';
 
 /**
  * Placeholder token for time-only value in the output filename pattern.
+ *
  * @private constant of backupSupabase
  */
 const BACKUP_SUPABASE_FILENAME_PATTERN_TOKEN_TIME = '%time%';
 
 /**
  * Placeholder token for PostgreSQL database name in the output filename pattern.
+ *
  * @private constant of backupSupabase
  */
 const BACKUP_SUPABASE_FILENAME_PATTERN_TOKEN_DATABASE = '%database%';
@@ -45,6 +50,7 @@ const BACKUP_SUPABASE_FILENAME_PATTERN_TOKEN_DATABASE = '%database%';
  * Runs the complete Supabase backup workflow for selected schemas.
  *
  * @param options Normalized runtime options.
+ *
  * @private function of backupSupabase
  */
 export async function backupSupabase(options: BackupSupabaseRuntimeOptions): Promise<void> {
@@ -117,6 +123,7 @@ export async function backupSupabase(options: BackupSupabaseRuntimeOptions): Pro
  *
  * @param connectionString Full PostgreSQL connection string.
  * @returns Human-readable server description safe for logs.
+ *
  * @private function of backupSupabase
  */
 function describeConnection(connectionString: string): string {
@@ -140,6 +147,7 @@ function describeConnection(connectionString: string): string {
  * @param filenamePattern Raw filename pattern from CLI.
  * @param connectionString PostgreSQL connection string.
  * @returns Rendered filename.
+ *
  * @private function of backupSupabase
  */
 function renderOutputFilename(filenamePattern: string, connectionString: string): string {
@@ -161,6 +169,7 @@ function renderOutputFilename(filenamePattern: string, connectionString: string)
  *
  * @param connectionString PostgreSQL connection string.
  * @returns Safe database identifier for filenames.
+ *
  * @private function of backupSupabase
  */
 function resolveDatabaseNameFromConnectionString(connectionString: string): string {
@@ -179,6 +188,7 @@ function resolveDatabaseNameFromConnectionString(connectionString: string): stri
  *
  * @param error Unknown thrown value.
  * @returns Branded error instance suitable for upper-level handling.
+ *
  * @private function of backupSupabase
  */
 function createBackupError(error: unknown): Error {
@@ -198,6 +208,7 @@ function createBackupError(error: unknown): Error {
  *
  * @param value Raw segment.
  * @returns Sanitized segment.
+ *
  * @private function of backupSupabase
  */
 function sanitizePathSegment(value: string): string {
@@ -209,6 +220,7 @@ function sanitizePathSegment(value: string): string {
  *
  * @param pathValue Path that may contain Windows separators.
  * @returns Path with POSIX separators.
+ *
  * @private function of backupSupabase
  */
 function normalizePathForLogs(pathValue: string): string {
@@ -220,6 +232,7 @@ function normalizePathForLogs(pathValue: string): string {
  *
  * @param value Numeric value.
  * @returns Two-digit string.
+ *
  * @private function of backupSupabase
  */
 function pad2(value: number): string {

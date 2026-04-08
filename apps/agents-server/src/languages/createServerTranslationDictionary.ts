@@ -7,6 +7,9 @@ import {
     type ServerTranslationKey,
 } from './ServerTranslationKeys';
 
+/**
+ * Type describing raw translation map.
+ */
 type RawTranslationMap = Record<string, unknown>;
 
 /**

@@ -10,6 +10,7 @@ import type { string_javascript_name } from '../../../types/typeAliases';
  * @param script from which to extract the variables
  * @returns the list of variable names
  * @throws {ParseError} if the script is invalid
+ *
  * @public exported from `@promptbook/javascript`
  */
 export function extractVariablesFromJavascript(script: string_javascript): Set<string_javascript_name> {
@@ -86,6 +87,4 @@ export function extractVariablesFromJavascript(script: string_javascript): Set<s
     return variables;
 }
 
-/**
- * TODO: [🔣] Support for multiple languages - python, java,...
- */
+// TODO: [🔣] Support for multiple languages - python, java,...

@@ -16,6 +16,7 @@ export type IsUrlOnPrivateNetworkOptions = IsHostnameOnPrivateNetworkOptions;
  * @param {string} url - The URL to check.
  * @param {IsUrlOnPrivateNetworkOptions} options - Options for the check.
  * @returns {boolean} Returns true if the IP address is reserved for private networks or localhost, otherwise false.
+ *
  * @public exported from `@promptbook/utils`
  */
 export function isUrlOnPrivateNetwork(url: URL | string_url, options: IsUrlOnPrivateNetworkOptions = {}): boolean {

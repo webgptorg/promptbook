@@ -3,8 +3,8 @@
  * This will not allow to pass some random string where should be only a valid UUID
  *
  * Use utils:
- *   - `randomUuid` to generate
- *   - `isValidUuid  to check validity
+ * - `randomUuid` to generate
+ * - `isValidUuid  to check validity
  *
  * For example `"5a0a153d-7be9-4018-9eda-e0e2e2b89bd9"`
  * TODO: [🥬] Make some system for hashes and ids of promptbook

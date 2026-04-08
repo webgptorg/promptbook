@@ -64,6 +64,7 @@ type BrowserActionRow = {
  *
  * @param options - Parsed browser tool details needed by the modal.
  * @returns Visual browser replay content.
+ *
  * @private function of ChatToolCallModal
  */
 export function renderRunBrowserToolCallDetails(options: RenderRunBrowserToolCallDetailsOptions): ReactElement {
@@ -296,6 +297,7 @@ export function renderRunBrowserToolCallDetails(options: RenderRunBrowserToolCal
  * @param action - Raw action object from the tool arguments.
  * @param fallbackIndex - Fallback action index for unknown actions.
  * @returns Human-friendly summary of the action.
+ *
  * @private function of ChatToolCallModal
  */
 function formatRequestedBrowserActionSummary(action: Record<string, TODO_any>, fallbackIndex: number): string {
@@ -332,6 +334,7 @@ function formatRequestedBrowserActionSummary(action: Record<string, TODO_any>, f
  *
  * @param options - Raw action inputs and browser logs.
  * @returns Ordered browser action rows.
+ *
  * @private function of ChatToolCallModal
  */
 function buildRunBrowserActionRows(options: {

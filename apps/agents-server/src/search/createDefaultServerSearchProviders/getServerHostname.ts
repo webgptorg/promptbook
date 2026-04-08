@@ -3,6 +3,7 @@
  *
  * @param serverUrl Server URL.
  * @returns Hostname if URL is valid, otherwise original input.
+ *
  * @private function of createDefaultServerSearchProviders
  */
 export function getServerHostname(serverUrl: string): string {

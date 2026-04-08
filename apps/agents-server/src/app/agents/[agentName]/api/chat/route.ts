@@ -218,6 +218,9 @@ function createFrozenTeamMemberChatMessages(options: {
     return messages;
 }
 
+/**
+ * Handles options.
+ */
 export async function OPTIONS(request: Request) {
     keepUnused(request);
 
@@ -231,6 +234,9 @@ export async function OPTIONS(request: Request) {
     });
 }
 
+/**
+ * Handles post.
+ */
 export async function POST(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     let { agentName } = await params;
     agentName = decodeURIComponent(agentName);

@@ -12,6 +12,7 @@ type ApplyResponseHeaders = (response: NextResponse) => Promise<void>;
  *
  * @param options - Request state and response-header callback.
  * @returns Early response, or `null` when the request may continue.
+ *
  * @private function of middleware
  */
 export async function resolveAccessControlResponse(options: {
@@ -52,6 +53,7 @@ export async function resolveAccessControlResponse(options: {
  * Creates the global preflight response used by the middleware.
  *
  * @returns Preflight response with permissive CORS headers.
+ *
  * @private function of resolveAccessControlResponse
  */
 function createOptionsResponse(): NextResponse {
@@ -70,6 +72,7 @@ function createOptionsResponse(): NextResponse {
  *
  * @param path - Request pathname.
  * @returns `true` when the restricted user may still access the path.
+ *
  * @private function of resolveAccessControlResponse
  */
 function isAllowedPathWhileRestricted(path: string): boolean {

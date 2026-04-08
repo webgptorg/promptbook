@@ -7,6 +7,7 @@ import { normalizeDomainForMatching } from '../../../src/utils/validators/url/no
  *
  * @param domain - Raw domain string.
  * @returns Normalized domain.
+ *
  * @private function of `sync-vercel-domains`
  */
 export function normalizeManagedDomain(domain: string): string {

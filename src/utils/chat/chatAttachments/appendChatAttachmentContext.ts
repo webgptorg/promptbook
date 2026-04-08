@@ -8,6 +8,7 @@ import { formatChatAttachmentContext } from './formatChatAttachmentContext';
  * @param {string} messageContent - The original message content.
  * @param {ReadonlyArray<ChatAttachment>} attachments - The attachments to append.
  * @returns {string} The updated message content.
+ *
  * @public exported from `@promptbook/core`
  */
 export function appendChatAttachmentContext(

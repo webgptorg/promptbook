@@ -15,8 +15,14 @@ import { z } from 'zod';
 // Note: This works in stateful environments or single-instance deployments.
 // In serverless with multiple instances, this will fail if POST lands on a different instance.
 // However, for standard deployments or sticky sessions, it works.
+/**
+ * Constant for sessions.
+ */
 const sessions = new Map<string, SSENextJsTransport>();
 
+/**
+ * Class implementing SSE next Js transport.
+ */
 class SSENextJsTransport implements Transport {
     public onmessage?: (message: JSONRPCMessage) => void;
     public onclose?: () => void;
@@ -54,6 +60,9 @@ class SSENextJsTransport implements Transport {
     }
 }
 
+/**
+ * Handles get.
+ */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ agentName: string }> }) {
     const { agentName } = await params;
 
@@ -192,6 +201,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     });
 }
 
+/**
+ * Handles post.
+ */
 export async function POST(request: NextRequest /*, { params }: { params: Promise<{ agentName: string }> }*/) {
     const { searchParams } = new URL(request.url);
     const sessionId = searchParams.get('sessionId');

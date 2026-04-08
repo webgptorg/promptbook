@@ -10,7 +10,13 @@ import { join } from 'path';
 import { createInterface } from 'readline';
 import { spaceTrim } from 'spacetrim';
 
+/**
+ * Constant for assistants page limit.
+ */
 const ASSISTANTS_PAGE_LIMIT = 100;
+/**
+ * Constant for root dir.
+ */
 const ROOT_DIR = join(__dirname, '../..');
 
 main()

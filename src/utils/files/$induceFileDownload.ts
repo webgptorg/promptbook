@@ -23,4 +23,4 @@ export async function $induceFileDownload(fileOrBlobOrUrl: File | Blob | URL | s
     await objectUrl.destroy();
 }
 
-/** Note: [🔵] Code for browser file helper [$induceFileDownload](src/utils/files/$induceFileDownload.ts) should never be published outside of `@promptbook/browser` */
+// Note: [🔵] Code for browser file helper [$induceFileDownload](src/utils/files/$induceFileDownload.ts) should never be published outside of `@promptbook/browser`

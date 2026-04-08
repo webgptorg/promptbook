@@ -27,6 +27,7 @@ export type GetUsageAnalyticsResponseResult = UsageAnalyticsSuccessResult | Usag
 
 /**
  * Builds the full usage analytics payload for `/api/usage`.
+ *
  * @private function of GET
  */
 export async function getUsageAnalyticsResponse(searchParams: URLSearchParams): Promise<GetUsageAnalyticsResponseResult> {

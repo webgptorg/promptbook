@@ -1,6 +1,9 @@
 import { MarkdownContent } from '@promptbook-local/components';
 import { OpenMojiIcon } from '../OpenMojiIcon/OpenMojiIcon';
 
+/**
+ * Props for documentation content.
+ */
 type DocumentationContentProps = {
     primary: {
         type: string;
@@ -16,6 +19,9 @@ type DocumentationContentProps = {
     isPrintOnly?: boolean;
 };
 
+/**
+ * Handles documentation content.
+ */
 export function DocumentationContent({ primary, aliases = [], isPrintOnly = false }: DocumentationContentProps) {
     const deprecationContent = primary.deprecation
         ? `${primary.deprecation.message}${

@@ -4,6 +4,9 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import { LinguisticHashComponent } from './LinguisticHashComponent';
 
+/**
+ * Handles linguistic hash page.
+ */
 export default function LinguisticHashPage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">

@@ -32,12 +32,18 @@ if (process.cwd() !== join(__dirname, '../..')) {
     process.exit(1);
 }
 
+/**
+ * Constant for program.
+ */
 const program = new commander.Command();
 program.option('--organize', `Organize imports`, false);
 program.option('--organize-all', `Organize all imports`, false);
 program.option('--commit', `Auto commit`, false);
 program.parse(process.argv);
 
+/**
+ * Constant for { organize: is organized, organize all: is organized all, commit: is commited }.
+ */
 const { organize: isOrganized, organizeAll: isOrganizedAll, commit: isCommited } = program.opts();
 
 /**
@@ -57,6 +63,9 @@ repairImports({ isOrganized, isOrganizedAll, isCommited })
         process.exit(0);
     });
 
+/**
+ * Repairs imports.
+ */
 async function repairImports({
     isOrganized,
     // isOrganizedAll,
@@ -237,4 +246,4 @@ async function repairImports({
     */
 }
 
-/** Note: [⚫] Code for repository script [repair-imports](scripts/repair-imports/repair-imports.ts) should never be published in any package */
+// Note: [⚫] Code for repository script [repair-imports](scripts/repair-imports/repair-imports.ts) should never be published in any package

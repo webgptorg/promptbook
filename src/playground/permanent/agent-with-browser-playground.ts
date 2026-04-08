@@ -41,6 +41,9 @@ playground()
         process.exit(0);
     });
 
+/**
+ * Handles playground.
+ */
 async function playground() {
     console.info(`🧸  Agents Playground`);
 
@@ -86,4 +89,4 @@ async function playground() {
     //========================================/
 }
 
-/** Note: [⚫] Code for permanent playground [agent-with-browser-playground](src/playground/permanent/agent-with-browser-playground.ts) should never be published in any package */
+// Note: [⚫] Code for permanent playground [agent-with-browser-playground](src/playground/permanent/agent-with-browser-playground.ts) should never be published in any package

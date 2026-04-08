@@ -2,6 +2,9 @@ import React from 'react';
 import { classNames } from '../react-utils/classNames';
 import styles from './HamburgerMenu.module.css';
 
+/**
+ * Props for hamburger menu.
+ */
 type HamburgerMenuProps = {
     isOpen: boolean;
     onClick?: () => void;
@@ -15,6 +18,7 @@ type HamburgerMenuProps = {
  * the menu is open.
  *
  * @param props - Contains the open state, an optional click handler, and optional className
+ *
  * @private Internal component
  */
 export function HamburgerMenu({ isOpen, onClick, className }: HamburgerMenuProps) {

@@ -20,6 +20,9 @@ import { countUsage } from '../utils/count-total-usage/countUsage';
 import type { LlmExecutionToolsWithTotalUsage } from '../utils/count-total-usage/LlmExecutionToolsWithTotalUsage';
 import { $provideLlmToolsFromEnv } from './$provideLlmToolsFromEnv';
 
+/**
+ * Options for provide Llm tools for wizard or Cli.
+ */
 type ProvideLlmToolsForWizardOrCliOptions = {
     /**
      * If true, user will be always prompted for login
@@ -145,10 +148,8 @@ export async function $provideLlmToolsForWizardOrCli(
     );
 }
 
-/** Note: [🟢] Code for Node environment helper [$provideLlmToolsForWizardOrCli](src/llm-providers/_common/register/$provideLlmToolsForWizardOrCli.ts) should never be published into packages that could be imported into browser environment */
-/**
- * TODO: [👷‍♂️] Write a comprehensive manual about the construction of LLM tools
- * TODO: [🥃] Allow `ptbk make` without llm tools
- * TODO: This should be maybe not under `_common` but under `utils-internal` / `utils/internal`
- * TODO: [®] DRY Register logic
- */
+// Note: [🟢] Code for Node environment helper [$provideLlmToolsForWizardOrCli](src/llm-providers/_common/register/$provideLlmToolsForWizardOrCli.ts) should never be published into packages that could be imported into browser environment
+// TODO: [👷‍♂️] Write a comprehensive manual about the construction of LLM tools
+// TODO: [🥃] Allow `ptbk make` without llm tools
+// TODO: This should be maybe not under `_common` but under `utils-internal` / `utils/internal`
+// TODO: [®] DRY Register logic

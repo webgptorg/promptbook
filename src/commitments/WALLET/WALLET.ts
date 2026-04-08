@@ -68,6 +68,4 @@ export class WalletCommitmentDefinition extends BaseCommitmentDefinition<'WALLET
     }
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name

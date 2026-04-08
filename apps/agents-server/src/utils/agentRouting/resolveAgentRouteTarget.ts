@@ -40,6 +40,9 @@ type RemoteAgentRouteTarget = {
     url: string;
 };
 
+/**
+ * Type describing pseudo agent route target.
+ */
 type PseudoAgentRouteTarget = {
     kind: 'pseudo';
     pseudoAgentKind: PseudoAgentKind;

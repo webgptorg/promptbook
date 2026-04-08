@@ -13,7 +13,7 @@ import type { string_postprocessing_function_name } from '../../types/typeAliase
  *
  * Note: `$` is used to indicate that this function is not a pure function - it is not deterministic
  * Note: You can provide postprocessing functions to modify the text before checking the expectations
- *       The result will be the text BEFORE the postprocessing
+ * The result will be the text BEFORE the postprocessing
  *
  * @private internal utility for MockedFackedLlmExecutionTools
  */
@@ -90,7 +90,5 @@ export async function $fakeTextToExpectations(
     );
 }
 
-/**
- * TODO: Do not use LoremIpsum, but use some faked text that looks more human-promptbook-like
- * TODO: [💝] Unite object for expecting amount and format - use here also a format
- */
+// TODO: Do not use LoremIpsum, but use some faked text that looks more human-promptbook-like
+// TODO: [💝] Unite object for expecting amount and format - use here also a format

@@ -17,9 +17,9 @@ const getCachedIsUserAdmin = cache(async (): Promise<boolean> => {
 
 /**
  * Checks if the current user is an admin
- * 
+ *
  * Note: If `process.env.ADMIN_PASSWORD` is not set, no one is admin
- * 
+ *
  * @returns true if the user is admin
  */
 export async function isUserAdmin(): Promise<boolean> {

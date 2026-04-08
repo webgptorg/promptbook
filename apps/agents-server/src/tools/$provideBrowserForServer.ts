@@ -49,6 +49,4 @@ export async function $closeBrowser(): Promise<void> {
     }
 }
 
-/**
- * TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming
- */
+// TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming

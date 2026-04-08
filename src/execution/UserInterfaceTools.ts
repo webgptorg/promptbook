@@ -16,6 +16,9 @@ export type UserInterfaceTools = {
     promptDialog(options: UserInterfaceToolsPromptDialogOptions): Promise<string>;
 };
 
+/**
+ * Options for user interface tools prompt dialog.
+ */
 export type UserInterfaceToolsPromptDialogOptions = {
     /**
      * Prompt title

@@ -3,6 +3,9 @@
 import { useEffect, useState } from 'react';
 import styles from './ConfettiEffect.module.css';
 
+/**
+ * Type describing confetti particle.
+ */
 type ConfettiParticle = {
     id: number;
     left: number;
@@ -13,6 +16,9 @@ type ConfettiParticle = {
 };
 // <- TODO: !!!!!!!! AI Rules: Use types not interfaces
 
+/**
+ * Props for confetti effect.
+ */
 type ConfettiEffectProps = {
     /**
      * Unique identifier for this effect instance
@@ -25,8 +31,17 @@ type ConfettiEffectProps = {
     onComplete?: () => void;
 };
 
+/**
+ * Collection of confetti colors.
+ */
 const CONFETTI_COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'];
+/**
+ * Count of particle.
+ */
 const PARTICLE_COUNT = 50;
+/**
+ * Constant for effect duration.
+ */
 const EFFECT_DURATION = 3000;
 
 /**

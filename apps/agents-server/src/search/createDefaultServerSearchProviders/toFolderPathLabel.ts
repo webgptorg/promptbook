@@ -17,6 +17,7 @@ type FolderPathLabelRow = {
  * @param folderId Folder id to resolve.
  * @param folderById Folder map indexed by id.
  * @returns Human-readable folder path.
+ *
  * @private function of createDefaultServerSearchProviders
  */
 export function toFolderPathLabel(folderId: number | null, folderById: Map<number, FolderPathLabelRow>): string {

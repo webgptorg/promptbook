@@ -1,16 +1,30 @@
 import type { string_data_url, string_filename, string_knowledge_source_link } from '../../types/typeAliases';
 import { normalizeToKebabCase } from '../normalization/normalize-to-kebab-case';
 
-/** @private The default base name for inline knowledge files when the content lacks identifying text */
+/**
+ * The default base name for inline knowledge files when the content lacks identifying text.
+ *
+ * @private
+ */
 const INLINE_KNOWLEDGE_BASE_NAME = 'inline-knowledge';
 
-/** @private The default file extension used for inline knowledge uploads */
+/**
+ * The default file extension used for inline knowledge uploads.
+ *
+ * @private
+ */
 const INLINE_KNOWLEDGE_EXTENSION = '.txt';
 
-/** @private Prefix that identifies base64 data URLs */
+/**
+ * Prefix that identifies base64 data URLs.
+ *
+ * @private
+ */
 const DATA_URL_PREFIX = 'data:';
 
 /**
+ * Type describing inline knowledge source file.
+ *
  * @private Internal representation of inline knowledge prepared for uploads.
  */
 export type InlineKnowledgeSourceFile = {
@@ -20,12 +34,16 @@ export type InlineKnowledgeSourceFile = {
 };
 
 /**
- * @private Function signature used to upload inline knowledge files to external storage.
+ * Function signature used to upload inline knowledge files to external storage.
+ *
+ * @private
  */
 export type InlineKnowledgeSourceUploader = (file: InlineKnowledgeSourceFile) => Promise<string_knowledge_source_link>;
 
 /**
- * @private Retrieves the first meaningful line from the inline content.
+ * Retrieves the first meaningful line from the inline content.
+ *
+ * @private
  */
 function getFirstNonEmptyLine(content: string): string | null {
     const lines = content.split(/\r?\n/);
@@ -39,7 +57,9 @@ function getFirstNonEmptyLine(content: string): string | null {
 }
 
 /**
- * @private Determines the base file name by normalizing the first non-empty line.
+ * Determines the base file name by normalizing the first non-empty line.
+ *
+ * @private
  */
 function deriveBaseFilename(content: string): string {
     const firstLine = getFirstNonEmptyLine(content);
@@ -52,7 +72,9 @@ function deriveBaseFilename(content: string): string {
 }
 
 /**
- * @private Converts inline knowledge into the internal metadata form used for uploads.
+ * Converts inline knowledge into the internal metadata form used for uploads.
+ *
+ * @private
  */
 export function createInlineKnowledgeSourceFile(content: string): InlineKnowledgeSourceFile {
     const trimmedContent = content.trim();
@@ -78,7 +100,9 @@ export function isDataUrlKnowledgeSource(source: string): source is string_data_
 }
 
 /**
- * @private Converts a stored inline knowledge file into a data URL for backwards compatibility.
+ * Converts a stored inline knowledge file into a data URL for backwards compatibility.
+ *
+ * @private
  */
 export function inlineKnowledgeSourceToDataUrl(source: InlineKnowledgeSourceFile): string_knowledge_source_link {
     const base64 = source.buffer.toString('base64');
@@ -150,6 +174,4 @@ export function parseDataUrlKnowledgeSource(source: string): {
     }
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- */
+// Note: [💞] Ignore a discrepancy between file name and entity name
