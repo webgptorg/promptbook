@@ -1,3 +1,8 @@
+-   Refactored Agents Server `userChatTimeoutStore.ts` into smaller focused private modules without changing timeout-store behavior:
+
+    -   Extracted the timeout store facade, shared row/table helpers, query operations, state mutations, and raw-SQL worker persistence into dedicated `userChatTimeoutStore` modules so the main file is easier to read and maintain.
+    -   Kept the existing timeout creation, listing, cancellation, retry, completion, counting, lease-recovery, and claiming flows intact while preserving the same public imports from `apps/agents-server/src/utils/userChatTimeout/userChatTimeoutStore.ts`.
+
 -   Refactored Agents Server `serverManagement.ts` into smaller focused private modules without changing managed-server behavior:
 
     -   Extracted the public facade, shared input normalization, registry operations, migration/delete helpers, and global-admin/error utilities into dedicated `serverManagement` modules so the entry file is easier to scan.
