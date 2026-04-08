@@ -1,731 +1,29 @@
 import { type ReactElement } from 'react';
-import { validateBook } from '../../../book-2.0/agent-source/string_book';
-import { Color } from '../../../utils/color/Color';
-import { textColor } from '../../../utils/color/operators/furthest';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 import type { WithTake } from '../../../utils/take/interfaces/ITakeChain';
 import { classNames } from '../../_common/react-utils/classNames';
-import { BookEditor } from '../../BookEditor/BookEditor';
-import { EmailIcon } from '../../icons/EmailIcon';
-import { TeacherIcon } from '../../icons/TeacherIcon';
-import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletInfo';
-import { formatToolCallDateTime } from '../utils/formatToolCallDateTime';
-import { formatToolCallTranslationTemplate } from '../utils/formatToolCallTranslationTemplate';
+import { getToolCallTimestamp, parseToolCallArguments, parseToolCallResult } from '../utils/toolCallParsing';
 import { resolveToolCallState } from '../utils/resolveToolCallState';
 import {
-    buildTimeoutToolPrimarySentence,
-    buildTimeoutToolScheduleSentence,
-    resolveTimeoutToolCallPresentation,
-} from '../utils/timeoutToolCallPresentation';
-import {
     parseWalletCredentialToolCallResult,
-    type WalletCredentialToolCallResult,
     WALLET_CREDENTIAL_TOOL_CALL_NAME,
 } from '../utils/walletCredentialToolCall';
-import {
-    extractSearchResults,
-    getToolCallResultDate,
-    getToolCallTimestamp,
-    parseRunBrowserToolResult,
-    parseToolCallArguments,
-    parseToolCallResult,
-    resolveRunBrowserArtifactUrl,
-} from '../utils/toolCallParsing';
+import { Color } from '../../../utils/color/Color';
+import { renderEmailToolCallDetails } from './renderEmailToolCallDetails';
+import { renderMemoryToolCallDetails } from './renderMemoryToolCallDetails';
+import { renderPopupToolCallDetails } from './renderPopupToolCallDetails';
+import { renderRunBrowserToolCallDetails } from './renderRunBrowserToolCallDetails';
+import { renderSearchToolCallDetails } from './renderSearchToolCallDetails';
+import { renderSelfLearningToolCallDetails } from './renderSelfLearningToolCallDetails';
+import { renderTimeToolCallDetails } from './renderTimeToolCallDetails';
+import { renderTimeoutToolCallDetails } from './renderTimeoutToolCallDetails';
+import { renderToolCallProgressPlaceholder } from './renderToolCallProgressPlaceholder';
+import { renderWalletCredentialToolCallDetails } from './renderWalletCredentialToolCallDetails';
+import { resolveToolCallProgressMessage } from './resolveToolCallProgressMessage';
 import styles from './Chat.module.css';
-import { buildSelfLearningSummary } from './ChatSelfLearningSummary';
-import { SelfLearningAvatar } from './ChatToolCallModalComponents';
-import { ClockIcon } from './ClockIcon';
-
-/**
- * Metadata for a single memory record returned by MEMORY tools.
- *
- * @private function of ChatToolCallModal
- */
-type MemoryRecord = {
-    /**
-     * Unique identifier for the memory entry.
-     */
-    id?: string;
-    /**
-     * Stored memory text.
-     */
-    content?: string;
-    /**
-     * Indicates if the memory is shared across agents.
-     */
-    isGlobal?: boolean;
-    /**
-     * ISO timestamp when the memory was created.
-     */
-    createdAt?: string;
-    /**
-     * ISO timestamp when the memory was last updated.
-     */
-    updatedAt?: string;
-};
-
-/**
- * Possible status labels returned by MEMORY tool calls.
- *
- * @private internal utility of `<ChatToolCallModal/>`
- */
-type MemoryStatusValue = 'stored' | 'ok' | 'disabled' | 'error' | string;
-
-/**
- * Visual tone used to style memory status badges.
- *
- * @private internal utility of `<ChatToolCallModal/>`
- */
-type MemoryStatusTone = 'success' | 'warning' | 'error' | 'neutral';
-
-/**
- * Visual metadata describing how a memory status should appear.
- *
- * @private internal utility of `<ChatToolCallModal/>`
- */
-type MemoryStatusInfo = {
-    /**
-     * Friendly label shown next to the status badge.
-     */
-    label: string;
-    /**
-     * Visual tone driving the badge styling.
-     */
-    tone: MemoryStatusTone;
-};
-
-/**
- * Normalized payload derived from the raw MEMORY tool result.
- *
- * @private internal utility of `<ChatToolCallModal/>`
- */
-type MemoryToolResult = {
-    /**
-     * Tool action that produced the payload.
-     */
-    action: 'store' | 'retrieve';
-    /**
-     * Reported status string for the action.
-     */
-    status: MemoryStatusValue;
-    /**
-     * Optional user-friendly message describing the result.
-     */
-    message?: string;
-    /**
-     * Query text used to retrieve memories.
-     */
-    query?: string;
-    /**
-     * Record returned after storing a memory.
-     */
-    memory?: MemoryRecord;
-    /**
-     * Records returned after retrieving memories.
-     */
-    memories?: MemoryRecord[];
-};
-
-/**
- * Rendering options for the memory-specific tool call view.
- *
- * @private internal utility of `<ChatToolCallModal/>`
- */
-type MemoryToolCallViewOptions = {
-    /**
-     * Raw tool call payload.
-     */
-    toolCall: NonNullable<ChatMessage['toolCalls']>[number];
-    /**
-     * Resolved tool call arguments.
-     */
-    args: Record<string, TODO_any>;
-    /**
-     * Parsed tool call result.
-     */
-    resultRaw: TODO_any;
-};
-
-/**
- * Maximum number of memory cards rendered inside the modal at once.
- *
- * @private internal utility of `<ChatToolCallModal/>`
- */
-const MEMORY_DISPLAY_LIMIT = 3;
-
-/**
- * CSS classes mapped by memory status tone.
- *
- * @private internal utility of `<ChatToolCallModal/>`
- */
-const MEMORY_STATUS_CLASS_BY_TONE: Record<MemoryStatusTone, string> = {
-    success: styles.memoryStatusSuccess,
-    warning: styles.memoryStatusWarning,
-    error: styles.memoryStatusError,
-    neutral: styles.memoryStatusNeutral,
-};
-
-/**
- * Visual state rendered for one browser action row in the modal.
- *
- * @private internal utility of `<ChatToolCallModal/>`
- */
-type BrowserActionRowState = 'pending' | 'running' | 'complete' | 'error';
-
-/**
- * One browser action row rendered in the simple browser-tool view.
- *
- * @private internal utility of `<ChatToolCallModal/>`
- */
-type BrowserActionRow = {
-    /**
-     * Stable row key.
-     */
-    key: string;
-    /**
-     * Human-readable action summary.
-     */
-    label: string;
-    /**
-     * Current action state.
-     */
-    state: BrowserActionRowState;
-};
-
-/**
- * Maps tool-call state into friendly running copy used by simple modal sections.
- *
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function resolveToolCallProgressMessage(toolCall: NonNullable<ChatMessage['toolCalls']>[number]): string {
-    switch (resolveToolCallState(toolCall)) {
-        case 'PENDING':
-            return 'The action has started and details are still arriving.';
-        case 'PARTIAL':
-            return 'The action is still running. More details will appear as they arrive.';
-        case 'ERROR':
-            return 'The action stopped with an error. Partial details are still available below.';
-        case 'COMPLETE':
-            return 'The action finished.';
-    }
-}
-
-/**
- * Renders a shared placeholder card for pending and partial tool-call details.
- *
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function renderToolCallProgressPlaceholder(options: {
-    title: string;
-    message: string;
-    badgeLabel?: string;
-}): ReactElement {
-    return (
-        <div className={styles.toolCallPendingCard}>
-            <div className={styles.toolCallPendingHeader}>
-                <span className={styles.toolCallPendingTitle}>{options.title}</span>
-                <span className={styles.toolCallPendingBadge}>{options.badgeLabel || 'Running'}</span>
-            </div>
-            <p className={styles.toolCallPendingMessage}>{options.message}</p>
-            <div className={styles.toolCallPendingSkeleton} aria-hidden="true">
-                <span className={styles.toolCallPendingSkeletonLine} />
-                <span className={styles.toolCallPendingSkeletonLine} />
-                <span className={classNames(styles.toolCallPendingSkeletonLine, styles.toolCallPendingSkeletonShort)} />
-            </div>
-        </div>
-    );
-}
-
-/**
- * Creates a human-readable summary for one requested browser action.
- *
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function formatRequestedBrowserActionSummary(action: Record<string, TODO_any>, fallbackIndex: number): string {
-    const actionType = typeof action.type === 'string' ? action.type : '';
-
-    switch (actionType) {
-        case 'navigate':
-            return typeof action.value === 'string' && action.value.trim()
-                ? `Navigate to ${action.value.trim()}`
-                : 'Navigate';
-        case 'click':
-            return typeof action.selector === 'string' && action.selector.trim()
-                ? `Click ${action.selector.trim()}`
-                : 'Click';
-        case 'type':
-            return typeof action.selector === 'string' && action.selector.trim()
-                ? `Type into ${action.selector.trim()}`
-                : 'Type text';
-        case 'wait':
-            return typeof action.value === 'number' || typeof action.value === 'string'
-                ? `Wait ${String(action.value)}ms`
-                : 'Wait';
-        case 'scroll':
-            return typeof action.selector === 'string' && action.selector.trim()
-                ? `Scroll ${String(action.value ?? '')} in ${action.selector.trim()}`.trim()
-                : `Scroll ${String(action.value ?? '')}`.trim() || 'Scroll';
-        default:
-            return `Action ${fallbackIndex}`;
-    }
-}
-
-/**
- * Builds browser action rows from requested args and streamed browser logs.
- *
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function buildRunBrowserActionRows(options: {
-    args: Record<string, TODO_any>;
-    toolCall: NonNullable<ChatMessage['toolCalls']>[number];
-    parsedActionSummaries: ReadonlyArray<string>;
-}): Array<BrowserActionRow> {
-    const { args, toolCall, parsedActionSummaries } = options;
-    const requestedActions = Array.isArray(args.actions) ? args.actions : [];
-    const rows =
-        requestedActions.length > 0
-            ? requestedActions.map((action, index) => ({
-                  key: `requested-${index + 1}`,
-                  label:
-                      action && typeof action === 'object'
-                          ? formatRequestedBrowserActionSummary(action as Record<string, TODO_any>, index + 1)
-                          : `Action ${index + 1}`,
-                  state: 'pending' as BrowserActionRowState,
-              }))
-            : parsedActionSummaries.map((actionSummary, index) => ({
-                  key: `parsed-${index + 1}`,
-                  label: actionSummary,
-                  state: 'complete' as BrowserActionRowState,
-              }));
-
-    for (const logEntry of toolCall.logs || []) {
-        if (logEntry.kind !== 'browser-action') {
-            continue;
-        }
-
-        const payload =
-            logEntry.payload && typeof logEntry.payload === 'object' && !Array.isArray(logEntry.payload)
-                ? (logEntry.payload as Record<string, TODO_any>)
-                : null;
-        const actionIndex =
-            payload && typeof payload.actionIndex === 'number' && payload.actionIndex > 0
-                ? payload.actionIndex - 1
-                : -1;
-        const phase = typeof payload?.phase === 'string' ? payload.phase : null;
-        const nextState: BrowserActionRowState =
-            phase === 'error' ? 'error' : phase === 'complete' ? 'complete' : 'running';
-
-        if (actionIndex >= 0 && rows[actionIndex]) {
-            rows[actionIndex] = {
-                ...rows[actionIndex]!,
-                label: logEntry.message || rows[actionIndex]!.label,
-                state: nextState,
-            };
-            continue;
-        }
-
-        rows.push({
-            key: `logged-${rows.length + 1}`,
-            label: logEntry.message || logEntry.title || `Action ${rows.length + 1}`,
-            state: nextState,
-        });
-    }
-
-    if (resolveToolCallState(toolCall) === 'COMPLETE' && parsedActionSummaries.length > rows.length) {
-        parsedActionSummaries.slice(rows.length).forEach((actionSummary, index) => {
-            rows.push({
-                key: `completed-${rows.length + index + 1}`,
-                label: actionSummary,
-                state: 'complete',
-            });
-        });
-    }
-
-    return rows;
-}
-
-/**
- * Renders a friendly memory summary screen when a MEMORY tool call is selected.
- *
- * @param options - View fragments required to render the memory modal.
- * @returns Memory-specific modal JSX or `null` when the tool is unrelated.
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function renderMemoryToolCall(options: MemoryToolCallViewOptions): ReactElement | null {
-    const { toolCall, args, resultRaw } = options;
-    if (toolCall.name !== 'retrieve_user_memory' && toolCall.name !== 'store_user_memory') {
-        return null;
-    }
-
-    const isStoreAction = toolCall.name === 'store_user_memory';
-    const memoryResult = buildMemoryToolResult(resultRaw, isStoreAction ? 'store' : 'retrieve');
-    if (!memoryResult) {
-        return null;
-    }
-
-    const heroTitle = isStoreAction ? 'Memory saved' : 'Memories retrieved';
-    const heroSubtitle = isStoreAction
-        ? 'This detail is now stored so future chats will remember it.'
-        : 'The agent pulled these facts from the memory vault.';
-    const statusInfo = buildMemoryStatusInfo(memoryResult.status, memoryResult.action);
-    const statusClass = MEMORY_STATUS_CLASS_BY_TONE[statusInfo.tone] || styles.memoryStatusNeutral;
-
-    return (
-        <>
-            <div className={styles.memoryModalHeader}>
-                <div className={styles.memoryModalIcon}>🧠</div>
-                <div className={styles.memoryModalHeaderText}>
-                    <h3 className={styles.memoryModalTitle}>{heroTitle}</h3>
-                    <p className={styles.memoryModalSubtitle}>{heroSubtitle}</p>
-                </div>
-                <div className={classNames(styles.memoryModalStatus, statusClass)}>
-                    <span className={styles.memoryStatusDot}></span>
-                    {statusInfo.label}
-                </div>
-            </div>
-
-            <div className={styles.memoryModalContent}>
-                {memoryResult.message && <p className={styles.memoryMessage}>{memoryResult.message}</p>}
-
-                {isStoreAction
-                    ? renderMemoryStoreSection({ memoryResult, args })
-                    : renderMemoryRetrieveSection({ memoryResult, args })}
-            </div>
-        </>
-    );
-}
-
-/**
- * Renders the stored memory detail pane.
- *
- * @param options - Store action payload and arguments.
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function renderMemoryStoreSection(options: {
-    memoryResult: MemoryToolResult;
-    args: Record<string, TODO_any>;
-}): ReactElement {
-    const { memoryResult, args } = options;
-    const storedScope = memoryResult.memory?.isGlobal ?? (typeof args.isGlobal === 'boolean' ? args.isGlobal : false);
-    const scopeLabel = storedScope ? 'Global memory' : 'Personal memory';
-    const scopeBadge = storedScope ? 'Global' : 'Personal';
-    const storedContent =
-        memoryResult.memory?.content?.trim() || (typeof args.content === 'string' ? args.content.trim() : '');
-    const timestamp =
-        formatMemoryTimestamp(memoryResult.memory?.updatedAt) ?? formatMemoryTimestamp(memoryResult.memory?.createdAt);
-
-    return (
-        <div className={styles.memoryStoreSection}>
-            <div className={styles.memoryMetaRow}>
-                <span className={styles.memoryMetaLabel}>Scope</span>
-                <span className={styles.memoryMetaValue}>{scopeLabel}</span>
-            </div>
-
-            <div className={styles.memoryCard}>
-                <div className={styles.memoryCardContent}>
-                    {storedContent || 'No memory content was provided for this call.'}
-                </div>
-                <div className={styles.memoryCardMeta}>
-                    <span className={styles.memoryScopeBadge}>{scopeBadge}</span>
-                    {timestamp && <span>{timestamp}</span>}
-                </div>
-            </div>
-        </div>
-    );
-}
-
-/**
- * Renders the retrieved memories list.
- *
- * @param options - Retrieve action payload and arguments.
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function renderMemoryRetrieveSection(options: {
-    memoryResult: MemoryToolResult;
-    args: Record<string, TODO_any>;
-}): ReactElement {
-    const { memoryResult, args } = options;
-    const queryLabel = memoryResult.query?.trim() || (typeof args.query === 'string' ? args.query.trim() : '');
-    const memories = (memoryResult.memories || [])
-        .map((entry) => entry && normalizeMemoryRecord(entry))
-        .filter((entry): entry is MemoryRecord => Boolean(entry && entry.content && entry.content.trim().length > 0));
-    const displayedMemories = memories.slice(0, MEMORY_DISPLAY_LIMIT);
-    const extraCount = memories.length - displayedMemories.length;
-
-    return (
-        <div className={styles.memoryRetrieveSection}>
-            {queryLabel && (
-                <div className={styles.memoryMetaRow}>
-                    <span className={styles.memoryMetaLabel}>Search</span>
-                    <span className={styles.memoryMetaValue}>&ldquo;{queryLabel}&rdquo;</span>
-                </div>
-            )}
-            <div className={styles.memoryMetaRow}>
-                <span className={styles.memoryMetaLabel}>Matches</span>
-                <span className={styles.memoryMetaValue}>{memories.length}</span>
-            </div>
-
-            {memories.length === 0 ? (
-                <div className={styles.memoryEmptyState}>
-                    {memoryResult.message ||
-                        (queryLabel
-                            ? `No memories match “${queryLabel}”.`
-                            : 'No memories were available for this conversation.')}
-                </div>
-            ) : (
-                <>
-                    <div className={styles.memoryList}>
-                        {displayedMemories.map((memory, index) => {
-                            const timestamp =
-                                formatMemoryTimestamp(memory.updatedAt) ?? formatMemoryTimestamp(memory.createdAt);
-
-                            return (
-                                <div key={memory.id || `${memory.content}-${index}`} className={styles.memoryCard}>
-                                    <div className={styles.memoryCardContent}>{memory.content}</div>
-                                    <div className={styles.memoryCardMeta}>
-                                        <span className={styles.memoryScopeBadge}>
-                                            {memory.isGlobal ? 'Global' : 'Personal'}
-                                        </span>
-                                        {timestamp && <span>{timestamp}</span>}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                    {extraCount > 0 && (
-                        <div className={styles.memoryListFooter}>
-                            {extraCount} more {extraCount === 1 ? 'memory' : 'memories'} available.
-                        </div>
-                    )}
-                </>
-            )}
-        </div>
-    );
-}
-
-/**
- * Transforms the raw tool result (or fallback data) into a normalized memory payload.
- *
- * @param raw - Raw data returned by the tool call.
- * @param fallbackAction - Action to assume when the payload does not declare one.
- * @returns Normalized memory details or `null` when no payload exists.
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function buildMemoryToolResult(raw: TODO_any, fallbackAction: 'store' | 'retrieve'): MemoryToolResult | null {
-    if (raw && typeof raw === 'object') {
-        const normalizedMemories = Array.isArray(raw.memories)
-            ? raw.memories
-                  .map((entry: TODO_any) => entry && normalizeMemoryRecord(entry))
-                  .filter((entry: MemoryRecord | null): entry is MemoryRecord => Boolean(entry))
-            : [];
-
-        const normalizedMemory = raw.memory ? normalizeMemoryRecord(raw.memory) ?? undefined : undefined;
-
-        return {
-            action: raw.action === 'store' ? 'store' : fallbackAction,
-            status:
-                (typeof raw.status === 'string' ? raw.status : undefined) ??
-                (fallbackAction === 'store' ? 'stored' : 'ok'),
-            message: typeof raw.message === 'string' ? raw.message : undefined,
-            query: typeof raw.query === 'string' ? raw.query : undefined,
-            memory: normalizedMemory,
-            memories: normalizedMemories.length > 0 ? normalizedMemories : undefined,
-        };
-    }
-
-    if (typeof raw === 'string') {
-        return {
-            action: fallbackAction,
-            status: 'error',
-            message: raw,
-        };
-    }
-
-    return {
-        action: fallbackAction,
-        status: fallbackAction === 'store' ? 'stored' : 'ok',
-    };
-}
-
-/**
- * Normalizes a memory record payload.
- *
- * @param entry - Input record from the memory tool.
- * @returns Normalized record or `null` when the entry is invalid.
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function normalizeMemoryRecord(entry: TODO_any): MemoryRecord | null {
-    if (!entry || typeof entry !== 'object') {
-        return null;
-    }
-
-    return {
-        id: typeof entry.id === 'string' ? entry.id : undefined,
-        content: typeof entry.content === 'string' ? entry.content.trim() : undefined,
-        isGlobal: entry.isGlobal === true,
-        createdAt: typeof entry.createdAt === 'string' ? entry.createdAt : undefined,
-        updatedAt: typeof entry.updatedAt === 'string' ? entry.updatedAt : undefined,
-    };
-}
-
-/**
- * Builds friendly status text and tone for memory actions.
- *
- * @param status - Raw status string returned by the tool.
- * @param action - Optional action to better describe neutral statuses.
- * @returns Label and tone for badge styling.
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function buildMemoryStatusInfo(status: MemoryStatusValue, action: 'store' | 'retrieve'): MemoryStatusInfo {
-    const normalized = (status || (action === 'store' ? 'stored' : 'ok')).toString().toLowerCase();
-
-    if (normalized === 'stored') {
-        return { label: 'Saved', tone: 'success' };
-    }
-
-    if (normalized === 'ok') {
-        return { label: 'Loaded', tone: 'success' };
-    }
-
-    if (normalized === 'disabled') {
-        return { label: 'Memory disabled', tone: 'warning' };
-    }
-
-    if (normalized === 'error') {
-        return { label: 'Something went wrong', tone: 'error' };
-    }
-
-    return {
-        label: action === 'store' ? 'Memory saved' : 'Memory retrieved',
-        tone: 'neutral',
-    };
-}
-
-/**
- * Formats ISO timestamps returned by memory records.
- *
- * @param value - Potential ISO timestamp string.
- * @returns Formatted label or `null` when the timestamp is invalid.
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function formatMemoryTimestamp(value?: string): string | null {
-    if (!value) {
-        return null;
-    }
-
-    const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) {
-        return null;
-    }
-
-    return parsed.toLocaleString(undefined, {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-    });
-}
-
-/**
- * Default snooze interval used by timeout quick actions.
- *
- * @private internal timeout-chat constant
- */
-const DEFAULT_TIMEOUT_SNOOZE_DURATION_MILLISECONDS = 5 * 60 * 1_000;
-
-/**
- * Configuration for the shared clock panel used by time and timeout popups.
- *
- * @private internal utility of `<ChatToolCallModal/>`
- */
-type ToolCallClockPanelOptions = {
-    /**
-     * Date rendered by the analog clock and local labels.
-     */
-    date: Date;
-    /**
-     * Optional relative label (for example: `called 2 minutes ago`).
-     */
-    relativeLabel?: string | null;
-    /**
-     * Optional timezone label shown below the date.
-     */
-    timezoneLabel?: string | null;
-    /**
-     * Optional BCP-47 locale string used to format the local time display.
-     * When omitted the browser/OS default locale is used.
-     */
-    locale?: string;
-};
-
-/**
- * Renders a shared analog-clock panel used by time and timeout tool views.
- *
- * @param options - Clock panel rendering options.
- * @returns Clock section with local date/time labels.
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function renderToolCallClockPanel(options: ToolCallClockPanelOptions): ReactElement {
-    const { date, relativeLabel, timezoneLabel, locale } = options;
-    const formattedDateTime = formatToolCallDateTime(date, { locale });
-
-    return (
-        <div className={styles.toolCallClockPanel}>
-            <ClockIcon date={date} size={150} />
-            <div className={styles.toolCallClockLabels}>
-                <div className={styles.toolCallClockPrimary}>{formattedDateTime.localTimeLabel}</div>
-                <div className={styles.toolCallClockSecondary}>{formattedDateTime.localDateLabel}</div>
-                {relativeLabel && <div className={styles.toolCallClockMeta}>({relativeLabel})</div>}
-                {timezoneLabel && <div className={styles.toolCallClockMeta}>{timezoneLabel}</div>}
-            </div>
-        </div>
-    );
-}
-
-/**
- * Copies one quick action command to clipboard when supported.
- *
- * @param command - Command text copied for the user.
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function copyTimeoutQuickActionCommand(command: string): void {
-    if (typeof navigator === 'undefined' || !navigator.clipboard?.writeText) {
-        return;
-    }
-
-    void navigator.clipboard.writeText(command);
-}
-
-/**
- * Builds one `cancel_timeout(...)` helper command for timeout quick actions.
- *
- * @param timeoutId - Timeout identifier to cancel.
- * @returns Helper command text.
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function createCancelTimeoutQuickActionCommand(timeoutId: string): string {
-    return `cancel_timeout(${JSON.stringify({ timeoutId })})`;
-}
-
-/**
- * Builds one `set_timeout(...)` helper command for timeout snooze quick actions.
- *
- * @param message - Optional timeout wake-up message.
- * @returns Helper command text.
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function createSnoozeTimeoutQuickActionCommand(message?: string): string {
-    const payload: Record<string, TODO_any> = {
-        milliseconds: DEFAULT_TIMEOUT_SNOOZE_DURATION_MILLISECONDS,
-    };
-
-    if (typeof message === 'string' && message.trim()) {
-        payload.message = message.trim();
-    }
-
-    return `set_timeout(${JSON.stringify(payload)})`;
-}
 
 /**
  * Options for rendering a tool call detail view.
@@ -755,7 +53,6 @@ type ToolCallDetailsOptions = {
     onRequestAdvancedView?: () => void;
     /**
      * Optional BCP-47 locale string used to format time labels.
-     * When omitted the browser/OS default locale is used.
      */
     locale?: string;
     /**
@@ -765,358 +62,46 @@ type ToolCallDetailsOptions = {
 };
 
 /**
- * Renders a friendly wallet-credential usage summary for non-technical users.
+ * One formatted request entry in the generic tool summary.
  *
- * @param credential - Safe credential usage metadata.
- * @param toolCallDate - Optional timestamp of the action.
- * @returns Credential details section for the tool modal.
- * @private internal utility of `<ChatToolCallModal/>`
+ * @private function of ChatToolCallModal
  */
-function renderWalletCredentialToolCall(
-    credential: WalletCredentialToolCallResult,
-    toolCallDate: Date | null,
-): ReactElement {
-    const serviceLabel = formatWalletCredentialService(credential.service);
-    const sourceToolNames = normalizeWalletCredentialSourceToolNames(credential);
-    const sourceToolLabels = sourceToolNames.map(
-        (sourceToolName) => TOOL_TITLES[sourceToolName]?.title || sourceToolName,
-    );
-    const usedByLabel = sourceToolLabels.length > 1 ? 'Used by actions' : 'Used by action';
-
-    return (
-        <>
-            <header className={styles.toolCallHeader}>
-                <span className={styles.toolCallIcon} aria-hidden="true">
-                    🔐
-                </span>
-                <div className={styles.toolCallHeaderMeta}>
-                    <p className={styles.toolCallModalLabel}>Credential</p>
-                    <h3 className={styles.toolCallTitle}>{credential.credentialName}</h3>
-                    <p className={styles.toolCallSubtitle}>Used securely from your wallet.</p>
-                </div>
-            </header>
-
-            <div className={styles.toolCallGrid}>
-                <section className={styles.toolCallPanel}>
-                    <p className={styles.toolCallPanelTitle}>What it was used for</p>
-                    <p className={styles.toolCallSummary}>{credential.purpose}</p>
-                </section>
-
-                <section className={styles.toolCallPanel}>
-                    <p className={styles.toolCallPanelTitle}>Credential details</p>
-                    <ul className={styles.toolCallList}>
-                        <li className={styles.toolCallItem}>
-                            <span className={styles.toolCallItemLabel}>Service</span>
-                            <span className={styles.toolCallItemValue}>{serviceLabel}</span>
-                        </li>
-                        <li className={styles.toolCallItem}>
-                            <span className={styles.toolCallItemLabel}>Credential reference</span>
-                            <span className={styles.toolCallItemValue}>{credential.key}</span>
-                        </li>
-                        <li className={styles.toolCallItem}>
-                            <span className={styles.toolCallItemLabel}>{usedByLabel}</span>
-                            <span className={styles.toolCallItemValue}>{sourceToolLabels.join(', ')}</span>
-                        </li>
-                        {toolCallDate && (
-                            <li className={styles.toolCallItem}>
-                                <span className={styles.toolCallItemLabel}>Time</span>
-                                <span className={styles.toolCallItemValue}>{toolCallDate.toLocaleString()}</span>
-                            </li>
-                        )}
-                    </ul>
-                </section>
-            </div>
-        </>
-    );
-}
+type ToolCallArgumentEntry = {
+    /**
+     * Human-friendly label derived from the raw argument key.
+     */
+    label: string;
+    /**
+     * Stringified argument value tailored for display.
+     */
+    value: string;
+};
 
 /**
- * Normalizes source tool names attached to a wallet credential chip.
+ * Represents an error or warning surfaced inside the modal footer.
  *
- * @param credential - Credential payload from the synthetic wallet tool call.
- * @returns Ordered unique source tool names.
- * @private internal utility of `<ChatToolCallModal/>`
+ * @private function of ChatToolCallModal
  */
-function normalizeWalletCredentialSourceToolNames(credential: WalletCredentialToolCallResult): Array<string> {
-    const normalizedNames = new Set<string>();
-    const sourceToolNames =
-        Array.isArray(credential.sourceToolNames) && credential.sourceToolNames.length > 0
-            ? credential.sourceToolNames
-            : [credential.sourceToolName];
-
-    for (const sourceToolName of sourceToolNames) {
-        if (typeof sourceToolName !== 'string') {
-            continue;
-        }
-
-        const trimmedSourceToolName = sourceToolName.trim();
-        if (!trimmedSourceToolName) {
-            continue;
-        }
-
-        normalizedNames.add(trimmedSourceToolName);
-    }
-
-    return Array.from(normalizedNames.values());
-}
-
-/**
- * Converts internal service identifiers into human-friendly labels.
- *
- * @param service - Technical service identifier.
- * @returns Friendly service label.
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function formatWalletCredentialService(service: string): string {
-    const normalizedService = service.trim().toLowerCase();
-    if (normalizedService === 'smtp') {
-        return 'Email (SMTP)';
-    }
-    if (normalizedService === 'github') {
-        return 'GitHub';
-    }
-    return service;
-}
-
-/**
- * Renders a visual replay view for `run_browser` tool calls.
- *
- * @param options - Parsed browser tool details needed by the modal.
- * @returns Visual browser replay content.
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function renderRunBrowserToolCall(options: {
-    toolCall: NonNullable<ChatMessage['toolCalls']>[number];
-    args: Record<string, TODO_any>;
-    resultRaw: TODO_any;
-}): ReactElement {
-    const { toolCall, args, resultRaw } = options;
-    const parsedResult = parseRunBrowserToolResult(resultRaw);
-    const toolCallState = resolveToolCallState(toolCall);
-    const initialUrl = parsedResult?.initialUrl || (typeof args.url === 'string' ? args.url : null);
-    const finalUrl = parsedResult?.finalUrl || null;
-    const finalTitle = parsedResult?.finalTitle || null;
-    const mode = parsedResult?.mode || null;
-    const modeUsed = parsedResult?.modeUsed || null;
-    const warning = parsedResult?.warning || null;
-    const fallbackContent = parsedResult?.fallbackContent || null;
-    const runBrowserError = parsedResult?.error || null;
-    const artifacts = parsedResult?.artifacts || [];
-    const actions = parsedResult?.actions || [];
-    const actionRows = buildRunBrowserActionRows({
-        args,
-        toolCall,
-        parsedActionSummaries: actions.map((action) => action.summary),
-    });
-    const browserReadyLog = (toolCall.logs || []).find((logEntry) => logEntry.kind === 'browser-session');
-    const shouldShowProgressPlaceholder =
-        toolCallState !== 'COMPLETE' && !runBrowserError && artifacts.length === 0 && !fallbackContent;
-
-    return (
-        <>
-            <div className={classNames(styles.searchModalHeader, styles.browserRunModalHeader)}>
-                <span className={styles.searchModalIcon}>🌐</span>
-                <div className={styles.browserRunHeaderText}>
-                    <span className={styles.browserRunHeaderLabel}>Browser</span>
-                    <h3 className={styles.searchModalQuery}>Session replay</h3>
-                    <p className={styles.browserRunHeaderStatus}>{resolveToolCallProgressMessage(toolCall)}</p>
-                </div>
-            </div>
-
-            <div className={styles.searchModalContent}>
-                {(initialUrl || finalUrl || finalTitle || mode || modeUsed) && (
-                    <div className={styles.browserRunMeta}>
-                        {initialUrl && (
-                            <div className={styles.emailField}>
-                                <strong>Started at:</strong>
-                                <span className={styles.emailRecipients}>
-                                    <a href={initialUrl} target="_blank" rel="noreferrer">
-                                        {initialUrl}
-                                    </a>
-                                </span>
-                            </div>
-                        )}
-                        {finalUrl && (
-                            <div className={styles.emailField}>
-                                <strong>Ended at:</strong>
-                                <span className={styles.emailRecipients}>
-                                    <a href={finalUrl} target="_blank" rel="noreferrer">
-                                        {finalUrl}
-                                    </a>
-                                </span>
-                            </div>
-                        )}
-                        {finalTitle && (
-                            <div className={styles.emailField}>
-                                <strong>Final page:</strong>
-                                <span className={styles.emailRecipients}>{finalTitle}</span>
-                            </div>
-                        )}
-                        {mode && (
-                            <div className={styles.emailField}>
-                                <strong>Mode requested:</strong>
-                                <span className={styles.emailRecipients}>{mode}</span>
-                            </div>
-                        )}
-                        {modeUsed && (
-                            <div className={styles.emailField}>
-                                <strong>Mode used:</strong>
-                                <span className={styles.emailRecipients}>{modeUsed}</span>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {browserReadyLog && (
-                    <div className={styles.browserRunStatusBanner}>
-                        <strong>{browserReadyLog.title || 'Browser status'}:</strong> {browserReadyLog.message}
-                    </div>
-                )}
-
-                {warning && (
-                    <div className={styles.browserRunWarning}>
-                        <strong>Warning:</strong> {warning}
-                    </div>
-                )}
-
-                {runBrowserError && (
-                    <div className={styles.browserRunError}>
-                        <h4 className={styles.browserRunActionLogTitle}>Issue</h4>
-                        <p className={styles.browserRunErrorSummary}>
-                            <strong>{runBrowserError.code}</strong>: {runBrowserError.message}
-                        </p>
-                        {runBrowserError.suggestedNextSteps.length > 0 && (
-                            <ul className={styles.browserRunErrorSteps}>
-                                {runBrowserError.suggestedNextSteps.map((step, index) => (
-                                    <li key={`${step}-${index}`}>{step}</li>
-                                ))}
-                            </ul>
-                        )}
-                        {runBrowserError.debug && (
-                            <details className={styles.browserRunDebugDetails}>
-                                <summary>Show debug details</summary>
-                                <pre>{JSON.stringify(runBrowserError.debug, null, 2)}</pre>
-                            </details>
-                        )}
-                    </div>
-                )}
-
-                {fallbackContent && (
-                    <div className={styles.browserRunFallbackContent}>
-                        <h4 className={styles.browserRunActionLogTitle}>Fallback extracted content</h4>
-                        <MarkdownContent className={styles.searchResultsRaw} content={fallbackContent} />
-                    </div>
-                )}
-
-                {artifacts.length > 0 ? (
-                    <div className={styles.browserRunMediaGrid}>
-                        {artifacts.map((artifact, index) => {
-                            const mediaUrl = resolveRunBrowserArtifactUrl(artifact.path);
-                            const mediaKey = `${artifact.path}-${index}`;
-                            const caption = artifact.actionSummary || artifact.label;
-
-                            return (
-                                <article key={mediaKey} className={styles.browserRunMediaCard}>
-                                    <div className={styles.browserRunMediaCardHeader}>
-                                        <h4 className={styles.browserRunMediaTitle}>{artifact.label}</h4>
-                                        {caption && <p className={styles.browserRunMediaCaption}>{caption}</p>}
-                                    </div>
-                                    {artifact.kind === 'video' ? (
-                                        <video
-                                            className={styles.browserRunMediaVideo}
-                                            src={mediaUrl}
-                                            controls={true}
-                                            playsInline={true}
-                                        />
-                                    ) : (
-                                        <img
-                                            className={styles.browserRunMediaImage}
-                                            src={mediaUrl}
-                                            alt={caption || `Browser artifact ${index + 1}`}
-                                            loading="lazy"
-                                        />
-                                    )}
-                                </article>
-                            );
-                        })}
-                    </div>
-                ) : shouldShowProgressPlaceholder ? (
-                    renderToolCallProgressPlaceholder({
-                        title: 'Visual replay pending',
-                        message:
-                            'The browser session is still running. Screenshots and page state will appear here as they arrive.',
-                    })
-                ) : !fallbackContent ? (
-                    <div className={styles.noResults}>No browser visuals were captured for this action.</div>
-                ) : null}
-
-                {actionRows.length > 0 && (
-                    <div className={styles.browserRunActionLog}>
-                        <h4 className={styles.browserRunActionLogTitle}>Actions</h4>
-                        <ol className={styles.browserRunActionList}>
-                            {actionRows.map((actionRow) => (
-                                <li
-                                    key={actionRow.key}
-                                    className={classNames(
-                                        styles.browserRunActionItem,
-                                        actionRow.state === 'running' && styles.browserRunActionRunning,
-                                        actionRow.state === 'complete' && styles.browserRunActionComplete,
-                                        actionRow.state === 'error' && styles.browserRunActionError,
-                                        actionRow.state === 'pending' && styles.browserRunActionPending,
-                                    )}
-                                >
-                                    <span
-                                        className={classNames(
-                                            styles.browserRunActionState,
-                                            actionRow.state === 'running' && styles.browserRunActionStateRunning,
-                                            actionRow.state === 'complete' && styles.browserRunActionStateComplete,
-                                            actionRow.state === 'error' && styles.browserRunActionStateError,
-                                        )}
-                                    />
-                                    {actionRow.label}
-                                    {actionRow.state === 'pending' && (
-                                        <span className={styles.browserRunActionMeta}>Pending</span>
-                                    )}
-                                    {actionRow.state === 'running' && (
-                                        <span className={styles.browserRunActionMeta}>Running</span>
-                                    )}
-                                    {actionRow.state === 'complete' && (
-                                        <span className={styles.browserRunActionMeta}>Done</span>
-                                    )}
-                                    {actionRow.state === 'error' && (
-                                        <span className={styles.browserRunActionMeta}>Failed</span>
-                                    )}
-                                </li>
-                            ))}
-                        </ol>
-                    </div>
-                )}
-
-                {toolCallState !== 'COMPLETE' && actionRows.length === 0 && (
-                    <div className={styles.browserRunActionLog}>
-                        <h4 className={styles.browserRunActionLogTitle}>Actions</h4>
-                        {renderToolCallProgressPlaceholder({
-                            title: 'Actions pending',
-                            message: 'The browser action plan will appear here once the session starts streaming it.',
-                        })}
-                    </div>
-                )}
-
-                {runBrowserError && toolCallState !== 'ERROR' && (
-                    <div className={styles.browserRunStatusBanner}>
-                        <strong>Status:</strong> The browser reported an issue, but the tool call is still streaming
-                        final details.
-                    </div>
-                )}
-            </div>
-        </>
-    );
-}
+type ToolCallIssue = {
+    /**
+     * Visual severity of the issue badge.
+     */
+    type: 'error' | 'warning';
+    /**
+     * Human-readable badge label.
+     */
+    label: string;
+    /**
+     * Message shown inside the issue badge.
+     */
+    message: string;
+};
 
 /**
  * Renders the detail view for a single tool call.
  *
  * @param options - Rendering options for the tool call.
+ * @returns Simple tool-call detail JSX.
  * @private function of ChatToolCallModal
  */
 export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactElement {
@@ -1126,7 +111,8 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
     const args = parseToolCallArguments(toolCall);
     const toolCallDate = getToolCallTimestamp(toolCall);
     const toolCallState = resolveToolCallState(toolCall);
-    const memoryView = renderMemoryToolCall({
+
+    const memoryView = renderMemoryToolCallDetails({
         toolCall,
         args,
         resultRaw,
@@ -1138,468 +124,130 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
     const walletCredentialResult =
         toolCall.name === WALLET_CREDENTIAL_TOOL_CALL_NAME ? parseWalletCredentialToolCallResult(resultRaw) : null;
     if (walletCredentialResult) {
-        return renderWalletCredentialToolCall(walletCredentialResult, toolCallDate);
+        return renderWalletCredentialToolCallDetails({
+            credential: walletCredentialResult,
+            toolCallDate,
+        });
     }
 
-    const isSearch =
-        toolCall.name === 'web_search' || toolCall.name === 'useSearchEngine' || toolCall.name === 'search';
-    const isTime = toolCall.name === 'get_current_time' || toolCall.name === 'useTime';
-    const isTimeout = toolCall.name === 'set_timeout' || toolCall.name === 'cancel_timeout';
-    const isEmail = toolCall.name === 'send_email' || toolCall.name === 'useEmail';
-    const isPopup = toolCall.name === 'open_popup' || toolCall.name === 'usePopup' || toolCall.name === 'popup';
-    const isRunBrowser = toolCall.name === 'run_browser';
-    const isSelfLearning = toolCall.name === 'self-learning';
-
-    const { results, rawText } = extractSearchResults(resultRaw);
-    const hasResults = results.length > 0;
-    const hasRawText = !hasResults && !!rawText && rawText.trim().length > 0;
-
-    if (isPopup) {
-        const url = args.url || (typeof resultRaw === 'string' && resultRaw.includes('http') ? resultRaw : null);
-
-        return (
-            <>
-                <div className={classNames(styles.searchModalHeader, styles.emailModalHeader)}>
-                    <span className={styles.searchModalIcon}>🪟</span>
-                    <div className={styles.emailHeaderText}>
-                        <span className={styles.emailHeaderLabel}>Popup</span>
-                        <h3 className={styles.searchModalQuery}>Open Website</h3>
-                    </div>
-                </div>
-
-                <div className={styles.searchModalContent}>
-                    <div className={styles.emailContainer}>
-                        <div className={styles.emailMetadata}>
-                            <div className={styles.emailField}>
-                                <strong>URL:</strong>
-                                <span className={styles.emailRecipients}>
-                                    {url ? (
-                                        <a href={url} target="_blank" rel="noreferrer">
-                                            {url}
-                                        </a>
-                                    ) : (
-                                        'No URL provided'
-                                    )}
-                                </span>
-                            </div>
-                        </div>
-                        <div className={styles.emailBody}>
-                            <p>The agent wants to open a popup window with the URL above.</p>
-                            {url && (
-                                <div style={{ marginTop: '20px' }}>
-                                    <button
-                                        type="button"
-                                        className={styles.messageButton}
-                                        onClick={() => window.open(url, '_blank')}
-                                        style={{
-                                            backgroundColor: buttonColor.toHex(),
-                                            color: buttonColor.then(textColor).toHex(),
-                                            padding: '10px 20px',
-                                            borderRadius: '8px',
-                                            fontWeight: 'bold',
-                                        }}
-                                    >
-                                        Open Popup Now
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </>
-        );
-    }
-
-    if (isSelfLearning) {
-        const summary = buildSelfLearningSummary(toolCall, resultRaw);
-        const agentLabel = String(agentParticipant?.fullname || agentParticipant?.name || 'Agent');
-        const agentAvatarColor = Color.fromSafe(agentParticipant?.color || buttonColor).toHex();
-        const commitmentsHeight = summary.commitmentsLineCount
-            ? Math.min(Math.max(summary.commitmentsLineCount * 26, 140), 320)
-            : 0;
-
-        return (
-            <>
-                <div className={classNames(styles.searchModalHeader, styles.selfLearningModalHeader)}>
-                    <div className={styles.selfLearningAvatarGroup}>
-                        <SelfLearningAvatar
-                            label={agentLabel}
-                            avatarSrc={agentParticipant?.avatarSrc}
-                            fallbackColor={agentAvatarColor}
-                        />
-                        <SelfLearningAvatar label="Teacher" className={styles.selfLearningTeacher}>
-                            <TeacherIcon size={18} />
-                        </SelfLearningAvatar>
-                    </div>
-                    <div className={styles.selfLearningHeaderText}>
-                        <h3 className={styles.selfLearningTitle}>Learned commitments</h3>
-                    </div>
-                </div>
-
-                <div className={styles.searchModalContent}>
-                    {(summary.samplesLabel || summary.updatedLabel) && (
-                        <div className={styles.selfLearningMetaRow}>
-                            {summary.samplesLabel && (
-                                <span className={styles.selfLearningMetaChip}>{summary.samplesLabel}</span>
-                            )}
-                            {summary.updatedLabel && (
-                                <span className={styles.selfLearningMeta}>Updated {summary.updatedLabel}</span>
-                            )}
-                        </div>
-                    )}
-                    <div className={styles.selfLearningCommitments}>
-                        <span className={styles.selfLearningCommitmentsLabel}>Teacher updates</span>
-                        {summary.commitments.length > 0 ? (
-                            <div className={styles.selfLearningBookEditor}>
-                                <BookEditor
-                                    value={validateBook(summary.commitmentsText)}
-                                    isReadonly={true}
-                                    height={commitmentsHeight}
-                                    isUploadButtonShown={false}
-                                    isCameraButtonShown={false}
-                                    isDownloadButtonShown={false}
-                                    isAboutButtonShown={false}
-                                    isFullscreenButtonShown={false}
-                                />
-                            </div>
-                        ) : (
-                            <div className={styles.selfLearningEmpty}>
-                                {summary.hasTeacherCommitments
-                                    ? 'Commitments were added, but details were not provided.'
-                                    : 'No new commitments were added.'}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </>
-        );
-    }
-
-    if (isRunBrowser) {
-        return renderRunBrowserToolCall({
+    if (toolCall.name === 'run_browser') {
+        return renderRunBrowserToolCallDetails({
             toolCall,
             args,
             resultRaw,
         });
     }
 
-    if (isSearch) {
-        return (
-            <>
-                <div className={styles.searchModalHeader}>
-                    <span className={styles.searchModalIcon}>🔎</span>
-                    <h3 className={styles.searchModalQuery}>{args.query || args.searchText || 'Search Results'}</h3>
-                </div>
-
-                <div className={styles.searchModalContent}>
-                    {hasResults ? (
-                        <div className={styles.searchResultsList}>
-                            {(results as Array<TODO_any>).map((item, i) => (
-                                <div key={i} className={styles.searchResultItem}>
-                                    <div className={styles.searchResultUrl}>
-                                        {item.url && (
-                                            <a href={item.url} target="_blank" rel="noreferrer">
-                                                {item.url}
-                                            </a>
-                                        )}
-                                    </div>
-                                    <h4 className={styles.searchResultTitle}>
-                                        {item.url ? (
-                                            <a href={item.url} target="_blank" rel="noreferrer">
-                                                {item.title || 'Untitled'}
-                                            </a>
-                                        ) : (
-                                            item.title || 'Untitled'
-                                        )}
-                                    </h4>
-                                    <p className={styles.searchResultSnippet}>{item.snippet || item.content || ''}</p>
-                                </div>
-                            ))}
-                        </div>
-                    ) : hasRawText ? (
-                        <MarkdownContent className={styles.searchResultsRaw} content={rawText!} />
-                    ) : toolCallState !== 'COMPLETE' ? (
-                        <>
-                            {renderToolCallProgressPlaceholder({
-                                title: 'Search results pending',
-                                message: resolveToolCallProgressMessage(toolCall),
-                            })}
-                            <div className={styles.toolCallDetailsCard}>
-                                <div className={styles.toolCallDetailsCardRow}>
-                                    <strong>Query</strong>
-                                    <span>
-                                        {String(args.query || args.searchText || 'Search query is being prepared.')}
-                                    </span>
-                                </div>
-                                {args.location && (
-                                    <div className={styles.toolCallDetailsCardRow}>
-                                        <strong>Location</strong>
-                                        <span>{String(args.location)}</span>
-                                    </div>
-                                )}
-                                {args.engine && (
-                                    <div className={styles.toolCallDetailsCardRow}>
-                                        <strong>Engine</strong>
-                                        <span>{String(args.engine)}</span>
-                                    </div>
-                                )}
-                            </div>
-                        </>
-                    ) : (
-                        <div className={styles.noResults}>
-                            {resultRaw ? 'No search results found.' : 'Search results are not available.'}
-                        </div>
-                    )}
-                </div>
-            </>
-        );
+    if (toolCall.name === 'self-learning') {
+        return renderSelfLearningToolCallDetails({
+            toolCall,
+            resultRaw,
+            agentParticipant,
+            buttonColor,
+        });
     }
 
-    if (isTime) {
-        const timeResultDate = getToolCallResultDate(resultRaw);
-        const displayDate = timeResultDate || toolCallDate;
-        const isValidDate = !!displayDate && !isNaN(displayDate.getTime());
-        const toolCallDateLabels = toolCallDate
-            ? formatToolCallDateTime(toolCallDate, { locale, currentDate: new Date() })
-            : null;
-        const relativeLabel =
-            toolCallDateLabels?.relativeTimeLabel && chatUiTranslations?.toolCallTimeRelativeLabel
-                ? formatToolCallTranslationTemplate(chatUiTranslations.toolCallTimeRelativeLabel, {
-                      relative: toolCallDateLabels.relativeTimeLabel,
-                  })
-                : toolCallDateLabels?.relativeTimeLabel
-                ? formatToolCallTranslationTemplate('Called {relative}', {
-                      relative: toolCallDateLabels.relativeTimeLabel,
-                  })
-                : null;
-        const timezoneArg = typeof args.timezone === 'string' && args.timezone.trim() ? args.timezone.trim() : null;
-        const timezoneLabel = timezoneArg
-            ? `${chatUiTranslations?.toolCallTimeoutTimezoneLabel || 'Timezone:'} ${timezoneArg}`
-            : null;
-
-        return (
-            <>
-                <div className={styles.searchModalHeader}>
-                    <span className={styles.searchModalIcon}>⏰</span>
-                    <h3 className={styles.searchModalQuery}>
-                        {chatUiTranslations?.toolCallTimeTitle || 'Time at call'}
-                    </h3>
-                </div>
-
-                <div className={styles.searchModalContent}>
-                    {isValidDate && displayDate ? (
-                        renderToolCallClockPanel({
-                            date: displayDate,
-                            relativeLabel,
-                            timezoneLabel,
-                            locale,
-                        })
-                    ) : (
-                        <p className={styles.toolCallEmpty}>
-                            {chatUiTranslations?.toolCallTimeUnknown || 'Unknown time'}
-                        </p>
-                    )}
-                    <div className={styles.toolCallDetails}>
-                        <p>
-                            <strong>{chatUiTranslations?.toolCallTimeTimestampLabel || 'Timestamp of call:'}</strong>
-                        </p>
-                        <div className={styles.toolCallDataContainer}>
-                            <pre className={styles.toolCallData}>
-                                {toolCallDateLabels?.localDateTimeLabel ||
-                                    chatUiTranslations?.toolCallTimeUnknown ||
-                                    'Unknown time'}
-                            </pre>
-                        </div>
-                    </div>
-                </div>
-            </>
-        );
+    if (isSearchToolCallName(toolCall.name)) {
+        return renderSearchToolCallDetails({
+            toolCall,
+            args,
+            resultRaw,
+        });
     }
 
-    if (isTimeout) {
-        const timeoutPresentation = resolveTimeoutToolCallPresentation({
+    if (isTimeToolCallName(toolCall.name)) {
+        return renderTimeToolCallDetails({
+            args,
+            resultRaw,
+            toolCallDate,
+            locale,
+            chatUiTranslations,
+        });
+    }
+
+    if (isTimeoutToolCallName(toolCall.name)) {
+        return renderTimeoutToolCallDetails({
             toolCallName: toolCall.name,
             args,
             resultRaw,
-            currentDate: new Date(),
+            toolCallDate,
+            onRequestAdvancedView,
             locale,
+            chatUiTranslations,
         });
-        const clockDate = timeoutPresentation?.dueAtDate || toolCallDate;
-        const isValidClockDate = !!clockDate && !Number.isNaN(clockDate.getTime());
-        const title =
-            timeoutPresentation?.action === 'cancel'
-                ? timeoutPresentation.status === 'cancelled'
-                    ? chatUiTranslations?.toolCallTimeoutCancelledTitle || 'Timeout cancelled'
-                    : chatUiTranslations?.toolCallTimeoutUpdateTitle || 'Timeout update'
-                : chatUiTranslations?.toolCallTimeoutTitle || 'Timeout scheduled';
-        const primarySentence = timeoutPresentation
-            ? buildTimeoutToolPrimarySentence(timeoutPresentation, chatUiTranslations)
-            : chatUiTranslations?.toolCallTimeoutLoadingMessage || 'Timeout details are still loading.';
-        const scheduleSentence = timeoutPresentation
-            ? buildTimeoutToolScheduleSentence(timeoutPresentation, chatUiTranslations)
-            : null;
-        const cancelCommand =
-            timeoutPresentation?.timeoutId && timeoutPresentation.action !== 'cancel'
-                ? createCancelTimeoutQuickActionCommand(timeoutPresentation.timeoutId)
-                : null;
-        const snoozeCommand = createSnoozeTimeoutQuickActionCommand(timeoutPresentation?.message || undefined);
-        const timezoneLine = timeoutPresentation?.localTimezone
-            ? `${chatUiTranslations?.toolCallTimeoutTimezoneLabel || 'Timezone:'} ${timeoutPresentation.localTimezone}`
-            : null;
-
-        return (
-            <>
-                <div className={styles.searchModalHeader}>
-                    <span className={styles.searchModalIcon}>⏱️</span>
-                    <h3 className={styles.searchModalQuery}>{title}</h3>
-                </div>
-
-                <div className={styles.searchModalContent}>
-                    {isValidClockDate && clockDate ? (
-                        renderToolCallClockPanel({
-                            date: clockDate,
-                            relativeLabel: timeoutPresentation?.relativeDueLabel || null,
-                            timezoneLabel: timezoneLine,
-                            locale,
-                        })
-                    ) : (
-                        <p className={styles.toolCallEmpty}>
-                            {chatUiTranslations?.toolCallTimeoutUnavailableMessage || 'Scheduled time is unavailable.'}
-                        </p>
-                    )}
-
-                    <div className={styles.timeoutToolSummary}>
-                        <p className={styles.timeoutToolPrimarySentence}>{primarySentence}</p>
-                        {scheduleSentence && <p className={styles.timeoutToolSecondarySentence}>{scheduleSentence}</p>}
-                        {timeoutPresentation?.localDueDateLabel && (
-                            <p className={styles.timeoutToolSecondarySentence}>
-                                {chatUiTranslations?.toolCallTimeoutDateLabel || 'Date:'}{' '}
-                                {timeoutPresentation.localDueDateLabel}
-                            </p>
-                        )}
-                        {timeoutPresentation?.message && (
-                            <p className={styles.timeoutToolSecondarySentence}>
-                                {chatUiTranslations?.toolCallTimeoutMessageLabel || 'Message:'}{' '}
-                                {timeoutPresentation.message}
-                            </p>
-                        )}
-                    </div>
-
-                    <div
-                        className={styles.timeoutToolActionRow}
-                        role="group"
-                        aria-label={chatUiTranslations?.toolCallTimeoutActionGroupLabel || 'Timeout quick actions'}
-                    >
-                        <button
-                            type="button"
-                            className={styles.timeoutToolActionButton}
-                            onClick={() => {
-                                if (!cancelCommand) {
-                                    return;
-                                }
-
-                                copyTimeoutQuickActionCommand(cancelCommand);
-                            }}
-                            disabled={!cancelCommand}
-                            aria-label={chatUiTranslations?.toolCallTimeoutCancelAriaLabel || 'Cancel timeout'}
-                        >
-                            {chatUiTranslations?.toolCallTimeoutCancelButton || 'Cancel'}
-                        </button>
-                        <button
-                            type="button"
-                            className={styles.timeoutToolActionButton}
-                            onClick={() => {
-                                copyTimeoutQuickActionCommand(snoozeCommand);
-                            }}
-                            aria-label={chatUiTranslations?.toolCallTimeoutSnoozeAriaLabel || 'Snooze timeout'}
-                        >
-                            {chatUiTranslations?.toolCallTimeoutSnoozeButton || 'Snooze'}
-                        </button>
-                        {onRequestAdvancedView && (
-                            <button
-                                type="button"
-                                className={styles.timeoutToolActionButton}
-                                onClick={onRequestAdvancedView}
-                                aria-label={
-                                    chatUiTranslations?.toolCallTimeoutViewAdvancedAriaLabel ||
-                                    'View advanced timeout details'
-                                }
-                            >
-                                {chatUiTranslations?.toolCallTimeoutViewAdvancedButton || 'View advanced'}
-                            </button>
-                        )}
-                    </div>
-                </div>
-            </>
-        );
     }
 
-    if (isEmail) {
-        const to = args.to || [];
-        const cc = args.cc || [];
-        const subject = args.subject || 'No subject';
-        const body = args.body || '';
-        const recipients = Array.isArray(to) ? to : [to];
-        const ccRecipients = Array.isArray(cc) ? cc : [];
-        const emailResult = resultRaw && typeof resultRaw === 'object' ? (resultRaw as Record<string, TODO_any>) : null;
-        const from =
-            (emailResult?.from as string | undefined) ||
-            (emailResult?.sender as string | undefined) ||
-            'Configured sender';
-        const status = typeof emailResult?.status === 'string' ? emailResult.status : null;
-
-        return (
-            <>
-                <div className={classNames(styles.searchModalHeader, styles.emailModalHeader)}>
-                    <span className={styles.searchModalIcon}>
-                        <EmailIcon size={26} />
-                    </span>
-                    <div className={styles.emailHeaderText}>
-                        <span className={styles.emailHeaderLabel}>Email</span>
-                        <h3 className={styles.searchModalQuery}>{subject}</h3>
-                    </div>
-                </div>
-
-                <div className={styles.searchModalContent}>
-                    <div className={styles.emailContainer}>
-                        <div className={styles.emailMetadata}>
-                            <div className={styles.emailField}>
-                                <strong>From:</strong>
-                                <span className={styles.emailRecipients}>{from}</span>
-                            </div>
-                            <div className={styles.emailField}>
-                                <strong>To:</strong>
-                                <span className={styles.emailRecipients}>{recipients.join(', ')}</span>
-                            </div>
-                            {ccRecipients.length > 0 && (
-                                <div className={styles.emailField}>
-                                    <strong>CC:</strong>
-                                    <span className={styles.emailRecipients}>{ccRecipients.join(', ')}</span>
-                                </div>
-                            )}
-                            <div className={styles.emailField}>
-                                <strong>Subject:</strong>
-                                <span>{subject}</span>
-                            </div>
-                            {status && (
-                                <div className={styles.emailField}>
-                                    <strong>Status:</strong>
-                                    <span className={styles.emailStatus}>{status}</span>
-                                </div>
-                            )}
-                        </div>
-                        <div className={styles.emailBody}>
-                            <strong>Message:</strong>
-                            <div className={styles.emailBodyContent}>
-                                <MarkdownContent content={body} />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </>
-        );
+    if (isEmailToolCallName(toolCall.name)) {
+        return renderEmailToolCallDetails({
+            args,
+            resultRaw,
+        });
     }
 
+    if (isPopupToolCallName(toolCall.name)) {
+        return renderPopupToolCallDetails({
+            args,
+            resultRaw,
+            buttonColor,
+        });
+    }
+
+    return renderGenericToolCallDetails({
+        toolCall,
+        args,
+        resultRaw,
+        toolTitles,
+        toolCallState,
+        locale,
+        chatUiTranslations,
+    });
+}
+
+/**
+ * Rendering options for the generic fallback tool view.
+ *
+ * @private function of ChatToolCallModal
+ */
+type RenderGenericToolCallDetailsOptions = {
+    /**
+     * Tool call being rendered.
+     */
+    toolCall: NonNullable<ChatMessage['toolCalls']>[number];
+    /**
+     * Parsed arguments shown in the request section.
+     */
+    args: Record<string, TODO_any>;
+    /**
+     * Parsed result payload used for summaries.
+     */
+    resultRaw: TODO_any;
+    /**
+     * Optional localized tool titles.
+     */
+    toolTitles?: Record<string, string>;
+    /**
+     * Resolved tool call state.
+     */
+    toolCallState: ReturnType<typeof resolveToolCallState>;
+    /**
+     * Optional locale override passed to chip rendering.
+     */
+    locale?: string;
+    /**
+     * Optional localized label overrides.
+     */
+    chatUiTranslations?: import('./ChatProps').ChatUiTranslations;
+};
+
+/**
+ * Renders the generic fallback summary used for unhandled tool types.
+ *
+ * @param options - Generic tool call rendering inputs.
+ * @returns Generic summary UI.
+ * @private function of ChatToolCallModal
+ */
+function renderGenericToolCallDetails(options: RenderGenericToolCallDetailsOptions): ReactElement {
+    const { toolCall, args, resultRaw, toolTitles, toolCallState, locale, chatUiTranslations } = options;
     const chipletInfo = getToolCallChipletInfo(toolCall, locale, toolTitles, chatUiTranslations);
     const toolMetadata = TOOL_TITLES[toolCall.name];
     const headerEmoji = toolMetadata?.emoji || extractLeadingEmoji(chipletInfo.text) || '🛠️';
@@ -1643,8 +291,7 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
                     ) : shouldRenderRunningRequestPlaceholder ? (
                         renderToolCallProgressPlaceholder({
                             title: 'Request details pending',
-                            message:
-                                'The agent started this action, but the detailed request payload has not arrived yet.',
+                            message: 'The agent started this action, but the detailed request payload has not arrived yet.',
                             badgeLabel: 'Pending',
                         })
                     ) : (
@@ -1694,33 +341,67 @@ export function renderToolCallDetails(options: ToolCallDetailsOptions): ReactEle
     );
 }
 
-type ToolCallArgumentEntry = {
-    /**
-     * Human-friendly label derived from the raw argument key.
-     */
-    label: string;
-    /**
-     * Stringified argument value tailored for display.
-     */
-    value: string;
-};
+/**
+ * Checks whether a tool name should use the search renderer.
+ *
+ * @param toolName - Raw tool name.
+ * @returns `true` when the tool is a search-like tool.
+ * @private function of ChatToolCallModal
+ */
+function isSearchToolCallName(toolName: string): boolean {
+    return toolName === 'web_search' || toolName === 'useSearchEngine' || toolName === 'search';
+}
 
 /**
- * Represents an error or warning surfaced inside the modal footer.
+ * Checks whether a tool name should use the time renderer.
  *
- * @private internal utility of `<ChatToolCallModal/>`
+ * @param toolName - Raw tool name.
+ * @returns `true` when the tool is a time-like tool.
+ * @private function of ChatToolCallModal
  */
-type ToolCallIssue = {
-    type: 'error' | 'warning';
-    label: string;
-    message: string;
-};
+function isTimeToolCallName(toolName: string): boolean {
+    return toolName === 'get_current_time' || toolName === 'useTime';
+}
+
+/**
+ * Checks whether a tool name should use the timeout renderer.
+ *
+ * @param toolName - Raw tool name.
+ * @returns `true` when the tool is a timeout-like tool.
+ * @private function of ChatToolCallModal
+ */
+function isTimeoutToolCallName(toolName: string): boolean {
+    return toolName === 'set_timeout' || toolName === 'cancel_timeout';
+}
+
+/**
+ * Checks whether a tool name should use the email renderer.
+ *
+ * @param toolName - Raw tool name.
+ * @returns `true` when the tool is an email-like tool.
+ * @private function of ChatToolCallModal
+ */
+function isEmailToolCallName(toolName: string): boolean {
+    return toolName === 'send_email' || toolName === 'useEmail';
+}
+
+/**
+ * Checks whether a tool name should use the popup renderer.
+ *
+ * @param toolName - Raw tool name.
+ * @returns `true` when the tool is a popup-like tool.
+ * @private function of ChatToolCallModal
+ */
+function isPopupToolCallName(toolName: string): boolean {
+    return toolName === 'open_popup' || toolName === 'usePopup' || toolName === 'popup';
+}
 
 /**
  * Builds a list of argument entries for the friendly summary view.
  *
  * @param args - Parsed tool call arguments.
  * @returns Array of display-ready argument entries.
+ * @private function of ChatToolCallModal
  */
 function buildArgumentEntries(args: Record<string, TODO_any>): Array<ToolCallArgumentEntry> {
     return Object.entries(args).map(([key, value]) => ({
@@ -1734,6 +415,7 @@ function buildArgumentEntries(args: Record<string, TODO_any>): Array<ToolCallArg
  *
  * @param key - Raw argument key.
  * @returns Humanized label.
+ * @private function of ChatToolCallModal
  */
 function formatArgumentLabel(key: string): string {
     const replaced = key.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2');
@@ -1745,6 +427,7 @@ function formatArgumentLabel(key: string): string {
  *
  * @param value - Arbitrary tool call argument value.
  * @returns Friendly string.
+ * @private function of ChatToolCallModal
  */
 function formatArgumentValue(value: TODO_any): string {
     if (value === null || value === undefined) {
@@ -1783,6 +466,7 @@ function formatArgumentValue(value: TODO_any): string {
  *
  * @param resultRaw - Decoded tool call result.
  * @returns Friendly summary or `null` when nothing suitable is found.
+ * @private function of ChatToolCallModal
  */
 function buildToolCallResultSummary(resultRaw: TODO_any): string | null {
     if (!resultRaw) {
@@ -1793,15 +477,7 @@ function buildToolCallResultSummary(resultRaw: TODO_any): string | null {
         return resultRaw.trim();
     }
 
-    const candidate = findStringCandidate(resultRaw, [
-        'summary',
-        'text',
-        'content',
-        'description',
-        'message',
-        'result',
-    ]);
-
+    const candidate = findStringCandidate(resultRaw, ['summary', 'text', 'content', 'description', 'message', 'result']);
     if (candidate) {
         return candidate;
     }
@@ -1826,6 +502,7 @@ function buildToolCallResultSummary(resultRaw: TODO_any): string | null {
  * @param value - Object to scan.
  * @param keys - Keys to try in order.
  * @returns First matching string or `null`.
+ * @private function of ChatToolCallModal
  */
 function findStringCandidate(value: TODO_any, keys: string[]): string | null {
     if (!value || typeof value !== 'object') {
@@ -1847,6 +524,7 @@ function findStringCandidate(value: TODO_any, keys: string[]): string | null {
  *
  * @param resultRaw - Tool call result payload.
  * @returns Item count or `null` when the result is not a collection.
+ * @private function of ChatToolCallModal
  */
 function getResultItemCount(resultRaw: TODO_any): number | null {
     if (Array.isArray(resultRaw)) {
@@ -1871,6 +549,7 @@ function getResultItemCount(resultRaw: TODO_any): number | null {
  *
  * @param toolCall - Tool call payload to inspect.
  * @returns Array of structured issues.
+ * @private function of ChatToolCallModal
  */
 function normalizeToolCallIssues(toolCall: NonNullable<ChatMessage['toolCalls']>[number]): Array<ToolCallIssue> {
     const warnings = (toolCall.warnings || []).map((value) => ({
@@ -1897,10 +576,11 @@ function normalizeToolCallIssues(toolCall: NonNullable<ChatMessage['toolCalls']>
 }
 
 /**
- * Formats an error/warning payload into a single-line string.
+ * Formats an error or warning payload into a single-line string.
  *
  * @param value - Raw issue payload.
  * @returns String suitable for badge display.
+ * @private function of ChatToolCallModal
  */
 function formatIssueValue(value: TODO_any): string {
     if (typeof value === 'string' && value.trim()) {
@@ -1916,10 +596,11 @@ function formatIssueValue(value: TODO_any): string {
 }
 
 /**
- * Grabs the leading emoji (if present) from a chiplet label for fallback icons.
+ * Grabs the leading emoji from a chiplet label for fallback icons.
  *
  * @param text - Chiplet label text.
  * @returns First character or `null` when empty.
+ * @private function of ChatToolCallModal
  */
 function extractLeadingEmoji(text?: string): string | null {
     if (!text) {
