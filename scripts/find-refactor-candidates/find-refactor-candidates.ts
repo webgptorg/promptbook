@@ -4,9 +4,9 @@ import colors from 'colors';
 import { basename, join } from 'path';
 import { assertsError } from '../../src/errors/assertsError';
 import { PROMPTS_DIR_NAME } from './find-refactor-candidates.constants';
-import type { RefactorCandidate } from './RefactorCandidate';
 import { findRefactorCandidatesInProject } from './findRefactorCandidatesInProject';
 import { loadExistingPromptTargets } from './loadExistingPromptTargets';
+import type { RefactorCandidate } from './RefactorCandidate';
 import { writeRefactorCandidatePrompts } from './writeRefactorCandidatePrompts';
 
 if (require.main === module) {
@@ -84,4 +84,4 @@ function logRefactorCandidates(candidates: ReadonlyArray<RefactorCandidate>): vo
     }
 }
 
-/** Note: [⚫] Code for repository script [find-refactor-candidates](scripts/find-refactor-candidates/find-refactor-candidates.ts) should never be published in any package */
+/** Note: [🟡] Code for repository script [find-refactor-candidates](scripts/find-refactor-candidates/find-refactor-candidates.ts) should never be published outside of `@promptbook/cli` */

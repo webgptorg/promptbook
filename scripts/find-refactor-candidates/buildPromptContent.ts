@@ -153,4 +153,4 @@ function buildDensityNote(counts: RefactorCandidateReasonCounts): string | null 
     return null;
 }
 
-/** Note: [⚫] Code for repository script [buildPromptContent](scripts/find-refactor-candidates/buildPromptContent.ts) should never be published in any package */
+/** Note: [🟡] Code for repository script [buildPromptContent](scripts/find-refactor-candidates/buildPromptContent.ts) should never be published outside of `@promptbook/cli` */
