@@ -90,6 +90,4 @@ export async function findFreshEmojiTag(): Promise<void> {
     // console.info(`[ Done 🤪  Find fresh emoji tag ]`);
 }
 
-/**
- * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
- */
+/** Note: [🟡] Code for CLI support script [find-fresh-emoji-tags](scripts/find-fresh-emoji-tags/find-fresh-emoji-tags.ts) should never be published outside of `@promptbook/cli` */

@@ -41,7 +41,5 @@ export async function $provideExecutionToolsForNode(options?: PrepareAndScrapeOp
     return tools;
 }
 
-/**
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- * TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming
- */
+/** Note: [🟢] Code for Node execution helper [$provideExecutionToolsForNode](src/execution/utils/$provideExecutionToolsForNode.ts) should never be published into packages that could be imported into browser environment */
+/** TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming */

@@ -68,6 +68,4 @@ async function generateExampleJsons({ isCommited }: { isCommited: boolean }) {
     console.info(`[ Done 📖  Generate reports .report.json -> .report.md]`);
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for repository script [generate-example-reports](scripts/generate-example-reports/generate-example-reports.ts) should never be published in any package */

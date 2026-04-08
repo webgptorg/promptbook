@@ -12,6 +12,4 @@ export async function findAllProjectFiles(): Promise<ReadonlyArray<string>> {
     return [...srcFiles, serversConfigurationFile];
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for repository script [findAllProjectFiles](scripts/utils/findAllProjectFiles.ts) should never be published in any package */

@@ -366,10 +366,10 @@ export function $initializeMakeCommand(program: Program): $side_effect {
     );
 }
 
+/** Note: [🟡] Code for CLI command [make](src/cli/cli-commands/make.ts) should never be published outside of `@promptbook/cli` */
 /**
  * TODO: [🥃][main] !!3 Allow `ptbk make` without configuring any llm tools
  * TODO: [0] DRY Javascript and typescript - Maybe make ONLY typescript and for javascript just remove types
  * Note: [💞] Ignore a discrepancy between file name and entity name
- * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
  * TODO: [🖇] What about symlinks? Maybe flag --follow-symlinks
  */

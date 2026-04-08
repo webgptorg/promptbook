@@ -164,8 +164,8 @@ export function $initializeStartPipelinesServerCommand(program: Program): $side_
     );
 }
 
+/** Note: [🟡] Code for CLI command [start-pipelines-server](src/cli/cli-commands/start-pipelines-server.ts) should never be published outside of `@promptbook/cli` */
 /**
  * TODO: [🕋] Use here `aboutPromptbookInformation`
  * Note: [💞] Ignore a discrepancy between file name and entity name
- * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
  */

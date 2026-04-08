@@ -103,7 +103,5 @@ function getPublicIpV4(): Promise<string> {
     });
 }
 
-/**
- * TODO: !!!!!!! Extract to `other` and append DigitalOcean instructions
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for playground [main playground](src/playground/playground.ts) should never be published in any package */
+/** TODO: !!!!!!! Extract to `other` and append DigitalOcean instructions */

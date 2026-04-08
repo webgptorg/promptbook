@@ -137,10 +137,10 @@ export function $initializeTestCommand(program: Program): $side_effect {
     );
 }
 
+/** Note: [🟡] Code for CLI command [test-command](src/cli/cli-commands/test-command.ts) should never be published outside of `@promptbook/cli` */
 /**
  * TODO: [😶] Unite folder listing
  * Note: [💞] Ignore a discrepancy between file name and entity name
- * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
  * TODO: [🖇] What about symlinks? Maybe flag --follow-symlinks
  * Note: This is named "test-command.ts" to avoid name collision with jest unit test files
  */

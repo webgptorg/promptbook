@@ -113,7 +113,5 @@ export function $initializeStartAgentsServerCommand(program: Program): $side_eff
     );
 }
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
- */
+/** Note: [🟡] Code for CLI command [start-agents-server](src/cli/cli-commands/start-agents-server.ts) should never be published outside of `@promptbook/cli` */
+/** Note: [💞] Ignore a discrepancy between file name and entity name */

@@ -30,6 +30,4 @@ export function getSessionStorage<TItem>(): PromptbookStorage<TItem> {
     return promptbookSessionStorage as PromptbookStorage<TItem>;
 }
 
-/**
- * Note: [🔵] Code in this file should never be published outside of `@promptbook/browser`
- */
+/** Note: [🔵] Code for browser storage helper [getSessionStorage](src/storage/local-storage/getSessionStorage.ts) should never be published outside of `@promptbook/browser` */

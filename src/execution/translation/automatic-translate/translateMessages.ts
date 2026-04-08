@@ -49,7 +49,5 @@ export async function translateMessages({
     }
 }
 
-/**
- * TODO: [😶] Unite folder listing
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */
+/** Note: [🟢] Code for Node translation helper [translateMessages](src/execution/translation/automatic-translate/translateMessages.ts) should never be published into packages that could be imported into browser environment */
+/** TODO: [😶] Unite folder listing */

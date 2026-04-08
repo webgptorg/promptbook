@@ -42,6 +42,4 @@ export async function startAgentServer(options: AgentsServerOptions): Promise<TO
     });
 }
 
-/**
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */
+/** Note: [🟢] Code for Node server bootstrap [startAgentServer](src/remote-server/startAgentServer.ts) should never be published into packages that could be imported into browser environment */

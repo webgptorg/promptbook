@@ -109,6 +109,4 @@ function hashString(value: string): string {
     return (hash >>> 0).toString(36);
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for repository script [writeRefactorCandidatePrompts](scripts/find-refactor-candidates/writeRefactorCandidatePrompts.ts) should never be published in any package */

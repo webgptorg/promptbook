@@ -73,7 +73,5 @@ ex_port async function importPipelineJsonAsString(path: `${string}.bookc`): Prom
 }
 */
 
-/**
- * Note: [💞] Ignore a discrepancy between file name and entity name
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for private pipeline import shim [_importPipeline](src/conversion/validation/_importPipeline.ts) should never be published in any package */
+/** Note: [💞] Ignore a discrepancy between file name and entity name */

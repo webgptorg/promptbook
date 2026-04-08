@@ -176,10 +176,10 @@ export class MarkitdownScraper implements Converter, Scraper {
     }
 }
 
+/** Note: [🟢] Code for Node scraper implementation [MarkitdownScraper](src/scrapers/markitdown/MarkitdownScraper.ts) should never be published into packages that could be imported into browser environment */
 /**
  * TODO: [🧠][🌜] Export only from `@promptbook/markitdown` or `@promptbook/pdf` NOT both
  * TODO: [👣] Converted documents can act as cached items - there is no need to run conversion each time
  * TODO: [🪂] Do it in parallel
  * Note: No need to aggregate usage here, it is done by intercepting the llmTools
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  */

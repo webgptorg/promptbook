@@ -796,8 +796,8 @@ export function startRemoteServer<TCustomOptions = undefined>(
     };
 }
 
+/** Note: [🟢] Code for Node server bootstrap [startRemoteServer](src/remote-server/startRemoteServer.ts) should never be published into packages that could be imported into browser environment */
 /**
-
  * TODO: [🕋] Use here `aboutPromptbookInformation`
  * TODO: [🌡] Add CORS and security - probably via `helmet`
  * TODO: Split this file into multiple functions - handler for each request
@@ -810,5 +810,4 @@ export function startRemoteServer<TCustomOptions = undefined>(
  * TODO: [🃏] Pass here some security token to prevent malitious usage and/or DDoS
  * TODO: [0] Set unavailable models as undefined in `RemoteLlmExecutionTools` NOT throw error here
  * TODO: Allow to constrain anonymous mode for specific models / providers
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  */

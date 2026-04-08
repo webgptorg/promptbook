@@ -97,6 +97,4 @@ async function playground() {
     //========================================/
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for permanent playground [error-handling-playground](src/playground/permanent/error-handling-playground.ts) should never be published in any package */

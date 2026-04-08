@@ -12,7 +12,5 @@ export async function readAllProjectFiles(): Promise<ReadonlyArray<{ path: strin
     );
 }
 
-/**
- * TODO: Use fs/promises instead of fs
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for repository script [readAllProjectFiles](scripts/utils/readAllProjectFiles.ts) should never be published in any package */
+/** TODO: Use fs/promises instead of fs */

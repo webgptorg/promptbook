@@ -61,7 +61,5 @@ export type PackageMetadata = {
     entities?: Array<EntityMetadata>;
 };
 
-/**
- * TODO: Maybe make `PackageMetadata` as discriminated union - isBuilded+entryIndexFilePath
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for repository script [PackageMetadata](scripts/generate-packages/PackageMetadata.ts) should never be published in any package */
+/** TODO: Maybe make `PackageMetadata` as discriminated union - isBuilded+entryIndexFilePath */

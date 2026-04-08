@@ -175,7 +175,5 @@ class Wizard {
  */
 export const wizard = new Wizard();
 
-/**
- * TODO: [🧠] Maybe some way how to handle the progress and streaming?
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */
+/** Note: [🟢] Code for Node wizard helper [wizard](src/wizard/wizard.ts) should never be published into packages that could be imported into browser environment */
+/** TODO: [🧠] Maybe some way how to handle the progress and streaming? */

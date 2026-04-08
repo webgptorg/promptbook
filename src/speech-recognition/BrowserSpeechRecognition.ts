@@ -118,7 +118,5 @@ export class BrowserSpeechRecognition implements SpeechRecognition {
     }
 }
 
-/**
- * TODO: !!!! Search ACRY for `window` and put -> [🔵]
- * Note: [🔵] Code in this file should never be published outside of `@promptbook/browser`
- */
+/** Note: [🔵] Code for browser speech-recognition adapter [BrowserSpeechRecognition](src/speech-recognition/BrowserSpeechRecognition.ts) should never be published outside of `@promptbook/browser` */
+/** TODO: !!!! Search ACRY for `window` and put -> [🔵] */

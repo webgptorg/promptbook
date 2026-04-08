@@ -48,6 +48,4 @@ export class SimplePromptInterfaceTools implements UserInterfaceTools {
     }
 }
 
-/**
- * Note: [🔵] Code in this file should never be published outside of `@promptbook/browser`
- */
+/** Note: [🔵] Code for browser dialog helper [SimplePromptInterfaceTools](src/dialogs/simple-prompt/SimplePromptInterfaceTools.ts) should never be published outside of `@promptbook/browser` */

@@ -145,8 +145,8 @@ export async function $provideLlmToolsForWizardOrCli(
     );
 }
 
+/** Note: [🟢] Code for Node environment helper [$provideLlmToolsForWizardOrCli](src/llm-providers/_common/register/$provideLlmToolsForWizardOrCli.ts) should never be published into packages that could be imported into browser environment */
 /**
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  * TODO: [👷‍♂️] Write a comprehensive manual about the construction of LLM tools
  * TODO: [🥃] Allow `ptbk make` without llm tools
  * TODO: This should be maybe not under `_common` but under `utils-internal` / `utils/internal`

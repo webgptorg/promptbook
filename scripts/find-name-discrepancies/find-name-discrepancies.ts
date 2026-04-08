@@ -140,6 +140,4 @@ async function findNameDiscrepancies() {
     }
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for repository script [find-name-discrepancies](scripts/find-name-discrepancies/find-name-discrepancies.ts) should never be published in any package */

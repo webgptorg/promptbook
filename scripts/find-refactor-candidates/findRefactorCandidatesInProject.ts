@@ -95,6 +95,4 @@ function normalizeAbsolutePath(pathValue: string): string {
     return process.platform === 'win32' ? normalized.toLowerCase() : normalized;
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for repository script [findRefactorCandidatesInProject](scripts/find-refactor-candidates/findRefactorCandidatesInProject.ts) should never be published in any package */

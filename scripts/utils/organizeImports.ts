@@ -24,6 +24,4 @@ export async function organizeImports(fileContents: string): Promise<string> {
     return await readFile(tmpFilePath, 'utf-8');
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for repository script [organizeImports](scripts/utils/organizeImports.ts) should never be published in any package */

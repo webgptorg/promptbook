@@ -124,7 +124,5 @@ async function generatePackages({ isCommited }: { isCommited: boolean }): Promis
     }
 }
 
-/**
- * TODO: [main] !!3 The version is lagged one behind the actual version
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for repository script [update-version-in-config](scripts/update-version-in-config/update-version-in-config.ts) should never be published in any package */
+/** TODO: [main] !!3 The version is lagged one behind the actual version */

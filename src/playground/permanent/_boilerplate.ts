@@ -48,6 +48,4 @@ async function playground() {
     //========================================/
 }
 
-/**
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for permanent playground [_boilerplate](src/playground/permanent/_boilerplate.ts) should never be published in any package */

@@ -81,7 +81,5 @@ async function prettifyAll({
     }
 }
 
-/**
- * TODO: Prettify also the `/apps` and `/scripts` folders
- * Note: [⚫] Code in this file should never be published in any package
- */
+/** Note: [⚫] Code for repository script [prettify-all](scripts/prettify-all/prettify-all.ts) should never be published in any package */
+/** TODO: Prettify also the `/apps` and `/scripts` folders */
