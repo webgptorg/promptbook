@@ -1,3 +1,8 @@
+-   Refactored shared `<ChatInputArea/>` into smaller focused private modules without changing composer behavior:
+
+    -   Extracted attachment upload state and drag/drop handling into `useChatInputAreaAttachments`, plus speech-recognition state/transcript refinement into `useChatInputAreaDictation`, so `ChatInputArea.tsx` now reads as a slimmer orchestration layer.
+    -   Moved the large dictation details UI into a dedicated private `<ChatInputAreaDictationPanel/>` component while preserving the existing send, Enter-key, upload, and dictation flows.
+
 -   Refactored Agents Server `userChatTimeoutStore.ts` into smaller focused private modules without changing timeout-store behavior:
 
     -   Extracted the timeout store facade, shared row/table helpers, query operations, state mutations, and raw-SQL worker persistence into dedicated `userChatTimeoutStore` modules so the main file is easier to read and maintain.
