@@ -1,3 +1,8 @@
+-   Refactored Agents Server `calendarConnections.ts` into smaller focused private modules without changing calendar connection behavior:
+
+    -   Extracted the calendar connection/activity types, Supabase table providers, row mappers, normalization helpers, and per-operation persistence functions into dedicated calendar utility modules so the public facade is easier to read and maintain.
+    -   Kept the existing calendar connection listing/upsert/disconnect flows plus calendar activity logging/listing behavior intact while preserving the same public imports from `apps/agents-server/src/utils/calendars.ts`.
+
 -   Refactored Agents Server `agentPreparation.ts` into smaller focused private modules without changing preparation behavior:
 
     -   Extracted the shared preparation constants/types, Supabase persistence helpers, worker orchestration, and wait/scheduling entrypoints into dedicated `agentPreparation` utility modules so the public facade is easier to read and maintain.
