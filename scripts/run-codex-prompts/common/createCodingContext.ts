@@ -50,6 +50,7 @@ export function createCodingContext(): string_prompt {
         -   When throwing errors, throw [branded errors](src/errors) and use \`spaceTrim\` utility to write clear and well-formatted multilie detailed error messages.
             -   Format errors as markdown, for example \`variabiles\` should be in backticks, important notes can be in bold, etc.
         -   Constants should be always \`UPPER_SNAKE_CASE\`
+        -   Boolean variables should be always prefixed with "is", for example \`isUserChatJobLeaseExpired\` or \`IS_DEBUG_MODE\`
         -   When writing multiline strings, use \`spaceTrim\` utility
         -   DO only the change described here above DO not add any additional features or make any additional changes that are not described in the prompt.
             -   If you find some critical issue that is not described in the prompt, report it to the file \`./AGENT_REPORT.md\` on the root of the project
