@@ -1,3 +1,8 @@
+-   Refactored Agents Server `createManagedServer.ts` into smaller focused private bootstrap modules without changing external behavior:
+
+    -   Extracted create-server normalization, metadata seeding, transactional bootstrap orchestration, registry insertion, migration application, user/metadata seeding, SQL-dump generation, and failure-result handling into dedicated private `createManagedServer` modules so the public facade is easier to read and maintain.
+    -   Kept `apps/agents-server/src/utils/serverManagement/createManagedServer.ts` as the public entrypoint preserving the same create-server API contract and bootstrap behavior.
+
 -   Refactored Agents Server `createMiddlewareRequestContext.ts` into smaller focused private middleware modules without changing external behavior:
 
     -   Extracted middleware Supabase setup, request-IP parsing, registered-server loading, server routing/custom-domain resolution, metadata/settings resolution, and API-token validation into dedicated private `createMiddlewareRequestContext` helpers so the entrypoint is easier to read and maintain.
