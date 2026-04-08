@@ -1,3 +1,8 @@
+-   Refactored `apps/agents-server/scripts/createVercelDomainSyncPlan.ts` into smaller focused Vercel sync modules without changing external behavior:
+
+    -   Extracted Vercel sync contracts, API request helpers, project/domain loading, environment-binding resolution, and domain-diff planning into dedicated private script modules so the entry facade is easier to follow and maintain.
+    -   Kept the existing `createVercelDomainSyncPlan.ts` import path and exported sync helpers intact for the sync CLI, Cloudflare sync helpers, report rendering, and tests.
+
 -   Refactored `apps/agents-server/scripts/createCloudflareDnsRecordSyncPlan.ts` into smaller focused Cloudflare sync modules without changing external behavior:
 
     -   Extracted shared Cloudflare DNS sync contracts, automation-marker helpers, API request/list/create/update helpers, desired-record resolution, and record-diff planning into dedicated private script modules so the entry facade is easier to follow and maintain.
