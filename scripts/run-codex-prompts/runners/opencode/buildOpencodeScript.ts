@@ -1,5 +1,4 @@
 import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
-import { createCodingContext } from '../../common/createCodingContext';
 import type { OpencodeScriptOptions } from './OpencodeScriptOptions';
 
 /**
@@ -16,9 +15,6 @@ export function buildOpencodeScript(options: OpencodeScriptOptions): string {
             opencode run${options.model ? ` --model ${options.model}` : ''} --format json <<'${delimiter}'
 
             ${block(options.prompt)}
-
-            ${block(createCodingContext())}
-            
 
             ${delimiter}
         `,

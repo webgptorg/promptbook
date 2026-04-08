@@ -49,3 +49,100 @@ Do not edit these places manually, as they will be overwritten by the code gener
     -   Agent source with commitments is parsed by two functions:
         -   `parseAgentSource` which is a lightweight parser for agent source, it parses basic information and its purpose is to be quick and synchronous. The commitments there are hardcoded.
         -   `createAgentModelRequirements` which is an asynchronous function that creates model requirements it applies each commitment one by one and works asynchronously.
+
+## Common rules
+
+-   Always analyze the context and requirements before generating any code.
+-   Write clear, maintainable, and well-documented code.
+-   Write JSDoc comments for all entities - functions, classes, types, top-level constants, etc.
+    -   When this entity is exported from the file and it is under `src` folder *(not for example in the `apps` folder)*, it must be marked either as `@public` or `@private` at the end of the JSDoc comment.
+    -   For example: "@private internal utility of <Chat/>" / "@public exported from `@promptbook/browser`"
+    -   If you don't know, prefer to mark it as private, we can always change it to public later, but changing from public to private may cause breaking changes.
+-   After code change, run the following tests to ensure everything works as expected:
+    1) `npm run test-name-discrepancies` - Tests that file names match the exported names.
+    2) `npm run test-spellcheck` - When using some new word, add it into the [dictionary](other/cspell-dictionaries).
+    3) `npm run test-lint` - Linting.
+    4) `npm run test-types` - Checks TypeScript types.
+    5) `npm run test-package-generation` - Tests build/package generation and public/private JSDoc coverage.
+    6) `npm run test-unit` - Unit tests.
+    7) `npm run test-app-agents-server` - Tests that the Agents Server app is working correctly.
+-   You don't need to run every test, run them only when you make changes which may cause them to fail.
+-   You (the AI coding agent) are running inside a Node process, so do not kill all Node processes such as `taskkill /F /IM node.exe`. If you need to stop something you spawned, kill only that specific process, for example by PID or by port.
+
+## Additional context
+
+-   Attached images (if any) are relative to the root of the project.
+
+### The Agents Server menu *(as additional context)*
+
+The menu of the agent server looks like this:
+
+1. The navigation hierarchy
+    - Icon and Server name _(for example Promptbook Agents Server)_
+    - arrow ">" and Agents or picked agent name (organized in folders)
+    - arrow ">" and the view Profile / Chat / Book of the agent or nothing if no agent is picked
+2. The menu items
+    - Documentation
+    - System
+3. Control panel and user menu
+    - Control panel
+    - User menu with the avatar and the name of the user
+
+### Database migrations for Agents server *(as additional context)*
+
+-   Migrations are located in `apps/agents-server/src/database/migrations`
+-   Be aware that table names in migrations have prefix `prefix_` _(look at existing migrations for reference)_
+-   Migrations should be backwards compatible:
+    -   Meaning that earlier versions of the server should be able to run with the database after migration without any issues.
+    -   This is important because we want to have the same database for production and preview environments.
+    -   This database will be migrated to the latest version of the preview environment, but the production environment should be able to run with it without any issues.
+    -   The only thing that can happen is that older versions of the server will not be able to use new features.
+    -   Adding new columns, tables, etc. is fine, but do not remove or rename existing ones, and do not change the meaning of existing columns or tables.
+    -   When in doubt, prefer to add new things instead of changing existing ones.
+
+### Metadata of Agents server *(as additional context)*
+
+-   There is a table called `Metadata`.
+-   It has `key` and `value` fields.
+-   It is a similar concept to configuration, but this configuration can be changed by administrators in the Agents Server website.
+
+### Book Language blueprint *(as additional context)*
+
+Book language is a domain-specific language used for defining AI agents in the Promptbook Engine and Agents server.
+It has lightweight syntax and keywords (the commitments) that allow you to define the "soul" of the agent.
+The book language is designed to be human-readable and easy to write, while also being powerful enough to express complex agent behaviors.
+
+Every agent has its source defined in the book language, which is called "agent source". The agent source is parsed and processed by the Promptbook Engine to create the actual AI agent that can interact with users and perform tasks.
+This agent source is internally converted to a structured format called "agent model requirements" which are the actual raw technical instructions for the AI model to run the agent.
+
+There is a standalone book language documentation on each agent server on `/api/docs/book.md` route, for example `https://pavol-hejny.ptbk.io/api/docs/book.md`.
+Use it as a reference for the syntax and semantics of the book language, and modify `apps/agents-server/src/utils/bookLanguageDocumentation/createStandaloneBookLanguageMarkdown.ts` if it is relevant to the change you are doing.
+
+#### Commitments *(as additional context and part of Book Language)*
+
+Commitments are basic syntax elements that add specific functionalities to AI agents written in `book` language.
+
+-   They are used in `agentSource`, there are commitments like `PERSONA`, `RULE`, `KNOWLEDGE`, `USE BROWSER`, `USE SEARCH ENGINE`, `META IMAGE`, `CLOSED`, etc.
+-   They are in the folder `src/commitments`.
+-   Each commitment starts with a keyword, e.g. `PERSONA`, `KNOWLEDGE`, `USE SEARCH ENGINE`, etc. on a beginning of the line and ends by a new commitment or the end of the book.
+-   There is a general pattern that the commitment keyword is followed by a space and then by the content of the commitment, for example:
+    -   `PERSONA You are a helpful assistant that helps with cooking recipes.`
+    -   `USE SEARCH ENGINE Search only in French.`
+-   In the commitment context, you can reference external agents, for example:
+    -   `TEAM You can talk to {Criminal lawyer} and {Financial advisor}`
+
+## Coding rules
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Keep in mind the SOLID principles.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   Keep small responsibilities of functions and classes, avoid creating big functions or classes that do many things.
+-   When throwing errors, throw [branded errors](src/errors) and use `spaceTrim` utility to write clear and well-formatted multiline detailed error messages.
+    -   Format errors as markdown, for example `variables` should be in backticks and important notes can be in bold.
+-   Constants should always be `UPPER_SNAKE_CASE`.
+-   Boolean variables should always be prefixed with `is`, for example `isUserChatJobLeaseExpired` or `IS_DEBUG_MODE`.
+-   Do not use abbreviations, for example use `isExpired` instead of `isExp`, `translateMessage` instead of `t`, etc.
+    -   It is fine to use well-known abbreviations, for example `id`, `url`, `html`, etc.
+-   When writing multiline strings, use `spaceTrim` utility.
+-   Do only the change described in the prompt. Do not add any additional features or make any additional changes that are not described there.
+    -   If you find some critical issue that is not described in the prompt, report it to `./AGENT_REPORT.md` in the root of the project.

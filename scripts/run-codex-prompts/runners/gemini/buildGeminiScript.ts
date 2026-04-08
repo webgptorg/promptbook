@@ -1,5 +1,4 @@
 import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
-import { createCodingContext } from '../../common/createCodingContext';
 import type { GeminiScriptOptions } from './GeminiScriptOptions';
 
 /**
@@ -13,9 +12,6 @@ export function buildGeminiScript(options: GeminiScriptOptions): string {
             gemini -y -m ${options.model} -p "$(cat <<'${delimiter}'
 
             ${block(options.prompt)}
-
-            ${block(createCodingContext())}
-            
 
             ${delimiter}
             )"

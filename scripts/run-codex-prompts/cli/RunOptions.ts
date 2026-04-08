@@ -6,6 +6,10 @@ export type RunOptions = {
      * When true, do not execute prompts and only print prompts that still need to be written.
      */
     dryRun: boolean;
+    /**
+     * Additional runner instructions provided either inline or as a file path.
+     */
+    context?: string;
     waitForUser: boolean;
     /**
      * Skip the clean working tree check before running prompts.

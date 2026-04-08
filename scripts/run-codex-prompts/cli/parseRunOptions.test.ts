@@ -72,6 +72,8 @@ describe('parseRunOptions', () => {
             'openai-codex',
             '--model',
             'gpt-5.2-codex',
+            '--context',
+            'AGENTS.md',
             '--priority',
             '3',
             '--no-wait',
@@ -88,7 +90,19 @@ describe('parseRunOptions', () => {
             allowDestructiveAutoMigrate: false,
             agentName: 'openai-codex',
             model: 'gpt-5.2-codex',
+            context: 'AGENTS.md',
             priority: 3,
+        });
+    });
+
+    it('parses inline context instructions', () => {
+        const options = parseRunOptions(['--agent', 'gemini', '--context', 'Follow AGENTS instructions']);
+
+        expect(options).toMatchObject({
+            dryRun: false,
+            agentName: 'gemini',
+            context: 'Follow AGENTS instructions',
+            normalizeLineEndings: true,
         });
     });
 

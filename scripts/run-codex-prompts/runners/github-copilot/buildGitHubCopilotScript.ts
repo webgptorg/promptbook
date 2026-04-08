@@ -1,5 +1,4 @@
 import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
-import { createCodingContext } from '../../common/createCodingContext';
 import { toPosixPath } from '../../common/runGoScript/toPosixPath';
 import type { GitHubCopilotScriptOptions } from './GitHubCopilotScriptOptions';
 
@@ -18,8 +17,6 @@ export function buildGitHubCopilotScript(options: GitHubCopilotScriptOptions): s
             copilot -p "$(cat <<'${delimiter}'
 
             ${block(options.prompt)}
-
-            ${block(createCodingContext())}
 
             ${delimiter}
             )" \

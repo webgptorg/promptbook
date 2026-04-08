@@ -1,5 +1,4 @@
 import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
-import { createCodingContext } from '../../common/createCodingContext';
 import { toPosixPath } from '../../common/runGoScript/toPosixPath';
 import type { ClineScriptOptions } from './ClineScriptOptions';
 
@@ -14,8 +13,6 @@ export function buildClineScript(options: ClineScriptOptions): string {
             cline --config "${toPosixPath(options.configPath)}" --yes <<'${delimiter}'
 
             ${block(options.prompt)}
-
-            ${block(createCodingContext())}
 
             ${delimiter}
         `,

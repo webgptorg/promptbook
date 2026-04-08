@@ -1,3 +1,4 @@
+-   Added configurable `--context` support to `ptbk coder run`, so extra coding instructions can now be passed inline or loaded from a project file such as `AGENTS.md`; Promptbook now stores its own coder context in [`AGENTS.md`](AGENTS.md) and the local VS Code coder workflows pass `--context AGENTS.md` instead of relying on hardcoded runner context.
 -   Fixed `ptbk coder run` git staging/commit reliability when `.git/index.lock` blocks the auto-commit step:
 
     -   Added one shared Git command helper for the coding-agent workflow so `git add` and `git commit` use the same lock-aware execution path.

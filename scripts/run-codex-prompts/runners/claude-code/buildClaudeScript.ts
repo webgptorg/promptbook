@@ -1,5 +1,4 @@
 import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
-import { createCodingContext } from '../../common/createCodingContext';
 import type { ClaudeScriptOptions } from './ClaudeScriptOptions';
 
 /**
@@ -14,13 +13,7 @@ export function buildClaudeScript(options: ClaudeScriptOptions): string {
 
             ${block(options.prompt)}
 
-            ${block(createCodingContext())}
-            
-
             ${delimiter}
         `,
     );
-
-    // <- TODO: Make "Additional context..." conditional: for example "Attached image ..." based on whether images are present
-    // <- TODO: Do the adding of additional context to prompts for all runners, do it in a generic way and keep DRY
 }

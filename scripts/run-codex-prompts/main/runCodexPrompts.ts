@@ -8,12 +8,14 @@ import { just } from '../../../src/utils/organization/just';
 import type { RunOptions } from '../cli/RunOptions';
 import { parseRunOptions } from '../cli/parseRunOptions';
 import { CliProgressDisplay } from '../common/cliProgressDisplay';
+import { appendCoderContext } from '../common/appendCoderContext';
 import {
     captureChangedFilesSnapshot,
     normalizeLineEndingsInFilesChangedSinceSnapshot,
     type ChangedFilesSnapshot,
 } from '../common/normalizeLineEndingsInChangedFiles';
 import { printCommitMessage } from '../common/printCommitMessage';
+import { resolveCoderContext } from '../common/resolveCoderContext';
 import { waitForEnter } from '../common/waitForEnter';
 import { checkPause, listenForPause } from '../common/waitForPause';
 import { printAgentGitIdentityTipIfNeeded } from '../git/agentGitIdentity';
@@ -127,6 +129,8 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
     listenForPause();
 
     try {
+        const resolvedCoderContext = await resolveCoderContext(options.context, process.cwd());
+
         if (options.dryRun) {
             const promptFiles = await loadPromptFiles(PROMPTS_DIR);
             const stats = summarizePrompts(promptFiles, options.priority);
@@ -265,7 +269,10 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             }
 
             const commitMessage = buildCommitMessage(nextPrompt.file, nextPrompt.section);
-            const codexPrompt = buildCodexPrompt(nextPrompt.file, nextPrompt.section);
+            const codexPrompt = appendCoderContext(
+                buildCodexPrompt(nextPrompt.file, nextPrompt.section),
+                resolvedCoderContext,
+            );
 
             const scriptPath = buildScriptPath(nextPrompt.file, nextPrompt.section);
             const promptLabel = buildPromptLabelForDisplay(nextPrompt.file, nextPrompt.section);

@@ -1,5 +1,4 @@
 import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
-import { createCodingContext } from '../../common/createCodingContext';
 import { toPosixPath } from '../../common/runGoScript/toPosixPath';
 import type { CodexScriptOptions } from './CodexScriptOptions';
 
@@ -35,8 +34,6 @@ export function buildCodexScript(options: CodexScriptOptions): string {
                 <<'${delimiter}'
 
             ${block(options.prompt)}
-
-            ${block(createCodingContext())}
 
             ${delimiter}
         `,

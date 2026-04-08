@@ -50,6 +50,10 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             Gemini examples: gemini-3-flash-preview, default
         `),
     );
+    command.option(
+        '--context <context-or-file>',
+        'Append extra instructions either inline or from a file path relative to the current project',
+    );
     command.option('--priority <minimum-priority>', 'Filter prompts by minimum priority level', parseIntOption, 0);
     command.option('--no-wait', 'Skip user prompts between processing', false);
     command.option('--ignore-git-changes', 'Skip clean working tree check before running prompts', false);
@@ -77,6 +81,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 dryRun,
                 agent,
                 model,
+                context,
                 priority,
                 wait,
                 ignoreGitChanges,
@@ -88,6 +93,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 readonly dryRun: boolean;
                 readonly agent?: string;
                 readonly model?: string;
+                readonly context?: string;
                 readonly priority: number;
                 readonly wait: boolean;
                 readonly ignoreGitChanges: boolean;
@@ -143,6 +149,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 ignoreGitChanges,
                 agentName,
                 model,
+                context,
                 priority,
                 normalizeLineEndings,
                 allowCredits,
