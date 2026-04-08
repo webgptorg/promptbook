@@ -1,3 +1,8 @@
+-   Refactored `src/book-components/Chat/Chat/useChatInputAreaDictation.ts` into smaller focused private dictation modules without changing chat composer behavior:
+
+    -   Extracted transcript refinement, dictation insertion, learned-dictionary updates, persistent dictation preferences, and browser/support metadata into dedicated private Chat helpers so the main dictation hook is easier to read and maintain.
+    -   Kept `useChatInputAreaDictation.ts` as the orchestration facade preserving the existing dictation UI contract, speech-recognition flow, transcript correction behavior, and browser-settings fallback behavior used by `<ChatInputArea/>`.
+
 -   Refactored Agents Server `createManagedServer.ts` into smaller focused private bootstrap modules without changing external behavior:
 
     -   Extracted create-server normalization, metadata seeding, transactional bootstrap orchestration, registry insertion, migration application, user/metadata seeding, SQL-dump generation, and failure-result handling into dedicated private `createManagedServer` modules so the public facade is easier to read and maintain.

@@ -1,6 +1,8 @@
 'use client';
 
 import { classNames } from '../../_common/react-utils/classNames';
+import type { DictationRefinementSettings } from './refineFinalDictationChunk';
+import type { SpeechStatusBubbleTone } from './resolveSpeechRecognitionUiDescriptor';
 import styles from './Chat.module.css';
 
 /**
@@ -10,7 +12,7 @@ import styles from './Chat.module.css';
  */
 export type ChatInputAreaDictationPanelProps = {
     bubbleText?: string;
-    bubbleTone?: 'neutral' | 'recording' | 'processing' | 'error';
+    bubbleTone?: SpeechStatusBubbleTone;
     shouldShowPanel: boolean;
     isExpanded: boolean;
     interimText: string;
@@ -18,13 +20,7 @@ export type ChatInputAreaDictationPanelProps = {
     lastFinalChunk: string;
     editableChunk: string;
     canBacktrack: boolean;
-    dictationSettings: {
-        readonly autoPunctuation: boolean;
-        readonly autoCapitalization: boolean;
-        readonly removeFillerWords: boolean;
-        readonly formatLists: boolean;
-        readonly whisperMode: boolean;
-    };
+    dictationSettings: DictationRefinementSettings;
     isBrowserSpeechFallbackSupported: boolean;
     canOpenBrowserSettings: boolean;
     onToggleExpanded: () => void;
