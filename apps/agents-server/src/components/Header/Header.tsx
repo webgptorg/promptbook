@@ -29,29 +29,29 @@ import { showAlert, showLoginDialog } from '../AsyncDialogs/asyncDialogs';
 import { ChangePasswordDialog } from '../ChangePasswordDialog/ChangePasswordDialog';
 import { useNewAgentDialog } from '../NewAgentDialog/useNewAgentDialog';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
-import { buildHeaderSystemMenuItems } from './buildHeaderSystemMenuItems';
 import { AgentDirectoryDropdown } from './AgentDirectoryDropdown';
-import { AgentNameWithAvatar } from './AgentNameWithAvatar';
 import type { HeaderAgentMenuFolder } from './AgentMenuStructure';
+import { AgentNameWithAvatar } from './AgentNameWithAvatar';
 import { appendFolderActionNodes } from './appendFolderActionNodes';
 import { buildAgentMenuStructure } from './buildAgentMenuStructure';
+import { buildDocumentationDropdownItems } from './buildDocumentationDropdownItems';
+import { buildHeaderSystemMenuItems } from './buildHeaderSystemMenuItems';
+import { HeaderControlPanelDropdown } from './ControlPanel/ControlPanel';
 import { createAgentHierarchyMobileItems } from './createAgentHierarchyMobileItems';
 import { createAgentViewLabel, createChatGptLikeViewLabel } from './createAgentViewLabel';
 import { createHeaderDropdownRenderers } from './createHeaderDropdownRenderers';
-import { buildDocumentationDropdownItems } from './buildDocumentationDropdownItems';
-import { HeaderControlPanelDropdown } from './ControlPanel/ControlPanel';
 import { HeaderDesktopTopMenuNavigation } from './HeaderDesktopTopMenuNavigation';
 import { HeaderMobileDrawer } from './HeaderMobileDrawer';
 import { HeaderSearchBox } from './HeaderSearchBox';
+import type { DropdownInteractionMode, HeaderProps, MenuItem, OpenSubMenuState } from './HeaderTypes';
 import { mapContextMenuItemsToSubMenuItems } from './mapContextMenuItemsToSubMenuItems';
+import { useMobileMenuHoisting } from './MobileMenuHoistingContext';
 import {
     createAgentHierarchyLabel,
     createFallbackAgent,
     getAgentNavigationId,
     resolveActiveAgentNavigation,
 } from './resolveActiveAgentNavigation';
-import type { DropdownInteractionMode, HeaderProps, MenuItem, OpenSubMenuState } from './HeaderTypes';
-import { useMobileMenuHoisting } from './MobileMenuHoistingContext';
 import type { SubMenuItem } from './SubMenuItem';
 import { useHeaderDropdownPortalContainer } from './useHeaderDropdownPortalContainer';
 import { useHeaderTouchInput } from './useHeaderTouchInput';
@@ -740,6 +740,10 @@ export function Header(props: HeaderProps) {
         [isHeadless, router],
     );
 
+    const closeMobileMenu = useCallback(() => {
+        setIsMenuOpen(false);
+    }, []);
+
     const { renderMobileNestedMenuItems, renderDesktopDropdownItems } = createHeaderDropdownRenderers({
         isTouchInput,
         openSubMenu,
@@ -817,9 +821,6 @@ export function Header(props: HeaderProps) {
     const currentUserAvatarLabel = currentUserDisplayName.slice(0, 1).toUpperCase();
     const currentUserProfileImageUrl = currentUser?.profileImageUrl?.trim() || null;
     const isCurrentUserAdmin = Boolean(currentUser?.isAdmin || isAdmin);
-    const closeMobileMenu = useCallback(() => {
-        setIsMenuOpen(false);
-    }, []);
     /**
      * Opens the active agent QR code modal.
      */
