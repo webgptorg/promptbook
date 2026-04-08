@@ -1,3 +1,5 @@
+import type { ThinkingLevel } from '../../../src/cli/cli-commands/coder/ThinkingLevel';
+
 /**
  * CLI options for running the prompt runner.
  */
@@ -10,6 +12,10 @@ export type RunOptions = {
      * Additional runner instructions provided either inline or as a file path.
      */
     context?: string;
+    /**
+     * Optional reasoning effort override for runners that support configurable thinking levels.
+     */
+    thinkingLevel?: ThinkingLevel;
     waitForUser: boolean;
     /**
      * Skip the clean working tree check before running prompts.

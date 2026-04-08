@@ -1,11 +1,13 @@
 import colors from 'colors';
-import type {
+import {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+    Option,
 } from 'commander';
 import { spaceTrim } from 'spacetrim';
 import { assertsError } from '../../../errors/assertsError';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { handleActionErrors } from '../common/handleActionErrors';
+import { THINKING_LEVEL_VALUES, type ThinkingLevel } from './ThinkingLevel';
 
 /**
  * Initializes `coder run` command for Promptbook CLI utilities
@@ -54,6 +56,12 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
         '--context <context-or-file>',
         'Append extra instructions either inline or from a file path relative to the current project',
     );
+    command.addOption(
+        new Option(
+            '--thinking-level <thinking-level>',
+            `Set reasoning effort for supported runners (${THINKING_LEVEL_VALUES.join(', ')})`,
+        ).choices([...THINKING_LEVEL_VALUES]),
+    );
     command.option('--priority <minimum-priority>', 'Filter prompts by minimum priority level', parseIntOption, 0);
     command.option('--no-wait', 'Skip user prompts between processing');
     command.option('--ignore-git-changes', 'Skip clean working tree check before running prompts', false);
@@ -82,6 +90,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 agent,
                 model,
                 context,
+                thinkingLevel,
                 priority,
                 wait,
                 ignoreGitChanges,
@@ -94,6 +103,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 readonly agent?: string;
                 readonly model?: string;
                 readonly context?: string;
+                readonly thinkingLevel?: ThinkingLevel;
                 readonly priority: number;
                 readonly wait: boolean;
                 readonly ignoreGitChanges: boolean;
@@ -150,6 +160,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 agentName,
                 model,
                 context,
+                thinkingLevel,
                 priority,
                 normalizeLineEndings,
                 allowCredits,

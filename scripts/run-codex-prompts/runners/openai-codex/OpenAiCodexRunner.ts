@@ -97,6 +97,7 @@ export class OpenAiCodexRunner implements PromptRunner {
             prompt: options.prompt,
             projectPath: options.projectPath,
             model: this.options.model,
+            thinkingLevel: this.options.thinkingLevel,
             sandbox: this.options.sandbox,
             askForApproval: this.options.askForApproval,
             allowCredits: this.options.allowCredits,

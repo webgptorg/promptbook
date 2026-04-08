@@ -14,6 +14,16 @@ describe('buildGitHubCopilotScript', () => {
         expect(script).toContain('Hello from test prompt');
     });
 
+    it('uses the provided thinking level in the Copilot CLI command', () => {
+        const script = buildGitHubCopilotScript({
+            prompt: 'Hello from test prompt',
+            projectPath: '/project/path',
+            thinkingLevel: 'xhigh',
+        });
+
+        expect(script).toContain('--reasoning-effort xhigh');
+    });
+
     it('omits the model flag when no model is provided', () => {
         const script = buildGitHubCopilotScript({
             prompt: 'Prompt',
@@ -21,6 +31,7 @@ describe('buildGitHubCopilotScript', () => {
         });
 
         expect(script).not.toContain('--model');
+        expect(script).not.toContain('--reasoning-effort');
         expect(script).toContain('--output-format json');
     });
 });

@@ -173,6 +173,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             runner = new OpenAiCodexRunner({
                 codexCommand: 'codex',
                 model: modelToUse,
+                thinkingLevel: options.thinkingLevel,
                 sandbox: 'danger-full-access',
                 askForApproval: 'never',
                 allowCredits: options.allowCredits,
@@ -195,6 +196,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             actualRunnerModel = modelToUse;
             runner = new GitHubCopilotRunner({
                 model: modelToUse,
+                thinkingLevel: options.thinkingLevel,
             });
         } else if (agentName === 'claude-code') {
             runner = new ClaudeCodeRunner();

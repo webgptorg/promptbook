@@ -25,6 +25,7 @@ export class GitHubCopilotRunner implements PromptRunner {
             prompt: options.prompt,
             projectPath: options.projectPath,
             model: this.options.model,
+            thinkingLevel: this.options.thinkingLevel,
         });
 
         await $runGoScript({

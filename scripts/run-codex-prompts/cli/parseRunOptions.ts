@@ -1,11 +1,13 @@
 import colors from 'colors';
+import type { ThinkingLevel } from '../../../src/cli/cli-commands/coder/ThinkingLevel';
+import { THINKING_LEVEL_VALUES, parseThinkingLevel } from '../../../src/cli/cli-commands/coder/ThinkingLevel';
 import type { RunOptions } from './RunOptions';
 
 /**
  * CLI usage text for this script.
  */
 const USAGE =
-    'Usage: run-codex-prompts [--dry-run] [--agent <agent-name>] [--model <model>] [--context <context-or-file>] [--priority <minimum-priority>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--no-wait] [--ignore-git-changes] [--no-normalize-line-endings]';
+    'Usage: run-codex-prompts [--dry-run] [--agent <agent-name>] [--model <model>] [--context <context-or-file>] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--no-wait] [--ignore-git-changes] [--no-normalize-line-endings]';
 
 /**
  * Parses CLI arguments into runner options.
@@ -32,6 +34,8 @@ export function parseRunOptions(args: string[]): RunOptions {
 
     const model = readOptionValue(args, '--model');
     const context = readOptionValue(args, '--context');
+    const hasThinkingLevelFlag = args.includes('--thinking-level');
+    const thinkingLevelValue = readOptionValue(args, '--thinking-level');
     const hasPriorityFlag = args.includes('--priority');
     const priority = parsePriority(readOptionValue(args, '--priority'), hasPriorityFlag);
     const ignoreGitChanges = args.includes('--ignore-git-changes');
@@ -39,6 +43,19 @@ export function parseRunOptions(args: string[]): RunOptions {
     const allowCredits = args.includes('--allow-credits');
     const autoMigrate = args.includes('--auto-migrate');
     const allowDestructiveAutoMigrate = args.includes('--allow-destructive-auto-migrate');
+    let thinkingLevel: ThinkingLevel | undefined;
+
+    if (hasThinkingLevelFlag && thinkingLevelValue === undefined) {
+        exitWithUsageError(
+            `Missing value for --thinking-level. Use one of: ${THINKING_LEVEL_VALUES.join(', ')}.`,
+        );
+    }
+
+    try {
+        thinkingLevel = parseThinkingLevel(thinkingLevelValue);
+    } catch (error) {
+        exitWithUsageError(error instanceof Error ? error.message : String(error));
+    }
 
     if (!agentName && !dryRun) {
         exitWithUsageError(
@@ -57,6 +74,7 @@ export function parseRunOptions(args: string[]): RunOptions {
         agentName,
         model,
         context,
+        thinkingLevel,
         priority,
     };
 }

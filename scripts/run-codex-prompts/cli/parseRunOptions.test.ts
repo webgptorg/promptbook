@@ -106,6 +106,17 @@ describe('parseRunOptions', () => {
         });
     });
 
+    it('parses thinking level for supported runners', () => {
+        const options = parseRunOptions(['--agent', 'github-copilot', '--thinking-level', 'xhigh']);
+
+        expect(options).toMatchObject({
+            dryRun: false,
+            agentName: 'github-copilot',
+            thinkingLevel: 'xhigh',
+            normalizeLineEndings: true,
+        });
+    });
+
     it('parses --dry-run with other flags', () => {
         const options = parseRunOptions(['--dry-run', '--priority', '2', '--no-wait']);
 
@@ -179,6 +190,13 @@ describe('parseRunOptions', () => {
 
     it('rejects missing priority value', () => {
         expect(() => parseRunOptions(['--agent', 'gemini', '--priority'])).toThrow('process.exit');
+        expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it('rejects invalid thinking level values', () => {
+        expect(() => parseRunOptions(['--agent', 'openai-codex', '--thinking-level', 'extreme'])).toThrow(
+            'process.exit',
+        );
         expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 });
