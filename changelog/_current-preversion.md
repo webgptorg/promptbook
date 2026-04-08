@@ -1,3 +1,8 @@
+-   Refactored Agents Server `createMiddlewareRequestContext.ts` into smaller focused private middleware modules without changing external behavior:
+
+    -   Extracted middleware Supabase setup, request-IP parsing, registered-server loading, server routing/custom-domain resolution, metadata/settings resolution, and API-token validation into dedicated private `createMiddlewareRequestContext` helpers so the entrypoint is easier to read and maintain.
+    -   Kept the public `createMiddlewareRequestContext` import path and middleware behavior intact for access restriction, custom-domain routing, embedding policy, and server visibility resolution.
+
 -   Refactored Agents Server `<OfficeScene/>` into smaller focused private scene modules without changing office-scene behavior:
 
     -   Extracted the static SVG surface, shared geometry/projection helpers, corridor rendering, room rendering, desk rendering, and agent rendering into dedicated private Homepage modules so `OfficeScene.tsx` now reads as a thin orchestration facade.
