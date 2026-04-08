@@ -3,30 +3,34 @@ import { dirname, join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
 import { buildAgentGitEnv, buildAgentGitSigningFlag } from './agentGitIdentity';
+import { runGitCommand } from './runGitCommand';
 
 /**
  * Commits staged changes with the provided message using the dedicated coding-agent identity when configured,
  * otherwise falls back to the default Git configuration.
  */
 export async function commitChanges(message: string): Promise<void> {
-    const commitMessagePath = join(process.cwd(), '.tmp', 'codex-prompts', `COMMIT_MESSAGE_${Date.now()}.txt`);
+    const projectPath = process.cwd();
+    const commitMessagePath = join(projectPath, '.tmp', 'codex-prompts', `COMMIT_MESSAGE_${Date.now()}.txt`);
     await mkdir(dirname(commitMessagePath), { recursive: true });
     await writeFile(commitMessagePath, message, 'utf-8');
 
     try {
         const agentEnv = buildAgentGitEnv();
         const signingFlag = buildAgentGitSigningFlag();
-        await $execCommand({
+        await runGitCommand({
             command: 'git add .',
+            cwd: projectPath,
             env: agentEnv,
         });
 
-        await $execCommand({
+        await runGitCommand({
             command: buildGitCommitCommand(commitMessagePath, signingFlag),
+            cwd: projectPath,
             env: agentEnv,
         });
 
-        await pushCommittedChanges(agentEnv);
+        await pushCommittedChanges(projectPath, agentEnv);
     } finally {
         await unlink(commitMessagePath).catch(() => undefined);
     }
@@ -52,18 +56,18 @@ class GitPushFailedError extends Error {
  * - Uses `git push --set-upstream` on first push when upstream is missing.
  * - Skips pushing when upstream exists and there is nothing to push.
  */
-async function pushCommittedChanges(agentEnv?: Record<string, string>): Promise<void> {
-    if (await hasUpstreamBranch(agentEnv)) {
-        const commitsAhead = await countCommitsAheadOfUpstream(agentEnv);
+async function pushCommittedChanges(projectPath: string, agentEnv?: Record<string, string>): Promise<void> {
+    if (await hasUpstreamBranch(projectPath, agentEnv)) {
+        const commitsAhead = await countCommitsAheadOfUpstream(projectPath, agentEnv);
         if (commitsAhead === 0) {
             return;
         }
 
-        await executeGitPushCommand('git push', agentEnv);
+        await executeGitPushCommand('git push', projectPath, agentEnv);
         return;
     }
 
-    const currentBranch = await readCurrentBranchName(agentEnv);
+    const currentBranch = await readCurrentBranchName(projectPath, agentEnv);
     if (currentBranch === 'HEAD') {
         throw new GitPushFailedError(
             spaceTrim(`
@@ -75,17 +79,18 @@ async function pushCommittedChanges(agentEnv?: Record<string, string>): Promise<
         );
     }
 
-    const remoteName = await resolveDefaultRemoteName(currentBranch, agentEnv);
-    await executeGitPushCommand(`git push --set-upstream "${remoteName}" "${currentBranch}"`, agentEnv);
+    const remoteName = await resolveDefaultRemoteName(currentBranch, projectPath, agentEnv);
+    await executeGitPushCommand(`git push --set-upstream "${remoteName}" "${currentBranch}"`, projectPath, agentEnv);
 }
 
 /**
  * Checks whether the current branch has an upstream reference.
  */
-async function hasUpstreamBranch(agentEnv?: Record<string, string>): Promise<boolean> {
+async function hasUpstreamBranch(projectPath: string, agentEnv?: Record<string, string>): Promise<boolean> {
     try {
         await $execCommand({
             command: 'git rev-parse --abbrev-ref --symbolic-full-name @{upstream}',
+            cwd: projectPath,
             env: agentEnv,
             isVerbose: false,
         });
@@ -99,9 +104,10 @@ async function hasUpstreamBranch(agentEnv?: Record<string, string>): Promise<boo
 /**
  * Counts commits present on local `HEAD` but not on the upstream branch.
  */
-async function countCommitsAheadOfUpstream(agentEnv?: Record<string, string>): Promise<number> {
+async function countCommitsAheadOfUpstream(projectPath: string, agentEnv?: Record<string, string>): Promise<number> {
     const output = await $execCommand({
         command: 'git rev-list --count @{upstream}..HEAD',
+        cwd: projectPath,
         env: agentEnv,
         isVerbose: false,
     });
@@ -117,9 +123,10 @@ async function countCommitsAheadOfUpstream(agentEnv?: Record<string, string>): P
 /**
  * Reads the current local branch name.
  */
-async function readCurrentBranchName(agentEnv?: Record<string, string>): Promise<string> {
+async function readCurrentBranchName(projectPath: string, agentEnv?: Record<string, string>): Promise<string> {
     const branch = await $execCommand({
         command: 'git rev-parse --abbrev-ref HEAD',
+        cwd: projectPath,
         env: agentEnv,
         isVerbose: false,
     });
@@ -130,19 +137,24 @@ async function readCurrentBranchName(agentEnv?: Record<string, string>): Promise
 /**
  * Resolves which remote should be used when setting upstream on first push.
  */
-async function resolveDefaultRemoteName(currentBranch: string, agentEnv?: Record<string, string>): Promise<string> {
-    const pushDefault = await readOptionalGitConfig('remote.pushDefault', agentEnv);
+async function resolveDefaultRemoteName(
+    currentBranch: string,
+    projectPath: string,
+    agentEnv?: Record<string, string>,
+): Promise<string> {
+    const pushDefault = await readOptionalGitConfig('remote.pushDefault', projectPath, agentEnv);
     if (pushDefault) {
         return pushDefault;
     }
 
-    const branchRemote = await readOptionalGitConfig(`branch.${currentBranch}.remote`, agentEnv);
+    const branchRemote = await readOptionalGitConfig(`branch.${currentBranch}.remote`, projectPath, agentEnv);
     if (branchRemote) {
         return branchRemote;
     }
 
     const remoteOutput = await $execCommand({
         command: 'git remote',
+        cwd: projectPath,
         env: agentEnv,
         isVerbose: false,
     });
@@ -185,10 +197,15 @@ async function resolveDefaultRemoteName(currentBranch: string, agentEnv?: Record
 /**
  * Reads optional git config value; returns undefined when the key is missing.
  */
-async function readOptionalGitConfig(name: string, agentEnv?: Record<string, string>): Promise<string | undefined> {
+async function readOptionalGitConfig(
+    name: string,
+    projectPath: string,
+    agentEnv?: Record<string, string>,
+): Promise<string | undefined> {
     try {
         const value = await $execCommand({
             command: `git config --get "${name}"`,
+            cwd: projectPath,
             env: agentEnv,
             isVerbose: false,
         });
@@ -203,10 +220,15 @@ async function readOptionalGitConfig(name: string, agentEnv?: Record<string, str
 /**
  * Executes one push command and wraps failures into a detailed branded error.
  */
-async function executeGitPushCommand(command: string, agentEnv?: Record<string, string>): Promise<void> {
+async function executeGitPushCommand(
+    command: string,
+    projectPath: string,
+    agentEnv?: Record<string, string>,
+): Promise<void> {
     try {
         await $execCommand({
             command,
+            cwd: projectPath,
             env: agentEnv,
         });
     } catch (error) {

@@ -1,3 +1,9 @@
+-   Fixed `ptbk coder run` git staging/commit reliability when `.git/index.lock` blocks the auto-commit step:
+
+    -   Added one shared Git command helper for the coding-agent workflow so `git add` and `git commit` use the same lock-aware execution path.
+    -   The helper now retries transient `index.lock` conflicts, removes clearly stale lock files, and throws a clearer actionable conflict error when the repository is still locked.
+    -   Added regression tests covering both temporary lock retries and stale-lock cleanup during coding-agent commits.
+
 -   Normalized project comment style across the TypeScript and JavaScript codebase:
 
     -   Rewrote top-level JSDoc blocks into a consistent multiline format, added missing entity documentation, and ensured exported `src` entities carry explicit `@public` or `@private` annotations.

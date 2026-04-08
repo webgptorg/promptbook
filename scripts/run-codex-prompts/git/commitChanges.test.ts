@@ -1,15 +1,29 @@
+import { existsSync } from 'fs';
+import { mkdir, mkdtemp, rm, utimes, writeFile } from 'fs/promises';
+import { tmpdir } from 'os';
+import { join } from 'path';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
 import { buildAgentGitEnv, buildAgentGitSigningFlag } from './agentGitIdentity';
 import { commitChanges } from './commitChanges';
+import { forTime } from 'waitasecond';
 
 jest.mock('../../../src/utils/execCommand/$execCommand', () => ({
     $execCommand: jest.fn(),
+}));
+
+jest.mock('waitasecond', () => ({
+    forTime: jest.fn(),
 }));
 
 jest.mock('./agentGitIdentity', () => ({
     buildAgentGitEnv: jest.fn(),
     buildAgentGitSigningFlag: jest.fn(),
 }));
+
+/**
+ * Original working directory restored after tests that switch to a temporary project.
+ */
+const ORIGINAL_WORKING_DIRECTORY = process.cwd();
 
 /**
  * Typed Jest mock for the command runner utility.
@@ -21,6 +35,13 @@ type ExecCommandMock = jest.MockedFunction<typeof $execCommand>;
  */
 function getExecCommandMock(): ExecCommandMock {
     return $execCommand as ExecCommandMock;
+}
+
+/**
+ * Typed Jest mock for the sleep helper used during git lock retries.
+ */
+function getForTimeMock(): jest.MockedFunction<typeof forTime> {
+    return forTime as jest.MockedFunction<typeof forTime>;
 }
 
 /**
@@ -37,7 +58,19 @@ function getCalledCommands(execMock: ExecCommandMock): string[] {
     return execMock.mock.calls.map(([options]) => (typeof options === 'string' ? options : options.command));
 }
 
+/**
+ * Creates one temporary repository-like directory with an empty `.git` folder.
+ */
+async function createTemporaryGitProject(): Promise<string> {
+    const temporaryProjectPath = await mkdtemp(join(tmpdir(), 'ptbk-coder-git-'));
+    await mkdir(join(temporaryProjectPath, '.git'), { recursive: true });
+    return temporaryProjectPath;
+}
+
 describe('commitChanges', () => {
+    let consoleWarnSpy: jest.SpyInstance<void, [message?: unknown, ...optionalParams: unknown[]]>;
+    let temporaryProjectPath: string | undefined;
+
     beforeEach(() => {
         (buildAgentGitEnv as jest.MockedFunction<typeof buildAgentGitEnv>).mockReturnValue({
             GIT_AUTHOR_NAME: 'Promptbook Coding Agent',
@@ -45,9 +78,19 @@ describe('commitChanges', () => {
         (buildAgentGitSigningFlag as jest.MockedFunction<typeof buildAgentGitSigningFlag>).mockReturnValue(
             '--gpg-sign="test"',
         );
+        getForTimeMock().mockResolvedValue(undefined);
+        consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
     });
 
-    afterEach(() => {
+    afterEach(async () => {
+        process.chdir(ORIGINAL_WORKING_DIRECTORY);
+
+        if (temporaryProjectPath) {
+            await rm(temporaryProjectPath, { recursive: true, force: true });
+            temporaryProjectPath = undefined;
+        }
+
+        consoleWarnSpy.mockRestore();
         jest.resetAllMocks();
     });
 
@@ -185,5 +228,94 @@ describe('commitChanges', () => {
         expect(commitCommand).toMatch(/^git commit --file ".*COMMIT_MESSAGE_\d+\.txt"$/);
         expect(commitCommand).not.toContain('--gpg-sign');
         expect(typeof gitAddCallOptions === 'string' ? undefined : gitAddCallOptions?.env).toBeUndefined();
+    });
+
+    it('retries git add when index.lock is temporarily held by another git process', async () => {
+        const execMock = getExecCommandMock();
+        let isFirstGitAddAttempt = true;
+
+        execMock.mockImplementation(async (options) => {
+            const command = typeof options === 'string' ? options : options.command;
+
+            if (command === 'git add .') {
+                if (isFirstGitAddAttempt) {
+                    isFirstGitAddAttempt = false;
+                    throw new Error(
+                        "fatal: Unable to create '.git/index.lock': File exists.\nAnother git process seems to be running in this repository.",
+                    );
+                }
+
+                return okResult();
+            }
+
+            if (command === 'git rev-parse --git-path index.lock') {
+                return '.git/index.lock';
+            }
+
+            if (command === 'git rev-parse --abbrev-ref --symbolic-full-name @{upstream}') {
+                return 'origin/main';
+            }
+
+            if (command === 'git rev-list --count @{upstream}..HEAD') {
+                return '1';
+            }
+
+            return okResult();
+        });
+
+        await commitChanges('test commit');
+
+        const calledCommands = getCalledCommands(execMock);
+        expect(calledCommands.filter((command) => command === 'git add .')).toHaveLength(2);
+        expect(getForTimeMock()).toHaveBeenCalledWith(250);
+    });
+
+    it('removes stale index.lock before retrying git commit', async () => {
+        temporaryProjectPath = await createTemporaryGitProject();
+        process.chdir(temporaryProjectPath);
+
+        const staleIndexLockPath = join(temporaryProjectPath, '.git', 'index.lock');
+        await writeFile(staleIndexLockPath, 'stale lock', 'utf-8');
+
+        const staleDate = new Date(Date.now() - 5 * 60 * 1000);
+        await utimes(staleIndexLockPath, staleDate, staleDate);
+
+        const execMock = getExecCommandMock();
+        let isFirstGitCommitAttempt = true;
+
+        execMock.mockImplementation(async (options) => {
+            const command = typeof options === 'string' ? options : options.command;
+
+            if (command.startsWith('git commit ')) {
+                if (isFirstGitCommitAttempt) {
+                    isFirstGitCommitAttempt = false;
+                    throw new Error(
+                        `fatal: Unable to create '${staleIndexLockPath.replace(/\\/g, '/')}': File exists.\nAnother git process seems to be running in this repository.`,
+                    );
+                }
+
+                return okResult();
+            }
+
+            if (command === 'git rev-parse --git-path index.lock') {
+                return '.git/index.lock';
+            }
+
+            if (command === 'git rev-parse --abbrev-ref --symbolic-full-name @{upstream}') {
+                return 'origin/main';
+            }
+
+            if (command === 'git rev-list --count @{upstream}..HEAD') {
+                return '1';
+            }
+
+            return okResult();
+        });
+
+        await commitChanges('test commit');
+
+        const calledCommands = getCalledCommands(execMock);
+        expect(calledCommands.filter((command) => command.startsWith('git commit '))).toHaveLength(2);
+        expect(existsSync(staleIndexLockPath)).toBe(false);
     });
 });
