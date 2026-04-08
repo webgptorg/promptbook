@@ -1,3 +1,8 @@
+-   Refactored `src/types/number_usd.ts` into smaller focused numeric-alias modules without changing external behavior:
+
+    -   Extracted numeric primitives, identifier/count aliases, percentage aliases, duration aliases, storage-size aliases, and likeness aliases into dedicated `src/types/number_*.ts` modules so the implementation is easier to read and maintain.
+    -   Kept `src/types/number_usd.ts` as the compatibility facade preserving the same exported numeric type aliases and import paths.
+
 -   Refactored shared `<ChatInputArea/>` into smaller focused private modules without changing composer behavior:
 
     -   Extracted attachment upload state and drag/drop handling into `useChatInputAreaAttachments`, plus speech-recognition state/transcript refinement into `useChatInputAreaDictation`, so `ChatInputArea.tsx` now reads as a slimmer orchestration layer.

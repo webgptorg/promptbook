@@ -135,32 +135,31 @@ export type {
 } from './string_token';
 
 export type {
-    number_bytes,
-    number_days,
-    number_gigabytes,
-    number_hours,
     number_id,
-    number_integer,
-    number_kilobytes,
-    number_likeness,
     number_linecol_number,
-    number_megabytes,
+    number_tokens,
+} from './number_id';
+
+export type { number_integer, number_negative, number_port, number_positive } from './number_positive';
+
+export type { number_model_temperature, number_percent, number_seed } from './number_percent';
+
+export type { number_likeness } from './number_likeness';
+
+export type {
+    number_weeks,
+    number_days,
+    number_hours,
     number_milliseconds,
     number_minutes,
-    number_model_temperature,
     number_months,
-    number_negative,
-    number_percent,
-    number_port,
-    number_positive,
     number_seconds,
-    number_seed,
-    number_terabytes,
-    number_tokens,
-    number_usd,
-    number_weeks,
     number_years,
-} from './number_usd';
+} from './number_milliseconds';
+
+export type { number_bytes, number_gigabytes, number_kilobytes, number_megabytes, number_terabytes } from './number_bytes';
+
+export type { number_usd } from './number_usd';
 
 /**
  * TODO: [main] !!3 Change "For example" to @example
