@@ -1,3 +1,8 @@
+-   Refactored Agents Server `<OfficeScene/>` into smaller focused private scene modules without changing office-scene behavior:
+
+    -   Extracted the static SVG surface, shared geometry/projection helpers, corridor rendering, room rendering, desk rendering, and agent rendering into dedicated private Homepage modules so `OfficeScene.tsx` now reads as a thin orchestration facade.
+    -   Reused the extracted geometry helpers from `AgentsOffice.tsx` for scene metrics and room-centering math so the isometric projection settings stay defined in one place while preserving the current office interactions and visuals.
+
 -   Refactored Agents Server `useBookEditorWrapper` into smaller private editor modules without changing Book editor behavior:
 
     -   Extracted dedicated private `useBookEditorSaving`, `useBookEditorDiagnostics`, and `useBookEditorHistory` hooks plus focused Monaco-path and API-error helpers so the wrapper hook now reads as a small orchestration layer.

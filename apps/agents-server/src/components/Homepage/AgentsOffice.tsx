@@ -1,7 +1,14 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent } from 'react';
+import {
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+    type PointerEvent as ReactPointerEvent,
+    type WheelEvent as ReactWheelEvent,
+} from 'react';
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { AgentsOfficeToolbar } from './AgentsOfficeToolbar';
@@ -12,19 +19,10 @@ import {
     type OfficePoint,
     type OfficeRoom,
 } from './buildOfficeLayout';
+import { OfficeSceneGeometry, type OfficeSceneMetrics } from './OfficeSceneGeometry';
 import { OfficeScene } from './OfficeScene';
 import { OfficeTooltip } from './OfficeTooltip';
 import type { AgentWithVisibility } from './useFederatedAgents';
-
-/**
- * Horizontal scale factor used by the isometric projection.
- */
-const ISO_X_SCALE = 1;
-
-/**
- * Vertical scale factor used by the isometric projection.
- */
-const ISO_Y_SCALE = 0.56;
 
 /**
  * Width of the tooltip action panel.
@@ -80,16 +78,6 @@ type OfficeDragState = {
 };
 
 /**
- * Screen-space scene metrics derived from the world layout.
- */
-type OfficeSceneMetrics = {
-    sceneWidth: number;
-    sceneHeight: number;
-    originX: number;
-    originY: number;
-};
-
-/**
  * Container size observed for camera fitting.
  */
 type OfficeContainerSize = {
@@ -105,7 +93,10 @@ export function AgentsOffice(props: AgentsOfficeProps) {
     const router = useRouter();
     const { formatText } = useAgentNaming();
     const containerRef = useRef<HTMLDivElement | null>(null);
-    const [containerSize, setContainerSize] = useState<OfficeContainerSize>({ width: 1200, height: OFFICE_CANVAS_HEIGHT });
+    const [containerSize, setContainerSize] = useState<OfficeContainerSize>({
+        width: 1200,
+        height: OFFICE_CANVAS_HEIGHT,
+    });
     const [camera, setCamera] = useState<OfficeCamera>({ x: 0, y: 0, zoom: 1 });
     const [dragState, setDragState] = useState<OfficeDragState | null>(null);
     const [tooltipState, setTooltipState] = useState<OfficeTooltipState | null>(null);
@@ -174,7 +165,10 @@ export function AgentsOffice(props: AgentsOfficeProps) {
         }, new Map());
     }, [layout.agents]);
     const meetingRoomIds = useMemo(
-        () => layout.rooms.filter((room) => (agentsByRoomId.get(room.id) || []).some((agent) => agent.state === 'meeting')).map((room) => room.id),
+        () =>
+            layout.rooms
+                .filter((room) => (agentsByRoomId.get(room.id) || []).some((agent) => agent.state === 'meeting'))
+                .map((room) => room.id),
         [layout.rooms, agentsByRoomId],
     );
     const hoveredAgent = useMemo(
@@ -339,7 +333,9 @@ export function AgentsOffice(props: AgentsOfficeProps) {
     };
 
     if (layout.agents.length === 0) {
-        return <div className="flex justify-center py-12 text-gray-500">{formatText('No agents to show in office.')}</div>;
+        return (
+            <div className="flex justify-center py-12 text-gray-500">{formatText('No agents to show in office.')}</div>
+        );
     }
 
     return (
@@ -407,7 +403,7 @@ export function AgentsOffice(props: AgentsOfficeProps) {
 function createSceneMetrics(layout: OfficeLayout): OfficeSceneMetrics {
     return {
         sceneWidth: layout.worldWidth + layout.worldHeight + SCENE_PADDING * 2,
-        sceneHeight: (layout.worldWidth + layout.worldHeight) * ISO_Y_SCALE + SCENE_PADDING * 2,
+        sceneHeight: (layout.worldWidth + layout.worldHeight) * OfficeSceneGeometry.ISO_Y_SCALE + SCENE_PADDING * 2,
         originX: layout.worldHeight + SCENE_PADDING * 0.9,
         originY: SCENE_PADDING,
     };
@@ -441,10 +437,7 @@ function projectRoomCenter(room: OfficeRoom, metrics: OfficeSceneMetrics): Offic
     const centerX = room.x + room.width / 2;
     const centerY = room.y + room.depth / 2;
 
-    return {
-        x: metrics.originX + (centerX - centerY) * ISO_X_SCALE,
-        y: metrics.originY + (centerX + centerY) * ISO_Y_SCALE,
-    };
+    return OfficeSceneGeometry.projectPoint({ x: centerX, y: centerY }, 0, metrics);
 }
 
 /**
