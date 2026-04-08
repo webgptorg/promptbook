@@ -3,13 +3,9 @@ import { join } from 'path';
 import { normalizeToKebabCase } from '../../src/_packages/utils.index';
 import { buildPromptFilename, getPromptNumbering } from '../utils/prompts/getPromptNumbering';
 import { formatPromptEmojiTag, getFreshPromptEmojiTags } from '../utils/prompts/promptEmojiTags';
-import {
-    PROMPT_NUMBER_STEP,
-    PROMPT_SLUG_MAX_LENGTH,
-    PROMPT_SLUG_PREFIX,
-} from './find-refactor-candidates.constants';
-import type { RefactorCandidate } from './RefactorCandidate';
 import { buildPromptContent } from './buildPromptContent';
+import { PROMPT_NUMBER_STEP, PROMPT_SLUG_MAX_LENGTH, PROMPT_SLUG_PREFIX } from './find-refactor-candidates.constants';
+import type { RefactorCandidate } from './RefactorCandidate';
 
 /**
  * Input required to create prompt files for refactor candidates.
@@ -109,4 +105,4 @@ function hashString(value: string): string {
     return (hash >>> 0).toString(36);
 }
 
-/** Note: [⚫] Code for repository script [writeRefactorCandidatePrompts](scripts/find-refactor-candidates/writeRefactorCandidatePrompts.ts) should never be published in any package */
+/** Note: [🟡] Code for repository script [writeRefactorCandidatePrompts](scripts/find-refactor-candidates/writeRefactorCandidatePrompts.ts) should never be published outside of `@promptbook/cli` */

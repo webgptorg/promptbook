@@ -1,5 +1,6 @@
 import glob from 'glob-promise';
 import { resolve } from 'path';
+import { analyzeSourceFileForRefactorCandidate } from './analyzeSourceFileForRefactorCandidate';
 import {
     LINE_COUNT_EXEMPT_GLOBS,
     SOURCE_FILE_EXTENSIONS,
@@ -7,7 +8,6 @@ import {
     SOURCE_ROOTS,
 } from './find-refactor-candidates.constants';
 import type { RefactorCandidate } from './RefactorCandidate';
-import { analyzeSourceFileForRefactorCandidate } from './analyzeSourceFileForRefactorCandidate';
 
 /**
  * Scans the repository and returns all files that qualify as refactor candidates.
@@ -95,4 +95,4 @@ function normalizeAbsolutePath(pathValue: string): string {
     return process.platform === 'win32' ? normalized.toLowerCase() : normalized;
 }
 
-/** Note: [⚫] Code for repository script [findRefactorCandidatesInProject](scripts/find-refactor-candidates/findRefactorCandidatesInProject.ts) should never be published in any package */
+/** Note: [🟡] Code for repository script [findRefactorCandidatesInProject](scripts/find-refactor-candidates/findRefactorCandidatesInProject.ts) should never be published outside of `@promptbook/cli` */
