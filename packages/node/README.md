@@ -409,24 +409,6 @@ You can install all of them at once:
 npm i ptbk
 ```
 
-Promptbook also ships coding-agent CLI utilities through `ptbk coder`.
-For full `coder run` options and runner-specific examples, see [`scripts/run-codex-prompts/README.md`](./scripts/run-codex-prompts/README.md).
-
-#### `ptbk coder`
-
-Locally in this repository:
-
-```bash
-npx ts-node ./src/cli/test/ptbk.ts coder run --dry-run
-```
-
-In another project with `ptbk` installed:
-
-```bash
-npm install ptbk
-npx ptbk coder run --dry-run
-```
-
 Or you can install them separately:
 
 > ⭐ Marked packages are worth to try first
