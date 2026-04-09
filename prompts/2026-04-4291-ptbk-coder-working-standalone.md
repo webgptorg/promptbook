@@ -85,7 +85,7 @@ Promptbook coder configuration initialized.
 
 ---
 
-[ ]
+[x] ~$0.00 28 minutes by GitHub Copilot `gpt-5.4`
 
 [✨👜] `ptbk coder init` should create `AGENTS.md` file with some boilerplate instructions
 
@@ -129,4 +129,5 @@ Promptbook coder configuration initialized.
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
+
 

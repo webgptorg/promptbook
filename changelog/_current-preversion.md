@@ -1,3 +1,9 @@
+-   Added `AGENTS.md` bootstrap to `ptbk coder init`:
+
+    -   `ptbk coder init` now creates a starter `AGENTS.md` file alongside the prompts/templates bootstrap, so the generated `coder:run` script points at an existing shared context file immediately.
+    -   Kept initialization non-destructive by leaving existing `AGENTS.md` files untouched.
+    -   Updated CLI summary output, README guidance, and regression coverage for the new initialized file.
+
 -   Fixed `ptbk coder init` so external projects no longer get the Promptbook-repository-specific `agents-server.md` template by default:
 
     -   Split generic `coder init` template bootstrap from the full built-in template list, so project initialization now materializes only templates intended for any repository while the Promptbook-specific Agents Server template remains available separately.

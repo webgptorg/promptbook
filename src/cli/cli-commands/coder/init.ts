@@ -7,6 +7,7 @@ import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { ParseError } from '../../../errors/ParseError';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
+import { AGENTS_FILE_PATH, getDefaultCoderAgentsFileContent } from './agentsFile';
 import {
     ensureDefaultCoderPromptTemplateFiles,
     type EnsuredCoderPromptTemplateFile,
@@ -128,6 +129,7 @@ type CoderInitializationSummary = {
     readonly promptsDoneDirectoryStatus: InitializationStatus;
     readonly promptsTemplatesDirectoryStatus: InitializationStatus;
     readonly promptTemplateFileStatuses: ReadonlyArray<EnsuredCoderPromptTemplateFile>;
+    readonly agentsFileStatus: InitializationStatus;
     readonly envFileStatus: InitializationStatus;
     readonly gitignoreFileStatus: InitializationStatus;
     readonly packageJsonFileStatus: InitializationStatus;
@@ -153,6 +155,7 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
             - prompts/
             - prompts/done/
             ${listDefaultCoderProjectPromptTemplateDisplayPaths()}
+            - AGENTS.md
             - .gitignore
             - package.json
             - .vscode/settings.json
@@ -204,6 +207,7 @@ export async function initializeCoderProjectConfiguration(projectPath: string): 
     const promptsDoneDirectoryStatus = await ensureDirectory(projectPath, PROMPTS_DONE_DIRECTORY_PATH);
     const promptsTemplatesDirectoryStatus = await ensureDirectory(projectPath, PROMPTS_TEMPLATES_DIRECTORY_PATH);
     const promptTemplateFileStatuses = await ensureDefaultCoderPromptTemplateFiles(projectPath);
+    const agentsFileStatus = await ensureCoderAgentsFile(projectPath);
     const { envFileStatus, initializedEnvVariableNames } = await ensureCoderEnvFile(projectPath);
     const gitignoreFileStatus = await ensureCoderGitignoreFile(projectPath);
     const packageJsonFileStatus = await ensureCoderPackageJsonFile(projectPath);
@@ -214,6 +218,7 @@ export async function initializeCoderProjectConfiguration(projectPath: string): 
         promptsDoneDirectoryStatus,
         promptsTemplatesDirectoryStatus,
         promptTemplateFileStatuses,
+        agentsFileStatus,
         envFileStatus,
         gitignoreFileStatus,
         packageJsonFileStatus,
@@ -229,6 +234,19 @@ function listDefaultCoderProjectPromptTemplateDisplayPaths(): string {
     return getDefaultCoderProjectPromptTemplateDefinitions()
         .map(({ relativeFilePath }) => `- ${formatDisplayPath(relativeFilePath)}`)
         .join('\n');
+}
+
+/**
+ * Ensures `AGENTS.md` exists with the default coder context boilerplate.
+ */
+async function ensureCoderAgentsFile(projectPath: string): Promise<InitializationStatus> {
+    const agentsFilePath = join(projectPath, AGENTS_FILE_PATH);
+    if (await isExistingFile(agentsFilePath)) {
+        return 'unchanged';
+    }
+
+    await writeFile(agentsFilePath, `${getDefaultCoderAgentsFileContent()}\n`, 'utf-8');
+    return 'created';
 }
 
 /**
@@ -423,6 +441,7 @@ function printInitializationSummary(summary: CoderInitializationSummary): void {
         printInitializationStatusLine(formatDisplayPath(templateFileStatus.relativeFilePath), templateFileStatus.status);
     }
 
+    printInitializationStatusLine(AGENTS_FILE_PATH, summary.agentsFileStatus);
     printInitializationStatusLine('.env', summary.envFileStatus);
     printInitializationStatusLine('.gitignore', summary.gitignoreFileStatus);
     printInitializationStatusLine('package.json', summary.packageJsonFileStatus);
