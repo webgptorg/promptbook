@@ -1,8 +1,14 @@
 import colors from 'colors';
-import type {
+import {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
+    Option,
 } from 'commander';
 import { spaceTrim } from 'spacetrim';
+import {
+    DEFAULT_REFACTOR_CANDIDATE_LEVEL,
+    REFACTOR_CANDIDATE_LEVEL_VALUES,
+    type RefactorCandidateLevel,
+} from '../../../../scripts/find-refactor-candidates/RefactorCandidateLevel';
 import { assertsError } from '../../../errors/assertsError';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
 import { handleActionErrors } from '../common/handleActionErrors';
@@ -20,23 +26,37 @@ export function $initializeCoderFindRefactorCandidatesCommand(program: Program):
         spaceTrim(`
             Scan source files to identify refactoring candidates
 
-            Flags files that exceed:
-            - Line count limits (500 lines per file by extension)
-            - Entity count limits (max 4 entities per file)
+            Levels:
+            - low: Conservative scan for only the most obvious refactor targets
+            - medium: Default scan using the current standard thresholds
+            - high: Stricter scan that finds more crowded or complex files
+            - xhigh: Most aggressive scan for denser and more complex candidates
 
             Generates refactor prompts with guidance for identified candidates.
         `),
     );
+    command.addOption(
+        new Option(
+            '--level <level>',
+            `Set scan aggressiveness (${REFACTOR_CANDIDATE_LEVEL_VALUES.join(', ')})`,
+        )
+            .choices([...REFACTOR_CANDIDATE_LEVEL_VALUES])
+            .default(DEFAULT_REFACTOR_CANDIDATE_LEVEL),
+    );
 
     command.action(
-        handleActionErrors(async () => {
+        handleActionErrors(async (cliOptions) => {
+            const { level = DEFAULT_REFACTOR_CANDIDATE_LEVEL } = cliOptions as {
+                readonly level?: RefactorCandidateLevel;
+            };
+
             // Note: Import the function dynamically to avoid loading heavy dependencies until needed
             const { findRefactorCandidates } = await import(
                 '../../../../scripts/find-refactor-candidates/find-refactor-candidates'
             );
 
             try {
-                await findRefactorCandidates();
+                await findRefactorCandidates({ level });
             } catch (error) {
                 assertsError(error);
                 console.error(colors.bgRed(`${error.name}`));

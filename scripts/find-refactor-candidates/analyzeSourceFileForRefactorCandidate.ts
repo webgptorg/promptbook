@@ -3,13 +3,11 @@ import { extname, relative, resolve } from 'path';
 import type { SourceFile } from 'typescript';
 import * as ts from 'typescript';
 import {
-    DEFAULT_MAX_LINE_COUNT,
-    ENTITY_COUNT_EXTENSIONS,
     GENERATED_CODE_MARKERS,
-    LINE_COUNT_LIMITS_BY_EXTENSION,
-    MAX_ENTITIES_PER_FILE,
+    STRUCTURAL_ANALYSIS_EXTENSIONS,
 } from './find-refactor-candidates.constants';
 import type { RefactorCandidate } from './RefactorCandidate';
+import type { RefactorCandidateLevelConfiguration } from './RefactorCandidateLevel';
 import { normalizeRefactorCandidatePath } from './normalizeRefactorCandidatePath';
 
 /**
@@ -32,6 +30,11 @@ export type AnalyzeSourceFileForRefactorCandidateOptions = {
      * Normalized absolute paths exempt from line-count checks.
      */
     readonly lineCountExemptPaths: ReadonlySet<string>;
+
+    /**
+     * Thresholds used to decide whether the file should be flagged.
+     */
+    readonly heuristics: RefactorCandidateLevelConfiguration;
 };
 
 /**
@@ -42,7 +45,7 @@ export type AnalyzeSourceFileForRefactorCandidateOptions = {
 export async function analyzeSourceFileForRefactorCandidate(
     options: AnalyzeSourceFileForRefactorCandidateOptions,
 ): Promise<RefactorCandidate | null> {
-    const { filePath, lineCountExemptPaths, rootDir } = options;
+    const { filePath, heuristics, lineCountExemptPaths, rootDir } = options;
     const normalizedAbsolutePath = normalizeAbsolutePath(filePath);
     const content = await readFile(filePath, 'utf-8');
 
@@ -56,17 +59,26 @@ export async function analyzeSourceFileForRefactorCandidate(
 
     if (!lineCountExemptPaths.has(normalizedAbsolutePath)) {
         const lineCount = countLines(content);
-        const maxLines = getMaxLinesForExtension(extension);
+        const maxLines = getMaxLinesForExtension(extension, heuristics);
 
         if (lineCount > maxLines) {
             reasons.push(`lines ${lineCount}/${maxLines}`);
         }
     }
 
-    if (ENTITY_COUNT_EXTENSIONS.includes(extension)) {
-        const entityCount = countEntities(content, extension, filePath);
-        if (entityCount > MAX_ENTITIES_PER_FILE) {
-            reasons.push(`entities ${entityCount}/${MAX_ENTITIES_PER_FILE}`);
+    if (STRUCTURAL_ANALYSIS_EXTENSIONS.includes(extension)) {
+        const structureSummary = summarizeSourceFileStructure(content, extension, filePath);
+
+        if (structureSummary.entityCount > heuristics.maxEntityCountPerFile) {
+            reasons.push(`entities ${structureSummary.entityCount}/${heuristics.maxEntityCountPerFile}`);
+        }
+
+        if (structureSummary.functionCount > heuristics.maxFunctionCountPerFile) {
+            reasons.push(`functions ${structureSummary.functionCount}/${heuristics.maxFunctionCountPerFile}`);
+        }
+
+        if (structureSummary.maxFunctionComplexity > heuristics.maxFunctionComplexity) {
+            reasons.push(buildComplexityReason(structureSummary, heuristics.maxFunctionComplexity));
         }
     }
 
@@ -95,8 +107,8 @@ function isGeneratedFile(content: string): boolean {
  *
  * @private function of analyzeSourceFileForRefactorCandidate
  */
-function getMaxLinesForExtension(extension: string): number {
-    return LINE_COUNT_LIMITS_BY_EXTENSION[extension] ?? DEFAULT_MAX_LINE_COUNT;
+function getMaxLinesForExtension(extension: string, heuristics: RefactorCandidateLevelConfiguration): number {
+    return heuristics.maxLineCountByExtension[extension] ?? heuristics.maxDefaultLineCount;
 }
 
 /**
@@ -114,14 +126,18 @@ function countLines(content: string): number {
 }
 
 /**
- * Counts top-level entities in a source file.
+ * Summarizes the structural metrics used to score one source file.
  *
  * @private function of analyzeSourceFileForRefactorCandidate
  */
-function countEntities(content: string, extension: string, filePath: string): number {
+function summarizeSourceFileStructure(content: string, extension: string, filePath: string): SourceFileStructureSummary {
     const scriptKind = getScriptKindForExtension(extension);
-    const sourceFile = ts.createSourceFile(filePath, content, ts.ScriptTarget.Latest, false, scriptKind);
-    return countEntitiesInSourceFile(sourceFile);
+    const sourceFile = ts.createSourceFile(filePath, content, ts.ScriptTarget.Latest, true, scriptKind);
+
+    return {
+        entityCount: countEntitiesInSourceFile(sourceFile),
+        ...summarizeFunctionsInSourceFile(sourceFile),
+    };
 }
 
 /**
@@ -163,6 +179,280 @@ function countEntitiesInSourceFile(sourceFile: SourceFile): number {
     }
 
     return count;
+}
+
+/**
+ * Structural metrics derived from function-like declarations in a source file.
+ *
+ * @private type of analyzeSourceFileForRefactorCandidate
+ */
+type SourceFileFunctionSummary = {
+    /**
+     * Number of named functions and methods found in the file.
+     */
+    readonly functionCount: number;
+
+    /**
+     * Highest complexity score found among the functions in the file.
+     */
+    readonly maxFunctionComplexity: number;
+
+    /**
+     * Name of the most complex function when one can be resolved.
+     */
+    readonly mostComplexFunctionName: string | null;
+};
+
+/**
+ * Structural metrics derived from the parsed source file.
+ *
+ * @private type of analyzeSourceFileForRefactorCandidate
+ */
+type SourceFileStructureSummary = {
+    /**
+     * Number of top-level entities found in the file.
+     */
+    readonly entityCount: number;
+
+    /**
+     * Function metrics collected from the file.
+     */
+    readonly functionCount: number;
+
+    /**
+     * Highest function complexity found in the file.
+     */
+    readonly maxFunctionComplexity: number;
+
+    /**
+     * Name of the most complex function when one can be resolved.
+     */
+    readonly mostComplexFunctionName: string | null;
+};
+
+/**
+ * Function-like declarations counted for file-level function density.
+ *
+ * @private type of analyzeSourceFileForRefactorCandidate
+ */
+type CountedFunctionLikeDeclaration =
+    | ts.ArrowFunction
+    | ts.ConstructorDeclaration
+    | ts.FunctionDeclaration
+    | ts.FunctionExpression
+    | ts.GetAccessorDeclaration
+    | ts.MethodDeclaration
+    | ts.SetAccessorDeclaration;
+
+/**
+ * Summarizes named functions and methods in a parsed source file.
+ *
+ * @private function of analyzeSourceFileForRefactorCandidate
+ */
+function summarizeFunctionsInSourceFile(sourceFile: SourceFile): SourceFileFunctionSummary {
+    let functionCount = 0;
+    let maxFunctionComplexity = 0;
+    let mostComplexFunctionName: string | null = null;
+
+    const visitNode = (node: ts.Node): void => {
+        if (isCountedFunctionLikeDeclaration(node)) {
+            functionCount += 1;
+
+            const functionComplexity = calculateFunctionComplexity(node);
+            if (functionComplexity > maxFunctionComplexity) {
+                maxFunctionComplexity = functionComplexity;
+                mostComplexFunctionName = getFunctionDisplayName(node);
+            }
+        }
+
+        ts.forEachChild(node, visitNode);
+    };
+
+    visitNode(sourceFile);
+
+    return {
+        functionCount,
+        maxFunctionComplexity,
+        mostComplexFunctionName,
+    };
+}
+
+/**
+ * Determines whether a node counts as a named function or method for density checks.
+ *
+ * @private function of analyzeSourceFileForRefactorCandidate
+ */
+function isCountedFunctionLikeDeclaration(node: ts.Node): node is CountedFunctionLikeDeclaration {
+    if (
+        ts.isFunctionDeclaration(node) ||
+        ts.isMethodDeclaration(node) ||
+        ts.isConstructorDeclaration(node) ||
+        ts.isGetAccessorDeclaration(node) ||
+        ts.isSetAccessorDeclaration(node)
+    ) {
+        return true;
+    }
+
+    if (ts.isArrowFunction(node) || ts.isFunctionExpression(node)) {
+        return isNamedFunctionExpression(node);
+    }
+
+    return false;
+}
+
+/**
+ * Determines whether a function expression is attached to a named variable or property.
+ *
+ * @private function of analyzeSourceFileForRefactorCandidate
+ */
+function isNamedFunctionExpression(node: ts.ArrowFunction | ts.FunctionExpression): boolean {
+    const parent = node.parent;
+
+    return (
+        ts.isVariableDeclaration(parent) || ts.isPropertyDeclaration(parent) || ts.isPropertyAssignment(parent)
+    );
+}
+
+/**
+ * Calculates a lightweight cyclomatic-complexity score for one function.
+ *
+ * @private function of analyzeSourceFileForRefactorCandidate
+ */
+function calculateFunctionComplexity(functionNode: CountedFunctionLikeDeclaration): number {
+    if (!functionNode.body) {
+        return 1;
+    }
+
+    let complexity = 1;
+
+    const visitNode = (node: ts.Node): void => {
+        if (node !== functionNode.body && isCountedFunctionLikeDeclaration(node)) {
+            return;
+        }
+
+        if (isComplexityDecisionNode(node)) {
+            complexity += 1;
+        }
+
+        ts.forEachChild(node, visitNode);
+    };
+
+    visitNode(functionNode.body);
+
+    return complexity;
+}
+
+/**
+ * Determines whether a node should increase the complexity score.
+ *
+ * @private function of analyzeSourceFileForRefactorCandidate
+ */
+function isComplexityDecisionNode(node: ts.Node): boolean {
+    if (
+        ts.isIfStatement(node) ||
+        ts.isConditionalExpression(node) ||
+        ts.isCatchClause(node) ||
+        ts.isForStatement(node) ||
+        ts.isForInStatement(node) ||
+        ts.isForOfStatement(node) ||
+        ts.isWhileStatement(node) ||
+        ts.isDoStatement(node) ||
+        ts.isCaseClause(node)
+    ) {
+        return true;
+    }
+
+    if (ts.isBinaryExpression(node)) {
+        const operatorKind = node.operatorToken.kind;
+
+        return (
+            operatorKind === ts.SyntaxKind.AmpersandAmpersandToken ||
+            operatorKind === ts.SyntaxKind.BarBarToken ||
+            operatorKind === ts.SyntaxKind.QuestionQuestionToken
+        );
+    }
+
+    return false;
+}
+
+/**
+ * Resolves a readable display name for a counted function-like declaration.
+ *
+ * @private function of analyzeSourceFileForRefactorCandidate
+ */
+function getFunctionDisplayName(functionNode: CountedFunctionLikeDeclaration): string | null {
+    if (ts.isConstructorDeclaration(functionNode)) {
+        return 'constructor';
+    }
+
+    if (
+        ts.isFunctionDeclaration(functionNode) ||
+        ts.isMethodDeclaration(functionNode) ||
+        ts.isGetAccessorDeclaration(functionNode) ||
+        ts.isSetAccessorDeclaration(functionNode)
+    ) {
+        if (!functionNode.name) {
+            return null;
+        }
+
+        return getPropertyNameText(functionNode.name);
+    }
+
+    if (ts.isArrowFunction(functionNode) || ts.isFunctionExpression(functionNode)) {
+        if (functionNode.name) {
+            return functionNode.name.text;
+        }
+
+        const parent = functionNode.parent;
+
+        if (ts.isVariableDeclaration(parent)) {
+            return getBindingNameText(parent.name);
+        }
+
+        if (ts.isPropertyDeclaration(parent) || ts.isPropertyAssignment(parent)) {
+            return getPropertyNameText(parent.name);
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Resolves text for a binding name when it is a simple identifier.
+ *
+ * @private function of analyzeSourceFileForRefactorCandidate
+ */
+function getBindingNameText(name: ts.BindingName): string | null {
+    return ts.isIdentifier(name) ? name.text : null;
+}
+
+/**
+ * Resolves text for a property name while preserving computed names when necessary.
+ *
+ * @private function of analyzeSourceFileForRefactorCandidate
+ */
+function getPropertyNameText(name: ts.PropertyName): string {
+    if (ts.isIdentifier(name) || ts.isPrivateIdentifier(name) || ts.isStringLiteral(name) || ts.isNumericLiteral(name)) {
+        return name.text;
+    }
+
+    return name.getText();
+}
+
+/**
+ * Formats the reason emitted when a function in the file exceeds the complexity threshold.
+ *
+ * @private function of analyzeSourceFileForRefactorCandidate
+ */
+function buildComplexityReason(
+    structureSummary: Pick<SourceFileStructureSummary, 'maxFunctionComplexity' | 'mostComplexFunctionName'>,
+    maxAllowedFunctionComplexity: number,
+): string {
+    const functionSuffix = structureSummary.mostComplexFunctionName
+        ? ` in \`${structureSummary.mostComplexFunctionName}\``
+        : '';
+
+    return `complexity ${structureSummary.maxFunctionComplexity}/${maxAllowedFunctionComplexity}${functionSuffix}`;
 }
 
 /**

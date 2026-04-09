@@ -21,7 +21,7 @@ $ ptbk coder run --thinking-level xhigh
 
 ---
 
-[ ]
+[x] ~$0.00 28 minutes by GitHub Copilot `gpt-5.4`
 
 [✨🥊] Add `--level` flag to `ptbk coder find-refactor-candidates`
 
@@ -59,3 +59,4 @@ ptbk coder find-refactor-candidates --level xhigh
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
+

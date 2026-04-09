@@ -8,13 +8,34 @@ import {
     SOURCE_ROOTS,
 } from './find-refactor-candidates.constants';
 import type { RefactorCandidate } from './RefactorCandidate';
+import type { RefactorCandidateLevelConfiguration } from './RefactorCandidateLevel';
+
+/**
+ * Input required to scan one project for refactor candidates.
+ *
+ * @private type of findRefactorCandidates
+ */
+type FindRefactorCandidatesInProjectOptions = {
+    /**
+     * Repository root to scan.
+     */
+    readonly rootDir: string;
+
+    /**
+     * Thresholds used to score files.
+     */
+    readonly heuristics: RefactorCandidateLevelConfiguration;
+};
 
 /**
  * Scans the repository and returns all files that qualify as refactor candidates.
  *
  * @private function of findRefactorCandidates
  */
-export async function findRefactorCandidatesInProject(rootDir: string): Promise<ReadonlyArray<RefactorCandidate>> {
+export async function findRefactorCandidatesInProject(
+    options: FindRefactorCandidatesInProjectOptions,
+): Promise<ReadonlyArray<RefactorCandidate>> {
+    const { heuristics, rootDir } = options;
     const lineCountExemptPaths = await buildExemptPathSet(rootDir, LINE_COUNT_EXEMPT_GLOBS);
     const sourceFiles = await listSourceFiles(rootDir);
     const candidates: RefactorCandidate[] = [];
@@ -22,6 +43,7 @@ export async function findRefactorCandidatesInProject(rootDir: string): Promise<
     for (const filePath of sourceFiles) {
         const candidate = await analyzeSourceFileForRefactorCandidate({
             filePath,
+            heuristics,
             lineCountExemptPaths,
             rootDir,
         });

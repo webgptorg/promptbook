@@ -1,3 +1,9 @@
+-   Added configurable scan levels to `ptbk coder find-refactor-candidates`:
+
+    -   Added `--level <low|medium|high|xhigh>` so refactor-candidate scans can stay conservative or become progressively more aggressive while `medium` remains the default.
+    -   Extracted the scan heuristics into a dedicated shared level configuration and expanded candidate detection to consider line count, top-level entity count, named function count, and function complexity.
+    -   Added regression coverage for CLI flag forwarding and level-sensitive refactor-candidate analysis.
+
 -   Improved the Agents Server wallet credential dialog for manual GitHub token entry:
 
     -   Added a step-by-step manual `USE PROJECT` GitHub token guide directly into the shared wallet dialog, including links that open GitHub token settings and documentation in a new tab.
