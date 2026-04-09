@@ -2,15 +2,25 @@
 
 [✨😗] Add instructions for using `ptbk coder` into main README
 
-```bash
-## Locally
-$ npx ts-node ./src/cli/test/ptbk.ts coder run
+Create there entire section that explains how to use `ptbk coder` and its features with examples for both local usage and usage as dependency in external project:
 
-## On external project as dependency
-$ npm install ptbk
-$ ptbk coder run
+```bash
+npm install ptbk
+
+ptbk coder init
+
+npx ptbk coder generate-boilerplates
+
+npx ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md
+
+npx ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --ignore-git-changes --no-wait
+
+npx ptbk coder find-refactor-candidates
+
+npx ptbk coder verify
 ```
 
+-   Explain how it works, what it does, how to use it, what are the features, what is the difference between Promptbook Coder and other coding agents like Claude Code, OpenAI Codex, Github Copilot, OpenCode, etc.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
