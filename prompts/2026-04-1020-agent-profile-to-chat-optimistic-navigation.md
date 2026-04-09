@@ -2,7 +2,6 @@
 
 [🧠⚡] Optimistic navigation + immediate message when entering agent chat from agent profile
 
--   *(@@@@ Written by agent)*
 -   You are working with [Agent Profile → Chat components](apps/agents-server/src/app/agents/[agentName]/AgentProfileChat.tsx) and [full chat client](apps/agents-server/src/app/agents/[agentName]/chat/AgentChatHistoryClient.tsx)
 -   When the user navigates from the agent profile page to the agent chat page (e.g., by clicking a quick action button or by typing/sending a message from the profile UI), the browser navigation and UI update must be processed optimistically and immediately
 -   The chat page must show the user-sent message instantly (as soon as the user action happens), without waiting for server confirmation
@@ -20,7 +19,5 @@
     -   Update the existing navigation test (`AgentProfileChat.navigation.test.ts`) or add a new integration-style test covering: profile quick-send triggers chat route, and the outgoing user message appears immediately before any mocked server response
     -   Ensure tests cover both “quick button” and “send typed message” entry points
 -   Update the changelog entry in `changelog/_current-preversion.md` once the change is ready
-
-Sources:
--   【AgentProfileChat.tsx】 apps/agents-server/src/app/agents/[agentName]/AgentProfileChat.tsx
--   【AgentChatHistoryClient.tsx】 apps/agents-server/src/app/agents/[agentName]/chat/AgentChatHistoryClient.tsx
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)

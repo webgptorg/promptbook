@@ -2,7 +2,6 @@
 
 [🌙🧩] Implement message replies (faded replied-to preview + swipe-to-reply) and proper data model
 
--   *(@@@@ Written by agent)*
 -   You are working with the [Agents Server](apps/agents-server)
 -   Users can reply to an existing message within a thread (threads already exist, but replies do not)
 -   The reply must be integrated in the message object so the replying agent can always know:
@@ -16,11 +15,7 @@
         -   swipe interaction should be discoverable and not conflict with scrolling
     -   Reply mode can be cancelled (e.g., X/escape) and composer returns to normal
 -   Backend/API/data model requirements:
-    -   Data model must support storing the “replied-to” relationship inside the message object
-    -   Proposed fields (placeholders until we inspect current schema):
-        -   `repliedToMessageId: @@@`
-        -   `repliedToThreadId: @@@`
-        -   `replyRootMessageId: @@@` (optional denormalization for fast UI rendering)
+    -   Data model must support storing the “replied-to” relationship inside the `Message` object
     -   Ensure referential integrity (the replied-to message must belong to the same thread)
     -   Add/adjust API endpoints so the UI can:
         -   create a reply with `threadId` + `repliedToMessageId`
@@ -40,5 +35,5 @@
     -   The replied-to preview is visible both in composer and on the sent reply bubble
     -   The backend can validate that replied-to message belongs to the same thread
     -   The agent receives thread + replied-to message context when generating a reply
-
-Sources: 【some-common-things-about-promptbook.txt】
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
