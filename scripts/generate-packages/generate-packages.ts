@@ -1480,6 +1480,17 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                                         tags: 'hejny/promptbook:${{ env.VERSION }}',
                                     },
                                 },
+                                {
+                                    name: '📝 Publish DockerHub description',
+                                    uses: 'peter-evans/dockerhub-description@v5',
+                                    with: {
+                                        username: '${{ secrets.DOCKERHUB_USER }}',
+                                        password: '${{ secrets.DOCKERHUB_TOKEN }}',
+                                        repository: 'hejny/promptbook',
+                                        'short-description': 'Promptbook Agents Server Docker image',
+                                        'readme-filepath': './README.Docker.md',
+                                    },
+                                },
                             ],
                         },
                     },

@@ -1,3 +1,8 @@
+-   Added a Docker-specific README for the published `hejny/promptbook` image:
+
+    -   Added a focused [`README.Docker.md`](../README.Docker.md) with build, run, configuration, and usage guidance for the production Agents Server image.
+    -   Updated the generated DockerHub publish workflow so image releases now sync that Docker-specific README to the DockerHub package page.
+
 -   Fixed the Agents Server profile-to-chat handoff so outbound user messages now appear immediately on the standalone chat page:
 
     -   When a user sends from the agent profile or follows a `?message=` quick action, the history chat client now seeds the same optimistic outbound-message path used by new-chat first turns while durable chat bootstrap continues in the background.
