@@ -268,12 +268,13 @@ export function AgentProfileChat({
                 throw new Error(validationIssue.message);
             }
 
+            const shouldForceNewChat = hasMessageContent(message) || Boolean(attachments?.length);
             setPendingProfileMessage(agentName, {
                 message,
                 attachments,
             });
             return navigateToChat({
-                shouldForceNewChat: hasMessageContent(message),
+                shouldForceNewChat,
             });
         },
         [agentName, navigateToChat],

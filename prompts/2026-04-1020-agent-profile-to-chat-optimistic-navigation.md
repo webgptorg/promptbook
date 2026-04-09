@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 an hour by GitHub Copilot `gpt-5.4`
 
 [🧠⚡] Optimistic navigation + immediate message when entering agent chat from agent profile
 
@@ -21,3 +21,4 @@
 -   Update the changelog entry in `changelog/_current-preversion.md` once the change is ready
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
+

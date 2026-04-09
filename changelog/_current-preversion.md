@@ -1,3 +1,9 @@
+-   Fixed the Agents Server profile-to-chat handoff so outbound user messages now appear immediately on the standalone chat page:
+
+    -   When a user sends from the agent profile or follows a `?message=` quick action, the history chat client now seeds the same optimistic outbound-message path used by new-chat first turns while durable chat bootstrap continues in the background.
+    -   History-mode navigation now selects an optimistic target chat immediately for fresh sends, preserves existing-chat targeting when provided, and keeps attachment/private-mode/history-disabled behavior aligned with the existing pending-outbound reconciliation and retry flow.
+    -   Added regression coverage for profile quick-send, typed-send, and query-parameter message entry so the outgoing user bubble stays visible before server history or stream responses arrive.
+
 -   Expanded `ptbk coder init` so newly initialized projects now also get an `AGENT_CODING.md` quick-reference file:
 
     -   The new generated guide explains the Promptbook Coder workflow, how to use and customize `AGENTS.md` plus `prompts/templates/*.md`, and how the created `npm run coder:*` scripts map to the underlying CLI commands.

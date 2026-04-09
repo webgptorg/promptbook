@@ -137,6 +137,47 @@ type FailedSendRecord = {
 };
 
 /**
+ * One deferred promise handle used to bridge optimistic chat state with a later
+ * durable server result.
+ */
+type Deferred<TValue> = {
+    /**
+     * Promise resolved or rejected once the deferred work finishes.
+     */
+    promise: Promise<TValue>;
+
+    /**
+     * Resolves the deferred promise.
+     */
+    resolve: (value: TValue | PromiseLike<TValue>) => void;
+
+    /**
+     * Rejects the deferred promise.
+     */
+    reject: (reason?: unknown) => void;
+};
+
+/**
+ * One optimistic bootstrapping chat created before the durable chat exists.
+ */
+type InitialOptimisticChatBootstrap = {
+    /**
+     * Local optimistic chat id shown immediately after navigation.
+     */
+    optimisticChatId: string;
+
+    /**
+     * Timestamp reused for the placeholder sidebar row.
+     */
+    createdAt: string;
+
+    /**
+     * Deferred durable chat creation awaited by the first outbound turn.
+     */
+    createChatDeferred: Deferred<UserChatDetail>;
+};
+
+/**
  * Replaces browser URL without triggering App Router navigation.
  */
 function replaceBrowserUrlWithoutNavigation(nextRelativeUrl: string): void {
@@ -192,13 +233,41 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const effectiveInitialAutoExecuteMessage = initialAutoExecuteMessage ?? pendingProfileMessage?.message;
     const effectiveInitialAutoExecuteMessageAttachments =
         initialAutoExecuteMessageAttachments ?? pendingProfileMessage?.attachments;
-    const [chats, setChats] = useState<Array<UserChatSummary>>([]);
-    const [activeChatId, setActiveChatId] = useState<string | null>(null);
+    const hasInitialAutoExecutePayload = hasAutoExecutePayload(
+        effectiveInitialAutoExecuteMessage,
+        effectiveInitialAutoExecuteMessageAttachments,
+    );
+    const shouldSeedInitialOptimisticChat =
+        shouldUseHistory && hasInitialAutoExecutePayload && (initialForceNewChat || !initialChatId);
+    const initialOptimisticChatBootstrapRef = useRef<InitialOptimisticChatBootstrap | null>(null);
+    if (initialOptimisticChatBootstrapRef.current === null && shouldSeedInitialOptimisticChat) {
+        initialOptimisticChatBootstrapRef.current = {
+            optimisticChatId: createOptimisticChatId(),
+            createdAt: new Date().toISOString(),
+            createChatDeferred: createDeferred<UserChatDetail>(),
+        };
+    }
+    const initialOptimisticChatBootstrap = initialOptimisticChatBootstrapRef.current;
+    const initialSelectedChatId =
+        shouldUseHistory && hasInitialAutoExecutePayload
+            ? initialOptimisticChatBootstrap?.optimisticChatId || initialChatId || null
+            : null;
+    const [chats, setChats] = useState<Array<UserChatSummary>>(() =>
+        initialOptimisticChatBootstrap
+            ? [
+                  createOptimisticUserChatSummary(
+                      initialOptimisticChatBootstrap.optimisticChatId,
+                      initialOptimisticChatBootstrap.createdAt,
+                  ),
+              ]
+            : [],
+    );
+    const [activeChatId, setActiveChatId] = useState<string | null>(initialSelectedChatId);
     const [activeMessages, setActiveMessages] = useState<Array<ChatMessage>>([]);
     const [activeJobs, setActiveJobs] = useState<Array<UserChatJob>>([]);
     const [activeTimeouts, setActiveTimeouts] = useState<Array<UserChatTimeout>>([]);
     const [activeChatDraftMessage, setActiveChatDraftMessage] = useState('');
-    const [isBootstrapping, setIsBootstrapping] = useState(shouldUseHistory);
+    const [, setIsBootstrapping] = useState(shouldUseHistory);
     const [isChatListLoading, setIsChatListLoading] = useState(shouldUseHistory);
     const [isActiveChatLoading, setIsActiveChatLoading] = useState(false);
     const [isActiveChatStreamConnected, setIsActiveChatStreamConnected] = useState(false);
@@ -212,20 +281,29 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const hasInitialAutoMessageBeenConsumedRef = useRef(false);
     const autoExecuteTargetChatIdRef = useRef<string | undefined>(initialForceNewChat ? undefined : initialChatId);
     const shareTargetIdRef = useRef<string | undefined>(initialShareTargetId);
-    const activeChatIdRef = useRef<string | null>(null);
+    const activeChatIdRef = useRef<string | null>(initialSelectedChatId);
     const activeChatDraftMessageRef = useRef('');
     const activeDraftDirtyRef = useRef(false);
     const isActiveDraftUserOwnedRef = useRef(false);
     const draftSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isRefreshingRef = useRef(false);
     const failedSendByChatIdRef = useRef<Map<string, Map<string, string>>>(new Map());
-    const pendingOptimisticChatCreationsRef = useRef<Map<string, Promise<UserChatDetail>>>(new Map());
+    const pendingOptimisticChatCreationsRef = useRef<Map<string, Promise<UserChatDetail>>>(
+        initialOptimisticChatBootstrap
+            ? new Map([
+                  [
+                      initialOptimisticChatBootstrap.optimisticChatId,
+                      initialOptimisticChatBootstrap.createChatDeferred.promise,
+                  ],
+              ])
+            : new Map(),
+    );
     const resolvedOptimisticChatIdsRef = useRef<Map<string, string>>(new Map());
     const submitUserTurnQueueRef = useRef<Promise<void>>(Promise.resolve());
     const selectionIntentRef = useRef<ChatSelectionIntent>({
         sequence: 0,
         kind: 'BOOTSTRAP',
-        targetChatId: initialForceNewChat ? null : initialChatId || null,
+        targetChatId: initialOptimisticChatBootstrap?.optimisticChatId || (initialForceNewChat ? null : initialChatId || null),
     });
 
     /**
@@ -301,6 +379,48 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
         failedSendByChatIdRef.current.delete(fromChatId);
         failedSendByChatIdRef.current.set(toChatId, targetFailures);
+    }, []);
+
+    /**
+     * Resolves the initial optimistic chat bootstrap once the durable chat exists.
+     */
+    const resolveInitialOptimisticChatBootstrap = useCallback(
+        (createdChat: UserChatDetail): void => {
+            const initialOptimisticChatBootstrap = initialOptimisticChatBootstrapRef.current;
+            if (!initialOptimisticChatBootstrap) {
+                return;
+            }
+
+            if (!pendingOptimisticChatCreationsRef.current.has(initialOptimisticChatBootstrap.optimisticChatId)) {
+                return;
+            }
+
+            initialOptimisticChatBootstrap.createChatDeferred.resolve(createdChat);
+            pendingOptimisticChatCreationsRef.current.delete(initialOptimisticChatBootstrap.optimisticChatId);
+            resolvedOptimisticChatIdsRef.current.set(initialOptimisticChatBootstrap.optimisticChatId, createdChat.chat.id);
+            reassignPendingOutboundMessagesChatId({
+                fromChatId: initialOptimisticChatBootstrap.optimisticChatId,
+                toChatId: createdChat.chat.id,
+            });
+            reassignFailedSendRecordsToChatId(initialOptimisticChatBootstrap.optimisticChatId, createdChat.chat.id);
+        },
+        [reassignFailedSendRecordsToChatId],
+    );
+
+    /**
+     * Rejects the initial optimistic chat bootstrap when background creation fails.
+     */
+    const rejectInitialOptimisticChatBootstrap = useCallback((error: unknown): void => {
+        const initialOptimisticChatBootstrap = initialOptimisticChatBootstrapRef.current;
+        if (!initialOptimisticChatBootstrap) {
+            return;
+        }
+
+        if (!pendingOptimisticChatCreationsRef.current.has(initialOptimisticChatBootstrap.optimisticChatId)) {
+            return;
+        }
+
+        initialOptimisticChatBootstrap.createChatDeferred.reject(error);
     }, []);
 
     /**
@@ -865,29 +985,40 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             });
             const snapshot = await fetchChatSnapshot(effectivePreferredChatId);
             const shouldCreateFreshChatForInitialMessage =
-                !hasInitialAutoMessageBeenConsumedRef.current &&
-                Boolean(effectiveInitialAutoExecuteMessage) &&
+                hasInitialAutoExecutePayload &&
+                (Boolean(initialOptimisticChatBootstrapRef.current) || !hasInitialAutoMessageBeenConsumedRef.current) &&
                 (initialForceNewChat || !effectivePreferredChatId);
 
             if (!snapshot.activeChatId || shouldCreateFreshChatForInitialMessage) {
                 const createdChat = await createUserChat(agentName);
-                if (effectiveInitialAutoExecuteMessage) {
+                resolveInitialOptimisticChatBootstrap(createdChat);
+                if (hasInitialAutoExecutePayload) {
                     autoExecuteTargetChatIdRef.current = createdChat.chat.id;
                 }
 
                 applyChatDetail(createdChat, {
                     allowSelectionAdoption: true,
-                    includeInitialMessage: Boolean(effectiveInitialAutoExecuteMessage),
+                    includeInitialMessage:
+                        !hasInitialAutoMessageBeenConsumedRef.current && hasInitialAutoExecutePayload,
                     intentSequence,
                     reason: 'bootstrap_create_chat',
                 });
-                setChats([createdChat.chat, ...snapshot.chats.filter((chat) => chat.id !== createdChat.chat.id)]);
+                const initialOptimisticChatBootstrap = initialOptimisticChatBootstrapRef.current;
+                setChats(
+                    initialOptimisticChatBootstrap
+                        ? replaceOptimisticChatWithCanonicalChat(
+                              snapshot.chats,
+                              initialOptimisticChatBootstrap.optimisticChatId,
+                              createdChat.chat,
+                          )
+                        : [createdChat.chat, ...snapshot.chats.filter((chat) => chat.id !== createdChat.chat.id)],
+                );
                 return;
             }
 
             const shouldKeepInitialAutoMessage =
                 !hasInitialAutoMessageBeenConsumedRef.current &&
-                Boolean(effectiveInitialAutoExecuteMessage) &&
+                hasInitialAutoExecutePayload &&
                 (!autoExecuteTargetChatIdRef.current || autoExecuteTargetChatIdRef.current === snapshot.activeChatId);
 
             applySnapshot(snapshot, {
@@ -902,11 +1033,12 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             agentName,
             applyChatDetail,
             applySnapshot,
-            effectiveInitialAutoExecuteMessage,
             fetchChatSnapshot,
+            hasInitialAutoExecutePayload,
             initialForceNewChat,
             issueSelectionIntent,
             logChatSelection,
+            resolveInitialOptimisticChatBootstrap,
         ],
     );
 
@@ -974,6 +1106,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             try {
                 await bootstrapChats(initialChatId);
             } catch (error) {
+                rejectInitialOptimisticChatBootstrap(error);
                 if (!isDisposed) {
                     notifyError(resolveErrorMessage(error, 'Failed to load chats.'));
                 }
@@ -990,7 +1123,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         return () => {
             isDisposed = true;
         };
-    }, [bootstrapChats, initialChatId, shouldUseHistory, syncActiveChatSelection]);
+    }, [bootstrapChats, initialChatId, rejectInitialOptimisticChatBootstrap, shouldUseHistory, syncActiveChatSelection]);
 
     useEffect(() => {
         autoExecuteTargetChatIdRef.current = initialForceNewChat ? undefined : initialChatId;
@@ -1593,14 +1726,14 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     }, [agentName]);
 
     const autoMessageTargetId = autoExecuteTargetChatIdRef.current;
-    const autoExecuteMessage =
+    const shouldAutoExecuteCurrentChat =
         !hasInitialAutoMessageBeenConsumedRef.current &&
-        Boolean(effectiveInitialAutoExecuteMessage) &&
+        hasInitialAutoExecutePayload &&
         Boolean(activeChatId) &&
         !isActiveChatReadOnly &&
-        (!autoMessageTargetId || autoMessageTargetId === activeChatId)
-            ? effectiveInitialAutoExecuteMessage
-            : undefined;
+        (!autoMessageTargetId || autoMessageTargetId === activeChatId);
+    const autoExecuteMessage =
+        shouldAutoExecuteCurrentChat ? effectiveInitialAutoExecuteMessage ?? '' : undefined;
     const hoistedMobileMenuItems = useMemo(
         () =>
             shouldUseHistory && !isHeadlessMode
@@ -1670,7 +1803,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         return guestChatContent;
     }
 
-    if (isBootstrapping || !activeChatId) {
+    if (!activeChatId) {
         if (isChatGptLikeLayout) {
             return (
                 <AgentChatPageLayout variant={layoutVariant} isHeadlessMode={isHeadlessMode}>
@@ -1795,6 +1928,28 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             {chatSurface}
         </AgentChatPageLayout>
     );
+}
+
+/**
+ * Returns true when one initial auto-execute payload contains a message or attachments.
+ */
+function hasAutoExecutePayload(message: string | undefined, attachments: ChatMessage['attachments'] | undefined): boolean {
+    return Boolean(message) || Boolean(attachments?.length);
+}
+
+/**
+ * Creates one deferred promise handle for optimistic chat bootstrapping.
+ */
+function createDeferred<TValue>(): Deferred<TValue> {
+    let resolve!: (value: TValue | PromiseLike<TValue>) => void;
+    let reject!: (reason?: unknown) => void;
+
+    const promise = new Promise<TValue>((resolvePromise, rejectPromise) => {
+        resolve = resolvePromise;
+        reject = rejectPromise;
+    });
+
+    return { promise, resolve, reject };
 }
 
 /**
