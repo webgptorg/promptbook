@@ -1,10 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { SUPABASE_TABLE_PREFIX } from '../../config';
+import { SUPABASE_TABLE_PREFIX } from '../../../config';
 import { resolveCustomDomainAgent, type CustomDomainResolution } from '../../utils/customDomainRouting';
-import {
-    resolveRegisteredServerByHost,
-    type ServerRecord,
-} from '../../utils/serverRegistry';
+import { resolveRegisteredServerByHost, type ServerRecord } from '../../utils/serverRegistry';
 
 /**
  * In-memory cache TTL for resolved custom-domain host mappings.
@@ -168,7 +165,10 @@ function normalizeMiddlewareHost(host: string | null): string | null {
  * @private function of createMiddlewareRequestContext
  */
 function normalizeMiddlewareHostname(hostname: string): string | null {
-    const normalizedHostname = hostname.trim().toLowerCase().replace(/^\[(.*)\]$/u, '$1');
+    const normalizedHostname = hostname
+        .trim()
+        .toLowerCase()
+        .replace(/^\[(.*)\]$/u, '$1');
     return normalizedHostname || null;
 }
 
