@@ -49,6 +49,7 @@
 
 -   There are some missing translations in the Agents Server chatting page:
     -   The System menu subitems are not translated
+    -   The modal to pick Enter / Ctrl+Enter to send message is not translated
 -   You are working with the [Agents Server](apps/agents-server)
 
 ![alt text](prompts/screenshots/2026-04-4060-agents-server-translations-100p-6.png)
