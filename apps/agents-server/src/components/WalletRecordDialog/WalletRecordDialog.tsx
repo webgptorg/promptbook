@@ -16,12 +16,23 @@ import {
     USE_EMAIL_SMTP_WALLET_SERVICE,
 } from '@/src/utils/useEmailSmtpWalletConstants';
 import { Calendar, Github, KeyRound, Lock, Save, UserRound, X } from 'lucide-react';
-import { useEffect, useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState, type ReactNode } from 'react';
 import { Dialog } from '../Portal/Dialog';
 import { SecretInput } from '../SecretInput/SecretInput';
 import { SecretTextarea } from '../SecretTextarea/SecretTextarea';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 import { useDirtyModalGuard } from '../utils/useDirtyModalGuard';
+
+/**
+ * GitHub settings page used to create a fine-grained personal access token manually.
+ */
+const GITHUB_FINE_GRAINED_TOKEN_SETTINGS_URL = 'https://github.com/settings/personal-access-tokens/new';
+
+/**
+ * GitHub documentation page that explains personal access token setup.
+ */
+const GITHUB_PERSONAL_ACCESS_TOKEN_DOCS_URL =
+    'https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens';
 
 /**
  * Wallet record type supported by the dialog.
@@ -142,6 +153,8 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
         calendarOAuth?.isConfigured === true && isUseCalendarWalletRequest(recordType, service, key);
     const isUseEmailSmtpWalletRequest = isUseEmailSmtpWalletRequestRecord(recordType, service, key);
     const manualFieldsVisible = (!canUseGithubAppConnect && !canUseCalendarOAuthConnect) || isManualTokenVisible;
+    const isUseProjectGithubManualInstructionsVisible =
+        manualFieldsVisible && isUseProjectGithubWalletRequest(recordType, service, key);
     const requestedJsonSchema = request?.jsonSchema;
     const requestedJsonSchemaText = useMemo(
         () => formatWalletJsonSchemaForDisplay(requestedJsonSchema),
@@ -378,6 +391,18 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
 
                 {manualFieldsVisible && (
                     <>
+                        {isUseProjectGithubManualInstructionsVisible && (
+                            <GithubManualTokenInstructions
+                                title={t('walletDialog.githubManualInstructionsTitle')}
+                                stepOne={t('walletDialog.githubManualStepOne')}
+                                openSettingsLabel={t('walletDialog.githubManualOpenSettingsLinkLabel')}
+                                stepTwo={t('walletDialog.githubManualStepTwo')}
+                                openDocsLabel={t('walletDialog.githubManualOpenDocsLinkLabel')}
+                                stepThree={t('walletDialog.githubManualStepThree')}
+                                stepFour={t('walletDialog.githubManualStepFour')}
+                            />
+                        )}
+
                         <div className="grid gap-3 sm:grid-cols-3">
                             <div>
                                 <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">{t('walletDialog.typeLabel')}</label>
@@ -559,6 +584,99 @@ function formatWalletJsonSchemaForDisplay(value: unknown): string | null {
     } catch {
         return null;
     }
+}
+
+/**
+ * Props for the manual GitHub token instruction panel.
+ */
+type GithubManualTokenInstructionsProps = {
+    /**
+     * Panel heading shown above the ordered steps.
+     */
+    readonly title: string;
+    /**
+     * First setup step shown with the GitHub settings link.
+     */
+    readonly stepOne: string;
+    /**
+     * Link label that opens GitHub token settings in a new tab.
+     */
+    readonly openSettingsLabel: string;
+    /**
+     * Second setup step shown with the GitHub docs link.
+     */
+    readonly stepTwo: string;
+    /**
+     * Link label that opens GitHub documentation in a new tab.
+     */
+    readonly openDocsLabel: string;
+    /**
+     * Third setup step describing required repository permissions.
+     */
+    readonly stepThree: string;
+    /**
+     * Final step describing how to paste and save the generated token.
+     */
+    readonly stepFour: string;
+};
+
+/**
+ * Step-by-step guide shown when USE PROJECT falls back to manual GitHub token entry.
+ */
+function GithubManualTokenInstructions({
+    title,
+    stepOne,
+    openSettingsLabel,
+    stepTwo,
+    openDocsLabel,
+    stepThree,
+    stepFour,
+}: GithubManualTokenInstructionsProps) {
+    return (
+        <div className="space-y-2 rounded-md border border-blue-200 bg-blue-50/60 p-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">{title}</p>
+            <ol className="list-decimal space-y-2 pl-5 text-sm text-blue-950">
+                <li>
+                    {stepOne} <WalletExternalInstructionLink href={GITHUB_FINE_GRAINED_TOKEN_SETTINGS_URL}>{openSettingsLabel}</WalletExternalInstructionLink>
+                </li>
+                <li>
+                    {stepTwo} <WalletExternalInstructionLink href={GITHUB_PERSONAL_ACCESS_TOKEN_DOCS_URL}>{openDocsLabel}</WalletExternalInstructionLink>
+                </li>
+                <li>{stepThree}</li>
+                <li>{stepFour}</li>
+            </ol>
+        </div>
+    );
+}
+
+/**
+ * Props accepted by the shared external instruction link.
+ */
+type WalletExternalInstructionLinkProps = {
+    /**
+     * Target URL opened by the link.
+     */
+    readonly href: string;
+    /**
+     * Human-readable link label.
+     */
+    readonly children: ReactNode;
+};
+
+/**
+ * External link styling reused by wallet instruction callouts.
+ */
+function WalletExternalInstructionLink({ href, children }: WalletExternalInstructionLinkProps) {
+    return (
+        <a
+            href={href}
+            target="_blank"
+            rel="noreferrer"
+            className="font-medium text-blue-700 underline decoration-blue-400 underline-offset-2 hover:text-blue-800"
+        >
+            {children}
+        </a>
+    );
 }
 
 /**

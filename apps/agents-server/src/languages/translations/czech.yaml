@@ -511,6 +511,13 @@ walletDialog.closeAriaLabel: Zavřít
 walletDialog.requestedJsonSchemaLabel: Požadované JSON schéma
 walletDialog.connectGithubAction: Připojit přes GitHub App
 walletDialog.addTokenManuallyAction: Přidat token ručně
+walletDialog.githubManualInstructionsTitle: Ruční nastavení GitHub tokenu
+walletDialog.githubManualStepOne: Otevřete nastavení GitHub tokenu a případně se přihlaste.
+walletDialog.githubManualOpenSettingsLinkLabel: Otevřít nastavení tokenu v nové kartě
+walletDialog.githubManualStepTwo: Vytvořte token s omezeným přístupem k repozitářům, které má tento agent používat.
+walletDialog.githubManualOpenDocsLinkLabel: Dokumentace GitHub tokenů v nové kartě
+walletDialog.githubManualStepThree: Nastavte oprávnění repozitáře na Contents = Read and write a Pull requests = Read and write. Metadata může zůstat jen pro čtení.
+walletDialog.githubManualStepFour: Vygenerujte token, zkopírujte ho, vložte ho níže a uložte ho do peněženky.
 walletDialog.calendarAccessTitle: Požadován přístup ke Google Kalendáři
 walletDialog.calendarUrlLabel: 'URL kalendáře:'
 walletDialog.calendarScopesLabel: Oprávnění

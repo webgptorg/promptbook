@@ -515,6 +515,13 @@ walletDialog.closeAriaLabel: Close
 walletDialog.requestedJsonSchemaLabel: Requested JSON schema
 walletDialog.connectGithubAction: Connect with GitHub App
 walletDialog.addTokenManuallyAction: Add token manually
+walletDialog.githubManualInstructionsTitle: Manual GitHub token setup
+walletDialog.githubManualStepOne: Open GitHub token settings and sign in if needed.
+walletDialog.githubManualOpenSettingsLinkLabel: Open token settings in new tab
+walletDialog.githubManualStepTwo: Create a fine-grained token for the repositories this agent should access.
+walletDialog.githubManualOpenDocsLinkLabel: GitHub token docs in new tab
+walletDialog.githubManualStepThree: Set repository permissions to Contents = Read and write and Pull requests = Read and write. Metadata can stay read-only.
+walletDialog.githubManualStepFour: Generate the token, copy it, paste it below, and save it to wallet.
 walletDialog.calendarAccessTitle: Google Calendar access requested
 walletDialog.calendarUrlLabel: 'Calendar URL:'
 walletDialog.calendarScopesLabel: Scopes

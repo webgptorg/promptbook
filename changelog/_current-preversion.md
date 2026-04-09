@@ -1,3 +1,8 @@
+-   Improved the Agents Server wallet credential dialog for manual GitHub token entry:
+
+    -   Added a step-by-step manual `USE PROJECT` GitHub token guide directly into the shared wallet dialog, including links that open GitHub token settings and documentation in a new tab.
+    -   Added a regression test covering the manual GitHub wallet flow so the new guidance stays visible when users switch from GitHub App connect to manual token entry.
+
 -   Completed the remaining Agents Server chat-page translations for the System menu and Enter-key settings flow:
 
     -   Translated the remaining System dropdown category and item labels, including **Settings**, **Tool limits**, **Backups**, and **Error simulation**.
