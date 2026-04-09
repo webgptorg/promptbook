@@ -1,3 +1,9 @@
+-   Added the Agents Server chat Enter/Ctrl+Enter picker to the control panel:
+
+    -   Added an explicit **Undecided** option that clears the saved keybinding so the chooser appears again the next time the user tries to send with plain Enter.
+    -   Reused one shared Enter-key settings surface between **System > Settings** and the control panel, keeping the three keybinding choices and helper copy aligned.
+    -   Updated chat keybinding persistence and textarea hints so resetting the preference no longer races the initial load and the undecided state is described accurately.
+
 -   Fixed DockerHub publishing so the `hejny/promptbook` image now builds and starts the Agents Server instead of the legacy Pipelines server:
 
     -   Replaced the old CLI-only Dockerfile with an Agents Server production build and added a `.dockerignore` so local environment files and transient build artifacts are not copied into the image.

@@ -37,7 +37,7 @@ type ChatEnterBehaviorPreferencesContextValue = {
     readonly isLoading: boolean;
     readonly isPersisting: boolean;
     readonly resolveEnterBehavior: () => Promise<AgentsServerChatEnterBehavior | null>;
-    readonly setEnterBehavior: (behavior: AgentsServerChatEnterBehavior) => Promise<void>;
+    readonly setStoredEnterBehavior: (behavior: AgentsServerChatEnterBehavior | null) => Promise<void>;
 };
 
 /**
@@ -61,13 +61,14 @@ type ChatEnterBehaviorPreferencesProviderProps = {
 export function ChatEnterBehaviorPreferencesProvider({
     children,
 }: ChatEnterBehaviorPreferencesProviderProps) {
-    const [storedEnterBehavior, setStoredEnterBehavior] = useState<AgentsServerChatEnterBehavior | null>(null);
+    const [storedEnterBehavior, setStoredEnterBehaviorState] = useState<AgentsServerChatEnterBehavior | null>(null);
     const [isLoaded, setIsLoaded] = useState(false);
     const [isPromptOpen, setIsPromptOpen] = useState(false);
     const [isPromptDismissedThisSession, setIsPromptDismissedThisSession] = useState(false);
     const [pendingPersistCount, setPendingPersistCount] = useState(0);
     const storedEnterBehaviorRef = useRef<AgentsServerChatEnterBehavior | null>(storedEnterBehavior);
     const isPromptDismissedThisSessionRef = useRef(isPromptDismissedThisSession);
+    const hasStoredEnterBehaviorResolvedRef = useRef(false);
     const pendingResolversRef = useRef<Array<ChatEnterBehaviorResolver>>([]);
     const loadPromiseRef = useRef<Promise<void> | null>(null);
     const saveQueueRef = useRef<Promise<void>>(Promise.resolve());
@@ -109,9 +110,13 @@ export function ChatEnterBehaviorPreferencesProvider({
         loadPromiseRef.current = (async () => {
             try {
                 const snapshot = await fetchChatEnterBehaviorSettings();
-                if (storedEnterBehaviorRef.current === null) {
-                    setStoredEnterBehavior(snapshot.enterBehavior);
+                if (hasStoredEnterBehaviorResolvedRef.current) {
+                    return;
                 }
+
+                setStoredEnterBehaviorState(snapshot.enterBehavior);
+                storedEnterBehaviorRef.current = snapshot.enterBehavior;
+                hasStoredEnterBehaviorResolvedRef.current = true;
             } catch (error) {
                 console.error('[chat-keybindings] Failed to load chat keybindings.', error);
             } finally {
@@ -128,9 +133,9 @@ export function ChatEnterBehaviorPreferencesProvider({
     }, [loadStoredEnterBehavior]);
 
     /**
-     * Queues one save request so rapid changes are persisted in order.
+     * Queues one save request so rapid Enter-key preference changes are persisted in order.
      */
-    const persistEnterBehavior = useCallback(async (behavior: AgentsServerChatEnterBehavior): Promise<void> => {
+    const persistStoredEnterBehavior = useCallback(async (behavior: AgentsServerChatEnterBehavior | null): Promise<void> => {
         setPendingPersistCount((previousCount) => previousCount + 1);
 
         const persistencePromise = saveQueueRef.current
@@ -151,11 +156,12 @@ export function ChatEnterBehaviorPreferencesProvider({
     }, []);
 
     /**
-     * Applies one selected Enter behavior immediately and persists it in the background queue.
+     * Applies one selected stored Enter behavior immediately and persists it in the background queue.
      */
-    const setEnterBehavior = useCallback(
-        async (behavior: AgentsServerChatEnterBehavior) => {
-            setStoredEnterBehavior(behavior);
+    const setStoredEnterBehavior = useCallback(
+        async (behavior: AgentsServerChatEnterBehavior | null) => {
+            hasStoredEnterBehaviorResolvedRef.current = true;
+            setStoredEnterBehaviorState(behavior);
             setIsLoaded(true);
             setIsPromptOpen(false);
             setIsPromptDismissedThisSession(false);
@@ -167,9 +173,9 @@ export function ChatEnterBehaviorPreferencesProvider({
                 window.sessionStorage.removeItem(CHAT_ENTER_BEHAVIOR_PROMPT_DISMISSED_SESSION_KEY);
             }
 
-            await persistEnterBehavior(behavior).catch(() => undefined);
+            await persistStoredEnterBehavior(behavior).catch(() => undefined);
         },
-        [persistEnterBehavior, resolvePendingResolvers],
+        [persistStoredEnterBehavior, resolvePendingResolvers],
     );
 
     /**
@@ -230,9 +236,9 @@ export function ChatEnterBehaviorPreferencesProvider({
             isLoading: !isLoaded,
             isPersisting: pendingPersistCount > 0,
             resolveEnterBehavior,
-            setEnterBehavior,
+            setStoredEnterBehavior,
         }),
-        [enterBehavior, isLoaded, pendingPersistCount, resolveEnterBehavior, setEnterBehavior, storedEnterBehavior],
+        [enterBehavior, isLoaded, pendingPersistCount, resolveEnterBehavior, setStoredEnterBehavior, storedEnterBehavior],
     );
 
     return (
@@ -242,7 +248,7 @@ export function ChatEnterBehaviorPreferencesProvider({
                 isOpen={isPromptOpen}
                 selectedBehavior={storedEnterBehavior || undefined}
                 onSelectBehavior={(behavior) => {
-                    void setEnterBehavior(behavior);
+                    void setStoredEnterBehavior(behavior);
                 }}
                 onDismiss={dismissPrompt}
             />

@@ -1,6 +1,7 @@
 'use client';
 
 import { useId } from 'react';
+import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 import { Dialog } from '../Portal/Dialog';
 import {
     ChatEnterBehaviorOptionCard,
@@ -22,6 +23,7 @@ export type ChatEnterBehaviorPromptProps = {
  */
 export function ChatEnterBehaviorPrompt(props: ChatEnterBehaviorPromptProps) {
     const { isOpen, selectedBehavior, onSelectBehavior, onDismiss } = props;
+    const { t } = useServerLanguage();
     const titleId = useId();
     const descriptionId = useId();
 
@@ -40,17 +42,17 @@ export function ChatEnterBehaviorPrompt(props: ChatEnterBehaviorPromptProps) {
                 <div className="flex flex-1 flex-col gap-5 px-4 pb-6 pt-[max(env(safe-area-inset-top),1rem)] sm:px-6 sm:py-6">
                     <div className="flex flex-col gap-3 sm:gap-4">
                         <p className="text-[0.72rem] font-semibold uppercase tracking-[0.32em] text-slate-500">
-                            Keybindings
+                            {t('chatEnterBehavior.sectionEyebrow')}
                         </p>
                         <div className="max-w-2xl space-y-2">
                             <h2
                                 id={titleId}
                                 className="text-2xl font-semibold text-slate-950 sm:text-[2rem] sm:leading-tight"
                             >
-                                When you press Enter, should we send the message or add a new line?
+                                {t('chatEnterBehavior.promptTitle')}
                             </h2>
                             <p id={descriptionId} className="text-sm leading-6 text-slate-600 sm:text-base">
-                                Choose once for this browser user. The Send button always works.
+                                {t('chatEnterBehavior.promptDescription')}
                             </p>
                         </div>
                     </div>
@@ -75,17 +77,14 @@ export function ChatEnterBehaviorPrompt(props: ChatEnterBehaviorPromptProps) {
 
                 <div className="border-t border-slate-200/80 bg-white/70 px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-4 backdrop-blur sm:px-6 sm:pb-6">
                     <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <p className="text-sm text-slate-500">
-                            You can change this later in{' '}
-                            <span className="font-semibold text-slate-700">System &gt; Settings</span>.
-                        </p>
+                        <p className="text-sm text-slate-500">{t('chatEnterBehavior.promptFooter')}</p>
                         <button
                             type="button"
                             onClick={onDismiss}
                             onMouseDown={(event) => event.preventDefault()}
                             className="self-start rounded-full border border-slate-300 bg-white/90 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:text-slate-900"
                         >
-                            Not now
+                            {t('chatEnterBehavior.notNow')}
                         </button>
                     </div>
                 </div>

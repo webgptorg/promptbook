@@ -10,6 +10,32 @@ chat.answerDurationLabel: '{duration} to answer'
 common.book: Book
 common.timeouts: Timeouts
 common.more: More
+chatEnterBehavior.sectionEyebrow: Keybindings
+chatEnterBehavior.sectionTitle: Chat composer
+chatEnterBehavior.sectionDescription: Choose what plain Enter does in chat. Ctrl+Enter always performs the opposite action, and the Send button stays available in every mode.
+chatEnterBehavior.activeLabel: Active
+chatEnterBehavior.sendTitle: Enter sends
+chatEnterBehavior.sendDescription: Use Enter for the main action and keep Ctrl+Enter for longer thoughts.
+chatEnterBehavior.sendPrimaryActionLabel: Send message
+chatEnterBehavior.sendSecondaryActionLabel: Add new line
+chatEnterBehavior.newlineTitle: Enter adds a new line
+chatEnterBehavior.newlineDescription: Keep typing naturally and use Ctrl+Enter only when you are ready to send.
+chatEnterBehavior.newlinePrimaryActionLabel: Add new line
+chatEnterBehavior.newlineSecondaryActionLabel: Send message
+chatEnterBehavior.undecidedTitle: Ask the first time
+chatEnterBehavior.undecidedDescription: Keep the default undecided mode. The next plain Enter in chat will open the chooser again.
+chatEnterBehavior.helperLoading: Loading your current keybinding preference…
+chatEnterBehavior.helperSaving: Saving your keybinding preference…
+chatEnterBehavior.helperSaved: Saved for this browser user, including anonymous chat sessions tied to this browser.
+chatEnterBehavior.helperUndecided: No preference saved yet. The first Enter press in chat will ask, and the Send button always works.
+chatEnterBehavior.stateUndecided: Ask first
+chatEnterBehavior.textareaHintUndecided: Press Enter to choose whether it sends or adds a new line.
+chatEnterBehavior.textareaHintSend: Enter sends, Ctrl+Enter adds a new line
+chatEnterBehavior.textareaHintNewline: Enter adds a new line, Ctrl+Enter sends
+chatEnterBehavior.promptTitle: When you press Enter, should we send the message or add a new line?
+chatEnterBehavior.promptDescription: Choose once for this browser user. The Send button always works.
+chatEnterBehavior.promptFooter: You can change this later in the Control panel or System > Settings.
+chatEnterBehavior.notNow: Not now
 controlPanel.label: Control panel
 controlPanel.openAriaLabel: Open global control panel
 controlPanel.feedbackTitle: Feedback

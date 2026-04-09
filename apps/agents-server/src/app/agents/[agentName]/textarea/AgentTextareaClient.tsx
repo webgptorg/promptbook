@@ -6,7 +6,12 @@ import { AgentProfileImage } from '../../../../components/AgentProfile/AgentProf
 import { useAgentBackground } from '../../../../components/AgentProfile/useAgentBackground';
 import { useAgentNaming } from '../../../../components/AgentNaming/AgentNamingContext';
 import { useChatEnterBehaviorPreferences } from '../../../../components/ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
-import type { AgentsServerChatEnterBehavior } from '../../../../utils/chatEnterBehaviorSettings';
+import { getChatEnterBehaviorTextareaHint } from '../../../../components/ChatEnterBehavior/chatEnterBehaviorTranslations';
+import { useServerLanguage } from '../../../../components/ServerLanguage/ServerLanguageProvider';
+import {
+    invertAgentsServerChatEnterBehavior,
+    type AgentsServerChatEnterBehavior,
+} from '../../../../utils/chatEnterBehavior';
 
 /**
  * Props for the minimal textarea-driven chat launcher.
@@ -95,7 +100,7 @@ function resolveTextareaEnterAction(
         return enterBehavior;
     }
 
-    return enterBehavior === 'SEND' ? 'NEWLINE' : 'SEND';
+    return invertAgentsServerChatEnterBehavior(enterBehavior);
 }
 
 /**
@@ -117,17 +122,6 @@ function insertTextareaTextAtSelection(params: {
 }
 
 /**
- * Builds the inline helper text shown below the textarea.
- */
-function buildKeybindingHint(enterBehavior: AgentsServerChatEnterBehavior | undefined): string {
-    if (enterBehavior === 'NEWLINE') {
-        return 'Enter adds a new line, Ctrl+Enter sends';
-    }
-
-    return 'Enter sends, Ctrl+Enter adds a new line';
-}
-
-/**
  * Minimal centered textarea surface that forwards prompts to the standard chat page.
  */
 export function AgentTextareaClient({
@@ -139,6 +133,7 @@ export function AgentTextareaClient({
 }: AgentTextareaClientProps) {
     const router = useRouter();
     const { formatText } = useAgentNaming();
+    const { t } = useServerLanguage();
     const { enterBehavior, resolveEnterBehavior } = useChatEnterBehaviorPreferences();
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
     const [messageContent, setMessageContent] = useState('');
@@ -148,7 +143,7 @@ export function AgentTextareaClient({
     const { backgroundImage } = useAgentBackground(agentBrandColor);
 
     const normalizedMessage = useMemo(() => resolveMessageToSend(messageContent), [messageContent]);
-    const keybindingHint = useMemo(() => buildKeybindingHint(enterBehavior), [enterBehavior]);
+    const keybindingHint = useMemo(() => getChatEnterBehaviorTextareaHint(t, enterBehavior), [enterBehavior, t]);
     const isSubmitDisabled = isSubmitting || normalizedMessage === null;
 
     useEffect(() => {

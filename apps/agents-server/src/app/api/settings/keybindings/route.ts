@@ -3,8 +3,8 @@ import { resolveCurrentUserIdentity } from '@/src/utils/currentUserIdentity';
 import {
     getChatEnterBehaviorSettingsForUser,
     isAgentsServerChatEnterBehavior,
-    setChatEnterBehaviorSettingsForUser,
     type ChatEnterBehaviorSettingsSnapshot,
+    updateChatEnterBehaviorSettingsForUser,
 } from '@/src/utils/chatEnterBehaviorSettings';
 
 /**
@@ -46,18 +46,17 @@ export async function PUT(request: Request): Promise<NextResponse<ChatEnterBehav
             enterBehavior?: unknown;
         };
 
-        if (!isAgentsServerChatEnterBehavior(body.enterBehavior)) {
+        if (body.enterBehavior !== null && !isAgentsServerChatEnterBehavior(body.enterBehavior)) {
             return NextResponse.json({ error: 'Invalid enter behavior.' }, { status: 400 });
         }
 
-        const storedSettings = await setChatEnterBehaviorSettingsForUser(
+        const nextEnterBehavior = body.enterBehavior === null ? null : body.enterBehavior;
+        const storedSettings = await updateChatEnterBehaviorSettingsForUser(
             currentUserIdentity.userId,
-            body.enterBehavior,
+            nextEnterBehavior,
         );
 
-        return NextResponse.json({
-            enterBehavior: storedSettings.enterBehavior,
-        });
+        return NextResponse.json(storedSettings);
     } catch (error) {
         return NextResponse.json(
             {

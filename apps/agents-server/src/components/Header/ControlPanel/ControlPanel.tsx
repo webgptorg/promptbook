@@ -2,6 +2,7 @@
 
 import {
     Bell,
+    CornerDownLeft,
     EyeOff,
     Languages,
     MessageSquare,
@@ -14,6 +15,9 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useId, useRef, useState, type RefObject } from 'react';
 import { CHAT_VISUAL_MODES, type ChatVisualMode } from '../../../constants/chatVisualMode';
+import { useChatEnterBehaviorPreferences } from '../../ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
+import { ChatEnterBehaviorSettingsPanel } from '../../ChatEnterBehavior/ChatEnterBehaviorSettingsPanel';
+import { getChatEnterBehaviorStateLabel } from '../../ChatEnterBehavior/chatEnterBehaviorTranslations';
 import { useChatVisualMode } from '../../ChatVisualMode/ChatVisualModeProvider';
 import { confirmPrivateModeEnable } from '../../PrivateModePreferences/confirmPrivateModeEnable';
 import { usePrivateModePreferences } from '../../PrivateModePreferences/PrivateModePreferencesProvider';
@@ -280,6 +284,12 @@ function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanel
     const { controlPanelOptionAvailability } = useMetadataFlags();
     const { soundSystem } = useSoundSystem();
     const { chatVisualMode, setChatVisualMode } = useChatVisualMode();
+    const {
+        storedEnterBehavior,
+        isLoading: isEnterBehaviorLoading,
+        isPersisting: isEnterBehaviorPersisting,
+        setStoredEnterBehavior,
+    } = useChatEnterBehaviorPreferences();
     const { language, setLanguage, availableLanguages, t } = useServerLanguage();
     const { isSelfLearningEnabled, setIsSelfLearningEnabled } = useSelfLearningPreferences();
     const { isPrivateModeEnabled, setIsPrivateModeEnabled } = usePrivateModePreferences();
@@ -373,6 +383,7 @@ function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanel
         chatVisualMode === CHAT_VISUAL_MODES.ARTICLE_MODE
             ? t('controlPanel.chatVisualModeOptionArticle')
             : t('controlPanel.chatVisualModeOptionBubble');
+    const chatEnterBehaviorStateLabel = getChatEnterBehaviorStateLabel(t, storedEnterBehavior);
     const areNotificationsAvailable = isNotificationsSupported && isNotificationsConfigured;
     const notificationsPermissionLabel = !isNotificationsConfigured
         ? t('controlPanel.notificationsPermissionUnavailable')
@@ -436,6 +447,12 @@ function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanel
                 isAvailable: controlPanelOptionAvailability.language,
                 tone: 'neutral',
                 label: activeLanguageName,
+            },
+            {
+                key: 'chat-enter-behavior',
+                isAvailable: !isEnterBehaviorLoading,
+                tone: storedEnterBehavior === null ? 'informative' : 'neutral',
+                label: chatEnterBehaviorStateLabel,
             },
             {
                 key: 'chat-visual-mode',
@@ -620,6 +637,29 @@ function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanel
                     </div>
                 </section>
             )}
+
+            <section className="rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-sm">
+                <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-gray-900">{t('chatEnterBehavior.sectionTitle')}</p>
+                        <p className="mt-0.5 text-[11px] text-gray-600">{t('chatEnterBehavior.sectionDescription')}</p>
+                    </div>
+                    <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+                        <CornerDownLeft className="h-4 w-4" aria-hidden="true" />
+                    </span>
+                </div>
+
+                <div className="mt-2.5">
+                    <ChatEnterBehaviorSettingsPanel
+                        storedEnterBehavior={storedEnterBehavior}
+                        isLoading={isEnterBehaviorLoading}
+                        isPersisting={isEnterBehaviorPersisting}
+                        onSelectBehavior={(behavior) => {
+                            void setStoredEnterBehavior(behavior);
+                        }}
+                    />
+                </div>
+            </section>
 
             {isAudioLoadingHintVisible && <p className="px-1 text-[11px] text-gray-500">{t('controlPanel.audioLoading')}</p>}
         </div>

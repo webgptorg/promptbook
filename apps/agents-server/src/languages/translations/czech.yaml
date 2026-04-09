@@ -10,6 +10,32 @@ chat.answerDurationLabel: 'Odpověď za {duration}'
 common.book: Kniha
 common.timeouts: Časovače
 common.more: Více
+chatEnterBehavior.sectionEyebrow: Klávesové zkratky
+chatEnterBehavior.sectionTitle: Psaní zpráv
+chatEnterBehavior.sectionDescription: Vyberte, co v chatu udělá samotná klávesa Enter. Ctrl+Enter vždy provede opačnou akci a tlačítko Odeslat zůstává dostupné v každém režimu.
+chatEnterBehavior.activeLabel: Aktivní
+chatEnterBehavior.sendTitle: Enter odesílá
+chatEnterBehavior.sendDescription: Použijte Enter jako hlavní akci a Ctrl+Enter si nechte pro delší myšlenky.
+chatEnterBehavior.sendPrimaryActionLabel: Odeslat zprávu
+chatEnterBehavior.sendSecondaryActionLabel: Nový řádek
+chatEnterBehavior.newlineTitle: Enter vloží nový řádek
+chatEnterBehavior.newlineDescription: Pište přirozeně dál a Ctrl+Enter použijte teprve, až budete chtít odeslat.
+chatEnterBehavior.newlinePrimaryActionLabel: Nový řádek
+chatEnterBehavior.newlineSecondaryActionLabel: Odeslat zprávu
+chatEnterBehavior.undecidedTitle: Zeptat se poprvé
+chatEnterBehavior.undecidedDescription: Ponechte výchozí nerozhodnutý režim. Při příštím stisku samotného Enteru v chatu se znovu otevře volba.
+chatEnterBehavior.helperLoading: Načítám vaše nastavení kláves…
+chatEnterBehavior.helperSaving: Ukládám vaše nastavení kláves…
+chatEnterBehavior.helperSaved: Uloženo pro tohoto uživatele prohlížeče, včetně anonymních chatů svázaných s tímto prohlížečem.
+chatEnterBehavior.helperUndecided: Zatím není uložená žádná volba. Při prvním stisku Enteru v chatu se zobrazí dotaz a tlačítko Odeslat funguje vždy.
+chatEnterBehavior.stateUndecided: Zeptat se
+chatEnterBehavior.textareaHintUndecided: Stiskem Enteru si nejdřív vyberete, jestli se má zpráva odeslat nebo jen zalomit.
+chatEnterBehavior.textareaHintSend: Enter odesílá, Ctrl+Enter vloží nový řádek
+chatEnterBehavior.textareaHintNewline: Enter vloží nový řádek, Ctrl+Enter odesílá
+chatEnterBehavior.promptTitle: 'Co se má stát po stisku Enteru: odeslat zprávu, nebo vložit nový řádek?'
+chatEnterBehavior.promptDescription: Vyberte to jednou pro tohoto uživatele prohlížeče. Tlačítko Odeslat funguje vždy.
+chatEnterBehavior.promptFooter: Později to můžete změnit v Ovládacím panelu nebo v Systém > Nastavení.
+chatEnterBehavior.notNow: Teď ne
 controlPanel.label: Ovládací panel
 controlPanel.openAriaLabel: Otevřít globální ovládací panel
 controlPanel.feedbackTitle: Nastavení odezvy

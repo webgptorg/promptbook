@@ -1,9 +1,8 @@
-import { getUserDataValue, upsertUserDataValue } from './userData';
-
-/**
- * Supported Enter-key behaviors exposed by the Agents Server UI.
- */
-export type AgentsServerChatEnterBehavior = 'SEND' | 'NEWLINE';
+import { deleteUserDataByKeysForUser, getUserDataValue, upsertUserDataValue } from './userData';
+import {
+    isAgentsServerChatEnterBehavior,
+    type AgentsServerChatEnterBehavior,
+} from './chatEnterBehavior';
 
 /**
  * Stored keybindings payload persisted in `UserData`.
@@ -29,22 +28,11 @@ const CHAT_ENTER_BEHAVIOR_SETTINGS_VERSION = 1 as const;
  * `UserData.key` used for chat keybinding preferences.
  */
 const CHAT_ENTER_BEHAVIOR_SETTINGS_USER_DATA_KEY = 'settings:keybindings';
-
-/**
- * Returns true when the supplied value is one of the supported Enter behaviors.
- */
-export function isAgentsServerChatEnterBehavior(value: unknown): value is AgentsServerChatEnterBehavior {
-    return value === 'SEND' || value === 'NEWLINE';
-}
-
-/**
- * Resolves the inverse action performed by `Ctrl+Enter`.
- */
-export function invertAgentsServerChatEnterBehavior(
-    enterBehavior: AgentsServerChatEnterBehavior,
-): AgentsServerChatEnterBehavior {
-    return enterBehavior === 'SEND' ? 'NEWLINE' : 'SEND';
-}
+export {
+    invertAgentsServerChatEnterBehavior,
+    isAgentsServerChatEnterBehavior,
+    type AgentsServerChatEnterBehavior,
+} from './chatEnterBehavior';
 
 /**
  * Validates and normalizes one raw `UserData.value` keybinding payload.
@@ -106,4 +94,30 @@ export async function setChatEnterBehaviorSettingsForUser(
     });
 
     return record;
+}
+
+/**
+ * Clears the stored chat Enter behavior preference for the provided user id.
+ */
+export async function clearChatEnterBehaviorSettingsForUser(userId: number): Promise<void> {
+    await deleteUserDataByKeysForUser({
+        userId,
+        keys: [CHAT_ENTER_BEHAVIOR_SETTINGS_USER_DATA_KEY],
+    });
+}
+
+/**
+ * Persists or clears one chat Enter behavior preference for the provided user id.
+ */
+export async function updateChatEnterBehaviorSettingsForUser(
+    userId: number,
+    enterBehavior: AgentsServerChatEnterBehavior | null,
+): Promise<ChatEnterBehaviorSettingsSnapshot> {
+    if (enterBehavior === null) {
+        await clearChatEnterBehaviorSettingsForUser(userId);
+        return { enterBehavior: null };
+    }
+
+    const record = await setChatEnterBehaviorSettingsForUser(userId, enterBehavior);
+    return { enterBehavior: record.enterBehavior };
 }

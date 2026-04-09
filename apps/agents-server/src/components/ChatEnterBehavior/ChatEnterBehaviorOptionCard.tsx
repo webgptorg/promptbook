@@ -3,16 +3,14 @@
 import { CornerDownLeft, Pilcrow } from 'lucide-react';
 import type { ReactNode } from 'react';
 import type { AgentsServerChatEnterBehavior } from '@/src/utils/chatEnterBehaviorSettings';
+import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
+import { getChatEnterBehaviorPresentation } from './chatEnterBehaviorTranslations';
 
 /**
- * Metadata rendered for one Enter-key behavior option.
+ * Static icon metadata rendered for one Enter-key behavior option.
  */
 type ChatEnterBehaviorPresentation = {
-    readonly title: string;
-    readonly description: string;
     readonly icon: typeof CornerDownLeft;
-    readonly primaryActionLabel: string;
-    readonly secondaryActionLabel: string;
 };
 
 /**
@@ -31,18 +29,10 @@ export type ChatEnterBehaviorOptionCardProps = {
  */
 const CHAT_ENTER_BEHAVIOR_PRESENTATIONS: Record<AgentsServerChatEnterBehavior, ChatEnterBehaviorPresentation> = {
     SEND: {
-        title: 'Enter sends',
-        description: 'Use Enter for the main action and keep Ctrl+Enter for longer thoughts.',
         icon: CornerDownLeft,
-        primaryActionLabel: 'Send message',
-        secondaryActionLabel: 'Add new line',
     },
     NEWLINE: {
-        title: 'Enter adds a new line',
-        description: 'Keep typing naturally and use Ctrl+Enter only when you are ready to send.',
         icon: Pilcrow,
-        primaryActionLabel: 'Add new line',
-        secondaryActionLabel: 'Send message',
     },
 };
 
@@ -93,8 +83,9 @@ function BindingPreviewRow(props: {
  */
 export function ChatEnterBehaviorOptionCard(props: ChatEnterBehaviorOptionCardProps) {
     const { behavior, isSelected = false, onClick, preventMouseFocus = false, className } = props;
-    const presentation = CHAT_ENTER_BEHAVIOR_PRESENTATIONS[behavior];
-    const Icon = presentation.icon;
+    const { t } = useServerLanguage();
+    const cardPresentation = getChatEnterBehaviorPresentation(t, behavior);
+    const { icon: Icon } = CHAT_ENTER_BEHAVIOR_PRESENTATIONS[behavior];
     const sharedClassName = `group w-full rounded-[26px] border p-5 text-left transition duration-150 ${
         isSelected
             ? 'border-blue-300 bg-gradient-to-br from-blue-50 via-white to-sky-50 shadow-[0_18px_45px_rgba(37,99,235,0.18)]'
@@ -113,26 +104,26 @@ export function ChatEnterBehaviorOptionCard(props: ChatEnterBehaviorOptionCardPr
                             <Icon className="h-4 w-4" />
                         </span>
                         <div>
-                            <p className="text-base font-semibold text-slate-900">{presentation.title}</p>
+                            <p className="text-base font-semibold text-slate-900">{cardPresentation.title}</p>
                             {isSelected && (
                                 <p className="text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-blue-700">
-                                    Active
+                                    {t('chatEnterBehavior.activeLabel')}
                                 </p>
                             )}
                         </div>
                     </div>
-                    <p className="max-w-xl text-sm leading-6 text-slate-600">{presentation.description}</p>
+                    <p className="max-w-xl text-sm leading-6 text-slate-600">{cardPresentation.description}</p>
                 </div>
             </div>
             <div className="mt-4 space-y-3">
                 <BindingPreviewRow
                     keyLabels={['Enter']}
-                    actionLabel={presentation.primaryActionLabel}
+                    actionLabel={cardPresentation.primaryActionLabel}
                     isPrimary
                 />
                 <BindingPreviewRow
                     keyLabels={['Ctrl', 'Enter']}
-                    actionLabel={presentation.secondaryActionLabel}
+                    actionLabel={cardPresentation.secondaryActionLabel}
                     isPrimary={false}
                 />
             </div>
