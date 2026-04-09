@@ -1,3 +1,8 @@
+-   Fixed `ptbk coder init` so external projects no longer get the Promptbook-repository-specific `agents-server.md` template by default:
+
+    -   Split generic `coder init` template bootstrap from the full built-in template list, so project initialization now materializes only templates intended for any repository while the Promptbook-specific Agents Server template remains available separately.
+    -   Updated CLI/docs expectations and regression coverage so external-project bootstrap no longer creates or reports `prompts/templates/agents-server.md`.
+
 -   Added configurable scan levels to `ptbk coder find-refactor-candidates`:
 
     -   Added `--level <low|medium|high|xhigh>` so refactor-candidate scans can stay conservative or become progressively more aggressive while `medium` remains the default.

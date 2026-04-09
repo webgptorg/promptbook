@@ -5,6 +5,7 @@ import { join } from 'path';
 import {
     getDefaultCoderPromptTemplateDefinition,
     getDefaultCoderPromptTemplateDefinitions,
+    getDefaultCoderProjectPromptTemplateDefinitions,
     resolveCoderPromptTemplate,
 } from './boilerplateTemplates';
 import {
@@ -64,17 +65,19 @@ describe('coder boilerplate templates', () => {
         expect(summary.packageJsonFileStatus).toBe('created');
         expect(summary.vscodeSettingsFileStatus).toBe('created');
         expect(summary.promptTemplateFileStatuses).toEqual(
-            getDefaultCoderPromptTemplateDefinitions().map(({ id, relativeFilePath }) => ({
+            getDefaultCoderProjectPromptTemplateDefinitions().map(({ id, relativeFilePath }) => ({
                 id,
                 relativeFilePath,
                 status: 'created',
             })),
         );
 
-        for (const definition of getDefaultCoderPromptTemplateDefinitions()) {
+        for (const definition of getDefaultCoderProjectPromptTemplateDefinitions()) {
             const content = await readFile(join(projectPath, definition.relativeFilePath), 'utf-8');
             expect(normalizeLineEndings(content).trim()).toBe(definition.content);
         }
+
+        await expect(readFile(join(projectPath, 'prompts', 'templates', 'agents-server.md'), 'utf-8')).rejects.toThrow();
 
         const gitignoreContent = await readFile(join(projectPath, '.gitignore'), 'utf-8');
         expect(normalizeLineEndings(gitignoreContent)).toBe('# Promptbook Coder\n/.tmp\n');

@@ -60,6 +60,10 @@ export type CoderPromptTemplateDefinition = {
      * Markdown content of the template.
      */
     readonly content: string;
+    /**
+     * Whether `ptbk coder init` should materialize this template into project-owned files.
+     */
+    readonly isDefaultProjectTemplate: boolean;
 };
 
 /**
@@ -107,7 +111,9 @@ export type ResolvedCoderPromptTemplate = {
 };
 
 /**
- * Built-in boilerplate templates shared by `coder init` and `coder generate-boilerplates`.
+ * Built-in boilerplate templates available to `coder generate-boilerplates`.
+ *
+ * Only the project-agnostic subset is materialized by `coder init`.
  */
 const DEFAULT_CODER_PROMPT_TEMPLATE_DEFINITIONS = [
     {
@@ -120,6 +126,7 @@ const DEFAULT_CODER_PROMPT_TEMPLATE_DEFINITIONS = [
             '-   Do a proper analysis of the current functionality before you start implementing.',
             // '-   Add the changes into the [changelog](./changelog/_current-preversion.md)',
         ]),
+        isDefaultProjectTemplate: true,
     },
     {
         id: 'agents-server',
@@ -133,8 +140,15 @@ const DEFAULT_CODER_PROMPT_TEMPLATE_DEFINITIONS = [
             '-   If you need to do the database migration, do it',
             '-   Add the changes into the [changelog](changelog/_current-preversion.md)',
         ]),
+        isDefaultProjectTemplate: false,
     },
 ] as const satisfies ReadonlyArray<CoderPromptTemplateDefinition>;
+
+/**
+ * Project-agnostic coder templates that `ptbk coder init` should materialize in any repository.
+ */
+const DEFAULT_CODER_PROJECT_PROMPT_TEMPLATE_DEFINITIONS: ReadonlyArray<CoderPromptTemplateDefinition> =
+    DEFAULT_CODER_PROMPT_TEMPLATE_DEFINITIONS.filter(({ isDefaultProjectTemplate }) => isDefaultProjectTemplate);
 
 /**
  * Lists the built-in coder boilerplate templates.
@@ -143,6 +157,15 @@ const DEFAULT_CODER_PROMPT_TEMPLATE_DEFINITIONS = [
  */
 export function getDefaultCoderPromptTemplateDefinitions(): ReadonlyArray<CoderPromptTemplateDefinition> {
     return DEFAULT_CODER_PROMPT_TEMPLATE_DEFINITIONS;
+}
+
+/**
+ * Lists the built-in coder prompt templates that are safe to initialize in any project.
+ *
+ * @private internal utility of `ptbk coder`
+ */
+export function getDefaultCoderProjectPromptTemplateDefinitions(): ReadonlyArray<CoderPromptTemplateDefinition> {
+    return DEFAULT_CODER_PROJECT_PROMPT_TEMPLATE_DEFINITIONS;
 }
 
 /**
@@ -170,7 +193,7 @@ export async function ensureDefaultCoderPromptTemplateFiles(
 ): Promise<ReadonlyArray<EnsuredCoderPromptTemplateFile>> {
     const ensuredTemplateFiles: Array<EnsuredCoderPromptTemplateFile> = [];
 
-    for (const definition of DEFAULT_CODER_PROMPT_TEMPLATE_DEFINITIONS) {
+    for (const definition of DEFAULT_CODER_PROJECT_PROMPT_TEMPLATE_DEFINITIONS) {
         const absoluteTemplatePath = join(projectPath, definition.relativeFilePath);
         if (await isExistingFile(absoluteTemplatePath)) {
             ensuredTemplateFiles.push({

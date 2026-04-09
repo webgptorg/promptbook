@@ -52,22 +52,22 @@ npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts -
 ```bash
 # Via CLI (recommended)
 ptbk coder generate-boilerplates --template agents-server
-ptbk coder generate-boilerplates --template prompts/templates/agents-server.md
+ptbk coder generate-boilerplates --template prompts/templates/common.md
 ptbk coder generate-boilerplates --template foo/bar/custom.md
 
 # Direct (legacy)
 npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts --template common
-npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts --template prompts/templates/agents-server.md
+npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts --template prompts/templates/common.md
 ```
 
 ### Combine options:
 
 ```bash
 # Via CLI (recommended)
-ptbk coder generate-boilerplates --count 100 --template prompts/templates/agents-server.md
+ptbk coder generate-boilerplates --count 100 --template prompts/templates/common.md
 
 # Direct (legacy)
-npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts --count 100 --template prompts/templates/agents-server.md
+npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts --count 100 --template prompts/templates/common.md
 ```
 
 ## Output
@@ -82,7 +82,7 @@ The script creates 5 files with the following pattern:
 
 Where `XXXX` is the next available sequential number.
 
-When using `--template agents-server` or `--template prompts/templates/agents-server.md`, generated filenames include the template prefix in slug part (for example: `2026-02-2210-agents-server-qux.md`).
+When using `--template agents-server` or another template whose filename is not `common`, generated filenames include the template prefix in slug part (for example: `2026-02-2210-agents-server-qux.md`).
 
 ## How it works
 

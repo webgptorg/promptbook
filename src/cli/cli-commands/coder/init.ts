@@ -10,6 +10,7 @@ import type { $side_effect } from '../../../utils/organization/$side_effect';
 import {
     ensureDefaultCoderPromptTemplateFiles,
     type EnsuredCoderPromptTemplateFile,
+    getDefaultCoderProjectPromptTemplateDefinitions,
     type InitializationStatus,
     PROMPTS_DIRECTORY_PATH,
     PROMPTS_DONE_DIRECTORY_PATH,
@@ -151,8 +152,7 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
             Creates or updates:
             - prompts/
             - prompts/done/
-            - prompts/templates/common.md
-            - prompts/templates/agents-server.md
+            ${listDefaultCoderProjectPromptTemplateDisplayPaths()}
             - .gitignore
             - package.json
             - .vscode/settings.json
@@ -220,6 +220,15 @@ export async function initializeCoderProjectConfiguration(projectPath: string): 
         vscodeSettingsFileStatus,
         initializedEnvVariableNames,
     };
+}
+
+/**
+ * Lists the project-owned template file paths created by `ptbk coder init`.
+ */
+function listDefaultCoderProjectPromptTemplateDisplayPaths(): string {
+    return getDefaultCoderProjectPromptTemplateDefinitions()
+        .map(({ relativeFilePath }) => `- ${formatDisplayPath(relativeFilePath)}`)
+        .join('\n');
 }
 
 /**

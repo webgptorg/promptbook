@@ -464,7 +464,7 @@ In short: tools like Claude Code, Codex, or GitHub Copilot are the **engines**; 
 
 #### How the workflow works
 
-1. `ptbk coder init` prepares the project for the coder workflow, seeds project-owned templates in `prompts/templates/`, adds helper `npm run coder:*` scripts, ensures `.gitignore` ignores `/.tmp`, and configures VS Code prompt screenshots in `prompts/screenshots/`.
+1. `ptbk coder init` prepares the project for the coder workflow, seeds project-owned generic templates in `prompts/templates/`, adds helper `npm run coder:*` scripts, ensures `.gitignore` ignores `/.tmp`, and configures VS Code prompt screenshots in `prompts/screenshots/`.
 2. `ptbk coder generate-boilerplates` creates prompt files in `prompts/`.
 3. You replace placeholder `@@@` sections with real coding tasks.
 4. `ptbk coder run` sends the next ready `[ ]` prompt to the selected coding agent.
@@ -517,7 +517,7 @@ ptbk coder init
 
 npx ptbk coder generate-boilerplates
 
-npx ptbk coder generate-boilerplates --template prompts/templates/agents-server.md
+npx ptbk coder generate-boilerplates --template prompts/templates/common.md
 
 npx ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md
 
@@ -536,7 +536,7 @@ npx ptbk coder verify
 
 | Command | What it does |
 | --- | --- |
-| `ptbk coder init` | Creates `prompts/`, `prompts/done/`, `prompts/templates/common.md`, `prompts/templates/agents-server.md`, ensures `.env` contains `CODING_AGENT_GIT_NAME`, `CODING_AGENT_GIT_EMAIL`, and `CODING_AGENT_GIT_SIGNING_KEY`, adds helper coder scripts to `package.json`, ensures `.gitignore` contains `/.tmp`, and configures `.vscode/settings.json` to save pasted prompt images into `prompts/screenshots/`. |
+| `ptbk coder init` | Creates `prompts/`, `prompts/done/`, and the project-generic template files materialized in `prompts/templates/` (currently `common.md`), ensures `.env` contains `CODING_AGENT_GIT_NAME`, `CODING_AGENT_GIT_EMAIL`, and `CODING_AGENT_GIT_SIGNING_KEY`, adds helper coder scripts to `package.json`, ensures `.gitignore` contains `/.tmp`, and configures `.vscode/settings.json` to save pasted prompt images into `prompts/screenshots/`. |
 | `ptbk coder generate-boilerplates` | Creates new prompt markdown files with fresh emoji tags so you can quickly fill in coding tasks; `--template` accepts either a built-in alias or a markdown file path relative to the project root. |
 | `ptbk coder run` | Picks the next ready prompt, appends optional context, runs it through the selected coding agent, marks success or failure, then commits and pushes the result. |
 | `ptbk coder find-refactor-candidates` | Scans the repository for oversized or overpacked files and writes prompt files for likely refactors; `--level <low|medium|high|xhigh>` makes the scan more or less aggressive. |
