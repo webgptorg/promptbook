@@ -42,13 +42,13 @@ type DelayNextMatchingRequestOptions = {
  */
 type ManagementAgent = {
     /**
-     * Canonical agent slug used in URLs and user-chat API routes.
+     * Canonical browser-route slug and user-chat API identifier.
      */
     readonly agentName: string;
     /**
-     * Standalone chat route returned by the management API.
+     * Stable standalone chat route returned by the management API.
      */
-    readonly chatUrl: string;
+    readonly managementChatUrl: string;
 };
 
 /**
@@ -99,6 +99,24 @@ const DELAYED_REQUEST_RELEASE_TIMEOUT_MS = 20_000;
  */
 function escapeForRegExp(value: string): string {
     return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Builds the current browser-facing standalone chat route for one agent.
+ *
+ * @param agentName - Canonical browser-route slug.
+ * @param options - Optional query parameters.
+ * @returns Relative chat URL used by the browser app.
+ */
+function buildAgentBrowserChatUrl(agentName: string, options: { chatId?: string } = {}): string {
+    const params = new URLSearchParams();
+    if (options.chatId !== undefined) {
+        params.set('chat', options.chatId);
+    }
+
+    const pathname = `/agents/${encodeURIComponent(agentName)}/chat`;
+    const query = params.toString();
+    return query ? `${pathname}?${query}` : pathname;
 }
 
 /**
@@ -175,7 +193,7 @@ async function createTestAgent(page: Page, apiKey: string, label: string): Promi
 
             return {
                 agentName: payload.agent.agentName,
-                chatUrl: payload.agent.links.chatUrl,
+                managementChatUrl: payload.agent.links.chatUrl,
             };
         },
         { apiKey, label },
@@ -244,6 +262,33 @@ async function createSeededChat(page: Page, agentName: string, title: string): P
  */
 function readChatIdFromUrl(url: string): string | null {
     return new URL(url).searchParams.get('chat');
+}
+
+/**
+ * Checks whether one browser URL points to a selected durable chat for the target agent.
+ *
+ * The browser currently navigates using the agent-name route alias, while the management
+ * API still returns the durable standalone link. Accepting both path shapes keeps this
+ * regression focused on "chat selected" behavior instead of one specific alias.
+ *
+ * @param url - Absolute page URL.
+ * @param agent - Targeted management-agent payload.
+ * @returns `true` when the URL represents a selected durable chat for the agent.
+ */
+function isSelectedDurableAgentChatUrl(url: string, agent: ManagementAgent): boolean {
+    const parsedUrl = new URL(url);
+    const selectedChatId = parsedUrl.searchParams.get('chat');
+
+    if (!selectedChatId) {
+        return false;
+    }
+
+    const candidatePathnames = new Set([
+        buildAgentBrowserChatUrl(agent.agentName),
+        new URL(agent.managementChatUrl).pathname,
+    ]);
+
+    return candidatePathnames.has(parsedUrl.pathname);
 }
 
 /**
@@ -426,10 +471,10 @@ test.describe('Agents Server chat history navigation', () => {
             .first();
 
         await expect
-            .poll(() => page.url(), {
+            .poll(() => isSelectedDurableAgentChatUrl(page.url(), agent), {
                 message: 'Expected profile-page send to navigate to the durable chat route.',
             })
-            .toContain(`${agent.chatUrl}?chat=`);
+            .toBe(true);
 
         await expect(optimisticMessageBubble).toBeVisible();
         await expect(page.getByText('Sending', { exact: true })).toBeVisible();
@@ -443,7 +488,6 @@ test.describe('Agents Server chat history navigation', () => {
 
         await expect(optimisticMessageBubble).toBeVisible();
         await expect(page.getByText('Sending', { exact: true })).toHaveCount(0, { timeout: 20_000 });
-        await expect(page.getByText('Completed', { exact: true })).toBeVisible({ timeout: 20_000 });
     });
 
     test('processes two rapid sends on a freshly created chat without a chat-not-found failure', async ({ page }) => {
@@ -551,10 +595,10 @@ test.describe('Agents Server chat history navigation', () => {
         await page.getByRole('button', { name: DEFAULT_QUICK_BUTTON_LABEL }).click();
 
         await expect
-            .poll(() => page.url(), {
+            .poll(() => isSelectedDurableAgentChatUrl(page.url(), agent), {
                 message: 'Expected clicking a profile quick button to navigate to the durable chat route.',
             })
-            .toContain(`${agent.chatUrl}?chat=`);
+            .toBe(true);
         await expect(
             page
                 .locator('p')
@@ -577,10 +621,10 @@ test.describe('Agents Server chat history navigation', () => {
         await page.locator('button[data-button-type="call-to-action"]').last().click();
 
         await expect
-            .poll(() => page.url(), {
+            .poll(() => isSelectedDurableAgentChatUrl(page.url(), agent), {
                 message: 'Expected sending a profile composer message to navigate to the durable chat route.',
             })
-            .toContain(`${agent.chatUrl}?chat=`);
+            .toBe(true);
         await expect(
             page
                 .locator('p')
@@ -604,13 +648,13 @@ test.describe('Agents Server chat history navigation', () => {
         const agent = await createTestAgent(page, apiKey, 'E2E Chat Quick Button Send');
         const delayedMessageCreate = await delayNextUserChatMessageCreateRequest(page, agent.agentName);
 
-        await page.goto(agent.chatUrl);
+        await page.goto(buildAgentBrowserChatUrl(agent.agentName));
         await expect(page.getByRole('button', { name: DEFAULT_QUICK_BUTTON_LABEL })).toBeVisible();
         await expect
-            .poll(() => page.url(), {
+            .poll(() => isSelectedDurableAgentChatUrl(page.url(), agent), {
                 message: 'Expected the durable chat page to select or create an active chat before sending.',
             })
-            .toContain(`${agent.chatUrl}?chat=`);
+            .toBe(true);
 
         await page.getByRole('button', { name: DEFAULT_QUICK_BUTTON_LABEL }).click();
 
@@ -640,8 +684,9 @@ test.describe('Agents Server chat history navigation', () => {
         const firstChat = await createSeededChat(page, agent.agentName, 'Alpha seeded chat');
         const secondChat = await createSeededChat(page, agent.agentName, 'Bravo seeded chat');
 
-        await page.goto(`${agent.chatUrl}?chat=${encodeURIComponent(firstChat.id)}`);
-        await expect(page.getByRole('button', { name: 'New chat' }).nth(1)).toBeVisible();
+        await page.goto(buildAgentBrowserChatUrl(agent.agentName, { chatId: firstChat.id }));
+        const newChatLink = page.getByRole('link', { name: 'New chat' }).first();
+        await expect(newChatLink).toBeVisible();
 
         let sawNativeDialog = false;
         page.on('dialog', async (dialog) => {
@@ -656,7 +701,7 @@ test.describe('Agents Server chat history navigation', () => {
         });
         await delayedRefresh.waitUntilStarted;
 
-        await page.getByRole('button', { name: 'New chat' }).nth(1).click();
+        await newChatLink.click();
 
         await expect
             .poll(() => readChatIdFromUrl(page.url()), {
@@ -709,7 +754,7 @@ test.describe('Agents Server chat history navigation', () => {
         const bravoChat = await createSeededChat(page, agent.agentName, 'Bravo history chat');
         const charlieChat = await createSeededChat(page, agent.agentName, 'Charlie history chat');
 
-        await page.goto(`${agent.chatUrl}?chat=${encodeURIComponent(alphaChat.id)}`);
+        await page.goto(buildAgentBrowserChatUrl(agent.agentName, { chatId: alphaChat.id }));
         await expect(page.getByRole('button', { name: /Bravo history chat/i })).toBeVisible();
         await expect(page.getByRole('button', { name: /Charlie history chat/i })).toBeVisible();
 

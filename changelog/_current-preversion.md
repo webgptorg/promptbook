@@ -1,3 +1,9 @@
+-   Fixed Agents Server chat-history navigation E2E coverage so the current browser routing and New chat control are asserted correctly again:
+
+    -   Relaxed the durable-route checks to accept both the management API standalone chat link and the browser's current agent-name chat alias, keeping the regression focused on selected-chat behavior instead of one route alias.
+    -   Updated the stale-refresh regression to use the visible `New chat` link rendered by the current chat sidebar instead of a brittle second-button selector.
+    -   Removed a stale expectation for a visible `Completed` lifecycle badge after the shared chat UI intentionally stopped rendering completed-status badges.
+
 -   Refactored `src/book-components/Chat/Chat/useChatInputAreaDictation.ts` into smaller focused private dictation modules without changing chat composer behavior:
 
     -   Extracted transcript refinement, dictation insertion, learned-dictionary updates, persistent dictation preferences, and browser/support metadata into dedicated private Chat helpers so the main dictation hook is easier to read and maintain.
