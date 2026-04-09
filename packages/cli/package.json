@@ -95,12 +95,6 @@
     "overrides": {
         "zod": "$zod"
     },
-    "bin": {
-        "promptbook": "bin/promptbook-cli.js",
-        "ptbk": "bin/promptbook-cli.js",
-        "book": "bin/promptbook-cli.js",
-        "bk": "bin/promptbook-cli.js"
-    },
     "dependencies": {
         "@ai-sdk/deepseek": "0.1.17",
         "@ai-sdk/google": "1.0.17",
@@ -135,5 +129,11 @@
         "type-fest": "4.5.0",
         "userhome": "1.0.1",
         "waitasecond": "1.11.164"
+    },
+    "bin": {
+        "promptbook": "bin/promptbook-cli.js",
+        "ptbk": "bin/promptbook-cli.js",
+        "book": "bin/promptbook-cli.js",
+        "bk": "bin/promptbook-cli.js"
     }
 }
