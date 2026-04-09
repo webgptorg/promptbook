@@ -39,7 +39,7 @@ function initializeFindRefactorCandidatesRun(): void {
 export async function findRefactorCandidates(): Promise<void> {
     initializeFindRefactorCandidatesRun();
 
-    console.info(colors.cyan('?? Find refactor candidates'));
+    console.info(colors.cyan('⚡🏭 Find refactor candidates'));
 
     const rootDir = process.cwd();
     const promptsDir = join(rootDir, PROMPTS_DIR_NAME);
