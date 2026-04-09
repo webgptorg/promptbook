@@ -18,6 +18,11 @@ import { resolveDesiredProjectDomain } from './resolveDesiredProjectDomain';
 const VERCEL_PLATFORM_DOMAIN_SUFFIX = '.vercel.app';
 
 /**
+ * Domain names that are invalid for Vercel and must be skipped during sync.
+ */
+const VERCEL_INVALID_DOMAINS = new Set(['localhost']);
+
+/**
  * Builds the desired/current domain diff for Vercel synchronization.
  *
  * @param options - Registered servers and current project domains.
@@ -29,12 +34,14 @@ export function createVercelDomainSyncPlan(options: {
     readonly projectDomains: ReadonlyArray<VercelProjectDomain>;
 }): VercelDomainSyncPlan {
     const desiredProjectDomains = uniqueDesiredProjectDomains(
-        options.registeredServers.map((server) =>
-            resolveDesiredProjectDomain(server, {
-                projectMetadata: options.projectMetadata,
-                projectDomains: options.projectDomains,
-            }),
-        ),
+        options.registeredServers
+            .map((server) =>
+                resolveDesiredProjectDomain(server, {
+                    projectMetadata: options.projectMetadata,
+                    projectDomains: options.projectDomains,
+                }),
+            )
+            .filter((domain) => !VERCEL_INVALID_DOMAINS.has(domain.name)),
     );
     const desiredDomains = desiredProjectDomains.map((domain) => domain.name);
     const desiredDomainSet = new Set(desiredDomains);
@@ -190,5 +197,5 @@ function formatNullableValue(value: string | null): string {
  * @returns `true` when the domain is managed by Vercel platform defaults.
  */
 function isIgnoredProjectDomain(domain: string): boolean {
-    return domain.endsWith(VERCEL_PLATFORM_DOMAIN_SUFFIX);
+    return domain.endsWith(VERCEL_PLATFORM_DOMAIN_SUFFIX) || VERCEL_INVALID_DOMAINS.has(domain);
 }
