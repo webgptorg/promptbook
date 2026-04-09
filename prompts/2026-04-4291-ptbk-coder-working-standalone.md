@@ -64,6 +64,7 @@ Promptbook coder configuration initialized.
     -   npx ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --ignore-git-changes --no-wait
     -   npx ptbk coder find-refactor-candidates
     -   npx ptbk coder verify
+-   Into VSCode setting should be added that images in `prompts` folder are put into `prompts/screenshots` _(look at current solution and put same thing into `ptbk coder init` .vscode/settings.json)_
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
