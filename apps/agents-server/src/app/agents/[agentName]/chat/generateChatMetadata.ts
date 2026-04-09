@@ -1,13 +1,20 @@
-import type { Metadata } from 'next';
-import { DEFAULT_CHAT_PAGE_TITLE } from './chatPageTitle';
+import type { Metadata, ResolvingMetadata } from 'next';
+import { createChatDocumentTitle } from './chatPageTitle';
 
 /**
- * Generates chat-page metadata that overrides the surrounding agent-name title.
+ * Generates chat-page metadata that rewrites the leading title segment to the active chat context.
  *
+ * @param parent - Resolved inherited metadata from parent layouts.
  * @returns Metadata for agent chat pages.
  */
-export function generateChatMetadata(): Metadata {
+export async function generateChatMetadata(parent: ResolvingMetadata): Promise<Metadata> {
+    const parentMetadata = await parent;
+
     return {
-        title: DEFAULT_CHAT_PAGE_TITLE,
+        title: {
+            absolute: createChatDocumentTitle({
+                baseDocumentTitle: parentMetadata.title?.absolute,
+            }),
+        },
     };
 }

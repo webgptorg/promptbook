@@ -1,5 +1,5 @@
 'use server';
-import type { Metadata } from 'next';
+import type { Metadata, ResolvingMetadata } from 'next';
 import { loadChatConfiguration } from '@/src/utils/chatConfiguration';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
@@ -20,10 +20,15 @@ import { generateChatMetadata } from '../generateChatMetadata';
 /**
  * Generates chat-page metadata that overrides the shared agent-name route title.
  *
+ * @param _props - Route props required by Next.js metadata signature.
+ * @param parent - Resolved inherited metadata from parent layouts.
  * @returns Metadata for the ChatGPT-like agent chat route.
  */
-export async function generateMetadata(): Promise<Metadata> {
-    return generateChatMetadata();
+export async function generateMetadata(
+    _props: { params: Promise<{ agentName: string }> },
+    parent: ResolvingMetadata,
+): Promise<Metadata> {
+    return generateChatMetadata(parent);
 }
 
 /**

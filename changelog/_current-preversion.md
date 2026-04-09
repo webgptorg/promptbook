@@ -1,3 +1,9 @@
+-   Fixed Agents Server chat-page browser titles so chat routes now lead with the current chat context instead of the selected agent name:
+
+    -   Reworked shared chat title formatting to produce browser titles in the form **Chat or chat title | Agent | Server**, preserving inherited agent/server naming for standalone, ChatGPT-like, and headless chat routes.
+    -   Updated server-rendered chat metadata so direct chat page loads start from the same chat-first title structure before client-side chat switching refines the active session title.
+    -   Adjusted regression coverage for chat title transitions so browser-title changes now assert the chat context leads while the inherited agent/server suffix remains intact.
+
 -   Fixed Agents Server durable-chat "New chat" navigation so browser-native **Open in new tab/window** now works from the chat page itself:
 
     -   Reused the existing `chat=new` route semantics for the shared chat action bar, rendering its **New chat** control as a real link instead of an in-place reset button when Agents Server provides a destination URL.

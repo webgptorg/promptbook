@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import { createChatDocumentTitle } from './chatPageTitle';
 
 /**
- * Keeps the browser tab title aligned with the current chat instead of the selected agent.
+ * Keeps the browser tab title aligned with the current chat while preserving inherited agent/server suffixes.
  *
  * @param options - Base title context and current active chat state.
  */

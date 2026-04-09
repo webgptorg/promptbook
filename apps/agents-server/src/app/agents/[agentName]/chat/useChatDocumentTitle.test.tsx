@@ -22,6 +22,15 @@ type ChatDocumentTitleHarnessProps = {
 };
 
 /**
+ * Returns the leading browser-title segment before inherited suffixes.
+ *
+ * @returns Leading title segment.
+ */
+function readLeadingTitleSegment(): string {
+    return document.title.split(' | ')[0] || '';
+}
+
+/**
  * Minimal harness that applies the chat document-title effect.
  *
  * @param props - Current title inputs.
@@ -33,7 +42,7 @@ function ChatDocumentTitleHarness(props: ChatDocumentTitleHarnessProps): ReactEl
 }
 
 describe('useChatDocumentTitle', () => {
-    it('switches the browser title between generic and session-specific chat contexts without leaking the agent name', async () => {
+    it('switches the leading browser-title segment between generic and session-specific chat contexts while preserving inherited agent/server titles', async () => {
         const testGlobal = globalThis as TestGlobalThis;
         testGlobal.IS_REACT_ACT_ENVIRONMENT = true;
         const container = document.createElement('div');
@@ -52,8 +61,9 @@ describe('useChatDocumentTitle', () => {
                 );
             });
 
-            expect(document.title).toBe('Chat | Promptbook Agents Server');
-            expect(document.title).not.toContain('Helpful Assistant');
+            expect(document.title).toBe('Chat | Helpful Assistant | Promptbook Agents Server');
+            expect(readLeadingTitleSegment()).toBe('Chat');
+            expect(readLeadingTitleSegment()).not.toBe('Helpful Assistant');
 
             await act(async () => {
                 root.render(
@@ -65,8 +75,9 @@ describe('useChatDocumentTitle', () => {
                 );
             });
 
-            expect(document.title).toBe('Chat: Release checklist | Promptbook Agents Server');
-            expect(document.title).not.toContain('Helpful Assistant');
+            expect(document.title).toBe('Release checklist | Helpful Assistant | Promptbook Agents Server');
+            expect(readLeadingTitleSegment()).toBe('Release checklist');
+            expect(readLeadingTitleSegment()).not.toBe('Helpful Assistant');
 
             await act(async () => {
                 root.render(
@@ -78,8 +89,9 @@ describe('useChatDocumentTitle', () => {
                 );
             });
 
-            expect(document.title).toBe('Chat: Production rollback plan | Promptbook Agents Server');
-            expect(document.title).not.toContain('Helpful Assistant');
+            expect(document.title).toBe('Production rollback plan | Helpful Assistant | Promptbook Agents Server');
+            expect(readLeadingTitleSegment()).toBe('Production rollback plan');
+            expect(readLeadingTitleSegment()).not.toBe('Helpful Assistant');
         } finally {
             await act(async () => {
                 root.unmount();
@@ -89,7 +101,7 @@ describe('useChatDocumentTitle', () => {
         }
     });
 
-    it('preserves an existing non-chat suffix when the route already starts from a generic chat title', async () => {
+    it('adds the inherited agent title when the route starts from a generic chat title without agent context', async () => {
         const testGlobal = globalThis as TestGlobalThis;
         testGlobal.IS_REACT_ACT_ENVIRONMENT = true;
         const container = document.createElement('div');
@@ -108,8 +120,9 @@ describe('useChatDocumentTitle', () => {
                 );
             });
 
-            expect(document.title).toBe('Chat: Budget follow-up | Promptbook Agents Server');
-            expect(document.title).not.toContain('Helpful Assistant');
+            expect(document.title).toBe('Budget follow-up | Helpful Assistant | Promptbook Agents Server');
+            expect(readLeadingTitleSegment()).toBe('Budget follow-up');
+            expect(readLeadingTitleSegment()).not.toBe('Helpful Assistant');
         } finally {
             await act(async () => {
                 root.unmount();
