@@ -1,5 +1,11 @@
 [x] ~$0.00 15 minutes by GitHub Copilot `gpt-5.4`
 
+
+---
+
+
+[ ]
+
 [🚀🍀] Update chat HTML title to reflect the chat (not the agent)
 
 -   Update the Agents Server chat pages to set `document.title` / `<title>` based on the current chat context (e.g. “Chat” / chat session), not the selected agent name
@@ -10,4 +16,4 @@
 -   Do a analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add/adjust a small automated test (unit/integration) that asserts the title string changes when navigating between “Chat” contexts and does not include the agent name
-
+- The title should have this format: `Chat | Promptbook` (without agent name) instead of `Agent Name - Chat - Promptbook`
