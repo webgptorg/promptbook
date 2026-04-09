@@ -3,11 +3,8 @@ services:
     promptbook:
         build: .
         image: hejny/promptbook:latest
-        # <- TODO: [🧠][🐋] Make better scope/organization of the image
         ports:
-            - 4460:4460
-        command: ptbk start-pipelines-server --port 4460 --no-interactive
-        # <- TODO: [🚑] Change to `start-agents-server` or make samles for both / maybe this should be in Dockerfile / 3 Dokerfiles Promptbook + Promptbook Agents server (FROM Promptbook) + Promptbook Pipelines server (FROM Promptbook)
+            - 4440:4440
         # TODO: [🧠][🐋] Make volume for `.promptbook` folder
         # volumes:
         #     - ./logs:/opt/chutoo/promptbook-module/

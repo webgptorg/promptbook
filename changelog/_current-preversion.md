@@ -1,3 +1,9 @@
+-   Fixed DockerHub publishing so the `hejny/promptbook` image now builds and starts the Agents Server instead of the legacy Pipelines server:
+
+    -   Replaced the old CLI-only Dockerfile with an Agents Server production build and added a `.dockerignore` so local environment files and transient build artifacts are not copied into the image.
+    -   Updated `docker-compose.yml` plus the generated DockerHub publish workflow so the default container runtime now matches the Agents Server port and startup flow.
+    -   Stopped the version-update script from trying to rewrite the Dockerfile now that the published image is built from the repository sources instead of installing a pinned `ptbk` package.
+
 -   Enhanced `ptbk coder init` so standalone external projects now get the missing local workflow bootstrap automatically:
 
     -   Added checked `✔` summary output for each initialized artifact, making standalone bootstrap results easier to scan.

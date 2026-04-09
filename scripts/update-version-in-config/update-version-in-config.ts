@@ -115,12 +115,15 @@ async function generatePackages({ isCommited }: { isCommited: boolean }): Promis
         await commit(['src'], `🆚 Add \`${version}\` -> \`versions.txt\``);
     }
 
-    let dockerfile: string = await readFile(`./Dockerfile`, 'utf-8');
-    dockerfile = dockerfile.replace(/^RUN\s+npm\s+i\s+ptbk@?.*$/m, `RUN npm i ptbk@${version}`);
-    await writeFile(`./Dockerfile`, dockerfile, 'utf-8');
+    const dockerfile: string = await readFile(`./Dockerfile`, 'utf-8');
+    const updatedDockerfile = dockerfile.replace(/^RUN\s+npm\s+i\s+ptbk@?.*$/m, `RUN npm i ptbk@${version}`);
 
-    if (isCommited) {
-        await commit(['Dockerfile'], `🆚🐋 Update \`${version}\` -> \`Dockerfile\``);
+    if (updatedDockerfile !== dockerfile) {
+        await writeFile(`./Dockerfile`, updatedDockerfile, 'utf-8');
+
+        if (isCommited) {
+            await commit(['Dockerfile'], `🆚🐋 Update \`${version}\` -> \`Dockerfile\``);
+        }
     }
 }
 

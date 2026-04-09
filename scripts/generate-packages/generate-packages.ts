@@ -1456,17 +1456,8 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                                     },
                                 },
                                 {
-                                    name: '🔽 Install dependencies',
-                                    run: 'npm ci',
-                                },
-                                {
                                     name: '🔽 Clone book submodule',
                                     run: 'git submodule update --init --recursive',
-                                },
-                                {
-                                    name: '🆚 Update version in Dockerfile',
-                                    run: 'npx ts-node ./scripts/update-version-in-config/update-version-in-config.ts',
-                                    // <- Note: Update version in Dockerfile before building the image
                                 },
                                 {
                                     name: '🆚 Load current version into the environment',
