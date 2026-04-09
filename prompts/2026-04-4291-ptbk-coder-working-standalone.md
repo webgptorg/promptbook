@@ -71,6 +71,43 @@ Promptbook coder configuration initialized.
 
 ---
 
+[ ]
+
+[✨👜] Do not create `agents-server.md` template via `ptbk coder init`
+
+-   `agents-server.md` is promptbook repository specific template and it should not be created in external projects, because it contains instructions that are specific to Promptbook repository and it can be confusing for users of `ptbk coder` in external projects
+-   Instead of that, `ptbk coder init` should create the `common.md` template and some other general templates that can be used in any project, but not the `agents-server.md` template which is specific to Promptbook repository and its coding agent workflow
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
+-   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
+-   DO not change the existing templates here in Promptbook
+-   Add the changes into the [changelog](./changelog/_current-preversion.md)
+
+---
+
+[ ]
+
+[✨👜] `ptbk coder init` should create `AGENTS.md` file with some boilerplate instructions
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
+-   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
+-   Add the changes into the [changelog](./changelog/_current-preversion.md)
+
+---
+
+[ ]
+
+[✨👜] `ptbk coder init` should create `AGENT_CODING.md` file with some instructions
+
+-   Theese instructions should be about how to use `ptbk coder` to create coding agents, how to create templates for coding agents, how to use them, how to customize them, etc. and also refer to the created `npm` scripts and how to use them
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
+-   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
+-   Add the changes into the [changelog](./changelog/_current-preversion.md)
+
+---
+
 [-]
 
 [✨👜] foo
@@ -92,5 +129,3 @@ Promptbook coder configuration initialized.
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
-
-

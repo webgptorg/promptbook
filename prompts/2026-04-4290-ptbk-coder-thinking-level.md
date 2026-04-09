@@ -21,11 +21,19 @@ $ ptbk coder run --thinking-level xhigh
 
 ---
 
-[-]
+[ ]
 
-[✨🥊] foo
+[✨🥊] Add `--level` flag to `ptbk coder find-refactor-candidates`
 
--   @@@
+```bash
+ptbk coder find-refactor-candidates --level xhigh
+```
+
+-   The levels are `low`, `medium`, `high`, `xhigh`
+-   Current configuration is `medium` but it should be possible to change it via the flag
+-   The level should be passed to the cli and this should set the standards to find refactor candidates, for example `xhigh` should find more candidates and be more aggressive in finding them, while `low` should be more conservative and find only the most obvious candidates
+-   Every level should have its own configuration about how many lines of code should be in a file, how many functions, how complex they should be, etc. This configuration should be used in the implementation of the `find-refactor-candidates` command
+-   Extract this configuration into a separate file and use it in the implementation of the command
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
