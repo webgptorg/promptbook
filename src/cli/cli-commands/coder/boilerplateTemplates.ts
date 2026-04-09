@@ -116,9 +116,9 @@ const DEFAULT_CODER_PROMPT_TEMPLATE_DEFINITIONS = [
         slugPrefix: null,
         content: buildCoderPromptTemplateContent([
             '-   @@@',
-            '-   Keep in mind the DRY _(don\'t repeat yourself)_ principle.',
+            "-   Keep in mind the DRY _(don't repeat yourself)_ principle.",
             '-   Do a proper analysis of the current functionality before you start implementing.',
-            '-   Add the changes into the [changelog](./changelog/_current-preversion.md)',
+            // '-   Add the changes into the [changelog](./changelog/_current-preversion.md)',
         ]),
     },
     {
@@ -127,7 +127,7 @@ const DEFAULT_CODER_PROMPT_TEMPLATE_DEFINITIONS = [
         slugPrefix: 'agents-server',
         content: buildCoderPromptTemplateContent([
             '-   @@@',
-            '-   Keep in mind the DRY _(don\'t repeat yourself)_ principle.',
+            "-   Keep in mind the DRY _(don't repeat yourself)_ principle.",
             '-   Do a proper analysis of the current functionality before you start implementing.',
             '-   You are working with the [Agents Server](apps/agents-server)',
             '-   If you need to do the database migration, do it',
@@ -275,9 +275,7 @@ function buildCoderPromptTemplateContent(lines: ReadonlyArray<string>): string {
 /**
  * Creates a fully resolved template payload from one built-in definition.
  */
-function createResolvedBuiltInCoderPromptTemplate(
-    template: BuiltInCoderPromptTemplate,
-): ResolvedCoderPromptTemplate {
+function createResolvedBuiltInCoderPromptTemplate(template: BuiltInCoderPromptTemplate): ResolvedCoderPromptTemplate {
     const definition = getDefaultCoderPromptTemplateDefinition(template);
     return {
         identifier: definition.id,
