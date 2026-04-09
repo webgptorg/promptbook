@@ -7,7 +7,7 @@
 $ npx ts-node ./src/cli/test/ptbk.ts coder run
 $ npx ts-node ./src/cli/test/ptbk.ts coder run --no-wait
 
-## On extarnal project as dependency
+## On external project as dependency
 $ npm install ptbk
 $ ptbk coder run
 $ ptbk coder run --no-wait
@@ -53,4 +53,3 @@ $ ptbk coder run --no-wait
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
-

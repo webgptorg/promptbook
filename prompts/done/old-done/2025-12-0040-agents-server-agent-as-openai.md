@@ -90,7 +90,6 @@ or CLI with BYOK strategy failed:
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
-
 ---
 
 [x]
@@ -148,7 +147,7 @@ CONTEXT You are helping users of abc.com
 
 [x]
 
-[✨🧚] When using extarnal application [Jan](https://www.jan.ai/) to chat with Promptbook Agent via Agent OpenAI compatible endpoint, it scrambles the response messages.
+[✨🧚] When using external application [Jan](https://www.jan.ai/) to chat with Promptbook Agent via Agent OpenAI compatible endpoint, it scrambles the response messages.
 
 -   The messages are not scrambled when using OpenAI client directly, for example: "Hello! How can I assist you today?"
 -   But when using Jan.ai application, same message look like this: "HelloHowssistay"
