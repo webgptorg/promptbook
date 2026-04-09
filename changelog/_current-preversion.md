@@ -1,3 +1,8 @@
+-   Completed the remaining Agents Server chat-page translations for the System menu and Enter-key settings flow:
+
+    -   Translated the remaining System dropdown category and item labels, including **Settings**, **Tool limits**, **Backups**, and **Error simulation**.
+    -   Moved the System settings page heading and description onto shared translation keys, and localized the chat-keybinding save warning used by the Enter/Ctrl+Enter chooser flow.
+
 -   Added the Agents Server chat Enter/Ctrl+Enter picker to the control panel:
 
     -   Added an explicit **Undecided** option that clears the saved keybinding so the chooser appears again the next time the user tries to send with plain Enter.

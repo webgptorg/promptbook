@@ -16,6 +16,7 @@ import {
 } from '@/src/utils/chatEnterBehaviorClient';
 import type { AgentsServerChatEnterBehavior } from '@/src/utils/chatEnterBehaviorSettings';
 import { notifyError } from '../Notifications/notifications';
+import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 import { ChatEnterBehaviorPrompt } from './ChatEnterBehaviorPrompt';
 
 /**
@@ -61,6 +62,7 @@ type ChatEnterBehaviorPreferencesProviderProps = {
 export function ChatEnterBehaviorPreferencesProvider({
     children,
 }: ChatEnterBehaviorPreferencesProviderProps) {
+    const { t } = useServerLanguage();
     const [storedEnterBehavior, setStoredEnterBehaviorState] = useState<AgentsServerChatEnterBehavior | null>(null);
     const [isLoaded, setIsLoaded] = useState(false);
     const [isPromptOpen, setIsPromptOpen] = useState(false);
@@ -144,7 +146,7 @@ export function ChatEnterBehaviorPreferencesProvider({
                 try {
                     await updateChatEnterBehaviorSettings(behavior);
                 } catch (error) {
-                    notifyError('We updated chat keybindings here, but could not save them to the server yet.');
+                    notifyError(t('chatEnterBehavior.saveFailed'));
                     throw error;
                 } finally {
                     setPendingPersistCount((previousCount) => Math.max(0, previousCount - 1));
@@ -153,7 +155,7 @@ export function ChatEnterBehaviorPreferencesProvider({
 
         saveQueueRef.current = persistencePromise.catch(() => undefined);
         await persistencePromise;
-    }, []);
+    }, [t]);
 
     /**
      * Applies one selected stored Enter behavior immediately and persists it in the background queue.

@@ -8,6 +8,7 @@ import {
     Wrench,
     type LucideIcon,
 } from 'lucide-react';
+import type { ServerTranslationKey } from '../../languages/ServerTranslationKeys';
 import type { ChatFeedbackMode } from '../../utils/chatFeedbackMode';
 import type { UserInfo } from '../../utils/getCurrentUser';
 import type { SubMenuItem } from './SubMenuItem';
@@ -17,7 +18,7 @@ import type { SubMenuItem } from './SubMenuItem';
  *
  * @private type of Header
  */
-type HeaderTranslate = (key: string, variables?: Record<string, string>) => string;
+type HeaderTranslate = (key: ServerTranslationKey, variables?: Readonly<Record<string, string | number>>) => string;
 
 /**
  * Supported category names inside the System dropdown.
@@ -61,6 +62,19 @@ const SYSTEM_CATEGORY_ICON_MAP: Record<SystemCategoryLabel, LucideIcon> = {
 };
 
 /**
+ * Translation key used for each System dropdown category label.
+ */
+const SYSTEM_CATEGORY_TRANSLATION_KEY_MAP: Record<SystemCategoryLabel, ServerTranslationKey> = {
+    'My Account': 'header.myAccount',
+    Utilities: 'header.utilities',
+    Administration: 'header.administration',
+    'Monitoring & Usage': 'header.monitoringAndUsage',
+    'Integrations & Keys': 'header.integrationsAndKeys',
+    'Developer / Debug': 'header.developerDebug',
+    'Legal & About': 'header.legalAndAbout',
+};
+
+/**
  * Propagates one fallback icon to submenu entries that do not specify their own icon.
  */
 function applyFallbackSubMenuIcon(
@@ -80,7 +94,11 @@ function applyFallbackSubMenuIcon(
 /**
  * Creates one category entry inside the System dropdown when there are items to show.
  */
-function createSystemCategory(label: SystemCategoryLabel, items: ReadonlyArray<SubMenuItem>): SubMenuItem[] {
+function createSystemCategory(
+    label: SystemCategoryLabel,
+    items: ReadonlyArray<SubMenuItem>,
+    translate: HeaderTranslate,
+): SubMenuItem[] {
     if (items.length === 0) {
         return [];
     }
@@ -88,7 +106,7 @@ function createSystemCategory(label: SystemCategoryLabel, items: ReadonlyArray<S
     const categoryIcon = SYSTEM_CATEGORY_ICON_MAP[label];
     return [
         {
-            label,
+            label: translate(SYSTEM_CATEGORY_TRANSLATION_KEY_MAP[label]),
             icon: categoryIcon,
             items: applyFallbackSubMenuIcon(items, categoryIcon),
         },
@@ -110,7 +128,7 @@ export function buildHeaderSystemMenuItems({
 }: BuildHeaderSystemMenuItemsOptions): SubMenuItem[] {
     const userAccountSystemItems: SubMenuItem[] = [
         {
-            label: 'Settings',
+            label: translate('header.settings'),
             href: '/system/settings',
             isBold: true,
         },
@@ -163,9 +181,9 @@ export function buildHeaderSystemMenuItems({
 
     if (!isAdmin) {
         return [
-            ...createSystemCategory('My Account', userAccountSystemItems),
-            ...createSystemCategory('Utilities', utilitiesSystemItems),
-            ...createSystemCategory('Legal & About', legalAndAboutSystemItems),
+            ...createSystemCategory('My Account', userAccountSystemItems, translate),
+            ...createSystemCategory('Utilities', utilitiesSystemItems, translate),
+            ...createSystemCategory('Legal & About', legalAndAboutSystemItems, translate),
         ];
     }
 
@@ -188,7 +206,7 @@ export function buildHeaderSystemMenuItems({
             href: '/admin/metadata',
         },
         {
-            label: 'Tool limits',
+            label: translate('header.toolLimits'),
             href: '/admin/tool-limits',
         },
         {
@@ -196,7 +214,7 @@ export function buildHeaderSystemMenuItems({
             href: '/admin/messages',
         },
         {
-            label: 'Backups',
+            label: translate('header.backups'),
             href: '/admin/backup',
             isBordered: true,
         },
@@ -272,7 +290,7 @@ export function buildHeaderSystemMenuItems({
             href: '/admin/search-engine-test',
         },
         {
-            label: 'Error simulation',
+            label: translate('header.errorSimulation'),
             href: '/admin/error-simulation',
         },
         ...(isExperimental
@@ -287,12 +305,12 @@ export function buildHeaderSystemMenuItems({
     ];
 
     return [
-        ...createSystemCategory('My Account', userAccountSystemItems),
-        ...createSystemCategory('Utilities', utilitiesSystemItems),
-        ...createSystemCategory('Administration', administrationSystemItems),
-        ...createSystemCategory('Monitoring & Usage', monitoringAndUsageSystemItems),
-        ...createSystemCategory('Integrations & Keys', integrationsAndKeysSystemItems),
-        ...createSystemCategory('Developer / Debug', developerDebugSystemItems),
-        ...createSystemCategory('Legal & About', legalAndAboutSystemItems),
+        ...createSystemCategory('My Account', userAccountSystemItems, translate),
+        ...createSystemCategory('Utilities', utilitiesSystemItems, translate),
+        ...createSystemCategory('Administration', administrationSystemItems, translate),
+        ...createSystemCategory('Monitoring & Usage', monitoringAndUsageSystemItems, translate),
+        ...createSystemCategory('Integrations & Keys', integrationsAndKeysSystemItems, translate),
+        ...createSystemCategory('Developer / Debug', developerDebugSystemItems, translate),
+        ...createSystemCategory('Legal & About', legalAndAboutSystemItems, translate),
     ];
 }

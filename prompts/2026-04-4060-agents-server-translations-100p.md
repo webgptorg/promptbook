@@ -43,7 +43,7 @@
 
 ---
 
-[ ]
+[x] ~$0.00 28 minutes by GitHub Copilot `gpt-5.4`
 
 [✨👋] Go through the Agent server and complete the translations.
 
@@ -53,3 +53,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 
 ![alt text](prompts/screenshots/2026-04-4060-agents-server-translations-100p-6.png)
+

@@ -13,6 +13,12 @@ export function KeybindingsSettingsClient() {
 
     return (
         <div className="space-y-8">
+            <div className="space-y-2">
+                <p className="text-xs uppercase tracking-[0.4em] text-gray-400">{t('header.systemMenuLabel')}</p>
+                <h1 className="text-3xl font-semibold text-gray-900">{t('header.settings')}</h1>
+                <p className="max-w-3xl text-sm text-gray-600">{t('systemSettings.pageDescription')}</p>
+            </div>
+
             <section className="rounded-[32px] border border-slate-200 bg-[radial-gradient(circle_at_top_left,_rgba(191,219,254,0.4),_transparent_34%),linear-gradient(155deg,_rgba(255,255,255,0.98),_rgba(248,250,252,0.96))] p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
                 <div className="space-y-3">
                     <p className="text-[0.7rem] font-semibold uppercase tracking-[0.34em] text-slate-500">

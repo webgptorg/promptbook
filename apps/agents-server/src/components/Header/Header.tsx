@@ -1223,7 +1223,7 @@ export function Header(props: HeaderProps) {
     const systemMenuEntries = useMemo(
         () =>
             buildHeaderSystemMenuItems({
-                translate: t as (key: string, variables?: Readonly<Record<string, string>>) => string,
+                translate: t,
                 currentUser,
                 isAdmin,
                 isGlobalAdmin,

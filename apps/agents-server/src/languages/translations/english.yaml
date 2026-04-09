@@ -36,6 +36,8 @@ chatEnterBehavior.promptTitle: When you press Enter, should we send the message 
 chatEnterBehavior.promptDescription: Choose once for this browser user. The Send button always works.
 chatEnterBehavior.promptFooter: You can change this later in the Control panel or System > Settings.
 chatEnterBehavior.notNow: Not now
+chatEnterBehavior.saveFailed: We updated chat keybindings here, but could not save them to the server yet.
+systemSettings.pageDescription: Personal browser-side preferences for how the Agents Server feels while you chat.
 controlPanel.label: Control panel
 controlPanel.openAriaLabel: Open global control panel
 controlPanel.feedbackTitle: Feedback
@@ -111,6 +113,13 @@ header.logIn: Log in
 header.logOut: Log out
 header.changePassword: Change Password
 header.menuLabel: Menu
+header.myAccount: My Account
+header.administration: Administration
+header.monitoringAndUsage: Monitoring & Usage
+header.integrationsAndKeys: Integrations & Keys
+header.developerDebug: Developer / Debug
+header.legalAndAbout: Legal & About
+header.settings: Settings
 header.landingPage: Landing page
 header.userMemory: User Memory
 header.userWallet: User Wallet
@@ -123,16 +132,19 @@ header.models: Models
 header.openApiDocumentation: OpenAPI Documentation
 header.apiTokens: API Tokens
 header.metadata: Metadata
+header.toolLimits: Tool limits
 header.customCss: Custom CSS
 header.customJs: Custom JS
 header.chatHistory: Chat history
 header.usageAnalytics: Usage analytics
 header.taskManager: Task manager
 header.messagesEmails: Messages & Emails
+header.backups: Backups
 header.chatFeedback: Chat feedback
 header.browser: Browser
 header.voiceInputTest: Voice Input Test
 header.searchEngineTest: Search Engine Test
+header.errorSimulation: Error simulation
 header.imagesGallery: Images gallery
 header.files: Files
 header.users: Users
