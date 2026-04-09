@@ -1,3 +1,8 @@
+-   Expanded `ptbk coder init` so newly initialized projects now also get an `AGENT_CODING.md` quick-reference file:
+
+    -   The new generated guide explains the Promptbook Coder workflow, how to use and customize `AGENTS.md` plus `prompts/templates/*.md`, and how the created `npm run coder:*` scripts map to the underlying CLI commands.
+    -   Kept initialization non-destructive by leaving existing `AGENT_CODING.md` files untouched while adding regression coverage for creation, preservation, and CLI summary output.
+
 -   Added `AGENTS.md` bootstrap to `ptbk coder init`:
 
     -   `ptbk coder init` now creates a starter `AGENTS.md` file alongside the prompts/templates bootstrap, so the generated `coder:run` script points at an existing shared context file immediately.

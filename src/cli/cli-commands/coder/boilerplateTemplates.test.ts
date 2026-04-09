@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
+import { AGENT_CODING_FILE_PATH, getDefaultCoderAgentCodingFileContent } from './agentCodingFile';
 import { AGENTS_FILE_PATH, getDefaultCoderAgentsFileContent } from './agentsFile';
 import {
     getDefaultCoderPromptTemplateDefinition,
@@ -63,6 +64,7 @@ describe('coder boilerplate templates', () => {
 
         expect(summary.promptsTemplatesDirectoryStatus).toBe('created');
         expect(summary.agentsFileStatus).toBe('created');
+        expect(summary.agentCodingFileStatus).toBe('created');
         expect(summary.gitignoreFileStatus).toBe('created');
         expect(summary.packageJsonFileStatus).toBe('created');
         expect(summary.vscodeSettingsFileStatus).toBe('created');
@@ -81,6 +83,13 @@ describe('coder boilerplate templates', () => {
 
         const agentsFileContent = await readFile(join(projectPath, AGENTS_FILE_PATH), 'utf-8');
         expect(normalizeLineEndings(agentsFileContent).trim()).toBe(getDefaultCoderAgentsFileContent());
+
+        const agentCodingFileContent = await readFile(join(projectPath, AGENT_CODING_FILE_PATH), 'utf-8');
+        expect(normalizeLineEndings(agentCodingFileContent).trim()).toBe(
+            getDefaultCoderAgentCodingFileContent({
+                packageJsonScripts: getDefaultCoderPackageJsonScripts(),
+            }),
+        );
 
         await expect(readFile(join(projectPath, 'prompts', 'templates', 'agents-server.md'), 'utf-8')).rejects.toThrow();
 
@@ -106,6 +115,7 @@ describe('coder boilerplate templates', () => {
             'utf-8',
         );
         await writeFile(join(projectPath, AGENTS_FILE_PATH), 'Custom instructions\n', 'utf-8');
+        await writeFile(join(projectPath, AGENT_CODING_FILE_PATH), 'Custom coder guide\n', 'utf-8');
         await mkdir(join(projectPath, '.vscode'), { recursive: true });
         await writeFile(
             join(projectPath, '.vscode', 'settings.json'),
@@ -119,6 +129,7 @@ describe('coder boilerplate templates', () => {
         expect(summary.packageJsonFileStatus).toBe('updated');
         expect(summary.vscodeSettingsFileStatus).toBe('updated');
         expect(summary.agentsFileStatus).toBe('unchanged');
+        expect(summary.agentCodingFileStatus).toBe('unchanged');
 
         const gitignoreContent = await readFile(join(projectPath, '.gitignore'), 'utf-8');
         expect(normalizeLineEndings(gitignoreContent)).toBe('node_modules\n.tmp\n');
@@ -143,6 +154,7 @@ describe('coder boilerplate templates', () => {
         });
 
         expect(await readFile(join(projectPath, AGENTS_FILE_PATH), 'utf-8')).toBe('Custom instructions\n');
+        expect(await readFile(join(projectPath, AGENT_CODING_FILE_PATH), 'utf-8')).toBe('Custom coder guide\n');
     });
 
     it('resolves template files relative to the project root', async () => {

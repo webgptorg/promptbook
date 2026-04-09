@@ -7,6 +7,7 @@ import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { ParseError } from '../../../errors/ParseError';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
+import { AGENT_CODING_FILE_PATH, getDefaultCoderAgentCodingFileContent } from './agentCodingFile';
 import { AGENTS_FILE_PATH, getDefaultCoderAgentsFileContent } from './agentsFile';
 import {
     ensureDefaultCoderPromptTemplateFiles,
@@ -130,6 +131,7 @@ type CoderInitializationSummary = {
     readonly promptsTemplatesDirectoryStatus: InitializationStatus;
     readonly promptTemplateFileStatuses: ReadonlyArray<EnsuredCoderPromptTemplateFile>;
     readonly agentsFileStatus: InitializationStatus;
+    readonly agentCodingFileStatus: InitializationStatus;
     readonly envFileStatus: InitializationStatus;
     readonly gitignoreFileStatus: InitializationStatus;
     readonly packageJsonFileStatus: InitializationStatus;
@@ -156,6 +158,7 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
             - prompts/done/
             ${listDefaultCoderProjectPromptTemplateDisplayPaths()}
             - AGENTS.md
+            - AGENT_CODING.md
             - .gitignore
             - package.json
             - .vscode/settings.json
@@ -207,7 +210,14 @@ export async function initializeCoderProjectConfiguration(projectPath: string): 
     const promptsDoneDirectoryStatus = await ensureDirectory(projectPath, PROMPTS_DONE_DIRECTORY_PATH);
     const promptsTemplatesDirectoryStatus = await ensureDirectory(projectPath, PROMPTS_TEMPLATES_DIRECTORY_PATH);
     const promptTemplateFileStatuses = await ensureDefaultCoderPromptTemplateFiles(projectPath);
-    const agentsFileStatus = await ensureCoderAgentsFile(projectPath);
+    const agentsFileStatus = await ensureCoderMarkdownFile(projectPath, AGENTS_FILE_PATH, getDefaultCoderAgentsFileContent());
+    const agentCodingFileStatus = await ensureCoderMarkdownFile(
+        projectPath,
+        AGENT_CODING_FILE_PATH,
+        getDefaultCoderAgentCodingFileContent({
+            packageJsonScripts: getDefaultCoderPackageJsonScripts(),
+        }),
+    );
     const { envFileStatus, initializedEnvVariableNames } = await ensureCoderEnvFile(projectPath);
     const gitignoreFileStatus = await ensureCoderGitignoreFile(projectPath);
     const packageJsonFileStatus = await ensureCoderPackageJsonFile(projectPath);
@@ -219,6 +229,7 @@ export async function initializeCoderProjectConfiguration(projectPath: string): 
         promptsTemplatesDirectoryStatus,
         promptTemplateFileStatuses,
         agentsFileStatus,
+        agentCodingFileStatus,
         envFileStatus,
         gitignoreFileStatus,
         packageJsonFileStatus,
@@ -237,15 +248,19 @@ function listDefaultCoderProjectPromptTemplateDisplayPaths(): string {
 }
 
 /**
- * Ensures `AGENTS.md` exists with the default coder context boilerplate.
+ * Ensures one coder markdown file exists with the provided default boilerplate.
  */
-async function ensureCoderAgentsFile(projectPath: string): Promise<InitializationStatus> {
-    const agentsFilePath = join(projectPath, AGENTS_FILE_PATH);
-    if (await isExistingFile(agentsFilePath)) {
+async function ensureCoderMarkdownFile(
+    projectPath: string,
+    relativeFilePath: string,
+    fileContent: string,
+): Promise<InitializationStatus> {
+    const absoluteFilePath = join(projectPath, relativeFilePath);
+    if (await isExistingFile(absoluteFilePath)) {
         return 'unchanged';
     }
 
-    await writeFile(agentsFilePath, `${getDefaultCoderAgentsFileContent()}\n`, 'utf-8');
+    await writeFile(absoluteFilePath, `${fileContent}\n`, 'utf-8');
     return 'created';
 }
 
@@ -442,6 +457,7 @@ function printInitializationSummary(summary: CoderInitializationSummary): void {
     }
 
     printInitializationStatusLine(AGENTS_FILE_PATH, summary.agentsFileStatus);
+    printInitializationStatusLine(AGENT_CODING_FILE_PATH, summary.agentCodingFileStatus);
     printInitializationStatusLine('.env', summary.envFileStatus);
     printInitializationStatusLine('.gitignore', summary.gitignoreFileStatus);
     printInitializationStatusLine('package.json', summary.packageJsonFileStatus);
