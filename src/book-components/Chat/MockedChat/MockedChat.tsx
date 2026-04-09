@@ -73,7 +73,7 @@ export type MockedChatDelayConfig = {
  */
 export type MockedChatProps = Omit<
     ChatProps,
-    'onReset' | /*'onMessage' | */ 'onUseTemplate' | 'isVoiceRecognitionButtonShown'
+    'onReset' | 'newChatButtonHref' | /*'onMessage' | */ 'onUseTemplate' | 'isVoiceRecognitionButtonShown'
 > & {
     /**
      * Whether the chat can be reset via the "New chat" button.

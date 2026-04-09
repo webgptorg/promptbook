@@ -28,6 +28,13 @@ export type ChatActionsBarProps = {
     title: string;
     onReset?: () => Promisable<void>;
     resetRequiresConfirmation?: boolean;
+    /**
+     * Optional navigation target for the "New chat" control.
+     *
+     * When provided, the control is rendered as a link so the host app can rely
+     * on browser-native navigation affordances such as opening in a new tab/window.
+     */
+    newChatButtonHref?: string;
     onUseTemplate?: () => void;
     extraActions?: ReactNode;
     saveFormats?: Array<string_chat_format_name>;
@@ -60,6 +67,7 @@ export function ChatActionsBar(props: ChatActionsBarProps) {
         title,
         onReset,
         resetRequiresConfirmation = true,
+        newChatButtonHref,
         onUseTemplate,
         extraActions,
         saveFormats,
@@ -120,6 +128,7 @@ export function ChatActionsBar(props: ChatActionsBarProps) {
 
     const firstMessageFromUser = messages[0]?.sender === 'USER';
     const actionsAlignmentClass = classNames(styles.actions, firstMessageFromUser ? styles.left : styles.right);
+    const newChatButtonLabel = chatUiTranslations?.newChatButtonLabel || 'New chat';
 
     const actionsContent = (
         <div
@@ -131,22 +140,27 @@ export function ChatActionsBar(props: ChatActionsBarProps) {
                 shouldDisableActions && styles.actionsScrolling,
             )}
         >
-            {onReset && messages.length !== 0 && (
-                <button
-                    className={classNames(styles.chatButton)}
-                    onClick={onButtonClick(() => {
-                        if (resetRequiresConfirmation && !confirm(`Do you really want to reset the chat?`)) {
-                            return;
-                        }
+            {(onReset || newChatButtonHref) && messages.length !== 0 && (
+                newChatButtonHref ? (
+                    <a className={classNames(styles.chatButton)} href={newChatButtonHref}>
+                        <ResetIcon />
+                        <span className={styles.chatButtonText}>{newChatButtonLabel}</span>
+                    </a>
+                ) : (
+                    <button
+                        className={classNames(styles.chatButton)}
+                        onClick={onButtonClick(() => {
+                            if (resetRequiresConfirmation && !confirm(`Do you really want to reset the chat?`)) {
+                                return;
+                            }
 
-                        void onReset();
-                    })}
-                >
-                    <ResetIcon />
-                    <span className={styles.chatButtonText}>
-                        {chatUiTranslations?.newChatButtonLabel || 'New chat'}
-                    </span>
-                </button>
+                            void onReset?.();
+                        })}
+                    >
+                        <ResetIcon />
+                        <span className={styles.chatButtonText}>{newChatButtonLabel}</span>
+                    </button>
+                )
             )}
 
             {isSaveButtonEnabled && messages.length !== 0 && (

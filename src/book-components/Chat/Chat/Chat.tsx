@@ -138,6 +138,7 @@ export function Chat(props: ChatProps) {
         onQuickMessageButton,
         onReset,
         resetRequiresConfirmation = true,
+        newChatButtonHref,
         onFeedback,
         feedbackMode = 'stars',
         feedbackTranslations,
@@ -398,7 +399,7 @@ export function Chat(props: ChatProps) {
     const shouldFadeActions = isActionsOverlapping;
     const shouldDisableActions = isActionsOverlapping && isActionsScrolling;
     const hasActions =
-        (!!onReset && postprocessedMessages.length !== 0) ||
+        ((!!onReset || !!newChatButtonHref) && postprocessedMessages.length !== 0) ||
         (isSaveButtonEnabled && postprocessedMessages.length !== 0) ||
         !!onUseTemplate ||
         !!extraActions;
@@ -494,6 +495,7 @@ export function Chat(props: ChatProps) {
                         title={title}
                         onReset={onReset}
                         resetRequiresConfirmation={resetRequiresConfirmation}
+                        newChatButtonHref={newChatButtonHref}
                         onUseTemplate={onUseTemplate}
                         extraActions={extraActions}
                         saveFormats={saveFormats}

@@ -1,3 +1,9 @@
+-   Fixed Agents Server durable-chat "New chat" navigation so browser-native **Open in new tab/window** now works from the chat page itself:
+
+    -   Reused the existing `chat=new` route semantics for the shared chat action bar, rendering its **New chat** control as a real link instead of an in-place reset button when Agents Server provides a destination URL.
+    -   Kept direct navigation to `/agents/[agent]/chat?chat=new` as the source of truth for durable new-chat creation, including the headless chat route variant.
+    -   Added regression coverage for both direct `chat=new` navigation and the shared action-bar link rendering.
+
 -   Added a Docker-specific README for the published `hejny/promptbook` image:
 
     -   Added a focused [`README.Docker.md`](../README.Docker.md) with build, run, configuration, and usage guidance for the production Agents Server image.

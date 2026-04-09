@@ -36,7 +36,8 @@ import {
     type UserChatTimeout,
 } from '../../../../utils/userChatClient';
 import { AgentChatWrapper } from '../AgentChatWrapper';
-import { takePendingProfileMessage } from '../profileMessageCache';
+import { FORCE_NEW_CHAT_QUERY_VALUE } from '../agentChatNavigationUtils';
+import { clearPendingProfileMessage, peekPendingProfileMessage } from '../profileMessageCache';
 import type { AgentChatLayoutVariant } from './AgentChatLayoutVariant';
 import { AgentChatPageLayout } from './AgentChatPageLayout';
 import { AgentChatSidebar } from './AgentChatSidebar';
@@ -228,8 +229,19 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const isActiveBrowserTab = useActiveBrowserTab();
     const shouldUseHistory = isHistoryEnabled && !isPrivateModeEnabled;
     const resolvedChatRouteBasePath = chatRouteBasePath || `/agents/${encodeURIComponent(agentName)}/chat`;
-    const newChatHref = `${resolvedChatRouteBasePath}?chat=new`;
-    const pendingProfileMessage = useMemo(() => takePendingProfileMessage(agentName), [agentName]);
+    const newChatHref = useMemo(() => {
+        const params = new URLSearchParams();
+        params.set('chat', FORCE_NEW_CHAT_QUERY_VALUE);
+
+        if (isHeadlessMode) {
+            params.set('headless', '');
+        }
+
+        return `${resolvedChatRouteBasePath}?${params.toString()}`;
+    }, [isHeadlessMode, resolvedChatRouteBasePath]);
+    // Read the profile payload without mutating storage during render because
+    // React may restart the render before this mount commits.
+    const pendingProfileMessage = useMemo(() => peekPendingProfileMessage(agentName), [agentName]);
     const effectiveInitialAutoExecuteMessage = initialAutoExecuteMessage ?? pendingProfileMessage?.message;
     const effectiveInitialAutoExecuteMessageAttachments =
         initialAutoExecuteMessageAttachments ?? pendingProfileMessage?.attachments;
@@ -238,7 +250,9 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         effectiveInitialAutoExecuteMessageAttachments,
     );
     const shouldSeedInitialOptimisticChat =
-        shouldUseHistory && hasInitialAutoExecutePayload && (initialForceNewChat || !initialChatId);
+        shouldUseHistory &&
+        (initialForceNewChat || hasInitialAutoExecutePayload) &&
+        (initialForceNewChat || !initialChatId);
     const initialOptimisticChatBootstrapRef = useRef<InitialOptimisticChatBootstrap | null>(null);
     if (initialOptimisticChatBootstrapRef.current === null && shouldSeedInitialOptimisticChat) {
         initialOptimisticChatBootstrapRef.current = {
@@ -249,7 +263,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     }
     const initialOptimisticChatBootstrap = initialOptimisticChatBootstrapRef.current;
     const initialSelectedChatId =
-        shouldUseHistory && hasInitialAutoExecutePayload
+        shouldUseHistory && (initialForceNewChat || hasInitialAutoExecutePayload)
             ? initialOptimisticChatBootstrap?.optimisticChatId || initialChatId || null
             : null;
     const [chats, setChats] = useState<Array<UserChatSummary>>(() =>
@@ -303,7 +317,8 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const selectionIntentRef = useRef<ChatSelectionIntent>({
         sequence: 0,
         kind: 'BOOTSTRAP',
-        targetChatId: initialOptimisticChatBootstrap?.optimisticChatId || (initialForceNewChat ? null : initialChatId || null),
+        targetChatId:
+            initialOptimisticChatBootstrap?.optimisticChatId || (initialForceNewChat ? null : initialChatId || null),
     });
 
     /**
@@ -461,6 +476,14 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
         return resolvedOptimisticChatIdsRef.current.get(selectedChatId) === resolvedChatId;
     }, []);
+
+    useEffect(() => {
+        if (!pendingProfileMessage) {
+            return;
+        }
+
+        clearPendingProfileMessage(agentName);
+    }, [agentName, pendingProfileMessage]);
 
     useEffect(() => {
         activeChatDraftMessageRef.current = activeChatDraftMessage;
@@ -989,7 +1012,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 (Boolean(initialOptimisticChatBootstrapRef.current) || !hasInitialAutoMessageBeenConsumedRef.current) &&
                 (initialForceNewChat || !effectivePreferredChatId);
 
-            if (!snapshot.activeChatId || shouldCreateFreshChatForInitialMessage) {
+            if (initialForceNewChat || !snapshot.activeChatId || shouldCreateFreshChatForInitialMessage) {
                 const createdChat = await createUserChat(agentName);
                 resolveInitialOptimisticChatBootstrap(createdChat);
                 if (hasInitialAutoExecutePayload) {
@@ -1697,13 +1720,6 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     );
 
     /**
-     * Handles in-chat "New chat" action.
-     */
-    const handleStartNewChatFromChatSurface = useCallback(async () => {
-        await handleCreateChat();
-    }, [handleCreateChat]);
-
-    /**
      * Marks the initial auto-execute payload as consumed and removes it from the URL.
      */
     const handleAutoExecuteMessageConsumed = useCallback(() => {
@@ -1846,7 +1862,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                     currentTimestamp={currentTimestamp}
                     onDraftMessageChange={handleDraftMessageChange}
                     onSubmitUserTurn={handleSubmitUserTurn}
-                    onStartNewChat={isActiveChatReadOnly ? undefined : handleStartNewChatFromChatSurface}
+                    newChatButtonHref={isActiveChatReadOnly ? undefined : newChatHref}
                     onCancelActiveJob={isActiveChatReadOnly ? undefined : handleCancelActiveJob}
                     onCancelActiveTimeout={isActiveChatReadOnly ? undefined : handleCancelActiveTimeout}
                     onAutoExecuteMessagePending={handleAutoExecuteMessagePending}

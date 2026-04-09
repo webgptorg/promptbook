@@ -39,7 +39,7 @@ describe('createMyChatsMobileMenuItem', () => {
             chats: [createChatFixture('chat-1', 'Alpha chat')],
             resolveChatHref: (chatId) => `/agents/demo/chat?chat=${chatId}`,
             onSelectChat,
-            newChatHref: '/agents/demo/chat?newChat=1',
+            newChatHref: '/agents/demo/chat?chat=new',
             onCreateChat,
         });
 
@@ -49,7 +49,7 @@ describe('createMyChatsMobileMenuItem', () => {
 
         expect(newChatItem).toMatchObject({
             label: 'New chat',
-            href: '/agents/demo/chat?newChat=1',
+            href: '/agents/demo/chat?chat=new',
         });
         expect(newChatItem?.onClick).toBe(onCreateChat);
 

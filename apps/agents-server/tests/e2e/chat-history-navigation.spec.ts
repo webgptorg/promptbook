@@ -108,9 +108,11 @@ function escapeForRegExp(value: string): string {
  * @param options - Optional query parameters.
  * @returns Relative chat URL used by the browser app.
  */
-function buildAgentBrowserChatUrl(agentName: string, options: { chatId?: string } = {}): string {
+function buildAgentBrowserChatUrl(agentName: string, options: { chatId?: string; forceNewChat?: boolean } = {}): string {
     const params = new URLSearchParams();
-    if (options.chatId !== undefined) {
+    if (options.forceNewChat) {
+        params.set('chat', 'new');
+    } else if (options.chatId !== undefined) {
         params.set('chat', options.chatId);
     }
 
@@ -740,6 +742,39 @@ test.describe('Agents Server chat history navigation', () => {
                 .toBe(createdChatId);
         }
         expect(sawNativeDialog).toBe(false);
+    });
+
+    test('creates a fresh chat when the durable route is opened directly with ?chat=new', async ({ page }) => {
+        await page.goto('/');
+        await loginAsAdmin(page);
+
+        const apiKey = await createManagementApiToken(page);
+        const agent = await createTestAgent(page, apiKey, 'E2E Chat Direct New Route');
+        const firstChat = await createSeededChat(page, agent.agentName, 'Alpha seeded chat');
+        const secondChat = await createSeededChat(page, agent.agentName, 'Bravo seeded chat');
+
+        await page.goto(buildAgentBrowserChatUrl(agent.agentName, { forceNewChat: true }), {
+            waitUntil: 'domcontentloaded',
+        });
+
+        await expect
+            .poll(
+                () => {
+                    const currentChatId = readChatIdFromUrl(page.url());
+                    return currentChatId && currentChatId !== 'new' ? currentChatId : null;
+                },
+                {
+                    message: 'Expected loading /chat?chat=new to create and select a fresh chat.',
+                },
+            )
+            .not.toBeNull();
+
+        const createdChatId = readChatIdFromUrl(page.url());
+
+        expect(createdChatId).toBeTruthy();
+        expect(createdChatId).not.toBe('new');
+        expect(createdChatId).not.toBe(firstChat.id);
+        expect(createdChatId).not.toBe(secondChat.id);
     });
 
     test('keeps the last clicked chat selected when an earlier navigation response finishes later', async ({

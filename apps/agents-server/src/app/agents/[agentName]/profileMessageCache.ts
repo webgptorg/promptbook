@@ -32,6 +32,48 @@ function hasMessageContent(message: string | undefined): message is string {
 }
 
 /**
+ * Normalizes one pending profile-message payload.
+ */
+function normalizePendingProfileMessagePayload(
+    payload: PendingProfileMessagePayload,
+): PendingProfileMessagePayload | undefined {
+    const normalizedPayload: PendingProfileMessagePayload = {};
+
+    if (hasMessageContent(payload.message)) {
+        normalizedPayload.message = payload.message;
+    }
+    if (payload.attachments && payload.attachments.length > 0) {
+        normalizedPayload.attachments = payload.attachments;
+    }
+
+    if (normalizedPayload.message || normalizedPayload.attachments) {
+        return normalizedPayload;
+    }
+
+    return undefined;
+}
+
+/**
+ * Reads one normalized pending profile-message payload without mutating storage.
+ */
+function readPendingProfileMessage(agentName: string): PendingProfileMessagePayload | undefined {
+    if (typeof window === 'undefined' || !window.sessionStorage) {
+        return undefined;
+    }
+
+    const raw = window.sessionStorage.getItem(buildStorageKey(agentName));
+    if (!raw) {
+        return undefined;
+    }
+
+    try {
+        return normalizePendingProfileMessagePayload(JSON.parse(raw) as PendingProfileMessagePayload);
+    } catch {
+        return undefined;
+    }
+}
+
+/**
  * Stores pending profile-chat payload in sessionStorage or clears the entry
  * when no transferable content is supplied.
  *
@@ -46,15 +88,9 @@ export function setPendingProfileMessage(
     }
 
     const storageKey = buildStorageKey(agentName);
-    const normalizedPayload: PendingProfileMessagePayload = {};
-    if (hasMessageContent(payload.message)) {
-        normalizedPayload.message = payload.message;
-    }
-    if (payload.attachments && payload.attachments.length > 0) {
-        normalizedPayload.attachments = payload.attachments;
-    }
+    const normalizedPayload = normalizePendingProfileMessagePayload(payload);
 
-    if (normalizedPayload.message || normalizedPayload.attachments) {
+    if (normalizedPayload) {
         window.sessionStorage.setItem(storageKey, JSON.stringify(normalizedPayload));
         return;
     }
@@ -63,38 +99,19 @@ export function setPendingProfileMessage(
 }
 
 /**
- * Reads and removes the pending profile-chat payload for the given agent,
- * returning transferable message data once.
+ * Reads the pending profile-chat payload for the given agent without removing it.
  */
-export function takePendingProfileMessage(agentName: string): PendingProfileMessagePayload | undefined {
+export function peekPendingProfileMessage(agentName: string): PendingProfileMessagePayload | undefined {
+    return readPendingProfileMessage(agentName);
+}
+
+/**
+ * Removes the pending profile-chat payload for the given agent.
+ */
+export function clearPendingProfileMessage(agentName: string): void {
     if (typeof window === 'undefined' || !window.sessionStorage) {
-        return undefined;
+        return;
     }
 
-    const storageKey = buildStorageKey(agentName);
-    const raw = window.sessionStorage.getItem(storageKey);
-    if (!raw) {
-        return undefined;
-    }
-
-    window.sessionStorage.removeItem(storageKey);
-
-    try {
-        const payload = JSON.parse(raw) as PendingProfileMessagePayload;
-        const resolvedPayload: PendingProfileMessagePayload = {};
-        if (hasMessageContent(payload.message)) {
-            resolvedPayload.message = payload.message;
-        }
-        if (Array.isArray(payload.attachments) && payload.attachments.length > 0) {
-            resolvedPayload.attachments = payload.attachments;
-        }
-
-        if (resolvedPayload.message || resolvedPayload.attachments) {
-            return resolvedPayload;
-        }
-    } catch {
-        /* ignore parse errors */
-    }
-
-    return undefined;
+    window.sessionStorage.removeItem(buildStorageKey(agentName));
 }

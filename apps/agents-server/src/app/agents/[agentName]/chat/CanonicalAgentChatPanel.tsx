@@ -83,6 +83,7 @@ type CanonicalAgentChatPanelProps = {
         clientMessageId?: string;
     }) => Promise<void>;
     onStartNewChat?: () => Promise<void> | void;
+    newChatButtonHref?: string;
     onCancelActiveJob?: (jobId: string) => Promise<void> | void;
     onCancelActiveTimeout?: (timeoutId: string) => Promise<void> | void;
     onAutoExecuteMessagePending?: (payload: {
@@ -132,6 +133,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
         onDraftMessageChange,
         onSubmitUserTurn,
         onStartNewChat,
+        newChatButtonHref,
         onCancelActiveJob,
         onCancelActiveTimeout,
         onAutoExecuteMessagePending,
@@ -601,6 +603,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
             onChange={onDraftMessageChange}
             onReset={isReadOnly ? undefined : onStartNewChat}
             resetRequiresConfirmation={false}
+            newChatButtonHref={isReadOnly ? undefined : newChatButtonHref}
             feedbackMode={toChatComponentFeedbackMode(feedbackMode)}
             onFeedback={!isReadOnly && feedbackEnabled ? handleFeedback : undefined}
             onFileUpload={!isReadOnly && areFileAttachmentsEnabled ? handleFileUpload : undefined}

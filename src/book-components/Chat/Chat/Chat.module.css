@@ -3167,6 +3167,7 @@
     -webkit-tap-highlight-color: transparent !important;
     touch-action: manipulation !important;
     user-select: none !important;
+    text-decoration: none !important;
     min-height: 40px !important;
     min-width: 110px !important;
     position: relative !important;

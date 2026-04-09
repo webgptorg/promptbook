@@ -6,6 +6,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import type { Promisable } from 'type-fest';
 import { Color } from '../../../_packages/color.index';
 import { SpeechRecognition } from '../../../types/SpeechRecognition';
+import type { string_href } from '../../../types/typeAliases';
 import { string_color } from '../../../types/typeAliases';
 import type { string_chat_format_name } from '../save/_common/string_chat_format_name';
 import type { ChatMessage } from '../types/ChatMessage';
@@ -532,6 +533,15 @@ export type ChatProps = {
      * @default true
      */
     readonly resetRequiresConfirmation?: boolean;
+
+    /**
+     * Optional navigation target for the action-bar "New chat" control.
+     *
+     * When provided, the control is rendered as a plain link instead of invoking `onReset`.
+     * This allows host applications to rely on browser-native navigation affordances such as
+     * right-click "Open in new tab/window".
+     */
+    readonly newChatButtonHref?: string_href;
 
     /**
      * Determines whether the voice recognition button is rendered
