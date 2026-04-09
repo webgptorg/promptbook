@@ -7,7 +7,11 @@ import {
     getDefaultCoderPromptTemplateDefinitions,
     resolveCoderPromptTemplate,
 } from './boilerplateTemplates';
-import { initializeCoderProjectConfiguration } from './init';
+import {
+    getDefaultCoderPackageJsonScripts,
+    getDefaultCoderVscodeSettings,
+    initializeCoderProjectConfiguration,
+} from './init';
 
 /**
  * Creates and tracks one temporary directory for filesystem-based CLI tests.
@@ -23,6 +27,13 @@ async function createTemporaryDirectory(trackedDirectories: Array<string>): Prom
  */
 function normalizeLineEndings(content: string): string {
     return content.replace(/\r\n/gu, '\n');
+}
+
+/**
+ * Reads and parses one JSON file for filesystem-based CLI assertions.
+ */
+async function readJsonFile<TValue>(filePath: string): Promise<TValue> {
+    return JSON.parse(await readFile(filePath, 'utf-8')) as TValue;
 }
 
 describe('coder boilerplate templates', () => {
@@ -49,6 +60,9 @@ describe('coder boilerplate templates', () => {
         const summary = await initializeCoderProjectConfiguration(projectPath);
 
         expect(summary.promptsTemplatesDirectoryStatus).toBe('created');
+        expect(summary.gitignoreFileStatus).toBe('created');
+        expect(summary.packageJsonFileStatus).toBe('created');
+        expect(summary.vscodeSettingsFileStatus).toBe('created');
         expect(summary.promptTemplateFileStatuses).toEqual(
             getDefaultCoderPromptTemplateDefinitions().map(({ id, relativeFilePath }) => ({
                 id,
@@ -61,6 +75,62 @@ describe('coder boilerplate templates', () => {
             const content = await readFile(join(projectPath, definition.relativeFilePath), 'utf-8');
             expect(normalizeLineEndings(content).trim()).toBe(definition.content);
         }
+
+        const gitignoreContent = await readFile(join(projectPath, '.gitignore'), 'utf-8');
+        expect(normalizeLineEndings(gitignoreContent)).toBe('# Promptbook Coder\n/.tmp\n');
+
+        expect(await readJsonFile(join(projectPath, 'package.json'))).toEqual({
+            scripts: getDefaultCoderPackageJsonScripts(),
+        });
+
+        expect(await readJsonFile(join(projectPath, '.vscode', 'settings.json'))).toEqual(
+            getDefaultCoderVscodeSettings(),
+        );
+    });
+
+    it('merges standalone coder project files without overwriting unrelated configuration', async () => {
+        const projectPath = await createTemporaryDirectory(temporaryDirectories);
+
+        await writeFile(join(projectPath, '.gitignore'), 'node_modules\n.tmp\n', 'utf-8');
+        await writeFile(
+            join(projectPath, 'package.json'),
+            '{\n  "name": "demo",\n  "scripts": {\n    "test": "echo test",\n    "coder:run": "echo old"\n  }\n}\n',
+            'utf-8',
+        );
+        await mkdir(join(projectPath, '.vscode'), { recursive: true });
+        await writeFile(
+            join(projectPath, '.vscode', 'settings.json'),
+            '{\n  // Keep project setting\n  "files.eol": "\\n",\n  "markdown.copyFiles.destination": {\n    "docs/*md": "./docs/images/${documentBaseName}.png",\n  },\n}\n',
+            'utf-8',
+        );
+
+        const summary = await initializeCoderProjectConfiguration(projectPath);
+
+        expect(summary.gitignoreFileStatus).toBe('unchanged');
+        expect(summary.packageJsonFileStatus).toBe('updated');
+        expect(summary.vscodeSettingsFileStatus).toBe('updated');
+
+        const gitignoreContent = await readFile(join(projectPath, '.gitignore'), 'utf-8');
+        expect(normalizeLineEndings(gitignoreContent)).toBe('node_modules\n.tmp\n');
+
+        expect(await readJsonFile(join(projectPath, 'package.json'))).toEqual({
+            name: 'demo',
+            scripts: {
+                test: 'echo test',
+                ...getDefaultCoderPackageJsonScripts(),
+            },
+        });
+
+        const packageJsonContent = await readFile(join(projectPath, 'package.json'), 'utf-8');
+        expect(packageJsonContent).toContain('\n  "scripts": {\n');
+
+        expect(await readJsonFile(join(projectPath, '.vscode', 'settings.json'))).toEqual({
+            'files.eol': '\n',
+            'markdown.copyFiles.destination': {
+                'docs/*md': './docs/images/${documentBaseName}.png',
+                'prompts/*md': './prompts/screenshots/${documentBaseName}.png',
+            },
+        });
     });
 
     it('resolves template files relative to the project root', async () => {

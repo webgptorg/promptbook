@@ -1,3 +1,9 @@
+-   Enhanced `ptbk coder init` so standalone external projects now get the missing local workflow bootstrap automatically:
+
+    -   Added checked `✔` summary output for each initialized artifact, making standalone bootstrap results easier to scan.
+    -   Extended `ptbk coder init` to ensure `.gitignore` covers the coder temp directory, `package.json` contains helper `coder:*` scripts for the main workflow commands, and `.vscode/settings.json` routes pasted prompt images into `prompts/screenshots/`.
+    -   Added regression coverage for creating and merging those standalone project files, including JSON-with-comments VS Code settings plus CLI output assertions for the new checked summary.
+
 -   Fixed `ptbk coder` boilerplate generation so the CLI now works standalone in external projects without depending on Promptbook-repository-only template paths:
 
     -   Extracted shared built-in boilerplate template definitions for `coder init` and `coder generate-boilerplates`, so the default templates are resolved inside the CLI and no longer read from `scripts/generate-prompt-boilerplate/templates` at runtime.

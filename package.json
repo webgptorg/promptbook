@@ -223,7 +223,11 @@
         "use-packages": "ts-node ./scripts/use-packages/use-packages.ts",
         "components-playground": "cd ./apps/book-components/ && npm run dev",
         "_TODO-1": "<- TODO: Remove all unused scripts",
-        "_TODO-2": "<- TODO: [⛎] Automatically sync commands to generate-packages.ts"
+        "_TODO-2": "<- TODO: [⛎] Automatically sync commands to generate-packages.ts",
+        "coder:generate-boilerplates": "npx ptbk coder generate-boilerplates",
+        "coder:run": "npx ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --no-wait",
+        "coder:find-refactor-candidates": "npx ptbk coder find-refactor-candidates",
+        "coder:verify": "npx ptbk coder verify"
     },
     "engines": {
         "node": ">=18.18.0",
