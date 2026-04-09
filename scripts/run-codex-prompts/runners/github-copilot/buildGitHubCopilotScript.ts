@@ -20,11 +20,11 @@ export function buildGitHubCopilotScript(options: GitHubCopilotScriptOptions): s
             ${block(options.prompt)}
 
             ${delimiter}
-            )" \
-                --yolo \
-                --no-ask-user \
-                --no-color \
-                --output-format json \
+            )" \\
+                --yolo \\
+                --no-ask-user \\
+                --no-color \\
+                --output-format json \\
                 --stream off${modelArgument}${thinkingLevelArgument}
         `,
     );
