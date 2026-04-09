@@ -69,6 +69,7 @@ lindat
 multiplicated
 markitdown
 prebuild
+preversion
 subcollection
 treshold
 worktime

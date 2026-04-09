@@ -704,6 +704,119 @@ Or you can install them separately:
 
 
 
+### 🤖 Promptbook Coder
+
+`ptbk coder` is Promptbook's workflow layer for AI-assisted software changes. Instead of opening one chat and manually copy-pasting tasks, you keep a queue of coding prompts in `prompts/*.md`, let a coding agent execute the next ready task, and then verify the result before archiving the prompt.
+
+Promptbook Coder is **not another standalone coding model**. It is an orchestration layer over coding agents such as **GitHub Copilot**, **OpenAI Codex**, **Claude Code**, **Opencode**, **Cline**, and **Gemini CLI**. The difference is that Promptbook Coder adds a repeatable repository workflow on top of them:
+
+-   prompt files with explicit statuses like `[ ]`, `[x]`, and `[-]`
+-   automatic selection of the next runnable task, including priority support
+-   optional shared repo context loaded from a file such as `AGENTS.md`
+-   automatic `git add`, commit, and push after each successful prompt
+-   dedicated coding-agent Git identity and optional GPG signing
+-   verification and repair flow for work that is done, partial, or broken
+-   helper commands for generating boilerplates and finding refactor prompts
+
+In short: tools like Claude Code, Codex, or GitHub Copilot are the **engines**; Promptbook Coder is the **workflow** that keeps coding work structured, reviewable, and repeatable across many prompts.
+
+#### How the workflow works
+
+1. `ptbk coder init` prepares the project for the coder workflow and seeds project-owned templates in `prompts/templates/`.
+2. `ptbk coder generate-boilerplates` creates prompt files in `prompts/`.
+3. You replace placeholder `@@@` sections with real coding tasks.
+4. `ptbk coder run` sends the next ready `[ ]` prompt to the selected coding agent.
+5. Promptbook Coder marks the prompt as done `[x]`, records runner metadata, then stages, commits, and pushes the resulting changes.
+6. `ptbk coder verify` reviews completed prompts, archives finished files to `prompts/done/`, and appends a repair prompt when more work is needed.
+
+Prompts marked with `[-]` are not ready yet, prompts containing `@@@` are treated as not fully written, and prompts with more `!` markers have higher priority.
+
+#### Features
+
+-   **Multi-runner execution:** `openai-codex`, `github-copilot`, `cline`, `claude-code`, `opencode`, `gemini`
+-   **Context injection:** `--context AGENTS.md` or inline extra instructions
+-   **Reasoning control:** `--thinking-level low|medium|high|xhigh` for supported runners
+-   **Interactive or unattended runs:** default wait mode, or `--no-wait` for batch execution
+-   **Git safety:** clean working tree check by default, optional `--ignore-git-changes`
+-   **Prompt triage:** `--priority` to process only more important tasks first
+-   **Failure logging:** failed runs write a neighboring `.error.log`
+-   **Line-ending normalization:** changed files are normalized back to LF by default
+
+#### Local usage in this repository
+
+When working on Promptbook itself, the repository usually runs the CLI straight from source:
+
+```bash
+npx ts-node ./src/cli/test/ptbk.ts coder init
+
+npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --template prompts/templates/common.md
+
+npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --template prompts/templates/agents-server.md
+
+npx ts-node ./src/cli/test/ptbk.ts coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md
+
+npx ts-node ./src/cli/test/ptbk.ts coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --ignore-git-changes --no-wait
+
+npx ts-node ./src/cli/test/ptbk.ts coder find-refactor-candidates
+
+npx ts-node ./src/cli/test/ptbk.ts coder verify
+```
+
+#### Using `ptbk coder` in an external project
+
+If you want to use the workflow in another repository, install the package and invoke the `ptbk` binary. After local installation, `npx ptbk ...` is the most portable form; plain `ptbk ...` also works when your environment exposes the local binary on `PATH`.
+
+```bash
+npm install ptbk
+
+ptbk coder init
+
+npx ptbk coder generate-boilerplates
+
+npx ptbk coder generate-boilerplates --template prompts/templates/agents-server.md
+
+npx ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md
+
+npx ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --ignore-git-changes --no-wait
+
+npx ptbk coder find-refactor-candidates
+
+npx ptbk coder verify
+```
+
+#### What each command does
+
+| Command | What it does |
+| --- | --- |
+| `ptbk coder init` | Creates `prompts/`, `prompts/done/`, `prompts/templates/common.md`, `prompts/templates/agents-server.md`, and ensures `.env` contains `CODING_AGENT_GIT_NAME`, `CODING_AGENT_GIT_EMAIL`, and `CODING_AGENT_GIT_SIGNING_KEY`. |
+| `ptbk coder generate-boilerplates` | Creates new prompt markdown files with fresh emoji tags so you can quickly fill in coding tasks; `--template` accepts either a built-in alias or a markdown file path relative to the project root. |
+| `ptbk coder run` | Picks the next ready prompt, appends optional context, runs it through the selected coding agent, marks success or failure, then commits and pushes the result. |
+| `ptbk coder find-refactor-candidates` | Scans the repository for oversized or overpacked files and writes prompt files for likely refactors. |
+| `ptbk coder verify` | Walks through completed prompts, archives truly finished work, and adds follow-up repair prompts for unfinished results. |
+
+#### Most useful `ptbk coder run` flags
+
+| Flag | Purpose |
+| --- | --- |
+| `--agent <name>` | Selects the coding backend. |
+| `--model <model>` | Chooses the runner model; required for `openai-codex` and `gemini`, optional for `github-copilot`. |
+| `--context <text-or-file>` | Appends extra instructions inline or from a file like `AGENTS.md`. |
+| `--thinking-level <level>` | Sets reasoning effort for supported runners. |
+| `--no-wait` | Skips interactive pauses between prompts for unattended execution. |
+| `--ignore-git-changes` | Disables the clean-working-tree guard. |
+| `--priority <n>` | Runs only prompts at or above the given priority. |
+| `--dry-run` | Prints which prompts are ready instead of executing them. |
+| `--allow-credits` | Lets OpenAI Codex spend credits when required. |
+| `--auto-migrate` | Runs testing-server database migrations after each successful prompt. |
+
+#### Typical usage pattern
+
+1. Initialize once with `ptbk coder init`.
+2. Customize `prompts/templates/*.md` if needed, then create or write prompt files in `prompts/`.
+3. Put repository-specific instructions in `AGENTS.md`, then pass `--context AGENTS.md`.
+4. Run one prompt at a time interactively, or use `--no-wait` for unattended batches.
+5. Finish with `ptbk coder verify` so resolved prompts are archived and broken ones get explicit repair follow-ups.
+
 
 
 

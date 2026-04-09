@@ -6,22 +6,15 @@ import { mkdir, readFile, stat, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
+import {
+    ensureDefaultCoderPromptTemplateFiles,
+    type EnsuredCoderPromptTemplateFile,
+    type InitializationStatus,
+    PROMPTS_DIRECTORY_PATH,
+    PROMPTS_DONE_DIRECTORY_PATH,
+    PROMPTS_TEMPLATES_DIRECTORY_PATH,
+} from './boilerplateTemplates';
 import { handleActionErrors } from '../common/handleActionErrors';
-
-/**
- * Relative path to the root prompts directory used by Promptbook coder utilities.
- */
-const PROMPTS_DIRECTORY_PATH = 'prompts';
-
-/**
- * Relative path to the archive directory used by `coder verify`.
- */
-const PROMPTS_DONE_DIRECTORY_PATH = join(PROMPTS_DIRECTORY_PATH, 'done');
-
-/**
- * Initialization statuses used when creating/updating coder configuration artifacts.
- */
-type InitializationStatus = 'created' | 'updated' | 'unchanged';
 
 /**
  * Shape of one required coder environment variable with its default value.
@@ -55,6 +48,8 @@ const REQUIRED_CODER_ENV_VARIABLES: ReadonlyArray<RequiredCoderEnvVariable> = [
 type CoderInitializationSummary = {
     readonly promptsDirectoryStatus: InitializationStatus;
     readonly promptsDoneDirectoryStatus: InitializationStatus;
+    readonly promptsTemplatesDirectoryStatus: InitializationStatus;
+    readonly promptTemplateFileStatuses: ReadonlyArray<EnsuredCoderPromptTemplateFile>;
     readonly envFileStatus: InitializationStatus;
     readonly initializedEnvVariableNames: ReadonlyArray<string>;
 };
@@ -76,6 +71,8 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
             Creates:
             - prompts/
             - prompts/done/
+            - prompts/templates/common.md
+            - prompts/templates/agents-server.md
 
             Ensures required coding-agent environment variables in .env:
             - CODING_AGENT_GIT_NAME
@@ -94,15 +91,21 @@ export function $initializeCoderInitCommand(program: Program): $side_effect {
 
 /**
  * Creates or updates all coder configuration artifacts required in the current project.
+ *
+ * @private internal utility of `coder init` command
  */
-async function initializeCoderProjectConfiguration(projectPath: string): Promise<CoderInitializationSummary> {
+export async function initializeCoderProjectConfiguration(projectPath: string): Promise<CoderInitializationSummary> {
     const promptsDirectoryStatus = await ensureDirectory(projectPath, PROMPTS_DIRECTORY_PATH);
     const promptsDoneDirectoryStatus = await ensureDirectory(projectPath, PROMPTS_DONE_DIRECTORY_PATH);
+    const promptsTemplatesDirectoryStatus = await ensureDirectory(projectPath, PROMPTS_TEMPLATES_DIRECTORY_PATH);
+    const promptTemplateFileStatuses = await ensureDefaultCoderPromptTemplateFiles(projectPath);
     const { envFileStatus, initializedEnvVariableNames } = await ensureCoderEnvFile(projectPath);
 
     return {
         promptsDirectoryStatus,
         promptsDoneDirectoryStatus,
+        promptsTemplatesDirectoryStatus,
+        promptTemplateFileStatuses,
         envFileStatus,
         initializedEnvVariableNames,
     };
@@ -213,6 +216,16 @@ function printInitializationSummary(summary: CoderInitializationSummary): void {
     console.info(colors.green('Promptbook coder configuration initialized.'));
     console.info(colors.gray(`- prompts/: ${formatInitializationStatus(summary.promptsDirectoryStatus)}`));
     console.info(colors.gray(`- prompts/done/: ${formatInitializationStatus(summary.promptsDoneDirectoryStatus)}`));
+    console.info(colors.gray(`- prompts/templates/: ${formatInitializationStatus(summary.promptsTemplatesDirectoryStatus)}`));
+
+    for (const templateFileStatus of summary.promptTemplateFileStatuses) {
+        console.info(
+            colors.gray(
+                `- ${templateFileStatus.relativeFilePath}: ${formatInitializationStatus(templateFileStatus.status)}`,
+            ),
+        );
+    }
+
     console.info(colors.gray(`- .env: ${formatInitializationStatus(summary.envFileStatus)}`));
 
     if (summary.initializedEnvVariableNames.length > 0) {

@@ -2,16 +2,16 @@ import colors from 'colors';
 import type {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
-import { readFileSync, writeFileSync } from 'fs';
+import { mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import type { $side_effect } from '../../../utils/organization/$side_effect';
+import {
+    getDefaultCoderPromptTemplateDefinitions,
+    PROMPTS_DIRECTORY_PATH,
+    resolveCoderPromptTemplate,
+} from './boilerplateTemplates';
 import { handleActionErrors } from '../common/handleActionErrors';
-
-/**
- * Type describing prompt template.
- */
-type PromptTemplate = 'common' | 'agents-server';
 
 /**
  * Initializes `coder generate-boilerplates` command for Promptbook CLI utilities
@@ -29,19 +29,31 @@ export function $initializeCoderGenerateBoilerplatesCommand(program: Program): $
     );
 
     command.option('--count <count>', `Number of prompt boilerplate files to generate`, '5');
-    command.option('--template <template>', `Prompt template to use: common | agents-server`, 'common');
+    command.option(
+        '--template <template>',
+        spaceTrim(`
+            Prompt template to use.
+
+            Accepts either a built-in alias (${getDefaultCoderPromptTemplateDefinitions()
+                .map(({ id }) => id)
+                .join(', ')}) or a markdown file path relative to the current project root.
+        `),
+    );
 
     command.action(
         handleActionErrors(async (cliOptions) => {
             const { count: countOption, template: templateOption } = cliOptions as {
                 readonly count: string;
-                readonly template: string;
+                readonly template?: string;
             };
 
             const filesCount = parseFilesCount(countOption);
-            const template = parsePromptTemplate(templateOption);
 
-            await generatePromptBoilerplate({ filesCount, template });
+            await generatePromptBoilerplate({
+                projectPath: process.cwd(),
+                filesCount,
+                templateOption,
+            });
 
             return process.exit(0);
         }),
@@ -53,12 +65,14 @@ export function $initializeCoderGenerateBoilerplatesCommand(program: Program): $
  *
  * @private internal function of `generatePromptBoilerplate` command
  */
-async function generatePromptBoilerplate({
+export async function generatePromptBoilerplate({
+    projectPath,
     filesCount,
-    template,
+    templateOption,
 }: {
+    readonly projectPath: string;
     readonly filesCount: number;
-    readonly template: PromptTemplate;
+    readonly templateOption?: string;
 }): Promise<void> {
     // Note: Import these dynamically to avoid circular dependencies and keep CLI fast
     const { buildPromptFilename, getPromptNumbering } = await import(
@@ -70,10 +84,11 @@ async function generatePromptBoilerplate({
 
     console.info(`🚀  Generate prompt boilerplate files`);
 
-    const promptTemplateContent = loadPromptTemplate(template);
+    mkdirSync(join(projectPath, PROMPTS_DIRECTORY_PATH), { recursive: true });
+    const promptTemplate = await resolveCoderPromptTemplate({ projectPath, templateOption });
 
     const promptNumbering = await getPromptNumbering({
-        promptsDir: join(process.cwd(), 'prompts'),
+        promptsDir: join(projectPath, PROMPTS_DIRECTORY_PATH),
         step: 10,
         ignoreGlobs: ['**/node_modules/**'],
     });
@@ -85,7 +100,7 @@ async function generatePromptBoilerplate({
 
     const { availableCount, selectedEmojis } = await getFreshPromptEmojiTags({
         count: filesCount,
-        rootDir: process.cwd(),
+        rootDir: projectPath,
     });
 
     console.info(colors.green(`Found ${availableCount} available fresh emojis`));
@@ -102,8 +117,13 @@ async function generatePromptBoilerplate({
         const number = promptNumbering.startNumber + i * promptNumbering.step;
         const title = titles[i % titles.length]!;
         const emoji = selectedEmojis[i]!;
-        const filename = buildPromptFilename(promptNumbering.datePrefix, number, buildPromptSlug(template, title));
-        const filepath = join('prompts', filename);
+        const filename = buildPromptFilename(
+            promptNumbering.datePrefix,
+            number,
+            buildPromptSlug(promptTemplate.slugPrefix, title),
+        );
+        const filepath = join(PROMPTS_DIRECTORY_PATH, filename);
+        const absoluteFilepath = join(projectPath, filepath);
         const emojiTag = formatPromptEmojiTag(emoji);
         const one = spaceTrim(
             (block) => `
@@ -112,7 +132,7 @@ async function generatePromptBoilerplate({
 
                 ${emojiTag} ${title}
 
-                ${block(promptTemplateContent)}
+                ${block(promptTemplate.content)}
             `,
         );
         const content = spaceTrim(
@@ -137,6 +157,7 @@ async function generatePromptBoilerplate({
 
         filesToCreate.push({
             filepath,
+            absoluteFilepath,
             filename,
             content,
             emoji,
@@ -148,7 +169,7 @@ async function generatePromptBoilerplate({
     console.info(colors.yellow(`Creating ${filesToCreate.length} files:`));
 
     for (const file of filesToCreate) {
-        writeFileSync(file.filepath, file.content, 'utf-8');
+        writeFileSync(file.absoluteFilepath, file.content, 'utf-8');
         console.info(colors.green(`✓ Created: ${file.filename} with ${formatPromptEmojiTag(file.emoji!)}`));
     }
 
@@ -172,48 +193,16 @@ function parseFilesCount(countOption: string): number {
 }
 
 /**
- * Parses and validates the prompt template name.
- *
- * @private internal utility of `generatePromptBoilerplate` command
- */
-function parsePromptTemplate(templateOption: string): PromptTemplate {
-    if (
-        templateOption === 'common' ||
-        templateOption === 'agents-server'
-        // <- TODO: Unhardcode and allow this dynamically by the template files.
-    ) {
-        return templateOption;
-    }
-
-    console.info(colors.yellow(`Invalid --template '${templateOption}'. Falling back to default 'common'.`));
-    return 'common';
-}
-
-/**
- * Loads prompt template markdown content from the local templates folder.
- *
- * @private internal utility of `generatePromptBoilerplate` command
- */
-function loadPromptTemplate(template: PromptTemplate): string {
-    const templateFilePath = join(
-        __dirname,
-        '../../../../scripts/generate-prompt-boilerplate/templates',
-        `${template}.template.md`,
-    );
-    return readFileSync(templateFilePath, 'utf-8').trim();
-}
-
-/**
  * Builds filename slug from template and placeholder title.
  *
  * @private internal utility of `generatePromptBoilerplate` command
  */
-function buildPromptSlug(template: PromptTemplate, title: string): string {
-    if (template === 'common') {
+function buildPromptSlug(templateSlugPrefix: string | null, title: string): string {
+    if (!templateSlugPrefix) {
         return title;
     }
 
-    return `${template}-${title}`;
+    return `${templateSlugPrefix}-${title}`;
 }
 
 // Note: [🟡] Code for CLI command [generate-boilerplates](src/cli/cli-commands/coder/generate-boilerplates.ts) should never be published outside of `@promptbook/cli`

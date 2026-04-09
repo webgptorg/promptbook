@@ -397,14 +397,14 @@
         },
         {
             "name": "⚡🏭 Generate \"Generic\" prompt boilerplates for Coding Agent",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 10",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 10 --template prompts/templates/common.md",
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "⚡✨🏭 Generate \"Agents server\" prompt boilerplates for Coding Agent",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 10 --template agents-server",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 10 --template prompts/templates/agents-server.md",
             "execute": true,
             "onlySingle": true,
             "focus": true

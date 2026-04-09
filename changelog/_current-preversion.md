@@ -1,3 +1,10 @@
+-   Fixed `ptbk coder` boilerplate generation so the CLI now works standalone in external projects without depending on Promptbook-repository-only template paths:
+
+    -   Extracted shared built-in boilerplate template definitions for `coder init` and `coder generate-boilerplates`, so the default templates are resolved inside the CLI and no longer read from `scripts/generate-prompt-boilerplate/templates` at runtime.
+    -   Extended `ptbk coder init` to create project-owned `prompts/templates/common.md` and `prompts/templates/agents-server.md` files without overwriting existing customizations.
+    -   Updated `ptbk coder generate-boilerplates` so omitted `--template` uses the built-in default, built-in aliases still work, custom `--template` values are resolved relative to the current project root, and the command now creates `prompts/` automatically when missing.
+    -   Updated Promptbook's own local coder workflows and boilerplate template files to use `prompts/templates/*.md`, and added regression tests covering template initialization plus project-relative template resolution.
+
 -   Fixed Agents Server chat-history navigation E2E coverage so the current browser routing and New chat control are asserted correctly again:
 
     -   Relaxed the durable-route checks to accept both the management API standalone chat link and the browser's current agent-name chat alias, keeping the regression focused on selected-chat behavior instead of one route alias.

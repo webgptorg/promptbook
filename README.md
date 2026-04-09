@@ -391,7 +391,7 @@ In short: tools like Claude Code, Codex, or GitHub Copilot are the **engines**; 
 
 #### How the workflow works
 
-1. `ptbk coder init` prepares the project for the coder workflow.
+1. `ptbk coder init` prepares the project for the coder workflow and seeds project-owned templates in `prompts/templates/`.
 2. `ptbk coder generate-boilerplates` creates prompt files in `prompts/`.
 3. You replace placeholder `@@@` sections with real coding tasks.
 4. `ptbk coder run` sends the next ready `[ ]` prompt to the selected coding agent.
@@ -418,7 +418,9 @@ When working on Promptbook itself, the repository usually runs the CLI straight 
 ```bash
 npx ts-node ./src/cli/test/ptbk.ts coder init
 
-npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates
+npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --template prompts/templates/common.md
+
+npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --template prompts/templates/agents-server.md
 
 npx ts-node ./src/cli/test/ptbk.ts coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md
 
@@ -440,6 +442,8 @@ ptbk coder init
 
 npx ptbk coder generate-boilerplates
 
+npx ptbk coder generate-boilerplates --template prompts/templates/agents-server.md
+
 npx ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md
 
 npx ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --ignore-git-changes --no-wait
@@ -453,8 +457,8 @@ npx ptbk coder verify
 
 | Command | What it does |
 | --- | --- |
-| `ptbk coder init` | Creates `prompts/` and `prompts/done/`, and ensures `.env` contains `CODING_AGENT_GIT_NAME`, `CODING_AGENT_GIT_EMAIL`, and `CODING_AGENT_GIT_SIGNING_KEY`. |
-| `ptbk coder generate-boilerplates` | Creates new prompt markdown files with fresh emoji tags so you can quickly fill in coding tasks. |
+| `ptbk coder init` | Creates `prompts/`, `prompts/done/`, `prompts/templates/common.md`, `prompts/templates/agents-server.md`, and ensures `.env` contains `CODING_AGENT_GIT_NAME`, `CODING_AGENT_GIT_EMAIL`, and `CODING_AGENT_GIT_SIGNING_KEY`. |
+| `ptbk coder generate-boilerplates` | Creates new prompt markdown files with fresh emoji tags so you can quickly fill in coding tasks; `--template` accepts either a built-in alias or a markdown file path relative to the project root. |
 | `ptbk coder run` | Picks the next ready prompt, appends optional context, runs it through the selected coding agent, marks success or failure, then commits and pushes the result. |
 | `ptbk coder find-refactor-candidates` | Scans the repository for oversized or overpacked files and writes prompt files for likely refactors. |
 | `ptbk coder verify` | Walks through completed prompts, archives truly finished work, and adds follow-up repair prompts for unfinished results. |
@@ -477,7 +481,7 @@ npx ptbk coder verify
 #### Typical usage pattern
 
 1. Initialize once with `ptbk coder init`.
-2. Create or write prompt files in `prompts/`.
+2. Customize `prompts/templates/*.md` if needed, then create or write prompt files in `prompts/`.
 3. Put repository-specific instructions in `AGENTS.md`, then pass `--context AGENTS.md`.
 4. Run one prompt at a time interactively, or use `--no-wait` for unattended batches.
 5. Finish with `ptbk coder verify` so resolved prompts are archived and broken ones get explicit repair follow-ups.
