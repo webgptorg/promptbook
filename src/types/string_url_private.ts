@@ -66,7 +66,7 @@ export type string_pipeline_url_with_task_hash_private = string_pipeline_url_pri
  *
  * For example `"https://collboard.com/9SeSQTupmQHwuSrLi"` OR `/9SeSQTupmQHwuSrLi`
  *
- * @private internal utility of `string_url.ts`
+ * @private internal utility of `string_href.ts`
  */
 export type string_href_private = string;
 
@@ -84,7 +84,7 @@ export type string_url_image_private = string_url_private;
  *
  * For example `"/9SeSQTupmQHwuSrLi"`
  *
- * @private internal utility of `string_url.ts`
+ * @private internal utility of `string_href.ts`
  */
 export type string_uri_private = string;
 
@@ -93,6 +93,6 @@ export type string_uri_private = string;
  *
  * For example `"9SeSQTupmQHwuSrLi"`
  *
- * @private internal utility of `string_url.ts`
+ * @private internal utility of `string_href.ts`
  */
 export type string_uri_part_private = string;

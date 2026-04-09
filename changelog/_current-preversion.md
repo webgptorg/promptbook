@@ -1,3 +1,8 @@
+-   Refactored `src/types/string_url.ts` into smaller focused semantic-type modules without changing external behavior:
+
+    -   Split MIME type, base64/data URL, host/domain, href/URI, and email aliases into dedicated `src/types/string_*.ts` files so each file now covers one URL-related concern.
+    -   Kept `src/types/string_url.ts` as the compatibility facade and home for the core URL variants, preserving existing imports and exported type semantics.
+
 -   Fixed Agents Server chat-page browser titles so chat routes now lead with the current chat context instead of the selected agent name:
 
     -   Reworked shared chat title formatting to produce browser titles in the form **Chat or chat title | Agent | Server**, preserving inherited agent/server naming for standalone, ChatGPT-like, and headless chat routes.

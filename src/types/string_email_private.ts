@@ -3,7 +3,7 @@
  *
  * For example `"pavol@hejny.org"`
  *
- * @private internal utility of `string_url.ts`
+ * @private internal utility of `string_email.ts`
  */
 export type string_email_private = string;
 
@@ -12,6 +12,6 @@ export type string_email_private = string;
  *
  * For example `"pavol@hejny.org, jirka@webgpt.cz"`
  *
- * @private internal utility of `string_url.ts`
+ * @private internal utility of `string_email.ts`
  */
 export type string_emails_private = string;
