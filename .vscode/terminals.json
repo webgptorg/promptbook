@@ -403,7 +403,7 @@
             "focus": true
         },
         {
-            "name": "⚡✨🏭 Generate \"Agents server\" prompt boilerplates for Coding Agent",
+            "name": "⚡🏭 Generate \"Agents server\" prompt boilerplates for Coding Agent",
             "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 10 --template prompts/templates/agents-server.md",
             "execute": true,
             "onlySingle": true,
