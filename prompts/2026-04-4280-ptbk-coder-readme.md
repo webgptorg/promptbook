@@ -1,4 +1,4 @@
-[x] ~$0.1905 5 minutes by OpenAI Codex `gpt-5.4`
+[ ]
 
 [✨😗] Add instructions for using `ptbk coder` into main README
 
