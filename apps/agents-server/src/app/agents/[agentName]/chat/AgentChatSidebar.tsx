@@ -1,20 +1,10 @@
 'use client';
 
-import { Clock3Icon, EyeIcon, EyeOffIcon, Loader2Icon, MessageSquarePlusIcon, Trash2Icon, XIcon } from 'lucide-react';
-import { useState } from 'react';
-import { SolidArrowButton } from '../../../../../../../src/book-components/icons/SolidArrowButton';
-import { ChatListLoadingSkeleton } from '../../../../components/Skeleton/ChatListLoadingSkeleton';
-import { getUserChatSourceChipLabel } from '../../../../utils/userChat/UserChatSource';
 import type { UserChatSummary } from '../../../../utils/userChatClient';
 import type { AgentChatLayoutVariant } from './AgentChatLayoutVariant';
-import { formatChatTimeoutRemainingTime } from './formatChatTimeoutRemainingTime';
-
-/**
- * Maximum number of messages a chat can have to be considered "empty" (just the initial greeting).
- *
- * @private internal constant of `<AgentChatSidebar/>`
- */
-const EMPTY_CHAT_MAX_MESSAGES = 1;
+import { AgentChatSidebarChatGptLike } from './AgentChatSidebarChatGptLike';
+import { AgentChatSidebarDefault } from './AgentChatSidebarDefault';
+import { useAgentChatSidebarState } from './useAgentChatSidebarState';
 
 /**
  * HTML ID assigned to the chat sidebar so controls can reference the panel without hardcoding strings.
@@ -100,199 +90,6 @@ type AgentChatSidebarProps = {
 };
 
 /**
- * Shared chat-item display fields consumed by both sidebar layouts.
- */
-type SidebarChatItemContent = {
-    /**
-     * Primary title of the chat entry.
-     */
-    readonly title: string;
-    /**
-     * Secondary preview text from the latest message.
-     */
-    readonly preview: string;
-    /**
-     * Human-friendly timestamp shown next to the chat.
-     */
-    readonly lastActivity: string;
-    /**
-     * Number of messages currently stored in this chat.
-     */
-    readonly messagesCount: number;
-    /**
-     * Human-friendly message-count label.
-     */
-    readonly messagesCountLabel: string;
-    readonly activityIndicator: SidebarChatActivityIndicator;
-    /**
-     * Compact label that marks external frozen chats.
-     */
-    readonly sourceChipLabel: string | null;
-    /**
-     * Fully descriptive label exposed through title/ARIA attributes.
-     */
-    readonly accessibilityLabel: string;
-};
-
-/**
- * Lightweight status indicator rendered in the same reserved slot for every chat row.
- */
-type SidebarChatActivityIndicator = {
-    readonly kind: 'none' | 'running' | 'scheduled';
-    readonly compactLabel: string | null;
-    readonly statusLabel: string | null;
-};
-
-/**
- * Formats message count for compact chat labels.
- */
-function formatChatMessagesCount(messagesCount: number, formatText: (text: string) => string): string {
-    if (messagesCount === 1) {
-        return `1 ${formatText('message')}`;
-    }
-
-    return `${messagesCount} ${formatText('messages')}`;
-}
-
-/**
- * Formats active running count for compact sidebar descriptions.
- */
-function formatRunningActivityCount(count: number, formatText: (text: string) => string): string {
-    if (count === 1) {
-        return `1 ${formatText('response in progress')}`;
-    }
-
-    return `${count} ${formatText('responses in progress')}`;
-}
-
-/**
- * Formats scheduled wake-up count for compact sidebar descriptions.
- */
-function formatScheduledWakeUpCount(count: number, formatText: (text: string) => string): string {
-    if (count === 1) {
-        return `1 ${formatText('scheduled wake-up')}`;
-    }
-
-    return `${count} ${formatText('scheduled wake-ups')}`;
-}
-
-/**
- * Resolves the single visible activity indicator for one chat.
- */
-function resolveSidebarChatActivityIndicator(
-    chat: UserChatSummary,
-    formatText: (text: string) => string,
-    currentTimestamp: number,
-): SidebarChatActivityIndicator {
-    const scheduledLabel =
-        chat.timeoutActivity.count > 0 && chat.timeoutActivity.nearestDueAt
-            ? formatChatTimeoutRemainingTime(chat.timeoutActivity.nearestDueAt, currentTimestamp)
-            : null;
-
-    if (chat.runningActivity.count > 0) {
-        return {
-            kind: 'running',
-            compactLabel: formatText('Running'),
-            statusLabel: formatRunningActivityCount(chat.runningActivity.count, formatText),
-        };
-    }
-
-    if (chat.timeoutActivity.count > 0) {
-        const scheduledCountLabel = formatScheduledWakeUpCount(chat.timeoutActivity.count, formatText);
-
-        return {
-            kind: 'scheduled',
-            compactLabel: scheduledLabel || formatText('Scheduled'),
-            statusLabel:
-                scheduledLabel === null
-                    ? scheduledCountLabel
-                    : `${scheduledCountLabel}, ${formatText('next wake-up in')} ${scheduledLabel}`,
-        };
-    }
-
-    return {
-        kind: 'none',
-        compactLabel: null,
-        statusLabel: null,
-    };
-}
-
-/**
- * Renders one running/scheduled activity icon while reserving layout space when absent.
- */
-function ChatSidebarActivityIndicator({
-    indicator,
-}: {
-    indicator: SidebarChatActivityIndicator;
-}) {
-    const baseClasses =
-        'inline-flex h-4 w-4 items-center justify-center rounded-full bg-white/90 shadow-sm ring-1 ring-slate-200/90';
-
-    if (indicator.kind === 'running') {
-        return (
-            <span
-                role="img"
-                aria-label={indicator.statusLabel || undefined}
-                title={indicator.statusLabel || undefined}
-                className={`${baseClasses} text-blue-600 ring-blue-200/90`}
-            >
-                <Loader2Icon className="h-2.5 w-2.5 animate-spin" />
-            </span>
-        );
-    }
-
-    if (indicator.kind === 'scheduled') {
-        return (
-            <span
-                role="img"
-                aria-label={indicator.statusLabel || undefined}
-                title={indicator.statusLabel || undefined}
-                className={`${baseClasses} text-amber-700 ring-amber-200/90`}
-            >
-                <Clock3Icon className="h-2.5 w-2.5" />
-            </span>
-        );
-    }
-
-    return (
-        <span aria-hidden="true" className={`${baseClasses} invisible`}>
-            <Clock3Icon className="h-2.5 w-2.5" />
-        </span>
-    );
-}
-
-/**
- * Resolves one chat summary into reusable display content for sidebar entries.
- */
-function resolveSidebarChatItemContent(
-    chat: UserChatSummary,
-    formatText: (text: string) => string,
-    formatChatTimestamp: (timestamp: string) => string,
-    currentTimestamp: number,
-): SidebarChatItemContent {
-    const title = chat.title || formatText('New chat');
-    const preview = chat.preview || formatText('No messages yet');
-    const lastActivity = formatChatTimestamp(chat.lastMessageAt || chat.updatedAt);
-    const messagesCountLabel = formatChatMessagesCount(chat.messagesCount, formatText);
-    const titleWithPreview = chat.preview ? `${title} - ${preview}` : title;
-    const activityIndicator = resolveSidebarChatActivityIndicator(chat, formatText, currentTimestamp);
-    const sourceChipLabel = getUserChatSourceChipLabel(chat.source);
-
-    return {
-        title,
-        preview,
-        lastActivity,
-        messagesCount: chat.messagesCount,
-        messagesCountLabel,
-        activityIndicator,
-        sourceChipLabel,
-        accessibilityLabel: `${titleWithPreview} (${messagesCountLabel}, ${lastActivity}${
-            activityIndicator.statusLabel ? `, ${activityIndicator.statusLabel}` : ''
-        })`,
-    };
-}
-
-/**
  * Responsive sidebar that lists user chats and provides creation/deletion controls.
  *
  * @private Agents Server presentation logic for the agent chat experience.
@@ -316,512 +113,66 @@ export function AgentChatSidebar({
     newChatHref,
     variant = 'default',
 }: AgentChatSidebarProps) {
-    const isChatGptLike = variant === 'chatgptLike';
-    const shouldRenderCollapsed = isCollapsed && !isMobileSidebarOpen;
-    const widthClasses = isCollapsed ? 'w-72 md:w-20' : 'w-72 md:w-72';
-    const transformClasses = isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full';
-    const panelTransitionClasses = 'transition-all duration-300 ease-in-out will-change-transform';
-    const overlayTransitionClasses = 'transition-opacity duration-300 ease-in-out';
-    const mobileOverlayState = isMobileSidebarOpen
-        ? 'opacity-100 pointer-events-auto'
-        : 'opacity-0 pointer-events-none';
+    const sidebarState = useAgentChatSidebarState({
+        chats,
+        activeChatId,
+        formatText,
+        formatChatTimestamp,
+        currentTimestamp,
+        onSelectChat,
+        onDeleteChat,
+        isAdmin,
+        isShowingExternalChats: showExternalChats,
+        onShowExternalChatsChange,
+        isMobileSidebarOpen,
+        onCloseMobileSidebar,
+    });
 
-    const handleChatChoose = (chatId: string) => {
-        onSelectChat(chatId);
-        if (isMobileSidebarOpen) {
-            onCloseMobileSidebar();
-        }
-    };
-
-    const handleCreateAndClose = () => {
-        if (isMobileSidebarOpen) {
-            onCloseMobileSidebar();
-        }
-    };
-
-    const [showEmptyChats, setShowEmptyChats] = useState(true);
-
-    const emptyStateText = formatText('No chats yet');
-    const sidebarToggleLabel = isCollapsed ? formatText('Expand sidebar') : formatText('Collapse sidebar');
-    const allSidebarItems = chats.map((chat) => ({
-        chat,
-        isActive: chat.id === activeChatId,
-        isEmpty: chat.messagesCount <= EMPTY_CHAT_MAX_MESSAGES,
-        isReadOnly: chat.isReadOnly,
-        content: resolveSidebarChatItemContent(chat, formatText, formatChatTimestamp, currentTimestamp),
-    }));
-    const emptyChatCount = allSidebarItems.filter((item) => item.isEmpty).length;
-    const sidebarItems = allSidebarItems.filter((item) => showEmptyChats || !item.isEmpty || item.isActive);
-    const shouldRenderFilters = emptyChatCount > 0 || isAdmin;
-
-    if (isChatGptLike) {
+    if (variant === 'chatgptLike') {
         return (
-            <>
-                <aside
-                    id={AGENT_CHAT_SIDEBAR_ID}
-                    className={`agent-chat-chatgpt-like-sidebar fixed inset-y-0 left-0 z-[60] flex w-[17.25rem] max-w-[84vw] flex-col transition-transform duration-300 ease-in-out md:static md:max-w-none md:translate-x-0 ${
-                        isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-                    }`}
-                >
-                    <div className="agent-chat-chatgpt-like-sidebar__header flex items-center justify-between px-3.5 py-3">
-                        <div className="min-w-0">
-                            <p className="text-[0.62rem] font-semibold uppercase tracking-[0.26em] text-current/55">
-                                {formatText('Current agent')}
-                            </p>
-                            <h2 className="truncate text-sm font-semibold text-current">{formatText('Chats')}</h2>
-                        </div>
-                        <button
-                            type="button"
-                            className="agent-chat-chatgpt-like-sidebar__close rounded-lg p-1.5 transition md:hidden"
-                            onClick={onCloseMobileSidebar}
-                            aria-label={formatText('Close chats sidebar')}
-                        >
-                            <XIcon className="h-4 w-4" />
-                        </button>
-                    </div>
-
-                    <div className="px-3 pb-3 pt-1.5">
-                        <a
-                            href={newChatHref}
-                            onClick={handleCreateAndClose}
-                            className="agent-chat-chatgpt-like-new-chat inline-flex w-full items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-medium transition"
-                        >
-                            <MessageSquarePlusIcon className="h-4 w-4" />
-                            {formatText('New chat')}
-                        </a>
-                    </div>
-
-                    {isLoadingChats ? (
-                        <ChatListLoadingSkeleton rowCount={8} />
-                    ) : (
-                        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-2 pb-3 scrollbar-hidden">
-                            {sidebarItems.length === 0 ? (
-                                <p className="px-3 py-2 text-sm text-current/65">{emptyStateText}</p>
-                            ) : (
-                                sidebarItems.map(({ chat, content, isActive, isEmpty }) => {
-                                    const rowStatusClassName =
-                                        content.activityIndicator.kind === 'running'
-                                            ? 'text-emerald-400/90'
-                                            : content.activityIndicator.kind === 'scheduled'
-                                              ? 'text-amber-400/90'
-                                              : 'text-current/55';
-
-                                    return (
-                                        <div
-                                            key={chat.id}
-                                            className={`agent-chat-chatgpt-like-chat-row group relative rounded-xl ${
-                                                isActive ? 'is-active' : ''
-                                            } ${isEmpty && !isActive ? 'opacity-55' : ''}`}
-                                        >
-                                            <button
-                                                type="button"
-                                                className="agent-chat-chatgpt-like-chat-row__button w-full rounded-xl px-2.5 py-2.5 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500"
-                                                onClick={() => handleChatChoose(chat.id)}
-                                                aria-label={content.accessibilityLabel}
-                                                title={content.accessibilityLabel}
-                                            >
-                                                <div className="flex items-start gap-2.5">
-                                                    <div className="pt-0.5">
-                                                        <ChatSidebarActivityIndicator indicator={content.activityIndicator} />
-                                                    </div>
-                                                    <div className="min-w-0 flex-1">
-                                                        <div className="flex items-center gap-2">
-                                                            <div className="min-w-0 flex-1 truncate text-[13px] font-medium">
-                                                                {content.title}
-                                                            </div>
-                                                            {content.sourceChipLabel && (
-                                                                <span className="agent-chat-chatgpt-like-chat-row__chip inline-flex flex-shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em]">
-                                                                    {content.sourceChipLabel}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        <div className="mt-1 truncate text-[11px] text-current/65">
-                                                            {content.preview}
-                                                        </div>
-                                                        <div className="mt-1.5 flex items-center justify-between gap-2 text-[10px]">
-                                                            <span className={`truncate font-medium ${rowStatusClassName}`}>
-                                                                {content.activityIndicator.compactLabel || content.lastActivity}
-                                                            </span>
-                                                            <span className="text-current/52">{content.messagesCountLabel}</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </button>
-
-                                            {!chat.isReadOnly && (
-                                                <button
-                                                    type="button"
-                                                    className="agent-chat-chatgpt-like-chat-row__delete absolute right-1.5 top-1.5 rounded-md p-1.5 opacity-0 transition group-hover:opacity-100 focus-visible:opacity-100"
-                                                    onClick={(event) => {
-                                                        event.preventDefault();
-                                                        event.stopPropagation();
-                                                        onDeleteChat(chat.id);
-                                                        if (isMobileSidebarOpen) {
-                                                            onCloseMobileSidebar();
-                                                        }
-                                                    }}
-                                                    title={formatText('Delete chat')}
-                                                >
-                                                    <Trash2Icon className="h-3.5 w-3.5" />
-                                                </button>
-                                            )}
-                                        </div>
-                                    );
-                                })
-                            )}
-                        </div>
-                    )}
-
-                    {shouldRenderFilters && !isLoadingChats && (
-                        <div className="agent-chat-chatgpt-like-sidebar__footer px-3 py-3">
-                            <div className="flex flex-wrap gap-2">
-                                {emptyChatCount > 0 && (
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowEmptyChats((prev) => !prev)}
-                                        className="agent-chat-chatgpt-like-filter-button inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium transition"
-                                    >
-                                        {showEmptyChats ? (
-                                            <>
-                                                <EyeOffIcon className="h-3.5 w-3.5" />
-                                                {formatText('Hide empty')}
-                                            </>
-                                        ) : (
-                                            <>
-                                                <EyeIcon className="h-3.5 w-3.5" />
-                                                {`${formatText('Show')} ${emptyChatCount}`}
-                                            </>
-                                        )}
-                                    </button>
-                                )}
-                                {isAdmin && (
-                                    <button
-                                        type="button"
-                                        onClick={() => onShowExternalChatsChange(!showExternalChats)}
-                                        className={`agent-chat-chatgpt-like-filter-button inline-flex items-center rounded-full px-3 py-1.5 text-[11px] font-semibold transition ${
-                                            showExternalChats ? 'is-active' : ''
-                                        }`}
-                                    >
-                                        {showExternalChats
-                                            ? formatText('External chats on')
-                                            : formatText('External chats off')}
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    )}
-                </aside>
-
-                <div
-                    className={`fixed inset-0 z-50 bg-black/45 backdrop-blur-[1.5px] transition-opacity duration-300 ${
-                        isMobileSidebarOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
-                    } md:hidden`}
-                    onClick={onCloseMobileSidebar}
-                    aria-hidden="true"
-                />
-            </>
+            <AgentChatSidebarChatGptLike
+                sidebarId={AGENT_CHAT_SIDEBAR_ID}
+                isLoadingChats={isLoadingChats}
+                formatText={formatText}
+                newChatHref={newChatHref}
+                isAdmin={isAdmin}
+                isShowingExternalChats={showExternalChats}
+                isMobileSidebarOpen={isMobileSidebarOpen}
+                onCloseMobileSidebar={onCloseMobileSidebar}
+                sidebarItems={sidebarState.sidebarItems}
+                emptyChatCount={sidebarState.emptyChatCount}
+                shouldRenderFilters={sidebarState.shouldRenderFilters}
+                isShowingEmptyChats={sidebarState.isShowingEmptyChats}
+                onToggleEmptyChatVisibility={sidebarState.toggleEmptyChatVisibility}
+                onToggleExternalChatVisibility={sidebarState.toggleExternalChatVisibility}
+                onChatSelect={sidebarState.handleChatSelection}
+                onNewChatLinkClick={sidebarState.handleNewChatLinkClick}
+                onChatDelete={sidebarState.handleChatDelete}
+            />
         );
     }
 
     return (
-        <>
-            <aside
-                id={AGENT_CHAT_SIDEBAR_ID}
-                className={`fixed inset-y-0 left-0 z-[60] flex flex-col border-r border-slate-200 bg-white/95 shadow-xl backdrop-blur ${panelTransitionClasses} md:static md:shadow-none md:bg-white/90 ${widthClasses} ${transformClasses} md:translate-x-0`}
-            >
-                <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2">
-                    <div className="flex items-center gap-1">
-                        <button
-                            type="button"
-                            className="md:hidden p-1 text-slate-500 hover:text-slate-900 focus-visible:outline-offset-2 focus-visible:outline focus-visible:outline-blue-400"
-                            onClick={onCloseMobileSidebar}
-                            aria-label={formatText('Close chats sidebar')}
-                        >
-                            <XIcon className="h-4 w-4" />
-                        </button>
-                    </div>
-                </div>
-
-                <div className="hidden md:flex absolute inset-y-0 right-0 z-10 translate-x-1/2 items-center justify-center pointer-events-none">
-                    <SolidArrowButton
-                        direction={isCollapsed ? 'right' : 'left'}
-                        onClick={onToggleCollapse}
-                        className="pointer-events-auto"
-                        aria-controls={AGENT_CHAT_SIDEBAR_ID}
-                        aria-expanded={!isCollapsed}
-                        aria-label={sidebarToggleLabel}
-                    />
-                </div>
-
-                {shouldRenderCollapsed ? (
-                    <div className="flex min-h-0 flex-1 flex-col items-center gap-3 px-2 py-4">
-                        <a
-                            href={newChatHref}
-                            onClick={handleCreateAndClose}
-                            className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
-                            title={formatText('New chat')}
-                            aria-label={formatText('New chat')}
-                        >
-                            <MessageSquarePlusIcon className="h-5 w-5" />
-                        </a>
-
-                        {isLoadingChats ? (
-                            <ChatListLoadingSkeleton isCollapsed rowCount={6} />
-                        ) : (
-                            <div className="flex min-h-0 w-full flex-1 flex-col gap-2 overflow-y-auto scrollbar-hidden">
-                                {sidebarItems.length === 0 ? (
-                                    <p className="px-1 text-center text-[11px] text-slate-500">{emptyStateText}</p>
-                                ) : (
-                                    sidebarItems.map(({ chat, content, isActive, isEmpty }) => {
-                                        return (
-                                            <button
-                                                key={chat.id}
-                                                type="button"
-                                                onClick={() => handleChatChoose(chat.id)}
-                                                className={`group relative flex w-full min-w-0 flex-col items-center gap-1 rounded-2xl border px-1.5 py-2 transition focus-visible:outline focus-visible:outline-blue-400 focus-visible:outline-offset-2 ${
-                                                    isActive
-                                                        ? 'border-blue-300 bg-blue-50 text-blue-700 shadow-sm'
-                                                        : 'border-transparent bg-slate-100/80 text-slate-700 hover:border-slate-300 hover:bg-slate-100'
-                                                } ${isEmpty && !isActive ? 'opacity-40' : ''}`}
-                                                aria-label={content.accessibilityLabel}
-                                                title={content.accessibilityLabel}
-                                            >
-                                                <span className="absolute left-1.5 top-1.5 z-[5]">
-                                                    <ChatSidebarActivityIndicator indicator={content.activityIndicator} />
-                                                </span>
-                                                {content.sourceChipLabel && (
-                                                    <span className="absolute left-1.5 bottom-1.5 z-[5] inline-flex items-center rounded-full bg-slate-900/85 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.18em] text-white shadow-sm">
-                                                        {content.sourceChipLabel}
-                                                    </span>
-                                                )}
-                                                <span
-                                                    className={`absolute top-0.5 right-0.5 z-[5] inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold leading-none shadow-sm ${
-                                                        isActive ? 'bg-blue-500 text-white' : 'bg-slate-400 text-white'
-                                                    }`}
-                                                    aria-label={content.messagesCountLabel}
-                                                >
-                                                    {content.messagesCount}
-                                                </span>
-                                                <div
-                                                    className={`w-full aspect-square overflow-hidden rounded-xl border px-1.5 py-1.5 text-left ${
-                                                        isActive
-                                                            ? 'border-blue-300 bg-white/90 text-blue-700'
-                                                            : 'border-slate-200 bg-white/90 text-slate-600'
-                                                    }`}
-                                                >
-                                                    <div className="max-w-full truncate text-[10px] font-semibold leading-none">
-                                                        {content.title}
-                                                    </div>
-                                                    <div className="mt-1 max-w-full truncate text-[9px] leading-tight text-slate-500">
-                                                        {content.preview}
-                                                    </div>
-                                                </div>
-                                                <span
-                                                    className={`max-w-full truncate text-[10px] font-semibold leading-none ${
-                                                        content.activityIndicator.kind === 'scheduled'
-                                                            ? 'text-amber-700'
-                                                            : content.activityIndicator.kind === 'running' || isActive
-                                                              ? 'text-blue-700'
-                                                              : 'text-slate-400'
-                                                    }`}
-                                                >
-                                                    {content.activityIndicator.compactLabel || content.lastActivity}
-                                                </span>
-                                            </button>
-                                        );
-                                    })
-                                )}
-                            </div>
-                        )}
-
-                        {shouldRenderFilters && !isLoadingChats && (
-                            <div className="flex flex-col items-center gap-2">
-                                {emptyChatCount > 0 && (
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowEmptyChats((prev) => !prev)}
-                                        className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:text-slate-600 hover:bg-slate-100"
-                                        title={
-                                            showEmptyChats
-                                                ? formatText('Hide empty chats')
-                                                : `${formatText('Show')} ${emptyChatCount} ${formatText('empty')}`
-                                        }
-                                    >
-                                        {showEmptyChats ? (
-                                            <EyeOffIcon className="h-3.5 w-3.5" />
-                                        ) : (
-                                            <EyeIcon className="h-3.5 w-3.5" />
-                                        )}
-                                    </button>
-                                )}
-                                {isAdmin && (
-                                    <button
-                                        type="button"
-                                        onClick={() => onShowExternalChatsChange(!showExternalChats)}
-                                        className={`inline-flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-[9px] font-bold uppercase tracking-[0.18em] transition ${
-                                            showExternalChats
-                                                ? 'bg-slate-900 text-white'
-                                                : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
-                                        }`}
-                                        title={
-                                            showExternalChats
-                                                ? formatText('Hide external chats')
-                                                : formatText('Show external chats')
-                                        }
-                                    >
-                                        EXT
-                                    </button>
-                                )}
-                            </div>
-                        )}
-
-                        <p className="text-[11px] text-slate-400">{formatText('Chats')}</p>
-                    </div>
-                ) : (
-                    <>
-                        <div className="p-3 border-b border-slate-200">
-                            <a
-                                href={newChatHref}
-                                onClick={handleCreateAndClose}
-                                className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
-                            >
-                                <MessageSquarePlusIcon className="h-4 w-4" />
-                                {formatText('New chat')}
-                            </a>
-                        </div>
-
-                        {isLoadingChats ? (
-                            <ChatListLoadingSkeleton rowCount={7} />
-                        ) : (
-                            <div className="flex-1 overflow-y-auto scrollbar-hidden p-2 space-y-2">
-                                {sidebarItems.length === 0 ? (
-                                    <p className="px-2 text-xs text-slate-500">{emptyStateText}</p>
-                                ) : (
-                                    sidebarItems.map(({ chat, content, isActive, isEmpty }) => {
-                                        return (
-                                            <div
-                                                key={chat.id}
-                                                className={`group relative rounded-xl border ${
-                                                    isActive
-                                                        ? 'border-blue-300 bg-blue-50 shadow-sm'
-                                                        : 'border-transparent hover:border-slate-200 hover:bg-slate-100/80'
-                                                } ${isEmpty && !isActive ? 'opacity-40' : ''}`}
-                                                >
-                                                    <span className="absolute left-3 top-3.5 z-[5]">
-                                                        <ChatSidebarActivityIndicator indicator={content.activityIndicator} />
-                                                    </span>
-                                                    <button
-                                                        type="button"
-                                                        className="w-full text-left px-3 py-3 pl-10 pr-10"
-                                                        onClick={() => handleChatChoose(chat.id)}
-                                                        aria-label={content.accessibilityLabel}
-                                                        title={content.accessibilityLabel}
-                                                    >
-                                                        <div className="flex items-center gap-2">
-                                                            <div className="min-w-0 flex-1 truncate text-sm font-medium text-slate-800">
-                                                                {content.title}
-                                                            </div>
-                                                            {content.sourceChipLabel && (
-                                                                <span className="inline-flex flex-shrink-0 items-center rounded-full bg-slate-900 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white">
-                                                                    {content.sourceChipLabel}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        <div className="mt-1 truncate text-xs text-slate-500">
-                                                            {content.preview}
-                                                        </div>
-                                                        <div className="mt-2 flex items-center justify-between gap-2">
-                                                            <div
-                                                                className={`truncate text-[11px] ${
-                                                                    content.activityIndicator.kind === 'scheduled'
-                                                                        ? 'font-semibold text-amber-700'
-                                                                        : content.activityIndicator.kind === 'running'
-                                                                          ? 'font-semibold text-blue-700'
-                                                                          : 'text-slate-400'
-                                                                }`}
-                                                            >
-                                                                {content.activityIndicator.compactLabel || content.lastActivity}
-                                                            </div>
-                                                        </div>
-                                                    </button>
-                                                {!chat.isReadOnly && (
-                                                    <button
-                                                        type="button"
-                                                        className="absolute right-2 top-2 p-1.5 rounded-md text-slate-400 hover:text-red-600 hover:bg-white/90 opacity-0 group-hover:opacity-100 focus-visible:outline-offset-2 focus-visible:outline focus-visible:outline-blue-400"
-                                                        onClick={(event) => {
-                                                            event.preventDefault();
-                                                            event.stopPropagation();
-                                                            onDeleteChat(chat.id);
-                                                            if (isMobileSidebarOpen) {
-                                                                onCloseMobileSidebar();
-                                                            }
-                                                        }}
-                                                        title={formatText('Delete chat')}
-                                                    >
-                                                        <Trash2Icon className="h-4 w-4" />
-                                                    </button>
-                                                )}
-                                            </div>
-                                        );
-                                    })
-                                )}
-                            </div>
-                        )}
-
-                        {shouldRenderFilters && !isLoadingChats && (
-                            <div className="px-2 pb-2">
-                                <div className="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-2">
-                                    <div className="px-1 pb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                                        {formatText('Filters')}
-                                    </div>
-                                    <div className="flex flex-col gap-1">
-                                        {emptyChatCount > 0 && (
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowEmptyChats((prev) => !prev)}
-                                                className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs text-slate-400 transition hover:text-slate-600 hover:bg-slate-100"
-                                            >
-                                                {showEmptyChats ? (
-                                                    <>
-                                                        <EyeOffIcon className="h-3.5 w-3.5" />
-                                                        {formatText('Hide empty chats')}
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <EyeIcon className="h-3.5 w-3.5" />
-                                                        {`${formatText('Show')} ${emptyChatCount} ${formatText('empty')}`}
-                                                    </>
-                                                )}
-                                            </button>
-                                        )}
-                                        {isAdmin && (
-                                            <button
-                                                type="button"
-                                                onClick={() => onShowExternalChatsChange(!showExternalChats)}
-                                                className={`w-full inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs transition ${
-                                                    showExternalChats
-                                                        ? 'bg-slate-900 text-white'
-                                                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
-                                                }`}
-                                            >
-                                                {showExternalChats
-                                                    ? formatText('Hide external chats')
-                                                    : formatText('Show external chats')}
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </>
-                )}
-            </aside>
-
-            <div
-                className={`fixed inset-0 z-50 bg-slate-900/40 ${overlayTransitionClasses} ${mobileOverlayState} md:hidden`}
-                onClick={onCloseMobileSidebar}
-                aria-hidden="true"
-            />
-        </>
+        <AgentChatSidebarDefault
+            sidebarId={AGENT_CHAT_SIDEBAR_ID}
+            isLoadingChats={isLoadingChats}
+            formatText={formatText}
+            newChatHref={newChatHref}
+            isAdmin={isAdmin}
+            isShowingExternalChats={showExternalChats}
+            isCollapsed={isCollapsed}
+            isMobileSidebarOpen={isMobileSidebarOpen}
+            onToggleCollapse={onToggleCollapse}
+            onCloseMobileSidebar={onCloseMobileSidebar}
+            sidebarItems={sidebarState.sidebarItems}
+            emptyChatCount={sidebarState.emptyChatCount}
+            shouldRenderFilters={sidebarState.shouldRenderFilters}
+            isShowingEmptyChats={sidebarState.isShowingEmptyChats}
+            onToggleEmptyChatVisibility={sidebarState.toggleEmptyChatVisibility}
+            onToggleExternalChatVisibility={sidebarState.toggleExternalChatVisibility}
+            onChatSelect={sidebarState.handleChatSelection}
+            onNewChatLinkClick={sidebarState.handleNewChatLinkClick}
+            onChatDelete={sidebarState.handleChatDelete}
+        />
     );
 }

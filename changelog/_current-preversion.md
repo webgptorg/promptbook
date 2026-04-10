@@ -1,3 +1,8 @@
+-   Refactored Agents Server `AgentChatSidebar.tsx` into smaller focused private sidebar modules without changing chat behavior:
+
+    -   Extracted shared sidebar item resolution, empty-chat filtering, and mobile-dismiss chat actions into a dedicated private `useAgentChatSidebarState` hook so the route-facing sidebar reads top-down.
+    -   Moved the ChatGPT-like and default sidebar render branches into focused private components, with smaller row/filter helpers per layout to keep the branching logic easier to follow and maintain.
+
 -   Refactored Agents Server `AgentChatHistoryClient.tsx` into smaller focused private chat-history modules without changing external behavior:
 
     -   Moved durable-history bootstrap, selection, refresh, and send orchestration into a dedicated private `useAgentChatHistoryClientState` hook so the route-facing client reads top-down.
