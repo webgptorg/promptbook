@@ -111,6 +111,7 @@
         "express": "4.21.2",
         "express-openapi-validator": "5.4.9",
         "glob-promise": "6.0.7",
+        "ignore": "^5.3.2",
         "jsdom": "25.0.1",
         "jszip": "3.10.1",
         "markitdown-ts": "0.0.10",
