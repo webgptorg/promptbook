@@ -1,3 +1,8 @@
+-   Refactored Agents Server `CustomJsClient.tsx` into smaller focused private custom-JS modules without changing editor behavior:
+
+    -   Kept `CustomJsClient.tsx` as a thin layout facade while moving custom-script state/persistence and analytics metadata orchestration into dedicated private hooks.
+    -   Extracted the script list, script editor, and analytics settings UI into focused private panels so the admin custom-JavaScript flow is easier to read and maintain.
+
 -   Refactored Agents Server `CustomCssClient.tsx` into smaller focused private custom-CSS modules without changing editor behavior:
 
     -   Extracted the custom CSS loading, save/delete orchestration, unsaved-change tracking, and local file-state transitions into a dedicated private `useCustomCssClientState` hook so the route component is easier to follow.
