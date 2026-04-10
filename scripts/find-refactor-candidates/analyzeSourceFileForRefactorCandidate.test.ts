@@ -116,18 +116,18 @@ describe('analyzeSourceFileForRefactorCandidate', () => {
         const xhighLevelCandidate = await analyzeFileAtLevel(filePath, 'xhigh', temporaryDirectory);
 
         expect(lowLevelCandidate).toBeNull();
-        expect(xhighLevelCandidate?.reasons).toContain('functions 10/7');
+        expect(xhighLevelCandidate?.reasons).toContain('functions 10/5');
     });
 
     it('keeps borderline line-heavy files below the xlow threshold while low still flags them', async () => {
         const filePath = join(temporaryDirectory, 'lineHeavy.ts');
-        await writeFile(filePath, buildLineHeavySource(3000), 'utf-8');
+        await writeFile(filePath, buildLineHeavySource(5000), 'utf-8');
 
         const xlowLevelCandidate = await analyzeFileAtLevel(filePath, 'xlow', temporaryDirectory);
         const lowLevelCandidate = await analyzeFileAtLevel(filePath, 'low', temporaryDirectory);
 
         expect(xlowLevelCandidate).toBeNull();
-        expect(lowLevelCandidate?.reasons).toContain('lines 3000/2800');
+        expect(lowLevelCandidate?.reasons).toContain('lines 5000/3600');
     });
 
     it('surfaces mildly function-heavy files at the extreme level only', async () => {
@@ -138,7 +138,7 @@ describe('analyzeSourceFileForRefactorCandidate', () => {
         const extremeLevelCandidate = await analyzeFileAtLevel(filePath, 'extreme', temporaryDirectory);
 
         expect(xhighLevelCandidate).toBeNull();
-        expect(extremeLevelCandidate?.reasons).toContain('functions 5/4');
+        expect(extremeLevelCandidate?.reasons).toContain('functions 5/2');
     });
 
     it('reports the most complex function when complexity exceeds the selected threshold', async () => {

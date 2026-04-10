@@ -1,3 +1,9 @@
+-   Expanded `ptbk coder find-refactor-candidates` level spread so `xlow` and `extreme` are now much farther apart:
+
+    -   Rebalanced all six scan levels with a substantially wider threshold range across line count, entity count, function count, and function complexity, so `xlow` stays highly benevolent while `extreme` is intentionally aggressive.
+    -   Added dedicated regression coverage that enforces strictly decreasing thresholds per level and guards a large `xlow` vs `extreme` ratio.
+    -   Expanded `.gitignore` scan coverage with an explicit directory-ignore test to ensure ignored folders are excluded from refactor candidate discovery.
+
 -   Fixed Agents Server wallet agent scoping so manual credentials, GitHub App tokens, and `USE PROJECT` now all use canonical agent identifiers:
 
     -   Wallet create/update/list/token-resolution paths now resolve incoming agent names or route identifiers to canonical `Agent.permanentId` values before touching the wallet tables, which avoids foreign-key failures for agent-scoped records.

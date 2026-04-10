@@ -56,4 +56,24 @@ describe('findRefactorCandidatesInProject', () => {
         expect(candidates).toHaveLength(1);
         expect(candidates[0]?.relativePath).toBe('src/generated/keep.ts');
     });
+
+    it('skips source files from directories listed in .gitignore', async () => {
+        const projectPath = join(temporaryDirectory, 'project');
+        const ignoredDirectoryPath = join(projectPath, 'src', 'vendor-cache');
+
+        await mkdir(ignoredDirectoryPath, { recursive: true });
+        await writeFile(join(projectPath, '.gitignore'), ['src/vendor-cache'].join('\n'), 'utf-8');
+        await writeFile(join(ignoredDirectoryPath, 'ignored.ts'), buildLineHeavySource(700), 'utf-8');
+        await writeFile(join(projectPath, 'src', 'service.ts'), buildLineHeavySource(700), 'utf-8');
+
+        const { isIgnoredRelativePath, rootDir } = await resolveRefactorCandidateProject(projectPath);
+        const candidates = await findRefactorCandidatesInProject({
+            heuristics: getRefactorCandidateLevelConfiguration('extreme'),
+            isIgnoredRelativePath,
+            rootDir,
+        });
+
+        expect(candidates).toHaveLength(1);
+        expect(candidates[0]?.relativePath).toBe('src/service.ts');
+    });
 });

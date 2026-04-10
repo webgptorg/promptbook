@@ -73,7 +73,7 @@ ptbk coder find-refactor-candidates
 
 ---
 
-[ ]
+[x] ~$0.00 35 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨🥊] Level of `ptbk coder find-refactor-candidates` should have much bigger spread between levels
 
@@ -108,3 +108,4 @@ ptbk coder find-refactor-candidates --level extreme
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
+
