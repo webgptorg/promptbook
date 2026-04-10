@@ -1,3 +1,8 @@
+-   Further refactored `src/types/string_url.ts` into smaller focused semantic type modules without changing external behavior:
+
+    -   Extracted the remaining Promptbook-server, base-url, pipeline, agent, image, and href-family aliases into dedicated `src/types/string_*.ts` files so each module now owns one URL concern.
+    -   Kept `src/types/string_url.ts` as the compatibility facade preserving the same import path and exported semantic type aliases.
+
 -   Refactored `src/cli/cli-commands/coder/init.ts` into smaller focused private coder-init helpers without changing external behavior:
 
     -   Kept `init.ts` as the CLI-facing facade while extracting project-configuration orchestration and summary rendering into dedicated private modules.

@@ -1,4 +1,4 @@
-import type { string_href_private, string_uri_part_private, string_uri_private } from './string_url_private';
+import type { string_href_private, string_uri_part_private, string_uri_private } from './string_href_private';
 
 /**
  * Semantic helper
