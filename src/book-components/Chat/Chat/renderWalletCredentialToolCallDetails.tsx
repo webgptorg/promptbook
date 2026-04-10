@@ -33,7 +33,9 @@ export function renderWalletCredentialToolCallDetails(
     const { credential, toolCallDate } = options;
     const serviceLabel = formatWalletCredentialService(credential.service);
     const sourceToolNames = normalizeWalletCredentialSourceToolNames(credential);
-    const sourceToolLabels = sourceToolNames.map((sourceToolName) => TOOL_TITLES[sourceToolName]?.title || sourceToolName);
+    const sourceToolLabels = sourceToolNames.map(
+        (sourceToolName) => TOOL_TITLES[sourceToolName]?.title || sourceToolName,
+    );
     const usedByLabel = sourceToolLabels.length > 1 ? 'Used by actions' : 'Used by action';
 
     return (

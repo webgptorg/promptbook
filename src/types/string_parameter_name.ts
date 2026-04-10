@@ -4,10 +4,20 @@
  * The concrete type declarations live in focused modules under `src/types`.
  */
 export type { InputParameters, Parameters, ReservedParameters } from './Parameters';
-export type { string_agent_hash, string_agent_name, string_agent_name_in_book, string_agent_permanent_id } from './string_agent_name';
+export type {
+    string_agent_hash,
+    string_agent_name,
+    string_agent_name_in_book,
+    string_agent_permanent_id,
+} from './string_agent_name';
 export type { string_business_category_name } from './string_business_category_name';
 export type { string_model_name } from './string_model_name';
-export type { string_name, string_parameter_name, string_parameter_value, string_reserved_parameter_name } from './string_name';
+export type {
+    string_name,
+    string_parameter_name,
+    string_parameter_value,
+    string_reserved_parameter_name,
+} from './string_name';
 export type { string_page, string_char } from './string_page';
 export type {
     string_chat_prompt,

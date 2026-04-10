@@ -104,12 +104,8 @@ export function useChatInputAreaDictation({
     const [dictationEditableChunk, setDictationEditableChunk] = useState('');
     const [dictationChunks, setDictationChunks] = useState<Array<DictationChunk>>([]);
     const [isDictationPanelExpanded, setIsDictationPanelExpanded] = useState(false);
-    const {
-        dictationSettings,
-        setDictationSettings,
-        dictationDictionary,
-        setDictationDictionary,
-    } = useChatInputAreaDictationPersistence();
+    const { dictationSettings, setDictationSettings, dictationDictionary, setDictationDictionary } =
+        useChatInputAreaDictationPersistence();
     const {
         speechRecognitionUiDescriptor,
         resolvedSpeechRecognitionLanguage,

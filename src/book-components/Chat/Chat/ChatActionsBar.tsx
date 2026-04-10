@@ -140,8 +140,9 @@ export function ChatActionsBar(props: ChatActionsBarProps) {
                 shouldDisableActions && styles.actionsScrolling,
             )}
         >
-            {(onReset || newChatButtonHref) && messages.length !== 0 && (
-                newChatButtonHref ? (
+            {(onReset || newChatButtonHref) &&
+                messages.length !== 0 &&
+                (newChatButtonHref ? (
                     <a className={classNames(styles.chatButton)} href={newChatButtonHref}>
                         <ResetIcon />
                         <span className={styles.chatButtonText}>{newChatButtonLabel}</span>
@@ -160,8 +161,7 @@ export function ChatActionsBar(props: ChatActionsBarProps) {
                         <ResetIcon />
                         <span className={styles.chatButtonText}>{newChatButtonLabel}</span>
                     </button>
-                )
-            )}
+                ))}
 
             {isSaveButtonEnabled && messages.length !== 0 && (
                 <div className={styles.saveButtonContainer}>

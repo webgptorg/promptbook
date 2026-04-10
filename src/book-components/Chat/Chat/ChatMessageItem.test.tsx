@@ -98,9 +98,7 @@ function renderChatMessageItem(message: ChatMessage, overrides: Partial<Componen
  * Returns rendered explicit progress markers, optionally filtered by status.
  */
 function queryProgressMarkers(container: HTMLElement, status?: 'pending' | 'completed'): Array<HTMLElement> {
-    const selector = status
-        ? `[data-chat-progress-marker="${status}"]`
-        : '[data-chat-progress-marker]';
+    const selector = status ? `[data-chat-progress-marker="${status}"]` : '[data-chat-progress-marker]';
 
     return Array.from(container.querySelectorAll(selector)) as Array<HTMLElement>;
 }

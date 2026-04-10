@@ -91,7 +91,9 @@ describe('coder boilerplate templates', () => {
             }),
         );
 
-        await expect(readFile(join(projectPath, 'prompts', 'templates', 'agents-server.md'), 'utf-8')).rejects.toThrow();
+        await expect(
+            readFile(join(projectPath, 'prompts', 'templates', 'agents-server.md'), 'utf-8'),
+        ).rejects.toThrow();
 
         const gitignoreContent = await readFile(join(projectPath, '.gitignore'), 'utf-8');
         expect(normalizeLineEndings(gitignoreContent)).toBe('# Promptbook Coder\n/.tmp\n');

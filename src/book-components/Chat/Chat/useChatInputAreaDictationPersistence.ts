@@ -128,7 +128,9 @@ export function useChatInputAreaDictationPersistence(): UseChatInputAreaDictatio
     const [dictationSettings, setDictationSettings] = useState<DictationRefinementSettings>(() =>
         loadDictationPreferences(),
     );
-    const [dictationDictionary, setDictationDictionary] = useState<DictationDictionary>(() => loadDictationDictionary());
+    const [dictationDictionary, setDictationDictionary] = useState<DictationDictionary>(() =>
+        loadDictationDictionary(),
+    );
 
     useEffect(() => {
         saveDictationPreferences(dictationSettings);

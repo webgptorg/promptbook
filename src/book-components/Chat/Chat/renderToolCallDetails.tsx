@@ -293,7 +293,8 @@ function renderGenericToolCallDetails(options: RenderGenericToolCallDetailsOptio
                     ) : shouldRenderRunningRequestPlaceholder ? (
                         renderToolCallProgressPlaceholder({
                             title: 'Request details pending',
-                            message: 'The agent started this action, but the detailed request payload has not arrived yet.',
+                            message:
+                                'The agent started this action, but the detailed request payload has not arrived yet.',
                             badgeLabel: 'Pending',
                         })
                     ) : (
@@ -488,7 +489,14 @@ function buildToolCallResultSummary(resultRaw: TODO_any): string | null {
         return resultRaw.trim();
     }
 
-    const candidate = findStringCandidate(resultRaw, ['summary', 'text', 'content', 'description', 'message', 'result']);
+    const candidate = findStringCandidate(resultRaw, [
+        'summary',
+        'text',
+        'content',
+        'description',
+        'message',
+        'result',
+    ]);
     if (candidate) {
         return candidate;
     }

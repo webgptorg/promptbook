@@ -58,8 +58,7 @@ export async function mergeStringRecordJsonFile({
     const absoluteFilePath = join(projectPath, relativeFilePath);
     const fileContent = await readTextFileIfExists(absoluteFilePath);
     const formatting = detectJsonFileFormatting(fileContent);
-    const jsonObject =
-        fileContent === undefined ? {} : await parseJsonObjectFile(relativeFilePath, fileContent);
+    const jsonObject = fileContent === undefined ? {} : await parseJsonObjectFile(relativeFilePath, fileContent);
     const existingEntries = getStringRecordOrDefault(jsonObject[fieldPath], relativeFilePath, fieldPath);
 
     let hasChanges = fileContent === undefined;

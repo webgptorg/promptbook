@@ -11,4 +11,7 @@ import type { string_parameter_name } from './string_name';
  *
  * @private internal utility of `Parameters.ts`
  */
-export type InputParameters_private = Exclude<Record<string_parameter_name, really_unknown>, ReservedParameters_private>;
+export type InputParameters_private = Exclude<
+    Record<string_parameter_name, really_unknown>,
+    ReservedParameters_private
+>;

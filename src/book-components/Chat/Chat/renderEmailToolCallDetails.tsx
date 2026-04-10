@@ -38,7 +38,8 @@ export function renderEmailToolCallDetails(options: RenderEmailToolCallDetailsOp
     const recipients = Array.isArray(to) ? to : [to];
     const ccRecipients = Array.isArray(cc) ? cc : [];
     const emailResult = resultRaw && typeof resultRaw === 'object' ? (resultRaw as Record<string, TODO_any>) : null;
-    const from = (emailResult?.from as string | undefined) || (emailResult?.sender as string | undefined) || 'Configured sender';
+    const from =
+        (emailResult?.from as string | undefined) || (emailResult?.sender as string | undefined) || 'Configured sender';
     const status = typeof emailResult?.status === 'string' ? emailResult.status : null;
 
     return (

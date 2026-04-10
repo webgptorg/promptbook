@@ -46,7 +46,11 @@ function escapeRegExp(value: string): string {
  * @private function of `useChatInputAreaDictation`
  */
 export function normalizeDictationWhitespace(text: string): string {
-    return text.replace(/[ \t]+/g, ' ').replace(/\s+\n/g, '\n').replace(/\n\s+/g, '\n').trim();
+    return text
+        .replace(/[ \t]+/g, ' ')
+        .replace(/\s+\n/g, '\n')
+        .replace(/\n\s+/g, '\n')
+        .trim();
 }
 
 /**

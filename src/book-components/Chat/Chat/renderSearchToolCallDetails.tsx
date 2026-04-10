@@ -86,7 +86,9 @@ export function renderSearchToolCallDetails(options: RenderSearchToolCallDetails
                         <div className={styles.toolCallDetailsCard}>
                             <div className={styles.toolCallDetailsCardRow}>
                                 <strong>Query</strong>
-                                <span>{String(args.query || args.searchText || 'Search query is being prepared.')}</span>
+                                <span>
+                                    {String(args.query || args.searchText || 'Search query is being prepared.')}
+                                </span>
                             </div>
                             {args.location && (
                                 <div className={styles.toolCallDetailsCardRow}>

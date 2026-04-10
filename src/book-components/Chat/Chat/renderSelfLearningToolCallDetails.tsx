@@ -74,7 +74,9 @@ export function renderSelfLearningToolCallDetails(options: RenderSelfLearningToo
             <div className={styles.searchModalContent}>
                 {(summary.samplesLabel || summary.updatedLabel) && (
                     <div className={styles.selfLearningMetaRow}>
-                        {summary.samplesLabel && <span className={styles.selfLearningMetaChip}>{summary.samplesLabel}</span>}
+                        {summary.samplesLabel && (
+                            <span className={styles.selfLearningMetaChip}>{summary.samplesLabel}</span>
+                        )}
                         {summary.updatedLabel && (
                             <span className={styles.selfLearningMeta}>Updated {summary.updatedLabel}</span>
                         )}

@@ -119,7 +119,9 @@ export function ChatInputAreaDictationPanel(props: ChatInputAreaDictationPanelPr
                         <>
                             {lastFinalChunk && (
                                 <div className={styles.dictationCorrectionPanel}>
-                                    <label className={styles.dictationCorrectionLabel}>Edit last transcript chunk</label>
+                                    <label className={styles.dictationCorrectionLabel}>
+                                        Edit last transcript chunk
+                                    </label>
                                     <textarea
                                         className={styles.dictationCorrectionTextarea}
                                         value={editableChunk}
@@ -181,7 +183,9 @@ export function ChatInputAreaDictationPanel(props: ChatInputAreaDictationPanelPr
                                     <input
                                         type="checkbox"
                                         checked={dictationSettings.whisperMode}
-                                        onChange={(event) => onDictationSettingChange('whisperMode', event.target.checked)}
+                                        onChange={(event) =>
+                                            onDictationSettingChange('whisperMode', event.target.checked)
+                                        }
                                     />
                                     Whisper mode
                                 </label>

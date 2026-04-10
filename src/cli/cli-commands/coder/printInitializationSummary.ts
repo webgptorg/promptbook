@@ -17,7 +17,10 @@ export function printInitializationSummary(summary: CoderInitializationSummary):
     printInitializationStatusLine('prompts/templates/', summary.promptsTemplatesDirectoryStatus);
 
     for (const templateFileStatus of summary.promptTemplateFileStatuses) {
-        printInitializationStatusLine(formatDisplayPath(templateFileStatus.relativeFilePath), templateFileStatus.status);
+        printInitializationStatusLine(
+            formatDisplayPath(templateFileStatus.relativeFilePath),
+            templateFileStatus.status,
+        );
     }
 
     printInitializationStatusLine(AGENTS_FILE_PATH, summary.agentsFileStatus);

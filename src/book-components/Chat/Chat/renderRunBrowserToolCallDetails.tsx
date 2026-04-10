@@ -3,10 +3,7 @@ import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { classNames } from '../../_common/react-utils/classNames';
 import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import type { ChatMessage } from '../types/ChatMessage';
-import {
-    parseRunBrowserToolResult,
-    resolveRunBrowserArtifactUrl,
-} from '../utils/toolCallParsing';
+import { parseRunBrowserToolResult, resolveRunBrowserArtifactUrl } from '../utils/toolCallParsing';
 import { resolveToolCallState } from '../utils/resolveToolCallState';
 import { renderToolCallProgressPlaceholder } from './renderToolCallProgressPlaceholder';
 import { resolveToolCallProgressMessage } from './resolveToolCallProgressMessage';
@@ -370,7 +367,9 @@ function buildRunBrowserActionRows(options: {
                 ? (logEntry.payload as Record<string, TODO_any>)
                 : null;
         const actionIndex =
-            payload && typeof payload.actionIndex === 'number' && payload.actionIndex > 0 ? payload.actionIndex - 1 : -1;
+            payload && typeof payload.actionIndex === 'number' && payload.actionIndex > 0
+                ? payload.actionIndex - 1
+                : -1;
         const phase = typeof payload?.phase === 'string' ? payload.phase : null;
         const nextState: BrowserActionRowState =
             phase === 'error' ? 'error' : phase === 'complete' ? 'complete' : 'running';

@@ -45,7 +45,11 @@ export async function initializeCoderProjectConfiguration(projectPath: string): 
     const promptsDoneDirectoryStatus = await ensureDirectory(projectPath, PROMPTS_DONE_DIRECTORY_PATH);
     const promptsTemplatesDirectoryStatus = await ensureDirectory(projectPath, PROMPTS_TEMPLATES_DIRECTORY_PATH);
     const promptTemplateFileStatuses = await ensureDefaultCoderPromptTemplateFiles(projectPath);
-    const agentsFileStatus = await ensureCoderMarkdownFile(projectPath, AGENTS_FILE_PATH, getDefaultCoderAgentsFileContent());
+    const agentsFileStatus = await ensureCoderMarkdownFile(
+        projectPath,
+        AGENTS_FILE_PATH,
+        getDefaultCoderAgentsFileContent(),
+    );
     const agentCodingFileStatus = await ensureCoderMarkdownFile(
         projectPath,
         AGENT_CODING_FILE_PATH,

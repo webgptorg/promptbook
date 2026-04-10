@@ -7,7 +7,10 @@ import type { InitializationStatus } from './boilerplateTemplates';
  *
  * @private function of `initializeCoderProjectConfiguration`
  */
-export async function ensureDirectory(projectPath: string, relativeDirectoryPath: string): Promise<InitializationStatus> {
+export async function ensureDirectory(
+    projectPath: string,
+    relativeDirectoryPath: string,
+): Promise<InitializationStatus> {
     const directoryPath = join(projectPath, relativeDirectoryPath);
     const isDirectoryExisting = await isExistingDirectory(directoryPath);
 

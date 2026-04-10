@@ -70,7 +70,9 @@ export function ChatMessageRichContent(props: ChatMessageRichContentProps) {
                 }
 
                 if (segment.type === 'image') {
-                    return <ImagePromptRenderer key={`image-${segmentIndex}`} alt={segment.alt} prompt={segment.prompt} />;
+                    return (
+                        <ImagePromptRenderer key={`image-${segmentIndex}`} alt={segment.alt} prompt={segment.prompt} />
+                    );
                 }
 
                 if (segment.type === 'map') {

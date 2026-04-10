@@ -28,15 +28,21 @@ export function getDefaultCoderAgentCodingFileContent({
     return [
         '# Promptbook Coder quick reference',
         '',
-        `This project is prepared for the \`ptbk coder\` workflow. Promptbook Coder does not create a new model on its own; it orchestrates coding agents such as GitHub Copilot, OpenAI Codex, Claude Code, Opencode, Cline, and Gemini CLI through prompt files in \`${formatDisplayPath(PROMPTS_DIRECTORY_PATH)}/\`.`,
+        `This project is prepared for the \`ptbk coder\` workflow. Promptbook Coder does not create a new model on its own; it orchestrates coding agents such as GitHub Copilot, OpenAI Codex, Claude Code, Opencode, Cline, and Gemini CLI through prompt files in \`${formatDisplayPath(
+            PROMPTS_DIRECTORY_PATH,
+        )}/\`.`,
         '',
         '## Workflow',
         `1. Put repository-wide coding rules into \`${AGENTS_FILE_PATH}\`. The default \`npm run coder:run\` script already passes \`--context ${AGENTS_FILE_PATH}\`.`,
-        `2. Create or customize prompt templates in \`${formatDisplayPath(PROMPTS_TEMPLATES_DIRECTORY_PATH)}/\`. ${buildStarterTemplateSentence()}`,
+        `2. Create or customize prompt templates in \`${formatDisplayPath(
+            PROMPTS_TEMPLATES_DIRECTORY_PATH,
+        )}/\`. ${buildStarterTemplateSentence()}`,
         '3. Generate prompt files with `npm run coder:generate-boilerplates` or `npx ptbk coder generate-boilerplates --template <template> --count <count>`.',
         '4. Replace every `@@@`, keep drafts as `[-]`, and switch prompts to `[ ]` when they are ready to run. Completed prompts are marked `[x]`.',
         '5. Run `npm run coder:run` to execute the next ready prompt with the configured coding agent.',
-        `6. Use \`npm run coder:verify\` to archive finished prompts into \`${formatDisplayPath(PROMPTS_DONE_DIRECTORY_PATH)}/\` and append repair follow-up prompts when more work is needed.`,
+        `6. Use \`npm run coder:verify\` to archive finished prompts into \`${formatDisplayPath(
+            PROMPTS_DONE_DIRECTORY_PATH,
+        )}/\` and append repair follow-up prompts when more work is needed.`,
         '7. Use `npm run coder:find-refactor-candidates` when you want Promptbook to suggest refactor prompts automatically.',
         '',
         '## Templates',
@@ -48,8 +54,12 @@ export function getDefaultCoderAgentCodingFileContent({
         `-   Built-in \`--template\` aliases: ${formatInlineCodeList(
             getDefaultCoderPromptTemplateDefinitions().map(({ id }) => id),
         )}`,
-        `-   To add a custom template, create a markdown file such as \`${formatDisplayPath(PROMPTS_TEMPLATES_DIRECTORY_PATH)}/backend.md\`.`,
-        `-   To use a project template, run \`npx ptbk coder generate-boilerplates --template ${formatDisplayPath(PROMPTS_TEMPLATES_DIRECTORY_PATH)}/backend.md\`.`,
+        `-   To add a custom template, create a markdown file such as \`${formatDisplayPath(
+            PROMPTS_TEMPLATES_DIRECTORY_PATH,
+        )}/backend.md\`.`,
+        `-   To use a project template, run \`npx ptbk coder generate-boilerplates --template ${formatDisplayPath(
+            PROMPTS_TEMPLATES_DIRECTORY_PATH,
+        )}/backend.md\`.`,
         `-   Keep shared repository rules in \`${AGENTS_FILE_PATH}\` and recurring task-family rules in template files so individual prompt files stay focused on the actual task.`,
         '',
         '## Created npm scripts',
@@ -76,7 +86,9 @@ function buildStarterTemplateSentence(): string {
         return `The starter project template created by \`ptbk coder init\` is \`${starterTemplatePaths[0]}\`.`;
     }
 
-    return `The starter project templates created by \`ptbk coder init\` are ${formatInlineCodeList(starterTemplatePaths)}.`;
+    return `The starter project templates created by \`ptbk coder init\` are ${formatInlineCodeList(
+        starterTemplatePaths,
+    )}.`;
 }
 
 /**
@@ -94,7 +106,9 @@ function buildPackageJsonScriptTableLines(packageJsonScripts: Readonly<Record<st
  */
 function describeDefaultCoderPackageJsonScript(scriptName: string, scriptCommand: string): string {
     if (scriptName === 'coder:generate-boilerplates') {
-        return `Runs \`${scriptCommand}\` to create new prompt files in \`${formatDisplayPath(PROMPTS_DIRECTORY_PATH)}/\`.`;
+        return `Runs \`${scriptCommand}\` to create new prompt files in \`${formatDisplayPath(
+            PROMPTS_DIRECTORY_PATH,
+        )}/\`.`;
     }
 
     if (scriptName === 'coder:run') {
@@ -106,7 +120,9 @@ function describeDefaultCoderPackageJsonScript(scriptName: string, scriptCommand
     }
 
     if (scriptName === 'coder:verify') {
-        return `Runs \`${scriptCommand}\` to archive verified prompts into \`${formatDisplayPath(PROMPTS_DONE_DIRECTORY_PATH)}/\` and append repair prompts when needed.`;
+        return `Runs \`${scriptCommand}\` to archive verified prompts into \`${formatDisplayPath(
+            PROMPTS_DONE_DIRECTORY_PATH,
+        )}/\` and append repair prompts when needed.`;
     }
 
     return `Runs \`${scriptCommand}\`.`;

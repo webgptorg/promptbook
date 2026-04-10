@@ -117,12 +117,14 @@ export function renderTimeoutToolCallDetails(options: RenderTimeoutToolCallDetai
                     {scheduleSentence && <p className={styles.timeoutToolSecondarySentence}>{scheduleSentence}</p>}
                     {timeoutPresentation?.localDueDateLabel && (
                         <p className={styles.timeoutToolSecondarySentence}>
-                            {chatUiTranslations?.toolCallTimeoutDateLabel || 'Date:'} {timeoutPresentation.localDueDateLabel}
+                            {chatUiTranslations?.toolCallTimeoutDateLabel || 'Date:'}{' '}
+                            {timeoutPresentation.localDueDateLabel}
                         </p>
                     )}
                     {timeoutPresentation?.message && (
                         <p className={styles.timeoutToolSecondarySentence}>
-                            {chatUiTranslations?.toolCallTimeoutMessageLabel || 'Message:'} {timeoutPresentation.message}
+                            {chatUiTranslations?.toolCallTimeoutMessageLabel || 'Message:'}{' '}
+                            {timeoutPresentation.message}
                         </p>
                     )}
                 </div>
@@ -163,7 +165,8 @@ export function renderTimeoutToolCallDetails(options: RenderTimeoutToolCallDetai
                             className={styles.timeoutToolActionButton}
                             onClick={onRequestAdvancedView}
                             aria-label={
-                                chatUiTranslations?.toolCallTimeoutViewAdvancedAriaLabel || 'View advanced timeout details'
+                                chatUiTranslations?.toolCallTimeoutViewAdvancedAriaLabel ||
+                                'View advanced timeout details'
                             }
                         >
                             {chatUiTranslations?.toolCallTimeoutViewAdvancedButton || 'View advanced'}

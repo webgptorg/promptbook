@@ -22,7 +22,10 @@ import { parseMessageButtons, type MessageButton } from '../utils/parseMessageBu
 import { type ParsedCitation } from '../utils/parseCitationsFromContent';
 import { resolveChatMessageReplyPreviewText } from '../utils/resolveChatMessageReplyPreviewText';
 import { resolveChatMessageReplySenderLabel } from '../utils/resolveChatMessageReplySenderLabel';
-import { getLatestStreamingFeatureBoundary, sanitizeStreamingMessageContent } from '../utils/sanitizeStreamingMessageContent';
+import {
+    getLatestStreamingFeatureBoundary,
+    sanitizeStreamingMessageContent,
+} from '../utils/sanitizeStreamingMessageContent';
 import { splitMessageContentIntoSegments } from '../utils/splitMessageContentIntoSegments';
 import styles from './Chat.module.css';
 import { chatCssClassNames } from './chatCssClassNames';
@@ -715,7 +718,10 @@ export const ChatMessageItem = memo(
                 const absoluteDeltaY = Math.abs(event.clientY - gesture.startY);
 
                 if (!gesture.isHorizontalSwipeLocked) {
-                    if (absoluteDeltaY > REPLY_SWIPE_DIRECTION_LOCK_PX && absoluteDeltaY > Math.abs(directionalDeltaX)) {
+                    if (
+                        absoluteDeltaY > REPLY_SWIPE_DIRECTION_LOCK_PX &&
+                        absoluteDeltaY > Math.abs(directionalDeltaX)
+                    ) {
                         resetReplySwipe();
                         return;
                     }

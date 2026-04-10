@@ -1,14 +1,6 @@
 'use client';
 
-import {
-    useCallback,
-    useEffect,
-    useRef,
-    useState,
-    type ChangeEvent,
-    type ClipboardEvent,
-    type DragEvent,
-} from 'react';
+import { useCallback, useEffect, useRef, useState, type ChangeEvent, type ClipboardEvent, type DragEvent } from 'react';
 import type { ChatInputUploadedFile } from './ChatInputArea';
 import type { ChatProps } from './ChatProps';
 

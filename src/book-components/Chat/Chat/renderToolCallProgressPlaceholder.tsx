@@ -30,9 +30,7 @@ type RenderToolCallProgressPlaceholderOptions = {
  *
  * @private function of ChatToolCallModal
  */
-export function renderToolCallProgressPlaceholder(
-    options: RenderToolCallProgressPlaceholderOptions,
-): ReactElement {
+export function renderToolCallProgressPlaceholder(options: RenderToolCallProgressPlaceholderOptions): ReactElement {
     return (
         <div className={styles.toolCallPendingCard}>
             <div className={styles.toolCallPendingHeader}>

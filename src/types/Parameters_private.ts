@@ -16,6 +16,9 @@ import type { string_parameter_value_private } from './string_parameter_value_pr
  *
  * @private internal utility of `Parameters.ts`
  */
-export type Parameters_private = Exclude<Record<string_parameter_name, string_parameter_value_private>, ReservedParameters_private>;
+export type Parameters_private = Exclude<
+    Record<string_parameter_name, string_parameter_value_private>,
+    ReservedParameters_private
+>;
 
 // <- TODO: [🧠] Maybe rename `Parameters` because it is already defined in global scope and also it is used more generally [👩🏾‍🤝‍🧑🏽]

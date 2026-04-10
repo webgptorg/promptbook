@@ -47,17 +47,19 @@ export function renderTimeToolCallDetails(options: RenderTimeToolCallDetailsOpti
     const timeResultDate = getToolCallResultDate(resultRaw);
     const displayDate = timeResultDate || toolCallDate;
     const isValidDate = !!displayDate && !Number.isNaN(displayDate.getTime());
-    const toolCallDateLabels = toolCallDate ? formatToolCallDateTime(toolCallDate, { locale, currentDate: new Date() }) : null;
+    const toolCallDateLabels = toolCallDate
+        ? formatToolCallDateTime(toolCallDate, { locale, currentDate: new Date() })
+        : null;
     const relativeLabel =
         toolCallDateLabels?.relativeTimeLabel && chatUiTranslations?.toolCallTimeRelativeLabel
             ? formatToolCallTranslationTemplate(chatUiTranslations.toolCallTimeRelativeLabel, {
                   relative: toolCallDateLabels.relativeTimeLabel,
               })
             : toolCallDateLabels?.relativeTimeLabel
-              ? formatToolCallTranslationTemplate('Called {relative}', {
-                    relative: toolCallDateLabels.relativeTimeLabel,
-                })
-              : null;
+            ? formatToolCallTranslationTemplate('Called {relative}', {
+                  relative: toolCallDateLabels.relativeTimeLabel,
+              })
+            : null;
     const timezoneArg = typeof args.timezone === 'string' && args.timezone.trim() ? args.timezone.trim() : null;
     const timezoneLabel = timezoneArg
         ? `${chatUiTranslations?.toolCallTimeoutTimezoneLabel || 'Timezone:'} ${timezoneArg}`

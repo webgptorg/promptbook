@@ -2,7 +2,13 @@
  * Semantic helper for US Dollars
  */
 export type number_usd = number;
-export type { number_bytes, number_gigabytes, number_kilobytes, number_megabytes, number_terabytes } from './number_bytes';
+export type {
+    number_bytes,
+    number_gigabytes,
+    number_kilobytes,
+    number_megabytes,
+    number_terabytes,
+} from './number_bytes';
 export type { number_id, number_linecol_number, number_tokens } from './number_id';
 export type { number_likeness } from './number_likeness';
 export type {

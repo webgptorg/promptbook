@@ -3,9 +3,17 @@ import { ASSISTANT_PREPARATION_TOOL_CALL_NAME } from '../../../types/ToolCall';
 import { resolveToolCallIdempotencyKey } from '../../../utils/toolCalls/resolveToolCallIdempotencyKey';
 import type { AgentChipData } from '../AgentChip';
 import type { ChatMessage } from '../types/ChatMessage';
-import { collectTeamToolCallSummary, type TransitiveCitation, type TransitiveToolCall } from '../utils/collectTeamToolCallSummary';
+import {
+    collectTeamToolCallSummary,
+    type TransitiveCitation,
+    type TransitiveToolCall,
+} from '../utils/collectTeamToolCallSummary';
 import { isTeamToolName } from '../utils/createTeamToolNameFromUrl';
-import { buildToolCallChipText, getToolCallChipletInfo, type ToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
+import {
+    buildToolCallChipText,
+    getToolCallChipletInfo,
+    type ToolCallChipletInfo,
+} from '../utils/getToolCallChipletInfo';
 import { resolveToolCallState } from '../utils/resolveToolCallState';
 import { createDeduplicatedWalletCredentialToolCalls } from '../utils/walletCredentialToolCall';
 import type { ChatProps } from './ChatProps';
@@ -89,7 +97,9 @@ export function createChatMessageToolCallRenderModel(
 ): ChatMessageToolCallRenderModel {
     const { message, teammates, teamAgentProfiles, locale, toolTitles, chatUiTranslations } = options;
     const isComplete = message.isComplete ?? true;
-    const completedToolCalls = dedupeToolCalls(filterRenderableToolCalls(message.toolCalls || message.completedToolCalls));
+    const completedToolCalls = dedupeToolCalls(
+        filterRenderableToolCalls(message.toolCalls || message.completedToolCalls),
+    );
     const teamToolCallSummary = collectTeamToolCallSummary(completedToolCalls);
 
     const toolCallChips = isComplete

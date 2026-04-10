@@ -364,7 +364,15 @@ export function ChatInputArea(props: ChatInputAreaProps) {
             console.error(error);
             alert(error.message);
         }
-    }, [applyMessageContent, clearUploadedFiles, onCancelReply, onMessage, replyingToMessage, soundSystem, uploadedFiles]);
+    }, [
+        applyMessageContent,
+        clearUploadedFiles,
+        onCancelReply,
+        onMessage,
+        replyingToMessage,
+        soundSystem,
+        uploadedFiles,
+    ]);
 
     const handleComposerKeyDown = useCallback(
         (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {

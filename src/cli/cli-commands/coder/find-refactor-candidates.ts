@@ -35,10 +35,7 @@ export function $initializeCoderFindRefactorCandidatesCommand(program: Program):
         ].join('\n'),
     );
     command.addOption(
-        new Option(
-            '--level <level>',
-            `Set scan aggressiveness (${REFACTOR_CANDIDATE_LEVEL_VALUES.join(', ')})`,
-        )
+        new Option('--level <level>', `Set scan aggressiveness (${REFACTOR_CANDIDATE_LEVEL_VALUES.join(', ')})`)
             .choices([...REFACTOR_CANDIDATE_LEVEL_VALUES])
             .default(DEFAULT_REFACTOR_CANDIDATE_LEVEL),
     );

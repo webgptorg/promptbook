@@ -270,7 +270,8 @@ function renderMemoryRetrieveSection(options: {
                 <>
                     <div className={styles.memoryList}>
                         {displayedMemories.map((memory, index) => {
-                            const timestamp = formatMemoryTimestamp(memory.updatedAt) ?? formatMemoryTimestamp(memory.createdAt);
+                            const timestamp =
+                                formatMemoryTimestamp(memory.updatedAt) ?? formatMemoryTimestamp(memory.createdAt);
 
                             return (
                                 <div key={memory.id || `${memory.content}-${index}`} className={styles.memoryCard}>

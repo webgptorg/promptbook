@@ -3,7 +3,8 @@
  */
 const DEFAULT_CODER_PACKAGE_JSON_SCRIPTS = {
     'coder:generate-boilerplates': 'npx ptbk coder generate-boilerplates',
-    'coder:run': 'npx ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --no-wait',
+    'coder:run':
+        'npx ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --no-wait',
     'coder:find-refactor-candidates': 'npx ptbk coder find-refactor-candidates',
     'coder:verify': 'npx ptbk coder verify',
 } as const satisfies Readonly<Record<string, string>>;

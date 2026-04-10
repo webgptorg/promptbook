@@ -26,9 +26,7 @@ export function parseThinkingLevel(thinkingLevelValue: string | undefined): Thin
         return thinkingLevelValue as ThinkingLevel;
     }
 
-    throw new Error(
-        `Invalid thinking level "${thinkingLevelValue}". Use one of: ${THINKING_LEVEL_VALUES.join(', ')}.`,
-    );
+    throw new Error(`Invalid thinking level "${thinkingLevelValue}". Use one of: ${THINKING_LEVEL_VALUES.join(', ')}.`);
 }
 
 // Note: [🟡] Code for CLI command [run](src/cli/cli-commands/coder/run.ts) should never be published outside of `@promptbook/cli`

@@ -60,9 +60,7 @@ export async function ensureCoderEnvFile(projectPath: string): Promise<EnsureCod
     const isEnvFileExisting = existingEnvContent !== undefined;
     const currentEnvContent = existingEnvContent || '';
     const existingEnvVariableNames = parseEnvVariableNames(currentEnvContent);
-    const missingEnvVariables = REQUIRED_CODER_ENV_VARIABLES.filter(
-        ({ name }) => !existingEnvVariableNames.has(name),
-    );
+    const missingEnvVariables = REQUIRED_CODER_ENV_VARIABLES.filter(({ name }) => !existingEnvVariableNames.has(name));
 
     if (missingEnvVariables.length === 0) {
         if (!isEnvFileExisting) {
