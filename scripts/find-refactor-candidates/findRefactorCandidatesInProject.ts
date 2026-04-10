@@ -1,5 +1,5 @@
 import glob from 'glob-promise';
-import { resolve } from 'path';
+import { relative, resolve } from 'path';
 import { analyzeSourceFileForRefactorCandidate } from './analyzeSourceFileForRefactorCandidate';
 import {
     LINE_COUNT_EXEMPT_GLOBS,
@@ -7,8 +7,10 @@ import {
     SOURCE_FILE_IGNORE_GLOBS,
     SOURCE_ROOTS,
 } from './find-refactor-candidates.constants';
+import { normalizeRefactorCandidatePath } from './normalizeRefactorCandidatePath';
 import type { RefactorCandidate } from './RefactorCandidate';
 import type { RefactorCandidateLevelConfiguration } from './RefactorCandidateLevel';
+import type { IsIgnoredRelativePath } from './resolveRefactorCandidateProject';
 
 /**
  * Input required to scan one project for refactor candidates.
@@ -25,6 +27,11 @@ type FindRefactorCandidatesInProjectOptions = {
      * Thresholds used to score files.
      */
     readonly heuristics: RefactorCandidateLevelConfiguration;
+
+    /**
+     * Matcher for project-relative paths that should be skipped because they are matched by `.gitignore`.
+     */
+    readonly isIgnoredRelativePath?: IsIgnoredRelativePath;
 };
 
 /**
@@ -35,9 +42,9 @@ type FindRefactorCandidatesInProjectOptions = {
 export async function findRefactorCandidatesInProject(
     options: FindRefactorCandidatesInProjectOptions,
 ): Promise<ReadonlyArray<RefactorCandidate>> {
-    const { heuristics, rootDir } = options;
-    const lineCountExemptPaths = await buildExemptPathSet(rootDir, LINE_COUNT_EXEMPT_GLOBS);
-    const sourceFiles = await listSourceFiles(rootDir);
+    const { heuristics, isIgnoredRelativePath = () => false, rootDir } = options;
+    const lineCountExemptPaths = await buildExemptPathSet(rootDir, LINE_COUNT_EXEMPT_GLOBS, isIgnoredRelativePath);
+    const sourceFiles = await listSourceFiles(rootDir, isIgnoredRelativePath);
     const candidates: RefactorCandidate[] = [];
 
     for (const filePath of sourceFiles) {
@@ -61,7 +68,10 @@ export async function findRefactorCandidatesInProject(
  *
  * @private function of findRefactorCandidatesInProject
  */
-async function listSourceFiles(rootDir: string): Promise<ReadonlyArray<string>> {
+async function listSourceFiles(
+    rootDir: string,
+    isIgnoredRelativePath: IsIgnoredRelativePath,
+): Promise<ReadonlyArray<string>> {
     const extensions = SOURCE_FILE_EXTENSIONS.map((extension) => extension.replace(/^\./, '')).join(',');
     const extensionGlob = `{${extensions}}`;
     const patterns = [...SOURCE_ROOTS.map((root) => `${root}/**/*.${extensionGlob}`), `*.${extensionGlob}`];
@@ -76,6 +86,9 @@ async function listSourceFiles(rootDir: string): Promise<ReadonlyArray<string>> 
         });
 
         for (const match of matches) {
+            if (shouldIgnoreAbsolutePath(rootDir, match, isIgnoredRelativePath)) {
+                continue;
+            }
             files.add(match);
         }
     }
@@ -88,7 +101,11 @@ async function listSourceFiles(rootDir: string): Promise<ReadonlyArray<string>> 
  *
  * @private function of findRefactorCandidatesInProject
  */
-async function buildExemptPathSet(rootDir: string, patterns: ReadonlyArray<string>): Promise<Set<string>> {
+async function buildExemptPathSet(
+    rootDir: string,
+    patterns: ReadonlyArray<string>,
+    isIgnoredRelativePath: IsIgnoredRelativePath,
+): Promise<Set<string>> {
     const exemptPaths = new Set<string>();
 
     for (const pattern of patterns) {
@@ -100,11 +117,28 @@ async function buildExemptPathSet(rootDir: string, patterns: ReadonlyArray<strin
         });
 
         for (const match of matches) {
+            if (shouldIgnoreAbsolutePath(rootDir, match, isIgnoredRelativePath)) {
+                continue;
+            }
             exemptPaths.add(normalizeAbsolutePath(match));
         }
     }
 
     return exemptPaths;
+}
+
+/**
+ * Resolves whether an absolute path falls under the project `.gitignore` rules.
+ *
+ * @private function of findRefactorCandidatesInProject
+ */
+function shouldIgnoreAbsolutePath(
+    rootDir: string,
+    absolutePath: string,
+    isIgnoredRelativePath: IsIgnoredRelativePath,
+): boolean {
+    const relativePath = normalizeRefactorCandidatePath(relative(rootDir, absolutePath));
+    return isIgnoredRelativePath(relativePath);
 }
 
 /**

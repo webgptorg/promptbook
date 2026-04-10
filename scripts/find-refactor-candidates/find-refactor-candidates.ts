@@ -12,6 +12,7 @@ import {
     getRefactorCandidateLevelConfiguration,
     type RefactorCandidateLevel,
 } from './RefactorCandidateLevel';
+import { resolveRefactorCandidateProject } from './resolveRefactorCandidateProject';
 import { writeRefactorCandidatePrompts } from './writeRefactorCandidatePrompts';
 
 if (require.main === module) {
@@ -50,11 +51,12 @@ export async function findRefactorCandidates(options: FindRefactorCandidatesOpti
     console.info(colors.cyan('⚡🏭 Find refactor candidates'));
     console.info(colors.gray(`Using \`${level}\` scan level.`));
 
-    const rootDir = process.cwd();
+    const { isIgnoredRelativePath, rootDir } = await resolveRefactorCandidateProject(process.cwd());
     const promptsDir = join(rootDir, PROMPTS_DIR_NAME);
     const existingTargets = await loadExistingPromptTargets(promptsDir);
     const candidates = await findRefactorCandidatesInProject({
         heuristics,
+        isIgnoredRelativePath,
         rootDir,
     });
 

@@ -1,3 +1,9 @@
+-   Fixed `ptbk coder find-refactor-candidates` so scans now respect the project `.gitignore`:
+
+    -   The command now resolves the scan root from the nearest ancestor `.gitignore`, so it works from project subdirectories without hardcoding Promptbook-repository paths.
+    -   Source-file discovery now filters project-relative matches through the parsed `.gitignore`, so ignored files and directories no longer produce refactor prompts while later negated keep-rules still work.
+    -   Added regression coverage for both project-root `.gitignore` resolution and ignored-vs-restored refactor-candidate scans.
+
 -   Replaced Agents Server default agent avatars with a deterministic two-stage procedural pixel-art pipeline:
 
     -   The default-avatar still-image route now uses an explicit stage-1 LLM classification step to derive compact enum-bounded avatar traits, stores the validated intermediate JSON parameters in a new `AgentDefaultAvatar` table with schema/render versions, and reuses that cache on later requests.
