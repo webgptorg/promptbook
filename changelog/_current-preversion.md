@@ -1,3 +1,9 @@
+-   Replaced Agents Server default agent avatars with a deterministic two-stage procedural pixel-art pipeline:
+
+    -   The default-avatar still-image route now uses an explicit stage-1 LLM classification step to derive compact enum-bounded avatar traits, stores the validated intermediate JSON parameters in a new `AgentDefaultAvatar` table with schema/render versions, and reuses that cache on later requests.
+    -   Stage 2 now renders reproducible pixel-art SVG from those stored parameters with deterministic hash-derived seeds instead of diffusion/image-generation models, while keeping custom agent images untouched and preserving the existing default-avatar URL surface.
+    -   Added regression coverage for byte-stable rendering plus schema-contract validation of the stage-1 LLM output, including sample kind and strict personas.
+
 -   Fixed Agents Server initial-message boot so agent pages no longer blink through a temporary hello before showing the real default message:
 
     -   Passed the server-resolved agent `INITIAL MESSAGE` into the profile preview so first render can show the configured message immediately instead of waiting for a client-side profile fetch.
