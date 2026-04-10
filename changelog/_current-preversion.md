@@ -1,3 +1,8 @@
+-   Refactored Agents Server `TaskManagerClient.tsx` into smaller focused private task-manager modules without changing external behavior:
+
+    -   Extracted task listing, polling, pagination, and guarded admin actions into a dedicated private `useTaskManagerState` hook so the admin route is easier to follow.
+    -   Moved the task-manager filters, summary metrics, table shell, and task-row rendering into focused private components so `TaskManagerClient.tsx` now reads as a thin composition layer.
+
 -   Refactored Agents Server `ServersClient.tsx` into smaller focused private server-admin modules without changing external behavior:
 
     -   Extracted managed-server registry loading, draft persistence, migration, delete, navigation, and create-server wizard orchestration into dedicated private hooks so the admin route is easier to follow.
