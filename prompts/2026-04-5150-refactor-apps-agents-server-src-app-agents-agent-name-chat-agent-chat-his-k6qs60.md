@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 21 minutes by GitHub Copilot `gpt-5.4`
 
 [🧹↪️] Refactor [`AgentChatHistoryClient.tsx` file](apps/agents-server/src/app/agents/[agentName]/chat/AgentChatHistoryClient.tsx)
 

@@ -1,3 +1,8 @@
+-   Refactored Agents Server `AgentChatHistoryClient.tsx` into smaller focused private chat-history modules without changing external behavior:
+
+    -   Moved durable-history bootstrap, selection, refresh, and send orchestration into a dedicated private `useAgentChatHistoryClientState` hook so the route-facing client reads top-down.
+    -   Split private-mode, loading, ready-state, and ChatGPT-like top-bar rendering into focused helpers so the chat branching is easier to follow while preserving the existing sidebar and durable-chat behavior.
+
 -   Refactored Agents Server `TaskManagerClient.tsx` into smaller focused private task-manager modules without changing external behavior:
 
     -   Extracted task listing, polling, pagination, and guarded admin actions into a dedicated private `useTaskManagerState` hook so the admin route is easier to follow.
