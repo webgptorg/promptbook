@@ -6,6 +6,7 @@ import {
     PROMPTS_DONE_DIRECTORY_PATH,
     PROMPTS_TEMPLATES_DIRECTORY_PATH,
 } from './boilerplateTemplates';
+import { formatDisplayPath } from './formatDisplayPath';
 
 /**
  * Relative path to the Promptbook Coder quick-reference file initialized in project roots.
@@ -116,13 +117,6 @@ function describeDefaultCoderPackageJsonScript(scriptName: string, scriptCommand
  */
 function formatInlineCodeList(values: ReadonlyArray<string>): string {
     return values.map((value) => `\`${value}\``).join(', ');
-}
-
-/**
- * Normalizes one project-relative path for human-readable markdown.
- */
-function formatDisplayPath(relativePath: string): string {
-    return relativePath.replace(/\\/gu, '/');
 }
 
 // Note: [🟡] Code for coder AGENT_CODING file boilerplate [agentCodingFile](src/cli/cli-commands/coder/agentCodingFile.ts) should never be published outside of `@promptbook/cli`

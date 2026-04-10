@@ -1,3 +1,9 @@
+-   Refactored `src/cli/cli-commands/coder/init.ts` into smaller focused private coder-init helpers without changing external behavior:
+
+    -   Kept `init.ts` as the CLI-facing facade while extracting project-configuration orchestration and summary rendering into dedicated private modules.
+    -   Moved env, gitignore, package.json, VS Code, markdown-file, directory, and JSON/text helper responsibilities into focused private files so the command is easier to follow and maintain.
+    -   Reused one shared `formatDisplayPath` helper for coder-init output and `AGENT_CODING.md` generation to remove duplicated path-formatting logic.
+
 -   Enhanced Agents Server chat progress points so active steps are visibly animated and completed ones always show completion:
 
     -   Reworked the shared chat progress-card renderer to emit explicit status markers instead of browser-native task-list checkboxes, so in-progress steps now show a spinner and completed steps show a stable checkmark.
