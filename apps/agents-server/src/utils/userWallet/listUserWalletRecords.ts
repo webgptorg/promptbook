@@ -2,6 +2,7 @@ import type { ListUserWalletRecordsOptions, UserWalletRecord } from './UserWalle
 import type { UserWalletRow } from './UserWalletRow';
 import { mapUserWalletRow } from './mapUserWalletRow';
 import { provideUserWalletTable } from './provideUserWalletTable';
+import { resolveWalletAgentPermanentId } from './resolveWalletAgentPermanentId';
 
 /**
  * Lists wallet records filtered by scope and optional query.
@@ -19,10 +20,15 @@ export async function listUserWalletRecords(options: ListUserWalletRecordsOption
         limit,
     } = options;
     const userWalletTable = await provideUserWalletTable();
+    const resolvedAgentPermanentId = agentPermanentId ? await resolveWalletAgentPermanentId(agentPermanentId) : null;
+
+    if (agentPermanentId && !resolvedAgentPermanentId) {
+        return [];
+    }
 
     let rows: UserWalletRow[] = [];
 
-    if (!agentPermanentId) {
+    if (!resolvedAgentPermanentId) {
         const { data, error } = await userWalletTable.select('*').eq('userId', userId).is('deletedAt', null);
         if (error) {
             throw new Error(`Failed to list wallet records: ${error.message}`);
@@ -36,7 +42,7 @@ export async function listUserWalletRecords(options: ListUserWalletRecordsOption
             .eq('isUserScoped', true)
             .eq('userId', userId)
             .eq('isGlobal', false)
-            .eq('agentPermanentId', agentPermanentId)
+            .eq('agentPermanentId', resolvedAgentPermanentId)
             .is('deletedAt', null);
 
         if (agentUserError) {
@@ -48,7 +54,7 @@ export async function listUserWalletRecords(options: ListUserWalletRecordsOption
             .select('*')
             .eq('isUserScoped', false)
             .eq('isGlobal', false)
-            .eq('agentPermanentId', agentPermanentId)
+            .eq('agentPermanentId', resolvedAgentPermanentId)
             .is('deletedAt', null);
 
         if (agentSharedError) {

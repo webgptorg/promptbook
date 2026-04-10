@@ -3,12 +3,21 @@ import type { UserWalletRow } from './UserWalletRow';
 import { mapUserWalletRow } from './mapUserWalletRow';
 import { normalizeWalletPayload } from './normalizeWalletPayload';
 import { provideUserWalletTable } from './provideUserWalletTable';
+import { resolveWalletAgentPermanentId } from './resolveWalletAgentPermanentId';
 
 /**
  * Updates one wallet record owned by a user.
  */
 export async function updateUserWalletRecord(options: UpdateUserWalletRecordOptions): Promise<UserWalletRecord> {
-    const payload = normalizeWalletPayload(options);
+    const agentPermanentId = options.isGlobal ? null : await resolveWalletAgentPermanentId(options.agentPermanentId);
+    if (!options.isGlobal && !agentPermanentId) {
+        throw new Error('Agent-scoped wallet record requires a valid `agentPermanentId`.');
+    }
+
+    const payload = normalizeWalletPayload({
+        ...options,
+        agentPermanentId,
+    });
     const userWalletTable = await provideUserWalletTable();
 
     const { data, error } = await userWalletTable

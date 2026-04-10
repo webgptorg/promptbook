@@ -1,5 +1,6 @@
 import type { UserWalletRow } from './UserWalletRow';
 import { provideUserWalletTable } from './provideUserWalletTable';
+import { resolveWalletAgentPermanentId } from './resolveWalletAgentPermanentId';
 
 /**
  * Options for resolving wallet access token from scoped fallbacks.
@@ -46,12 +47,14 @@ type FetchLatestWalletAccessTokenOptions = FindLatestWalletAccessTokenOptions & 
 export async function resolveWalletAccessTokenFromScopes(
     options: ResolveWalletAccessTokenFromScopesOptions,
 ): Promise<string | undefined> {
-    if (options.agentPermanentId) {
+    const agentPermanentId = await resolveWalletAgentPermanentId(options.agentPermanentId);
+
+    if (agentPermanentId) {
         const userAndAgentScoped = await findLatestWalletAccessToken({
             userId: options.userId,
             isUserScoped: true,
             isGlobal: false,
-            agentPermanentId: options.agentPermanentId,
+            agentPermanentId,
             service: options.service,
             key: options.key,
             errorContext: options.errorContext,
@@ -64,7 +67,7 @@ export async function resolveWalletAccessTokenFromScopes(
             userId: options.userId,
             isUserScoped: false,
             isGlobal: false,
-            agentPermanentId: options.agentPermanentId,
+            agentPermanentId,
             service: options.service,
             key: options.key,
             errorContext: options.errorContext,

@@ -1,3 +1,9 @@
+-   Fixed Agents Server wallet agent scoping so manual credentials, GitHub App tokens, and `USE PROJECT` now all use canonical agent identifiers:
+
+    -   Wallet create/update/list/token-resolution paths now resolve incoming agent names or route identifiers to canonical `Agent.permanentId` values before touching the wallet tables, which avoids foreign-key failures for agent-scoped records.
+    -   This keeps the chat wallet popup and GitHub-backed `USE PROJECT` credentials aligned on the same stored agent scope instead of mixing route aliases with database permanent ids.
+    -   Added a defensive `Agent.permanentId` backfill/default migration plus regression coverage for canonical wallet agent scoping.
+
 -   Fixed `ptbk coder find-refactor-candidates` so scans now respect the project `.gitignore`:
 
     -   The command now resolves the scan root from the nearest ancestor `.gitignore`, so it works from project subdirectories without hardcoding Promptbook-repository paths.

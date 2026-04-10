@@ -4,13 +4,22 @@ import { findExistingWalletRecord } from './findExistingWalletRecord';
 import { mapUserWalletRow } from './mapUserWalletRow';
 import { normalizeWalletPayload } from './normalizeWalletPayload';
 import { provideUserWalletTable } from './provideUserWalletTable';
+import { resolveWalletAgentPermanentId } from './resolveWalletAgentPermanentId';
 import { updateUserWalletRecord } from './updateUserWalletRecord';
 
 /**
  * Creates one wallet record or updates existing record with the same scope identity.
  */
 export async function createUserWalletRecord(options: CreateUserWalletRecordOptions): Promise<UserWalletRecord> {
-    const payload = normalizeWalletPayload(options);
+    const agentPermanentId = options.isGlobal ? null : await resolveWalletAgentPermanentId(options.agentPermanentId);
+    if (!options.isGlobal && !agentPermanentId) {
+        throw new Error('Agent-scoped wallet record requires a valid `agentPermanentId`.');
+    }
+
+    const payload = normalizeWalletPayload({
+        ...options,
+        agentPermanentId,
+    });
     const existing = await findExistingWalletRecord(payload);
     if (existing) {
         return updateUserWalletRecord({
