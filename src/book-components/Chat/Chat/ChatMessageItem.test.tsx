@@ -278,6 +278,58 @@ describe('ChatMessageItem progress checklist rendering', () => {
         expect(screen.getByText(/custom_tool/)).toBeDefined();
     });
 
+    it('hides assistant_preparation chips while keeping other tool chips visible', () => {
+        const { rerender } = renderChatMessageItem(
+            createAssistantProgressMessageFixture({
+                ongoingToolCalls: [
+                    {
+                        name: 'assistant_preparation',
+                        state: 'PENDING',
+                    },
+                    {
+                        name: 'custom_tool',
+                        state: 'PENDING',
+                    },
+                ],
+            }),
+        );
+
+        expect(screen.queryByText(/assistant_preparation/)).toBeNull();
+        expect(screen.getByText(/custom_tool/)).toBeDefined();
+
+        rerender(
+            <ChatMessageItem
+                message={createAssistantProgressMessageFixture({
+                    isComplete: true,
+                    ongoingToolCalls: [],
+                    toolCalls: [
+                        {
+                            name: 'assistant_preparation',
+                            state: 'COMPLETE',
+                            result: '{"ok":true}',
+                        },
+                        {
+                            name: 'custom_tool',
+                            state: 'COMPLETE',
+                            result: '{"ok":true}',
+                        },
+                    ],
+                })}
+                participant={AGENT_PARTICIPANT_FIXTURE}
+                participants={[AGENT_PARTICIPANT_FIXTURE]}
+                isLastMessage={true}
+                setExpandedMessageId={() => undefined}
+                isExpanded={false}
+                currentRating={0}
+                handleRating={() => undefined}
+                mode="LIGHT"
+            />,
+        );
+
+        expect(screen.queryByText(/assistant_preparation/)).toBeNull();
+        expect(screen.getByText(/custom_tool/)).toBeDefined();
+    });
+
     it('renders assistant messages as article blocks in ARTICLE_MODE', () => {
         const { container } = render(
             <ChatMessageItem

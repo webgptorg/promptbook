@@ -1,3 +1,8 @@
+-   Hid the redundant Agents Server **Preparing Agent** chat chip:
+
+    -   Moved `assistant_preparation` onto the shared hidden-tool-chip list used by the chat render model, so the internal preparation marker no longer renders while browser, search, timeout, wallet, and other tool chips still do.
+    -   Added regression coverage for both streaming and completed assistant messages so the preparation marker stays hidden without affecting normal tool chips.
+
 -   Refactored `src/types/string_url.ts` into smaller focused semantic-type modules without changing external behavior:
 
     -   Split MIME type, base64/data URL, host/domain, href/URI, and email aliases into dedicated `src/types/string_*.ts` files so each file now covers one URL-related concern.

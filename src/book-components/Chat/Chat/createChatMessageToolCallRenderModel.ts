@@ -1,5 +1,5 @@
 import type { ToolCall } from '../../../types/ToolCall';
-import { ASSISTANT_PREPARATION_TOOL_CALL_NAME, isAssistantPreparationToolCall } from '../../../types/ToolCall';
+import { ASSISTANT_PREPARATION_TOOL_CALL_NAME } from '../../../types/ToolCall';
 import { resolveToolCallIdempotencyKey } from '../../../utils/toolCalls/resolveToolCallIdempotencyKey';
 import type { AgentChipData } from '../AgentChip';
 import type { ChatMessage } from '../types/ChatMessage';
@@ -89,9 +89,7 @@ export function createChatMessageToolCallRenderModel(
 ): ChatMessageToolCallRenderModel {
     const { message, teammates, teamAgentProfiles, locale, toolTitles, chatUiTranslations } = options;
     const isComplete = message.isComplete ?? true;
-    const completedToolCalls = dedupeToolCalls(
-        (message.toolCalls || message.completedToolCalls)?.filter((toolCall) => !isAssistantPreparationToolCall(toolCall)),
-    );
+    const completedToolCalls = dedupeToolCalls(filterRenderableToolCalls(message.toolCalls || message.completedToolCalls));
     const teamToolCallSummary = collectTeamToolCallSummary(completedToolCalls);
 
     const toolCallChips = isComplete
@@ -124,7 +122,7 @@ export function createChatMessageToolCallRenderModel(
  *
  * @private internal helper of `<ChatMessageItem/>`
  */
-const HIDDEN_TOOL_CALL_CHIP_NAMES = new Set(['agent_progress']);
+const HIDDEN_TOOL_CALL_CHIP_NAMES = new Set([ASSISTANT_PREPARATION_TOOL_CALL_NAME, 'agent_progress']);
 
 /**
  * Ongoing tool call entry used for grouping.
@@ -140,6 +138,22 @@ type OngoingToolCall = NonNullable<ChatMessage['ongoingToolCalls']>[number];
  */
 function shouldRenderToolCallChip(toolCall: ToolCall): boolean {
     return !HIDDEN_TOOL_CALL_CHIP_NAMES.has(toolCall.name);
+}
+
+/**
+ * Filters a tool-call list down to entries that should render as visible chips.
+ *
+ * @param toolCalls - Candidate tool calls.
+ * @returns Renderable tool calls only.
+ *
+ * @private internal helper of `<ChatMessageItem/>`
+ */
+function filterRenderableToolCalls<T extends ToolCall>(toolCalls: ReadonlyArray<T> | undefined): Array<T> {
+    if (!toolCalls || toolCalls.length === 0) {
+        return [];
+    }
+
+    return toolCalls.filter(shouldRenderToolCallChip);
 }
 
 /**
@@ -233,19 +247,14 @@ function buildOngoingToolCallChips(
     toolTitles?: ChatProps['toolTitles'],
     chatUiTranslations?: ChatProps['chatUiTranslations'],
 ): Array<ToolCallChipEntry> {
-    if (!toolCalls || toolCalls.length === 0) {
+    const renderableToolCalls = filterRenderableToolCalls(toolCalls);
+    if (renderableToolCalls.length === 0) {
         return [];
     }
 
     const entries = new Map<string, ToolCallChipEntry>();
-    for (const toolCall of toolCalls) {
-        if (!shouldRenderToolCallChip(toolCall)) {
-            continue;
-        }
-
-        const key = isAssistantPreparationToolCall(toolCall)
-            ? `tool-snapshot:${ASSISTANT_PREPARATION_TOOL_CALL_NAME}`
-            : buildToolCallChipKey(toolCall);
+    for (const toolCall of renderableToolCalls) {
+        const key = buildToolCallChipKey(toolCall);
         const chipletInfo = getToolCallChipletInfo(toolCall, locale, toolTitles, chatUiTranslations);
         const label = buildToolCallChipText(chipletInfo);
         const teamAgentData = resolveTeamAgentChipData(toolCall, teammates, chipletInfo, teamAgentProfiles);
