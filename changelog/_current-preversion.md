@@ -1,3 +1,9 @@
+-   Enhanced Agents Server chat progress points so active steps are visibly animated and completed ones always show completion:
+
+    -   Reworked the shared chat progress-card renderer to emit explicit status markers instead of browser-native task-list checkboxes, so in-progress steps now show a spinner and completed steps show a stable checkmark.
+    -   Kept the existing durable `agent_progress` data flow intact while preserving inline markdown/tool-chip rendering inside the chat bubble.
+    -   Updated chat-message regression coverage for the new progress-marker rendering and nested checklist behavior.
+
 -   Hid the redundant Agents Server **Preparing Agent** chat chip:
 
     -   Moved `assistant_preparation` onto the shared hidden-tool-chip list used by the chat render model, so the internal preparation marker no longer renders while browser, search, timeout, wallet, and other tool chips still do.

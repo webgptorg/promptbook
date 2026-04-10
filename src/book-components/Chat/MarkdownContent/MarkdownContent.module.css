@@ -107,6 +107,57 @@
     margin-bottom: 0;
 }
 
+.MarkdownContent ul:has(> li > [data-chat-progress-marker]) {
+    list-style: none;
+    padding-inline-start: 0;
+}
+
+.MarkdownContent ul:has(> li > [data-chat-progress-marker]) > li {
+    list-style: none;
+}
+
+.MarkdownContent [data-chat-progress-marker] {
+    display: inline-flex;
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.58rem;
+    vertical-align: text-bottom;
+    border-radius: 999px;
+    color: var(--md-link-color);
+    transform-origin: center;
+}
+
+.MarkdownContent [data-chat-progress-marker='pending'] {
+    box-sizing: border-box;
+    border: 2px solid color-mix(in srgb, currentColor 22%, transparent);
+    border-top-color: currentColor;
+    animation: chatProgressMarkerSpin 0.85s linear infinite;
+}
+
+.MarkdownContent [data-chat-progress-marker='completed'] {
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid currentColor;
+    background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.MarkdownContent [data-chat-progress-marker='completed']::before {
+    content: '';
+    width: 0.26rem;
+    height: 0.5rem;
+    margin-top: -0.06rem;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg);
+}
+
+@keyframes chatProgressMarkerSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 .MarkdownContent a {
     color: var(--md-link-color);
     text-decoration-line: underline;

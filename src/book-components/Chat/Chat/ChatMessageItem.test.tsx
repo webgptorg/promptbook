@@ -94,6 +94,17 @@ function renderChatMessageItem(message: ChatMessage, overrides: Partial<Componen
     );
 }
 
+/**
+ * Returns rendered explicit progress markers, optionally filtered by status.
+ */
+function queryProgressMarkers(container: HTMLElement, status?: 'pending' | 'completed'): Array<HTMLElement> {
+    const selector = status
+        ? `[data-chat-progress-marker="${status}"]`
+        : '[data-chat-progress-marker]';
+
+    return Array.from(container.querySelectorAll(selector)) as Array<HTMLElement>;
+}
+
 describe('ChatMessageItem citation footnotes', () => {
     it('renders repeated document citations as one footnote chip and removes raw marker ids from the message body', () => {
         const { container } = renderChatMessageItem(createAssistantMessageFixture());
@@ -159,15 +170,14 @@ describe('ChatMessageItem lifecycle badges', () => {
 });
 
 describe('ChatMessageItem progress checklist rendering', () => {
-    it('renders progress as native markdown checklist content without a separate progress panel container', () => {
+    it('renders progress with explicit status markers without a separate progress panel container', () => {
         const { container } = renderChatMessageItem(createAssistantProgressMessageFixture());
-        const renderedCheckboxes = Array.from(
-            container.querySelectorAll('input[type="checkbox"]'),
-        ) as Array<HTMLInputElement>;
 
         expect(container.querySelector('section')).toBeNull();
-        expect(renderedCheckboxes.length).toBe(5);
-        expect(renderedCheckboxes.filter((checkbox) => checkbox.checked)).toHaveLength(1);
+        expect(queryProgressMarkers(container)).toHaveLength(2);
+        expect(queryProgressMarkers(container, 'completed')).toHaveLength(1);
+        expect(queryProgressMarkers(container, 'pending')).toHaveLength(1);
+        expect(container.querySelectorAll('input[type="checkbox"]')).toHaveLength(0);
         expect(container.textContent).not.toContain('- [ ]');
         expect(container.textContent).not.toContain('- [x]');
     });
@@ -191,9 +201,10 @@ describe('ChatMessageItem progress checklist rendering', () => {
             container.querySelectorAll('input[type="checkbox"]'),
         ) as Array<HTMLInputElement>;
 
-        expect(renderedCheckboxes.length).toBe(3);
+        expect(queryProgressMarkers(container, 'pending')).toHaveLength(1);
+        expect(renderedCheckboxes.length).toBe(2);
         expect(renderedCheckboxes.filter((checkbox) => checkbox.checked)).toHaveLength(1);
-        expect(renderedCheckboxes.filter((checkbox) => !checkbox.checked)).toHaveLength(2);
+        expect(renderedCheckboxes.filter((checkbox) => !checkbox.checked)).toHaveLength(1);
     });
 
     it('keeps existing markdown message formatting unchanged when progress payload is absent', () => {
@@ -206,6 +217,7 @@ describe('ChatMessageItem progress checklist rendering', () => {
 
         expect(container.querySelector('strong')?.textContent).toBe('Bold');
         expect(container.textContent).toContain('text with regular markdown.');
+        expect(queryProgressMarkers(container)).toHaveLength(0);
         expect(container.querySelectorAll('input[type="checkbox"]')).toHaveLength(0);
     });
 
@@ -222,7 +234,7 @@ describe('ChatMessageItem progress checklist rendering', () => {
         );
 
         expect(screen.getByText(/custom_tool/)).toBeDefined();
-        expect(container.querySelectorAll('input[type="checkbox"]').length).toBeGreaterThan(0);
+        expect(queryProgressMarkers(container).length).toBeGreaterThan(0);
     });
 
     it('hides agent_progress chips while keeping other tool chips and inline progress content visible', () => {
@@ -243,7 +255,7 @@ describe('ChatMessageItem progress checklist rendering', () => {
 
         expect(screen.queryByText(/agent_progress/)).toBeNull();
         expect(screen.getByText(/custom_tool/)).toBeDefined();
-        expect(container.querySelectorAll('input[type="checkbox"]').length).toBeGreaterThan(0);
+        expect(queryProgressMarkers(container).length).toBeGreaterThan(0);
 
         rerender(
             <ChatMessageItem

@@ -1,14 +1,18 @@
 import type { ChatMessage } from '../types/ChatMessage';
 
 /**
- * One markdown checklist entry generated from structured progress payload.
+ * HTML marker injected ahead of one pending progress item.
  *
  * @private internal helper of `<ChatMessageItem/>`
  */
-type ProgressChecklistEntry = {
-    readonly text: string;
-    readonly status: 'pending' | 'completed';
-};
+const PENDING_PROGRESS_MARKER_HTML = '<span data-chat-progress-marker="pending" aria-hidden="true"></span>';
+
+/**
+ * HTML marker injected ahead of one completed progress item.
+ *
+ * @private internal helper of `<ChatMessageItem/>`
+ */
+const COMPLETED_PROGRESS_MARKER_HTML = '<span data-chat-progress-marker="completed" aria-hidden="true"></span>';
 
 /**
  * Human-facing label shown for "now" progress updates.
@@ -25,20 +29,30 @@ const PROGRESS_NOW_LABEL = "What I'm Doing Now";
 const PROGRESS_NEXT_LABEL = "What I'll Do Next";
 
 /**
- * Converts one structured progress card payload into markdown checklist content.
+ * One structured progress entry rendered as a list item inside the chat bubble.
+ *
+ * @private internal helper of `<ChatMessageItem/>`
+ */
+type ProgressListEntry = {
+    readonly text: string;
+    readonly status: 'pending' | 'completed';
+};
+
+/**
+ * Converts one structured progress card payload into markdown content.
  *
  * @param progressCard Structured progress card payload.
- * @returns Markdown checklist rendered through the normal message markdown pipeline.
+ * @returns Markdown rendered through the normal message markdown pipeline.
  *
  * @private internal helper of `<ChatMessageItem/>`
  */
 export function createProgressCardChecklistMarkdown(progressCard: NonNullable<ChatMessage['progressCard']>): string {
-    const checklistEntries = createProgressChecklistEntries(progressCard);
-    if (checklistEntries.length === 0) {
+    const markdownSections = createProgressCardMarkdownSections(progressCard);
+    if (markdownSections.length === 0) {
         return '';
     }
 
-    return checklistEntries.map((entry) => createChecklistMarkdownItem(entry)).join('\n');
+    return markdownSections.join('\n\n');
 }
 
 /**
@@ -53,34 +67,28 @@ export function isProgressCardVisible(
 }
 
 /**
- * Maps one structured progress-card payload to a flat list of checklist entries.
+ * Maps one structured progress-card payload to ordered markdown sections.
  *
  * @param progressCard Structured progress card payload.
- * @returns Ordered checklist entries ready for markdown rendering.
+ * @returns Ordered markdown sections ready for rendering.
  *
  * @private internal helper of `<ChatMessageItem/>`
  */
-function createProgressChecklistEntries(
-    progressCard: NonNullable<ChatMessage['progressCard']>,
-): Array<ProgressChecklistEntry> {
-    const checklistEntries: Array<ProgressChecklistEntry> = [];
+function createProgressCardMarkdownSections(progressCard: NonNullable<ChatMessage['progressCard']>): Array<string> {
+    const markdownSections: Array<string> = [];
     const normalizedTitle = progressCard.title?.trim();
     const normalizedNow = progressCard.now?.trim();
     const normalizedNext = progressCard.next?.trim();
 
     if (normalizedTitle) {
-        checklistEntries.push({
-            text: `**${normalizedTitle}**`,
-            status: 'pending',
-        });
+        markdownSections.push(`**${normalizedTitle}**`);
     }
 
     if (normalizedNow) {
-        checklistEntries.push({
-            text: `**${PROGRESS_NOW_LABEL}:** ${normalizedNow}`,
-            status: 'pending',
-        });
+        markdownSections.push(`**${PROGRESS_NOW_LABEL}:** ${normalizedNow}`);
     }
+
+    const itemLines: Array<string> = [];
 
     for (const item of progressCard.items || []) {
         const normalizedItemText = item.text?.trim();
@@ -88,39 +96,42 @@ function createProgressChecklistEntries(
             continue;
         }
 
-        checklistEntries.push({
-            text: normalizedItemText,
-            status: item.status === 'completed' ? 'completed' : 'pending',
-        });
+        itemLines.push(
+            createProgressListMarkdownItem({
+                text: normalizedItemText,
+                status: item.status === 'completed' ? 'completed' : 'pending',
+            }),
+        );
+    }
+
+    if (itemLines.length > 0) {
+        markdownSections.push(itemLines.join('\n'));
     }
 
     if (normalizedNext) {
-        checklistEntries.push({
-            text: `**${PROGRESS_NEXT_LABEL}:** ${normalizedNext}`,
-            status: 'pending',
-        });
+        markdownSections.push(`**${PROGRESS_NEXT_LABEL}:** ${normalizedNext}`);
     }
 
-    return checklistEntries;
+    return markdownSections;
 }
 
 /**
- * Converts one structured checklist entry to markdown task-list syntax.
+ * Converts one structured progress entry to markdown list syntax with an explicit status marker.
  *
- * @param entry Structured checklist entry.
- * @returns Markdown checklist item including multiline continuations.
+ * @param entry Structured progress entry.
+ * @returns Markdown list item including multiline continuations.
  *
  * @private internal helper of `<ChatMessageItem/>`
  */
-function createChecklistMarkdownItem(entry: ProgressChecklistEntry): string {
-    const marker = entry.status === 'completed' ? '- [x]' : '- [ ]';
+function createProgressListMarkdownItem(entry: ProgressListEntry): string {
+    const markerHtml = entry.status === 'completed' ? COMPLETED_PROGRESS_MARKER_HTML : PENDING_PROGRESS_MARKER_HTML;
     const lines = entry.text.split(/\r?\n/);
     const firstLine = lines[0] || '';
     const continuationLines = lines.slice(1).map((line) => `  ${line}`);
 
     if (continuationLines.length === 0) {
-        return `${marker} ${firstLine}`;
+        return `- ${markerHtml} ${firstLine}`;
     }
 
-    return `${marker} ${firstLine}\n${continuationLines.join('\n')}`;
+    return `- ${markerHtml} ${firstLine}\n${continuationLines.join('\n')}`;
 }
