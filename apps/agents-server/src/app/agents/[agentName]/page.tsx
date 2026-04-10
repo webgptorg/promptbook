@@ -337,6 +337,7 @@ export default async function AgentPage({
                     inputPlaceholder={inputPlaceholder}
                     brandColorHex={brandColorHex}
                     avatarSrc={avatarSrc}
+                    initialAgentMessage={agentProfile.initialMessage}
                     isDeleted={isDeleted}
                     speechRecognitionLanguage={speechRecognitionLanguage}
                     isHistoryEnabled={historyIdentityAvailable}

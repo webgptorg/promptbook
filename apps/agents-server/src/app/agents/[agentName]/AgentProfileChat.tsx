@@ -22,6 +22,7 @@ import { dispatchNavigationProgressStart } from '../../../components/NavigationP
 import { HeadlessLink } from '../../../components/_utils/headlessParam';
 import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
+import { ChatThreadLoadingSkeleton } from '../../../components/Skeleton/ChatThreadLoadingSkeleton';
 import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
 import { executeQuickActionButton } from '../../../utils/chat/executeQuickActionButton';
 import { resolveChatMessageValidationIssue } from '../../../utils/chat/validateChatMessageContent';
@@ -42,6 +43,10 @@ export type AgentProfileChatProps = {
     inputPlaceholder: string;
     brandColorHex: string_color;
     avatarSrc: string;
+    /**
+     * Initial message already resolved on the server, when available.
+     */
+    initialAgentMessage?: string | null;
     isDeleted?: boolean;
     speechRecognitionLanguage?: string;
     isHistoryEnabled?: boolean;
@@ -94,7 +99,7 @@ function resolveProfileChatTimestampMoment(
 /**
  * Returns true when a message has non-whitespace content.
  */
-function hasMessageContent(message: string | undefined): message is string {
+function hasMessageContent(message: string | null | undefined): message is string {
     return typeof message === 'string' && spaceTrim(message) !== '';
 }
 
@@ -118,6 +123,7 @@ export function AgentProfileChat({
     inputPlaceholder,
     brandColorHex,
     avatarSrc,
+    initialAgentMessage,
     isDeleted = false,
     speechRecognitionLanguage,
     isHistoryEnabled = false,
@@ -351,16 +357,45 @@ export function AgentProfileChat({
 
     const handleFileUpload = useCallback(async (file: File) => chatFileUploadHandler(file), []);
 
-    const initialMessage = useMemo(() => {
+    const fallbackInitialMessage = useMemo(() => {
         const fallbackName = formatText('an AI Agent');
-        const fallbackInitialMessage = spaceTrim(`
+        return spaceTrim(`
             Hello! I am ${fullname || agentName || fallbackName}.
             
             [Hello](?message=Hello, can you tell me about yourself?)
         `);
+    }, [fullname, agentName, formatText]);
+    const resolvedConfiguredInitialMessage = useMemo(() => {
+        if (initialAgentMessage !== undefined) {
+            return initialAgentMessage;
+        }
 
-        return agent?.initialMessage || fallbackInitialMessage;
-    }, [agent, fullname, agentName, formatText]);
+        return agent?.initialMessage;
+    }, [agent, initialAgentMessage]);
+    const initialMessage = useMemo(() => {
+        if (resolvedConfiguredInitialMessage === undefined) {
+            return undefined;
+        }
+
+        return hasMessageContent(resolvedConfiguredInitialMessage)
+            ? resolvedConfiguredInitialMessage
+            : fallbackInitialMessage;
+    }, [fallbackInitialMessage, resolvedConfiguredInitialMessage]);
+    const initialMessages = useMemo<ReadonlyArray<ChatMessage>>(() => {
+        if (!hasMessageContent(initialMessage)) {
+            return [];
+        }
+
+        return [
+            {
+                sender: 'AGENT',
+                content: initialMessage,
+                createdAt: $getCurrentDate(),
+                id: 'initial-message',
+                isComplete: true,
+            },
+        ];
+    }, [initialMessage]);
 
     // If agent is deleted, show banner instead of chat
     if (isDeleted) {
@@ -372,10 +407,6 @@ export function AgentProfileChat({
             </div>
         );
     }
-
-    // If agent is not loaded yet, we can show a skeleton or just the default Chat structure
-    // But to match "same initial message", we need the agent loaded or at least the default fallback.
-    // The fallback above matches AgentChat.tsx default.
 
     return (
         <div className="flex w-full flex-col gap-4">
@@ -403,67 +434,66 @@ export function AgentProfileChat({
             >
                 <div className="absolute inset-0 rounded-[32px] border border-white/30 bg-gradient-to-br from-white/80 via-white/70 to-slate-100/70 shadow-[0_25px_80px_rgba(15,23,42,0.25)]" />
                 <div className="relative z-10 h-full w-full rounded-[32px] border border-white/40 bg-white/80 p-4 shadow-2xl backdrop-blur-3xl">
-                    <Chat
-                        title={`Chat with ${fullname}`}
-                        participants={[
-                            {
-                                name: 'AGENT',
-                                fullname,
-                                isMe: false,
-                                color: brandColorHex,
-                                avatarSrc,
-                                // <- TODO: [🧠] Maybe this shouldnt be there
-                            },
-                        ]}
-                        chatLocale={language}
-                        timingTranslations={{ answerDurationLabel: t('chat.answerDurationLabel') }}
-                        feedbackTranslations={{
-                            reportIssueButtonTitle: t('chat.feedback.reportIssueButtonTitle'),
-                            reportIssueButtonAriaLabel: t('chat.feedback.reportIssueButtonAriaLabel'),
-                            reportIssueModalTitle: t('chat.feedback.reportIssueModalTitle'),
-                            rateResponseModalTitle: t('chat.feedback.rateResponseModalTitle'),
-                            userQuestionLabel: t('chat.feedback.userQuestionLabel'),
-                            reportIssueExpectedAnswerLabel: t('chat.feedback.reportIssueExpectedAnswerLabel'),
-                            expectedAnswerLabel: t('chat.feedback.expectedAnswerLabel'),
-                            expectedAnswerPlaceholder: t('chat.feedback.expectedAnswerPlaceholder'),
-                            reportIssueDetailsLabel: t('chat.feedback.reportIssueDetailsLabel'),
-                            noteLabel: t('chat.feedback.noteLabel'),
-                            reportIssueDetailsPlaceholder: t('chat.feedback.reportIssueDetailsPlaceholder'),
-                            notePlaceholder: t('chat.feedback.notePlaceholder'),
-                            cancelLabel: t('chat.feedback.cancelLabel'),
-                            reportIssueSubmitLabel: t('chat.feedback.reportIssueSubmitLabel'),
-                            submitLabel: t('chat.feedback.submitLabel'),
-                            feedbackSuccessMessage: t('chat.feedback.feedbackSuccessMessage'),
-                            reportIssueSuccessMessage: t('chat.feedback.reportIssueSuccessMessage'),
-                            feedbackErrorMessage: t('chat.feedback.feedbackErrorMessage'),
-                        }}
-                        messages={[
-                            {
-                                sender: 'AGENT',
-                                content: initialMessage,
-                                createdAt: $getCurrentDate(),
-                                id: 'initial-message',
-                                isComplete: true,
-                            },
-                        ]}
-                        onMessage={handleMessage}
-                        onActionButton={executeQuickActionButton}
-                        onCreateAgent={handleCreateAgent}
-                        onFileUpload={allowFileAttachments ? handleFileUpload : undefined}
-                        isSaveButtonEnabled={false}
-                        isCopyButtonEnabled={false}
-                        className="h-full w-full rounded-[28px] bg-transparent"
-                        buttonColor={brandColorHex}
-                        style={{ background: 'transparent' }}
-                        placeholderMessageContent={inputPlaceholder}
-                        speechRecognition={speechRecognition}
-                        speechRecognitionLanguage={speechRecognitionLanguage}
-                        enterBehavior={enterBehavior}
-                        resolveEnterBehavior={resolveEnterBehavior}
-                        isSpeechPlaybackEnabled={isSpeechFeaturesEnabled}
-                        CHAT_VISUAL_MODE={chatVisualMode}
-                        visual={'STANDALONE'}
-                    />
+                    {initialMessage === undefined ? (
+                        <ChatThreadLoadingSkeleton
+                            withComposer
+                            className="h-full w-full rounded-[28px] border border-white/40 bg-white/75"
+                        />
+                    ) : (
+                        <Chat
+                            title={`Chat with ${fullname}`}
+                            participants={[
+                                {
+                                    name: 'AGENT',
+                                    fullname,
+                                    isMe: false,
+                                    color: brandColorHex,
+                                    avatarSrc,
+                                    // <- TODO: [🧠] Maybe this shouldnt be there
+                                },
+                            ]}
+                            chatLocale={language}
+                            timingTranslations={{ answerDurationLabel: t('chat.answerDurationLabel') }}
+                            feedbackTranslations={{
+                                reportIssueButtonTitle: t('chat.feedback.reportIssueButtonTitle'),
+                                reportIssueButtonAriaLabel: t('chat.feedback.reportIssueButtonAriaLabel'),
+                                reportIssueModalTitle: t('chat.feedback.reportIssueModalTitle'),
+                                rateResponseModalTitle: t('chat.feedback.rateResponseModalTitle'),
+                                userQuestionLabel: t('chat.feedback.userQuestionLabel'),
+                                reportIssueExpectedAnswerLabel: t('chat.feedback.reportIssueExpectedAnswerLabel'),
+                                expectedAnswerLabel: t('chat.feedback.expectedAnswerLabel'),
+                                expectedAnswerPlaceholder: t('chat.feedback.expectedAnswerPlaceholder'),
+                                reportIssueDetailsLabel: t('chat.feedback.reportIssueDetailsLabel'),
+                                noteLabel: t('chat.feedback.noteLabel'),
+                                reportIssueDetailsPlaceholder: t('chat.feedback.reportIssueDetailsPlaceholder'),
+                                notePlaceholder: t('chat.feedback.notePlaceholder'),
+                                cancelLabel: t('chat.feedback.cancelLabel'),
+                                reportIssueSubmitLabel: t('chat.feedback.reportIssueSubmitLabel'),
+                                submitLabel: t('chat.feedback.submitLabel'),
+                                feedbackSuccessMessage: t('chat.feedback.feedbackSuccessMessage'),
+                                reportIssueSuccessMessage: t('chat.feedback.reportIssueSuccessMessage'),
+                                feedbackErrorMessage: t('chat.feedback.feedbackErrorMessage'),
+                            }}
+                            messages={initialMessages}
+                            onMessage={handleMessage}
+                            onActionButton={executeQuickActionButton}
+                            onCreateAgent={handleCreateAgent}
+                            onFileUpload={allowFileAttachments ? handleFileUpload : undefined}
+                            isSaveButtonEnabled={false}
+                            isCopyButtonEnabled={false}
+                            className="h-full w-full rounded-[28px] bg-transparent"
+                            buttonColor={brandColorHex}
+                            style={{ background: 'transparent' }}
+                            placeholderMessageContent={inputPlaceholder}
+                            speechRecognition={speechRecognition}
+                            speechRecognitionLanguage={speechRecognitionLanguage}
+                            enterBehavior={enterBehavior}
+                            resolveEnterBehavior={resolveEnterBehavior}
+                            isSpeechPlaybackEnabled={isSpeechFeaturesEnabled}
+                            CHAT_VISUAL_MODE={chatVisualMode}
+                            visual={'STANDALONE'}
+                        />
+                    )}
                 </div>
             </div>
         </div>

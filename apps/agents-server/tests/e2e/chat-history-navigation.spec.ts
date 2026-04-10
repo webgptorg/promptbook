@@ -67,6 +67,11 @@ type SeededChat = {
 type DelayedUserChatRequest = DelayedRequestControl;
 
 /**
+ * Handle for one deliberately delayed `GET /agents/[agent]/api/profile` request.
+ */
+type DelayedAgentProfileRequest = DelayedRequestControl;
+
+/**
  * Handle for one deliberately delayed `POST /api/user-chats/[chatId]/messages` request.
  */
 type DelayedUserChatMessageCreateRequest = DelayedRequestControl;
@@ -158,12 +163,23 @@ async function createManagementApiToken(page: Page): Promise<string> {
  * @param page - Current Playwright page.
  * @param apiKey - Bearer token used for the management API call.
  * @param label - Human-readable label used in the agent source.
+ * @param initialMessage - Optional configured initial message for the created agent.
  * @returns Canonical agent routing data.
  */
-async function createTestAgent(page: Page, apiKey: string, label: string): Promise<ManagementAgent> {
+async function createTestAgent(
+    page: Page,
+    apiKey: string,
+    label: string,
+    initialMessage?: string,
+): Promise<ManagementAgent> {
     return page.evaluate(
-        async ({ apiKey: token, label: displayName }) => {
-            const source = `${displayName}\nPERSONA You help with regression tests.\nRULE Keep replies concise.`;
+        async ({ apiKey: token, label: displayName, initialMessage: configuredInitialMessage }) => {
+            const source = [
+                displayName,
+                'PERSONA You help with regression tests.',
+                'RULE Keep replies concise.',
+                ...(configuredInitialMessage ? [`INITIAL MESSAGE ${configuredInitialMessage}`] : []),
+            ].join('\n');
             const response = await fetch('/api/v1/agents', {
                 method: 'POST',
                 headers: {
@@ -198,7 +214,7 @@ async function createTestAgent(page: Page, apiKey: string, label: string): Promi
                 managementChatUrl: payload.agent.links.chatUrl,
             };
         },
-        { apiKey, label },
+        { apiKey, label, initialMessage },
     );
 }
 
@@ -311,6 +327,20 @@ function isMatchingUserChatSnapshotRequest(url: string, agentName: string, chatI
 }
 
 /**
+ * Checks whether one network URL matches the public agent profile endpoint.
+ *
+ * @param url - Network URL reported by Playwright.
+ * @param agentName - Canonical agent slug.
+ * @returns `true` when the URL represents `GET /agents/[agent]/api/profile`.
+ */
+function isMatchingAgentProfileRequest(url: string, agentName: string): boolean {
+    const parsedUrl = new URL(url);
+    const canonicalPath = `/agents/${encodeURIComponent(agentName)}/api/profile`;
+
+    return parsedUrl.pathname === canonicalPath || /^\/agents\/[^/]+\/api\/profile$/.test(parsedUrl.pathname);
+}
+
+/**
  * Checks whether one network URL matches the durable user-message creation endpoint.
  *
  * @param url - Network URL reported by Playwright.
@@ -393,6 +423,20 @@ async function delayNextMatchingRequest(
 }
 
 /**
+ * Delays the next targeted public agent-profile request until the test explicitly releases it.
+ *
+ * @param page - Current Playwright page.
+ * @param agentName - Canonical agent slug.
+ * @returns Control handle for the delayed request.
+ */
+async function delayNextAgentProfileRequest(page: Page, agentName: string): Promise<DelayedAgentProfileRequest> {
+    return delayNextMatchingRequest(page, {
+        method: 'GET',
+        isMatchingUrl: (url) => isMatchingAgentProfileRequest(url, agentName),
+    });
+}
+
+/**
  * Delays the next targeted user-chat snapshot request until the test explicitly releases it.
  *
  * @param page - Current Playwright page.
@@ -454,6 +498,40 @@ async function releaseDelayedRequestOrFail(
  * Chat-history navigation regressions for explicit user-selected chats.
  */
 test.describe('Agents Server chat history navigation', () => {
+    test('renders the configured initial message on the profile page without a temporary hello fallback, even while profile loading is delayed', async ({
+        page,
+    }) => {
+        await page.goto('/');
+        await loginAsAdmin(page);
+
+        const apiKey = await createManagementApiToken(page);
+        const configuredInitialMessage = 'Configured initial message for delayed profile loading.';
+        const agent = await createTestAgent(
+            page,
+            apiKey,
+            'E2E Profile Initial Message No Blink',
+            configuredInitialMessage,
+        );
+        const delayedProfileRequest = await delayNextAgentProfileRequest(page, agent.agentName);
+
+        await page.goto(`/agents/${encodeURIComponent(agent.agentName)}`, {
+            waitUntil: 'domcontentloaded',
+        });
+        await delayedProfileRequest.waitUntilStarted;
+
+        await expect(page.getByText(configuredInitialMessage, { exact: true })).toBeVisible();
+        await expect(page.getByText(/Hello! I am /)).toHaveCount(0);
+
+        await releaseDelayedRequestOrFail(
+            page,
+            delayedProfileRequest,
+            'Expected delayed agent-profile request to finish after release.',
+        );
+
+        await expect(page.getByText(configuredInitialMessage, { exact: true })).toBeVisible();
+        await expect(page.getByText(/Hello! I am /)).toHaveCount(0);
+    });
+
     test('shows the first user message immediately as sending when starting a chat from the profile page', async ({
         page,
     }) => {

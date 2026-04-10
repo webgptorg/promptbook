@@ -1,3 +1,9 @@
+-   Fixed Agents Server initial-message boot so agent pages no longer blink through a temporary hello before showing the real default message:
+
+    -   Passed the server-resolved agent `INITIAL MESSAGE` into the profile preview so first render can show the configured message immediately instead of waiting for a client-side profile fetch.
+    -   Reworked durable-chat initial-message rendering to wait for initial-message resolution before injecting any synthetic first bubble, while still preserving the existing generic greeting only for agents that truly have no configured initial message.
+    -   Added delayed-profile-load regression coverage so slow `/api/profile` responses still show only the configured initial message and never a temporary fallback hello.
+
 -   Added durable message replies to Agents Server chats:
 
     -   Extended the shared chat message model plus Agents Server durable-chat pipeline so user messages can persist an in-message `replyingTo` snapshot, the send API accepts `threadId` + `repliedToMessageId`, and the worker now rewrites prompt content with explicit reply context for models that only receive plain chat text.

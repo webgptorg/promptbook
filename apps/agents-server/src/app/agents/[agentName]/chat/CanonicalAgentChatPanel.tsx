@@ -22,6 +22,7 @@ import { useChatVisualMode } from '../../../../components/ChatVisualMode/ChatVis
 import { usePrivateModePreferences } from '../../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { useSelfLearningPreferences } from '../../../../components/SelfLearningPreferences/SelfLearningPreferencesProvider';
 import { useServerLanguage } from '../../../../components/ServerLanguage/ServerLanguageProvider';
+import { ChatThreadLoadingSkeleton } from '../../../../components/Skeleton/ChatThreadLoadingSkeleton';
 import { useSoundSystem } from '../../../../components/SoundSystemProvider/SoundSystemProvider';
 import { useActiveBrowserTab } from '../../../../hooks/useActiveBrowserTab';
 import { fetchCalendarOAuthStatus, type CalendarOAuthStatusResponse } from '../../../../utils/calendarOAuthClient';
@@ -458,21 +459,34 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
         shouldAutoExecute,
     ]);
 
-    const initialMessage = useMemo(() => {
+    const fallbackInitialMessage = useMemo(() => {
         const agentDisplayName = agent?.meta.fullname || agent?.agentName || agentName;
-        return (
-            initialAgentMessage ||
-            agent?.initialMessage ||
-            spaceTrim(`
-                Hello! I am ${agentDisplayName}.
+        return spaceTrim(`
+            Hello! I am ${agentDisplayName}.
 
-                [Hello](?message=Hello, can you tell me about yourself?)
-            `)
-        );
-    }, [agent, agentName, initialAgentMessage]);
+            [Hello](?message=Hello, can you tell me about yourself?)
+        `);
+    }, [agent, agentName]);
+    const resolvedConfiguredInitialMessage = useMemo(() => {
+        if (initialAgentMessage !== undefined) {
+            return initialAgentMessage;
+        }
+
+        return agent?.initialMessage;
+    }, [agent, initialAgentMessage]);
+    const initialMessage = useMemo(() => {
+        if (resolvedConfiguredInitialMessage === undefined) {
+            return undefined;
+        }
+
+        return hasInitialMessageContent(resolvedConfiguredInitialMessage)
+            ? resolvedConfiguredInitialMessage
+            : fallbackInitialMessage;
+    }, [fallbackInitialMessage, resolvedConfiguredInitialMessage]);
 
     const renderedMessages = useCanonicalChatMessages({
         initialMessage,
+        isInitialMessageResolved: initialMessage !== undefined,
         messages,
         thinkingMessages,
         isActiveBrowserTab,
@@ -548,173 +562,184 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
     const handleFileUpload = useCallback(async (file: File) => {
         return chatFileUploadHandler(file);
     }, []);
-    const chatElement = (
-        <Chat
-            className={`agent-chat-panel__chat h-full min-h-0 w-full ${
-                isChatGptLikeVariant ? 'agent-chat-panel__chat--chatgpt-like' : ''
-            }`}
-            style={chatBackgroundStyle}
-            title={`Chat with ${agent?.meta.fullname || agent?.agentName || agentName}`}
-            messages={renderedMessages}
-            defaultMessage={draftMessage}
-            placeholderMessageContent={inputPlaceholder}
-            chatUiTranslations={{
-                inputPlaceholder: t('chat.inputPlaceholder'),
-                replyingToLabel: t('chat.replyingToLabel'),
-                replyActionLabel: t('chat.replyActionLabel'),
-                replyActionTitle: t('chat.replyActionTitle'),
-                cancelReplyLabel: t('chat.cancelReplyLabel'),
-                saveButtonLabel: t('chat.saveButtonLabel'),
-                newChatButtonLabel: t('chat.newChatButtonLabel'),
-                lifecycleSending: t('chat.lifecycleSending'),
-                lifecycleQueued: t('chat.lifecycleQueued'),
-                lifecycleRunning: t('chat.lifecycleRunning'),
-                lifecycleFailed: t('chat.lifecycleFailed'),
-                lifecycleCancelled: t('chat.lifecycleCancelled'),
-                lifecycleCompleted: t('chat.lifecycleCompleted'),
-                toolCallModalTitle: t('chat.toolCallModalTitle'),
-                toolCallModalCloseLabel: t('chat.toolCallModalCloseLabel'),
-                toolCallModalCopyLabel: t('chat.toolCallModalCopyLabel'),
-                toolCallModalSaveLabel: t('chat.toolCallModalSaveLabel'),
-                toolCallModalAdvancedLabel: t('chat.toolCallModalAdvancedLabel'),
-                toolCallModalSimpleLabel: t('chat.toolCallModalSimpleLabel'),
-                toolCallTimeoutTitle: t('chat.toolCallTimeoutTitle'),
-                toolCallTimeoutCancelledTitle: t('chat.toolCallTimeoutCancelledTitle'),
-                toolCallTimeoutUpdateTitle: t('chat.toolCallTimeoutUpdateTitle'),
-                toolCallTimeoutCancelButton: t('chat.toolCallTimeoutCancelButton'),
-                toolCallTimeoutSnoozeButton: t('chat.toolCallTimeoutSnoozeButton'),
-                toolCallTimeoutViewAdvancedButton: t('chat.toolCallTimeoutViewAdvancedButton'),
-                toolCallTimeoutLoadingMessage: t('chat.toolCallTimeoutLoadingMessage'),
-                toolCallTimeoutUnavailableMessage: t('chat.toolCallTimeoutUnavailableMessage'),
-                toolCallTimeoutDateLabel: t('chat.toolCallTimeoutDateLabel'),
-                toolCallTimeoutMessageLabel: t('chat.toolCallTimeoutMessageLabel'),
-                toolCallTimeoutTimezoneLabel: t('chat.toolCallTimeoutTimezoneLabel'),
-                toolCallTimeoutChipLabel: t('chat.toolCallTimeoutChipLabel'),
-                toolCallTimeoutChipCancelledLabel: t('chat.toolCallTimeoutChipCancelledLabel'),
-                toolCallTimeoutChipInactiveLabel: t('chat.toolCallTimeoutChipInactiveLabel'),
-                toolCallTimeoutChipUpdatedLabel: t('chat.toolCallTimeoutChipUpdatedLabel'),
-                toolCallTimeoutChipFallbackLabel: t('chat.toolCallTimeoutChipFallbackLabel'),
-                toolCallTimeoutPrimaryScheduledLabel: t('chat.toolCallTimeoutPrimaryScheduledLabel'),
-                toolCallTimeoutSecondaryDurationLabel: t('chat.toolCallTimeoutSecondaryDurationLabel'),
-                toolCallTimeoutPrimaryCancelledLabel: t('chat.toolCallTimeoutPrimaryCancelledLabel'),
-                toolCallTimeoutPrimaryInactiveLabel: t('chat.toolCallTimeoutPrimaryInactiveLabel'),
-                toolCallTimeoutPrimaryUpdatedLabel: t('chat.toolCallTimeoutPrimaryUpdatedLabel'),
-                toolCallTimeoutPrimaryFallbackLabel: t('chat.toolCallTimeoutPrimaryFallbackLabel'),
-                toolCallTimeoutActionGroupLabel: t('chat.toolCallTimeoutActionGroupLabel'),
-                toolCallTimeoutCancelAriaLabel: t('chat.toolCallTimeoutCancelAriaLabel'),
-                toolCallTimeoutSnoozeAriaLabel: t('chat.toolCallTimeoutSnoozeAriaLabel'),
-                toolCallTimeoutViewAdvancedAriaLabel: t('chat.toolCallTimeoutViewAdvancedAriaLabel'),
-                toolCallTimeTitle: t('chat.toolCallTimeTitle'),
-                toolCallTimeUnknown: t('chat.toolCallTimeUnknown'),
-                toolCallTimeTimestampLabel: t('chat.toolCallTimeTimestampLabel'),
-                toolCallTimeChipLabel: t('chat.toolCallTimeChipLabel'),
-                toolCallTimeRelativeLabel: t('chat.toolCallTimeRelativeLabel'),
-            }}
-            toolTitles={{
-                assistant_preparation: t('chat.toolTitle.assistantPreparation'),
-                wallet_credential_used: t('chat.toolTitle.walletCredentialUsed'),
-                'self-learning': t('chat.toolTitle.selfLearning'),
-                retrieve_user_memory: t('chat.toolTitle.memoryReader'),
-                store_user_memory: t('chat.toolTitle.memoryWriter'),
-                retrieve_wallet_records: t('chat.toolTitle.walletReader'),
-                store_wallet_record: t('chat.toolTitle.walletWriter'),
-                update_wallet_record: t('chat.toolTitle.walletUpdater'),
-                delete_wallet_record: t('chat.toolTitle.walletDeleter'),
-                request_wallet_record: t('chat.toolTitle.walletRequester'),
-                web_search: t('chat.toolTitle.webSearch'),
-                useSearchEngine: t('chat.toolTitle.webSearch'),
-                search: t('chat.toolTitle.webSearch'),
-                useBrowser: t('chat.toolTitle.websiteScraping'),
-                browse: t('chat.toolTitle.websiteScraping'),
-                fetch_url_content: t('chat.toolTitle.websiteScraping'),
-                run_browser: t('chat.toolTitle.websiteScraping'),
-                get_current_time: t('chat.toolTitle.timeChecker'),
-                useTime: t('chat.toolTitle.timeChecker'),
-                set_timeout: t('chat.toolTitle.timeoutSetter'),
-                cancel_timeout: t('chat.toolTitle.timeoutCanceller'),
-                list_timeouts: t('chat.toolTitle.timeoutLister'),
-                update_timeout: t('chat.toolTitle.timeoutUpdater'),
-                get_user_location: t('chat.toolTitle.locationProvider'),
-                send_email: t('chat.toolTitle.emailSender'),
-                useEmail: t('chat.toolTitle.emailSender'),
-                spawn_agent: t('chat.toolTitle.agentSpawner'),
-                project_list_files: t('chat.toolTitle.projectFileLister'),
-                project_read_file: t('chat.toolTitle.projectFileReader'),
-                project_upsert_file: t('chat.toolTitle.projectFileWriter'),
-                project_delete_file: t('chat.toolTitle.projectFileDeleter'),
-                project_create_branch: t('chat.toolTitle.projectBranchCreator'),
-                project_create_pull_request: t('chat.toolTitle.projectPullRequestCreator'),
-            }}
-            onMessage={isReadOnly ? undefined : handleManualMessage}
-            onQuickMessageButton={isReadOnly ? undefined : handleQuickMessageButton}
-            onReplyToMessage={isReadOnly ? undefined : handleStartReply}
-            onCancelReply={isReadOnly ? undefined : handleCancelReply}
-            canReplyToMessage={isReplyableCanonicalChatMessage}
-            replyingToMessage={replyingToMessage}
-            onActionButton={executeQuickActionButton}
-            onChange={onDraftMessageChange}
-            onReset={isReadOnly ? undefined : onStartNewChat}
-            resetRequiresConfirmation={false}
-            newChatButtonHref={isReadOnly ? undefined : newChatButtonHref}
-            feedbackMode={toChatComponentFeedbackMode(feedbackMode)}
-            onFeedback={!isReadOnly && feedbackEnabled ? handleFeedback : undefined}
-            onFileUpload={!isReadOnly && areFileAttachmentsEnabled ? handleFileUpload : undefined}
-            participants={participants}
-            chatLocale={language}
-            timingTranslations={{ answerDurationLabel: t('chat.answerDurationLabel') }}
-            feedbackTranslations={{
-                reportIssueButtonTitle: t('chat.feedback.reportIssueButtonTitle'),
-                reportIssueButtonAriaLabel: t('chat.feedback.reportIssueButtonAriaLabel'),
-                reportIssueModalTitle: t('chat.feedback.reportIssueModalTitle'),
-                rateResponseModalTitle: t('chat.feedback.rateResponseModalTitle'),
-                userQuestionLabel: t('chat.feedback.userQuestionLabel'),
-                reportIssueExpectedAnswerLabel: t('chat.feedback.reportIssueExpectedAnswerLabel'),
-                expectedAnswerLabel: t('chat.feedback.expectedAnswerLabel'),
-                expectedAnswerPlaceholder: t('chat.feedback.expectedAnswerPlaceholder'),
-                reportIssueDetailsLabel: t('chat.feedback.reportIssueDetailsLabel'),
-                noteLabel: t('chat.feedback.noteLabel'),
-                reportIssueDetailsPlaceholder: t('chat.feedback.reportIssueDetailsPlaceholder'),
-                notePlaceholder: t('chat.feedback.notePlaceholder'),
-                cancelLabel: t('chat.feedback.cancelLabel'),
-                reportIssueSubmitLabel: t('chat.feedback.reportIssueSubmitLabel'),
-                submitLabel: t('chat.feedback.submitLabel'),
-                feedbackSuccessMessage: t('chat.feedback.feedbackSuccessMessage'),
-                reportIssueSuccessMessage: t('chat.feedback.reportIssueSuccessMessage'),
-                feedbackErrorMessage: t('chat.feedback.feedbackErrorMessage'),
-            }}
-            buttonColor={isChatGptLikeVariant ? '#111827' : brandColorHex}
-            visual="FULL_PAGE"
-            CHAT_VISUAL_MODE={chatVisualMode}
-            effectConfigs={effectConfigs}
-            soundSystem={soundSystem}
-            speechRecognition={speechRecognition}
-            speechRecognitionLanguage={speechRecognitionLanguage}
-            enterBehavior={enterBehavior}
-            resolveEnterBehavior={resolveEnterBehavior}
-            isSpeechPlaybackEnabled={agent?.isVoiceTtsSttEnabled ?? false}
-            elevenLabsVoiceId={agent?.meta.voice}
-            teamAgentProfiles={teamAgentProfiles}
-            extraActions={
-                <>
-                    {!isReadOnly && (
-                        <ChatTimeoutButton
-                            activeTimeouts={activeTimeouts}
-                            currentTimestamp={currentTimestamp}
-                            onCancelActiveTimeout={onCancelActiveTimeout}
-                        />
-                    )}
-                    {cancelAction}
-                    {!isReadOnly && extraActions}
-                </>
-            }
-        >
-            {isReadOnly && frozenChatBannerLabel && (
-                <div className="mx-4 mt-4 rounded-2xl border border-amber-200 bg-amber-50/95 px-4 py-3 text-sm font-medium text-amber-900 shadow-sm">
-                    {t('chat.frozenBannerLabel', { source: frozenChatBannerLabel })}
+    const chatElement =
+        initialMessage === undefined && messages.length === 0 ? (
+            isChatGptLikeVariant ? (
+                <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-[28px] border border-slate-200/80 bg-white/88 shadow-[0_24px_80px_rgba(15,23,42,0.12)] dark:border-slate-800/80 dark:bg-slate-950/88">
+                    <ChatThreadLoadingSkeleton />
                 </div>
-            )}
-        </Chat>
-    );
+            ) : (
+                <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
+                    <ChatThreadLoadingSkeleton />
+                </div>
+            )
+        ) : (
+            <Chat
+                className={`agent-chat-panel__chat h-full min-h-0 w-full ${
+                    isChatGptLikeVariant ? 'agent-chat-panel__chat--chatgpt-like' : ''
+                }`}
+                style={chatBackgroundStyle}
+                title={`Chat with ${agent?.meta.fullname || agent?.agentName || agentName}`}
+                messages={renderedMessages}
+                defaultMessage={draftMessage}
+                placeholderMessageContent={inputPlaceholder}
+                chatUiTranslations={{
+                    inputPlaceholder: t('chat.inputPlaceholder'),
+                    replyingToLabel: t('chat.replyingToLabel'),
+                    replyActionLabel: t('chat.replyActionLabel'),
+                    replyActionTitle: t('chat.replyActionTitle'),
+                    cancelReplyLabel: t('chat.cancelReplyLabel'),
+                    saveButtonLabel: t('chat.saveButtonLabel'),
+                    newChatButtonLabel: t('chat.newChatButtonLabel'),
+                    lifecycleSending: t('chat.lifecycleSending'),
+                    lifecycleQueued: t('chat.lifecycleQueued'),
+                    lifecycleRunning: t('chat.lifecycleRunning'),
+                    lifecycleFailed: t('chat.lifecycleFailed'),
+                    lifecycleCancelled: t('chat.lifecycleCancelled'),
+                    lifecycleCompleted: t('chat.lifecycleCompleted'),
+                    toolCallModalTitle: t('chat.toolCallModalTitle'),
+                    toolCallModalCloseLabel: t('chat.toolCallModalCloseLabel'),
+                    toolCallModalCopyLabel: t('chat.toolCallModalCopyLabel'),
+                    toolCallModalSaveLabel: t('chat.toolCallModalSaveLabel'),
+                    toolCallModalAdvancedLabel: t('chat.toolCallModalAdvancedLabel'),
+                    toolCallModalSimpleLabel: t('chat.toolCallModalSimpleLabel'),
+                    toolCallTimeoutTitle: t('chat.toolCallTimeoutTitle'),
+                    toolCallTimeoutCancelledTitle: t('chat.toolCallTimeoutCancelledTitle'),
+                    toolCallTimeoutUpdateTitle: t('chat.toolCallTimeoutUpdateTitle'),
+                    toolCallTimeoutCancelButton: t('chat.toolCallTimeoutCancelButton'),
+                    toolCallTimeoutSnoozeButton: t('chat.toolCallTimeoutSnoozeButton'),
+                    toolCallTimeoutViewAdvancedButton: t('chat.toolCallTimeoutViewAdvancedButton'),
+                    toolCallTimeoutLoadingMessage: t('chat.toolCallTimeoutLoadingMessage'),
+                    toolCallTimeoutUnavailableMessage: t('chat.toolCallTimeoutUnavailableMessage'),
+                    toolCallTimeoutDateLabel: t('chat.toolCallTimeoutDateLabel'),
+                    toolCallTimeoutMessageLabel: t('chat.toolCallTimeoutMessageLabel'),
+                    toolCallTimeoutTimezoneLabel: t('chat.toolCallTimeoutTimezoneLabel'),
+                    toolCallTimeoutChipLabel: t('chat.toolCallTimeoutChipLabel'),
+                    toolCallTimeoutChipCancelledLabel: t('chat.toolCallTimeoutChipCancelledLabel'),
+                    toolCallTimeoutChipInactiveLabel: t('chat.toolCallTimeoutChipInactiveLabel'),
+                    toolCallTimeoutChipUpdatedLabel: t('chat.toolCallTimeoutChipUpdatedLabel'),
+                    toolCallTimeoutChipFallbackLabel: t('chat.toolCallTimeoutChipFallbackLabel'),
+                    toolCallTimeoutPrimaryScheduledLabel: t('chat.toolCallTimeoutPrimaryScheduledLabel'),
+                    toolCallTimeoutSecondaryDurationLabel: t('chat.toolCallTimeoutSecondaryDurationLabel'),
+                    toolCallTimeoutPrimaryCancelledLabel: t('chat.toolCallTimeoutPrimaryCancelledLabel'),
+                    toolCallTimeoutPrimaryInactiveLabel: t('chat.toolCallTimeoutPrimaryInactiveLabel'),
+                    toolCallTimeoutPrimaryUpdatedLabel: t('chat.toolCallTimeoutPrimaryUpdatedLabel'),
+                    toolCallTimeoutPrimaryFallbackLabel: t('chat.toolCallTimeoutPrimaryFallbackLabel'),
+                    toolCallTimeoutActionGroupLabel: t('chat.toolCallTimeoutActionGroupLabel'),
+                    toolCallTimeoutCancelAriaLabel: t('chat.toolCallTimeoutCancelAriaLabel'),
+                    toolCallTimeoutSnoozeAriaLabel: t('chat.toolCallTimeoutSnoozeAriaLabel'),
+                    toolCallTimeoutViewAdvancedAriaLabel: t('chat.toolCallTimeoutViewAdvancedAriaLabel'),
+                    toolCallTimeTitle: t('chat.toolCallTimeTitle'),
+                    toolCallTimeUnknown: t('chat.toolCallTimeUnknown'),
+                    toolCallTimeTimestampLabel: t('chat.toolCallTimeTimestampLabel'),
+                    toolCallTimeChipLabel: t('chat.toolCallTimeChipLabel'),
+                    toolCallTimeRelativeLabel: t('chat.toolCallTimeRelativeLabel'),
+                }}
+                toolTitles={{
+                    assistant_preparation: t('chat.toolTitle.assistantPreparation'),
+                    wallet_credential_used: t('chat.toolTitle.walletCredentialUsed'),
+                    'self-learning': t('chat.toolTitle.selfLearning'),
+                    retrieve_user_memory: t('chat.toolTitle.memoryReader'),
+                    store_user_memory: t('chat.toolTitle.memoryWriter'),
+                    retrieve_wallet_records: t('chat.toolTitle.walletReader'),
+                    store_wallet_record: t('chat.toolTitle.walletWriter'),
+                    update_wallet_record: t('chat.toolTitle.walletUpdater'),
+                    delete_wallet_record: t('chat.toolTitle.walletDeleter'),
+                    request_wallet_record: t('chat.toolTitle.walletRequester'),
+                    web_search: t('chat.toolTitle.webSearch'),
+                    useSearchEngine: t('chat.toolTitle.webSearch'),
+                    search: t('chat.toolTitle.webSearch'),
+                    useBrowser: t('chat.toolTitle.websiteScraping'),
+                    browse: t('chat.toolTitle.websiteScraping'),
+                    fetch_url_content: t('chat.toolTitle.websiteScraping'),
+                    run_browser: t('chat.toolTitle.websiteScraping'),
+                    get_current_time: t('chat.toolTitle.timeChecker'),
+                    useTime: t('chat.toolTitle.timeChecker'),
+                    set_timeout: t('chat.toolTitle.timeoutSetter'),
+                    cancel_timeout: t('chat.toolTitle.timeoutCanceller'),
+                    list_timeouts: t('chat.toolTitle.timeoutLister'),
+                    update_timeout: t('chat.toolTitle.timeoutUpdater'),
+                    get_user_location: t('chat.toolTitle.locationProvider'),
+                    send_email: t('chat.toolTitle.emailSender'),
+                    useEmail: t('chat.toolTitle.emailSender'),
+                    spawn_agent: t('chat.toolTitle.agentSpawner'),
+                    project_list_files: t('chat.toolTitle.projectFileLister'),
+                    project_read_file: t('chat.toolTitle.projectFileReader'),
+                    project_upsert_file: t('chat.toolTitle.projectFileWriter'),
+                    project_delete_file: t('chat.toolTitle.projectFileDeleter'),
+                    project_create_branch: t('chat.toolTitle.projectBranchCreator'),
+                    project_create_pull_request: t('chat.toolTitle.projectPullRequestCreator'),
+                }}
+                onMessage={isReadOnly ? undefined : handleManualMessage}
+                onQuickMessageButton={isReadOnly ? undefined : handleQuickMessageButton}
+                onReplyToMessage={isReadOnly ? undefined : handleStartReply}
+                onCancelReply={isReadOnly ? undefined : handleCancelReply}
+                canReplyToMessage={isReplyableCanonicalChatMessage}
+                replyingToMessage={replyingToMessage}
+                onActionButton={executeQuickActionButton}
+                onChange={onDraftMessageChange}
+                onReset={isReadOnly ? undefined : onStartNewChat}
+                resetRequiresConfirmation={false}
+                newChatButtonHref={isReadOnly ? undefined : newChatButtonHref}
+                feedbackMode={toChatComponentFeedbackMode(feedbackMode)}
+                onFeedback={!isReadOnly && feedbackEnabled ? handleFeedback : undefined}
+                onFileUpload={!isReadOnly && areFileAttachmentsEnabled ? handleFileUpload : undefined}
+                participants={participants}
+                chatLocale={language}
+                timingTranslations={{ answerDurationLabel: t('chat.answerDurationLabel') }}
+                feedbackTranslations={{
+                    reportIssueButtonTitle: t('chat.feedback.reportIssueButtonTitle'),
+                    reportIssueButtonAriaLabel: t('chat.feedback.reportIssueButtonAriaLabel'),
+                    reportIssueModalTitle: t('chat.feedback.reportIssueModalTitle'),
+                    rateResponseModalTitle: t('chat.feedback.rateResponseModalTitle'),
+                    userQuestionLabel: t('chat.feedback.userQuestionLabel'),
+                    reportIssueExpectedAnswerLabel: t('chat.feedback.reportIssueExpectedAnswerLabel'),
+                    expectedAnswerLabel: t('chat.feedback.expectedAnswerLabel'),
+                    expectedAnswerPlaceholder: t('chat.feedback.expectedAnswerPlaceholder'),
+                    reportIssueDetailsLabel: t('chat.feedback.reportIssueDetailsLabel'),
+                    noteLabel: t('chat.feedback.noteLabel'),
+                    reportIssueDetailsPlaceholder: t('chat.feedback.reportIssueDetailsPlaceholder'),
+                    notePlaceholder: t('chat.feedback.notePlaceholder'),
+                    cancelLabel: t('chat.feedback.cancelLabel'),
+                    reportIssueSubmitLabel: t('chat.feedback.reportIssueSubmitLabel'),
+                    submitLabel: t('chat.feedback.submitLabel'),
+                    feedbackSuccessMessage: t('chat.feedback.feedbackSuccessMessage'),
+                    reportIssueSuccessMessage: t('chat.feedback.reportIssueSuccessMessage'),
+                    feedbackErrorMessage: t('chat.feedback.feedbackErrorMessage'),
+                }}
+                buttonColor={isChatGptLikeVariant ? '#111827' : brandColorHex}
+                visual="FULL_PAGE"
+                CHAT_VISUAL_MODE={chatVisualMode}
+                effectConfigs={effectConfigs}
+                soundSystem={soundSystem}
+                speechRecognition={speechRecognition}
+                speechRecognitionLanguage={speechRecognitionLanguage}
+                enterBehavior={enterBehavior}
+                resolveEnterBehavior={resolveEnterBehavior}
+                isSpeechPlaybackEnabled={agent?.isVoiceTtsSttEnabled ?? false}
+                elevenLabsVoiceId={agent?.meta.voice}
+                teamAgentProfiles={teamAgentProfiles}
+                extraActions={
+                    <>
+                        {!isReadOnly && (
+                            <ChatTimeoutButton
+                                activeTimeouts={activeTimeouts}
+                                currentTimestamp={currentTimestamp}
+                                onCancelActiveTimeout={onCancelActiveTimeout}
+                            />
+                        )}
+                        {cancelAction}
+                        {!isReadOnly && extraActions}
+                    </>
+                }
+            >
+                {isReadOnly && frozenChatBannerLabel && (
+                    <div className="mx-4 mt-4 rounded-2xl border border-amber-200 bg-amber-50/95 px-4 py-3 text-sm font-medium text-amber-900 shadow-sm">
+                        {t('chat.frozenBannerLabel', { source: frozenChatBannerLabel })}
+                    </div>
+                )}
+            </Chat>
+        );
 
     return (
         <>
@@ -765,4 +790,11 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
             )}
         </>
     );
+}
+
+/**
+ * Returns true when one resolved initial message contains visible text.
+ */
+function hasInitialMessageContent(initialMessage: string | null | undefined): initialMessage is string {
+    return typeof initialMessage === 'string' && initialMessage.trim().length > 0;
 }

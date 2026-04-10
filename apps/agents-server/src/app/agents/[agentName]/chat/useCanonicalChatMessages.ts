@@ -18,7 +18,8 @@ const CANONICAL_CHAT_REVEAL_DELAY_MS = 45;
  * Options accepted by `useCanonicalChatMessages`.
  */
 type UseCanonicalChatMessagesOptions = {
-    initialMessage: string;
+    initialMessage?: string;
+    isInitialMessageResolved: boolean;
     messages: ReadonlyArray<ChatMessage>;
     thinkingMessages?: ReadonlyArray<string>;
     isActiveBrowserTab: boolean;
@@ -33,7 +34,7 @@ type UseCanonicalChatMessagesOptions = {
  * - persisted content deltas are revealed progressively so focused viewers see smooth streaming
  */
 export function useCanonicalChatMessages(options: UseCanonicalChatMessagesOptions): ReadonlyArray<ChatMessage> {
-    const { initialMessage, messages, thinkingMessages, isActiveBrowserTab } = options;
+    const { initialMessage, isInitialMessageResolved, messages, thinkingMessages, isActiveBrowserTab } = options;
     const normalizedThinkingMessages = useMemo(
         () => normalizeThinkingMessageVariants(thinkingMessages),
         [thinkingMessages],
@@ -269,15 +270,8 @@ export function useCanonicalChatMessages(options: UseCanonicalChatMessagesOption
     ]);
 
     return useMemo<ReadonlyArray<ChatMessage>>(
-        () => [
-            {
-                id: 'canonical-agent-initial-message',
-                sender: 'AGENT',
-                content: initialMessage,
-                createdAt: messages[0]?.createdAt,
-                isComplete: true,
-            },
-            ...messages.map((message, index) => {
+        () => {
+            const renderedMessages = messages.map((message, index) => {
                 const messageId = resolveMessageId(message, index);
                 const browserContentOverride = messageContentOverrides[messageId];
 
@@ -287,10 +281,32 @@ export function useCanonicalChatMessages(options: UseCanonicalChatMessagesOption
                           ...message,
                           content: browserContentOverride,
                       };
-            }),
-        ],
-        [initialMessage, messageContentOverrides, messages],
+            });
+
+            if (!isInitialMessageResolved || !hasInitialMessageContent(initialMessage)) {
+                return renderedMessages;
+            }
+
+            return [
+                {
+                    id: 'canonical-agent-initial-message',
+                    sender: 'AGENT',
+                    content: initialMessage,
+                    createdAt: messages[0]?.createdAt,
+                    isComplete: true,
+                },
+                ...renderedMessages,
+            ];
+        },
+        [initialMessage, isInitialMessageResolved, messageContentOverrides, messages],
     );
+}
+
+/**
+ * Returns true when the resolved synthetic initial message should render as a visible chat bubble.
+ */
+function hasInitialMessageContent(initialMessage: string | undefined): initialMessage is string {
+    return typeof initialMessage === 'string' && initialMessage.trim().length > 0;
 }
 
 /**

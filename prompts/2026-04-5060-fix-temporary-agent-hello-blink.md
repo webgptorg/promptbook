@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 32 minutes by GitHub Copilot `gpt-5.4`
 
 [🧠⚡] Fix temporary agent hello blink; only render the real default initial message
 
