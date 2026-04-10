@@ -50,17 +50,20 @@ describe('$initializeCoderFindRefactorCandidatesCommand', () => {
         );
     });
 
-    it('passes the configured scan level through to the finder', async () => {
-        const program = createProgramWithFindRefactorCandidatesCommand();
+    it.each(['xlow', 'xhigh', 'extreme'] as const)(
+        'passes the configured `%s` scan level through to the finder',
+        async (level) => {
+            const program = createProgramWithFindRefactorCandidatesCommand();
 
-        await program.parseAsync(['node', 'test', 'find-refactor-candidates', '--level', 'xhigh'], {
-            from: 'node',
-        });
+            await program.parseAsync(['node', 'test', 'find-refactor-candidates', '--level', level], {
+                from: 'node',
+            });
 
-        expect(getFindRefactorCandidatesMock()).toHaveBeenCalledWith(
-            expect.objectContaining({
-                level: 'xhigh',
-            }),
-        );
-    });
+            expect(getFindRefactorCandidatesMock()).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    level,
+                }),
+            );
+        },
+    );
 });

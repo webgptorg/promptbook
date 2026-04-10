@@ -3,7 +3,7 @@ import { SOURCE_FILE_EXTENSIONS } from './find-refactor-candidates.constants';
 /**
  * Supported aggressiveness levels for refactor-candidate scanning.
  */
-export const REFACTOR_CANDIDATE_LEVEL_VALUES = ['low', 'medium', 'high', 'xhigh'] as const;
+export const REFACTOR_CANDIDATE_LEVEL_VALUES = ['xlow', 'low', 'medium', 'high', 'xhigh', 'extreme'] as const;
 
 /**
  * Supported aggressiveness levels for refactor-candidate scanning.
@@ -48,32 +48,50 @@ export const DEFAULT_REFACTOR_CANDIDATE_LEVEL: RefactorCandidateLevel = 'medium'
 /**
  * Threshold table for each supported refactor-candidate scanning level.
  */
-const REFACTOR_CANDIDATE_LEVEL_CONFIGURATION_BY_LEVEL: Readonly<
-    Record<RefactorCandidateLevel, RefactorCandidateLevelConfiguration>
+const REFACTOR_CANDIDATE_LEVEL_DETAILS_BY_LEVEL: Readonly<
+    Record<RefactorCandidateLevel, RefactorCandidateLevelDetails>
 > = {
-    low: createRefactorCandidateLevelConfiguration({
+    xlow: createRefactorCandidateLevelDetails({
+        description: 'Very benevolent scan that only flags the most obvious refactor targets.',
+        maxLineCount: 4200,
+        maxEntityCountPerFile: 36,
+        maxFunctionCountPerFile: 24,
+        maxFunctionComplexity: 24,
+    }),
+    low: createRefactorCandidateLevelDetails({
+        description: 'Conservative scan for only the most obvious refactor targets.',
         maxLineCount: 2800,
         maxEntityCountPerFile: 28,
         maxFunctionCountPerFile: 18,
         maxFunctionComplexity: 20,
     }),
-    medium: createRefactorCandidateLevelConfiguration({
+    medium: createRefactorCandidateLevelDetails({
+        description: 'Default scan using the current standard thresholds.',
         maxLineCount: 2000,
         maxEntityCountPerFile: 20,
         maxFunctionCountPerFile: 14,
         maxFunctionComplexity: 16,
     }),
-    high: createRefactorCandidateLevelConfiguration({
-        maxLineCount: 1500,
-        maxEntityCountPerFile: 16,
+    high: createRefactorCandidateLevelDetails({
+        description: 'Strict scan that finds more crowded or complex files.',
+        maxLineCount: 1400,
+        maxEntityCountPerFile: 15,
         maxFunctionCountPerFile: 10,
         maxFunctionComplexity: 12,
     }),
-    xhigh: createRefactorCandidateLevelConfiguration({
-        maxLineCount: 1000,
-        maxEntityCountPerFile: 12,
-        maxFunctionCountPerFile: 8,
+    xhigh: createRefactorCandidateLevelDetails({
+        description: 'Very strict scan for denser and more complex candidates.',
+        maxLineCount: 900,
+        maxEntityCountPerFile: 10,
+        maxFunctionCountPerFile: 7,
         maxFunctionComplexity: 8,
+    }),
+    extreme: createRefactorCandidateLevelDetails({
+        description: 'Most aggressive scan that also surfaces weaker refactor opportunities.',
+        maxLineCount: 600,
+        maxEntityCountPerFile: 6,
+        maxFunctionCountPerFile: 4,
+        maxFunctionComplexity: 6,
     }),
 };
 
@@ -83,13 +101,40 @@ const REFACTOR_CANDIDATE_LEVEL_CONFIGURATION_BY_LEVEL: Readonly<
 export function getRefactorCandidateLevelConfiguration(
     level: RefactorCandidateLevel = DEFAULT_REFACTOR_CANDIDATE_LEVEL,
 ): RefactorCandidateLevelConfiguration {
-    return REFACTOR_CANDIDATE_LEVEL_CONFIGURATION_BY_LEVEL[level];
+    return REFACTOR_CANDIDATE_LEVEL_DETAILS_BY_LEVEL[level].configuration;
 }
 
 /**
- * Input used to build one normalized refactor-candidate level configuration.
+ * Resolves the user-facing description for a selected refactor-candidate scanning level.
  */
-type CreateRefactorCandidateLevelConfigurationOptions = {
+export function getRefactorCandidateLevelDescription(level: RefactorCandidateLevel): string {
+    return REFACTOR_CANDIDATE_LEVEL_DETAILS_BY_LEVEL[level].description;
+}
+
+/**
+ * Shared metadata stored for one refactor-candidate scanning level.
+ */
+type RefactorCandidateLevelDetails = {
+    /**
+     * Human-readable summary used in CLI help text.
+     */
+    readonly description: string;
+
+    /**
+     * Thresholds used by the scanner for this level.
+     */
+    readonly configuration: RefactorCandidateLevelConfiguration;
+};
+
+/**
+ * Input used to build one normalized refactor-candidate level entry.
+ */
+type CreateRefactorCandidateLevelDetailsOptions = {
+    /**
+     * Human-readable summary used in CLI help text.
+     */
+    readonly description: string;
+
     /**
      * Shared line-count threshold applied to every supported source extension.
      */
@@ -112,10 +157,29 @@ type CreateRefactorCandidateLevelConfigurationOptions = {
 };
 
 /**
+ * Builds one normalized refactor-candidate level entry.
+ */
+function createRefactorCandidateLevelDetails(
+    options: CreateRefactorCandidateLevelDetailsOptions,
+): RefactorCandidateLevelDetails {
+    const { description, maxLineCount, maxEntityCountPerFile, maxFunctionCountPerFile, maxFunctionComplexity } = options;
+
+    return {
+        description,
+        configuration: createRefactorCandidateLevelConfiguration({
+            maxLineCount,
+            maxEntityCountPerFile,
+            maxFunctionCountPerFile,
+            maxFunctionComplexity,
+        }),
+    };
+}
+
+/**
  * Builds one normalized refactor-candidate level configuration entry.
  */
 function createRefactorCandidateLevelConfiguration(
-    options: CreateRefactorCandidateLevelConfigurationOptions,
+    options: Omit<CreateRefactorCandidateLevelDetailsOptions, 'description'>,
 ): RefactorCandidateLevelConfiguration {
     const { maxLineCount, maxEntityCountPerFile, maxFunctionCountPerFile, maxFunctionComplexity } = options;
 

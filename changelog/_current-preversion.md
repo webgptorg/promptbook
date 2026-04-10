@@ -84,9 +84,9 @@
 
 -   Added configurable scan levels to `ptbk coder find-refactor-candidates`:
 
-    -   Added `--level <low|medium|high|xhigh>` so refactor-candidate scans can stay conservative or become progressively more aggressive while `medium` remains the default.
-    -   Extracted the scan heuristics into a dedicated shared level configuration and expanded candidate detection to consider line count, top-level entity count, named function count, and function complexity.
-    -   Added regression coverage for CLI flag forwarding and level-sensitive refactor-candidate analysis.
+    -   Added `--level <xlow|low|medium|high|xhigh|extreme>` so refactor-candidate scans can range from a very benevolent pass to a very aggressive sweep while `medium` remains the default.
+    -   Kept the scan heuristics centralized in one shared level configuration and widened the threshold spread so `xlow` only surfaces the most obvious oversized files while `extreme` now proposes far more borderline candidates across line count, entity count, function count, and function complexity.
+    -   Expanded regression coverage for CLI flag forwarding and level-sensitive refactor-candidate analysis, including the new outer levels.
 
 -   Improved the Agents Server wallet credential dialog for manual GitHub token entry:
 

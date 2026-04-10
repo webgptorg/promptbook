@@ -3,10 +3,10 @@ import {
     Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
     Option,
 } from 'commander';
-import { spaceTrim } from 'spacetrim';
 import {
     DEFAULT_REFACTOR_CANDIDATE_LEVEL,
     REFACTOR_CANDIDATE_LEVEL_VALUES,
+    getRefactorCandidateLevelDescription,
     type RefactorCandidateLevel,
 } from '../../../../scripts/find-refactor-candidates/RefactorCandidateLevel';
 import { assertsError } from '../../../errors/assertsError';
@@ -23,17 +23,16 @@ import { handleActionErrors } from '../common/handleActionErrors';
 export function $initializeCoderFindRefactorCandidatesCommand(program: Program): $side_effect {
     const command = program.command('find-refactor-candidates');
     command.description(
-        spaceTrim(`
-            Scan source files to identify refactoring candidates
-
-            Levels:
-            - low: Conservative scan for only the most obvious refactor targets
-            - medium: Default scan using the current standard thresholds
-            - high: Stricter scan that finds more crowded or complex files
-            - xhigh: Most aggressive scan for denser and more complex candidates
-
-            Generates refactor prompts with guidance for identified candidates.
-        `),
+        [
+            'Scan source files to identify refactoring candidates',
+            '',
+            'Levels:',
+            ...REFACTOR_CANDIDATE_LEVEL_VALUES.map(
+                (level) => `- ${level}: ${getRefactorCandidateLevelDescription(level)}`,
+            ),
+            '',
+            'Generates refactor prompts with guidance for identified candidates.',
+        ].join('\n'),
     );
     command.addOption(
         new Option(

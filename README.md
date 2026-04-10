@@ -466,7 +466,7 @@ npx ptbk coder verify
 | `ptbk coder init` | Creates `prompts/`, `prompts/done/`, the project-generic template files materialized in `prompts/templates/` (currently `common.md`), and a starter `AGENTS.md`; ensures `.env` contains `CODING_AGENT_GIT_NAME`, `CODING_AGENT_GIT_EMAIL`, and `CODING_AGENT_GIT_SIGNING_KEY`; adds helper coder scripts to `package.json`; ensures `.gitignore` contains `/.tmp`; and configures `.vscode/settings.json` to save pasted prompt images into `prompts/screenshots/`. |
 | `ptbk coder generate-boilerplates` | Creates new prompt markdown files with fresh emoji tags so you can quickly fill in coding tasks; `--template` accepts either a built-in alias or a markdown file path relative to the project root. |
 | `ptbk coder run` | Picks the next ready prompt, appends optional context, runs it through the selected coding agent, marks success or failure, then commits and pushes the result. |
-| `ptbk coder find-refactor-candidates` | Scans the repository for oversized or overpacked files and writes prompt files for likely refactors; `--level <low|medium|high|xhigh>` makes the scan more or less aggressive. |
+| `ptbk coder find-refactor-candidates` | Scans the repository for oversized or overpacked files and writes prompt files for likely refactors; `--level <xlow|low|medium|high|xhigh|extreme>` ranges from a very benevolent scan to a very aggressive sweep. |
 | `ptbk coder verify` | Walks through completed prompts, archives truly finished work, and adds follow-up repair prompts for unfinished results. |
 
 #### Most useful `ptbk coder run` flags
