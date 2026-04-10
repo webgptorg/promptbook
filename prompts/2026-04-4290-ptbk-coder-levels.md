@@ -73,6 +73,22 @@ ptbk coder find-refactor-candidates
 
 ---
 
+[ ]
+
+[✨🥊] Level of `ptbk coder find-refactor-candidates` should have much bigger spread between levels
+
+```bash
+ptbk coder find-refactor-candidates --level xlow
+ptbk coder find-refactor-candidates --level extreme
+```
+
+-   This script finds refactor candidates in the codebase
+-   Before searching for candidates, it should read the `.gitignore` file and ignore the files and directories specified in it. For example if there is `node_modules` in
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+
+---
+
 [-]
 
 [✨🥊] foo
@@ -92,5 +108,3 @@ ptbk coder find-refactor-candidates
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
-
-
