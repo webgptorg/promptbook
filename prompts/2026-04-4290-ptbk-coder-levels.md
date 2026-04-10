@@ -40,6 +40,39 @@ ptbk coder find-refactor-candidates --level xhigh
 
 ---
 
+[ ]
+
+[✨🥊] Modify `--level` flag in `ptbk coder find-refactor-candidates`
+
+```bash
+ptbk coder find-refactor-candidates --level xhigh
+```
+
+-   The levels are `low`, `medium`, `high`, `xhigh` add `extreme` and `xlow` level as well
+-   The levels should have bigger spread, for example `xlow` should be very benevolent and find only the most obvious candidates, while `extreme` should be very aggressive and find a lot of candidates, even the ones that are not very good but could be improved
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   Add the changes into the [changelog](./changelog/_current-preversion.md)
+
+---
+
+[ ]
+
+[✨🥊] Respect `.gitignore` in `ptbk coder find-refactor-candidates`
+
+```bash
+ptbk coder find-refactor-candidates
+```
+
+-   This script finds refactor candidates in the codebase
+-   Before searching for candidates, it should read the `.gitignore` file and ignore the files and directories specified in it. For example if there is `node_modules` in the `.gitignore`, the script should not search for refactor candidates in the `node_modules` directory
+-   Also do not hardcode any specific path to the script itself, this should be dynamic and work in any (typescript) project, it should find the `.gitignore` file in the project and read it
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   Add the changes into the [changelog](./changelog/_current-preversion.md)
+
+---
+
 [-]
 
 [✨🥊] foo
@@ -59,4 +92,3 @@ ptbk coder find-refactor-candidates --level xhigh
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
-
