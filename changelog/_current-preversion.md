@@ -1,3 +1,8 @@
+-   Refactored Agents Server `CustomCssClient.tsx` into smaller focused private custom-CSS modules without changing editor behavior:
+
+    -   Extracted the custom CSS loading, save/delete orchestration, unsaved-change tracking, and local file-state transitions into a dedicated private `useCustomCssClientState` hook so the route component is easier to follow.
+    -   Moved the stylesheet list, editor panel, and selector reference sidebar into focused private components so `CustomCssClient.tsx` now reads as a thin layout facade.
+
 -   Expanded `ptbk coder find-refactor-candidates` level spread so `xlow` and `extreme` are now much farther apart:
 
     -   Rebalanced all six scan levels with a substantially wider threshold range across line count, entity count, function count, and function complexity, so `xlow` stays highly benevolent while `extreme` is intentionally aggressive.
