@@ -1,3 +1,9 @@
+-   Added durable message replies to Agents Server chats:
+
+    -   Extended the shared chat message model plus Agents Server durable-chat pipeline so user messages can persist an in-message `replyingTo` snapshot, the send API accepts `threadId` + `repliedToMessageId`, and the worker now rewrites prompt content with explicit reply context for models that only receive plain chat text.
+    -   Added backward-compatible reply columns to `prefix_UserChatJob`, optimistic outbound reply metadata, and same-thread / already-existing reply validation so reply relationships survive reloads without allowing cross-thread or incomplete targets.
+    -   Updated the shared chat UI and Agents Server panel to support faded replied-to previews in both reply bubbles and the composer, cancelable reply mode, explicit reply actions, and touch swipe-to-reply for durable chat messages.
+
 -   Further refactored `src/types/string_url.ts` into smaller focused semantic type modules without changing external behavior:
 
     -   Extracted the remaining Promptbook-server, base-url, pipeline, agent, image, and href-family aliases into dedicated `src/types/string_*.ts` files so each module now owns one URL concern.

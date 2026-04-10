@@ -389,6 +389,10 @@ chat.cancelJobLabel: Zrušit
 chat.cancellingJobLabel: Ruším
 chat.frozenBannerLabel: 'Chat z {source}. Pouze pro čtení.'
 chat.inputPlaceholder: Napište zprávu...
+chat.replyingToLabel: Odpověď na
+chat.replyActionLabel: Odpovědět
+chat.replyActionTitle: Odpovědět na tuto zprávu
+chat.cancelReplyLabel: Zrušit odpověď
 chat.saveButtonLabel: Uložit
 chat.newChatButtonLabel: Nový chat
 chat.lifecycleSending: Odesílám

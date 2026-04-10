@@ -1,6 +1,7 @@
 'use client';
 
 import type { ChatMessage } from '../../../../../../../src/book-components/Chat/types/ChatMessage';
+import { serializeReplyingToSignature } from './chatReplies';
 
 /**
  * Time window used by the fallback reconciliation path when a canonical message
@@ -42,6 +43,11 @@ export type PendingOutboundMessageRecord = {
      * Optional uploaded attachments associated with the optimistic message.
      */
     readonly attachments?: ChatMessage['attachments'];
+
+    /**
+     * Optional reply snapshot quoted by the optimistic user message.
+     */
+    readonly replyingTo?: ChatMessage['replyingTo'];
 
     /**
      * Client-side timestamp used for rendering and fallback matching.
@@ -115,6 +121,7 @@ function createOptimisticUserChatMessageFromPendingOutboundMessage(
         sender: 'USER',
         content: pendingOutboundMessage.content,
         attachments: pendingOutboundMessage.attachments,
+        replyingTo: pendingOutboundMessage.replyingTo,
         createdAt: pendingOutboundMessage.createdAt,
         isComplete: true,
         lifecycleState: pendingOutboundMessage.status === 'sending' ? 'queued' : 'failed',
@@ -155,6 +162,10 @@ function isCanonicalMessageConfirmationForPendingOutboundMessage(
     }
 
     if (!areMessageAttachmentsEquivalent(canonicalMessage.attachments, pendingOutboundMessage.attachments)) {
+        return false;
+    }
+
+    if (serializeReplyingToSignature(canonicalMessage.replyingTo) !== serializeReplyingToSignature(pendingOutboundMessage.replyingTo)) {
         return false;
     }
 

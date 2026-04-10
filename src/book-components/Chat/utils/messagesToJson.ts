@@ -26,6 +26,7 @@ export function messagesToJson(messages: ChatMessage[], shareUrl: string): strin
                 content: message.content,
                 isComplete: message.isComplete ?? true,
                 createdAt,
+                ...(message.replyingTo ? { replyingTo: message.replyingTo } : {}),
             };
         }),
     };

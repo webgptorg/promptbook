@@ -1,6 +1,7 @@
 import type { UpdateUserChatMessagesOptions, UserChatRecord } from './UserChatRecord';
 import { mutateUserChat } from './mutateUserChat';
 import { normalizeMessagesInput, resolveLastMessageAt } from './resolveLastMessageAt';
+import { assertValidUserChatMessageReplies } from './userChatReplies';
 
 /**
  * One persisted chat message entry.
@@ -23,6 +24,10 @@ export async function updateUserChatMessages(
         chatId,
         mutate: (currentChat) => {
             const mergedMessages = mergeUserChatMessagesAppendOnly(currentChat.messages, incomingMessages);
+            assertValidUserChatMessageReplies({
+                chatId,
+                messages: mergedMessages,
+            });
             const now = new Date().toISOString();
 
             return {

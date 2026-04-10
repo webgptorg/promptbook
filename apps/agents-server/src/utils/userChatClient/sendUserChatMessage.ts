@@ -17,6 +17,8 @@ export async function sendUserChatMessage(
         message: string;
         attachments?: ChatMessage['attachments'];
         parameters?: Record<string, unknown>;
+        threadId?: string;
+        repliedToMessageId?: string;
     },
 ): Promise<UserChatEnqueueResult> {
     return await requestUserChatApi<UserChatEnqueueResult>(

@@ -11,8 +11,10 @@ import {
     getUserChat,
     getUserChatJobByClientMessageId,
     isFrozenUserChatSource,
+    resolveUserChatReplyReference,
     triggerUserChatJobWorker,
 } from '@/src/utils/userChat';
+import { UserChatReplyValidationError } from '@/src/utils/userChat/UserChatReplyValidationError';
 import { UserChatScopeError } from '@/src/utils/userChat/UserChatScopeError';
 import { normalizeChatAttachments } from '@promptbook-local/core';
 import { resolveChatMessageValidationIssue } from '@/src/utils/chat/validateChatMessageContent';
@@ -47,6 +49,8 @@ export async function POST(
             message?: unknown;
             attachments?: unknown;
             parameters?: unknown;
+            threadId?: unknown;
+            repliedToMessageId?: unknown;
         };
         const clientMessageId = normalizeRequiredNonEmptyString(body.clientMessageId);
         if (!clientMessageId) {
@@ -82,6 +86,13 @@ export async function POST(
         if (isFrozenUserChatSource(existingChat.source)) {
             return NextResponse.json({ error: 'Frozen chats are view-only in the web UI.' }, { status: 403 });
         }
+
+        const replyingTo = resolveUserChatReplyReference({
+            chatId,
+            threadId: normalizeOptionalNonEmptyString(body.threadId),
+            repliedToMessageId: normalizeOptionalNonEmptyString(body.repliedToMessageId),
+            messages: existingChat.messages,
+        });
 
         const existingJob = await getUserChatJobByClientMessageId({
             userId: scopeResult.scope.userId,
@@ -128,6 +139,7 @@ export async function POST(
             clientMessageId,
             messageContent,
             attachments,
+            replyingTo,
             parameters,
         }).catch(async (error) => {
             if (isDuplicateUserChatJobError(error)) {
@@ -170,6 +182,10 @@ export async function POST(
     } catch (error) {
         if (error instanceof UserChatScopeError) {
             return resolveUserChatMessageScopeErrorResponse(error);
+        }
+
+        if (error instanceof UserChatReplyValidationError) {
+            return resolveUserChatReplyValidationErrorResponse(error);
         }
 
         return NextResponse.json(
@@ -226,6 +242,20 @@ function normalizeRequiredNonEmptyString(value: unknown): string | null {
 }
 
 /**
+ * Normalizes one optional non-empty string request field.
+ *
+ * @private route helper
+ */
+function normalizeOptionalNonEmptyString(value: unknown): string | undefined {
+    if (typeof value !== 'string') {
+        return undefined;
+    }
+
+    const normalized = value.trim();
+    return normalized.length > 0 ? normalized : undefined;
+}
+
+/**
  * Normalizes message input so attachments-only sends can preserve blank text.
  *
  * @private route helper
@@ -262,4 +292,20 @@ function normalizePromptParameters(value: unknown): Record<string, unknown> {
  */
 function isDuplicateUserChatJobError(error: unknown): boolean {
     return error instanceof Error && error.name === 'UserChatJobDuplicateError';
+}
+
+/**
+ * Resolves one HTTP response for invalid reply metadata while enqueueing a chat turn.
+ *
+ * @private route helper
+ */
+function resolveUserChatReplyValidationErrorResponse(error: UserChatReplyValidationError): NextResponse {
+    return NextResponse.json(
+        {
+            error: error.message,
+            code: error.code,
+            details: error.details,
+        },
+        { status: 400 },
+    );
 }

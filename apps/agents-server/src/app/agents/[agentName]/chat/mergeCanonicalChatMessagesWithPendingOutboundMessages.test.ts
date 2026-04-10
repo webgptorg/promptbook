@@ -64,6 +64,7 @@ describe('mergeCanonicalChatMessagesWithPendingOutboundMessages', () => {
                 sender: 'USER',
                 content: pendingOutboundMessage.content,
                 attachments: undefined,
+                replyingTo: undefined,
                 createdAt: pendingOutboundMessage.createdAt,
                 isComplete: true,
                 lifecycleState: 'queued',
@@ -107,6 +108,7 @@ describe('mergeCanonicalChatMessagesWithPendingOutboundMessages', () => {
                 sender: 'USER',
                 content: failedPendingOutboundMessage.content,
                 attachments: undefined,
+                replyingTo: undefined,
                 createdAt: failedPendingOutboundMessage.createdAt,
                 isComplete: true,
                 lifecycleState: 'failed',
@@ -114,5 +116,51 @@ describe('mergeCanonicalChatMessagesWithPendingOutboundMessages', () => {
                 clientMessageId: failedPendingOutboundMessage.clientMessageId,
             },
         ]);
+    });
+
+    it('should preserve reply snapshots on optimistic user bubbles', () => {
+        const pendingOutboundMessage = createPendingOutboundMessageRecord({
+            replyingTo: {
+                threadId: 'chat-1',
+                messageId: 'assistant-0',
+                sender: 'AGENT',
+                content: 'Original reply target',
+            },
+        });
+
+        const renderedMessages = mergeCanonicalChatMessagesWithPendingOutboundMessages({
+            canonicalMessages: [],
+            pendingOutboundMessages: [pendingOutboundMessage],
+        });
+
+        expect(renderedMessages[0]?.replyingTo).toEqual(pendingOutboundMessage.replyingTo);
+    });
+
+    it('should not reconcile fallback-matched messages when their reply targets differ', () => {
+        const pendingOutboundMessage = createPendingOutboundMessageRecord({
+            clientMessageId: '',
+            replyingTo: {
+                threadId: 'chat-1',
+                messageId: 'assistant-0',
+                sender: 'AGENT',
+                content: 'First target',
+            },
+        });
+        const canonicalUserMessage = createCanonicalUserMessage({
+            clientMessageId: undefined,
+            replyingTo: {
+                threadId: 'chat-1',
+                messageId: 'assistant-1',
+                sender: 'AGENT',
+                content: 'Different target',
+            },
+        });
+
+        const reconciledPendingOutboundMessages = reconcilePendingOutboundMessagesWithCanonicalMessages({
+            canonicalMessages: [canonicalUserMessage],
+            pendingOutboundMessages: [pendingOutboundMessage],
+        });
+
+        expect(reconciledPendingOutboundMessages).toEqual([pendingOutboundMessage]);
     });
 });

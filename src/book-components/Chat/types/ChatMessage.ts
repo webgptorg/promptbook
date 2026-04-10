@@ -77,6 +77,42 @@ export type ChatProgressCard = {
 };
 
 /**
+ * Serialized reference to an earlier chat message quoted by a reply bubble.
+ *
+ * Stores the durable relationship (`threadId` + `messageId`) together with a
+ * lightweight snapshot of the original message so UIs and prompt builders can
+ * render reply context without performing extra fetches.
+ *
+ * @public exported from `@promptbook/components`
+ */
+export type ChatMessageReplyingTo = {
+    /**
+     * Durable chat thread identifier that owns the replied-to message.
+     */
+    readonly threadId: string;
+
+    /**
+     * Durable identifier of the specific replied-to message inside the thread.
+     */
+    readonly messageId: string;
+
+    /**
+     * Sender of the original replied-to message.
+     */
+    readonly sender: string;
+
+    /**
+     * Original markdown content of the replied-to message.
+     */
+    readonly content: string_markdown;
+
+    /**
+     * Optional list of attachment names from the replied-to message.
+     */
+    readonly attachmentNames?: ReadonlyArray<string>;
+};
+
+/**
  * Serializable prompt snapshot stored alongside one assistant message for debugging and inspection.
  */
 type ChatMessagePrompt = {
@@ -296,6 +332,11 @@ export type ChatMessage = Omit<Message<id>, 'direction' | 'recipients' | 'thread
      * resolved parameters, tool availability, and provider payload associated with one turn.
      */
     readonly prompt?: ChatMessagePrompt;
+
+    /**
+     * Optional metadata describing which earlier message this one replies to.
+     */
+    readonly replyingTo?: ChatMessageReplyingTo;
 };
 
 // TODO: Make all fields readonly

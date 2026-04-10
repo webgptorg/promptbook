@@ -3,6 +3,7 @@ import type { ChatMessage } from '@promptbook-local/types';
 import type { UserChatRecord } from './UserChatRecord';
 import type { UserChatRow } from './UserChatRow';
 import { USER_CHAT_SOURCES } from './UserChatSource';
+import { normalizeUserChatReplyReference } from './userChatReplies';
 
 /**
  * Maps one raw database row into a typed chat record.
@@ -34,5 +35,16 @@ function normalizeStoredMessages(rawMessages: Json): Array<ChatMessage> {
         return [];
     }
 
-    return rawMessages as unknown as Array<ChatMessage>;
+    return (rawMessages as unknown as Array<ChatMessage>).map((message) => {
+        const normalizedReplyReference = normalizeUserChatReplyReference((message as { replyingTo?: unknown }).replyingTo);
+        if (normalizedReplyReference === undefined) {
+            const { replyingTo, ...restMessage } = message as ChatMessage & { replyingTo?: unknown };
+            return replyingTo === undefined ? message : restMessage;
+        }
+
+        return {
+            ...message,
+            replyingTo: normalizedReplyReference,
+        };
+    });
 }

@@ -22,8 +22,12 @@ import { AttachmentIcon } from '../../icons/AttachmentIcon';
 import { CloseIcon } from '../../icons/CloseIcon';
 import { MicIcon } from '../../icons/MicIcon';
 import { SendIcon } from '../../icons/SendIcon';
+import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
+import { resolveChatMessageReplyPreviewText } from '../utils/resolveChatMessageReplyPreviewText';
+import { resolveChatMessageReplySenderLabel } from '../utils/resolveChatMessageReplySenderLabel';
 import styles from './Chat.module.css';
+import { ChatReplyPreview } from './ChatReplyPreview';
 import { ChatInputAreaDictationPanel } from './ChatInputAreaDictationPanel';
 import { chatCssClassNames } from './chatCssClassNames';
 import type { ChatProps, ChatSoundSystem } from './ChatProps';
@@ -62,6 +66,8 @@ export type ChatInputAreaProps = {
     speechRecognition?: ChatProps['speechRecognition'];
     speechRecognitionLanguage?: ChatProps['speechRecognitionLanguage'];
     defaultMessage?: string;
+    replyingToMessage?: ChatMessage | null;
+    onCancelReply?: ChatProps['onCancelReply'];
     enterBehavior?: ChatProps['enterBehavior'];
     resolveEnterBehavior?: ChatProps['resolveEnterBehavior'];
     placeholderMessageContent?: string;
@@ -73,6 +79,7 @@ export type ChatInputAreaProps = {
     soundSystem?: ChatSoundSystem;
     onButtonClick: ChatInputButtonClickHandler;
     chatInputClassName?: string;
+    chatUiTranslations?: ChatProps['chatUiTranslations'];
 };
 
 /**
@@ -85,6 +92,7 @@ type PendingEnterIntentSnapshot = {
     readonly selectionStart: number;
     readonly selectionEnd: number;
     readonly attachmentIds: ReadonlyArray<string>;
+    readonly replyingToMessageId: string | null;
 };
 
 /**
@@ -174,6 +182,8 @@ export function ChatInputArea(props: ChatInputAreaProps) {
         speechRecognition,
         speechRecognitionLanguage,
         defaultMessage,
+        replyingToMessage,
+        onCancelReply,
         enterBehavior,
         resolveEnterBehavior,
         placeholderMessageContent,
@@ -185,6 +195,7 @@ export function ChatInputArea(props: ChatInputAreaProps) {
         soundSystem,
         onButtonClick,
         chatInputClassName,
+        chatUiTranslations,
     } = props;
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
     const [messageContent, setMessageContent] = useState(defaultMessage || '');
@@ -343,12 +354,8 @@ export function ChatInputArea(props: ChatInputAreaProps) {
                 textareaElement.focus();
             }
 
-            await (
-                onMessage as unknown as (
-                    message: string,
-                    attachments: Array<{ name: string; type: string; url: string }>,
-                ) => Promise<void>
-            )(contentToSend, attachmentsToSend);
+            await onMessage(contentToSend, attachmentsToSend, replyingToMessage || null);
+            onCancelReply?.();
         } catch (error) {
             if (!(error instanceof Error)) {
                 throw error;
@@ -357,10 +364,16 @@ export function ChatInputArea(props: ChatInputAreaProps) {
             console.error(error);
             alert(error.message);
         }
-    }, [applyMessageContent, clearUploadedFiles, onMessage, soundSystem, uploadedFiles]);
+    }, [applyMessageContent, clearUploadedFiles, onCancelReply, onMessage, replyingToMessage, soundSystem, uploadedFiles]);
 
     const handleComposerKeyDown = useCallback(
         (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
+            if (event.key === 'Escape' && replyingToMessage && onCancelReply) {
+                event.preventDefault();
+                onCancelReply();
+                return;
+            }
+
             if (event.key !== 'Enter') {
                 return;
             }
@@ -393,6 +406,7 @@ export function ChatInputArea(props: ChatInputAreaProps) {
                         textareaElement.selectionStart ??
                         messageContentRef.current.length,
                     attachmentIds: uploadedFilesRef.current.map((uploadedFile) => uploadedFile.id),
+                    replyingToMessageId: typeof replyingToMessage?.id === 'string' ? replyingToMessage.id : null,
                 };
 
                 isResolvingEnterBehaviorRef.current = true;
@@ -409,8 +423,11 @@ export function ChatInputArea(props: ChatInputAreaProps) {
                             snapshot.attachmentIds,
                             uploadedFilesRef.current.map((uploadedFile) => uploadedFile.id),
                         );
+                        const currentReplyingToMessageId =
+                            typeof replyingToMessage?.id === 'string' ? replyingToMessage.id : null;
+                        const hasSameReplyTarget = currentReplyingToMessageId === snapshot.replyingToMessageId;
 
-                        if (!hasSameMessageContent || !hasSameAttachments) {
+                        if (!hasSameMessageContent || !hasSameAttachments || !hasSameReplyTarget) {
                             return;
                         }
 
@@ -446,7 +463,7 @@ export function ChatInputArea(props: ChatInputAreaProps) {
 
             handleInsertNewline();
         },
-        [enterBehavior, handleInsertNewline, handleSend, resolveEnterBehavior],
+        [enterBehavior, handleInsertNewline, handleSend, onCancelReply, replyingToMessage, resolveEnterBehavior],
     );
 
     if (!onMessage) {
@@ -456,6 +473,17 @@ export function ChatInputArea(props: ChatInputAreaProps) {
     const myColor = participants.find((participant) => participant.isMe)?.color || USER_CHAT_COLOR;
     const inputBgColor = Color.from(myColor).then(lighten(0.4)).then(grayscale(0.7));
     const inputTextColor = inputBgColor.then(textColor);
+    const replyPreviewLabel = chatUiTranslations?.replyingToLabel || 'Replying to';
+    const cancelReplyLabel = chatUiTranslations?.cancelReplyLabel || 'Cancel reply';
+    const replyPreviewText = replyingToMessage
+        ? resolveChatMessageReplyPreviewText(replyingToMessage, { maxLength: 180, emptyLabel: 'Original message' })
+        : null;
+    const replySenderLabel = replyingToMessage
+        ? resolveChatMessageReplySenderLabel({
+              sender: replyingToMessage.sender,
+              participants,
+          })
+        : null;
 
     return (
         <div
@@ -468,6 +496,17 @@ export function ChatInputArea(props: ChatInputAreaProps) {
                   }
                 : {})}
         >
+            {replyingToMessage && replyPreviewText && replySenderLabel && (
+                <ChatReplyPreview
+                    label={replyPreviewLabel}
+                    senderLabel={replySenderLabel}
+                    previewText={replyPreviewText}
+                    className={styles.replyComposerPreview}
+                    dismissLabel={cancelReplyLabel}
+                    onDismiss={onCancelReply || undefined}
+                />
+            )}
+
             {uploadedFiles.length > 0 && (
                 <div className={styles.filePreviewContainer}>
                     {uploadedFiles.map((uploadedFile) => (

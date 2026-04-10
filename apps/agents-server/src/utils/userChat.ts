@@ -23,6 +23,13 @@ export { persistFrozenUserChat } from './userChat/persistFrozenUserChat';
 export { recoverExpiredRunningUserChatJobs } from './userChat/recoverExpiredRunningUserChatJobs';
 export { requestUserChatJobCancellation } from './userChat/requestUserChatJobCancellation';
 export { resolveUserChatWorkerInternalToken } from './userChat/resolveUserChatWorkerInternalToken';
+export {
+    assertValidUserChatMessageReplies,
+    createReplyAwareUserChatPromptContent,
+    createReplyAwareUserChatPromptMessage,
+    normalizeUserChatReplyReference,
+    resolveUserChatReplyReference,
+} from './userChat/userChatReplies';
 export { retryUserChatJob } from './userChat/retryUserChatJob';
 export { runUserChatJob } from './userChat/runUserChatJob';
 export { triggerUserChatJobWorker } from './userChat/triggerUserChatJobWorker';
@@ -57,3 +64,7 @@ export type {
     UserChatJobRecord,
     UserChatJobStatus,
 } from './userChat/UserChatJobRecord';
+export type {
+    UserChatReplyValidationErrorCode,
+    UserChatReplyValidationErrorDetails,
+} from './userChat/UserChatReplyValidationError';

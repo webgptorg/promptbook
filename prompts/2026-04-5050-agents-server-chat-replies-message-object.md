@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 an hour by GitHub Copilot `gpt-5.4`
 
 [🌙🧩] Implement message replies (faded replied-to preview + swipe-to-reply) and proper data model
 

@@ -6,6 +6,7 @@ import {
     reconcilePendingOutboundMessagesWithCanonicalMessages,
     type PendingOutboundMessageRecord,
 } from './mergeCanonicalChatMessagesWithPendingOutboundMessages';
+import { serializeReplyingToSignature } from './chatReplies';
 
 /**
  * Prefix used for optimistic temporary user-message ids.
@@ -50,6 +51,11 @@ export type QueuePendingOutboundMessageOptions = {
      * Optional attachments associated with the outbound message.
      */
     readonly attachments?: ChatMessage['attachments'];
+
+    /**
+     * Optional reply snapshot quoted by the optimistic user message.
+     */
+    readonly replyingTo?: ChatMessage['replyingTo'];
 
     /**
      * Optional precomputed optimistic timestamp.
@@ -197,7 +203,8 @@ function arePendingOutboundMessageSnapshotsEquivalent(
             leftMessage.createdAt !== rightMessage.createdAt ||
             leftMessage.status !== rightMessage.status ||
             leftMessage.errorMessage !== rightMessage.errorMessage ||
-            !areAttachmentsEquivalent(leftMessage.attachments, rightMessage.attachments)
+            !areAttachmentsEquivalent(leftMessage.attachments, rightMessage.attachments) ||
+            serializeReplyingToSignature(leftMessage.replyingTo) !== serializeReplyingToSignature(rightMessage.replyingTo)
         ) {
             return false;
         }
@@ -258,6 +265,7 @@ export function queuePendingOutboundMessage(
               ...existingPendingOutboundMessage,
               content: options.content,
               attachments: options.attachments,
+              replyingTo: options.replyingTo,
               status: 'sending',
               errorMessage: undefined,
           }
@@ -267,6 +275,7 @@ export function queuePendingOutboundMessage(
               clientMessageId: options.clientMessageId,
               content: options.content,
               attachments: options.attachments,
+              replyingTo: options.replyingTo,
               createdAt: (options.createdAt || new Date().toISOString()) as NonNullable<ChatMessage['createdAt']>,
               status: 'sending',
           };
@@ -370,6 +379,12 @@ export function reassignPendingOutboundMessagesChatId(options: ReassignPendingOu
     const sourceMessagesWithTargetChatId = sourceMessages.map((message) => ({
         ...message,
         chatId: options.toChatId,
+        replyingTo: message.replyingTo
+            ? {
+                  ...message.replyingTo,
+                  threadId: options.toChatId,
+              }
+            : undefined,
     }));
     const targetMessageClientMessageIds = new Set(
         targetMessages.map((targetMessage) => targetMessage.clientMessageId),

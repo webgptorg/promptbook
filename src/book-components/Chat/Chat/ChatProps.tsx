@@ -136,6 +136,30 @@ export type ChatUiTranslations = {
     readonly inputPlaceholder?: string;
 
     /**
+     * Label shown above quoted reply previews in both composer and reply bubbles.
+     * @default "Replying to"
+     */
+    readonly replyingToLabel?: string;
+
+    /**
+     * Visible label for the explicit reply action on one message.
+     * @default "Reply"
+     */
+    readonly replyActionLabel?: string;
+
+    /**
+     * Accessible title for the explicit reply action on one message.
+     * @default "Reply to this message"
+     */
+    readonly replyActionTitle?: string;
+
+    /**
+     * Accessible label for the composer button that cancels reply mode.
+     * @default "Cancel reply"
+     */
+    readonly cancelReplyLabel?: string;
+
+    /**
      * Label for the "Save" button in the chat actions bar.
      * @default "Save"
      */
@@ -502,7 +526,11 @@ export type ChatProps = {
      * - When set, the send textarea and button will be shown
      * - When undefined, the chat has no input and is read-only showing only the messages
      */
-    onMessage?(messageContent: string /* <- TODO: [🍗] Pass here the message object NOT just text */): Promisable<void>;
+    onMessage?(
+        messageContent: string /* <- TODO: [🍗] Pass here the message object NOT just text */,
+        attachments?: Array<{ name: string; type: string; url: string }>,
+        replyingToMessage?: ChatMessage | null,
+    ): Promisable<void>;
 
     /**
      * Called when user clicks a quick action button parsed from message markdown.
@@ -518,6 +546,26 @@ export type ChatProps = {
      * When not provided, quick message buttons fall back to `onMessage`.
      */
     onQuickMessageButton?(messageContent: string): Promisable<void>;
+
+    /**
+     * Optional callback fired when the user starts replying to one existing message.
+     */
+    onReplyToMessage?(message: ChatMessage): void;
+
+    /**
+     * Optional callback fired when the user cancels the currently composed reply.
+     */
+    onCancelReply?(): void;
+
+    /**
+     * Optional callback that determines whether one message can be replied to.
+     */
+    canReplyToMessage?(message: ChatMessage): boolean;
+
+    /**
+     * Optional message currently being quoted by the composer.
+     */
+    readonly replyingToMessage?: ChatMessage | null;
 
     /**
      * Optional callback

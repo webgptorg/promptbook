@@ -13,6 +13,7 @@ export function createQueuedUserChatUserMessage(options: {
     clientMessageId: string;
     content: string;
     attachments?: ChatMessage['attachments'];
+    replyingTo?: ChatMessage['replyingTo'];
     createdAt: NonNullable<ChatMessage['createdAt']>;
 }): ChatMessage {
     return {
@@ -20,6 +21,7 @@ export function createQueuedUserChatUserMessage(options: {
         sender: 'USER',
         content: options.content,
         attachments: options.attachments,
+        replyingTo: options.replyingTo,
         createdAt: options.createdAt,
         isComplete: true,
         lifecycleState: 'completed',

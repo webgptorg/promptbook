@@ -418,6 +418,32 @@
     opacity: 0.85;
 }
 
+.messageReplyButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    opacity: 0.88;
+    transition: opacity 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.messageReplyButton:hover,
+.messageReplyButton:focus {
+    opacity: 1;
+    color: #0f172a;
+    transform: translateY(-0.5px);
+}
+
+.messageReplyButtonIcon {
+    width: 13px;
+    height: 13px;
+}
+
 .messageLifecycleError {
     margin: 4px 6px 0;
     font-size: 12px;
@@ -782,6 +808,7 @@
     font-family: inherit;
     letter-spacing: 0.0025em;
     backdrop-filter: blur(14px);
+    transform: translateX(var(--chat-message-swipe-offset, 0px));
     --chat-md-heading-font-family: var(
         --font-barlow-condensed,
         'Barlow Condensed',
@@ -824,6 +851,128 @@
     --chat-md-table-head-bg: rgba(241, 245, 249, 0.92);
     --chat-md-table-border: rgba(148, 163, 184, 0.45);
     --chat-md-citation-bg: rgba(191, 219, 254, 0.24);
+}
+
+.replyEnabledMessageText {
+    touch-action: pan-y;
+}
+
+.replySwipeActive {
+    box-shadow: var(--chat-bubble-shadow-hover), 0 0 0 1px rgba(56, 189, 248, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.replySwipeIndicator {
+    position: absolute;
+    top: 50%;
+    left: -24px;
+    transform: translateY(-50%);
+    opacity: 0.22;
+    color: rgba(15, 23, 42, 0.45);
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.replySwipeIndicatorRight {
+    left: auto;
+    right: -24px;
+}
+
+.replySwipeIndicatorActive {
+    opacity: 0.9;
+    transform: translateY(-50%) scale(1.05);
+}
+
+.replySwipeIndicatorIcon {
+    width: 16px;
+    height: 16px;
+}
+
+.replyPreview {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    min-width: 0;
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.26);
+    background: rgba(255, 255, 255, 0.16);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.replyBubblePreview {
+    opacity: 0.9;
+}
+
+.replyComposerPreview {
+    margin-bottom: 2px;
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(148, 163, 184, 0.3);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.replyPreviewAccent {
+    align-self: stretch;
+    width: 4px;
+    border-radius: 999px;
+    background: #0ea5e9;
+    background: color-mix(in srgb, var(--brand-color, #0ea5e9) 84%, white 16%);
+    flex-shrink: 0;
+}
+
+.replyPreviewBody {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.replyPreviewHeading {
+    font-size: 11px;
+    line-height: 1.3;
+    opacity: 0.82;
+}
+
+.replyPreviewLabel {
+    font-weight: 600;
+}
+
+.replyPreviewSender {
+    font-weight: 700;
+}
+
+.replyPreviewText {
+    min-width: 0;
+    font-size: 12.5px;
+    line-height: 1.35;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0.9;
+}
+
+.replyPreviewDismissButton {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.14);
+    color: #475569;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.replyPreviewDismissButton:hover,
+.replyPreviewDismissButton:focus {
+    background: rgba(148, 163, 184, 0.24);
+    color: #0f172a;
+    transform: scale(1.02);
 }
 
 @supports (color: color-mix(in srgb, #000 50%, #fff 50%)) {
@@ -1052,7 +1201,7 @@
 
 .chatMainFlow .chatMessage .messageText:hover {
     box-shadow: var(--chat-bubble-shadow-hover), inset 0 1px 0 rgba(255, 255, 255, 0.16);
-    transform: translateY(-1.5px);
+    transform: translateX(var(--chat-message-swipe-offset, 0px)) translateY(-1.5px);
 }
 
 .chatMainFlow .chatMessage .messageText.articleModeAgentMessageText:hover {

@@ -17,6 +17,12 @@ describe('userChatMessageLifecycle', () => {
             messageId: 'user-message',
             clientMessageId: 'client-message',
             content: 'Hello',
+            replyingTo: {
+                threadId: 'chat-1',
+                messageId: 'assistant-0',
+                sender: 'AGENT',
+                content: 'Original message',
+            },
             createdAt: createdAtIso,
         });
         const assistantMessage = createQueuedUserChatAssistantMessage({
@@ -30,6 +36,12 @@ describe('userChatMessageLifecycle', () => {
             sender: 'USER',
             content: 'Hello',
             clientMessageId: 'client-message',
+            replyingTo: {
+                threadId: 'chat-1',
+                messageId: 'assistant-0',
+                sender: 'AGENT',
+                content: 'Original message',
+            },
             lifecycleState: 'completed',
             isComplete: true,
         });

@@ -49,6 +49,7 @@ import { useAgentChatToolInteractions } from '../useAgentChatToolInteractions';
 import { useTeamAgentProfiles } from '../useTeamAgentProfiles';
 import type { AgentChatLayoutVariant } from './AgentChatLayoutVariant';
 import { ChatTimeoutButton } from './ChatTimeoutButton';
+import { createReplyingToSnapshot, isReplyableCanonicalChatMessage } from './chatReplies';
 import { useCanonicalChatMessages } from './useCanonicalChatMessages';
 import { queuePendingOutboundMessage } from './usePendingOutboundMessages';
 
@@ -81,6 +82,7 @@ type CanonicalAgentChatPanelProps = {
         attachments?: ChatMessage['attachments'];
         parameters?: Record<string, unknown>;
         clientMessageId?: string;
+        replyingTo?: ChatMessage['replyingTo'];
     }) => Promise<void>;
     onStartNewChat?: () => Promise<void> | void;
     newChatButtonHref?: string;
@@ -199,6 +201,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
         serializeAutoExecutePayload(autoExecuteMessage, autoExecuteMessageAttachments),
     );
     const feedbackEnabled = isChatFeedbackEnabled(feedbackMode);
+    const [replyingToMessageId, setReplyingToMessageId] = useState<string | null>(null);
 
     useEffect(() => {
         let isMounted = true;
@@ -327,7 +330,12 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
     );
 
     const handleManualMessage = useCallback(
-        async (message: string, attachments?: ChatMessage['attachments'], clientMessageId?: string) => {
+        async (
+            message: string,
+            attachments?: ChatMessage['attachments'],
+            replyingToMessageOverride?: ChatMessage | null,
+            clientMessageId?: string,
+        ) => {
             if (isReadOnly) {
                 return;
             }
@@ -337,9 +345,12 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
                 attachments,
                 parameters: effectivePromptParameters,
                 clientMessageId,
+                replyingTo: replyingToMessageOverride
+                    ? createReplyingToSnapshot(chatId, replyingToMessageOverride)
+                    : undefined,
             });
         },
-        [effectivePromptParameters, isReadOnly, onSubmitUserTurn],
+        [chatId, effectivePromptParameters, isReadOnly, onSubmitUserTurn],
     );
 
     /**
@@ -364,6 +375,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
                 parameters: effectivePromptParameters,
                 clientMessageId,
             });
+            setReplyingToMessageId(null);
         },
         [chatId, effectivePromptParameters, isReadOnly, onSubmitUserTurn],
     );
@@ -435,6 +447,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
         void handleManualMessage(
             effectiveAutoExecuteMessage ?? '',
             effectiveAutoExecuteMessageAttachments,
+            undefined,
             resolveAutoExecuteClientMessageId(),
         ).catch(() => undefined);
     }, [
@@ -464,6 +477,37 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
         thinkingMessages,
         isActiveBrowserTab,
     });
+    const replyingToMessage = useMemo(
+        () =>
+            renderedMessages.find(
+                (message) => message.id === replyingToMessageId && isReplyableCanonicalChatMessage(message),
+            ) || null,
+        [renderedMessages, replyingToMessageId],
+    );
+    const handleStartReply = useCallback(
+        (message: ChatMessage) => {
+            if (
+                isReadOnly ||
+                !isReplyableCanonicalChatMessage(message) ||
+                typeof message.id !== 'string' ||
+                message.id.length === 0
+            ) {
+                return;
+            }
+
+            setReplyingToMessageId(message.id);
+        },
+        [isReadOnly],
+    );
+    const handleCancelReply = useCallback(() => {
+        setReplyingToMessageId(null);
+    }, []);
+
+    useEffect(() => {
+        if (replyingToMessageId && !replyingToMessage) {
+            setReplyingToMessageId(null);
+        }
+    }, [replyingToMessage, replyingToMessageId]);
 
     const participants = useMemo(
         () => [
@@ -516,6 +560,10 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
             placeholderMessageContent={inputPlaceholder}
             chatUiTranslations={{
                 inputPlaceholder: t('chat.inputPlaceholder'),
+                replyingToLabel: t('chat.replyingToLabel'),
+                replyActionLabel: t('chat.replyActionLabel'),
+                replyActionTitle: t('chat.replyActionTitle'),
+                cancelReplyLabel: t('chat.cancelReplyLabel'),
                 saveButtonLabel: t('chat.saveButtonLabel'),
                 newChatButtonLabel: t('chat.newChatButtonLabel'),
                 lifecycleSending: t('chat.lifecycleSending'),
@@ -597,8 +645,12 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
                 project_create_branch: t('chat.toolTitle.projectBranchCreator'),
                 project_create_pull_request: t('chat.toolTitle.projectPullRequestCreator'),
             }}
-            onMessage={isReadOnly ? undefined : (handleManualMessage as unknown as (message: string) => Promise<void>)}
+            onMessage={isReadOnly ? undefined : handleManualMessage}
             onQuickMessageButton={isReadOnly ? undefined : handleQuickMessageButton}
+            onReplyToMessage={isReadOnly ? undefined : handleStartReply}
+            onCancelReply={isReadOnly ? undefined : handleCancelReply}
+            canReplyToMessage={isReplyableCanonicalChatMessage}
+            replyingToMessage={replyingToMessage}
             onActionButton={executeQuickActionButton}
             onChange={onDraftMessageChange}
             onReset={isReadOnly ? undefined : onStartNewChat}

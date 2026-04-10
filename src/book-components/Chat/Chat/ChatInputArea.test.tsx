@@ -3,6 +3,7 @@
 import { act, fireEvent, render, waitFor } from '@testing-library/react';
 import { describe, expect, it, jest } from '@jest/globals';
 import { Color } from '../../../utils/color/Color';
+import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { ChatInputArea, type ChatInputAreaProps } from './ChatInputArea';
 
@@ -15,6 +16,12 @@ const TEST_PARTICIPANTS: ReadonlyArray<ChatParticipant> = [
         fullname: 'User',
         color: '#115EB6',
         isMe: true,
+    },
+    {
+        name: 'AGENT',
+        fullname: 'Agent',
+        color: '#ffffff',
+        isMe: false,
     },
 ];
 
@@ -53,7 +60,7 @@ describe('ChatInputArea', () => {
         fireEvent.change(textarea, { target: { value: 'Hello world' } });
         fireEvent.keyDown(textarea, { key: 'Enter', code: 'Enter' });
 
-        await waitFor(() => expect(onMessage).toHaveBeenCalledWith('Hello world', []));
+        await waitFor(() => expect(onMessage).toHaveBeenCalledWith('Hello world', [], null));
         await waitFor(() => expect(textarea.value).toBe(''));
     });
 
@@ -82,7 +89,7 @@ describe('ChatInputArea', () => {
 
         fireEvent.keyDown(textarea, { key: 'Enter', code: 'Enter', ctrlKey: true });
 
-        await waitFor(() => expect(onMessage).toHaveBeenCalledWith('Line one\n', []));
+        await waitFor(() => expect(onMessage).toHaveBeenCalledWith('Line one\n', [], null));
         await waitFor(() => expect(textarea.value).toBe(''));
     });
 
@@ -133,7 +140,7 @@ describe('ChatInputArea', () => {
             await Promise.resolve();
         });
 
-        await waitFor(() => expect(onMessage).toHaveBeenCalledWith('Deferred send', []));
+        await waitFor(() => expect(onMessage).toHaveBeenCalledWith('Deferred send', [], null));
         await waitFor(() => expect(textarea.value).toBe(''));
     });
 
@@ -167,5 +174,47 @@ describe('ChatInputArea', () => {
 
         expect(onMessage).not.toHaveBeenCalled();
         expect(textarea.value).toBe('Deferred send later');
+    });
+
+    it('renders reply preview, sends the selected reply target, and cancels on Escape', async () => {
+        const onMessage = jest.fn(async () => undefined);
+        const onCancelReply = jest.fn();
+        const replyingToMessage: ChatMessage = {
+            id: 'assistant-message-1',
+            sender: 'AGENT',
+            content: 'Can you focus on the quarterly budget?',
+            createdAt: '2026-04-10T12:00:00.000Z' as NonNullable<ChatMessage['createdAt']>,
+            isComplete: true,
+        };
+        const { container, getByText } = render(
+            <ChatInputArea
+                {...createProps({
+                    onMessage,
+                    onCancelReply,
+                    enterBehavior: 'SEND',
+                    replyingToMessage,
+                    chatUiTranslations: {
+                        replyingToLabel: 'Replying to',
+                        cancelReplyLabel: 'Cancel reply',
+                    },
+                })}
+            />,
+        );
+        const textarea = getComposerTextarea(container);
+
+        expect(getByText('Replying to')).toBeDefined();
+        expect(getByText('Agent')).toBeDefined();
+        expect(getByText('Can you focus on the quarterly budget?')).toBeDefined();
+
+        fireEvent.keyDown(textarea, { key: 'Escape', code: 'Escape' });
+        expect(onCancelReply).toHaveBeenCalledTimes(1);
+
+        fireEvent.change(textarea, { target: { value: 'Yes, operating expenses first.' } });
+        fireEvent.keyDown(textarea, { key: 'Enter', code: 'Enter' });
+
+        await waitFor(() =>
+            expect(onMessage).toHaveBeenCalledWith('Yes, operating expenses first.', [], replyingToMessage),
+        );
+        await waitFor(() => expect(onCancelReply).toHaveBeenCalledTimes(2));
     });
 });

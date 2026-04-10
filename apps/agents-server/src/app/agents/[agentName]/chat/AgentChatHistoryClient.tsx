@@ -42,6 +42,7 @@ import type { AgentChatLayoutVariant } from './AgentChatLayoutVariant';
 import { AgentChatPageLayout } from './AgentChatPageLayout';
 import { AgentChatSidebar } from './AgentChatSidebar';
 import { CanonicalAgentChatPanel } from './CanonicalAgentChatPanel';
+import { serializeReplyingToSignature } from './chatReplies';
 import { mergeCanonicalChatMessagesWithPendingOutboundMessages } from './mergeCanonicalChatMessagesWithPendingOutboundMessages';
 import { useChatDocumentTitle } from './useChatDocumentTitle';
 import {
@@ -1574,13 +1575,14 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             attachments?: ChatMessage['attachments'];
             parameters?: Record<string, unknown>;
             clientMessageId?: string;
+            replyingTo?: ChatMessage['replyingTo'];
         }) => {
             const currentActiveChatId = activeChatIdRef.current;
             if (!shouldUseHistory || !currentActiveChatId) {
                 throw new Error('No active chat selected.');
             }
 
-            const signature = createChatMessageSignature(payload.message, payload.attachments);
+            const signature = createChatMessageSignature(payload.message, payload.attachments, payload.replyingTo);
             const failedSendRecord = resolveFailedSendRecord(currentActiveChatId, signature);
             const clientMessageId = payload.clientMessageId
                 ? payload.clientMessageId
@@ -1593,6 +1595,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 clientMessageId,
                 content: payload.message,
                 attachments: payload.attachments,
+                replyingTo: payload.replyingTo,
             });
 
             if (!payload.clientMessageId) {
@@ -1619,6 +1622,8 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                             message: payload.message,
                             attachments: payload.attachments,
                             parameters: payload.parameters,
+                            threadId: payload.replyingTo ? resolvedChatId : undefined,
+                            repliedToMessageId: payload.replyingTo?.messageId,
                         });
 
                         clearFailedSendRecord(currentActiveChatId, signature);
@@ -2024,10 +2029,15 @@ function replaceOptimisticChatWithCanonicalChat(
 /**
  * Builds a stable signature for one outbound user-message payload.
  */
-function createChatMessageSignature(message: string, attachments?: ChatMessage['attachments']): string {
+function createChatMessageSignature(
+    message: string,
+    attachments?: ChatMessage['attachments'],
+    replyingTo?: ChatMessage['replyingTo'],
+): string {
     return JSON.stringify({
         message,
         attachments: attachments || [],
+        replyingTo: serializeReplyingToSignature(replyingTo),
     });
 }
 

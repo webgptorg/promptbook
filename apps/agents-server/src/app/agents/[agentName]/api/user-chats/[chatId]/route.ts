@@ -6,6 +6,7 @@ import {
     isFrozenUserChatSource,
     updateUserChatMessages,
 } from '@/src/utils/userChat';
+import { UserChatReplyValidationError } from '@/src/utils/userChat/UserChatReplyValidationError';
 import { isUserChatNotFoundScopeError, UserChatScopeError } from '@/src/utils/userChat/UserChatScopeError';
 import type { ChatMessage } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
@@ -105,6 +106,17 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
     } catch (error) {
         if (error instanceof UserChatScopeError) {
             return resolveUserChatUpdateScopeErrorResponse(error);
+        }
+
+        if (error instanceof UserChatReplyValidationError) {
+            return NextResponse.json(
+                {
+                    error: error.message,
+                    code: error.code,
+                    details: error.details,
+                },
+                { status: 400 },
+            );
         }
 
         return NextResponse.json(

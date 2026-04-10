@@ -136,6 +136,8 @@ export function Chat(props: ChatProps) {
         onMessage,
         onActionButton,
         onQuickMessageButton,
+        onReplyToMessage,
+        onCancelReply,
         onReset,
         resetRequiresConfirmation = true,
         newChatButtonHref,
@@ -157,6 +159,8 @@ export function Chat(props: ChatProps) {
         isVoiceCalling = false,
         isFocusedOnLoad,
         participants = [],
+        canReplyToMessage,
+        replyingToMessage,
         extraActions,
         actionsContainer,
         saveFormats,
@@ -191,10 +195,17 @@ export function Chat(props: ChatProps) {
 
         return messages.map((message) => {
             const messageWithCitations = extractCitationsFromMessage(message);
+            const normalizedReplyingTo = messageWithCitations.replyingTo
+                ? {
+                      ...messageWithCitations.replyingTo,
+                      content: promptbookifyAiText(humanizeAiText(messageWithCitations.replyingTo.content)),
+                  }
+                : undefined;
 
             return {
                 ...messageWithCitations,
                 content: promptbookifyAiText(humanizeAiText(messageWithCitations.content)),
+                ...(normalizedReplyingTo ? { replyingTo: normalizedReplyingTo } : {}),
             };
         });
     }, [messages, isAiTextHumanizedAndPromptbookified]);
@@ -524,6 +535,8 @@ export function Chat(props: ChatProps) {
                         onMessage={onMessage}
                         onActionButton={onActionButton}
                         onQuickMessageButton={onQuickMessageButton}
+                        onReplyToMessage={onReplyToMessage}
+                        canReplyToMessage={canReplyToMessage}
                         onCreateAgent={onCreateAgent}
                         toolTitles={toolTitles}
                         teammates={teammates}
@@ -561,6 +574,8 @@ export function Chat(props: ChatProps) {
                             onFileUpload={onFileUpload}
                             speechRecognition={speechRecognition}
                             speechRecognitionLanguage={speechRecognitionLanguage}
+                            replyingToMessage={replyingToMessage}
+                            onCancelReply={onCancelReply}
                             defaultMessage={defaultMessage}
                             enterBehavior={enterBehavior}
                             resolveEnterBehavior={resolveEnterBehavior}
@@ -574,6 +589,7 @@ export function Chat(props: ChatProps) {
                             buttonColor={buttonColor}
                             soundSystem={soundSystem}
                             onButtonClick={handleButtonClick}
+                            chatUiTranslations={chatUiTranslations}
                             chatInputClassName={classNames(
                                 isConstrainedArticleMode && styles.articleModeChatInput,
                                 getChatCssClassName('chatInput'),

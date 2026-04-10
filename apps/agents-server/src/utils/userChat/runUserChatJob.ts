@@ -46,6 +46,7 @@ import { heartbeatUserChatJob } from './heartbeatUserChatJob';
 import { persistUserChatJobTerminalState } from './persistUserChatJobTerminalState';
 import { updateUserChatAssistantMessage } from './updateUserChatAssistantMessage';
 import type { UserChatJobRecord } from './UserChatJobRecord';
+import { createReplyAwareUserChatPromptContent, createReplyAwareUserChatPromptMessage } from './userChatReplies';
 import { resolvePromptThreadBeforeUserMessage } from './userChatMessageLifecycle';
 import { isUserChatNotFoundScopeError } from './UserChatScopeError';
 
@@ -110,7 +111,10 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
         throw new Error(`User message "${job.userMessageId}" was not found in chat "${job.chatId}".`);
     }
 
-    const thread = resolvePromptThreadBeforeUserMessage(chat.messages, job.userMessageId);
+    const thread = resolvePromptThreadBeforeUserMessage(chat.messages, job.userMessageId).map(
+        createReplyAwareUserChatPromptMessage,
+    );
+    const promptContent = createReplyAwareUserChatPromptContent(userMessage);
     let isCancellationRequested = job.cancelRequestedAt !== null;
     let hasQueuedCompletedPersistence = false;
     let hasPersistedCompletedState = false;
@@ -235,7 +239,7 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
             modelRequirements: {
                 modelVariant: 'CHAT' as const,
             },
-            content: userMessage.content,
+            content: promptContent,
             thread,
             attachments: userMessage.attachments,
             ...(runtimeTools.length > 0 ? { tools: runtimeTools } : {}),
@@ -462,7 +466,7 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
                     modelRequirements: {
                         modelVariant: 'CHAT',
                     },
-                    content: userMessage.content,
+                    content: promptContent,
                     thread,
                     attachments: userMessage.attachments,
                     ...(runtimeTools.length > 0 ? { tools: runtimeTools } : {}),

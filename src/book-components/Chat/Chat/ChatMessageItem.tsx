@@ -2,8 +2,8 @@
 // <- Note: [👲] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
-import { Pause, Play } from 'lucide-react';
-import type { CSSProperties, ReactElement } from 'react';
+import { Pause, Play, Reply } from 'lucide-react';
+import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactElement } from 'react';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { colorToDataUrl } from '../../../_packages/color.index';
 import { PROMPTBOOK_CHAT_COLOR, USER_CHAT_COLOR } from '../../../config';
@@ -20,6 +20,8 @@ import { getChatMessageTimingDisplay } from '../utils/getChatMessageTimingDispla
 import { createCitationFootnoteRenderModel } from '../utils/createCitationFootnoteRenderModel';
 import { parseMessageButtons, type MessageButton } from '../utils/parseMessageButtons';
 import { type ParsedCitation } from '../utils/parseCitationsFromContent';
+import { resolveChatMessageReplyPreviewText } from '../utils/resolveChatMessageReplyPreviewText';
+import { resolveChatMessageReplySenderLabel } from '../utils/resolveChatMessageReplySenderLabel';
 import { getLatestStreamingFeatureBoundary, sanitizeStreamingMessageContent } from '../utils/sanitizeStreamingMessageContent';
 import { splitMessageContentIntoSegments } from '../utils/splitMessageContentIntoSegments';
 import styles from './Chat.module.css';
@@ -27,6 +29,7 @@ import { chatCssClassNames } from './chatCssClassNames';
 import { ChatMessageRichContent } from './ChatMessageRichContent';
 import { ChatMessageToolCallChips } from './ChatMessageToolCallChips';
 import type { ChatProps } from './ChatProps';
+import { ChatReplyPreview } from './ChatReplyPreview';
 import { createChatMessageToolCallRenderModel } from './createChatMessageToolCallRenderModel';
 import { createProgressCardChecklistMarkdown, isProgressCardVisible } from './createProgressCardChecklistMarkdown';
 import { resolveStreamingFeaturePlaceholderKind } from './StreamingFeaturePlaceholder';
@@ -93,6 +96,14 @@ type ChatMessageItemProps = Pick<
      */
     teammates?: ChatProps['teammates'];
     /**
+     * Called when the user chooses to reply to this message.
+     */
+    onReplyToMessage?: ChatProps['onReplyToMessage'];
+    /**
+     * Determines whether this message can be replied to.
+     */
+    canReplyToMessage?: ChatProps['canReplyToMessage'];
+    /**
      * Optional cached metadata keyed by TEAM tool names to enrich tool call chips.
      */
     teamAgentProfiles?: ChatProps['teamAgentProfiles'];
@@ -140,6 +151,15 @@ type RenderableMessageButton = {
  * @private internal helper of `<ChatMessageItem/>`
  */
 type MessageActionsLayout = 'bubble-overlay' | 'article-footer';
+
+/**
+ * Gesture thresholds used for touch swipe-to-reply.
+ *
+ * @private internal helper of `<ChatMessageItem/>`
+ */
+const REPLY_SWIPE_DIRECTION_LOCK_PX = 16;
+const REPLY_SWIPE_TRIGGER_PX = 60;
+const REPLY_SWIPE_MAX_TRANSLATE_PX = 84;
 
 /**
  * Resolves the compact lifecycle badge label rendered below durable chat messages.
@@ -228,6 +248,8 @@ export const ChatMessageItem = memo(
             onCreateAgent,
             toolTitles,
             teammates,
+            onReplyToMessage,
+            canReplyToMessage,
             teamAgentProfiles,
             CHAT_VISUAL_MODE = 'BUBBLE_MODE',
             onToolCallClick,
@@ -256,9 +278,15 @@ export const ChatMessageItem = memo(
         const isMe = participant?.isMe;
         const isAgentArticleMode = CHAT_VISUAL_MODE === 'ARTICLE_MODE' && !isMe;
         const timingDisplay = getChatMessageTimingDisplay(message, chatLocale);
+        const replyPreviewLabel = chatUiTranslations?.replyingToLabel || 'Replying to';
+        const replyActionLabel = chatUiTranslations?.replyActionLabel || 'Reply';
+        const replyActionTitle = chatUiTranslations?.replyActionTitle || 'Reply to this message';
+        const isReplyActionEnabled = Boolean(
+            onReplyToMessage && (canReplyToMessage ? canReplyToMessage(message) : Boolean(message.id && isComplete)),
+        );
         const shouldShowTiming = Boolean(isComplete && timingDisplay);
         const lifecycleBadgeLabel = resolveMessageLifecycleLabel(message, chatUiTranslations);
-        const shouldShowMessageMeta = Boolean(shouldShowTiming || lifecycleBadgeLabel);
+        const shouldShowMessageMeta = Boolean(shouldShowTiming || lifecycleBadgeLabel || isReplyActionEnabled);
         const shouldShowParticipantLabel = (participants || []).some((entry) => entry.name === 'TEAMMATE');
         const participantLabel = participant?.fullname || participant?.name;
         const trimmedMessageContent = message.content.trim();
@@ -322,7 +350,14 @@ export const ChatMessageItem = memo(
         const [consumedActionButtonIndexes, setConsumedActionButtonIndexes] = useState<ReadonlySet<number>>(
             () => new Set(),
         );
+        const [replySwipeDistance, setReplySwipeDistance] = useState(0);
         const isReportIssueFeedbackMode = feedbackMode === 'report_issue';
+        const replySwipeGestureRef = useRef<{
+            pointerId: number;
+            startX: number;
+            startY: number;
+            isHorizontalSwipeLocked: boolean;
+        } | null>(null);
 
         const { toolCallChips, transitiveCitations } = useMemo(
             () =>
@@ -373,6 +408,33 @@ export const ChatMessageItem = memo(
         const shouldRenderArticleActionsBar =
             messageActionsLayout === 'article-footer' &&
             (shouldRenderCopyAndPlayControls || shouldRenderFeedbackControls);
+        const replyingToMessage = message.replyingTo;
+        const replyPreviewText = useMemo(
+            () =>
+                replyingToMessage
+                    ? resolveChatMessageReplyPreviewText(
+                          {
+                              content: replyingToMessage.content,
+                              attachmentNames: replyingToMessage.attachmentNames,
+                          },
+                          { maxLength: 180, emptyLabel: 'Original message' },
+                      )
+                    : null,
+            [replyingToMessage],
+        );
+        const replySenderLabel = useMemo(
+            () =>
+                replyingToMessage
+                    ? resolveChatMessageReplySenderLabel({
+                          sender: replyingToMessage.sender,
+                          participants,
+                      })
+                    : null,
+            [participants, replyingToMessage],
+        );
+        const swipeDirectionMultiplier = isMe ? -1 : 1;
+        const swipeTranslation = `${isMe ? -replySwipeDistance : replySwipeDistance}px`;
+        const isReplySwipeArmed = replySwipeDistance >= REPLY_SWIPE_TRIGGER_PX * 0.5;
 
         /**
          * Renders the optional message utility buttons used for copy/read actions.
@@ -621,11 +683,83 @@ export const ChatMessageItem = memo(
             [onActionButton, pendingActionButtonIndex],
         );
 
+        const resetReplySwipe = useCallback(() => {
+            replySwipeGestureRef.current = null;
+            setReplySwipeDistance(0);
+        }, []);
+
+        const handleReplyPointerDown = useCallback(
+            (event: ReactPointerEvent<HTMLDivElement>) => {
+                if (!isReplyActionEnabled || event.pointerType !== 'touch') {
+                    return;
+                }
+
+                replySwipeGestureRef.current = {
+                    pointerId: event.pointerId,
+                    startX: event.clientX,
+                    startY: event.clientY,
+                    isHorizontalSwipeLocked: false,
+                };
+            },
+            [isReplyActionEnabled],
+        );
+
+        const handleReplyPointerMove = useCallback(
+            (event: ReactPointerEvent<HTMLDivElement>) => {
+                const gesture = replySwipeGestureRef.current;
+                if (!gesture || gesture.pointerId !== event.pointerId) {
+                    return;
+                }
+
+                const directionalDeltaX = (event.clientX - gesture.startX) * swipeDirectionMultiplier;
+                const absoluteDeltaY = Math.abs(event.clientY - gesture.startY);
+
+                if (!gesture.isHorizontalSwipeLocked) {
+                    if (absoluteDeltaY > REPLY_SWIPE_DIRECTION_LOCK_PX && absoluteDeltaY > Math.abs(directionalDeltaX)) {
+                        resetReplySwipe();
+                        return;
+                    }
+
+                    if (directionalDeltaX <= REPLY_SWIPE_DIRECTION_LOCK_PX || directionalDeltaX <= absoluteDeltaY) {
+                        return;
+                    }
+
+                    gesture.isHorizontalSwipeLocked = true;
+                }
+
+                event.preventDefault();
+                setReplySwipeDistance(Math.max(0, Math.min(REPLY_SWIPE_MAX_TRANSLATE_PX, directionalDeltaX)));
+            },
+            [resetReplySwipe, swipeDirectionMultiplier],
+        );
+
+        const handleReplyPointerEnd = useCallback(
+            (event: ReactPointerEvent<HTMLDivElement>) => {
+                const gesture = replySwipeGestureRef.current;
+                if (!gesture || gesture.pointerId !== event.pointerId) {
+                    return;
+                }
+
+                const shouldStartReply = replySwipeDistance >= REPLY_SWIPE_TRIGGER_PX;
+                resetReplySwipe();
+
+                if (shouldStartReply) {
+                    onReplyToMessage?.(message);
+                }
+            },
+            [message, onReplyToMessage, replySwipeDistance, resetReplySwipe],
+        );
+
         useEffect(() => {
             if (!isExpanded) {
                 setLocalHoveredRating(0);
             }
         }, [isExpanded]);
+
+        useEffect(() => {
+            setReplySwipeDistance(0);
+            replySwipeGestureRef.current = null;
+        }, [message.id]);
 
         useEffect(() => {
             if (toolCallChipCount > toolCallChipCountRef.current) {
@@ -706,6 +840,8 @@ export const ChatMessageItem = memo(
                     <div
                         className={classNames(
                             styles.messageText,
+                            isReplyActionEnabled && styles.replyEnabledMessageText,
+                            isReplySwipeArmed && styles.replySwipeActive,
                             isAgentArticleMode && styles.articleModeAgentMessageText,
                             chatCssClassNames.messageContent,
                         )}
@@ -713,9 +849,26 @@ export const ChatMessageItem = memo(
                             {
                                 '--message-bg-color': isAgentArticleMode ? '#ffffff' : color.toHex(),
                                 '--message-text-color': isAgentArticleMode ? '#0f172a' : colorOfText.toHex(),
+                                '--chat-message-swipe-offset': swipeTranslation,
                             } as CSSProperties
                         }
+                        onPointerDown={handleReplyPointerDown}
+                        onPointerMove={handleReplyPointerMove}
+                        onPointerUp={handleReplyPointerEnd}
+                        onPointerCancel={resetReplySwipe}
                     >
+                        {isReplyActionEnabled && (
+                            <div
+                                className={classNames(
+                                    styles.replySwipeIndicator,
+                                    isMe && styles.replySwipeIndicatorRight,
+                                    isReplySwipeArmed && styles.replySwipeIndicatorActive,
+                                )}
+                                aria-hidden="true"
+                            >
+                                <Reply className={styles.replySwipeIndicatorIcon} />
+                            </div>
+                        )}
                         {!shouldRenderArticleActionsBar && renderMessageReadAndCopyControls()}
                         {message.isVoiceCall && (
                             <div className={styles.voiceCallIndicator}>
@@ -723,6 +876,15 @@ export const ChatMessageItem = memo(
                                     <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
                                 </svg>
                             </div>
+                        )}
+
+                        {replyingToMessage && replyPreviewText && replySenderLabel && (
+                            <ChatReplyPreview
+                                label={replyPreviewLabel}
+                                senderLabel={replySenderLabel}
+                                previewText={replyPreviewText}
+                                className={styles.replyBubblePreview}
+                            />
                         )}
 
                         <div ref={contentWithoutButtonsRef}>
@@ -844,6 +1006,21 @@ export const ChatMessageItem = memo(
                                     )}
                                 </>
                             )}
+                            {isReplyActionEnabled && (
+                                <button
+                                    type="button"
+                                    className={styles.messageReplyButton}
+                                    aria-label={replyActionTitle}
+                                    title={replyActionTitle}
+                                    onClick={(event) => {
+                                        event.stopPropagation();
+                                        onReplyToMessage?.(message);
+                                    }}
+                                >
+                                    <Reply className={styles.messageReplyButtonIcon} />
+                                    <span>{replyActionLabel}</span>
+                                </button>
+                            )}
                         </div>
                     )}
                     {message.lifecycleError && (
@@ -906,6 +1083,10 @@ export const ChatMessageItem = memo(
             return false;
         }
 
+        if (JSON.stringify(prev.message.replyingTo) !== JSON.stringify(next.message.replyingTo)) {
+            return false;
+        }
+
         if ((prev.message.isComplete ?? true) !== (next.message.isComplete ?? true)) {
             return false;
         }
@@ -935,6 +1116,14 @@ export const ChatMessageItem = memo(
         }
 
         if (prev.onQuickMessageButton !== next.onQuickMessageButton) {
+            return false;
+        }
+
+        if (prev.onReplyToMessage !== next.onReplyToMessage) {
+            return false;
+        }
+
+        if (prev.canReplyToMessage !== next.canReplyToMessage) {
             return false;
         }
 

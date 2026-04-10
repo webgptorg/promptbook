@@ -47,6 +47,7 @@ import type { SourceChipProps } from '../book-components/Chat/SourceChip/SourceC
 import type { ChatToolCall } from '../book-components/Chat/types/ChatMessage';
 import type { ChatProgressItem } from '../book-components/Chat/types/ChatMessage';
 import type { ChatProgressCard } from '../book-components/Chat/types/ChatMessage';
+import type { ChatMessageReplyingTo } from '../book-components/Chat/types/ChatMessage';
 import type { ChatMessage } from '../book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../book-components/Chat/types/ChatParticipant';
 import type { ParsedCitation } from '../book-components/Chat/utils/parseCitationsFromContent';
@@ -477,6 +478,7 @@ export type { SourceChipProps };
 export type { ChatToolCall };
 export type { ChatProgressItem };
 export type { ChatProgressCard };
+export type { ChatMessageReplyingTo };
 export type { ChatMessage };
 export type { ChatParticipant };
 export type { ParsedCitation };

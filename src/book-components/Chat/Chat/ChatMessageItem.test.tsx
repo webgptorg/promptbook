@@ -457,3 +457,44 @@ describe('ChatMessageItem progress checklist rendering', () => {
         expect(screen.getByText('(3.3s na odpověď)')).toBeDefined();
     });
 });
+
+describe('ChatMessageItem replies', () => {
+    it('renders the faded replied-to preview inside reply bubbles', () => {
+        renderChatMessageItem({
+            id: 'assistant-reply-1',
+            sender: 'AGENT',
+            content: 'Here is the focused budget summary.',
+            isComplete: true,
+            replyingTo: {
+                threadId: 'chat-1',
+                messageId: 'user-1',
+                sender: 'USER',
+                content: 'Please focus on the quarterly budget.',
+            },
+        });
+
+        expect(screen.getByText('Replying to')).toBeDefined();
+        expect(screen.getByText('Please focus on the quarterly budget.')).toBeDefined();
+    });
+
+    it('starts reply mode from the explicit reply button', () => {
+        const onReplyToMessage = jest.fn();
+        const message: ChatMessage = {
+            id: 'assistant-reply-target',
+            sender: 'AGENT',
+            content: 'Pick one point to reply to.',
+            isComplete: true,
+        };
+        renderChatMessageItem(message, {
+            onReplyToMessage,
+            canReplyToMessage: () => true,
+            chatUiTranslations: {
+                replyActionLabel: 'Reply',
+                replyActionTitle: 'Reply to this message',
+            },
+        });
+
+        fireEvent.click(screen.getByRole('button', { name: 'Reply to this message' }));
+        expect(onReplyToMessage).toHaveBeenCalledWith(message);
+    });
+});

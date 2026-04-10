@@ -5,6 +5,7 @@ import { deleteUserChatJob } from './deleteUserChatJob';
 import { mutateUserChat } from './mutateUserChat';
 import type { UserChatJobRecord } from './UserChatJobRecord';
 import type { UserChatRecord } from './UserChatRecord';
+import { assertValidUserChatMessageReplies } from './userChatReplies';
 import {
     createQueuedUserChatAssistantMessage,
     createQueuedUserChatUserMessage,
@@ -27,6 +28,7 @@ export async function appendQueuedUserChatTurn(options: {
     clientMessageId: string;
     messageContent: string;
     attachments?: ChatMessage['attachments'];
+    replyingTo?: ChatMessage['replyingTo'];
     parameters?: Record<string, unknown>;
 }): Promise<{
     chat: UserChatRecord;
@@ -52,14 +54,15 @@ export async function appendQueuedUserChatTurn(options: {
             userId: options.userId,
             agentPermanentId: options.agentPermanentId,
             chatId: options.chatId,
-            mutate: (currentChat) => ({
-                messages: [
+            mutate: (currentChat) => {
+                const nextMessages = [
                     ...currentChat.messages,
                     createQueuedUserChatUserMessage({
                         messageId: userMessageId,
                         clientMessageId: options.clientMessageId,
                         content: options.messageContent,
                         attachments: options.attachments,
+                        replyingTo: options.replyingTo,
                         createdAt: nowIso,
                     }),
                     createQueuedUserChatAssistantMessage({
@@ -67,10 +70,19 @@ export async function appendQueuedUserChatTurn(options: {
                         jobId,
                         createdAt: nowIso,
                     }),
-                ],
-                draftMessage: null,
-                lastMessageAt: nowIso,
-            }),
+                ];
+
+                assertValidUserChatMessageReplies({
+                    chatId: options.chatId,
+                    messages: nextMessages,
+                });
+
+                return {
+                    messages: nextMessages,
+                    draftMessage: null,
+                    lastMessageAt: nowIso,
+                };
+            },
         });
 
         return { chat, job };

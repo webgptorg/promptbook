@@ -66,6 +66,7 @@ import { reactSaveFormatDefinition } from '../book-components/Chat/save/react/re
 import { txtSaveFormatDefinition } from '../book-components/Chat/save/text/txtSaveFormatDefinition';
 import type { ChatProgressItem } from '../book-components/Chat/types/ChatMessage';
 import type { ChatProgressCard } from '../book-components/Chat/types/ChatMessage';
+import type { ChatMessageReplyingTo } from '../book-components/Chat/types/ChatMessage';
 import type { ChatMessage } from '../book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../book-components/Chat/types/ChatParticipant';
 import type { MessageButton } from '../book-components/Chat/utils/parseMessageButtons';
@@ -153,6 +154,7 @@ export { reactSaveFormatDefinition };
 export { txtSaveFormatDefinition };
 export type { ChatProgressItem };
 export type { ChatProgressCard };
+export type { ChatMessageReplyingTo };
 export type { ChatMessage };
 export type { ChatParticipant };
 export type { MessageButton };

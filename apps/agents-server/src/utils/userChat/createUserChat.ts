@@ -2,6 +2,7 @@ import { Json } from '@/src/database/schema';
 import { $randomBase58 } from '../../../../../src/utils/random/$randomBase58';
 import type { CreateUserChatOptions, UserChatRecord } from './UserChatRecord';
 import type { UserChatInsert, UserChatRow } from './UserChatRow';
+import { assertValidUserChatMessageReplies } from './userChatReplies';
 import { mapUserChatRow } from './mapUserChatRow';
 import { provideUserChatTable } from './provideUserChatTable';
 import { normalizeMessagesInput, resolveLastMessageAt } from './resolveLastMessageAt';
@@ -41,6 +42,7 @@ export async function createUserChat(options: CreateUserChatOptions): Promise<Us
     for (let attempt = 0; attempt < CREATE_USER_CHAT_MAX_ATTEMPTS; attempt++) {
         const userChatTable = await provideUserChatTable();
         const chatId = normalizedChatId || $randomBase58(GENERATED_CHAT_ID_LENGTH);
+        assertValidUserChatMessageReplies({ chatId, messages });
         const insertPayload: UserChatInsert = {
             id: chatId,
             userId,

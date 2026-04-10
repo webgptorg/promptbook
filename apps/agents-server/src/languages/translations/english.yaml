@@ -393,6 +393,10 @@ chat.cancelJobLabel: Cancel
 chat.cancellingJobLabel: Cancelling
 chat.frozenBannerLabel: 'Chat from {source}. View-only.'
 chat.inputPlaceholder: Write a message...
+chat.replyingToLabel: Replying to
+chat.replyActionLabel: Reply
+chat.replyActionTitle: Reply to this message
+chat.cancelReplyLabel: Cancel reply
 chat.saveButtonLabel: Save
 chat.newChatButtonLabel: New chat
 chat.lifecycleSending: Sending
