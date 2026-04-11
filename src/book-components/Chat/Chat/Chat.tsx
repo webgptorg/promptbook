@@ -2,24 +2,15 @@
 // <- Note: [??] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
-import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, type UIEvent } from 'react';
+import { useCallback, useMemo, type MouseEvent } from 'react';
 import { Color } from '../../../utils/color/Color';
-import { humanizeAiText } from '../../../utils/markdown/humanizeAiText';
-import { promptbookifyAiText } from '../../../utils/markdown/promptbookifyAiText';
 import { classNames } from '../../_common/react-utils/classNames';
 import { SolidArrowButton } from '../../icons/SolidArrowButton';
 import { ChatEffectsSystem } from '../effects/ChatEffectsSystem';
 import type { ChatEffectConfig } from '../effects/types/ChatEffectConfig';
-import { useChatActionsOverlap } from '../hooks/useChatActionsOverlap';
-import { useChatAutoScroll } from '../hooks/useChatAutoScroll';
 import { useChatCompleteNotification } from '../hooks/useChatCompleteNotification';
 import { useChatRatings } from '../hooks/useChatRatings';
 import type { ChatMessage } from '../types/ChatMessage';
-import type { ToolCall } from '../../../types/ToolCall';
-import type { ParsedCitation } from '../utils/parseCitationsFromContent';
-import { extractCitationsFromMessage } from '../utils/parseCitationsFromContent';
-import { resolveToolCallFromChatMessages } from '../utils/resolveToolCallFromChatMessages';
-import { getToolCallIdentity } from '../../../utils/toolCalls/getToolCallIdentity';
 import { ChatActionsBar } from './ChatActionsBar';
 import { ChatCitationModal } from './ChatCitationModal';
 import { ChatInputArea } from './ChatInputArea';
@@ -28,91 +19,43 @@ import type { ChatProps } from './ChatProps';
 import { ChatRatingModal } from './ChatRatingModal';
 import { ChatToolCallModal } from './ChatToolCallModal';
 import { chatCssClassNames, getChatCssClassName } from './chatCssClassNames';
+import { useChatPostprocessedMessages } from './useChatPostprocessedMessages';
+import { useChatScrollState } from './useChatScrollState';
+import { useChatToolCallState } from './useChatToolCallState';
 import styles from './Chat.module.css';
 
 /**
- * Represents formatted text for the scroll-to-bottom indicator.
+ * Returns whether feedback controls should be rendered for the current chat.
  *
- * @private
+ * @private function of `<Chat/>`
  */
-type ScrollIndicatorText = {
-    /**
-     * Label that appears on the badge.
-     */
-    readonly badgeLabel: string;
-
-    /**
-     * Accessible text describing the action.
-     */
-    readonly ariaLabel: string;
-};
-
-/**
- * Stable selection state used by the tool-call details modal.
- *
- * @private internal helper of `<Chat/>`
- */
-type SelectedToolCallState = {
-    /**
-     * Stable identity of the selected tool call.
-     */
-    readonly identity: string;
-
-    /**
-     * Fallback snapshot used before newer streamed state is resolved.
-     */
-    readonly fallbackToolCall: ToolCall;
-};
-
-/**
- * Builds the copy used by the scroll indicator badge and the button's accessible labels.
- *
- * @param count - Number of unseen messages.
- * @returns Labels tailored to the current unseen message count.
- *
- * @private
- */
-function buildScrollIndicatorText(count: number): ScrollIndicatorText {
-    if (count <= 0) {
-        return {
-            badgeLabel: '',
-            ariaLabel: 'Scroll to the latest message',
-        };
-    }
-
-    const messageWord = count === 1 ? 'message' : 'messages';
-    const badgeLabel = `${count} new ${messageWord}`;
-
-    return {
-        badgeLabel,
-        ariaLabel: `${badgeLabel} below. Scroll to the latest message.`,
-    };
+function isChatFeedbackEnabled(onFeedback: ChatProps['onFeedback'], feedbackMode: ChatProps['feedbackMode']): boolean {
+    return !!onFeedback && feedbackMode !== 'off';
 }
 
 /**
- * Checks whether the latest rendered chat message is visible inside the messages viewport.
+ * Returns whether the actions toolbar should render at all.
  *
- * @param chatMessagesElement - Scrollable chat messages container.
- * @param messageSelector - Selector that targets chat message nodes.
- * @returns `true` when any part of the latest message is visible.
- *
- * @private
+ * @private function of `<Chat/>`
  */
-function isLatestMessageVisible(chatMessagesElement: HTMLDivElement | null, messageSelector: string): boolean {
-    if (!chatMessagesElement) {
-        return true;
-    }
+function hasChatActions(
+    postprocessedMessages: ReadonlyArray<ChatMessage>,
+    {
+        onReset,
+        newChatButtonHref,
+        onUseTemplate,
+        extraActions,
+        isSaveButtonEnabled,
+    }: Pick<ChatProps, 'onReset' | 'newChatButtonHref' | 'onUseTemplate' | 'extraActions' | 'isSaveButtonEnabled'>,
+): boolean {
+    const hasMessages = postprocessedMessages.length !== 0;
 
-    const messageElements = Array.from(chatMessagesElement.querySelectorAll<HTMLElement>(messageSelector));
-    const latestMessageElement = messageElements[messageElements.length - 1];
-    if (!latestMessageElement) {
-        return true;
-    }
-
-    const containerRect = chatMessagesElement.getBoundingClientRect();
-    const latestMessageRect = latestMessageElement.getBoundingClientRect();
-
-    return latestMessageRect.bottom > containerRect.top && latestMessageRect.top < containerRect.bottom;
+    return (
+        ((!!onReset || !!newChatButtonHref) && hasMessages) ||
+        (isSaveButtonEnabled && hasMessages) ||
+        !!onUseTemplate ||
+        !!extraActions
+    );
 }
 
 /**
@@ -187,121 +130,24 @@ export function Chat(props: ChatProps) {
         () => participants.find((participant) => participant.name === 'AGENT'),
         [participants],
     );
-
-    const postprocessedMessages = useMemo<ReadonlyArray<ChatMessage>>(() => {
-        if (!isAiTextHumanizedAndPromptbookified) {
-            return messages;
-        }
-
-        return messages.map((message) => {
-            const messageWithCitations = extractCitationsFromMessage(message);
-            const normalizedReplyingTo = messageWithCitations.replyingTo
-                ? {
-                      ...messageWithCitations.replyingTo,
-                      content: promptbookifyAiText(humanizeAiText(messageWithCitations.replyingTo.content)),
-                  }
-                : undefined;
-
-            return {
-                ...messageWithCitations,
-                content: promptbookifyAiText(humanizeAiText(messageWithCitations.content)),
-                ...(normalizedReplyingTo ? { replyingTo: normalizedReplyingTo } : {}),
-            };
-        });
-    }, [messages, isAiTextHumanizedAndPromptbookified]);
-
-    const {
-        isAutoScrolling,
-        chatMessagesRef,
-        handleScroll,
-        handleMessagesChange,
-        scrollToBottom,
-        isMobile: isMobileFromHook,
-    } = useChatAutoScroll();
-
-    const [unseenMessagesCount, setUnseenMessagesCount] = useState(0);
-    const [isLatestMessageInView, setIsLatestMessageInView] = useState(true);
-    const lastSeenMessagesRef = useRef(messages.length);
-    const chatMessagesElementRef = useRef<HTMLDivElement | null>(null);
-
-    const chatMessageSelector = `.${styles.chatMessage}`;
-    const chatMessageCollisionTargetSelector = `.${styles.messageStack}`;
+    const postprocessedMessages = useChatPostprocessedMessages({
+        messages,
+        isAiTextHumanizedAndPromptbookified,
+    });
     const {
         actionsRef,
-        setChatMessagesElement: setChatMessagesElementWithOverlap,
-        handleChatScroll: handleChatScrollWithOverlap,
-        isActionsOverlapping,
-        isActionsScrolling,
-    } = useChatActionsOverlap({
-        chatMessagesRef,
-        handleScroll,
-        messageSelector: chatMessageSelector,
-        messageCollisionSelector: chatMessageCollisionTargetSelector,
+        ariaLabel,
+        badgeLabel,
+        handleChatScroll,
+        isMobile,
+        scrollToBottom,
+        setChatMessagesElement,
+        shouldDisableActions,
+        shouldFadeActions,
+        shouldShowScrollToBottom,
+    } = useChatScrollState({
         messages: postprocessedMessages,
     });
-
-    /**
-     * Recomputes whether the latest message is visible in the chat viewport.
-     *
-     * @param chatMessagesElement - Optional explicit container element.
-     */
-    const updateLatestMessageVisibility = useCallback(
-        (chatMessagesElement?: HTMLDivElement | null) => {
-            const targetElement = chatMessagesElement ?? chatMessagesElementRef.current;
-            const nextVisibility = isLatestMessageVisible(targetElement, chatMessageSelector);
-            setIsLatestMessageInView((currentVisibility) =>
-                currentVisibility === nextVisibility ? currentVisibility : nextVisibility,
-            );
-        },
-        [chatMessageSelector],
-    );
-
-    const setChatMessagesElement = useCallback(
-        (element: HTMLDivElement | null) => {
-            chatMessagesElementRef.current = element;
-            setChatMessagesElementWithOverlap(element);
-            updateLatestMessageVisibility(element);
-        },
-        [setChatMessagesElementWithOverlap, updateLatestMessageVisibility],
-    );
-
-    const handleChatScroll = useCallback(
-        (event: UIEvent<HTMLDivElement>) => {
-            handleChatScrollWithOverlap(event);
-            updateLatestMessageVisibility(event.currentTarget);
-        },
-        [handleChatScrollWithOverlap, updateLatestMessageVisibility],
-    );
-
-    useEffect(() => {
-        if (messages.length < lastSeenMessagesRef.current) {
-            lastSeenMessagesRef.current = messages.length;
-            if (unseenMessagesCount !== 0) {
-                setUnseenMessagesCount(0);
-            }
-            return;
-        }
-
-        if (isAutoScrolling) {
-            lastSeenMessagesRef.current = messages.length;
-            if (unseenMessagesCount !== 0) {
-                setUnseenMessagesCount(0);
-            }
-            return;
-        }
-
-        if (messages.length > lastSeenMessagesRef.current) {
-            setUnseenMessagesCount(messages.length - lastSeenMessagesRef.current);
-        }
-    }, [messages.length, isAutoScrolling, unseenMessagesCount]);
-
-    const { badgeLabel, ariaLabel } = useMemo(
-        () => buildScrollIndicatorText(unseenMessagesCount),
-        [unseenMessagesCount],
-    );
-    const shouldShowScrollToBottom = !isAutoScrolling && !isLatestMessageInView;
-    const lastMessage = postprocessedMessages[postprocessedMessages.length - 1];
-    const isStreamingAgentMessage = Boolean(lastMessage && lastMessage.sender !== 'USER' && !lastMessage.isComplete);
 
     const {
         state: {
@@ -328,66 +174,23 @@ export function Chat(props: ChatProps) {
         onFeedback,
         feedbackMode,
         feedbackTranslations,
-        isMobile: isMobileFromHook,
+        isMobile,
     });
-
-    const [toolCallModalOpen, setToolCallModalOpen] = useState(false);
-    const [selectedToolCallState, setSelectedToolCallState] = useState<SelectedToolCallState | null>(null);
-    const [citationModalOpen, setCitationModalOpen] = useState(false);
-    const [selectedCitation, setSelectedCitation] = useState<ParsedCitation | null>(null);
-    const [mode] = useState<'LIGHT' | 'DARK'>('LIGHT');
-    const selectedToolCall = useMemo(
-        () =>
-            resolveToolCallFromChatMessages(
-                postprocessedMessages,
-                selectedToolCallState?.identity || null,
-                selectedToolCallState?.fallbackToolCall || null,
-            ),
-        [postprocessedMessages, selectedToolCallState],
-    );
-
-    const selectedMessageAvailableTools = useMemo((): ChatMessage['availableTools'] => {
-        const identity = selectedToolCallState?.identity;
-        if (!identity) {
-            return undefined;
-        }
-
-        for (let index = postprocessedMessages.length - 1; index >= 0; index -= 1) {
-            const message = postprocessedMessages[index]!;
-            const candidateToolCalls = [
-                ...(message.toolCalls || []),
-                ...(message.completedToolCalls || []),
-                ...(message.ongoingToolCalls || []),
-            ];
-
-            for (const candidateToolCall of candidateToolCalls) {
-                if (getToolCallIdentity(candidateToolCall) === identity) {
-                    return message.prompt?.availableTools || message.availableTools;
-                }
-            }
-        }
-
-        return undefined;
-    }, [postprocessedMessages, selectedToolCallState]);
-
-    useEffect(() => {
-        handleMessagesChange(isStreamingAgentMessage);
-
-        const animationFrame = requestAnimationFrame(() => {
-            updateLatestMessageVisibility();
-        });
-
-        return () => cancelAnimationFrame(animationFrame);
-    }, [postprocessedMessages, handleMessagesChange, updateLatestMessageVisibility, isStreamingAgentMessage]);
-
-    useEffect(() => {
-        const handleResize = () => {
-            updateLatestMessageVisibility();
-        };
-
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, [updateLatestMessageVisibility]);
+    const {
+        citationModalOpen,
+        closeCitationModal,
+        closeToolCallModal,
+        openCitation,
+        openToolCall,
+        selectedCitation,
+        selectedMessageAvailableTools,
+        selectedToolCall,
+        selectedToolCallIdentity,
+        toolCallModalOpen,
+    } = useChatToolCallState({
+        messages: postprocessedMessages,
+    });
+    const mode: 'LIGHT' | 'DARK' = 'LIGHT';
 
     const scrollToBottomCssClassName = getChatCssClassName('scrollToBottom');
 
@@ -406,14 +209,14 @@ export function Chat(props: ChatProps) {
     );
 
     const handleCopy = useCallback(() => {}, []);
-    const isFeedbackEnabled = !!onFeedback && feedbackMode !== 'off';
-    const shouldFadeActions = isActionsOverlapping;
-    const shouldDisableActions = isActionsOverlapping && isActionsScrolling;
-    const hasActions =
-        ((!!onReset || !!newChatButtonHref) && postprocessedMessages.length !== 0) ||
-        (isSaveButtonEnabled && postprocessedMessages.length !== 0) ||
-        !!onUseTemplate ||
-        !!extraActions;
+    const isFeedbackEnabled = isChatFeedbackEnabled(onFeedback, feedbackMode);
+    const hasActions = hasChatActions(postprocessedMessages, {
+        onReset,
+        newChatButtonHref,
+        onUseTemplate,
+        extraActions,
+        isSaveButtonEnabled,
+    });
     const isConstrainedArticleMode = CHAT_VISUAL_MODE === 'ARTICLE_MODE' && visual === 'FULL_PAGE';
 
     useChatCompleteNotification(messages, soundSystem);
@@ -473,7 +276,7 @@ export function Chat(props: ChatProps) {
                                     direction="down"
                                     iconSize={33}
                                     className={classNames(styles.scrollToBottom, scrollToBottomCssClassName)}
-                                    onClick={handleButtonClick(scrollToBottom)}
+                                    onClick={handleButtonClick(() => scrollToBottom())}
                                     aria-label={ariaLabel}
                                     title={ariaLabel}
                                 />
@@ -543,17 +346,8 @@ export function Chat(props: ChatProps) {
                         teamAgentProfiles={teamAgentProfiles}
                         CHAT_VISUAL_MODE={CHAT_VISUAL_MODE}
                         soundSystem={soundSystem}
-                        onToolCallClick={(toolCall) => {
-                            setSelectedToolCallState({
-                                identity: getToolCallIdentity(toolCall),
-                                fallbackToolCall: toolCall,
-                            });
-                            setToolCallModalOpen(true);
-                        }}
-                        onCitationClick={(citation) => {
-                            setSelectedCitation(citation);
-                            setCitationModalOpen(true);
-                        }}
+                        onToolCallClick={openToolCall}
+                        onCitationClick={openCitation}
                         setChatMessagesElement={setChatMessagesElement}
                         onScroll={handleChatScroll}
                         isSpeechPlaybackEnabled={isSpeechPlaybackEnabled}
@@ -583,7 +377,7 @@ export function Chat(props: ChatProps) {
                                 placeholderMessageContent || chatUiTranslations?.inputPlaceholder
                             }
                             isFocusedOnLoad={isFocusedOnLoad}
-                            isMobile={isMobileFromHook}
+                            isMobile={isMobile}
                             isVoiceCalling={isVoiceCalling}
                             participants={participants}
                             buttonColor={buttonColor}
@@ -603,11 +397,8 @@ export function Chat(props: ChatProps) {
             <ChatToolCallModal
                 isOpen={toolCallModalOpen}
                 toolCall={selectedToolCall}
-                toolCallIdentity={selectedToolCallState?.identity || null}
-                onClose={() => {
-                    setToolCallModalOpen(false);
-                    setSelectedToolCallState(null);
-                }}
+                toolCallIdentity={selectedToolCallIdentity}
+                onClose={closeToolCallModal}
                 toolTitles={toolTitles}
                 agentParticipant={agentParticipant}
                 buttonColor={buttonColor}
@@ -622,7 +413,7 @@ export function Chat(props: ChatProps) {
                 citation={selectedCitation}
                 participants={participants}
                 soundSystem={soundSystem}
-                onClose={() => setCitationModalOpen(false)}
+                onClose={closeCitationModal}
             />
 
             <ChatRatingModal
@@ -636,7 +427,7 @@ export function Chat(props: ChatProps) {
                 feedbackMode={feedbackMode}
                 feedbackTranslations={feedbackTranslations}
                 mode={mode}
-                isMobile={isMobileFromHook}
+                isMobile={isMobile}
                 onClose={() => setRatingModalOpen(false)}
                 setHoveredRating={setHoveredRating}
                 setMessageRatings={setMessageRatings}

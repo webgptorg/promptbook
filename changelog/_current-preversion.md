@@ -1,3 +1,8 @@
+-   Refactored `src/book-components/Chat/Chat/Chat.tsx` into smaller focused private chat helpers without changing external behavior:
+
+    -   Extracted render-only message normalization, scroll/overlap orchestration, and tool-call/citation modal selection into dedicated private hooks so `Chat.tsx` now reads top-down.
+    -   Kept the existing message postprocessing, auto-scroll indicator, action-bar overlap fading, tool-call detail resolution, citation modal flow, and feedback wiring intact while reducing repeated branching.
+
 -   Refactored `src/book-components/BookEditor/useBookEditorMonacoUploads.ts` into smaller focused upload helpers without changing external behavior:
 
     -   Split upload state transitions, progress normalization, placeholder insertion, and upload-stats aggregation into focused helpers so `useBookEditorMonacoUploads` now reads top-down.
