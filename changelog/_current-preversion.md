@@ -1,3 +1,8 @@
+-   Refactored `src/execution/createPipelineExecutor/40-executeAttempts.ts` into smaller focused helpers without changing external behavior:
+
+    -   Split the branching-heavy attempt loop into dedicated joker-resolution, task-type execution, postprocessing, validation, failure-bookkeeping, and prompt-report helpers so `executeAttempts` now reads top-down.
+    -   Kept the existing joker retry order, prompt/script/dialog execution semantics, expectation retry summaries, and prompt execution-report logging behavior intact while reducing repeated branching.
+
 -   Refactored `src/conversion/parsePipeline.ts` into smaller focused private helpers without changing external behavior:
 
     -   Extracted pipeline normalization, markdown-structure validation, head/task command application, section-name resolution, parameter bookkeeping, and final cleanup/export steps so `parsePipeline` now reads top-down.
