@@ -27,12 +27,157 @@ const VECTOR_STORE_STALL_LOG_THRESHOLD_MS = 30000;
 
 /**
  * Metadata for uploaded knowledge source files used for vector store diagnostics.
+ *
+ * @private internal utility of `OpenAiVectorStoreHandler`
  */
 type KnowledgeSourceUploadMetadata = {
     readonly fileId: string;
     readonly filename: string;
     readonly sizeBytes?: number;
 };
+
+/**
+ * Aggregated upload totals grouped by normalized file extension.
+ *
+ * @private internal utility of `OpenAiVectorStoreHandler`
+ */
+type KnowledgeSourceFileTypeSummary = Record<string, { count: number; totalBytes: number }>;
+
+/**
+ * One failed knowledge-source upload attempt.
+ *
+ * @private internal utility of `OpenAiVectorStoreHandler`
+ */
+type KnowledgeSourceUploadFailure = {
+    readonly index: number;
+    readonly filename: string;
+    readonly error: ReturnType<typeof serializeError>;
+};
+
+/**
+ * Accumulated result of uploading prepared knowledge-source files.
+ *
+ * @private internal utility of `OpenAiVectorStoreHandler`
+ */
+type KnowledgeSourceFilesUploadResult = {
+    readonly fileIds: string[];
+    readonly uploadedFiles: KnowledgeSourceUploadMetadata[];
+    readonly failedUploads: KnowledgeSourceUploadFailure[];
+};
+
+/**
+ * Result of creating the vector store file batch that tracks uploaded knowledge sources.
+ *
+ * @private internal utility of `OpenAiVectorStoreHandler`
+ */
+type CreatedVectorStoreFileBatch = {
+    readonly batch: TODO_any;
+    readonly expectedBatchId: string;
+    readonly isExpectedBatchIdValid: boolean;
+};
+
+/**
+ * Resolved batch identifier used while polling vector store ingestion.
+ *
+ * @private internal utility of `OpenAiVectorStoreHandler`
+ */
+type VectorStoreFileBatchIdResolution = {
+    readonly batchId?: string;
+    readonly isBatchIdValid: boolean;
+    readonly isBatchIdMismatch: boolean;
+};
+
+/**
+ * Mutable polling state used to throttle progress and diagnostics logging.
+ *
+ * @private internal utility of `OpenAiVectorStoreHandler`
+ */
+type VectorStoreFileBatchPollingState = {
+    lastCountsKey: string;
+    lastProgressKey: string;
+    lastLogAtMs: number;
+    lastProgressAtMs: number;
+    lastDiagnosticsAtMs: number;
+    isBatchIdMismatchLogged: boolean;
+    isBatchIdFallbackLogged: boolean;
+    isBatchIdInvalidLogged: boolean;
+};
+
+/**
+ * Retrieved vector store file batch together with the batch-id bookkeeping used for polling.
+ *
+ * @private internal utility of `OpenAiVectorStoreHandler`
+ */
+type RetrievedVectorStoreFileBatch = {
+    readonly batch: TODO_any;
+    readonly batchId: string;
+    readonly isBatchIdMismatch: boolean;
+};
+
+/**
+ * Resolves the filename bucket used in upload summaries and diagnostics.
+ *
+ * @private internal utility of `OpenAiVectorStoreHandler`
+ */
+function resolveKnowledgeSourceFileExtension(filename: string): string {
+    return filename.includes('.') ? filename.split('.').pop()?.toLowerCase() ?? 'unknown' : 'unknown';
+}
+
+/**
+ * Returns the fallback filename used when a knowledge-source `File` has no name.
+ *
+ * @private internal utility of `OpenAiVectorStoreHandler`
+ */
+function resolveKnowledgeSourceUploadFilename(file: File, uploadIndex: number): string {
+    return file.name || `knowledge-source-${uploadIndex}`;
+}
+
+/**
+ * Creates an extension summary for the prepared knowledge-source files.
+ *
+ * @private internal utility of `OpenAiVectorStoreHandler`
+ */
+function createKnowledgeSourceFileTypeSummary(files: ReadonlyArray<File>): KnowledgeSourceFileTypeSummary {
+    const fileTypeSummary: KnowledgeSourceFileTypeSummary = {};
+
+    for (const file of files) {
+        const extension = resolveKnowledgeSourceFileExtension(file.name ?? '');
+        const sizeBytes = typeof file.size === 'number' ? file.size : 0;
+        const summary = fileTypeSummary[extension] ?? { count: 0, totalBytes: 0 };
+        summary.count += 1;
+        summary.totalBytes += sizeBytes;
+        fileTypeSummary[extension] = summary;
+    }
+
+    return fileTypeSummary;
+}
+
+/**
+ * Returns true when the provided identifier looks like an OpenAI vector-store file-batch id.
+ *
+ * @private internal utility of `OpenAiVectorStoreHandler`
+ */
+function isVectorStoreFileBatchId(batchId: string | undefined): batchId is string {
+    return typeof batchId === 'string' && batchId.startsWith('vsfb_');
+}
+
+/**
+ * Creates the mutable log-throttling state used while polling vector store ingestion.
+ *
+ * @private internal utility of `OpenAiVectorStoreHandler`
+ */
+function createVectorStoreFileBatchPollingState(startedAtMs: number): VectorStoreFileBatchPollingState {
+    return {
+        lastCountsKey: '',
+        lastProgressKey: '',
+        lastLogAtMs: 0,
+        lastProgressAtMs: startedAtMs,
+        lastDiagnosticsAtMs: startedAtMs,
+        isBatchIdMismatchLogged: false,
+        isBatchIdFallbackLogged: false,
+        isBatchIdInvalidLogged: false,
+    };
+}
 
 /**
  * Shared options for OpenAI vector store handling.
@@ -356,7 +501,6 @@ export abstract class OpenAiVectorStoreHandler extends OpenAiExecutionTools {
         readonly logLabel: string;
     }): Promise<TODO_any | null> {
         const { client, vectorStoreId, files, totalBytes, logLabel } = options;
-        const vectorStores = this.getVectorStoresApi(client);
         const uploadStartedAtMs = Date.now();
         const maxConcurrency = Math.max(1, this.getKnowledgeSourceUploadMaxConcurrency());
         const pollIntervalMs = Math.max(1000, this.getKnowledgeSourceUploadPollIntervalMs());
@@ -374,18 +518,7 @@ export abstract class OpenAiVectorStoreHandler extends OpenAiExecutionTools {
             });
         }
 
-        const fileTypeSummary: Record<string, { count: number; totalBytes: number }> = {};
-        for (const file of files) {
-            const filename = file.name ?? '';
-            const extension = filename.includes('.')
-                ? filename.split('.').pop()?.toLowerCase() ?? 'unknown'
-                : 'unknown';
-            const sizeBytes = typeof file.size === 'number' ? file.size : 0;
-            const summary = fileTypeSummary[extension] ?? { count: 0, totalBytes: 0 };
-            summary.count += 1;
-            summary.totalBytes += sizeBytes;
-            fileTypeSummary[extension] = summary;
-        }
+        const fileTypeSummary = createKnowledgeSourceFileTypeSummary(files);
 
         if (this.options.isVerbose) {
             console.info('[🤰]', 'Knowledge source file summary', {
@@ -397,101 +530,250 @@ export abstract class OpenAiVectorStoreHandler extends OpenAiExecutionTools {
             });
         }
 
+        const uploadResult = await this.uploadPreparedKnowledgeSourceFiles({
+            client,
+            vectorStoreId,
+            files,
+            maxConcurrency,
+            uploadStartedAtMs,
+            logLabel,
+        });
+
+        if (uploadResult.fileIds.length === 0) {
+            console.error('[🤰]', 'No knowledge source files were uploaded', {
+                vectorStoreId,
+                fileCount: files.length,
+                failedCount: uploadResult.failedUploads.length,
+                logLabel,
+            });
+            return null;
+        }
+
+        const createdBatch = await this.createVectorStoreFileBatch({
+            client,
+            vectorStoreId,
+            fileIds: uploadResult.fileIds,
+            logLabel,
+        });
+
+        return this.pollVectorStoreFileBatchUntilSettled({
+            client,
+            vectorStoreId,
+            batch: createdBatch.batch,
+            expectedBatchId: createdBatch.expectedBatchId,
+            isExpectedBatchIdValid: createdBatch.isExpectedBatchIdValid,
+            uploadedFiles: uploadResult.uploadedFiles,
+            pollIntervalMs,
+            uploadTimeoutMs,
+            logLabel,
+        });
+    }
+
+    /**
+     * Uploads the prepared knowledge-source files with bounded concurrency.
+     */
+    private async uploadPreparedKnowledgeSourceFiles(options: {
+        readonly client: OpenAI;
+        readonly vectorStoreId: string;
+        readonly files: ReadonlyArray<File>;
+        readonly maxConcurrency: number;
+        readonly uploadStartedAtMs: number;
+        readonly logLabel: string;
+    }): Promise<KnowledgeSourceFilesUploadResult> {
+        const { client, vectorStoreId, files, maxConcurrency, uploadStartedAtMs, logLabel } = options;
+        const uploadResult: KnowledgeSourceFilesUploadResult = {
+            fileIds: [],
+            uploadedFiles: [],
+            failedUploads: [],
+        };
         const fileEntries = files.map((file, index) => ({ file, index }));
         const fileIterator = fileEntries.values();
-        const fileIds: string[] = [];
-        const uploadedFiles: KnowledgeSourceUploadMetadata[] = [];
-        const failedUploads: Array<{ index: number; filename: string; error: ReturnType<typeof serializeError> }> = [];
-        let uploadedCount = 0;
-
-        const processFiles = async (iterator: IterableIterator<{ file: File; index: number }>): Promise<void> => {
-            for (const { file, index } of iterator) {
-                const uploadIndex = index + 1;
-                const filename = file.name || `knowledge-source-${uploadIndex}`;
-                const extension = filename.includes('.')
-                    ? filename.split('.').pop()?.toLowerCase() ?? 'unknown'
-                    : 'unknown';
-                const sizeBytes = typeof file.size === 'number' ? file.size : undefined;
-                const fileUploadStartedAtMs = Date.now();
-
-                if (this.options.isVerbose) {
-                    console.info('[🤰]', 'Uploading knowledge source file', {
-                        index: uploadIndex,
-                        total: files.length,
-                        filename,
-                        extension,
-                        sizeBytes,
-                        logLabel,
-                    });
-                }
-
-                try {
-                    const uploaded = await client.files.create({ file, purpose: 'assistants' });
-                    fileIds.push(uploaded.id);
-                    uploadedFiles.push({ fileId: uploaded.id, filename, sizeBytes });
-                    uploadedCount += 1;
-
-                    if (this.options.isVerbose) {
-                        console.info('[🤰]', 'Uploaded knowledge source file', {
-                            index: uploadIndex,
-                            total: files.length,
-                            filename,
-                            sizeBytes,
-                            fileId: uploaded.id,
-                            elapsedMs: Date.now() - fileUploadStartedAtMs,
-                            logLabel,
-                        });
-                    }
-                } catch (error) {
-                    assertsError(error);
-                    const serializedError = serializeError(error);
-                    failedUploads.push({ index: uploadIndex, filename, error: serializedError });
-                    console.error('[🤰]', 'Failed to upload knowledge source file', {
-                        index: uploadIndex,
-                        total: files.length,
-                        filename,
-                        sizeBytes,
-                        elapsedMs: Date.now() - fileUploadStartedAtMs,
-                        logLabel,
-                        error: serializedError,
-                    });
-                }
-            }
-        };
-
         const workerCount = Math.min(maxConcurrency, files.length);
-        const workers = Array.from({ length: workerCount }, () => processFiles(fileIterator));
+        const workers = Array.from({ length: workerCount }, () =>
+            this.uploadPreparedKnowledgeSourceFilesWorker({
+                client,
+                files,
+                fileIterator,
+                uploadResult,
+                logLabel,
+            }),
+        );
+
         await Promise.all(workers);
 
         if (this.options.isVerbose) {
             console.info('[🤰]', 'Finished uploading knowledge source files', {
                 vectorStoreId,
                 fileCount: files.length,
-                uploadedCount,
-                failedCount: failedUploads.length,
+                uploadedCount: uploadResult.fileIds.length,
+                failedCount: uploadResult.failedUploads.length,
                 elapsedMs: Date.now() - uploadStartedAtMs,
-                failedSamples: failedUploads.slice(0, 3),
+                failedSamples: uploadResult.failedUploads.slice(0, 3),
                 logLabel,
             });
         }
 
-        if (fileIds.length === 0) {
-            console.error('[🤰]', 'No knowledge source files were uploaded', {
-                vectorStoreId,
-                fileCount: files.length,
-                failedCount: failedUploads.length,
+        return uploadResult;
+    }
+
+    /**
+     * Reuses the shared iterator to upload one slice of knowledge-source files.
+     */
+    private async uploadPreparedKnowledgeSourceFilesWorker(options: {
+        readonly client: OpenAI;
+        readonly files: ReadonlyArray<File>;
+        readonly fileIterator: IterableIterator<{ file: File; index: number }>;
+        readonly uploadResult: KnowledgeSourceFilesUploadResult;
+        readonly logLabel: string;
+    }): Promise<void> {
+        const { client, files, fileIterator, uploadResult, logLabel } = options;
+
+        for (const { file, index } of fileIterator) {
+            const fileUploadResult = await this.uploadPreparedKnowledgeSourceFile({
+                client,
+                file,
+                index,
+                totalFiles: files.length,
                 logLabel,
             });
-            return null;
+
+            if ('fileId' in fileUploadResult) {
+                uploadResult.fileIds.push(fileUploadResult.fileId);
+                uploadResult.uploadedFiles.push(fileUploadResult.metadata);
+            } else {
+                uploadResult.failedUploads.push(fileUploadResult.failedUpload);
+            }
+        }
+    }
+
+    /**
+     * Uploads one prepared knowledge-source file to OpenAI and records detailed diagnostics.
+     */
+    private async uploadPreparedKnowledgeSourceFile(options: {
+        readonly client: OpenAI;
+        readonly file: File;
+        readonly index: number;
+        readonly totalFiles: number;
+        readonly logLabel: string;
+    }): Promise<
+        | { readonly fileId: string; readonly metadata: KnowledgeSourceUploadMetadata }
+        | { readonly failedUpload: KnowledgeSourceUploadFailure }
+    > {
+        const { client, file, index, totalFiles, logLabel } = options;
+        const uploadIndex = index + 1;
+        const filename = resolveKnowledgeSourceUploadFilename(file, uploadIndex);
+        const extension = resolveKnowledgeSourceFileExtension(filename);
+        const sizeBytes = typeof file.size === 'number' ? file.size : undefined;
+        const fileUploadStartedAtMs = Date.now();
+
+        if (this.options.isVerbose) {
+            console.info('[🤰]', 'Uploading knowledge source file', {
+                index: uploadIndex,
+                total: totalFiles,
+                filename,
+                extension,
+                sizeBytes,
+                logLabel,
+            });
         }
 
+        try {
+            const uploaded = await client.files.create({ file, purpose: 'assistants' });
+
+            if (this.options.isVerbose) {
+                console.info('[🤰]', 'Uploaded knowledge source file', {
+                    index: uploadIndex,
+                    total: totalFiles,
+                    filename,
+                    sizeBytes,
+                    fileId: uploaded.id,
+                    elapsedMs: Date.now() - fileUploadStartedAtMs,
+                    logLabel,
+                });
+            }
+
+            return {
+                fileId: uploaded.id,
+                metadata: {
+                    fileId: uploaded.id,
+                    filename,
+                    sizeBytes,
+                },
+            };
+        } catch (error) {
+            assertsError(error);
+            const serializedError = serializeError(error);
+            const failedUpload: KnowledgeSourceUploadFailure = {
+                index: uploadIndex,
+                filename,
+                error: serializedError,
+            };
+
+            console.error('[🤰]', 'Failed to upload knowledge source file', {
+                index: uploadIndex,
+                total: totalFiles,
+                filename,
+                sizeBytes,
+                elapsedMs: Date.now() - fileUploadStartedAtMs,
+                logLabel,
+                error: serializedError,
+            });
+
+            return { failedUpload };
+        }
+    }
+
+    /**
+     * Creates the OpenAI vector-store file batch for the uploaded knowledge-source files.
+     */
+    private async createVectorStoreFileBatch(options: {
+        readonly client: OpenAI;
+        readonly vectorStoreId: string;
+        readonly fileIds: ReadonlyArray<string>;
+        readonly logLabel: string;
+    }): Promise<CreatedVectorStoreFileBatch> {
+        const { client, vectorStoreId, fileIds, logLabel } = options;
+        const vectorStores = this.getVectorStoresApi(client);
         const batch = await vectorStores.fileBatches.create(vectorStoreId, {
-            file_ids: fileIds,
+            file_ids: [...fileIds],
         });
         const expectedBatchId = batch.id;
-        const expectedBatchIdValid = expectedBatchId.startsWith('vsfb_');
+        const isExpectedBatchIdValid = this.logCreatedVectorStoreFileBatchIssues({
+            batch,
+            vectorStoreId,
+            expectedBatchId,
+            logLabel,
+        });
 
-        if (!expectedBatchIdValid) {
+        if (this.options.isVerbose) {
+            console.info('[🤰]', 'Created vector store file batch', {
+                vectorStoreId,
+                batchId: expectedBatchId,
+                fileCount: fileIds.length,
+                logLabel,
+            });
+        }
+
+        return {
+            batch,
+            expectedBatchId,
+            isExpectedBatchIdValid,
+        };
+    }
+
+    /**
+     * Logs warnings for unexpected vector-store batch metadata right after creation.
+     */
+    private logCreatedVectorStoreFileBatchIssues(options: {
+        readonly batch: TODO_any;
+        readonly vectorStoreId: string;
+        readonly expectedBatchId: string;
+        readonly logLabel: string;
+    }): boolean {
+        const { batch, vectorStoreId, expectedBatchId, logLabel } = options;
+        const isExpectedBatchIdValid = isVectorStoreFileBatchId(expectedBatchId);
+
+        if (!isExpectedBatchIdValid) {
             console.error('[🤰]', 'Vector store file batch id looks invalid', {
                 vectorStoreId,
                 batchId: expectedBatchId,
@@ -507,253 +789,122 @@ export abstract class OpenAiVectorStoreHandler extends OpenAiExecutionTools {
             });
         }
 
-        if (this.options.isVerbose) {
-            console.info('[🤰]', 'Created vector store file batch', {
-                vectorStoreId,
-                batchId: expectedBatchId,
-                fileCount: fileIds.length,
-                logLabel,
-            });
-        }
+        return isExpectedBatchIdValid;
+    }
 
+    /**
+     * Polls the created vector-store batch until ingestion completes, fails, or times out.
+     */
+    private async pollVectorStoreFileBatchUntilSettled(options: {
+        readonly client: OpenAI;
+        readonly vectorStoreId: string;
+        readonly batch: TODO_any;
+        readonly expectedBatchId: string;
+        readonly isExpectedBatchIdValid: boolean;
+        readonly uploadedFiles: ReadonlyArray<KnowledgeSourceUploadMetadata>;
+        readonly pollIntervalMs: number;
+        readonly uploadTimeoutMs: number;
+        readonly logLabel: string;
+    }): Promise<TODO_any> {
+        const {
+            client,
+            vectorStoreId,
+            batch,
+            expectedBatchId,
+            isExpectedBatchIdValid,
+            uploadedFiles,
+            pollIntervalMs,
+            uploadTimeoutMs,
+            logLabel,
+        } = options;
+        const vectorStores = this.getVectorStoresApi(client);
         const pollStartedAtMs = Date.now();
         const progressLogIntervalMs = Math.max(VECTOR_STORE_PROGRESS_LOG_INTERVAL_MIN_MS, pollIntervalMs);
         const diagnosticsIntervalMs = Math.max(60000, pollIntervalMs * 5);
-        // let lastStatus: string | undefined;
-        let lastCountsKey = '';
-        let lastProgressKey = '';
-        let lastLogAtMs = 0;
-        let lastProgressAtMs = pollStartedAtMs;
-        let lastDiagnosticsAtMs = pollStartedAtMs;
+        const pollingState = createVectorStoreFileBatchPollingState(pollStartedAtMs);
         let latestBatch = batch;
-        let loggedBatchIdMismatch = false;
-        let loggedBatchIdFallback = false;
-        let loggedBatchIdInvalid = false;
-        let shouldPoll = true;
+        let isPolling = true;
 
-        while (shouldPoll) {
+        while (isPolling) {
             const nowMs = Date.now();
+            const retrievedBatch = await this.retrieveVectorStoreFileBatchForPolling({
+                vectorStores,
+                vectorStoreId,
+                latestBatch,
+                expectedBatchId,
+                isExpectedBatchIdValid,
+                pollingState,
+                logLabel,
+            });
 
-            // [🤰] Note: Sometimes OpenAI returns Vector Store object instead of Batch object, or IDs get swapped.
-            const rawBatchId = typeof latestBatch.id === 'string' ? latestBatch.id : '';
-            const rawVectorStoreId = (latestBatch as TODO_any).vector_store_id;
-            let returnedBatchId = rawBatchId;
-            let returnedBatchIdValid = typeof returnedBatchId === 'string' && returnedBatchId.startsWith('vsfb_');
-
-            if (!returnedBatchIdValid && expectedBatchIdValid) {
-                if (!loggedBatchIdFallback) {
-                    console.error(
-                        '[🤰]',
-                        'Vector store file batch id missing from response; falling back to expected',
-                        {
-                            vectorStoreId,
-                            expectedBatchId,
-                            returnedBatchId,
-                            rawVectorStoreId,
-                            logLabel,
-                        },
-                    );
-                    loggedBatchIdFallback = true;
-                }
-                returnedBatchId = expectedBatchId;
-                returnedBatchIdValid = true;
-            }
-
-            if (!returnedBatchIdValid && !loggedBatchIdInvalid) {
-                console.error('[🤰]', 'Vector store file batch id is invalid; stopping polling', {
-                    vectorStoreId,
-                    expectedBatchId,
-                    returnedBatchId,
-                    rawVectorStoreId,
-                    logLabel,
-                });
-                loggedBatchIdInvalid = true;
-            }
-
-            const batchIdMismatch = expectedBatchIdValid && returnedBatchIdValid && returnedBatchId !== expectedBatchId;
-
-            if (batchIdMismatch && !loggedBatchIdMismatch) {
-                console.error('[🤰]', 'Vector store file batch id mismatch', {
-                    vectorStoreId,
-                    expectedBatchId,
-                    returnedBatchId,
-                    logLabel,
-                });
-                loggedBatchIdMismatch = true;
-            }
-
-            if (returnedBatchIdValid) {
-                latestBatch = await vectorStores.fileBatches.retrieve(returnedBatchId, {
-                    vector_store_id: vectorStoreId,
-                });
-            } else {
-                shouldPoll = false;
+            if (!retrievedBatch) {
+                isPolling = false;
                 continue;
             }
 
+            latestBatch = retrievedBatch.batch;
             const status = latestBatch.status ?? 'unknown';
             const fileCounts = latestBatch.file_counts ?? {};
-            const progressKey = JSON.stringify(fileCounts);
-            const statusCountsKey = `${status}-${progressKey}`;
-            const isProgressing = progressKey !== lastProgressKey;
+            const elapsedMs = nowMs - pollStartedAtMs;
 
-            if (isProgressing) {
-                lastProgressAtMs = nowMs;
-                lastProgressKey = progressKey;
+            this.trackVectorStoreFileBatchProgress({
+                vectorStoreId,
+                batchId: retrievedBatch.batchId,
+                status,
+                fileCounts,
+                elapsedMs,
+                progressLogIntervalMs,
+                pollingState,
+                logLabel,
+                nowMs,
+            });
+
+            await this.maybeLogStalledVectorStoreFileBatch({
+                client,
+                vectorStoreId,
+                batchId: retrievedBatch.batchId,
+                status,
+                uploadedFiles,
+                diagnosticsIntervalMs,
+                pollingState,
+                logLabel,
+                nowMs,
+            });
+
+            if (
+                await this.handleVectorStoreFileBatchTerminalState({
+                    client,
+                    vectorStoreId,
+                    batchId: retrievedBatch.batchId,
+                    status,
+                    fileCounts,
+                    uploadedFiles,
+                    elapsedMs,
+                    logLabel,
+                })
+            ) {
+                isPolling = false;
+                continue;
             }
 
             if (
-                this.options.isVerbose &&
-                (statusCountsKey !== lastCountsKey || nowMs - lastLogAtMs >= progressLogIntervalMs)
-            ) {
-                console.info('[🤰]', 'Vector store file batch status', {
-                    vectorStoreId,
-                    batchId: returnedBatchId,
-                    status,
-                    fileCounts,
-                    elapsedMs: nowMs - pollStartedAtMs,
-                    logLabel,
-                });
-                lastCountsKey = statusCountsKey;
-                lastLogAtMs = nowMs;
-            }
-
-            if (
-                status === 'in_progress' &&
-                nowMs - lastProgressAtMs >= VECTOR_STORE_STALL_LOG_THRESHOLD_MS &&
-                nowMs - lastDiagnosticsAtMs >= diagnosticsIntervalMs
-            ) {
-                lastDiagnosticsAtMs = nowMs;
-                await this.logVectorStoreFileBatchDiagnostics({
+                await this.handleVectorStoreFileBatchTimeout({
                     client,
+                    vectorStores,
                     vectorStoreId,
-                    batchId: returnedBatchId,
-                    uploadedFiles,
-                    logLabel,
-                    reason: 'stalled',
-                });
-            }
-
-            if (status === 'completed') {
-                if (this.options.isVerbose) {
-                    console.info('[🤰]', 'Vector store file batch completed', {
-                        vectorStoreId,
-                        batchId: returnedBatchId,
-                        fileCounts,
-                        elapsedMs: nowMs - pollStartedAtMs,
-                        logLabel,
-                    });
-                }
-                shouldPoll = false;
-                continue;
-            }
-
-            if (status === 'failed') {
-                console.error('[🤰]', 'Vector store file batch completed with failures', {
-                    vectorStoreId,
-                    batchId: returnedBatchId,
+                    batchId: retrievedBatch.batchId,
+                    isBatchIdMismatch: retrievedBatch.isBatchIdMismatch,
+                    expectedBatchId,
                     fileCounts,
-                    elapsedMs: nowMs - pollStartedAtMs,
-                    logLabel,
-                });
-                await this.logVectorStoreFileBatchDiagnostics({
-                    client,
-                    vectorStoreId,
-                    batchId: returnedBatchId,
                     uploadedFiles,
-                    logLabel,
-                    reason: 'failed',
-                });
-                shouldPoll = false;
-                continue;
-            }
-
-            if (status === 'cancelled') {
-                console.error('[🤰]', 'Vector store file batch did not complete', {
-                    vectorStoreId,
-                    batchId: returnedBatchId,
-                    status,
-                    fileCounts,
-                    elapsedMs: nowMs - pollStartedAtMs,
-                    logLabel,
-                });
-                await this.logVectorStoreFileBatchDiagnostics({
-                    client,
-                    vectorStoreId,
-                    batchId: returnedBatchId,
-                    uploadedFiles,
-                    logLabel,
-                    reason: 'failed',
-                });
-                shouldPoll = false;
-                continue;
-            }
-
-            if (nowMs - pollStartedAtMs >= uploadTimeoutMs) {
-                console.error('[🤰]', 'Timed out waiting for vector store file batch', {
-                    vectorStoreId,
-                    batchId: returnedBatchId,
-                    fileCounts,
-                    elapsedMs: nowMs - pollStartedAtMs,
+                    elapsedMs,
                     uploadTimeoutMs,
                     logLabel,
-                });
-
-                await this.logVectorStoreFileBatchDiagnostics({
-                    client,
-                    vectorStoreId,
-                    batchId: returnedBatchId,
-                    uploadedFiles,
-                    logLabel,
-                    reason: 'timeout',
-                });
-
-                if (this.shouldContinueOnVectorStoreStall()) {
-                    console.warn('[🤰]', 'Continuing despite vector store timeout as requested', {
-                        vectorStoreId,
-                        logLabel,
-                    });
-                    shouldPoll = false;
-                    continue;
-                }
-
-                try {
-                    const cancelBatchId =
-                        batchIdMismatch && returnedBatchId.startsWith('vsfb_') ? returnedBatchId : expectedBatchId;
-                    if (!cancelBatchId.startsWith('vsfb_')) {
-                        console.error('[🤰]', 'Skipping vector store file batch cancel (invalid batch id)', {
-                            vectorStoreId,
-                            batchId: cancelBatchId,
-                            logLabel,
-                        });
-                    } else {
-                        await vectorStores.fileBatches.cancel(cancelBatchId, {
-                            vector_store_id: vectorStoreId,
-                        });
-                    }
-                    if (this.options.isVerbose) {
-                        console.info('[🤰]', 'Cancelled vector store file batch after timeout', {
-                            vectorStoreId,
-                            batchId:
-                                batchIdMismatch && returnedBatchId.startsWith('vsfb_')
-                                    ? returnedBatchId
-                                    : expectedBatchId,
-                            ...(batchIdMismatch ? { returnedBatchId } : {}),
-                            logLabel,
-                        });
-                    }
-                } catch (error) {
-                    assertsError(error);
-                    console.error('[🤰]', 'Failed to cancel vector store file batch after timeout', {
-                        vectorStoreId,
-                        batchId: expectedBatchId,
-                        ...(batchIdMismatch ? { returnedBatchId } : {}),
-                        logLabel,
-                        error: serializeError(error),
-                    });
-                }
-
-                shouldPoll = false;
+                    nowMs,
+                    pollStartedAtMs,
+                })
+            ) {
+                isPolling = false;
                 continue;
             }
 
@@ -761,6 +912,402 @@ export abstract class OpenAiVectorStoreHandler extends OpenAiExecutionTools {
         }
 
         return latestBatch;
+    }
+
+    /**
+     * Resolves the next batch id to poll and retrieves the freshest OpenAI batch snapshot.
+     */
+    private async retrieveVectorStoreFileBatchForPolling(options: {
+        readonly vectorStores: TODO_any;
+        readonly vectorStoreId: string;
+        readonly latestBatch: TODO_any;
+        readonly expectedBatchId: string;
+        readonly isExpectedBatchIdValid: boolean;
+        readonly pollingState: VectorStoreFileBatchPollingState;
+        readonly logLabel: string;
+    }): Promise<RetrievedVectorStoreFileBatch | null> {
+        const {
+            vectorStores,
+            vectorStoreId,
+            latestBatch,
+            expectedBatchId,
+            isExpectedBatchIdValid,
+            pollingState,
+            logLabel,
+        } = options;
+        const batchIdResolution = this.resolveVectorStoreFileBatchId({
+            vectorStoreId,
+            latestBatch,
+            expectedBatchId,
+            isExpectedBatchIdValid,
+            pollingState,
+            logLabel,
+        });
+
+        if (!batchIdResolution.isBatchIdValid || !batchIdResolution.batchId) {
+            return null;
+        }
+
+        const batch = await vectorStores.fileBatches.retrieve(batchIdResolution.batchId, {
+            vector_store_id: vectorStoreId,
+        });
+
+        return {
+            batch,
+            batchId: batchIdResolution.batchId,
+            isBatchIdMismatch: batchIdResolution.isBatchIdMismatch,
+        };
+    }
+
+    /**
+     * Normalizes the batch identifier returned by OpenAI and logs unusual id situations once.
+     */
+    private resolveVectorStoreFileBatchId(options: {
+        readonly vectorStoreId: string;
+        readonly latestBatch: TODO_any;
+        readonly expectedBatchId: string;
+        readonly isExpectedBatchIdValid: boolean;
+        readonly pollingState: VectorStoreFileBatchPollingState;
+        readonly logLabel: string;
+    }): VectorStoreFileBatchIdResolution {
+        const { vectorStoreId, latestBatch, expectedBatchId, isExpectedBatchIdValid, pollingState, logLabel } = options;
+
+        // [🤰] Note: Sometimes OpenAI returns Vector Store object instead of Batch object, or IDs get swapped.
+        const rawBatchId = typeof latestBatch.id === 'string' ? latestBatch.id : '';
+        const rawVectorStoreId = (latestBatch as TODO_any).vector_store_id;
+        let batchId = rawBatchId;
+        let isBatchIdValid = isVectorStoreFileBatchId(batchId);
+
+        if (!isBatchIdValid && isExpectedBatchIdValid) {
+            if (!pollingState.isBatchIdFallbackLogged) {
+                console.error('[🤰]', 'Vector store file batch id missing from response; falling back to expected', {
+                    vectorStoreId,
+                    expectedBatchId,
+                    returnedBatchId: batchId,
+                    rawVectorStoreId,
+                    logLabel,
+                });
+                pollingState.isBatchIdFallbackLogged = true;
+            }
+
+            batchId = expectedBatchId;
+            isBatchIdValid = true;
+        }
+
+        if (!isBatchIdValid && !pollingState.isBatchIdInvalidLogged) {
+            console.error('[🤰]', 'Vector store file batch id is invalid; stopping polling', {
+                vectorStoreId,
+                expectedBatchId,
+                returnedBatchId: batchId,
+                rawVectorStoreId,
+                logLabel,
+            });
+            pollingState.isBatchIdInvalidLogged = true;
+        }
+
+        const isBatchIdMismatch = isExpectedBatchIdValid && isBatchIdValid && batchId !== expectedBatchId;
+
+        if (isBatchIdMismatch && !pollingState.isBatchIdMismatchLogged) {
+            console.error('[🤰]', 'Vector store file batch id mismatch', {
+                vectorStoreId,
+                expectedBatchId,
+                returnedBatchId: batchId,
+                logLabel,
+            });
+            pollingState.isBatchIdMismatchLogged = true;
+        }
+
+        return {
+            batchId: isBatchIdValid ? batchId : undefined,
+            isBatchIdValid,
+            isBatchIdMismatch,
+        };
+    }
+
+    /**
+     * Tracks observed polling progress and emits throttled verbose status logs.
+     */
+    private trackVectorStoreFileBatchProgress(options: {
+        readonly vectorStoreId: string;
+        readonly batchId: string;
+        readonly status: string;
+        readonly fileCounts: TODO_any;
+        readonly elapsedMs: number;
+        readonly progressLogIntervalMs: number;
+        readonly pollingState: VectorStoreFileBatchPollingState;
+        readonly logLabel: string;
+        readonly nowMs: number;
+    }): void {
+        const {
+            vectorStoreId,
+            batchId,
+            status,
+            fileCounts,
+            elapsedMs,
+            progressLogIntervalMs,
+            pollingState,
+            logLabel,
+            nowMs,
+        } = options;
+        const progressKey = JSON.stringify(fileCounts);
+        const statusCountsKey = `${status}-${progressKey}`;
+        const isProgressing = progressKey !== pollingState.lastProgressKey;
+
+        if (isProgressing) {
+            pollingState.lastProgressAtMs = nowMs;
+            pollingState.lastProgressKey = progressKey;
+        }
+
+        if (
+            this.options.isVerbose &&
+            (statusCountsKey !== pollingState.lastCountsKey || nowMs - pollingState.lastLogAtMs >= progressLogIntervalMs)
+        ) {
+            console.info('[🤰]', 'Vector store file batch status', {
+                vectorStoreId,
+                batchId,
+                status,
+                fileCounts,
+                elapsedMs,
+                logLabel,
+            });
+            pollingState.lastCountsKey = statusCountsKey;
+            pollingState.lastLogAtMs = nowMs;
+        }
+    }
+
+    /**
+     * Emits deeper diagnostics when vector-store ingestion appears stalled for too long.
+     */
+    private async maybeLogStalledVectorStoreFileBatch(options: {
+        readonly client: OpenAI;
+        readonly vectorStoreId: string;
+        readonly batchId: string;
+        readonly status: string;
+        readonly uploadedFiles: ReadonlyArray<KnowledgeSourceUploadMetadata>;
+        readonly diagnosticsIntervalMs: number;
+        readonly pollingState: VectorStoreFileBatchPollingState;
+        readonly logLabel: string;
+        readonly nowMs: number;
+    }): Promise<void> {
+        const {
+            client,
+            vectorStoreId,
+            batchId,
+            status,
+            uploadedFiles,
+            diagnosticsIntervalMs,
+            pollingState,
+            logLabel,
+            nowMs,
+        } = options;
+
+        if (status !== 'in_progress') {
+            return;
+        }
+
+        if (nowMs - pollingState.lastProgressAtMs < VECTOR_STORE_STALL_LOG_THRESHOLD_MS) {
+            return;
+        }
+
+        if (nowMs - pollingState.lastDiagnosticsAtMs < diagnosticsIntervalMs) {
+            return;
+        }
+
+        pollingState.lastDiagnosticsAtMs = nowMs;
+        await this.logVectorStoreFileBatchDiagnostics({
+            client,
+            vectorStoreId,
+            batchId,
+            uploadedFiles,
+            logLabel,
+            reason: 'stalled',
+        });
+    }
+
+    /**
+     * Handles terminal vector-store batch states that do not require further polling.
+     */
+    private async handleVectorStoreFileBatchTerminalState(options: {
+        readonly client: OpenAI;
+        readonly vectorStoreId: string;
+        readonly batchId: string;
+        readonly status: string;
+        readonly fileCounts: TODO_any;
+        readonly uploadedFiles: ReadonlyArray<KnowledgeSourceUploadMetadata>;
+        readonly elapsedMs: number;
+        readonly logLabel: string;
+    }): Promise<boolean> {
+        const { client, vectorStoreId, batchId, status, fileCounts, uploadedFiles, elapsedMs, logLabel } = options;
+
+        if (status === 'completed') {
+            if (this.options.isVerbose) {
+                console.info('[🤰]', 'Vector store file batch completed', {
+                    vectorStoreId,
+                    batchId,
+                    fileCounts,
+                    elapsedMs,
+                    logLabel,
+                });
+            }
+
+            return true;
+        }
+
+        if (status === 'failed') {
+            console.error('[🤰]', 'Vector store file batch completed with failures', {
+                vectorStoreId,
+                batchId,
+                fileCounts,
+                elapsedMs,
+                logLabel,
+            });
+        } else if (status === 'cancelled') {
+            console.error('[🤰]', 'Vector store file batch did not complete', {
+                vectorStoreId,
+                batchId,
+                status,
+                fileCounts,
+                elapsedMs,
+                logLabel,
+            });
+        } else {
+            return false;
+        }
+
+        await this.logVectorStoreFileBatchDiagnostics({
+            client,
+            vectorStoreId,
+            batchId,
+            uploadedFiles,
+            logLabel,
+            reason: 'failed',
+        });
+
+        return true;
+    }
+
+    /**
+     * Stops polling once the batch exceeds the configured timeout and handles optional cancellation.
+     */
+    private async handleVectorStoreFileBatchTimeout(options: {
+        readonly client: OpenAI;
+        readonly vectorStores: TODO_any;
+        readonly vectorStoreId: string;
+        readonly batchId: string;
+        readonly isBatchIdMismatch: boolean;
+        readonly expectedBatchId: string;
+        readonly fileCounts: TODO_any;
+        readonly uploadedFiles: ReadonlyArray<KnowledgeSourceUploadMetadata>;
+        readonly elapsedMs: number;
+        readonly uploadTimeoutMs: number;
+        readonly logLabel: string;
+        readonly nowMs: number;
+        readonly pollStartedAtMs: number;
+    }): Promise<boolean> {
+        const {
+            client,
+            vectorStores,
+            vectorStoreId,
+            batchId,
+            isBatchIdMismatch,
+            expectedBatchId,
+            fileCounts,
+            uploadedFiles,
+            elapsedMs,
+            uploadTimeoutMs,
+            logLabel,
+            nowMs,
+            pollStartedAtMs,
+        } = options;
+
+        if (nowMs - pollStartedAtMs < uploadTimeoutMs) {
+            return false;
+        }
+
+        console.error('[🤰]', 'Timed out waiting for vector store file batch', {
+            vectorStoreId,
+            batchId,
+            fileCounts,
+            elapsedMs,
+            uploadTimeoutMs,
+            logLabel,
+        });
+
+        await this.logVectorStoreFileBatchDiagnostics({
+            client,
+            vectorStoreId,
+            batchId,
+            uploadedFiles,
+            logLabel,
+            reason: 'timeout',
+        });
+
+        if (this.shouldContinueOnVectorStoreStall()) {
+            console.warn('[🤰]', 'Continuing despite vector store timeout as requested', {
+                vectorStoreId,
+                logLabel,
+            });
+            return true;
+        }
+
+        await this.cancelVectorStoreFileBatchAfterTimeout({
+            vectorStores,
+            vectorStoreId,
+            batchId,
+            isBatchIdMismatch,
+            expectedBatchId,
+            logLabel,
+        });
+
+        return true;
+    }
+
+    /**
+     * Attempts to cancel a timed-out vector-store batch and logs any unusual id situation.
+     */
+    private async cancelVectorStoreFileBatchAfterTimeout(options: {
+        readonly vectorStores: TODO_any;
+        readonly vectorStoreId: string;
+        readonly batchId: string;
+        readonly isBatchIdMismatch: boolean;
+        readonly expectedBatchId: string;
+        readonly logLabel: string;
+    }): Promise<void> {
+        const { vectorStores, vectorStoreId, batchId, isBatchIdMismatch, expectedBatchId, logLabel } = options;
+        const cancelBatchId = isBatchIdMismatch && isVectorStoreFileBatchId(batchId) ? batchId : expectedBatchId;
+
+        if (!isVectorStoreFileBatchId(cancelBatchId)) {
+            console.error('[🤰]', 'Skipping vector store file batch cancel (invalid batch id)', {
+                vectorStoreId,
+                batchId: cancelBatchId,
+                logLabel,
+            });
+            return;
+        }
+
+        try {
+            await vectorStores.fileBatches.cancel(cancelBatchId, {
+                vector_store_id: vectorStoreId,
+            });
+
+            if (this.options.isVerbose) {
+                console.info('[🤰]', 'Cancelled vector store file batch after timeout', {
+                    vectorStoreId,
+                    batchId: cancelBatchId,
+                    ...(isBatchIdMismatch ? { returnedBatchId: batchId } : {}),
+                    logLabel,
+                });
+            }
+        } catch (error) {
+            assertsError(error);
+            console.error('[🤰]', 'Failed to cancel vector store file batch after timeout', {
+                vectorStoreId,
+                batchId: expectedBatchId,
+                ...(isBatchIdMismatch ? { returnedBatchId: batchId } : {}),
+                logLabel,
+                error: serializeError(error),
+            });
+        }
     }
 
     /**
