@@ -1,3 +1,8 @@
+-   Refactored Agents Server `ControlPanel.tsx` into smaller focused private control-panel modules without changing external behavior:
+
+    -   Kept `ControlPanel.tsx` as the dropdown facade while moving control-panel state derivation, toggle composition, and branching helpers into a dedicated private `useControlPanelContentState` hook.
+    -   Moved the control-panel body into a focused private `ControlPanelContent` component with reusable section helpers so the rendering flow is easier to follow and maintain.
+
 -   Refactored Agents Server `AgentContextMenu.tsx` into smaller focused private menu modules without changing external behavior:
 
     -   Extracted `useAgentContextMenuItems` into a dedicated private hook file so `AgentContextMenu.tsx` now reads as the public facade for install-prompt state and menu rendering.
