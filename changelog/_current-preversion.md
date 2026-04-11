@@ -1,3 +1,8 @@
+-   Refactored Agents Server `CanonicalAgentChatPanel.tsx` into smaller focused private chat modules without changing external behavior:
+
+    -   Extracted durable-chat orchestration, prompt-parameter composition, auto-execute lifecycle, and dialog state into a dedicated private `useCanonicalAgentChatPanelState` hook so the panel reads top-down.
+    -   Moved the large chat-thread rendering branch into a focused private `CanonicalAgentChatSurface` component with isolated translation/background/loading helpers, making the chat UI configuration easier to follow and maintain.
+
 -   Refactored Agents Server `AgentChatSidebar.tsx` into smaller focused private sidebar modules without changing chat behavior:
 
     -   Extracted shared sidebar item resolution, empty-chat filtering, and mobile-dismiss chat actions into a dedicated private `useAgentChatSidebarState` hook so the route-facing sidebar reads top-down.

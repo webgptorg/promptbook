@@ -1,58 +1,16 @@
 'use client';
 
 import { WalletRecordDialog } from '@/src/components/WalletRecordDialog/WalletRecordDialog';
-import { usePromise } from '@common/hooks/usePromise';
-import { Chat } from '@promptbook-local/components';
-import { RemoteAgent } from '@promptbook-local/core';
 import type { ChatMessage } from '@promptbook-local/types';
-import {
-    useCallback,
-    useEffect,
-    useLayoutEffect,
-    useMemo,
-    useRef,
-    useState,
-    type CSSProperties,
-    type ReactNode,
-} from 'react';
-import { spaceTrim } from 'spacetrim';
-import { useAgentBackground } from '../../../../components/AgentProfile/useAgentBackground';
-import { useChatEnterBehaviorPreferences } from '../../../../components/ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
-import { useChatVisualMode } from '../../../../components/ChatVisualMode/ChatVisualModeProvider';
-import { usePrivateModePreferences } from '../../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
-import { useSelfLearningPreferences } from '../../../../components/SelfLearningPreferences/SelfLearningPreferencesProvider';
-import { useServerLanguage } from '../../../../components/ServerLanguage/ServerLanguageProvider';
-import { ChatThreadLoadingSkeleton } from '../../../../components/Skeleton/ChatThreadLoadingSkeleton';
-import { useSoundSystem } from '../../../../components/SoundSystemProvider/SoundSystemProvider';
-import { useActiveBrowserTab } from '../../../../hooks/useActiveBrowserTab';
-import { fetchCalendarOAuthStatus, type CalendarOAuthStatusResponse } from '../../../../utils/calendarOAuthClient';
-import { createDefaultChatEffects } from '../../../../utils/chat/createDefaultChatEffects';
-import {
-    isChatFeedbackEnabled,
-    toChatComponentFeedbackMode,
-    type ChatFeedbackMode,
-} from '../../../../utils/chatFeedbackMode';
-import { executeQuickActionButton } from '../../../../utils/chat/executeQuickActionButton';
-import { fetchGithubAppStatus, type GithubAppStatusResponse } from '../../../../utils/githubAppClient';
-import { createDefaultSpeechRecognition } from '../../../../utils/speech-to-text/createDefaultSpeechRecognition';
-import { chatFileUploadHandler } from '../../../../utils/upload/createBookEditorUploadHandler';
-import { getUserChatSourceBannerLabel, type UserChatSource } from '../../../../utils/userChat/UserChatSource';
+import { type ReactNode } from 'react';
+import { type ChatFeedbackMode } from '../../../../utils/chatFeedbackMode';
+import { type UserChatSource } from '../../../../utils/userChat/UserChatSource';
 import type { UserChatJob, UserChatTimeout } from '../../../../utils/userChatClient';
-import { createUserChatClientMessageId } from '../../../../utils/userChatClient';
-import {
-    serializeUserLocationPromptParameter,
-    USER_LOCATION_PROMPT_PARAMETER,
-} from '../../../../utils/userLocationPromptParameter';
 import { MetaDisclaimerDialog } from '../MetaDisclaimerDialog';
 import { PseudoUserChatDialog } from '../PseudoUserChatDialog';
-import { useAgentChatMetaDisclaimer } from '../useAgentChatMetaDisclaimer';
-import { useAgentChatToolInteractions } from '../useAgentChatToolInteractions';
-import { useTeamAgentProfiles } from '../useTeamAgentProfiles';
 import type { AgentChatLayoutVariant } from './AgentChatLayoutVariant';
-import { ChatTimeoutButton } from './ChatTimeoutButton';
-import { createReplyingToSnapshot, isReplyableCanonicalChatMessage } from './chatReplies';
-import { useCanonicalChatMessages } from './useCanonicalChatMessages';
-import { queuePendingOutboundMessage } from './usePendingOutboundMessages';
+import { CanonicalAgentChatSurface } from './CanonicalAgentChatSurface';
+import { useCanonicalAgentChatPanelState } from './useCanonicalAgentChatPanelState';
 
 /**
  * Props accepted by the canonical server-backed chat panel.
@@ -101,15 +59,6 @@ type CanonicalAgentChatPanelProps = {
 };
 
 /**
- * Serialized auto-execute payload marker used to deduplicate dispatches.
- */
-function serializeAutoExecutePayload(message?: string, attachments?: ChatMessage['attachments']): string {
-    const normalizedMessage = message ?? '';
-    const normalizedAttachments = attachments && attachments.length > 0 ? JSON.stringify(attachments) : '';
-    return `${normalizedMessage}|${normalizedAttachments}`;
-}
-
-/**
  * Renders the full canonical chat surface while delegating message execution to the server.
  */
 export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
@@ -144,657 +93,69 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
         extraActions,
         variant = 'default',
     } = props;
-    const isChatGptLikeVariant = variant === 'chatgptLike';
-    const { backgroundImage, brandColorHex, brandColorLightHex, brandColorDarkHex } = useAgentBackground(brandColor);
-    const chatBackgroundStyle: CSSProperties & Record<string, string> = {
-        ...(isChatGptLikeVariant
-            ? {}
-            : {
-                  backgroundImage: `url("${backgroundImage}")`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-              }),
-        '--agent-chat-brand-color': brandColorHex,
-        '--agent-chat-brand-color-light': brandColorLightHex,
-        '--agent-chat-brand-color-dark': brandColorDarkHex,
-    };
-    const agentPromise = useMemo(
-        () =>
-            RemoteAgent.connect({
-                agentUrl,
-                isVerbose: true,
-            }),
-        [agentUrl],
-    );
-    const { value: agent } = usePromise(agentPromise, [agentPromise]);
-    const teamAgentProfiles = useTeamAgentProfiles(agent?.capabilities);
-    const { soundSystem } = useSoundSystem();
-    const { chatVisualMode } = useChatVisualMode();
-    const { enterBehavior, resolveEnterBehavior } = useChatEnterBehaviorPreferences();
-    const { isSelfLearningEnabled } = useSelfLearningPreferences();
-    const { isPrivateModeEnabled, setIsPrivateModeEnabled } = usePrivateModePreferences();
-    const isActiveBrowserTab = useActiveBrowserTab();
-    const { language, t } = useServerLanguage();
-    const [githubAppStatus, setGithubAppStatus] = useState<GithubAppStatusResponse | null>(null);
-    const [calendarOAuthStatus, setCalendarOAuthStatus] = useState<CalendarOAuthStatusResponse | null>(null);
-    const effectiveSelfLearningEnabled = isSelfLearningEnabled && !isPrivateModeEnabled;
-    const currentAgentPermanentId = useMemo(() => {
-        return typeof (agent as { permanentId?: unknown } | undefined)?.permanentId === 'string'
-            ? ((agent as { permanentId?: string }).permanentId as string)
-            : agentName;
-    }, [agent, agentName]);
-    const effectConfigs = useMemo(() => createDefaultChatEffects(), []);
-    const frozenChatBannerLabel = useMemo(
-        () => (readOnlySource ? getUserChatSourceBannerLabel(readOnlySource) : null),
-        [readOnlySource],
-    );
-    const speechRecognition = useMemo(() => {
-        if (typeof window === 'undefined' || !(agent?.isVoiceTtsSttEnabled ?? false)) {
-            return undefined;
-        }
-
-        return createDefaultSpeechRecognition();
-    }, [agent?.isVoiceTtsSttEnabled]);
-    const hasAutoExecutedRef = useRef(false);
-    const hasSeededAutoExecutePendingMessageRef = useRef(false);
-    const autoExecuteClientMessageIdRef = useRef<string | undefined>(undefined);
-    const lastAutoExecutePayloadRef = useRef<string | undefined>(
-        serializeAutoExecutePayload(autoExecuteMessage, autoExecuteMessageAttachments),
-    );
-    const feedbackEnabled = isChatFeedbackEnabled(feedbackMode);
-    const [replyingToMessageId, setReplyingToMessageId] = useState<string | null>(null);
-
-    useEffect(() => {
-        let isMounted = true;
-
-        const loadIntegrationStatus = async () => {
-            const [githubStatus, calendarStatus] = await Promise.all([
-                fetchGithubAppStatus(),
-                fetchCalendarOAuthStatus(currentAgentPermanentId),
-            ]);
-            if (!isMounted) {
-                return;
-            }
-
-            setGithubAppStatus(githubStatus);
-            setCalendarOAuthStatus(calendarStatus);
-        };
-
-        void loadIntegrationStatus();
-
-        return () => {
-            isMounted = false;
-        };
-    }, [currentAgentPermanentId]);
-
-    const {
-        isMetaDisclaimerAccepting,
-        metaDisclaimerError,
-        metaDisclaimerMarkdown,
-        shouldRenderMetaDisclaimerDialog,
-        effectiveAutoExecuteMessage,
-        effectiveAutoExecuteMessageAttachments,
-        loadMetaDisclaimerStatus,
-        handleAcceptMetaDisclaimer,
-    } = useAgentChatMetaDisclaimer({
+    const panelState = useCanonicalAgentChatPanelState({
+        chatId,
         agentName,
+        agentUrl,
+        initialAgentMessage,
+        isReadOnly,
+        messages,
+        thinkingMessages,
         autoExecuteMessage,
         autoExecuteMessageAttachments,
+        onSubmitUserTurn,
+        onAutoExecuteMessagePending,
         onAutoExecuteMessageConsumed,
     });
 
-    const promptParameters = useMemo(() => {
-        const parameters: Record<string, unknown> = {
-            selfLearningEnabled: effectiveSelfLearningEnabled,
-        };
-
-        return parameters;
-    }, [effectiveSelfLearningEnabled]);
-
-    const sendPromptbookMessage = useCallback(
-        (message: string) => {
-            if (isReadOnly) {
-                return;
-            }
-
-            void onSubmitUserTurn({
-                message,
-                parameters: promptParameters,
-            });
-        },
-        [isReadOnly, onSubmitUserTurn, promptParameters],
-    );
-
-    const {
-        userLocationPromptParameter,
-        pendingPseudoUserInteraction,
-        pendingWalletRequest,
-        handleMessagesChange,
-        handlePseudoUserReplySubmit,
-        handlePseudoUserReplyClose,
-        handleWalletRequestSubmit,
-        handleWalletRequestClose,
-    } = useAgentChatToolInteractions({
-        agent,
-        sendMessage: sendPromptbookMessage,
-        currentAgentPermanentId,
-        isPrivateModeEnabled,
-        setIsPrivateModeEnabled,
-        t,
-    });
-
-    const effectivePromptParameters = useMemo(() => {
-        if (!userLocationPromptParameter) {
-            return promptParameters;
-        }
-
-        return {
-            ...promptParameters,
-            [USER_LOCATION_PROMPT_PARAMETER]: serializeUserLocationPromptParameter(userLocationPromptParameter),
-        };
-    }, [promptParameters, userLocationPromptParameter]);
-
-    const handleFeedback = useCallback(
-        async (feedback: {
-            message: ChatMessage;
-            rating: number;
-            textRating: string;
-            chatThread: string;
-            expectedAnswer: string | null;
-            url: string;
-        }): Promise<void> => {
-            if (!agent) {
-                throw new Error('Agent is not ready to receive feedback.');
-            }
-
-            const response = await fetch(`${agentUrl}/api/feedback`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    rating: feedback.rating.toString(),
-                    textRating: feedback.textRating,
-                    chatThread: feedback.chatThread,
-                    userNote: feedback.textRating,
-                    expectedAnswer: feedback.expectedAnswer,
-                    agentHash: agent.agentHash,
-                }),
-            });
-
-            if (!response.ok) {
-                const payload = (await response.json().catch(() => null)) as { message?: string } | null;
-                throw new Error(payload?.message ?? 'Failed to save feedback.');
-            }
-        },
-        [agent, agentUrl],
-    );
-
-    const handleManualMessage = useCallback(
-        async (
-            message: string,
-            attachments?: ChatMessage['attachments'],
-            replyingToMessageOverride?: ChatMessage | null,
-            clientMessageId?: string,
-        ) => {
-            if (isReadOnly) {
-                return;
-            }
-
-            await onSubmitUserTurn({
-                message,
-                attachments,
-                parameters: effectivePromptParameters,
-                clientMessageId,
-                replyingTo: replyingToMessageOverride
-                    ? createReplyingToSnapshot(chatId, replyingToMessageOverride)
-                    : undefined,
-            });
-        },
-        [chatId, effectivePromptParameters, isReadOnly, onSubmitUserTurn],
-    );
-
-    /**
-     * Sends one quick-button message through the durable chat path while seeding
-     * the optimistic user bubble immediately.
-     */
-    const handleQuickMessageButton = useCallback(
-        async (message: string) => {
-            if (isReadOnly) {
-                return;
-            }
-
-            const clientMessageId = createUserChatClientMessageId();
-            queuePendingOutboundMessage({
-                chatId,
-                clientMessageId,
-                content: message,
-            });
-
-            await onSubmitUserTurn({
-                message,
-                parameters: effectivePromptParameters,
-                clientMessageId,
-            });
-            setReplyingToMessageId(null);
-        },
-        [chatId, effectivePromptParameters, isReadOnly, onSubmitUserTurn],
-    );
-
-    useEffect(() => {
-        handleMessagesChange(messages);
-    }, [handleMessagesChange, messages]);
-
-    useEffect(() => {
-        const payload = serializeAutoExecutePayload(autoExecuteMessage, autoExecuteMessageAttachments);
-        if (lastAutoExecutePayloadRef.current === payload) {
-            return;
-        }
-
-        lastAutoExecutePayloadRef.current = payload;
-        hasAutoExecutedRef.current = false;
-        hasSeededAutoExecutePendingMessageRef.current = false;
-        autoExecuteClientMessageIdRef.current = undefined;
-    }, [autoExecuteMessage, autoExecuteMessageAttachments]);
-
-    /**
-     * Returns one stable client id reused by the optimistic bubble and the
-     * durable send request for the current auto-executed message payload.
-     */
-    const resolveAutoExecuteClientMessageId = useCallback((): string => {
-        if (!autoExecuteClientMessageIdRef.current) {
-            autoExecuteClientMessageIdRef.current = createUserChatClientMessageId();
-        }
-
-        return autoExecuteClientMessageIdRef.current;
-    }, []);
-
-    const shouldAutoExecute =
-        (Boolean(effectiveAutoExecuteMessage) || Boolean(effectiveAutoExecuteMessageAttachments?.length)) &&
-        !hasAutoExecutedRef.current &&
-        !isReadOnly;
-
-    useLayoutEffect(() => {
-        if (!shouldAutoExecute) {
-            return;
-        }
-
-        if (hasSeededAutoExecutePendingMessageRef.current) {
-            return;
-        }
-
-        hasSeededAutoExecutePendingMessageRef.current = true;
-        onAutoExecuteMessagePending?.({
-            chatId,
-            clientMessageId: resolveAutoExecuteClientMessageId(),
-            message: effectiveAutoExecuteMessage ?? '',
-            attachments: effectiveAutoExecuteMessageAttachments,
-        });
-    }, [
-        chatId,
-        effectiveAutoExecuteMessage,
-        effectiveAutoExecuteMessageAttachments,
-        onAutoExecuteMessagePending,
-        resolveAutoExecuteClientMessageId,
-        shouldAutoExecute,
-    ]);
-
-    useEffect(() => {
-        if (!shouldAutoExecute) {
-            return;
-        }
-
-        hasAutoExecutedRef.current = true;
-        void handleManualMessage(
-            effectiveAutoExecuteMessage ?? '',
-            effectiveAutoExecuteMessageAttachments,
-            undefined,
-            resolveAutoExecuteClientMessageId(),
-        ).catch(() => undefined);
-    }, [
-        effectiveAutoExecuteMessage,
-        effectiveAutoExecuteMessageAttachments,
-        handleManualMessage,
-        resolveAutoExecuteClientMessageId,
-        shouldAutoExecute,
-    ]);
-
-    const fallbackInitialMessage = useMemo(() => {
-        const agentDisplayName = agent?.meta.fullname || agent?.agentName || agentName;
-        return spaceTrim(`
-            Hello! I am ${agentDisplayName}.
-
-            [Hello](?message=Hello, can you tell me about yourself?)
-        `);
-    }, [agent, agentName]);
-    const resolvedConfiguredInitialMessage = useMemo(() => {
-        if (initialAgentMessage !== undefined) {
-            return initialAgentMessage;
-        }
-
-        return agent?.initialMessage;
-    }, [agent, initialAgentMessage]);
-    const initialMessage = useMemo(() => {
-        if (resolvedConfiguredInitialMessage === undefined) {
-            return undefined;
-        }
-
-        return hasInitialMessageContent(resolvedConfiguredInitialMessage)
-            ? resolvedConfiguredInitialMessage
-            : fallbackInitialMessage;
-    }, [fallbackInitialMessage, resolvedConfiguredInitialMessage]);
-
-    const renderedMessages = useCanonicalChatMessages({
-        initialMessage,
-        isInitialMessageResolved: initialMessage !== undefined,
-        messages,
-        thinkingMessages,
-        isActiveBrowserTab,
-    });
-    const replyingToMessage = useMemo(
-        () =>
-            renderedMessages.find(
-                (message) => message.id === replyingToMessageId && isReplyableCanonicalChatMessage(message),
-            ) || null,
-        [renderedMessages, replyingToMessageId],
-    );
-    const handleStartReply = useCallback(
-        (message: ChatMessage) => {
-            if (
-                isReadOnly ||
-                !isReplyableCanonicalChatMessage(message) ||
-                typeof message.id !== 'string' ||
-                message.id.length === 0
-            ) {
-                return;
-            }
-
-            setReplyingToMessageId(message.id);
-        },
-        [isReadOnly],
-    );
-    const handleCancelReply = useCallback(() => {
-        setReplyingToMessageId(null);
-    }, []);
-
-    useEffect(() => {
-        if (replyingToMessageId && !replyingToMessage) {
-            setReplyingToMessageId(null);
-        }
-    }, [replyingToMessage, replyingToMessageId]);
-
-    const participants = useMemo(
-        () => [
-            {
-                name: 'AGENT',
-                fullname: agent?.meta.fullname || agent?.agentName || agentName,
-                avatarSrc: agent?.meta.image || `${agentUrl}/images/default-avatar.png`,
-                color: brandColorHex,
-                isMe: false,
-            },
-            {
-                name: 'USER',
-                fullname: 'User',
-                color: '#115EB6',
-                isMe: true,
-            },
-        ],
-        [agent, agentName, agentUrl, brandColorHex],
-    );
-
-    const cancellableJob = useMemo(
-        () => activeJobs.find((job) => job.status === 'RUNNING') || activeJobs[0] || null,
-        [activeJobs],
-    );
-    const cancelAction = !isReadOnly && cancellableJob && onCancelActiveJob && (
-        <button
-            type="button"
-            className="agent-chat-toolbar-action-button rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] disabled:cursor-default disabled:opacity-50"
-            onClick={() => {
-                void onCancelActiveJob(cancellableJob.id);
-            }}
-            disabled={Boolean(cancellableJob.cancelRequestedAt)}
-        >
-            {cancellableJob.cancelRequestedAt ? t('chat.cancellingJobLabel') : t('chat.cancelJobLabel')}
-        </button>
-    );
-
-    const handleFileUpload = useCallback(async (file: File) => {
-        return chatFileUploadHandler(file);
-    }, []);
-    const chatElement =
-        initialMessage === undefined && messages.length === 0 ? (
-            isChatGptLikeVariant ? (
-                <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-[28px] border border-slate-200/80 bg-white/88 shadow-[0_24px_80px_rgba(15,23,42,0.12)] dark:border-slate-800/80 dark:bg-slate-950/88">
-                    <ChatThreadLoadingSkeleton />
-                </div>
-            ) : (
-                <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
-                    <ChatThreadLoadingSkeleton />
-                </div>
-            )
-        ) : (
-            <Chat
-                className={`agent-chat-panel__chat h-full min-h-0 w-full ${
-                    isChatGptLikeVariant ? 'agent-chat-panel__chat--chatgpt-like' : ''
-                }`}
-                style={chatBackgroundStyle}
-                title={`Chat with ${agent?.meta.fullname || agent?.agentName || agentName}`}
-                messages={renderedMessages}
-                defaultMessage={draftMessage}
-                placeholderMessageContent={inputPlaceholder}
-                chatUiTranslations={{
-                    inputPlaceholder: t('chat.inputPlaceholder'),
-                    replyingToLabel: t('chat.replyingToLabel'),
-                    replyActionLabel: t('chat.replyActionLabel'),
-                    replyActionTitle: t('chat.replyActionTitle'),
-                    cancelReplyLabel: t('chat.cancelReplyLabel'),
-                    saveButtonLabel: t('chat.saveButtonLabel'),
-                    newChatButtonLabel: t('chat.newChatButtonLabel'),
-                    lifecycleSending: t('chat.lifecycleSending'),
-                    lifecycleQueued: t('chat.lifecycleQueued'),
-                    lifecycleRunning: t('chat.lifecycleRunning'),
-                    lifecycleFailed: t('chat.lifecycleFailed'),
-                    lifecycleCancelled: t('chat.lifecycleCancelled'),
-                    lifecycleCompleted: t('chat.lifecycleCompleted'),
-                    toolCallModalTitle: t('chat.toolCallModalTitle'),
-                    toolCallModalCloseLabel: t('chat.toolCallModalCloseLabel'),
-                    toolCallModalCopyLabel: t('chat.toolCallModalCopyLabel'),
-                    toolCallModalSaveLabel: t('chat.toolCallModalSaveLabel'),
-                    toolCallModalAdvancedLabel: t('chat.toolCallModalAdvancedLabel'),
-                    toolCallModalSimpleLabel: t('chat.toolCallModalSimpleLabel'),
-                    toolCallTimeoutTitle: t('chat.toolCallTimeoutTitle'),
-                    toolCallTimeoutCancelledTitle: t('chat.toolCallTimeoutCancelledTitle'),
-                    toolCallTimeoutUpdateTitle: t('chat.toolCallTimeoutUpdateTitle'),
-                    toolCallTimeoutCancelButton: t('chat.toolCallTimeoutCancelButton'),
-                    toolCallTimeoutSnoozeButton: t('chat.toolCallTimeoutSnoozeButton'),
-                    toolCallTimeoutViewAdvancedButton: t('chat.toolCallTimeoutViewAdvancedButton'),
-                    toolCallTimeoutLoadingMessage: t('chat.toolCallTimeoutLoadingMessage'),
-                    toolCallTimeoutUnavailableMessage: t('chat.toolCallTimeoutUnavailableMessage'),
-                    toolCallTimeoutDateLabel: t('chat.toolCallTimeoutDateLabel'),
-                    toolCallTimeoutMessageLabel: t('chat.toolCallTimeoutMessageLabel'),
-                    toolCallTimeoutTimezoneLabel: t('chat.toolCallTimeoutTimezoneLabel'),
-                    toolCallTimeoutChipLabel: t('chat.toolCallTimeoutChipLabel'),
-                    toolCallTimeoutChipCancelledLabel: t('chat.toolCallTimeoutChipCancelledLabel'),
-                    toolCallTimeoutChipInactiveLabel: t('chat.toolCallTimeoutChipInactiveLabel'),
-                    toolCallTimeoutChipUpdatedLabel: t('chat.toolCallTimeoutChipUpdatedLabel'),
-                    toolCallTimeoutChipFallbackLabel: t('chat.toolCallTimeoutChipFallbackLabel'),
-                    toolCallTimeoutPrimaryScheduledLabel: t('chat.toolCallTimeoutPrimaryScheduledLabel'),
-                    toolCallTimeoutSecondaryDurationLabel: t('chat.toolCallTimeoutSecondaryDurationLabel'),
-                    toolCallTimeoutPrimaryCancelledLabel: t('chat.toolCallTimeoutPrimaryCancelledLabel'),
-                    toolCallTimeoutPrimaryInactiveLabel: t('chat.toolCallTimeoutPrimaryInactiveLabel'),
-                    toolCallTimeoutPrimaryUpdatedLabel: t('chat.toolCallTimeoutPrimaryUpdatedLabel'),
-                    toolCallTimeoutPrimaryFallbackLabel: t('chat.toolCallTimeoutPrimaryFallbackLabel'),
-                    toolCallTimeoutActionGroupLabel: t('chat.toolCallTimeoutActionGroupLabel'),
-                    toolCallTimeoutCancelAriaLabel: t('chat.toolCallTimeoutCancelAriaLabel'),
-                    toolCallTimeoutSnoozeAriaLabel: t('chat.toolCallTimeoutSnoozeAriaLabel'),
-                    toolCallTimeoutViewAdvancedAriaLabel: t('chat.toolCallTimeoutViewAdvancedAriaLabel'),
-                    toolCallTimeTitle: t('chat.toolCallTimeTitle'),
-                    toolCallTimeUnknown: t('chat.toolCallTimeUnknown'),
-                    toolCallTimeTimestampLabel: t('chat.toolCallTimeTimestampLabel'),
-                    toolCallTimeChipLabel: t('chat.toolCallTimeChipLabel'),
-                    toolCallTimeRelativeLabel: t('chat.toolCallTimeRelativeLabel'),
-                }}
-                toolTitles={{
-                    assistant_preparation: t('chat.toolTitle.assistantPreparation'),
-                    wallet_credential_used: t('chat.toolTitle.walletCredentialUsed'),
-                    'self-learning': t('chat.toolTitle.selfLearning'),
-                    retrieve_user_memory: t('chat.toolTitle.memoryReader'),
-                    store_user_memory: t('chat.toolTitle.memoryWriter'),
-                    retrieve_wallet_records: t('chat.toolTitle.walletReader'),
-                    store_wallet_record: t('chat.toolTitle.walletWriter'),
-                    update_wallet_record: t('chat.toolTitle.walletUpdater'),
-                    delete_wallet_record: t('chat.toolTitle.walletDeleter'),
-                    request_wallet_record: t('chat.toolTitle.walletRequester'),
-                    web_search: t('chat.toolTitle.webSearch'),
-                    useSearchEngine: t('chat.toolTitle.webSearch'),
-                    search: t('chat.toolTitle.webSearch'),
-                    useBrowser: t('chat.toolTitle.websiteScraping'),
-                    browse: t('chat.toolTitle.websiteScraping'),
-                    fetch_url_content: t('chat.toolTitle.websiteScraping'),
-                    run_browser: t('chat.toolTitle.websiteScraping'),
-                    get_current_time: t('chat.toolTitle.timeChecker'),
-                    useTime: t('chat.toolTitle.timeChecker'),
-                    set_timeout: t('chat.toolTitle.timeoutSetter'),
-                    cancel_timeout: t('chat.toolTitle.timeoutCanceller'),
-                    list_timeouts: t('chat.toolTitle.timeoutLister'),
-                    update_timeout: t('chat.toolTitle.timeoutUpdater'),
-                    get_user_location: t('chat.toolTitle.locationProvider'),
-                    send_email: t('chat.toolTitle.emailSender'),
-                    useEmail: t('chat.toolTitle.emailSender'),
-                    spawn_agent: t('chat.toolTitle.agentSpawner'),
-                    project_list_files: t('chat.toolTitle.projectFileLister'),
-                    project_read_file: t('chat.toolTitle.projectFileReader'),
-                    project_upsert_file: t('chat.toolTitle.projectFileWriter'),
-                    project_delete_file: t('chat.toolTitle.projectFileDeleter'),
-                    project_create_branch: t('chat.toolTitle.projectBranchCreator'),
-                    project_create_pull_request: t('chat.toolTitle.projectPullRequestCreator'),
-                }}
-                onMessage={isReadOnly ? undefined : handleManualMessage}
-                onQuickMessageButton={isReadOnly ? undefined : handleQuickMessageButton}
-                onReplyToMessage={isReadOnly ? undefined : handleStartReply}
-                onCancelReply={isReadOnly ? undefined : handleCancelReply}
-                canReplyToMessage={isReplyableCanonicalChatMessage}
-                replyingToMessage={replyingToMessage}
-                onActionButton={executeQuickActionButton}
-                onChange={onDraftMessageChange}
-                onReset={isReadOnly ? undefined : onStartNewChat}
-                resetRequiresConfirmation={false}
-                newChatButtonHref={isReadOnly ? undefined : newChatButtonHref}
-                feedbackMode={toChatComponentFeedbackMode(feedbackMode)}
-                onFeedback={!isReadOnly && feedbackEnabled ? handleFeedback : undefined}
-                onFileUpload={!isReadOnly && areFileAttachmentsEnabled ? handleFileUpload : undefined}
-                participants={participants}
-                chatLocale={language}
-                timingTranslations={{ answerDurationLabel: t('chat.answerDurationLabel') }}
-                feedbackTranslations={{
-                    reportIssueButtonTitle: t('chat.feedback.reportIssueButtonTitle'),
-                    reportIssueButtonAriaLabel: t('chat.feedback.reportIssueButtonAriaLabel'),
-                    reportIssueModalTitle: t('chat.feedback.reportIssueModalTitle'),
-                    rateResponseModalTitle: t('chat.feedback.rateResponseModalTitle'),
-                    userQuestionLabel: t('chat.feedback.userQuestionLabel'),
-                    reportIssueExpectedAnswerLabel: t('chat.feedback.reportIssueExpectedAnswerLabel'),
-                    expectedAnswerLabel: t('chat.feedback.expectedAnswerLabel'),
-                    expectedAnswerPlaceholder: t('chat.feedback.expectedAnswerPlaceholder'),
-                    reportIssueDetailsLabel: t('chat.feedback.reportIssueDetailsLabel'),
-                    noteLabel: t('chat.feedback.noteLabel'),
-                    reportIssueDetailsPlaceholder: t('chat.feedback.reportIssueDetailsPlaceholder'),
-                    notePlaceholder: t('chat.feedback.notePlaceholder'),
-                    cancelLabel: t('chat.feedback.cancelLabel'),
-                    reportIssueSubmitLabel: t('chat.feedback.reportIssueSubmitLabel'),
-                    submitLabel: t('chat.feedback.submitLabel'),
-                    feedbackSuccessMessage: t('chat.feedback.feedbackSuccessMessage'),
-                    reportIssueSuccessMessage: t('chat.feedback.reportIssueSuccessMessage'),
-                    feedbackErrorMessage: t('chat.feedback.feedbackErrorMessage'),
-                }}
-                buttonColor={isChatGptLikeVariant ? '#111827' : brandColorHex}
-                visual="FULL_PAGE"
-                CHAT_VISUAL_MODE={chatVisualMode}
-                effectConfigs={effectConfigs}
-                soundSystem={soundSystem}
-                speechRecognition={speechRecognition}
-                speechRecognitionLanguage={speechRecognitionLanguage}
-                enterBehavior={enterBehavior}
-                resolveEnterBehavior={resolveEnterBehavior}
-                isSpeechPlaybackEnabled={agent?.isVoiceTtsSttEnabled ?? false}
-                elevenLabsVoiceId={agent?.meta.voice}
-                teamAgentProfiles={teamAgentProfiles}
-                extraActions={
-                    <>
-                        {!isReadOnly && (
-                            <ChatTimeoutButton
-                                activeTimeouts={activeTimeouts}
-                                currentTimestamp={currentTimestamp}
-                                onCancelActiveTimeout={onCancelActiveTimeout}
-                            />
-                        )}
-                        {cancelAction}
-                        {!isReadOnly && extraActions}
-                    </>
-                }
-            >
-                {isReadOnly && frozenChatBannerLabel && (
-                    <div className="mx-4 mt-4 rounded-2xl border border-amber-200 bg-amber-50/95 px-4 py-3 text-sm font-medium text-amber-900 shadow-sm">
-                        {t('chat.frozenBannerLabel', { source: frozenChatBannerLabel })}
-                    </div>
-                )}
-            </Chat>
-        );
-
     return (
         <>
-            {isChatGptLikeVariant ? (
-                <div className="agent-chat-panel agent-chat-panel--chatgpt-like flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden">
-                    <div className="agent-chat-panel__inner flex min-h-0 flex-1 overflow-hidden">{chatElement}</div>
-                </div>
-            ) : (
-                <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm">
-                    {chatElement}
-                </div>
-            )}
-
+            <CanonicalAgentChatSurface
+                brandColor={brandColor}
+                inputPlaceholder={inputPlaceholder}
+                draftMessage={draftMessage}
+                areFileAttachmentsEnabled={areFileAttachmentsEnabled}
+                feedbackMode={feedbackMode}
+                activeJobs={activeJobs}
+                activeTimeouts={activeTimeouts}
+                currentTimestamp={currentTimestamp}
+                isReadOnly={isReadOnly}
+                readOnlySource={readOnlySource}
+                onDraftMessageChange={onDraftMessageChange}
+                onStartNewChat={onStartNewChat}
+                newChatButtonHref={newChatButtonHref}
+                onCancelActiveJob={onCancelActiveJob}
+                onCancelActiveTimeout={onCancelActiveTimeout}
+                extraActions={extraActions}
+                speechRecognitionLanguage={speechRecognitionLanguage}
+                variant={variant}
+                state={panelState.surface}
+            />
             <PseudoUserChatDialog
-                isOpen={pendingPseudoUserInteraction !== null}
-                prompt={pendingPseudoUserInteraction?.prompt || ''}
-                agentName={pendingPseudoUserInteraction?.agentName || 'Agent'}
-                userName={pendingPseudoUserInteraction?.teammateLabel || 'User'}
-                onSubmit={handlePseudoUserReplySubmit}
-                onClose={handlePseudoUserReplyClose}
+                isOpen={panelState.dialogs.pseudoUser.isOpen}
+                prompt={panelState.dialogs.pseudoUser.prompt}
+                agentName={panelState.dialogs.pseudoUser.agentName}
+                userName={panelState.dialogs.pseudoUser.userName}
+                onSubmit={panelState.dialogs.pseudoUser.onSubmit}
+                onClose={panelState.dialogs.pseudoUser.onClose}
             />
             <WalletRecordDialog
-                isOpen={pendingWalletRequest !== null}
-                request={pendingWalletRequest}
-                onSubmit={handleWalletRequestSubmit}
-                onClose={handleWalletRequestClose}
-                githubApp={{
-                    isConfigured: githubAppStatus?.isConfigured === true,
-                    agentPermanentId: currentAgentPermanentId,
-                }}
-                calendarOAuth={{
-                    isConfigured: calendarOAuthStatus?.isConfigured === true,
-                    agentPermanentId: currentAgentPermanentId,
-                }}
+                isOpen={panelState.dialogs.walletRecord.isOpen}
+                request={panelState.dialogs.walletRecord.request}
+                onSubmit={panelState.dialogs.walletRecord.onSubmit}
+                onClose={panelState.dialogs.walletRecord.onClose}
+                githubApp={panelState.dialogs.walletRecord.githubApp}
+                calendarOAuth={panelState.dialogs.walletRecord.calendarOAuth}
             />
-            {shouldRenderMetaDisclaimerDialog && (
+            {panelState.dialogs.metaDisclaimer.shouldRender && (
                 <MetaDisclaimerDialog
-                    markdown={metaDisclaimerMarkdown}
-                    isAccepting={isMetaDisclaimerAccepting}
-                    errorMessage={metaDisclaimerError}
-                    onAccept={() => {
-                        void handleAcceptMetaDisclaimer();
-                    }}
-                    onRetry={() => {
-                        void loadMetaDisclaimerStatus();
-                    }}
+                    markdown={panelState.dialogs.metaDisclaimer.markdown}
+                    isAccepting={panelState.dialogs.metaDisclaimer.isAccepting}
+                    errorMessage={panelState.dialogs.metaDisclaimer.errorMessage}
+                    onAccept={panelState.dialogs.metaDisclaimer.onAccept}
+                    onRetry={panelState.dialogs.metaDisclaimer.onRetry}
                 />
             )}
         </>
     );
-}
-
-/**
- * Returns true when one resolved initial message contains visible text.
- */
-function hasInitialMessageContent(initialMessage: string | null | undefined): initialMessage is string {
-    return typeof initialMessage === 'string' && initialMessage.trim().length > 0;
 }
