@@ -1,0 +1,16 @@
+spec:
+  name: promptbook-agents-server
+  region: fra
+  services:
+    - name: web
+      github:
+        repo: webgptorg/promptbook
+        branch: main
+        deploy_on_push: true
+      source_dir: apps/agents-server
+      environment_slug: node-js
+      instance_count: 1
+      instance_size_slug: basic-xxs
+      http_port: 4440
+      build_command: npm install && npm run build --workspace apps/agents-server
+      run_command: npm run start --workspace apps/agents-server
