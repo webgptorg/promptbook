@@ -1,3 +1,8 @@
+-   Refactored Agents Server `AgentsGraph.tsx` into smaller focused private graph modules without changing external behavior:
+
+    -   Extracted graph URL/filter/export/highlight orchestration into a dedicated private `useAgentsGraphState` hook so `AgentsGraph.tsx` now reads as a thin composition layer.
+    -   Moved the toolbar controls and React Flow surface into focused private components, with smaller helpers for selection parsing and grouped option rendering so the graph UI is easier to follow and maintain.
+
 -   Refactored Agents Server `Header.tsx` into smaller focused private header modules without changing external behavior:
 
     -   Moved shared dropdown timing, hover/touch behavior, drawer swipe handling, and menu open-state orchestration into a dedicated private `useHeaderDropdownState` hook so `Header.tsx` now reads as the composition shell.
