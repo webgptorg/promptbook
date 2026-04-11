@@ -1,3 +1,8 @@
+-   Refactored `src/conversion/parsePipeline.ts` into smaller focused private helpers without changing external behavior:
+
+    -   Extracted pipeline normalization, markdown-structure validation, head/task command application, section-name resolution, parameter bookkeeping, and final cleanup/export steps so `parsePipeline` now reads top-down.
+    -   Kept the existing shebang handling, markdown flattening, head/task command semantics, implicit parameter direction inference, sync high-level abstractions, and exported pipeline JSON shape intact while reducing branching complexity.
+
 -   Refactored `src/collection/pipeline-collection/constructors/createPipelineCollectionFromDirectory.ts` into smaller focused helpers without changing external behavior:
 
     -   Split the branching-heavy directory-loading flow into dedicated tool-resolution, option-resolution, file-sorting, file-loading, root-URL normalization, collection-registration, and shared error-wrapping helpers so `createPipelineCollectionFromDirectory` now reads top-down.
