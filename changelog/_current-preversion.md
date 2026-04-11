@@ -1,3 +1,8 @@
+-   Refactored Agents Server `AgentsList.tsx` into smaller focused private homepage modules without changing external behavior:
+
+    -   Extracted the listing state, synchronization, folder management, visibility updates, and drag-and-drop orchestration into a dedicated private `useAgentsListState` hook so `AgentsList.tsx` now reads as a thin composition layer.
+    -   Moved the heading toolbar, active view surface, sortable list view, and dialog/popover rendering into focused private components so the remaining branching logic is easier to follow and maintain.
+
 -   Refactored Agents Server `AgentsGraph.tsx` into smaller focused private graph modules without changing external behavior:
 
     -   Extracted graph URL/filter/export/highlight orchestration into a dedicated private `useAgentsGraphState` hook so `AgentsGraph.tsx` now reads as a thin composition layer.
