@@ -1,3 +1,8 @@
+-   Refactored `src/book-2.0/agent-source/parseAgentSource.ts` into smaller focused helpers without changing external behavior:
+
+    -   Split the branching-heavy parser into dedicated persona, initial-message, sample, capability, knowledge, and metadata helpers so the main `parseAgentSource` flow now reads top-down.
+    -   Kept the existing commitment ordering, sample extraction, capability labeling, metadata overrides, and knowledge-source collection behavior intact while reducing repeated branching and making the file easier to follow.
+
 -   Refactored `src/book-2.0/agent-source/createAgentModelRequirementsWithCommitments.ts` into smaller focused helpers without changing external behavior:
 
     -   Split the branching-heavy requirements builder into dedicated initialization, DELETE filtering, commitment application, import processing, non-commitment aggregation, example-interaction assembly, and final cleanup helpers so the flow now reads top-down.

@@ -1,4 +1,5 @@
 import { spaceTrim } from 'spacetrim';
+import type { ParsedCommitment } from '../../commitments/_base/ParsedCommitment';
 import { TODO_any } from '../../_packages/types.index';
 import { parseUseProjectCommitmentContent } from '../../commitments/USE_PROJECT/projectReference';
 import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_camelCase';
@@ -25,11 +26,156 @@ import type { string_book } from './string_book';
  */
 export function parseAgentSource(agentSource: string_book): AgentBasicInformation {
     const parseResult = parseAgentSourceWithCommitments(agentSource);
+    const resolvedAgentName = parseResult.agentName || createDefaultAgentName(agentSource);
+    const personaDescription = extractPersonaDescription(parseResult.commitments);
+    const initialMessage = extractInitialMessage(parseResult.commitments);
+    const parsedProfile = extractParsedAgentProfile(parseResult.commitments);
 
-    // Find PERSONA and META commitments
+    ensureMetaFullname(parsedProfile.meta, resolvedAgentName);
+
+    return {
+        agentName: normalizeAgentName(resolvedAgentName),
+        agentHash: computeAgentHash(agentSource),
+        permanentId: parsedProfile.meta.id,
+        personaDescription,
+        initialMessage,
+        meta: parsedProfile.meta,
+        links: parsedProfile.links,
+        parameters: parseParameters(agentSource),
+        capabilities: parsedProfile.capabilities,
+        samples: parsedProfile.samples,
+        knowledgeSources: parsedProfile.knowledgeSources,
+    };
+}
+
+/**
+ * Parsed agent profile fields accumulated from commitments.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+type ParsedAgentProfile = Pick<AgentBasicInformation, 'meta' | 'links' | 'capabilities' | 'samples' | 'knowledgeSources'>;
+
+/**
+ * Mutable commitment-processing state used while collecting basic profile information.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+type ParseAgentSourceState = ParsedAgentProfile & {
+    pendingUserMessage: string | null;
+    knownKnowledgeSourceUrls: Set<string>;
+};
+
+/**
+ * Minimal display data for KNOWLEDGE capability badges.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+type KnowledgeCapabilityPresentation = Pick<AgentCapability, 'label' | 'iconName'>;
+
+/**
+ * Applies one dedicated META-like commitment content into the parsed profile state.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+type MetaCommitmentApplier = (state: ParseAgentSourceState, content: string) => void;
+
+/**
+ * Static capability descriptors for commitments that map one-to-one to a visible capability.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+const SIMPLE_CAPABILITY_BY_COMMITMENT_TYPE: Readonly<Record<string, AgentCapability | undefined>> = {
+    'USE BROWSER': {
+        type: 'browser',
+        label: 'Browser',
+        iconName: 'Globe',
+    },
+    'USE SEARCH ENGINE': {
+        type: 'search-engine',
+        label: 'Internet',
+        iconName: 'Search',
+    },
+    'USE SEARCH': {
+        type: 'search-engine',
+        label: 'Internet',
+        iconName: 'Search',
+    },
+    'USE TIME': {
+        type: 'time',
+        label: 'Time',
+        iconName: 'Clock',
+    },
+    'USE TIMEOUT': {
+        type: 'timeout',
+        label: 'Timers',
+        iconName: 'Clock',
+    },
+    'USE USER LOCATION': {
+        type: 'user-location',
+        label: 'User location',
+        iconName: 'MapPin',
+    },
+    'USE EMAIL': {
+        type: 'email',
+        label: 'Email',
+        iconName: 'Mail',
+    },
+    'USE POPUP': {
+        type: 'popup',
+        label: 'Popup',
+        iconName: 'SquareArrowOutUpRight',
+    },
+    'USE IMAGE GENERATOR': {
+        type: 'image-generator',
+        label: 'Image Generator',
+        iconName: 'Image',
+    },
+    'USE PRIVACY': {
+        type: 'privacy',
+        label: 'Privacy',
+        iconName: 'Shield',
+    },
+    'USE CALENDAR': {
+        type: 'calendar',
+        label: 'Calendar',
+        iconName: 'Calendar',
+    },
+};
+
+/**
+ * Dedicated handlers for META-style commitments that directly map onto parsed meta fields.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+const META_COMMITMENT_APPLIERS: Readonly<Record<string, MetaCommitmentApplier | undefined>> = {
+    'META LINK': applyMetaLinkContent,
+    'META DOMAIN': applyMetaDomainContent,
+    'META IMAGE': applyMetaImageContent,
+    'META DESCRIPTION': applyMetaDescriptionContent,
+    'META DISCLAIMER': applyMetaDisclaimerContent,
+    'META INPUT PLACEHOLDER': applyMetaInputPlaceholderContent,
+    'MESSAGE SUFFIX': applyMessageSuffixContent,
+    'META COLOR': applyMetaColorContent,
+    'META FONT': applyMetaFontContent,
+    'META VOICE': applyMetaVoiceContent,
+};
+
+/**
+ * Detects local slash-based references used by FROM and IMPORT commitments.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+const LOCAL_AGENT_REFERENCE_PREFIXES = ['./', '../', '/'];
+
+/**
+ * Builds the combined persona description from PERSONA commitments.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function extractPersonaDescription(commitments: ReadonlyArray<ParsedCommitment>): string | null {
     let personaDescription: string | null = null;
 
-    for (const commitment of parseResult.commitments) {
+    for (const commitment of commitments) {
         if (commitment.type !== 'PERSONA') {
             continue;
         }
@@ -43,384 +189,492 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
         personaDescription += commitment.content;
     }
 
+    return personaDescription;
+}
+
+/**
+ * Resolves the last INITIAL MESSAGE commitment, which is the public initial-message value.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function extractInitialMessage(commitments: ReadonlyArray<ParsedCommitment>): string | null {
     let initialMessage: string | null = null;
 
-    for (const commitment of parseResult.commitments) {
-        if (commitment.type !== 'INITIAL MESSAGE') {
-            continue;
-        }
-
-        // Note: Initial message override logic - later overrides earlier
-        //       Or should it append? Usually initial message is just one block.
-        //       Let's stick to "later overrides earlier" for simplicity, or just take the last one.
-        initialMessage = commitment.content;
-    }
-
-    const meta: Record<string, string> = {};
-    const links: string[] = [];
-    const capabilities: AgentCapability[] = [];
-    const samples: Array<{ question: string | null; answer: string }> = [];
-    const knowledgeSources: Array<{ url: string; filename: string }> = [];
-    const knownKnowledgeSourceUrls = new Set<string>();
-    let pendingUserMessage: string | null = null;
-
-    for (const commitment of parseResult.commitments) {
+    for (const commitment of commitments) {
         if (commitment.type === 'INITIAL MESSAGE') {
-            samples.push({ question: null, answer: commitment.content });
-            continue;
+            initialMessage = commitment.content;
         }
-
-        if (commitment.type === 'USER MESSAGE') {
-            pendingUserMessage = commitment.content;
-            continue;
-        }
-
-        if (commitment.type === 'INTERNAL MESSAGE') {
-            // INTERNAL MESSAGE stores trace payloads and is intentionally ignored in basic profile samples.
-            continue;
-        }
-
-        if (commitment.type === 'AGENT MESSAGE') {
-            if (pendingUserMessage !== null) {
-                samples.push({ question: pendingUserMessage, answer: commitment.content });
-                pendingUserMessage = null;
-            }
-            continue;
-        }
-
-        if (commitment.type === 'USE BROWSER') {
-            capabilities.push({
-                type: 'browser',
-                label: 'Browser',
-                iconName: 'Globe',
-            });
-            continue;
-        }
-
-        if (commitment.type === 'USE SEARCH ENGINE') {
-            capabilities.push({
-                type: 'search-engine',
-                label: 'Internet',
-                iconName: 'Search',
-            });
-            continue;
-        }
-
-        if (commitment.type === 'USE SEARCH') {
-            capabilities.push({
-                type: 'search-engine',
-                label: 'Internet',
-                iconName: 'Search',
-            });
-            continue;
-        }
-
-        if (commitment.type === 'USE TIME') {
-            capabilities.push({
-                type: 'time',
-                label: 'Time',
-                iconName: 'Clock',
-            });
-            continue;
-        }
-
-        if (commitment.type === 'USE TIMEOUT') {
-            capabilities.push({
-                type: 'timeout',
-                label: 'Timers',
-                iconName: 'Clock',
-            });
-            continue;
-        }
-
-        if (commitment.type === 'USE USER LOCATION') {
-            capabilities.push({
-                type: 'user-location',
-                label: 'User location',
-                iconName: 'MapPin',
-            });
-            continue;
-        }
-
-        if (commitment.type === 'USE EMAIL' /* || commitment.type === 'EMAIL' || commitment.type === 'MAIL' */) {
-            capabilities.push({
-                type: 'email',
-                label: 'Email',
-                iconName: 'Mail',
-            });
-            continue;
-        }
-
-        if (commitment.type === 'USE POPUP') {
-            capabilities.push({
-                type: 'popup',
-                label: 'Popup',
-                iconName: 'SquareArrowOutUpRight',
-            });
-            continue;
-        }
-
-        if (commitment.type === 'USE IMAGE GENERATOR') {
-            capabilities.push({
-                type: 'image-generator',
-                label: 'Image Generator',
-                iconName: 'Image',
-            });
-            continue;
-        }
-
-        if (commitment.type === 'USE PRIVACY') {
-            capabilities.push({
-                type: 'privacy',
-                label: 'Privacy',
-                iconName: 'Shield',
-            });
-            continue;
-        }
-
-        if (commitment.type === 'USE PROJECT') {
-            const parsedProjectCommitment = parseUseProjectCommitmentContent(commitment.content);
-            const projectLabel = parsedProjectCommitment.repository?.slug || 'Project';
-
-            capabilities.push({
-                type: 'project',
-                label: projectLabel,
-                iconName: 'Code',
-            });
-            continue;
-        }
-
-        if (commitment.type === 'USE CALENDAR') {
-            capabilities.push({
-                type: 'calendar',
-                label: 'Calendar',
-                iconName: 'Calendar',
-            });
-            continue;
-        }
-
-        if (commitment.type === 'FROM') {
-            const content = spaceTrim(commitment.content).split(/\r?\n/)[0] || '';
-
-            if (content === 'Adam' || content === '' /* <- Note: Adam is implicit */) {
-                continue;
-            }
-
-            let label = content;
-            let iconName = 'SquareArrowOutUpRight'; // Inheritance remote
-            if (content.startsWith('./') || content.startsWith('../') || content.startsWith('/')) {
-                label = content.split('/').pop() || content;
-                iconName = 'SquareArrowUpRight'; // Inheritance local
-            }
-
-            if (isVoidPseudoAgentReference(content)) {
-                label = VOID_PSEUDO_AGENT_REFERENCE;
-                iconName = 'ShieldAlert'; // [🧠] Or some other icon for VOID
-            }
-
-            capabilities.push({
-                type: 'inheritance',
-                label,
-                iconName,
-                agentUrl: content as TODO_any,
-            });
-            continue;
-        }
-
-        if (commitment.type === 'IMPORT') {
-            const content = spaceTrim(commitment.content).split(/\r?\n/)[0] || '';
-            let label = content;
-            let iconName = 'ExternalLink'; // Import remote
-
-            try {
-                if (content.startsWith('http://') || content.startsWith('https://')) {
-                    const url = new URL(content);
-                    label = url.hostname.replace(/^www\./, '') + '.../' + url.pathname.split('/').pop();
-                    iconName = 'ExternalLink';
-                } else if (content.startsWith('./') || content.startsWith('../') || content.startsWith('/')) {
-                    label = content.split('/').pop() || content;
-                    iconName = 'Link'; // Import local
-                }
-            } catch (e) {
-                // Invalid URL or path, keep default label
-            }
-
-            capabilities.push({
-                type: 'import',
-                label,
-                iconName,
-                agentUrl: content as TODO_any,
-            });
-            continue;
-        }
-
-        if (commitment.type === 'TEAM') {
-            const teammates = parseTeamCommitmentContent(commitment.content);
-
-            for (const teammate of teammates) {
-                capabilities.push({
-                    type: 'team',
-                    label: teammate.label,
-                    iconName: 'Users',
-                    agentUrl: teammate.url as TODO_any,
-                });
-            }
-            continue;
-        }
-
-        if (commitment.type === 'KNOWLEDGE') {
-            const content = spaceTrim(commitment.content);
-            const extractedUrls = extractUrlsFromText(content);
-            let label = content;
-            let iconName = 'Book';
-
-            // Store URL references for citation resolution.
-            for (const extractedUrl of extractedUrls) {
-                if (knownKnowledgeSourceUrls.has(extractedUrl)) {
-                    continue;
-                }
-
-                try {
-                    const urlObject = new URL(extractedUrl);
-                    const pathSegment = decodeURIComponent(urlObject.pathname.split('/').pop() || '');
-                    const filename = pathSegment || urlObject.hostname;
-
-                    knowledgeSources.push({
-                        url: extractedUrl,
-                        filename,
-                    });
-                    knownKnowledgeSourceUrls.add(extractedUrl);
-                } catch (error) {
-                    // Invalid URL, ignore in profile metadata
-                }
-            }
-
-            if (extractedUrls.length > 0) {
-                try {
-                    const primaryUrl = extractedUrls[0]!;
-                    const url = new URL(primaryUrl);
-                    const filename = decodeURIComponent(url.pathname.split('/').pop() || '');
-
-                    // Determine display label and icon
-                    if (url.pathname.endsWith('.pdf')) {
-                        label = filename || 'Document.pdf';
-                        iconName = 'FileText';
-                    } else {
-                        label = url.hostname.replace(/^www\./, '');
-                    }
-
-                    if (extractedUrls.length > 1) {
-                        label = `${label} (+${extractedUrls.length - 1})`;
-                    }
-                } catch (e) {
-                    // Invalid URL, treat as text
-                }
-            } else {
-                // Text content - take first few words
-                const words = content.split(/\s+/);
-                if (words.length > 4) {
-                    label = words.slice(0, 4).join(' ') + '...';
-                }
-            }
-
-            capabilities.push({
-                type: 'knowledge',
-                label,
-                iconName,
-            });
-            continue;
-        }
-
-        if (commitment.type === 'META LINK') {
-            const linkValue = spaceTrim(commitment.content);
-            links.push(linkValue);
-            meta.link = linkValue;
-            continue;
-        }
-
-        if (commitment.type === 'META DOMAIN') {
-            meta.domain = normalizeMetaDomain(commitment.content);
-            continue;
-        }
-
-        if (commitment.type === 'META IMAGE') {
-            meta.image = spaceTrim(commitment.content);
-            continue;
-        }
-
-        if (commitment.type === 'META DESCRIPTION') {
-            meta.description = spaceTrim(commitment.content);
-            continue;
-        }
-
-        if (commitment.type === 'META DISCLAIMER') {
-            meta.disclaimer = commitment.content;
-            continue;
-        }
-
-        if (commitment.type === 'META INPUT PLACEHOLDER') {
-            meta.inputPlaceholder = spaceTrim(commitment.content);
-            continue;
-        }
-
-        if (commitment.type === 'MESSAGE SUFFIX') {
-            meta.messageSuffix = commitment.content;
-            continue;
-        }
-
-        if (commitment.type === 'META COLOR') {
-            meta.color = normalizeSeparator(commitment.content);
-            continue;
-        }
-
-        if (commitment.type === 'META FONT') {
-            meta.font = normalizeSeparator(commitment.content);
-            continue;
-        }
-
-        if (commitment.type === 'META VOICE') {
-            meta.voice = spaceTrim(commitment.content);
-            continue;
-        }
-
-        if (commitment.type !== 'META') {
-            continue;
-        }
-
-        // Parse META commitments - format is "META TYPE content"
-        const metaTypeRaw = commitment.content.split(' ')[0] || 'NONE';
-
-        if (metaTypeRaw === 'LINK') {
-            links.push(spaceTrim(commitment.content.substring(metaTypeRaw.length)));
-        }
-
-        const metaType = normalizeTo_camelCase(metaTypeRaw);
-        meta[metaType] = spaceTrim(commitment.content.substring(metaTypeRaw.length));
     }
 
-    // Generate fullname fallback if no meta fullname specified
-    if (!meta.fullname) {
-        meta.fullname = parseResult.agentName || createDefaultAgentName(agentSource);
-    }
+    return initialMessage;
+}
 
-    // Parse parameters using unified approach - both @Parameter and {parameter} notations
-    // are treated as the same syntax feature with unified representation
-    const parameters = parseParameters(agentSource);
-    const agentHash = computeAgentHash(agentSource);
+/**
+ * Collects capability, sample, meta, link, and knowledge-source data from commitments.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function extractParsedAgentProfile(commitments: ReadonlyArray<ParsedCommitment>): ParsedAgentProfile {
+    const state: ParseAgentSourceState = {
+        meta: {},
+        links: [],
+        capabilities: [],
+        samples: [],
+        knowledgeSources: [],
+        pendingUserMessage: null,
+        knownKnowledgeSourceUrls: new Set<string>(),
+    };
+
+    for (const commitment of commitments) {
+        processParsedCommitment(state, commitment);
+    }
 
     return {
-        agentName: normalizeAgentName(parseResult.agentName || createDefaultAgentName(agentSource)),
-        agentHash,
-        permanentId: meta.id,
-        personaDescription,
-        initialMessage,
-        meta,
-        links,
-        parameters,
-        capabilities,
-        samples,
-        knowledgeSources,
+        meta: state.meta,
+        links: state.links,
+        capabilities: state.capabilities,
+        samples: state.samples,
+        knowledgeSources: state.knowledgeSources,
     };
+}
+
+/**
+ * Processes one parsed commitment through the sample, capability, and meta stages.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function processParsedCommitment(state: ParseAgentSourceState, commitment: ParsedCommitment): void {
+    if (consumeConversationSampleCommitment(state, commitment)) {
+        return;
+    }
+
+    const capabilities = createCapabilitiesFromCommitment(state, commitment);
+    if (capabilities.length > 0) {
+        state.capabilities.push(...capabilities);
+        return;
+    }
+
+    applyMetaCommitment(state, commitment);
+}
+
+/**
+ * Updates sample-conversation state for communication commitments.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function consumeConversationSampleCommitment(state: ParseAgentSourceState, commitment: ParsedCommitment): boolean {
+    switch (commitment.type) {
+        case 'INITIAL MESSAGE':
+            state.samples.push({ question: null, answer: commitment.content });
+            return true;
+        case 'USER MESSAGE':
+            state.pendingUserMessage = commitment.content;
+            return true;
+        case 'INTERNAL MESSAGE':
+            // INTERNAL MESSAGE stores trace payloads and is intentionally ignored in basic profile samples.
+            return true;
+        case 'AGENT MESSAGE':
+            if (state.pendingUserMessage !== null) {
+                state.samples.push({ question: state.pendingUserMessage, answer: commitment.content });
+                state.pendingUserMessage = null;
+            }
+            return true;
+        default:
+            return false;
+    }
+}
+
+/**
+ * Creates the visible capabilities produced by one parsed commitment.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function createCapabilitiesFromCommitment(
+    state: ParseAgentSourceState,
+    commitment: ParsedCommitment,
+): AgentCapability[] {
+    const simpleCapability = createSimpleCapability(commitment.type);
+    if (simpleCapability) {
+        return [simpleCapability];
+    }
+
+    switch (commitment.type) {
+        case 'USE PROJECT':
+            return [createProjectCapability(commitment.content)];
+        case 'FROM': {
+            const inheritanceCapability = createInheritanceCapability(commitment.content);
+            return inheritanceCapability ? [inheritanceCapability] : [];
+        }
+        case 'IMPORT':
+            return [createImportCapability(commitment.content)];
+        case 'TEAM':
+            return createTeamCapabilities(commitment.content);
+        case 'KNOWLEDGE':
+            return [createKnowledgeCapability(state, commitment.content)];
+        default:
+            return [];
+    }
+}
+
+/**
+ * Clones one static capability descriptor for a simple capability commitment.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function createSimpleCapability(commitmentType: string): AgentCapability | null {
+    const capability = SIMPLE_CAPABILITY_BY_COMMITMENT_TYPE[commitmentType];
+    return capability ? { ...capability } : null;
+}
+
+/**
+ * Creates the USE PROJECT capability badge.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function createProjectCapability(content: string): AgentCapability {
+    const parsedProjectCommitment = parseUseProjectCommitmentContent(content);
+    const projectLabel = parsedProjectCommitment.repository?.slug || 'Project';
+
+    return {
+        type: 'project',
+        label: projectLabel,
+        iconName: 'Code',
+    };
+}
+
+/**
+ * Creates the FROM inheritance capability when the reference should stay visible in the profile.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function createInheritanceCapability(content: string): AgentCapability | null {
+    const reference = extractFirstCommitmentLine(content);
+
+    if (reference === 'Adam' || reference === '' /* <- Note: Adam is implicit */) {
+        return null;
+    }
+
+    let label = reference;
+    let iconName = 'SquareArrowOutUpRight';
+
+    if (isLocalAgentReference(reference)) {
+        label = reference.split('/').pop() || reference;
+        iconName = 'SquareArrowUpRight';
+    }
+
+    if (isVoidPseudoAgentReference(reference)) {
+        label = VOID_PSEUDO_AGENT_REFERENCE;
+        iconName = 'ShieldAlert';
+    }
+
+    return {
+        type: 'inheritance',
+        label,
+        iconName,
+        agentUrl: reference as TODO_any,
+    };
+}
+
+/**
+ * Creates the IMPORT capability badge.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function createImportCapability(content: string): AgentCapability {
+    const reference = extractFirstCommitmentLine(content);
+    let label = reference;
+    let iconName = 'ExternalLink';
+
+    try {
+        if (reference.startsWith('http://') || reference.startsWith('https://')) {
+            const url = new URL(reference);
+            label = `${url.hostname.replace(/^www\./, '')}.../${url.pathname.split('/').pop()}`;
+        } else if (isLocalAgentReference(reference)) {
+            label = reference.split('/').pop() || reference;
+            iconName = 'Link';
+        }
+    } catch (error) {
+        // Invalid URL or path, keep default label.
+    }
+
+    return {
+        type: 'import',
+        label,
+        iconName,
+        agentUrl: reference as TODO_any,
+    };
+}
+
+/**
+ * Creates TEAM capability badges for all parsed teammates.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function createTeamCapabilities(content: string): AgentCapability[] {
+    const teammates = parseTeamCommitmentContent(content);
+
+    return teammates.map((teammate) => ({
+        type: 'team',
+        label: teammate.label,
+        iconName: 'Users',
+        agentUrl: teammate.url as TODO_any,
+    }));
+}
+
+/**
+ * Creates the KNOWLEDGE capability badge and records URL-based knowledge sources.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function createKnowledgeCapability(state: ParseAgentSourceState, content: string): AgentCapability {
+    const trimmedContent = spaceTrim(content);
+    const extractedUrls = extractUrlsFromText(trimmedContent);
+
+    rememberKnowledgeSources(state, extractedUrls);
+
+    const presentation = createKnowledgeCapabilityPresentation(trimmedContent, extractedUrls);
+    return {
+        type: 'knowledge',
+        label: presentation.label,
+        iconName: presentation.iconName,
+    };
+}
+
+/**
+ * Stores unique URL-based knowledge sources for later citation resolution.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function rememberKnowledgeSources(state: ParseAgentSourceState, extractedUrls: ReadonlyArray<string>): void {
+    for (const extractedUrl of extractedUrls) {
+        if (state.knownKnowledgeSourceUrls.has(extractedUrl)) {
+            continue;
+        }
+
+        try {
+            const urlObject = new URL(extractedUrl);
+            const pathSegment = decodeURIComponent(urlObject.pathname.split('/').pop() || '');
+            const filename = pathSegment || urlObject.hostname;
+
+            state.knowledgeSources.push({
+                url: extractedUrl,
+                filename,
+            });
+            state.knownKnowledgeSourceUrls.add(extractedUrl);
+        } catch (error) {
+            // Invalid URL, ignore in profile metadata.
+        }
+    }
+}
+
+/**
+ * Derives the visible KNOWLEDGE badge label and icon from commitment content.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function createKnowledgeCapabilityPresentation(
+    content: string,
+    extractedUrls: ReadonlyArray<string>,
+): KnowledgeCapabilityPresentation {
+    let label = content;
+    let iconName = 'Book';
+
+    if (extractedUrls.length === 0) {
+        return {
+            label: createKnowledgeTextLabel(content),
+            iconName,
+        };
+    }
+
+    try {
+        const primaryUrl = extractedUrls[0]!;
+        const url = new URL(primaryUrl);
+        const filename = decodeURIComponent(url.pathname.split('/').pop() || '');
+
+        if (url.pathname.endsWith('.pdf')) {
+            label = filename || 'Document.pdf';
+            iconName = 'FileText';
+        } else {
+            label = url.hostname.replace(/^www\./, '');
+        }
+
+        if (extractedUrls.length > 1) {
+            label = `${label} (+${extractedUrls.length - 1})`;
+        }
+    } catch (error) {
+        // Invalid URL, keep the text-based fallback label.
+    }
+
+    return { label, iconName };
+}
+
+/**
+ * Shortens text-only KNOWLEDGE commitments into the same preview label as before.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function createKnowledgeTextLabel(content: string): string {
+    const words = content.split(/\s+/);
+    if (words.length > 4) {
+        return `${words.slice(0, 4).join(' ')}...`;
+    }
+
+    return content;
+}
+
+/**
+ * Applies META-style commitments that mutate parsed profile metadata.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function applyMetaCommitment(state: ParseAgentSourceState, commitment: ParsedCommitment): void {
+    const applyMetaContent = META_COMMITMENT_APPLIERS[commitment.type];
+    if (applyMetaContent) {
+        applyMetaContent(state, commitment.content);
+        return;
+    }
+
+    if (commitment.type === 'META') {
+        applyGenericMetaCommitment(state, commitment.content);
+    }
+}
+
+/**
+ * Applies the generic META commitment form (`META TYPE value`).
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function applyGenericMetaCommitment(state: ParseAgentSourceState, content: string): void {
+    const metaTypeRaw = content.split(' ')[0] || 'NONE';
+    const metaValue = spaceTrim(content.substring(metaTypeRaw.length));
+
+    if (metaTypeRaw === 'LINK') {
+        state.links.push(metaValue);
+    }
+
+    const metaType = normalizeTo_camelCase(metaTypeRaw);
+    state.meta[metaType] = metaValue;
+}
+
+/**
+ * Applies META LINK content into links and the canonical `meta.link` field.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function applyMetaLinkContent(state: ParseAgentSourceState, content: string): void {
+    const linkValue = spaceTrim(content);
+    state.links.push(linkValue);
+    state.meta.link = linkValue;
+}
+
+/**
+ * Applies META DOMAIN content into the normalized `meta.domain` field.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function applyMetaDomainContent(state: ParseAgentSourceState, content: string): void {
+    state.meta.domain = normalizeMetaDomain(content);
+}
+
+/**
+ * Applies META IMAGE content into the canonical `meta.image` field.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function applyMetaImageContent(state: ParseAgentSourceState, content: string): void {
+    state.meta.image = spaceTrim(content);
+}
+
+/**
+ * Applies META DESCRIPTION content into the canonical `meta.description` field.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function applyMetaDescriptionContent(state: ParseAgentSourceState, content: string): void {
+    state.meta.description = spaceTrim(content);
+}
+
+/**
+ * Applies META DISCLAIMER content into the canonical `meta.disclaimer` field.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function applyMetaDisclaimerContent(state: ParseAgentSourceState, content: string): void {
+    state.meta.disclaimer = content;
+}
+
+/**
+ * Applies META INPUT PLACEHOLDER content into the canonical `meta.inputPlaceholder` field.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function applyMetaInputPlaceholderContent(state: ParseAgentSourceState, content: string): void {
+    state.meta.inputPlaceholder = spaceTrim(content);
+}
+
+/**
+ * Applies MESSAGE SUFFIX content into the canonical `meta.messageSuffix` field.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function applyMessageSuffixContent(state: ParseAgentSourceState, content: string): void {
+    state.meta.messageSuffix = content;
+}
+
+/**
+ * Applies META COLOR content into the canonical `meta.color` field.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function applyMetaColorContent(state: ParseAgentSourceState, content: string): void {
+    state.meta.color = normalizeSeparator(content);
+}
+
+/**
+ * Applies META FONT content into the canonical `meta.font` field.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function applyMetaFontContent(state: ParseAgentSourceState, content: string): void {
+    state.meta.font = normalizeSeparator(content);
+}
+
+/**
+ * Applies META VOICE content into the canonical `meta.voice` field.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function applyMetaVoiceContent(state: ParseAgentSourceState, content: string): void {
+    state.meta.voice = spaceTrim(content);
+}
+
+/**
+ * Ensures the parsed profile always exposes a fullname value.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function ensureMetaFullname(meta: AgentBasicInformation['meta'], fallbackFullname: string): void {
+    if (!meta.fullname) {
+        meta.fullname = fallbackFullname;
+    }
+}
+
+/**
+ * Extracts the first logical line from multiline commitment content.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function extractFirstCommitmentLine(content: string): string {
+    return spaceTrim(content).split(/\r?\n/)[0] || '';
+}
+
+/**
+ * Detects local FROM/IMPORT references that should use local-link labels and icons.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function isLocalAgentReference(reference: string): boolean {
+    return LOCAL_AGENT_REFERENCE_PREFIXES.some((prefix) => reference.startsWith(prefix));
 }
 
 /**
@@ -428,6 +682,8 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
  *
  * @param content - The content to normalize
  * @returns The content with normalized separators
+ *
+ * @private internal utility of `parseAgentSource`
  */
 function normalizeSeparator(content: string): string {
     const trimmed = spaceTrim(content);
@@ -442,6 +698,8 @@ function normalizeSeparator(content: string): string {
  *
  * @param content - Raw META DOMAIN content.
  * @returns Normalized domain or a trimmed fallback.
+ *
+ * @private internal utility of `parseAgentSource`
  */
 function normalizeMetaDomain(content: string): string {
     const trimmed = spaceTrim(content);
