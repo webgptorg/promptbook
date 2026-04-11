@@ -1,3 +1,8 @@
+-   Refactored Agents Server `AgentContextMenu.tsx` into smaller focused private menu modules without changing external behavior:
+
+    -   Extracted `useAgentContextMenuItems` into a dedicated private hook file so `AgentContextMenu.tsx` now reads as the public facade for install-prompt state and menu rendering.
+    -   Split menu-item assembly into focused helper functions for directory, install, share, workspace, management, and admin sections, making the branching logic easier to follow and maintain.
+
 -   Refactored Agents Server standalone `search/page.tsx` into smaller focused private search-page modules without changing external behavior:
 
     -   Moved URL state, filter selection, debounced query syncing, and paginated result loading into a dedicated private `useSearchPageState` hook so the route-facing page now reads top-down.
