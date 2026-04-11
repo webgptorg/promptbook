@@ -77,6 +77,56 @@ type CreatePipelineCollectionFromDirectoryOptions = Omit<PrepareAndScrapeOptions
 };
 
 /**
+ * Tools used by `createPipelineCollectionFromDirectory`.
+ *
+ * @private internal function of `createPipelineCollectionFromDirectory`
+ */
+type CreatePipelineCollectionFromDirectoryTools = Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>;
+
+/**
+ * Tools with guaranteed filesystem access used by `createPipelineCollectionFromDirectory`.
+ *
+ * @private internal function of `createPipelineCollectionFromDirectory`
+ */
+type CreatePipelineCollectionFromDirectoryToolsWithFilesystem = CreatePipelineCollectionFromDirectoryTools & {
+    readonly fs: NonNullable<CreatePipelineCollectionFromDirectoryTools['fs']>;
+};
+
+/**
+ * Resolved options used internally by `createPipelineCollectionFromDirectory`.
+ *
+ * @private internal function of `createPipelineCollectionFromDirectory`
+ */
+type ResolvedCreatePipelineCollectionFromDirectoryOptions = {
+    readonly isRecursive: boolean;
+    readonly isVerbose: boolean;
+    readonly isLazyLoaded: boolean;
+    readonly isCrashedOnError: boolean;
+    readonly rootUrl?: string_pipeline_root_url;
+};
+
+/**
+ * Pipeline loaded from a concrete file together with its filesystem metadata.
+ *
+ * @private internal function of `createPipelineCollectionFromDirectory`
+ */
+type PipelineFromFile = {
+    readonly fileName: string_filename;
+    readonly sourceFile: string_filename;
+    readonly pipeline: PipelineJson;
+};
+
+/**
+ * Normalized metadata derived from a pipeline file path.
+ *
+ * @private internal function of `createPipelineCollectionFromDirectory`
+ */
+type PipelineFileContext = {
+    readonly sourceFile: string_filename;
+    readonly rootDirname: string_dirname;
+};
+
+/**
  * Constructs `PipelineCollection` from given directory
  *
  * Note: Works only in Node.js environment because it reads the file system
@@ -90,9 +140,33 @@ type CreatePipelineCollectionFromDirectoryOptions = Omit<PrepareAndScrapeOptions
  */
 export async function createPipelineCollectionFromDirectory(
     rootPath: string_dirname,
-    tools?: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
+    tools?: CreatePipelineCollectionFromDirectoryTools,
     options?: CreatePipelineCollectionFromDirectoryOptions,
 ): Promise<PipelineCollection> {
+    const resolvedTools = await resolveCreatePipelineCollectionFromDirectoryTools(tools);
+    const resolvedOptions = resolveCreatePipelineCollectionFromDirectoryOptions(options);
+
+    await inspectCompiledPipelineCollection(rootPath, resolvedTools.fs);
+
+    const collection = createPipelineCollectionFromPromise(async () =>
+        loadPipelineCollectionFromDirectory(rootPath, resolvedTools, resolvedOptions),
+    );
+
+    if (resolvedOptions.isLazyLoaded === false) {
+        await collection.listPipelines();
+    }
+
+    return collection;
+}
+
+/**
+ * Resolves the execution tools needed for directory-backed collections.
+ *
+ * @private internal function of `createPipelineCollectionFromDirectory`
+ */
+async function resolveCreatePipelineCollectionFromDirectoryTools(
+    tools?: CreatePipelineCollectionFromDirectoryTools,
+): Promise<CreatePipelineCollectionFromDirectoryToolsWithFilesystem> {
     if (tools === undefined) {
         tools = await $provideExecutionToolsForNode();
     }
@@ -102,6 +176,43 @@ export async function createPipelineCollectionFromDirectory(
         //          <- TODO: [🧠] What is the best error type here`
     }
 
+    return { ...tools, fs: tools.fs };
+}
+
+/**
+ * Resolves default option values used during directory-backed collection loading.
+ *
+ * @private internal function of `createPipelineCollectionFromDirectory`
+ */
+function resolveCreatePipelineCollectionFromDirectoryOptions(
+    options?: CreatePipelineCollectionFromDirectoryOptions,
+): ResolvedCreatePipelineCollectionFromDirectoryOptions {
+    const {
+        isRecursive = true,
+        isVerbose = DEFAULT_IS_VERBOSE,
+        isLazyLoaded = false,
+        isCrashedOnError = true,
+        rootUrl,
+    } = options || {};
+
+    return {
+        isRecursive,
+        isVerbose,
+        isLazyLoaded,
+        isCrashedOnError,
+        rootUrl,
+    };
+}
+
+/**
+ * Checks whether a precompiled collection file is present.
+ *
+ * @private internal function of `createPipelineCollectionFromDirectory`
+ */
+async function inspectCompiledPipelineCollection(
+    rootPath: string_dirname,
+    fs: CreatePipelineCollectionFromDirectoryToolsWithFilesystem['fs'],
+): Promise<void> {
     // TODO: [🍖] Allow to skip
 
     const madeLibraryFilePath = join(
@@ -112,7 +223,7 @@ export async function createPipelineCollectionFromDirectory(
         }.bookc`,
     );
 
-    if (!(await isFileExisting(madeLibraryFilePath, tools.fs))) {
+    if (!(await isFileExisting(madeLibraryFilePath, fs))) {
         /*
         TODO: [🌗][🧠] Should this message be here or just ignore
         console.info(
@@ -121,231 +232,371 @@ export async function createPipelineCollectionFromDirectory(
             ),
         );
         */
-    } else {
-        colors.green(`(In future, not implemented yet) Using your compiled pipeline collection ${madeLibraryFilePath}`);
-        // TODO: Implement;
-        // TODO: [🌗]
+        return;
     }
 
-    const {
-        isRecursive = true,
-        isVerbose = DEFAULT_IS_VERBOSE,
-        isLazyLoaded = false,
-        isCrashedOnError = true,
-        rootUrl,
-    } = options || {};
+    colors.green(`(In future, not implemented yet) Using your compiled pipeline collection ${madeLibraryFilePath}`);
+    // TODO: Implement;
+    // TODO: [🌗]
+}
 
-    const collection = createPipelineCollectionFromPromise(async () => {
-        if (isVerbose) {
-            console.info(colors.cyan(`Creating pipeline collection from path ${rootPath.split('\\').join('/')}`));
+/**
+ * Loads, normalizes, and validates all pipelines from the directory.
+ *
+ * @private internal function of `createPipelineCollectionFromDirectory`
+ */
+async function loadPipelineCollectionFromDirectory(
+    rootPath: string_dirname,
+    tools: CreatePipelineCollectionFromDirectoryToolsWithFilesystem,
+    options: ResolvedCreatePipelineCollectionFromDirectoryOptions,
+): Promise<ReadonlyArray<PipelineJson>> {
+    if (options.isVerbose) {
+        console.info(
+            colors.cyan(`Creating pipeline collection from path ${normalizePipelineCollectionPath(rootPath)}`),
+        );
+    }
+
+    const fileNames = sortPipelineCollectionFileNames(await listAllFiles(rootPath, options.isRecursive, tools.fs));
+    const pipelinesFromFiles = await loadPipelinesFromFiles(fileNames, tools, options);
+
+    return createPipelineCollectionFromLoadedPipelines(rootPath, pipelinesFromFiles, options);
+}
+
+/**
+ * Sorts pipeline files so precompiled archives are considered before source files.
+ *
+ * @private internal function of `createPipelineCollectionFromDirectory`
+ */
+function sortPipelineCollectionFileNames(fileNames: ReadonlyArray<string_filename>): Array<string_filename> {
+    return [...fileNames].sort(comparePipelineCollectionFileNames);
+}
+
+/**
+ * Compares two pipeline file names by their loading priority.
+ *
+ * @private internal function of `createPipelineCollectionFromDirectory`
+ */
+function comparePipelineCollectionFileNames(a: string_filename, b: string_filename): number {
+    if (isCompiledPipelineFile(a) && isSourcePipelineFile(b)) {
+        return -1;
+    }
+
+    if (isSourcePipelineFile(a) && isCompiledPipelineFile(b)) {
+        return 1;
+    }
+
+    return 0;
+}
+
+/**
+ * Loads pipelines from files while keeping file-origin metadata for later registration.
+ *
+ * @private internal function of `createPipelineCollectionFromDirectory`
+ */
+async function loadPipelinesFromFiles(
+    fileNames: ReadonlyArray<string_filename>,
+    tools: CreatePipelineCollectionFromDirectoryToolsWithFilesystem,
+    options: ResolvedCreatePipelineCollectionFromDirectoryOptions,
+): Promise<Array<PipelineFromFile>> {
+    const pipelinesFromFiles: Array<PipelineFromFile> = [];
+
+    for (const fileName of fileNames) {
+        try {
+            pipelinesFromFiles.push(...(await loadPipelinesFromFile(fileName, tools, options.isVerbose)));
+        } catch (error) {
+            handlePipelineCollectionFileError(error, fileName, options.isCrashedOnError);
         }
+    }
 
-        const fileNames = await listAllFiles(rootPath, isRecursive, tools!.fs!);
+    return pipelinesFromFiles;
+}
 
-        // Note: First load compiled `.bookc` files and then source `.book` files
-        //       `.bookc` are already compiled and can be used faster
-        fileNames.sort((a, b) => {
-            if ((a.endsWith('.bookc') || a.endsWith('.book.json')) && (b.endsWith('.book') || b.endsWith('.book.md'))) {
-                return -1;
-            }
-            if ((a.endsWith('.book') || a.endsWith('.book.md')) && (b.endsWith('.bookc') || b.endsWith('.book.json'))) {
-                return 1;
-            }
-            return 0;
+/**
+ * Loads all pipelines represented by a single filesystem file.
+ *
+ * @private internal function of `createPipelineCollectionFromDirectory`
+ */
+async function loadPipelinesFromFile(
+    fileName: string_filename,
+    tools: CreatePipelineCollectionFromDirectoryToolsWithFilesystem,
+    isVerbose: boolean,
+): Promise<ReadonlyArray<PipelineFromFile>> {
+    const fileContext = createPipelineFileContext(fileName);
+
+    if (isSourcePipelineFile(fileName)) {
+        const pipelineString = validatePipelineString(await readFile(fileName, 'utf-8'));
+        const pipeline = await compilePipeline(pipelineString, tools, {
+            rootDirname: fileContext.rootDirname,
         });
 
-        const collection = new Map<string_pipeline_url, PipelineJson>();
-        const pipelinesWithFilenames: Array<{
-            fileName: string_filename;
-            sourceFile: string_filename;
-            pipeline: PipelineJson;
-        }> = [];
-
-        for (const fileName of fileNames) {
-            const sourceFile = './' + fileName.split('\\').join('/');
-            const rootDirname = dirname(sourceFile).split('\\').join('/');
-
-            try {
-                if (fileName.endsWith('.book') || fileName.endsWith('.book.md')) {
-                    const pipelineString = validatePipelineString(await readFile(fileName, 'utf-8'));
-                    const pipeline = await compilePipeline(pipelineString, tools, {
-                        rootDirname,
-                    });
-                    pipelinesWithFilenames.push({ fileName, sourceFile, pipeline: { ...pipeline, sourceFile } });
-                } else if (fileName.endsWith('.bookc') || fileName.endsWith('.book.json')) {
-                    // TODO: Handle non-valid JSON files
-
-                    pipelinesWithFilenames.push(
-                        ...(await loadArchive(fileName, tools!.fs!)).map((pipeline) =>
-                            // TODO: [🌗]
-                            ({ fileName, sourceFile, pipeline: { ...pipeline, sourceFile } }),
-                        ),
-                    );
-                } else {
-                    if (isVerbose) {
-                        console.info(
-                            colors.gray(`Skipped file ${fileName.split('\\').join('/')} –⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠ Not a book`),
-                        );
-                    }
-                }
-
-                // ---
-            } catch (error) {
-                assertsError(error);
-
-                // TODO: [7] DRY
-                const wrappedErrorMessage =
-                    spaceTrim(
-                        (block) => `
-                            ${(error as Error).name} in pipeline ${fileName.split('\\').join('/')}⁠:
-
-                            Original error message:
-                            ${block((error as Error).message)}
-
-                            Original stack trace:
-                            ${block((error as Error).stack || '')}
-
-                            ---
-
-                        `,
-                    ) + '\n';
-
-                if (isCrashedOnError) {
-                    throw new CollectionError(wrappedErrorMessage);
-                }
-
-                // TODO: [🟥] Detect browser / node and make it colorful
-                console.error(wrappedErrorMessage);
-            }
-        }
-
-        for (const pipelineWithFilenames of pipelinesWithFilenames) {
-            const { fileName, sourceFile } = pipelineWithFilenames;
-            let { pipeline } = pipelineWithFilenames;
-
-            try {
-                if (rootUrl !== undefined) {
-                    if (pipeline.pipelineUrl === undefined) {
-                        const pipelineUrl = rootUrl + '/' + relative(rootPath, fileName).split('\\').join('/');
-
-                        // console.log({ pipelineUrl, rootPath, rootUrl, fileName });
-
-                        if (isVerbose) {
-                            console.info(
-                                colors.yellow(
-                                    `Implicitly set pipeline URL to ${pipelineUrl} from ${fileName
-                                        .split('\\')
-                                        .join('/')}`,
-                                ),
-                            );
-                        }
-                        pipeline = { ...pipeline, pipelineUrl };
-                    } else if (!pipeline.pipelineUrl.startsWith(rootUrl)) {
-                        throw new PipelineUrlError(
-                            spaceTrim(`
-                                Pipeline with URL ${pipeline.pipelineUrl} is not a child of the root URL ${rootUrl} 🍏
-
-                                File:
-                                ${sourceFile || 'Unknown'}
-
-                            `),
-                        );
-                    }
-                }
-
-                // TODO: [👠] DRY
-                if (pipeline.pipelineUrl === undefined) {
-                    if (isVerbose) {
-                        console.info(
-                            colors.yellow(
-                                `Can not load pipeline from ${fileName.split('\\').join('/')} because of missing URL`,
-                            ),
-                        );
-                    }
-                } else {
-                    // Note: [🐨] Pipeline is checked multiple times
-                    // TODO: Maybe once is enough BUT be sure to check it - better to check it multiple times than not at all
-                    validatePipeline(pipeline);
-
-                    if (
-                        // TODO: [🐽] comparePipelines(pipeline1,pipeline2): 'IDENTICAL' |'IDENTICAL_UNPREPARED' | 'IDENTICAL_INTERFACE' | 'DIFFERENT'
-                        !collection.has(pipeline.pipelineUrl)
-                    ) {
-                        if (isVerbose) {
-                            console.info(colors.green(`Loaded pipeline ${fileName.split('\\').join('/')}⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠`));
-                        }
-
-                        // Note: [🦄] Pipeline with same url uniqueness will be double-checked automatically in SimplePipelineCollection
-                        collection.set(pipeline.pipelineUrl, pipeline);
-                    } else if (
-                        pipelineJsonToString(unpreparePipeline(pipeline)) ===
-                        pipelineJsonToString(unpreparePipeline(collection.get(pipeline.pipelineUrl)!))
-                    ) {
-                        if (isVerbose) {
-                            console.info(
-                                colors.gray(
-                                    `Skipped pipeline ${fileName
-                                        .split('\\')
-                                        .join('/')} –⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠ Already identical pipeline in the collection`,
-                                ),
-                            );
-                        }
-                    } else {
-                        const existing = collection.get(pipeline.pipelineUrl)!;
-
-                        throw new PipelineUrlError(
-                            spaceTrim(`
-                                Pipeline with URL ${pipeline.pipelineUrl} is already in the collection 🍏
-
-                                Conflicting files:
-                                ${existing.sourceFile || 'Unknown'}
-                                ${pipeline.sourceFile || 'Unknown'}
-
-                                Note: You have probably forgotten to run "ptbk make" to update the collection
-                                Note: Pipelines with the same URL are not allowed
-                                      Only exception is when the pipelines are identical
-
-                            `),
-                        );
-                    }
-                }
-            } catch (error) {
-                assertsError(error);
-
-                // TODO: [7] DRY
-                const wrappedErrorMessage =
-                    spaceTrim(
-                        (block) => `
-                            ${(error as Error).name} in pipeline ${fileName.split('\\').join('/')}⁠:
-
-                            Original error message:
-                            ${block((error as Error).message)}
-
-                            Original stack trace:
-                            ${block((error as Error).stack || '')}
-
-                            ---
-
-                        `,
-                    ) + '\n';
-
-                if (isCrashedOnError) {
-                    throw new CollectionError(wrappedErrorMessage);
-                }
-
-                // TODO: [🟥] Detect browser / node and make it colorful
-                console.error(wrappedErrorMessage);
-            }
-        }
-
-        return Array.from(collection.values());
-    });
-
-    if (isLazyLoaded === false) {
-        await collection.listPipelines();
+        return [
+            {
+                fileName,
+                sourceFile: fileContext.sourceFile,
+                pipeline: { ...pipeline, sourceFile: fileContext.sourceFile },
+            },
+        ];
     }
 
-    return collection;
+    if (isCompiledPipelineFile(fileName)) {
+        return (await loadArchive(fileName, tools.fs)).map((pipeline) => ({
+            fileName,
+            sourceFile: fileContext.sourceFile,
+            // TODO: [🌗]
+            pipeline: { ...pipeline, sourceFile: fileContext.sourceFile },
+        }));
+    }
+
+    if (isVerbose) {
+        console.info(colors.gray(`Skipped file ${normalizePipelineCollectionPath(fileName)} – Not a book`));
+    }
+
+    return [];
+}
+
+/**
+ * Creates normalized file metadata used during pipeline loading.
+ *
+ * @private internal function of `createPipelineCollectionFromDirectory`
+ */
+function createPipelineFileContext(fileName: string_filename): PipelineFileContext {
+    const sourceFile: string_filename = `./${normalizePipelineCollectionPath(fileName)}`;
+    const rootDirname: string_dirname = dirname(sourceFile).split('\\').join('/');
+
+    return { sourceFile, rootDirname };
+}
+
+/**
+ * Registers loaded pipelines into the final collection map.
+ *
+ * @private internal function of `createPipelineCollectionFromDirectory`
+ */
+function createPipelineCollectionFromLoadedPipelines(
+    rootPath: string_dirname,
+    pipelinesFromFiles: ReadonlyArray<PipelineFromFile>,
+    options: ResolvedCreatePipelineCollectionFromDirectoryOptions,
+): ReadonlyArray<PipelineJson> {
+    const collection = new Map<string_pipeline_url, PipelineJson>();
+
+    for (const pipelineFromFile of pipelinesFromFiles) {
+        try {
+            const pipeline = applyRootUrlToPipeline(rootPath, pipelineFromFile, options.rootUrl, options.isVerbose);
+            addPipelineToCollection(collection, pipelineFromFile.fileName, pipeline, options.isVerbose);
+        } catch (error) {
+            handlePipelineCollectionFileError(error, pipelineFromFile.fileName, options.isCrashedOnError);
+        }
+    }
+
+    return Array.from(collection.values());
+}
+
+/**
+ * Applies the collection root URL policy to a loaded pipeline.
+ *
+ * @private internal function of `createPipelineCollectionFromDirectory`
+ */
+function applyRootUrlToPipeline(
+    rootPath: string_dirname,
+    pipelineFromFile: PipelineFromFile,
+    rootUrl: string_pipeline_root_url | undefined,
+    isVerbose: boolean,
+): PipelineJson {
+    let { pipeline } = pipelineFromFile;
+
+    if (rootUrl === undefined) {
+        return pipeline;
+    }
+
+    if (pipeline.pipelineUrl === undefined) {
+        const pipelineUrl = createImplicitPipelineUrl(rootPath, rootUrl, pipelineFromFile.fileName);
+
+        if (isVerbose) {
+            console.info(
+                colors.yellow(
+                    `Implicitly set pipeline URL to ${pipelineUrl} from ${normalizePipelineCollectionPath(
+                        pipelineFromFile.fileName,
+                    )}`,
+                ),
+            );
+        }
+
+        pipeline = { ...pipeline, pipelineUrl };
+    } else if (!pipeline.pipelineUrl.startsWith(rootUrl)) {
+        throw new PipelineUrlError(
+            spaceTrim(`
+                Pipeline with URL ${pipeline.pipelineUrl} is not a child of the root URL ${rootUrl} 🍏
+
+                File:
+                ${pipelineFromFile.sourceFile || 'Unknown'}
+
+            `),
+        );
+    }
+
+    return pipeline;
+}
+
+/**
+ * Creates an implicit pipeline URL for pipelines missing an explicit one.
+ *
+ * @private internal function of `createPipelineCollectionFromDirectory`
+ */
+function createImplicitPipelineUrl(
+    rootPath: string_dirname,
+    rootUrl: string_pipeline_root_url,
+    fileName: string_filename,
+): string_pipeline_url {
+    return `${rootUrl}/${relative(rootPath, fileName).split('\\').join('/')}`;
+}
+
+/**
+ * Validates a pipeline and inserts it into the collection when it is unique enough to keep.
+ *
+ * @private internal function of `createPipelineCollectionFromDirectory`
+ */
+function addPipelineToCollection(
+    collection: Map<string_pipeline_url, PipelineJson>,
+    fileName: string_filename,
+    pipeline: PipelineJson,
+    isVerbose: boolean,
+): void {
+    if (pipeline.pipelineUrl === undefined) {
+        if (isVerbose) {
+            console.info(
+                colors.yellow(
+                    `Can not load pipeline from ${normalizePipelineCollectionPath(fileName)} because of missing URL`,
+                ),
+            );
+        }
+
+        return;
+    }
+
+    // Note: [🐨] Pipeline is checked multiple times
+    // TODO: Maybe once is enough BUT be sure to check it - better to check it multiple times than not at all
+    validatePipeline(pipeline);
+
+    const existingPipeline = collection.get(pipeline.pipelineUrl);
+
+    if (existingPipeline === undefined) {
+        if (isVerbose) {
+            console.info(colors.green(`Loaded pipeline ${normalizePipelineCollectionPath(fileName)}`));
+        }
+
+        // Note: [🦄] Pipeline with same url uniqueness will be double-checked automatically in SimplePipelineCollection
+        collection.set(pipeline.pipelineUrl, pipeline);
+        return;
+    }
+
+    if (arePipelinesIdentical(pipeline, existingPipeline)) {
+        if (isVerbose) {
+            console.info(
+                colors.gray(
+                    `Skipped pipeline ${normalizePipelineCollectionPath(
+                        fileName,
+                    )} – Already identical pipeline in the collection`,
+                ),
+            );
+        }
+
+        return;
+    }
+
+    throw new PipelineUrlError(
+        spaceTrim(`
+            Pipeline with URL ${pipeline.pipelineUrl} is already in the collection 🍏
+
+            Conflicting files:
+            ${existingPipeline.sourceFile || 'Unknown'}
+            ${pipeline.sourceFile || 'Unknown'}
+
+            Note: You have probably forgotten to run "ptbk make" to update the collection
+            Note: Pipelines with the same URL are not allowed
+                  Only exception is when the pipelines are identical
+
+        `),
+    );
+}
+
+/**
+ * Compares two pipelines while ignoring preparation artifacts.
+ *
+ * @private internal function of `createPipelineCollectionFromDirectory`
+ */
+function arePipelinesIdentical(firstPipeline: PipelineJson, secondPipeline: PipelineJson): boolean {
+    return (
+        pipelineJsonToString(unpreparePipeline(firstPipeline)) ===
+        pipelineJsonToString(unpreparePipeline(secondPipeline))
+    );
+}
+
+/**
+ * Wraps a file-processing error into collection-level behavior.
+ *
+ * @private internal function of `createPipelineCollectionFromDirectory`
+ */
+function handlePipelineCollectionFileError(error: unknown, fileName: string_filename, isCrashedOnError: boolean): void {
+    assertsError(error);
+
+    const wrappedErrorMessage = createPipelineCollectionErrorMessage(error, fileName);
+
+    if (isCrashedOnError) {
+        throw new CollectionError(wrappedErrorMessage);
+    }
+
+    // TODO: [🟥] Detect browser / node and make it colorful
+    console.error(wrappedErrorMessage);
+}
+
+/**
+ * Creates the shared wrapped error message used for collection-loading failures.
+ *
+ * @private internal function of `createPipelineCollectionFromDirectory`
+ */
+function createPipelineCollectionErrorMessage(error: Error, fileName: string_filename): string {
+    return (
+        spaceTrim(
+            (block) => `
+                ${error.name} in pipeline ${normalizePipelineCollectionPath(fileName)}:
+
+                Original error message:
+                ${block(error.message)}
+
+                Original stack trace:
+                ${block(error.stack || '')}
+
+                ---
+
+            `,
+        ) + '\n'
+    );
+}
+
+/**
+ * Detects source pipeline files that need compilation.
+ *
+ * @private internal function of `createPipelineCollectionFromDirectory`
+ */
+function isSourcePipelineFile(fileName: string_filename): boolean {
+    return fileName.endsWith('.book') || fileName.endsWith('.book.md');
+}
+
+/**
+ * Detects precompiled pipeline files that should be loaded before source files.
+ *
+ * @private internal function of `createPipelineCollectionFromDirectory`
+ */
+function isCompiledPipelineFile(fileName: string_filename): boolean {
+    return fileName.endsWith('.bookc') || fileName.endsWith('.book.json');
+}
+
+/**
+ * Normalizes filesystem paths for logs and error messages.
+ *
+ * @private internal function of `createPipelineCollectionFromDirectory`
+ */
+function normalizePipelineCollectionPath(path: string): string {
+    return path.split('\\').join('/');
 }
 
 // TODO: [🖇] What about symlinks? Maybe option `isSymlinksFollowed`

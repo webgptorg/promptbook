@@ -1,3 +1,8 @@
+-   Refactored `src/collection/pipeline-collection/constructors/createPipelineCollectionFromDirectory.ts` into smaller focused helpers without changing external behavior:
+
+    -   Split the branching-heavy directory-loading flow into dedicated tool-resolution, option-resolution, file-sorting, file-loading, root-URL normalization, collection-registration, and shared error-wrapping helpers so `createPipelineCollectionFromDirectory` now reads top-down.
+    -   Kept the existing lazy/eager loading behavior, file-priority ordering, source/archive loading, implicit root-URL assignment, duplicate-pipeline handling, and collection error reporting intact while reducing repeated branching and duplicated error formatting.
+
 -   Refactored `src/cli/cli-commands/run.ts` into smaller focused private helpers without changing external behavior:
 
     -   Split the branching-heavy `ptbk run` flow into dedicated validation, LLM/bootstrap, pipeline loading, input prompting, execution, report saving, and result-printing helpers so `$initializeRunCommand` now reads top-down.
