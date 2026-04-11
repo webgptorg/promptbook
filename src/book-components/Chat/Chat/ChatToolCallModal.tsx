@@ -1,7 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { isPseudoAgentUrl } from '../../../book-2.0/agent-source/pseudoAgentReferences';
+import type { MouseEvent } from 'react';
 import { Color } from '../../../utils/color/Color';
 import type { WithTake } from '../../../utils/take/interfaces/ITakeChain';
 import { classNames } from '../../_common/react-utils/classNames';
@@ -9,18 +8,9 @@ import { CloseIcon } from '../../icons/CloseIcon';
 import type { AgentChipData } from '../AgentChip/AgentChip';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
-import { type TransitiveToolCall, collectTeamToolCallSummary } from '../utils/collectTeamToolCallSummary';
-import { downloadFile } from '../utils/downloadFile';
-import { loadAgentProfile, resolveAgentProfileFallback, type AgentProfileData } from '../utils/loadAgentProfile';
-import { getToolCallTimestamp, parseTeamToolResult, parseToolCallResult } from '../utils/toolCallParsing';
 import styles from './Chat.module.css';
-import {
-    createAdvancedToolCallReportFilename,
-    createAdvancedToolCallReportMarkdown,
-    renderAdvancedToolCallDetails,
-} from './renderAdvancedToolCallDetails';
-import { renderToolCallDetails } from './renderToolCallDetails';
-import { TeamToolCallModalContent } from './TeamToolCallModalContent';
+import { ChatToolCallModalContent } from './ChatToolCallModalContent';
+import { useChatToolCallModalState } from './useChatToolCallModalState';
 
 /**
  * Props for the tool call details modal.
@@ -63,18 +53,15 @@ export type ChatToolCallModalProps = {
 };
 
 /**
- * View mode available in the tool action modal.
+ * Closes the tool-call modal only when the backdrop itself was clicked.
  *
- * @private internal utility of `<ChatToolCallModal/>`
+ * @private function of `ChatToolCallModal`
  */
-type ToolCallModalViewMode = 'simple' | 'advanced';
-
-/**
- * Advanced report export target.
- *
- * @private internal utility of `<ChatToolCallModal/>`
- */
-type ToolCallReportDestination = 'clipboard' | 'file';
+function handleModalBackdropClick(event: MouseEvent<HTMLDivElement>, onClose: () => void): void {
+    if (event.target === event.currentTarget) {
+        onClose();
+    }
+}
 
 /**
  * Modal that renders rich tool call details for chat chiplets.
@@ -95,212 +82,47 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
         locale,
         availableTools,
     } = props;
-    const [teamProfiles, setTeamProfiles] = useState<Record<string, AgentProfileData>>({});
-    const [selectedTeamToolCall, setSelectedTeamToolCall] = useState<TransitiveToolCall | null>(null);
-    const [viewMode, setViewMode] = useState<ToolCallModalViewMode>('simple');
-    const modalDialogRef = useRef<HTMLDivElement>(null);
-    const previousActiveElementRef = useRef<HTMLElement | null>(null);
-
-    const resultRaw = useMemo(() => (toolCall ? parseToolCallResult(toolCall.result) : null), [toolCall]);
-    const teamResult = useMemo(() => parseTeamToolResult(resultRaw), [resultRaw]);
-    const toolCallDate = useMemo(() => (toolCall ? getToolCallTimestamp(toolCall) : null), [toolCall]);
-    const teamToolCallSummary = useMemo(() => collectTeamToolCallSummary(toolCall ? [toolCall] : []), [toolCall]);
-
-    useEffect(() => {
-        if (!isOpen || !toolCall) {
-            return;
-        }
-
-        const teammateUrl = teamResult?.teammate?.url;
-
-        if (!teammateUrl || teammateUrl === 'VOID' || isPseudoAgentUrl(teammateUrl)) {
-            return;
-        }
-
-        const fallbackProfile = resolveAgentProfileFallback({
-            url: teammateUrl,
-            label: teamResult.teammate?.label,
-        });
-        const teammateOverride = teamAgentProfiles?.[toolCall.name];
-
-        setTeamProfiles((previous) => {
-            const nextProfile = {
-                label: teammateOverride?.label || fallbackProfile.label,
-                imageUrl: teammateOverride?.imageUrl ?? fallbackProfile.imageUrl,
-            };
-
-            const existing = previous[teammateUrl];
-            if (existing && existing.label === nextProfile.label && existing.imageUrl === nextProfile.imageUrl) {
-                return previous;
-            }
-
-            return { ...previous, [teammateUrl]: nextProfile };
-        });
-
-        if (teammateOverride) {
-            return;
-        }
-
-        let isMounted = true;
-        const profileLoader = loadAgentProfile({ url: teammateUrl, label: teamResult.teammate?.label }).then(
-            (profile) => {
-                if (!isMounted) {
-                    return;
-                }
-
-                setTeamProfiles((previous) => {
-                    const existing = previous[teammateUrl];
-                    if (existing && existing.label === profile.label && existing.imageUrl === profile.imageUrl) {
-                        return previous;
-                    }
-                    return { ...previous, [teammateUrl]: profile };
-                });
-            },
-        );
-
-        return () => {
-            isMounted = false;
-            void profileLoader;
-        };
-    }, [isOpen, toolCall, teamResult, teamAgentProfiles]);
-
-    useEffect(() => {
-        if (!isOpen) {
-            setSelectedTeamToolCall(null);
-            setViewMode('simple');
-            return;
-        }
-
-        setSelectedTeamToolCall(null);
-        setViewMode('simple');
-    }, [isOpen, toolCallIdentity]);
-
-    useEffect(() => {
-        if (!isOpen) {
-            return;
-        }
-
-        previousActiveElementRef.current =
-            typeof document !== 'undefined' && document.activeElement instanceof HTMLElement
-                ? document.activeElement
-                : null;
-        const animationFrame = requestAnimationFrame(() => {
-            modalDialogRef.current?.focus();
-        });
-
-        return () => {
-            cancelAnimationFrame(animationFrame);
-            previousActiveElementRef.current?.focus();
-            previousActiveElementRef.current = null;
-        };
-    }, [isOpen, toolCallIdentity]);
-
-    useEffect(() => {
-        if (!isOpen) {
-            return;
-        }
-
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key !== 'Escape') {
-                return;
-            }
-
-            event.preventDefault();
-            onClose();
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-        };
-    }, [isOpen, onClose]);
-
-    const focusedToolCallCandidate = selectedTeamToolCall?.toolCall || toolCall;
-    const handleAdvancedToolCallReportExport = useCallback(
-        async (destination: ToolCallReportDestination): Promise<void> => {
-            if (viewMode !== 'advanced' || !focusedToolCallCandidate) {
-                return;
-            }
-
-            const reportMarkdown = createAdvancedToolCallReportMarkdown({
-                toolCall: focusedToolCallCandidate,
-                toolTitles,
-            });
-
-            if (destination === 'file') {
-                downloadFile(
-                    reportMarkdown,
-                    createAdvancedToolCallReportFilename(focusedToolCallCandidate),
-                    'text/markdown',
-                );
-                return;
-            }
-
-            if (!navigator.clipboard?.writeText) {
-                console.error(
-                    '[ChatToolCallModal] Failed to copy advanced report because Clipboard API is unavailable.',
-                );
-                return;
-            }
-
-            try {
-                await navigator.clipboard.writeText(reportMarkdown);
-            } catch (error) {
-                console.error('[ChatToolCallModal] Failed to copy advanced tool call report:', error);
-            }
-        },
-        [focusedToolCallCandidate, toolTitles, viewMode],
-    );
+    const {
+        clearSelectedTeamToolCall,
+        exportAdvancedToolCallReport,
+        focusedToolCall,
+        isAdvancedView,
+        modalDialogRef,
+        openAdvancedView,
+        selectTeamToolCall,
+        selectedTeamToolCall,
+        teamProfiles,
+        teamResult,
+        teamToolCallSummary,
+        toggleViewMode,
+        toolCallDate,
+    } = useChatToolCallModalState({
+        isOpen,
+        toolCall,
+        toolCallIdentity,
+        onClose,
+        toolTitles,
+        teamAgentProfiles,
+    });
 
     if (!isOpen || !toolCall) {
         return null;
     }
 
-    const focusedToolCall = selectedTeamToolCall?.toolCall || toolCall;
-
-    const modalContent =
-        viewMode === 'advanced' ? (
-            renderAdvancedToolCallDetails({
-                toolCall: focusedToolCall,
-                toolTitles,
-                availableTools,
-            })
-        ) : teamResult?.teammate ? (
-            <TeamToolCallModalContent
-                teamResult={teamResult}
-                toolCallDate={toolCallDate}
-                teamToolCallSummary={teamToolCallSummary}
-                selectedTeamToolCall={selectedTeamToolCall}
-                onSelectTeamToolCall={setSelectedTeamToolCall}
-                onClearSelectedTeamToolCall={() => {
-                    setSelectedTeamToolCall(null);
-                }}
-                teamProfiles={teamProfiles}
-                toolTitles={toolTitles}
-                agentParticipant={agentParticipant}
-                buttonColor={buttonColor}
-            />
-        ) : (
-            renderToolCallDetails({
-                toolCall,
-                toolTitles,
-                agentParticipant,
-                buttonColor,
-                onRequestAdvancedView: () => {
-                    setViewMode('advanced');
-                },
-                locale,
-                chatUiTranslations,
-            })
-        );
+    const resolvedFocusedToolCall = focusedToolCall || toolCall;
+    const modalTitle = chatUiTranslations?.toolCallModalTitle || 'Tool call details';
+    const closeButtonLabel = chatUiTranslations?.toolCallModalCloseLabel || 'Close tool call details';
+    const copyButtonLabel = chatUiTranslations?.toolCallModalCopyLabel || 'Copy';
+    const saveButtonLabel = chatUiTranslations?.toolCallModalSaveLabel || 'Save';
+    const modeToggleLabel = isAdvancedView
+        ? chatUiTranslations?.toolCallModalSimpleLabel || 'Simple'
+        : chatUiTranslations?.toolCallModalAdvancedLabel || 'Advanced';
 
     return (
         <div
             className={styles.ratingModal}
             onClick={(event) => {
-                if (event.target === event.currentTarget) {
-                    onClose();
-                }
+                handleModalBackdropClick(event, onClose);
             }}
         >
             <div
@@ -308,51 +130,61 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
                 className={classNames(styles.ratingModalContent, styles.toolCallModal)}
                 role="dialog"
                 aria-modal="true"
-                aria-label={chatUiTranslations?.toolCallModalTitle || 'Tool call details'}
+                aria-label={modalTitle}
                 tabIndex={-1}
             >
                 <button
                     type="button"
                     className={styles.modalCloseButton}
                     onClick={onClose}
-                    aria-label={chatUiTranslations?.toolCallModalCloseLabel || 'Close tool call details'}
+                    aria-label={closeButtonLabel}
                 >
                     <CloseIcon />
                 </button>
-                {modalContent}
+                <ChatToolCallModalContent
+                    toolCall={toolCall}
+                    focusedToolCall={resolvedFocusedToolCall}
+                    isAdvancedView={isAdvancedView}
+                    teamResult={teamResult}
+                    toolCallDate={toolCallDate}
+                    teamToolCallSummary={teamToolCallSummary}
+                    selectedTeamToolCall={selectedTeamToolCall}
+                    onSelectTeamToolCall={selectTeamToolCall}
+                    onClearSelectedTeamToolCall={clearSelectedTeamToolCall}
+                    teamProfiles={teamProfiles}
+                    toolTitles={toolTitles}
+                    agentParticipant={agentParticipant}
+                    buttonColor={buttonColor}
+                    locale={locale}
+                    chatUiTranslations={chatUiTranslations}
+                    availableTools={availableTools}
+                    onRequestAdvancedView={openAdvancedView}
+                />
                 <div className={styles.toolCallModeFooter}>
-                    {viewMode === 'advanced' && (
+                    {isAdvancedView && (
                         <>
                             <button
                                 type="button"
                                 className={styles.toolCallModeButton}
                                 onClick={() => {
-                                    void handleAdvancedToolCallReportExport('clipboard');
+                                    void exportAdvancedToolCallReport('clipboard');
                                 }}
                             >
-                                {chatUiTranslations?.toolCallModalCopyLabel || 'Copy'}
+                                {copyButtonLabel}
                             </button>
                             <button
                                 type="button"
                                 className={styles.toolCallModeButton}
                                 onClick={() => {
-                                    void handleAdvancedToolCallReportExport('file');
+                                    void exportAdvancedToolCallReport('file');
                                 }}
                             >
-                                {chatUiTranslations?.toolCallModalSaveLabel || 'Save'}
+                                {saveButtonLabel}
                             </button>
                         </>
                     )}
-                    <button
-                        type="button"
-                        className={styles.toolCallModeButton}
-                        onClick={() => {
-                            setViewMode((previous) => (previous === 'simple' ? 'advanced' : 'simple'));
-                        }}
-                    >
-                        {viewMode === 'simple'
-                            ? chatUiTranslations?.toolCallModalAdvancedLabel || 'Advanced'
-                            : chatUiTranslations?.toolCallModalSimpleLabel || 'Simple'}
+                    <button type="button" className={styles.toolCallModeButton} onClick={toggleViewMode}>
+                        {modeToggleLabel}
                     </button>
                 </div>
             </div>

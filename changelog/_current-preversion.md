@@ -1,3 +1,8 @@
+-   Refactored `src/book-components/Chat/Chat/ChatToolCallModal.tsx` into smaller focused private modal helpers without changing external behavior:
+
+    -   Extracted modal state, TEAM profile loading, focus restoration, Escape handling, and advanced-report export orchestration into a dedicated private `useChatToolCallModalState` hook so `ChatToolCallModal.tsx` now reads as a thin modal shell.
+    -   Moved the view-selection branch into a focused private `ChatToolCallModalContent` component while keeping the existing TEAM drilldown, locale-aware simple details, advanced raw details, and copy/save report behavior intact.
+
 -   Refactored `src/book-components/Chat/Chat/ChatInputArea.tsx` into smaller focused private composer modules without changing external behavior:
 
     -   Extracted textarea state, send/newline behavior, and deferred Enter resolution into a dedicated private `useChatInputAreaComposer` hook so `ChatInputArea.tsx` now reads as a composition layer.
