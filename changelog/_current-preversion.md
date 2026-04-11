@@ -1,3 +1,8 @@
+-   Refactored `src/cli/cli-commands/run.ts` into smaller focused private helpers without changing external behavior:
+
+    -   Split the branching-heavy `ptbk run` flow into dedicated validation, LLM/bootstrap, pipeline loading, input prompting, execution, report saving, and result-printing helpers so `$initializeRunCommand` now reads top-down.
+    -   Kept the existing CLI output, chatbot formfactor shortcut, `.env` bootstrap behavior, parse-error reporting, and interactive/non-interactive input handling intact while reducing repeated branching in the file.
+
 -   Refactored `src/book-components/Chat/LlmChat/LlmChat.tsx` into smaller focused private chat modules without changing external behavior:
 
     -   Kept `LlmChat.tsx` as the public chat facade while moving message persistence/state orchestration and send/stream/retry lifecycle handling into dedicated private hooks.
