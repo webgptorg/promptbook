@@ -1,3 +1,8 @@
+-   Refactored `src/book-components/Chat/LlmChat/LlmChat.tsx` into smaller focused private chat modules without changing external behavior:
+
+    -   Kept `LlmChat.tsx` as the public chat facade while moving message persistence/state orchestration and send/stream/retry lifecycle handling into dedicated private hooks.
+    -   Preserved the existing initial-message seeding, local persistence, streaming stop, background recovery, teammate metadata loading, auto-execute, and delegated reset behavior while reducing branching in the component.
+
 -   Refactored `src/book-components/Chat/Chat/renderRunBrowserToolCallDetails.tsx` into smaller focused browser-replay helpers without changing external behavior:
 
     -   Moved the derived browser replay state, metadata normalization, and action-row assembly into a dedicated private `resolveRunBrowserToolCallDetailsState` helper so the modal renderer now reads top-down.
