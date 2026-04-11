@@ -1,3 +1,8 @@
+-   Refactored Agents Server `AgentTimeoutsClient.tsx` into smaller focused private timeout-manager modules without changing external behavior:
+
+    -   Extracted timeout loading, polling, filter/edit state, and timeout action orchestration into a dedicated private `useAgentTimeoutsClientState` hook so the route-facing client now reads top-down.
+    -   Moved the timeout manager header, summary/filter surfaces, table row rendering, and edit dialog into focused private components so the branching logic is easier to follow and maintain.
+
 -   Refactored Agents Server `CanonicalAgentChatPanel.tsx` into smaller focused private chat modules without changing external behavior:
 
     -   Extracted durable-chat orchestration, prompt-parameter composition, auto-execute lifecycle, and dialog state into a dedicated private `useCanonicalAgentChatPanelState` hook so the panel reads top-down.
