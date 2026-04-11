@@ -1,3 +1,8 @@
+-   Refactored Agents Server `WalletRecordDialog.tsx` into smaller focused private wallet-dialog modules without changing external behavior:
+
+    -   Kept `WalletRecordDialog.tsx` as the public dialog facade while moving draft state, validation, unsaved-change handling, and connect-redirect decisions into a dedicated private `useWalletRecordDialogState` hook.
+    -   Split the large form rendering into focused private dialog sections so the GitHub, Calendar, and manual credential branches are easier to follow and maintain.
+
 -   Refactored Agents Server `BrowserPushNotificationsProvider.tsx` into smaller focused private push-notification modules without changing external behavior:
 
     -   Kept `BrowserPushNotificationsProvider.tsx` as the public context facade while moving settings, permission, and subscription orchestration into a dedicated private `useBrowserPushNotificationsState` hook.

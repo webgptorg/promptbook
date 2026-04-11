@@ -2,7 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { WalletRecordDialog, type PendingWalletRecordRequest } from './WalletRecordDialog';
+import {
+    WalletRecordDialog,
+    type PendingWalletRecordRequest,
+    type WalletRecordDialogSubmitPayload,
+} from './WalletRecordDialog';
 
 /**
  * Base request payload reused across wallet dialog regression tests.
@@ -27,39 +31,40 @@ describe('WalletRecordDialog', () => {
     });
 
     it('shows step-by-step GitHub token instructions when the manual USE PROJECT flow is opened', () => {
+        const handleSubmit = jest.fn<(payload: WalletRecordDialogSubmitPayload) => void>();
+
         render(
             <WalletRecordDialog
                 isOpen
                 request={BASE_GITHUB_WALLET_REQUEST}
-                onSubmit={jest.fn()}
+                onSubmit={handleSubmit}
                 onClose={jest.fn()}
                 githubApp={{ isConfigured: true }}
             />,
         );
 
-        expect(screen.queryByText('Manual GitHub token setup')).not.toBeInTheDocument();
+        expect(screen.queryByText('Manual GitHub token setup')).toBeNull();
 
         fireEvent.click(screen.getByRole('button', { name: 'Add token manually' }));
 
-        expect(screen.getByText('Manual GitHub token setup')).toBeInTheDocument();
+        expect(screen.queryByText('Manual GitHub token setup')).not.toBeNull();
 
         const settingsLink = screen.getByRole('link', { name: 'Open token settings in new tab' });
-        expect(settingsLink).toHaveAttribute('href', 'https://github.com/settings/personal-access-tokens/new');
-        expect(settingsLink).toHaveAttribute('target', '_blank');
-        expect(settingsLink).toHaveAttribute('rel', 'noreferrer');
+        expect(settingsLink.getAttribute('href')).toBe('https://github.com/settings/personal-access-tokens/new');
+        expect(settingsLink.getAttribute('target')).toBe('_blank');
+        expect(settingsLink.getAttribute('rel')).toBe('noreferrer');
 
         const docsLink = screen.getByRole('link', { name: 'GitHub token docs in new tab' });
-        expect(docsLink).toHaveAttribute(
-            'href',
+        expect(docsLink.getAttribute('href')).toBe(
             'https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens',
         );
-        expect(docsLink).toHaveAttribute('target', '_blank');
-        expect(docsLink).toHaveAttribute('rel', 'noreferrer');
+        expect(docsLink.getAttribute('target')).toBe('_blank');
+        expect(docsLink.getAttribute('rel')).toBe('noreferrer');
 
         expect(
-            screen.getByText(
+            screen.queryByText(
                 'Set repository permissions to Contents = Read and write and Pull requests = Read and write. Metadata can stay read-only.',
             ),
-        ).toBeInTheDocument();
+        ).not.toBeNull();
     });
 });
