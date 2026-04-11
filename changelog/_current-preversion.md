@@ -1,3 +1,8 @@
+-   Refactored `src/book-2.0/agent-source/createAgentModelRequirementsWithCommitments.ts` into smaller focused helpers without changing external behavior:
+
+    -   Split the branching-heavy requirements builder into dedicated initialization, DELETE filtering, commitment application, import processing, non-commitment aggregation, example-interaction assembly, and final cleanup helpers so the flow now reads top-down.
+    -   Kept the existing commitment ordering, agent-reference fallback behavior, TEAM profile pre-resolution, import warnings, MCP extraction, inline-knowledge uploads, and final comment stripping intact while reducing duplicated branching.
+
 -   Refactored `scripts/generate-packages/generate-packages.ts` into smaller focused package-generation helpers without changing external behavior:
 
     -   Split the large `generatePackages` orchestration into dedicated preparation, entry-file generation, README/package-json generation, bundling, bundle-safety validation, dependency finalization, and publish-workflow helpers so the flow now reads top-down.
