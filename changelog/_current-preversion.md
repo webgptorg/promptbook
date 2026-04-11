@@ -1,3 +1,8 @@
+-   Refactored `src/book-components/BookEditor/useBookEditorMonacoUploads.ts` into smaller focused upload helpers without changing external behavior:
+
+    -   Split upload state transitions, progress normalization, placeholder insertion, and upload-stats aggregation into focused helpers so `useBookEditorMonacoUploads` now reads top-down.
+    -   Kept the existing Monaco placeholder placement, debounced progress/editor updates, queued/uploading/paused/failed/completed lifecycle, retry flow, and final `KNOWLEDGE` replacement behavior intact while reducing repeated branching.
+
 -   Refactored `src/book-2.0/agent-source/parseAgentSource.ts` into smaller focused helpers without changing external behavior:
 
     -   Split the branching-heavy parser into dedicated persona, initial-message, sample, capability, knowledge, and metadata helpers so the main `parseAgentSource` flow now reads top-down.
