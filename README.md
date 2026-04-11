@@ -17,6 +17,15 @@ Create persistent AI agents that turn your company's scattered knowledge into ac
 [![🧪 Test types](https://github.com/webgptorg/promptbook/actions/workflows/test-types.yml/badge.svg)](https://github.com/webgptorg/promptbook/actions/workflows/test-types.yml)
 [![Issues](https://img.shields.io/github/issues/webgptorg/promptbook.svg?style=flat)](https://github.com/webgptorg/promptbook/issues)
 
+
+## Quick deploy
+
+[![Vercel](https://img.shields.io/badge/Vercel-Deploy-black?logo=vercel)](https://vercel.com/new/clone?repository-url=https://github.com/webgptorg/promptbook/tree/main/apps/agents-server)
+[![DigitalOcean](https://img.shields.io/badge/DigitalOcean-Deploy-0080FF?logo=digitalocean&logoColor=white)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/webgptorg/promptbook/tree/main)
+[![Docker Hub](https://img.shields.io/badge/Docker%20Hub-hejny%2Fpromptbook-2496ED?logo=docker&logoColor=white)](https://hub.docker.com/r/hejny/promptbook)
+[![AWS](https://img.shields.io/badge/AWS-custom%20template%20needed-FF9900?logo=amazonaws&logoColor=white)](#aws-deployment)
+
+
 <!--
 TODO: [🥗][🧠] Maybe do table of contents in both `book` and `promptbook`
 
@@ -29,12 +38,6 @@ TODO: [🥗][🧠] Maybe do table of contents in both `book` and `promptbook`
 -   [🤝 Contributing](#-contributing)
 -   [📜 License](#-license)
 -->
-
-## 🌟 New Features
-
--   **Gemini 3 Support**
-
-<!-- <- TODO: !!3 Make this warning dynamic + link latest stable release automatically -->
 
 <!--/ Here will be placed specific package info -->
 
