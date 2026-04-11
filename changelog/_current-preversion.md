@@ -1,3 +1,8 @@
+-   Refactored Agents Server `handleChatCompletion.ts` into smaller focused chat-completion helpers without changing external behavior:
+
+    -   Split the OpenAI-compatible chat flow into focused request-parsing, agent-runtime resolution, prompt creation, streaming, and finalization helpers so the main entry point now reads top-down.
+    -   Kept the existing API surface, frozen-chat persistence, history recording, message-suffix handling, agent-preparation waiting, and branch-specific learning behavior intact while removing duplicated response-side effects.
+
 -   Refactored Agents Server `WalletRecordDialog.tsx` into smaller focused private wallet-dialog modules without changing external behavior:
 
     -   Kept `WalletRecordDialog.tsx` as the public dialog facade while moving draft state, validation, unsaved-change handling, and connect-redirect decisions into a dedicated private `useWalletRecordDialogState` hook.
