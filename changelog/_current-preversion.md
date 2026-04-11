@@ -1,3 +1,8 @@
+-   Refactored Agents Server `BrowserPushNotificationsProvider.tsx` into smaller focused private push-notification modules without changing external behavior:
+
+    -   Kept `BrowserPushNotificationsProvider.tsx` as the public context facade while moving settings, permission, and subscription orchestration into a dedicated private `useBrowserPushNotificationsState` hook.
+    -   Extracted focused-chat heartbeat synchronization into a private `useBrowserPushFocusedChatSync` hook and split repeated branching into smaller helpers so the browser-push flow is easier to follow and maintain.
+
 -   Refactored Agents Server `AgentsList.tsx` into smaller focused private homepage modules without changing external behavior:
 
     -   Extracted the listing state, synchronization, folder management, visibility updates, and drag-and-drop orchestration into a dedicated private `useAgentsListState` hook so `AgentsList.tsx` now reads as a thin composition layer.
