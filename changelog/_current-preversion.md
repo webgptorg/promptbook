@@ -1,3 +1,8 @@
+-   Refactored Agents Server standalone `search/page.tsx` into smaller focused private search-page modules without changing external behavior:
+
+    -   Moved URL state, filter selection, debounced query syncing, and paginated result loading into a dedicated private `useSearchPageState` hook so the route-facing page now reads top-down.
+    -   Split the standalone search heading/form and results/pagination rendering into focused private components so the page branching is easier to follow and maintain.
+
 -   Refactored Agents Server `AgentTimeoutsClient.tsx` into smaller focused private timeout-manager modules without changing external behavior:
 
     -   Extracted timeout loading, polling, filter/edit state, and timeout action orchestration into a dedicated private `useAgentTimeoutsClientState` hook so the route-facing client now reads top-down.
