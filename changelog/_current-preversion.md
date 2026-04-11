@@ -1,3 +1,8 @@
+-   Refactored `src/remote-server/startRemoteServer.ts` into smaller focused remote-server helpers without changing external behavior:
+
+    -   Split the branching-heavy startup flow into dedicated configuration, execution-tool resolution, HTTP route registration, server-index rendering, socket request handling, and lifecycle helpers so `startRemoteServer` now reads top-down.
+    -   Kept the existing REST routes, Socket.io events, anonymous/application mode checks, task tracking, OpenAI-compatible endpoint behavior, and public `RemoteServer` lifecycle intact while reducing branching complexity in the file.
+
 -   Refactored `src/llm-providers/openai/OpenAiVectorStoreHandler.ts` into smaller focused vector-store upload helpers without changing external behavior:
 
     -   Split the branching-heavy `uploadKnowledgeSourceFilesToVectorStore` flow into dedicated upload, batch-creation, batch-id resolution, progress tracking, terminal-state, and timeout helpers so the vector-store ingestion path now reads top-down.
