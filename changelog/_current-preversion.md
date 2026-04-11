@@ -1,3 +1,8 @@
+-   Refactored Agents Server `Header.tsx` into smaller focused private header modules without changing external behavior:
+
+    -   Moved shared dropdown timing, hover/touch behavior, drawer swipe handling, and menu open-state orchestration into a dedicated private `useHeaderDropdownState` hook so `Header.tsx` now reads as the composition shell.
+    -   Extracted desktop context navigation, desktop user/profile controls, and focused helper builders for agent-view items, federated-server items, top-menu items, and rename-path resolution so the header branching is easier to follow and maintain.
+
 -   Refactored Agents Server `ControlPanel.tsx` into smaller focused private control-panel modules without changing external behavior:
 
     -   Kept `ControlPanel.tsx` as the dropdown facade while moving control-panel state derivation, toggle composition, and branching helpers into a dedicated private `useControlPanelContentState` hook.
