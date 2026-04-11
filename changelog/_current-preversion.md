@@ -1,3 +1,8 @@
+-   Refactored `src/llm-providers/openai/OpenAiAssistantExecutionTools.ts` into smaller focused assistant helpers without changing external behavior:
+
+    -   Split `callChatModelStream` into dedicated validation, prompt/thread preparation, tool-run orchestration, streaming finalization, progress emission, and result-export helpers so the assistant flow now reads top-down.
+    -   Kept the existing thread/history handling, file attachments, tool-call progress snapshots, script-tool execution behavior, file-citation filename rewriting, and final exported result shapes intact while reducing branching complexity.
+
 -   Refactored `src/llm-providers/agent/AgentLlmExecutionTools.ts` into smaller focused helpers without changing external behavior:
 
     -   Split `callChatModelStream` into dedicated prompt-preparation, backend-dispatch, AgentKit cache/preparation, OpenAI Assistant reuse/update, generic fallback, and final-result normalization helpers so the streaming flow now reads top-down.

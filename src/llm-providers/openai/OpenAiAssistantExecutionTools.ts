@@ -16,6 +16,7 @@ import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { CallChatModelStreamOptions, LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
+import type { ScriptExecutionTools } from '../../execution/ScriptExecutionTools';
 import type { Usage } from '../../execution/Usage';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
@@ -45,6 +46,62 @@ import { uploadFilesToOpenAi } from './utils/uploadFilesToOpenAi';
  * Type describing streamed tool call.
  */
 type StreamedToolCall = NonNullable<ChatPromptResult['toolCalls']>[number];
+
+/**
+ * Type describing one assistant thread message sent to the Assistants API.
+ *
+ * @private helper of `OpenAiAssistantExecutionTools`
+ */
+type AssistantThreadMessage = OpenAI.Beta.ThreadCreateAndRunParams.Thread.Message;
+
+/**
+ * Type describing a page of thread messages returned after an assistant run finishes.
+ *
+ * @private helper of `OpenAiAssistantExecutionTools`
+ */
+type AssistantMessagesPage = OpenAI.Beta.Threads.MessagesPage;
+
+/**
+ * Type describing one function tool call requested by the Assistants Runs API.
+ *
+ * @private helper of `OpenAiAssistantExecutionTools`
+ */
+type AssistantRequiredActionFunctionToolCall = OpenAI.Beta.Threads.RequiredActionFunctionToolCall;
+
+/**
+ * Shared context for one assistant chat call after prompt preparation finishes.
+ *
+ * @private helper of `OpenAiAssistantExecutionTools`
+ */
+type AssistantChatCallContext = {
+    readonly client: OpenAI;
+    readonly prompt: Prompt;
+    readonly rawPromptContent: string;
+    readonly threadMessages: ReadonlyArray<AssistantThreadMessage>;
+    readonly start: string_date_iso8601;
+    readonly onProgress: (chunk: ChatPromptResult) => void;
+};
+
+/**
+ * Shared context for one assistant tools run after the OpenAI request payload is built.
+ *
+ * @private helper of `OpenAiAssistantExecutionTools`
+ */
+type AssistantToolRunContext = AssistantChatCallContext & {
+    readonly rawRequest: OpenAI.Beta.ThreadCreateAndRunParams;
+};
+
+/**
+ * Result of executing one assistant-requested function tool.
+ *
+ * @private helper of `OpenAiAssistantExecutionTools`
+ */
+type AssistantFunctionToolExecutionResult = {
+    readonly assistantVisibleFunctionResponse: string;
+    readonly currentToolCallSnapshot: StreamedToolCall;
+    readonly errors: Array<ReturnType<typeof serializeError>> | undefined;
+    readonly toolResult: TODO_any;
+};
 
 /**
  * Creates one structured log entry for streamed tool-call updates.
@@ -99,6 +156,24 @@ function resolveFinalToolCallState(options: {
     }
 
     return 'COMPLETE';
+}
+
+/**
+ * Returns true when the assistant run still needs polling.
+ *
+ * @private helper of `OpenAiAssistantExecutionTools`
+ */
+function isAssistantRunActive(status: OpenAI.Beta.Threads.RunStatus): boolean {
+    return status === 'queued' || status === 'in_progress' || status === 'requires_action';
+}
+
+/**
+ * Returns true when the assistant run is waiting for tool outputs.
+ *
+ * @private helper of `OpenAiAssistantExecutionTools`
+ */
+function isAssistantRunRequiringToolOutputs(run: OpenAI.Beta.Threads.Run): boolean {
+    return run.status === 'requires_action' && run.required_action?.type === 'submit_tool_outputs';
 }
 
 /**
@@ -171,14 +246,48 @@ export class OpenAiAssistantExecutionTools extends OpenAiVectorStoreHandler impl
     ): Promise<ChatPromptResult> {
         TODO_USE(options);
 
+        this.logAssistantChatCall(prompt);
+
+        const { modelRequirements /*, format*/ } = prompt;
+        const client = await this.getClient();
+
+        this.assertSupportedAssistantModelRequirements(modelRequirements);
+
+        const rawPromptContent = this.createAssistantRawPromptContent(prompt);
+        const threadMessages = await this.createAssistantThreadMessages({
+            client,
+            prompt,
+            rawPromptContent,
+        });
+        const assistantChatCallContext: AssistantChatCallContext = {
+            client,
+            prompt,
+            rawPromptContent,
+            threadMessages,
+            start: $getCurrentDate(),
+            onProgress,
+        };
+
+        if (this.hasAssistantTools(modelRequirements)) {
+            return this.callChatModelStreamWithTools(assistantChatCallContext);
+        }
+
+        return this.callChatModelStreamWithoutTools(assistantChatCallContext);
+    }
+
+    /**
+     * Logs one assistant chat call when verbose output is enabled.
+     */
+    private logAssistantChatCall(prompt: Prompt): void {
         if (this.options.isVerbose) {
             console.info('💬 OpenAI callChatModel call', { prompt });
         }
+    }
 
-        const { content, parameters, modelRequirements /*, format*/ } = prompt;
-
-        const client = await this.getClient();
-
+    /**
+     * Validates the subset of model requirements supported by OpenAI Assistants.
+     */
+    private assertSupportedAssistantModelRequirements(modelRequirements: ModelRequirements): void {
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'CHAT') {
             throw new PipelineExecutionError('Use callChatModel only for CHAT variant');
@@ -212,400 +321,516 @@ export class OpenAiAssistantExecutionTools extends OpenAiVectorStoreHandler impl
 
         // <- TODO: [🚸] Not all models are compatible with JSON mode
         //        > 'response_format' of type 'json_object' is not supported with this model.
+    }
 
-        const rawPromptContent = templateParameters(content, {
-            ...parameters,
+    /**
+     * Returns true when the prompt exposes callable tools that require the Runs API flow.
+     */
+    private hasAssistantTools(modelRequirements: ModelRequirements): boolean {
+        return modelRequirements.tools !== undefined && modelRequirements.tools.length > 0;
+    }
+
+    /**
+     * Resolves the raw user-visible prompt content sent to the assistant.
+     */
+    private createAssistantRawPromptContent(prompt: Prompt): string {
+        return templateParameters(prompt.content, {
+            ...prompt.parameters,
             modelName: 'assistant',
             //          <- [🧠] What is the best value here
         });
-        // Build thread messages: include previous thread messages + current user message
-        const threadMessages: Array<{ role: 'user' | 'assistant'; content: string }> = [];
+    }
 
-        // TODO: [🈹] Maybe this should not be here but in other place, look at commit 39d705e75e5bcf7a818c3af36bc13e1c8475c30c
-        // Add previous messages from thread (if any)
-        if ('thread' in prompt && Array.isArray(prompt.thread)) {
-            const previousMessages = prompt.thread.map((msg) => ({
-                role: (msg.sender === 'assistant' ? 'assistant' : 'user') as 'user' | 'assistant',
-                content: msg.content,
-            }));
-            threadMessages.push(...previousMessages);
+    /**
+     * Builds the thread history plus the current user message for one assistant call.
+     */
+    private async createAssistantThreadMessages(options: {
+        readonly client: OpenAI;
+        readonly prompt: Prompt;
+        readonly rawPromptContent: string;
+    }): Promise<Array<AssistantThreadMessage>> {
+        return [
+            ...this.createAssistantThreadHistoryMessages(options.prompt),
+            await this.createAssistantCurrentUserMessage(options),
+        ];
+    }
+
+    /**
+     * Converts the existing prompt thread into OpenAI assistant thread messages.
+     */
+    private createAssistantThreadHistoryMessages(prompt: Prompt): Array<AssistantThreadMessage> {
+        if (!('thread' in prompt) || !Array.isArray(prompt.thread)) {
+            return [];
         }
 
-        // Always add the current user message
-        const currentUserMessage: OpenAI.Beta.ThreadCreateAndRunParams.Thread.Message = {
+        // TODO: [🈹] Maybe this should not be here but in other place, look at commit 39d705e75e5bcf7a818c3af36bc13e1c8475c30c
+        return prompt.thread.map((message) => ({
+            role: message.sender === 'assistant' ? 'assistant' : 'user',
+            content: message.content,
+        }));
+    }
+
+    /**
+     * Creates the current user message, including uploaded file attachments when present.
+     */
+    private async createAssistantCurrentUserMessage(options: {
+        readonly client: OpenAI;
+        readonly prompt: Prompt;
+        readonly rawPromptContent: string;
+    }): Promise<AssistantThreadMessage> {
+        const currentUserMessage: AssistantThreadMessage = {
             role: 'user',
-            content: rawPromptContent,
+            content: options.rawPromptContent,
         };
 
-        if ('files' in prompt && Array.isArray(prompt.files) && prompt.files.length > 0) {
-            const fileIds = await uploadFilesToOpenAi(client, prompt.files);
+        if ('files' in options.prompt && Array.isArray(options.prompt.files) && options.prompt.files.length > 0) {
+            const fileIds = await uploadFilesToOpenAi(options.client, options.prompt.files);
             currentUserMessage.attachments = fileIds.map((fileId) => ({
                 file_id: fileId,
                 tools: [{ type: 'file_search' }, { type: 'code_interpreter' }],
             }));
         }
 
-        threadMessages.push(currentUserMessage as { role: 'user' | 'assistant'; content: string });
+        return currentUserMessage;
+    }
 
-        // Check if tools are being used - if so, use non-streaming mode
-        const hasTools = modelRequirements.tools !== undefined && modelRequirements.tools.length > 0;
+    /**
+     * Runs assistant calls with tools through the non-streaming Runs API.
+     */
+    private async callChatModelStreamWithTools(context: AssistantChatCallContext): Promise<ChatPromptResult> {
+        this.emitAssistantProgress({
+            start: context.start,
+            rawPromptContent: context.rawPromptContent,
+            onProgress: context.onProgress,
+        });
 
-        const start: string_date_iso8601 = $getCurrentDate();
-        let complete: string_date_iso8601;
+        const rawRequest = this.createAssistantToolRunRequest(context);
+        this.logVerboseAssistantRequest('rawRequest (non-streaming with tools)', rawRequest);
 
-        // [🐱‍🚀] When tools are present, we need to use the non-streaming Runs API
-        // because streaming doesn't support tool execution flow properly
-        if (hasTools) {
-            onProgress({
-                content: '',
-                modelName: 'assistant',
-                timing: { start, complete: $getCurrentDate() },
-                usage: UNCERTAIN_USAGE,
-                rawPromptContent,
-                rawRequest: null as chococake,
-                rawResponse: null as chococake,
-            });
+        const { run, messages, completedToolCalls } = await this.executeAssistantToolRun({
+            ...context,
+            rawRequest,
+        });
+        const complete = $getCurrentDate();
+        const finalChunk = this.createAssistantPromptResult({
+            content: this.extractCompletedAssistantTextContent(messages.data),
+            start: context.start,
+            complete,
+            rawPromptContent: context.rawPromptContent,
+            rawRequest,
+            rawResponse: { run, messages: messages.data },
+            toolCalls: completedToolCalls.length > 0 ? completedToolCalls : undefined,
+        });
 
-            const rawRequest: OpenAI.Beta.ThreadCreateAndRunParams = {
-                assistant_id: this.assistantId,
-                thread: {
-                    messages: threadMessages,
-                },
-                tools: mapToolsToOpenAi(modelRequirements.tools!),
-            };
+        context.onProgress(finalChunk);
 
-            if (this.options.isVerbose) {
-                console.info(
-                    colors.bgWhite('rawRequest (non-streaming with tools)'),
-                    JSON.stringify(rawRequest, null, 4),
-                );
+        return this.exportAssistantPromptResult({
+            result: finalChunk,
+            isWithTools: true,
+        });
+    }
+
+    /**
+     * Builds the non-streaming assistant request payload used when tool calls are enabled.
+     */
+    private createAssistantToolRunRequest(context: AssistantChatCallContext): OpenAI.Beta.ThreadCreateAndRunParams {
+        return {
+            assistant_id: this.assistantId,
+            thread: {
+                messages: [...context.threadMessages],
+            },
+            tools: mapToolsToOpenAi(context.prompt.modelRequirements.tools!),
+        };
+    }
+
+    /**
+     * Starts the assistant run and keeps polling until the run completes or fails.
+     */
+    private async executeAssistantToolRun(options: AssistantToolRunContext): Promise<{
+        readonly run: OpenAI.Beta.Threads.Run;
+        readonly messages: AssistantMessagesPage;
+        readonly completedToolCalls: Array<StreamedToolCall>;
+    }> {
+        const completedToolCalls: Array<StreamedToolCall> = [];
+        const toolCallStartedAt = new Map<string, string_date_iso8601>();
+        let run = (await options.client.beta.threads.createAndRun(options.rawRequest)) as OpenAI.Beta.Threads.Run;
+
+        run = await this.waitForAssistantToolRun({
+            ...options,
+            run,
+            completedToolCalls,
+            toolCallStartedAt,
+        });
+
+        if (run.status !== 'completed') {
+            throw new PipelineExecutionError(`Assistant run failed with status: ${run.status}`);
+        }
+
+        return {
+            run,
+            messages: await options.client.beta.threads.messages.list(run.thread_id),
+            completedToolCalls,
+        };
+    }
+
+    /**
+     * Polls one assistant run, executing and submitting tool outputs when OpenAI requests them.
+     */
+    private async waitForAssistantToolRun(options: AssistantToolRunContext & {
+        readonly run: OpenAI.Beta.Threads.Run;
+        readonly completedToolCalls: Array<StreamedToolCall>;
+        readonly toolCallStartedAt: Map<string, string_date_iso8601>;
+    }): Promise<OpenAI.Beta.Threads.Run> {
+        let run = options.run;
+
+        while (isAssistantRunActive(run.status)) {
+            if (isAssistantRunRequiringToolOutputs(run)) {
+                run = await this.submitAssistantRequiredToolOutputs({
+                    ...options,
+                    run,
+                });
+                continue;
             }
 
-            // Create thread and run
-            let run = (await client.beta.threads.createAndRun(rawRequest)) as OpenAI.Beta.Threads.Run;
-            const completedToolCalls: Array<NonNullable<ChatPromptResult['toolCalls']>[number]> = [];
-            const toolCallStartedAt = new Map<string, string_date_iso8601>();
-
-            // Poll until run completes or requires action
-            while (run.status === 'queued' || run.status === 'in_progress' || run.status === 'requires_action') {
-                if (run.status === 'requires_action' && run.required_action?.type === 'submit_tool_outputs') {
-                    // Execute tools
-                    const toolCalls = run.required_action.submit_tool_outputs.tool_calls;
-                    const toolOutputs: Array<{ tool_call_id: string; output: string }> = [];
-
-                    for (const toolCall of toolCalls) {
-                        if (toolCall.type === 'function') {
-                            const functionName = toolCall.function.name;
-                            const functionArgs = JSON.parse(toolCall.function.arguments);
-                            const calledAt = $getCurrentDate();
-
-                            if (toolCall.id) {
-                                toolCallStartedAt.set(toolCall.id, calledAt);
-                            }
-
-                            onProgress({
-                                content: '',
-                                modelName: 'assistant',
-                                timing: { start, complete: $getCurrentDate() },
-                                usage: UNCERTAIN_USAGE,
-                                rawPromptContent,
-                                rawRequest: null as chococake,
-                                rawResponse: null as chococake,
-                                toolCalls: [
-                                    {
-                                        name: functionName,
-                                        arguments: toolCall.function.arguments,
-                                        result: '',
-                                        rawToolCall: toolCall,
-                                        createdAt: calledAt,
-                                        state: 'PENDING',
-                                        logs: [
-                                            createToolCallLogEntry({
-                                                kind: 'request',
-                                                title: 'Request prepared',
-                                                message: `Prepared ${functionName} request.`,
-                                                payload: {
-                                                    arguments: toolCall.function.arguments,
-                                                },
-                                            }),
-                                        ],
-                                    },
-                                ],
-                            });
-
-                            if (this.options.isVerbose) {
-                                console.info(`🔧 Executing tool: ${functionName}`, functionArgs);
-                            }
-
-                            // Get execution tools for script execution
-                            const executionTools = (this.options as OpenAiCompatibleExecutionToolsNonProxiedOptions)
-                                .executionTools;
-
-                            if (!executionTools || !executionTools.script) {
-                                throw new PipelineExecutionError(
-                                    `Model requested tool '${functionName}' but no executionTools.script were provided in OpenAiAssistantExecutionTools options`,
-                                );
-                            }
-
-                            // TODO: [DRY] Use some common tool caller (similar to OpenAiCompatibleExecutionTools)
-                            const scriptTools = Array.isArray(executionTools.script)
-                                ? executionTools.script
-                                : [executionTools.script];
-
-                            let functionResponse: string;
-                            let assistantVisibleFunctionResponse: string;
-                            let toolResult: TODO_any;
-                            let errors: Array<ReturnType<typeof serializeError>> | undefined;
-                            let currentToolCallSnapshot: StreamedToolCall = {
-                                name: functionName,
-                                arguments: toolCall.function.arguments,
-                                result: '',
-                                rawToolCall: toolCall,
-                                createdAt: calledAt,
-                                state: 'PENDING',
-                                logs: [
-                                    createToolCallLogEntry({
-                                        kind: 'request',
-                                        title: 'Request prepared',
-                                        message: `Prepared ${functionName} request.`,
-                                        payload: {
-                                            arguments: toolCall.function.arguments,
-                                        },
-                                    }),
-                                ],
-                            };
-
-                            try {
-                                const scriptTool = scriptTools[0]!; // <- TODO: [🧠] Which script tool to use?
-                                const progressListenerToken = registerToolCallProgressListener((update) => {
-                                    currentToolCallSnapshot = applyToolCallProgressUpdate(
-                                        currentToolCallSnapshot,
-                                        update,
-                                    );
-
-                                    onProgress({
-                                        content: '',
-                                        modelName: 'assistant',
-                                        timing: { start, complete: $getCurrentDate() },
-                                        usage: UNCERTAIN_USAGE,
-                                        rawPromptContent,
-                                        rawRequest: null as chococake,
-                                        rawResponse: null as chococake,
-                                        toolCalls: [currentToolCallSnapshot],
-                                    });
-                                });
-
-                                try {
-                                    functionResponse = await scriptTool.execute({
-                                        scriptLanguage: 'javascript', // <- TODO: [🧠] How to determine script language?
-                                        script: buildToolInvocationScript({
-                                            functionName,
-                                            functionArgsExpression: JSON.stringify(functionArgs),
-                                        }),
-                                        parameters: {
-                                            ...prompt.parameters,
-                                            [TOOL_PROGRESS_TOKEN_PARAMETER]: progressListenerToken,
-                                        },
-                                    });
-                                } finally {
-                                    unregisterToolCallProgressListener(progressListenerToken);
-                                }
-
-                                const toolExecutionEnvelope = parseToolExecutionEnvelope(functionResponse);
-                                assistantVisibleFunctionResponse =
-                                    toolExecutionEnvelope?.assistantMessage || functionResponse;
-                                toolResult =
-                                    toolExecutionEnvelope !== null && toolExecutionEnvelope !== undefined
-                                        ? toolExecutionEnvelope.toolResult
-                                        : functionResponse;
-
-                                if (this.options.isVerbose) {
-                                    console.info(`✅ Tool ${functionName} executed:`, assistantVisibleFunctionResponse);
-                                }
-                            } catch (error) {
-                                assertsError(error);
-
-                                const serializedError = serializeError(error as Error);
-                                errors = [serializedError];
-                                functionResponse = spaceTrim(
-                                    (block) => `
-                                    
-                                        The invoked tool \`${functionName}\` failed with error:
-                                        
-                                        \`\`\`json
-                                        ${block(JSON.stringify(serializedError, null, 4))}
-                                        \`\`\`
-
-                                    `,
-                                );
-                                assistantVisibleFunctionResponse = functionResponse;
-                                toolResult = functionResponse;
-                                console.error(colors.bgRed(`❌ Error executing tool ${functionName}:`));
-                                console.error(error);
-                            }
-
-                            toolOutputs.push({
-                                tool_call_id: toolCall.id,
-                                output: assistantVisibleFunctionResponse,
-                            });
-
-                            completedToolCalls.push({
-                                ...currentToolCallSnapshot,
-                                result: toolResult,
-                                rawToolCall: toolCall,
-                                createdAt: toolCall.id ? toolCallStartedAt.get(toolCall.id) || calledAt : calledAt,
-                                errors,
-                                state: resolveFinalToolCallState({
-                                    currentState: currentToolCallSnapshot.state,
-                                    errors,
-                                }),
-                                logs: [
-                                    ...(currentToolCallSnapshot.logs || []),
-                                    createToolCallLogEntry({
-                                        kind: errors && errors.length > 0 ? 'error' : 'result',
-                                        level: errors && errors.length > 0 ? 'error' : 'info',
-                                        title: errors && errors.length > 0 ? 'Execution failed' : 'Execution finished',
-                                        message:
-                                            errors && errors.length > 0
-                                                ? `${functionName} failed before returning a final result.`
-                                                : `${functionName} returned a result.`,
-                                    }),
-                                ],
-                            });
-
-                            onProgress({
-                                content: '',
-                                modelName: 'assistant',
-                                timing: { start, complete: $getCurrentDate() },
-                                usage: UNCERTAIN_USAGE,
-                                rawPromptContent,
-                                rawRequest: null as chococake,
-                                rawResponse: null as chococake,
-                                toolCalls: [completedToolCalls[completedToolCalls.length - 1]!],
-                            });
-                        }
-                    }
-
-                    // Submit tool outputs
-                    run = (await (client.beta.threads.runs as TODO_any).submitToolOutputs(run.thread_id, run.id, {
-                        tool_outputs: toolOutputs,
-                    })) as OpenAI.Beta.Threads.Run;
-                } else {
-                    // Wait a bit before polling again
-                    await new Promise((resolve) => setTimeout(resolve, 500));
-                    run = (await (client.beta.threads.runs as TODO_any).retrieve(
-                        run.thread_id,
-                        run.id,
-                    )) as OpenAI.Beta.Threads.Run;
-                }
-            }
-
-            if (run.status !== 'completed') {
-                throw new PipelineExecutionError(`Assistant run failed with status: ${run.status}`);
-            }
-
-            // Get messages from the thread
-            const messages = await client.beta.threads.messages.list(run.thread_id);
-            const assistantMessages = messages.data.filter((msg) => msg.role === 'assistant');
-
-            if (assistantMessages.length === 0) {
-                throw new PipelineExecutionError('No assistant messages found after run completion');
-            }
-
-            const lastMessage = assistantMessages[0]!;
-            const textContent = lastMessage.content.find((c) => c.type === 'text');
-
-            if (!textContent || textContent.type !== 'text') {
-                throw new PipelineExecutionError('No text content in assistant response');
-            }
-
-            complete = $getCurrentDate();
-            const duration = uncertainNumber((new Date(complete).getTime() - new Date(start).getTime()) / 1000);
-            const resultContent = textContent.text.value;
-            const usage: Usage = {
-                ...UNCERTAIN_USAGE,
-                duration,
-            };
-
-            // Progress callback with final result
-            const finalChunk: ChatPromptResult = {
-                content: resultContent,
-                modelName: 'assistant',
-                timing: { start, complete },
-                usage,
-                rawPromptContent,
-                rawRequest,
-                rawResponse: { run, messages: messages.data },
-                toolCalls: completedToolCalls.length > 0 ? completedToolCalls : undefined,
-            };
-            onProgress(finalChunk);
-
-            return exportJson({
-                name: 'promptResult',
-                message: `Result of \`OpenAiAssistantExecutionTools.callChatModelStream\` (with tools)`,
-                order: [],
-                value: finalChunk,
+            run = await this.retrieveAssistantRunAfterDelay({
+                client: options.client,
+                run,
             });
         }
 
-        // Streaming mode (without tools)
-        const rawRequest: OpenAI.Beta.ThreadCreateAndRunStreamParams = {
-            // TODO: [👨‍👨‍👧‍👧] ...modelSettings,
-            // TODO: [👨‍👨‍👧‍👧][🧠] What about system message for assistants, does it make sense - combination of OpenAI assistants with Promptbook Personas
+        return run;
+    }
 
-            assistant_id: this.assistantId, // <- [🙎]
-            thread: {
-                messages: threadMessages,
+    /**
+     * Executes all required assistant tool calls and submits their outputs back to OpenAI.
+     */
+    private async submitAssistantRequiredToolOutputs(options: AssistantToolRunContext & {
+        readonly run: OpenAI.Beta.Threads.Run;
+        readonly completedToolCalls: Array<StreamedToolCall>;
+        readonly toolCallStartedAt: Map<string, string_date_iso8601>;
+    }): Promise<OpenAI.Beta.Threads.Run> {
+        const toolOutputs = await this.executeAssistantRequiredToolCalls({
+            ...options,
+            toolCalls: options.run.required_action!.submit_tool_outputs.tool_calls,
+        });
+
+        return (await (options.client.beta.threads.runs as TODO_any).submitToolOutputs(
+            options.run.thread_id,
+            options.run.id,
+            {
+                tool_outputs: toolOutputs,
             },
+        )) as OpenAI.Beta.Threads.Run;
+    }
 
-            tools: modelRequirements.tools === undefined ? undefined : mapToolsToOpenAi(modelRequirements.tools),
+    /**
+     * Waits a bit and then fetches the latest assistant run status.
+     */
+    private async retrieveAssistantRunAfterDelay(options: {
+        readonly client: OpenAI;
+        readonly run: OpenAI.Beta.Threads.Run;
+    }): Promise<OpenAI.Beta.Threads.Run> {
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
-            // <- TODO: Add user identification here> user: this.options.user,
-        };
+        return (await (options.client.beta.threads.runs as TODO_any).retrieve(
+            options.run.thread_id,
+            options.run.id,
+        )) as OpenAI.Beta.Threads.Run;
+    }
+
+    /**
+     * Executes each function tool requested by the assistant and records progress snapshots.
+     */
+    private async executeAssistantRequiredToolCalls(options: AssistantToolRunContext & {
+        readonly toolCalls: ReadonlyArray<AssistantRequiredActionFunctionToolCall>;
+        readonly completedToolCalls: Array<StreamedToolCall>;
+        readonly toolCallStartedAt: Map<string, string_date_iso8601>;
+    }): Promise<Array<{ tool_call_id: string; output: string }>> {
+        const toolOutputs: Array<{ tool_call_id: string; output: string }> = [];
+
+        for (const toolCall of options.toolCalls) {
+            const { completedToolCall, toolOutput } = await this.executeAssistantRequiredToolCall({
+                ...options,
+                toolCall,
+            });
+            options.completedToolCalls.push(completedToolCall);
+            toolOutputs.push(toolOutput);
+        }
+
+        return toolOutputs;
+    }
+
+    /**
+     * Executes one function tool requested by the assistant.
+     */
+    private async executeAssistantRequiredToolCall(options: AssistantToolRunContext & {
+        readonly toolCall: AssistantRequiredActionFunctionToolCall;
+        readonly toolCallStartedAt: Map<string, string_date_iso8601>;
+    }): Promise<{
+        readonly completedToolCall: StreamedToolCall;
+        readonly toolOutput: { tool_call_id: string; output: string };
+    }> {
+        const functionName = options.toolCall.function.name;
+        const functionArguments = options.toolCall.function.arguments;
+        const functionArgs = JSON.parse(functionArguments);
+        const calledAt = $getCurrentDate();
+        const pendingToolCall = this.createPendingAssistantToolCall({
+            toolCall: options.toolCall,
+            functionName,
+            functionArguments,
+            calledAt,
+        });
+
+        options.toolCallStartedAt.set(options.toolCall.id, calledAt);
+        this.emitAssistantProgress({
+            start: options.start,
+            rawPromptContent: options.rawPromptContent,
+            onProgress: options.onProgress,
+            toolCalls: [pendingToolCall],
+        });
 
         if (this.options.isVerbose) {
-            console.info(colors.bgWhite('rawRequest (streaming)'), JSON.stringify(rawRequest, null, 4));
+            console.info(`🔧 Executing tool: ${functionName}`, functionArgs);
         }
 
-        const stream = await client.beta.threads.createAndRunStream(rawRequest);
-
-        stream.on('connect', () => {
-            if (this.options.isVerbose) {
-                console.info('connect', stream.currentEvent);
-            }
+        const executionResult = await this.executeAssistantFunctionTool({
+            prompt: options.prompt,
+            start: options.start,
+            rawPromptContent: options.rawPromptContent,
+            onProgress: options.onProgress,
+            functionName,
+            functionArgs,
+            pendingToolCall,
+        });
+        const completedToolCall = this.createCompletedAssistantToolCall({
+            toolCall: options.toolCall,
+            functionName,
+            calledAt,
+            toolCallStartedAt: options.toolCallStartedAt,
+            currentToolCallSnapshot: executionResult.currentToolCallSnapshot,
+            toolResult: executionResult.toolResult,
+            errors: executionResult.errors,
         });
 
-        stream.on('textDelta', (textDelta, snapshot) => {
-            if (this.options.isVerbose && textDelta.value) {
-                console.info('textDelta', textDelta.value);
-            }
-
-            const chunk: ChatPromptResult = {
-                content: snapshot.value,
-                modelName: 'assistant',
-                timing: {
-                    start,
-                    complete: $getCurrentDate(),
-                },
-                usage: UNCERTAIN_USAGE,
-                rawPromptContent,
-                rawRequest,
-                rawResponse: snapshot,
-            };
-
-            onProgress(chunk);
+        this.emitAssistantProgress({
+            start: options.start,
+            rawPromptContent: options.rawPromptContent,
+            onProgress: options.onProgress,
+            toolCalls: [completedToolCall],
         });
 
-        stream.on('messageCreated', (message) => {
-            if (this.options.isVerbose) {
-                console.info('messageCreated', message);
-            }
-        });
+        return {
+            completedToolCall,
+            toolOutput: {
+                tool_call_id: options.toolCall.id,
+                output: executionResult.assistantVisibleFunctionResponse,
+            },
+        };
+    }
 
-        stream.on('messageDone', (message) => {
-            if (this.options.isVerbose) {
-                console.info('messageDone', message);
+    /**
+     * Creates the initial pending snapshot for one assistant tool call.
+     */
+    private createPendingAssistantToolCall(options: {
+        readonly toolCall: AssistantRequiredActionFunctionToolCall;
+        readonly functionName: string;
+        readonly functionArguments: string;
+        readonly calledAt: string_date_iso8601;
+    }): StreamedToolCall {
+        return {
+            name: options.functionName,
+            arguments: options.functionArguments,
+            result: '',
+            rawToolCall: options.toolCall,
+            createdAt: options.calledAt,
+            state: 'PENDING',
+            logs: [
+                createToolCallLogEntry({
+                    kind: 'request',
+                    title: 'Request prepared',
+                    message: `Prepared ${options.functionName} request.`,
+                    payload: {
+                        arguments: options.functionArguments,
+                    },
+                }),
+            ],
+        };
+    }
+
+    /**
+     * Resolves the configured script tools for assistant tool execution.
+     */
+    private resolveAssistantScriptTools(functionName: string): Array<ScriptExecutionTools> {
+        const executionTools = (this.options as OpenAiCompatibleExecutionToolsNonProxiedOptions).executionTools;
+
+        if (!executionTools || !executionTools.script) {
+            throw new PipelineExecutionError(
+                `Model requested tool '${functionName}' but no executionTools.script were provided in OpenAiAssistantExecutionTools options`,
+            );
+        }
+
+        return Array.isArray(executionTools.script) ? executionTools.script : [executionTools.script];
+    }
+
+    /**
+     * Executes the configured script tool for one assistant-requested function call.
+     */
+    private async executeAssistantFunctionTool(options: {
+        readonly prompt: Prompt;
+        readonly start: string_date_iso8601;
+        readonly rawPromptContent: string;
+        readonly onProgress: (chunk: ChatPromptResult) => void;
+        readonly functionName: string;
+        readonly functionArgs: TODO_any;
+        readonly pendingToolCall: StreamedToolCall;
+    }): Promise<AssistantFunctionToolExecutionResult> {
+        const scriptTools = this.resolveAssistantScriptTools(options.functionName);
+        let functionResponse: string;
+        let assistantVisibleFunctionResponse: string;
+        let toolResult: TODO_any;
+        let errors: Array<ReturnType<typeof serializeError>> | undefined;
+        let currentToolCallSnapshot = options.pendingToolCall;
+
+        try {
+            const scriptTool = scriptTools[0]!; // <- TODO: [🧠] Which script tool to use?
+            const progressListenerToken = registerToolCallProgressListener((update) => {
+                currentToolCallSnapshot = applyToolCallProgressUpdate(currentToolCallSnapshot, update);
+
+                this.emitAssistantProgress({
+                    start: options.start,
+                    rawPromptContent: options.rawPromptContent,
+                    onProgress: options.onProgress,
+                    toolCalls: [currentToolCallSnapshot],
+                });
+            });
+
+            try {
+                functionResponse = await scriptTool.execute({
+                    scriptLanguage: 'javascript', // <- TODO: [🧠] How to determine script language?
+                    script: buildToolInvocationScript({
+                        functionName: options.functionName,
+                        functionArgsExpression: JSON.stringify(options.functionArgs),
+                    }),
+                    parameters: {
+                        ...options.prompt.parameters,
+                        [TOOL_PROGRESS_TOKEN_PARAMETER]: progressListenerToken,
+                    },
+                });
+            } finally {
+                unregisterToolCallProgressListener(progressListenerToken);
             }
+
+            const toolExecutionEnvelope = parseToolExecutionEnvelope(functionResponse);
+            assistantVisibleFunctionResponse = toolExecutionEnvelope?.assistantMessage || functionResponse;
+            toolResult =
+                toolExecutionEnvelope !== null && toolExecutionEnvelope !== undefined
+                    ? toolExecutionEnvelope.toolResult
+                    : functionResponse;
+
+            if (this.options.isVerbose) {
+                console.info(`✅ Tool ${options.functionName} executed:`, assistantVisibleFunctionResponse);
+            }
+        } catch (error) {
+            assertsError(error);
+
+            const serializedError = serializeError(error as Error);
+            errors = [serializedError];
+            functionResponse = spaceTrim(
+                (block) => `
+                
+                    The invoked tool \`${options.functionName}\` failed with error:
+                    
+                    \`\`\`json
+                    ${block(JSON.stringify(serializedError, null, 4))}
+                    \`\`\`
+
+                `,
+            );
+            assistantVisibleFunctionResponse = functionResponse;
+            toolResult = functionResponse;
+            console.error(colors.bgRed(`❌ Error executing tool ${options.functionName}:`));
+            console.error(error);
+        }
+
+        return {
+            assistantVisibleFunctionResponse,
+            currentToolCallSnapshot,
+            errors,
+            toolResult,
+        };
+    }
+
+    /**
+     * Finalizes one assistant tool-call snapshot after execution ends.
+     */
+    private createCompletedAssistantToolCall(options: {
+        readonly toolCall: AssistantRequiredActionFunctionToolCall;
+        readonly functionName: string;
+        readonly calledAt: string_date_iso8601;
+        readonly toolCallStartedAt: Map<string, string_date_iso8601>;
+        readonly currentToolCallSnapshot: StreamedToolCall;
+        readonly toolResult: TODO_any;
+        readonly errors: Array<ReturnType<typeof serializeError>> | undefined;
+    }): StreamedToolCall {
+        const hasErrors = options.errors !== undefined && options.errors.length > 0;
+
+        return {
+            ...options.currentToolCallSnapshot,
+            result: options.toolResult,
+            rawToolCall: options.toolCall,
+            createdAt: options.toolCallStartedAt.get(options.toolCall.id) || options.calledAt,
+            errors: options.errors,
+            state: resolveFinalToolCallState({
+                currentState: options.currentToolCallSnapshot.state,
+                errors: options.errors,
+            }),
+            logs: [
+                ...(options.currentToolCallSnapshot.logs || []),
+                createToolCallLogEntry({
+                    kind: hasErrors ? 'error' : 'result',
+                    level: hasErrors ? 'error' : 'info',
+                    title: hasErrors ? 'Execution failed' : 'Execution finished',
+                    message: hasErrors
+                        ? `${options.functionName} failed before returning a final result.`
+                        : `${options.functionName} returned a result.`,
+                }),
+            ],
+        };
+    }
+
+    /**
+     * Extracts the latest assistant text response from a completed thread.
+     */
+    private extractCompletedAssistantTextContent(messages: ReadonlyArray<OpenAI.Beta.Threads.Message>): string {
+        const assistantMessages = messages.filter((message) => message.role === 'assistant');
+
+        if (assistantMessages.length === 0) {
+            throw new PipelineExecutionError('No assistant messages found after run completion');
+        }
+
+        const textContent = assistantMessages[0]!.content.find((contentItem) => contentItem.type === 'text');
+
+        if (!textContent || textContent.type !== 'text') {
+            throw new PipelineExecutionError('No text content in assistant response');
+        }
+
+        return textContent.text.value;
+    }
+
+    /**
+     * Runs assistant calls without tools through the streaming Assistants API.
+     */
+    private async callChatModelStreamWithoutTools(context: AssistantChatCallContext): Promise<ChatPromptResult> {
+        const rawRequest = this.createAssistantStreamingRequest(context);
+        this.logVerboseAssistantRequest('rawRequest (streaming)', rawRequest);
+
+        const stream = await context.client.beta.threads.createAndRunStream(rawRequest);
+        this.attachAssistantStreamListeners({
+            stream,
+            start: context.start,
+            rawPromptContent: context.rawPromptContent,
+            rawRequest,
+            onProgress: context.onProgress,
         });
 
         // TODO: [🐱‍🚀] Handle tool calls in assistants
@@ -624,6 +849,116 @@ export class OpenAiAssistantExecutionTools extends OpenAiVectorStoreHandler impl
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
         }
 
+        const resultContent = await this.resolveAssistantStreamingResultContent({
+            client: context.client,
+            rawResponse,
+        });
+        const complete = $getCurrentDate();
+
+        if (resultContent === null) {
+            throw new PipelineExecutionError('No response message from OpenAI');
+        }
+
+        return this.exportAssistantPromptResult({
+            result: this.createAssistantPromptResult({
+                content: resultContent,
+                start: context.start,
+                complete,
+                rawPromptContent: context.rawPromptContent,
+                rawRequest,
+                rawResponse,
+            }),
+            isWithTools: false,
+        });
+    }
+
+    /**
+     * Builds the streaming assistant request payload used when no tool execution flow is needed.
+     */
+    private createAssistantStreamingRequest(context: AssistantChatCallContext): OpenAI.Beta.ThreadCreateAndRunStreamParams {
+        return {
+            // TODO: [👨‍👨‍👧‍👧] ...modelSettings,
+            // TODO: [👨‍👨‍👧‍👧][🧠] What about system message for assistants, does it make sense - combination of OpenAI assistants with Promptbook Personas
+
+            assistant_id: this.assistantId, // <- [🙎]
+            thread: {
+                messages: [...context.threadMessages],
+            },
+            tools:
+                context.prompt.modelRequirements.tools === undefined
+                    ? undefined
+                    : mapToolsToOpenAi(context.prompt.modelRequirements.tools),
+
+            // <- TODO: Add user identification here> user: this.options.user,
+        };
+    }
+
+    /**
+     * Registers verbose stream diagnostics plus incremental text progress forwarding.
+     */
+    private attachAssistantStreamListeners(options: {
+        readonly stream: OpenAI.Beta.Threads.AssistantStream;
+        readonly start: string_date_iso8601;
+        readonly rawPromptContent: string;
+        readonly rawRequest: OpenAI.Beta.ThreadCreateAndRunStreamParams;
+        readonly onProgress: (chunk: ChatPromptResult) => void;
+    }): void {
+        options.stream.on('connect', () => {
+            if (this.options.isVerbose) {
+                console.info('connect', options.stream.currentEvent);
+            }
+        });
+
+        options.stream.on('textDelta', (textDelta, snapshot) => {
+            if (this.options.isVerbose && textDelta.value) {
+                console.info('textDelta', textDelta.value);
+            }
+
+            this.emitAssistantProgress({
+                content: snapshot.value,
+                start: options.start,
+                rawPromptContent: options.rawPromptContent,
+                rawRequest: options.rawRequest,
+                rawResponse: snapshot as chococake,
+                onProgress: options.onProgress,
+            });
+        });
+
+        options.stream.on('messageCreated', (message) => {
+            if (this.options.isVerbose) {
+                console.info('messageCreated', message);
+            }
+        });
+
+        options.stream.on('messageDone', (message) => {
+            if (this.options.isVerbose) {
+                console.info('messageDone', message);
+            }
+        });
+    }
+
+    /**
+     * Resolves the final visible assistant text from a streaming response.
+     */
+    private async resolveAssistantStreamingResultContent(options: {
+        readonly client: OpenAI;
+        readonly rawResponse: Array<OpenAI.Beta.Threads.Message>;
+    }): Promise<string | null> {
+        const textContent = this.extractSingleAssistantTextContentBlock(options.rawResponse);
+
+        return this.replaceAssistantFileCitationMarkers({
+            client: options.client,
+            textContent,
+            resultContent: textContent.text.value,
+        });
+    }
+
+    /**
+     * Extracts the single text content block returned by the assistant stream.
+     */
+    private extractSingleAssistantTextContentBlock(
+        rawResponse: Array<OpenAI.Beta.Threads.Message>,
+    ): OpenAI.Beta.Threads.TextContentBlock {
         if (rawResponse.length !== 1) {
             throw new PipelineExecutionError(`There is NOT 1 BUT ${rawResponse.length} finalMessages from OpenAI`);
         }
@@ -640,78 +975,164 @@ export class OpenAiAssistantExecutionTools extends OpenAiVectorStoreHandler impl
             );
         }
 
-        let resultContent = rawResponse[0]!.content[0]?.text.value;
+        return rawResponse[0]!.content[0];
+    }
 
-        // Process annotations to replace file IDs with filenames
-        if (rawResponse[0]!.content[0]?.text.annotations) {
-            const annotations = rawResponse[0]!.content[0]?.text.annotations;
+    /**
+     * Rewrites file citation markers to use retrieved filenames instead of generic source labels.
+     */
+    private async replaceAssistantFileCitationMarkers(options: {
+        readonly client: OpenAI;
+        readonly textContent: OpenAI.Beta.Threads.TextContentBlock;
+        readonly resultContent: string | null;
+    }): Promise<string | null> {
+        let resultContent = options.resultContent;
+        const annotations = options.textContent.text.annotations;
 
-            // Map to store file ID -> filename to avoid duplicate requests
-            const fileIdToName = new Map<string, string>();
+        if (!annotations) {
+            return resultContent;
+        }
 
-            for (const annotation of annotations) {
-                if (annotation.type === 'file_citation') {
-                    const fileId = annotation.file_citation.file_id;
-                    let filename = fileIdToName.get(fileId);
+        const fileIdToName = new Map<string, string>();
 
-                    if (!filename) {
-                        try {
-                            const file = await client.files.retrieve(fileId);
-                            filename = file.filename;
-                            fileIdToName.set(fileId, filename);
-                        } catch (error) {
-                            console.error(`Failed to retrieve file info for ${fileId}`, error);
-                            // Fallback to "Source" or keep original if fetch fails
-                            filename = 'Source';
-                        }
-                    }
+        for (const annotation of annotations) {
+            if (annotation.type !== 'file_citation') {
+                continue;
+            }
 
-                    if (filename && resultContent) {
-                        // Replace the citation marker with filename
-                        // Regex to match the second part of the citation: 【id†source】 -> 【id†filename】
-                        // Note: annotation.text contains the exact marker like 【4:0†source】
+            const filename = await this.retrieveAssistantCitationFilename({
+                client: options.client,
+                fileId: annotation.file_citation.file_id,
+                fileIdToName,
+            });
 
-                        const newText = annotation.text.replace(/†.*?】/, `†${filename}】`);
-                        resultContent = resultContent.replace(annotation.text, newText);
-                    }
-                }
+            if (filename && resultContent) {
+                const newText = annotation.text.replace(/†.*?】/, `†${filename}】`);
+                resultContent = resultContent.replace(annotation.text, newText);
             }
         }
 
-        // eslint-disable-next-line prefer-const
-        complete = $getCurrentDate();
-        const duration = uncertainNumber((new Date(complete).getTime() - new Date(start).getTime()) / 1000);
-        const usage: Usage = {
-            ...UNCERTAIN_USAGE,
-            duration,
-        };
-        // <- TODO: [🥘] Compute real usage for assistant
-        //       ?> const usage = computeOpenAiUsage(content, resultContent || '', rawResponse);
+        return resultContent;
+    }
 
-        if (resultContent === null) {
-            throw new PipelineExecutionError('No response message from OpenAI');
+    /**
+     * Returns one citation filename, caching OpenAI file lookups across annotations.
+     */
+    private async retrieveAssistantCitationFilename(options: {
+        readonly client: OpenAI;
+        readonly fileId: string;
+        readonly fileIdToName: Map<string, string>;
+    }): Promise<string> {
+        const cachedFilename = options.fileIdToName.get(options.fileId);
+
+        if (cachedFilename) {
+            return cachedFilename;
         }
 
+        try {
+            const file = await options.client.files.retrieve(options.fileId);
+            options.fileIdToName.set(options.fileId, file.filename);
+            return file.filename;
+        } catch (error) {
+            console.error(`Failed to retrieve file info for ${options.fileId}`, error);
+            return 'Source';
+        }
+    }
+
+    /**
+     * Emits one assistant progress chunk with shared timing and prompt metadata.
+     */
+    private emitAssistantProgress(options: {
+        readonly start: string_date_iso8601;
+        readonly rawPromptContent: string;
+        readonly onProgress: (chunk: ChatPromptResult) => void;
+        readonly content?: string;
+        readonly rawRequest?: chococake;
+        readonly rawResponse?: chococake;
+        readonly toolCalls?: ChatPromptResult['toolCalls'];
+    }): void {
+        options.onProgress({
+            content: options.content || '',
+            modelName: 'assistant',
+            timing: {
+                start: options.start,
+                complete: $getCurrentDate(),
+            },
+            usage: UNCERTAIN_USAGE,
+            rawPromptContent: options.rawPromptContent,
+            rawRequest: options.rawRequest ?? (null as chococake),
+            rawResponse: options.rawResponse ?? (null as chococake),
+            toolCalls: options.toolCalls,
+        });
+    }
+
+    /**
+     * Creates the final assistant prompt result with uncertain usage plus measured duration.
+     */
+    private createAssistantPromptResult(options: {
+        readonly content: string_markdown;
+        readonly start: string_date_iso8601;
+        readonly complete: string_date_iso8601;
+        readonly rawPromptContent: string;
+        readonly rawRequest: chococake;
+        readonly rawResponse: chococake;
+        readonly toolCalls?: ChatPromptResult['toolCalls'];
+    }): ChatPromptResult {
+        return {
+            content: options.content,
+            modelName: 'assistant',
+            timing: {
+                start: options.start,
+                complete: options.complete,
+            },
+            usage: this.createAssistantUsage({
+                start: options.start,
+                complete: options.complete,
+            }),
+            rawPromptContent: options.rawPromptContent,
+            rawRequest: options.rawRequest,
+            rawResponse: options.rawResponse,
+            toolCalls: options.toolCalls,
+        };
+    }
+
+    /**
+     * Computes the usage payload for assistant responses.
+     */
+    private createAssistantUsage(options: {
+        readonly start: string_date_iso8601;
+        readonly complete: string_date_iso8601;
+    }): Usage {
+        return {
+            ...UNCERTAIN_USAGE,
+            duration: uncertainNumber((new Date(options.complete).getTime() - new Date(options.start).getTime()) / 1000),
+        };
+    }
+
+    /**
+     * Wraps the final assistant prompt result in the standard exported JSON envelope.
+     */
+    private exportAssistantPromptResult(options: {
+        readonly result: ChatPromptResult;
+        readonly isWithTools: boolean;
+    }): ChatPromptResult {
         return exportJson({
             name: 'promptResult',
-            message: `Result of \`OpenAiAssistantExecutionTools.callChatModelStream\``,
+            message: options.isWithTools
+                ? `Result of \`OpenAiAssistantExecutionTools.callChatModelStream\` (with tools)`
+                : `Result of \`OpenAiAssistantExecutionTools.callChatModelStream\``,
             order: [],
-            value: {
-                content: resultContent,
-                modelName: 'assistant',
-                // <- TODO: [🥘] Detect used model in assistant
-                //       ?> model: rawResponse.model || modelName,
-                timing: {
-                    start,
-                    complete,
-                },
-                usage,
-                rawPromptContent,
-                rawRequest,
-                rawResponse,
-                // <- [🗯]
-            },
+            value: options.result,
         });
+    }
+
+    /**
+     * Logs one assistant request payload when verbose output is enabled.
+     */
+    private logVerboseAssistantRequest(label: string, rawRequest: unknown): void {
+        if (this.options.isVerbose) {
+            console.info(colors.bgWhite(label), JSON.stringify(rawRequest, null, 4));
+        }
     }
 
     /*
