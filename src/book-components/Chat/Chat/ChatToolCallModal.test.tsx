@@ -42,6 +42,56 @@ function createTimeoutToolCallFixture(): ToolCall {
     };
 }
 
+/**
+ * Creates one browser tool-call fixture used by browser replay modal tests.
+ *
+ * @param overrides - Optional tool-call overrides for scenario-specific assertions.
+ * @returns Browser tool-call fixture.
+ */
+function createRunBrowserToolCallFixture(overrides: Partial<ToolCall> = {}): ToolCall {
+    return {
+        name: 'run_browser',
+        createdAt: '2026-03-21T14:00:00.000Z' as string_date_iso8601,
+        arguments: {
+            url: 'https://example.com/start',
+            actions: [
+                { type: 'navigate', value: 'https://example.com/start' },
+                { type: 'click', selector: '#submit' },
+                { type: 'wait', value: 500 },
+            ],
+        },
+        result: {
+            schema: 'promptbook/run-browser@1',
+            initialUrl: 'https://example.com/start',
+            finalUrl: 'https://example.com/final',
+            finalTitle: 'Example final',
+            mode: 'live',
+            modeUsed: 'live',
+            artifacts: [
+                {
+                    path: '.playwright-cli/browser-step-1.png',
+                    label: 'Step 1',
+                    actionSummary: 'Navigate to https://example.com/start',
+                },
+            ],
+            executedActions: [
+                { type: 'navigate', url: 'https://example.com/start' },
+                { type: 'click', selector: '#submit' },
+                { type: 'wait', milliseconds: 500 },
+            ],
+        },
+        logs: [
+            { kind: 'browser-session', title: 'Browser ready', message: 'Connected to session' },
+            { kind: 'browser-action', message: 'Navigate to https://example.com/start', payload: { actionIndex: 1 } },
+            { kind: 'browser-action', message: 'Click #submit', payload: { actionIndex: 2, phase: 'complete' } },
+            { kind: 'browser-action', message: 'Wait 500ms', payload: { actionIndex: 3, phase: 'error' } },
+        ],
+        idempotencyKey: 'tool-call-browser-1',
+        state: 'PARTIAL',
+        ...overrides,
+    };
+}
+
 describe('ChatToolCallModal available tools in advanced view', () => {
     it('shows available tools section when availableTools are provided and Advanced mode is active', () => {
         render(
@@ -193,5 +243,56 @@ describe('ChatToolCallModal timeout rendering', () => {
         expect(screen.getByRole('button', { name: 'Cancel timeout' })).toBeTruthy();
         expect(screen.getByRole('button', { name: 'Snooze timeout' })).toBeTruthy();
         expect(screen.getByRole('button', { name: 'View advanced timeout details' })).toBeTruthy();
+    });
+});
+
+describe('ChatToolCallModal run_browser rendering', () => {
+    it('renders browser replay metadata, media, and action states in simple view', () => {
+        render(
+            <ChatToolCallModal
+                isOpen={true}
+                toolCall={createRunBrowserToolCallFixture()}
+                toolCallIdentity="tool-call-browser-1"
+                onClose={() => undefined}
+                buttonColor={Color.from('#0066cc')}
+            />,
+        );
+
+        expect(screen.getByText('Session replay')).toBeTruthy();
+        expect(screen.getByText(/Started at:/)).toBeTruthy();
+        expect(screen.getByText(/Ended at:/)).toBeTruthy();
+        expect(screen.getByText(/Final page:/)).toBeTruthy();
+        expect(screen.getByText(/Mode requested:/)).toBeTruthy();
+        expect(screen.getByText(/Mode used:/)).toBeTruthy();
+        expect(screen.getByText(/Connected to session/)).toBeTruthy();
+        expect(screen.getByText('Step 1')).toBeTruthy();
+        expect(screen.getAllByText('Navigate to https://example.com/start')).toHaveLength(2);
+        expect(screen.getByText('Click #submit')).toBeTruthy();
+        expect(screen.getByText('Wait 500ms')).toBeTruthy();
+        expect(screen.getByText('Running')).toBeTruthy();
+        expect(screen.getByText('Done')).toBeTruthy();
+        expect(screen.getByText('Failed')).toBeTruthy();
+    });
+
+    it('renders pending browser replay placeholders while the session is still streaming', () => {
+        render(
+            <ChatToolCallModal
+                isOpen={true}
+                toolCall={createRunBrowserToolCallFixture({
+                    arguments: {
+                        url: 'https://example.com/pending',
+                    },
+                    result: undefined,
+                    logs: [{ kind: 'browser-session', title: 'Browser status', message: 'Session starting' }],
+                })}
+                toolCallIdentity="tool-call-browser-pending"
+                onClose={() => undefined}
+                buttonColor={Color.from('#0066cc')}
+            />,
+        );
+
+        expect(screen.getByText('Visual replay pending')).toBeTruthy();
+        expect(screen.getByText('Actions pending')).toBeTruthy();
+        expect(screen.getByText(/Session starting/)).toBeTruthy();
     });
 });

@@ -1,3 +1,8 @@
+-   Refactored `src/book-components/Chat/Chat/renderRunBrowserToolCallDetails.tsx` into smaller focused browser-replay helpers without changing external behavior:
+
+    -   Moved the derived browser replay state, metadata normalization, and action-row assembly into a dedicated private `resolveRunBrowserToolCallDetailsState` helper so the modal renderer now reads top-down.
+    -   Kept the existing browser session metadata, warnings, fallback content, media replay, streamed action states, and partial-error notice behavior intact while reducing branching in `renderRunBrowserToolCallDetails`.
+
 -   Refactored `src/book-components/Chat/Chat/ChatToolCallModal.tsx` into smaller focused private modal helpers without changing external behavior:
 
     -   Extracted modal state, TEAM profile loading, focus restoration, Escape handling, and advanced-report export orchestration into a dedicated private `useChatToolCallModalState` hook so `ChatToolCallModal.tsx` now reads as a thin modal shell.
