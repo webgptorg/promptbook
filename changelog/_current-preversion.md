@@ -1,3 +1,8 @@
+-   Refactored Agents Server `UsageAnalyticsAggregation.ts` into smaller focused aggregation helpers without changing external behavior:
+
+    -   Split usage-response construction into dedicated summary, grouped-call accumulation, breakdown, and detail-formatting helpers so the main response builder now reads top-down.
+    -   Preserved the existing invalid-timestamp handling, sorting rules, and top-25 detail limits while removing repeated aggregation logic.
+
 -   Refactored Agents Server `handleChatCompletion.ts` into smaller focused chat-completion helpers without changing external behavior:
 
     -   Split the OpenAI-compatible chat flow into focused request-parsing, agent-runtime resolution, prompt creation, streaming, and finalization helpers so the main entry point now reads top-down.
