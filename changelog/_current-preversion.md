@@ -1,3 +1,8 @@
+-   Refactored `src/llm-providers/agent/AgentLlmExecutionTools.ts` into smaller focused helpers without changing external behavior:
+
+    -   Split `callChatModelStream` into dedicated prompt-preparation, backend-dispatch, AgentKit cache/preparation, OpenAI Assistant reuse/update, generic fallback, and final-result normalization helpers so the streaming flow now reads top-down.
+    -   Kept the existing attachment-context handling, tool and knowledge-source merging, assistant preparation progress events, backend-specific caching/reuse rules, and final markdown normalization behavior intact while reducing branching complexity in the file.
+
 -   Refactored `src/execution/createPipelineExecutor/40-executeAttempts.ts` into smaller focused helpers without changing external behavior:
 
     -   Split the branching-heavy attempt loop into dedicated joker-resolution, task-type execution, postprocessing, validation, failure-bookkeeping, and prompt-report helpers so `executeAttempts` now reads top-down.

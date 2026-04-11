@@ -134,6 +134,205 @@ function mergePromptTools(
 }
 
 /**
+ * Agent model requirements stripped of prompt-only bookkeeping before forwarding to runtime tools.
+ *
+ * @private internal helper for `AgentLlmExecutionTools`
+ */
+type SanitizedAgentModelRequirements = Omit<AgentModelRequirements, '_metadata' | 'promptSuffix'>;
+
+/**
+ * Prepared AgentKit agent shape reused while caching and dispatching AgentKit-backed runs.
+ *
+ * @private internal helper for `AgentLlmExecutionTools`
+ */
+type PreparedAgentKitAgent = Awaited<ReturnType<OpenAiAgentKitExecutionTools['prepareAgentKitAgent']>>;
+
+/**
+ * Prepared chat prompt enriched with agent requirements plus routing metadata for backend execution.
+ *
+ * @private internal helper for `AgentLlmExecutionTools`
+ */
+type PreparedAgentChatPrompt = {
+    /**
+     * Prompt forwarded to the underlying LLM execution tools after agent enrichment.
+     */
+    readonly forwardedPrompt: ChatPrompt;
+
+    /**
+     * Agent requirements after removing bookkeeping-only properties.
+     */
+    readonly sanitizedRequirements: SanitizedAgentModelRequirements;
+
+    /**
+     * Tool definitions merged from commitments and runtime prompt overrides.
+     */
+    readonly mergedTools: Array<NonNullable<ChatPrompt['tools']>[number]>;
+
+    /**
+     * Final knowledge sources forwarded to agent-capable backends.
+     */
+    readonly knowledgeSourcesForAgent?: Array<string>;
+
+    /**
+     * Whether runtime attachments added temporary knowledge sources for this prompt.
+     */
+    readonly hasAttachmentSources: boolean;
+
+    /**
+     * Whether runtime prompt tool overrides were supplied for this prompt.
+     */
+    readonly hasRuntimePromptTools: boolean;
+};
+
+/**
+ * Cache data used while resolving one AgentKit execution.
+ *
+ * @private internal helper for `AgentLlmExecutionTools`
+ */
+type AgentKitCacheState = {
+    /**
+     * Whether the current prompt can safely reuse cached AgentKit resources.
+     */
+    readonly shouldUseCache: boolean;
+
+    /**
+     * AgentKit agent resolved from external preparation or cache, if available.
+     */
+    readonly preparedAgentKit: PreparedAgentKitAgent | null;
+
+    /**
+     * Reusable vector store id resolved from cache for this execution.
+     */
+    readonly vectorStoreId?: string;
+
+    /**
+     * Hash describing the current vector-store inputs.
+     */
+    readonly vectorStoreHash?: string;
+
+    /**
+     * Hash describing the prepared AgentKit instructions and tools.
+     */
+    readonly requirementsHash?: string;
+};
+
+/**
+ * Computes one stable hash from a JSON-serializable value.
+ *
+ * @private internal helper for `AgentLlmExecutionTools`
+ */
+function computeJsonHash(value: unknown): string {
+    return sha256(JSON.stringify(value)).toString();
+}
+
+/**
+ * Detects whether one optional tool list contains runtime tools.
+ *
+ * @private internal helper for `AgentLlmExecutionTools`
+ */
+function hasPromptTools(tools: ReadonlyArray<NonNullable<ChatPrompt['tools']>[number]> | undefined): boolean {
+    return Array.isArray(tools) && tools.length > 0;
+}
+
+/**
+ * Builds the prompt forwarded to the underlying LLM tools after agent requirements are merged in.
+ *
+ * @private internal helper for `AgentLlmExecutionTools`
+ */
+function createPromptWithAgentModelRequirements(options: {
+    /**
+     * Original runtime chat prompt.
+     */
+    readonly chatPrompt: ChatPrompt;
+
+    /**
+     * Agent requirements safe to forward to runtime LLM tools.
+     */
+    readonly sanitizedRequirements: SanitizedAgentModelRequirements;
+
+    /**
+     * Optional suffix appended after attachment context.
+     */
+    readonly promptSuffix: AgentModelRequirements['promptSuffix'];
+
+    /**
+     * Prompt content after attachment context was inlined.
+     */
+    readonly chatPromptContentWithAttachments: string;
+
+    /**
+     * Tool list merged from commitments and runtime prompt overrides.
+     */
+    readonly mergedTools: Array<NonNullable<ChatPrompt['tools']>[number]>;
+
+    /**
+     * Knowledge sources forwarded to agent-capable backends.
+     */
+    readonly knowledgeSourcesForAgent?: Array<string>;
+}): ChatPrompt {
+    const chatPromptContentWithSuffix: string_prompt = options.promptSuffix
+        ? (`${options.chatPromptContentWithAttachments}\n\n${options.promptSuffix}` as string_prompt)
+        : (options.chatPromptContentWithAttachments as string_prompt);
+
+    return {
+        ...options.chatPrompt,
+        content: chatPromptContentWithSuffix,
+        modelRequirements: {
+            ...options.chatPrompt.modelRequirements,
+            ...options.sanitizedRequirements,
+            tools: options.mergedTools.length > 0 ? options.mergedTools : undefined,
+            // Spread knowledgeSources to convert readonly array to mutable
+            knowledgeSources: options.knowledgeSourcesForAgent,
+            // Prepend agent system message to existing system message
+            systemMessage:
+                options.sanitizedRequirements.systemMessage +
+                (options.chatPrompt.modelRequirements.systemMessage
+                    ? `\n\n${options.chatPrompt.modelRequirements.systemMessage}`
+                    : ''),
+        } as unknown as ChatPrompt['modelRequirements'], // Cast to avoid readonly mismatch from spread
+    };
+}
+
+/**
+ * Removes assistant-managed requirements before the prompt is executed via OpenAI Assistants.
+ *
+ * @private internal helper for `AgentLlmExecutionTools`
+ */
+function createOpenAiAssistantPrompt(chatPrompt: ChatPrompt): ChatPrompt {
+    return {
+        ...chatPrompt,
+        modelRequirements: {
+            ...chatPrompt.modelRequirements,
+            modelName: undefined, // <- Note: Clear model name as it's defined by the Assistant
+            systemMessage: undefined, // <- Note: Clear system message as it's already in the Assistant
+            temperature: undefined, // <- Note: Let the Assistant use its default temperature
+        },
+    };
+}
+
+/**
+ * Normalizes the final model content into the markdown shape expected from agents.
+ *
+ * @private internal helper for `AgentLlmExecutionTools`
+ */
+function normalizeAgentResultContent(content: CommonPromptResult['content'] | really_unknown): string_markdown {
+    let normalizedContent = content as string_markdown | really_unknown;
+
+    if (typeof normalizedContent === 'string') {
+        // Note: Cleanup the AI artifacts from the content
+        normalizedContent = humanizeAiText(normalizedContent);
+
+        // Note: Make sure the content is Promptbook-like
+        normalizedContent = promptbookifyAiText(normalizedContent as string_markdown);
+    } else {
+        // TODO: Maybe deep `humanizeAiText` + `promptbookifyAiText` inside of the object
+        normalizedContent = JSON.stringify(normalizedContent);
+    }
+
+    return normalizedContent as string_markdown;
+}
+
+/**
  * Execution Tools for calling LLM models with a predefined agent "soul"
  * This wraps underlying LLM execution tools and applies agent-specific system prompts and requirements
  *
@@ -338,17 +537,34 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
         onProgress: (chunk: ChatPromptResult) => void,
         options?: CallChatModelStreamOptions,
     ): Promise<ChatPromptResult> {
-        // Ensure we're working with a chat prompt
+        const preparedChatPrompt = await this.prepareChatPrompt(prompt);
+        const underlyingLlmResult = await this.callPreparedChatModelStream({
+            originalPrompt: prompt,
+            preparedChatPrompt,
+            onProgress,
+            streamOptions: options,
+        });
+
+        return this.finalizeAgentResult(underlyingLlmResult);
+    }
+
+    /**
+     * Ensures the agent wrapper only processes chat prompts.
+     */
+    private requireChatPrompt(prompt: Prompt): ChatPrompt {
         if (prompt.modelRequirements.modelVariant !== 'CHAT') {
             throw new Error('AgentLlmExecutionTools only supports chat prompts');
         }
 
-        const modelRequirements = await this.getModelRequirements();
-        const { _metadata, promptSuffix, ...sanitizedRequirements } = modelRequirements;
+        return prompt as ChatPrompt;
+    }
 
-        keepUnused(_metadata);
-
-        const chatPrompt = prompt as ChatPrompt;
+    /**
+     * Resolves agent requirements, attachments, and runtime overrides into one forwarded chat prompt.
+     */
+    private async prepareChatPrompt(prompt: Prompt): Promise<PreparedAgentChatPrompt> {
+        const chatPrompt = this.requireChatPrompt(prompt);
+        const { sanitizedRequirements, promptSuffix } = await this.getSanitizedAgentModelRequirements();
         const attachments = normalizeChatAttachments(chatPrompt.attachments);
         const attachmentUrls = attachments.map((attachment) => attachment.url);
         const mergedTools = mergePromptTools(
@@ -356,295 +572,559 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
             chatPrompt.modelRequirements.tools,
             chatPrompt.tools,
         );
-        const hasRuntimePromptTools =
-            (Array.isArray(chatPrompt.modelRequirements.tools) && chatPrompt.modelRequirements.tools.length > 0) ||
-            (Array.isArray(chatPrompt.tools) && chatPrompt.tools.length > 0);
+        const hasRuntimePromptTools = hasPromptTools(chatPrompt.modelRequirements.tools) || hasPromptTools(chatPrompt.tools);
         const chatPromptContentWithAttachments = await appendChatAttachmentContextWithContent(
             chatPrompt.content,
             attachments,
             { allowLocalhost: true },
         );
-
         const knowledgeSourcesForAgentList = mergeKnowledgeSourcesWithAttachments(
             sanitizedRequirements.knowledgeSources,
             attachmentUrls,
         );
         const knowledgeSourcesForAgent =
             knowledgeSourcesForAgentList.length > 0 ? knowledgeSourcesForAgentList : undefined;
-        const hasAttachmentSources = attachmentUrls.length > 0;
-        let underlyingLlmResult: CommonPromptResult;
+        const forwardedPrompt = createPromptWithAgentModelRequirements({
+            chatPrompt,
+            sanitizedRequirements,
+            promptSuffix,
+            chatPromptContentWithAttachments,
+            mergedTools,
+            knowledgeSourcesForAgent,
+        });
 
-        const chatPromptContentWithSuffix: string_prompt = promptSuffix
-            ? (`${chatPromptContentWithAttachments}\n\n${promptSuffix}` as string_prompt)
-            : (chatPromptContentWithAttachments as string_prompt);
+        console.log('!!!! promptWithAgentModelRequirements:', forwardedPrompt);
 
-        const promptWithAgentModelRequirements: ChatPrompt = {
-            ...chatPrompt,
-            content: chatPromptContentWithSuffix,
-            modelRequirements: {
-                ...chatPrompt.modelRequirements,
-                ...sanitizedRequirements,
-                tools: mergedTools.length > 0 ? mergedTools : undefined,
-                // Spread knowledgeSources to convert readonly array to mutable
-                knowledgeSources: knowledgeSourcesForAgent,
-                // Prepend agent system message to existing system message
-                systemMessage:
-                    sanitizedRequirements.systemMessage +
-                    (chatPrompt.modelRequirements.systemMessage
-                        ? `\n\n${chatPrompt.modelRequirements.systemMessage}`
-                        : ''),
-            } as unknown as ChatPrompt['modelRequirements'], // Cast to avoid readonly mismatch from spread
+        return {
+            forwardedPrompt,
+            sanitizedRequirements,
+            mergedTools,
+            knowledgeSourcesForAgent,
+            hasAttachmentSources: attachmentUrls.length > 0,
+            hasRuntimePromptTools,
         };
+    }
 
-        console.log('!!!! promptWithAgentModelRequirements:', promptWithAgentModelRequirements);
+    /**
+     * Removes bookkeeping-only properties from compiled agent requirements before forwarding them.
+     */
+    private async getSanitizedAgentModelRequirements(): Promise<{
+        /**
+         * Prompt suffix that still needs to be appended to the runtime prompt content.
+         */
+        readonly promptSuffix: AgentModelRequirements['promptSuffix'];
 
-        if (OpenAiAgentKitExecutionTools.isOpenAiAgentKitExecutionTools(this.options.llmTools)) {
-            const shouldUseCache = !hasAttachmentSources && !hasRuntimePromptTools;
-            let preparedAgentKit =
-                shouldUseCache && this.options.assistantPreparationMode === 'external'
-                    ? this.options.llmTools.getPreparedAgentKitAgent()
-                    : null;
+        /**
+         * Agent requirements safe to forward to runtime LLM tools.
+         */
+        readonly sanitizedRequirements: SanitizedAgentModelRequirements;
+    }> {
+        const modelRequirements = await this.getModelRequirements();
+        const { _metadata, promptSuffix, ...sanitizedRequirements } = modelRequirements;
 
-            let vectorStoreId: string | undefined;
-            let vectorStoreHash: string | undefined;
-            let requirementsHash: string | undefined;
+        keepUnused(_metadata);
 
-            if (shouldUseCache) {
-                requirementsHash = sha256(
-                    JSON.stringify({
-                        ...sanitizedRequirements,
-                        knowledgeSources: knowledgeSourcesForAgent,
-                        tools: mergedTools,
-                    }),
-                ).toString();
-                vectorStoreHash = sha256(JSON.stringify(knowledgeSourcesForAgent ?? [])).toString();
+        return {
+            promptSuffix,
+            sanitizedRequirements,
+        };
+    }
 
-                const cachedVectorStore = AgentLlmExecutionTools.vectorStoreCache.get(this.title);
-                const cachedAgentKit = AgentLlmExecutionTools.agentKitAgentCache.get(this.title);
+    /**
+     * Dispatches one prepared agent prompt to the correct underlying LLM backend.
+     */
+    private async callPreparedChatModelStream(options: {
+        /**
+         * Original runtime prompt before agent enrichment.
+         */
+        readonly originalPrompt: Prompt;
 
-                vectorStoreId =
-                    preparedAgentKit?.vectorStoreId ||
-                    (cachedVectorStore && cachedVectorStore.requirementsHash === vectorStoreHash
-                        ? cachedVectorStore.vectorStoreId
-                        : undefined);
+        /**
+         * Prepared prompt plus backend routing metadata.
+         */
+        readonly preparedChatPrompt: PreparedAgentChatPrompt;
 
-                if (!preparedAgentKit && cachedAgentKit && cachedAgentKit.requirementsHash === requirementsHash) {
-                    if (this.options.isVerbose) {
-                        console.info('[🤰]', 'Using cached OpenAI AgentKit agent', {
-                            agent: this.title,
-                        });
-                    }
-                    preparedAgentKit = {
-                        agent: cachedAgentKit.agent,
-                        vectorStoreId: cachedAgentKit.vectorStoreId,
-                    };
-                }
-            }
+        /**
+         * Streaming callback forwarded to the underlying execution tools.
+         */
+        readonly onProgress: (chunk: ChatPromptResult) => void;
 
-            if (!preparedAgentKit) {
-                if (this.options.isVerbose) {
-                    console.info('[🤰]', 'Preparing OpenAI AgentKit agent', {
-                        agent: this.title,
-                    });
-                }
+        /**
+         * Optional stream controls propagated from the caller.
+         */
+        readonly streamOptions?: CallChatModelStreamOptions;
+    }): Promise<CommonPromptResult> {
+        const llmTools = this.options.llmTools;
 
-                if (!vectorStoreId && knowledgeSourcesForAgent?.length) {
-                    emitAssistantPreparationProgress({
-                        onProgress,
-                        prompt,
-                        modelName: this.modelName,
-                        phase: 'Creating knowledge base',
-                    });
-                }
-
-                emitAssistantPreparationProgress({
-                    onProgress,
-                    prompt,
-                    modelName: this.modelName,
-                    phase: 'Preparing AgentKit agent',
-                });
-
-                preparedAgentKit = await this.options.llmTools.prepareAgentKitAgent({
-                    name: this.title,
-                    instructions: sanitizedRequirements.systemMessage || '',
-                    knowledgeSources: knowledgeSourcesForAgent,
-                    tools: mergedTools.length > 0 ? mergedTools : undefined,
-                    vectorStoreId: shouldUseCache ? vectorStoreId : undefined,
-                });
-            }
-
-            if (shouldUseCache && vectorStoreHash && preparedAgentKit.vectorStoreId) {
-                AgentLlmExecutionTools.vectorStoreCache.set(this.title, {
-                    vectorStoreId: preparedAgentKit.vectorStoreId,
-                    requirementsHash: vectorStoreHash,
-                });
-            }
-
-            if (shouldUseCache && requirementsHash) {
-                AgentLlmExecutionTools.agentKitAgentCache.set(this.title, {
-                    agent: preparedAgentKit.agent,
-                    requirementsHash,
-                    vectorStoreId: preparedAgentKit.vectorStoreId,
-                });
-            }
-
-            const responseFormatOutputType = mapResponseFormatToAgentOutputType(
-                promptWithAgentModelRequirements.modelRequirements.responseFormat,
-            );
-
-            underlyingLlmResult = await this.options.llmTools.callChatModelStreamWithPreparedAgent({
-                openAiAgentKitAgent: preparedAgentKit.agent,
-                prompt: promptWithAgentModelRequirements,
-                onProgress,
-                responseFormatOutputType,
-                signal: options?.signal,
+        if (OpenAiAgentKitExecutionTools.isOpenAiAgentKitExecutionTools(llmTools)) {
+            return this.callOpenAiAgentKitChatModelStream({
+                llmTools,
+                originalPrompt: options.originalPrompt,
+                preparedChatPrompt: options.preparedChatPrompt,
+                onProgress: options.onProgress,
+                streamOptions: options.streamOptions,
             });
-        } else if (OpenAiAssistantExecutionTools.isOpenAiAssistantExecutionTools(this.options.llmTools)) {
-            // ... deprecated path ...
-            const requirementsHash = sha256(JSON.stringify(sanitizedRequirements)).toString();
-            const cached = AgentLlmExecutionTools.assistantCache.get(this.title);
-            let assistant: OpenAiAssistantExecutionTools;
+        }
 
-            if (this.options.assistantPreparationMode === 'external') {
-                assistant = this.options.llmTools;
+        if (OpenAiAssistantExecutionTools.isOpenAiAssistantExecutionTools(llmTools)) {
+            return this.callOpenAiAssistantChatModelStream({
+                llmTools,
+                originalPrompt: options.originalPrompt,
+                preparedChatPrompt: options.preparedChatPrompt,
+                onProgress: options.onProgress,
+                streamOptions: options.streamOptions,
+            });
+        }
 
+        return this.callGenericChatModelStream({
+            preparedChatPrompt: options.preparedChatPrompt,
+            onProgress: options.onProgress,
+            streamOptions: options.streamOptions,
+        });
+    }
+
+    /**
+     * Runs one prepared prompt through the OpenAI AgentKit backend.
+     */
+    private async callOpenAiAgentKitChatModelStream(options: {
+        /**
+         * Underlying OpenAI AgentKit execution tools.
+         */
+        readonly llmTools: OpenAiAgentKitExecutionTools;
+
+        /**
+         * Original runtime prompt before agent enrichment.
+         */
+        readonly originalPrompt: Prompt;
+
+        /**
+         * Prepared prompt plus backend routing metadata.
+         */
+        readonly preparedChatPrompt: PreparedAgentChatPrompt;
+
+        /**
+         * Streaming callback forwarded to the underlying execution tools.
+         */
+        readonly onProgress: (chunk: ChatPromptResult) => void;
+
+        /**
+         * Optional stream controls propagated from the caller.
+         */
+        readonly streamOptions?: CallChatModelStreamOptions;
+    }): Promise<CommonPromptResult> {
+        const agentKitCacheState = this.resolveAgentKitCacheState({
+            llmTools: options.llmTools,
+            preparedChatPrompt: options.preparedChatPrompt,
+        });
+        const preparedAgentKit = await this.getOrPrepareAgentKitAgent({
+            llmTools: options.llmTools,
+            originalPrompt: options.originalPrompt,
+            preparedChatPrompt: options.preparedChatPrompt,
+            onProgress: options.onProgress,
+            agentKitCacheState,
+        });
+
+        this.storeAgentKitCache({
+            preparedAgentKit,
+            agentKitCacheState,
+        });
+
+        const responseFormatOutputType = mapResponseFormatToAgentOutputType(
+            options.preparedChatPrompt.forwardedPrompt.modelRequirements.responseFormat,
+        );
+
+        return options.llmTools.callChatModelStreamWithPreparedAgent({
+            openAiAgentKitAgent: preparedAgentKit.agent,
+            prompt: options.preparedChatPrompt.forwardedPrompt,
+            onProgress: options.onProgress,
+            responseFormatOutputType,
+            signal: options.streamOptions?.signal,
+        });
+    }
+
+    /**
+     * Resolves the AgentKit cache state for the current prompt, including external and in-memory caches.
+     */
+    private resolveAgentKitCacheState(options: {
+        /**
+         * Underlying OpenAI AgentKit execution tools.
+         */
+        readonly llmTools: OpenAiAgentKitExecutionTools;
+
+        /**
+         * Prepared prompt plus backend routing metadata.
+         */
+        readonly preparedChatPrompt: PreparedAgentChatPrompt;
+    }): AgentKitCacheState {
+        const shouldUseCache =
+            !options.preparedChatPrompt.hasAttachmentSources && !options.preparedChatPrompt.hasRuntimePromptTools;
+        let preparedAgentKit =
+            shouldUseCache && this.options.assistantPreparationMode === 'external'
+                ? options.llmTools.getPreparedAgentKitAgent()
+                : null;
+        let vectorStoreId: string | undefined;
+        let vectorStoreHash: string | undefined;
+        let requirementsHash: string | undefined;
+
+        if (shouldUseCache) {
+            requirementsHash = computeJsonHash({
+                ...options.preparedChatPrompt.sanitizedRequirements,
+                knowledgeSources: options.preparedChatPrompt.knowledgeSourcesForAgent,
+                tools: options.preparedChatPrompt.mergedTools,
+            });
+            vectorStoreHash = computeJsonHash(options.preparedChatPrompt.knowledgeSourcesForAgent ?? []);
+
+            const cachedVectorStore = AgentLlmExecutionTools.vectorStoreCache.get(this.title);
+            const cachedAgentKit = AgentLlmExecutionTools.agentKitAgentCache.get(this.title);
+
+            vectorStoreId =
+                preparedAgentKit?.vectorStoreId ||
+                (cachedVectorStore && cachedVectorStore.requirementsHash === vectorStoreHash
+                    ? cachedVectorStore.vectorStoreId
+                    : undefined);
+
+            if (!preparedAgentKit && cachedAgentKit && cachedAgentKit.requirementsHash === requirementsHash) {
                 if (this.options.isVerbose) {
-                    console.info('[🤰]', 'Using externally managed OpenAI Assistant', {
-                        agent: this.title,
-                        assistantId: assistant.assistantId,
-                    });
-                }
-
-                AgentLlmExecutionTools.assistantCache.set(this.title, {
-                    assistantId: assistant.assistantId,
-                    requirementsHash,
-                });
-            } else if (cached) {
-                if (cached.requirementsHash === requirementsHash) {
-                    if (this.options.isVerbose) {
-                        console.info('[🤰]', 'Using cached OpenAI Assistant', {
-                            agent: this.title,
-                            assistantId: cached.assistantId,
-                        });
-                    }
-                    assistant = this.options.llmTools.getAssistant(cached.assistantId);
-                } else {
-                    if (this.options.isVerbose) {
-                        console.info('[🤰]', 'Updating OpenAI Assistant', {
-                            agent: this.title,
-                            assistantId: cached.assistantId,
-                        });
-                    }
-                    emitAssistantPreparationProgress({
-                        onProgress,
-                        prompt,
-                        modelName: this.modelName,
-                        phase: 'Updating assistant',
-                    });
-                    assistant = await this.options.llmTools.updateAssistant({
-                        assistantId: cached.assistantId,
-                        name: this.title,
-                        instructions: sanitizedRequirements.systemMessage,
-                        knowledgeSources: sanitizedRequirements.knowledgeSources,
-                        tools: sanitizedRequirements.tools ? [...sanitizedRequirements.tools] : undefined,
-                    });
-                    AgentLlmExecutionTools.assistantCache.set(this.title, {
-                        assistantId: assistant.assistantId,
-                        requirementsHash,
-                    });
-                }
-            } else {
-                if (this.options.isVerbose) {
-                    console.info('[🤰]', 'Creating new OpenAI Assistant', {
+                    console.info('[🤰]', 'Using cached OpenAI AgentKit agent', {
                         agent: this.title,
                     });
                 }
-                // <- TODO: [🐱‍🚀] Check also `isCreatingNewAssistantsAllowed` and warn about it
-                emitAssistantPreparationProgress({
-                    onProgress,
-                    prompt,
-                    modelName: this.modelName,
-                    phase: 'Creating assistant',
-                });
-                assistant = await this.options.llmTools.createNewAssistant({
-                    name: this.title,
-                    instructions: sanitizedRequirements.systemMessage,
-                    knowledgeSources: sanitizedRequirements.knowledgeSources,
-                    tools: sanitizedRequirements.tools ? [...sanitizedRequirements.tools] : undefined,
-                    /*
-                    !!!
-                    metadata: {
-                        agentModelName: this.modelName,
-                    }
-                    */
-                });
 
-                AgentLlmExecutionTools.assistantCache.set(this.title, {
-                    assistantId: assistant.assistantId,
-                    requirementsHash,
-                });
+                preparedAgentKit = {
+                    agent: cachedAgentKit.agent,
+                    vectorStoreId: cachedAgentKit.vectorStoreId,
+                };
             }
+        }
 
-            // Create modified chat prompt with agent system message specific to OpenAI Assistant
-            const promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools: ChatPrompt = {
-                ...promptWithAgentModelRequirements,
-                modelRequirements: {
-                    ...promptWithAgentModelRequirements.modelRequirements,
-                    modelName: undefined, // <- Note: Clear model name as it's defined by the Assistant
-                    systemMessage: undefined, // <- Note: Clear system message as it's already in the Assistant
-                    temperature: undefined, // <- Note: Let the Assistant use its default temperature
-                },
-            };
+        return {
+            shouldUseCache,
+            preparedAgentKit,
+            vectorStoreId,
+            vectorStoreHash,
+            requirementsHash,
+        };
+    }
 
-            console.log(
-                '!!!! promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools:',
-                promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools,
-            );
+    /**
+     * Returns a prepared AgentKit agent, creating one only when the cache could not satisfy the request.
+     */
+    private async getOrPrepareAgentKitAgent(options: {
+        /**
+         * Underlying OpenAI AgentKit execution tools.
+         */
+        readonly llmTools: OpenAiAgentKitExecutionTools;
 
-            underlyingLlmResult = await assistant.callChatModelStream(
-                promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools,
-                onProgress,
-                options,
-            );
-        } else {
+        /**
+         * Original runtime prompt before agent enrichment.
+         */
+        readonly originalPrompt: Prompt;
+
+        /**
+         * Prepared prompt plus backend routing metadata.
+         */
+        readonly preparedChatPrompt: PreparedAgentChatPrompt;
+
+        /**
+         * Streaming callback forwarded to the underlying execution tools.
+         */
+        readonly onProgress: (chunk: ChatPromptResult) => void;
+
+        /**
+         * Cache data already resolved for the current prompt.
+         */
+        readonly agentKitCacheState: AgentKitCacheState;
+    }): Promise<PreparedAgentKitAgent> {
+        if (options.agentKitCacheState.preparedAgentKit) {
+            return options.agentKitCacheState.preparedAgentKit;
+        }
+
+        if (this.options.isVerbose) {
+            console.info('[🤰]', 'Preparing OpenAI AgentKit agent', {
+                agent: this.title,
+            });
+        }
+
+        if (!options.agentKitCacheState.vectorStoreId && options.preparedChatPrompt.knowledgeSourcesForAgent?.length) {
+            emitAssistantPreparationProgress({
+                onProgress: options.onProgress,
+                prompt: options.originalPrompt,
+                modelName: this.modelName,
+                phase: 'Creating knowledge base',
+            });
+        }
+
+        emitAssistantPreparationProgress({
+            onProgress: options.onProgress,
+            prompt: options.originalPrompt,
+            modelName: this.modelName,
+            phase: 'Preparing AgentKit agent',
+        });
+
+        return options.llmTools.prepareAgentKitAgent({
+            name: this.title,
+            instructions: options.preparedChatPrompt.sanitizedRequirements.systemMessage || '',
+            knowledgeSources: options.preparedChatPrompt.knowledgeSourcesForAgent,
+            tools: options.preparedChatPrompt.mergedTools.length > 0 ? options.preparedChatPrompt.mergedTools : undefined,
+            vectorStoreId: options.agentKitCacheState.shouldUseCache ? options.agentKitCacheState.vectorStoreId : undefined,
+        });
+    }
+
+    /**
+     * Stores freshly prepared AgentKit resources back into the in-memory caches when caching is allowed.
+     */
+    private storeAgentKitCache(options: {
+        /**
+         * Prepared AgentKit agent used for the current execution.
+         */
+        readonly preparedAgentKit: PreparedAgentKitAgent;
+
+        /**
+         * Cache data resolved for the current prompt.
+         */
+        readonly agentKitCacheState: AgentKitCacheState;
+    }): void {
+        if (!options.agentKitCacheState.shouldUseCache) {
+            return;
+        }
+
+        if (options.agentKitCacheState.vectorStoreHash && options.preparedAgentKit.vectorStoreId) {
+            AgentLlmExecutionTools.vectorStoreCache.set(this.title, {
+                vectorStoreId: options.preparedAgentKit.vectorStoreId,
+                requirementsHash: options.agentKitCacheState.vectorStoreHash,
+            });
+        }
+
+        if (options.agentKitCacheState.requirementsHash) {
+            AgentLlmExecutionTools.agentKitAgentCache.set(this.title, {
+                agent: options.preparedAgentKit.agent,
+                requirementsHash: options.agentKitCacheState.requirementsHash,
+                vectorStoreId: options.preparedAgentKit.vectorStoreId,
+            });
+        }
+    }
+
+    /**
+     * Runs one prepared prompt through the deprecated OpenAI Assistant backend.
+     */
+    private async callOpenAiAssistantChatModelStream(options: {
+        /**
+         * Underlying OpenAI Assistant execution tools.
+         */
+        readonly llmTools: OpenAiAssistantExecutionTools;
+
+        /**
+         * Original runtime prompt before agent enrichment.
+         */
+        readonly originalPrompt: Prompt;
+
+        /**
+         * Prepared prompt plus backend routing metadata.
+         */
+        readonly preparedChatPrompt: PreparedAgentChatPrompt;
+
+        /**
+         * Streaming callback forwarded to the underlying execution tools.
+         */
+        readonly onProgress: (chunk: ChatPromptResult) => void;
+
+        /**
+         * Optional stream controls propagated from the caller.
+         */
+        readonly streamOptions?: CallChatModelStreamOptions;
+    }): Promise<CommonPromptResult> {
+        const assistant = await this.getOrPrepareOpenAiAssistant({
+            llmTools: options.llmTools,
+            originalPrompt: options.originalPrompt,
+            preparedChatPrompt: options.preparedChatPrompt,
+            onProgress: options.onProgress,
+        });
+        const promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools = createOpenAiAssistantPrompt(
+            options.preparedChatPrompt.forwardedPrompt,
+        );
+
+        console.log(
+            '!!!! promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools:',
+            promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools,
+        );
+
+        return assistant.callChatModelStream(
+            promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools,
+            options.onProgress,
+            options.streamOptions,
+        );
+    }
+
+    /**
+     * Returns an assistant instance matching the current agent requirements, reusing caches when possible.
+     */
+    private async getOrPrepareOpenAiAssistant(options: {
+        /**
+         * Underlying OpenAI Assistant execution tools.
+         */
+        readonly llmTools: OpenAiAssistantExecutionTools;
+
+        /**
+         * Original runtime prompt before agent enrichment.
+         */
+        readonly originalPrompt: Prompt;
+
+        /**
+         * Prepared prompt plus backend routing metadata.
+         */
+        readonly preparedChatPrompt: PreparedAgentChatPrompt;
+
+        /**
+         * Streaming callback forwarded to the underlying execution tools.
+         */
+        readonly onProgress: (chunk: ChatPromptResult) => void;
+    }): Promise<OpenAiAssistantExecutionTools> {
+        const requirementsHash = computeJsonHash(options.preparedChatPrompt.sanitizedRequirements);
+        const cachedAssistant = AgentLlmExecutionTools.assistantCache.get(this.title);
+        const assistantTools = options.preparedChatPrompt.sanitizedRequirements.tools
+            ? [...options.preparedChatPrompt.sanitizedRequirements.tools]
+            : undefined;
+
+        if (this.options.assistantPreparationMode === 'external') {
             if (this.options.isVerbose) {
-                console.log(`2️⃣ Creating Assistant ${this.title} on generic LLM execution tools...`);
+                console.info('[🤰]', 'Using externally managed OpenAI Assistant', {
+                    agent: this.title,
+                    assistantId: options.llmTools.assistantId,
+                });
             }
 
-            if (this.options.llmTools.callChatModelStream) {
-                underlyingLlmResult = await this.options.llmTools.callChatModelStream(
-                    promptWithAgentModelRequirements,
-                    onProgress,
-                    options,
-                );
-            } else if (this.options.llmTools.callChatModel) {
-                underlyingLlmResult = await this.options.llmTools.callChatModel(promptWithAgentModelRequirements);
-                onProgress(underlyingLlmResult as ChatPromptResult);
-            } else {
-                throw new Error('Underlying LLM execution tools do not support chat model calls');
+            this.storeAssistantCache(options.llmTools.assistantId, requirementsHash);
+            return options.llmTools;
+        }
+
+        if (cachedAssistant && cachedAssistant.requirementsHash === requirementsHash) {
+            if (this.options.isVerbose) {
+                console.info('[🤰]', 'Using cached OpenAI Assistant', {
+                    agent: this.title,
+                    assistantId: cachedAssistant.assistantId,
+                });
             }
+
+            return options.llmTools.getAssistant(cachedAssistant.assistantId);
         }
 
-        let content = underlyingLlmResult.content as string_markdown | really_unknown;
+        if (cachedAssistant) {
+            if (this.options.isVerbose) {
+                console.info('[🤰]', 'Updating OpenAI Assistant', {
+                    agent: this.title,
+                    assistantId: cachedAssistant.assistantId,
+                });
+            }
 
-        if (typeof content === 'string') {
-            // Note: Cleanup the AI artifacts from the content
-            content = humanizeAiText(content);
+            emitAssistantPreparationProgress({
+                onProgress: options.onProgress,
+                prompt: options.originalPrompt,
+                modelName: this.modelName,
+                phase: 'Updating assistant',
+            });
 
-            // Note: Make sure the content is Promptbook-like
-            content = promptbookifyAiText(content as string_markdown);
-        } else {
-            // TODO: Maybe deep `humanizeAiText` + `promptbookifyAiText` inside of the object
-            content = JSON.stringify(content);
+            const assistant = await options.llmTools.updateAssistant({
+                assistantId: cachedAssistant.assistantId,
+                name: this.title,
+                instructions: options.preparedChatPrompt.sanitizedRequirements.systemMessage,
+                knowledgeSources: options.preparedChatPrompt.sanitizedRequirements.knowledgeSources,
+                tools: assistantTools,
+            });
+
+            this.storeAssistantCache(assistant.assistantId, requirementsHash);
+            return assistant;
         }
 
-        const agentResult: ChatPromptResult = {
+        if (this.options.isVerbose) {
+            console.info('[🤰]', 'Creating new OpenAI Assistant', {
+                agent: this.title,
+            });
+        }
+
+        // <- TODO: [🐱‍🚀] Check also `isCreatingNewAssistantsAllowed` and warn about it
+        emitAssistantPreparationProgress({
+            onProgress: options.onProgress,
+            prompt: options.originalPrompt,
+            modelName: this.modelName,
+            phase: 'Creating assistant',
+        });
+
+        const assistant = await options.llmTools.createNewAssistant({
+            name: this.title,
+            instructions: options.preparedChatPrompt.sanitizedRequirements.systemMessage,
+            knowledgeSources: options.preparedChatPrompt.sanitizedRequirements.knowledgeSources,
+            tools: assistantTools,
+            /*
+            !!!
+            metadata: {
+                agentModelName: this.modelName,
+            }
+            */
+        });
+
+        this.storeAssistantCache(assistant.assistantId, requirementsHash);
+        return assistant;
+    }
+
+    /**
+     * Stores one assistant id in the shared assistant cache for this agent title.
+     */
+    private storeAssistantCache(assistantId: string, requirementsHash: string): void {
+        AgentLlmExecutionTools.assistantCache.set(this.title, {
+            assistantId,
+            requirementsHash,
+        });
+    }
+
+    /**
+     * Runs one prepared prompt through generic LLM tools that do not need special assistant preparation.
+     */
+    private async callGenericChatModelStream(options: {
+        /**
+         * Prepared prompt plus backend routing metadata.
+         */
+        readonly preparedChatPrompt: PreparedAgentChatPrompt;
+
+        /**
+         * Streaming callback forwarded to the underlying execution tools.
+         */
+        readonly onProgress: (chunk: ChatPromptResult) => void;
+
+        /**
+         * Optional stream controls propagated from the caller.
+         */
+        readonly streamOptions?: CallChatModelStreamOptions;
+    }): Promise<CommonPromptResult> {
+        if (this.options.isVerbose) {
+            console.log(`2️⃣ Creating Assistant ${this.title} on generic LLM execution tools...`);
+        }
+
+        if (this.options.llmTools.callChatModelStream) {
+            return this.options.llmTools.callChatModelStream(
+                options.preparedChatPrompt.forwardedPrompt,
+                options.onProgress,
+                options.streamOptions,
+            );
+        }
+
+        if (this.options.llmTools.callChatModel) {
+            const underlyingLlmResult = await this.options.llmTools.callChatModel(options.preparedChatPrompt.forwardedPrompt);
+            options.onProgress(underlyingLlmResult as ChatPromptResult);
+            return underlyingLlmResult;
+        }
+
+        throw new Error('Underlying LLM execution tools do not support chat model calls');
+    }
+
+    /**
+     * Applies the final agent-level content normalization to the underlying LLM result.
+     */
+    private finalizeAgentResult(underlyingLlmResult: CommonPromptResult): ChatPromptResult {
+        return {
             ...underlyingLlmResult,
-            content: content as string_markdown,
+            content: normalizeAgentResultContent(underlyingLlmResult.content as string_markdown | really_unknown),
             modelName: this.modelName,
         };
-
-        return agentResult;
     }
 
     // Note: We intentionally do NOT implement callCompletionModel and callEmbeddingModel
