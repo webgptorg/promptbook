@@ -1,3 +1,8 @@
+-   Refactored `scripts/generate-packages/generate-packages.ts` into smaller focused package-generation helpers without changing external behavior:
+
+    -   Split the large `generatePackages` orchestration into dedicated preparation, entry-file generation, README/package-json generation, bundling, bundle-safety validation, dependency finalization, and publish-workflow helpers so the flow now reads top-down.
+    -   Kept the generated package contents, dependency inference rules, marker checks, publish-workflow output, and optional commit behavior intact while removing repeated branching and duplicated package-json writing logic.
+
 -   Refactored Agents Server `UsageAnalyticsAggregation.ts` into smaller focused aggregation helpers without changing external behavior:
 
     -   Split usage-response construction into dedicated summary, grouped-call accumulation, breakdown, and detail-formatting helpers so the main response builder now reads top-down.
