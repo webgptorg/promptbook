@@ -1,3 +1,8 @@
+-   Refactored `src/book-components/Chat/Chat/ChatInputArea.tsx` into smaller focused private composer modules without changing external behavior:
+
+    -   Extracted textarea state, send/newline behavior, and deferred Enter resolution into a dedicated private `useChatInputAreaComposer` hook so `ChatInputArea.tsx` now reads as a composition layer.
+    -   Moved the shared uploaded-file type into a dedicated private module and kept the existing reply preview, attachment upload, dictation controls, optimistic send clearing, IME handling, and deferred Enter safeguards intact while reducing branching in the component.
+
 -   Refactored `src/book-components/Chat/Chat/Chat.tsx` into smaller focused private chat helpers without changing external behavior:
 
     -   Extracted render-only message normalization, scroll/overlap orchestration, and tool-call/citation modal selection into dedicated private hooks so `Chat.tsx` now reads top-down.

@@ -1,16 +1,9 @@
 'use client';
 
 import {
-    useCallback,
-    useEffect,
-    useRef,
-    useState,
     type CSSProperties,
-    type ChangeEvent,
     type MouseEvent,
-    type KeyboardEvent as ReactKeyboardEvent,
 } from 'react';
-import { spaceTrim } from 'spacetrim';
 import { USER_CHAT_COLOR } from '../../../config';
 import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
@@ -32,6 +25,7 @@ import { ChatInputAreaDictationPanel } from './ChatInputAreaDictationPanel';
 import { chatCssClassNames } from './chatCssClassNames';
 import type { ChatProps, ChatSoundSystem } from './ChatProps';
 import { useChatInputAreaAttachments } from './useChatInputAreaAttachments';
+import { useChatInputAreaComposer } from './useChatInputAreaComposer';
 import { useChatInputAreaDictation } from './useChatInputAreaDictation';
 
 /**
@@ -42,17 +36,6 @@ import { useChatInputAreaDictation } from './useChatInputAreaDictation';
 export type ChatInputButtonClickHandler = (
     handler?: (event: MouseEvent<HTMLButtonElement>) => void,
 ) => (event: MouseEvent<HTMLButtonElement>) => void;
-
-/**
- * Internal representation of an uploaded file in the chat input.
- *
- * @private component of `<Chat/>`
- */
-export type ChatInputUploadedFile = {
-    id: string;
-    file: File;
-    content: string;
-};
 
 /**
  * Props for the chat input area.
@@ -83,93 +66,6 @@ export type ChatInputAreaProps = {
 };
 
 /**
- * Snapshot of composer state captured before one deferred Enter decision.
- *
- * @private component of `<Chat/>`
- */
-type PendingEnterIntentSnapshot = {
-    readonly value: string;
-    readonly selectionStart: number;
-    readonly selectionEnd: number;
-    readonly attachmentIds: ReadonlyArray<string>;
-    readonly replyingToMessageId: string | null;
-};
-
-/**
- * Inverts the primary Enter behavior for the `Ctrl+Enter` secondary binding.
- *
- * @private component of `<Chat/>`
- */
-function invertChatEnterBehavior(
-    enterBehavior: NonNullable<ChatProps['enterBehavior']>,
-): NonNullable<ChatProps['enterBehavior']> {
-    return enterBehavior === 'SEND' ? 'NEWLINE' : 'SEND';
-}
-
-/**
- * Resolves the effective action for one Enter key press.
- *
- * @private component of `<Chat/>`
- */
-function resolveChatEnterAction(
-    enterBehavior: NonNullable<ChatProps['enterBehavior']>,
-    isCtrlPressed: boolean,
-): NonNullable<ChatProps['enterBehavior']> {
-    return isCtrlPressed ? invertChatEnterBehavior(enterBehavior) : enterBehavior;
-}
-
-/**
- * Returns true when the browser is still composing IME text.
- *
- * @private component of `<Chat/>`
- */
-function isKeyboardEventComposing(event: ReactKeyboardEvent<HTMLTextAreaElement>): boolean {
-    const nativeKeyboardEvent = event.nativeEvent as globalThis.KeyboardEvent & {
-        readonly isComposing?: boolean;
-        readonly keyCode?: number;
-    };
-
-    return nativeKeyboardEvent.isComposing === true || nativeKeyboardEvent.keyCode === 229;
-}
-
-/**
- * Inserts plain text into a textarea value at the current selection.
- *
- * @private component of `<Chat/>`
- */
-function insertTextAtSelection(params: {
-    readonly currentValue: string;
-    readonly insertedText: string;
-    readonly selectionStart: number;
-    readonly selectionEnd: number;
-}): { nextValue: string; caret: number } {
-    const { currentValue, insertedText, selectionStart, selectionEnd } = params;
-    const nextValue = currentValue.slice(0, selectionStart) + insertedText + currentValue.slice(selectionEnd);
-    const caret = selectionStart + insertedText.length;
-
-    return {
-        nextValue,
-        caret,
-    };
-}
-
-/**
- * Compares attachment id snapshots captured around a deferred Enter resolution.
- *
- * @private component of `<Chat/>`
- */
-function areAttachmentSnapshotsEqual(
-    firstAttachmentIds: ReadonlyArray<string>,
-    secondAttachmentIds: ReadonlyArray<string>,
-): boolean {
-    if (firstAttachmentIds.length !== secondAttachmentIds.length) {
-        return false;
-    }
-
-    return firstAttachmentIds.every((attachmentId, index) => attachmentId === secondAttachmentIds[index]);
-}
-
-/**
  * Renders the chat input area with text, file upload, and voice controls.
  *
  * @private component of `<Chat/>`
@@ -197,10 +93,6 @@ export function ChatInputArea(props: ChatInputAreaProps) {
         chatInputClassName,
         chatUiTranslations,
     } = props;
-    const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-    const [messageContent, setMessageContent] = useState(defaultMessage || '');
-    const messageContentRef = useRef(messageContent);
-    const isResolvingEnterBehaviorRef = useRef(false);
     const {
         fileInputRef,
         uploadedFiles,
@@ -219,35 +111,29 @@ export function ChatInputArea(props: ChatInputAreaProps) {
         onFileUpload,
     });
 
-    const applyMessageContent = useCallback(
-        (nextContent: string) => {
-            messageContentRef.current = nextContent;
-            setMessageContent(nextContent);
-            onChange?.(nextContent);
-        },
-        [onChange],
-    );
-
-    useEffect(() => {
-        const nextDefaultMessage = defaultMessage || '';
-        messageContentRef.current = nextDefaultMessage;
-        setMessageContent(nextDefaultMessage);
-    }, [defaultMessage]);
-
-    useEffect(
-        (/* Focus textarea on page load */) => {
-            if (!textareaRef.current) {
-                return;
-            }
-
-            const shouldFocus = isFocusedOnLoad ?? !isMobile;
-
-            if (shouldFocus) {
-                textareaRef.current.focus();
-            }
-        },
-        [textareaRef, isMobile, isFocusedOnLoad],
-    );
+    const {
+        textareaRef,
+        messageContent,
+        messageContentRef,
+        applyMessageContent,
+        handleTextInputChange,
+        handleComposerKeyDown,
+        handleSend,
+    } = useChatInputAreaComposer({
+        onMessage,
+        onChange,
+        defaultMessage,
+        enterBehavior,
+        resolveEnterBehavior,
+        isFocusedOnLoad,
+        isMobile,
+        uploadedFiles,
+        uploadedFilesRef,
+        clearUploadedFiles,
+        replyingToMessage,
+        onCancelReply,
+        soundSystem,
+    });
 
     const {
         speechRecognitionUiDescriptor,
@@ -277,202 +163,6 @@ export function ChatInputArea(props: ChatInputAreaProps) {
         messageContentRef,
         applyMessageContent,
     });
-
-    const handleTextInputChange = useCallback(
-        (event: ChangeEvent<HTMLTextAreaElement>) => {
-            applyMessageContent(event.target.value);
-        },
-        [applyMessageContent],
-    );
-
-    const handleInsertNewline = useCallback(
-        (selectionStart?: number, selectionEnd?: number) => {
-            const textareaElement = textareaRef.current;
-            if (!textareaElement) {
-                return;
-            }
-
-            const resolvedSelectionStart =
-                selectionStart ?? textareaElement.selectionStart ?? messageContentRef.current.length;
-            const resolvedSelectionEnd = selectionEnd ?? textareaElement.selectionEnd ?? resolvedSelectionStart;
-            const insertion = insertTextAtSelection({
-                currentValue: messageContentRef.current,
-                insertedText: '\n',
-                selectionStart: resolvedSelectionStart,
-                selectionEnd: resolvedSelectionEnd,
-            });
-
-            applyMessageContent(insertion.nextValue);
-
-            requestAnimationFrame(() => {
-                textareaElement.focus();
-                textareaElement.setSelectionRange(insertion.caret, insertion.caret);
-            });
-        },
-        [applyMessageContent],
-    );
-
-    const handleSend = useCallback(async () => {
-        if (!onMessage) {
-            throw new Error(`Can not find onMessage callback`);
-        }
-
-        const textareaElement = textareaRef.current;
-
-        if (!textareaElement) {
-            throw new Error(`Can not find textarea`);
-        }
-
-        const wasTextareaFocused = document.activeElement === textareaElement;
-
-        try {
-            const attachments = uploadedFiles.map((uploadedFile) => ({
-                name: uploadedFile.file.name,
-                type: uploadedFile.file.type,
-                url: uploadedFile.content,
-            }));
-            const contentToSend = messageContentRef.current;
-
-            if (spaceTrim(contentToSend) === '' && attachments.length === 0) {
-                throw new Error(`You need to write some text or upload a file`);
-            }
-
-            if (soundSystem) {
-                /* not await */ soundSystem.play('message_send');
-            }
-
-            // Capture content before optimistically clearing the textarea
-            const attachmentsToSend = attachments;
-
-            // Optimistically clear the textarea immediately on send,
-            // without waiting for the server to confirm receipt.
-            // On server failure the error state is shown in the chat — the text is not restored.
-            applyMessageContent('');
-            clearUploadedFiles();
-
-            if (wasTextareaFocused) {
-                textareaElement.focus();
-            }
-
-            await onMessage(contentToSend, attachmentsToSend, replyingToMessage || null);
-            onCancelReply?.();
-        } catch (error) {
-            if (!(error instanceof Error)) {
-                throw error;
-            }
-
-            console.error(error);
-            alert(error.message);
-        }
-    }, [
-        applyMessageContent,
-        clearUploadedFiles,
-        onCancelReply,
-        onMessage,
-        replyingToMessage,
-        soundSystem,
-        uploadedFiles,
-    ]);
-
-    const handleComposerKeyDown = useCallback(
-        (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
-            if (event.key === 'Escape' && replyingToMessage && onCancelReply) {
-                event.preventDefault();
-                onCancelReply();
-                return;
-            }
-
-            if (event.key !== 'Enter') {
-                return;
-            }
-
-            if (isKeyboardEventComposing(event)) {
-                return;
-            }
-
-            if (event.shiftKey) {
-                return;
-            }
-
-            if (!enterBehavior && !event.ctrlKey && resolveEnterBehavior) {
-                event.preventDefault();
-
-                if (isResolvingEnterBehaviorRef.current) {
-                    return;
-                }
-
-                const textareaElement = textareaRef.current;
-                if (!textareaElement) {
-                    return;
-                }
-
-                const snapshot: PendingEnterIntentSnapshot = {
-                    value: messageContentRef.current,
-                    selectionStart: textareaElement.selectionStart ?? messageContentRef.current.length,
-                    selectionEnd:
-                        textareaElement.selectionEnd ??
-                        textareaElement.selectionStart ??
-                        messageContentRef.current.length,
-                    attachmentIds: uploadedFilesRef.current.map((uploadedFile) => uploadedFile.id),
-                    replyingToMessageId: typeof replyingToMessage?.id === 'string' ? replyingToMessage.id : null,
-                };
-
-                isResolvingEnterBehaviorRef.current = true;
-
-                void (async () => {
-                    try {
-                        const resolvedBehavior = await resolveEnterBehavior();
-                        if (!resolvedBehavior) {
-                            return;
-                        }
-
-                        const hasSameMessageContent = messageContentRef.current === snapshot.value;
-                        const hasSameAttachments = areAttachmentSnapshotsEqual(
-                            snapshot.attachmentIds,
-                            uploadedFilesRef.current.map((uploadedFile) => uploadedFile.id),
-                        );
-                        const currentReplyingToMessageId =
-                            typeof replyingToMessage?.id === 'string' ? replyingToMessage.id : null;
-                        const hasSameReplyTarget = currentReplyingToMessageId === snapshot.replyingToMessageId;
-
-                        if (!hasSameMessageContent || !hasSameAttachments || !hasSameReplyTarget) {
-                            return;
-                        }
-
-                        const resolvedAction = resolveChatEnterAction(resolvedBehavior, false);
-
-                        if (resolvedAction === 'SEND') {
-                            const hasTextToSend = spaceTrim(snapshot.value) !== '' || snapshot.attachmentIds.length > 0;
-                            if (!hasTextToSend) {
-                                return;
-                            }
-
-                            await handleSend();
-                            return;
-                        }
-
-                        handleInsertNewline(snapshot.selectionStart, snapshot.selectionEnd);
-                    } finally {
-                        isResolvingEnterBehaviorRef.current = false;
-                    }
-                })();
-
-                return;
-            }
-
-            const effectiveEnterBehavior = enterBehavior || 'SEND';
-            const resolvedAction = resolveChatEnterAction(effectiveEnterBehavior, event.ctrlKey);
-            event.preventDefault();
-
-            if (resolvedAction === 'SEND') {
-                /* not await */ handleSend();
-                return;
-            }
-
-            handleInsertNewline();
-        },
-        [enterBehavior, handleInsertNewline, handleSend, onCancelReply, replyingToMessage, resolveEnterBehavior],
-    );
 
     if (!onMessage) {
         return null;
@@ -548,9 +238,7 @@ export function ChatInputArea(props: ChatInputAreaProps) {
                 }
             >
                 <textarea
-                    ref={(element) => {
-                        textareaRef.current = element;
-                    }}
+                    ref={textareaRef}
                     className={chatCssClassNames.inputTextarea}
                     onPaste={handlePaste}
                     value={messageContent}
