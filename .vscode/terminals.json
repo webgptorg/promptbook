@@ -537,7 +537,7 @@
         },
         {
             "name": "⚡✔ Verify prompts done by Coding Agent (💤)",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts coder verify --reverse",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder verify --reverse --ignore Refactor",
             "execute": false,
             "onlySingle": false,
             "focus": false
