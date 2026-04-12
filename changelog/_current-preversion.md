@@ -1,3 +1,5 @@
+-   Refactored Agents Server durable chat history state management in `useAgentChatHistoryClientState` to improve readability and maintainability without changing behavior.
+
 -   Replaced the Agents Server default agent-avatar diffusion flow with a deterministic 2-stage pixel-art pipeline:
 
     -   Added a stage-1 LLM classification step that converts the resolved agent profile/book into compact validated JSON avatar parameters and stores them in the database with a versioned deterministic fingerprint.
