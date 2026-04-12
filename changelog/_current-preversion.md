@@ -1,3 +1,9 @@
+-   Replaced the Agents Server default agent-avatar diffusion flow with a deterministic 2-stage pixel-art pipeline:
+
+    -   Added a stage-1 LLM classification step that converts the resolved agent profile/book into compact validated JSON avatar parameters and stores them in the database with a versioned deterministic fingerprint.
+    -   Replaced the old diffusion image generation in `/agents/[agentName]/images/default-avatar.png` with a stage-2 procedural pixel-art PNG renderer so the existing still-image URL now serves reproducible default avatars while continuing to defer to custom `META IMAGE` values elsewhere.
+    -   Added deterministic renderer tests for byte-identical PNG output and contract tests covering valid stage-1 schema output for representative “kind” and “strict” agent profiles.
+
 -   Made the Agents Server README quick deploy flow truly standalone:
 
     -   Replaced the generic mixed-provider quick-deploy buttons with one Vercel deploy button that opens the `apps/agents-server` project, requires the native Supabase integration, and pre-fills the remaining environment variables needed from the user.
