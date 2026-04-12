@@ -1,7 +1,7 @@
 On the `main`:
 
 ```bash
-git checkout -b backup/xxx-fail
+git checkout -b backup/failed-xxx
 ```
 
 ---
@@ -21,7 +21,7 @@ git push --set-upstream origin main --force
 
 ---
 
-Cherry pick work from the `backup/xxx-fail` which should be preserved
+Cherry pick work from the `backup/failed-xxx` which should be preserved
 
 ---
 
