@@ -7,7 +7,7 @@ import type { RunOptions } from './RunOptions';
  * CLI usage text for this script.
  */
 const USAGE =
-    'Usage: run-codex-prompts [--dry-run] [--agent <agent-name>] [--model <model>] [--context <context-or-file>] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--no-wait] [--ignore-git-changes] [--no-normalize-line-endings]';
+    'Usage: run-codex-prompts [--dry-run] [--agent <agent-name>] [--model <model>] [--context <context-or-file>] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--no-wait] [--ignore-git-changes] [--no-normalize-line-endings] [--no-push]';
 
 /**
  * Parses CLI arguments into runner options.
@@ -43,6 +43,7 @@ export function parseRunOptions(args: string[]): RunOptions {
     const allowCredits = args.includes('--allow-credits');
     const autoMigrate = args.includes('--auto-migrate');
     const allowDestructiveAutoMigrate = args.includes('--allow-destructive-auto-migrate');
+    const noPush = args.includes('--no-push');
     let thinkingLevel: ThinkingLevel | undefined;
 
     if (hasThinkingLevelFlag && thinkingLevelValue === undefined) {
@@ -71,6 +72,7 @@ export function parseRunOptions(args: string[]): RunOptions {
         allowCredits,
         autoMigrate,
         allowDestructiveAutoMigrate,
+        noPush,
         agentName,
         model,
         context,

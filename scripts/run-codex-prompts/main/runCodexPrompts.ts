@@ -309,7 +309,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                     await waitForEnter(colors.bgWhite('Press Enter to commit and continue...'));
                 }
 
-                await commitChanges(commitMessage);
+                await commitChanges(commitMessage, { noPush: options.noPush });
                 await runPostPromptAutoMigrationIfEnabled(options);
             } catch (error) {
                 markPromptFailed(

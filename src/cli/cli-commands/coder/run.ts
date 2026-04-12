@@ -74,6 +74,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
         '--no-normalize-line-endings',
         'Disable automatic LF normalization for files changed in each coding round',
     );
+    command.option('--no-push', 'Disable automatic git push after each commit');
     command.option(
         '--auto-migrate',
         'Run testing-server database migrations automatically after each successfully processed prompt',
@@ -98,6 +99,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 normalizeLineEndings,
                 autoMigrate,
                 allowDestructiveAutoMigrate,
+                push,
             } = cliOptions as {
                 readonly dryRun: boolean;
                 readonly agent?: string;
@@ -111,6 +113,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 readonly normalizeLineEndings: boolean;
                 readonly autoMigrate: boolean;
                 readonly allowDestructiveAutoMigrate: boolean;
+                readonly push: boolean;
             };
 
             // Validate agent
@@ -166,6 +169,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 allowCredits,
                 autoMigrate,
                 allowDestructiveAutoMigrate,
+                noPush: !push,
             };
 
             // Note: Import the function dynamically to avoid loading heavy dependencies until needed

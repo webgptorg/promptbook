@@ -37,6 +37,10 @@ export type RunOptions = {
      * Allows auto-migration workflow to continue even when heuristic SQL safety checks detect destructive statements.
      */
     allowDestructiveAutoMigrate: boolean;
+    /**
+     * When true, skip pushing after each commit.
+     */
+    noPush: boolean;
     agentName?: 'openai-codex' | 'github-copilot' | 'cline' | 'claude-code' | 'opencode' | 'gemini';
     model?: string;
     /**

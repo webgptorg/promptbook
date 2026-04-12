@@ -9,7 +9,7 @@ import { runGitCommand } from './runGitCommand';
  * Commits staged changes with the provided message using the dedicated coding-agent identity when configured,
  * otherwise falls back to the default Git configuration.
  */
-export async function commitChanges(message: string): Promise<void> {
+export async function commitChanges(message: string, options?: { noPush?: boolean }): Promise<void> {
     const projectPath = process.cwd();
     const commitMessagePath = join(projectPath, '.tmp', 'codex-prompts', `COMMIT_MESSAGE_${Date.now()}.txt`);
     await mkdir(dirname(commitMessagePath), { recursive: true });
@@ -30,7 +30,9 @@ export async function commitChanges(message: string): Promise<void> {
             env: agentEnv,
         });
 
-        await pushCommittedChanges(projectPath, agentEnv);
+        if (!options?.noPush) {
+            await pushCommittedChanges(projectPath, agentEnv);
+        }
     } finally {
         await unlink(commitMessagePath).catch(() => undefined);
     }
