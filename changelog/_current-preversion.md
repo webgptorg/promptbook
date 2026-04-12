@@ -1,9 +1,4 @@
--   Refactored Agents Server `useAgentChatHistorySyncState.ts` into smaller focused private chat-history helpers without changing external behavior:
-
-    -   Moved the branching-heavy detail/snapshot application, bootstrap selection, optimistic chat creation, delete-refresh flow, and active job/timeout cancellation paths into focused helpers so `useAgentChatHistorySyncState` now reads top-down.
-    -   Kept the existing selection-intent guarding, optimistic bootstrap/new-chat lifecycle, route synchronization, stream/poll refresh, failed-send bookkeeping, and draft-preservation behavior intact while reducing branching complexity in the hook.
-
--   Refactored Agents Server `useAgentsListState.ts` into smaller focused private hooks without changing external behavior:
+-   Made the Agents Server README quick deploy flow truly standalone:
 
     -   Split the branching-heavy homepage state hook into dedicated derived-state, synchronization, route-recovery, organization-mutation, folder-management, agent-action, overlay, and drag-and-drop helpers so `useAgentsListState` now reads as a thin composition layer.
     -   Kept the existing background synchronization, folder URL recovery, folder dialog flows, delete/visibility actions, context-menu and QR-code behavior, visible-scope derivation, and drag-and-drop organization updates intact while making each step easier to follow and maintain.

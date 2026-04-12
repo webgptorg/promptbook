@@ -1,4 +1,4 @@
-[x] ~$0.00 37 minutes by OpenAI Codex `gpt-5.4`
+[ ]
 
 [🔧🧩] Procedural deterministic pixel-art agent default images (2-stage pipeline) + still image URL
 
