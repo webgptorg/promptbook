@@ -1,3 +1,8 @@
+-   Added a branded Agents Server `500 / Internal Server Error` page that now reuses the shared 404-style error layout:
+
+    -   Refactored the app-router application error boundary to render inside the shared `ErrorPage` shell, keeping retry, digest, and report-export actions while making the 500 experience visually consistent with the existing 404 page.
+    -   Extended the shared error-page wrapper with a wide-card option so the detailed 500 variant can keep its troubleshooting guidance without duplicating page chrome.
+
 -   Made the Agents Server README quick deploy flow truly standalone:
 
     -   Split the branching-heavy homepage state hook into dedicated derived-state, synchronization, route-recovery, organization-mutation, folder-management, agent-action, overlay, and drag-and-drop helpers so `useAgentsListState` now reads as a thin composition layer.

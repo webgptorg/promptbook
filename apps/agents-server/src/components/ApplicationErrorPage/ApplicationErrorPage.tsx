@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
     APPLICATION_ERROR_REPORT_ENDPOINT,
@@ -19,19 +20,9 @@ import {
 import { ErrorPage as BasicErrorPage } from '../ErrorPage/ErrorPage';
 
 /**
- * User-facing title rendered in the compact 500 page variant.
+ * User-facing title rendered across the branded 500 page variants.
  */
 const INTERNAL_SERVER_ERROR_TITLE = '500 / Internal Server Error';
-
-/**
- * Numeric status badge rendered in the advanced 500 page hero.
- */
-const INTERNAL_SERVER_ERROR_CODE = '500';
-
-/**
- * User-facing label rendered next to the numeric status badge.
- */
-const INTERNAL_SERVER_ERROR_LABEL = 'Internal Server Error';
 
 /**
  * Suggestions shown in the advanced error variant to help users recover.
@@ -121,42 +112,23 @@ type ApplicationErrorActionsProps = {
      * Default filename used by the markdown save action.
      */
     reportFilename: string;
-
-    /**
-     * Styling classes for the outer action row.
-     */
-    containerClassName: string;
-
-    /**
-     * Styling classes for the primary retry button.
-     */
-    retryButtonClassName: string;
-
-    /**
-     * Styling classes for the secondary homepage link.
-     */
-    homeButtonClassName: string;
-
-    /**
-     * Styling classes for the digest text block.
-     */
-    digestClassName: string;
-
-    /**
-     * Styling classes for the report copy button.
-     */
-    copyButtonClassName: string;
-
-    /**
-     * Styling classes for the report save button.
-     */
-    saveButtonClassName: string;
-
-    /**
-     * Styling classes for report export feedback text.
-     */
-    reportFeedbackClassName: string;
 };
+
+/**
+ * Shared primary action styling used by the branded application error page.
+ *
+ * @private
+ */
+const PRIMARY_APPLICATION_ERROR_ACTION_CLASS_NAME =
+    'inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700';
+
+/**
+ * Shared secondary action styling used by the branded application error page.
+ *
+ * @private
+ */
+const SECONDARY_APPLICATION_ERROR_ACTION_CLASS_NAME =
+    'inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100';
 
 /**
  * Shared primary/secondary actions rendered in both simple and advanced variants.
@@ -170,13 +142,6 @@ function ApplicationErrorActions({
     digest,
     reportMarkdown,
     reportFilename,
-    containerClassName,
-    retryButtonClassName,
-    homeButtonClassName,
-    digestClassName,
-    copyButtonClassName,
-    saveButtonClassName,
-    reportFeedbackClassName,
 }: ApplicationErrorActionsProps) {
     const [reportFeedback, setReportFeedback] = useState<string | null>(null);
     const reportFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -233,24 +198,30 @@ function ApplicationErrorActions({
     };
 
     return (
-        <div className={containerClassName}>
-            <button type="button" onClick={() => reset()} className={retryButtonClassName}>
-                Try again
-            </button>
-            <Link href="/" className={homeButtonClassName}>
-                Go to homepage
-            </Link>
-            <button type="button" onClick={() => void handleCopyReport()} className={copyButtonClassName}>
-                Copy
-            </button>
-            <button type="button" onClick={handleSaveReport} className={saveButtonClassName}>
-                Save
-            </button>
-            <div className={digestClassName}>
+        <div className="flex flex-col items-center gap-3">
+            <div className="flex flex-wrap justify-center gap-3">
+                <button type="button" onClick={() => reset()} className={PRIMARY_APPLICATION_ERROR_ACTION_CLASS_NAME}>
+                    Try again
+                </button>
+                <Link href="/" className={SECONDARY_APPLICATION_ERROR_ACTION_CLASS_NAME}>
+                    Go to homepage
+                </Link>
+                <button
+                    type="button"
+                    onClick={() => void handleCopyReport()}
+                    className={SECONDARY_APPLICATION_ERROR_ACTION_CLASS_NAME}
+                >
+                    Copy
+                </button>
+                <button type="button" onClick={handleSaveReport} className={SECONDARY_APPLICATION_ERROR_ACTION_CLASS_NAME}>
+                    Save
+                </button>
+            </div>
+            <div className="text-xs font-mono text-gray-500">
                 Digest: <span className="text-current">{digest}</span>
             </div>
             {reportFeedback ? (
-                <p className={reportFeedbackClassName} role="status" aria-live="polite">
+                <p className="text-xs text-gray-600" role="status" aria-live="polite">
                     {reportFeedback}
                 </p>
             ) : null}
@@ -259,11 +230,11 @@ function ApplicationErrorActions({
 }
 
 /**
- * Props accepted by the simple error variant renderer.
+ * Props accepted by the shared application error renderer.
  *
  * @private
  */
-type SimpleApplicationErrorViewProps = {
+type ApplicationErrorViewProps = {
     /**
      * Primary headline shared with advanced mode.
      */
@@ -293,140 +264,89 @@ type SimpleApplicationErrorViewProps = {
      * Callback that retries the failed route transition.
      */
     reset: () => void;
+
+    /**
+     * Width variant used by the shared error shell.
+     */
+    size?: 'default' | 'wide';
+
+    /**
+     * Optional supplementary content rendered beneath shared actions.
+     */
+    supplementaryContent?: ReactNode;
 };
 
 /**
- * Compact application error presentation for lightweight deployments.
+ * Shared application error presentation built on the same shell as other branded error pages.
  *
- * @param props - Display props for the simple variant.
+ * @param props - Display props for the branded application error page.
  *
  * @private
  */
-function SimpleApplicationErrorView({
+function ApplicationErrorView({
     headline,
     description,
     digest,
     reportMarkdown,
     reportFilename,
     reset,
-}: SimpleApplicationErrorViewProps) {
+    size = 'default',
+    supplementaryContent,
+}: ApplicationErrorViewProps) {
     return (
-        <BasicErrorPage title={INTERNAL_SERVER_ERROR_TITLE} message={headline}>
+        <BasicErrorPage title={INTERNAL_SERVER_ERROR_TITLE} message={headline} size={size}>
             <p className="mb-5 text-center text-sm text-gray-600">{description}</p>
             <ApplicationErrorActions
                 reset={reset}
                 digest={digest}
                 reportMarkdown={reportMarkdown}
                 reportFilename={reportFilename}
-                containerClassName="flex flex-col items-center gap-3"
-                retryButtonClassName="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
-                homeButtonClassName="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
-                digestClassName="text-xs font-mono text-gray-500"
-                copyButtonClassName="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
-                saveButtonClassName="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
-                reportFeedbackClassName="text-xs text-gray-600"
             />
+            {supplementaryContent}
         </BasicErrorPage>
     );
 }
 
 /**
- * Props accepted by the advanced error variant renderer.
+ * Compact application error presentation for lightweight deployments.
  *
  * @private
  */
-type AdvancedApplicationErrorViewProps = {
-    /**
-     * Primary headline shared with simple mode.
-     */
-    headline: string;
-
-    /**
-     * Friendly paragraph explaining what happened.
-     */
-    description: string;
-
-    /**
-     * Digest value displayed for support correlation.
-     */
-    digest: string;
-
-    /**
-     * Full markdown report text used by copy/save controls.
-     */
-    reportMarkdown: string;
-
-    /**
-     * Default filename used by the markdown save action.
-     */
-    reportFilename: string;
-
-    /**
-     * Callback that retries the failed route transition.
-     */
-    reset: () => void;
-};
+function SimpleApplicationErrorView(props: ApplicationErrorViewProps) {
+    return <ApplicationErrorView {...props} />;
+}
 
 /**
- * Full-screen detailed error presentation for troubleshooting-heavy environments.
+ * Detailed application error presentation for troubleshooting-heavy environments.
  *
  * @param props - Display props for the advanced variant.
  *
  * @private
  */
-function AdvancedApplicationErrorView({
-    headline,
-    description,
-    digest,
-    reportMarkdown,
-    reportFilename,
-    reset,
-}: AdvancedApplicationErrorViewProps) {
+function AdvancedApplicationErrorView(props: ApplicationErrorViewProps) {
     return (
-        <div className="min-h-screen w-full bg-slate-950 px-4 py-12 text-white">
-            <div className="mx-auto flex w-full max-w-5xl flex-col justify-center gap-8 rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900/85 via-slate-900/70 to-slate-950/95 p-8 shadow-[0_20px_80px_rgba(15,23,42,0.65)] backdrop-blur sm:p-10">
-                <div className="space-y-4">
-                    <div className="flex flex-wrap items-center gap-3 text-sm uppercase tracking-[0.32em] text-indigo-200">
-                        <span className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-indigo-300/40 bg-indigo-400/10 text-lg font-semibold text-white">
-                            {INTERNAL_SERVER_ERROR_CODE}
-                        </span>
-                        <span>{INTERNAL_SERVER_ERROR_LABEL}</span>
+        <ApplicationErrorView
+            {...props}
+            size="wide"
+            supplementaryContent={
+                <>
+                    <div className="mt-8 grid gap-4 text-left sm:grid-cols-3">
+                        {troubleshootingSteps.map((step) => (
+                            <article key={step.title} className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                                <p className="text-sm font-semibold uppercase tracking-wider text-gray-900">
+                                    {step.title}
+                                </p>
+                                <p className="mt-2 text-sm text-gray-600">{step.detail}</p>
+                            </article>
+                        ))}
                     </div>
-                    <div className="space-y-3">
-                        <h1 className="text-3xl font-semibold leading-tight text-white sm:text-4xl">{headline}</h1>
-                        <p className="text-lg text-slate-200 sm:text-xl">{description}</p>
-                    </div>
-                </div>
-                <ApplicationErrorActions
-                    reset={reset}
-                    digest={digest}
-                    reportMarkdown={reportMarkdown}
-                    reportFilename={reportFilename}
-                    containerClassName="flex flex-wrap items-center gap-3"
-                    retryButtonClassName="inline-flex items-center justify-center rounded-2xl bg-indigo-500 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white transition hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-300"
-                    homeButtonClassName="inline-flex items-center justify-center rounded-2xl border border-white/30 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white transition hover:border-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-                    digestClassName="ml-auto text-xs font-mono text-slate-300"
-                    copyButtonClassName="inline-flex items-center justify-center rounded-2xl border border-white/30 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white transition hover:border-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-                    saveButtonClassName="inline-flex items-center justify-center rounded-2xl border border-white/30 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white transition hover:border-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-                    reportFeedbackClassName="w-full text-xs text-slate-300"
-                />
-                <div className="grid gap-4 sm:grid-cols-3">
-                    {troubleshootingSteps.map((step) => (
-                        <article
-                            key={step.title}
-                            className="rounded-2xl border border-white/5 bg-white/5 p-4 shadow-inner shadow-black/40"
-                        >
-                            <p className="text-sm font-semibold uppercase tracking-wider text-indigo-200">{step.title}</p>
-                            <p className="mt-2 text-sm text-slate-200">{step.detail}</p>
-                        </article>
-                    ))}
-                </div>
-                <p className="text-xs text-slate-400">
-                    Our team already receives this report in Sentry, but feel free to include the digest when reporting
-                    the issue so the logs can be correlated quickly.
-                </p>
-            </div>
-        </div>
+                    <p className="mt-6 text-center text-xs text-gray-500">
+                        Our team already receives this report in Sentry, but feel free to include the digest when
+                        reporting the issue so the logs can be correlated quickly.
+                    </p>
+                </>
+            }
+        />
     );
 }
 
