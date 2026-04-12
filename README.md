@@ -18,7 +18,7 @@ Create persistent AI agents that turn your company's scattered knowledge into ac
 [![Issues](https://img.shields.io/github/issues/webgptorg/promptbook.svg?style=flat)](https://github.com/webgptorg/promptbook/issues)
 
 
-## Quick deploy
+## 🚀 Quick deploy
 
 [![Vercel](https://img.shields.io/badge/Vercel-Deploy-black?logo=vercel)](https://vercel.com/new/clone?repository-url=https://github.com/webgptorg/promptbook/tree/main/apps/agents-server)
 [![DigitalOcean](https://img.shields.io/badge/DigitalOcean-Deploy-0080FF?logo=digitalocean&logoColor=white)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/webgptorg/promptbook/tree/main)
