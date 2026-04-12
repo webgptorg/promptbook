@@ -37,38 +37,64 @@ export async function ensureAutomaticDatabaseMigrations(): Promise<void> {
 export async function ensureAutomaticDatabaseMigrationsForPrefix(prefix: string): Promise<void> {
     const normalizedPrefix = prefix || '';
     if (!automaticDatabaseMigrationPromiseByPrefix.has(normalizedPrefix)) {
-        automaticDatabaseMigrationPromiseByPrefix.set(
-            normalizedPrefix,
-            runAutomaticDatabaseMigrationsForPrefix(normalizedPrefix),
-        );
+        automaticDatabaseMigrationPromiseByPrefix.set(normalizedPrefix, createAutomaticDatabaseMigrationPromise(normalizedPrefix));
     }
 
     return automaticDatabaseMigrationPromiseByPrefix.get(normalizedPrefix)!;
 }
 
 /**
+ * Creates one shared automatic-migration promise and clears it again when the attempt should be retried later.
+ *
+ * A failed startup migration must not poison the process forever; otherwise every later instrumentation load would
+ * keep reusing the same rejected promise until redeploy.
+ */
+function createAutomaticDatabaseMigrationPromise(prefix: string): Promise<void> {
+    return runAutomaticDatabaseMigrationsForPrefix(prefix)
+        .then((isMigrationCheckComplete) => {
+            if (!isMigrationCheckComplete) {
+                automaticDatabaseMigrationPromiseByPrefix.delete(prefix);
+            }
+        })
+        .catch((error) => {
+            automaticDatabaseMigrationPromiseByPrefix.delete(prefix);
+            throw error;
+        });
+}
+
+/**
  * Executes automatic migration flow using the same shared migration runner as CLI command.
  */
-async function runAutomaticDatabaseMigrationsForPrefix(prefix: string): Promise<void> {
+async function runAutomaticDatabaseMigrationsForPrefix(prefix: string): Promise<boolean> {
     if (shouldSkipAutomaticDatabaseMigrations()) {
-        return;
+        return true;
     }
 
     const connectionString = resolveDatabaseMigrationConnectionStringFromEnvironment();
     if (!connectionString) {
         console.warn('⚠️ POSTGRES_URL or DATABASE_URL is not defined. Skipping automatic migrations.');
-        return;
+        return true;
     }
 
     console.info(`🚀 Checking database migrations automatically for prefix "${prefix}"`);
-    await runDatabaseMigrations({
+    const migrationResult = await runDatabaseMigrations({
         prefixes: [prefix],
         connectionString,
         appliedBy: DATABASE_MIGRATION_APPLIED_BY.AUTOMATIC,
         logger: console,
         logSqlStatements: false,
+        executionLockMode: 'skip',
     });
+
+    if (migrationResult.isSkippedDueToActiveMigrationLock) {
+        console.info(
+            `⏭️ Another runtime instance is already checking database migrations for prefix "${prefix}". Continuing without waiting.`,
+        );
+        return false;
+    }
+
     console.info(`✅ Automatic database migration check finished for prefix "${prefix}"`);
+    return true;
 }
 
 /**

@@ -1,3 +1,8 @@
+-   Fixed the Agents Server Vercel startup regression where automatic database migrations could break all requests with a blank `500` page:
+
+    -   Changed Next.js instrumentation startup migrations to use a non-blocking advisory-lock path, so one runtime instance can migrate while the others continue serving requests instead of piling up behind `pg_advisory_lock`.
+    -   Fixed the automatic-migration promise cache so a single timeout no longer poisons the whole runtime until redeploy, and added structured startup logging with PostgreSQL error details when automatic migration checks fail.
+
 -   Enhanced the Agents Server new-agent wizard team step so it can pick multiple teammates from local and federated servers:
 
     -   Reworked the wizard team page to reuse the homepage agent-card/grid presentation, load local agents plus federated agents, respect the hidden-core-server federated filter, and let users toggle multiple teammate cards while keeping the existing manual TEAM chip input.

@@ -9,6 +9,16 @@ export async function register(): Promise<void> {
         return;
     }
 
-    const { registerNodeRuntimeInstrumentation } = await import('./instrumentation-node');
-    await registerNodeRuntimeInstrumentation();
+    try {
+        const { registerNodeRuntimeInstrumentation } = await import('./instrumentation-node');
+        await registerNodeRuntimeInstrumentation();
+    } catch (error) {
+        console.error('❌ Agents Server instrumentation hook failed before startup hooks finished.', {
+            nextRuntime: process.env.NEXT_RUNTIME,
+            nodeEnv: process.env.NODE_ENV,
+            errorName: error instanceof Error ? error.name : undefined,
+            errorMessage: error instanceof Error ? error.message : String(error),
+            errorStack: error instanceof Error ? error.stack : undefined,
+        });
+    }
 }

@@ -2,7 +2,11 @@ import type { Client } from 'pg';
 import { spaceTrim } from 'spacetrim';
 import { DatabaseError } from '../../../../src/errors/DatabaseError';
 import { type ServerRecord } from '../utils/serverRegistry';
-import { acquireMigrationExecutionLock, releaseMigrationExecutionLock } from './acquireMigrationExecutionLock';
+import {
+    acquireMigrationExecutionLock,
+    releaseMigrationExecutionLock,
+    type DatabaseMigrationExecutionLockMode,
+} from './acquireMigrationExecutionLock';
 import { importRuntimeModule } from './importRuntimeModule';
 import { listRegisteredServersFromDatabase } from './listRegisteredServersFromDatabase';
 import { migratePrefix } from './migratePrefix';
@@ -82,6 +86,10 @@ export type RunDatabaseMigrationsOptions = {
      * If true, prints every SQL migration body before execution.
      */
     readonly logSqlStatements?: boolean;
+    /**
+     * Whether migration execution should wait for the advisory lock or skip when another process already owns it.
+     */
+    readonly executionLockMode?: DatabaseMigrationExecutionLockMode;
 };
 
 /**
@@ -114,6 +122,10 @@ export type RunDatabaseMigrationsResult = {
      * Per-prefix summary.
      */
     readonly perPrefix: ReadonlyArray<DatabaseMigrationPrefixResult>;
+    /**
+     * Whether migration execution was skipped because another process already held the advisory lock.
+     */
+    readonly isSkippedDueToActiveMigrationLock: boolean;
 };
 
 /**
@@ -204,9 +216,10 @@ export async function runDatabaseMigrations(
     );
     const migrationsDirectory = options.migrationsDirectory ?? (await resolveMigrationsDirectory());
     const migrationFiles = await readMigrationFiles(migrationsDirectory);
+    const totalMigrationFiles = migrationFiles.length;
     const perPrefix: Array<DatabaseMigrationPrefixResult> = [];
 
-    logger.info(`📂 Found ${migrationFiles.length} migration files`);
+    logger.info(`📂 Found ${totalMigrationFiles} migration files`);
     logger.info(
         `📋 Found ${selectedPrefixes.length} prefixes to migrate: ${selectedPrefixes
             .map((prefix) => prefix || '<default>')
@@ -216,12 +229,23 @@ export async function runDatabaseMigrations(
     const client = await createPostgresClient(options.connectionString);
 
     let hasExecutionLock = false;
+    let isSkippedDueToActiveMigrationLock = false;
 
     try {
         await client.connect();
         logger.info('🔌 Connected to database');
-        await acquireMigrationExecutionLock(client, logger);
-        hasExecutionLock = true;
+        hasExecutionLock = await acquireMigrationExecutionLock(client, logger, options.executionLockMode ?? 'wait');
+
+        if (!hasExecutionLock) {
+            isSkippedDueToActiveMigrationLock = true;
+
+            return {
+                processedPrefixes: [],
+                totalMigrationFiles,
+                perPrefix,
+                isSkippedDueToActiveMigrationLock,
+            };
+        }
 
         for (const prefix of selectedPrefixes) {
             logger.info(`\n🏗️ Migrating prefix: "${prefix}"`);
@@ -246,8 +270,9 @@ export async function runDatabaseMigrations(
 
     return {
         processedPrefixes: selectedPrefixes,
-        totalMigrationFiles: migrationFiles.length,
+        totalMigrationFiles,
         perPrefix,
+        isSkippedDueToActiveMigrationLock,
     };
 }
 
