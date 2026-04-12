@@ -14,6 +14,7 @@ import { NewAgentWizardClassNames } from './NewAgentWizardClassNames';
 import { NewAgentWizardKnowledgeStep } from './NewAgentWizardKnowledgeStep';
 import { NewAgentWizardPersonaStep } from './NewAgentWizardPersonaStep';
 import { NewAgentWizardRulesStep } from './NewAgentWizardRulesStep';
+import { NewAgentWizardTeamStep } from './NewAgentWizardTeamStep';
 import { NewAgentWizardWritingStep } from './NewAgentWizardWritingStep';
 import { useNewAgentWizard } from './useNewAgentWizard';
 
@@ -122,6 +123,17 @@ function renderStepContent(props: {
             );
         case 2:
             return (
+                <NewAgentWizardTeamStep
+                    state={state}
+                    setState={setState}
+                    t={t}
+                    addTeamReferenceFromDraft={wizard.addTeamReferenceFromDraft}
+                    addTeamReference={wizard.addTeamReference}
+                    removeTeamReference={wizard.removeTeamReference}
+                />
+            );
+        case 3:
+            return (
                 <NewAgentWizardWritingStep
                     state={state}
                     setState={setState}
@@ -131,7 +143,7 @@ function renderStepContent(props: {
                     removeDraftChip={removeDraftChip}
                 />
             );
-        case 3:
+        case 4:
             return (
                 <NewAgentWizardRulesStep
                     state={state}
@@ -142,7 +154,7 @@ function renderStepContent(props: {
                     removeDraftChip={removeDraftChip}
                 />
             );
-        case 4:
+        case 5:
             return (
                 <NewAgentWizardKnowledgeStep
                     state={state}

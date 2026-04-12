@@ -45,6 +45,10 @@ export type CreateNewAgentWizardSourceOptions = {
      */
     readonly personaTraits: ReadonlyArray<string>;
     /**
+     * TEAM compact references or absolute agent URLs.
+     */
+    readonly teamReferences: ReadonlyArray<string>;
+    /**
      * Whether the agent should remain open to conversational self-modification.
      */
     readonly isOpenToLearning: boolean;
@@ -119,6 +123,33 @@ function normalizeSingleLine(value: string | null | undefined): string {
 }
 
 /**
+ * Formats one teammate reference for the human-readable traceability note.
+ *
+ * @param teamReference - TEAM compact reference or URL.
+ * @returns Readable teammate label.
+ */
+function summarizeTeamReference(teamReference: string): string {
+    const normalizedReference = normalizeSingleLine(teamReference);
+    if (normalizedReference === '') {
+        return '';
+    }
+
+    const bracketMatch = /^\{(.+)\}$/.exec(normalizedReference);
+    if (bracketMatch?.[1]) {
+        return normalizeSingleLine(bracketMatch[1]);
+    }
+
+    try {
+        const parsedUrl = new URL(normalizedReference);
+        const pathParts = parsedUrl.pathname.split('/').filter(Boolean);
+        const lastPathPart = decodeURIComponent(pathParts[pathParts.length - 1] || parsedUrl.hostname);
+        return normalizeSingleLine(lastPathPart.replace(/[-_]+/g, ' ')) || parsedUrl.hostname;
+    } catch {
+        return normalizedReference;
+    }
+}
+
+/**
  * Builds the hidden agent source created by the guided wizard flow.
  *
  * @param options - Collected wizard data.
@@ -130,6 +161,7 @@ export function createNewAgentWizardSource(options: CreateNewAgentWizardSourceOp
     const goal = spaceTrim(options.goal || '');
     const summarizedGoal = normalizeSingleLine(goal);
     const personaTraits = options.personaTraits.map(normalizeSingleLine).filter(Boolean);
+    const teamReferences = options.teamReferences.map((teamReference) => spaceTrim(teamReference)).filter(Boolean);
     const rules = options.rules.map((rule) => spaceTrim(rule)).filter(Boolean);
     const capabilityCommitments = options.capabilityCommitments.filter(
         (commitment): commitment is NewAgentWizardCapabilityCommitment =>
@@ -150,6 +182,7 @@ export function createNewAgentWizardSource(options: CreateNewAgentWizardSourceOp
         `- Personality: ${formatSummaryList(personaTraits, 'Default guided persona')}`,
         `- Learning: ${options.isOpenToLearning ? 'Open to learning' : 'Fixed after creation'}`,
         `- Capabilities: ${formatSummaryList(capabilityCommitments, 'None selected')}`,
+        `- Team: ${formatSummaryList(teamReferences.map(summarizeTeamReference).filter(Boolean), 'No teammates')}`,
         `- Writing style: ${formatSummaryList(writingStyleTraits, 'Default guided writing style')}`,
         `- Rules: ${formatSummaryList(rules, 'None specified')}`,
         `- Knowledge: ${formatSummaryList(
@@ -170,6 +203,7 @@ export function createNewAgentWizardSource(options: CreateNewAgentWizardSourceOp
         createCommitment('PERSONA', personaDescription),
         ...(goal ? [createCommitment('GOAL', goal)] : []),
         ...capabilityCommitments.map((commitment) => createCommitment(commitment)),
+        ...createCommitmentLines('TEAM', teamReferences),
         ...createCommitmentLines('STYLE', writingStyleTraits),
         ...createCommitmentLines('WRITING RULES', writingRules),
         ...createCommitmentLines('WRITING SAMPLE', writingSamples),

@@ -96,6 +96,16 @@ export type NewAgentWizardState = {
     readonly selectedCapabilityIds: ReadonlyArray<string>;
 
     /**
+     * Draft teammate reference entered in the team step.
+     */
+    readonly teamReferenceDraft: string;
+
+    /**
+     * Compact references or URLs emitted as `TEAM` commitments.
+     */
+    readonly teamReferences: ReadonlyArray<string>;
+
+    /**
      * Whether the wizard should emit `OPEN` or `CLOSED`.
      */
     readonly isOpenToLearning: boolean;
@@ -231,6 +241,8 @@ export function createInitialWizardState(
         customPersonaTraitDraft: '',
         customPersonaTraits: [],
         selectedCapabilityIds: [],
+        teamReferenceDraft: '',
+        teamReferences: [],
         isOpenToLearning: true,
         selectedWritingStyleIds: selectDefaultPresetIds(NEW_AGENT_WIZARD_WRITING_STYLE_PRESETS),
         customWritingTraitDraft: '',
@@ -310,6 +322,65 @@ export function addUniqueChip(chips: ReadonlyArray<string>, rawValue: string): R
     }
 
     return [...chips, normalizedValue];
+}
+
+/**
+ * Normalizes one teammate reference entered in the wizard UI.
+ *
+ * Plain agent names are converted into compact references such as `{Legal Reviewer}`
+ * so the existing Agents Server resolver can expand them later.
+ *
+ * @param rawValue - Raw teammate reference entered by the user.
+ * @returns Normalized teammate reference or empty string when nothing should be added.
+ *
+ * @private internal utility of <NewAgentWizard/>.
+ */
+export function normalizeTeamReferenceInput(rawValue: string): string {
+    const normalizedValue = normalizeSingleLineInput(rawValue);
+    if (normalizedValue === '') {
+        return '';
+    }
+
+    try {
+        const parsedUrl = new URL(normalizedValue);
+        if (parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:') {
+            return parsedUrl.toString();
+        }
+    } catch {
+        // Non-URL values are treated as compact agent references below.
+    }
+
+    const bracketMatch = /^\{(.+)\}$/.exec(normalizedValue);
+    const compactReferencePayload = normalizeSingleLineInput(
+        bracketMatch?.[1] || normalizedValue.replace(/^@/, ''),
+    );
+
+    return compactReferencePayload === '' ? '' : `{${compactReferencePayload}}`;
+}
+
+/**
+ * Adds one normalized teammate reference if it is non-empty and not already present.
+ *
+ * @param teamReferences - Existing teammate references.
+ * @param rawValue - Raw teammate reference entered by the user.
+ * @returns Updated teammate reference list.
+ *
+ * @private internal utility of <NewAgentWizard/>.
+ */
+export function addUniqueTeamReference(teamReferences: ReadonlyArray<string>, rawValue: string): ReadonlyArray<string> {
+    const normalizedReference = normalizeTeamReferenceInput(rawValue);
+    if (normalizedReference === '') {
+        return teamReferences;
+    }
+
+    const alreadyPresent = teamReferences.some(
+        (teamReference) => teamReference.toLowerCase() === normalizedReference.toLowerCase(),
+    );
+    if (alreadyPresent) {
+        return teamReferences;
+    }
+
+    return [...teamReferences, normalizedReference];
 }
 
 /**
@@ -397,6 +468,7 @@ export function buildWizardSourceOptions(state: NewAgentWizardState): CreateNewA
         description: state.description,
         goal: state.goal,
         personaTraits: [...selectedPersonaPresets.map((preset) => preset.sourceText), ...state.customPersonaTraits],
+        teamReferences: state.teamReferences,
         isOpenToLearning: state.isOpenToLearning,
         rules: [...selectedRulePresets.map((preset) => preset.sourceText), ...state.customRules],
         capabilityCommitments: selectedCapabilityPresets.map((preset) => preset.commitmentKeyword),

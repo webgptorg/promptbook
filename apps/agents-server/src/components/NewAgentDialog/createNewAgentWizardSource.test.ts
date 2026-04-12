@@ -10,6 +10,7 @@ describe('createNewAgentWizardSource', () => {
             description: 'Answers cooking questions',
             goal: 'Help users cook with confidence using practical kitchen advice.',
             personaTraits: ['helpful', 'analytical', 'strong at practical kitchen advice'],
+            teamReferences: ['https://example.com/agents/legal-reviewer'],
             isOpenToLearning: true,
             rules: ['Use a professional tone in every response.', 'Prefer concrete next steps.'],
             capabilityCommitments: ['USE BROWSER', 'USE SEARCH ENGINE', 'USE EMAIL'],
@@ -33,6 +34,7 @@ describe('createNewAgentWizardSource', () => {
         expect(agentSource).toContain('- Personality: helpful, analytical, strong at practical kitchen advice');
         expect(agentSource).toContain('- Learning: Open to learning');
         expect(agentSource).toContain('- Capabilities: USE BROWSER, USE SEARCH ENGINE, USE EMAIL');
+        expect(agentSource).toContain('- Team: legal reviewer');
         expect(agentSource).toContain('- Writing style: professional, concise');
         expect(agentSource).toContain('META DESCRIPTION Answers cooking questions');
         expect(agentSource).toContain('PERSONA You are a helpful, analytical, strong at practical kitchen advice assistant');
@@ -42,6 +44,7 @@ describe('createNewAgentWizardSource', () => {
         expect(agentSource).toContain('USE BROWSER');
         expect(agentSource).toContain('USE SEARCH ENGINE');
         expect(agentSource).toContain('USE EMAIL');
+        expect(agentSource).toContain('TEAM https://example.com/agents/legal-reviewer');
         expect(agentSource).toContain('STYLE professional');
         expect(agentSource).toContain('STYLE concise');
         expect(agentSource).toContain('WRITING RULES Use a professional tone.');
@@ -76,6 +79,7 @@ describe('createNewAgentWizardSource', () => {
             agentName: 'Minimal Agent',
             goal: '',
             personaTraits: [],
+            teamReferences: [],
             isOpenToLearning: false,
             rules: [],
             capabilityCommitments: [],
@@ -88,11 +92,32 @@ describe('createNewAgentWizardSource', () => {
         expect(agentSource).toContain('- Goal: No explicit goal');
         expect(agentSource).toContain('- Learning: Fixed after creation');
         expect(agentSource).toContain('- Capabilities: None selected');
+        expect(agentSource).toContain('- Team: No teammates');
         expect(agentSource).toContain('- Writing style: Default guided writing style');
         expect(agentSource).toContain('- Rules: None specified');
         expect(agentSource).toContain('- Knowledge: No knowledge uploaded');
         expect(agentSource).toContain('PERSONA You are a helpful, concise, and professional assistant');
         expect(agentSource).toContain('CLOSED');
         expect(agentSource.trimEnd().endsWith('CLOSED')).toBe(true);
+    });
+
+    it('emits compact TEAM references when wizard teammates are provided', () => {
+        const agentSource = createNewAgentWizardSource({
+            agentName: 'Escalation Coordinator',
+            goal: 'Route complex requests to the right specialists.',
+            personaTraits: ['organized'],
+            teamReferences: ['{Legal Reviewer}', '{User}'],
+            isOpenToLearning: true,
+            rules: [],
+            capabilityCommitments: [],
+            writingStyleTraits: [],
+            writingRules: [],
+            writingSamples: [],
+            knowledgeItems: [],
+        });
+
+        expect(agentSource).toContain('- Team: Legal Reviewer, User');
+        expect(agentSource).toContain('TEAM {Legal Reviewer}');
+        expect(agentSource).toContain('TEAM {User}');
     });
 });

@@ -1,3 +1,8 @@
+-   Added a dedicated Team page to the Agents Server new-agent wizard:
+
+    -   The guided creation flow now lets you add teammate agent references, including the `{User}` pseudo-agent, before creating a new agent.
+    -   Wizard-created agent sources now emit standard `TEAM` commitments and include the configured team in the traceability note.
+
 -   Optimized Agents Server Vercel builds by marking the request-bound root app layout as explicitly dynamic:
 
     -   Stopped Next.js from repeatedly attempting static prerender for pages that already depend on cookies, auth state, metadata, and custom CSS/JS loaded in the root layout.

@@ -205,18 +205,21 @@ agentCreation.wizardEyebrow: Guided flow
 agentCreation.wizardTitle: Create New Agent
 agentCreation.wizard.basicTitle: Basic info
 agentCreation.wizard.personaTitle: Persona & capabilities
+agentCreation.wizard.teamTitle: Team
 agentCreation.wizard.writingTitle: Writing style
 agentCreation.wizard.rulesTitle: Rules & guardrails
 agentCreation.wizard.knowledgeTitle: Knowledge
 agentCreation.wizard.reviewTitle: Review & create
 agentCreation.wizard.basicDescription: Set the core identity, goal, and visibility before we build the hidden book source.
 agentCreation.wizard.personaDescription: Choose persona traits, learning mode, and capability switches derived from the available USE commitments.
+agentCreation.wizard.teamDescription: Add teammate agents the new agent can consult through `TEAM` commitments, including the optional `{User}` pseudo-agent.
 agentCreation.wizard.writingDescription: Pick writing-style presets, add custom style guidance, and preview voice samples in mocked chat bubbles.
 agentCreation.wizard.rulesDescription: Select guardrails and add custom rule chips.
 agentCreation.wizard.knowledgeDescription: Upload files or add URLs that should become part of the agent's knowledge.
 agentCreation.wizard.reviewDescription: Confirm the high-level choices below, or switch to the advanced editor before creating.
 agentCreation.wizard.basicShort: Basics
 agentCreation.wizard.personaShort: Persona
+agentCreation.wizard.teamShort: Team
 agentCreation.wizard.writingShort: Writing
 agentCreation.wizard.rulesShort: Rules
 agentCreation.wizard.knowledgeShort: Knowledge
@@ -284,6 +287,11 @@ agentCreation.wizard.capabilityImageGenerator: Can generate images
 agentCreation.wizard.capabilityPrivacy: Can use privacy mode
 agentCreation.wizard.capabilityProject: Can work with a project
 agentCreation.wizard.capabilityMcp: Can connect to MCP
+agentCreation.wizard.teamLabel: Team members
+agentCreation.wizard.teamPlaceholder: Legal Reviewer, https://remote.example/agents/reviewer, or {User}
+agentCreation.wizard.teamHint: Type an agent name or URL and press Enter. Plain names are saved as compact references like `{Legal Reviewer}`. Add `{User}` if the agent should pause and ask the current user.
+agentCreation.wizard.teamAddUserAction: Add {User}
+agentCreation.wizard.noTeamMembers: No teammates added yet.
 agentCreation.wizard.ruleProtectPersonalData: Avoid requesting or disclosing personal data.
 agentCreation.wizard.ruleProfessionalTone: Keep a professional tone.
 agentCreation.wizard.ruleRegulatedAdvice: Avoid medical, legal, and financial advice.

@@ -135,6 +135,11 @@ export const NEW_AGENT_WIZARD_STEP_DEFINITIONS = [
         shortKey: 'agentCreation.wizard.personaShort',
     },
     {
+        titleKey: 'agentCreation.wizard.teamTitle',
+        descriptionKey: 'agentCreation.wizard.teamDescription',
+        shortKey: 'agentCreation.wizard.teamShort',
+    },
+    {
         titleKey: 'agentCreation.wizard.writingTitle',
         descriptionKey: 'agentCreation.wizard.writingDescription',
         shortKey: 'agentCreation.wizard.writingShort',
