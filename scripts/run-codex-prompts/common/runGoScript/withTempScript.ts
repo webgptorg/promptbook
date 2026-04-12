@@ -11,9 +11,7 @@ export async function withTempScript<T>(options: RunGoScriptOptions, handler: (s
     await mkdir(dirname(scriptPath), { recursive: true });
     await writeFile(scriptPath, scriptContent, 'utf-8');
 
-    try {
-        return await handler(scriptPath);
-    } finally {
-        await unlink(scriptPath).catch(() => undefined);
-    }
+    const result = await handler(scriptPath);
+    await unlink(scriptPath).catch(() => undefined);
+    return result;
 }
