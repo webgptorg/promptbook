@@ -14,6 +14,8 @@ type SectionProps = {
     title: React.ReactNode;
     children: React.ReactNode;
     gridClassName?: string;
+    className?: string;
+    titleClassName?: string;
 };
 
 /**
@@ -21,10 +23,16 @@ type SectionProps = {
  *
  * @private internal layout helper for the Agents Server homepage components.
  */
-export function Section({ title, children, gridClassName = DEFAULT_SECTION_GRID_CLASS }: SectionProps) {
+export function Section({
+    title,
+    children,
+    gridClassName = DEFAULT_SECTION_GRID_CLASS,
+    className = '',
+    titleClassName = '',
+}: SectionProps) {
     return (
-        <section className="mt-16 first:mt-4 mb-4">
-            <h2 className="text-3xl text-gray-900 mb-6 font-light">{title}</h2>
+        <section className={`mt-16 first:mt-4 mb-4 ${className}`.trim()}>
+            <h2 className={`text-3xl text-gray-900 mb-6 font-light ${titleClassName}`.trim()}>{title}</h2>
             <div className={gridClassName}>{children}</div>
         </section>
     );

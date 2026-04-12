@@ -32,6 +32,11 @@ type WizardChipInputProps = {
     readonly chipVariant?: WizardCardVariant;
 
     /**
+     * Optional renderer for visible chip labels.
+     */
+    readonly getChipLabel?: (chipValue: string, chipIndex: number) => string;
+
+    /**
      * Updates the input draft.
      */
     readonly onDraftChange: (nextValue: string) => void;
@@ -67,6 +72,7 @@ export function WizardChipInput(props: WizardChipInputProps) {
         placeholder,
         chips,
         chipVariant = 'blue',
+        getChipLabel,
         onDraftChange,
         onAdd,
         onRemove,
@@ -109,7 +115,7 @@ export function WizardChipInput(props: WizardChipInputProps) {
                             key={`${chip}-${index}`}
                             className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm ${chipClassName}`}
                         >
-                            {chip}
+                            {getChipLabel?.(chip, index) || chip}
                             <button
                                 type="button"
                                 onClick={() => onRemove(index)}

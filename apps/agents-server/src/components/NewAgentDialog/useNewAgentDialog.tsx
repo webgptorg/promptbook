@@ -1,9 +1,10 @@
 'use client';
 
-import type { string_book } from '@promptbook-local/types';
+import type { string_book, string_url } from '@promptbook-local/types';
 import type { ReactElement } from 'react';
 import { useCallback, useState } from 'react';
 import type { AgentVisibility } from '../../utils/agentVisibility';
+import type { AgentOrganizationAgent } from '../../utils/agentOrganization/types';
 import {
     $createAgentFromBookAction,
     $generateAgentBoilerplateAction,
@@ -103,6 +104,8 @@ type NewAgentDialogState =
           readonly defaultVisibility: AgentVisibility;
           readonly initialAgentName?: string;
           readonly targetFolderId: number | null | undefined;
+          readonly publicUrl: string_url;
+          readonly localTeammateAgents: ReadonlyArray<AgentOrganizationAgent>;
       };
 
 /**
@@ -158,6 +161,8 @@ export function useNewAgentDialog(options: UseNewAgentDialogOptions): UseNewAgen
                         defaultVisibility: settings.defaultVisibility,
                         initialAgentName,
                         targetFolderId: openOptions?.folderId,
+                        publicUrl: settings.publicUrl,
+                        localTeammateAgents: settings.localTeammateAgents,
                     });
                     trackNewAgentCreationEvent('new_agent_wizard_shown', {
                         mode: settings.mode,
@@ -278,6 +283,8 @@ export function useNewAgentDialog(options: UseNewAgentDialogOptions): UseNewAgen
                     defaultVisibility={dialogState.defaultVisibility}
                     initialAgentName={dialogState.initialAgentName}
                     folderId={dialogState.targetFolderId}
+                    publicUrl={dialogState.publicUrl}
+                    localTeammateAgents={dialogState.localTeammateAgents}
                     onClose={closeNewAgentDialog}
                     onCreate={handleCreateFromWizard}
                     onOpenEditor={handleOpenEditorFromWizard}

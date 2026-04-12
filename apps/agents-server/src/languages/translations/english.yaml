@@ -289,7 +289,7 @@ agentCreation.wizard.capabilityProject: Can work with a project
 agentCreation.wizard.capabilityMcp: Can connect to MCP
 agentCreation.wizard.teamLabel: Team members
 agentCreation.wizard.teamPlaceholder: Legal Reviewer, https://remote.example/agents/reviewer, or {User}
-agentCreation.wizard.teamHint: Type an agent name or URL and press Enter. Plain names are saved as compact references like `{Legal Reviewer}`. Add `{User}` if the agent should pause and ask the current user.
+agentCreation.wizard.teamHint: Click agent cards to add or remove teammates, or type an agent name or URL and press Enter. Plain names are saved as compact references like `{Legal Reviewer}`. Add `{User}` if the agent should pause and ask the current user.
 agentCreation.wizard.teamAddUserAction: Add {User}
 agentCreation.wizard.noTeamMembers: No teammates added yet.
 agentCreation.wizard.ruleProtectPersonalData: Avoid requesting or disclosing personal data.

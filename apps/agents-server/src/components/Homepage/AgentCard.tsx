@@ -1,7 +1,7 @@
 'use client';
 
 import { string_url } from '@promptbook-local/types';
-import { EyeIcon, EyeOffIcon, LockIcon, RotateCcwIcon } from 'lucide-react';
+import { CheckIcon, EyeIcon, EyeOffIcon, LockIcon, RotateCcwIcon } from 'lucide-react';
 import Link from 'next/link';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
@@ -23,7 +23,7 @@ type AgentCardProps = {
     /**
      * The URL to navigate to when the card is clicked
      */
-    readonly href: string;
+    readonly href?: string;
 
     /**
      * Base URL of the agents server
@@ -61,6 +61,16 @@ type AgentCardProps = {
      * The URL of the server where the agent is hosted
      */
     readonly serverUrl?: string_url;
+
+    /**
+     * Whether the card is currently selected in picker mode.
+     */
+    readonly isSelected?: boolean;
+
+    /**
+     * Optional click handler that turns the card into a selectable button.
+     */
+    readonly onSelect?: () => void;
 };
 
 /**
@@ -76,6 +86,8 @@ export function AgentCard({
     onRestore,
     visibility,
     serverUrl,
+    isSelected = false,
+    onSelect,
 }: AgentCardProps) {
     const { formatText } = useAgentNaming();
     const { meta, agentName } = agent;
@@ -84,57 +96,82 @@ export function AgentCard({
     const imageUrl = resolveAgentAvatarImageUrl({ agent, baseUrl: serverUrl || publicUrl });
     const personaDescription = agent.personaDescription || '';
     const resolvedVisibility = visibility || 'PRIVATE';
+    const isSelectable = typeof onSelect === 'function';
 
     const { brandColorLightHex, brandColorDarkHex, backgroundImage } = useAgentBackground(meta.color);
+    const cardContent = (
+        <FileCard
+            className={`flex h-full items-start gap-3 relative overflow-hidden ${
+                isSelected ? 'border-blue-400 shadow-md ring-2 ring-blue-500/40 -translate-y-0.5' : ''
+            }`}
+            style={{
+                background: `url("${backgroundImage}")`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+            }}
+        >
+            <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] pointer-events-none" />
+
+            {isSelectable && isSelected && (
+                <div className="absolute right-3 top-3 z-20 inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-white shadow-sm">
+                    <CheckIcon className="h-4 w-4" />
+                </div>
+            )}
+
+            <div
+                className="relative z-10 mt-0.5 h-12 w-12 rounded-lg overflow-hidden flex-shrink-0 bg-white shadow-sm border"
+                style={{ borderColor: `${brandColorLightHex}80` }}
+            >
+                {imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={imageUrl} alt={fullname} className="agent-avatar-pixelated w-full h-full object-cover" />
+                ) : (
+                    <div
+                        className="w-full h-full flex items-center justify-center text-lg font-semibold text-white/90"
+                        style={{ backgroundColor: brandColorDarkHex }}
+                    >
+                        {fullname.charAt(0).toUpperCase()}
+                    </div>
+                )}
+            </div>
+            <div className="relative z-10 min-w-0 flex-1">
+                <h3 className="text-sm font-bold text-gray-900 truncate" title={fullname}>
+                    {fullname}
+                </h3>
+                {personaDescription && (
+                    <p className="text-xs text-gray-800 line-clamp-2 leading-snug mt-1 font-medium">
+                        {personaDescription}
+                    </p>
+                )}
+                <AgentCapabilityChips
+                    agent={agent}
+                    className="mt-2"
+                    maxChips={HOMEPAGE_CAPABILITY_CHIPS_LIMIT}
+                    size="compact"
+                />
+            </div>
+        </FileCard>
+    );
 
     return (
         <div className="relative h-full group">
-            <Link href={href} className="block h-full">
-                <FileCard
-                    className="flex h-full items-start gap-3 relative overflow-hidden"
-                    style={{
-                        background: `url("${backgroundImage}")`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                    }}
+            {isSelectable ? (
+                <button
+                    type="button"
+                    onClick={onSelect}
+                    aria-pressed={isSelected}
+                    className="block h-full w-full rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                 >
-                    <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] pointer-events-none" />
-
-                    <div
-                        className="relative z-10 mt-0.5 h-12 w-12 rounded-lg overflow-hidden flex-shrink-0 bg-white shadow-sm border"
-                        style={{ borderColor: `${brandColorLightHex}80` }}
-                    >
-                        {imageUrl ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={imageUrl} alt={fullname} className="agent-avatar-pixelated w-full h-full object-cover" />
-                        ) : (
-                            <div
-                                className="w-full h-full flex items-center justify-center text-lg font-semibold text-white/90"
-                                style={{ backgroundColor: brandColorDarkHex }}
-                            >
-                                {fullname.charAt(0).toUpperCase()}
-                            </div>
-                        )}
-                    </div>
-                    <div className="relative z-10 min-w-0 flex-1">
-                        <h3 className="text-sm font-bold text-gray-900 truncate" title={fullname}>
-                            {fullname}
-                        </h3>
-                        {personaDescription && (
-                            <p className="text-xs text-gray-800 line-clamp-2 leading-snug mt-1 font-medium">
-                                {personaDescription}
-                            </p>
-                        )}
-                        <AgentCapabilityChips
-                            agent={agent}
-                            className="mt-2"
-                            maxChips={HOMEPAGE_CAPABILITY_CHIPS_LIMIT}
-                            size="compact"
-                        />
-                    </div>
-                </FileCard>
-            </Link>
-            {isAdmin && onRestore && (
+                    {cardContent}
+                </button>
+            ) : href ? (
+                <Link href={href} className="block h-full">
+                    {cardContent}
+                </Link>
+            ) : (
+                <div className="block h-full">{cardContent}</div>
+            )}
+            {!isSelectable && isAdmin && onRestore && (
                 <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                     <button
                         className={`bg-green-500 hover:bg-green-600 ${FILE_ACTION_BUTTON_CLASSES}`}
@@ -148,7 +185,7 @@ export function AgentCard({
                     </button>
                 </div>
             )}
-            {isAdmin && !onRestore && (
+            {!isSelectable && isAdmin && !onRestore && (
                 <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                     <button
                         className={`${
@@ -158,11 +195,11 @@ export function AgentCard({
                                 ? 'bg-amber-500 hover:bg-amber-600'
                                 : 'bg-gray-500 hover:bg-gray-600'
                         } ${FILE_ACTION_BUTTON_CLASSES}`}
-                            onClick={(e) => {
-                                e.preventDefault();
-                                onRequestVisibilityChange?.(agent.permanentId || agent.agentName);
-                            }}
-                            title={`Visibility: ${resolvedVisibility.toLowerCase()}. Click to update.`}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            onRequestVisibilityChange?.(agent.permanentId || agent.agentName);
+                        }}
+                        title={`Visibility: ${resolvedVisibility.toLowerCase()}. Click to update.`}
                     >
                         {resolvedVisibility === 'PUBLIC' ? (
                             <EyeIcon className="w-3 h-3" />
