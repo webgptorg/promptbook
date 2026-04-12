@@ -1,9 +1,6 @@
 'use client';
 
-import {
-    type CSSProperties,
-    type MouseEvent,
-} from 'react';
+import { type CSSProperties, type MouseEvent } from 'react';
 import { USER_CHAT_COLOR } from '../../../config';
 import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';

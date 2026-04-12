@@ -184,9 +184,7 @@ function replaceUploadItemById(
     uploadId: string,
     updateUploadItem: (uploadItem: UploadItem) => UploadItem,
 ): Array<UploadItem> {
-    return uploadItems.map((uploadItem) =>
-        uploadItem.id === uploadId ? updateUploadItem(uploadItem) : uploadItem,
-    );
+    return uploadItems.map((uploadItem) => (uploadItem.id === uploadId ? updateUploadItem(uploadItem) : uploadItem));
 }
 
 /**
@@ -338,12 +336,7 @@ function createUploadProgressUpdate(
 /**
  * Type describing the callback used to enqueue debounced progress updates.
  */
-type QueueProgressUpdate = (
-    uploadId: string,
-    progress: number,
-    loadedBytes: number,
-    totalBytes: number,
-) => void;
+type QueueProgressUpdate = (uploadId: string, progress: number, loadedBytes: number, totalBytes: number) => void;
 
 /**
  * Creates the callback-shaped upload options object expected by legacy callers.
@@ -358,12 +351,7 @@ function createUploadRequestOptions(
 ): UploadRequestOptions {
     const uploadRequestOptions = ((progress, stats) => {
         const progressUpdate = createUploadProgressUpdate(file.size, progress, stats);
-        queueProgressUpdate(
-            uploadId,
-            progressUpdate.progress,
-            progressUpdate.loadedBytes,
-            progressUpdate.totalBytes,
-        );
+        queueProgressUpdate(uploadId, progressUpdate.progress, progressUpdate.loadedBytes, progressUpdate.totalBytes);
     }) as UploadRequestOptions;
 
     uploadRequestOptions.onProgress = uploadRequestOptions;
@@ -533,9 +521,7 @@ export function useBookEditorMonacoUploads({ editor, monaco, onFileUpload }: Use
                 const progressUpdates = pendingProgressUpdatesRef.current;
                 pendingProgressUpdatesRef.current = new Map();
 
-                setUploadItems((currentUploadItems) =>
-                    applyProgressUpdates(currentUploadItems, progressUpdates),
-                );
+                setUploadItems((currentUploadItems) => applyProgressUpdates(currentUploadItems, progressUpdates));
             }, BookEditorMonacoConstants.UPLOAD_PROGRESS_DEBOUNCE_MS);
         },
         [setUploadItems],

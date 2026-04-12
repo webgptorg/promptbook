@@ -53,7 +53,10 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
  *
  * @private internal utility of `parseAgentSource`
  */
-type ParsedAgentProfile = Pick<AgentBasicInformation, 'meta' | 'links' | 'capabilities' | 'samples' | 'knowledgeSources'>;
+type ParsedAgentProfile = Pick<
+    AgentBasicInformation,
+    'meta' | 'links' | 'capabilities' | 'samples' | 'knowledgeSources'
+>;
 
 /**
  * Mutable commitment-processing state used while collecting basic profile information.

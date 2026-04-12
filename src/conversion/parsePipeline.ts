@@ -482,9 +482,7 @@ function defineParameter($pipelineJson: $PipelineJson, parameterCommand: Omit<Pa
  *
  * @private internal utility of `parsePipeline`
  */
-function createUniqueSectionNameResolver(
-    pipelineSections: ReadonlyArray<MarkdownSection>,
-): UniqueSectionNameResolver {
+function createUniqueSectionNameResolver(pipelineSections: ReadonlyArray<MarkdownSection>): UniqueSectionNameResolver {
     const sectionCounts: Record<
         string_name,
         { count: number_integer & number_positive; currentIndex: number_integer & number_positive }

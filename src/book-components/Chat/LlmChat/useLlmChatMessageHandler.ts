@@ -14,10 +14,7 @@ import type { Prompt } from '../../../types/Prompt';
 import type { id, string_date_iso8601, string_markdown } from '../../../types/typeAliases';
 import { $getCurrentDate } from '../../../utils/misc/$getCurrentDate';
 import type { ChatMessage } from '../types/ChatMessage';
-import {
-    getRandomThinkingMessageDelayMs,
-    getRandomThinkingMessageVariant,
-} from '../utils/thinkingMessageVariants';
+import { getRandomThinkingMessageDelayMs, getRandomThinkingMessageVariant } from '../utils/thinkingMessageVariants';
 import type { LlmChatProps } from './LlmChatProps';
 
 /**
@@ -448,9 +445,7 @@ function finalizeAbortedStreamingRequest(params: {
  *
  * @private function of `useLlmChatMessageHandler`
  */
-function scheduleTaskProgressClear(
-    setTasksProgress: Dispatch<SetStateAction<Array<LlmChatTaskProgress>>>,
-): void {
+function scheduleTaskProgressClear(setTasksProgress: Dispatch<SetStateAction<Array<LlmChatTaskProgress>>>): void {
     setTimeout(() => {
         setTasksProgress([]);
     }, 1000);
@@ -543,13 +538,8 @@ function shouldRecoverAfterVisibilityRestore(params: {
     readonly requestInFlight: boolean;
     readonly visibilityState: DocumentVisibilityState;
 }): boolean {
-    const {
-        handleMessage,
-        isBackgroundRecoveryRunning,
-        pendingBackgroundRecovery,
-        requestInFlight,
-        visibilityState,
-    } = params;
+    const { handleMessage, isBackgroundRecoveryRunning, pendingBackgroundRecovery, requestInFlight, visibilityState } =
+        params;
 
     return (
         visibilityState === 'visible' &&
@@ -565,9 +555,7 @@ function shouldRecoverAfterVisibilityRestore(params: {
  *
  * @private function of `useLlmChatState`
  */
-export function useLlmChatMessageHandler(
-    props: UseLlmChatMessageHandlerProps,
-): UseLlmChatMessageHandlerResult {
+export function useLlmChatMessageHandler(props: UseLlmChatMessageHandlerProps): UseLlmChatMessageHandlerResult {
     const {
         chatFailMessage,
         hasUserInteractedRef,

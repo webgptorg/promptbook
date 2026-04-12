@@ -4,10 +4,19 @@ import { useCallback, useEffect, useMemo, useRef, useState, type MutableRefObjec
 import { isPseudoAgentUrl } from '../../../book-2.0/agent-source/pseudoAgentReferences';
 import type { AgentChipData } from '../AgentChip/AgentChip';
 import type { ChatMessage } from '../types/ChatMessage';
-import { type TeamToolCallSummary, type TransitiveToolCall, collectTeamToolCallSummary } from '../utils/collectTeamToolCallSummary';
+import {
+    type TeamToolCallSummary,
+    type TransitiveToolCall,
+    collectTeamToolCallSummary,
+} from '../utils/collectTeamToolCallSummary';
 import { downloadFile } from '../utils/downloadFile';
 import { loadAgentProfile, resolveAgentProfileFallback, type AgentProfileData } from '../utils/loadAgentProfile';
-import { getToolCallTimestamp, parseTeamToolResult, parseToolCallResult, type TeamToolResult } from '../utils/toolCallParsing';
+import {
+    getToolCallTimestamp,
+    parseTeamToolResult,
+    parseToolCallResult,
+    type TeamToolResult,
+} from '../utils/toolCallParsing';
 import {
     createAdvancedToolCallReportFilename,
     createAdvancedToolCallReportMarkdown,
@@ -244,11 +253,7 @@ function useTeamProfiles({
  *
  * @private function of `useChatToolCallModalState`
  */
-function useToolCallModalFocus({
-    isOpen,
-    modalDialogRef,
-    toolCallIdentity,
-}: UseToolCallModalFocusOptions): void {
+function useToolCallModalFocus({ isOpen, modalDialogRef, toolCallIdentity }: UseToolCallModalFocusOptions): void {
     const previousActiveElementRef = useRef<HTMLElement | null>(null);
 
     useEffect(() => {

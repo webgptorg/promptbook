@@ -1060,7 +1060,8 @@ export abstract class OpenAiVectorStoreHandler extends OpenAiExecutionTools {
 
         if (
             this.options.isVerbose &&
-            (statusCountsKey !== pollingState.lastCountsKey || nowMs - pollingState.lastLogAtMs >= progressLogIntervalMs)
+            (statusCountsKey !== pollingState.lastCountsKey ||
+                nowMs - pollingState.lastLogAtMs >= progressLogIntervalMs)
         ) {
             console.info('[🤰]', 'Vector store file batch status', {
                 vectorStoreId,

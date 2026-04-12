@@ -251,7 +251,9 @@ function createAttemptDescriptor(options: {
 }): AttemptDescriptor {
     const { attemptIndex, jokerParameterNames, pipelineIdentification } = options;
     const isJokerAttempt = attemptIndex < 0;
-    const jokerParameterName = isJokerAttempt ? jokerParameterNames[jokerParameterNames.length + attemptIndex] : undefined;
+    const jokerParameterName = isJokerAttempt
+        ? jokerParameterNames[jokerParameterNames.length + attemptIndex]
+        : undefined;
 
     if (isJokerAttempt && !jokerParameterName) {
         throw new UnexpectedError(
@@ -429,8 +431,15 @@ async function executePromptTaskAttempt(options: {
     llmTools: LlmExecutionTools;
     $ongoingTaskResult: $OngoingTaskResult;
 }): Promise<void> {
-    const { preparedPipeline, task, parameters, preparedContent, pipelineIdentification, llmTools, $ongoingTaskResult } =
-        options;
+    const {
+        preparedPipeline,
+        task,
+        parameters,
+        preparedContent,
+        pipelineIdentification,
+        llmTools,
+        $ongoingTaskResult,
+    } = options;
 
     const modelRequirements: ModelRequirements = {
         modelVariant: 'CHAT',

@@ -38,9 +38,7 @@ function createUnsupportedParameterAttempt(options: {
 /**
  * Formats the retry history exactly as it is reported in thrown errors.
  */
-function formatUnsupportedParameterAttemptHistory(
-    attemptStack: ReadonlyArray<UnsupportedParameterAttempt>,
-): string {
+function formatUnsupportedParameterAttemptHistory(attemptStack: ReadonlyArray<UnsupportedParameterAttempt>): string {
     return attemptStack
         .map(
             (attempt, index) =>

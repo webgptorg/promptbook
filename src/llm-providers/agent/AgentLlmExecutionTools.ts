@@ -572,7 +572,8 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
             chatPrompt.modelRequirements.tools,
             chatPrompt.tools,
         );
-        const hasRuntimePromptTools = hasPromptTools(chatPrompt.modelRequirements.tools) || hasPromptTools(chatPrompt.tools);
+        const hasRuntimePromptTools =
+            hasPromptTools(chatPrompt.modelRequirements.tools) || hasPromptTools(chatPrompt.tools);
         const chatPromptContentWithAttachments = await appendChatAttachmentContextWithContent(
             chatPrompt.content,
             attachments,
@@ -865,8 +866,11 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
             name: this.title,
             instructions: options.preparedChatPrompt.sanitizedRequirements.systemMessage || '',
             knowledgeSources: options.preparedChatPrompt.knowledgeSourcesForAgent,
-            tools: options.preparedChatPrompt.mergedTools.length > 0 ? options.preparedChatPrompt.mergedTools : undefined,
-            vectorStoreId: options.agentKitCacheState.shouldUseCache ? options.agentKitCacheState.vectorStoreId : undefined,
+            tools:
+                options.preparedChatPrompt.mergedTools.length > 0 ? options.preparedChatPrompt.mergedTools : undefined,
+            vectorStoreId: options.agentKitCacheState.shouldUseCache
+                ? options.agentKitCacheState.vectorStoreId
+                : undefined,
         });
     }
 
@@ -1108,7 +1112,9 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
         }
 
         if (this.options.llmTools.callChatModel) {
-            const underlyingLlmResult = await this.options.llmTools.callChatModel(options.preparedChatPrompt.forwardedPrompt);
+            const underlyingLlmResult = await this.options.llmTools.callChatModel(
+                options.preparedChatPrompt.forwardedPrompt,
+            );
             options.onProgress(underlyingLlmResult as ChatPromptResult);
             return underlyingLlmResult;
         }

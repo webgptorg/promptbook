@@ -280,10 +280,7 @@ export function useLlmChatState(props: LlmChatProps): UseLlmChatStateResult {
         [llmParticipantName, llmTools, providedParticipants, userParticipantName],
     );
     const teammates = useLlmChatTeammates(llmTools);
-    const thinkingVariants = useMemo(
-        () => normalizeThinkingMessageVariants(thinkingMessages),
-        [thinkingMessages],
-    );
+    const thinkingVariants = useMemo(() => normalizeThinkingMessageVariants(thinkingMessages), [thinkingMessages]);
     const { clearLastFailedMessage, handleMessage, handleStopStreaming, isStreaming } = useLlmChatMessageHandler({
         chatFailMessage: resolvedChatFailMessage,
         hasUserInteractedRef,

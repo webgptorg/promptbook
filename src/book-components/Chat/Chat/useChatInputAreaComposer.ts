@@ -441,7 +441,15 @@ export function useChatInputAreaComposer(props: UseChatInputAreaComposerProps) {
             console.error(error);
             alert(error.message);
         }
-    }, [applyMessageContent, clearUploadedFiles, onCancelReply, onMessage, replyingToMessage, soundSystem, uploadedFiles]);
+    }, [
+        applyMessageContent,
+        clearUploadedFiles,
+        onCancelReply,
+        onMessage,
+        replyingToMessage,
+        soundSystem,
+        uploadedFiles,
+    ]);
 
     const handleImmediateEnterAction = useCallback(
         (isCtrlPressed: boolean) => {

@@ -476,11 +476,13 @@ export class OpenAiAssistantExecutionTools extends OpenAiVectorStoreHandler impl
     /**
      * Polls one assistant run, executing and submitting tool outputs when OpenAI requests them.
      */
-    private async waitForAssistantToolRun(options: AssistantToolRunContext & {
-        readonly run: OpenAI.Beta.Threads.Run;
-        readonly completedToolCalls: Array<StreamedToolCall>;
-        readonly toolCallStartedAt: Map<string, string_date_iso8601>;
-    }): Promise<OpenAI.Beta.Threads.Run> {
+    private async waitForAssistantToolRun(
+        options: AssistantToolRunContext & {
+            readonly run: OpenAI.Beta.Threads.Run;
+            readonly completedToolCalls: Array<StreamedToolCall>;
+            readonly toolCallStartedAt: Map<string, string_date_iso8601>;
+        },
+    ): Promise<OpenAI.Beta.Threads.Run> {
         let run = options.run;
 
         while (isAssistantRunActive(run.status)) {
@@ -504,11 +506,13 @@ export class OpenAiAssistantExecutionTools extends OpenAiVectorStoreHandler impl
     /**
      * Executes all required assistant tool calls and submits their outputs back to OpenAI.
      */
-    private async submitAssistantRequiredToolOutputs(options: AssistantToolRunContext & {
-        readonly run: OpenAI.Beta.Threads.Run;
-        readonly completedToolCalls: Array<StreamedToolCall>;
-        readonly toolCallStartedAt: Map<string, string_date_iso8601>;
-    }): Promise<OpenAI.Beta.Threads.Run> {
+    private async submitAssistantRequiredToolOutputs(
+        options: AssistantToolRunContext & {
+            readonly run: OpenAI.Beta.Threads.Run;
+            readonly completedToolCalls: Array<StreamedToolCall>;
+            readonly toolCallStartedAt: Map<string, string_date_iso8601>;
+        },
+    ): Promise<OpenAI.Beta.Threads.Run> {
         const toolOutputs = await this.executeAssistantRequiredToolCalls({
             ...options,
             toolCalls: options.run.required_action!.submit_tool_outputs.tool_calls,
@@ -541,11 +545,13 @@ export class OpenAiAssistantExecutionTools extends OpenAiVectorStoreHandler impl
     /**
      * Executes each function tool requested by the assistant and records progress snapshots.
      */
-    private async executeAssistantRequiredToolCalls(options: AssistantToolRunContext & {
-        readonly toolCalls: ReadonlyArray<AssistantRequiredActionFunctionToolCall>;
-        readonly completedToolCalls: Array<StreamedToolCall>;
-        readonly toolCallStartedAt: Map<string, string_date_iso8601>;
-    }): Promise<Array<{ tool_call_id: string; output: string }>> {
+    private async executeAssistantRequiredToolCalls(
+        options: AssistantToolRunContext & {
+            readonly toolCalls: ReadonlyArray<AssistantRequiredActionFunctionToolCall>;
+            readonly completedToolCalls: Array<StreamedToolCall>;
+            readonly toolCallStartedAt: Map<string, string_date_iso8601>;
+        },
+    ): Promise<Array<{ tool_call_id: string; output: string }>> {
         const toolOutputs: Array<{ tool_call_id: string; output: string }> = [];
 
         for (const toolCall of options.toolCalls) {
@@ -563,10 +569,12 @@ export class OpenAiAssistantExecutionTools extends OpenAiVectorStoreHandler impl
     /**
      * Executes one function tool requested by the assistant.
      */
-    private async executeAssistantRequiredToolCall(options: AssistantToolRunContext & {
-        readonly toolCall: AssistantRequiredActionFunctionToolCall;
-        readonly toolCallStartedAt: Map<string, string_date_iso8601>;
-    }): Promise<{
+    private async executeAssistantRequiredToolCall(
+        options: AssistantToolRunContext & {
+            readonly toolCall: AssistantRequiredActionFunctionToolCall;
+            readonly toolCallStartedAt: Map<string, string_date_iso8601>;
+        },
+    ): Promise<{
         readonly completedToolCall: StreamedToolCall;
         readonly toolOutput: { tool_call_id: string; output: string };
     }> {
@@ -875,7 +883,9 @@ export class OpenAiAssistantExecutionTools extends OpenAiVectorStoreHandler impl
     /**
      * Builds the streaming assistant request payload used when no tool execution flow is needed.
      */
-    private createAssistantStreamingRequest(context: AssistantChatCallContext): OpenAI.Beta.ThreadCreateAndRunStreamParams {
+    private createAssistantStreamingRequest(
+        context: AssistantChatCallContext,
+    ): OpenAI.Beta.ThreadCreateAndRunStreamParams {
         return {
             // TODO: [👨‍👨‍👧‍👧] ...modelSettings,
             // TODO: [👨‍👨‍👧‍👧][🧠] What about system message for assistants, does it make sense - combination of OpenAI assistants with Promptbook Personas
@@ -1105,7 +1115,9 @@ export class OpenAiAssistantExecutionTools extends OpenAiVectorStoreHandler impl
     }): Usage {
         return {
             ...UNCERTAIN_USAGE,
-            duration: uncertainNumber((new Date(options.complete).getTime() - new Date(options.start).getTime()) / 1000),
+            duration: uncertainNumber(
+                (new Date(options.complete).getTime() - new Date(options.start).getTime()) / 1000,
+            ),
         };
     }
 

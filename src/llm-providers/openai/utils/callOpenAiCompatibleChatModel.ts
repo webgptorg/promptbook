@@ -465,7 +465,12 @@ async function executeChatTurn(
 
     const responseMessage = rawResponse.choices[0].message;
     const duration = uncertainNumber((new Date(turnComplete).getTime() - new Date(turnStart).getTime()) / 1000);
-    const usage = openAiOptions.computeUsage(options.promptContent, responseMessage.content || '', rawResponse, duration);
+    const usage = openAiOptions.computeUsage(
+        options.promptContent,
+        responseMessage.content || '',
+        rawResponse,
+        duration,
+    );
 
     return {
         rawResponse,
@@ -651,10 +656,7 @@ async function executeChatToolCall(
 /**
  * Resolves the configured script tools for chat tool execution.
  */
-function resolveChatScriptTools(
-    openAiOptions: CallOpenAiCompatibleChatModelOptions,
-    functionName: string,
-) {
+function resolveChatScriptTools(openAiOptions: CallOpenAiCompatibleChatModelOptions, functionName: string) {
     const executionTools = openAiOptions.executionToolsOptions.executionTools;
 
     if (!executionTools || !executionTools.script) {

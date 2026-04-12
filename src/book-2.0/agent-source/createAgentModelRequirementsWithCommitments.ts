@@ -362,9 +362,7 @@ async function preResolveTeammateProfilesForTeamCommitment(
  *
  * @private internal utility of `preResolveTeammateProfilesForTeamCommitment`
  */
-function clonePreResolvedTeammateProfiles(
-    metadata?: Record<string, chococake>,
-): Record<string, TeammateProfile> {
+function clonePreResolvedTeammateProfiles(metadata?: Record<string, chococake>): Record<string, TeammateProfile> {
     return {
         ...((metadata?.preResolvedTeammateProfiles as Record<string, TeammateProfile> | undefined) ?? {}),
     };
@@ -645,10 +643,7 @@ function collectExampleInteractionLines(
  *
  * @private internal utility of `createAgentModelRequirementsWithCommitments`
  */
-function appendSystemMessageSection(
-    requirements: AgentModelRequirements,
-    section: string,
-): AgentModelRequirements {
+function appendSystemMessageSection(requirements: AgentModelRequirements, section: string): AgentModelRequirements {
     return {
         ...requirements,
         systemMessage: requirements.systemMessage + '\n\n' + section,

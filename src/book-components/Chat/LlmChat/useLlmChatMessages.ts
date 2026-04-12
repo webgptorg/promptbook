@@ -50,10 +50,7 @@ function copyInitialLlmChatMessages(initialMessages?: ReadonlyArray<ChatMessage>
  */
 export function useLlmChatMessages(props: UseLlmChatMessagesProps): UseLlmChatMessagesResult {
     const { initialMessages, persistenceKey } = props;
-    const buildInitialMessages = useCallback(
-        () => copyInitialLlmChatMessages(initialMessages),
-        [initialMessages],
-    );
+    const buildInitialMessages = useCallback(() => copyInitialLlmChatMessages(initialMessages), [initialMessages]);
     const [messages, setMessages] = useState<Array<ChatMessage>>(() => buildInitialMessages());
     const hasUserInteractedRef = useRef(false);
 
@@ -72,7 +69,12 @@ export function useLlmChatMessages(props: UseLlmChatMessagesProps): UseLlmChatMe
     }, [persistenceKey]);
 
     useEffect(() => {
-        if (!persistenceKey || !ChatPersistence.isAvailable() || messages.length === 0 || !hasUserInteractedRef.current) {
+        if (
+            !persistenceKey ||
+            !ChatPersistence.isAvailable() ||
+            messages.length === 0 ||
+            !hasUserInteractedRef.current
+        ) {
             return;
         }
 

@@ -426,8 +426,7 @@ function renderRunBrowserStreamingErrorNotice(runBrowserState: RunBrowserToolCal
 
     return (
         <div className={styles.browserRunStatusBanner}>
-            <strong>Status:</strong> The browser reported an issue, but the tool call is still streaming final
-            details.
+            <strong>Status:</strong> The browser reported an issue, but the tool call is still streaming final details.
         </div>
     );
 }
