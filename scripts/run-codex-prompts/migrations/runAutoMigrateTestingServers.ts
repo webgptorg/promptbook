@@ -119,8 +119,8 @@ async function runAutoMigrateTestingServersImmediately(options: RunAutoMigrateTe
         TESTING_SERVER_MIGRATION_TARGETS,
     );
 
-    const migrationsDirectory = resolveMigrationsDirectory();
-    const migrationFiles = readMigrationFiles(migrationsDirectory);
+    const migrationsDirectory = await resolveMigrationsDirectory();
+    const migrationFiles = await readMigrationFiles(migrationsDirectory);
     const pendingMigrationsByPrefix = await listPendingMigrationsByPrefix({
         connectionString: runtimeConfiguration.connectionString,
         migrationFiles,

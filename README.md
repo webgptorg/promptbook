@@ -20,10 +20,30 @@ Create persistent AI agents that turn your company's scattered knowledge into ac
 
 ## 🚀 Quick deploy
 
-[![Vercel](https://img.shields.io/badge/Vercel-Deploy-black?logo=vercel)](https://vercel.com/new/clone?repository-url=https://github.com/webgptorg/promptbook/tree/main/apps/agents-server)
-[![DigitalOcean](https://img.shields.io/badge/DigitalOcean-Deploy-0080FF?logo=digitalocean&logoColor=white)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/webgptorg/promptbook/tree/main)
-[![Docker Hub](https://img.shields.io/badge/Docker%20Hub-hejny%2Fpromptbook-2496ED?logo=docker&logoColor=white)](https://hub.docker.com/r/hejny/promptbook)
-[![AWS](https://img.shields.io/badge/AWS-custom%20template%20needed-FF9900?logo=amazonaws&logoColor=white)](#aws-deployment)
+The fully standalone one-click deployment path for the **Agents Server** is Vercel with the native Supabase integration. The button below opens a deploy form that already:
+
+-   clones `apps/agents-server` from this repository
+-   requires a new Supabase project during setup and injects the needed `POSTGRES_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` variables automatically
+-   pre-fills `SUPABASE_AUTO_MIGRATE=true` so Promptbook creates and migrates the database schema on first startup
+
+[![Vercel](https://img.shields.io/badge/Vercel-Deploy%20Agents%20Server-black?logo=vercel)](https://vercel.com/new/clone?project-name=promptbook-agents-server&repository-name=promptbook-agents-server&repository-url=https%3A%2F%2Fgithub.com%2Fwebgptorg%2Fpromptbook&root-directory=apps%2Fagents-server&demo-title=Promptbook+Agents+Server&demo-description=Persistent+AI+agents+with+a+built-in+admin+UI.+This+deploy+creates+a+Supabase+project+automatically%2C+injects+the+required+database+credentials%2C+and+Promptbook+runs+the+SQL+migrations+on+first+startup.&demo-url=https%3A%2F%2Fgallery.ptbk.io%2F&external-id=https%3A%2F%2Fgithub.com%2Fwebgptorg%2Fpromptbook%2Ftree%2Fmain%2Fapps%2Fagents-server&env=OPENAI_API_KEY%2CADMIN_PASSWORD%2CSUPABASE_AUTO_MIGRATE&envDescription=Supabase+is+created+automatically+by+the+required+Vercel+integration.+Add+OPENAI_API_KEY+from+https%3A%2F%2Fplatform.openai.com%2Fapi-keys%2C+choose+ADMIN_PASSWORD+for+your+first+admin+login%2C+and+leave+SUPABASE_AUTO_MIGRATE+enabled.&envLink=https%3A%2F%2Fgithub.com%2Fwebgptorg%2Fpromptbook%2Fblob%2Fmain%2FREADME.md%23vercel-form-fields&envDefaults=%7B%22SUPABASE_AUTO_MIGRATE%22%3A%22true%22%7D&stores=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22supabase%22%2C%22productSlug%22%3A%22supabase%22%7D%5D)
+
+Click the button, then follow only these steps:
+
+1. Keep the required `Supabase` integration enabled and continue. Vercel will create the Supabase project for you.
+2. Fill `OPENAI_API_KEY` with an API key from <https://platform.openai.com/api-keys>.
+3. Fill `ADMIN_PASSWORD` with the password you want to use for the built-in `admin` account.
+4. Leave `SUPABASE_AUTO_MIGRATE` as `true` and click `Deploy`.
+5. After the first deployment finishes, open your new URL and sign in as `admin` with `ADMIN_PASSWORD`.
+
+### Vercel Form Fields
+
+-   `Supabase` integration: Creates the database and Supabase project automatically, then injects the database URL and Supabase keys into Vercel.
+-   `OPENAI_API_KEY`: Required for AI chat and agent execution. Create it at <https://platform.openai.com/api-keys>.
+-   `ADMIN_PASSWORD`: Required if you want to log into the self-hosted admin UI immediately after deploy.
+-   `SUPABASE_AUTO_MIGRATE=true`: Tells Promptbook to run the SQL migrations automatically during startup, so there is no manual database step.
+
+Other deployment options like Docker are still available later in this README, but they are not one-click standalone setups because they require manual infrastructure configuration.
 
 
 <!--

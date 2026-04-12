@@ -1,4 +1,3 @@
-import colors from 'colors';
 import {
     DATABASE_MIGRATION_APPLIED_BY,
     resolveDatabaseMigrationConnectionStringFromEnvironment,
@@ -16,9 +15,24 @@ const SUPABASE_AUTO_MIGRATE_ENV_NAME = 'SUPABASE_AUTO_MIGRATE';
 const automaticDatabaseMigrationPromiseByPrefix = new Map<string, Promise<void>>();
 
 /**
+ * Ensures database migrations are automatically applied for the current deployment prefix.
+ *
+ * This is used during server startup so a newly provisioned deployment can create and migrate its database
+ * without requiring a separate manual SQL step.
+ *
+ * @returns Promise that resolves after automatic migrations finish or are skipped.
+ * @private internal startup helper for Agents Server runtime
+ */
+export async function ensureAutomaticDatabaseMigrations(): Promise<void> {
+    return ensureAutomaticDatabaseMigrationsForPrefix(process.env.SUPABASE_TABLE_PREFIX || '');
+}
+
+/**
  * Ensures database migrations are automatically applied for a specific table prefix.
  *
  * @param prefix Table prefix for current server instance.
+ * @returns Promise that resolves after automatic migrations finish or are skipped.
+ * @private internal startup helper for Agents Server runtime
  */
 export async function ensureAutomaticDatabaseMigrationsForPrefix(prefix: string): Promise<void> {
     const normalizedPrefix = prefix || '';
@@ -46,7 +60,7 @@ async function runAutomaticDatabaseMigrationsForPrefix(prefix: string): Promise<
         return;
     }
 
-    console.info(colors.bgBlue(`🚀 Checking database migrations automatically for prefix "${prefix}"`));
+    console.info(`🚀 Checking database migrations automatically for prefix "${prefix}"`);
     await runDatabaseMigrations({
         prefixes: [prefix],
         connectionString,
@@ -54,7 +68,7 @@ async function runAutomaticDatabaseMigrationsForPrefix(prefix: string): Promise<
         logger: console,
         logSqlStatements: false,
     });
-    console.info(colors.bgGreen(`✅ Automatic database migration check finished for prefix "${prefix}"`));
+    console.info(`✅ Automatic database migration check finished for prefix "${prefix}"`);
 }
 
 /**

@@ -22,8 +22,8 @@ export async function applyManagedServerMigrations(
     sqlRecorder: SqlRecorder,
     migrationLogger: Pick<Console, 'error' | 'info' | 'warn'>,
 ): Promise<void> {
-    const migrationsDirectory = resolveMigrationsDirectory();
-    const migrationFiles = readMigrationFiles(migrationsDirectory);
+    const migrationsDirectory = await resolveMigrationsDirectory();
+    const migrationFiles = await readMigrationFiles(migrationsDirectory);
 
     for (const migrationFile of migrationFiles) {
         const rawMigrationSql = await readFile(`${migrationsDirectory}/${migrationFile}`, 'utf-8');

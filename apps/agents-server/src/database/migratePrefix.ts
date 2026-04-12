@@ -1,6 +1,5 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import { Client } from 'pg';
+import type { Client } from 'pg';
+import { importRuntimeModule } from './importRuntimeModule';
 import type { DatabaseMigrationAppliedBy, DatabaseMigrationLogger } from './runDatabaseMigrations';
 
 /**
@@ -72,6 +71,7 @@ type EnsureMigrationsTableSchemaOptions = {
  * @private function of runDatabaseMigrations
  */
 export async function applyPendingMigrationsForPrefix(options: MigratePrefixOptions): Promise<number> {
+    const { readFile } = await importRuntimeModule<typeof import('fs/promises')>('fs/promises');
     const migrationsTableName = `${options.prefix}Migrations`;
     const migrationsTableIdentifier = quoteIdentifier(migrationsTableName);
 
@@ -92,10 +92,10 @@ export async function applyPendingMigrationsForPrefix(options: MigratePrefixOpti
             continue;
         }
 
-        const migrationFilePath = path.join(options.migrationsDirectory, migrationFile);
+        const migrationFilePath = `${options.migrationsDirectory}/${migrationFile}`;
         options.logger.info(`  🔼 Applying ${migrationFilePath.split('\\').join('/')}...`);
 
-        const sql = fs.readFileSync(migrationFilePath, 'utf-8').replace(/prefix_/g, options.prefix);
+        const sql = (await readFile(migrationFilePath, 'utf-8')).replace(/prefix_/g, options.prefix);
         if (options.logSqlStatements) {
             options.logger.info(sql);
         }

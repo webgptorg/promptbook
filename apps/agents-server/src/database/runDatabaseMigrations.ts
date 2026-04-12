@@ -1,8 +1,9 @@
-import { Client } from 'pg';
+import type { Client } from 'pg';
 import { spaceTrim } from 'spacetrim';
 import { DatabaseError } from '../../../../src/errors/DatabaseError';
 import { type ServerRecord } from '../utils/serverRegistry';
 import { acquireMigrationExecutionLock, releaseMigrationExecutionLock } from './acquireMigrationExecutionLock';
+import { importRuntimeModule } from './importRuntimeModule';
 import { listRegisteredServersFromDatabase } from './listRegisteredServersFromDatabase';
 import { migratePrefix } from './migratePrefix';
 import { readMigrationFiles, resolveMigrationsDirectory } from './resolveMigrationsDirectory';
@@ -116,6 +117,16 @@ export type RunDatabaseMigrationsResult = {
 };
 
 /**
+ * Constructor shape exposed by the `pg` package.
+ */
+type PostgresClientConstructor = new (options: {
+    readonly connectionString: string;
+    readonly ssl: {
+        readonly rejectUnauthorized: boolean;
+    };
+}) => Client;
+
+/**
  * Environment variable used for the current/default table prefix.
  */
 const SUPABASE_TABLE_PREFIX_ENV_NAME = 'SUPABASE_TABLE_PREFIX';
@@ -143,10 +154,7 @@ export async function resolveDatabaseMigrationRuntimeConfiguration(
         );
     }
 
-    const client = new Client({
-        connectionString,
-        ssl: { rejectUnauthorized: false },
-    });
+    const client = await createPostgresClient(connectionString);
 
     try {
         await client.connect();
@@ -194,8 +202,8 @@ export async function runDatabaseMigrations(
         options.registeredServers ?? [],
         options.onlyTargets,
     );
-    const migrationsDirectory = options.migrationsDirectory ?? resolveMigrationsDirectory();
-    const migrationFiles = readMigrationFiles(migrationsDirectory);
+    const migrationsDirectory = options.migrationsDirectory ?? (await resolveMigrationsDirectory());
+    const migrationFiles = await readMigrationFiles(migrationsDirectory);
     const perPrefix: Array<DatabaseMigrationPrefixResult> = [];
 
     logger.info(`📂 Found ${migrationFiles.length} migration files`);
@@ -205,10 +213,7 @@ export async function runDatabaseMigrations(
             .join(', ')}`,
     );
 
-    const client = new Client({
-        connectionString: options.connectionString,
-        ssl: { rejectUnauthorized: false },
-    });
+    const client = await createPostgresClient(options.connectionString);
 
     let hasExecutionLock = false;
 
@@ -280,4 +285,19 @@ function uniquePrefixes(prefixes: ReadonlyArray<string>): Array<string> {
     }
 
     return result;
+}
+
+/**
+ * Creates one PostgreSQL client using the lazily loaded `pg` package.
+ *
+ * @param connectionString - PostgreSQL connection string.
+ * @returns Connected-client constructor instance ready to call `.connect()`.
+ */
+async function createPostgresClient(connectionString: string): Promise<Client> {
+    const { Client: PostgresClient } = await importRuntimeModule<{ Client: PostgresClientConstructor }>('pg');
+
+    return new PostgresClient({
+        connectionString,
+        ssl: { rejectUnauthorized: false },
+    });
 }

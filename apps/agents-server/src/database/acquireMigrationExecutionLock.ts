@@ -1,4 +1,4 @@
-import { Client } from 'pg';
+import type { Client } from 'pg';
 import type { DatabaseMigrationLogger } from './runDatabaseMigrations';
 
 /**

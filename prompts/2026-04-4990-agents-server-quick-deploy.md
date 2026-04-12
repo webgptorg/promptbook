@@ -1,4 +1,4 @@
-[ ]
+[x] ~$1.05 41 minutes by OpenAI Codex `gpt-5.4`
 
 [✨🚀] The "🚀 Quick deploy" in README should be 100% standalone
 
@@ -49,3 +49,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

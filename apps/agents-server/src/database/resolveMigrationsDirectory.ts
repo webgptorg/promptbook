@@ -1,5 +1,4 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import { importRuntimeModule } from './importRuntimeModule';
 
 /**
  * Candidate directories where SQL migration files can be located.
@@ -7,9 +6,9 @@ import * as path from 'path';
  * @private function of runDatabaseMigrations
  */
 const MIGRATIONS_DIRECTORY_CANDIDATES = [
-    path.join(__dirname, 'migrations'),
-    path.join(process.cwd(), 'src', 'database', 'migrations'),
-    path.join(process.cwd(), 'apps', 'agents-server', 'src', 'database', 'migrations'),
+    `${__dirname}/migrations`,
+    `${process.cwd()}/src/database/migrations`,
+    `${process.cwd()}/apps/agents-server/src/database/migrations`,
 ] as const;
 
 /**
@@ -19,10 +18,15 @@ const MIGRATIONS_DIRECTORY_CANDIDATES = [
  *
  * @private function of runDatabaseMigrations
  */
-export function resolveMigrationsDirectory(): string {
+export async function resolveMigrationsDirectory(): Promise<string> {
+    const { access } = await importRuntimeModule<typeof import('fs/promises')>('fs/promises');
+
     for (const migrationsDirectoryCandidate of MIGRATIONS_DIRECTORY_CANDIDATES) {
-        if (fs.existsSync(migrationsDirectoryCandidate)) {
+        try {
+            await access(migrationsDirectoryCandidate);
             return migrationsDirectoryCandidate;
+        } catch {
+            // Continue to the next candidate directory.
         }
     }
 
@@ -41,9 +45,10 @@ export function resolveMigrationsDirectory(): string {
  *
  * @private function of runDatabaseMigrations
  */
-export function readMigrationFiles(migrationsDirectory: string): Array<string> {
-    return fs
-        .readdirSync(migrationsDirectory)
+export async function readMigrationFiles(migrationsDirectory: string): Promise<Array<string>> {
+    const { readdir } = await importRuntimeModule<typeof import('fs/promises')>('fs/promises');
+
+    return (await readdir(migrationsDirectory))
         .filter((file) => file.endsWith('.sql'))
         .sort();
 }

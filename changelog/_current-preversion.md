@@ -1,3 +1,8 @@
+-   Made the Agents Server README quick deploy flow truly standalone:
+
+    -   Replaced the generic mixed-provider quick-deploy buttons with one Vercel deploy button that opens the `apps/agents-server` project, requires the native Supabase integration, and pre-fills the remaining environment variables needed from the user.
+    -   Added automatic runtime database migrations for the Agents Server so newly provisioned Supabase/Postgres databases are created and migrated on startup without a separate manual SQL step.
+
 -   Removed the Agents Server `chatgpt-like` chat variant:
 
     -   Deleted the dedicated `/agents/[agentName]/chat/chatgpt-like` route and its alternate layout/sidebar implementation so `/agents/[agentName]/chat` is now the only standalone chat view.
