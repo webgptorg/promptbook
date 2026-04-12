@@ -4,16 +4,11 @@ import { useEffect, useState } from 'react';
 import type { AgentOrganizationAgent } from '../../utils/agentOrganization/types';
 
 /**
- * Local agent payload with optional route and federation metadata.
+ * Local agent payload with optional federation metadata.
  *
  * @private function of AgentsList
  */
 export type AgentWithVisibility = AgentOrganizationAgent & {
-    /**
-     * Optional absolute profile URL returned by `/api/agents`.
-     */
-    url?: string;
-
     serverUrl?: string;
 };
 

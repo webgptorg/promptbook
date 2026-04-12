@@ -1,12 +1,29 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import type { AgentsByServer } from '../../utils/AgentsByServer';
 import { AgentCard } from './AgentCard';
 import { AgentCardsLoadingSkeleton } from '../Skeleton/AgentCardsLoadingSkeleton';
 import { Section } from './Section';
 import { HOMEPAGE_AGENT_GRID_CLASS } from './gridLayout';
 import { string_url } from '@promptbook-local/types';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
-import { useFederatedAgentSections } from './useFederatedAgentSections';
+
+/**
+ * Response for federated servers.
+ */
+type FederatedServersResponse = {
+    federatedServers: string[];
+};
+
+/**
+ * State for server.
+ */
+type ServerState = {
+    status: 'loading' | 'success' | 'error';
+    agents: AgentsByServer['agents'];
+    error?: string;
+};
 
 /**
  * Props for external agents section client.
@@ -30,10 +47,110 @@ const FEDERATED_SERVER_LOADING_CARD_COUNT = 4;
  */
 export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientProps) {
     const { publicUrl } = props;
-    const { isLoading, sections } = useFederatedAgentSections();
+    const [servers, setServers] = useState<Record<string, ServerState>>({});
+    const [initialLoading, setInitialLoading] = useState(true);
     const { formatText } = useAgentNaming();
 
-    if (isLoading) {
+    useEffect(() => {
+        let isCancelled = false;
+
+        const fetchServers = async () => {
+            try {
+                const response = await fetch('/api/federated-agents');
+                if (!response.ok) throw new Error('Failed to fetch federated servers');
+
+                const data: FederatedServersResponse = await response.json();
+
+                if (isCancelled) return;
+
+                const initialServerState: Record<string, ServerState> = {};
+                data.federatedServers.forEach((serverUrl) => {
+                    initialServerState[serverUrl] = { status: 'loading', agents: [] };
+                });
+
+                setServers(initialServerState);
+                setInitialLoading(false);
+
+                // Fetch agents for each server independently
+                data.federatedServers.forEach((serverUrl) => {
+                    fetchAgentsForServer(serverUrl);
+                });
+            } catch (error) {
+                console.error('Failed to load federated servers list', error);
+                if (!isCancelled) setInitialLoading(false);
+            }
+        };
+
+        const fetchAgentsForServer = async (serverUrl: string) => {
+            const normalizedUrl = serverUrl.replace(/\/$/, '');
+
+            try {
+                // 1. Try direct connection
+                const response = await fetch(`${normalizedUrl}/api/agents`);
+
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch agents from ${serverUrl} (Status: ${response.status})`);
+                }
+
+                const data = await response.json();
+
+                if (isCancelled) return;
+
+                setServers((prev) => ({
+                    ...prev,
+                    [serverUrl]: {
+                        status: 'success',
+                        agents: data.agents || [],
+                    },
+                }));
+            } catch (directError) {
+                // 2. Try proxy through our server
+                try {
+                    // Note: We are using encodeURIComponent to ensure the URL is passed correctly as a parameter
+                    const proxyUrl = `/agents/${encodeURIComponent(normalizedUrl)}/api/agents`;
+                    const response = await fetch(proxyUrl);
+
+                    if (!response.ok) {
+                        throw new Error(
+                            `Failed to fetch agents from ${serverUrl} via proxy (Status: ${response.status})`,
+                        );
+                    }
+
+                    const data = await response.json();
+
+                    if (isCancelled) return;
+
+                    setServers((prev) => ({
+                        ...prev,
+                        [serverUrl]: {
+                            status: 'success',
+                            agents: data.agents || [],
+                        },
+                    }));
+                } catch (proxyError) {
+                    if (isCancelled) return;
+                    console.warn(`Failed to load agents from ${serverUrl} (Direct & Proxy)`, directError, proxyError);
+
+                    setServers((prev) => ({
+                        ...prev,
+                        [serverUrl]: {
+                            status: 'error',
+                            agents: [],
+                            error: proxyError instanceof Error ? proxyError.message : 'Unknown error',
+                        },
+                    }));
+                }
+            }
+        };
+
+        fetchServers();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, []);
+
+    if (initialLoading) {
         return (
             <div className="mt-8" role="status" aria-live="polite" aria-busy="true" aria-label="Loading federated agents">
                 <Section
@@ -46,14 +163,16 @@ export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientPr
         );
     }
 
-    if (sections.length === 0) {
+    const serverUrls = Object.keys(servers);
+
+    if (serverUrls.length === 0) {
         return null;
     }
 
     return (
         <>
-            {sections.map((section) => {
-                const { serverUrl } = section;
+            {serverUrls.map((serverUrl) => {
+                const state = servers[serverUrl];
                 const hostname = (() => {
                     try {
                         return new URL(serverUrl).hostname;
@@ -62,7 +181,7 @@ export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientPr
                     }
                 })();
 
-                if (section.status === 'loading') {
+                if (state.status === 'loading') {
                     return (
                         <Section
                             key={serverUrl}
@@ -74,7 +193,7 @@ export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientPr
                     );
                 }
 
-                if (section.status === 'error') {
+                if (state.status === 'error') {
                     return (
                         <Section
                             key={serverUrl}
@@ -88,14 +207,14 @@ export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientPr
                     );
                 }
 
-                if (section.status === 'success' && section.agents.length > 0) {
+                if (state.status === 'success' && state.agents.length > 0) {
                     return (
                         <Section
                             key={serverUrl}
-                            title={`${formatText('Agents from')} ${hostname} (${section.agents.length})`}
+                            title={`${formatText('Agents from')} ${hostname} (${state.agents.length})`}
                             gridClassName={HOMEPAGE_AGENT_GRID_CLASS}
                         >
-                            {section.agents.map((agent) => (
+                            {state.agents.map((agent) => (
                                 <AgentCard
                                     key={agent.url}
                                     agent={agent}

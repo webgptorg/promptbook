@@ -1,8 +1,3 @@
--   Enhanced the Agents Server new-agent wizard team step so homepage-style multi-select teammate picking now works across local and federated agents:
-
-    -   Reused the homepage card and section UI in the wizard so users can add or remove multiple teammates by clicking agent cards while still keeping the existing manual TEAM reference input for custom names, URLs, and `{User}`.
-    -   Wired the wizard to preload all local agents available to the current user and to load federated server agents with the same hidden-core-server behavior as the homepage, so teammate selection now stays consistent across both surfaces.
-
 -   Refactored Agents Server `useAgentChatHistorySyncState.ts` into smaller focused private chat-history helpers without changing external behavior:
 
     -   Moved the branching-heavy detail/snapshot application, bootstrap selection, optimistic chat creation, delete-refresh flow, and active job/timeout cancellation paths into focused helpers so `useAgentChatHistorySyncState` now reads top-down.

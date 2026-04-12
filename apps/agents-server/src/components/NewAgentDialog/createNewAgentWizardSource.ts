@@ -4,7 +4,6 @@ import {
     NEW_AGENT_WIZARD_KNOWN_CAPABILITY_COMMITMENTS,
     type NewAgentWizardCapabilityCommitment,
 } from './newAgentWizardPresets';
-import { summarizeTeamReference } from './NewAgentWizardState';
 
 /**
  * One knowledge source collected by the wizard.
@@ -121,6 +120,33 @@ function createCommitmentLines(keyword: string, items: ReadonlyArray<string>): A
  */
 function normalizeSingleLine(value: string | null | undefined): string {
     return (value || '').replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * Formats one teammate reference for the human-readable traceability note.
+ *
+ * @param teamReference - TEAM compact reference or URL.
+ * @returns Readable teammate label.
+ */
+function summarizeTeamReference(teamReference: string): string {
+    const normalizedReference = normalizeSingleLine(teamReference);
+    if (normalizedReference === '') {
+        return '';
+    }
+
+    const bracketMatch = /^\{(.+)\}$/.exec(normalizedReference);
+    if (bracketMatch?.[1]) {
+        return normalizeSingleLine(bracketMatch[1]);
+    }
+
+    try {
+        const parsedUrl = new URL(normalizedReference);
+        const pathParts = parsedUrl.pathname.split('/').filter(Boolean);
+        const lastPathPart = decodeURIComponent(pathParts[pathParts.length - 1] || parsedUrl.hostname);
+        return normalizeSingleLine(lastPathPart.replace(/[-_]+/g, ' ')) || parsedUrl.hostname;
+    } catch {
+        return normalizedReference;
+    }
 }
 
 /**

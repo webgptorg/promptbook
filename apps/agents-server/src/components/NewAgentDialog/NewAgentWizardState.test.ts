@@ -1,10 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import {
-    addUniqueTeamReference,
-    normalizeTeamReferenceInput,
-    summarizeTeamReference,
-    toggleTeamReferenceSelection,
-} from './NewAgentWizardState';
+import { addUniqueTeamReference, normalizeTeamReferenceInput } from './NewAgentWizardState';
 
 describe('NewAgentWizardState', () => {
     it('wraps plain teammate names into compact TEAM references', () => {
@@ -25,22 +20,5 @@ describe('NewAgentWizardState', () => {
 
         expect(afterFirstAdd).toEqual(['{Legal Reviewer}']);
         expect(afterDuplicateAdd).toEqual(['{Legal Reviewer}']);
-    });
-
-    it('summarizes teammate references into readable labels', () => {
-        expect(summarizeTeamReference('{Legal Reviewer}')).toBe('Legal Reviewer');
-        expect(summarizeTeamReference('https://remote.example/agents/legal-reviewer')).toBe('legal reviewer');
-    });
-
-    it('toggles teammate selections across equivalent reference variants', () => {
-        const selectedCompactReference = toggleTeamReferenceSelection([], '{Legal Reviewer}', ['{legal reviewer}']);
-        const removedRemoteReference = toggleTeamReferenceSelection(
-            ['https://remote.example/agents/legal-reviewer'],
-            'https://remote.example/agents/legal-reviewer',
-            ['https://remote.example/agents/legal-reviewer'],
-        );
-
-        expect(selectedCompactReference).toEqual(['{Legal Reviewer}']);
-        expect(removedRemoteReference).toEqual([]);
     });
 });

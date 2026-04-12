@@ -359,35 +359,6 @@ export function normalizeTeamReferenceInput(rawValue: string): string {
 }
 
 /**
- * Formats one teammate reference for friendly chip labels and traceability summaries.
- *
- * @param teamReference - TEAM compact reference or URL.
- * @returns Readable teammate label.
- *
- * @private internal utility of <NewAgentWizard/>.
- */
-export function summarizeTeamReference(teamReference: string): string {
-    const normalizedReference = normalizeSingleLineInput(teamReference);
-    if (normalizedReference === '') {
-        return '';
-    }
-
-    const bracketMatch = /^\{(.+)\}$/.exec(normalizedReference);
-    if (bracketMatch?.[1]) {
-        return normalizeSingleLineInput(bracketMatch[1]);
-    }
-
-    try {
-        const parsedUrl = new URL(normalizedReference);
-        const pathParts = parsedUrl.pathname.split('/').filter(Boolean);
-        const lastPathPart = decodeURIComponent(pathParts[pathParts.length - 1] || parsedUrl.hostname);
-        return normalizeSingleLineInput(lastPathPart.replace(/[-_]+/g, ' ')) || parsedUrl.hostname;
-    } catch {
-        return normalizedReference;
-    }
-}
-
-/**
  * Adds one normalized teammate reference if it is non-empty and not already present.
  *
  * @param teamReferences - Existing teammate references.
@@ -410,37 +381,6 @@ export function addUniqueTeamReference(teamReferences: ReadonlyArray<string>, ra
     }
 
     return [...teamReferences, normalizedReference];
-}
-
-/**
- * Toggles one teammate selection using the provided preferred reference and known match variants.
- *
- * @param teamReferences - Existing teammate references.
- * @param preferredReference - Canonical reference to add when no match is selected.
- * @param matchingReferences - Reference variants that should count as the same teammate.
- * @returns Updated teammate reference list.
- *
- * @private internal utility of <NewAgentWizard/>.
- */
-export function toggleTeamReferenceSelection(
-    teamReferences: ReadonlyArray<string>,
-    preferredReference: string,
-    matchingReferences: ReadonlyArray<string>,
-): ReadonlyArray<string> {
-    const normalizedMatchingReferences = new Set(
-        matchingReferences.map((teamReference) => normalizeTeamReferenceInput(teamReference).toLowerCase()).filter(Boolean),
-    );
-
-    if (normalizedMatchingReferences.size > 0) {
-        const filteredTeamReferences = teamReferences.filter(
-            (teamReference) => !normalizedMatchingReferences.has(normalizeTeamReferenceInput(teamReference).toLowerCase()),
-        );
-        if (filteredTeamReferences.length !== teamReferences.length) {
-            return filteredTeamReferences;
-        }
-    }
-
-    return addUniqueTeamReference(teamReferences, preferredReference);
 }
 
 /**

@@ -285,7 +285,7 @@ agentCreation.wizard.capabilityProject: Pracuje s projektem
 agentCreation.wizard.capabilityMcp: Připojuje se k MCP
 agentCreation.wizard.teamLabel: Členové týmu
 agentCreation.wizard.teamPlaceholder: Legal Reviewer, https://remote.example/agents/reviewer nebo {User}
-agentCreation.wizard.teamHint: Kliknutím na kartičky agentů přidáte nebo odeberete spoluhráče, případně napište název agenta nebo URL a potvrďte Enterem. Běžná jména uložíme jako kompaktní reference typu `{Legal Reviewer}`. Přidejte `{User}`, pokud se má agent v průběhu práce doptat přímo uživatele.
+agentCreation.wizard.teamHint: Napište název agenta nebo URL a potvrďte klávesou Enter. Běžná jména uložíme jako kompaktní reference typu `{Legal Reviewer}`. Přidejte `{User}`, pokud se má agent v průběhu práce doptat přímo uživatele.
 agentCreation.wizard.teamAddUserAction: Přidat {User}
 agentCreation.wizard.noTeamMembers: Zatím jste nepřidali žádné spolupracující agenty.
 agentCreation.wizard.ruleProtectPersonalData: Nežádat ani neprozrazovat osobní údaje.

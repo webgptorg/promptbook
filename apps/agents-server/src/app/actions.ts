@@ -1,16 +1,13 @@
 'use server';
 
 import { $generateBookBoilerplate } from '@promptbook-local/core';
-import { string_agent_name, string_book, string_url } from '@promptbook-local/types';
+import { string_agent_name, string_book } from '@promptbook-local/types';
 import { revalidatePath } from 'next/cache';
 import { string_agent_permanent_id } from '../../../../src/types/typeAliases';
 import { NEW_AGENT_WIZZARD_METADATA_KEY, parseNewAgentWizardMode } from '../constants/newAgentWizard';
 import { getMetadata } from '../database/getMetadata';
 import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
-import { $provideServer } from '../tools/$provideServer';
 import { type AgentVisibility, parseAgentVisibility } from '../utils/agentVisibility';
-import { loadAgentOrganizationState } from '../utils/agentOrganization/loadAgentOrganizationState';
-import type { AgentOrganizationAgent } from '../utils/agentOrganization/types';
 import { authenticateUser } from '../utils/authenticateUser';
 import { createAgentWithDefaultVisibility } from '../utils/createAgentWithDefaultVisibility';
 import { resolveCurrentUserIdentity } from '../utils/currentUserIdentity';
@@ -58,31 +55,10 @@ export async function $generateAgentBoilerplateAction(): Promise<string_book> {
 export async function $getNewAgentCreationSettingsAction(): Promise<{
     mode: ReturnType<typeof parseNewAgentWizardMode>;
     defaultVisibility: AgentVisibility;
-    publicUrl: string_url;
-    localTeammateAgents: ReadonlyArray<AgentOrganizationAgent>;
 }> {
-    const [mode, defaultVisibility, { publicUrl }] = await Promise.all([
-        getMetadata(NEW_AGENT_WIZZARD_METADATA_KEY).then(parseNewAgentWizardMode),
-        getMetadata('DEFAULT_VISIBILITY').then(parseAgentVisibility),
-        $provideServer(),
-    ]);
-
-    if (mode !== 'WIZARD') {
-        return {
-            mode,
-            defaultVisibility,
-            publicUrl: publicUrl.href,
-            localTeammateAgents: [],
-        };
-    }
-
-    const { agents } = await loadAgentOrganizationState({ status: 'ACTIVE' });
-
     return {
-        mode,
-        defaultVisibility,
-        publicUrl: publicUrl.href,
-        localTeammateAgents: agents,
+        mode: parseNewAgentWizardMode(await getMetadata(NEW_AGENT_WIZZARD_METADATA_KEY)),
+        defaultVisibility: parseAgentVisibility(await getMetadata('DEFAULT_VISIBILITY')),
     };
 }
 

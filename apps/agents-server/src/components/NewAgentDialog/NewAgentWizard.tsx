@@ -1,11 +1,10 @@
 'use client';
 
-import type { string_book, string_url } from '@promptbook-local/types';
+import type { string_book } from '@promptbook-local/types';
 import { ArrowLeft, ArrowRight, X } from 'lucide-react';
 import { useId, type ReactNode } from 'react';
 import type { NewAgentWizardMode } from '../../constants/newAgentWizard';
 import type { AgentVisibility } from '../../utils/agentVisibility';
-import type { AgentOrganizationAgent } from '../../utils/agentOrganization/types';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { Dialog } from '../Portal/Dialog';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
@@ -42,16 +41,6 @@ type NewAgentWizardProps = {
      * Folder scope where the flow was opened.
      */
     readonly folderId?: number | null;
-
-    /**
-     * Public server URL used for rendering local homepage-style cards.
-     */
-    readonly publicUrl: string_url;
-
-    /**
-     * Local agents that can be selected as teammates in the wizard.
-     */
-    readonly localTeammateAgents: ReadonlyArray<AgentOrganizationAgent>;
 
     /**
      * Requests closing the wizard dialog.
@@ -114,8 +103,6 @@ function renderStepContent(props: {
     readonly step: number;
     readonly wizard: ReturnType<typeof useNewAgentWizard>;
     readonly t: ReturnType<typeof useServerLanguage>['t'];
-    readonly publicUrl: string_url;
-    readonly localTeammateAgents: ReadonlyArray<AgentOrganizationAgent>;
 }): ReactNode {
     const { step, wizard, t } = props;
     const { state, setState, togglePresetSelection, addDraftChip, removeDraftChip } = wizard;
@@ -140,8 +127,6 @@ function renderStepContent(props: {
                     state={state}
                     setState={setState}
                     t={t}
-                    publicUrl={props.publicUrl}
-                    localTeammateAgents={props.localTeammateAgents}
                     addTeamReferenceFromDraft={wizard.addTeamReferenceFromDraft}
                     addTeamReference={wizard.addTeamReference}
                     removeTeamReference={wizard.removeTeamReference}
@@ -280,8 +265,6 @@ export function NewAgentWizard(props: NewAgentWizardProps) {
                             step: wizard.step,
                             wizard,
                             t,
-                            publicUrl: props.publicUrl,
-                            localTeammateAgents: props.localTeammateAgents,
                         })}
                     </div>
                 </div>
