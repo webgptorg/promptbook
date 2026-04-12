@@ -1,5 +1,9 @@
 [x] ~$0.00 30 minutes by GitHub Copilot `gpt-5.4`
 
+---
+
+[ ] !
+
 [✨👕] Create custom 500 error page
 
 -   Get inspiration from the existing 404 page
@@ -9,6 +13,7 @@
 
 ![alt text](prompts/screenshots/2026-04-5000-agents-server-custom-500-page.png)
 ![alt text](prompts/screenshots/2026-04-5000-agents-server-custom-500-page-1.png)
+![alt text](prompts/screenshots/2026-04-5000-agents-server-custom-500-page-2.png)
 
 ---
 

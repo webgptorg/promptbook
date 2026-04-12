@@ -1,8 +1,8 @@
-[?]
+[ ] !
 
 [✨🌗] When creating new Agents server it should contain default agents
 
--   @@@ - core server vs github source ?
+-   The default agents should be created from folder `agents/default` in this repository, each `*.book` file should correspond to agent.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)

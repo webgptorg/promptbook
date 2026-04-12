@@ -2,6 +2,7 @@
 
 [🔧🧩] Procedural deterministic pixel-art agent default images (2-stage pipeline) + still image URL
 
+-   @@@
 -   You are working with the [Agents Server](apps/agents-server)
 -   Replace default agent avatar generation that currently uses diffusion models with a deterministic procedural pixel-art pipeline
 -   The system must be split into 2 explicit stages:
