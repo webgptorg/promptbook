@@ -28,6 +28,7 @@ import type {
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import type { chococake } from '../../utils/organization/really_any';
 import type { TODO_any } from '../../utils/organization/TODO_any';
+import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { computeOpenAiUsage } from './computeOpenAiUsage';
@@ -154,6 +155,8 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         onProgress: (chunk: ChatPromptResult) => void,
         _options?: CallChatModelStreamOptions,
     ): Promise<ChatPromptResult> {
+        TODO_USE(_options);
+
         return callOpenAiCompatibleChatModel({
             prompt,
             onProgress,
@@ -170,13 +173,15 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
      * Executes one OpenAI request under the shared rate limiter and network retry policy.
      */
     private async executeRateLimitedRequest<T>(requestFn: () => Promise<T>): Promise<T> {
-        return this.limiter.schedule(() => this.makeRequestWithNetworkRetry(requestFn)).catch((error: Error) => {
-            assertsError(error);
-            if (this.options.isVerbose) {
-                console.info(colors.bgRed('error'), error);
-            }
-            throw error;
-        });
+        return this.limiter
+            .schedule(() => this.makeRequestWithNetworkRetry(requestFn))
+            .catch((error: Error) => {
+                assertsError(error);
+                if (this.options.isVerbose) {
+                    console.info(colors.bgRed('error'), error);
+                }
+                throw error;
+            });
     }
 
     /**
@@ -505,7 +510,11 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                 currentModelRequirements,
             });
 
-            return this.callImageGenerationModelWithRetry(prompt, modifiedModelRequirements, unsupportedParameterRetrier);
+            return this.callImageGenerationModelWithRetry(
+                prompt,
+                modifiedModelRequirements,
+                unsupportedParameterRetrier,
+            );
         }
     }
 
