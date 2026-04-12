@@ -36,25 +36,58 @@ const MAX_PENDING_FILE_NAMES = 8;
 type PromptDecision = 'done' | 'not-done';
 
 /**
- * Parse command-line arguments
+ * Options supported by the prompt verification helper.
  */
-const REVERSE_ORDER = process.argv.includes('--reverse');
+export type VerifyPromptsOptions = {
+    /**
+     * Process prompt files in reverse order.
+     */
+    readonly reverse?: boolean;
+
+    /**
+     * Ignore prompt files whose filename or first prompt line contains one of the provided values.
+     */
+    readonly ignore?: ReadonlyArray<string>;
+};
+
+/**
+ * Fully normalized prompt verification options used during one run.
+ */
+type NormalizedVerifyPromptsOptions = {
+    /**
+     * Process prompt files in reverse order.
+     */
+    readonly reverse: boolean;
+
+    /**
+     * Ignore prompt files whose filename or first prompt line contains one of the provided values.
+     */
+    readonly ignore: ReadonlyArray<string>;
+};
+
+/**
+ * Default verification options parsed from the current process arguments.
+ */
+const DEFAULT_VERIFY_PROMPTS_OPTIONS = normalizeVerifyPromptsOptions(parseVerifyPromptsCliOptions(process.argv.slice(2)));
 
 /**
  * Starts the verification loop and exits when no `[ ]` prompts remain.
  *
- * @param reverse - Process files in reverse order
- *
  * @public exported from `@promptbook/cli`
  */
-export async function verifyPrompts(reverse: boolean = REVERSE_ORDER): Promise<void> {
+export async function verifyPrompts(options: VerifyPromptsOptions = DEFAULT_VERIFY_PROMPTS_OPTIONS): Promise<void> {
+    const normalizedOptions = normalizeVerifyPromptsOptions(options);
+
     console.info(colors.cyan.bold('📋 Prompt verification helper'));
-    if (reverse) {
+    if (normalizedOptions.reverse) {
         console.info(colors.gray('Processing files in reverse order'));
     }
-    const initialFiles = await loadPromptFiles(PROMPTS_DIR);
-    if (reverse) {
-        initialFiles.reverse();
+    if (normalizedOptions.ignore.length > 0) {
+        console.info(colors.gray(`Ignoring candidates matching: ${normalizedOptions.ignore.join(', ')}`));
+    }
+    const { promptFiles: initialFiles, ignoredPromptFiles } = await loadPromptFilesForVerification(normalizedOptions);
+    if (ignoredPromptFiles.length > 0) {
+        console.info(colors.gray(`Ignored ${ignoredPromptFiles.length} prompt file(s) for this run.`));
     }
     displayTopLevelFileList(initialFiles);
     await prepareArchiveDirectory();
@@ -72,10 +105,7 @@ export async function verifyPrompts(reverse: boolean = REVERSE_ORDER): Promise<v
             if (wasSkipped) {
                 skippedFiles.add(fileWithAllDone.path);
             }
-            promptFiles = await loadPromptFiles(PROMPTS_DIR);
-            if (REVERSE_ORDER) {
-                promptFiles.reverse();
-            }
+            promptFiles = (await loadPromptFilesForVerification(normalizedOptions)).promptFiles;
             continue;
         }
 
@@ -87,11 +117,69 @@ export async function verifyPrompts(reverse: boolean = REVERSE_ORDER): Promise<v
         }
 
         await resolvePrompt(nextPrompt);
-        promptFiles = await loadPromptFiles(PROMPTS_DIR);
-        if (REVERSE_ORDER) {
-            promptFiles.reverse();
+        promptFiles = (await loadPromptFilesForVerification(normalizedOptions)).promptFiles;
+    }
+}
+
+/**
+ * Parses supported command-line arguments for the standalone verification script.
+ */
+function parseVerifyPromptsCliOptions(args: ReadonlyArray<string>): VerifyPromptsOptions {
+    return {
+        reverse: args.includes('--reverse'),
+        ignore: readRepeatableStringOption(args, '--ignore'),
+    };
+}
+
+/**
+ * Loads prompt files and applies ordering plus ignore filters for one verification pass.
+ */
+async function loadPromptFilesForVerification(
+    options: NormalizedVerifyPromptsOptions,
+): Promise<{ promptFiles: PromptFile[]; ignoredPromptFiles: PromptFile[] }> {
+    const loadedPromptFiles = await loadPromptFiles(PROMPTS_DIR);
+    const { promptFiles, ignoredPromptFiles } = partitionPromptFilesByIgnore(loadedPromptFiles, options.ignore);
+
+    if (options.reverse) {
+        promptFiles.reverse();
+    }
+
+    return { promptFiles, ignoredPromptFiles };
+}
+
+/**
+ * Splits prompt files into files that should be verified now and files ignored for this run.
+ *
+ * @public exported from `@promptbook/cli`
+ */
+export function partitionPromptFilesByIgnore(
+    promptFiles: ReadonlyArray<PromptFile>,
+    ignoreValues: ReadonlyArray<string>,
+): { promptFiles: PromptFile[]; ignoredPromptFiles: PromptFile[] } {
+    const normalizedIgnoreValues = normalizeIgnoreValues(ignoreValues);
+
+    if (normalizedIgnoreValues.length === 0) {
+        return {
+            promptFiles: [...promptFiles],
+            ignoredPromptFiles: [],
+        };
+    }
+
+    const promptFilesToVerify: PromptFile[] = [];
+    const ignoredPromptFiles: PromptFile[] = [];
+
+    for (const promptFile of promptFiles) {
+        if (matchesIgnoredPromptFile(promptFile, normalizedIgnoreValues)) {
+            ignoredPromptFiles.push(promptFile);
+        } else {
+            promptFilesToVerify.push(promptFile);
         }
     }
+
+    return {
+        promptFiles: promptFilesToVerify,
+        ignoredPromptFiles,
+    };
 }
 
 /**
@@ -102,12 +190,105 @@ async function prepareArchiveDirectory(): Promise<void> {
 }
 
 /**
+ * Normalizes verification options so the rest of the flow can assume stable defaults.
+ */
+function normalizeVerifyPromptsOptions(options: VerifyPromptsOptions): NormalizedVerifyPromptsOptions {
+    return {
+        reverse: options.reverse ?? false,
+        ignore: normalizeIgnoreValues(options.ignore ?? []),
+    };
+}
+
+/**
+ * Normalizes ignore values and removes empty or duplicate entries case-insensitively.
+ */
+function normalizeIgnoreValues(ignoreValues: ReadonlyArray<string>): ReadonlyArray<string> {
+    const normalizedIgnoreValues: string[] = [];
+    const seenIgnoreValues = new Set<string>();
+
+    for (const ignoreValue of ignoreValues) {
+        const trimmedIgnoreValue = ignoreValue.trim();
+        if (!trimmedIgnoreValue) {
+            continue;
+        }
+
+        const lowerCasedIgnoreValue = trimmedIgnoreValue.toLowerCase();
+        if (seenIgnoreValues.has(lowerCasedIgnoreValue)) {
+            continue;
+        }
+
+        seenIgnoreValues.add(lowerCasedIgnoreValue);
+        normalizedIgnoreValues.push(trimmedIgnoreValue);
+    }
+
+    return normalizedIgnoreValues;
+}
+
+/**
+ * Reads one repeatable string option from raw CLI arguments.
+ */
+function readRepeatableStringOption(args: ReadonlyArray<string>, flag: string): ReadonlyArray<string> {
+    const values: string[] = [];
+
+    for (let index = 0; index < args.length; index += 1) {
+        const argument = args[index];
+        if (!argument) {
+            continue;
+        }
+
+        if (argument === flag) {
+            const nextValue = args[index + 1];
+            if (nextValue !== undefined && !nextValue.startsWith('--')) {
+                values.push(nextValue);
+                index += 1;
+            }
+            continue;
+        }
+
+        if (argument.startsWith(`${flag}=`)) {
+            values.push(argument.slice(flag.length + 1));
+        }
+    }
+
+    return values;
+}
+
+/**
+ * Resolves whether a prompt file should be ignored for this verification run.
+ */
+function matchesIgnoredPromptFile(promptFile: PromptFile, ignoreValues: ReadonlyArray<string>): boolean {
+    const searchableValues = [promptFile.name, getPromptFileFirstLine(promptFile)].map((value) => value.toLowerCase());
+    return ignoreValues.some((ignoreValue) => {
+        const lowerCasedIgnoreValue = ignoreValue.toLowerCase();
+        return searchableValues.some((searchableValue) => searchableValue.includes(lowerCasedIgnoreValue));
+    });
+}
+
+/**
+ * Returns the first meaningful line of the prompt file after the status line.
+ */
+function getPromptFileFirstLine(promptFile: PromptFile): string {
+    const firstSection = promptFile.sections[0];
+    const startLineIndex =
+        firstSection?.statusLineIndex !== undefined ? firstSection.statusLineIndex + 1 : (firstSection?.startLine ?? 0);
+
+    for (let index = startLineIndex; index < promptFile.lines.length; index += 1) {
+        const line = promptFile.lines[index];
+        if (line !== undefined && line.trim() !== '') {
+            return line.trim();
+        }
+    }
+
+    return '';
+}
+
+/**
  * Displays the list of files that currently live in the prompts root.
  */
 function displayTopLevelFileList(promptFiles: PromptFile[]): void {
     console.info(colors.cyan('\nTop-level prompt files:'));
     if (!promptFiles.length) {
-        console.info(colors.gray('  (no markdown files found in prompts/)'));
+        console.info(colors.gray('  (no prompt markdown files found for this run in prompts/)'));
         return;
     }
 
@@ -510,7 +691,7 @@ function isNotFound(error: unknown): boolean {
 
 // Note: When run as a standalone script, call the exported function
 if (require.main === module) {
-    verifyPrompts(REVERSE_ORDER).catch((error) => {
+    verifyPrompts(DEFAULT_VERIFY_PROMPTS_OPTIONS).catch((error) => {
         console.error(colors.bgRed('Prompt verification failed:'), error);
         process.exit(1);
     });

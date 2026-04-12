@@ -25,22 +25,30 @@ export function $initializeCoderVerifyCommand(program: Program): $side_effect {
             - Archives verified prompt files to prompts/done/ directory
             - Auto-appends repair prompts for incomplete work
             - Processes files with all-done prompts first
+            - Supports ignoring matching prompt candidates for one verification run
         `),
     );
 
     command.option('--reverse', 'Process prompt files in reverse order', false);
+    command.option(
+        '--ignore <candidate-text>',
+        'Ignore prompt files whose filename or first prompt line contains the given text (repeatable)',
+        collectStringOption,
+        [],
+    );
 
     command.action(
         handleActionErrors(async (cliOptions) => {
-            const { reverse } = cliOptions as {
+            const { reverse, ignore } = cliOptions as {
                 readonly reverse: boolean;
+                readonly ignore: ReadonlyArray<string>;
             };
 
             // Note: Import the main function dynamically to avoid loading heavy dependencies until needed
             const { verifyPrompts } = await import('../../../../scripts/verify-prompts/verify-prompts');
 
             try {
-                await verifyPrompts(reverse);
+                await verifyPrompts({ reverse, ignore });
             } catch (error) {
                 console.error(colors.bgRed('Prompt verification failed:'), error);
                 return process.exit(1);
@@ -49,6 +57,15 @@ export function $initializeCoderVerifyCommand(program: Program): $side_effect {
             return process.exit(0);
         }),
     );
+}
+
+/**
+ * Collects repeatable string options from Commander.
+ *
+ * @private internal utility of `coder verify` command
+ */
+function collectStringOption(value: string, previousValues: ReadonlyArray<string>): ReadonlyArray<string> {
+    return [...previousValues, value];
 }
 
 // Note: [🟡] Code for CLI command [verify](src/cli/cli-commands/coder/verify.ts) should never be published outside of `@promptbook/cli`

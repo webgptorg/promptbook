@@ -1,3 +1,8 @@
+-   Added repeatable `--ignore` support to `ptbk coder verify` so one verification run can skip prompt candidates whose filename or first prompt line matches a given value case-insensitively:
+
+    -   Extended `ptbk coder verify` to forward repeatable `--ignore` filters into the verifier, allowing commands like `npx ptbk coder verify --ignore Refactor` to skip refactor-only prompts temporarily.
+    -   Applied the ignore matching consistently across the verification queue and prompt-file reloads while keeping the existing reverse-order flow intact.
+
 -   Seeded default agents for newly created managed Agents Server instances:
 
     -   Added create-server bootstrap seeding from repository `agents/default/*.book`, creating one persisted local agent and its initial history snapshot for each default book inside the existing managed-server transaction.
