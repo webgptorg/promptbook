@@ -1,3 +1,8 @@
+-   Seeded default agents for newly created managed Agents Server instances:
+
+    -   Added create-server bootstrap seeding from repository `agents/default/*.book`, creating one persisted local agent and its initial history snapshot for each default book inside the existing managed-server transaction.
+    -   Extracted the shared agent-persistence row builder so the managed-server bootstrap reuses the same normalized agent/hash/permanent-id payload construction as `AgentCollectionInSupabase.createAgent`.
+
 -   Fixed the Agents Server Vercel startup regression where automatic database migrations could break all requests with a blank `500` page:
 
     -   Changed Next.js instrumentation startup migrations to use a non-blocking advisory-lock path, so one runtime instance can migrate while the others continue serving requests instead of piling up behind `pg_advisory_lock`.

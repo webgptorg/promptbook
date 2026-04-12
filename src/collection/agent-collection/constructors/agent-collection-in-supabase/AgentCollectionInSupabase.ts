@@ -5,7 +5,6 @@ import { DEFAULT_IS_VERBOSE } from '../../../../config';
 import { DatabaseError } from '../../../../errors/DatabaseError';
 import { NotFoundError } from '../../../../errors/NotFoundError';
 import { UnexpectedError } from '../../../../errors/UnexpectedError';
-import { ZERO_USAGE } from '../../../../execution/utils/usage-constants';
 import type { string_agent_name, string_agent_permanent_id } from '../../../../types/typeAliases';
 import { spaceTrim } from '../../../../utils/organization/spaceTrim';
 import { TODO_USE } from '../../../../utils/organization/TODO_USE';
@@ -13,6 +12,10 @@ import { $randomBase58 } from '../../../../utils/random/$randomBase58';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
 import { AgentCollectionInSupabaseOptions } from './AgentCollectionInSupabaseOptions';
 import type { AgentsDatabaseSchema } from './AgentsDatabaseSchema';
+import {
+    createAgentPersistenceRecords,
+    type CreateAgentPersistenceRecordsOptions,
+} from './createAgentPersistenceRecords';
 import { prepareAgentSourceForPersistence } from './prepareAgentSourceForPersistence';
 
 // import { getTableName } from '../../../../../apps/agents-server/src/database/getTableName';
@@ -21,20 +24,7 @@ import { prepareAgentSourceForPersistence } from './prepareAgentSourceForPersist
 /**
  * Options for creating a new agent entry.
  */
-type CreateAgentOptions = {
-    /**
-     * Visibility for the new agent.
-     */
-    readonly visibility?: 'PRIVATE' | 'UNLISTED' | 'PUBLIC';
-    /**
-     * Folder identifier to assign the new agent to.
-     */
-    readonly folderId?: number | null;
-    /**
-     * Sort order for the agent within its parent folder.
-     */
-    readonly sortOrder?: number;
-};
+type CreateAgentOptions = CreateAgentPersistenceRecordsOptions;
 
 /**
  * Optional controls for persisting one source update.
@@ -221,45 +211,20 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
         agentSource: string_book,
         options: CreateAgentOptions = {},
     ): Promise<AgentBasicInformation & Required<Pick<AgentBasicInformation, 'permanentId'>>> {
-        const preparedAgentSource = prepareAgentSourceForPersistence(agentSource);
-        const { agentProfile, agentSource: normalizedAgentSource } = preparedAgentSource;
-        let { permanentId } = preparedAgentSource;
+        const createdAt = new Date().toISOString();
+        const { createdAgent, agentInsertRecord, agentHistoryInsertRecord } = createAgentPersistenceRecords(
+            agentSource,
+            options,
+            createdAt,
+        );
 
-        const { agentName, agentHash } = agentProfile;
-
-        if (!permanentId) {
-            permanentId = $randomBase58(14);
-        }
-
-        const insertPayload: AgentsDatabaseSchema['public']['Tables']['Agent']['Insert'] = {
-            agentName,
-            agentHash,
-            permanentId,
-            agentProfile,
-            createdAt: new Date().toISOString(),
-            updatedAt: null,
-            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-            usage: ZERO_USAGE,
-            agentSource: normalizedAgentSource,
-        };
-
-        if (options.folderId !== undefined) {
-            insertPayload.folderId = options.folderId;
-        }
-        if (options.sortOrder !== undefined) {
-            insertPayload.sortOrder = options.sortOrder;
-        }
-        if (options.visibility !== undefined) {
-            insertPayload.visibility = options.visibility;
-        }
-
-        const insertAgentResult = await this.supabaseClient.from(this.getTableName('Agent')).insert(insertPayload);
+        const insertAgentResult = await this.supabaseClient.from(this.getTableName('Agent')).insert(agentInsertRecord);
 
         if (insertAgentResult.error) {
             throw new DatabaseError(
                 spaceTrim(
                     (block) => `
-                        Error creating agent "${agentProfile.agentName}" in Supabase:
+                        Error creating agent "${createdAgent.agentName}" in Supabase:
                         
                         ${block(insertAgentResult.error.message)}
                     `,
@@ -267,18 +232,9 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
             );
         }
 
-        await this.insertAgentHistoryRow({
-            createdAt: new Date().toISOString(),
-            agentName,
-            permanentId,
-            agentHash,
-            previousAgentHash: null,
-            agentSource: normalizedAgentSource,
-            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-            versionName: null,
-        });
+        await this.insertAgentHistoryRow(agentHistoryInsertRecord);
 
-        return { ...agentProfile, permanentId };
+        return createdAgent;
     }
 
     /**
