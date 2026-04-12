@@ -1,5 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
-import { addUniqueTeamReference, normalizeTeamReferenceInput } from './NewAgentWizardState';
+import {
+    addUniqueTeamReference,
+    hasTeamReference,
+    normalizeTeamReferenceInput,
+    toggleTeamReferenceSelection,
+} from './NewAgentWizardState';
 
 describe('NewAgentWizardState', () => {
     it('wraps plain teammate names into compact TEAM references', () => {
@@ -20,5 +25,18 @@ describe('NewAgentWizardState', () => {
 
         expect(afterFirstAdd).toEqual(['{Legal Reviewer}']);
         expect(afterDuplicateAdd).toEqual(['{Legal Reviewer}']);
+    });
+
+    it('detects existing teammates using normalized comparisons', () => {
+        const teamReferences = ['{Legal Reviewer}', 'https://remote.example/agents/reviewer'];
+
+        expect(hasTeamReference(teamReferences, '@legal reviewer')).toBe(true);
+        expect(hasTeamReference(teamReferences, 'https://remote.example/agents/reviewer')).toBe(true);
+        expect(hasTeamReference(teamReferences, '{User}')).toBe(false);
+    });
+
+    it('toggles teammate references using normalized comparisons', () => {
+        expect(toggleTeamReferenceSelection([], 'Legal Reviewer')).toEqual(['{Legal Reviewer}']);
+        expect(toggleTeamReferenceSelection(['{Legal Reviewer}'], '@legal reviewer')).toEqual([]);
     });
 });

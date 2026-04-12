@@ -292,6 +292,13 @@ agentCreation.wizard.teamPlaceholder: Legal Reviewer, https://remote.example/age
 agentCreation.wizard.teamHint: Type an agent name or URL and press Enter. Plain names are saved as compact references like `{Legal Reviewer}`. Add `{User}` if the agent should pause and ask the current user.
 agentCreation.wizard.teamAddUserAction: Add {User}
 agentCreation.wizard.noTeamMembers: No teammates added yet.
+agentCreation.wizard.teamPickerTitle: Browse existing agents
+agentCreation.wizard.teamPickerHint: Click cards to add or remove teammates from this server and connected servers.
+agentCreation.wizard.teamLocalSectionTitle: This server ({count})
+agentCreation.wizard.teamFederatedSectionTitle: '{serverName} ({count})'
+agentCreation.wizard.teamLoadFailed: Failed to load agents for this section.
+agentCreation.wizard.teamNoAvailableAgents: No agents are available in this section.
+agentCreation.wizard.teamSelectedBadge: Selected
 agentCreation.wizard.ruleProtectPersonalData: Avoid requesting or disclosing personal data.
 agentCreation.wizard.ruleProfessionalTone: Keep a professional tone.
 agentCreation.wizard.ruleRegulatedAdvice: Avoid medical, legal, and financial advice.

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { AgentOrganizationAgent } from '../../utils/agentOrganization/types';
+import { loadFederatedServerAgents } from './loadFederatedServerAgents';
 
 /**
  * Local agent payload with optional federation metadata.
@@ -10,6 +11,7 @@ import type { AgentOrganizationAgent } from '../../utils/agentOrganization/types
  */
 export type AgentWithVisibility = AgentOrganizationAgent & {
     serverUrl?: string;
+    url?: string;
 };
 
 /**
@@ -71,28 +73,18 @@ export function useFederatedAgents(
                     }));
 
                     try {
-                        const agentsResponse = await fetch(`${normalizedUrl}/api/agents`);
-                        if (agentsResponse.ok) {
-                            const agentsData = await agentsResponse.json();
-                            if (isCancelled) {
-                                break;
-                            }
-                            const newFederatedAgents = (agentsData.agents || []).map((agent: AgentWithVisibility) => ({
-                                ...agent,
-                                visibility: 'PUBLIC',
-                                serverUrl: normalizedUrl,
-                            }));
-                            setFederatedAgents((prev) => {
-                                const filteredPrev = prev.filter((a) => a.serverUrl !== normalizedUrl);
-                                return [...filteredPrev, ...newFederatedAgents];
-                            });
-                            setFederatedServersStatus((prev) => ({
-                                ...prev,
-                                [normalizedUrl]: { status: 'success' },
-                            }));
-                        } else {
-                            throw new Error(`Failed to fetch agents (Status: ${agentsResponse.status})`);
+                        const newFederatedAgents = await loadFederatedServerAgents(normalizedUrl);
+                        if (isCancelled) {
+                            break;
                         }
+                        setFederatedAgents((prev) => {
+                            const filteredPrev = prev.filter((a) => a.serverUrl !== normalizedUrl);
+                            return [...filteredPrev, ...newFederatedAgents];
+                        });
+                        setFederatedServersStatus((prev) => ({
+                            ...prev,
+                            [normalizedUrl]: { status: 'success' },
+                        }));
                     } catch (error) {
                         console.error(`Failed to fetch agents from ${serverUrl}`, error);
                         setFederatedServersStatus((prev) => ({

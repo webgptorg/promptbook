@@ -129,6 +129,7 @@ function renderStepContent(props: {
                     t={t}
                     addTeamReferenceFromDraft={wizard.addTeamReferenceFromDraft}
                     addTeamReference={wizard.addTeamReference}
+                    toggleTeamReference={wizard.toggleTeamReference}
                     removeTeamReference={wizard.removeTeamReference}
                 />
             );
@@ -197,7 +198,8 @@ export function NewAgentWizard(props: NewAgentWizardProps) {
         onOpenEditor,
         t,
     });
-    const currentStepDefinition = NEW_AGENT_WIZARD_STEP_DEFINITIONS[wizard.step] || NEW_AGENT_WIZARD_STEP_DEFINITIONS[0];
+    const currentStepDefinition =
+        NEW_AGENT_WIZARD_STEP_DEFINITIONS[wizard.step] || NEW_AGENT_WIZARD_STEP_DEFINITIONS[0];
     const currentStepTitle = t(currentStepDefinition.titleKey);
     const currentStepDescription = t(currentStepDefinition.descriptionKey);
     const isLastStep = wizard.step === NEW_AGENT_WIZARD_STEP_DEFINITIONS.length - 1;
@@ -311,7 +313,9 @@ export function NewAgentWizard(props: NewAgentWizardProps) {
                 {wizard.isDragOverDialog && (
                     <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-blue-50/80">
                         <div className="rounded-xl border border-blue-300 bg-white px-5 py-4 text-center">
-                            <div className="text-sm font-semibold text-blue-900">{t('agentCreation.wizard.uploadLabel')}</div>
+                            <div className="text-sm font-semibold text-blue-900">
+                                {t('agentCreation.wizard.uploadLabel')}
+                            </div>
                             <div className="mt-1 text-sm text-blue-700">{t('agentCreation.wizard.uploadHint')}</div>
                         </div>
                     </div>

@@ -215,7 +215,9 @@ function normalizeSingleLineInput(value: string | null | undefined): string {
  * @param presets - Preset catalogue.
  * @returns Default preset identifiers.
  */
-function selectDefaultPresetIds(presets: ReadonlyArray<{ readonly id: string; readonly isDefault: boolean }>): Array<string> {
+function selectDefaultPresetIds(
+    presets: ReadonlyArray<{ readonly id: string; readonly isDefault: boolean }>,
+): Array<string> {
     return presets.filter((preset) => preset.isDefault).map((preset) => preset.id);
 }
 
@@ -351,11 +353,27 @@ export function normalizeTeamReferenceInput(rawValue: string): string {
     }
 
     const bracketMatch = /^\{(.+)\}$/.exec(normalizedValue);
-    const compactReferencePayload = normalizeSingleLineInput(
-        bracketMatch?.[1] || normalizedValue.replace(/^@/, ''),
-    );
+    const compactReferencePayload = normalizeSingleLineInput(bracketMatch?.[1] || normalizedValue.replace(/^@/, ''));
 
     return compactReferencePayload === '' ? '' : `{${compactReferencePayload}}`;
+}
+
+/**
+ * Returns `true` when the given teammate reference is already selected in normalized form.
+ *
+ * @param teamReferences - Existing teammate references.
+ * @param rawValue - Raw teammate reference to normalize for comparison.
+ * @returns Whether the normalized reference already exists.
+ *
+ * @private internal utility of <NewAgentWizard/>.
+ */
+export function hasTeamReference(teamReferences: ReadonlyArray<string>, rawValue: string): boolean {
+    const normalizedReference = normalizeTeamReferenceInput(rawValue);
+    if (normalizedReference === '') {
+        return false;
+    }
+
+    return teamReferences.some((teamReference) => teamReference.toLowerCase() === normalizedReference.toLowerCase());
 }
 
 /**
@@ -373,14 +391,36 @@ export function addUniqueTeamReference(teamReferences: ReadonlyArray<string>, ra
         return teamReferences;
     }
 
-    const alreadyPresent = teamReferences.some(
-        (teamReference) => teamReference.toLowerCase() === normalizedReference.toLowerCase(),
-    );
-    if (alreadyPresent) {
+    if (hasTeamReference(teamReferences, normalizedReference)) {
         return teamReferences;
     }
 
     return [...teamReferences, normalizedReference];
+}
+
+/**
+ * Toggles one normalized teammate reference on or off.
+ *
+ * @param teamReferences - Existing teammate references.
+ * @param rawValue - Raw teammate reference entered by the user.
+ * @returns Updated teammate reference list.
+ *
+ * @private internal utility of <NewAgentWizard/>.
+ */
+export function toggleTeamReferenceSelection(
+    teamReferences: ReadonlyArray<string>,
+    rawValue: string,
+): ReadonlyArray<string> {
+    const normalizedReference = normalizeTeamReferenceInput(rawValue);
+    if (normalizedReference === '') {
+        return teamReferences;
+    }
+
+    if (!hasTeamReference(teamReferences, normalizedReference)) {
+        return [...teamReferences, normalizedReference];
+    }
+
+    return teamReferences.filter((teamReference) => teamReference.toLowerCase() !== normalizedReference.toLowerCase());
 }
 
 /**
@@ -457,10 +497,15 @@ function createWritingTraitRule(trait: string): string {
  */
 export function buildWizardSourceOptions(state: NewAgentWizardState): CreateNewAgentWizardSourceOptions {
     const selectedPersonaPresets = selectPresetsById(NEW_AGENT_WIZARD_PERSONA_PRESETS, state.selectedPersonaTraitIds);
-    const selectedWritingPresets = selectPresetsById(NEW_AGENT_WIZARD_WRITING_STYLE_PRESETS, state.selectedWritingStyleIds);
+    const selectedWritingPresets = selectPresetsById(
+        NEW_AGENT_WIZARD_WRITING_STYLE_PRESETS,
+        state.selectedWritingStyleIds,
+    );
     const selectedRulePresets = selectPresetsById(NEW_AGENT_WIZARD_RULE_PRESETS, state.selectedRuleIds);
-    const selectedCapabilityPresets = selectPresetsById(NEW_AGENT_WIZARD_CAPABILITY_PRESETS, state.selectedCapabilityIds)
-        .filter((preset) => preset.availability === 'wizard');
+    const selectedCapabilityPresets = selectPresetsById(
+        NEW_AGENT_WIZARD_CAPABILITY_PRESETS,
+        state.selectedCapabilityIds,
+    ).filter((preset) => preset.availability === 'wizard');
     const customWritingSample = state.customWritingSample.trim();
 
     return {
@@ -472,7 +517,10 @@ export function buildWizardSourceOptions(state: NewAgentWizardState): CreateNewA
         isOpenToLearning: state.isOpenToLearning,
         rules: [...selectedRulePresets.map((preset) => preset.sourceText), ...state.customRules],
         capabilityCommitments: selectedCapabilityPresets.map((preset) => preset.commitmentKeyword),
-        writingStyleTraits: [...selectedWritingPresets.map((preset) => preset.sourceText), ...state.customWritingTraits],
+        writingStyleTraits: [
+            ...selectedWritingPresets.map((preset) => preset.sourceText),
+            ...state.customWritingTraits,
+        ],
         writingRules: [
             ...selectedWritingPresets.flatMap((preset) => preset.writingRules),
             ...state.customWritingTraits.map(createWritingTraitRule).filter(Boolean),

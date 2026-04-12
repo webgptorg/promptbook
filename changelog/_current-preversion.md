@@ -1,3 +1,8 @@
+-   Enhanced the Agents Server new-agent wizard team step so it can pick multiple teammates from local and federated servers:
+
+    -   Reworked the wizard team page to reuse the homepage agent-card/grid presentation, load local agents plus federated agents, respect the hidden-core-server federated filter, and let users toggle multiple teammate cards while keeping the existing manual TEAM chip input.
+    -   Extended the shared homepage federated-agent loading path with the existing direct-plus-proxy fallback so the wizard and homepage surfaces resolve remote agent cards consistently.
+
 -   Added a branded Agents Server `500 / Internal Server Error` page that now reuses the shared 404-style error layout:
 
     -   Refactored the app-router application error boundary to render inside the shared `ErrorPage` shell, keeping retry, digest, and report-export actions while making the 500 experience visually consistent with the existing 404 page.

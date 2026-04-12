@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { AgentsByServer } from '../../utils/AgentsByServer';
 import { AgentCard } from './AgentCard';
 import { AgentCardsLoadingSkeleton } from '../Skeleton/AgentCardsLoadingSkeleton';
 import { Section } from './Section';
 import { HOMEPAGE_AGENT_GRID_CLASS } from './gridLayout';
 import { string_url } from '@promptbook-local/types';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
+import { loadFederatedServerAgents } from './loadFederatedServerAgents';
+import type { AgentWithVisibility } from './useFederatedAgents';
 
 /**
  * Response for federated servers.
@@ -21,7 +22,7 @@ type FederatedServersResponse = {
  */
 type ServerState = {
     status: 'loading' | 'success' | 'error';
-    agents: AgentsByServer['agents'];
+    agents: AgentWithVisibility[];
     error?: string;
 };
 
@@ -31,10 +32,10 @@ type ServerState = {
 type ExternalAgentsSectionClientProps = {
     /**
      * Base URL of the agents server
-     * 
-     * Note: [👭] Using `string_url`, not `URL` object because we are passing prop from server to client. 
+     *
+     * Note: [👭] Using `string_url`, not `URL` object because we are passing prop from server to client.
      */
-    readonly publicUrl: string_url
+    readonly publicUrl: string_url;
 };
 
 /**
@@ -82,17 +83,8 @@ export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientPr
         };
 
         const fetchAgentsForServer = async (serverUrl: string) => {
-            const normalizedUrl = serverUrl.replace(/\/$/, '');
-
             try {
-                // 1. Try direct connection
-                const response = await fetch(`${normalizedUrl}/api/agents`);
-
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch agents from ${serverUrl} (Status: ${response.status})`);
-                }
-
-                const data = await response.json();
+                const agents = await loadFederatedServerAgents(serverUrl);
 
                 if (isCancelled) return;
 
@@ -100,46 +92,21 @@ export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientPr
                     ...prev,
                     [serverUrl]: {
                         status: 'success',
-                        agents: data.agents || [],
+                        agents,
                     },
                 }));
-            } catch (directError) {
-                // 2. Try proxy through our server
-                try {
-                    // Note: We are using encodeURIComponent to ensure the URL is passed correctly as a parameter
-                    const proxyUrl = `/agents/${encodeURIComponent(normalizedUrl)}/api/agents`;
-                    const response = await fetch(proxyUrl);
+            } catch (error) {
+                if (isCancelled) return;
+                console.warn(`Failed to load agents from ${serverUrl}`, error);
 
-                    if (!response.ok) {
-                        throw new Error(
-                            `Failed to fetch agents from ${serverUrl} via proxy (Status: ${response.status})`,
-                        );
-                    }
-
-                    const data = await response.json();
-
-                    if (isCancelled) return;
-
-                    setServers((prev) => ({
-                        ...prev,
-                        [serverUrl]: {
-                            status: 'success',
-                            agents: data.agents || [],
-                        },
-                    }));
-                } catch (proxyError) {
-                    if (isCancelled) return;
-                    console.warn(`Failed to load agents from ${serverUrl} (Direct & Proxy)`, directError, proxyError);
-
-                    setServers((prev) => ({
-                        ...prev,
-                        [serverUrl]: {
-                            status: 'error',
-                            agents: [],
-                            error: proxyError instanceof Error ? proxyError.message : 'Unknown error',
-                        },
-                    }));
-                }
+                setServers((prev) => ({
+                    ...prev,
+                    [serverUrl]: {
+                        status: 'error',
+                        agents: [],
+                        error: error instanceof Error ? error.message : 'Unknown error',
+                    },
+                }));
             }
         };
 
@@ -152,11 +119,14 @@ export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientPr
 
     if (initialLoading) {
         return (
-            <div className="mt-8" role="status" aria-live="polite" aria-busy="true" aria-label="Loading federated agents">
-                <Section
-                    title={formatText('Federated agents')}
-                    gridClassName={HOMEPAGE_AGENT_GRID_CLASS}
-                >
+            <div
+                className="mt-8"
+                role="status"
+                aria-live="polite"
+                aria-busy="true"
+                aria-label="Loading federated agents"
+            >
+                <Section title={formatText('Federated agents')} gridClassName={HOMEPAGE_AGENT_GRID_CLASS}>
                     <AgentCardsLoadingSkeleton cardCount={FEDERATED_SERVER_LOADING_CARD_COUNT} />
                 </Section>
             </div>

@@ -288,6 +288,13 @@ agentCreation.wizard.teamPlaceholder: Legal Reviewer, https://remote.example/age
 agentCreation.wizard.teamHint: Napište název agenta nebo URL a potvrďte klávesou Enter. Běžná jména uložíme jako kompaktní reference typu `{Legal Reviewer}`. Přidejte `{User}`, pokud se má agent v průběhu práce doptat přímo uživatele.
 agentCreation.wizard.teamAddUserAction: Přidat {User}
 agentCreation.wizard.noTeamMembers: Zatím jste nepřidali žádné spolupracující agenty.
+agentCreation.wizard.teamPickerTitle: Vyberte existující agenty
+agentCreation.wizard.teamPickerHint: Kliknutím na karty přidáte nebo odeberete spolupracující agenty z tohoto serveru i připojených serverů.
+agentCreation.wizard.teamLocalSectionTitle: Tento server ({count})
+agentCreation.wizard.teamFederatedSectionTitle: '{serverName} ({count})'
+agentCreation.wizard.teamLoadFailed: Agenty pro tuto sekci se nepodařilo načíst.
+agentCreation.wizard.teamNoAvailableAgents: V této sekci nejsou k dispozici žádní agenti.
+agentCreation.wizard.teamSelectedBadge: Vybráno
 agentCreation.wizard.ruleProtectPersonalData: Nežádat ani neprozrazovat osobní údaje.
 agentCreation.wizard.ruleProfessionalTone: Udržovat profesionální tón.
 agentCreation.wizard.ruleRegulatedAdvice: Vyhýbat se zdravotním, právním a finančním radám.

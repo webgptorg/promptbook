@@ -18,6 +18,7 @@ import {
     hasWizardChanges,
     parseKnowledgeUrl,
     removeChipAt,
+    toggleTeamReferenceSelection,
     toggleSelection,
     type NewAgentWizardChipCollectionKey,
     type NewAgentWizardChipDraftKey,
@@ -240,6 +241,18 @@ export function useNewAgentWizard(options: UseNewAgentWizardOptions) {
         setState((previous) => ({
             ...previous,
             teamReferences: addUniqueTeamReference(previous.teamReferences, reference),
+        }));
+    }
+
+    /**
+     * Toggles one teammate reference directly from the selectable agent picker.
+     *
+     * @param reference - Raw teammate reference to normalize and toggle.
+     */
+    function toggleTeamReference(reference: string): void {
+        setState((previous) => ({
+            ...previous,
+            teamReferences: toggleTeamReferenceSelection(previous.teamReferences, reference),
         }));
     }
 
@@ -485,6 +498,7 @@ export function useNewAgentWizard(options: UseNewAgentWizardOptions) {
         addDraftChip,
         addTeamReferenceFromDraft,
         addTeamReference,
+        toggleTeamReference,
         removeDraftChip,
         removeTeamReference,
         removeKnowledgeItem,
