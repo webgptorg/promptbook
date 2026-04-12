@@ -48,8 +48,8 @@
 
 -   Refactored `src/llm-providers/openai/OpenAiCompatibleExecutionTools.ts` into smaller focused chat and retry helpers without changing external behavior:
 
-    -   Split the branching-heavy `callChatModelWithRetry` flow into dedicated request-preparation, turn-execution, tool-call orchestration, progress-emission, and final-result helpers so the main chat path now reads top-down.
-    -   Consolidated the duplicated unsupported-parameter retry/error-history logic into shared private helpers and kept the existing prompt templating, thread/file handling, tool-call progress snapshots, retry stripping, and exported result shapes intact across chat, completion, embedding, and image-generation calls.
+    -   Moved the chat-specific request building, tool-call loop, progress snapshots, and final result shaping behind the private `callOpenAiCompatibleChatModel` helper so the main execution-tools class keeps only the provider-facing flow.
+    -   Consolidated unsupported-parameter retry/error-history state into the private `OpenAiCompatibleUnsupportedParameterRetrier` helper and kept the existing prompt templating, thread/file handling, retry stripping, verbose logging, and exported result shapes intact across chat, completion, embedding, and image-generation calls.
 
 -   Refactored `src/llm-providers/openai/OpenAiAssistantExecutionTools.ts` into smaller focused assistant helpers without changing external behavior:
 
