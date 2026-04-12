@@ -34,7 +34,6 @@ import {
 } from '../../../../utils/userChatClient';
 import { FORCE_NEW_CHAT_QUERY_VALUE } from '../agentChatNavigationUtils';
 import { clearPendingProfileMessage, peekPendingProfileMessage } from '../profileMessageCache';
-import type { AgentChatLayoutVariant } from './AgentChatLayoutVariant';
 import { serializeReplyingToSignature } from './chatReplies';
 import { mergeCanonicalChatMessagesWithPendingOutboundMessages } from './mergeCanonicalChatMessagesWithPendingOutboundMessages';
 import { useChatDocumentTitle } from './useChatDocumentTitle';
@@ -96,8 +95,6 @@ export type AgentChatHistoryClientProps = {
     areFileAttachmentsEnabled: boolean;
     feedbackMode: ChatFeedbackMode;
     isHeadlessMode?: boolean;
-    chatRouteBasePath?: string;
-    layoutVariant?: AgentChatLayoutVariant;
 };
 
 /**
@@ -260,7 +257,6 @@ export function useAgentChatHistoryClientState(
         isHistoryEnabled,
         isCurrentUserAdmin,
         isHeadlessMode = false,
-        chatRouteBasePath,
     } = props;
     const { formatText } = useAgentNaming();
     const { isPrivateModeEnabled } = usePrivateModePreferences();
@@ -269,7 +265,6 @@ export function useAgentChatHistoryClientState(
         useBrowserPushNotifications();
     const isActiveBrowserTab = useActiveBrowserTab();
     const shouldUseHistory = isHistoryEnabled && !isPrivateModeEnabled;
-    const resolvedChatRouteBasePath = chatRouteBasePath || `/agents/${encodeURIComponent(agentName)}/chat`;
     const newChatHref = useMemo(() => {
         const params = new URLSearchParams();
         params.set('chat', FORCE_NEW_CHAT_QUERY_VALUE);
@@ -278,8 +273,8 @@ export function useAgentChatHistoryClientState(
             params.set('headless', '');
         }
 
-        return `${resolvedChatRouteBasePath}?${params.toString()}`;
-    }, [isHeadlessMode, resolvedChatRouteBasePath]);
+        return `/agents/${encodeURIComponent(agentName)}/chat?${params.toString()}`;
+    }, [agentName, isHeadlessMode]);
     // Read the profile payload without mutating storage during render because
     // React may restart the render before this mount commits.
     const pendingProfileMessage = useMemo(() => peekPendingProfileMessage(agentName), [agentName]);
@@ -721,9 +716,9 @@ export function useAgentChatHistoryClientState(
                 params.set('headless', '');
             }
 
-            return `${resolvedChatRouteBasePath}?${params.toString()}`;
+            return `/agents/${encodeURIComponent(agentName)}/chat?${params.toString()}`;
         },
-        [effectiveInitialAutoExecuteMessage, isHeadlessMode, resolvedChatRouteBasePath],
+        [agentName, effectiveInitialAutoExecuteMessage, isHeadlessMode],
     );
 
     /**

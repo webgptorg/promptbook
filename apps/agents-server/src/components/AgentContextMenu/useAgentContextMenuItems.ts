@@ -552,12 +552,6 @@ function createWorkspaceMenuItems(
         },
         {
             type: 'link',
-            href: `/agents/${encodeURIComponent(agentName)}/chat/chatgpt-like`,
-            icon: MessageSquareIcon,
-            label: formatText('ChatGPT-like Chat'),
-        },
-        {
-            type: 'link',
             href: `/agents/${encodeURIComponent(agentName)}/book+chat`,
             icon: SquareSplitHorizontalIcon,
             label: formatText('Edit Book & Chat'),

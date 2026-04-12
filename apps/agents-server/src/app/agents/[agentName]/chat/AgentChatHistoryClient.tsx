@@ -1,14 +1,12 @@
 'use client';
 
 import type { ChatMessage } from '@promptbook-local/types';
-import { MessageSquarePlusIcon } from 'lucide-react';
 import { AgentChatLoadingSkeleton } from '../../../../components/Skeleton/AgentChatLoadingSkeleton';
 import { ChatThreadLoadingSkeleton } from '../../../../components/Skeleton/ChatThreadLoadingSkeleton';
 import type { UserChatJob, UserChatSummary, UserChatTimeout } from '../../../../utils/userChatClient';
 import { AgentChatWrapper } from '../AgentChatWrapper';
 import { AgentChatPageLayout } from './AgentChatPageLayout';
 import { AgentChatSidebar } from './AgentChatSidebar';
-import type { AgentChatLayoutVariant } from './AgentChatLayoutVariant';
 import { CanonicalAgentChatPanel } from './CanonicalAgentChatPanel';
 import { type AgentChatHistoryClientProps, useAgentChatHistoryClientState } from './useAgentChatHistoryClientState';
 
@@ -37,8 +35,6 @@ type AgentChatHistoryPrivateModeViewProps = Pick<
     | 'areFileAttachmentsEnabled'
     | 'feedbackMode'
 > & {
-    layoutVariant: AgentChatLayoutVariant;
-    isHeadlessMode: boolean;
     formatText: (text: string) => string;
     autoExecuteMessage: string | undefined;
     autoExecuteMessageAttachments: ChatMessage['attachments'] | undefined;
@@ -49,9 +45,7 @@ type AgentChatHistoryPrivateModeViewProps = Pick<
  * Props consumed by the history bootstrap loading view.
  */
 type AgentChatHistoryLoadingViewProps = {
-    layoutVariant: AgentChatLayoutVariant;
     isHeadlessMode: boolean;
-    isChatGptLikeLayout: boolean;
     isSidebarCollapsed: boolean;
 };
 
@@ -71,7 +65,6 @@ type AgentChatHistoryReadyViewProps = Pick<
     | 'feedbackMode'
     | 'isCurrentUserAdmin'
 > & {
-    layoutVariant: AgentChatLayoutVariant;
     isHeadlessMode: boolean;
     activeChatId: string;
     chats: ReadonlyArray<UserChatSummary>;
@@ -89,7 +82,6 @@ type AgentChatHistoryReadyViewProps = Pick<
     autoExecuteMessage: string | undefined;
     autoExecuteMessageAttachments: ChatMessage['attachments'] | undefined;
     newChatHref: string;
-    untitledChatTitle: string;
     formatText: (text: string) => string;
     formatChatTimestamp: (timestamp: string) => string;
     onSelectChat: (chatId: string) => void;
@@ -126,7 +118,6 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         areFileAttachmentsEnabled,
         feedbackMode,
         isHeadlessMode = false,
-        layoutVariant = 'default',
     } = props;
     const {
         formatText,
@@ -148,7 +139,6 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         currentTimestamp,
         autoExecuteMessage,
         newChatHref,
-        untitledChatTitle,
         formatChatTimestamp,
         handleSelectChatFromSidebar,
         handleDeleteChat,
@@ -162,8 +152,6 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         handleAutoExecuteMessagePending,
         handleAutoExecuteMessageConsumed,
     } = useAgentChatHistoryClientState(props);
-    const isChatGptLikeLayout = layoutVariant === 'chatgptLike';
-    const effectiveIsSidebarCollapsed = isChatGptLikeLayout ? false : isSidebarCollapsed;
 
     if (!shouldUseHistory) {
         return (
@@ -176,8 +164,6 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 speechRecognitionLanguage={speechRecognitionLanguage}
                 areFileAttachmentsEnabled={areFileAttachmentsEnabled}
                 feedbackMode={feedbackMode}
-                layoutVariant={layoutVariant}
-                isHeadlessMode={isHeadlessMode}
                 formatText={formatText}
                 autoExecuteMessage={effectiveInitialAutoExecuteMessage}
                 autoExecuteMessageAttachments={effectiveInitialAutoExecuteMessageAttachments}
@@ -189,10 +175,8 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     if (!activeChatId) {
         return (
             <AgentChatHistoryLoadingView
-                layoutVariant={layoutVariant}
                 isHeadlessMode={isHeadlessMode}
-                isChatGptLikeLayout={isChatGptLikeLayout}
-                isSidebarCollapsed={effectiveIsSidebarCollapsed}
+                isSidebarCollapsed={isSidebarCollapsed}
             />
         );
     }
@@ -209,7 +193,6 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             areFileAttachmentsEnabled={areFileAttachmentsEnabled}
             feedbackMode={feedbackMode}
             isCurrentUserAdmin={isCurrentUserAdmin}
-            layoutVariant={layoutVariant}
             isHeadlessMode={isHeadlessMode}
             activeChatId={activeChatId}
             chats={chats}
@@ -221,13 +204,12 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             isChatListLoading={isChatListLoading}
             isActiveChatLoading={isActiveChatLoading}
             isActiveChatReadOnly={isActiveChatReadOnly}
-            isSidebarCollapsed={effectiveIsSidebarCollapsed}
+            isSidebarCollapsed={isSidebarCollapsed}
             shouldShowExternalChats={shouldShowExternalChats}
             currentTimestamp={currentTimestamp}
             autoExecuteMessage={autoExecuteMessage}
             autoExecuteMessageAttachments={effectiveInitialAutoExecuteMessageAttachments}
             newChatHref={newChatHref}
-            untitledChatTitle={untitledChatTitle}
             formatText={formatText}
             formatChatTimestamp={formatChatTimestamp}
             onSelectChat={handleSelectChatFromSidebar}
@@ -258,8 +240,6 @@ function AgentChatHistoryPrivateModeView(props: AgentChatHistoryPrivateModeViewP
         speechRecognitionLanguage,
         areFileAttachmentsEnabled,
         feedbackMode,
-        layoutVariant,
-        isHeadlessMode,
         formatText,
         autoExecuteMessage,
         autoExecuteMessageAttachments,
@@ -283,19 +263,10 @@ function AgentChatHistoryPrivateModeView(props: AgentChatHistoryPrivateModeViewP
                     areFileAttachmentsEnabled={areFileAttachmentsEnabled}
                     feedbackMode={feedbackMode}
                     onAutoExecuteMessageConsumed={onAutoExecuteMessageConsumed}
-                    layoutVariant={layoutVariant}
                 />
             </div>
         </div>
     );
-
-    if (layoutVariant === 'chatgptLike') {
-        return (
-            <AgentChatPageLayout variant={layoutVariant} isHeadlessMode={isHeadlessMode}>
-                {guestChatContent}
-            </AgentChatPageLayout>
-        );
-    }
 
     return guestChatContent;
 }
@@ -304,15 +275,7 @@ function AgentChatHistoryPrivateModeView(props: AgentChatHistoryPrivateModeViewP
  * Renders the loading state shown while durable history bootstraps the first active chat.
  */
 function AgentChatHistoryLoadingView(props: AgentChatHistoryLoadingViewProps) {
-    const { layoutVariant, isHeadlessMode, isChatGptLikeLayout, isSidebarCollapsed } = props;
-
-    if (isChatGptLikeLayout) {
-        return (
-            <AgentChatPageLayout variant={layoutVariant} isHeadlessMode={isHeadlessMode}>
-                <AgentChatLoadingSkeleton showSidebar={!isHeadlessMode} isSidebarCollapsed={false} />
-            </AgentChatPageLayout>
-        );
-    }
+    const { isHeadlessMode, isSidebarCollapsed } = props;
 
     return <AgentChatLoadingSkeleton showSidebar={!isHeadlessMode} isSidebarCollapsed={isSidebarCollapsed} />;
 }
@@ -332,7 +295,6 @@ function AgentChatHistoryReadyView(props: AgentChatHistoryReadyViewProps) {
         areFileAttachmentsEnabled,
         feedbackMode,
         isCurrentUserAdmin,
-        layoutVariant,
         isHeadlessMode,
         activeChatId,
         chats,
@@ -350,7 +312,6 @@ function AgentChatHistoryReadyView(props: AgentChatHistoryReadyViewProps) {
         autoExecuteMessage,
         autoExecuteMessageAttachments,
         newChatHref,
-        untitledChatTitle,
         formatText,
         formatChatTimestamp,
         onSelectChat,
@@ -365,7 +326,6 @@ function AgentChatHistoryReadyView(props: AgentChatHistoryReadyViewProps) {
         onAutoExecuteMessagePending,
         onAutoExecuteMessageConsumed,
     } = props;
-    const isChatGptLikeLayout = layoutVariant === 'chatgptLike';
     const chatSurface = (
         <div className="relative flex min-h-0 flex-1 overflow-hidden">
             {isActiveChatLoading ? (
@@ -400,7 +360,6 @@ function AgentChatHistoryReadyView(props: AgentChatHistoryReadyViewProps) {
                     onCancelActiveTimeout={isActiveChatReadOnly ? undefined : onCancelActiveTimeout}
                     onAutoExecuteMessagePending={onAutoExecuteMessagePending}
                     onAutoExecuteMessageConsumed={onAutoExecuteMessageConsumed}
-                    variant={layoutVariant}
                 />
             )}
         </div>
@@ -423,77 +382,14 @@ function AgentChatHistoryReadyView(props: AgentChatHistoryReadyViewProps) {
             onToggleCollapse={onToggleSidebar}
             isMobileSidebarOpen={false}
             onCloseMobileSidebar={onCloseMobileSidebar}
-            variant={layoutVariant}
         />
     );
 
-    if (!isChatGptLikeLayout) {
-        if (isHeadlessMode) {
-            return (
-                <AgentChatPageLayout variant={layoutVariant} isHeadlessMode>
-                    {chatSurface}
-                </AgentChatPageLayout>
-            );
-        }
-
-        return (
-            <AgentChatPageLayout variant={layoutVariant} sidebar={chatSidebar}>
-                {chatSurface}
-            </AgentChatPageLayout>
-        );
+    if (isHeadlessMode) {
+        return <AgentChatPageLayout isHeadlessMode>{chatSurface}</AgentChatPageLayout>;
     }
 
-    return (
-        <AgentChatPageLayout
-            variant={layoutVariant}
-            isHeadlessMode={isHeadlessMode}
-            sidebar={isHeadlessMode ? undefined : chatSidebar}
-            mainTopBar={
-                isHeadlessMode ? undefined : (
-                    <AgentChatHistoryChatGptLikeTopBar
-                        activeChatTitle={activeChatSummary?.title || untitledChatTitle}
-                        formatText={formatText}
-                        newChatHref={newChatHref}
-                    />
-                )
-            }
-        >
-            {chatSurface}
-        </AgentChatPageLayout>
-    );
-}
-
-/**
- * Renders the compact ChatGPT-like mobile top bar for the durable history view.
- */
-function AgentChatHistoryChatGptLikeTopBar(props: {
-    activeChatTitle: string;
-    formatText: (text: string) => string;
-    newChatHref: string;
-}) {
-    const { activeChatTitle, formatText, newChatHref } = props;
-
-    return (
-        <div className="agent-chat-chatgpt-like-mobile-header flex items-center justify-between gap-3 px-3.5 py-2.5 md:hidden">
-            <span
-                aria-hidden="true"
-                className="agent-chat-chatgpt-like-mobile-header__icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg border opacity-0"
-            />
-            <div className="min-w-0 flex-1 text-center">
-                <div className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">{activeChatTitle}</div>
-                <div className="truncate text-[11px] uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">
-                    {formatText('ChatGPT-like')}
-                </div>
-            </div>
-            <a
-                href={newChatHref}
-                className="agent-chat-chatgpt-like-mobile-header__icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg border transition"
-                aria-label={formatText('New chat')}
-            >
-                <MessageSquarePlusIcon className="h-4 w-4" />
-            </a>
-        </div>
-    );
+    return <AgentChatPageLayout sidebar={chatSidebar}>{chatSurface}</AgentChatPageLayout>;
 }
 
 /**

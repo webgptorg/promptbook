@@ -1,8 +1,6 @@
 'use client';
 
 import type { UserChatSummary } from '../../../../utils/userChatClient';
-import type { AgentChatLayoutVariant } from './AgentChatLayoutVariant';
-import { AgentChatSidebarChatGptLike } from './AgentChatSidebarChatGptLike';
 import { AgentChatSidebarDefault } from './AgentChatSidebarDefault';
 import { useAgentChatSidebarState } from './useAgentChatSidebarState';
 
@@ -83,10 +81,6 @@ type AgentChatSidebarProps = {
      * Called when the mobile overlay should close (e.g., after navigation or backdrop tap).
      */
     readonly onCloseMobileSidebar: () => void;
-    /**
-     * Visual sidebar variant used by the current route.
-     */
-    readonly variant?: AgentChatLayoutVariant;
 };
 
 /**
@@ -111,7 +105,6 @@ export function AgentChatSidebar({
     isMobileSidebarOpen,
     onCloseMobileSidebar,
     newChatHref,
-    variant = 'default',
 }: AgentChatSidebarProps) {
     const sidebarState = useAgentChatSidebarState({
         chats,
@@ -127,30 +120,6 @@ export function AgentChatSidebar({
         isMobileSidebarOpen,
         onCloseMobileSidebar,
     });
-
-    if (variant === 'chatgptLike') {
-        return (
-            <AgentChatSidebarChatGptLike
-                sidebarId={AGENT_CHAT_SIDEBAR_ID}
-                isLoadingChats={isLoadingChats}
-                formatText={formatText}
-                newChatHref={newChatHref}
-                isAdmin={isAdmin}
-                isShowingExternalChats={showExternalChats}
-                isMobileSidebarOpen={isMobileSidebarOpen}
-                onCloseMobileSidebar={onCloseMobileSidebar}
-                sidebarItems={sidebarState.sidebarItems}
-                emptyChatCount={sidebarState.emptyChatCount}
-                shouldRenderFilters={sidebarState.shouldRenderFilters}
-                isShowingEmptyChats={sidebarState.isShowingEmptyChats}
-                onToggleEmptyChatVisibility={sidebarState.toggleEmptyChatVisibility}
-                onToggleExternalChatVisibility={sidebarState.toggleExternalChatVisibility}
-                onChatSelect={sidebarState.handleChatSelection}
-                onNewChatLinkClick={sidebarState.handleNewChatLinkClick}
-                onChatDelete={sidebarState.handleChatDelete}
-            />
-        );
-    }
 
     return (
         <AgentChatSidebarDefault

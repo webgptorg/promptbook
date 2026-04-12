@@ -45,17 +45,3 @@ export function createAgentViewLabel(view: AgentHierarchyView, translate: (key: 
         </span>
     );
 }
-
-/**
- * Builds the dedicated ChatGPT-like view switcher label.
- *
- * @private function of Header
- */
-export function createChatGptLikeViewLabel() {
-    return (
-        <span className="flex items-center gap-2">
-            <MessageSquareIcon className="h-4 w-4 text-gray-500" aria-hidden />
-            <span>ChatGPT-like</span>
-        </span>
-    );
-}

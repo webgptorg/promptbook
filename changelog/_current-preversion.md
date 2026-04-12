@@ -1,3 +1,8 @@
+-   Removed the Agents Server `chatgpt-like` chat variant:
+
+    -   Deleted the dedicated `/agents/[agentName]/chat/chatgpt-like` route and its alternate layout/sidebar implementation so `/agents/[agentName]/chat` is now the only standalone chat view.
+    -   Removed the extra `ChatGPT-like` navigation entries, legacy translation strings, and variant-specific styling that were only used by the removed route.
+
 -   Added a dedicated Team page to the Agents Server new-agent wizard:
 
     -   The guided creation flow now lets you add teammate agent references, including the `{User}` pseudo-agent, before creating a new agent.

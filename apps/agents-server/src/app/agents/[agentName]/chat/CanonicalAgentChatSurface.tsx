@@ -19,7 +19,6 @@ import { createDefaultSpeechRecognition } from '../../../../utils/speech-to-text
 import { chatFileUploadHandler } from '../../../../utils/upload/createBookEditorUploadHandler';
 import { getUserChatSourceBannerLabel, type UserChatSource } from '../../../../utils/userChat/UserChatSource';
 import type { UserChatJob, UserChatTimeout } from '../../../../utils/userChatClient';
-import type { AgentChatLayoutVariant } from './AgentChatLayoutVariant';
 import { ChatTimeoutButton } from './ChatTimeoutButton';
 import { isReplyableCanonicalChatMessage } from './chatReplies';
 import type { CanonicalAgentChatPanelState } from './useCanonicalAgentChatPanelState';
@@ -68,16 +67,8 @@ type CanonicalAgentChatSurfaceProps = {
     readonly onCancelActiveTimeout?: (timeoutId: string) => Promise<void> | void;
     readonly extraActions?: ReactNode;
     readonly speechRecognitionLanguage?: string;
-    readonly variant?: AgentChatLayoutVariant;
     readonly state: CanonicalAgentChatPanelState['surface'];
 };
-
-/**
- * Dark accent used by the ChatGPT-like action button styling.
- *
- * @private function of CanonicalAgentChatPanel
- */
-const CHATGPT_LIKE_BUTTON_COLOR = '#111827';
 
 /**
  * Accent color used by the synthetic user participant in the chat thread.
@@ -109,10 +100,8 @@ export function CanonicalAgentChatSurface({
     onCancelActiveTimeout,
     extraActions,
     speechRecognitionLanguage,
-    variant = 'default',
     state,
 }: CanonicalAgentChatSurfaceProps) {
-    const isChatGptLikeVariant = variant === 'chatgptLike';
     const { backgroundImage, brandColorHex, brandColorLightHex, brandColorDarkHex } = useAgentBackground(brandColor);
     const chatBackgroundStyle = useMemo(
         () =>
@@ -121,9 +110,8 @@ export function CanonicalAgentChatSurface({
                 brandColorDarkHex,
                 brandColorHex,
                 brandColorLightHex,
-                isChatGptLikeVariant,
             }),
-        [backgroundImage, brandColorDarkHex, brandColorHex, brandColorLightHex, isChatGptLikeVariant],
+        [backgroundImage, brandColorDarkHex, brandColorHex, brandColorLightHex],
     );
     const participants = useMemo(
         () =>
@@ -197,12 +185,10 @@ export function CanonicalAgentChatSurface({
     );
     const shouldRenderLoadingSkeleton = state.initialMessage === undefined && state.renderedMessages.length === 0;
     const chatElement = shouldRenderLoadingSkeleton ? (
-        renderCanonicalAgentChatLoadingSkeleton(isChatGptLikeVariant)
+        renderCanonicalAgentChatLoadingSkeleton()
     ) : (
         <Chat
-            className={`agent-chat-panel__chat h-full min-h-0 w-full ${
-                isChatGptLikeVariant ? 'agent-chat-panel__chat--chatgpt-like' : ''
-            }`}
+            className="agent-chat-panel__chat h-full min-h-0 w-full"
             style={chatBackgroundStyle}
             title={`Chat with ${state.agentDisplayName}`}
             messages={state.renderedMessages}
@@ -228,7 +214,7 @@ export function CanonicalAgentChatSurface({
             chatLocale={language}
             timingTranslations={translations.timingTranslations}
             feedbackTranslations={translations.feedbackTranslations}
-            buttonColor={isChatGptLikeVariant ? CHATGPT_LIKE_BUTTON_COLOR : brandColorHex}
+            buttonColor={brandColorHex}
             visual="FULL_PAGE"
             CHAT_VISUAL_MODE={chatVisualMode}
             effectConfigs={effectConfigs}
@@ -250,15 +236,11 @@ export function CanonicalAgentChatSurface({
         </Chat>
     );
 
-    if (isChatGptLikeVariant) {
-        return (
-            <div className="agent-chat-panel agent-chat-panel--chatgpt-like flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden">
-                <div className="agent-chat-panel__inner flex min-h-0 flex-1 overflow-hidden">{chatElement}</div>
-            </div>
-        );
-    }
-
-    return <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm">{chatElement}</div>;
+    return (
+        <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm">
+            {chatElement}
+        </div>
+    );
 }
 
 /**
@@ -271,22 +253,16 @@ function createCanonicalAgentChatBackgroundStyle({
     brandColorHex,
     brandColorLightHex,
     brandColorDarkHex,
-    isChatGptLikeVariant,
 }: {
     backgroundImage: string;
     brandColorHex: string;
     brandColorLightHex: string;
     brandColorDarkHex: string;
-    isChatGptLikeVariant: boolean;
 }): CSSProperties & Record<string, string> {
     return {
-        ...(isChatGptLikeVariant
-            ? {}
-            : {
-                  backgroundImage: `url("${backgroundImage}")`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-              }),
+        backgroundImage: `url("${backgroundImage}")`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
         '--agent-chat-brand-color': brandColorHex,
         '--agent-chat-brand-color-light': brandColorLightHex,
         '--agent-chat-brand-color-dark': brandColorDarkHex,
@@ -344,15 +320,7 @@ function resolveCancellableJob(activeJobs: ReadonlyArray<UserChatJob>): UserChat
  *
  * @private function of CanonicalAgentChatPanel
  */
-function renderCanonicalAgentChatLoadingSkeleton(isChatGptLikeVariant: boolean): ReactNode {
-    if (isChatGptLikeVariant) {
-        return (
-            <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-[28px] border border-slate-200/80 bg-white/88 shadow-[0_24px_80px_rgba(15,23,42,0.12)] dark:border-slate-800/80 dark:bg-slate-950/88">
-                <ChatThreadLoadingSkeleton />
-            </div>
-        );
-    }
-
+function renderCanonicalAgentChatLoadingSkeleton(): ReactNode {
     return (
         <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
             <ChatThreadLoadingSkeleton />

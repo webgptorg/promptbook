@@ -8,7 +8,6 @@ import { type UserChatSource } from '../../../../utils/userChat/UserChatSource';
 import type { UserChatJob, UserChatTimeout } from '../../../../utils/userChatClient';
 import { MetaDisclaimerDialog } from '../MetaDisclaimerDialog';
 import { PseudoUserChatDialog } from '../PseudoUserChatDialog';
-import type { AgentChatLayoutVariant } from './AgentChatLayoutVariant';
 import { CanonicalAgentChatSurface } from './CanonicalAgentChatSurface';
 import { useCanonicalAgentChatPanelState } from './useCanonicalAgentChatPanelState';
 
@@ -55,7 +54,6 @@ type CanonicalAgentChatPanelProps = {
     }) => void;
     onAutoExecuteMessageConsumed?: () => void;
     extraActions?: ReactNode;
-    variant?: AgentChatLayoutVariant;
 };
 
 /**
@@ -91,7 +89,6 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
         onAutoExecuteMessagePending,
         onAutoExecuteMessageConsumed,
         extraActions,
-        variant = 'default',
     } = props;
     const panelState = useCanonicalAgentChatPanelState({
         chatId,
@@ -128,7 +125,6 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
                 onCancelActiveTimeout={onCancelActiveTimeout}
                 extraActions={extraActions}
                 speechRecognitionLanguage={speechRecognitionLanguage}
-                variant={variant}
                 state={panelState.surface}
             />
             <PseudoUserChatDialog

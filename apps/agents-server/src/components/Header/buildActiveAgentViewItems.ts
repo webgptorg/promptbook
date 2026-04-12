@@ -1,5 +1,5 @@
 import type { ServerTranslationKey } from '../../languages/ServerTranslationKeys';
-import { createAgentViewLabel, createChatGptLikeViewLabel } from './createAgentViewLabel';
+import { createAgentViewLabel } from './createAgentViewLabel';
 import type { SubMenuItem } from './SubMenuItem';
 
 /**
@@ -46,10 +46,6 @@ export function buildActiveAgentViewItems({
         {
             label: createAgentViewLabel('Chat', translate),
             href: `${activeAgentBasePath}/chat`,
-        },
-        {
-            label: createChatGptLikeViewLabel(),
-            href: `${activeAgentBasePath}/chat/chatgpt-like`,
         },
         {
             label: createAgentViewLabel('Timeouts', translate),
