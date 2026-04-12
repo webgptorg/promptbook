@@ -1,3 +1,8 @@
+-   Refactored `apps/agents-server/src/components/Header/Header.tsx` into smaller focused header helpers without changing external behavior:
+
+    -   Extracted the active-agent route resolution, labels, share metadata, and fallback state into a dedicated private header hook so the main component no longer mixes route parsing with rendering.
+    -   Extracted the agent menu assembly, QR-code state, rename follow-up wiring, and new-agent menu construction into focused private helpers so `Header.tsx` now reads top-down while preserving the existing desktop and mobile header behavior.
+
 -   Refactored Agents Server durable chat history state management in `useAgentChatHistoryClientState` to improve readability and maintainability without changing behavior.
 
 -   Replaced the Agents Server default agent-avatar diffusion flow with a deterministic 2-stage pixel-art pipeline:

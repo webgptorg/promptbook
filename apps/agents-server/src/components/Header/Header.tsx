@@ -7,50 +7,31 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
 import { HamburgerMenu } from '../../../../../src/book-components/_common/HamburgerMenu/HamburgerMenu';
 import { useMenuHoisting } from '../../../../../src/book-components/_common/MenuHoisting/MenuHoistingContext';
-import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { just } from '../../../../../src/utils/organization/just';
-import { buildAgentFolderContext } from '../../utils/agentOrganization/agentFolderContext';
-import type { AgentOrganizationAgent } from '../../utils/agentOrganization/types';
 import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
 import { pushWithHeadless, useIsHeadless } from '../_utils/headlessParam';
-import {
-    useAgentContextMenuItems,
-    useInstallPromptState,
-    type AgentContextMenuRenamePayload,
-} from '../AgentContextMenu/AgentContextMenu';
+import { useInstallPromptState, type AgentContextMenuRenamePayload } from '../AgentContextMenu/AgentContextMenu';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { QrCodeModal } from '../AgentProfile/QrCodeModal';
-import { showAlert, showLoginDialog } from '../AsyncDialogs/asyncDialogs';
+import { showLoginDialog } from '../AsyncDialogs/asyncDialogs';
 import { ChangePasswordDialog } from '../ChangePasswordDialog/ChangePasswordDialog';
-import { useNewAgentDialog } from '../NewAgentDialog/useNewAgentDialog';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
-import type { HeaderAgentMenuFolder } from './AgentMenuStructure';
-import { appendFolderActionNodes } from './appendFolderActionNodes';
-import { buildActiveAgentViewItems } from './buildActiveAgentViewItems';
-import { buildAgentMenuStructure } from './buildAgentMenuStructure';
 import { buildDocumentationDropdownItems } from './buildDocumentationDropdownItems';
 import { buildFederatedDropdownItems } from './buildFederatedDropdownItems';
 import { buildHeaderMenuItems } from './buildHeaderMenuItems';
 import { buildHeaderSystemMenuItems } from './buildHeaderSystemMenuItems';
 import { HeaderControlPanelDropdown } from './ControlPanel/ControlPanel';
-import { createAgentHierarchyMobileItems } from './createAgentHierarchyMobileItems';
-import { createAgentViewLabel } from './createAgentViewLabel';
 import { HeaderDesktopContextNavigation } from './HeaderDesktopContextNavigation';
 import { HeaderDesktopTopMenuNavigation } from './HeaderDesktopTopMenuNavigation';
 import { HeaderMobileDrawer } from './HeaderMobileDrawer';
 import { HeaderSearchBox } from './HeaderSearchBox';
 import { HeaderDesktopUserMenu } from './HeaderDesktopUserMenu';
 import type { HeaderProps } from './HeaderTypes';
-import { mapContextMenuItemsToSubMenuItems } from './mapContextMenuItemsToSubMenuItems';
+import { navigateAfterHeaderAgentRename } from './navigateAfterHeaderAgentRename';
 import { useMobileMenuHoisting } from './MobileMenuHoistingContext';
-import {
-    createAgentHierarchyLabel,
-    createFallbackAgent,
-    getAgentNavigationId,
-    resolveActiveAgentNavigation,
-} from './resolveActiveAgentNavigation';
-import { resolveRenamedHeaderPath } from './resolveRenamedHeaderPath';
 import type { SubMenuItem } from './SubMenuItem';
+import { useHeaderActiveAgent } from './useHeaderActiveAgent';
+import { useHeaderAgentMenus } from './useHeaderAgentMenus';
 import { useHeaderDropdownState } from './useHeaderDropdownState';
 
 /* TODO: [🐱‍🚀] Make this Agents server native  */
@@ -78,7 +59,6 @@ export function Header(props: HeaderProps) {
     } = props;
 
     const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
-    const [isAgentQrCodeOpen, setIsAgentQrCodeOpen] = useState(false);
     const router = useRouter();
     const pathname = usePathname();
     const isHeadless = useIsHeadless();
@@ -154,74 +134,31 @@ export function Header(props: HeaderProps) {
         hasHoistedMobileMenuItems: hoistedMobileMenuItems.length > 0,
         isHeadless,
     });
-
-    const agentMenuStructure = useMemo(() => buildAgentMenuStructure(agents, agentFolders), [agents, agentFolders]);
-    const agentFolderById = useMemo(
-        () => new Map(agentFolders.map((folder) => [folder.id, folder as HeaderAgentMenuFolder])),
-        [agentFolders],
-    );
-    const agentByIdentifier = useMemo(() => {
-        const map = new Map<string, AgentOrganizationAgent>();
-        for (const agent of agents) {
-            map.set(agent.agentName, agent);
-            if (agent.permanentId) {
-                map.set(agent.permanentId, agent);
-            }
-        }
-        return map;
-    }, [agents]);
-    const activeAgentNavigation = useMemo(() => resolveActiveAgentNavigation(pathname), [pathname]);
-    const activeAgent = useMemo(() => {
-        if (!activeAgentNavigation.agentIdentifier) {
-            return null;
-        }
-        return agentByIdentifier.get(activeAgentNavigation.agentIdentifier) || null;
-    }, [activeAgentNavigation.agentIdentifier, agentByIdentifier]);
-    const activeAgentIdentifier = activeAgentNavigation.agentIdentifier;
-    const activeAgentNavigationId = activeAgent ? getAgentNavigationId(activeAgent) : activeAgentIdentifier || null;
-    const activeAgentHref = activeAgentNavigationId
-        ? `/agents/${encodeURIComponent(activeAgentNavigationId)}`
-        : '/agents';
-    const activeAgentLabel = activeAgent
-        ? createAgentHierarchyLabel(activeAgent, agentFolderById)
-        : activeAgentIdentifier || t('header.agentsLabelFallback', { agentsPlural: naming.plural });
-    const activeAgentView = activeAgentNavigation.view;
-    const activeAgentViewLabel = activeAgentView ? createAgentViewLabel(activeAgentView, t) : null;
-    const activeAgentFallback = useMemo(() => createFallbackAgent(activeAgentNavigationId), [activeAgentNavigationId]);
-    const activeAgentMenuAgent = activeAgent || activeAgentFallback;
-    const activeAgentFolderContext = useMemo(
-        () => buildAgentFolderContext(activeAgentMenuAgent.folderId, agentFolderById),
-        [activeAgentMenuAgent.folderId, agentFolderById],
-    );
-    const activeAgentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
-    const activeAgentHostname = typeof window !== 'undefined' ? window.location.hostname : '';
-    const activeAgentUrl = activeAgentNavigationId ? `${activeAgentOrigin}${activeAgentHref}` : '';
-    const activeAgentEmail =
-        activeAgentNavigationId && activeAgentHostname ? `${activeAgentNavigationId}@${activeAgentHostname}` : '';
-    const activeAgentAvatarUrl = useMemo(() => {
-        if (!activeAgent) {
-            return null;
-        }
-
-        return resolveAgentAvatarImageUrl({ agent: activeAgent });
-    }, [activeAgent]);
+    const {
+        activeAgent,
+        activeAgentAvatarUrl,
+        activeAgentEmail,
+        activeAgentFolderContext,
+        activeAgentHref,
+        activeAgentLabel,
+        activeAgentMenuAgent,
+        activeAgentNavigationId,
+        activeAgentOrigin,
+        activeAgentUrl,
+        activeAgentView,
+        activeAgentViewLabel,
+        agentMenuTree: baseAgentMenuTree,
+    } = useHeaderActiveAgent({
+        agents,
+        agentFolders,
+        namingPlural: naming.plural,
+        pathname,
+        translate: t,
+    });
     const currentUserDisplayName = currentUser?.username || t('common.admin');
     const currentUserAvatarLabel = currentUserDisplayName.slice(0, 1).toUpperCase();
     const currentUserProfileImageUrl = currentUser?.profileImageUrl?.trim() || null;
     const isCurrentUserAdmin = Boolean(currentUser?.isAdmin || isAdmin);
-    /**
-     * Opens the active agent QR code modal.
-     */
-    const handleShowAgentQrCode = useCallback(() => {
-        setIsAgentQrCodeOpen(true);
-    }, []);
-
-    /**
-     * Closes the active agent QR code modal.
-     */
-    const handleCloseAgentQrCode = useCallback(() => {
-        setIsAgentQrCodeOpen(false);
-    }, []);
 
     /**
      * Updates the current route after a rename initiated from the header menu.
@@ -230,169 +167,76 @@ export function Header(props: HeaderProps) {
      */
     const handleAgentRenamedFromHeader = useCallback(
         (payload: AgentContextMenuRenamePayload) => {
-            const nextAgentName = payload.agent.agentName;
-            if (!nextAgentName) {
-                return;
-            }
-
-            const usesPermanentId =
-                Boolean(activeAgent?.permanentId) && activeAgentNavigationId === activeAgent?.permanentId;
-
-            if (usesPermanentId) {
-                router.refresh();
-                return;
-            }
-
-            if (!pathname) {
-                router.refresh();
-                return;
-            }
-
-            const nextPath = resolveRenamedHeaderPath(pathname, nextAgentName);
-            if (!nextPath) {
-                router.refresh();
-                return;
-            }
-
-            const search = typeof window !== 'undefined' ? window.location.search : '';
-            router.replace(`${nextPath}${search}`);
+            navigateAfterHeaderAgentRename({
+                activeAgentNavigationId,
+                activeAgentPermanentId: activeAgent?.permanentId,
+                nextAgentName: payload.agent.agentName,
+                pathname,
+                router,
+                search: typeof window !== 'undefined' ? window.location.search : '',
+            });
         },
         [activeAgent?.permanentId, activeAgentNavigationId, pathname, router],
     );
-
-    const agentContextMenuItems = useAgentContextMenuItems({
-        agent: activeAgentMenuAgent,
-        agentName: activeAgentNavigationId || activeAgentMenuAgent.agentName,
-        derivedAgentName: activeAgent?.agentName || activeAgentNavigationId || activeAgentMenuAgent.agentName,
-        permanentId: activeAgent?.permanentId,
-        agentUrl: activeAgentUrl,
-        agentEmail: activeAgentEmail,
-        folderContext: activeAgentFolderContext,
-        isAdmin,
-        onShowQrCode: handleShowAgentQrCode,
-        onAgentRenamed: handleAgentRenamedFromHeader,
-        onRequestClose: closeAgentViewDropdown,
-        installPromptEvent,
-        isInstalled,
-        onInstallApp: handleInstallApp,
-    });
-    const agentMoreViewItems = useMemo(
-        () => mapContextMenuItemsToSubMenuItems(agentContextMenuItems),
-        [agentContextMenuItems],
-    );
-    const activeAgentViewItems = useMemo(
-        () =>
-            buildActiveAgentViewItems({
-                activeAgentNavigationId,
-                agentMoreViewItems,
-                isAdmin,
-                translate: t,
-            }),
-        [activeAgentNavigationId, agentMoreViewItems, isAdmin, t],
-    );
-
-    const handleLogout = async () => {
-        await logoutAction();
-    };
-
-    /**
-     * Shows the shared "new agent" failure dialog while preserving the original log context.
-     */
-    const handleNewAgentFailure = useCallback(
-        async (logMessage: string, error: unknown) => {
-            console.error(logMessage, error);
-            await showAlert({
-                title: t('header.createFailedTitle', { agentSingular: naming.singular }),
-                message:
-                    error instanceof Error
-                        ? error.message
-                        : t('header.createFailedMessage', { agentSingular: naming.singular }),
-            }).catch(() => undefined);
-        },
-        [naming.singular, t],
-    );
-
     const {
+        activeAgentViewItems,
+        agentMenuTree,
+        createNewAgentLabel,
+        handleCloseAgentQrCode,
+        handleCreateAgent,
+        hierarchyAgentMobileItems,
+        isAgentQrCodeOpen,
         isPreparingDialog,
-        openNewAgentDialog,
-        dialog: newAgentDialog,
-    } = useNewAgentDialog({
-        onCreated: ({ targetPath }) => {
-            pushWithHeadless(router, targetPath, isHeadless);
-        },
-        onCreateFailed: async (error) => {
-            await handleNewAgentFailure('Failed to create agent:', error);
-        },
-        onPrepareFailed: async (error) => {
-            await handleNewAgentFailure('Failed to generate agent boilerplate:', error);
-        },
+        newAgentDialog,
+        viewAllAgentsLabel,
+    } = useHeaderAgentMenus({
+        activeAgent,
+        activeAgentEmail,
+        activeAgentFolderContext,
+        activeAgentMenuAgent,
+        activeAgentNavigationId,
+        activeAgentUrl,
+        agentMenuTree: baseAgentMenuTree,
+        closeAgentViewDropdown,
+        installPromptEvent,
+        isAdmin,
+        isInstalled,
+        navigateToHref: fallbackNavigateToHref,
+        namingPlural: naming.plural,
+        namingSingular: naming.singular,
+        onAgentRenamed: handleAgentRenamedFromHeader,
+        onInstallApp: handleInstallApp,
+        setIsAgentsOpen,
+        setIsMenuOpen,
+        translate: t,
     });
 
-    const createNewAgentLabel = useMemo(
-        () =>
-            isPreparingDialog ? (
-                <div className="flex items-center">
-                    <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-                    {t('header.creatingAgent', { agentSingular: naming.singular })}
-                </div>
-            ) : (
-                t('header.createNewAgent', { agentSingular: naming.singular })
-            ),
-        [isPreparingDialog, naming.singular, t],
-    );
-    const createNewAgentText = t('header.createNewAgent', { agentSingular: naming.singular });
-    const viewAllAgentsLabel = t('header.viewAllAgents', { agentsPlural: naming.plural });
-
-    const handleCreateAgent = useCallback(
-        (folderId: number | null) => {
-            void openNewAgentDialog({ folderId });
-            setIsAgentsOpen(false);
-            setIsMenuOpen(false);
-        },
-        [openNewAgentDialog, setIsAgentsOpen, setIsMenuOpen],
-    );
-
-    const agentMenuTree = useMemo(
-        () =>
-            appendFolderActionNodes(agentMenuStructure.tree, {
-                viewAllLabel: viewAllAgentsLabel,
-                createLabel: createNewAgentText,
-                renderCreateLabel: createNewAgentLabel,
-                onCreateInFolder: isPreparingDialog ? undefined : (folderId) => handleCreateAgent(folderId),
-            }),
-        [
-            agentMenuStructure.tree,
-            viewAllAgentsLabel,
-            createNewAgentText,
-            createNewAgentLabel,
-            isPreparingDialog,
-            handleCreateAgent,
-        ],
-    );
-
-    /**
-     * Static entries appended below the dynamic hierarchy in the Agents menu.
-     */
-    const hierarchyAgentActionItems: SubMenuItem[] = [
-        {
-            label: viewAllAgentsLabel,
-            href: '/agents',
-            isBold: true,
-            isBordered: true,
-        },
-        {
-            label: createNewAgentLabel,
-            onClick: isPreparingDialog ? undefined : () => handleCreateAgent(null),
-            isBold: true,
-        },
-    ];
-    /**
-     * Hierarchical mobile Agents menu data with appended action items.
-     */
-    const hierarchyAgentMobileItems: SubMenuItem[] = [
-        ...createAgentHierarchyMobileItems(agentMenuTree),
-        ...hierarchyAgentActionItems,
-    ];
+    const handleLogout = useCallback(async () => {
+        await logoutAction();
+    }, []);
+    const handleDesktopLogin = useCallback(() => {
+        void showLoginDialog().catch(() => undefined);
+        setIsMenuOpen(false);
+    }, [setIsMenuOpen]);
+    const handleDesktopLogout = useCallback(() => {
+        void handleLogout();
+        setIsMenuOpen(false);
+    }, [handleLogout, setIsMenuOpen]);
+    const handleMobileLogin = useCallback(() => {
+        void showLoginDialog().catch(() => undefined);
+        closeMobileMenu();
+    }, [closeMobileMenu]);
+    const handleMobileLogout = useCallback(() => {
+        void handleLogout();
+        closeMobileMenu();
+    }, [closeMobileMenu, handleLogout]);
+    const handleOpenDesktopChangePassword = useCallback(() => {
+        setIsChangePasswordOpen(true);
+    }, []);
+    const handleOpenMobileChangePassword = useCallback(() => {
+        setIsChangePasswordOpen(true);
+        closeMobileMenu();
+    }, [closeMobileMenu]);
     const federatedDropdownItems = useMemo(
         () =>
             buildFederatedDropdownItems({
@@ -575,15 +419,9 @@ export function Header(props: HeaderProps) {
                             isProfileOpen={isProfileOpen}
                             logInLabel={t('header.logIn')}
                             logOutLabel={t('header.logOut')}
-                            onLogin={() => {
-                                void showLoginDialog().catch(() => undefined);
-                                setIsMenuOpen(false);
-                            }}
-                            onLogout={() => {
-                                void handleLogout();
-                                setIsMenuOpen(false);
-                            }}
-                            onOpenChangePassword={() => setIsChangePasswordOpen(true)}
+                            onLogin={handleDesktopLogin}
+                            onLogout={handleDesktopLogout}
+                            onOpenChangePassword={handleOpenDesktopChangePassword}
                             scheduleMenuClose={scheduleMenuClose}
                             setIsProfileOpen={setIsProfileOpen}
                             startDesktopDropdownPreview={startDesktopDropdownPreview}
@@ -623,18 +461,9 @@ export function Header(props: HeaderProps) {
                     menuItems={menuItems}
                     translate={t}
                     closeMenu={closeMobileMenu}
-                    onLogin={() => {
-                        void showLoginDialog().catch(() => undefined);
-                        closeMobileMenu();
-                    }}
-                    onLogout={() => {
-                        void handleLogout();
-                        closeMobileMenu();
-                    }}
-                    onOpenChangePassword={() => {
-                        setIsChangePasswordOpen(true);
-                        closeMobileMenu();
-                    }}
+                    onLogin={handleMobileLogin}
+                    onLogout={handleMobileLogout}
+                    onOpenChangePassword={handleOpenMobileChangePassword}
                     renderMobileNestedMenuItems={renderMobileNestedMenuItems}
                 />
             </div>
