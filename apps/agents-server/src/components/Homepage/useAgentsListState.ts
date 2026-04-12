@@ -198,6 +198,96 @@ type ParentFolderInfo = {
 };
 
 /**
+ * Normalized organization snapshot returned from synchronization.
+ *
+ * @private function of AgentsList
+ */
+type OrganizationSnapshot = {
+    /**
+     * Latest agents returned by the server.
+     */
+    readonly agents: AgentOrganizationAgent[];
+    /**
+     * Latest folders returned by the server.
+     */
+    readonly folders: AgentOrganizationFolder[];
+    /**
+     * Server timestamp indicating snapshot freshness.
+     */
+    readonly syncedAt: string | null;
+};
+
+/**
+ * Descendant lookup for one folder subtree.
+ *
+ * @private function of AgentsList
+ */
+type FolderDescendantContext = {
+    /**
+     * All descendant folder ids including the root folder.
+     */
+    readonly ids: number[];
+    /**
+     * Fast lookup set for descendant folder membership checks.
+     */
+    readonly idSet: Set<number>;
+};
+
+/**
+ * Drop target payload accepted by drag-and-drop handlers.
+ *
+ * @private function of AgentsList
+ */
+type DropTargetData = DragItem | BreadcrumbDropTargetData;
+
+/**
+ * Outcome of validating and planning a folder move.
+ *
+ * @private function of AgentsList
+ */
+type FolderMovePlan =
+    | { readonly type: 'NO_OP' }
+    | { readonly type: 'INVALID_PARENT' }
+    | {
+          readonly type: 'UPDATES';
+          readonly updates: AgentOrganizationFolder[];
+      };
+
+/**
+ * Planned action for a dragged agent.
+ *
+ * @private function of AgentsList
+ */
+type AgentDropAction =
+    | {
+          readonly type: 'REORDER_AGENT';
+          readonly draggedIdentifier: string;
+          readonly targetIdentifier: string;
+      }
+    | {
+          readonly type: 'MOVE_AGENT';
+          readonly draggedIdentifier: string;
+          readonly targetFolderId: number | null;
+      };
+
+/**
+ * Planned action for a dragged folder.
+ *
+ * @private function of AgentsList
+ */
+type FolderDropAction =
+    | {
+          readonly type: 'REORDER_FOLDER';
+          readonly draggedFolderId: number;
+          readonly targetFolderId: number;
+      }
+    | {
+          readonly type: 'MOVE_FOLDER';
+          readonly draggedFolderId: number;
+          readonly targetParentId: number | null;
+      };
+
+/**
  * Prefix for agent drag IDs.
  *
  * @private function of AgentsList
@@ -422,6 +512,842 @@ function validateFolderName(name: string): string | null {
 }
 
 /**
+ * Parses and validates the synchronization payload returned by the server.
+ *
+ * @param response - Fetch response for the synchronization request.
+ * @param payload - Parsed JSON payload.
+ * @returns Normalized snapshot ready for local state application.
+ *
+ * @private function of AgentsList
+ */
+function parseOrganizationSyncPayload(
+    response: Response,
+    payload: AgentOrganizationSyncPayload,
+): OrganizationSnapshot {
+    if (!response.ok || !payload.success) {
+        throw new Error(payload.error || 'Failed to synchronize organization state.');
+    }
+
+    if (!Array.isArray(payload.agents) || !Array.isArray(payload.folders)) {
+        throw new Error('Invalid organization synchronization payload.');
+    }
+
+    return {
+        agents: Array.from(payload.agents),
+        folders: Array.from(payload.folders),
+        syncedAt: payload.syncedAt ?? null,
+    };
+}
+
+/**
+ * Checks whether a synchronized snapshot differs from the current local snapshot.
+ *
+ * @param previousAgents - Current local agents.
+ * @param previousFolders - Current local folders.
+ * @param nextAgents - Incoming synchronized agents.
+ * @param nextFolders - Incoming synchronized folders.
+ * @returns True when the synchronized snapshot should replace local state.
+ *
+ * @private function of AgentsList
+ */
+function hasOrganizationSnapshotChanged(
+    previousAgents: ReadonlyArray<AgentOrganizationAgent>,
+    previousFolders: ReadonlyArray<AgentOrganizationFolder>,
+    nextAgents: ReadonlyArray<AgentOrganizationAgent>,
+    nextFolders: ReadonlyArray<AgentOrganizationFolder>,
+): boolean {
+    const previousFingerprint = createOrganizationFingerprint(previousAgents, previousFolders);
+    const nextFingerprint = createOrganizationFingerprint(nextAgents, nextFolders);
+
+    return previousFingerprint !== nextFingerprint;
+}
+
+/**
+ * Ensures a public URL always ends with a trailing slash.
+ *
+ * @param publicUrl - Base public URL of the Agents Server.
+ * @returns Normalized public URL.
+ *
+ * @private function of AgentsList
+ */
+function normalizePublicUrl(publicUrl: string_url): string {
+    return publicUrl.endsWith('/') ? publicUrl : `${publicUrl}/`;
+}
+
+/**
+ * Resolves the hostname used for agent email aliases.
+ *
+ * @param publicUrl - Normalized public URL.
+ * @returns Hostname or an empty string when the URL is invalid.
+ *
+ * @private function of AgentsList
+ */
+function resolvePublicUrlHost(publicUrl: string): string {
+    try {
+        return new URL(publicUrl).hostname;
+    } catch {
+        return '';
+    }
+}
+
+/**
+ * Resolves the parent-folder shortcut shown above the list.
+ *
+ * @param currentFolderId - Folder currently opened in the list view.
+ * @param folderById - Folder lookup indexed by id.
+ * @param allAgentsLabel - Localized label for the root scope.
+ * @returns Parent folder shortcut metadata or null at the root.
+ *
+ * @private function of AgentsList
+ */
+function resolveParentFolderInfo(
+    currentFolderId: number | null,
+    folderById: ReadonlyMap<number, AgentOrganizationFolder>,
+    allAgentsLabel: string,
+): ParentFolderInfo | null {
+    if (currentFolderId === null) {
+        return null;
+    }
+
+    const currentFolder = folderById.get(currentFolderId);
+    const parentFolderId = currentFolder?.parentId ?? null;
+    const parentFolderName =
+        parentFolderId === null ? allAgentsLabel : folderById.get(parentFolderId)?.name || allAgentsLabel;
+
+    return { id: parentFolderId, label: parentFolderName };
+}
+
+/**
+ * Returns folders visible in the currently opened parent folder.
+ *
+ * @param folders - All folders in the organization.
+ * @param currentFolderId - Current folder scope.
+ * @returns Sorted folders visible in the current scope.
+ *
+ * @private function of AgentsList
+ */
+function getVisibleFolders(
+    folders: ReadonlyArray<AgentOrganizationFolder>,
+    currentFolderId: number | null,
+): AgentOrganizationFolder[] {
+    return sortBySortOrder(
+        folders.filter((folder) => (folder.parentId ?? null) === (currentFolderId ?? null)),
+        (folder) => folder.name,
+    );
+}
+
+/**
+ * Returns agents visible in the currently opened folder scope.
+ *
+ * @param agents - All agents in the organization.
+ * @param currentFolderId - Current folder scope.
+ * @returns Sorted agents visible in the current scope.
+ *
+ * @private function of AgentsList
+ */
+function getVisibleAgents(
+    agents: ReadonlyArray<AgentOrganizationAgent>,
+    currentFolderId: number | null,
+): AgentOrganizationAgent[] {
+    return sortBySortOrder(
+        agents.filter((agent) => (agent.folderId ?? null) === (currentFolderId ?? null)),
+        (agent) => agent.agentName,
+    );
+}
+
+/**
+ * Resolves the folder set used by office-style views.
+ *
+ * @param currentFolderId - Current folder scope.
+ * @param childrenByParentId - Folder child lookup.
+ * @returns Folder id set for the office scope or null at the root.
+ *
+ * @private function of AgentsList
+ */
+function createOfficeVisibleFolderIdSet(
+    currentFolderId: number | null,
+    childrenByParentId: ReadonlyMap<number | null, number[]>,
+): Set<number> | null {
+    if (currentFolderId === null) {
+        return null;
+    }
+
+    return new Set(collectDescendantFolderIds(currentFolderId, new Map(childrenByParentId)));
+}
+
+/**
+ * Filters agents for office-style subtree rendering.
+ *
+ * @param agents - All local agents.
+ * @param officeVisibleFolderIds - Folder scope for office views.
+ * @returns Agents visible in the office scope.
+ *
+ * @private function of AgentsList
+ */
+function getOfficeAgents(
+    agents: ReadonlyArray<AgentOrganizationAgent>,
+    officeVisibleFolderIds: ReadonlySet<number> | null,
+): AgentOrganizationAgent[] {
+    if (officeVisibleFolderIds === null) {
+        return Array.from(agents);
+    }
+
+    return agents.filter((agent) => agent.folderId !== null && officeVisibleFolderIds.has(agent.folderId));
+}
+
+/**
+ * Filters folders for office-style subtree rendering.
+ *
+ * @param folders - All folders in the organization.
+ * @param officeVisibleFolderIds - Folder scope for office views.
+ * @returns Folders visible in the office scope.
+ *
+ * @private function of AgentsList
+ */
+function getOfficeFolders(
+    folders: ReadonlyArray<AgentOrganizationFolder>,
+    officeVisibleFolderIds: ReadonlySet<number> | null,
+): AgentOrganizationFolder[] {
+    if (officeVisibleFolderIds === null) {
+        return Array.from(folders);
+    }
+
+    return folders.filter((folder) => officeVisibleFolderIds.has(folder.id));
+}
+
+/**
+ * Resolves the agent counter shown in the list header.
+ *
+ * @param viewMode - Current homepage view mode.
+ * @param visibleAgentCount - Number of agents visible in list view.
+ * @param officeAgentCount - Number of agents visible in office views.
+ * @param totalAgentCount - Total number of local agents.
+ * @returns Count matching the current view.
+ *
+ * @private function of AgentsList
+ */
+function resolveAgentCount(
+    viewMode: HomeViewMode,
+    visibleAgentCount: number,
+    officeAgentCount: number,
+    totalAgentCount: number,
+): number {
+    if (viewMode === 'LIST') {
+        return visibleAgentCount;
+    }
+
+    if (viewMode === 'OFFICE' || viewMode === 'PIXEL_OFFICE') {
+        return officeAgentCount;
+    }
+
+    return totalAgentCount;
+}
+
+/**
+ * Finds one agent by its stable list identifier.
+ *
+ * @param agents - Agents to search.
+ * @param identifier - Agent identifier used throughout the UI.
+ * @returns Matching agent or undefined.
+ *
+ * @private function of AgentsList
+ */
+function findAgentByIdentifier(
+    agents: ReadonlyArray<AgentOrganizationAgent>,
+    identifier: string,
+): AgentOrganizationAgent | undefined {
+    return agents.find((agent) => getAgentIdentifier(agent) === identifier);
+}
+
+/**
+ * Finds one folder by its numeric identifier.
+ *
+ * @param folders - Folders to search.
+ * @param folderId - Folder identifier.
+ * @returns Matching folder or undefined.
+ *
+ * @private function of AgentsList
+ */
+function findFolderById(
+    folders: ReadonlyArray<AgentOrganizationFolder>,
+    folderId: number,
+): AgentOrganizationFolder | undefined {
+    return folders.find((folder) => folder.id === folderId);
+}
+
+/**
+ * Finds the currently dragged agent from drag state.
+ *
+ * @param activeDragItem - Active drag item metadata.
+ * @param agents - Current local agents.
+ * @returns Dragged agent or null when not dragging an agent.
+ *
+ * @private function of AgentsList
+ */
+function resolveDraggedAgent(
+    activeDragItem: DragItem | null,
+    agents: ReadonlyArray<AgentOrganizationAgent>,
+): AgentOrganizationAgent | null {
+    if (activeDragItem?.type !== 'AGENT') {
+        return null;
+    }
+
+    return findAgentByIdentifier(agents, activeDragItem.identifier) || null;
+}
+
+/**
+ * Finds the currently dragged folder from drag state.
+ *
+ * @param activeDragItem - Active drag item metadata.
+ * @param folders - Current local folders.
+ * @returns Dragged folder or null when not dragging a folder.
+ *
+ * @private function of AgentsList
+ */
+function resolveDraggedFolder(
+    activeDragItem: DragItem | null,
+    folders: ReadonlyArray<AgentOrganizationFolder>,
+): AgentOrganizationFolder | null {
+    if (activeDragItem?.type !== 'FOLDER') {
+        return null;
+    }
+
+    return folders.find((folder) => String(folder.id) === activeDragItem.identifier) || null;
+}
+
+/**
+ * Resolves the folder currently associated with the folder context menu.
+ *
+ * @param folders - Current local folders.
+ * @param folderContextMenuState - Context-menu state for folders.
+ * @returns Matching folder or null when no folder menu is open.
+ *
+ * @private function of AgentsList
+ */
+function resolveContextMenuFolder(
+    folders: ReadonlyArray<AgentOrganizationFolder>,
+    folderContextMenuState: FolderContextMenuState | null,
+): AgentOrganizationFolder | null {
+    if (folderContextMenuState === null) {
+        return null;
+    }
+
+    return findFolderById(folders, folderContextMenuState.folderId) || null;
+}
+
+/**
+ * Resolves the main heading shown above the list content.
+ *
+ * @param viewMode - Current homepage view mode.
+ * @param currentFolderId - Current folder scope.
+ * @param folderById - Folder lookup indexed by id.
+ * @param localAgentsLabel - Localized fallback title.
+ * @returns Heading title for the current view.
+ *
+ * @private function of AgentsList
+ */
+function resolveHeadingTitle(
+    viewMode: HomeViewMode,
+    currentFolderId: number | null,
+    folderById: ReadonlyMap<number, AgentOrganizationFolder>,
+    localAgentsLabel: string,
+): string {
+    if (viewMode === 'GRAPH' || currentFolderId === null) {
+        return localAgentsLabel;
+    }
+
+    return folderById.get(currentFolderId)?.name || localAgentsLabel;
+}
+
+/**
+ * Builds descendant ids and a membership set for one folder subtree.
+ *
+ * @param folderId - Root folder id.
+ * @param childrenByParentId - Child folder lookup.
+ * @returns Descendant lookup metadata.
+ *
+ * @private function of AgentsList
+ */
+function createFolderDescendantContext(
+    folderId: number,
+    childrenByParentId: ReadonlyMap<number | null, number[]>,
+): FolderDescendantContext {
+    const ids = collectDescendantFolderIds(folderId, new Map(childrenByParentId));
+
+    return {
+        ids,
+        idSet: new Set(ids),
+    };
+}
+
+/**
+ * Resolves the next append position for a sorted sibling list.
+ *
+ * @param items - Sorted sibling list.
+ * @returns Sort order for an appended item.
+ *
+ * @private function of AgentsList
+ */
+function resolveNextSortOrder<T extends { sortOrder: number }>(items: ReadonlyArray<T>): number {
+    return items.length > 0 ? items[items.length - 1].sortOrder + 1 : 0;
+}
+
+/**
+ * Creates the POST payload used to persist folder organization changes.
+ *
+ * @param folders - Updated folders to persist.
+ * @returns Organization update payload containing folder updates.
+ *
+ * @private function of AgentsList
+ */
+function buildFolderOrganizationUpdates(
+    folders: ReadonlyArray<AgentOrganizationFolder>,
+): AgentOrganizationUpdatePayload {
+    return {
+        folders: folders.map((folder) => ({
+            id: folder.id,
+            parentId: folder.parentId ?? null,
+            sortOrder: folder.sortOrder,
+        })),
+    };
+}
+
+/**
+ * Creates the POST payload used to persist agent organization changes.
+ *
+ * @param agents - Updated agents to persist.
+ * @returns Organization update payload containing agent updates.
+ *
+ * @private function of AgentsList
+ */
+function buildAgentOrganizationUpdates(
+    agents: ReadonlyArray<AgentOrganizationAgent>,
+): AgentOrganizationUpdatePayload {
+    return {
+        agents: agents.map((agent) => ({
+            identifier: getAgentIdentifier(agent),
+            folderId: agent.folderId ?? null,
+            sortOrder: agent.sortOrder,
+        })),
+    };
+}
+
+/**
+ * Applies folder updates over the current local folder list.
+ *
+ * @param folders - Existing local folders.
+ * @param updates - Updated folders to merge.
+ * @returns Folder list with updates applied.
+ *
+ * @private function of AgentsList
+ */
+function applyFolderUpdates(
+    folders: ReadonlyArray<AgentOrganizationFolder>,
+    updates: ReadonlyArray<AgentOrganizationFolder>,
+): AgentOrganizationFolder[] {
+    const updatedMap = new Map(updates.map((folder) => [folder.id, folder]));
+
+    return folders.map((folder) => updatedMap.get(folder.id) || folder);
+}
+
+/**
+ * Applies agent updates over the current local agent list.
+ *
+ * @param agents - Existing local agents.
+ * @param updates - Updated agents to merge.
+ * @returns Agent list with updates applied.
+ *
+ * @private function of AgentsList
+ */
+function applyAgentUpdates(
+    agents: ReadonlyArray<AgentOrganizationAgent>,
+    updates: ReadonlyArray<AgentOrganizationAgent>,
+): AgentOrganizationAgent[] {
+    const updatedMap = new Map(updates.map((agent) => [getAgentIdentifier(agent), agent]));
+
+    return agents.map((agent) => updatedMap.get(getAgentIdentifier(agent)) || agent);
+}
+
+/**
+ * Plans folder reordering inside the current folder scope.
+ *
+ * @param folders - All local folders.
+ * @param visibleFolders - Folders visible in the current scope.
+ * @param draggedId - Folder id being moved.
+ * @param targetId - Folder id being targeted.
+ * @returns Updated folders or null when no reorder is needed.
+ *
+ * @private function of AgentsList
+ */
+function createReorderedFolderUpdates(
+    folders: ReadonlyArray<AgentOrganizationFolder>,
+    visibleFolders: ReadonlyArray<AgentOrganizationFolder>,
+    draggedId: number,
+    targetId: number,
+): AgentOrganizationFolder[] | null {
+    const orderedFolderIds = visibleFolders.map((folder) => folder.id);
+    const fromIndex = orderedFolderIds.indexOf(draggedId);
+    const targetIndex = orderedFolderIds.indexOf(targetId);
+
+    if (fromIndex === -1 || targetIndex === -1 || fromIndex === targetIndex) {
+        return null;
+    }
+
+    return moveItem(orderedFolderIds, fromIndex, targetIndex)
+        .map((id, index) => {
+            const folder = findFolderById(folders, id);
+
+            return folder ? { ...folder, sortOrder: index } : null;
+        })
+        .filter(Boolean) as AgentOrganizationFolder[];
+}
+
+/**
+ * Plans agent reordering inside the current folder scope.
+ *
+ * @param agents - All local agents.
+ * @param visibleAgents - Agents visible in the current scope.
+ * @param draggedId - Agent identifier being moved.
+ * @param targetId - Agent identifier being targeted.
+ * @returns Updated agents or null when no reorder is needed.
+ *
+ * @private function of AgentsList
+ */
+function createReorderedAgentUpdates(
+    agents: ReadonlyArray<AgentOrganizationAgent>,
+    visibleAgents: ReadonlyArray<AgentOrganizationAgent>,
+    draggedId: string,
+    targetId: string,
+): AgentOrganizationAgent[] | null {
+    const orderedAgentIds = visibleAgents.map((agent) => getAgentIdentifier(agent));
+    const fromIndex = orderedAgentIds.indexOf(draggedId);
+    const targetIndex = orderedAgentIds.indexOf(targetId);
+
+    if (fromIndex === -1 || targetIndex === -1 || fromIndex === targetIndex) {
+        return null;
+    }
+
+    return moveItem(orderedAgentIds, fromIndex, targetIndex)
+        .map((identifier, index) => {
+            const agent = findAgentByIdentifier(agents, identifier);
+
+            return agent ? { ...agent, sortOrder: index } : null;
+        })
+        .filter(Boolean) as AgentOrganizationAgent[];
+}
+
+/**
+ * Plans a folder move into another folder or the root.
+ *
+ * @param folders - All local folders.
+ * @param childrenByParentId - Child folder lookup.
+ * @param folderId - Folder being moved.
+ * @param targetParentId - Target parent folder id.
+ * @returns Validated folder move plan.
+ *
+ * @private function of AgentsList
+ */
+function createFolderMovePlan(
+    folders: ReadonlyArray<AgentOrganizationFolder>,
+    childrenByParentId: ReadonlyMap<number | null, number[]>,
+    folderId: number,
+    targetParentId: number | null,
+): FolderMovePlan {
+    if (folderId === targetParentId) {
+        return { type: 'NO_OP' };
+    }
+
+    const folder = findFolderById(folders, folderId);
+    if (!folder) {
+        return { type: 'NO_OP' };
+    }
+
+    const descendantContext = createFolderDescendantContext(folderId, childrenByParentId);
+    if (targetParentId !== null && descendantContext.idSet.has(targetParentId)) {
+        return { type: 'INVALID_PARENT' };
+    }
+
+    const sourceParentId = folder.parentId ?? null;
+    const sourceSiblings = sortBySortOrder(
+        folders.filter((item) => (item.parentId ?? null) === sourceParentId && item.id !== folderId),
+        (item) => item.name,
+    );
+    const targetSiblings = sortBySortOrder(
+        folders.filter((item) => (item.parentId ?? null) === (targetParentId ?? null) && item.id !== folderId),
+        (item) => item.name,
+    );
+    const updatedFolder = {
+        ...folder,
+        parentId: targetParentId,
+        sortOrder: resolveNextSortOrder(targetSiblings),
+    };
+
+    return {
+        type: 'UPDATES',
+        updates: [...sourceSiblings.map((item, index) => ({ ...item, sortOrder: index })), updatedFolder],
+    };
+}
+
+/**
+ * Plans moving one agent into another folder or the root.
+ *
+ * @param agents - All local agents.
+ * @param identifier - Agent identifier being moved.
+ * @param targetFolderId - Target folder id.
+ * @returns Updated agents or null when no move is needed.
+ *
+ * @private function of AgentsList
+ */
+function createAgentMoveUpdates(
+    agents: ReadonlyArray<AgentOrganizationAgent>,
+    identifier: string,
+    targetFolderId: number | null,
+): AgentOrganizationAgent[] | null {
+    const agent = findAgentByIdentifier(agents, identifier);
+    if (!agent) {
+        return null;
+    }
+
+    const sourceFolderId = agent.folderId ?? null;
+    if (sourceFolderId === targetFolderId) {
+        return null;
+    }
+
+    const sourceAgents = sortBySortOrder(
+        agents.filter((item) => (item.folderId ?? null) === sourceFolderId && getAgentIdentifier(item) !== identifier),
+        (item) => item.agentName,
+    );
+    const targetAgents = sortBySortOrder(
+        agents.filter((item) => (item.folderId ?? null) === targetFolderId),
+        (item) => item.agentName,
+    );
+    const updatedAgent = {
+        ...agent,
+        folderId: targetFolderId,
+        sortOrder: resolveNextSortOrder(targetAgents),
+    };
+
+    return [...sourceAgents.map((item, index) => ({ ...item, sortOrder: index })), updatedAgent];
+}
+
+/**
+ * Trims and validates folder edit values before submission.
+ *
+ * @param values - Folder dialog values to validate.
+ * @returns Normalized values and a validation error when present.
+ *
+ * @private function of AgentsList
+ */
+function normalizeFolderEditValues(values: FolderEditValues): {
+    readonly normalizedValues: FolderEditValues;
+    readonly errorMessage: string | null;
+} {
+    const normalizedValues = { ...values, name: values.name.trim() };
+
+    return {
+        normalizedValues,
+        errorMessage: validateFolderName(normalizedValues.name),
+    };
+}
+
+/**
+ * Resolves the failure dialog title for folder create/edit submission.
+ *
+ * @param mode - Current folder dialog mode.
+ * @returns Dialog title for failed submission.
+ *
+ * @private function of AgentsList
+ */
+function resolveFolderEditFailureTitle(mode: FolderEditDialogState['mode']): string {
+    return mode === 'CREATE' ? 'Create failed' : 'Update failed';
+}
+
+/**
+ * Resolves the drop indicator for folder-on-folder hover interactions.
+ *
+ * @param event - Current drag-over event.
+ * @returns Drop indicator or null when not hovering a valid folder target.
+ *
+ * @private function of AgentsList
+ */
+function resolveFolderDropIndicator(event: DragOverEvent): DropIndicator | null {
+    const dragData = event.active.data.current as DragItem | undefined;
+    const overData = event.over?.data.current as DropTargetData | undefined;
+
+    if (!dragData || dragData.type !== 'FOLDER' || !event.over || !overData || overData.type !== 'FOLDER') {
+        return null;
+    }
+
+    const activeRect = event.active.rect.current.translated || event.active.rect.current.initial;
+    const intent = getDropIntentFromRects(activeRect as TODO_any, event.over.rect as TODO_any);
+
+    return { id: event.over.id, intent };
+}
+
+/**
+ * Resolves the intended operation for an agent drag-and-drop completion.
+ *
+ * @param dragData - Dragged item metadata.
+ * @param overData - Drop target metadata.
+ * @returns Planned agent drag action or null when the drop should be ignored.
+ *
+ * @private function of AgentsList
+ */
+function resolveAgentDropAction(dragData: DragItem, overData: DropTargetData): AgentDropAction | null {
+    if (overData.type === 'AGENT') {
+        return {
+            type: 'REORDER_AGENT',
+            draggedIdentifier: dragData.identifier,
+            targetIdentifier: overData.identifier,
+        };
+    }
+
+    if (overData.type === 'FOLDER') {
+        const targetFolderId = Number(overData.identifier);
+        if (Number.isNaN(targetFolderId)) {
+            return null;
+        }
+
+        return {
+            type: 'MOVE_AGENT',
+            draggedIdentifier: dragData.identifier,
+            targetFolderId,
+        };
+    }
+
+    if (overData.type === 'BREADCRUMB') {
+        return {
+            type: 'MOVE_AGENT',
+            draggedIdentifier: dragData.identifier,
+            targetFolderId: overData.folderId ?? null,
+        };
+    }
+
+    return null;
+}
+
+/**
+ * Resolves the intended operation for a folder drag-and-drop completion.
+ *
+ * @param dragData - Dragged folder metadata.
+ * @param overData - Drop target metadata.
+ * @param overId - Raw dnd-kit drop target id.
+ * @param currentIndicator - Drop indicator captured before reset.
+ * @returns Planned folder drag action or null when the drop should be ignored.
+ *
+ * @private function of AgentsList
+ */
+function resolveFolderDropAction(
+    dragData: DragItem,
+    overData: DropTargetData,
+    overId: string | number,
+    currentIndicator: DropIndicator | null,
+): FolderDropAction | null {
+    const draggedFolderId = Number(dragData.identifier);
+    if (Number.isNaN(draggedFolderId)) {
+        return null;
+    }
+
+    if (overData.type === 'FOLDER') {
+        const targetFolderId = Number(overData.identifier);
+        if (Number.isNaN(targetFolderId) || draggedFolderId === targetFolderId) {
+            return null;
+        }
+
+        const isInsideDrop = currentIndicator?.id === overId && currentIndicator.intent === 'inside';
+        if (isInsideDrop) {
+            return {
+                type: 'MOVE_FOLDER',
+                draggedFolderId,
+                targetParentId: targetFolderId,
+            };
+        }
+
+        return {
+            type: 'REORDER_FOLDER',
+            draggedFolderId,
+            targetFolderId,
+        };
+    }
+
+    if (overData.type === 'BREADCRUMB') {
+        return {
+            type: 'MOVE_FOLDER',
+            draggedFolderId,
+            targetParentId: overData.folderId ?? null,
+        };
+    }
+
+    return null;
+}
+
+/**
+ * Executes a planned agent drag-and-drop action.
+ *
+ * @param action - Planned drag outcome.
+ * @param reorderAgents - Agent reordering implementation.
+ * @param moveAgentToFolder - Agent move implementation.
+ * @returns Promise resolving when the action finishes.
+ *
+ * @private function of AgentsList
+ */
+async function executeAgentDropAction(
+    action: AgentDropAction | null,
+    reorderAgents: (draggedId: string, targetId: string) => Promise<void>,
+    moveAgentToFolder: (identifier: string, targetFolderId: number | null) => Promise<void>,
+): Promise<void> {
+    if (!action) {
+        return;
+    }
+
+    if (action.type === 'REORDER_AGENT') {
+        await reorderAgents(action.draggedIdentifier, action.targetIdentifier);
+        return;
+    }
+
+    await moveAgentToFolder(action.draggedIdentifier, action.targetFolderId);
+}
+
+/**
+ * Executes a planned folder drag-and-drop action.
+ *
+ * @param action - Planned drag outcome.
+ * @param reorderFolders - Folder reordering implementation.
+ * @param moveFolderToParent - Folder move implementation.
+ * @returns Promise resolving when the action finishes.
+ *
+ * @private function of AgentsList
+ */
+async function executeFolderDropAction(
+    action: FolderDropAction | null,
+    reorderFolders: (draggedId: number, targetId: number) => Promise<void>,
+    moveFolderToParent: (folderId: number, targetParentId: number | null) => Promise<void>,
+): Promise<void> {
+    if (!action) {
+        return;
+    }
+
+    if (action.type === 'REORDER_FOLDER') {
+        await reorderFolders(action.draggedFolderId, action.targetFolderId);
+        return;
+    }
+
+    await moveFolderToParent(action.draggedFolderId, action.targetParentId);
+}
+
+/**
+ * Creates a stable anchor point for context menus.
+ *
+ * @param event - Mouse event that opened the menu.
+ * @returns Cursor position used as the menu anchor.
+ *
+ * @private function of AgentsList
+ */
+function createContextMenuAnchorPoint(event: MouseEvent<HTMLDivElement>): { x: number; y: number } {
+    return { x: event.clientX, y: event.clientY };
+}
+
+/**
  * Builds all state, derived data, and interaction handlers used by `AgentsList`.
  *
  * @param props - Current AgentsList props.
@@ -486,29 +1412,25 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
                     signal: abortController.signal,
                 });
                 const payload = (await response.json().catch(() => ({}))) as AgentOrganizationSyncPayload;
-                if (!response.ok || !payload.success) {
-                    throw new Error(payload.error || 'Failed to synchronize organization state.');
-                }
+                const snapshot = parseOrganizationSyncPayload(response, payload);
 
-                if (!Array.isArray(payload.agents) || !Array.isArray(payload.folders)) {
-                    throw new Error('Invalid organization synchronization payload.');
-                }
-
-                const nextAgents = Array.from(payload.agents);
-                const nextFolders = Array.from(payload.folders);
-                const previousFingerprint = createOrganizationFingerprint(agentsRef.current, foldersRef.current);
-                const nextFingerprint = createOrganizationFingerprint(nextAgents, nextFolders);
-
-                if (previousFingerprint !== nextFingerprint) {
+                if (
+                    hasOrganizationSnapshotChanged(
+                        agentsRef.current,
+                        foldersRef.current,
+                        snapshot.agents,
+                        snapshot.folders,
+                    )
+                ) {
                     logOrganizationSyncDebug('Detected stale local listing snapshot; applying synchronized data', {
                         reason,
                         routeKey: routeKeyAtSync,
-                        nextAgentCount: nextAgents.length,
-                        nextFolderCount: nextFolders.length,
-                        syncedAt: payload.syncedAt ?? null,
+                        nextAgentCount: snapshot.agents.length,
+                        nextFolderCount: snapshot.folders.length,
+                        syncedAt: snapshot.syncedAt,
                     });
-                    setAgents(nextAgents);
-                    setFolders(nextFolders);
+                    setAgents(snapshot.agents);
+                    setFolders(snapshot.folders);
                 }
 
                 setLastSyncedRouteKey(routeKeyAtSync);
@@ -543,14 +1465,8 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         [synchronizeOrganizationState],
     );
 
-    const normalizedPublicUrl = useMemo(() => (publicUrl.endsWith('/') ? publicUrl : `${publicUrl}/`), [publicUrl]);
-    const publicUrlHost = useMemo(() => {
-        try {
-            return new URL(normalizedPublicUrl).hostname;
-        } catch (error) {
-            return '';
-        }
-    }, [normalizedPublicUrl]);
+    const normalizedPublicUrl = useMemo(() => normalizePublicUrl(publicUrl), [publicUrl]);
+    const publicUrlHost = useMemo(() => resolvePublicUrlHost(normalizedPublicUrl), [normalizedPublicUrl]);
 
     const viewMode = resolveHomeViewMode(searchParams.get('view'));
     const shouldRefreshFederatedAgents = showFederatedAgents && viewMode !== 'LIST';
@@ -573,26 +1489,11 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         () => getFolderPathSegments(currentFolderId, folderMaps.folderById),
         [currentFolderId, folderMaps.folderById],
     );
-    const parentFolderInfo = useMemo<ParentFolderInfo | null>(() => {
-        if (currentFolderId === null) {
-            return null;
-        }
-
-        const currentFolder = folderMaps.folderById.get(currentFolderId);
-        const parentFolderId = currentFolder?.parentId ?? null;
-        const parentFolderName = parentFolderId === null ? allAgentsLabel : folderMaps.folderById.get(parentFolderId)?.name || allAgentsLabel;
-
-        return { id: parentFolderId, label: parentFolderName };
-    }, [allAgentsLabel, currentFolderId, folderMaps.folderById]);
-
-    const visibleFolders = useMemo(
-        () =>
-            sortBySortOrder(
-                folders.filter((folder) => (folder.parentId ?? null) === (currentFolderId ?? null)),
-                (folder) => folder.name,
-            ),
-        [folders, currentFolderId],
+    const parentFolderInfo = useMemo(
+        () => resolveParentFolderInfo(currentFolderId, folderMaps.folderById, allAgentsLabel),
+        [allAgentsLabel, currentFolderId, folderMaps.folderById],
     );
+    const visibleFolders = useMemo(() => getVisibleFolders(folders, currentFolderId), [folders, currentFolderId]);
 
     // Keep the interactive agent/folder caches aligned with the latest server props (e.g., after logging in).
     useEffect(() => {
@@ -695,42 +1596,14 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         searchParamsSnapshot,
     ]);
 
-    const visibleAgents = useMemo(
-        () =>
-            sortBySortOrder(
-                agents.filter((agent) => (agent.folderId ?? null) === (currentFolderId ?? null)),
-                (agent) => agent.agentName,
-            ),
-        [agents, currentFolderId],
+    const visibleAgents = useMemo(() => getVisibleAgents(agents, currentFolderId), [agents, currentFolderId]);
+    const officeVisibleFolderIds = useMemo(
+        () => createOfficeVisibleFolderIdSet(currentFolderId, folderMaps.childrenByParentId),
+        [currentFolderId, folderMaps.childrenByParentId],
     );
-    const officeVisibleFolderIds = useMemo(() => {
-        if (currentFolderId === null) {
-            return null;
-        }
-
-        return new Set(collectDescendantFolderIds(currentFolderId, folderMaps.childrenByParentId));
-    }, [currentFolderId, folderMaps.childrenByParentId]);
-    const officeAgents = useMemo(() => {
-        if (officeVisibleFolderIds === null) {
-            return agents;
-        }
-
-        return agents.filter((agent) => agent.folderId !== null && officeVisibleFolderIds.has(agent.folderId));
-    }, [agents, officeVisibleFolderIds]);
-    const officeFolders = useMemo(() => {
-        if (officeVisibleFolderIds === null) {
-            return folders;
-        }
-
-        return folders.filter((folder) => officeVisibleFolderIds.has(folder.id));
-    }, [folders, officeVisibleFolderIds]);
-
-    const agentCount =
-        viewMode === 'LIST'
-            ? visibleAgents.length
-            : viewMode === 'OFFICE' || viewMode === 'PIXEL_OFFICE'
-              ? officeAgents.length
-              : agents.length;
+    const officeAgents = useMemo(() => getOfficeAgents(agents, officeVisibleFolderIds), [agents, officeVisibleFolderIds]);
+    const officeFolders = useMemo(() => getOfficeFolders(folders, officeVisibleFolderIds), [folders, officeVisibleFolderIds]);
+    const agentCount = resolveAgentCount(viewMode, visibleAgents.length, officeAgents.length, agents.length);
     const sensors = useSensors(
         useSensor(MouseSensor, {
             activationConstraint: { distance: DRAG_START_DISTANCE_PX },
@@ -747,20 +1620,8 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         () => visibleAgents.map((agent) => getAgentDragId(getAgentIdentifier(agent))),
         [visibleAgents],
     );
-    const activeAgent = useMemo(() => {
-        if (activeDragItem?.type !== 'AGENT') {
-            return null;
-        }
-
-        return agents.find((agent) => getAgentIdentifier(agent) === activeDragItem.identifier) || null;
-    }, [activeDragItem, agents]);
-    const activeFolder = useMemo(() => {
-        if (activeDragItem?.type !== 'FOLDER') {
-            return null;
-        }
-
-        return folders.find((folder) => String(folder.id) === activeDragItem.identifier) || null;
-    }, [activeDragItem, folders]);
+    const activeAgent = useMemo(() => resolveDraggedAgent(activeDragItem, agents), [activeDragItem, agents]);
+    const activeFolder = useMemo(() => resolveDraggedFolder(activeDragItem, folders), [activeDragItem, folders]);
 
     /**
      * Builds a full agent URL from a list identifier.
@@ -860,31 +1721,13 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
      */
     const reorderFolders = useCallback(
         async (draggedId: number, targetId: number) => {
-            const orderedFolderIds = visibleFolders.map((folder) => folder.id);
-            const fromIndex = orderedFolderIds.indexOf(draggedId);
-            const targetIndex = orderedFolderIds.indexOf(targetId);
-
-            if (fromIndex === -1 || targetIndex === -1 || fromIndex === targetIndex) {
+            const updatedFolders = createReorderedFolderUpdates(folders, visibleFolders, draggedId, targetId);
+            if (!updatedFolders) {
                 return;
             }
 
-            const nextOrder = moveItem(orderedFolderIds, fromIndex, targetIndex);
-            const updatedFolders = nextOrder
-                .map((id, index) => {
-                    const folder = folders.find((item) => item.id === id);
-                    return folder ? { ...folder, sortOrder: index } : null;
-                })
-                .filter(Boolean) as AgentOrganizationFolder[];
-            const updatedMap = new Map(updatedFolders.map((folder) => [folder.id, folder]));
-
-            setFolders((prev) => prev.map((folder) => updatedMap.get(folder.id) || folder));
-            await persistOrganizationUpdates({
-                folders: updatedFolders.map((folder) => ({
-                    id: folder.id,
-                    parentId: folder.parentId ?? null,
-                    sortOrder: folder.sortOrder,
-                })),
-            });
+            setFolders((prev) => applyFolderUpdates(prev, updatedFolders));
+            await persistOrganizationUpdates(buildFolderOrganizationUpdates(updatedFolders));
         },
         [folders, persistOrganizationUpdates, visibleFolders],
     );
@@ -897,31 +1740,13 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
      */
     const reorderAgents = useCallback(
         async (draggedId: string, targetId: string) => {
-            const orderedAgentIds = visibleAgents.map((agent) => getAgentIdentifier(agent));
-            const fromIndex = orderedAgentIds.indexOf(draggedId);
-            const targetIndex = orderedAgentIds.indexOf(targetId);
-
-            if (fromIndex === -1 || targetIndex === -1 || fromIndex === targetIndex) {
+            const updates = createReorderedAgentUpdates(agents, visibleAgents, draggedId, targetId);
+            if (!updates) {
                 return;
             }
 
-            const nextOrder = moveItem(orderedAgentIds, fromIndex, targetIndex);
-            const updates = nextOrder
-                .map((identifier, index) => {
-                    const agent = agents.find((item) => getAgentIdentifier(item) === identifier);
-                    return agent ? { ...agent, sortOrder: index } : null;
-                })
-                .filter(Boolean) as AgentOrganizationAgent[];
-            const updatedMap = new Map(updates.map((agent) => [getAgentIdentifier(agent), agent]));
-
-            setAgents((prev) => prev.map((agent) => updatedMap.get(getAgentIdentifier(agent)) || agent));
-            await persistOrganizationUpdates({
-                agents: updates.map((agent) => ({
-                    identifier: getAgentIdentifier(agent),
-                    folderId: agent.folderId ?? null,
-                    sortOrder: agent.sortOrder,
-                })),
-            });
+            setAgents((prev) => applyAgentUpdates(prev, updates));
+            await persistOrganizationUpdates(buildAgentOrganizationUpdates(updates));
         },
         [agents, persistOrganizationUpdates, visibleAgents],
     );
@@ -934,17 +1759,12 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
      */
     const moveFolderToParent = useCallback(
         async (folderId: number, targetParentId: number | null) => {
-            if (folderId === targetParentId) {
+            const movePlan = createFolderMovePlan(folders, folderMaps.childrenByParentId, folderId, targetParentId);
+            if (movePlan.type === 'NO_OP') {
                 return;
             }
 
-            const folder = folders.find((item) => item.id === folderId);
-            if (!folder) {
-                return;
-            }
-
-            const descendantIds = collectDescendantFolderIds(folderId, folderMaps.childrenByParentId);
-            if (targetParentId !== null && descendantIds.includes(targetParentId)) {
+            if (movePlan.type === 'INVALID_PARENT') {
                 await showAlert({
                     title: 'Invalid move',
                     message: 'Cannot move a folder into one of its subfolders.',
@@ -952,31 +1772,8 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
                 return;
             }
 
-            const sourceParentId = folder.parentId ?? null;
-            const sourceSiblings = sortBySortOrder(
-                folders.filter((item) => (item.parentId ?? null) === sourceParentId && item.id !== folderId),
-                (item) => item.name,
-            );
-            const targetSiblings = sortBySortOrder(
-                folders.filter((item) => (item.parentId ?? null) === (targetParentId ?? null) && item.id !== folderId),
-                (item) => item.name,
-            );
-            const nextSortOrder = targetSiblings.length > 0 ? targetSiblings[targetSiblings.length - 1].sortOrder + 1 : 0;
-            const updatedFolder = { ...folder, parentId: targetParentId, sortOrder: nextSortOrder };
-            const updates: AgentOrganizationFolder[] = [
-                ...sourceSiblings.map((item, index) => ({ ...item, sortOrder: index })),
-                updatedFolder,
-            ];
-            const updatedMap = new Map(updates.map((item) => [item.id, item]));
-
-            setFolders((prev) => prev.map((item) => updatedMap.get(item.id) || item));
-            await persistOrganizationUpdates({
-                folders: updates.map((item) => ({
-                    id: item.id,
-                    parentId: item.parentId ?? null,
-                    sortOrder: item.sortOrder,
-                })),
-            });
+            setFolders((prev) => applyFolderUpdates(prev, movePlan.updates));
+            await persistOrganizationUpdates(buildFolderOrganizationUpdates(movePlan.updates));
         },
         [folderMaps.childrenByParentId, folders, persistOrganizationUpdates],
     );
@@ -989,40 +1786,13 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
      */
     const moveAgentToFolder = useCallback(
         async (identifier: string, targetFolderId: number | null) => {
-            const agent = agents.find((item) => getAgentIdentifier(item) === identifier);
-            if (!agent) {
+            const updates = createAgentMoveUpdates(agents, identifier, targetFolderId);
+            if (!updates) {
                 return;
             }
 
-            const sourceFolderId = agent.folderId ?? null;
-            if (sourceFolderId === targetFolderId) {
-                return;
-            }
-
-            const sourceAgents = sortBySortOrder(
-                agents.filter((item) => (item.folderId ?? null) === sourceFolderId && getAgentIdentifier(item) !== identifier),
-                (item) => item.agentName,
-            );
-            const targetAgents = sortBySortOrder(
-                agents.filter((item) => (item.folderId ?? null) === targetFolderId),
-                (item) => item.agentName,
-            );
-            const nextSortOrder = targetAgents.length > 0 ? targetAgents[targetAgents.length - 1].sortOrder + 1 : 0;
-            const updatedAgent = { ...agent, folderId: targetFolderId, sortOrder: nextSortOrder };
-            const updates: AgentOrganizationAgent[] = [
-                ...sourceAgents.map((item, index) => ({ ...item, sortOrder: index })),
-                updatedAgent,
-            ];
-            const updatedMap = new Map(updates.map((item) => [getAgentIdentifier(item), item]));
-
-            setAgents((prev) => prev.map((item) => updatedMap.get(getAgentIdentifier(item)) || item));
-            await persistOrganizationUpdates({
-                agents: updates.map((item) => ({
-                    identifier: getAgentIdentifier(item),
-                    folderId: item.folderId ?? null,
-                    sortOrder: item.sortOrder,
-                })),
-            });
+            setAgents((prev) => applyAgentUpdates(prev, updates));
+            await persistOrganizationUpdates(buildAgentOrganizationUpdates(updates));
         },
         [agents, persistOrganizationUpdates],
     );
@@ -1041,7 +1811,7 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
      */
     const handleRenameFolder = useCallback(
         (folderId: number) => {
-            const folder = folders.find((item) => item.id === folderId);
+            const folder = findFolderById(folders, folderId);
             if (!folder) {
                 return;
             }
@@ -1062,7 +1832,7 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    name: values.name.trim(),
+                    name: values.name,
                     parentId: currentFolderId ?? null,
                     icon: values.icon,
                     color: values.color,
@@ -1093,7 +1863,7 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    name: values.name.trim(),
+                    name: values.name,
                     icon: values.icon,
                     color: values.color,
                 }),
@@ -1130,21 +1900,20 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
                 return;
             }
 
-            const trimmedName = values.name.trim();
-            const nameError = validateFolderName(trimmedName);
-            if (nameError) {
+            const { errorMessage, normalizedValues } = normalizeFolderEditValues(values);
+            if (errorMessage) {
                 await showAlert({
                     title: 'Invalid name',
-                    message: nameError,
+                    message: errorMessage,
                 }).catch(() => undefined);
                 return;
             }
 
-            const normalizedValues = { ...values, name: trimmedName };
+            const dialogMode = folderEditDialogState.mode;
 
             setIsFolderEditSubmitting(true);
             try {
-                if (folderEditDialogState.mode === 'CREATE') {
+                if (dialogMode === 'CREATE') {
                     await createFolderFromDialog(normalizedValues);
                     return;
                 }
@@ -1157,7 +1926,7 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
                 await updateFolderFromDialog(folderId, normalizedValues);
             } catch (error) {
                 await showAlert({
-                    title: folderEditDialogState.mode === 'CREATE' ? 'Create failed' : 'Update failed',
+                    title: resolveFolderEditFailureTitle(dialogMode),
                     message: error instanceof Error ? error.message : 'Failed to update folder.',
                 }).catch(() => undefined);
             } finally {
@@ -1185,16 +1954,15 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
      */
     const handleDeleteFolder = useCallback(
         async (folderId: number) => {
-            const folder = folders.find((item) => item.id === folderId);
+            const folder = findFolderById(folders, folderId);
             if (!folder) {
                 return;
             }
 
-            const descendantIds = collectDescendantFolderIds(folderId, folderMaps.childrenByParentId);
-            const descendantSet = new Set(descendantIds);
-            const subfolderCount = descendantIds.length - 1;
+            const descendantContext = createFolderDescendantContext(folderId, folderMaps.childrenByParentId);
+            const subfolderCount = descendantContext.ids.length - 1;
             const affectedAgentCount = agents.filter(
-                (agent) => agent.folderId !== null && descendantSet.has(agent.folderId),
+                (agent) => agent.folderId !== null && descendantContext.idSet.has(agent.folderId),
             ).length;
 
             const confirmed = await showConfirm({
@@ -1216,11 +1984,13 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
                     throw new Error(data.error || 'Failed to delete folder.');
                 }
 
-                setFolders((prev) => prev.filter((item) => !descendantSet.has(item.id)));
-                setAgents((prev) => prev.filter((agent) => agent.folderId === null || !descendantSet.has(agent.folderId)));
+                setFolders((prev) => prev.filter((item) => !descendantContext.idSet.has(item.id)));
+                setAgents((prev) =>
+                    prev.filter((agent) => agent.folderId === null || !descendantContext.idSet.has(agent.folderId)),
+                );
                 synchronizeAfterMutation('delete-folder');
 
-                if (currentFolderId !== null && descendantSet.has(currentFolderId)) {
+                if (currentFolderId !== null && descendantContext.idSet.has(currentFolderId)) {
                     navigateToFolder(null);
                 }
             } catch (error) {
@@ -1248,7 +2018,7 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
      */
     const handleDelete = useCallback(
         async (agentIdentifier: string) => {
-            const agent = agents.find((item) => getAgentIdentifier(item) === agentIdentifier);
+            const agent = findAgentByIdentifier(agents, agentIdentifier);
             if (!agent) {
                 return;
             }
@@ -1294,13 +2064,12 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
      */
     const handleSetFolderVisibility = useCallback(
         async (folderId: number, visibility: AgentVisibility) => {
-            const folder = folders.find((item) => item.id === folderId);
+            const folder = findFolderById(folders, folderId);
             if (!folder) {
                 return;
             }
 
-            const descendantIds = collectDescendantFolderIds(folderId, folderMaps.childrenByParentId);
-            const descendantSet = new Set(descendantIds);
+            const descendantContext = createFolderDescendantContext(folderId, folderMaps.childrenByParentId);
 
             try {
                 const response = await fetch(`/api/agent-folders/${folderId}/visibility`, {
@@ -1315,7 +2084,9 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
 
                 setAgents((prev) =>
                     prev.map((agent) =>
-                        agent.folderId !== null && descendantSet.has(agent.folderId) ? { ...agent, visibility } : agent,
+                        agent.folderId !== null && descendantContext.idSet.has(agent.folderId)
+                            ? { ...agent, visibility }
+                            : agent,
                     ),
                 );
                 synchronizeAfterMutation('update-folder-visibility');
@@ -1336,14 +2107,15 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
      */
     const handleRequestFolderVisibilityUpdate = useCallback(
         async (folderId: number) => {
-            const folder = folders.find((item) => item.id === folderId);
+            const folder = findFolderById(folders, folderId);
             if (!folder) {
                 return;
             }
 
-            const descendantIds = collectDescendantFolderIds(folderId, folderMaps.childrenByParentId);
-            const descendantSet = new Set(descendantIds);
-            const affectedAgents = agents.filter((agent) => agent.folderId !== null && descendantSet.has(agent.folderId));
+            const descendantContext = createFolderDescendantContext(folderId, folderMaps.childrenByParentId);
+            const affectedAgents = agents.filter(
+                (agent) => agent.folderId !== null && descendantContext.idSet.has(agent.folderId),
+            );
             const selectedVisibility = await showVisibilityDialog({
                 title: 'Update visibility',
                 description: `${formatText('Set visibility for folder')} "${folder.name}" ${formatText(
@@ -1368,7 +2140,7 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
      */
     const handleRequestAgentVisibilityChange = useCallback(
         async (agentIdentifier: string) => {
-            const agent = agents.find((item) => getAgentIdentifier(item) === agentIdentifier);
+            const agent = findAgentByIdentifier(agents, agentIdentifier);
             if (!agent) {
                 return;
             }
@@ -1422,7 +2194,7 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
     const handleAgentContextMenu = useCallback((event: MouseEvent<HTMLDivElement>, agent: AgentOrganizationAgent) => {
         event.preventDefault();
         setFolderContextMenuState(null);
-        setContextMenuState({ agent, anchorPoint: { x: event.clientX, y: event.clientY } });
+        setContextMenuState({ agent, anchorPoint: createContextMenuAnchorPoint(event) });
     }, []);
 
     /**
@@ -1441,7 +2213,7 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
     const handleFolderContextMenu = useCallback((event: MouseEvent<HTMLDivElement>, folder: AgentOrganizationFolder) => {
         event.preventDefault();
         setContextMenuState(null);
-        setFolderContextMenuState({ folderId: folder.id, anchorPoint: { x: event.clientX, y: event.clientY } });
+        setFolderContextMenuState({ folderId: folder.id, anchorPoint: createContextMenuAnchorPoint(event) });
     }, []);
 
     /**
@@ -1526,18 +2298,7 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
                 return;
             }
 
-            const dragData = event.active.data.current as DragItem | undefined;
-            const overData = event.over?.data.current as DragItem | BreadcrumbDropTargetData | undefined;
-
-            if (!dragData || dragData.type !== 'FOLDER' || !event.over || !overData || overData.type !== 'FOLDER') {
-                setDropIndicator(null);
-                return;
-            }
-
-            const activeRect = event.active.rect.current.translated || event.active.rect.current.initial;
-            const intent = getDropIntentFromRects(activeRect as TODO_any, event.over.rect as TODO_any);
-
-            setDropIndicator({ id: event.over.id, intent });
+            setDropIndicator(resolveFolderDropIndicator(event));
         },
         [canOrganize],
     );
@@ -1549,23 +2310,8 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
      * @param overData - Drop target data.
      */
     const handleAgentDrop = useCallback(
-        async (dragData: DragItem, overData: DragItem | BreadcrumbDropTargetData) => {
-            if (overData.type === 'AGENT') {
-                await reorderAgents(dragData.identifier, overData.identifier);
-                return;
-            }
-
-            if (overData.type === 'FOLDER') {
-                const targetFolderId = Number(overData.identifier);
-                if (!Number.isNaN(targetFolderId)) {
-                    await moveAgentToFolder(dragData.identifier, targetFolderId);
-                }
-                return;
-            }
-
-            if (overData.type === 'BREADCRUMB') {
-                await moveAgentToFolder(dragData.identifier, overData.folderId ?? null);
-            }
+        async (dragData: DragItem, overData: DropTargetData) => {
+            await executeAgentDropAction(resolveAgentDropAction(dragData, overData), reorderAgents, moveAgentToFolder);
         },
         [moveAgentToFolder, reorderAgents],
     );
@@ -1581,34 +2327,15 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
     const handleFolderDrop = useCallback(
         async (
             dragData: DragItem,
-            overData: DragItem | BreadcrumbDropTargetData,
+            overData: DropTargetData,
             overId: string | number,
             currentIndicator: DropIndicator | null,
         ) => {
-            const draggedFolderId = Number(dragData.identifier);
-            if (Number.isNaN(draggedFolderId)) {
-                return;
-            }
-
-            if (overData.type === 'FOLDER') {
-                const targetFolderId = Number(overData.identifier);
-                if (Number.isNaN(targetFolderId) || draggedFolderId === targetFolderId) {
-                    return;
-                }
-
-                const isInsideDrop = currentIndicator?.id === overId && currentIndicator.intent === 'inside';
-                if (isInsideDrop) {
-                    await moveFolderToParent(draggedFolderId, targetFolderId);
-                    return;
-                }
-
-                await reorderFolders(draggedFolderId, targetFolderId);
-                return;
-            }
-
-            if (overData.type === 'BREADCRUMB') {
-                await moveFolderToParent(draggedFolderId, overData.folderId ?? null);
-            }
+            await executeFolderDropAction(
+                resolveFolderDropAction(dragData, overData, overId, currentIndicator),
+                reorderFolders,
+                moveFolderToParent,
+            );
         },
         [moveFolderToParent, reorderFolders],
     );
@@ -1622,7 +2349,7 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         async (event: DragEndEvent) => {
             const currentIndicator = dropIndicator;
             const dragData = event.active.data.current as DragItem | undefined;
-            const overData = event.over?.data.current as DragItem | BreadcrumbDropTargetData | undefined;
+            const overData = event.over?.data.current as DropTargetData | undefined;
 
             resetDragState();
 
@@ -1672,10 +2399,9 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
      */
     const getFolderPreviewAgents = useCallback(
         (folderId: number): AgentBasicInformation[] => {
-            const descendantIds = collectDescendantFolderIds(folderId, folderMaps.childrenByParentId);
-            const previewSet = new Set(descendantIds);
+            const descendantContext = createFolderDescendantContext(folderId, folderMaps.childrenByParentId);
             const orderedAgents = sortBySortOrder(agents, (agent) => agent.agentName);
-            return pickPreviewAgents(orderedAgents, previewSet, 4);
+            return pickPreviewAgents(orderedAgents, descendantContext.idSet, 4);
         },
         [agents, folderMaps.childrenByParentId],
     );
@@ -1683,13 +2409,9 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
     const dragAgentLabel = formatText('Drag agent');
     const dragFolderLabel = formatText('Drag folder');
 
-    const headingTitle =
-        viewMode !== 'GRAPH' && currentFolderId !== null
-            ? folderMaps.folderById.get(currentFolderId)?.name || localAgentsLabel
-            : localAgentsLabel;
+    const headingTitle = resolveHeadingTitle(viewMode, currentFolderId, folderMaps.folderById, localAgentsLabel);
     const contextMenuAgent = contextMenuState?.agent ?? null;
-    const contextMenuFolder =
-        folderContextMenuState === null ? null : folders.find((folder) => folder.id === folderContextMenuState.folderId) || null;
+    const contextMenuFolder = resolveContextMenuFolder(folders, folderContextMenuState);
     const contextMenuIdentifier = contextMenuAgent ? getAgentIdentifier(contextMenuAgent) : '';
     const contextMenuAgentUrl = contextMenuAgent ? buildAgentUrl(contextMenuIdentifier) : '';
     const contextMenuAgentEmail = contextMenuAgent ? buildAgentEmail(contextMenuIdentifier) : '';

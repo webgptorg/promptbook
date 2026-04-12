@@ -1,3 +1,8 @@
+-   Refactored `apps/agents-server/src/components/Homepage/useAgentsListState.ts` into smaller focused private helpers without changing external behavior:
+
+    -   Split the branching-heavy synchronization, organization planning, folder-edit normalization, descendant lookup, and drag-drop routing into dedicated private helper functions so `useAgentsListState` reads more top-down.
+    -   Kept the existing Agents Server list behavior, optimistic organization updates, folder dialog flow, visibility updates, delete actions, and drag-and-drop outcomes intact while reducing repeated branching and duplicated lookup logic.
+
 -   Refactored `apps/agents-server/src/components/Header/Header.tsx` into smaller focused header helpers without changing external behavior:
 
     -   Extracted the active-agent route resolution, labels, share metadata, and fallback state into a dedicated private header hook so the main component no longer mixes route parsing with rendering.
