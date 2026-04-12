@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -17,12 +16,8 @@ import {
     describeApplicationError,
     resolveApplicationErrorVariant,
 } from '../../utils/errorReporting/applicationErrorHandling';
-import { ErrorPage as BasicErrorPage } from '../ErrorPage/ErrorPage';
-
-/**
- * User-facing title rendered across the branded 500 page variants.
- */
-const INTERNAL_SERVER_ERROR_TITLE = '500 / Internal Server Error';
+import { ErrorPageButtonAction, ErrorPageLinkAction } from '../ErrorPage/ErrorPage';
+import { InternalServerErrorPage } from '../InternalServerErrorPage/InternalServerErrorPage';
 
 /**
  * Suggestions shown in the advanced error variant to help users recover.
@@ -115,22 +110,6 @@ type ApplicationErrorActionsProps = {
 };
 
 /**
- * Shared primary action styling used by the branded application error page.
- *
- * @private
- */
-const PRIMARY_APPLICATION_ERROR_ACTION_CLASS_NAME =
-    'inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700';
-
-/**
- * Shared secondary action styling used by the branded application error page.
- *
- * @private
- */
-const SECONDARY_APPLICATION_ERROR_ACTION_CLASS_NAME =
-    'inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100';
-
-/**
  * Shared primary/secondary actions rendered in both simple and advanced variants.
  *
  * @param props - Action rendering props.
@@ -200,22 +179,18 @@ function ApplicationErrorActions({
     return (
         <div className="flex flex-col items-center gap-3">
             <div className="flex flex-wrap justify-center gap-3">
-                <button type="button" onClick={() => reset()} className={PRIMARY_APPLICATION_ERROR_ACTION_CLASS_NAME}>
+                <ErrorPageButtonAction onClick={() => reset()}>
                     Try again
-                </button>
-                <Link href="/" className={SECONDARY_APPLICATION_ERROR_ACTION_CLASS_NAME}>
+                </ErrorPageButtonAction>
+                <ErrorPageLinkAction href="/" tone="secondary">
                     Go to homepage
-                </Link>
-                <button
-                    type="button"
-                    onClick={() => void handleCopyReport()}
-                    className={SECONDARY_APPLICATION_ERROR_ACTION_CLASS_NAME}
-                >
+                </ErrorPageLinkAction>
+                <ErrorPageButtonAction tone="secondary" onClick={() => void handleCopyReport()}>
                     Copy
-                </button>
-                <button type="button" onClick={handleSaveReport} className={SECONDARY_APPLICATION_ERROR_ACTION_CLASS_NAME}>
+                </ErrorPageButtonAction>
+                <ErrorPageButtonAction tone="secondary" onClick={handleSaveReport}>
                     Save
-                </button>
+                </ErrorPageButtonAction>
             </div>
             <div className="text-xs font-mono text-gray-500">
                 Digest: <span className="text-current">{digest}</span>
@@ -294,8 +269,7 @@ function ApplicationErrorView({
     supplementaryContent,
 }: ApplicationErrorViewProps) {
     return (
-        <BasicErrorPage title={INTERNAL_SERVER_ERROR_TITLE} message={headline} size={size}>
-            <p className="mb-5 text-center text-sm text-gray-600">{description}</p>
+        <InternalServerErrorPage headline={headline} description={description} size={size}>
             <ApplicationErrorActions
                 reset={reset}
                 digest={digest}
@@ -303,7 +277,7 @@ function ApplicationErrorView({
                 reportFilename={reportFilename}
             />
             {supplementaryContent}
-        </BasicErrorPage>
+        </InternalServerErrorPage>
     );
 }
 

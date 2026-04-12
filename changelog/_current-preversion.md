@@ -8,10 +8,11 @@
     -   Reworked the wizard team page to reuse the homepage agent-card/grid presentation, load local agents plus federated agents, respect the hidden-core-server federated filter, and let users toggle multiple teammate cards while keeping the existing manual TEAM chip input.
     -   Extended the shared homepage federated-agent loading path with the existing direct-plus-proxy fallback so the wizard and homepage surfaces resolve remote agent cards consistently.
 
--   Added a branded Agents Server `500 / Internal Server Error` page that now reuses the shared 404-style error layout:
+-   Added a branded Agents Server `500 / Internal Server Error` page that now reuses the shared 404-style error layout across both app-router and production fallback errors:
 
     -   Refactored the app-router application error boundary to render inside the shared `ErrorPage` shell, keeping retry, digest, and report-export actions while making the 500 experience visually consistent with the existing 404 page.
-    -   Extended the shared error-page wrapper with a wide-card option so the detailed 500 variant can keep its troubleshooting guidance without duplicating page chrome.
+    -   Added a pages-router `500` fallback with a lightweight shared `_app` shell so production failures that happen before the app-router boundary can still render the branded error card instead of the default Next.js black 500 page.
+    -   Extended the shared error-page wrapper with reusable actions and a wide-card option so the detailed 500 variant can keep its troubleshooting guidance without duplicating page chrome.
 
 -   Made the Agents Server README quick deploy flow truly standalone:
 

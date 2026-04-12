@@ -1,7 +1,7 @@
 import faviconLogoImage from '@/public/favicon.ico';
 import { LayoutWrapper } from '@/src/components/LayoutWrapper/LayoutWrapper';
+import { APPLICATION_FONT_VARIABLE_CLASS_NAME } from '@/src/utils/applicationFonts';
 import type { Metadata } from 'next';
-import { Barlow_Condensed, Poppins } from 'next/font/google';
 import { cookies } from 'next/headers';
 import { getCustomJavascriptWithIntegrations } from '../database/customJavascript';
 import { getAggregatedCustomStylesheetCss } from '../database/customStylesheet';
@@ -36,28 +36,6 @@ import {
     getControlPanelOptionAvailability,
 } from '../utils/getControlPanelOptionAvailability';
 import './globals.css';
-
-/**
- * Constant for barlow condensed.
- */
-const barlowCondensed = Barlow_Condensed({
-    subsets: ['latin'],
-    weight: ['300', '400', '500', '600', '700'],
-    display: 'swap',
-    fallback: ['Arial', 'Helvetica', 'sans-serif'],
-    variable: '--font-barlow-condensed',
-});
-
-/**
- * Constant for poppins.
- */
-const poppins = Poppins({
-    subsets: ['latin'],
-    weight: ['400', '500', '600', '700', '800'],
-    display: 'swap',
-    fallback: ['Arial', 'Helvetica', 'sans-serif'],
-    variable: '--font-poppins',
-});
 
 /**
  * Footer link shape consumed by the root layout.
@@ -372,7 +350,7 @@ export default async function RootLayout({
     return (
         <html lang={serverLanguage}>
             {/* Note: Icon is set via metadata to allow agent-page specific icons to override it */}
-            <body className={`${barlowCondensed.variable} ${poppins.variable} antialiased bg-white text-gray-900`}>
+            <body className={`${APPLICATION_FONT_VARIABLE_CLASS_NAME} antialiased bg-white text-gray-900`}>
                 {customStylesheetCss && <style id="agents-server-custom-css">{customStylesheetCss}</style>}
                 <LayoutWrapper
                     isAdmin={isAdmin}

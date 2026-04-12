@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import Link from 'next/link';
+import type { ComponentProps, ReactNode } from 'react';
 
 /**
  * Supported width variants for the shared error-page card.
@@ -6,11 +7,26 @@ import type { ReactNode } from 'react';
 type ErrorPageSize = 'default' | 'wide';
 
 /**
+ * Supported visual tones for shared error-page actions.
+ */
+type ErrorPageActionTone = 'primary' | 'secondary';
+
+/**
  * Width class names used by the shared error-page card.
  */
 const ERROR_PAGE_PANEL_WIDTH_CLASS_NAME: Record<ErrorPageSize, string> = {
     default: 'max-w-md',
     wide: 'max-w-3xl',
+};
+
+/**
+ * Shared class names for branded error-page actions.
+ */
+const ERROR_PAGE_ACTION_CLASS_NAME: Record<ErrorPageActionTone, string> = {
+    primary:
+        'inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700',
+    secondary:
+        'inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100',
 };
 
 /**
@@ -39,6 +55,41 @@ type ErrorPageProps = {
 };
 
 /**
+ * Props accepted by the shared error-page link action.
+ */
+type ErrorPageLinkActionProps = {
+    /**
+     * Destination URL.
+     */
+    href: string;
+
+    /**
+     * Optional styling tone.
+     */
+    tone?: ErrorPageActionTone;
+
+    /**
+     * Action label content.
+     */
+    children: ReactNode;
+};
+
+/**
+ * Props accepted by the shared error-page button action.
+ */
+type ErrorPageButtonActionProps = Omit<ComponentProps<'button'>, 'children'> & {
+    /**
+     * Optional styling tone.
+     */
+    tone?: ErrorPageActionTone;
+
+    /**
+     * Action label content.
+     */
+    children: ReactNode;
+};
+
+/**
  * A standard layout for error pages (404, 403, 500, etc.)
  */
 export function ErrorPage({ title, message, children, size = 'default' }: ErrorPageProps) {
@@ -52,5 +103,35 @@ export function ErrorPage({ title, message, children, size = 'default' }: ErrorP
                 {children}
             </div>
         </div>
+    );
+}
+
+/**
+ * Shared link action for branded error pages.
+ */
+export function ErrorPageLinkAction({ href, tone = 'primary', children }: ErrorPageLinkActionProps) {
+    return (
+        <Link href={href} className={ERROR_PAGE_ACTION_CLASS_NAME[tone]}>
+            {children}
+        </Link>
+    );
+}
+
+/**
+ * Shared button action for branded error pages.
+ */
+export function ErrorPageButtonAction({
+    tone = 'primary',
+    type = 'button',
+    className,
+    children,
+    ...props
+}: ErrorPageButtonActionProps) {
+    const toneClassName = ERROR_PAGE_ACTION_CLASS_NAME[tone];
+
+    return (
+        <button type={type} className={className ? `${toneClassName} ${className}` : toneClassName} {...props}>
+            {children}
+        </button>
     );
 }

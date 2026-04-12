@@ -119,3 +119,10 @@
   - Next.js compiles successfully, then fails in the type-validation phase with `Type error: Cannot find module '../../../utils/userLocationPromptParameter' or its corresponding type declarations.`
   - The reported import in this run is `apps/agents-server/src/app/agents/[agentName]/useAgentChatToolInteractions/requestBrowserUserLocationPromptParameter.ts:1`.
   - This failure surfaced while validating the `userChatClient` refactor and does not map to the touched `src/utils/userChatClient*` files.
+
+## 2026-04-13
+
+- `apps/agents-server` `npm test` fails in this run with an unrelated existing build type error during `test-build`:
+  - Next.js compiles successfully, then fails in the type-validation phase with `Type error: Argument of type 'string | null' is not assignable to parameter of type 'string'.`
+  - The reported call site in this run is `apps/agents-server/src/app/admin/usage/UsageClient.tsx:87`.
+  - This failure surfaced while validating the branded `500` fallback page and does not map to the touched shared error-page, app-router error, or `src/pages/500.tsx` changes.
