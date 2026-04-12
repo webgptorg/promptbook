@@ -1,3 +1,8 @@
+-   Refactored Agents Server `useAgentsListState.ts` into smaller focused private hooks without changing external behavior:
+
+    -   Split the branching-heavy homepage state hook into dedicated synchronization, route-recovery, organization-mutation, folder-management, agent-action, overlay, and drag-and-drop helpers so `useAgentsListState` now reads as a thin composition layer.
+    -   Kept the existing background synchronization, folder URL recovery, folder dialog flows, delete/visibility actions, context-menu and QR-code behavior, and drag-and-drop organization updates intact while making each step easier to follow and maintain.
+
 -   Refactored Agents Server `useAgentChatHistoryClientState.ts` into smaller focused private history-state hooks without changing external behavior:
 
     -   Extracted durable chat synchronization, optimistic chat lifecycle, and draft persistence into the private `useAgentChatHistorySyncState` and `useAgentChatHistoryDraftState` helpers so `useAgentChatHistoryClientState` now reads as a thin composition layer.

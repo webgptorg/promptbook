@@ -11,7 +11,16 @@ import {
 } from '@dnd-kit/core';
 import { TODO_any, string_url } from '@promptbook-local/types';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
+import {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+    type Dispatch,
+    type MouseEvent,
+    type SetStateAction,
+} from 'react';
 import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import type { AgentFolderContext } from '../../utils/agentOrganization/agentFolderContext';
 import { buildAgentFolderContext } from '../../utils/agentOrganization/agentFolderContext';
@@ -286,6 +295,230 @@ type FolderDropAction =
           readonly draggedFolderId: number;
           readonly targetParentId: number | null;
       };
+
+/**
+ * Translation helper shared across private `AgentsList` state builders.
+ *
+ * @private function of AgentsList
+ */
+type AgentNamingFormatter = ReturnType<typeof useAgentNaming>['formatText'];
+
+/**
+ * Minimal App Router shape shared across private `AgentsList` hooks.
+ *
+ * @private function of AgentsList
+ */
+type AgentsListRouter = ReturnType<typeof useRouter>;
+
+/**
+ * Stable folder breadcrumb shape shared across `AgentsList` helpers.
+ *
+ * @private function of AgentsList
+ */
+type BreadcrumbFolder = Pick<AgentOrganizationFolder, 'id' | 'name'>;
+
+/**
+ * Setter for the interactive local agents cache.
+ *
+ * @private function of AgentsList
+ */
+type AgentOrganizationStateSetter = Dispatch<SetStateAction<AgentOrganizationAgent[]>>;
+
+/**
+ * Setter for the interactive local folders cache.
+ *
+ * @private function of AgentsList
+ */
+type FolderOrganizationStateSetter = Dispatch<SetStateAction<AgentOrganizationFolder[]>>;
+
+/**
+ * Folder-navigation callback shared across private `AgentsList` hooks.
+ *
+ * @private function of AgentsList
+ */
+type FolderNavigator = (folderId: number | null, overrideFolders?: AgentOrganizationFolder[]) => void;
+
+/**
+ * Props accepted by the private synchronization state hook.
+ *
+ * @private function of AgentsList
+ */
+type UseAgentsListSyncStateProps = {
+    readonly initialAgents: AgentOrganizationAgent[];
+    readonly initialFolders: AgentOrganizationFolder[];
+    readonly routeSyncKey: string;
+};
+
+/**
+ * Synchronization state returned to the public `useAgentsListState` facade.
+ *
+ * @private function of AgentsList
+ */
+type AgentsListSyncState = {
+    readonly agents: AgentOrganizationAgent[];
+    readonly folders: AgentOrganizationFolder[];
+    readonly lastSyncedRouteKey: string | null;
+    readonly setAgents: AgentOrganizationStateSetter;
+    readonly setFolders: FolderOrganizationStateSetter;
+    readonly synchronizeAfterMutation: (mutationName: string) => void;
+    readonly synchronizeOrganizationState: (
+        reason: AgentOrganizationSyncReason,
+        routeKeyAtSync?: string,
+    ) => Promise<void>;
+};
+
+/**
+ * Props accepted by the stale-folder-path recovery hook.
+ *
+ * @private function of AgentsList
+ */
+type UseAgentsListFolderPathRecoveryProps = {
+    readonly currentFolderId: number | null;
+    readonly folderPathSegments: ReadonlyArray<string>;
+    readonly lastSyncedRouteKey: string | null;
+    readonly folderQuery: string | null;
+    readonly pathname: string;
+    readonly routeSyncKey: string;
+    readonly router: AgentsListRouter;
+    readonly searchParamsSnapshot: string;
+};
+
+/**
+ * Props accepted by the private organization-mutation hook.
+ *
+ * @private function of AgentsList
+ */
+type UseAgentsListOrganizationActionsProps = {
+    readonly agents: AgentOrganizationAgent[];
+    readonly childrenByParentId: ReadonlyMap<number | null, number[]>;
+    readonly folders: AgentOrganizationFolder[];
+    readonly setAgents: AgentOrganizationStateSetter;
+    readonly setFolders: FolderOrganizationStateSetter;
+    readonly synchronizeAfterMutation: (mutationName: string) => void;
+    readonly visibleAgents: AgentOrganizationAgent[];
+    readonly visibleFolders: AgentOrganizationFolder[];
+};
+
+/**
+ * Organization mutation handlers shared across drag-and-drop and folder actions.
+ *
+ * @private function of AgentsList
+ */
+type AgentsListOrganizationActions = {
+    readonly moveAgentToFolder: (identifier: string, targetFolderId: number | null) => Promise<void>;
+    readonly moveFolderToParent: (folderId: number, targetParentId: number | null) => Promise<void>;
+    readonly reorderAgents: (draggedId: string, targetId: string) => Promise<void>;
+    readonly reorderFolders: (draggedId: number, targetId: number) => Promise<void>;
+};
+
+/**
+ * Props accepted by the private folder-management hook.
+ *
+ * @private function of AgentsList
+ */
+type UseAgentsListFolderStateProps = {
+    readonly agents: AgentOrganizationAgent[];
+    readonly breadcrumbFolders: ReadonlyArray<BreadcrumbFolder>;
+    readonly childrenByParentId: ReadonlyMap<number | null, number[]>;
+    readonly currentFolderId: number | null;
+    readonly folders: AgentOrganizationFolder[];
+    readonly formatText: AgentNamingFormatter;
+    readonly navigateToFolder: FolderNavigator;
+    readonly setAgents: AgentOrganizationStateSetter;
+    readonly setFolders: FolderOrganizationStateSetter;
+    readonly synchronizeAfterMutation: (mutationName: string) => void;
+};
+
+/**
+ * Folder-management state returned to the public `useAgentsListState` facade.
+ *
+ * @private function of AgentsList
+ */
+type AgentsListFolderState = {
+    readonly folderEditDialogState: FolderEditDialogState | null;
+    readonly handleCloseFolderEditDialog: () => void;
+    readonly handleCreateFolder: () => void;
+    readonly handleDeleteFolder: (folderId: number) => Promise<void>;
+    readonly handleRenameFolder: (folderId: number) => void;
+    readonly handleRequestFolderVisibilityUpdate: (folderId: number) => Promise<void>;
+    readonly handleSubmitFolderEdit: (values: FolderEditValues) => Promise<void>;
+    readonly isFolderEditSubmitting: boolean;
+};
+
+/**
+ * Props accepted by the private agent-action hook.
+ *
+ * @private function of AgentsList
+ */
+type UseAgentsListAgentStateProps = {
+    readonly agents: AgentOrganizationAgent[];
+    readonly formatText: AgentNamingFormatter;
+    readonly setAgents: AgentOrganizationStateSetter;
+    readonly synchronizeAfterMutation: (mutationName: string) => void;
+};
+
+/**
+ * Agent-action handlers returned to the public `useAgentsListState` facade.
+ *
+ * @private function of AgentsList
+ */
+type AgentsListAgentState = {
+    readonly handleContextMenuAgentRenamed: (payload: AgentContextMenuRenamePayload) => void;
+    readonly handleDelete: (agentIdentifier: string) => Promise<void>;
+    readonly handleRequestAgentVisibilityChange: (agentIdentifier: string) => Promise<void>;
+};
+
+/**
+ * Overlay state for context menus and the QR-code modal.
+ *
+ * @private function of AgentsList
+ */
+type AgentsListOverlayState = {
+    readonly contextMenuState: AgentContextMenuState | null;
+    readonly folderContextMenuState: FolderContextMenuState | null;
+    readonly handleAgentContextMenu: (event: MouseEvent<HTMLDivElement>, agent: AgentOrganizationAgent) => void;
+    readonly handleCloseContextMenu: () => void;
+    readonly handleCloseFolderContextMenu: () => void;
+    readonly handleCloseQrCode: () => void;
+    readonly handleFolderContextMenu: (event: MouseEvent<HTMLDivElement>, folder: AgentOrganizationFolder) => void;
+    readonly handleShowQrCode: () => void;
+    readonly qrCodeAgent: AgentOrganizationAgent | null;
+};
+
+/**
+ * Props accepted by the private drag-and-drop hook.
+ *
+ * @private function of AgentsList
+ */
+type UseAgentsListDragStateProps = {
+    readonly agents: AgentOrganizationAgent[];
+    readonly canOrganize: boolean;
+    readonly folders: AgentOrganizationFolder[];
+    readonly moveAgentToFolder: (identifier: string, targetFolderId: number | null) => Promise<void>;
+    readonly moveFolderToParent: (folderId: number, targetParentId: number | null) => Promise<void>;
+    readonly reorderAgents: (draggedId: string, targetId: string) => Promise<void>;
+    readonly reorderFolders: (draggedId: number, targetId: number) => Promise<void>;
+    readonly synchronizeOrganizationState: (
+        reason: AgentOrganizationSyncReason,
+        routeKeyAtSync?: string,
+    ) => Promise<void>;
+};
+
+/**
+ * Drag-and-drop state returned to the public `useAgentsListState` facade.
+ *
+ * @private function of AgentsList
+ */
+type AgentsListDragState = {
+    readonly activeAgent: AgentOrganizationAgent | null;
+    readonly activeDragItem: DragItem | null;
+    readonly activeFolder: AgentOrganizationFolder | null;
+    readonly dropIndicator: DropIndicator | null;
+    readonly handleDragCancel: () => void;
+    readonly handleDragEnd: (event: DragEndEvent) => Promise<void>;
+    readonly handleDragOver: (event: DragOverEvent) => void;
+    readonly handleDragStart: (event: DragStartEvent) => void;
+};
 
 /**
  * Prefix for agent drag IDs.
@@ -1348,50 +1581,23 @@ function createContextMenuAnchorPoint(event: MouseEvent<HTMLDivElement>): { x: n
 }
 
 /**
- * Builds all state, derived data, and interaction handlers used by `AgentsList`.
- *
- * @param props - Current AgentsList props.
- * @returns State slices and handlers consumed by the thin AgentsList facade.
+ * Owns the interactive organization caches together with their background synchronization lifecycle.
  *
  * @private function of AgentsList
  */
-export function useAgentsListState(props: UseAgentsListStateProps) {
-    const {
-        agents: initialAgents,
-        folders: initialFolders,
-        canOrganize,
-        publicUrl,
-        showFederatedAgents,
-        externalAgents: initialExternalAgents,
-    } = props;
-    const pathname = usePathname();
-    const router = useRouter();
-    const searchParams = useSearchParams();
-    const searchParamsSnapshot = searchParams.toString();
-    const routeSyncKey = `${pathname}?${searchParamsSnapshot}`;
-    const folderQuery = searchParams.get('folder');
-    const [agents, setAgents] = useState<AgentOrganizationAgent[]>(Array.from(initialAgents));
-    const [folders, setFolders] = useState<AgentOrganizationFolder[]>(Array.from(initialFolders));
-    const [activeDragItem, setActiveDragItem] = useState<DragItem | null>(null);
-    const [dropIndicator, setDropIndicator] = useState<DropIndicator | null>(null);
-    const [contextMenuState, setContextMenuState] = useState<AgentContextMenuState | null>(null);
-    const [folderContextMenuState, setFolderContextMenuState] = useState<FolderContextMenuState | null>(null);
-    const [folderEditDialogState, setFolderEditDialogState] = useState<FolderEditDialogState | null>(null);
-    const [isFolderEditSubmitting, setIsFolderEditSubmitting] = useState<boolean>(false);
-    const [qrCodeAgent, setQrCodeAgent] = useState<AgentOrganizationAgent | null>(null);
+function useAgentsListSyncState({
+    initialAgents,
+    initialFolders,
+    routeSyncKey,
+}: UseAgentsListSyncStateProps): AgentsListSyncState {
+    const [agents, setAgents] = useState<AgentOrganizationAgent[]>(() => Array.from(initialAgents));
+    const [folders, setFolders] = useState<AgentOrganizationFolder[]>(() => Array.from(initialFolders));
     const [lastSyncedRouteKey, setLastSyncedRouteKey] = useState<string | null>(null);
-    const { formatText } = useAgentNaming();
     const hasMountedRef = useRef(false);
     const syncAbortControllerRef = useRef<AbortController | null>(null);
-    const agentsRef = useRef<Array<AgentOrganizationAgent>>(Array.from(initialAgents));
-    const foldersRef = useRef<Array<AgentOrganizationFolder>>(Array.from(initialFolders));
+    const agentsRef = useRef<AgentOrganizationAgent[]>(Array.from(initialAgents));
+    const foldersRef = useRef<AgentOrganizationFolder[]>(Array.from(initialFolders));
 
-    /**
-     * Runs a background synchronization against the canonical organization snapshot.
-     *
-     * @param reason - Synchronization trigger reason.
-     * @param routeKeyAtSync - Route key associated with this request.
-     */
     const synchronizeOrganizationState = useCallback(
         async (reason: AgentOrganizationSyncReason, routeKeyAtSync: string = routeSyncKey) => {
             syncAbortControllerRef.current?.abort();
@@ -1453,47 +1659,12 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         [routeSyncKey],
     );
 
-    /**
-     * Requests a post-mutation background synchronization without blocking UI interactions.
-     *
-     * @param mutationName - Mutation label included in diagnostics.
-     */
     const synchronizeAfterMutation = useCallback(
         (mutationName: string) => {
             void synchronizeOrganizationState(`mutation:${mutationName}`);
         },
         [synchronizeOrganizationState],
     );
-
-    const normalizedPublicUrl = useMemo(() => normalizePublicUrl(publicUrl), [publicUrl]);
-    const publicUrlHost = useMemo(() => resolvePublicUrlHost(normalizedPublicUrl), [normalizedPublicUrl]);
-
-    const viewMode = resolveHomeViewMode(searchParams.get('view'));
-    const shouldRefreshFederatedAgents = showFederatedAgents && viewMode !== 'LIST';
-    const { federatedAgents, federatedServersStatus } = useFederatedAgents(
-        showFederatedAgents,
-        initialExternalAgents,
-        shouldRefreshFederatedAgents,
-    );
-    const isTouchInput = useIsTouchInput();
-    const allowFullCardDrag = canOrganize && viewMode === 'LIST' && !isTouchInput;
-    const folderPathSegments = parseFolderPath(folderQuery);
-    const currentFolderId = useMemo(
-        () => resolveFolderIdFromPath(folders, folderPathSegments),
-        [folders, folderPathSegments],
-    );
-    const folderMaps = useMemo(() => buildFolderMaps(folders), [folders]);
-    const allAgentsLabel = formatText('All Agents');
-    const localAgentsLabel = formatText('Local Agents');
-    const breadcrumbFolders = useMemo(
-        () => getFolderPathSegments(currentFolderId, folderMaps.folderById),
-        [currentFolderId, folderMaps.folderById],
-    );
-    const parentFolderInfo = useMemo(
-        () => resolveParentFolderInfo(currentFolderId, folderMaps.folderById, allAgentsLabel),
-        [allAgentsLabel, currentFolderId, folderMaps.folderById],
-    );
-    const visibleFolders = useMemo(() => getVisibleFolders(folders, currentFolderId), [folders, currentFolderId]);
 
     // Keep the interactive agent/folder caches aligned with the latest server props (e.g., after logging in).
     useEffect(() => {
@@ -1562,9 +1733,32 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         };
     }, []);
 
-    /**
-     * Normalizes stale folder URLs that no longer resolve after synchronization.
-     */
+    return {
+        agents,
+        folders,
+        lastSyncedRouteKey,
+        setAgents,
+        setFolders,
+        synchronizeAfterMutation,
+        synchronizeOrganizationState,
+    };
+}
+
+/**
+ * Normalizes stale folder URLs after synchronization invalidates the current folder path.
+ *
+ * @private function of AgentsList
+ */
+function useAgentsListFolderPathRecovery({
+    currentFolderId,
+    folderPathSegments,
+    lastSyncedRouteKey,
+    folderQuery,
+    pathname,
+    routeSyncKey,
+    router,
+    searchParamsSnapshot,
+}: UseAgentsListFolderPathRecoveryProps): void {
     useEffect(() => {
         if (folderPathSegments.length === 0 || currentFolderId !== null) {
             return;
@@ -1588,14 +1782,766 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
     }, [
         currentFolderId,
         folderPathSegments,
-        lastSyncedRouteKey,
         folderQuery,
+        lastSyncedRouteKey,
         pathname,
         routeSyncKey,
         router,
         searchParamsSnapshot,
     ]);
+}
 
+/**
+ * Owns organization persistence handlers shared across list interactions.
+ *
+ * @private function of AgentsList
+ */
+function useAgentsListOrganizationActions({
+    agents,
+    childrenByParentId,
+    folders,
+    setAgents,
+    setFolders,
+    synchronizeAfterMutation,
+    visibleAgents,
+    visibleFolders,
+}: UseAgentsListOrganizationActionsProps): AgentsListOrganizationActions {
+    const persistOrganizationUpdates = useCallback(
+        async (payload: AgentOrganizationUpdatePayload) => {
+            const response = await fetch(AGENT_ORGANIZATION_SYNC_API_PATH, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+                const responseBody = await response.json().catch(() => ({}));
+                throw new Error(responseBody.error || 'Failed to update organization.');
+            }
+
+            synchronizeAfterMutation('organization-update');
+        },
+        [synchronizeAfterMutation],
+    );
+
+    const reorderFolders = useCallback(
+        async (draggedId: number, targetId: number) => {
+            const updatedFolders = createReorderedFolderUpdates(folders, visibleFolders, draggedId, targetId);
+            if (!updatedFolders) {
+                return;
+            }
+
+            setFolders((prev) => applyFolderUpdates(prev, updatedFolders));
+            await persistOrganizationUpdates(buildFolderOrganizationUpdates(updatedFolders));
+        },
+        [folders, persistOrganizationUpdates, setFolders, visibleFolders],
+    );
+
+    const reorderAgents = useCallback(
+        async (draggedId: string, targetId: string) => {
+            const updates = createReorderedAgentUpdates(agents, visibleAgents, draggedId, targetId);
+            if (!updates) {
+                return;
+            }
+
+            setAgents((prev) => applyAgentUpdates(prev, updates));
+            await persistOrganizationUpdates(buildAgentOrganizationUpdates(updates));
+        },
+        [agents, persistOrganizationUpdates, setAgents, visibleAgents],
+    );
+
+    const moveFolderToParent = useCallback(
+        async (folderId: number, targetParentId: number | null) => {
+            const movePlan = createFolderMovePlan(folders, childrenByParentId, folderId, targetParentId);
+            if (movePlan.type === 'NO_OP') {
+                return;
+            }
+
+            if (movePlan.type === 'INVALID_PARENT') {
+                await showAlert({
+                    title: 'Invalid move',
+                    message: 'Cannot move a folder into one of its subfolders.',
+                }).catch(() => undefined);
+                return;
+            }
+
+            setFolders((prev) => applyFolderUpdates(prev, movePlan.updates));
+            await persistOrganizationUpdates(buildFolderOrganizationUpdates(movePlan.updates));
+        },
+        [childrenByParentId, folders, persistOrganizationUpdates, setFolders],
+    );
+
+    const moveAgentToFolder = useCallback(
+        async (identifier: string, targetFolderId: number | null) => {
+            const updates = createAgentMoveUpdates(agents, identifier, targetFolderId);
+            if (!updates) {
+                return;
+            }
+
+            setAgents((prev) => applyAgentUpdates(prev, updates));
+            await persistOrganizationUpdates(buildAgentOrganizationUpdates(updates));
+        },
+        [agents, persistOrganizationUpdates, setAgents],
+    );
+
+    return {
+        moveAgentToFolder,
+        moveFolderToParent,
+        reorderAgents,
+        reorderFolders,
+    };
+}
+
+/**
+ * Owns the folder editor, deletion, and visibility flows for `AgentsList`.
+ *
+ * @private function of AgentsList
+ */
+function useAgentsListFolderState({
+    agents,
+    breadcrumbFolders,
+    childrenByParentId,
+    currentFolderId,
+    folders,
+    formatText,
+    navigateToFolder,
+    setAgents,
+    setFolders,
+    synchronizeAfterMutation,
+}: UseAgentsListFolderStateProps): AgentsListFolderState {
+    const [folderEditDialogState, setFolderEditDialogState] = useState<FolderEditDialogState | null>(null);
+    const [isFolderEditSubmitting, setIsFolderEditSubmitting] = useState<boolean>(false);
+
+    const handleCreateFolder = useCallback(() => {
+        setFolderEditDialogState(createFolderEditDialogState('CREATE', null));
+    }, []);
+
+    const handleRenameFolder = useCallback(
+        (folderId: number) => {
+            const folder = findFolderById(folders, folderId);
+            if (!folder) {
+                return;
+            }
+
+            setFolderEditDialogState(createFolderEditDialogState('EDIT', folderId, folder));
+        },
+        [folders],
+    );
+
+    const createFolderFromDialog = useCallback(
+        async (values: FolderEditValues) => {
+            const response = await fetch('/api/agent-folders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: values.name,
+                    parentId: currentFolderId ?? null,
+                    icon: values.icon,
+                    color: values.color,
+                }),
+            });
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to create folder.');
+            }
+
+            setFolders((prev) => [...prev, data.folder as AgentOrganizationFolder]);
+            synchronizeAfterMutation('create-folder');
+            setFolderEditDialogState(null);
+        },
+        [currentFolderId, setFolders, synchronizeAfterMutation],
+    );
+
+    const updateFolderFromDialog = useCallback(
+        async (folderId: number, values: FolderEditValues) => {
+            const response = await fetch(`/api/agent-folders/${folderId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: values.name,
+                    icon: values.icon,
+                    color: values.color,
+                }),
+            });
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to update folder.');
+            }
+
+            const updatedFolder = data.folder as AgentOrganizationFolder;
+            const nextFolders = folders.map((item) => (item.id === folderId ? { ...item, ...updatedFolder } : item));
+
+            setFolders(nextFolders);
+            synchronizeAfterMutation('rename-folder');
+
+            if (breadcrumbFolders.some((item) => item.id === folderId)) {
+                navigateToFolder(currentFolderId ?? null, nextFolders);
+            }
+
+            setFolderEditDialogState(null);
+        },
+        [breadcrumbFolders, currentFolderId, folders, navigateToFolder, setFolders, synchronizeAfterMutation],
+    );
+
+    const handleSubmitFolderEdit = useCallback(
+        async (values: FolderEditValues) => {
+            if (!folderEditDialogState) {
+                return;
+            }
+
+            const { errorMessage, normalizedValues } = normalizeFolderEditValues(values);
+            if (errorMessage) {
+                await showAlert({
+                    title: 'Invalid name',
+                    message: errorMessage,
+                }).catch(() => undefined);
+                return;
+            }
+
+            const dialogMode = folderEditDialogState.mode;
+
+            setIsFolderEditSubmitting(true);
+            try {
+                if (dialogMode === 'CREATE') {
+                    await createFolderFromDialog(normalizedValues);
+                    return;
+                }
+
+                const folderId = folderEditDialogState.folderId;
+                if (folderId === null) {
+                    return;
+                }
+
+                await updateFolderFromDialog(folderId, normalizedValues);
+            } catch (error) {
+                await showAlert({
+                    title: resolveFolderEditFailureTitle(dialogMode),
+                    message: error instanceof Error ? error.message : 'Failed to update folder.',
+                }).catch(() => undefined);
+            } finally {
+                setIsFolderEditSubmitting(false);
+            }
+        },
+        [createFolderFromDialog, folderEditDialogState, updateFolderFromDialog],
+    );
+
+    const handleCloseFolderEditDialog = useCallback(() => {
+        if (isFolderEditSubmitting) {
+            return;
+        }
+
+        setFolderEditDialogState(null);
+    }, [isFolderEditSubmitting]);
+
+    const handleDeleteFolder = useCallback(
+        async (folderId: number) => {
+            const folder = findFolderById(folders, folderId);
+            if (!folder) {
+                return;
+            }
+
+            const descendantContext = createFolderDescendantContext(folderId, childrenByParentId);
+            const subfolderCount = descendantContext.ids.length - 1;
+            const affectedAgentCount = agents.filter(
+                (agent) => agent.folderId !== null && descendantContext.idSet.has(agent.folderId),
+            ).length;
+
+            const confirmed = await showConfirm({
+                title: 'Delete folder',
+                message: `${formatText('Delete folder')} "${folder.name}"? ${formatText(
+                    'It will move',
+                )} ${affectedAgentCount} ${formatText('agents')} and ${subfolderCount} subfolders to the Recycle Bin.`,
+                confirmLabel: 'Delete folder',
+                cancelLabel: 'Cancel',
+            }).catch(() => false);
+            if (!confirmed) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/agent-folders/${folderId}`, { method: 'DELETE' });
+                if (!response.ok) {
+                    const data = await response.json().catch(() => ({}));
+                    throw new Error(data.error || 'Failed to delete folder.');
+                }
+
+                setFolders((prev) => prev.filter((item) => !descendantContext.idSet.has(item.id)));
+                setAgents((prev) =>
+                    prev.filter((agent) => agent.folderId === null || !descendantContext.idSet.has(agent.folderId)),
+                );
+                synchronizeAfterMutation('delete-folder');
+
+                if (currentFolderId !== null && descendantContext.idSet.has(currentFolderId)) {
+                    navigateToFolder(null);
+                }
+            } catch (error) {
+                await showAlert({
+                    title: 'Delete failed',
+                    message: error instanceof Error ? error.message : 'Failed to delete folder.',
+                }).catch(() => undefined);
+            }
+        },
+        [
+            agents,
+            childrenByParentId,
+            currentFolderId,
+            folders,
+            formatText,
+            navigateToFolder,
+            setAgents,
+            setFolders,
+            synchronizeAfterMutation,
+        ],
+    );
+
+    const handleSetFolderVisibility = useCallback(
+        async (folderId: number, visibility: AgentVisibility) => {
+            const folder = findFolderById(folders, folderId);
+            if (!folder) {
+                return;
+            }
+
+            const descendantContext = createFolderDescendantContext(folderId, childrenByParentId);
+
+            try {
+                const response = await fetch(`/api/agent-folders/${folderId}/visibility`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ visibility }),
+                });
+                const data = (await response.json().catch(() => ({}))) as { success?: boolean; error?: string };
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'Failed to update folder visibility.');
+                }
+
+                setAgents((prev) =>
+                    prev.map((agent) =>
+                        agent.folderId !== null && descendantContext.idSet.has(agent.folderId)
+                            ? { ...agent, visibility }
+                            : agent,
+                    ),
+                );
+                synchronizeAfterMutation('update-folder-visibility');
+            } catch (error) {
+                await showAlert({
+                    title: 'Update failed',
+                    message: error instanceof Error ? error.message : 'Failed to update folder visibility.',
+                }).catch(() => undefined);
+            }
+        },
+        [childrenByParentId, folders, setAgents, synchronizeAfterMutation],
+    );
+
+    const handleRequestFolderVisibilityUpdate = useCallback(
+        async (folderId: number) => {
+            const folder = findFolderById(folders, folderId);
+            if (!folder) {
+                return;
+            }
+
+            const descendantContext = createFolderDescendantContext(folderId, childrenByParentId);
+            const affectedAgents = agents.filter(
+                (agent) => agent.folderId !== null && descendantContext.idSet.has(agent.folderId),
+            );
+            const selectedVisibility = await showVisibilityDialog({
+                title: 'Update visibility',
+                description: `${formatText('Set visibility for folder')} "${folder.name}" ${formatText(
+                    'and its subtree',
+                )}. ${formatText('Affected agents')}: ${affectedAgents.length}.`,
+                confirmLabel: 'Update visibility',
+                initialVisibility: DEFAULT_AGENT_VISIBILITY,
+            }).catch(() => null);
+            if (!selectedVisibility) {
+                return;
+            }
+
+            await handleSetFolderVisibility(folderId, selectedVisibility);
+        },
+        [agents, childrenByParentId, folders, formatText, handleSetFolderVisibility],
+    );
+
+    return {
+        folderEditDialogState,
+        handleCloseFolderEditDialog,
+        handleCreateFolder,
+        handleDeleteFolder,
+        handleRenameFolder,
+        handleRequestFolderVisibilityUpdate,
+        handleSubmitFolderEdit,
+        isFolderEditSubmitting,
+    };
+}
+
+/**
+ * Owns agent deletion, visibility, and rename side effects for `AgentsList`.
+ *
+ * @private function of AgentsList
+ */
+function useAgentsListAgentState({
+    agents,
+    formatText,
+    setAgents,
+    synchronizeAfterMutation,
+}: UseAgentsListAgentStateProps): AgentsListAgentState {
+    const handleDelete = useCallback(
+        async (agentIdentifier: string) => {
+            const agent = findAgentByIdentifier(agents, agentIdentifier);
+            if (!agent) {
+                return;
+            }
+
+            const confirmed = await showConfirm({
+                title: formatText('Delete agent'),
+                message: `${formatText('Delete agent')} "${agent.agentName}"? ${formatText(
+                    'It will be moved to Recycle Bin.',
+                )}`,
+                confirmLabel: formatText('Delete agent'),
+                cancelLabel: 'Cancel',
+            }).catch(() => false);
+            if (!confirmed) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}`, { method: 'DELETE' });
+                if (response.ok) {
+                    setAgents((prev) => prev.filter((item) => getAgentIdentifier(item) !== agentIdentifier));
+                    synchronizeAfterMutation('delete-agent');
+                } else {
+                    await showAlert({
+                        title: 'Delete failed',
+                        message: formatText('Failed to delete agent'),
+                    }).catch(() => undefined);
+                }
+            } catch (error) {
+                await showAlert({
+                    title: 'Delete failed',
+                    message: formatText('Failed to delete agent'),
+                }).catch(() => undefined);
+            }
+        },
+        [agents, formatText, setAgents, synchronizeAfterMutation],
+    );
+
+    const handleRequestAgentVisibilityChange = useCallback(
+        async (agentIdentifier: string) => {
+            const agent = findAgentByIdentifier(agents, agentIdentifier);
+            if (!agent) {
+                return;
+            }
+
+            const selectedVisibility = await showVisibilityDialog({
+                title: 'Update visibility',
+                description: `${formatText('Set visibility for agent')} "${agent.agentName}".`,
+                confirmLabel: 'Update visibility',
+                initialVisibility: agent.visibility ?? DEFAULT_AGENT_VISIBILITY,
+            }).catch(() => null);
+            if (!selectedVisibility || selectedVisibility === agent.visibility) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ visibility: selectedVisibility }),
+                });
+
+                if (response.ok) {
+                    setAgents((prev) =>
+                        prev.map((item) =>
+                            getAgentIdentifier(item) === agentIdentifier ? { ...item, visibility: selectedVisibility } : item,
+                        ),
+                    );
+                    synchronizeAfterMutation('update-agent-visibility');
+                } else {
+                    await showAlert({
+                        title: 'Update failed',
+                        message: formatText('Failed to update agent visibility'),
+                    }).catch(() => undefined);
+                }
+            } catch (error) {
+                await showAlert({
+                    title: 'Update failed',
+                    message: formatText('Failed to update agent visibility'),
+                }).catch(() => undefined);
+            }
+        },
+        [agents, formatText, setAgents, synchronizeAfterMutation],
+    );
+
+    const handleContextMenuAgentRenamed = useCallback(
+        (payload: AgentContextMenuRenamePayload) => {
+            setAgents((prev) =>
+                prev.map((agent) => {
+                    if (getAgentIdentifier(agent) !== payload.previousIdentifier) {
+                        return agent;
+                    }
+
+                    return { ...agent, ...payload.agent };
+                }),
+            );
+            synchronizeAfterMutation('rename-agent');
+        },
+        [setAgents, synchronizeAfterMutation],
+    );
+
+    return {
+        handleContextMenuAgentRenamed,
+        handleDelete,
+        handleRequestAgentVisibilityChange,
+    };
+}
+
+/**
+ * Owns context-menu and QR-code overlay state for `AgentsList`.
+ *
+ * @private function of AgentsList
+ */
+function useAgentsListOverlayState(): AgentsListOverlayState {
+    const [contextMenuState, setContextMenuState] = useState<AgentContextMenuState | null>(null);
+    const [folderContextMenuState, setFolderContextMenuState] = useState<FolderContextMenuState | null>(null);
+    const [qrCodeAgent, setQrCodeAgent] = useState<AgentOrganizationAgent | null>(null);
+
+    const handleAgentContextMenu = useCallback((event: MouseEvent<HTMLDivElement>, agent: AgentOrganizationAgent) => {
+        event.preventDefault();
+        setFolderContextMenuState(null);
+        setContextMenuState({ agent, anchorPoint: createContextMenuAnchorPoint(event) });
+    }, []);
+
+    const handleCloseContextMenu = useCallback(() => {
+        setContextMenuState(null);
+    }, []);
+
+    const handleFolderContextMenu = useCallback((event: MouseEvent<HTMLDivElement>, folder: AgentOrganizationFolder) => {
+        event.preventDefault();
+        setContextMenuState(null);
+        setFolderContextMenuState({ folderId: folder.id, anchorPoint: createContextMenuAnchorPoint(event) });
+    }, []);
+
+    const handleCloseFolderContextMenu = useCallback(() => {
+        setFolderContextMenuState(null);
+    }, []);
+
+    const handleShowQrCode = useCallback(() => {
+        if (contextMenuState) {
+            setQrCodeAgent(contextMenuState.agent);
+        }
+    }, [contextMenuState]);
+
+    const handleCloseQrCode = useCallback(() => {
+        setQrCodeAgent(null);
+    }, []);
+
+    return {
+        contextMenuState,
+        folderContextMenuState,
+        handleAgentContextMenu,
+        handleCloseContextMenu,
+        handleCloseFolderContextMenu,
+        handleCloseQrCode,
+        handleFolderContextMenu,
+        handleShowQrCode,
+        qrCodeAgent,
+    };
+}
+
+/**
+ * Owns drag-and-drop state and delegates each drop outcome to focused organization handlers.
+ *
+ * @private function of AgentsList
+ */
+function useAgentsListDragState({
+    agents,
+    canOrganize,
+    folders,
+    moveAgentToFolder,
+    moveFolderToParent,
+    reorderAgents,
+    reorderFolders,
+    synchronizeOrganizationState,
+}: UseAgentsListDragStateProps): AgentsListDragState {
+    const [activeDragItem, setActiveDragItem] = useState<DragItem | null>(null);
+    const [dropIndicator, setDropIndicator] = useState<DropIndicator | null>(null);
+
+    const activeAgent = useMemo(() => resolveDraggedAgent(activeDragItem, agents), [activeDragItem, agents]);
+    const activeFolder = useMemo(() => resolveDraggedFolder(activeDragItem, folders), [activeDragItem, folders]);
+
+    const resetDragState = useCallback(() => {
+        setActiveDragItem(null);
+        setDropIndicator(null);
+    }, []);
+
+    const handleDragStart = useCallback(
+        (event: DragStartEvent) => {
+            if (!canOrganize) {
+                return;
+            }
+
+            const dragData = event.active.data.current as DragItem | undefined;
+            if (dragData) {
+                setActiveDragItem(dragData);
+            }
+        },
+        [canOrganize],
+    );
+
+    const handleDragOver = useCallback(
+        (event: DragOverEvent) => {
+            if (!canOrganize) {
+                return;
+            }
+
+            setDropIndicator(resolveFolderDropIndicator(event));
+        },
+        [canOrganize],
+    );
+
+    const handleAgentDrop = useCallback(
+        async (dragData: DragItem, overData: DropTargetData) => {
+            await executeAgentDropAction(resolveAgentDropAction(dragData, overData), reorderAgents, moveAgentToFolder);
+        },
+        [moveAgentToFolder, reorderAgents],
+    );
+
+    const handleFolderDrop = useCallback(
+        async (
+            dragData: DragItem,
+            overData: DropTargetData,
+            overId: string | number,
+            currentIndicator: DropIndicator | null,
+        ) => {
+            await executeFolderDropAction(
+                resolveFolderDropAction(dragData, overData, overId, currentIndicator),
+                reorderFolders,
+                moveFolderToParent,
+            );
+        },
+        [moveFolderToParent, reorderFolders],
+    );
+
+    const handleDragEnd = useCallback(
+        async (event: DragEndEvent) => {
+            const currentIndicator = dropIndicator;
+            const dragData = event.active.data.current as DragItem | undefined;
+            const overData = event.over?.data.current as DropTargetData | undefined;
+
+            resetDragState();
+
+            if (!canOrganize || !dragData || !event.over || !overData) {
+                return;
+            }
+
+            try {
+                if (dragData.type === 'AGENT') {
+                    await handleAgentDrop(dragData, overData);
+                    return;
+                }
+
+                if (dragData.type === 'FOLDER') {
+                    await handleFolderDrop(dragData, overData, event.over.id, currentIndicator);
+                }
+            } catch (error) {
+                await showAlert({
+                    title: 'Update failed',
+                    message: error instanceof Error ? error.message : 'Failed to update organization.',
+                }).catch(() => undefined);
+                void synchronizeOrganizationState('error-recovery');
+            }
+        },
+        [
+            canOrganize,
+            dropIndicator,
+            handleAgentDrop,
+            handleFolderDrop,
+            resetDragState,
+            synchronizeOrganizationState,
+        ],
+    );
+
+    const handleDragCancel = useCallback(() => {
+        resetDragState();
+    }, [resetDragState]);
+
+    return {
+        activeAgent,
+        activeDragItem,
+        activeFolder,
+        dropIndicator,
+        handleDragCancel,
+        handleDragEnd,
+        handleDragOver,
+        handleDragStart,
+    };
+}
+
+/**
+ * Builds all state, derived data, and interaction handlers used by `AgentsList`.
+ *
+ * @param props - Current AgentsList props.
+ * @returns State slices and handlers consumed by the thin AgentsList facade.
+ *
+ * @private function of AgentsList
+ */
+export function useAgentsListState(props: UseAgentsListStateProps) {
+    const {
+        agents: initialAgents,
+        folders: initialFolders,
+        canOrganize,
+        publicUrl,
+        showFederatedAgents,
+        externalAgents: initialExternalAgents,
+    } = props;
+    const pathname = usePathname();
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const searchParamsSnapshot = searchParams.toString();
+    const routeSyncKey = `${pathname}?${searchParamsSnapshot}`;
+    const folderQuery = searchParams.get('folder');
+    const { formatText } = useAgentNaming();
+    const normalizedPublicUrl = useMemo(() => normalizePublicUrl(publicUrl), [publicUrl]);
+    const publicUrlHost = useMemo(() => resolvePublicUrlHost(normalizedPublicUrl), [normalizedPublicUrl]);
+    const viewMode = resolveHomeViewMode(searchParams.get('view'));
+    const shouldRefreshFederatedAgents = showFederatedAgents && viewMode !== 'LIST';
+    const { federatedAgents, federatedServersStatus } = useFederatedAgents(
+        showFederatedAgents,
+        initialExternalAgents,
+        shouldRefreshFederatedAgents,
+    );
+    const isTouchInput = useIsTouchInput();
+    const allowFullCardDrag = canOrganize && viewMode === 'LIST' && !isTouchInput;
+    const {
+        agents,
+        folders,
+        lastSyncedRouteKey,
+        setAgents,
+        setFolders,
+        synchronizeAfterMutation,
+        synchronizeOrganizationState,
+    } = useAgentsListSyncState({
+        initialAgents,
+        initialFolders,
+        routeSyncKey,
+    });
+    const folderPathSegments = parseFolderPath(folderQuery);
+    const currentFolderId = useMemo(
+        () => resolveFolderIdFromPath(folders, folderPathSegments),
+        [folders, folderPathSegments],
+    );
+    const folderMaps = useMemo(() => buildFolderMaps(folders), [folders]);
+    const allAgentsLabel = formatText('All Agents');
+    const localAgentsLabel = formatText('Local Agents');
+    const breadcrumbFolders = useMemo(
+        () => getFolderPathSegments(currentFolderId, folderMaps.folderById),
+        [currentFolderId, folderMaps.folderById],
+    );
+    const parentFolderInfo = useMemo(
+        () => resolveParentFolderInfo(currentFolderId, folderMaps.folderById, allAgentsLabel),
+        [allAgentsLabel, currentFolderId, folderMaps.folderById],
+    );
+    const visibleFolders = useMemo(() => getVisibleFolders(folders, currentFolderId), [folders, currentFolderId]);
     const visibleAgents = useMemo(() => getVisibleAgents(agents, currentFolderId), [agents, currentFolderId]);
     const officeVisibleFolderIds = useMemo(
         () => createOfficeVisibleFolderIdSet(currentFolderId, folderMaps.childrenByParentId),
@@ -1604,6 +2550,16 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
     const officeAgents = useMemo(() => getOfficeAgents(agents, officeVisibleFolderIds), [agents, officeVisibleFolderIds]);
     const officeFolders = useMemo(() => getOfficeFolders(folders, officeVisibleFolderIds), [folders, officeVisibleFolderIds]);
     const agentCount = resolveAgentCount(viewMode, visibleAgents.length, officeAgents.length, agents.length);
+    useAgentsListFolderPathRecovery({
+        currentFolderId,
+        folderPathSegments,
+        lastSyncedRouteKey,
+        folderQuery,
+        pathname,
+        routeSyncKey,
+        router,
+        searchParamsSnapshot,
+    });
     const sensors = useSensors(
         useSensor(MouseSensor, {
             activationConstraint: { distance: DRAG_START_DISTANCE_PX },
@@ -1620,8 +2576,6 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         () => visibleAgents.map((agent) => getAgentDragId(getAgentIdentifier(agent))),
         [visibleAgents],
     );
-    const activeAgent = useMemo(() => resolveDraggedAgent(activeDragItem, agents), [activeDragItem, agents]);
-    const activeFolder = useMemo(() => resolveDraggedFolder(activeDragItem, folders), [activeDragItem, folders]);
 
     /**
      * Builds a full agent URL from a list identifier.
@@ -1689,714 +2643,46 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         },
         [folders, router, searchParams],
     );
+    const organizationActions = useAgentsListOrganizationActions({
+        agents,
+        childrenByParentId: folderMaps.childrenByParentId,
+        folders,
+        setAgents,
+        setFolders,
+        synchronizeAfterMutation,
+        visibleAgents,
+        visibleFolders,
+    });
+    const folderState = useAgentsListFolderState({
+        agents,
+        breadcrumbFolders,
+        childrenByParentId: folderMaps.childrenByParentId,
+        currentFolderId,
+        folders,
+        formatText,
+        navigateToFolder,
+        setAgents,
+        setFolders,
+        synchronizeAfterMutation,
+    });
+    const agentState = useAgentsListAgentState({
+        agents,
+        formatText,
+        setAgents,
+        synchronizeAfterMutation,
+    });
+    const overlayState = useAgentsListOverlayState();
+    const dragState = useAgentsListDragState({
+        agents,
+        canOrganize,
+        folders,
+        moveAgentToFolder: organizationActions.moveAgentToFolder,
+        moveFolderToParent: organizationActions.moveFolderToParent,
+        reorderAgents: organizationActions.reorderAgents,
+        reorderFolders: organizationActions.reorderFolders,
+        synchronizeOrganizationState,
+    });
 
-    /**
-     * Persists organization updates to the server.
-     *
-     * @param payload - Update payload with folder and agent updates.
-     */
-    const persistOrganizationUpdates = useCallback(
-        async (payload: AgentOrganizationUpdatePayload) => {
-            const response = await fetch(AGENT_ORGANIZATION_SYNC_API_PATH, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-            });
-
-            if (!response.ok) {
-                const responseBody = await response.json().catch(() => ({}));
-                throw new Error(responseBody.error || 'Failed to update organization.');
-            }
-
-            synchronizeAfterMutation('organization-update');
-        },
-        [synchronizeAfterMutation],
-    );
-
-    /**
-     * Reorders folders within the current parent folder.
-     *
-     * @param draggedId - Folder id being moved.
-     * @param targetId - Target folder id.
-     */
-    const reorderFolders = useCallback(
-        async (draggedId: number, targetId: number) => {
-            const updatedFolders = createReorderedFolderUpdates(folders, visibleFolders, draggedId, targetId);
-            if (!updatedFolders) {
-                return;
-            }
-
-            setFolders((prev) => applyFolderUpdates(prev, updatedFolders));
-            await persistOrganizationUpdates(buildFolderOrganizationUpdates(updatedFolders));
-        },
-        [folders, persistOrganizationUpdates, visibleFolders],
-    );
-
-    /**
-     * Reorders agents within the current folder.
-     *
-     * @param draggedId - Agent identifier being moved.
-     * @param targetId - Target agent identifier.
-     */
-    const reorderAgents = useCallback(
-        async (draggedId: string, targetId: string) => {
-            const updates = createReorderedAgentUpdates(agents, visibleAgents, draggedId, targetId);
-            if (!updates) {
-                return;
-            }
-
-            setAgents((prev) => applyAgentUpdates(prev, updates));
-            await persistOrganizationUpdates(buildAgentOrganizationUpdates(updates));
-        },
-        [agents, persistOrganizationUpdates, visibleAgents],
-    );
-
-    /**
-     * Moves a folder into another folder or the root.
-     *
-     * @param folderId - Folder id to move.
-     * @param targetParentId - Target parent folder id.
-     */
-    const moveFolderToParent = useCallback(
-        async (folderId: number, targetParentId: number | null) => {
-            const movePlan = createFolderMovePlan(folders, folderMaps.childrenByParentId, folderId, targetParentId);
-            if (movePlan.type === 'NO_OP') {
-                return;
-            }
-
-            if (movePlan.type === 'INVALID_PARENT') {
-                await showAlert({
-                    title: 'Invalid move',
-                    message: 'Cannot move a folder into one of its subfolders.',
-                }).catch(() => undefined);
-                return;
-            }
-
-            setFolders((prev) => applyFolderUpdates(prev, movePlan.updates));
-            await persistOrganizationUpdates(buildFolderOrganizationUpdates(movePlan.updates));
-        },
-        [folderMaps.childrenByParentId, folders, persistOrganizationUpdates],
-    );
-
-    /**
-     * Moves an agent into another folder or the root.
-     *
-     * @param identifier - Agent identifier to move.
-     * @param targetFolderId - Target folder id.
-     */
-    const moveAgentToFolder = useCallback(
-        async (identifier: string, targetFolderId: number | null) => {
-            const updates = createAgentMoveUpdates(agents, identifier, targetFolderId);
-            if (!updates) {
-                return;
-            }
-
-            setAgents((prev) => applyAgentUpdates(prev, updates));
-            await persistOrganizationUpdates(buildAgentOrganizationUpdates(updates));
-        },
-        [agents, persistOrganizationUpdates],
-    );
-
-    /**
-     * Opens the create-folder dialog with defaults.
-     */
-    const handleCreateFolder = useCallback(() => {
-        setFolderEditDialogState(createFolderEditDialogState('CREATE', null));
-    }, []);
-
-    /**
-     * Opens the edit-folder dialog for one folder.
-     *
-     * @param folderId - Folder id to edit.
-     */
-    const handleRenameFolder = useCallback(
-        (folderId: number) => {
-            const folder = findFolderById(folders, folderId);
-            if (!folder) {
-                return;
-            }
-
-            setFolderEditDialogState(createFolderEditDialogState('EDIT', folderId, folder));
-        },
-        [folders],
-    );
-
-    /**
-     * Creates a new folder from the dialog values.
-     *
-     * @param values - Folder values submitted by the dialog.
-     */
-    const createFolderFromDialog = useCallback(
-        async (values: FolderEditValues) => {
-            const response = await fetch('/api/agent-folders', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: values.name,
-                    parentId: currentFolderId ?? null,
-                    icon: values.icon,
-                    color: values.color,
-                }),
-            });
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to create folder.');
-            }
-
-            setFolders((prev) => [...prev, data.folder as AgentOrganizationFolder]);
-            synchronizeAfterMutation('create-folder');
-            setFolderEditDialogState(null);
-        },
-        [currentFolderId, synchronizeAfterMutation],
-    );
-
-    /**
-     * Updates an existing folder from the dialog values.
-     *
-     * @param folderId - Folder being edited.
-     * @param values - Folder values submitted by the dialog.
-     */
-    const updateFolderFromDialog = useCallback(
-        async (folderId: number, values: FolderEditValues) => {
-            const response = await fetch(`/api/agent-folders/${folderId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: values.name,
-                    icon: values.icon,
-                    color: values.color,
-                }),
-            });
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to update folder.');
-            }
-
-            const updatedFolder = data.folder as AgentOrganizationFolder;
-            const nextFolders = folders.map((item) => (item.id === folderId ? { ...item, ...updatedFolder } : item));
-
-            setFolders(nextFolders);
-            synchronizeAfterMutation('rename-folder');
-
-            if (breadcrumbFolders.some((item) => item.id === folderId)) {
-                navigateToFolder(currentFolderId ?? null, nextFolders);
-            }
-
-            setFolderEditDialogState(null);
-        },
-        [breadcrumbFolders, currentFolderId, folders, navigateToFolder, synchronizeAfterMutation],
-    );
-
-    /**
-     * Applies folder create/edit changes submitted from the dialog.
-     *
-     * @param values - Folder values submitted by the dialog.
-     */
-    const handleSubmitFolderEdit = useCallback(
-        async (values: FolderEditValues) => {
-            if (!folderEditDialogState) {
-                return;
-            }
-
-            const { errorMessage, normalizedValues } = normalizeFolderEditValues(values);
-            if (errorMessage) {
-                await showAlert({
-                    title: 'Invalid name',
-                    message: errorMessage,
-                }).catch(() => undefined);
-                return;
-            }
-
-            const dialogMode = folderEditDialogState.mode;
-
-            setIsFolderEditSubmitting(true);
-            try {
-                if (dialogMode === 'CREATE') {
-                    await createFolderFromDialog(normalizedValues);
-                    return;
-                }
-
-                const folderId = folderEditDialogState.folderId;
-                if (folderId === null) {
-                    return;
-                }
-
-                await updateFolderFromDialog(folderId, normalizedValues);
-            } catch (error) {
-                await showAlert({
-                    title: resolveFolderEditFailureTitle(dialogMode),
-                    message: error instanceof Error ? error.message : 'Failed to update folder.',
-                }).catch(() => undefined);
-            } finally {
-                setIsFolderEditSubmitting(false);
-            }
-        },
-        [createFolderFromDialog, folderEditDialogState, updateFolderFromDialog],
-    );
-
-    /**
-     * Closes the folder editor dialog when no submit is in progress.
-     */
-    const handleCloseFolderEditDialog = useCallback(() => {
-        if (isFolderEditSubmitting) {
-            return;
-        }
-
-        setFolderEditDialogState(null);
-    }, [isFolderEditSubmitting]);
-
-    /**
-     * Deletes a folder and moves its contents to the recycle bin.
-     *
-     * @param folderId - Folder id to delete.
-     */
-    const handleDeleteFolder = useCallback(
-        async (folderId: number) => {
-            const folder = findFolderById(folders, folderId);
-            if (!folder) {
-                return;
-            }
-
-            const descendantContext = createFolderDescendantContext(folderId, folderMaps.childrenByParentId);
-            const subfolderCount = descendantContext.ids.length - 1;
-            const affectedAgentCount = agents.filter(
-                (agent) => agent.folderId !== null && descendantContext.idSet.has(agent.folderId),
-            ).length;
-
-            const confirmed = await showConfirm({
-                title: 'Delete folder',
-                message: `${formatText('Delete folder')} "${folder.name}"? ${formatText(
-                    'It will move',
-                )} ${affectedAgentCount} ${formatText('agents')} and ${subfolderCount} subfolders to the Recycle Bin.`,
-                confirmLabel: 'Delete folder',
-                cancelLabel: 'Cancel',
-            }).catch(() => false);
-            if (!confirmed) {
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/agent-folders/${folderId}`, { method: 'DELETE' });
-                if (!response.ok) {
-                    const data = await response.json().catch(() => ({}));
-                    throw new Error(data.error || 'Failed to delete folder.');
-                }
-
-                setFolders((prev) => prev.filter((item) => !descendantContext.idSet.has(item.id)));
-                setAgents((prev) =>
-                    prev.filter((agent) => agent.folderId === null || !descendantContext.idSet.has(agent.folderId)),
-                );
-                synchronizeAfterMutation('delete-folder');
-
-                if (currentFolderId !== null && descendantContext.idSet.has(currentFolderId)) {
-                    navigateToFolder(null);
-                }
-            } catch (error) {
-                await showAlert({
-                    title: 'Delete failed',
-                    message: error instanceof Error ? error.message : 'Failed to delete folder.',
-                }).catch(() => undefined);
-            }
-        },
-        [
-            agents,
-            currentFolderId,
-            folderMaps.childrenByParentId,
-            folders,
-            formatText,
-            navigateToFolder,
-            synchronizeAfterMutation,
-        ],
-    );
-
-    /**
-     * Deletes an agent by moving it to the recycle bin.
-     *
-     * @param agentIdentifier - Agent identifier to delete.
-     */
-    const handleDelete = useCallback(
-        async (agentIdentifier: string) => {
-            const agent = findAgentByIdentifier(agents, agentIdentifier);
-            if (!agent) {
-                return;
-            }
-
-            const confirmed = await showConfirm({
-                title: formatText('Delete agent'),
-                message: `${formatText('Delete agent')} "${agent.agentName}"? ${formatText(
-                    'It will be moved to Recycle Bin.',
-                )}`,
-                confirmLabel: formatText('Delete agent'),
-                cancelLabel: 'Cancel',
-            }).catch(() => false);
-            if (!confirmed) {
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}`, { method: 'DELETE' });
-                if (response.ok) {
-                    setAgents((prev) => prev.filter((item) => getAgentIdentifier(item) !== agentIdentifier));
-                    synchronizeAfterMutation('delete-agent');
-                } else {
-                    await showAlert({
-                        title: 'Delete failed',
-                        message: formatText('Failed to delete agent'),
-                    }).catch(() => undefined);
-                }
-            } catch (error) {
-                await showAlert({
-                    title: 'Delete failed',
-                    message: formatText('Failed to delete agent'),
-                }).catch(() => undefined);
-            }
-        },
-        [agents, formatText, synchronizeAfterMutation],
-    );
-
-    /**
-     * Applies visibility to all agents inside the selected folder subtree.
-     *
-     * @param folderId - Root folder id for the batch update.
-     * @param visibility - Visibility to apply.
-     */
-    const handleSetFolderVisibility = useCallback(
-        async (folderId: number, visibility: AgentVisibility) => {
-            const folder = findFolderById(folders, folderId);
-            if (!folder) {
-                return;
-            }
-
-            const descendantContext = createFolderDescendantContext(folderId, folderMaps.childrenByParentId);
-
-            try {
-                const response = await fetch(`/api/agent-folders/${folderId}/visibility`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ visibility }),
-                });
-                const data = (await response.json().catch(() => ({}))) as { success?: boolean; error?: string };
-                if (!response.ok || !data.success) {
-                    throw new Error(data.error || 'Failed to update folder visibility.');
-                }
-
-                setAgents((prev) =>
-                    prev.map((agent) =>
-                        agent.folderId !== null && descendantContext.idSet.has(agent.folderId)
-                            ? { ...agent, visibility }
-                            : agent,
-                    ),
-                );
-                synchronizeAfterMutation('update-folder-visibility');
-            } catch (error) {
-                await showAlert({
-                    title: 'Update failed',
-                    message: error instanceof Error ? error.message : 'Failed to update folder visibility.',
-                }).catch(() => undefined);
-            }
-        },
-        [folderMaps.childrenByParentId, folders, synchronizeAfterMutation],
-    );
-
-    /**
-     * Prompts to update visibility for the selected folder subtree.
-     *
-     * @param folderId - Folder id used for the visibility selection.
-     */
-    const handleRequestFolderVisibilityUpdate = useCallback(
-        async (folderId: number) => {
-            const folder = findFolderById(folders, folderId);
-            if (!folder) {
-                return;
-            }
-
-            const descendantContext = createFolderDescendantContext(folderId, folderMaps.childrenByParentId);
-            const affectedAgents = agents.filter(
-                (agent) => agent.folderId !== null && descendantContext.idSet.has(agent.folderId),
-            );
-            const selectedVisibility = await showVisibilityDialog({
-                title: 'Update visibility',
-                description: `${formatText('Set visibility for folder')} "${folder.name}" ${formatText(
-                    'and its subtree',
-                )}. ${formatText('Affected agents')}: ${affectedAgents.length}.`,
-                confirmLabel: 'Update visibility',
-                initialVisibility: DEFAULT_AGENT_VISIBILITY,
-            }).catch(() => null);
-            if (!selectedVisibility) {
-                return;
-            }
-
-            await handleSetFolderVisibility(folderId, selectedVisibility);
-        },
-        [agents, folderMaps.childrenByParentId, folders, formatText, handleSetFolderVisibility],
-    );
-
-    /**
-     * Requests a new visibility for an agent via the selection dialog and applies it.
-     *
-     * @param agentIdentifier - Agent identifier to update.
-     */
-    const handleRequestAgentVisibilityChange = useCallback(
-        async (agentIdentifier: string) => {
-            const agent = findAgentByIdentifier(agents, agentIdentifier);
-            if (!agent) {
-                return;
-            }
-
-            const selectedVisibility = await showVisibilityDialog({
-                title: 'Update visibility',
-                description: `${formatText('Set visibility for agent')} "${agent.agentName}".`,
-                confirmLabel: 'Update visibility',
-                initialVisibility: agent.visibility ?? DEFAULT_AGENT_VISIBILITY,
-            }).catch(() => null);
-            if (!selectedVisibility || selectedVisibility === agent.visibility) {
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ visibility: selectedVisibility }),
-                });
-
-                if (response.ok) {
-                    setAgents((prev) =>
-                        prev.map((item) =>
-                            getAgentIdentifier(item) === agentIdentifier ? { ...item, visibility: selectedVisibility } : item,
-                        ),
-                    );
-                    synchronizeAfterMutation('update-agent-visibility');
-                } else {
-                    await showAlert({
-                        title: 'Update failed',
-                        message: formatText('Failed to update agent visibility'),
-                    }).catch(() => undefined);
-                }
-            } catch (error) {
-                await showAlert({
-                    title: 'Update failed',
-                    message: formatText('Failed to update agent visibility'),
-                }).catch(() => undefined);
-            }
-        },
-        [agents, formatText, synchronizeAfterMutation],
-    );
-
-    /**
-     * Opens the agent context menu at the cursor position.
-     *
-     * @param event - Mouse event that triggered the context menu.
-     * @param agent - Agent to show in the context menu.
-     */
-    const handleAgentContextMenu = useCallback((event: MouseEvent<HTMLDivElement>, agent: AgentOrganizationAgent) => {
-        event.preventDefault();
-        setFolderContextMenuState(null);
-        setContextMenuState({ agent, anchorPoint: createContextMenuAnchorPoint(event) });
-    }, []);
-
-    /**
-     * Closes the agent context menu.
-     */
-    const handleCloseContextMenu = useCallback(() => {
-        setContextMenuState(null);
-    }, []);
-
-    /**
-     * Opens the folder context menu at the cursor position.
-     *
-     * @param event - Mouse event that triggered the context menu.
-     * @param folder - Folder to show in the context menu.
-     */
-    const handleFolderContextMenu = useCallback((event: MouseEvent<HTMLDivElement>, folder: AgentOrganizationFolder) => {
-        event.preventDefault();
-        setContextMenuState(null);
-        setFolderContextMenuState({ folderId: folder.id, anchorPoint: createContextMenuAnchorPoint(event) });
-    }, []);
-
-    /**
-     * Closes the folder context menu.
-     */
-    const handleCloseFolderContextMenu = useCallback(() => {
-        setFolderContextMenuState(null);
-    }, []);
-
-    /**
-     * Updates agent state after a rename action.
-     *
-     * @param payload - Rename payload from the context menu.
-     */
-    const handleContextMenuAgentRenamed = useCallback(
-        (payload: AgentContextMenuRenamePayload) => {
-            setAgents((prev) =>
-                prev.map((agent) => {
-                    if (getAgentIdentifier(agent) !== payload.previousIdentifier) {
-                        return agent;
-                    }
-
-                    return { ...agent, ...payload.agent };
-                }),
-            );
-            synchronizeAfterMutation('rename-agent');
-        },
-        [synchronizeAfterMutation],
-    );
-
-    /**
-     * Opens the QR code modal for the active context menu agent.
-     */
-    const handleShowQrCode = useCallback(() => {
-        if (contextMenuState) {
-            setQrCodeAgent(contextMenuState.agent);
-        }
-    }, [contextMenuState]);
-
-    /**
-     * Closes the QR code modal.
-     */
-    const handleCloseQrCode = useCallback(() => {
-        setQrCodeAgent(null);
-    }, []);
-
-    /**
-     * Resets drag-related UI state.
-     */
-    const resetDragState = useCallback(() => {
-        setActiveDragItem(null);
-        setDropIndicator(null);
-    }, []);
-
-    /**
-     * Handles drag start events for sortable items.
-     *
-     * @param event - Drag start event.
-     */
-    const handleDragStart = useCallback(
-        (event: DragStartEvent) => {
-            if (!canOrganize) {
-                return;
-            }
-
-            const dragData = event.active.data.current as DragItem | undefined;
-            if (dragData) {
-                setActiveDragItem(dragData);
-            }
-        },
-        [canOrganize],
-    );
-
-    /**
-     * Tracks drop intent for folder-to-folder moves.
-     *
-     * @param event - Drag over event.
-     */
-    const handleDragOver = useCallback(
-        (event: DragOverEvent) => {
-            if (!canOrganize) {
-                return;
-            }
-
-            setDropIndicator(resolveFolderDropIndicator(event));
-        },
-        [canOrganize],
-    );
-
-    /**
-     * Applies the agent-specific outcome of a drag-and-drop operation.
-     *
-     * @param dragData - Dragged item data.
-     * @param overData - Drop target data.
-     */
-    const handleAgentDrop = useCallback(
-        async (dragData: DragItem, overData: DropTargetData) => {
-            await executeAgentDropAction(resolveAgentDropAction(dragData, overData), reorderAgents, moveAgentToFolder);
-        },
-        [moveAgentToFolder, reorderAgents],
-    );
-
-    /**
-     * Applies the folder-specific outcome of a drag-and-drop operation.
-     *
-     * @param dragData - Dragged folder data.
-     * @param overData - Drop target data.
-     * @param overId - Raw drop target id from dnd-kit.
-     * @param currentIndicator - Drop indicator captured before reset.
-     */
-    const handleFolderDrop = useCallback(
-        async (
-            dragData: DragItem,
-            overData: DropTargetData,
-            overId: string | number,
-            currentIndicator: DropIndicator | null,
-        ) => {
-            await executeFolderDropAction(
-                resolveFolderDropAction(dragData, overData, overId, currentIndicator),
-                reorderFolders,
-                moveFolderToParent,
-            );
-        },
-        [moveFolderToParent, reorderFolders],
-    );
-
-    /**
-     * Finalizes drag actions and persists reordering or moves.
-     *
-     * @param event - Drag end event.
-     */
-    const handleDragEnd = useCallback(
-        async (event: DragEndEvent) => {
-            const currentIndicator = dropIndicator;
-            const dragData = event.active.data.current as DragItem | undefined;
-            const overData = event.over?.data.current as DropTargetData | undefined;
-
-            resetDragState();
-
-            if (!canOrganize || !dragData || !event.over || !overData) {
-                return;
-            }
-
-            try {
-                if (dragData.type === 'AGENT') {
-                    await handleAgentDrop(dragData, overData);
-                    return;
-                }
-
-                if (dragData.type === 'FOLDER') {
-                    await handleFolderDrop(dragData, overData, event.over.id, currentIndicator);
-                }
-            } catch (error) {
-                await showAlert({
-                    title: 'Update failed',
-                    message: error instanceof Error ? error.message : 'Failed to update organization.',
-                }).catch(() => undefined);
-                void synchronizeOrganizationState('error-recovery');
-            }
-        },
-        [
-            canOrganize,
-            dropIndicator,
-            handleAgentDrop,
-            handleFolderDrop,
-            resetDragState,
-            synchronizeOrganizationState,
-        ],
-    );
-
-    /**
-     * Clears drag state when the drag interaction is canceled.
-     */
-    const handleDragCancel = useCallback(() => {
-        resetDragState();
-    }, [resetDragState]);
-
-    /**
-     * Builds preview agents for a folder card.
-     *
-     * @param folderId - Folder to preview.
-     * @returns Preview agents for the folder.
-     */
     const getFolderPreviewAgents = useCallback(
         (folderId: number): AgentBasicInformation[] => {
             const descendantContext = createFolderDescendantContext(folderId, folderMaps.childrenByParentId);
@@ -2410,8 +2696,8 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
     const dragFolderLabel = formatText('Drag folder');
 
     const headingTitle = resolveHeadingTitle(viewMode, currentFolderId, folderMaps.folderById, localAgentsLabel);
-    const contextMenuAgent = contextMenuState?.agent ?? null;
-    const contextMenuFolder = resolveContextMenuFolder(folders, folderContextMenuState);
+    const contextMenuAgent = overlayState.contextMenuState?.agent ?? null;
+    const contextMenuFolder = resolveContextMenuFolder(folders, overlayState.folderContextMenuState);
     const contextMenuIdentifier = contextMenuAgent ? getAgentIdentifier(contextMenuAgent) : '';
     const contextMenuAgentUrl = contextMenuAgent ? buildAgentUrl(contextMenuIdentifier) : '';
     const contextMenuAgentEmail = contextMenuAgent ? buildAgentEmail(contextMenuIdentifier) : '';
@@ -2422,65 +2708,65 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
 
         return buildAgentFolderContext(contextMenuAgent.folderId ?? null, folderMaps.folderById);
     }, [contextMenuAgent, folderMaps.folderById]);
-    const qrCodeIdentifier = qrCodeAgent ? getAgentIdentifier(qrCodeAgent) : '';
-    const qrCodeAgentUrl = qrCodeAgent ? buildAgentUrl(qrCodeIdentifier) : '';
-    const qrCodeAgentEmail = qrCodeAgent ? buildAgentEmail(qrCodeIdentifier) : '';
+    const qrCodeIdentifier = overlayState.qrCodeAgent ? getAgentIdentifier(overlayState.qrCodeAgent) : '';
+    const qrCodeAgentUrl = overlayState.qrCodeAgent ? buildAgentUrl(qrCodeIdentifier) : '';
+    const qrCodeAgentEmail = overlayState.qrCodeAgent ? buildAgentEmail(qrCodeIdentifier) : '';
 
     return {
-        activeAgent,
-        activeDragItemType: activeDragItem?.type ?? null,
-        activeFolder,
+        activeAgent: dragState.activeAgent,
+        activeDragItemType: dragState.activeDragItem?.type ?? null,
+        activeFolder: dragState.activeFolder,
         agentCount,
         agents,
         allAgentsLabel,
         allowFullCardDrag,
         breadcrumbFolders,
         contextMenuAgent,
-        contextMenuAgentAnchorPoint: contextMenuState?.anchorPoint ?? null,
+        contextMenuAgentAnchorPoint: overlayState.contextMenuState?.anchorPoint ?? null,
         contextMenuAgentEmail,
         contextMenuAgentUrl,
         contextMenuFolder,
-        contextMenuFolderAnchorPoint: folderContextMenuState?.anchorPoint ?? null,
+        contextMenuFolderAnchorPoint: overlayState.folderContextMenuState?.anchorPoint ?? null,
         contextMenuFolderContext,
         contextMenuIdentifier,
         currentFolderId,
         dragAgentLabel,
         dragFolderLabel,
-        dropIndicator,
+        dropIndicator: dragState.dropIndicator,
         federatedAgents,
         federatedServersStatus: federatedServersStatus as Record<string, FederatedServerStatus>,
-        folderEditDialogInitialValues: folderEditDialogState?.initialValues ?? null,
-        folderEditDialogMode: folderEditDialogState?.mode ?? null,
+        folderEditDialogInitialValues: folderState.folderEditDialogState?.initialValues ?? null,
+        folderEditDialogMode: folderState.folderEditDialogState?.mode ?? null,
         folders,
         getAgentDragId,
         getFolderDragId,
         getFolderPreviewAgents,
-        handleAgentContextMenu,
-        handleCloseContextMenu,
-        handleCloseFolderContextMenu,
-        handleCloseFolderEditDialog,
-        handleCloseQrCode,
-        handleContextMenuAgentRenamed,
-        handleCreateFolder,
-        handleDelete,
-        handleDeleteFolder,
-        handleDragCancel,
-        handleDragEnd,
-        handleDragOver,
-        handleDragStart,
-        handleFolderContextMenu,
-        handleRenameFolder,
-        handleRequestAgentVisibilityChange,
-        handleRequestFolderVisibilityUpdate,
-        handleShowQrCode,
-        handleSubmitFolderEdit,
+        handleAgentContextMenu: overlayState.handleAgentContextMenu,
+        handleCloseContextMenu: overlayState.handleCloseContextMenu,
+        handleCloseFolderContextMenu: overlayState.handleCloseFolderContextMenu,
+        handleCloseFolderEditDialog: folderState.handleCloseFolderEditDialog,
+        handleCloseQrCode: overlayState.handleCloseQrCode,
+        handleContextMenuAgentRenamed: agentState.handleContextMenuAgentRenamed,
+        handleCreateFolder: folderState.handleCreateFolder,
+        handleDelete: agentState.handleDelete,
+        handleDeleteFolder: folderState.handleDeleteFolder,
+        handleDragCancel: dragState.handleDragCancel,
+        handleDragEnd: dragState.handleDragEnd,
+        handleDragOver: dragState.handleDragOver,
+        handleDragStart: dragState.handleDragStart,
+        handleFolderContextMenu: overlayState.handleFolderContextMenu,
+        handleRenameFolder: folderState.handleRenameFolder,
+        handleRequestAgentVisibilityChange: agentState.handleRequestAgentVisibilityChange,
+        handleRequestFolderVisibilityUpdate: folderState.handleRequestFolderVisibilityUpdate,
+        handleShowQrCode: overlayState.handleShowQrCode,
+        handleSubmitFolderEdit: folderState.handleSubmitFolderEdit,
         headingTitle,
-        isFolderEditSubmitting,
+        isFolderEditSubmitting: folderState.isFolderEditSubmitting,
         navigateToFolder,
         officeAgents,
         officeFolders,
         parentFolderInfo,
-        qrCodeAgent,
+        qrCodeAgent: overlayState.qrCodeAgent,
         qrCodeAgentEmail,
         qrCodeAgentUrl,
         sensors,

@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00 10 minutes by GitHub Copilot `gpt-5.4`
 
 [🧹🏝] Refactor [`useAgentsListState.ts` file](apps/agents-server/src/components/Homepage/useAgentsListState.ts)
 
