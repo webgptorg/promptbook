@@ -1,3 +1,8 @@
+-   Refactored Agents Server `useAgentChatHistoryClientState.ts` into smaller focused private history-state hooks without changing external behavior:
+
+    -   Extracted durable chat synchronization, optimistic chat lifecycle, and draft persistence into the private `useAgentChatHistorySyncState` and `useAgentChatHistoryDraftState` helpers so `useAgentChatHistoryClientState` now reads as a thin composition layer.
+    -   Moved queued user-turn submission, failed-send retry tracking, and browser-notification hint orchestration into the private `useAgentChatHistorySubmissionState` helper while preserving the existing selection guards, optimistic chat create/rollback flow, draft saving, stream refresh, and auto-execute behavior.
+
 -   Refactored `src/remote-server/startRemoteServer.ts` into smaller focused remote-server helpers without changing external behavior:
 
     -   Split the branching-heavy startup flow into dedicated configuration, execution-tool resolution, HTTP route registration, server-index rendering, socket request handling, and lifecycle helpers so `startRemoteServer` now reads top-down.
