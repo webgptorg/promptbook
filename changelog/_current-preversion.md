@@ -1,3 +1,8 @@
+-   Optimized Agents Server Vercel builds by marking the request-bound root app layout as explicitly dynamic:
+
+    -   Stopped Next.js from repeatedly attempting static prerender for pages that already depend on cookies, auth state, metadata, and custom CSS/JS loaded in the root layout.
+    -   Reduced noisy `Dynamic server usage` build-time failures across admin and embed pages and cut wasted prerender work during the Agents Server build.
+
 -   Refactored `src/remote-server/startRemoteServer.ts` into smaller focused remote-server helpers without changing external behavior:
 
     -   Split the branching-heavy startup flow into dedicated configuration, execution-tool resolution, HTTP route registration, server-index rendering, socket request handling, and lifecycle helpers so `startRemoteServer` now reads top-down.

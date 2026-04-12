@@ -38,6 +38,15 @@ import {
 import './globals.css';
 
 /**
+ * Forces request-time rendering for the root app shell because the layout reads
+ * request-bound data such as cookies, auth state, metadata, and custom assets.
+ *
+ * Keeping this explicit prevents Next.js from wasting build time on static
+ * prerender attempts that will fail for routes under this layout.
+ */
+export const dynamic = 'force-dynamic';
+
+/**
  * Constant for barlow condensed.
  */
 const barlowCondensed = Barlow_Condensed({
