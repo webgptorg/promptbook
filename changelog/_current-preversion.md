@@ -1,3 +1,8 @@
+-   Refactored Agents Server `AgentProfileChat.optimisticNavigation.test.tsx` into smaller optimistic-navigation test helpers without changing external behavior:
+
+    -   Moved the render-only mock chat components into the private `AgentProfileChatOptimisticNavigationTestComponents` module so the scenario file no longer mixes behavior assertions with mocked UI implementation details.
+    -   Extracted the mocked bootstrap/setup lifecycle, pending-bootstrap orchestration, and stable render/assertion helpers into the private `AgentProfileChatOptimisticNavigationTestSupport` facade so the main test file now focuses on the three profile-to-chat handoff scenarios.
+
 -   Refactored Agents Server `UsageClient.tsx` into a smaller private usage-state module without changing external behavior:
 
     -   Moved search-param synchronization, analytics loading, selected-scope derivation, timeframe-label formatting, and mutual agent/folder filter coordination into the private `useUsageClientState` hook so `UsageClient.tsx` now reads as a thin composition layer.
