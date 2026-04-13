@@ -1,3 +1,8 @@
+-   Refactored Agents Server `useAgentChatHistorySyncState.ts` into smaller focused private chat-history modules without changing external behavior:
+
+    -   Extracted optimistic chat bookkeeping, payload application, async chat operations, shared error-message resolution, and side-effect wiring into dedicated private modules so `useAgentChatHistorySyncState` now reads as a thinner synchronization facade.
+    -   Kept the existing bootstrap selection flow, optimistic new-chat lifecycle, durable draft preservation, active-stream reconnect/polling, failed-send tracking, and cancel/delete behavior intact while reducing the hook's responsibility density.
+
 -   Refactored Agents Server `useBookEditorHistory.ts` into smaller focused private history helpers without changing external behavior:
 
     -   Split the hook into dedicated loading, named-version save, restore, Escape-close, and selection-synchronization helpers so `useBookEditorHistory` now reads as a thin composition layer.

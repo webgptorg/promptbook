@@ -16,6 +16,7 @@ import {
     reassignPendingOutboundMessagesChatId,
 } from './usePendingOutboundMessages';
 import { serializeReplyingToSignature } from './chatReplies';
+import { resolveAgentChatHistoryErrorMessage } from './resolveAgentChatHistoryErrorMessage';
 
 /**
  * Shared applicability callback used when canonical chat payloads arrive from the server.
@@ -344,15 +345,6 @@ function createChatMessageSignature(
 }
 
 /**
- * Resolves one unknown error to a user-facing message.
- *
- * @private function of useAgentChatHistoryClientState
- */
-function resolveErrorMessage(error: unknown, fallbackMessage: string): string {
-    return error instanceof Error ? error.message : fallbackMessage;
-}
-
-/**
  * Applies local state updates after one durable send succeeds.
  *
  * @private function of useAgentChatHistoryClientState
@@ -407,20 +399,13 @@ function handleFailedUserTurnSubmission(params: {
     clientMessageId: string;
     rememberFailedSendRecord: (chatId: string, record: FailedSendRecord) => void;
 }): void {
-    const {
-        error,
-        currentActiveChatId,
-        resolvedChatId,
-        signature,
-        clientMessageId,
-        rememberFailedSendRecord,
-    } = params;
+    const { error, currentActiveChatId, resolvedChatId, signature, clientMessageId, rememberFailedSendRecord } = params;
 
     const failedSend: FailedSendRecord = {
         signature,
         clientMessageId,
     };
-    const errorMessage = resolveErrorMessage(error, 'Failed to send chat message.');
+    const errorMessage = resolveAgentChatHistoryErrorMessage(error, 'Failed to send chat message.');
     rememberFailedSendRecord(resolvedChatId, failedSend);
     if (resolvedChatId !== currentActiveChatId) {
         rememberFailedSendRecord(currentActiveChatId, failedSend);

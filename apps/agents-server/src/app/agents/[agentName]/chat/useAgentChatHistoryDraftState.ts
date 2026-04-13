@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { notifyError } from '../../../../components/Notifications/notifications';
 import { saveUserChatDraft } from '../../../../utils/userChatClient';
+import { resolveAgentChatHistoryErrorMessage } from './resolveAgentChatHistoryErrorMessage';
 
 /**
  * Debounce window for durable chat-draft persistence.
@@ -113,7 +114,7 @@ export function useAgentChatHistoryDraftState({
 
             draftSaveTimerRef.current = setTimeout(() => {
                 void flushActiveDraft().catch((error) => {
-                    notifyError(resolveErrorMessage(error, 'Failed to save chat draft.'));
+                    notifyError(resolveAgentChatHistoryErrorMessage(error, 'Failed to save chat draft.'));
                 });
             }, SAVE_DEBOUNCE_MS);
         },
@@ -197,13 +198,4 @@ function registerDraftFlushLifecycle(params: {
         window.removeEventListener('beforeunload', flushWithKeepalive);
         void flushActiveDraft();
     };
-}
-
-/**
- * Resolves one unknown error to a user-facing message.
- *
- * @private function of useAgentChatHistoryClientState
- */
-function resolveErrorMessage(error: unknown, fallbackMessage: string): string {
-    return error instanceof Error ? error.message : fallbackMessage;
 }

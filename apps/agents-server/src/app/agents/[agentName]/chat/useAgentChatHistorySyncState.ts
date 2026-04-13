@@ -1,108 +1,51 @@
 'use client';
 
 import type { ChatMessage } from '@promptbook-local/types';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { showConfirm } from '../../../../components/AsyncDialogs/asyncDialogs';
-import { notifyError } from '../../../../components/Notifications/notifications';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
     cancelUserChatJob,
     cancelUserChatTimeout,
-    createUserChat,
-    createUserChatClientMessageId,
     fetchUserChats,
-    removeUserChat,
-    streamUserChat,
     type UserChatDetail,
     type UserChatEnqueueResult,
     type UserChatJob,
     type UserChatSummary,
     type UserChatTimeout,
 } from '../../../../utils/userChatClient';
-import { USER_CHAT_SOURCES } from '../../../../utils/userChat/UserChatSource';
+import { AgentChatHistoryPayloadState } from './AgentChatHistoryPayloadState';
+import { AgentChatHistorySyncOperations } from './AgentChatHistorySyncOperations';
 import { useAgentChatHistoryDraftState } from './useAgentChatHistoryDraftState';
 import {
-    clearPendingOutboundMessages,
-    reassignPendingOutboundMessagesChatId,
-    reconcilePendingOutboundMessages,
-} from './usePendingOutboundMessages';
-
-/**
- * Reconnect delay after one canonical chat-stream disconnect.
- *
- * @private function of useAgentChatHistoryClientState
- */
-const USER_CHAT_STREAM_RECONNECT_DELAY_MS = 1_500;
-
-/**
- * Background refresh cadence used when the live stream is temporarily disconnected.
- *
- * @private function of useAgentChatHistoryClientState
- */
-const DISCONNECTED_CHAT_REFRESH_INTERVAL_MS = 4_000;
-
-/**
- * Periodic sidebar/list refresh cadence while the active chat stream is healthy.
- *
- * @private function of useAgentChatHistoryClientState
- */
-const CHAT_LIST_REFRESH_INTERVAL_MS = 20_000;
-
-/**
- * Prefix used for temporary optimistic chat identifiers before the server returns a durable id.
- *
- * @private function of useAgentChatHistoryClientState
- */
-const OPTIMISTIC_CHAT_ID_PREFIX = 'optimistic-user-chat';
+    AgentChatHistoryOptimisticState,
+    type FailedSendRecord,
+    useAgentChatHistoryOptimisticState,
+} from './useAgentChatHistoryOptimisticState';
+import { useAgentChatHistorySyncEffects } from './useAgentChatHistorySyncEffects';
 
 /**
  * One explicit chat-selection intent issued by the user-facing chat history UI.
  *
  * @private function of useAgentChatHistoryClientState
  */
-type ChatSelectionIntent = {
+export type ChatSelectionIntent = {
     sequence: number;
     kind: 'BOOTSTRAP' | 'OPEN_CHAT' | 'NEW_CHAT' | 'DELETE_CHAT';
     targetChatId: string | null;
 };
 
 /**
- * One failed send record keyed by message signature for a single chat.
+ * Development-only trace helper used across durable chat-selection flows.
  *
  * @private function of useAgentChatHistoryClientState
  */
-type FailedSendRecord = {
-    signature: string;
-    clientMessageId: string;
-};
-
-/**
- * One deferred promise handle used to bridge optimistic chat state with a later durable server result.
- *
- * @private function of useAgentChatHistoryClientState
- */
-type Deferred<TValue> = {
-    promise: Promise<TValue>;
-    resolve: (value: TValue | PromiseLike<TValue>) => void;
-    reject: (reason?: unknown) => void;
-};
-
-/**
- * One optimistic bootstrapping chat created before the durable chat exists.
- *
- * @private function of useAgentChatHistoryClientState
- */
-type InitialOptimisticChatBootstrap = {
-    optimisticChatId: string;
-    createdAt: string;
-    createChatDeferred: Deferred<UserChatDetail>;
-};
+export type LogChatSelection = (event: string, payload?: Record<string, unknown>) => void;
 
 /**
  * Shared applicability callback used when canonical chat payloads arrive from the server.
  *
  * @private function of useAgentChatHistoryClientState
  */
-type ApplyAgentChatDetail = (
+export type ApplyAgentChatDetail = (
     chatDetail: UserChatDetail | UserChatEnqueueResult,
     options?: {
         allowSelectionAdoption?: boolean;
@@ -115,35 +58,25 @@ type ApplyAgentChatDetail = (
 ) => boolean;
 
 /**
- * Validation result describing whether one resolved chat payload should update the active selection.
- *
- * @private function of useAgentChatHistoryClientState
- */
-type ChatPayloadValidationResult = {
-    shouldApplyPayload: boolean;
-    shouldUpdateChatList: boolean;
-};
-
-/**
  * Shared options used when canonical chat payloads update the active selection.
  *
  * @private function of useAgentChatHistoryClientState
  */
-type ApplyAgentChatPayloadOptions = NonNullable<Parameters<ApplyAgentChatDetail>[1]>;
+export type ApplyAgentChatPayloadOptions = NonNullable<Parameters<ApplyAgentChatDetail>[1]>;
 
 /**
  * One fetched snapshot of the chat list plus the currently active chat payload.
  *
  * @private function of useAgentChatHistoryClientState
  */
-type UserChatsSnapshot = Awaited<ReturnType<typeof fetchUserChats>>;
+export type UserChatsSnapshot = Awaited<ReturnType<typeof fetchUserChats>>;
 
 /**
  * Shared callback that synchronizes selected-chat state with local runtime data and the browser URL.
  *
  * @private function of useAgentChatHistoryClientState
  */
-type SyncActiveChatSelection = (
+export type SyncActiveChatSelection = (
     chatId: string | null,
     options: {
         clearChatContent?: boolean;
@@ -157,14 +90,14 @@ type SyncActiveChatSelection = (
  *
  * @private function of useAgentChatHistoryClientState
  */
-type FetchChatSnapshot = (chatId?: string) => Promise<UserChatsSnapshot>;
+export type FetchChatSnapshot = (chatId?: string) => Promise<UserChatsSnapshot>;
 
 /**
  * Refreshes the active canonical chat selection from the server.
  *
  * @private function of useAgentChatHistoryClientState
  */
-type RefreshActiveChat = (options?: { preserveDirtyDraft?: boolean }) => Promise<void>;
+export type RefreshActiveChat = (options?: { preserveDirtyDraft?: boolean }) => Promise<void>;
 
 /**
  * Inputs required to orchestrate durable chat history synchronization.
@@ -186,7 +119,9 @@ type UseAgentChatHistorySyncStateProps = {
     readonly autoExecuteTargetChatIdRef: { current: string | undefined };
     readonly shareTargetIdRef: { current: string | undefined };
     readonly isActiveBrowserTab: boolean;
-    readonly setFocusedChat: (focusedChat: { agentPermanentId: string; chatId: string; isChatFocused: boolean } | null) => void;
+    readonly setFocusedChat: (
+        focusedChat: { agentPermanentId: string; chatId: string; isChatFocused: boolean } | null,
+    ) => void;
 };
 
 /**
@@ -248,34 +183,30 @@ export function useAgentChatHistorySyncState({
     isActiveBrowserTab,
     setFocusedChat,
 }: UseAgentChatHistorySyncStateProps): UseAgentChatHistorySyncStateResult {
-    const shouldSeedInitialOptimisticChat =
-        shouldUseHistory &&
-        (initialForceNewChat || hasInitialAutoExecutePayload) &&
-        (initialForceNewChat || !initialChatId);
-    const initialOptimisticChatBootstrapRef = useRef<InitialOptimisticChatBootstrap | null>(null);
-    if (initialOptimisticChatBootstrapRef.current === null && shouldSeedInitialOptimisticChat) {
-        initialOptimisticChatBootstrapRef.current = {
-            optimisticChatId: createOptimisticChatId(),
-            createdAt: new Date().toISOString(),
-            createChatDeferred: createDeferred<UserChatDetail>(),
-        };
-    }
-
+    const {
+        initialChats,
+        initialSelectedChatId,
+        initialOptimisticChatBootstrapRef,
+        failedSendByChatIdRef,
+        pendingOptimisticChatCreationsRef,
+        resolvedOptimisticChatIdsRef,
+        resolveFailedSendRecord,
+        rememberFailedSendRecord,
+        clearFailedSendRecord,
+        clearFailedSendRecordsForChat,
+        reassignFailedSendRecordsToChatId,
+        resolveInitialOptimisticChatBootstrap,
+        rejectInitialOptimisticChatBootstrap,
+        resolveDurableChatId,
+        isEquivalentSelectedChat,
+    } = useAgentChatHistoryOptimisticState({
+        shouldUseHistory,
+        initialChatId,
+        initialForceNewChat,
+        hasInitialAutoExecutePayload,
+    });
     const initialOptimisticChatBootstrap = initialOptimisticChatBootstrapRef.current;
-    const initialSelectedChatId =
-        shouldUseHistory && (initialForceNewChat || hasInitialAutoExecutePayload)
-            ? initialOptimisticChatBootstrap?.optimisticChatId || initialChatId || null
-            : null;
-    const [chats, setChats] = useState<Array<UserChatSummary>>(() =>
-        initialOptimisticChatBootstrap
-            ? [
-                  createOptimisticUserChatSummary(
-                      initialOptimisticChatBootstrap.optimisticChatId,
-                      initialOptimisticChatBootstrap.createdAt,
-                  ),
-              ]
-            : [],
-    );
+    const [chats, setChats] = useState<Array<UserChatSummary>>(() => initialChats);
     const [activeChatId, setActiveChatId] = useState<string | null>(initialSelectedChatId);
     const [activeMessages, setActiveMessages] = useState<Array<ChatMessage>>([]);
     const [activeJobs, setActiveJobs] = useState<Array<UserChatJob>>([]);
@@ -288,18 +219,6 @@ export function useAgentChatHistorySyncState({
     const [currentTimestamp, setCurrentTimestamp] = useState(() => Date.now());
     const activeChatIdRef = useRef<string | null>(initialSelectedChatId);
     const isRefreshingRef = useRef(false);
-    const failedSendByChatIdRef = useRef<Map<string, Map<string, string>>>(new Map());
-    const pendingOptimisticChatCreationsRef = useRef<Map<string, Promise<UserChatDetail>>>(
-        initialOptimisticChatBootstrap
-            ? new Map([
-                  [
-                      initialOptimisticChatBootstrap.optimisticChatId,
-                      initialOptimisticChatBootstrap.createChatDeferred.promise,
-                  ],
-              ])
-            : new Map(),
-    );
-    const resolvedOptimisticChatIdsRef = useRef<Map<string, string>>(new Map());
     const selectionIntentRef = useRef<ChatSelectionIntent>({
         sequence: 0,
         kind: 'BOOTSTRAP',
@@ -317,142 +236,11 @@ export function useAgentChatHistorySyncState({
         agentName,
         shouldUseHistory,
         activeChatIdRef,
-        isOptimisticChatId,
+        isOptimisticChatId: AgentChatHistoryOptimisticState.isOptimisticChatId,
     });
 
-    const resolveFailedSendRecord = useCallback((chatId: string, signature: string): FailedSendRecord | null => {
-        const chatFailures = failedSendByChatIdRef.current.get(chatId);
-        if (!chatFailures) {
-            return null;
-        }
-
-        const clientMessageId = chatFailures.get(signature);
-        if (!clientMessageId) {
-            return null;
-        }
-
-        return {
-            signature,
-            clientMessageId,
-        };
-    }, []);
-
-    const rememberFailedSendRecord = useCallback((chatId: string, record: FailedSendRecord): void => {
-        const chatFailures = failedSendByChatIdRef.current.get(chatId) || new Map<string, string>();
-        chatFailures.set(record.signature, record.clientMessageId);
-        failedSendByChatIdRef.current.set(chatId, chatFailures);
-    }, []);
-
-    const clearFailedSendRecord = useCallback((chatId: string, signature: string): void => {
-        const chatFailures = failedSendByChatIdRef.current.get(chatId);
-        if (!chatFailures) {
-            return;
-        }
-
-        chatFailures.delete(signature);
-        if (chatFailures.size === 0) {
-            failedSendByChatIdRef.current.delete(chatId);
-        }
-    }, []);
-
-    const clearFailedSendRecordsForChat = useCallback((chatId: string): void => {
-        failedSendByChatIdRef.current.delete(chatId);
-    }, []);
-
-    const reassignFailedSendRecordsToChatId = useCallback((fromChatId: string, toChatId: string): void => {
-        if (fromChatId === toChatId) {
-            return;
-        }
-
-        const sourceFailures = failedSendByChatIdRef.current.get(fromChatId);
-        if (!sourceFailures || sourceFailures.size === 0) {
-            return;
-        }
-
-        const targetFailures = failedSendByChatIdRef.current.get(toChatId) || new Map<string, string>();
-        for (const [signature, clientMessageId] of sourceFailures) {
-            if (!targetFailures.has(signature)) {
-                targetFailures.set(signature, clientMessageId);
-            }
-        }
-
-        failedSendByChatIdRef.current.delete(fromChatId);
-        failedSendByChatIdRef.current.set(toChatId, targetFailures);
-    }, []);
-
-    const resolveInitialOptimisticChatBootstrap = useCallback(
-        (createdChat: UserChatDetail): void => {
-            const currentInitialOptimisticChatBootstrap = initialOptimisticChatBootstrapRef.current;
-            if (!currentInitialOptimisticChatBootstrap) {
-                return;
-            }
-
-            if (!pendingOptimisticChatCreationsRef.current.has(currentInitialOptimisticChatBootstrap.optimisticChatId)) {
-                return;
-            }
-
-            currentInitialOptimisticChatBootstrap.createChatDeferred.resolve(createdChat);
-            pendingOptimisticChatCreationsRef.current.delete(currentInitialOptimisticChatBootstrap.optimisticChatId);
-            resolvedOptimisticChatIdsRef.current.set(
-                currentInitialOptimisticChatBootstrap.optimisticChatId,
-                createdChat.chat.id,
-            );
-            reassignPendingOutboundMessagesChatId({
-                fromChatId: currentInitialOptimisticChatBootstrap.optimisticChatId,
-                toChatId: createdChat.chat.id,
-            });
-            reassignFailedSendRecordsToChatId(currentInitialOptimisticChatBootstrap.optimisticChatId, createdChat.chat.id);
-        },
-        [reassignFailedSendRecordsToChatId],
-    );
-
-    const rejectInitialOptimisticChatBootstrap = useCallback((error: unknown): void => {
-        const currentInitialOptimisticChatBootstrap = initialOptimisticChatBootstrapRef.current;
-        if (!currentInitialOptimisticChatBootstrap) {
-            return;
-        }
-
-        if (!pendingOptimisticChatCreationsRef.current.has(currentInitialOptimisticChatBootstrap.optimisticChatId)) {
-            return;
-        }
-
-        currentInitialOptimisticChatBootstrap.createChatDeferred.reject(error);
-    }, []);
-
-    const resolveDurableChatId = useCallback(async (chatId: string): Promise<string> => {
-        if (!isOptimisticChatId(chatId)) {
-            return chatId;
-        }
-
-        const resolvedChatId = resolvedOptimisticChatIdsRef.current.get(chatId);
-        if (resolvedChatId) {
-            return resolvedChatId;
-        }
-
-        const pendingCreation = pendingOptimisticChatCreationsRef.current.get(chatId);
-        if (!pendingCreation) {
-            throw new Error('Chat is still being created. Please try again.');
-        }
-
-        const createdChat = await pendingCreation;
-        resolvedOptimisticChatIdsRef.current.set(chatId, createdChat.chat.id);
-        return createdChat.chat.id;
-    }, []);
-
-    const isEquivalentSelectedChat = useCallback((selectedChatId: string | null, resolvedChatId: string): boolean => {
-        if (selectedChatId === resolvedChatId) {
-            return true;
-        }
-
-        if (!selectedChatId || !isOptimisticChatId(selectedChatId)) {
-            return false;
-        }
-
-        return resolvedOptimisticChatIdsRef.current.get(selectedChatId) === resolvedChatId;
-    }, []);
-
-    const logChatSelection = useCallback(
-        (event: string, payload: Record<string, unknown> = {}) => {
+    const logChatSelection = useCallback<LogChatSelection>(
+        (event, payload = {}) => {
             if (process.env.NODE_ENV === 'production') {
                 return;
             }
@@ -472,14 +260,16 @@ export function useAgentChatHistorySyncState({
         [activeChatId, chats],
     );
     const isActiveChatReadOnly = activeChatSummary?.isReadOnly === true;
-    const isActiveChatOptimistic = Boolean(activeChatId && isOptimisticChatId(activeChatId));
+    const isActiveChatOptimistic = Boolean(
+        activeChatId && AgentChatHistoryOptimisticState.isOptimisticChatId(activeChatId),
+    );
     const hasAnyActiveTimeouts = useMemo(
         () => chats.some((chat) => chat.timeoutActivity.count > 0) || activeTimeouts.length > 0,
         [activeTimeouts.length, chats],
     );
 
-    const fetchChatSnapshot = useCallback(
-        (chatId?: string) =>
+    const fetchChatSnapshot = useCallback<FetchChatSnapshot>(
+        (chatId) =>
             fetchUserChats(agentName, chatId, {
                 showExternalChats: shouldShowExternalChats,
             }),
@@ -561,7 +351,7 @@ export function useAgentChatHistorySyncState({
             setActiveChatId(chatId);
 
             if (options.clearChatContent === true || chatId === null) {
-                clearActiveChatRuntimeState({
+                AgentChatHistoryPayloadState.clearActiveChatRuntimeState({
                     setActiveMessages,
                     setActiveJobs,
                     setActiveTimeouts,
@@ -595,7 +385,7 @@ export function useAgentChatHistorySyncState({
 
     const applyChatDetail = useCallback<ApplyAgentChatDetail>(
         (chatDetail, options: ApplyAgentChatPayloadOptions = {}): boolean =>
-            applyChatDetailStateUpdate({
+            AgentChatHistoryPayloadState.applyChatDetailStateUpdate({
                 chatDetail,
                 options,
                 activeChatIdRef,
@@ -626,7 +416,7 @@ export function useAgentChatHistorySyncState({
 
     const applySnapshot = useCallback(
         (snapshot: UserChatsSnapshot, options: ApplyAgentChatPayloadOptions = {}): boolean =>
-            applySnapshotStateUpdate({
+            AgentChatHistoryPayloadState.applySnapshotStateUpdate({
                 snapshot,
                 options,
                 activeChatIdRef,
@@ -657,7 +447,7 @@ export function useAgentChatHistorySyncState({
 
     const createBootstrapChat = useCallback(
         (snapshot: UserChatsSnapshot, intentSequence: number): Promise<void> =>
-            createBootstrapChatFromSnapshot({
+            AgentChatHistorySyncOperations.createBootstrapChatFromSnapshot({
                 agentName,
                 snapshot,
                 intentSequence,
@@ -675,13 +465,14 @@ export function useAgentChatHistorySyncState({
             autoExecuteTargetChatIdRef,
             hasInitialAutoExecutePayload,
             hasInitialAutoMessageBeenConsumedRef,
+            initialOptimisticChatBootstrapRef,
             resolveInitialOptimisticChatBootstrap,
         ],
     );
 
     const bootstrapChats = useCallback(
         (preferredChatId?: string): Promise<void> =>
-            bootstrapChatSelection({
+            AgentChatHistorySyncOperations.bootstrapChatSelection({
                 preferredChatId,
                 initialForceNewChat,
                 issueSelectionIntent,
@@ -702,6 +493,7 @@ export function useAgentChatHistorySyncState({
             hasInitialAutoExecutePayload,
             hasInitialAutoMessageBeenConsumedRef,
             initialForceNewChat,
+            initialOptimisticChatBootstrapRef,
             issueSelectionIntent,
             logChatSelection,
         ],
@@ -709,7 +501,7 @@ export function useAgentChatHistorySyncState({
 
     const refreshActiveChat = useCallback<RefreshActiveChat>(
         (options = { preserveDirtyDraft: true }) =>
-            refreshSelectedChat({
+            AgentChatHistorySyncOperations.refreshSelectedChat({
                 shouldUseHistory,
                 options,
                 activeChatIdRef,
@@ -722,117 +514,9 @@ export function useAgentChatHistorySyncState({
         [applySnapshot, bootstrapChats, fetchChatSnapshot, logChatSelection, shouldUseHistory],
     );
 
-    useEffect(() => {
-        autoExecuteTargetChatIdRef.current = initialForceNewChat ? undefined : initialChatId;
-    }, [autoExecuteTargetChatIdRef, initialChatId, initialForceNewChat]);
-
-    useEffect(() => {
-        shareTargetIdRef.current = initialShareTargetId;
-    }, [initialShareTargetId, shareTargetIdRef]);
-
-    useEffect(() => {
-        if (!activeChatId) {
-            return;
-        }
-
-        reconcilePendingOutboundMessages(activeChatId, activeMessages);
-    }, [activeChatId, activeMessages]);
-
-    useEffect(() => {
-        syncFocusedChatRegistration({
-            shouldUseHistory,
-            activeChatId,
-            isActiveChatReadOnly,
-            isActiveChatOptimistic,
-            isActiveBrowserTab,
-            agentName,
-            setFocusedChat,
-        });
-    }, [
-        activeChatId,
-        agentName,
-        isActiveBrowserTab,
-        isActiveChatOptimistic,
-        isActiveChatReadOnly,
-        setFocusedChat,
-        shouldUseHistory,
-    ]);
-
-    useEffect(() => {
-        return bootstrapChatHistoryState({
-            shouldUseHistory,
-            setChats,
-            syncActiveChatSelection,
-            failedSendByChatIdRef,
-            pendingOptimisticChatCreationsRef,
-            resolvedOptimisticChatIdsRef,
-            setIsActiveChatStreamConnected,
-            setIsBootstrapping,
-            setIsChatListLoading,
-            setIsActiveChatLoading,
-            bootstrapChats,
-            initialChatId,
-            rejectInitialOptimisticChatBootstrap,
-        });
-    }, [
-        bootstrapChats,
-        initialChatId,
-        rejectInitialOptimisticChatBootstrap,
-        shouldUseHistory,
-        syncActiveChatSelection,
-    ]);
-
-    useEffect(() => registerActiveTimeoutTicker(hasAnyActiveTimeouts, setCurrentTimestamp), [hasAnyActiveTimeouts]);
-
-    useEffect(
-        () =>
-            keepActiveChatStreamConnected({
-                shouldUseHistory,
-                activeChatId,
-                isActiveChatReadOnly,
-                isActiveChatOptimistic,
-                isActiveBrowserTab,
-                agentName,
-                activeChatIdRef,
-                setIsActiveChatStreamConnected,
-                applyChatDetail,
-                refreshActiveChat,
-            }),
-        [
-            activeChatId,
-            agentName,
-            applyChatDetail,
-            isActiveBrowserTab,
-            isActiveChatOptimistic,
-            isActiveChatReadOnly,
-            refreshActiveChat,
-            shouldUseHistory,
-        ],
-    );
-
-    useEffect(
-        () =>
-            registerActiveChatRefreshPolling({
-                shouldUseHistory,
-                activeChatId,
-                isActiveChatReadOnly,
-                isActiveChatOptimistic,
-                isActiveChatStreamConnected,
-                refreshActiveChat,
-            }),
-        [
-            activeChatId,
-            isActiveChatOptimistic,
-            isActiveChatReadOnly,
-            isActiveChatStreamConnected,
-            refreshActiveChat,
-            shouldUseHistory,
-        ],
-    );
-
     const handleSelectChat = useCallback(
         (chatId: string): Promise<void> =>
-            openSelectedChat({
+            AgentChatHistorySyncOperations.openSelectedChat({
                 chatId,
                 activeChatIdRef,
                 isActiveChatLoading,
@@ -866,7 +550,7 @@ export function useAgentChatHistorySyncState({
 
     const handleCreateChat = useCallback(
         (): Promise<void> =>
-            createAndSelectOptimisticChat({
+            AgentChatHistorySyncOperations.createAndSelectOptimisticChat({
                 agentName,
                 isCreatingChat,
                 activeChatIdRef,
@@ -893,14 +577,16 @@ export function useAgentChatHistorySyncState({
             isCreatingChat,
             issueSelectionIntent,
             logChatSelection,
+            pendingOptimisticChatCreationsRef,
             reassignFailedSendRecordsToChatId,
+            resolvedOptimisticChatIdsRef,
             syncActiveChatSelection,
         ],
     );
 
     const handleDeleteChat = useCallback(
         (chatId: string): Promise<void> =>
-            deleteChatAndRefresh({
+            AgentChatHistorySyncOperations.deleteChatAndRefresh({
                 agentName,
                 chatId,
                 formatText,
@@ -914,12 +600,21 @@ export function useAgentChatHistorySyncState({
                 bootstrapChats,
                 refreshActiveChat,
             }),
-        [agentName, bootstrapChats, clearFailedSendRecordsForChat, formatText, issueSelectionIntent, refreshActiveChat],
+        [
+            agentName,
+            bootstrapChats,
+            clearFailedSendRecordsForChat,
+            formatText,
+            issueSelectionIntent,
+            pendingOptimisticChatCreationsRef,
+            refreshActiveChat,
+            resolvedOptimisticChatIdsRef,
+        ],
     );
 
     const handleCancelActiveJob = useCallback(
         (jobId: string): Promise<void> =>
-            cancelSelectedChatResource({
+            AgentChatHistorySyncOperations.cancelSelectedChatResource({
                 resourceId: jobId,
                 activeChatIdRef,
                 cancelResource: (chatId, currentJobId) => cancelUserChatJob(agentName, chatId, currentJobId),
@@ -931,7 +626,7 @@ export function useAgentChatHistorySyncState({
 
     const handleCancelActiveTimeout = useCallback(
         (timeoutId: string): Promise<void> =>
-            cancelSelectedChatResource({
+            AgentChatHistorySyncOperations.cancelSelectedChatResource({
                 resourceId: timeoutId,
                 activeChatIdRef,
                 cancelResource: (chatId, currentTimeoutId) =>
@@ -941,6 +636,39 @@ export function useAgentChatHistorySyncState({
             }),
         [agentName, applyChatDetail],
     );
+
+    useAgentChatHistorySyncEffects({
+        shouldUseHistory,
+        initialChatId,
+        initialForceNewChat,
+        initialShareTargetId,
+        autoExecuteTargetChatIdRef,
+        shareTargetIdRef,
+        activeChatId,
+        activeMessages,
+        isActiveChatReadOnly,
+        isActiveChatOptimistic,
+        isActiveBrowserTab,
+        isActiveChatStreamConnected,
+        agentName,
+        setFocusedChat,
+        activeChatIdRef,
+        applyChatDetail,
+        refreshActiveChat,
+        syncActiveChatSelection,
+        failedSendByChatIdRef,
+        pendingOptimisticChatCreationsRef,
+        resolvedOptimisticChatIdsRef,
+        setChats,
+        setIsActiveChatStreamConnected,
+        setIsBootstrapping,
+        setIsChatListLoading,
+        setIsActiveChatLoading,
+        bootstrapChats,
+        rejectInitialOptimisticChatBootstrap,
+        hasAnyActiveTimeouts,
+        setCurrentTimestamp,
+    });
 
     return {
         chats,
@@ -975,658 +703,6 @@ export function useAgentChatHistorySyncState({
 }
 
 /**
- * Applies one resolved chat detail payload after validating the current selection intent.
- *
- * @private function of useAgentChatHistoryClientState
- */
-function applyChatDetailStateUpdate(params: {
-    chatDetail: UserChatDetail | UserChatEnqueueResult;
-    options: ApplyAgentChatPayloadOptions;
-    activeChatIdRef: { current: string | null };
-    selectionIntentRef: { current: ChatSelectionIntent };
-    isSelectionIntentCurrent: (sequence: number) => boolean;
-    isEquivalentSelectedChat: (selectedChatId: string | null, resolvedChatId: string) => boolean;
-    logChatSelection: (event: string, payload?: Record<string, unknown>) => void;
-    setChats: (updater: (previousChats: Array<UserChatSummary>) => Array<UserChatSummary>) => void;
-    syncActiveChatSelection: SyncActiveChatSelection;
-    activeDraftDirtyRef: { current: boolean };
-    isActiveDraftUserOwnedRef: { current: boolean };
-    setActiveMessages: (messages: Array<ChatMessage>) => void;
-    setActiveJobs: (jobs: Array<UserChatJob>) => void;
-    setActiveTimeouts: (timeouts: Array<UserChatTimeout>) => void;
-    setActiveChatDraftMessage: (draftMessage: string) => void;
-    setIsActiveChatLoading: (isLoading: boolean) => void;
-}): boolean {
-    const {
-        chatDetail,
-        options,
-        activeChatIdRef,
-        selectionIntentRef,
-        isSelectionIntentCurrent,
-        isEquivalentSelectedChat,
-        logChatSelection,
-        setChats,
-        syncActiveChatSelection,
-        activeDraftDirtyRef,
-        isActiveDraftUserOwnedRef,
-        setActiveMessages,
-        setActiveJobs,
-        setActiveTimeouts,
-        setActiveChatDraftMessage,
-        setIsActiveChatLoading,
-    } = params;
-
-    const reason = options.reason || 'detail-update';
-    const resolvedChatId = chatDetail.chat.id;
-    const currentSelectedChatId = activeChatIdRef.current;
-    const validationResult = validateChatPayloadSelection({
-        allowSelectionAdoption: options.allowSelectionAdoption,
-        currentSelectedChatId,
-        expectedChatId: options.expectedChatId,
-        intentSequence: options.intentSequence,
-        currentIntentSequence: selectionIntentRef.current.sequence,
-        resolvedChatId,
-        reason,
-        staleEvent: 'selection_skip_detail_stale_intent',
-        mismatchEvent: 'selection_skip_detail_chat_mismatch',
-        selectionMismatchEvent: 'selection_skip_detail_selection_mismatch',
-        isSelectionIntentCurrent,
-        isEquivalentSelectedChat,
-        logChatSelection,
-        shouldUpdateChatListOnSelectionMismatch: true,
-    });
-
-    if (validationResult.shouldUpdateChatList) {
-        setChats((previousChats) => replaceChatInList(previousChats, chatDetail.chat));
-    }
-
-    if (!validationResult.shouldApplyPayload) {
-        return false;
-    }
-
-    applyResolvedChatPayload({
-        resolvedChatId,
-        nextMessages: chatDetail.messages,
-        nextActiveJobs: chatDetail.activeJobs,
-        nextActiveTimeouts: chatDetail.activeTimeouts,
-        nextDraftMessage: chatDetail.draftMessage,
-        currentSelectedChatId,
-        preserveDirtyDraft: options.preserveDirtyDraft,
-        includeInitialMessage: options.includeInitialMessage,
-        reason,
-        appliedEvent: 'selection_apply_detail',
-        syncActiveChatSelection,
-        isEquivalentSelectedChat,
-        activeDraftDirtyRef,
-        isActiveDraftUserOwnedRef,
-        setActiveMessages,
-        setActiveJobs,
-        setActiveTimeouts,
-        setActiveChatDraftMessage,
-        setIsActiveChatLoading,
-        logChatSelection,
-    });
-
-    return true;
-}
-
-/**
- * Applies one fetched chat snapshot after validating the current selection intent.
- *
- * @private function of useAgentChatHistoryClientState
- */
-function applySnapshotStateUpdate(params: {
-    snapshot: UserChatsSnapshot;
-    options: ApplyAgentChatPayloadOptions;
-    activeChatIdRef: { current: string | null };
-    selectionIntentRef: { current: ChatSelectionIntent };
-    isSelectionIntentCurrent: (sequence: number) => boolean;
-    isEquivalentSelectedChat: (selectedChatId: string | null, resolvedChatId: string) => boolean;
-    logChatSelection: (event: string, payload?: Record<string, unknown>) => void;
-    setChats: (chats: Array<UserChatSummary>) => void;
-    syncActiveChatSelection: SyncActiveChatSelection;
-    activeDraftDirtyRef: { current: boolean };
-    isActiveDraftUserOwnedRef: { current: boolean };
-    setActiveMessages: (messages: Array<ChatMessage>) => void;
-    setActiveJobs: (jobs: Array<UserChatJob>) => void;
-    setActiveTimeouts: (timeouts: Array<UserChatTimeout>) => void;
-    setActiveChatDraftMessage: (draftMessage: string) => void;
-    setIsActiveChatLoading: (isLoading: boolean) => void;
-}): boolean {
-    const {
-        snapshot,
-        options,
-        activeChatIdRef,
-        selectionIntentRef,
-        isSelectionIntentCurrent,
-        isEquivalentSelectedChat,
-        logChatSelection,
-        setChats,
-        syncActiveChatSelection,
-        activeDraftDirtyRef,
-        isActiveDraftUserOwnedRef,
-        setActiveMessages,
-        setActiveJobs,
-        setActiveTimeouts,
-        setActiveChatDraftMessage,
-        setIsActiveChatLoading,
-    } = params;
-
-    const reason = options.reason || 'snapshot-update';
-    setChats(snapshot.chats);
-    if (!snapshot.activeChatId) {
-        if (options.allowSelectionAdoption !== true) {
-            logChatSelection('selection_skip_snapshot_missing_active_chat', {
-                reason,
-                expectedChatId: options.expectedChatId || activeChatIdRef.current,
-            });
-            return false;
-        }
-
-        syncActiveChatSelection(null, {
-            clearChatContent: true,
-            reason,
-        });
-        setIsActiveChatLoading(false);
-        return true;
-    }
-
-    const currentSelectedChatId = activeChatIdRef.current;
-    const validationResult = validateChatPayloadSelection({
-        allowSelectionAdoption: options.allowSelectionAdoption,
-        currentSelectedChatId,
-        expectedChatId: options.expectedChatId,
-        intentSequence: options.intentSequence,
-        currentIntentSequence: selectionIntentRef.current.sequence,
-        resolvedChatId: snapshot.activeChatId,
-        reason,
-        staleEvent: 'selection_skip_snapshot_stale_intent',
-        mismatchEvent: 'selection_skip_snapshot_chat_mismatch',
-        selectionMismatchEvent: 'selection_skip_snapshot_selection_mismatch',
-        isSelectionIntentCurrent,
-        isEquivalentSelectedChat,
-        logChatSelection,
-        shouldUpdateChatListOnSelectionMismatch: false,
-    });
-
-    if (!validationResult.shouldApplyPayload) {
-        return false;
-    }
-
-    applyResolvedChatPayload({
-        resolvedChatId: snapshot.activeChatId,
-        nextMessages: snapshot.activeMessages,
-        nextActiveJobs: snapshot.activeJobs,
-        nextActiveTimeouts: snapshot.activeTimeouts,
-        nextDraftMessage: snapshot.activeDraftMessage,
-        currentSelectedChatId,
-        preserveDirtyDraft: options.preserveDirtyDraft,
-        includeInitialMessage: options.includeInitialMessage,
-        reason,
-        appliedEvent: 'selection_apply_snapshot',
-        syncActiveChatSelection,
-        isEquivalentSelectedChat,
-        activeDraftDirtyRef,
-        isActiveDraftUserOwnedRef,
-        setActiveMessages,
-        setActiveJobs,
-        setActiveTimeouts,
-        setActiveChatDraftMessage,
-        setIsActiveChatLoading,
-        logChatSelection,
-    });
-
-    return true;
-}
-
-/**
- * Creates the bootstrap chat when the first render must start from a fresh canonical conversation.
- *
- * @private function of useAgentChatHistoryClientState
- */
-async function createBootstrapChatFromSnapshot(params: {
-    agentName: string;
-    snapshot: UserChatsSnapshot;
-    intentSequence: number;
-    resolveInitialOptimisticChatBootstrap: (createdChat: UserChatDetail) => void;
-    hasInitialAutoExecutePayload: boolean;
-    hasInitialAutoMessageBeenConsumedRef: { current: boolean };
-    autoExecuteTargetChatIdRef: { current: string | undefined };
-    applyChatDetail: ApplyAgentChatDetail;
-    initialOptimisticChatBootstrapRef: { current: InitialOptimisticChatBootstrap | null };
-    setChats: (chats: Array<UserChatSummary>) => void;
-}): Promise<void> {
-    const {
-        agentName,
-        snapshot,
-        intentSequence,
-        resolveInitialOptimisticChatBootstrap,
-        hasInitialAutoExecutePayload,
-        hasInitialAutoMessageBeenConsumedRef,
-        autoExecuteTargetChatIdRef,
-        applyChatDetail,
-        initialOptimisticChatBootstrapRef,
-        setChats,
-    } = params;
-
-    const createdChat = await createUserChat(agentName);
-    resolveInitialOptimisticChatBootstrap(createdChat);
-    if (hasInitialAutoExecutePayload) {
-        autoExecuteTargetChatIdRef.current = createdChat.chat.id;
-    }
-
-    applyChatDetail(createdChat, {
-        allowSelectionAdoption: true,
-        includeInitialMessage: !hasInitialAutoMessageBeenConsumedRef.current && hasInitialAutoExecutePayload,
-        intentSequence,
-        reason: 'bootstrap_create_chat',
-    });
-    const currentInitialOptimisticChatBootstrap = initialOptimisticChatBootstrapRef.current;
-    setChats(
-        currentInitialOptimisticChatBootstrap
-            ? replaceOptimisticChatWithCanonicalChat(
-                  snapshot.chats,
-                  currentInitialOptimisticChatBootstrap.optimisticChatId,
-                  createdChat.chat,
-              )
-            : [createdChat.chat, ...snapshot.chats.filter((chat) => chat.id !== createdChat.chat.id)],
-    );
-}
-
-/**
- * Resolves the initial durable history selection by loading a snapshot or creating a fresh chat.
- *
- * @private function of useAgentChatHistoryClientState
- */
-async function bootstrapChatSelection(params: {
-    preferredChatId?: string;
-    initialForceNewChat: boolean;
-    issueSelectionIntent: (kind: ChatSelectionIntent['kind'], targetChatId: string | null) => number;
-    logChatSelection: (event: string, payload?: Record<string, unknown>) => void;
-    fetchChatSnapshot: FetchChatSnapshot;
-    hasInitialAutoExecutePayload: boolean;
-    hasInitialAutoMessageBeenConsumedRef: { current: boolean };
-    initialOptimisticChatBootstrapRef: { current: InitialOptimisticChatBootstrap | null };
-    createBootstrapChat: (snapshot: UserChatsSnapshot, intentSequence: number) => Promise<void>;
-    applySnapshot: (snapshot: UserChatsSnapshot, options?: ApplyAgentChatPayloadOptions) => boolean;
-    autoExecuteTargetChatIdRef: { current: string | undefined };
-}): Promise<void> {
-    const {
-        preferredChatId,
-        initialForceNewChat,
-        issueSelectionIntent,
-        logChatSelection,
-        fetchChatSnapshot,
-        hasInitialAutoExecutePayload,
-        hasInitialAutoMessageBeenConsumedRef,
-        initialOptimisticChatBootstrapRef,
-        createBootstrapChat,
-        applySnapshot,
-        autoExecuteTargetChatIdRef,
-    } = params;
-
-    const effectivePreferredChatId = initialForceNewChat ? undefined : preferredChatId;
-    const intentSequence = issueSelectionIntent('BOOTSTRAP', effectivePreferredChatId || null);
-    logChatSelection('bootstrap_start', {
-        preferredChatId: effectivePreferredChatId || null,
-        intentSequence,
-    });
-    const snapshot = await fetchChatSnapshot(effectivePreferredChatId);
-    if (
-        shouldBootstrapCreateFreshChat({
-            initialForceNewChat,
-            hasInitialAutoExecutePayload,
-            effectivePreferredChatId,
-            snapshotActiveChatId: snapshot.activeChatId,
-            hasInitialAutoMessageBeenConsumed: hasInitialAutoMessageBeenConsumedRef.current,
-            hasInitialOptimisticChatBootstrap: Boolean(initialOptimisticChatBootstrapRef.current),
-        })
-    ) {
-        await createBootstrapChat(snapshot, intentSequence);
-        return;
-    }
-
-    const snapshotActiveChatId = snapshot.activeChatId;
-    if (!snapshotActiveChatId) {
-        return;
-    }
-
-    applySnapshot(snapshot, {
-        allowSelectionAdoption: true,
-        expectedChatId: effectivePreferredChatId,
-        includeInitialMessage: shouldKeepBootstrapInitialMessage({
-            hasInitialAutoExecutePayload,
-            hasInitialAutoMessageBeenConsumed: hasInitialAutoMessageBeenConsumedRef.current,
-            autoExecuteTargetChatId: autoExecuteTargetChatIdRef.current,
-            snapshotActiveChatId,
-        }),
-        intentSequence,
-        reason: 'bootstrap_snapshot',
-    });
-}
-
-/**
- * Refreshes the currently selected durable chat when it can be safely reloaded from the server.
- *
- * @private function of useAgentChatHistoryClientState
- */
-async function refreshSelectedChat(params: {
-    shouldUseHistory: boolean;
-    options: { preserveDirtyDraft?: boolean };
-    activeChatIdRef: { current: string | null };
-    isRefreshingRef: { current: boolean };
-    fetchChatSnapshot: FetchChatSnapshot;
-    logChatSelection: (event: string, payload?: Record<string, unknown>) => void;
-    bootstrapChats: (preferredChatId?: string) => Promise<void>;
-    applySnapshot: (snapshot: UserChatsSnapshot, options?: ApplyAgentChatPayloadOptions) => boolean;
-}): Promise<void> {
-    const {
-        shouldUseHistory,
-        options,
-        activeChatIdRef,
-        isRefreshingRef,
-        fetchChatSnapshot,
-        logChatSelection,
-        bootstrapChats,
-        applySnapshot,
-    } = params;
-
-    const currentActiveChatId = activeChatIdRef.current;
-    if (!shouldUseHistory || !currentActiveChatId || isOptimisticChatId(currentActiveChatId) || isRefreshingRef.current) {
-        return;
-    }
-
-    isRefreshingRef.current = true;
-    try {
-        const snapshot = await fetchChatSnapshot(currentActiveChatId);
-        if (!snapshot.activeChatId) {
-            logChatSelection('refresh_missing_active_chat', {
-                chatId: currentActiveChatId,
-            });
-            await bootstrapChats(undefined);
-            return;
-        }
-
-        applySnapshot(snapshot, {
-            expectedChatId: currentActiveChatId,
-            preserveDirtyDraft: options.preserveDirtyDraft,
-            reason: 'refresh_active_chat',
-        });
-    } finally {
-        isRefreshingRef.current = false;
-    }
-}
-
-/**
- * Opens one sidebar-selected chat after flushing the active draft and validating the selection intent.
- *
- * @private function of useAgentChatHistoryClientState
- */
-async function openSelectedChat(params: {
-    chatId: string;
-    activeChatIdRef: { current: string | null };
-    isActiveChatLoading: boolean;
-    issueSelectionIntent: (kind: ChatSelectionIntent['kind'], targetChatId: string | null) => number;
-    logChatSelection: (event: string, payload?: Record<string, unknown>) => void;
-    flushActiveDraft: (options?: { keepalive?: boolean }) => Promise<void>;
-    isSelectionIntentCurrent: (sequence: number) => boolean;
-    setIsActiveChatLoading: (isLoading: boolean) => void;
-    syncActiveChatSelection: SyncActiveChatSelection;
-    fetchChatSnapshot: FetchChatSnapshot;
-    applySnapshot: (snapshot: UserChatsSnapshot, options?: ApplyAgentChatPayloadOptions) => boolean;
-}): Promise<void> {
-    const {
-        chatId,
-        activeChatIdRef,
-        isActiveChatLoading,
-        issueSelectionIntent,
-        logChatSelection,
-        flushActiveDraft,
-        isSelectionIntentCurrent,
-        setIsActiveChatLoading,
-        syncActiveChatSelection,
-        fetchChatSnapshot,
-        applySnapshot,
-    } = params;
-
-    if (chatId === activeChatIdRef.current && !isActiveChatLoading) {
-        return;
-    }
-
-    const intentSequence = issueSelectionIntent('OPEN_CHAT', chatId);
-    logChatSelection('open_chat_click', {
-        chatId,
-        intentSequence,
-    });
-    await flushActiveDraft();
-    if (!isSelectionIntentCurrent(intentSequence)) {
-        logChatSelection('open_chat_cancelled_stale_intent', {
-            chatId,
-            intentSequence,
-        });
-        return;
-    }
-
-    setIsActiveChatLoading(true);
-    syncActiveChatSelection(chatId, {
-        clearChatContent: true,
-        reason: 'open_chat_click',
-    });
-    try {
-        const snapshot = await fetchChatSnapshot(chatId);
-        applySnapshot(snapshot, {
-            expectedChatId: chatId,
-            intentSequence,
-            reason: 'open_chat_snapshot',
-        });
-    } catch (error) {
-        setIsActiveChatLoading(false);
-        notifyError(resolveErrorMessage(error, 'Failed to open chat.'));
-    }
-}
-
-/**
- * Creates one optimistic chat entry, promotes it to the canonical chat, and rolls back on failure.
- *
- * @private function of useAgentChatHistoryClientState
- */
-async function createAndSelectOptimisticChat(params: {
-    agentName: string;
-    isCreatingChat: boolean;
-    activeChatIdRef: { current: string | null };
-    issueSelectionIntent: (kind: ChatSelectionIntent['kind'], targetChatId: string | null) => number;
-    logChatSelection: (event: string, payload?: Record<string, unknown>) => void;
-    flushActiveDraft: (options?: { keepalive?: boolean }) => Promise<void>;
-    setChats: (updater: (previousChats: Array<UserChatSummary>) => Array<UserChatSummary>) => void;
-    syncActiveChatSelection: SyncActiveChatSelection;
-    pendingOptimisticChatCreationsRef: { current: Map<string, Promise<UserChatDetail>> };
-    setIsCreatingChat: (isCreatingChat: boolean) => void;
-    applyChatDetail: ApplyAgentChatDetail;
-    resolvedOptimisticChatIdsRef: { current: Map<string, string> };
-    reassignFailedSendRecordsToChatId: (fromChatId: string, toChatId: string) => void;
-    clearFailedSendRecordsForChat: (chatId: string) => void;
-    setIsActiveChatLoading: (isLoading: boolean) => void;
-    bootstrapChats: (preferredChatId?: string) => Promise<void>;
-}): Promise<void> {
-    const {
-        agentName,
-        isCreatingChat,
-        activeChatIdRef,
-        issueSelectionIntent,
-        logChatSelection,
-        flushActiveDraft,
-        setChats,
-        syncActiveChatSelection,
-        pendingOptimisticChatCreationsRef,
-        setIsCreatingChat,
-        applyChatDetail,
-        resolvedOptimisticChatIdsRef,
-        reassignFailedSendRecordsToChatId,
-        clearFailedSendRecordsForChat,
-        setIsActiveChatLoading,
-        bootstrapChats,
-    } = params;
-
-    if (isCreatingChat) {
-        return;
-    }
-
-    const previousActiveChatId = activeChatIdRef.current;
-    const optimisticChatId = createOptimisticChatId();
-    const optimisticChat = createOptimisticUserChatSummary(optimisticChatId, new Date().toISOString());
-    const intentSequence = issueSelectionIntent('NEW_CHAT', optimisticChatId);
-    logChatSelection('new_chat_click', {
-        intentSequence,
-        optimisticChatId,
-    });
-
-    const flushDraftPromise = flushActiveDraft().catch(() => undefined);
-    setChats((previousChats) => replaceChatInList(previousChats, optimisticChat));
-    syncActiveChatSelection(optimisticChatId, {
-        clearChatContent: true,
-        reason: 'create_chat_optimistic_selection',
-    });
-
-    const createChatPromise = (async () => {
-        await flushDraftPromise;
-        return createUserChat(agentName);
-    })();
-    pendingOptimisticChatCreationsRef.current.set(optimisticChatId, createChatPromise);
-    setIsCreatingChat(true);
-
-    try {
-        logChatSelection('create_chat_start', {
-            intentSequence,
-            optimisticChatId,
-        });
-        const createdChat = await createChatPromise;
-        finalizeCreatedOptimisticChat({
-            optimisticChatId,
-            createdChat,
-            intentSequence,
-            pendingOptimisticChatCreationsRef,
-            resolvedOptimisticChatIdsRef,
-            reassignFailedSendRecordsToChatId,
-            setChats,
-            logChatSelection,
-            applyChatDetail,
-        });
-    } catch (error) {
-        await rollbackCreatedOptimisticChat({
-            optimisticChatId,
-            previousActiveChatId,
-            activeChatIdRef,
-            pendingOptimisticChatCreationsRef,
-            resolvedOptimisticChatIdsRef,
-            clearFailedSendRecordsForChat,
-            setChats,
-            setIsActiveChatLoading,
-            bootstrapChats,
-        });
-
-        logChatSelection('create_chat_fail', {
-            intentSequence,
-            optimisticChatId,
-            error: error instanceof Error ? error.message : String(error),
-        });
-        notifyError(resolveErrorMessage(error, 'Failed to create chat.'));
-    } finally {
-        setIsCreatingChat(false);
-    }
-}
-
-/**
- * Deletes one chat, clears optimistic bookkeeping, and refreshes the active selection when needed.
- *
- * @private function of useAgentChatHistoryClientState
- */
-async function deleteChatAndRefresh(params: {
-    agentName: string;
-    chatId: string;
-    formatText: (text: string) => string;
-    setIsChatListLoading: (isLoading: boolean) => void;
-    clearFailedSendRecordsForChat: (chatId: string) => void;
-    pendingOptimisticChatCreationsRef: { current: Map<string, Promise<UserChatDetail>> };
-    resolvedOptimisticChatIdsRef: { current: Map<string, string> };
-    activeChatIdRef: { current: string | null };
-    issueSelectionIntent: (kind: ChatSelectionIntent['kind'], targetChatId: string | null) => number;
-    setIsActiveChatLoading: (isLoading: boolean) => void;
-    bootstrapChats: (preferredChatId?: string) => Promise<void>;
-    refreshActiveChat: RefreshActiveChat;
-}): Promise<void> {
-    const {
-        agentName,
-        chatId,
-        formatText,
-        setIsChatListLoading,
-        clearFailedSendRecordsForChat,
-        pendingOptimisticChatCreationsRef,
-        resolvedOptimisticChatIdsRef,
-        activeChatIdRef,
-        issueSelectionIntent,
-        setIsActiveChatLoading,
-        bootstrapChats,
-        refreshActiveChat,
-    } = params;
-
-    const confirmed = await showConfirm({
-        title: formatText('Delete chat'),
-        message: formatText('Do you want to permanently delete this chat?'),
-        confirmLabel: formatText('Delete'),
-        cancelLabel: formatText('Cancel'),
-    }).catch(() => false);
-    if (!confirmed) {
-        return;
-    }
-
-    try {
-        setIsChatListLoading(true);
-        await removeUserChat(agentName, chatId);
-        clearPendingOutboundMessages(chatId);
-        clearFailedSendRecordsForChat(chatId);
-        pendingOptimisticChatCreationsRef.current.delete(chatId);
-        resolvedOptimisticChatIdsRef.current.delete(chatId);
-        if (activeChatIdRef.current === chatId) {
-            issueSelectionIntent('DELETE_CHAT', null);
-            setIsActiveChatLoading(true);
-            await bootstrapChats(undefined);
-        } else {
-            await refreshActiveChat({ preserveDirtyDraft: true });
-        }
-    } catch (error) {
-        notifyError(resolveErrorMessage(error, 'Failed to delete chat.'));
-    } finally {
-        setIsChatListLoading(false);
-    }
-}
-
-/**
- * Cancels one active job or timeout for the currently selected chat.
- *
- * @private function of useAgentChatHistoryClientState
- */
-async function cancelSelectedChatResource(params: {
-    resourceId: string;
-    activeChatIdRef: { current: string | null };
-    cancelResource: (chatId: string, resourceId: string) => Promise<UserChatDetail | UserChatEnqueueResult>;
-    applyChatDetail: ApplyAgentChatDetail;
-    reason: string;
-}): Promise<void> {
-    const { resourceId, activeChatIdRef, cancelResource, applyChatDetail, reason } = params;
-    const currentActiveChatId = activeChatIdRef.current;
-    if (!currentActiveChatId) {
-        return;
-    }
-
-    const chatDetail = await cancelResource(currentActiveChatId, resourceId);
-    applyChatDetail(chatDetail, {
-        expectedChatId: currentActiveChatId,
-        preserveDirtyDraft: true,
-        reason,
-    });
-}
-
-/**
  * Replaces browser URL without triggering App Router navigation.
  *
  * @private function of useAgentChatHistoryClientState
@@ -1642,981 +718,4 @@ function replaceBrowserUrlWithoutNavigation(nextRelativeUrl: string): void {
     }
 
     window.history.replaceState(window.history.state, '', nextRelativeUrl);
-}
-
-/**
- * Clears the selected chat payload and resets local draft ownership markers.
- *
- * @private function of useAgentChatHistoryClientState
- */
-function clearActiveChatRuntimeState(params: {
-    setActiveMessages: (messages: Array<ChatMessage>) => void;
-    setActiveJobs: (jobs: Array<UserChatJob>) => void;
-    setActiveTimeouts: (timeouts: Array<UserChatTimeout>) => void;
-    setActiveChatDraftMessage: (draftMessage: string) => void;
-    activeDraftDirtyRef: { current: boolean };
-    isActiveDraftUserOwnedRef: { current: boolean };
-}): void {
-    const {
-        setActiveMessages,
-        setActiveJobs,
-        setActiveTimeouts,
-        setActiveChatDraftMessage,
-        activeDraftDirtyRef,
-        isActiveDraftUserOwnedRef,
-    } = params;
-
-    setActiveMessages([]);
-    setActiveJobs([]);
-    setActiveTimeouts([]);
-    setActiveChatDraftMessage('');
-    activeDraftDirtyRef.current = false;
-    isActiveDraftUserOwnedRef.current = false;
-}
-
-/**
- * Returns true when the local unsaved draft should win over an incoming server payload.
- *
- * @private function of useAgentChatHistoryClientState
- */
-function shouldPreserveUserOwnedDraft(params: {
-    preserveDirtyDraft?: boolean;
-    currentSelectedChatId: string | null;
-    resolvedChatId: string;
-    isActiveDraftUserOwned: boolean;
-    isEquivalentSelectedChat: (selectedChatId: string | null, resolvedChatId: string) => boolean;
-}): boolean {
-    const {
-        preserveDirtyDraft,
-        currentSelectedChatId,
-        resolvedChatId,
-        isActiveDraftUserOwned,
-        isEquivalentSelectedChat,
-    } = params;
-
-    return (
-        preserveDirtyDraft === true &&
-        isActiveDraftUserOwned &&
-        isEquivalentSelectedChat(currentSelectedChatId, resolvedChatId)
-    );
-}
-
-/**
- * Applies the next draft message unless a user-owned draft must be preserved.
- *
- * @private function of useAgentChatHistoryClientState
- */
-function applyResolvedDraftMessage(params: {
-    nextDraftMessage: string | null | undefined;
-    preserveDirtyDraft?: boolean;
-    currentSelectedChatId: string | null;
-    resolvedChatId: string;
-    isEquivalentSelectedChat: (selectedChatId: string | null, resolvedChatId: string) => boolean;
-    activeDraftDirtyRef: { current: boolean };
-    isActiveDraftUserOwnedRef: { current: boolean };
-    setActiveChatDraftMessage: (draftMessage: string) => void;
-}): void {
-    const {
-        nextDraftMessage,
-        preserveDirtyDraft,
-        currentSelectedChatId,
-        resolvedChatId,
-        isEquivalentSelectedChat,
-        activeDraftDirtyRef,
-        isActiveDraftUserOwnedRef,
-        setActiveChatDraftMessage,
-    } = params;
-
-    if (
-        shouldPreserveUserOwnedDraft({
-            preserveDirtyDraft,
-            currentSelectedChatId,
-            resolvedChatId,
-            isActiveDraftUserOwned: isActiveDraftUserOwnedRef.current,
-            isEquivalentSelectedChat,
-        })
-    ) {
-        return;
-    }
-
-    activeDraftDirtyRef.current = false;
-    isActiveDraftUserOwnedRef.current = false;
-    setActiveChatDraftMessage(nextDraftMessage || '');
-}
-
-/**
- * Consolidates selection-intent and resolved-chat applicability checks for incoming payloads.
- *
- * @private function of useAgentChatHistoryClientState
- */
-function validateChatPayloadSelection(params: {
-    allowSelectionAdoption?: boolean;
-    currentSelectedChatId: string | null;
-    expectedChatId?: string;
-    intentSequence?: number;
-    currentIntentSequence: number;
-    resolvedChatId: string;
-    reason: string;
-    staleEvent: string;
-    mismatchEvent: string;
-    selectionMismatchEvent: string;
-    isSelectionIntentCurrent: (sequence: number) => boolean;
-    isEquivalentSelectedChat: (selectedChatId: string | null, resolvedChatId: string) => boolean;
-    logChatSelection: (event: string, payload?: Record<string, unknown>) => void;
-    shouldUpdateChatListOnSelectionMismatch: boolean;
-}): ChatPayloadValidationResult {
-    const {
-        allowSelectionAdoption,
-        currentSelectedChatId,
-        expectedChatId,
-        intentSequence,
-        currentIntentSequence,
-        resolvedChatId,
-        reason,
-        staleEvent,
-        mismatchEvent,
-        selectionMismatchEvent,
-        isSelectionIntentCurrent,
-        isEquivalentSelectedChat,
-        logChatSelection,
-        shouldUpdateChatListOnSelectionMismatch,
-    } = params;
-
-    if (
-        isSelectionIntentStale({
-            intentSequence,
-            currentIntentSequence,
-            expectedChatId: expectedChatId || null,
-            resolvedChatId,
-            reason,
-            staleEvent,
-            isSelectionIntentCurrent,
-            logChatSelection,
-        })
-    ) {
-        return {
-            shouldApplyPayload: false,
-            shouldUpdateChatList: false,
-        };
-    }
-
-    if (
-        isUnexpectedResolvedChatId({
-            expectedChatId,
-            resolvedChatId,
-            reason,
-            mismatchEvent,
-            logChatSelection,
-        })
-    ) {
-        return {
-            shouldApplyPayload: false,
-            shouldUpdateChatList: false,
-        };
-    }
-
-    if (
-        isSelectionMismatchForResolvedChat({
-            allowSelectionAdoption,
-            currentSelectedChatId,
-            resolvedChatId,
-            reason,
-            mismatchEvent: selectionMismatchEvent,
-            isEquivalentSelectedChat,
-            logChatSelection,
-        })
-    ) {
-        return {
-            shouldApplyPayload: false,
-            shouldUpdateChatList: shouldUpdateChatListOnSelectionMismatch,
-        };
-    }
-
-    return {
-        shouldApplyPayload: true,
-        shouldUpdateChatList: true,
-    };
-}
-
-/**
- * Returns true when a newer explicit selection intent already superseded the current payload.
- *
- * @private function of useAgentChatHistoryClientState
- */
-function isSelectionIntentStale(params: {
-    intentSequence?: number;
-    currentIntentSequence: number;
-    expectedChatId?: string | null;
-    resolvedChatId: string;
-    reason: string;
-    staleEvent: string;
-    isSelectionIntentCurrent: (sequence: number) => boolean;
-    logChatSelection: (event: string, payload?: Record<string, unknown>) => void;
-}): boolean {
-    const {
-        intentSequence,
-        currentIntentSequence,
-        expectedChatId,
-        resolvedChatId,
-        reason,
-        staleEvent,
-        isSelectionIntentCurrent,
-        logChatSelection,
-    } = params;
-
-    if (intentSequence === undefined || isSelectionIntentCurrent(intentSequence)) {
-        return false;
-    }
-
-    logChatSelection(staleEvent, {
-        reason,
-        expectedChatId: expectedChatId || null,
-        resolvedChatId,
-        intentSequence,
-        currentIntentSequence,
-    });
-
-    return true;
-}
-
-/**
- * Returns true when the resolved chat id does not match the caller's expected target.
- *
- * @private function of useAgentChatHistoryClientState
- */
-function isUnexpectedResolvedChatId(params: {
-    expectedChatId?: string;
-    resolvedChatId: string;
-    reason: string;
-    mismatchEvent: string;
-    logChatSelection: (event: string, payload?: Record<string, unknown>) => void;
-}): boolean {
-    const { expectedChatId, resolvedChatId, reason, mismatchEvent, logChatSelection } = params;
-
-    if (!expectedChatId || expectedChatId === resolvedChatId) {
-        return false;
-    }
-
-    logChatSelection(mismatchEvent, {
-        reason,
-        expectedChatId,
-        resolvedChatId,
-    });
-
-    return true;
-}
-
-/**
- * Returns true when a resolved payload no longer matches the currently selected chat.
- *
- * @private function of useAgentChatHistoryClientState
- */
-function isSelectionMismatchForResolvedChat(params: {
-    allowSelectionAdoption?: boolean;
-    currentSelectedChatId: string | null;
-    resolvedChatId: string;
-    reason: string;
-    mismatchEvent: string;
-    isEquivalentSelectedChat: (selectedChatId: string | null, resolvedChatId: string) => boolean;
-    logChatSelection: (event: string, payload?: Record<string, unknown>) => void;
-}): boolean {
-    const {
-        allowSelectionAdoption,
-        currentSelectedChatId,
-        resolvedChatId,
-        reason,
-        mismatchEvent,
-        isEquivalentSelectedChat,
-        logChatSelection,
-    } = params;
-
-    if (allowSelectionAdoption === true || isEquivalentSelectedChat(currentSelectedChatId, resolvedChatId)) {
-        return false;
-    }
-
-    logChatSelection(mismatchEvent, {
-        reason,
-        expectedChatId: currentSelectedChatId,
-        resolvedChatId,
-    });
-
-    return true;
-}
-
-/**
- * Applies one resolved chat payload to the selected chat state.
- *
- * @private function of useAgentChatHistoryClientState
- */
-function applyResolvedChatPayload(params: {
-    resolvedChatId: string;
-    nextMessages: ReadonlyArray<ChatMessage>;
-    nextActiveJobs: ReadonlyArray<UserChatJob>;
-    nextActiveTimeouts: ReadonlyArray<UserChatTimeout>;
-    nextDraftMessage: string | null | undefined;
-    currentSelectedChatId: string | null;
-    preserveDirtyDraft?: boolean;
-    includeInitialMessage?: boolean;
-    reason: string;
-    appliedEvent: string;
-    syncActiveChatSelection: (
-        chatId: string | null,
-        options: {
-            clearChatContent?: boolean;
-            includeInitialMessage?: boolean;
-            reason: string;
-        },
-    ) => void;
-    isEquivalentSelectedChat: (selectedChatId: string | null, resolvedChatId: string) => boolean;
-    activeDraftDirtyRef: { current: boolean };
-    isActiveDraftUserOwnedRef: { current: boolean };
-    setActiveMessages: (messages: Array<ChatMessage>) => void;
-    setActiveJobs: (jobs: Array<UserChatJob>) => void;
-    setActiveTimeouts: (timeouts: Array<UserChatTimeout>) => void;
-    setActiveChatDraftMessage: (draftMessage: string) => void;
-    setIsActiveChatLoading: (isLoading: boolean) => void;
-    logChatSelection: (event: string, payload?: Record<string, unknown>) => void;
-}): void {
-    const {
-        resolvedChatId,
-        nextMessages,
-        nextActiveJobs,
-        nextActiveTimeouts,
-        nextDraftMessage,
-        currentSelectedChatId,
-        preserveDirtyDraft,
-        includeInitialMessage,
-        reason,
-        appliedEvent,
-        syncActiveChatSelection,
-        isEquivalentSelectedChat,
-        activeDraftDirtyRef,
-        isActiveDraftUserOwnedRef,
-        setActiveMessages,
-        setActiveJobs,
-        setActiveTimeouts,
-        setActiveChatDraftMessage,
-        setIsActiveChatLoading,
-        logChatSelection,
-    } = params;
-
-    syncActiveChatSelection(resolvedChatId, {
-        includeInitialMessage,
-        reason,
-    });
-    setActiveMessages([...nextMessages]);
-    setActiveJobs([...nextActiveJobs]);
-    setActiveTimeouts([...nextActiveTimeouts]);
-    applyResolvedDraftMessage({
-        nextDraftMessage,
-        preserveDirtyDraft,
-        currentSelectedChatId,
-        resolvedChatId,
-        isEquivalentSelectedChat,
-        activeDraftDirtyRef,
-        isActiveDraftUserOwnedRef,
-        setActiveChatDraftMessage,
-    });
-    setIsActiveChatLoading(false);
-
-    logChatSelection(appliedEvent, {
-        reason,
-        chatId: resolvedChatId,
-    });
-}
-
-/**
- * Synchronizes push-notification focus with the currently selected chat.
- *
- * @private function of useAgentChatHistoryClientState
- */
-function syncFocusedChatRegistration(params: {
-    shouldUseHistory: boolean;
-    activeChatId: string | null;
-    isActiveChatReadOnly: boolean;
-    isActiveChatOptimistic: boolean;
-    isActiveBrowserTab: boolean;
-    agentName: string;
-    setFocusedChat: (focusedChat: { agentPermanentId: string; chatId: string; isChatFocused: boolean } | null) => void;
-}): void {
-    const {
-        shouldUseHistory,
-        activeChatId,
-        isActiveChatReadOnly,
-        isActiveChatOptimistic,
-        isActiveBrowserTab,
-        agentName,
-        setFocusedChat,
-    } = params;
-
-    if (!shouldUseHistory || !activeChatId || isActiveChatReadOnly || isActiveChatOptimistic || !isActiveBrowserTab) {
-        setFocusedChat(null);
-        return;
-    }
-
-    setFocusedChat({
-        agentPermanentId: agentName,
-        chatId: activeChatId,
-        isChatFocused: true,
-    });
-}
-
-/**
- * Resets all history-specific state when durable history is disabled.
- *
- * @private function of useAgentChatHistoryClientState
- */
-function resetChatHistoryState(params: {
-    setChats: (chats: Array<UserChatSummary>) => void;
-    syncActiveChatSelection: (
-        chatId: string | null,
-        options: {
-            clearChatContent?: boolean;
-            includeInitialMessage?: boolean;
-            reason: string;
-        },
-    ) => void;
-    failedSendByChatIdRef: { current: Map<string, Map<string, string>> };
-    pendingOptimisticChatCreationsRef: { current: Map<string, Promise<UserChatDetail>> };
-    resolvedOptimisticChatIdsRef: { current: Map<string, string> };
-    setIsActiveChatStreamConnected: (isConnected: boolean) => void;
-    setIsBootstrapping: (isBootstrapping: boolean) => void;
-    setIsChatListLoading: (isLoading: boolean) => void;
-    setIsActiveChatLoading: (isLoading: boolean) => void;
-}): void {
-    const {
-        setChats,
-        syncActiveChatSelection,
-        failedSendByChatIdRef,
-        pendingOptimisticChatCreationsRef,
-        resolvedOptimisticChatIdsRef,
-        setIsActiveChatStreamConnected,
-        setIsBootstrapping,
-        setIsChatListLoading,
-        setIsActiveChatLoading,
-    } = params;
-
-    setChats([]);
-    syncActiveChatSelection(null, {
-        clearChatContent: true,
-        reason: 'history_disabled',
-    });
-    failedSendByChatIdRef.current.clear();
-    pendingOptimisticChatCreationsRef.current.clear();
-    resolvedOptimisticChatIdsRef.current.clear();
-    setIsActiveChatStreamConnected(false);
-    setIsBootstrapping(false);
-    setIsChatListLoading(false);
-    setIsActiveChatLoading(false);
-}
-
-/**
- * Bootstraps durable chat history on mount and reports bootstrap failures.
- *
- * @private function of useAgentChatHistoryClientState
- */
-function bootstrapChatHistoryState(params: {
-    shouldUseHistory: boolean;
-    setChats: (chats: Array<UserChatSummary>) => void;
-    syncActiveChatSelection: (
-        chatId: string | null,
-        options: {
-            clearChatContent?: boolean;
-            includeInitialMessage?: boolean;
-            reason: string;
-        },
-    ) => void;
-    failedSendByChatIdRef: { current: Map<string, Map<string, string>> };
-    pendingOptimisticChatCreationsRef: { current: Map<string, Promise<UserChatDetail>> };
-    resolvedOptimisticChatIdsRef: { current: Map<string, string> };
-    setIsActiveChatStreamConnected: (isConnected: boolean) => void;
-    setIsBootstrapping: (isBootstrapping: boolean) => void;
-    setIsChatListLoading: (isLoading: boolean) => void;
-    setIsActiveChatLoading: (isLoading: boolean) => void;
-    bootstrapChats: (preferredChatId?: string) => Promise<void>;
-    initialChatId?: string;
-    rejectInitialOptimisticChatBootstrap: (error: unknown) => void;
-}): (() => void) | undefined {
-    const {
-        shouldUseHistory,
-        setChats,
-        syncActiveChatSelection,
-        failedSendByChatIdRef,
-        pendingOptimisticChatCreationsRef,
-        resolvedOptimisticChatIdsRef,
-        setIsActiveChatStreamConnected,
-        setIsBootstrapping,
-        setIsChatListLoading,
-        setIsActiveChatLoading,
-        bootstrapChats,
-        initialChatId,
-        rejectInitialOptimisticChatBootstrap,
-    } = params;
-
-    if (!shouldUseHistory) {
-        resetChatHistoryState({
-            setChats,
-            syncActiveChatSelection,
-            failedSendByChatIdRef,
-            pendingOptimisticChatCreationsRef,
-            resolvedOptimisticChatIdsRef,
-            setIsActiveChatStreamConnected,
-            setIsBootstrapping,
-            setIsChatListLoading,
-            setIsActiveChatLoading,
-        });
-        return undefined;
-    }
-
-    let isDisposed = false;
-
-    async function bootstrap(): Promise<void> {
-        setIsBootstrapping(true);
-        setIsChatListLoading(true);
-
-        try {
-            await bootstrapChats(initialChatId);
-        } catch (error) {
-            rejectInitialOptimisticChatBootstrap(error);
-            if (!isDisposed) {
-                notifyError(resolveErrorMessage(error, 'Failed to load chats.'));
-            }
-        } finally {
-            if (!isDisposed) {
-                setIsBootstrapping(false);
-                setIsChatListLoading(false);
-            }
-        }
-    }
-
-    void bootstrap();
-
-    return () => {
-        isDisposed = true;
-    };
-}
-
-/**
- * Keeps the timeout timestamps current while any chat has active timeouts.
- *
- * @private function of useAgentChatHistoryClientState
- */
-function registerActiveTimeoutTicker(
-    hasAnyActiveTimeouts: boolean,
-    setCurrentTimestamp: (timestamp: number) => void,
-): (() => void) | undefined {
-    if (!hasAnyActiveTimeouts) {
-        return undefined;
-    }
-
-    const interval = window.setInterval(() => {
-        setCurrentTimestamp(Date.now());
-    }, 1_000);
-
-    return () => {
-        window.clearInterval(interval);
-    };
-}
-
-/**
- * Keeps the active durable chat stream connected while the current chat stays selected.
- *
- * @private function of useAgentChatHistoryClientState
- */
-function keepActiveChatStreamConnected(params: {
-    shouldUseHistory: boolean;
-    activeChatId: string | null;
-    isActiveChatReadOnly: boolean;
-    isActiveChatOptimistic: boolean;
-    isActiveBrowserTab: boolean;
-    agentName: string;
-    activeChatIdRef: { current: string | null };
-    setIsActiveChatStreamConnected: (isConnected: boolean) => void;
-    applyChatDetail: ApplyAgentChatDetail;
-    refreshActiveChat: (options?: { preserveDirtyDraft?: boolean }) => Promise<void>;
-}): (() => void) | undefined {
-    const {
-        shouldUseHistory,
-        activeChatId,
-        isActiveChatReadOnly,
-        isActiveChatOptimistic,
-        isActiveBrowserTab,
-        agentName,
-        activeChatIdRef,
-        setIsActiveChatStreamConnected,
-        applyChatDetail,
-        refreshActiveChat,
-    } = params;
-
-    if (!shouldUseHistory || !activeChatId || isActiveChatReadOnly || isActiveChatOptimistic || !isActiveBrowserTab) {
-        setIsActiveChatStreamConnected(false);
-        return undefined;
-    }
-
-    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-    let isDisposed = false;
-    const abortController = new AbortController();
-
-    const connectStream = async (): Promise<void> => {
-        setIsActiveChatStreamConnected(false);
-
-        try {
-            await streamUserChat(agentName, activeChatId, {
-                signal: abortController.signal,
-                onSnapshot: (chatDetail) => {
-                    if (activeChatIdRef.current !== activeChatId) {
-                        return;
-                    }
-
-                    setIsActiveChatStreamConnected(true);
-                    applyChatDetail(chatDetail, {
-                        expectedChatId: activeChatId,
-                        preserveDirtyDraft: true,
-                        reason: 'stream_snapshot',
-                    });
-                },
-            });
-        } catch (error) {
-            if (abortController.signal.aborted || isDisposed) {
-                return;
-            }
-
-            console.error('[user-chat] Failed to keep canonical chat stream open', {
-                agentName,
-                chatId: activeChatId,
-                error,
-            });
-
-            setIsActiveChatStreamConnected(false);
-            void refreshActiveChat({ preserveDirtyDraft: true }).catch(() => undefined);
-        }
-
-        if (abortController.signal.aborted || isDisposed) {
-            return;
-        }
-
-        reconnectTimer = setTimeout(() => {
-            void connectStream();
-        }, USER_CHAT_STREAM_RECONNECT_DELAY_MS);
-    };
-
-    void connectStream();
-
-    return () => {
-        isDisposed = true;
-        setIsActiveChatStreamConnected(false);
-
-        if (reconnectTimer) {
-            clearTimeout(reconnectTimer);
-        }
-
-        abortController.abort();
-    };
-}
-
-/**
- * Refreshes the selected chat periodically and on tab visibility/focus changes.
- *
- * @private function of useAgentChatHistoryClientState
- */
-function registerActiveChatRefreshPolling(params: {
-    shouldUseHistory: boolean;
-    activeChatId: string | null;
-    isActiveChatReadOnly: boolean;
-    isActiveChatOptimistic: boolean;
-    isActiveChatStreamConnected: boolean;
-    refreshActiveChat: (options?: { preserveDirtyDraft?: boolean }) => Promise<void>;
-}): (() => void) | undefined {
-    const {
-        shouldUseHistory,
-        activeChatId,
-        isActiveChatReadOnly,
-        isActiveChatOptimistic,
-        isActiveChatStreamConnected,
-        refreshActiveChat,
-    } = params;
-
-    if (!shouldUseHistory || !activeChatId || isActiveChatReadOnly || isActiveChatOptimistic) {
-        return undefined;
-    }
-
-    const pollIntervalMs = isActiveChatStreamConnected
-        ? CHAT_LIST_REFRESH_INTERVAL_MS
-        : DISCONNECTED_CHAT_REFRESH_INTERVAL_MS;
-    const runRefresh = () => {
-        if (typeof document !== 'undefined' && document.hidden) {
-            return;
-        }
-
-        void refreshActiveChat({ preserveDirtyDraft: true });
-    };
-
-    const interval = window.setInterval(runRefresh, pollIntervalMs);
-    const handleVisibilityChange = () => {
-        if (typeof document !== 'undefined' && !document.hidden) {
-            runRefresh();
-        }
-    };
-    const handleFocus = () => {
-        runRefresh();
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleFocus);
-
-    return () => {
-        window.clearInterval(interval);
-        document.removeEventListener('visibilitychange', handleVisibilityChange);
-        window.removeEventListener('focus', handleFocus);
-    };
-}
-
-/**
- * Returns true when bootstrap must create a fresh chat before the first renderable turn.
- *
- * @private function of useAgentChatHistoryClientState
- */
-function shouldBootstrapCreateFreshChat(params: {
-    initialForceNewChat: boolean;
-    hasInitialAutoExecutePayload: boolean;
-    effectivePreferredChatId?: string;
-    snapshotActiveChatId: string | null;
-    hasInitialAutoMessageBeenConsumed: boolean;
-    hasInitialOptimisticChatBootstrap: boolean;
-}): boolean {
-    const {
-        initialForceNewChat,
-        hasInitialAutoExecutePayload,
-        effectivePreferredChatId,
-        snapshotActiveChatId,
-        hasInitialAutoMessageBeenConsumed,
-        hasInitialOptimisticChatBootstrap,
-    } = params;
-
-    return (
-        initialForceNewChat ||
-        !snapshotActiveChatId ||
-        (hasInitialAutoExecutePayload &&
-            (hasInitialOptimisticChatBootstrap || !hasInitialAutoMessageBeenConsumed) &&
-            (initialForceNewChat || !effectivePreferredChatId))
-    );
-}
-
-/**
- * Returns true when bootstrap should preserve the initial auto-execute payload on the current snapshot.
- *
- * @private function of useAgentChatHistoryClientState
- */
-function shouldKeepBootstrapInitialMessage(params: {
-    hasInitialAutoExecutePayload: boolean;
-    hasInitialAutoMessageBeenConsumed: boolean;
-    autoExecuteTargetChatId?: string;
-    snapshotActiveChatId: string;
-}): boolean {
-    const {
-        hasInitialAutoExecutePayload,
-        hasInitialAutoMessageBeenConsumed,
-        autoExecuteTargetChatId,
-        snapshotActiveChatId,
-    } = params;
-
-    return (
-        !hasInitialAutoMessageBeenConsumed &&
-        hasInitialAutoExecutePayload &&
-        (!autoExecuteTargetChatId || autoExecuteTargetChatId === snapshotActiveChatId)
-    );
-}
-
-/**
- * Finalizes a newly created optimistic chat with the canonical server result.
- *
- * @private function of useAgentChatHistoryClientState
- */
-function finalizeCreatedOptimisticChat(params: {
-    optimisticChatId: string;
-    createdChat: UserChatDetail;
-    intentSequence: number;
-    pendingOptimisticChatCreationsRef: { current: Map<string, Promise<UserChatDetail>> };
-    resolvedOptimisticChatIdsRef: { current: Map<string, string> };
-    reassignFailedSendRecordsToChatId: (fromChatId: string, toChatId: string) => void;
-    setChats: (updater: (previousChats: Array<UserChatSummary>) => Array<UserChatSummary>) => void;
-    logChatSelection: (event: string, payload?: Record<string, unknown>) => void;
-    applyChatDetail: ApplyAgentChatDetail;
-}): void {
-    const {
-        optimisticChatId,
-        createdChat,
-        intentSequence,
-        pendingOptimisticChatCreationsRef,
-        resolvedOptimisticChatIdsRef,
-        reassignFailedSendRecordsToChatId,
-        setChats,
-        logChatSelection,
-        applyChatDetail,
-    } = params;
-
-    pendingOptimisticChatCreationsRef.current.delete(optimisticChatId);
-    resolvedOptimisticChatIdsRef.current.set(optimisticChatId, createdChat.chat.id);
-    reassignPendingOutboundMessagesChatId({
-        fromChatId: optimisticChatId,
-        toChatId: createdChat.chat.id,
-    });
-    reassignFailedSendRecordsToChatId(optimisticChatId, createdChat.chat.id);
-    setChats((previousChats) =>
-        replaceOptimisticChatWithCanonicalChat(previousChats, optimisticChatId, createdChat.chat),
-    );
-
-    logChatSelection('create_chat_success', {
-        intentSequence,
-        optimisticChatId,
-        chatId: createdChat.chat.id,
-    });
-    applyChatDetail(createdChat, {
-        allowSelectionAdoption: true,
-        intentSequence,
-        reason: 'create_chat_success',
-    });
-}
-
-/**
- * Rolls back a failed optimistic chat creation attempt.
- *
- * @private function of useAgentChatHistoryClientState
- */
-async function rollbackCreatedOptimisticChat(params: {
-    optimisticChatId: string;
-    previousActiveChatId: string | null;
-    activeChatIdRef: { current: string | null };
-    pendingOptimisticChatCreationsRef: { current: Map<string, Promise<UserChatDetail>> };
-    resolvedOptimisticChatIdsRef: { current: Map<string, string> };
-    clearFailedSendRecordsForChat: (chatId: string) => void;
-    setChats: (updater: (previousChats: Array<UserChatSummary>) => Array<UserChatSummary>) => void;
-    setIsActiveChatLoading: (isLoading: boolean) => void;
-    bootstrapChats: (preferredChatId?: string) => Promise<void>;
-}): Promise<void> {
-    const {
-        optimisticChatId,
-        previousActiveChatId,
-        activeChatIdRef,
-        pendingOptimisticChatCreationsRef,
-        resolvedOptimisticChatIdsRef,
-        clearFailedSendRecordsForChat,
-        setChats,
-        setIsActiveChatLoading,
-        bootstrapChats,
-    } = params;
-
-    pendingOptimisticChatCreationsRef.current.delete(optimisticChatId);
-    resolvedOptimisticChatIdsRef.current.delete(optimisticChatId);
-    clearPendingOutboundMessages(optimisticChatId);
-    clearFailedSendRecordsForChat(optimisticChatId);
-    setChats((previousChats) => previousChats.filter((chat) => chat.id !== optimisticChatId));
-
-    if (activeChatIdRef.current !== optimisticChatId) {
-        return;
-    }
-
-    try {
-        setIsActiveChatLoading(true);
-        await bootstrapChats(previousActiveChatId || undefined);
-    } catch {
-        setIsActiveChatLoading(false);
-    }
-}
-
-/**
- * Creates one deferred promise handle for optimistic chat bootstrapping.
- *
- * @private function of useAgentChatHistoryClientState
- */
-function createDeferred<TValue>(): Deferred<TValue> {
-    let resolve!: (value: TValue | PromiseLike<TValue>) => void;
-    let reject!: (reason?: unknown) => void;
-
-    const promise = new Promise<TValue>((resolvePromise, rejectPromise) => {
-        resolve = resolvePromise;
-        reject = rejectPromise;
-    });
-
-    return { promise, resolve, reject };
-}
-
-/**
- * Creates one temporary optimistic chat id used before the server returns a durable id.
- *
- * @private function of useAgentChatHistoryClientState
- */
-function createOptimisticChatId(): string {
-    return `${OPTIMISTIC_CHAT_ID_PREFIX}:${createUserChatClientMessageId()}`;
-}
-
-/**
- * Returns true when the provided chat id is a local optimistic placeholder id.
- *
- * @private function of useAgentChatHistoryClientState
- */
-function isOptimisticChatId(chatId: string): boolean {
-    return chatId.startsWith(`${OPTIMISTIC_CHAT_ID_PREFIX}:`);
-}
-
-/**
- * Builds one local placeholder chat summary used for optimistic new-chat navigation.
- *
- * @private function of useAgentChatHistoryClientState
- */
-function createOptimisticUserChatSummary(chatId: string, timestamp: string): UserChatSummary {
-    return {
-        id: chatId,
-        createdAt: timestamp,
-        updatedAt: timestamp,
-        lastMessageAt: null,
-        source: USER_CHAT_SOURCES.WEB_UI,
-        isReadOnly: false,
-        messagesCount: 0,
-        title: '',
-        preview: '',
-        runningActivity: {
-            count: 0,
-        },
-        timeoutActivity: {
-            count: 0,
-            nearestDueAt: null,
-        },
-    };
-}
-
-/**
- * Replaces one optimistic placeholder chat with the canonical chat returned by the server.
- *
- * @private function of useAgentChatHistoryClientState
- */
-function replaceOptimisticChatWithCanonicalChat(
-    chats: ReadonlyArray<UserChatSummary>,
-    optimisticChatId: string,
-    canonicalChat: UserChatSummary,
-): Array<UserChatSummary> {
-    const chatsWithoutPlaceholder = chats.filter(
-        (chat) => chat.id !== optimisticChatId && chat.id !== canonicalChat.id,
-    );
-
-    return replaceChatInList(chatsWithoutPlaceholder, canonicalChat);
-}
-
-/**
- * Resolves one unknown error to a user-facing message.
- *
- * @private function of useAgentChatHistoryClientState
- */
-function resolveErrorMessage(error: unknown, fallbackMessage: string): string {
-    return error instanceof Error ? error.message : fallbackMessage;
-}
-
-/**
- * Moves one chat summary to the top of the sidebar list.
- *
- * @private function of useAgentChatHistoryClientState
- */
-function replaceChatInList(chats: ReadonlyArray<UserChatSummary>, targetChat: UserChatSummary): Array<UserChatSummary> {
-    const remainingChats = chats.filter((chat) => chat.id !== targetChat.id);
-    return [targetChat, ...remainingChats];
 }
