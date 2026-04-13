@@ -13,6 +13,10 @@ export type RunOptions = {
      */
     context?: string;
     /**
+     * Optional verification command executed after each prompt attempt.
+     */
+    testCommand?: string;
+    /**
      * Optional reasoning effort override for runners that support configurable thinking levels.
      */
     thinkingLevel?: ThinkingLevel;

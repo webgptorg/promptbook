@@ -1,6 +1,7 @@
 import { writeFile } from 'fs/promises';
 import moment from 'moment';
 import { extname } from 'path';
+import { formatUnknownErrorDetails } from '../common/formatUnknownErrorDetails';
 import { buildPromptLabelForDisplay } from './buildPromptLabelForDisplay';
 import { buildPromptSummary } from './buildPromptSummary';
 import type { PromptFile } from './types/PromptFile';
@@ -24,7 +25,7 @@ export async function writePromptErrorLog(options: WritePromptErrorLogOptions): 
     const logPath = buildPromptErrorLogPath(options.file.path);
     const label = buildPromptLabelForDisplay(options.file, options.section);
     const summary = buildPromptSummary(options.file, options.section);
-    const details = buildErrorDetails(options.error);
+    const details = formatUnknownErrorDetails(options.error);
 
     const modelSuffix = options.modelName ? ` (${options.modelName})` : '';
     const runnerLabel = `${options.runnerName || 'unknown'}${modelSuffix}`;
@@ -56,19 +57,4 @@ function buildPromptErrorLogPath(promptPath: string): string {
     }
 
     return `${promptPath}.error.log`;
-}
-
-/**
- * Formats unknown error values into a readable log payload.
- */
-function buildErrorDetails(error: unknown): string {
-    if (error instanceof Error) {
-        return error.stack || error.message;
-    }
-
-    if (typeof error === 'string') {
-        return error;
-    }
-
-    return JSON.stringify(error, null, 2);
 }

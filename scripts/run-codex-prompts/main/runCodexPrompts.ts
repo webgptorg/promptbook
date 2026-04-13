@@ -45,6 +45,7 @@ import { GitHubCopilotRunner } from '../runners/github-copilot/GitHubCopilotRunn
 import { OpenAiCodexRunner } from '../runners/openai-codex/OpenAiCodexRunner';
 import { OpencodeRunner } from '../runners/opencode/OpencodeRunner';
 import type { PromptRunner } from '../runners/types/PromptRunner';
+import { runPromptWithTestFeedback } from '../testing/runPromptWithTestFeedback';
 
 /**
  * Constant for prompts dir.
@@ -282,15 +283,22 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             console.info(colors.blue(`Processing ${promptLabel}`));
 
             const promptExecutionStartedDate = moment();
+            let attemptCount = 1;
             const roundChangedFilesSnapshot = options.normalizeLineEndings
                 ? await captureChangedFilesSnapshot(process.cwd())
                 : undefined;
 
             try {
-                const result = await runner.runPrompt({
+                const result = await runPromptWithTestFeedback({
+                    runner,
                     prompt: codexPrompt,
                     scriptPath,
                     projectPath: process.cwd(),
+                    promptLabel,
+                    testCommand: options.testCommand,
+                    onAttemptStarted: (nextAttemptCount) => {
+                        attemptCount = nextAttemptCount;
+                    },
                 });
 
                 markPromptDone(
@@ -300,6 +308,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                     runnerMetadata.runnerName,
                     runnerMetadata.modelName,
                     promptExecutionStartedDate,
+                    result.attemptCount,
                 );
                 await writePromptFile(nextPrompt.file);
                 await normalizeLineEndingsForCurrentRound(options, roundChangedFilesSnapshot);
@@ -318,6 +327,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                     runnerMetadata.runnerName,
                     runnerMetadata.modelName,
                     promptExecutionStartedDate,
+                    attemptCount,
                 );
                 await writePromptFile(nextPrompt.file);
                 await writePromptErrorLog({

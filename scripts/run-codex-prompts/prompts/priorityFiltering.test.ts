@@ -75,7 +75,7 @@ describe('priority filtering', () => {
         const file = parsePromptFile(
             'prompts/failed-test.md',
             [
-                '[!] failed after 1 minute by Gemini CLI `gemini-3-flash`',
+                '[!] (failed after 3 attempts) 1 minute by Gemini CLI `gemini-3-flash`',
                 'Already attempted task',
                 '',
                 '---',

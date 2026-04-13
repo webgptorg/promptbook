@@ -76,4 +76,19 @@ describe('$initializeCoderRunCommand', () => {
             }),
         );
     });
+
+    it('passes the verification command through when provided as unquoted tokens', async () => {
+        const program = createProgramWithRunCommand();
+
+        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--test', 'npm', 'run', 'test'], {
+            from: 'node',
+        });
+
+        expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                dryRun: true,
+                testCommand: 'npm run test',
+            }),
+        );
+    });
 });

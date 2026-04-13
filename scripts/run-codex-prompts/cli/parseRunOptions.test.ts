@@ -106,6 +106,25 @@ describe('parseRunOptions', () => {
         });
     });
 
+    it('parses an unquoted verification command and stops at the next top-level flag', () => {
+        const options = parseRunOptions([
+            '--agent',
+            'github-copilot',
+            '--test',
+            'npm',
+            'run',
+            'test',
+            '--no-wait',
+        ]);
+
+        expect(options).toMatchObject({
+            dryRun: false,
+            agentName: 'github-copilot',
+            testCommand: 'npm run test',
+            waitForUser: false,
+        });
+    });
+
     it('parses thinking level for supported runners', () => {
         const options = parseRunOptions(['--agent', 'github-copilot', '--thinking-level', 'xhigh']);
 
@@ -190,6 +209,11 @@ describe('parseRunOptions', () => {
 
     it('rejects missing priority value', () => {
         expect(() => parseRunOptions(['--agent', 'gemini', '--priority'])).toThrow('process.exit');
+        expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it('rejects missing verification commands', () => {
+        expect(() => parseRunOptions(['--agent', 'github-copilot', '--test'])).toThrow('process.exit');
         expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 

@@ -33,6 +33,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             Features:
             - Automatically stages and commits changes with agent identity
             - Supports GPG signing of commits
+            - Optional post-prompt verification with test-feedback retries
             - Progress tracking and interactive controls
             - Dry-run mode to preview prompts
         `),
@@ -55,6 +56,10 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
     command.option(
         '--context <context-or-file>',
         'Append extra instructions either inline or from a file path relative to the current project',
+    );
+    command.option(
+        '--test <test-command...>',
+        'Run a verification command after each prompt; quote it when the command itself contains top-level flags',
     );
     command.addOption(
         new Option(
@@ -91,6 +96,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 agent,
                 model,
                 context,
+                test,
                 thinkingLevel,
                 priority,
                 wait,
@@ -105,6 +111,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 readonly agent?: string;
                 readonly model?: string;
                 readonly context?: string;
+                readonly test?: string | string[];
                 readonly thinkingLevel?: ThinkingLevel;
                 readonly priority: number;
                 readonly wait: boolean;
@@ -115,6 +122,8 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 readonly allowDestructiveAutoMigrate: boolean;
                 readonly push: boolean;
             };
+
+            const testCommand = normalizeCommandOptionValue(test);
 
             // Validate agent
             let agentName:
@@ -163,6 +172,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 agentName,
                 model,
                 context,
+                testCommand,
                 thinkingLevel,
                 priority,
                 normalizeLineEndings,
@@ -201,6 +211,21 @@ function parseIntOption(value: string): number {
         throw new Error(`Invalid number: ${value}`);
     }
     return parsed;
+}
+
+/**
+ * Joins one Commander option that may be parsed either as a single string or a variadic token array.
+ *
+ * @private internal utility of `coder run` command
+ */
+function normalizeCommandOptionValue(value: string | string[] | undefined): string | undefined {
+    if (value === undefined) {
+        return undefined;
+    }
+
+    const parts = Array.isArray(value) ? value : [value];
+    const normalizedValue = parts.map((part) => part.trim()).filter(Boolean).join(' ').trim();
+    return normalizedValue === '' ? undefined : normalizedValue;
 }
 
 // Note: [🟡] Code for CLI command [run](src/cli/cli-commands/coder/run.ts) should never be published outside of `@promptbook/cli`

@@ -1,3 +1,5 @@
+-   Added optional `--test <test-command...>` support to `ptbk coder run`, so Promptbook Coder can verify each completed prompt with a shell command, retry the same prompt up to three times with the failing test output fed back into the coding agent, and annotate prompt status lines with retry counts such as `[x] (2 attempts)` or `[!] (failed after 3 attempts)`; Promptbook's local `.vscode/terminals.json` coder workflows now pass `--test npm run test`.
+
 -   Refactored Agents Server `useAgentChatHistorySyncState.ts` into smaller focused private chat-history modules without changing external behavior:
 
     -   Extracted optimistic chat bookkeeping, payload application, async chat operations, shared error-message resolution, and side-effect wiring into dedicated private modules so `useAgentChatHistorySyncState` now reads as a thinner synchronization facade.

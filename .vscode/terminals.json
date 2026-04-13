@@ -429,7 +429,7 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --priority 1 --no-wait && npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.3-codex --thinking-level xhigh --context AGENTS.md --no-wait && ./scripts/lines-to-lf.sh && npx ts-node ./scripts/prettify-all/prettify-all.ts --ignore-git-changes --commit && npm run test && npx ts-node ./scripts/generate-packages/generate-packages.ts"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --priority 1 --no-wait --test npm run test && npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.3-codex --thinking-level xhigh --context AGENTS.md --no-wait --test npm run test && ./scripts/lines-to-lf.sh && npx ts-node ./scripts/prettify-all/prettify-all.ts --ignore-git-changes --commit && npm run test && npx ts-node ./scripts/generate-packages/generate-packages.ts"
             ],
             "execute": false,
             "onlySingle": false,
@@ -440,7 +440,7 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.3-codex --thinking-level xhigh --context AGENTS.md --priority 1"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.3-codex --thinking-level xhigh --context AGENTS.md --priority 1 --test npm run test"
             ],
             "execute": true,
             "onlySingle": true,
@@ -451,7 +451,7 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --priority 1"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --priority 1 --test npm run test"
             ],
             "execute": true,
             "onlySingle": true,
@@ -462,7 +462,7 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.1-codex-mini --thinking-level xhigh --context AGENTS.md --no-wait"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.1-codex-mini --thinking-level xhigh --context AGENTS.md --no-wait --test npm run test"
             ],
             "execute": true,
             "onlySingle": true,
@@ -475,7 +475,7 @@
                 "unset GITHUB_TOKEN",
 
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --no-wait"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --no-wait --test npm run test"
             ],
             "execute": true,
             "onlySingle": true,
@@ -486,7 +486,7 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent claude-code --model claude-4.6-opus --context AGENTS.md --no-wait"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent claude-code --model claude-4.6-opus --context AGENTS.md --no-wait --test npm run test"
             ],
             "execute": true,
             "onlySingle": true,
@@ -496,7 +496,7 @@
             "name": "⚡🚀 Run `gemini-3-flash` Coding Agent (💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent gemini --model gemini-3-flash-preview --context AGENTS.md --no-wait"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent gemini --model gemini-3-flash-preview --context AGENTS.md --no-wait --test npm run test"
             ],
             "execute": true,
             "onlySingle": true,
@@ -506,7 +506,7 @@
             "name": "⚡🚀 Run `gemini-3.1` Coding Agent (💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent gemini --model gemini-3.1-pro-preview --context AGENTS.md --no-wait"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent gemini --model gemini-3.1-pro-preview --context AGENTS.md --no-wait --test npm run test"
             ],
             "execute": true,
             "onlySingle": true,
@@ -517,7 +517,7 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "export OPENAI_API_KEY=$PROMPTBOOK_AGENTS_SERVER_API_KEY && export OPENAI_BASE_URL=https://pavol-hejny.ptbk.io/agents/NFR94UDUAHzmAX/api/openai/v1",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model agent:NFR94UDUAHzmAX --thinking-level xhigh --context AGENTS.md"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model agent:NFR94UDUAHzmAX --thinking-level xhigh --context AGENTS.md --test npm run test"
             ],
             "execute": true,
             "onlySingle": true,
@@ -529,7 +529,7 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "export OPENAI_BASE_URL=https://api.openai.com/v1",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.1-codex-mini --thinking-level xhigh --context AGENTS.md"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.1-codex-mini --thinking-level xhigh --context AGENTS.md --test npm run test"
             ],
             "execute": true,
             "onlySingle": true,

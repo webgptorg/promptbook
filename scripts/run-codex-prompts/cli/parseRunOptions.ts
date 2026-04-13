@@ -7,7 +7,27 @@ import type { RunOptions } from './RunOptions';
  * CLI usage text for this script.
  */
 const USAGE =
-    'Usage: run-codex-prompts [--dry-run] [--agent <agent-name>] [--model <model>] [--context <context-or-file>] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--no-wait] [--ignore-git-changes] [--no-normalize-line-endings] [--no-push]';
+    'Usage: run-codex-prompts [--dry-run] [--agent <agent-name>] [--model <model>] [--context <context-or-file>] [--test <test-command...>] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--no-wait] [--ignore-git-changes] [--no-normalize-line-endings] [--no-push]';
+
+/**
+ * Top-level flags supported by this command.
+ */
+const KNOWN_OPTION_FLAGS = new Set([
+    '--dry-run',
+    '--agent',
+    '--model',
+    '--context',
+    '--test',
+    '--thinking-level',
+    '--priority',
+    '--allow-credits',
+    '--auto-migrate',
+    '--allow-destructive-auto-migrate',
+    '--no-wait',
+    '--ignore-git-changes',
+    '--no-normalize-line-endings',
+    '--no-push',
+]);
 
 /**
  * Parses CLI arguments into runner options.
@@ -34,6 +54,8 @@ export function parseRunOptions(args: string[]): RunOptions {
 
     const model = readOptionValue(args, '--model');
     const context = readOptionValue(args, '--context');
+    const hasTestCommandFlag = args.includes('--test');
+    const testCommand = readVariadicOptionValue(args, '--test');
     const hasThinkingLevelFlag = args.includes('--thinking-level');
     const thinkingLevelValue = readOptionValue(args, '--thinking-level');
     const hasPriorityFlag = args.includes('--priority');
@@ -45,6 +67,12 @@ export function parseRunOptions(args: string[]): RunOptions {
     const allowDestructiveAutoMigrate = args.includes('--allow-destructive-auto-migrate');
     const noPush = args.includes('--no-push');
     let thinkingLevel: ThinkingLevel | undefined;
+
+    if (hasTestCommandFlag && testCommand === undefined) {
+        exitWithUsageError(
+            'Missing value for --test. Use a shell command such as `npm run test` and quote it when it contains top-level CLI flags.',
+        );
+    }
 
     if (hasThinkingLevelFlag && thinkingLevelValue === undefined) {
         exitWithUsageError(
@@ -76,6 +104,7 @@ export function parseRunOptions(args: string[]): RunOptions {
         agentName,
         model,
         context,
+        testCommand,
         thinkingLevel,
         priority,
     };
@@ -90,6 +119,35 @@ function readOptionValue(args: string[], flag: string): string | undefined {
     }
     const index = args.indexOf(flag);
     return args[index + 1];
+}
+
+/**
+ * Reads a multi-token shell command value that follows a given flag.
+ */
+function readVariadicOptionValue(args: string[], flag: string): string | undefined {
+    if (!args.includes(flag)) {
+        return undefined;
+    }
+
+    const index = args.indexOf(flag);
+    const valueParts: string[] = [];
+
+    for (let i = index + 1; i < args.length; i++) {
+        const valuePart = args[i];
+
+        if (valuePart === undefined) {
+            continue;
+        }
+
+        if (KNOWN_OPTION_FLAGS.has(valuePart)) {
+            break;
+        }
+
+        valueParts.push(valuePart);
+    }
+
+    const normalizedValue = valueParts.join(' ').trim();
+    return normalizedValue === '' ? undefined : normalizedValue;
 }
 
 /**
