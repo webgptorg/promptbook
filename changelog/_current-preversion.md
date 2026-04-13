@@ -1,3 +1,8 @@
+-   Refactored Agents Server `useCustomCssClientState.ts` into smaller focused private custom-CSS modules without changing external behavior:
+
+    -   Extracted stylesheet-state normalization, change detection, save reconciliation, and delete fallback handling into the private `CustomStylesheetFileState` module so the public hook focuses on React orchestration.
+    -   Moved browser-side `/api/custom-css` load/save/delete helpers into the private `CustomCssApi` module while keeping the existing validation, unsaved-change guarding, editor actions, and status messaging intact.
+
 -   Refactored Agents Server `ChatHistoryClient.tsx` into smaller focused private chat-history modules without changing external behavior:
 
     -   Kept `ChatHistoryClient.tsx` as the public admin page facade while moving chat-history loading, filters, pagination, view-mode transitions, export URL derivation, and destructive actions into a dedicated private `useChatHistoryState` hook.

@@ -1,4 +1,4 @@
-import type { CustomStylesheetFileState } from './useCustomCssClientState';
+import type { CustomStylesheetFileState } from './CustomStylesheetFileState';
 
 /**
  * Props consumed by `CustomCssFilesPanel`.
