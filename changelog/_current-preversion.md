@@ -1,3 +1,8 @@
+-   Refactored Agents Server `ChatFeedbackClient.tsx` into smaller focused private feedback modules without changing external behavior:
+
+    -   Extracted the feedback loading, agent-option loading, sorting, destructive actions, export URL, and thread-dialog state into a dedicated private `useChatFeedbackState` hook so `ChatFeedbackClient.tsx` now reads as a thin composition layer.
+    -   Moved the filter card, feedback table, and chat-thread dialog into focused private components while keeping the existing search, pagination, CSV export, per-row delete, per-agent clear, and thread preview behavior intact.
+
 -   Refactored Agents Server `syncVercelDomainsMain.ts` into smaller focused domain-sync helpers without changing external behavior:
 
     -   Split the branching-heavy sync orchestration into dedicated context-loading, input-logging, reconfiguration, addition, verification, flagged-domain handling, Cloudflare sync, and completion-summary helpers so `syncVercelDomainsMain` now reads top-down.
