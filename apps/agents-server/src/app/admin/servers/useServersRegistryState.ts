@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { showAlert, showConfirm, showPrompt } from '../../../components/AsyncDialogs/asyncDialogs';
+import { ServersRegistryApi } from './ServersRegistryApi';
 
 /**
  * Supported managed server environment groups.
@@ -103,28 +104,6 @@ export type UpdateServerDraft = <TFieldName extends keyof ServerDraft>(
 ) => void;
 
 /**
- * API payload returned by `GET /api/admin/servers`.
- *
- * @private function of <ServersClient/>
- */
-type ManagedServersResponse = {
-    /**
-     * Registered servers ordered by name.
-     */
-    readonly servers: ReadonlyArray<ManagedServerRow>;
-
-    /**
-     * Server resolved from the current request domain.
-     */
-    readonly currentServerId: number | null;
-
-    /**
-     * Optional failure message returned by the API.
-     */
-    readonly error?: string;
-};
-
-/**
  * Redirect handler used after deleting the current server.
  *
  * @private function of <ServersClient/>
@@ -134,6 +113,23 @@ type DeleteCurrentServerOptions = {
      * Called when the server deletion responds with a redirect target.
      */
     readonly onRedirect?: (redirectUrl: string) => void;
+};
+
+/**
+ * Result returned after asking the user to confirm current-server deletion.
+ *
+ * @private function of useServersRegistryState
+ */
+type DeleteCurrentServerConfirmationResult = {
+    /**
+     * Whether the current deletion request can continue.
+     */
+    readonly isConfirmed: boolean;
+
+    /**
+     * Optional validation error to show when the user reached the prompt flow but failed confirmation.
+     */
+    readonly errorMessage: string | null;
 };
 
 /**
@@ -290,61 +286,115 @@ function isServerDraftDifferent(server: ManagedServerRow, draft: ServerDraft | u
 }
 
 /**
- * Encapsulates the editable managed-server registry state and persistence flows.
+ * Builds editable drafts keyed by server id for the provided registry rows.
  *
- * @returns Registry rows, edit drafts, and admin actions.
+ * @param servers - Persisted server rows.
+ * @returns Draft record keyed by row id.
  *
- * @private internal hook of <ServersClient/>
+ * @private function of useServersRegistryState
  */
-export function useServersRegistryState(): UseServersRegistryStateResult {
-    const [servers, setServers] = useState<ManagedServerRow[]>([]);
+function createServerDraftRecord(servers: ReadonlyArray<ManagedServerRow>): Record<number, ServerDraft> {
+    return Object.fromEntries(servers.map((server) => [server.id, createServerDraftFromRow(server)]));
+}
+
+/**
+ * Normalizes thrown values into the UI banner error format.
+ *
+ * @param error - Unknown thrown value.
+ * @param fallbackMessage - Message used when the error is not an `Error`.
+ * @returns Human-readable message for the page error banner.
+ *
+ * @private function of useServersRegistryState
+ */
+function resolveServersRegistryActionErrorMessage(error: unknown, fallbackMessage: string): string {
+    return error instanceof Error ? error.message : fallbackMessage;
+}
+
+/**
+ * Shows the migration summary dialog after a successful migration run.
+ *
+ * @param payload - Migration summary returned by the API.
+ * @returns Promise that settles even when the dialog is dismissed unexpectedly.
+ *
+ * @private function of useServersRegistryState
+ */
+async function showServerMigrationSummaryAlert(payload: {
+    readonly appliedCount?: number;
+    readonly totalMigrationFiles?: number;
+}): Promise<void> {
+    await showAlert({
+        title: 'Server migrated',
+        message: `Applied ${payload.appliedCount ?? 0} of ${payload.totalMigrationFiles ?? 0} migration files.`,
+    }).catch(() => undefined);
+}
+
+/**
+ * Runs the destructive confirmation flow required before deleting the current server.
+ *
+ * @param currentServer - Server currently resolved from the request domain.
+ * @returns Confirmation outcome for the delete action.
+ *
+ * @private function of useServersRegistryState
+ */
+async function confirmCurrentServerDeletion(
+    currentServer: ManagedServerRow,
+): Promise<DeleteCurrentServerConfirmationResult> {
+    const isDeleteConfirmed = await showConfirm({
+        title: 'Delete this server',
+        message: 'Are you sure you want to delete this server? This action cannot be undone.',
+        confirmLabel: 'Continue',
+        cancelLabel: 'Cancel',
+    }).catch(() => false);
+
+    if (!isDeleteConfirmed) {
+        return {
+            isConfirmed: false,
+            errorMessage: null,
+        };
+    }
+
+    const typedName = await showPrompt({
+        title: 'Type the server name',
+        message: `Type \`${currentServer.name}\` to confirm deleting this server. Existing server data will stay untouched.`,
+        confirmLabel: 'Delete this server',
+        cancelLabel: 'Cancel',
+        inputLabel: 'Server name confirmation',
+        placeholder: currentServer.name,
+    }).catch(() => '');
+
+    if (typedName.trim() !== currentServer.name) {
+        return {
+            isConfirmed: false,
+            errorMessage: 'Server deletion cancelled because the confirmation name did not match.',
+        };
+    }
+
+    return {
+        isConfirmed: true,
+        errorMessage: null,
+    };
+}
+
+/**
+ * Tracks editable drafts for the loaded registry rows and derives dirty-state selectors.
+ *
+ * @param servers - Persisted rows currently shown in the table.
+ * @returns Editable drafts together with update and dirty-state helpers.
+ *
+ * @private function of useServersRegistryState
+ */
+function useServersRegistryDraftState(servers: ReadonlyArray<ManagedServerRow>) {
     const [serverDrafts, setServerDrafts] = useState<Record<number, ServerDraft>>({});
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [currentServerId, setCurrentServerId] = useState<number | null>(null);
-    const [savingServerId, setSavingServerId] = useState<number | null>(null);
-    const [navigatingServerId, setNavigatingServerId] = useState<number | null>(null);
-    const [migratingServerId, setMigratingServerId] = useState<number | null>(null);
-    const [deletingServerId, setDeletingServerId] = useState<number | null>(null);
 
-    const currentServer = useMemo(
-        () => servers.find((server) => server.id === currentServerId) ?? null,
-        [currentServerId, servers],
-    );
-
-    const reloadServers = useCallback(async () => {
-        try {
-            setLoading(true);
-            setError(null);
-
-            const response = await fetch('/api/admin/servers');
-            const payload = (await response.json()) as ManagedServersResponse;
-
-            if (!response.ok) {
-                throw new Error(payload.error || 'Failed to load servers.');
-            }
-
-            setServers([...payload.servers]);
-            setCurrentServerId(payload.currentServerId);
-            setServerDrafts(
-                Object.fromEntries(payload.servers.map((server) => [server.id, createServerDraftFromRow(server)])),
-            );
-        } catch (loadError) {
-            setError(loadError instanceof Error ? loadError.message : 'Failed to load servers.');
-        } finally {
-            setLoading(false);
-        }
+    const replaceServerDrafts = useCallback((nextServers: ReadonlyArray<ManagedServerRow>) => {
+        setServerDrafts(createServerDraftRecord(nextServers));
     }, []);
 
-    useEffect(() => {
-        void reloadServers();
-    }, [reloadServers]);
-
     const updateServerDraft = useCallback<UpdateServerDraft>((serverId, fieldName, value) => {
-        setServerDrafts((previous) => ({
-            ...previous,
+        setServerDrafts((previousServerDrafts) => ({
+            ...previousServerDrafts,
             [serverId]: {
-                ...previous[serverId],
+                ...previousServerDrafts[serverId],
                 [fieldName]: value,
             },
         }));
@@ -360,7 +410,66 @@ export function useServersRegistryState(): UseServersRegistryStateResult {
         [serverDrafts, servers],
     );
 
-    const saveServer = useCallback(
+    return {
+        hasDirtyServerDrafts,
+        isServerDraftDirty,
+        replaceServerDrafts,
+        serverDrafts,
+        updateServerDraft,
+    };
+}
+
+/**
+ * Creates the reload action that refreshes managed servers and resets the editable drafts.
+ *
+ * @param options - Stable state updaters used by the reload flow.
+ * @returns Memoized loader for the managed-server registry.
+ *
+ * @private function of useServersRegistryState
+ */
+function useServersRegistryReloadAction(options: {
+    readonly replaceServerDrafts: (servers: ReadonlyArray<ManagedServerRow>) => void;
+    readonly setCurrentServerId: (currentServerId: number | null) => void;
+    readonly setError: (error: string | null) => void;
+    readonly setLoading: (isLoading: boolean) => void;
+    readonly setServers: (servers: ManagedServerRow[]) => void;
+}) {
+    const { replaceServerDrafts, setCurrentServerId, setError, setLoading, setServers } = options;
+
+    return useCallback(async () => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const payload = await ServersRegistryApi.fetchServers();
+            setServers([...payload.servers]);
+            setCurrentServerId(payload.currentServerId);
+            replaceServerDrafts(payload.servers);
+        } catch (loadError) {
+            setError(resolveServersRegistryActionErrorMessage(loadError, 'Failed to load servers.'));
+        } finally {
+            setLoading(false);
+        }
+    }, [replaceServerDrafts, setCurrentServerId, setError, setLoading, setServers]);
+}
+
+/**
+ * Creates the save action for one edited registry row.
+ *
+ * @param options - Data and state updaters used by the save flow.
+ * @returns Memoized save callback for one server id.
+ *
+ * @private function of useServersRegistryState
+ */
+function useSaveServerAction(options: {
+    readonly reloadServers: () => Promise<void>;
+    readonly serverDrafts: Record<number, ServerDraft>;
+    readonly setError: (error: string | null) => void;
+    readonly setSavingServerId: (serverId: number | null) => void;
+}) {
+    const { reloadServers, serverDrafts, setError, setSavingServerId } = options;
+
+    return useCallback(
         async (serverId: number) => {
             const draft = serverDrafts[serverId];
             if (!draft) {
@@ -371,102 +480,109 @@ export function useServersRegistryState(): UseServersRegistryStateResult {
                 setSavingServerId(serverId);
                 setError(null);
 
-                const response = await fetch(`/api/admin/servers/${serverId}`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(draft),
-                });
-                const payload = (await response.json()) as { error?: string };
-
-                if (!response.ok) {
-                    throw new Error(payload.error || 'Failed to save the server.');
-                }
-
+                await ServersRegistryApi.saveServer(serverId, draft);
                 await reloadServers();
             } catch (saveError) {
-                setError(saveError instanceof Error ? saveError.message : 'Failed to save the server.');
+                setError(resolveServersRegistryActionErrorMessage(saveError, 'Failed to save the server.'));
             } finally {
                 setSavingServerId(null);
             }
         },
-        [reloadServers, serverDrafts],
+        [reloadServers, serverDrafts, setError, setSavingServerId],
     );
+}
 
-    const switchToServer = useCallback(async (server: ManagedServerRow) => {
-        try {
-            setNavigatingServerId(server.id);
-            setError(null);
-            window.location.assign(createServerDashboardUrl(server));
-        } catch (switchError) {
-            setError(switchError instanceof Error ? switchError.message : 'Failed to switch to the server.');
-        } finally {
-            setNavigatingServerId(null);
-        }
-    }, []);
+/**
+ * Creates the navigation action that opens the selected server on its own dashboard domain.
+ *
+ * @param options - State updaters used by the navigation flow.
+ * @returns Memoized switch callback for one server row.
+ *
+ * @private function of useServersRegistryState
+ */
+function useSwitchToServerAction(options: {
+    readonly setError: (error: string | null) => void;
+    readonly setNavigatingServerId: (serverId: number | null) => void;
+}) {
+    const { setError, setNavigatingServerId } = options;
 
-    const migrateServer = useCallback(
+    return useCallback(
+        async (server: ManagedServerRow) => {
+            try {
+                setNavigatingServerId(server.id);
+                setError(null);
+                window.location.assign(createServerDashboardUrl(server));
+            } catch (switchError) {
+                setError(resolveServersRegistryActionErrorMessage(switchError, 'Failed to switch to the server.'));
+            } finally {
+                setNavigatingServerId(null);
+            }
+        },
+        [setError, setNavigatingServerId],
+    );
+}
+
+/**
+ * Creates the migration action for one registered server.
+ *
+ * @param options - State updaters used by the migration flow.
+ * @returns Memoized migrate callback for one server id.
+ *
+ * @private function of useServersRegistryState
+ */
+function useMigrateServerAction(options: {
+    readonly reloadServers: () => Promise<void>;
+    readonly setError: (error: string | null) => void;
+    readonly setMigratingServerId: (serverId: number | null) => void;
+}) {
+    const { reloadServers, setError, setMigratingServerId } = options;
+
+    return useCallback(
         async (serverId: number) => {
             try {
                 setMigratingServerId(serverId);
                 setError(null);
 
-                const response = await fetch(`/api/admin/servers/${serverId}/migrate`, {
-                    method: 'POST',
-                });
-                const payload = (await response.json()) as {
-                    error?: string;
-                    appliedCount?: number;
-                    totalMigrationFiles?: number;
-                };
-
-                if (!response.ok) {
-                    throw new Error(payload.error || 'Failed to run server migrations.');
-                }
-
-                await showAlert({
-                    title: 'Server migrated',
-                    message: `Applied ${payload.appliedCount ?? 0} of ${
-                        payload.totalMigrationFiles ?? 0
-                    } migration files.`,
-                }).catch(() => undefined);
+                const payload = await ServersRegistryApi.migrateServer(serverId);
+                await showServerMigrationSummaryAlert(payload);
                 await reloadServers();
             } catch (migrationError) {
-                setError(migrationError instanceof Error ? migrationError.message : 'Failed to run server migrations.');
+                setError(resolveServersRegistryActionErrorMessage(migrationError, 'Failed to run server migrations.'));
             } finally {
                 setMigratingServerId(null);
             }
         },
-        [reloadServers],
+        [reloadServers, setError, setMigratingServerId],
     );
+}
 
-    const deleteCurrentServer = useCallback(
-        async (options?: DeleteCurrentServerOptions) => {
+/**
+ * Creates the destructive delete action for the server resolved from the current domain.
+ *
+ * @param options - Current server data and state updaters used by the delete flow.
+ * @returns Memoized delete callback for the current server.
+ *
+ * @private function of useServersRegistryState
+ */
+function useDeleteCurrentServerAction(options: {
+    readonly currentServer: ManagedServerRow | null;
+    readonly reloadServers: () => Promise<void>;
+    readonly setDeletingServerId: (serverId: number | null) => void;
+    readonly setError: (error: string | null) => void;
+}) {
+    const { currentServer, reloadServers, setDeletingServerId, setError } = options;
+
+    return useCallback(
+        async (deleteOptions?: DeleteCurrentServerOptions) => {
             if (!currentServer) {
                 return;
             }
 
-            const confirmed = await showConfirm({
-                title: 'Delete this server',
-                message: 'Are you sure you want to delete this server? This action cannot be undone.',
-                confirmLabel: 'Continue',
-                cancelLabel: 'Cancel',
-            }).catch(() => false);
-
-            if (!confirmed) {
-                return;
-            }
-
-            const typedName = await showPrompt({
-                title: 'Type the server name',
-                message: `Type \`${currentServer.name}\` to confirm deleting this server. Existing server data will stay untouched.`,
-                confirmLabel: 'Delete this server',
-                cancelLabel: 'Cancel',
-                inputLabel: 'Server name confirmation',
-                placeholder: currentServer.name,
-            }).catch(() => '');
-
-            if (typedName.trim() !== currentServer.name) {
-                setError('Server deletion cancelled because the confirmation name did not match.');
+            const confirmation = await confirmCurrentServerDeletion(currentServer);
+            if (!confirmation.isConfirmed) {
+                if (confirmation.errorMessage) {
+                    setError(confirmation.errorMessage);
+                }
                 return;
             }
 
@@ -474,29 +590,85 @@ export function useServersRegistryState(): UseServersRegistryStateResult {
                 setDeletingServerId(currentServer.id);
                 setError(null);
 
-                const response = await fetch(`/api/admin/servers/${currentServer.id}`, {
-                    method: 'DELETE',
-                });
-                const payload = (await response.json()) as { error?: string; redirectUrl?: string | null };
-
-                if (!response.ok) {
-                    throw new Error(payload.error || 'Failed to delete the current server.');
-                }
-
+                const payload = await ServersRegistryApi.deleteServer(currentServer.id);
                 if (payload.redirectUrl) {
-                    options?.onRedirect?.(payload.redirectUrl);
+                    deleteOptions?.onRedirect?.(payload.redirectUrl);
                     return;
                 }
 
                 await reloadServers();
             } catch (deleteError) {
-                setError(deleteError instanceof Error ? deleteError.message : 'Failed to delete the current server.');
+                setError(
+                    resolveServersRegistryActionErrorMessage(deleteError, 'Failed to delete the current server.'),
+                );
             } finally {
                 setDeletingServerId(null);
             }
         },
-        [currentServer, reloadServers],
+        [currentServer, reloadServers, setDeletingServerId, setError],
     );
+}
+
+/**
+ * Encapsulates the editable managed-server registry state and persistence flows.
+ *
+ * @returns Registry rows, edit drafts, and admin actions.
+ *
+ * @private internal hook of <ServersClient/>
+ */
+export function useServersRegistryState(): UseServersRegistryStateResult {
+    const [servers, setServers] = useState<ManagedServerRow[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [currentServerId, setCurrentServerId] = useState<number | null>(null);
+    const [savingServerId, setSavingServerId] = useState<number | null>(null);
+    const [navigatingServerId, setNavigatingServerId] = useState<number | null>(null);
+    const [migratingServerId, setMigratingServerId] = useState<number | null>(null);
+    const [deletingServerId, setDeletingServerId] = useState<number | null>(null);
+    const { hasDirtyServerDrafts, isServerDraftDirty, replaceServerDrafts, serverDrafts, updateServerDraft } =
+        useServersRegistryDraftState(servers);
+
+    const currentServer = useMemo(
+        () => servers.find((server) => server.id === currentServerId) ?? null,
+        [currentServerId, servers],
+    );
+
+    const reloadServers = useServersRegistryReloadAction({
+        replaceServerDrafts,
+        setCurrentServerId,
+        setError,
+        setLoading,
+        setServers,
+    });
+
+    useEffect(() => {
+        void reloadServers();
+    }, [reloadServers]);
+
+    const saveServer = useSaveServerAction({
+        reloadServers,
+        serverDrafts,
+        setError,
+        setSavingServerId,
+    });
+
+    const switchToServer = useSwitchToServerAction({
+        setError,
+        setNavigatingServerId,
+    });
+
+    const migrateServer = useMigrateServerAction({
+        reloadServers,
+        setError,
+        setMigratingServerId,
+    });
+
+    const deleteCurrentServer = useDeleteCurrentServerAction({
+        currentServer,
+        reloadServers,
+        setDeletingServerId,
+        setError,
+    });
 
     return {
         currentServer,

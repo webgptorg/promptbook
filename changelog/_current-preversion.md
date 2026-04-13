@@ -1,3 +1,8 @@
+-   Refactored Agents Server `useServersRegistryState.ts` into smaller focused private server-registry helpers without changing external behavior:
+
+    -   Extracted the `/api/admin/servers` fetch, save, migrate, and delete calls into the private `ServersRegistryApi` helper so the public hook no longer mixes request details with React orchestration.
+    -   Split draft management, registry reloads, migration reporting, delete confirmation, and per-action callbacks into focused helpers while preserving the existing editable drafts, dashboard switching, migration summary dialog, current-server deletion confirmation, and redirect behavior.
+
 -   Refactored Agents Server `ImagesGalleryClient.tsx` into smaller focused private image-gallery modules without changing external behavior:
 
     -   Moved image loading, view-mode resets, infinite-scroll observation, and prompt-copy feedback into the private `useImagesGalleryState` hook so `ImagesGalleryClient.tsx` now reads as a thin composition layer.
