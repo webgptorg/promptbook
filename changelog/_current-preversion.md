@@ -1,3 +1,8 @@
+-   Refactored Agents Server `UsageClient.tsx` into a smaller private usage-state module without changing external behavior:
+
+    -   Moved search-param synchronization, analytics loading, selected-scope derivation, timeframe-label formatting, and mutual agent/folder filter coordination into the private `useUsageClientState` hook so `UsageClient.tsx` now reads as a thin composition layer.
+    -   Kept the existing filter semantics, loading/error handling, analytics rendering, and query synchronization intact while also removing the local pathname nullability issue from the router replacement flow.
+
 -   Refactored Agents Server `useServersRegistryState.ts` into smaller focused private server-registry helpers without changing external behavior:
 
     -   Extracted the `/api/admin/servers` fetch, save, migrate, and delete calls into the private `ServersRegistryApi` helper so the public hook no longer mixes request details with React orchestration.
