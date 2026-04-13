@@ -1,4 +1,4 @@
-import type { CustomJavascriptFileState } from './useCustomJsClientState';
+import type { CustomJavascriptFileState } from './CustomJavascriptFileState';
 
 /**
  * Props consumed by `CustomJsFilesPanel`.

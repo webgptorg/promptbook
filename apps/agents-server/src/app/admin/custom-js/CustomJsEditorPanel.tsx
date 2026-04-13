@@ -1,7 +1,7 @@
 import type { ChangeEvent } from 'react';
 import { MonacoEditorWithShadowDom } from '../../../components/_utils/MonacoEditorWithShadowDom';
 import { CUSTOM_RESOURCE_INPUT_CLASS_NAME } from '../custom-resource/shared';
-import type { CustomJavascriptFileState } from './useCustomJsClientState';
+import type { CustomJavascriptFileState } from './CustomJavascriptFileState';
 
 /**
  * Props consumed by `CustomJsEditorPanel`.

@@ -1,3 +1,8 @@
+-   Refactored Agents Server `useCustomJsClientState.ts` into smaller focused private custom-JS modules without changing external behavior:
+
+    -   Moved custom JavaScript file-state normalization, change detection, save reconciliation, and delete fallback handling into the private `CustomJavascriptFileState` module so the public hook focuses on React orchestration and editor actions.
+    -   Extracted browser-side `/api/custom-js` load/save/delete helpers into the private `CustomJsApi` module while keeping the existing unsaved-change guarding, analytics wiring, editor actions, and status messaging intact.
+
 -   Refactored Agents Server `useCustomCssClientState.ts` into smaller focused private custom-CSS modules without changing external behavior:
 
     -   Extracted stylesheet-state normalization, change detection, save reconciliation, and delete fallback handling into the private `CustomStylesheetFileState` module so the public hook focuses on React orchestration.
