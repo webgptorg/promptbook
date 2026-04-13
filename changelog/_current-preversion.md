@@ -1,3 +1,8 @@
+-   Refactored Agents Server `ImageGeneratorTestClient.tsx` into smaller focused private image-generator modules without changing external behavior:
+
+    -   Moved prompt/model state management, sequential generation orchestration, and API response handling into the private `useImageGeneratorTestState` hook so `ImageGeneratorTestClient.tsx` now reads as a thin composition layer.
+    -   Split the prompt form, results rendering, and attachment uploading UI into focused private components while keeping the existing single-vs-multiple flows, uploaded-image support, progress updates, status rendering, and raw-result details intact.
+
 -   Refactored Agents Server `FilesGalleryClient.tsx` into smaller focused private file-gallery modules without changing external behavior:
 
     -   Moved paginated loading, view-mode resets, and grid infinite-scroll observation into the private `useFilesGalleryState` hook so `FilesGalleryClient.tsx` now reads as a thin composition layer.
