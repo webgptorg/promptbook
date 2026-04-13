@@ -10,9 +10,9 @@ import { useEffect, useMemo, useState } from 'react';
  */
 export default function EmbedPage() {
     const searchParams = useSearchParams();
-    const agentUrl = searchParams.get('agentUrl');
-    const metaParam = searchParams.get('meta');
-    const isInitiallyOpen = searchParams.get('open') === '1';
+    const agentUrl = searchParams?.get('agentUrl');
+    const metaParam = searchParams?.get('meta');
+    const isInitiallyOpen = searchParams?.get('open') === '1';
     const [isOpen, setIsOpen] = useState(isInitiallyOpen);
 
     const meta = useMemo(() => {

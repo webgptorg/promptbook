@@ -1,4 +1,5 @@
 import { Info } from 'lucide-react';
+import type { ReactElement } from 'react';
 import { extractParametersFromFilename } from '../../../utils/normalization/extractParametersFromFilename';
 
 /**
@@ -67,7 +68,7 @@ function resolveImagesGalleryParameterBadgeClassName(
 function renderImagesGalleryModelBadgeContent(
     variant: ImagesGalleryParametersBadgesVariant,
     modelName: string,
-): JSX.Element {
+): ReactElement {
     if (variant === 'GRID') {
         return (
             <>

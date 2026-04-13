@@ -17,7 +17,7 @@ type HeadlessLinkProps = LinkProps &
  */
 export function useIsHeadless(): boolean {
     const searchParams = useSearchParams();
-    return searchParams.has('headless');
+    return searchParams?.has('headless') ?? false;
 }
 
 /**

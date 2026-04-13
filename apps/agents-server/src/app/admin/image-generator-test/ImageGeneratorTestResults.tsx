@@ -94,7 +94,7 @@ function ImageGeneratorTestRawDetails({ rawResult }: Pick<UseImageGeneratorTestS
 /**
  * Handles one generated image result card.
  */
-function ImageGeneratorTestResultCard({ result, resultIndex }: ImageGeneratorTestResultCardProps) {
+function ImageGeneratorTestResultCard({ result }: ImageGeneratorTestResultCardProps) {
     return (
         <div className="border rounded-lg overflow-hidden bg-white shadow-sm">
             <div className="p-3 border-b bg-gray-50 flex justify-between items-center">

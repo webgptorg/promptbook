@@ -51,7 +51,7 @@ export function RecycleBinList(props: RecycleBinListProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { formatText } = useAgentNaming();
-    const folderPathSegments = parseFolderPath(searchParams.get('folder'));
+    const folderPathSegments = parseFolderPath(searchParams?.get('folder') ?? null);
     const currentFolderId = useMemo(
         () => resolveFolderIdFromPath([...folders], folderPathSegments),
         [folders, folderPathSegments],
@@ -87,7 +87,7 @@ export function RecycleBinList(props: RecycleBinListProps) {
     const navigateToFolder = (folderId: number | null) => {
         const { folderById } = buildFolderMaps(folders);
         const targetSegments = getFolderPathSegments(folderId, folderById).map((folder) => folder.name);
-        const params = new URLSearchParams(searchParams.toString());
+        const params = new URLSearchParams(searchParams?.toString() ?? '');
 
         if (targetSegments.length === 0) {
             params.delete('folder');

@@ -419,11 +419,11 @@ function useSearchPageResults({
 export function useSearchPageState(): UseSearchPageStateResult {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const searchParamsString = searchParams.toString();
+    const searchParamsString = searchParams?.toString() ?? '';
     const isHeadless = useIsHeadless();
 
-    const queryParam = searchParams.get('q') ?? '';
-    const currentPage = resolveCurrentPage(searchParams.get('page'));
+    const queryParam = searchParams?.get('q') ?? '';
+    const currentPage = resolveCurrentPage(searchParams?.get('page') ?? null);
     const trimmedQueryParam = queryParam.trim();
     const hasSearchQuery = trimmedQueryParam.length >= MIN_SEARCH_QUERY_LENGTH;
 

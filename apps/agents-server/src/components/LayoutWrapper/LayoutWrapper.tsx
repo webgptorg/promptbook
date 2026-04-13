@@ -94,7 +94,7 @@ export function LayoutWrapper({
 }: LayoutWrapperProps) {
     const pathname = usePathname();
     const searchParams = useSearchParams();
-    const isHeadless = searchParams.has('headless');
+    const isHeadless = searchParams?.has('headless') ?? false;
     // const isAdminChatPage = pathname?.startsWith('/admin/chat-history') || pathname?.startsWith('/admin/chat-feedback');
     const isChatPage = pathname ? /^\/agents\/[^/]+\/chat$/.test(pathname) : false;
     const isTextareaPage = pathname ? /^\/agents\/[^/]+\/textarea$/.test(pathname) : false;

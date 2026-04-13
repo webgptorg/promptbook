@@ -138,7 +138,7 @@ function resolveInternalRouteFromAnchor(anchor: HTMLAnchorElement): string | nul
 export function NavigationProgressBar() {
     const pathname = usePathname() || '';
     const searchParams = useSearchParams();
-    const locationKey = useMemo(() => `${pathname}?${searchParams.toString()}`, [pathname, searchParams]);
+    const locationKey = useMemo(() => `${pathname}?${searchParams?.toString() ?? ''}`, [pathname, searchParams]);
 
     const [progress, setProgress] = useState(0);
     const [isVisible, setIsVisible] = useState(false);

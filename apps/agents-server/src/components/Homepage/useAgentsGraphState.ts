@@ -434,11 +434,11 @@ export function useAgentsGraphState(props: UseAgentsGraphStateProps) {
     const { formatText } = useAgentNaming();
     const normalizedPublicUrl = useMemo(() => normalizeServerUrl(publicUrl), [publicUrl]);
     const [graphHeight, setGraphHeight] = useState(GRAPH_MIN_HEIGHT);
-    const [filterType, setFilterType] = useState<ConnectionType[]>(parseConnectionTypes(searchParams.get('connectionTypes')));
+    const [filterType, setFilterType] = useState<ConnectionType[]>(parseConnectionTypes(searchParams?.get('connectionTypes') ?? null));
     const [selectedServerUrl, setSelectedServerUrl] = useState<string | null>(() =>
-        readInitialSelectedServerUrl(searchParams),
+        readInitialSelectedServerUrl(searchParams ?? new URLSearchParams()),
     );
-    const [selectedAgentName, setSelectedAgentName] = useState<string | null>(searchParams.get('selectedAgent') || null);
+    const [selectedAgentName, setSelectedAgentName] = useState<string | null>(searchParams?.get('selectedAgent') || null);
     const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
     const [isGraphCanvasReady, setIsGraphCanvasReady] = useState(false);
     const storedPositionsRef = useRef<StoredPositions>({});
@@ -546,7 +546,7 @@ export function useAgentsGraphState(props: UseAgentsGraphStateProps) {
     const updateUrl = useCallback(
         (nextFilterType: ConnectionType[], nextSelectedServerUrl: string | null, nextSelectedAgentName: string | null) => {
             const params = buildUpdatedGraphSearchParams(
-                searchParams.toString(),
+                searchParams?.toString() ?? '',
                 nextFilterType,
                 nextSelectedServerUrl,
                 nextSelectedAgentName,

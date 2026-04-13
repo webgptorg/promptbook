@@ -11,7 +11,7 @@
         "test-build": "next build && node ./scripts/prerender-homepage.js",
         "build": "next build && node ./scripts/prerender-homepage.js",
         "start": "next start -p 4440",
-        "lint": "next lint --max-warnings=0",
+        "lint": "eslint src/ --max-warnings=0",
         "postinstall": "cd ../../ && npm ci"
     }
 }
