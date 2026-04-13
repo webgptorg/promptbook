@@ -1,3 +1,8 @@
+-   Refactored Agents Server `FilesGalleryClient.tsx` into smaller focused private file-gallery modules without changing external behavior:
+
+    -   Moved paginated loading, view-mode resets, and grid infinite-scroll observation into the private `useFilesGalleryState` hook so `FilesGalleryClient.tsx` now reads as a thin composition layer.
+    -   Extracted the view toggle, table view, grid view, and shared status badge into focused private components while preserving the existing pagination, infinite scroll, file and agent links, status styling, and empty-state behavior.
+
 -   Refactored Agents Server `useCustomJsClientState.ts` into smaller focused private custom-JS modules without changing external behavior:
 
     -   Moved custom JavaScript file-state normalization, change detection, save reconciliation, and delete fallback handling into the private `CustomJavascriptFileState` module so the public hook focuses on React orchestration and editor actions.
