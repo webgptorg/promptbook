@@ -1,3 +1,8 @@
+-   Refactored Agents Server `syncVercelDomainsMain.ts` into smaller focused domain-sync helpers without changing external behavior:
+
+    -   Split the branching-heavy sync orchestration into dedicated context-loading, input-logging, reconfiguration, addition, verification, flagged-domain handling, Cloudflare sync, and completion-summary helpers so `syncVercelDomainsMain` now reads top-down.
+    -   Kept the existing database guards, dry-run event payloads, add-and-verify behavior, delete-removed handling, optional Cloudflare skip/reporting flow, and human-readable sync report intact while making each step easier to follow and maintain.
+
 -   Refactored Agents Server `useAgentsListState.ts` into smaller focused homepage hooks without changing external behavior:
 
     -   Moved route/query handling, folder navigation, federated-agent refresh gating, and agent URL/email building into dedicated private `useAgentsListQueryState` and `useAgentsListNavigationState` helpers so the main hook reads more clearly as a composition layer.
