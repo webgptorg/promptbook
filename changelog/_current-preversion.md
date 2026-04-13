@@ -2618,3 +2618,8 @@
     -   Added backwards-compatible `failureDetails` storage for `UserChatJob` rows and now persist structured JSON diagnostics containing the failure summary, serialized error payload (message/name/stack when available), provider, timing, and chat-turn identifiers.
     -   Reused the same diagnostics builder for runtime failures, unexpected worker-route failures, and expired-lease recovery paths to keep failure logging DRY and consistent.
     -   Extended the admin task manager to surface the stored diagnostics under failed chat-completion tasks via an expandable "Show details" panel in the Last error column.
+
+-   Refactored Agents Server `apps/agents-server/src/app/agents/[agentName]/api/chat/route.ts` into smaller focused private chat-route helpers without changing external behavior:
+
+    -   Moved request-time runtime assembly, disclaimer and credential resolution, history initialization, and frozen team-member chat persistence behind the private `resolveAgentChatRouteContext` and `createTeamMemberFrozenChatPersistence` facades so `route.ts` now reads as a thin HTTP entrypoint.
+    -   Extracted the long-lived markdown stream orchestration, cancellation handling, tool-call framing, and final post-processing into the private `createAgentChatStreamResponse` helper while preserving the existing stateless chat streaming behavior, keep-alives, history recording, learning, and calendar activity logging.

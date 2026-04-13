@@ -1,61 +1,16 @@
-import { CHAT_STREAM_KEEP_ALIVE_INTERVAL_MS, CHAT_STREAM_KEEP_ALIVE_TOKEN } from '@/src/constants/streaming';
-import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { createChatAttachmentTools } from '@/src/tools/createChatAttachmentTools';
-import { createAgentProgressTools } from '@/src/tools/createAgentProgressTools';
-import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
-import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
-import {
-    parseBookScopedAgentIdentifier,
-} from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
-import { AgentKitCacheManager } from '@/src/utils/cache/AgentKitCacheManager';
-import { createChatHistoryRecorder } from '@/src/utils/chat/createChatHistoryRecorder';
-import { ensureNonEmptyChatContent } from '@/src/utils/chat/ensureNonEmptyChatContent';
-import {
-    appendMessageSuffix,
-    createMessageSuffixAppendix,
-    emulateMessageSuffixStreaming,
-    resolveMessageSuffixFromAgentSource,
-} from '@/src/utils/chat/messageSuffix';
-import { resolveChatMessageContentForApiRequest } from '@/src/utils/chat/validateChatMessageContent';
-import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
-import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
-import { resolveCurrentUserIdentity, type ResolvedCurrentUserIdentity } from '@/src/utils/currentUserIdentity';
-import {
-    resolveMetaDisclaimerMarkdownFromAgentSource,
-    resolveMetaDisclaimerStatusForUser,
-} from '@/src/utils/metaDisclaimer';
-import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
-import { extractUseEmailConfigurationFromAgentSource } from '@/src/utils/emails/extractUseEmailConfigurationFromAgentSource';
-import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
-import { extractUseCalendarConnectionsFromAgentSource } from '@/src/utils/calendars/extractUseCalendarConnectionsFromAgentSource';
-import { logCalendarToolCallsActivity } from '@/src/utils/calendars/logCalendarToolCallsActivity';
-import { resolveUseEmailSmtpCredential } from '@/src/utils/resolveUseEmailSmtpCredential';
-import { resolveUseCalendarGoogleToken } from '@/src/utils/resolveUseCalendarGoogleToken';
-import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithubToken';
-import { persistFrozenUserChat, USER_CHAT_SOURCES } from '@/src/utils/userChat';
-import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
-import {
-    AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS,
-    resolveAgentCollectionTablePrefix,
-    waitForRunningAgentPreparation,
-} from '@/src/utils/agentPreparation';
 import type { ChatMessage } from '@promptbook-local/components';
-import { Agent, computeAgentHash, normalizeChatAttachments } from '@promptbook-local/core';
-import type { ToolCall } from '@promptbook-local/types';
-import { $getCurrentDate, serializeError } from '@promptbook-local/utils';
+import { normalizeChatAttachments } from '@promptbook-local/core';
+import { serializeError } from '@promptbook-local/utils';
+import { parseBookScopedAgentIdentifier } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
+import { resolveChatMessageContentForApiRequest } from '@/src/utils/chat/validateChatMessageContent';
+import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
-import { ASSISTANT_PREPARATION_TOOL_CALL_NAME } from '../../../../../../../../src/types/ToolCall';
-import { encodeChatStreamWhitespaceForTransport } from '../../../../../../../../src/utils/chat/encodeChatStreamWhitespaceForTransport';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 import { respondIfClientVersionIsOutdated } from '../../../../../utils/clientVersionGuard';
-import { prepareToolCallsForStreaming } from '../../../../../utils/toolCallStreaming';
 import { isAgentDeleted } from '../../_utils';
-import {
-    resolveCachedServerAgentContext,
-    resolveCachedServerAgentModelRequirements,
-} from '@/src/utils/cachedServerAgentRuntime';
-import { getTeacherRemoteAgent } from '@/src/utils/getTeacherRemoteAgent';
-import { resolveAppendOnlySelfLearningAgentSource } from '@/src/utils/resolveAppendOnlySelfLearningAgentSource';
+import { createAgentChatApiErrorResponse } from './createAgentChatApiErrorResponse';
+import { createAgentChatStreamResponse } from './createAgentChatStreamResponse';
+import { resolveAgentChatRouteContext } from './resolveAgentChatRouteContext';
 
 /**
  * Shape of the incoming chat API payload.
@@ -70,153 +25,9 @@ type ChatRequestBody = {
 };
 
 /**
- * Error name used when a chat stream is cancelled by the client.
- */
-const CHAT_STREAM_ABORTED_ERROR_NAME = 'ChatStreamAbortedError';
-
-/**
- * API error payload shape returned by chat endpoint.
- */
-type ChatApiErrorType = 'invalid_request_error' | 'agent_deleted' | 'meta_disclaimer_required';
-
-/**
  * Allow long-running streams: set to platform maximum (seconds)
  */
 export const maxDuration = 300;
-
-/**
- * Builds a preparation tool call payload for the chat stream.
- */
-function createAssistantPreparationToolCall(phase: string): ToolCall {
-    return {
-        name: ASSISTANT_PREPARATION_TOOL_CALL_NAME,
-        arguments: { phase },
-        createdAt: $getCurrentDate(),
-    };
-}
-
-/**
- * Wraps tool calls in the NDJSON transport envelope consumed by `RemoteAgent`.
- */
-function createToolCallsStreamFrame(toolCalls: ReadonlyArray<ToolCall>): string {
-    return `\n${JSON.stringify({ toolCalls })}\n`;
-}
-
-/**
- * Creates a normalized cancellation error for chat streaming.
- */
-function createChatStreamAbortedError(): Error {
-    const error = new Error('Chat stream aborted by the client.');
-    error.name = CHAT_STREAM_ABORTED_ERROR_NAME;
-    return error;
-}
-
-/**
- * Detects runtime abort errors thrown by web streams/fetch when the client disconnects.
- */
-function isAbortLikeError(error: unknown): boolean {
-    if (!error || typeof error !== 'object') {
-        return false;
-    }
-
-    const errorLike = error as { name?: unknown };
-    return errorLike.name === 'AbortError';
-}
-
-/**
- * Detects whether a stream failure was caused by client-side cancellation.
- */
-function isChatStreamCancellationError(error: unknown, signal: AbortSignal): boolean {
-    if (signal.aborted) {
-        return true;
-    }
-
-    if (!error || typeof error !== 'object') {
-        return false;
-    }
-
-    const errorLike = error as { name?: unknown };
-    return errorLike.name === CHAT_STREAM_ABORTED_ERROR_NAME || isAbortLikeError(error);
-}
-
-/**
- * Builds a standardized JSON error response used by chat API handlers.
- */
-function createChatApiErrorResponse(message: string, status: number, type: ChatApiErrorType): Response {
-    return new Response(
-        JSON.stringify({
-            error: {
-                message,
-                type,
-            },
-        }),
-        {
-            status,
-            headers: { 'Content-Type': 'application/json' },
-        },
-    );
-}
-
-/**
- * Returns true when the current stateless chat request comes from an authenticated internal user.
- */
-function shouldPersistTeamMemberFrozenChat(identity: ResolvedCurrentUserIdentity | null): boolean {
-    return Boolean(identity && !identity.isAnonymous);
-}
-
-/**
- * Creates a frozen chat snapshot for one team-member/internal stateless chat request.
- */
-function createFrozenTeamMemberChatMessages(options: {
-    thread?: ReadonlyArray<ChatMessage>;
-    userMessageContent: string;
-    userAttachments?: ChatMessage['attachments'];
-    assistantContent?: string;
-    includeAssistantPlaceholder?: boolean;
-}): Array<ChatMessage> {
-    const startedAt = Date.now();
-    const normalizedThread = (options.thread || []).map((message, index) => ({
-        ...message,
-        id: message.id || `team-frozen-${index}`,
-        createdAt:
-            message.createdAt ||
-            (new Date(startedAt + index).toISOString() as NonNullable<ChatMessage['createdAt']>),
-    }));
-    const messages = [
-        ...normalizedThread,
-        {
-            id: `team-frozen-${normalizedThread.length}`,
-            sender: 'USER',
-            content: options.userMessageContent,
-            attachments: options.userAttachments,
-            isComplete: true,
-            createdAt: new Date(startedAt + normalizedThread.length).toISOString() as NonNullable<
-                ChatMessage['createdAt']
-            >,
-        } satisfies ChatMessage,
-    ];
-
-    if (options.assistantContent !== undefined) {
-        messages.push({
-            id: `team-frozen-${messages.length}`,
-            sender: 'AGENT',
-            content: options.assistantContent,
-            isComplete: true,
-            createdAt: new Date(startedAt + messages.length).toISOString() as NonNullable<ChatMessage['createdAt']>,
-        } satisfies ChatMessage);
-    } else if (options.includeAssistantPlaceholder) {
-        messages.push({
-            id: `team-frozen-${messages.length}`,
-            sender: 'AGENT',
-            content: '',
-            isComplete: false,
-            lifecycleState: 'running',
-            createdAt: new Date(startedAt + messages.length).toISOString() as NonNullable<ChatMessage['createdAt']>,
-        } satisfies ChatMessage);
-    }
-
-    return messages;
-}
 
 /**
  * Handles options.
@@ -250,7 +61,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
     // Check if agent is deleted
     if (await isAgentDeleted(deletedCheckAgentIdentifier)) {
-        return createChatApiErrorResponse(
+        return createAgentChatApiErrorResponse(
             'This agent has been deleted. You can restore it from the Recycle Bin.',
             410, // Gone - indicates the resource is no longer available
             'agent_deleted',
@@ -259,13 +70,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
     const rawBody = (await request.json().catch(() => null)) as unknown;
     if (!rawBody || typeof rawBody !== 'object' || Array.isArray(rawBody)) {
-        return createChatApiErrorResponse('Invalid request body.', 400, 'invalid_request_error');
+        return createAgentChatApiErrorResponse('Invalid request body.', 400, 'invalid_request_error');
     }
 
     const body = rawBody as ChatRequestBody;
     const messageResolution = resolveChatMessageContentForApiRequest(body.message);
     if (!messageResolution.isValid) {
-        return createChatApiErrorResponse(messageResolution.issue.message, messageResolution.issue.status, 'invalid_request_error');
+        return createAgentChatApiErrorResponse(
+            messageResolution.issue.message,
+            messageResolution.issue.status,
+            'invalid_request_error',
+        );
     }
 
     const message = messageResolution.message;
@@ -276,451 +91,22 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     //      <- TODO: [🐱‍🚀] To configuration DEFAULT_INITIAL_HIDDEN_MESSAGE
 
     try {
-        const [collection, baseAgentReferenceResolver] = await Promise.all([
-            $provideAgentCollectionForServer(),
-            $provideAgentReferenceResolver(),
-        ]);
-        const localServerUrl = new URL(request.url).origin;
-        const resolvedAgentContext = await resolveCachedServerAgentContext({
-            collection,
-            agentIdentifier: agentName,
-            localServerUrl,
-            fallbackResolver: baseAgentReferenceResolver,
-        });
-        const preparedAgentModelRequirementsPromise = resolveCachedServerAgentModelRequirements({
-            resolvedAgentContext,
-            localServerUrl,
-            fallbackResolver: baseAgentReferenceResolver,
-        });
-        const agentSource = resolvedAgentContext.resolvedAgentSource;
-        const unresolvedAgentSource = resolvedAgentContext.unresolvedAgentSource;
-        const agentId = resolvedAgentContext.parentAgentPermanentId;
-        const resolvedAgentName = resolvedAgentContext.resolvedAgentName;
-        const projectRepositories = extractProjectRepositoriesFromAgentSource(agentSource);
-        const calendarConnections = extractUseCalendarConnectionsFromAgentSource(agentSource);
-        const useEmailConfiguration = extractUseEmailConfigurationFromAgentSource(agentSource);
-        // [▶️] const executionTools = await $provideExecutionToolsForServer();
-        const messageSuffix = resolveMessageSuffixFromAgentSource(agentSource);
-        const [preparedAgentModelRequirements, currentUserIdentity, currentRequestIdentity] = await Promise.all([
-            preparedAgentModelRequirementsPromise,
-            resolveCurrentUserMemoryIdentity(),
-            resolveCurrentUserIdentity(),
-        ]);
-        const disclaimerMarkdown = resolveMetaDisclaimerMarkdownFromAgentSource(agentSource);
-
-        if (disclaimerMarkdown) {
-            if (!currentUserIdentity) {
-                return createChatApiErrorResponse(
-                    'You must accept the disclaimer before chatting with this agent.',
-                    403,
-                    'meta_disclaimer_required',
-                );
-            }
-
-            const disclaimerStatus = await resolveMetaDisclaimerStatusForUser({
-                userId: currentUserIdentity.userId,
-                agentPermanentId: agentId,
-                agentSource,
-            });
-
-            if (!disclaimerStatus.accepted) {
-                return createChatApiErrorResponse(
-                    'You must accept the disclaimer before chatting with this agent.',
-                    403,
-                    'meta_disclaimer_required',
-                );
-            }
-        }
-
-        const [projectGithubToken, calendarGoogleAccessToken, emailSmtpCredential] = await Promise.all([
-            resolveUseProjectGithubToken({
-                userId: currentUserIdentity?.userId,
-                agentPermanentId: agentId,
-            }),
-            calendarConnections.length > 0
-                ? resolveUseCalendarGoogleToken({
-                      userId: currentUserIdentity?.userId,
-                      agentPermanentId: agentId,
-                  })
-                : Promise.resolve(undefined),
-            useEmailConfiguration.isEnabled
-                ? resolveUseEmailSmtpCredential({
-                      userId: currentUserIdentity?.userId,
-                      agentPermanentId: agentId,
-                  })
-                : Promise.resolve(undefined),
-        ]);
-
-        const incomingParameters =
-            rawParameters && typeof rawParameters === 'object' && !Array.isArray(rawParameters)
-                ? (rawParameters as Record<string, unknown>)
-                : {};
-        const runtimeTools = createAgentProgressTools(createChatAttachmentTools([], attachments));
-        const promptParameters = composePromptParametersWithMemoryContext({
-            baseParameters: incomingParameters,
-            currentUserIdentity,
-            agentPermanentId: agentId,
-            agentName: resolvedAgentName,
-            isPrivateModeEnabled,
-            projectRepositories,
-            projectGithubToken,
-            emailSmtpCredential,
-            emailFromAddress: useEmailConfiguration.senderEmail,
-            calendarGoogleAccessToken,
-            calendarConnections,
-            chatAttachments: attachments,
-        });
-
-        // Use AgentKitCacheManager for vector store caching
-        const agentKitCacheManager = new AgentKitCacheManager({ isVerbose: true });
-        const baseOpenAiToolsPromise = $provideOpenAiAgentKitExecutionToolsForServer();
-
-        const agentHash = computeAgentHash(agentSource);
-        const tablePrefix = resolveAgentCollectionTablePrefix(collection);
-        const preparationWaitResult = await waitForRunningAgentPreparation({
-            tablePrefix,
-            agentPermanentId: agentId,
-            fingerprint: agentHash,
-            timeoutMs: AGENT_PREPARATION_CHAT_WAIT_TIMEOUT_MS,
-        });
-        if (preparationWaitResult !== 'not_running') {
-            console.info('[pre-index]', 'chat_wait_result', {
-                tablePrefix,
-                agentPermanentId: agentId,
-                agentHash,
-                preparationWaitResult,
-            });
-        }
-
-        // Note: Identify the user message
-        const userMessageContent = {
-            role: 'USER',
-            sender: 'USER',
-            content: message,
-            attachments,
-        };
-        const recordChatHistoryMessage = await createChatHistoryRecorder({
+        const contextResolution = await resolveAgentChatRouteContext({
             request,
-            agentIdentifier: agentId,
-            agentHash,
-            source: 'AGENT_PAGE_CHAT',
-            apiKey: null,
-            userId: currentUserIdentity?.userId ?? null,
-            isEnabled: !isPrivateModeEnabled,
+            agentName,
+            message,
+            thread,
+            attachments,
+            rawParameters,
+            isPrivateModeEnabled,
         });
-        const userMessageHash = await recordChatHistoryMessage({
-            message: userMessageContent,
-            previousMessageHash: null, // <- TODO: [🧠] How to handle previous message hash?
-        });
-        let persistedFrozenChatId: string | undefined;
-        if (!isPrivateModeEnabled && shouldPersistTeamMemberFrozenChat(currentRequestIdentity)) {
-            const persistedFrozenChat = await persistFrozenUserChat({
-                userId: currentRequestIdentity!.userId,
-                agentPermanentId: agentId,
-                source: USER_CHAT_SOURCES.TEAM_MEMBER,
-                messages: createFrozenTeamMemberChatMessages({
-                    thread,
-                    userMessageContent: message,
-                    userAttachments: attachments,
-                    includeAssistantPlaceholder: true,
-                }),
-            }).catch((error) => {
-                console.error('[user-chat] Failed to persist team-member frozen chat', error);
-                return null;
-            });
-
-            persistedFrozenChatId = persistedFrozenChat?.id;
+        if (!contextResolution.ok) {
+            return contextResolution.response;
         }
 
-        const encoder = new TextEncoder();
-        const readableStream = new ReadableStream({
-            async start(controller) {
-                let hasMeaningfulDelta = false;
-                let keepAliveInterval: ReturnType<typeof setInterval> | undefined;
-                let lastToolCallsFrame: string | null = null;
-                let isStreamClosed = false;
-
-                /**
-                 * Clears keep-alive timers and prevents additional writes to the response stream.
-                 */
-                const markStreamClosed = (): void => {
-                    if (isStreamClosed) {
-                        return;
-                    }
-
-                    isStreamClosed = true;
-
-                    if (keepAliveInterval) {
-                        clearInterval(keepAliveInterval);
-                        keepAliveInterval = undefined;
-                    }
-                };
-
-                /**
-                 * Returns true when streaming should stop due to closed connection or aborted request.
-                 */
-                const isStreamCancelled = (): boolean => {
-                    return isStreamClosed || request.signal.aborted;
-                };
-
-                /**
-                 * Enqueues one markdown chunk while normalizing client disconnects to cancellation errors.
-                 */
-                const enqueueChunk = (chunk: string): void => {
-                    if (isStreamCancelled()) {
-                        throw createChatStreamAbortedError();
-                    }
-
-                    try {
-                        controller.enqueue(encoder.encode(chunk));
-                    } catch (error) {
-                        if (isAbortLikeError(error) || request.signal.aborted) {
-                            markStreamClosed();
-                            throw createChatStreamAbortedError();
-                        }
-                        throw error;
-                    }
-                };
-
-                const sendTextChunk = (chunk: string): void => {
-                    if (!chunk) {
-                        return;
-                    }
-
-                    enqueueChunk(encodeChatStreamWhitespaceForTransport(chunk));
-                };
-
-                /**
-                 * Closes the outgoing stream once when still writable.
-                 */
-                const closeStream = (): void => {
-                    if (isStreamClosed) {
-                        return;
-                    }
-
-                    markStreamClosed();
-                    try {
-                        controller.close();
-                    } catch {
-                        // Stream may already be closed by the runtime when client disconnects.
-                    }
-                };
-
-                /**
-                 * Tracks request aborts so long-running model execution can stop quickly.
-                 */
-                const handleRequestAbort = (): void => {
-                    markStreamClosed();
-                };
-
-                request.signal.addEventListener('abort', handleRequestAbort, { once: true });
-
-                const sendKeepAlivePing = () => {
-                    try {
-                        enqueueChunk(`\n${CHAT_STREAM_KEEP_ALIVE_TOKEN}\n`);
-                    } catch (error) {
-                        if (isChatStreamCancellationError(error, request.signal)) {
-                            markStreamClosed();
-                            return;
-                        }
-
-                        console.error('[Agent chat stream] Keep-alive failed', error);
-                        markStreamClosed();
-                    }
-                };
-
-                /**
-                 * Streams tool calls to the client while deduplicating repeated snapshots.
-                 */
-                const emitToolCalls = (toolCalls: ReadonlyArray<ToolCall> | undefined): void => {
-                    if (!toolCalls || toolCalls.length === 0) {
-                        return;
-                    }
-
-                    const preparedToolCalls = prepareToolCallsForStreaming(toolCalls);
-                    const frame = createToolCallsStreamFrame(preparedToolCalls);
-                    if (frame === lastToolCallsFrame) {
-                        return;
-                    }
-
-                    lastToolCallsFrame = frame;
-                    enqueueChunk(frame);
-                };
-
-                if (isStreamCancelled()) {
-                    return;
-                }
-
-                sendKeepAlivePing();
-                keepAliveInterval = setInterval(sendKeepAlivePing, CHAT_STREAM_KEEP_ALIVE_INTERVAL_MS);
-
-                /**
-                 * Note: Tool calls are emitted continuously while streaming and once more at the end.
-                 * The shared emitter deduplicates snapshots so ongoing and final chips stay consistent.
-                 */
-                const handleStreamChunk = createChatStreamHandler({
-                    onDelta: (deltaContent) => {
-                        if (deltaContent.trim().length > 0) {
-                            hasMeaningfulDelta = true;
-                        }
-                        sendTextChunk(deltaContent);
-                    },
-                    onToolCalls: (toolCalls) => {
-                        emitToolCalls(toolCalls);
-                    },
-                });
-
-                try {
-                    const agentKitResult = await agentKitCacheManager.getOrCreateAgentKitAgent(
-                        agentSource,
-                        resolvedAgentName,
-                        await baseOpenAiToolsPromise,
-                        {
-                            includeDynamicContext: true,
-                            agentId,
-                            modelRequirements: preparedAgentModelRequirements.modelRequirements,
-                            onCacheMiss: async () => {
-                                const toolCall = createAssistantPreparationToolCall('Preparing AgentKit agent');
-                                emitToolCalls([toolCall]);
-                            },
-                        },
-                    );
-
-                    const agent = new Agent({
-                        isVerbose: true, // <- TODO: [🐱‍🚀] From environment variable
-                        assistantPreparationMode: 'external',
-                        executionTools: {
-                            // [▶️] ...executionTools,
-                            llm: agentKitResult.tools,
-                        },
-                        agentSource,
-                        teacherAgent: await getTeacherRemoteAgent(), // <- [🦋]
-                    });
-
-                    const response = await agent.callChatModelStream!(
-                        {
-                            title: `Chat with agent ${
-                                resolvedAgentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */
-                            }`,
-                            parameters: promptParameters,
-                            modelRequirements: {
-                                modelVariant: 'CHAT',
-                            },
-                            content: message,
-                            thread,
-                            attachments,
-                            ...(runtimeTools.length > 0 ? { tools: runtimeTools } : {}),
-                        },
-                        handleStreamChunk,
-                        { signal: request.signal },
-                    );
-
-                    if (isStreamCancelled()) {
-                        throw createChatStreamAbortedError();
-                    }
-
-                    const normalizedResponse = ensureNonEmptyChatContent({
-                        content: response.content,
-                        context: `Agent chat ${resolvedAgentName}`,
-                    });
-
-                    if (normalizedResponse.wasEmpty && !hasMeaningfulDelta) {
-                        sendTextChunk(normalizedResponse.content);
-                    }
-
-                    const messageSuffixAppendix = createMessageSuffixAppendix(
-                        normalizedResponse.content,
-                        messageSuffix,
-                    );
-                    if (messageSuffixAppendix) {
-                        await emulateMessageSuffixStreaming(messageSuffixAppendix, (delta) => {
-                            sendTextChunk(delta);
-                        });
-                    }
-
-                    if (isStreamCancelled()) {
-                        throw createChatStreamAbortedError();
-                    }
-
-                    const responseContentWithSuffix = appendMessageSuffix(normalizedResponse.content, messageSuffix);
-
-                    // Note: Identify the agent message
-                    const agentMessageContent = {
-                        role: 'MODEL',
-                        sender: 'MODEL',
-                        content: responseContentWithSuffix,
-                    };
-
-                    await recordChatHistoryMessage({
-                        message: agentMessageContent,
-                        previousMessageHash: userMessageHash,
-                        usage: response.usage,
-                    });
-                    if (!isPrivateModeEnabled && shouldPersistTeamMemberFrozenChat(currentRequestIdentity)) {
-                        await persistFrozenUserChat({
-                            userId: currentRequestIdentity!.userId,
-                            agentPermanentId: agentId,
-                            source: USER_CHAT_SOURCES.TEAM_MEMBER,
-                            chatId: persistedFrozenChatId,
-                            messages: createFrozenTeamMemberChatMessages({
-                                thread,
-                                userMessageContent: message,
-                                userAttachments: attachments,
-                                assistantContent: responseContentWithSuffix,
-                            }),
-                        }).catch((error) => {
-                            console.error('[user-chat] Failed to refresh team-member frozen chat', error);
-                        });
-                    }
-
-                    // Note: [🐱‍🚀] Save the learned data
-                    if (!isPrivateModeEnabled && !resolvedAgentContext.isBookScopedAgent) {
-                        const learnedAgentSource = resolveAppendOnlySelfLearningAgentSource({
-                            unresolvedAgentSourceBeforeLearning: unresolvedAgentSource,
-                            resolvedAgentSourceBeforeLearning: agentSource,
-                            resolvedAgentSourceAfterLearning: agent.agentSource.value,
-                        });
-
-                        if (learnedAgentSource !== null) {
-                            await collection.updateAgentSource(agentId, learnedAgentSource);
-                        }
-                    }
-
-                    if (response.toolCalls && response.toolCalls.length > 0) {
-                        emitToolCalls(response.toolCalls);
-                        await logCalendarToolCallsActivity({
-                            userId: currentUserIdentity?.userId ?? null,
-                            agentPermanentId: agentId,
-                            toolCalls: response.toolCalls,
-                        });
-                    }
-
-                    closeStream();
-                } catch (error) {
-                    if (isChatStreamCancellationError(error, request.signal)) {
-                        markStreamClosed();
-                        return;
-                    }
-
-                    markStreamClosed();
-                    try {
-                        controller.error(error);
-                    } catch (streamError) {
-                        console.error('[Agent chat stream] Failed to surface stream error', streamError);
-                    }
-                } finally {
-                    request.signal.removeEventListener('abort', handleRequestAbort);
-                    markStreamClosed();
-                }
-            },
-        });
-
-        return new Response(readableStream, {
-            status: 200,
-            headers: {
-                'Content-Type': 'text/markdown',
-                'Access-Control-Allow-Origin': '*', // <- Note: Allow embedding on other websites
-            },
+        return createAgentChatStreamResponse({
+            request,
+            context: contextResolution.context,
         });
     } catch (error) {
         assertsError(error);
