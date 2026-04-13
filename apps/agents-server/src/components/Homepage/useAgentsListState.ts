@@ -1,21 +1,10 @@
 'use client';
 
-import { string_url } from '@promptbook-local/types';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useMemo } from 'react';
-import type { AgentFolderContext } from '../../utils/agentOrganization/agentFolderContext';
-import { buildAgentFolderContext } from '../../utils/agentOrganization/agentFolderContext';
+import type { string_url } from '@promptbook-local/types';
+import { useMemo } from 'react';
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
-import {
-    buildFolderMaps,
-    buildFolderPath,
-    findFolderById,
-    getAgentIdentifier,
-    getFolderPathSegments,
-} from './agentOrganizationUtils';
-import type { HomeViewMode } from './homeViewMode';
-import { getHomeViewQueryValue, resolveHomeViewMode } from './homeViewMode';
+import { getAgentIdentifier } from './agentOrganizationUtils';
 import { useAgentsListAgentState } from './useAgentsListAgentState';
 import { useAgentsListDerivedState } from './useAgentsListDerivedState';
 import {
@@ -26,10 +15,13 @@ import {
 } from './useAgentsListDragState';
 import { useAgentsListFolderPathRecovery } from './useAgentsListFolderPathRecovery';
 import { useAgentsListFolderState } from './useAgentsListFolderState';
+import { useAgentsListNavigationState } from './useAgentsListNavigationState';
 import { useAgentsListOrganizationActions } from './useAgentsListOrganizationActions';
+import { useAgentsListOverlayDetailsState } from './useAgentsListOverlayDetailsState';
 import { useAgentsListOverlayState } from './useAgentsListOverlayState';
+import { useAgentsListQueryState } from './useAgentsListQueryState';
 import { useAgentsListSyncState } from './useAgentsListSyncState';
-import { useFederatedAgents, type AgentWithVisibility } from './useFederatedAgents';
+import type { AgentWithVisibility } from './useFederatedAgents';
 import { useIsTouchInput } from './useIsTouchInput';
 
 /**
@@ -89,31 +81,9 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         showFederatedAgents,
         externalAgents: initialExternalAgents,
     } = props;
-    const pathname = usePathname();
-    const router = useRouter();
-    const searchParams = useSearchParams();
-    const searchParamsSnapshot = searchParams.toString();
-    const routeSyncKey = `${pathname}?${searchParamsSnapshot}`;
-    const folderQuery = searchParams.get('folder');
-    const viewMode = resolveHomeViewMode(searchParams.get('view'));
+    const { folderQuery, pathname, routeSyncKey, router, searchParamsSnapshot, setViewMode, viewMode } =
+        useAgentsListQueryState();
     const { formatText } = useAgentNaming();
-    const normalizedPublicUrl = useMemo(
-        () => (publicUrl.endsWith('/') ? publicUrl : `${publicUrl}/`),
-        [publicUrl],
-    );
-    const publicUrlHost = useMemo(() => {
-        try {
-            return new URL(normalizedPublicUrl).hostname;
-        } catch {
-            return '';
-        }
-    }, [normalizedPublicUrl]);
-    const shouldRefreshFederatedAgents = showFederatedAgents && viewMode !== 'LIST';
-    const { federatedAgents, federatedServersStatus } = useFederatedAgents(
-        showFederatedAgents,
-        initialExternalAgents,
-        shouldRefreshFederatedAgents,
-    );
     const isTouchInput = useIsTouchInput();
     const allowFullCardDrag = canOrganize && viewMode === 'LIST' && !isTouchInput;
     const {
@@ -162,48 +132,16 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         searchParamsSnapshot,
     });
 
-    const buildAgentUrl = useCallback(
-        (identifier: string) => `${normalizedPublicUrl}${encodeURIComponent(identifier)}`,
-        [normalizedPublicUrl],
-    );
-    const buildAgentEmail = useCallback(
-        (identifier: string) => (publicUrlHost ? `${identifier}@${publicUrlHost}` : ''),
-        [publicUrlHost],
-    );
-
-    const setViewMode = useCallback(
-        (mode: HomeViewMode) => {
-            const params = new URLSearchParams(searchParams.toString());
-            const viewQueryValue = getHomeViewQueryValue(mode);
-
-            if (viewQueryValue === null) {
-                params.delete('view');
-            } else {
-                params.set('view', viewQueryValue);
-            }
-
-            router.replace(`?${params.toString()}`, { scroll: false });
-        },
-        [router, searchParams],
-    );
-
-    const navigateToFolder = useCallback(
-        (folderId: number | null, overrideFolders?: AgentOrganizationFolder[]) => {
-            const targetFolders = overrideFolders || folders;
-            const { folderById } = buildFolderMaps(targetFolders);
-            const targetSegments = getFolderPathSegments(folderId, folderById).map((folder) => folder.name);
-            const params = new URLSearchParams(searchParams.toString());
-
-            if (targetSegments.length === 0) {
-                params.delete('folder');
-            } else {
-                params.set('folder', buildFolderPath(targetSegments));
-            }
-
-            router.push(`?${params.toString()}`, { scroll: false });
-        },
-        [folders, router, searchParams],
-    );
+    const { buildAgentEmail, buildAgentUrl, federatedAgents, federatedServersStatus, navigateToFolder } =
+        useAgentsListNavigationState({
+            folders,
+            initialExternalAgents,
+            publicUrl,
+            router,
+            searchParamsSnapshot,
+            showFederatedAgents,
+            viewMode,
+        });
 
     const organizationActions = useAgentsListOrganizationActions({
         agents,
@@ -234,6 +172,25 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         synchronizeAfterMutation,
     });
     const overlayState = useAgentsListOverlayState();
+    const {
+        contextMenuAgent,
+        contextMenuAgentAnchorPoint,
+        contextMenuAgentEmail,
+        contextMenuAgentUrl,
+        contextMenuFolder,
+        contextMenuFolderAnchorPoint,
+        contextMenuFolderContext,
+        contextMenuIdentifier,
+        qrCodeAgent,
+        qrCodeAgentEmail,
+        qrCodeAgentUrl,
+    } = useAgentsListOverlayDetailsState({
+        buildAgentEmail,
+        buildAgentUrl,
+        folderById: folderMaps.folderById,
+        folders,
+        overlayState,
+    });
     const dragState = useAgentsListDragState({
         agents,
         canOrganize,
@@ -256,25 +213,6 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
     const dragAgentLabel = formatText('Drag agent');
     const dragFolderLabel = formatText('Drag folder');
 
-    const contextMenuAgent = overlayState.contextMenuState?.agent ?? null;
-    const contextMenuFolder =
-        overlayState.folderContextMenuState === null
-            ? null
-            : findFolderById(folders, overlayState.folderContextMenuState.folderId) || null;
-    const contextMenuIdentifier = contextMenuAgent ? getAgentIdentifier(contextMenuAgent) : '';
-    const contextMenuAgentUrl = contextMenuAgent ? buildAgentUrl(contextMenuIdentifier) : '';
-    const contextMenuAgentEmail = contextMenuAgent ? buildAgentEmail(contextMenuIdentifier) : '';
-    const contextMenuFolderContext = useMemo<AgentFolderContext | null>(() => {
-        if (!contextMenuAgent) {
-            return null;
-        }
-
-        return buildAgentFolderContext(contextMenuAgent.folderId ?? null, folderMaps.folderById);
-    }, [contextMenuAgent, folderMaps.folderById]);
-    const qrCodeIdentifier = overlayState.qrCodeAgent ? getAgentIdentifier(overlayState.qrCodeAgent) : '';
-    const qrCodeAgentUrl = overlayState.qrCodeAgent ? buildAgentUrl(qrCodeIdentifier) : '';
-    const qrCodeAgentEmail = overlayState.qrCodeAgent ? buildAgentEmail(qrCodeIdentifier) : '';
-
     return {
         activeAgent: dragState.activeAgent,
         activeDragItemType: dragState.activeDragItem?.type ?? null,
@@ -285,11 +223,11 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         allowFullCardDrag,
         breadcrumbFolders,
         contextMenuAgent,
-        contextMenuAgentAnchorPoint: overlayState.contextMenuState?.anchorPoint ?? null,
+        contextMenuAgentAnchorPoint,
         contextMenuAgentEmail,
         contextMenuAgentUrl,
         contextMenuFolder,
-        contextMenuFolderAnchorPoint: overlayState.folderContextMenuState?.anchorPoint ?? null,
+        contextMenuFolderAnchorPoint,
         contextMenuFolderContext,
         contextMenuIdentifier,
         currentFolderId,
@@ -329,7 +267,7 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         officeAgents,
         officeFolders,
         parentFolderInfo,
-        qrCodeAgent: overlayState.qrCodeAgent,
+        qrCodeAgent,
         qrCodeAgentEmail,
         qrCodeAgentUrl,
         sensors,

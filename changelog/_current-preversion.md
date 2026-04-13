@@ -1,3 +1,8 @@
+-   Refactored Agents Server `useAgentsListState.ts` into smaller focused homepage hooks without changing external behavior:
+
+    -   Moved route/query handling, folder navigation, federated-agent refresh gating, and agent URL/email building into dedicated private `useAgentsListQueryState` and `useAgentsListNavigationState` helpers so the main hook reads more clearly as a composition layer.
+    -   Extracted context-menu and QR-code detail derivation into the private `useAgentsListOverlayDetailsState` helper while keeping the existing synchronization, folder-path recovery, drag-and-drop, dialog, and overlay flows intact.
+
 -   Added repeatable `--ignore` support to `ptbk coder verify` so one verification run can skip prompt candidates whose filename or first prompt line matches a given value case-insensitively:
 
     -   Extended `ptbk coder verify` to forward repeatable `--ignore` filters into the verifier, allowing commands like `npx ptbk coder verify --ignore Refactor` to skip refactor-only prompts temporarily.
