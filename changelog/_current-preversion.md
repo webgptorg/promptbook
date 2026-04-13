@@ -1,3 +1,8 @@
+-   Refactored Agents Server `apps/agents-server/src/app/agents/[agentName]/api/calendar-events/route.ts` into smaller focused calendar-operation helpers without changing external behavior:
+
+    -   Split the branching-heavy `executeCalendarOperation` flow into dedicated per-operation executors and shared provider-input builders so the route now reads top-down.
+    -   Kept the existing scope resolution, calendar connection lookup, token handling, activity logging, request normalization, and JSON response shapes intact while removing repeated event-input shaping.
+
 -   Refactored Agents Server `AgentProfileChat.tsx` into smaller focused private helpers without changing external behavior:
 
     -   Moved the profile-to-chat navigation orchestration, SPA-stall fallback, and transition timers into the private `useAgentProfileChatNavigation` hook so `AgentProfileChat.tsx` no longer mixes rendering with navigation bookkeeping.

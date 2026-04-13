@@ -1,6 +1,13 @@
 import { createCalendarActivity, getCalendarProviderAdapter, listCalendarConnections } from '@/src/utils/calendars';
 import { resolveUseCalendarGoogleToken } from '@/src/utils/resolveUseCalendarGoogleToken';
 import type { CalendarConnectionRecord } from '@/src/utils/calendars';
+import type {
+    CalendarProvider,
+    CalendarProviderDeleteEventInput,
+    CalendarProviderInviteGuestsInput,
+    CalendarProviderListEventsInput,
+    CalendarProviderUpsertEventInput,
+} from '@/src/utils/calendars/providers/CalendarProvider';
 import { NextResponse } from 'next/server';
 import { resolveUserChatScope } from '../user-chats/resolveUserChatScope';
 
@@ -26,6 +33,31 @@ type SanitizedCalendarOperationRequest = {
     eventId: string | null;
     timeMin: string | null;
     timeMax: string | null;
+};
+
+/**
+ * Shared inputs required to execute one provider calendar operation.
+ */
+type CalendarOperationExecutionOptions = {
+    providerAdapter: CalendarProvider;
+    accessToken: string;
+    calendarId: string;
+    body: Record<string, unknown>;
+};
+
+/**
+ * Inputs used to dispatch one supported calendar operation.
+ */
+type CalendarOperationExecutionRequest = CalendarOperationExecutionOptions & {
+    operation: CalendarEventsOperation;
+};
+
+/**
+ * Normalized response returned from one executed calendar operation.
+ */
+type CalendarOperationExecutionResult = {
+    payload: Record<string, unknown>;
+    eventId?: string;
 };
 
 /**
@@ -126,6 +158,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
     const connectionId = parsePositiveInteger(rawBody.connectionId);
     const calendarUrl = normalizeOptionalText(rawBody.calendarUrl);
+    const sanitizedRequest = sanitizeOperationRequest(rawBody);
 
     let connection: CalendarConnectionRecord | null = null;
     try {
@@ -175,7 +208,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             eventId: responsePayload.eventId || null,
             status: 'success',
             details: {
-                request: sanitizeOperationRequest(rawBody),
+                request: sanitizedRequest,
             },
         });
 
@@ -194,7 +227,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             calendarUrl: connection.calendarUrl,
             status: 'error',
             details: {
-                request: sanitizeOperationRequest(rawBody),
+                request: sanitizedRequest,
                 error: error instanceof Error ? error.message : 'calendar_operation_failed',
             },
         }).catch(() => undefined);
@@ -248,126 +281,223 @@ async function resolveCalendarConnection(options: {
 /**
  * Executes one provider operation and returns response payload + optional event id.
  */
-async function executeCalendarOperation(options: {
-    operation: CalendarEventsOperation;
-    providerAdapter: ReturnType<typeof getCalendarProviderAdapter>;
-    accessToken: string;
+async function executeCalendarOperation({
+    operation,
+    ...executionOptions
+}: CalendarOperationExecutionRequest): Promise<CalendarOperationExecutionResult> {
+    switch (operation) {
+        case 'list_events':
+            return executeListEventsOperation(executionOptions);
+        case 'get_event':
+            return executeGetEventOperation(executionOptions);
+        case 'create_event':
+            return executeCreateEventOperation(executionOptions);
+        case 'update_event':
+            return executeUpdateEventOperation(executionOptions);
+        case 'delete_event':
+            return executeDeleteEventOperation(executionOptions);
+        case 'invite_guests':
+            return executeInviteGuestsOperation(executionOptions);
+    }
+
+    throw new Error(`Unsupported calendar operation "${operation}".`);
+}
+
+/**
+ * Lists events for one calendar using normalized list filters.
+ */
+async function executeListEventsOperation({
+    providerAdapter,
+    accessToken,
+    calendarId,
+    body,
+}: CalendarOperationExecutionOptions): Promise<CalendarOperationExecutionResult> {
+    const events = await providerAdapter.listEvents(accessToken, createListEventsInput(calendarId, body));
+
+    return {
+        payload: {
+            events,
+        },
+    };
+}
+
+/**
+ * Fetches one calendar event by its required identifier.
+ */
+async function executeGetEventOperation({
+    providerAdapter,
+    accessToken,
+    calendarId,
+    body,
+}: CalendarOperationExecutionOptions): Promise<CalendarOperationExecutionResult> {
+    const eventId = requireNonEmptyText(body.eventId, 'eventId');
+    const event = await providerAdapter.getEvent(accessToken, calendarId, eventId);
+
+    return {
+        payload: {
+            event,
+        },
+        eventId,
+    };
+}
+
+/**
+ * Creates one calendar event from normalized request fields.
+ */
+async function executeCreateEventOperation({
+    providerAdapter,
+    accessToken,
+    calendarId,
+    body,
+}: CalendarOperationExecutionOptions): Promise<CalendarOperationExecutionResult> {
+    const event = await providerAdapter.createEvent(accessToken, createUpsertEventInput({ calendarId, body }));
+
+    return {
+        payload: {
+            event,
+        },
+        eventId: normalizeOptionalText(event.id) || undefined,
+    };
+}
+
+/**
+ * Updates one calendar event selected by its required identifier.
+ */
+async function executeUpdateEventOperation({
+    providerAdapter,
+    accessToken,
+    calendarId,
+    body,
+}: CalendarOperationExecutionOptions): Promise<CalendarOperationExecutionResult> {
+    const eventId = requireNonEmptyText(body.eventId, 'eventId');
+    const event = await providerAdapter.updateEvent(accessToken, createUpsertEventInput({ calendarId, body, eventId }));
+
+    return {
+        payload: {
+            event,
+        },
+        eventId,
+    };
+}
+
+/**
+ * Deletes one calendar event selected by its required identifier.
+ */
+async function executeDeleteEventOperation({
+    providerAdapter,
+    accessToken,
+    calendarId,
+    body,
+}: CalendarOperationExecutionOptions): Promise<CalendarOperationExecutionResult> {
+    const eventId = requireNonEmptyText(body.eventId, 'eventId');
+    await providerAdapter.deleteEvent(accessToken, createDeleteEventInput({ calendarId, eventId, body }));
+
+    return {
+        payload: {
+            status: 'deleted',
+            eventId,
+        },
+        eventId,
+    };
+}
+
+/**
+ * Invites additional guests to one existing calendar event.
+ */
+async function executeInviteGuestsOperation({
+    providerAdapter,
+    accessToken,
+    calendarId,
+    body,
+}: CalendarOperationExecutionOptions): Promise<CalendarOperationExecutionResult> {
+    const eventId = requireNonEmptyText(body.eventId, 'eventId');
+    const inviteGuestsInput = createInviteGuestsInput({ calendarId, eventId, body });
+    const event = await providerAdapter.inviteGuests(accessToken, inviteGuestsInput);
+
+    return {
+        payload: {
+            event,
+            invitedGuests: inviteGuestsInput.guests,
+        },
+        eventId,
+    };
+}
+
+/**
+ * Creates provider list input from one calendar-event request body.
+ */
+function createListEventsInput(
+    calendarId: string,
+    body: Record<string, unknown>,
+): CalendarProviderListEventsInput {
+    return {
+        calendarId,
+        timeMin: normalizeOptionalText(body.timeMin) || undefined,
+        timeMax: normalizeOptionalText(body.timeMax) || undefined,
+        query: normalizeOptionalText(body.query) || undefined,
+        maxResults: parsePositiveInteger(body.maxResults) || undefined,
+        singleEvents: parseOptionalBoolean(body.singleEvents),
+        orderBy: normalizeOrderBy(body.orderBy),
+        timeZone: normalizeOptionalText(body.timeZone) || undefined,
+    };
+}
+
+/**
+ * Creates provider create/update input from one calendar-event request body.
+ */
+function createUpsertEventInput(options: {
     calendarId: string;
     body: Record<string, unknown>;
-}): Promise<{ payload: Record<string, unknown>; eventId?: string }> {
-    const { operation, providerAdapter, accessToken, calendarId, body } = options;
+    eventId?: string;
+}): CalendarProviderUpsertEventInput {
+    return {
+        calendarId: options.calendarId,
+        ...(options.eventId ? { eventId: options.eventId } : {}),
+        summary: normalizeOptionalText(options.body.summary) || undefined,
+        description: normalizeOptionalText(options.body.description) || undefined,
+        location: normalizeOptionalText(options.body.location) || undefined,
+        start: normalizeOptionalText(options.body.start) || undefined,
+        end: normalizeOptionalText(options.body.end) || undefined,
+        timeZone: normalizeOptionalText(options.body.timeZone) || undefined,
+        attendees: normalizeStringArray(options.body.attendees),
+        reminderMinutes: normalizeNumberArray(options.body.reminderMinutes),
+        sendUpdates: normalizeSendUpdates(options.body.sendUpdates),
+    };
+}
 
-    if (operation === 'list_events') {
-        const events = await providerAdapter.listEvents(accessToken, {
-            calendarId,
-            timeMin: normalizeOptionalText(body.timeMin) || undefined,
-            timeMax: normalizeOptionalText(body.timeMax) || undefined,
-            query: normalizeOptionalText(body.query) || undefined,
-            maxResults: parsePositiveInteger(body.maxResults) || undefined,
-            singleEvents: parseOptionalBoolean(body.singleEvents),
-            orderBy: normalizeOrderBy(body.orderBy),
-            timeZone: normalizeOptionalText(body.timeZone) || undefined,
-        });
+/**
+ * Creates provider delete input from one calendar-event request body.
+ */
+function createDeleteEventInput(options: {
+    calendarId: string;
+    eventId: string;
+    body: Record<string, unknown>;
+}): CalendarProviderDeleteEventInput {
+    return {
+        calendarId: options.calendarId,
+        eventId: options.eventId,
+        sendUpdates: normalizeSendUpdates(options.body.sendUpdates),
+    };
+}
 
-        return {
-            payload: {
-                events,
-            },
-        };
-    }
-
-    if (operation === 'get_event') {
-        const eventId = requireNonEmptyText(body.eventId, 'eventId');
-        const event = await providerAdapter.getEvent(accessToken, calendarId, eventId);
-        return {
-            payload: {
-                event,
-            },
-            eventId,
-        };
-    }
-
-    if (operation === 'create_event') {
-        const event = await providerAdapter.createEvent(accessToken, {
-            calendarId,
-            summary: normalizeOptionalText(body.summary) || undefined,
-            description: normalizeOptionalText(body.description) || undefined,
-            location: normalizeOptionalText(body.location) || undefined,
-            start: normalizeOptionalText(body.start) || undefined,
-            end: normalizeOptionalText(body.end) || undefined,
-            timeZone: normalizeOptionalText(body.timeZone) || undefined,
-            attendees: normalizeStringArray(body.attendees),
-            reminderMinutes: normalizeNumberArray(body.reminderMinutes),
-            sendUpdates: normalizeSendUpdates(body.sendUpdates),
-        });
-
-        return {
-            payload: {
-                event,
-            },
-            eventId: normalizeOptionalText(event.id) || undefined,
-        };
-    }
-
-    if (operation === 'update_event') {
-        const eventId = requireNonEmptyText(body.eventId, 'eventId');
-        const event = await providerAdapter.updateEvent(accessToken, {
-            calendarId,
-            eventId,
-            summary: normalizeOptionalText(body.summary) || undefined,
-            description: normalizeOptionalText(body.description) || undefined,
-            location: normalizeOptionalText(body.location) || undefined,
-            start: normalizeOptionalText(body.start) || undefined,
-            end: normalizeOptionalText(body.end) || undefined,
-            timeZone: normalizeOptionalText(body.timeZone) || undefined,
-            attendees: normalizeStringArray(body.attendees),
-            reminderMinutes: normalizeNumberArray(body.reminderMinutes),
-            sendUpdates: normalizeSendUpdates(body.sendUpdates),
-        });
-
-        return {
-            payload: {
-                event,
-            },
-            eventId,
-        };
-    }
-
-    if (operation === 'delete_event') {
-        const eventId = requireNonEmptyText(body.eventId, 'eventId');
-        await providerAdapter.deleteEvent(accessToken, {
-            calendarId,
-            eventId,
-            sendUpdates: normalizeSendUpdates(body.sendUpdates),
-        });
-
-        return {
-            payload: {
-                status: 'deleted',
-                eventId,
-            },
-            eventId,
-        };
-    }
-
-    const eventId = requireNonEmptyText(body.eventId, 'eventId');
-    const guests = normalizeStringArray(body.guests);
+/**
+ * Creates provider guest-invitation input from one calendar-event request body.
+ */
+function createInviteGuestsInput(options: {
+    calendarId: string;
+    eventId: string;
+    body: Record<string, unknown>;
+}): CalendarProviderInviteGuestsInput {
+    const guests = normalizeStringArray(options.body.guests);
     if (guests.length === 0) {
         throw new Error('Operation `invite_guests` requires a non-empty `guests` array.');
     }
 
-    const event = await providerAdapter.inviteGuests(accessToken, {
-        calendarId,
-        eventId,
-        guests,
-        sendUpdates: normalizeSendUpdates(body.sendUpdates),
-    });
     return {
-        payload: {
-            event,
-            invitedGuests: guests,
-        },
-        eventId,
+        calendarId: options.calendarId,
+        eventId: options.eventId,
+        guests,
+        sendUpdates: normalizeSendUpdates(options.body.sendUpdates),
     };
 }
 
