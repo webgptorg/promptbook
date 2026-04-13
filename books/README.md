@@ -1,6 +1,6 @@
 # 📖 Pipeline collection for Promptbook project
 
-> ⚠ Warning: This folder contain old Pipeline books that are no longer maintained and deprecated, Please look at the folder `/agents`
+> ⚠ Warning: [⚡️] This folder contain old Pipeline books that are no longer maintained and deprecated, Please look at the folder `/agents`
 
 These pipelines are used inside the Promptbook package itsef. The are compiled and available for `@promptbook/*` NPM packages.
 
