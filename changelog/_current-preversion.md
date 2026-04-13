@@ -1,3 +1,8 @@
+-   Refactored Agents Server `ChatHistoryClient.tsx` into smaller focused private chat-history modules without changing external behavior:
+
+    -   Kept `ChatHistoryClient.tsx` as the public admin page facade while moving chat-history loading, filters, pagination, view-mode transitions, export URL derivation, and destructive actions into a dedicated private `useChatHistoryState` hook.
+    -   Split the filter controls, table rendering, and shared pagination into focused private components while preserving the existing search, agent filter, chat/table toggle, CSV export, per-row delete, and agent-history clearing behavior.
+
 -   Refactored Agents Server `ChatFeedbackClient.tsx` into smaller focused private feedback modules without changing external behavior:
 
     -   Extracted the feedback loading, agent-option loading, sorting, destructive actions, export URL, and thread-dialog state into a dedicated private `useChatFeedbackState` hook so `ChatFeedbackClient.tsx` now reads as a thin composition layer.
