@@ -1,3 +1,8 @@
+-   Refactored Agents Server `ImagesGalleryClient.tsx` into smaller focused private image-gallery modules without changing external behavior:
+
+    -   Moved image loading, view-mode resets, infinite-scroll observation, and prompt-copy feedback into the private `useImagesGalleryState` hook so `ImagesGalleryClient.tsx` now reads as a thin composition layer.
+    -   Split the view toggle, table view, grid view, and shared prompt/purpose/parameter render helpers into focused private components while preserving the existing table pagination, grid infinite scroll, empty states, prompt copy feedback, and badge styling.
+
 -   Refactored Agents Server `ImageGeneratorTestClient.tsx` into smaller focused private image-generator modules without changing external behavior:
 
     -   Moved prompt/model state management, sequential generation orchestration, and API response handling into the private `useImageGeneratorTestState` hook so `ImageGeneratorTestClient.tsx` now reads as a thin composition layer.
