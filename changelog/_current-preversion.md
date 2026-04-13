@@ -1,3 +1,8 @@
+-   Refactored Agents Server `useBookEditorHistory.ts` into smaller focused private history helpers without changing external behavior:
+
+    -   Split the hook into dedicated loading, named-version save, restore, Escape-close, and selection-synchronization helpers so `useBookEditorHistory` now reads as a thin composition layer.
+    -   Kept the existing history filtering, autosave coordination, restore confirmation, diagnostics refresh, and side-panel interactions intact while making each step easier to follow and maintain.
+
 -   Refactored Agents Server `apps/agents-server/src/app/agents/[agentName]/api/calendar-events/route.ts` into smaller focused calendar-operation helpers without changing external behavior:
 
     -   Split the branching-heavy `executeCalendarOperation` flow into dedicated per-operation executors and shared provider-input builders so the route now reads top-down.
