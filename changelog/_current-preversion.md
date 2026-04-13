@@ -1,3 +1,8 @@
+-   Refactored Agents Server `AgentProfileChat.tsx` into smaller focused private helpers without changing external behavior:
+
+    -   Moved the profile-to-chat navigation orchestration, SPA-stall fallback, and transition timers into the private `useAgentProfileChatNavigation` hook so `AgentProfileChat.tsx` no longer mixes rendering with navigation bookkeeping.
+    -   Extracted resumable-chat loading into the private `useAgentProfileChatExistingChats` hook and consolidated mobile-menu, initial-message, and feedback-translation derivation into focused helpers while preserving the existing optimistic handoff, private-mode behavior, deleted-agent banner, and preview chat rendering.
+
 -   Refactored Agents Server `AgentProfileChat.optimisticNavigation.test.tsx` into smaller optimistic-navigation test helpers without changing external behavior:
 
     -   Moved the render-only mock chat components into the private `AgentProfileChatOptimisticNavigationTestComponents` module so the scenario file no longer mixes behavior assertions with mocked UI implementation details.

@@ -5,7 +5,7 @@ import { Chat } from '@promptbook-local/components';
 import { RemoteAgent } from '@promptbook-local/core';
 import { string_book, type ChatMessage } from '@promptbook-local/types';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
+import { useCallback, useMemo, useState, type MouseEvent as ReactMouseEvent } from 'react';
 import { spaceTrim } from 'spacetrim';
 import { string_agent_url, string_color } from '../../../../../../src/types/typeAliases';
 import { $getCurrentDate } from '../../../../../../src/utils/misc/$getCurrentDate';
@@ -18,7 +18,6 @@ import { useChatVisualMode } from '../../../components/ChatVisualMode/ChatVisual
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 import { createMyChatsMobileMenuItem } from '../../../components/Header/createMyChatsMobileMenuItem';
 import { useHoistedMobileMenuItems } from '../../../components/Header/MobileMenuHoistingContext';
-import { dispatchNavigationProgressStart } from '../../../components/NavigationProgress/navigationProgressEvents';
 import { HeadlessLink } from '../../../components/_utils/headlessParam';
 import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
@@ -29,12 +28,15 @@ import { resolveChatMessageValidationIssue } from '../../../utils/chat/validateC
 import { createServerLanguageMoment } from '../../../utils/localization/createServerLanguageMoment';
 import { createDefaultSpeechRecognition } from '../../../utils/speech-to-text/createDefaultSpeechRecognition';
 import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
-import { fetchUserChats, type UserChatSummary } from '../../../utils/userChatClient';
-import { buildAgentChatDestinationUrl, normalizeDestinationForLocationComparison } from './agentChatNavigationUtils';
+import type { UserChatSummary } from '../../../utils/userChatClient';
 import { setPendingProfileMessage } from './profileMessageCache';
+import { useAgentProfileChatExistingChats } from './useAgentProfileChatExistingChats';
+import { useAgentProfileChatNavigation } from './useAgentProfileChatNavigation';
 
 /**
  * Props for rendering the profile-page chat preview for one agent.
+ *
+ * @private internal type of <AgentProfileChat/>
  */
 export type AgentProfileChatProps = {
     agentUrl: string_agent_url;
@@ -69,17 +71,38 @@ const PROFILE_CHAT_ROW_HEIGHT_PX = 96;
 const PROFILE_CHAT_ROW_GAP_PX = 12;
 
 /**
- * Wait duration before falling back to hard navigation when SPA push stalls.
+ * Inputs used to derive the hoisted mobile-menu items for the profile route.
+ *
+ * @private internal type of <AgentProfileChat/>
  */
-const PROFILE_CHAT_NAVIGATION_FALLBACK_DELAY_MS = 1_200;
+type CreateAgentProfileChatMobileMenuItemsOptions = {
+    isDeleted: boolean;
+    isHistoryEnabled: boolean;
+    isPrivateModeEnabled: boolean;
+    formatText: (text: string) => string;
+    existingChats: ReadonlyArray<UserChatSummary>;
+    resolveExistingChatHref: (chatId: string) => string;
+    startNavigatingToChat: () => void;
+    newChatHref: string;
+};
 
 /**
- * Maximum time the component will remain in the "navigating" visual state before
- * resetting back to interactive.  This is a safety valve that prevents the profile
- * page from being permanently locked if the SPA navigation and its hard-navigation
- * fallback both fail or are aborted.
+ * Inputs used to resolve the first rendered agent message in the profile preview.
+ *
+ * @private internal type of <AgentProfileChat/>
  */
-const PROFILE_CHAT_NAVIGATION_STATE_RESET_MS = 2_500;
+type ResolveAgentProfileChatInitialMessageOptions = {
+    initialAgentMessage: string | null | undefined;
+    remoteInitialMessage: string | null | undefined;
+    fallbackInitialMessage: string;
+};
+
+/**
+ * Translation callback shape reused by the profile-chat view helpers.
+ *
+ * @private internal type of <AgentProfileChat/>
+ */
+type AgentProfileChatTranslate = ReturnType<typeof useServerLanguage>['t'];
 
 /**
  * Parses one profile-chat timestamp using the active Agents Server language.
@@ -112,6 +135,101 @@ function shouldPreserveDefaultLinkNavigation(event: ReactMouseEvent<HTMLAnchorEl
 }
 
 /**
+ * Creates the hoisted "My chats" mobile-menu entry when the profile route can resume chats.
+ */
+function createAgentProfileChatMobileMenuItems(
+    options: CreateAgentProfileChatMobileMenuItemsOptions,
+): Array<ReturnType<typeof createMyChatsMobileMenuItem>> {
+    const {
+        isDeleted,
+        isHistoryEnabled,
+        isPrivateModeEnabled,
+        formatText,
+        existingChats,
+        resolveExistingChatHref,
+        startNavigatingToChat,
+        newChatHref,
+    } = options;
+
+    if (isDeleted || !isHistoryEnabled || isPrivateModeEnabled) {
+        return [];
+    }
+
+    return [
+        createMyChatsMobileMenuItem({
+            formatText,
+            chats: existingChats,
+            resolveChatHref: resolveExistingChatHref,
+            onSelectChat: startNavigatingToChat,
+            newChatHref,
+            onCreateChat: startNavigatingToChat,
+        }),
+    ];
+}
+
+/**
+ * Resolves the first agent-authored message rendered in the profile preview.
+ */
+function resolveAgentProfileChatInitialMessage(
+    options: ResolveAgentProfileChatInitialMessageOptions,
+): string | undefined {
+    const { initialAgentMessage, remoteInitialMessage, fallbackInitialMessage } = options;
+    const configuredInitialMessage =
+        initialAgentMessage !== undefined ? initialAgentMessage : remoteInitialMessage;
+
+    if (configuredInitialMessage === undefined) {
+        return undefined;
+    }
+
+    return hasMessageContent(configuredInitialMessage) ? configuredInitialMessage : fallbackInitialMessage;
+}
+
+/**
+ * Creates the single seeded message displayed in the profile preview chat thread.
+ */
+function createAgentProfileChatInitialMessages(initialMessage: string | undefined): ReadonlyArray<ChatMessage> {
+    if (!hasMessageContent(initialMessage)) {
+        return [];
+    }
+
+    return [
+        {
+            sender: 'AGENT',
+            content: initialMessage,
+            createdAt: $getCurrentDate(),
+            id: 'initial-message',
+            isComplete: true,
+        },
+    ];
+}
+
+/**
+ * Builds the localized feedback translation payload passed into the shared chat component.
+ */
+function createAgentProfileChatFeedbackTranslations(t: AgentProfileChatTranslate) {
+    return {
+        reportIssueButtonTitle: t('chat.feedback.reportIssueButtonTitle'),
+        reportIssueButtonAriaLabel: t('chat.feedback.reportIssueButtonAriaLabel'),
+        reportIssueModalTitle: t('chat.feedback.reportIssueModalTitle'),
+        rateResponseModalTitle: t('chat.feedback.rateResponseModalTitle'),
+        userQuestionLabel: t('chat.feedback.userQuestionLabel'),
+        reportIssueExpectedAnswerLabel: t('chat.feedback.reportIssueExpectedAnswerLabel'),
+        expectedAnswerLabel: t('chat.feedback.expectedAnswerLabel'),
+        expectedAnswerPlaceholder: t('chat.feedback.expectedAnswerPlaceholder'),
+        reportIssueDetailsLabel: t('chat.feedback.reportIssueDetailsLabel'),
+        noteLabel: t('chat.feedback.noteLabel'),
+        reportIssueDetailsPlaceholder: t('chat.feedback.reportIssueDetailsPlaceholder'),
+        notePlaceholder: t('chat.feedback.notePlaceholder'),
+        cancelLabel: t('chat.feedback.cancelLabel'),
+        reportIssueSubmitLabel: t('chat.feedback.reportIssueSubmitLabel'),
+        submitLabel: t('chat.feedback.submitLabel'),
+        feedbackSuccessMessage: t('chat.feedback.feedbackSuccessMessage'),
+        reportIssueSuccessMessage: t('chat.feedback.reportIssueSuccessMessage'),
+        feedbackErrorMessage: t('chat.feedback.feedbackErrorMessage'),
+    };
+}
+
+/**
  * Renders the compact chat preview on the agent profile and coordinates the full chat transition.
  *
  * @private Agents Server presentation logic.
@@ -131,19 +249,15 @@ export function AgentProfileChat({
 }: AgentProfileChatProps) {
     const router = useRouter();
     const [isCreatingAgent, setIsCreatingAgent] = useState(false);
-    const [isNavigatingToChat, setIsNavigatingToChat] = useState(false);
-    const [existingChats, setExistingChats] = useState<Array<UserChatSummary>>([]);
-    const pendingNavigationFallbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const isNavigatingToChatResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const { formatText } = useAgentNaming();
     const { language, t } = useServerLanguage();
     const { chatVisualMode } = useChatVisualMode();
     const { enterBehavior, resolveEnterBehavior } = useChatEnterBehaviorPreferences();
     const { isPrivateModeEnabled } = usePrivateModePreferences();
-    const allowFileAttachments = areFileAttachmentsEnabled;
 
     keepUnused(isCreatingAgent);
 
+    const chatRoute = useMemo(() => `/agents/${encodeURIComponent(agentName)}/chat`, [agentName]);
     const agentPromise = useMemo(
         () =>
             RemoteAgent.connect({
@@ -152,165 +266,56 @@ export function AgentProfileChat({
             }),
         [agentUrl],
     );
-
     const { value: agent } = usePromise(agentPromise, [agentPromise]);
-    const chatRoute = useMemo(() => `/agents/${encodeURIComponent(agentName)}/chat`, [agentName]);
+    const { existingChats, hasExistingChats } = useAgentProfileChatExistingChats({
+        agentName,
+        isHistoryEnabled,
+        isPrivateModeEnabled,
+    });
+    const {
+        isNavigatingToChat,
+        startNavigatingToChat,
+        navigateToDestination,
+        navigateToChat,
+        resolveExistingChatHref,
+        newChatHref,
+    } = useAgentProfileChatNavigation({
+        chatRoute,
+        isHistoryEnabled,
+    });
 
-    useEffect(() => {
-        void router.prefetch(chatRoute) /*.catch(() => undefined)*/;
-    }, [chatRoute, router]);
-
-    useEffect(() => {
-        if (!isHistoryEnabled || isPrivateModeEnabled) {
-            setExistingChats([]);
-            return;
-        }
-
-        let isActive = true;
-
-        async function loadExistingChats(): Promise<void> {
-            try {
-                const snapshot = await fetchUserChats(agentName);
-                if (!isActive) {
-                    return;
-                }
-                setExistingChats(snapshot.chats);
-            } catch (error) {
-                console.error('[AgentProfileChat] Failed to load existing chats', error);
-            }
-        }
-
-        void loadExistingChats();
-
-        return () => {
-            isActive = false;
-        };
-    }, [agentName, isHistoryEnabled, isPrivateModeEnabled]);
-
-    const hasExistingChats = !isPrivateModeEnabled && existingChats.length > 0;
-
-    /**
-     * Clears any pending hard-navigation fallback timer.
-     */
-    const clearPendingNavigationFallback = useCallback(() => {
-        if (pendingNavigationFallbackTimeoutRef.current === null) {
-            return;
-        }
-
-        clearTimeout(pendingNavigationFallbackTimeoutRef.current);
-        pendingNavigationFallbackTimeoutRef.current = null;
-    }, []);
-
-    useEffect(() => {
-        return () => {
-            clearPendingNavigationFallback();
-
-            if (isNavigatingToChatResetTimeoutRef.current !== null) {
-                clearTimeout(isNavigatingToChatResetTimeoutRef.current);
-                isNavigatingToChatResetTimeoutRef.current = null;
-            }
-        };
-    }, [clearPendingNavigationFallback]);
-
-    /**
-     * Marks the profile panel as navigating-to-chat, then schedules a safety reset
-     * in case the navigation stalls or is aborted.  Without the reset, a failed
-     * navigation would leave `isNavigatingToChat = true` and `pointer-events` removed,
-     * permanently blocking subsequent interactions.
-     */
-    const startNavigatingToChat = useCallback(() => {
-        setIsNavigatingToChat(true);
-
-        if (isNavigatingToChatResetTimeoutRef.current !== null) {
-            clearTimeout(isNavigatingToChatResetTimeoutRef.current);
-        }
-
-        isNavigatingToChatResetTimeoutRef.current = setTimeout(() => {
-            isNavigatingToChatResetTimeoutRef.current = null;
-            console.warn('[AgentProfileChat] Navigation to chat stalled — resetting transitioning state so the page remains interactive');
-            setIsNavigatingToChat(false);
-        }, PROFILE_CHAT_NAVIGATION_STATE_RESET_MS);
-    }, []);
-
-    /**
-     * Navigates to one chat destination and marks the profile panel as transitioning.
-     */
-    const navigateToDestination = useCallback(
-        (destination: string) => {
-            startNavigatingToChat();
-            dispatchNavigationProgressStart({ href: destination, source: 'router' });
-            router.push(destination);
-
-            clearPendingNavigationFallback();
-
-            const locationBeforePush = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-            const normalizedDestination = normalizeDestinationForLocationComparison(destination);
-            pendingNavigationFallbackTimeoutRef.current = setTimeout(() => {
-                pendingNavigationFallbackTimeoutRef.current = null;
-                const locationAfterPush = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-                if (locationAfterPush === locationBeforePush && locationAfterPush !== normalizedDestination) {
-                    console.warn('[AgentProfileChat] SPA navigation stalled — falling back to hard navigation', { destination });
-                    window.location.assign(destination);
-                }
-            }, PROFILE_CHAT_NAVIGATION_FALLBACK_DELAY_MS);
-
-            return Promise.resolve();
-        },
-        [clearPendingNavigationFallback, router, startNavigatingToChat],
+    const chatParticipants = useMemo(
+        () => [
+            {
+                name: 'AGENT',
+                fullname,
+                isMe: false,
+                color: brandColorHex,
+                avatarSrc,
+                // <- TODO: [🧠] Maybe this shouldnt be there
+            },
+        ],
+        [avatarSrc, brandColorHex, fullname],
     );
-
-    const navigateToChat = useCallback(
-        ({ shouldForceNewChat }: { shouldForceNewChat: boolean }) => {
-            const destination = buildAgentChatDestinationUrl(chatRoute, { shouldForceNewChat, isHistoryEnabled });
-            return navigateToDestination(destination);
-        },
-        [chatRoute, isHistoryEnabled, navigateToDestination],
+    const timingTranslations = useMemo(
+        () => ({
+            answerDurationLabel: t('chat.answerDurationLabel'),
+        }),
+        [t],
     );
-
-    const handleMessage = useCallback(
-        (message: string, attachments?: ChatMessage['attachments']) => {
-            const validationIssue = resolveChatMessageValidationIssue(message);
-            if (validationIssue) {
-                throw new Error(validationIssue.message);
-            }
-
-            const shouldForceNewChat = hasMessageContent(message) || Boolean(attachments?.length);
-            setPendingProfileMessage(agentName, {
-                message,
-                attachments,
-            });
-            return navigateToChat({
-                shouldForceNewChat,
-            });
-        },
-        [agentName, navigateToChat],
-    );
-    const resolveExistingChatHref = useCallback(
-        (chatId: string) => `${chatRoute}?chat=${encodeURIComponent(chatId)}`,
-        [chatRoute],
-    );
-    const newChatHref = useMemo(
-        () => buildAgentChatDestinationUrl(chatRoute, { shouldForceNewChat: true, isHistoryEnabled }),
-        [chatRoute, isHistoryEnabled],
-    );
+    const feedbackTranslations = useMemo(() => createAgentProfileChatFeedbackTranslations(t), [t]);
     const hoistedMobileMenuItems = useMemo(
         () =>
-            !isDeleted && isHistoryEnabled && !isPrivateModeEnabled
-                ? [
-                      createMyChatsMobileMenuItem({
-                          formatText,
-                          chats: existingChats,
-                          resolveChatHref: resolveExistingChatHref,
-                          onSelectChat: () => {
-                              startNavigatingToChat();
-                          },
-                          newChatHref,
-                          onCreateChat: () => {
-                              startNavigatingToChat();
-                          },
-                      }),
-                  ]
-                : [],
+            createAgentProfileChatMobileMenuItems({
+                isDeleted,
+                isHistoryEnabled,
+                isPrivateModeEnabled,
+                formatText,
+                existingChats,
+                resolveExistingChatHref,
+                startNavigatingToChat,
+                newChatHref,
+            }),
         [
             existingChats,
             formatText,
@@ -334,6 +339,25 @@ export function AgentProfileChat({
         return createDefaultSpeechRecognition();
     }, [isSpeechFeaturesEnabled]);
 
+    const handleMessage = useCallback(
+        (message: string, attachments?: ChatMessage['attachments']) => {
+            const validationIssue = resolveChatMessageValidationIssue(message);
+            if (validationIssue) {
+                throw new Error(validationIssue.message);
+            }
+
+            const shouldForceNewChat = hasMessageContent(message) || Boolean(attachments?.length);
+            setPendingProfileMessage(agentName, {
+                message,
+                attachments,
+            });
+
+            return navigateToChat({
+                shouldForceNewChat,
+            });
+        },
+        [agentName, navigateToChat],
+    );
     const handleCreateAgent = useCallback(
         async (bookContent: string) => {
             setIsCreatingAgent(true);
@@ -354,9 +378,7 @@ export function AgentProfileChat({
         },
         [formatText, router],
     );
-
     const handleFileUpload = useCallback(async (file: File) => chatFileUploadHandler(file), []);
-
     const fallbackInitialMessage = useMemo(() => {
         const fallbackName = formatText('an AI Agent');
         return spaceTrim(`
@@ -365,37 +387,16 @@ export function AgentProfileChat({
             [Hello](?message=Hello, can you tell me about yourself?)
         `);
     }, [fullname, agentName, formatText]);
-    const resolvedConfiguredInitialMessage = useMemo(() => {
-        if (initialAgentMessage !== undefined) {
-            return initialAgentMessage;
-        }
-
-        return agent?.initialMessage;
-    }, [agent, initialAgentMessage]);
-    const initialMessage = useMemo(() => {
-        if (resolvedConfiguredInitialMessage === undefined) {
-            return undefined;
-        }
-
-        return hasMessageContent(resolvedConfiguredInitialMessage)
-            ? resolvedConfiguredInitialMessage
-            : fallbackInitialMessage;
-    }, [fallbackInitialMessage, resolvedConfiguredInitialMessage]);
-    const initialMessages = useMemo<ReadonlyArray<ChatMessage>>(() => {
-        if (!hasMessageContent(initialMessage)) {
-            return [];
-        }
-
-        return [
-            {
-                sender: 'AGENT',
-                content: initialMessage,
-                createdAt: $getCurrentDate(),
-                id: 'initial-message',
-                isComplete: true,
-            },
-        ];
-    }, [initialMessage]);
+    const initialMessage = useMemo(
+        () =>
+            resolveAgentProfileChatInitialMessage({
+                initialAgentMessage,
+                remoteInitialMessage: agent?.initialMessage,
+                fallbackInitialMessage,
+            }),
+        [agent?.initialMessage, fallbackInitialMessage, initialAgentMessage],
+    );
+    const initialMessages = useMemo(() => createAgentProfileChatInitialMessages(initialMessage), [initialMessage]);
 
     // If agent is deleted, show banner instead of chat
     if (isDeleted) {
@@ -442,43 +443,15 @@ export function AgentProfileChat({
                     ) : (
                         <Chat
                             title={`Chat with ${fullname}`}
-                            participants={[
-                                {
-                                    name: 'AGENT',
-                                    fullname,
-                                    isMe: false,
-                                    color: brandColorHex,
-                                    avatarSrc,
-                                    // <- TODO: [🧠] Maybe this shouldnt be there
-                                },
-                            ]}
+                            participants={chatParticipants}
                             chatLocale={language}
-                            timingTranslations={{ answerDurationLabel: t('chat.answerDurationLabel') }}
-                            feedbackTranslations={{
-                                reportIssueButtonTitle: t('chat.feedback.reportIssueButtonTitle'),
-                                reportIssueButtonAriaLabel: t('chat.feedback.reportIssueButtonAriaLabel'),
-                                reportIssueModalTitle: t('chat.feedback.reportIssueModalTitle'),
-                                rateResponseModalTitle: t('chat.feedback.rateResponseModalTitle'),
-                                userQuestionLabel: t('chat.feedback.userQuestionLabel'),
-                                reportIssueExpectedAnswerLabel: t('chat.feedback.reportIssueExpectedAnswerLabel'),
-                                expectedAnswerLabel: t('chat.feedback.expectedAnswerLabel'),
-                                expectedAnswerPlaceholder: t('chat.feedback.expectedAnswerPlaceholder'),
-                                reportIssueDetailsLabel: t('chat.feedback.reportIssueDetailsLabel'),
-                                noteLabel: t('chat.feedback.noteLabel'),
-                                reportIssueDetailsPlaceholder: t('chat.feedback.reportIssueDetailsPlaceholder'),
-                                notePlaceholder: t('chat.feedback.notePlaceholder'),
-                                cancelLabel: t('chat.feedback.cancelLabel'),
-                                reportIssueSubmitLabel: t('chat.feedback.reportIssueSubmitLabel'),
-                                submitLabel: t('chat.feedback.submitLabel'),
-                                feedbackSuccessMessage: t('chat.feedback.feedbackSuccessMessage'),
-                                reportIssueSuccessMessage: t('chat.feedback.reportIssueSuccessMessage'),
-                                feedbackErrorMessage: t('chat.feedback.feedbackErrorMessage'),
-                            }}
+                            timingTranslations={timingTranslations}
+                            feedbackTranslations={feedbackTranslations}
                             messages={initialMessages}
                             onMessage={handleMessage}
                             onActionButton={executeQuickActionButton}
                             onCreateAgent={handleCreateAgent}
-                            onFileUpload={allowFileAttachments ? handleFileUpload : undefined}
+                            onFileUpload={areFileAttachmentsEnabled ? handleFileUpload : undefined}
                             isSaveButtonEnabled={false}
                             isCopyButtonEnabled={false}
                             className="h-full w-full rounded-[28px] bg-transparent"
@@ -502,6 +475,8 @@ export function AgentProfileChat({
 
 /**
  * Props used by the profile quick-access chat panel.
+ *
+ * @private internal type of <AgentProfileChat/>
  */
 type ExistingChatsPanelProps = {
     chats: ReadonlyArray<UserChatSummary>;
@@ -514,6 +489,8 @@ type ExistingChatsPanelProps = {
 
 /**
  * Props used by the private-mode informational card shown above the profile chat.
+ *
+ * @private internal type of <AgentProfileChat/>
  */
 type PrivateModeChatPanelProps = {
     formatText: (text: string) => string;
