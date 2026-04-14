@@ -1,3 +1,8 @@
+-   Refactored Agents Server `UserWalletClient.tsx` into smaller focused private wallet helpers without changing external behavior:
+
+    -   Moved wallet draft shaping, validation, SMTP-template defaults, and scope-label formatting into the private `UserWalletDraft` helper so the page no longer mixes CRUD flow with payload construction rules.
+    -   Extracted loading, GitHub App refresh, create/update/delete orchestration, and dialog submission handling into the private `useUserWalletClientState` hook, while splitting the form and table rendering into focused private components that preserve the existing UI and API behavior.
+
 -   Refactored Agents Server `apps/agents-server/src/app/api/v1/folders/[folderId]/route.ts` into smaller focused folder-update helpers without changing external behavior:
 
     -   Split the branching-heavy management API `PATCH` flow into dedicated owned-folder loading, parent validation, payload normalization, and persistence helpers so the route now reads top-down.
