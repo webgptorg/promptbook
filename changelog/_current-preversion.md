@@ -1,3 +1,8 @@
+-   Refactored Agents Server `useAgentsListFolderState.ts` into smaller focused private folder-management helpers without changing external behavior:
+
+    -   Split the branching-heavy folder state into dedicated private dialog, deletion, visibility, and API helpers so `useAgentsListFolderState` now reads as a thin composition layer.
+    -   Kept the existing folder create/edit dialog flow, breadcrumb refresh after rename, subtree delete handling, and subtree visibility updates intact while making the homepage folder logic easier to follow and maintain.
+
 -   Refactored Agents Server `useAgentsGraphState.ts` into smaller focused private graph helpers without changing external behavior:
 
     -   Extracted graph query/filter synchronization, canvas/layout/highlighting state, and download/export handling into dedicated private modules so `useAgentsGraphState` now reads as a thin composition layer.
