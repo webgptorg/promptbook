@@ -1,3 +1,8 @@
+-   Refactored Agents Server `apps/agents-server/src/app/agents/[agentName]/page.tsx` into smaller focused profile-page helpers without changing external behavior:
+
+    -   Split the branching-heavy `AgentPage` flow into focused route-resolution, redirect, data-loading, and render-model helpers so the main page now reads as a thin composition layer.
+    -   Kept the existing local-vs-remote-vs-pseudo routing, canonical redirects, not-found handling, public structured data, profile actions, and deferred chat rendering intact while making each decision easier to follow.
+
 -   Refactored Agents Server `CalendarIntegrationSection.tsx` into smaller focused calendar-integration helpers without changing external behavior:
 
     -   Moved calendar loading, disconnect orchestration, connect-URL derivation, API error parsing, and activity-status resolution into small internal helpers so `CalendarIntegrationSection` now reads top-down instead of mixing every decision into one component body.
