@@ -1,3 +1,8 @@
+-   Refactored Agents Server `MockedChatsEditorClient.tsx` into smaller focused private mocked-chat editor modules without changing external behavior:
+
+    -   Moved save/delete orchestration, draft normalization, and participant/message reconciliation into the private `useMockedChatsEditorState` hook so the client now reads as a thin composition layer.
+    -   Split the saved-chat sidebar and editor body into focused private components while keeping the existing mocked-chat creation, duplication, public-view links, QR sharing, and form behavior intact.
+
 -   Refactored Agents Server `UserWalletClient.tsx` into smaller focused private wallet helpers without changing external behavior:
 
     -   Moved wallet draft shaping, validation, SMTP-template defaults, and scope-label formatting into the private `UserWalletDraft` helper so the page no longer mixes CRUD flow with payload construction rules.
