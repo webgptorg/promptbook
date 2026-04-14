@@ -1,3 +1,8 @@
+-   Refactored Agents Server `HeaderSearchBox.tsx` into a thinner facade plus focused private search helpers without changing external behavior:
+
+    -   Moved debounced query orchestration, search fetching, active-option bookkeeping, and keyboard navigation into the private `useHeaderSearchBoxState` hook so `HeaderSearchBox.tsx` now focuses on composing the input.
+    -   Extracted grouped dropdown rendering into the private `HeaderSearchBoxDropdown` component while preserving the existing search-page action, grouped result list, hover/keyboard highlighting, and navigation behavior.
+
 -   Refactored Agents Server `HeaderMobileDrawer.tsx` into smaller focused private mobile-drawer helpers without changing external behavior:
 
     -   Split the branching-heavy mobile drawer into focused hoisted-menu, server/agent navigation, user account, and top-level menu helpers so `HeaderMobileDrawer` now reads as a thin composition layer.
