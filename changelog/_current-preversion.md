@@ -1,3 +1,8 @@
+-   Refactored Agents Server `HeaderMobileDrawer.tsx` into smaller focused private mobile-drawer helpers without changing external behavior:
+
+    -   Split the branching-heavy mobile drawer into focused hoisted-menu, server/agent navigation, user account, and top-level menu helpers so `HeaderMobileDrawer` now reads as a thin composition layer.
+    -   Kept the existing federated-server switcher, agent selection/view toggles, search box, hoisted actions, login/account actions, and nested mobile menu rendering intact while reducing branching complexity in the drawer component.
+
 -   Refactored Agents Server `useControlPanelContentState.ts` into smaller focused private control-panel modules without changing external behavior:
 
     -   Extracted shared state contracts, audio-toggle orchestration, private-mode confirmation, and pure view-model building into dedicated private modules so the public hook now focuses on composing provider state and handlers.
