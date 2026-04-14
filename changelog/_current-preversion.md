@@ -1,3 +1,8 @@
+-   Refactored Agents Server `useAgentsGraphState.ts` into smaller focused private graph helpers without changing external behavior:
+
+    -   Extracted graph query/filter synchronization, canvas/layout/highlighting state, and download/export handling into dedicated private modules so `useAgentsGraphState` now reads as a thin composition layer.
+    -   Kept the existing graph selection, hover highlighting, drag-position persistence, viewport fitting, and PNG/SVG/ASCII export behavior intact while reducing the hook's responsibility density.
+
 -   Refactored Agents Server `useHeaderDropdownState.ts` into smaller focused private header-dropdown helpers without changing external behavior:
 
     -   Extracted nested submenu state, desktop hover/click timing, mobile drawer state/effects, and repeated per-menu desktop controllers into dedicated private modules so `useHeaderDropdownState` now focuses on composing the shared header dropdown behavior.
@@ -2681,6 +2686,7 @@
 
     -   Moved request-time runtime assembly, disclaimer and credential resolution, history initialization, and frozen team-member chat persistence behind the private `resolveAgentChatRouteContext` and `createTeamMemberFrozenChatPersistence` facades so `route.ts` now reads as a thin HTTP entrypoint.
     -   Extracted the long-lived markdown stream orchestration, cancellation handling, tool-call framing, and final post-processing into the private `createAgentChatStreamResponse` helper while preserving the existing stateless chat streaming behavior, keep-alives, history recording, learning, and calendar activity logging.
+
 -   Enhanced the Agents Server new-agent wizard team step so it now behaves as a homepage-style multi-select picker:
 
     -   Removed the separate manual "Team members" entry UI and kept only the existing-agents picker headed by "Browse existing agents" / "Vyberte existující agenty".
