@@ -3,6 +3,11 @@
 import { CornerDownLeft, Languages, MessageSquare, Settings2, type LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { ChatEnterBehaviorSettingsPanel } from '../../ChatEnterBehavior/ChatEnterBehaviorSettingsPanel';
+import type {
+    ControlPanelContentState,
+    ControlPanelSelectSectionState,
+    ControlPanelStatusTone,
+} from './ControlPanelContentState';
 import { useControlPanelContentState } from './useControlPanelContentState';
 
 /**
@@ -15,20 +20,6 @@ type ControlPanelContentProps = {
     readonly subtitle?: string;
     readonly isMobile?: boolean;
 };
-
-/**
- * State returned by `useControlPanelContentState`.
- *
- * @private function of ControlPanelContent
- */
-type ControlPanelContentState = ReturnType<typeof useControlPanelContentState>;
-
-/**
- * Visual emphasis variants shared by control-panel chips and tiles.
- *
- * @private function of ControlPanelContent
- */
-type ControlPanelStatusTone = ControlPanelContentState['summaryBadges'][number]['tone'];
 
 /**
  * Tone-specific styles used by compact control-center toggle tiles.
@@ -78,13 +69,6 @@ type ControlPanelSectionCardProps = {
     readonly subtitle: string;
     readonly children: ReactNode;
 };
-
-/**
- * Shared state for the select-based language and chat-visual-mode cards.
- *
- * @private function of ControlPanelContent
- */
-type ControlPanelSelectSectionState = NonNullable<ControlPanelContentState['languageSection']>;
 
 /**
  * Props for the reusable select-based control-panel card.

@@ -1,3 +1,8 @@
+-   Refactored Agents Server `useControlPanelContentState.ts` into smaller focused private control-panel modules without changing external behavior:
+
+    -   Extracted shared state contracts, audio-toggle orchestration, private-mode confirmation, and pure view-model building into dedicated private modules so the public hook now focuses on composing provider state and handlers.
+    -   Kept the existing sound, vibration, notifications, self-learning/private-mode, language, chat visual mode, and Enter-key behavior flows intact while making the control-panel code easier to follow and maintain.
+
 -   Refactored Agents Server `AgentDirectoryDropdown.tsx` into a smaller stateful wrapper and focused private menu-column helpers without changing external behavior:
 
     -   Moved the recursive `AgentMenuColumn` renderer into a dedicated private module and split folder, action, agent, label, and child-branch rendering into smaller helpers so the dropdown reads more clearly top-down.
