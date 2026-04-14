@@ -75,6 +75,7 @@ export function $generateBookBoilerplate(options?: GenerateBookBoilerplateOption
                 
                 PERSONA ${block(personaDescription!)}
                 ${block(initialRules.map((rule) => `RULE ${rule}`).join('\n'))}
+                CLOSED
             `,
         ),
     );
