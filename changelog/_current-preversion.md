@@ -1,3 +1,8 @@
+-   Refactored Agents Server `useNewAgentWizard.ts` into smaller focused private wizard helpers without changing external behavior:
+
+    -   Extracted the wizard's preset/chip/team mutations, knowledge-upload and drag-and-drop orchestration, and source/submission actions into dedicated private modules so `useNewAgentWizard.ts` now reads as a thin composition layer.
+    -   Kept the existing wizard state flow, dirty-close guarding, knowledge URL/file handling, advanced-editor handoff, and direct-create behavior intact while reducing responsibility density in the hook.
+
 -   Refactored Agents Server `useAgentsListFolderState.ts` into smaller focused private folder-management helpers without changing external behavior:
 
     -   Split the branching-heavy folder state into dedicated private dialog, deletion, visibility, and API helpers so `useAgentsListFolderState` now reads as a thin composition layer.
