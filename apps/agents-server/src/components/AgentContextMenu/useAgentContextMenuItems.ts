@@ -1,6 +1,5 @@
 'use client';
 
-import type { AgentBasicInformation } from '@promptbook-local/types';
 import {
     Settings2 as AdjustmentsHorizontalIcon,
     BarChart3Icon,
@@ -21,31 +20,12 @@ import {
     SquareSplitHorizontalIcon,
     TrashIcon,
 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { getAgentLinks } from '../../app/agents/[agentName]/agentLinks';
-import { deleteAgent } from '../../app/recycle-bin/actions';
-import { DEFAULT_AGENT_VISIBILITY, type AgentVisibility } from '../../utils/agentVisibility';
-import { promptCloneAgent } from '../AgentCloning/cloneAgent';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
-import { showAlert, showConfirm, showPrompt, showVisibilityDialog } from '../AsyncDialogs/asyncDialogs';
-import type { ContextMenuItem } from '../ContextMenu/ContextMenuPanel';
+import type { ContextMenuItem, ContextMenuLinkItem } from '../ContextMenu/ContextMenuPanel';
 import { useMetadataFlags } from '../MetadataFlags/MetadataFlagsContext';
 import type { AgentContextMenuBaseProps } from './AgentContextMenu';
-
-/**
- * Duration of clipboard feedback shown after copying an agent URL or email.
- *
- * @private function of AgentContextMenu
- */
-const COPY_FEEDBACK_TIMEOUT_MS = 2000;
-
-/**
- * Keeps the legacy update-URL action disabled without changing current behavior.
- *
- * @private function of AgentContextMenu
- */
-const IS_UPDATE_URL_ACTION_ENABLED = false;
+import { useAgentContextMenuActions } from './useAgentContextMenuActions';
+import { useAgentContextMenuCopyFeedback } from './useAgentContextMenuCopyFeedback';
 
 /**
  * Supported transient clipboard feedback states.
@@ -62,29 +42,11 @@ type CopyFeedback = 'URL' | 'Email';
 type FormatAgentContextMenuText = ReturnType<typeof useAgentNaming>['formatText'];
 
 /**
- * Agent-specific navigation link used by the menu.
+ * Link metadata required by the menu-item factories.
  *
  * @private function of AgentContextMenu
  */
-type AgentContextMenuLink = ReturnType<typeof getAgentLinks>[number];
-
-/**
- * Async handlers and derived values used when building the menu sections.
- *
- * @private function of AgentContextMenu
- */
-type UseAgentContextMenuActionsResult = {
-    editBookLink: AgentContextMenuLink;
-    handleCloneAgent: () => Promise<void>;
-    handleDeleteAgent: () => Promise<void>;
-    handleRenameAgent: () => Promise<void>;
-    handleRequestVisibilityUpdate: () => Promise<void>;
-    handleUpdateUrl: () => Promise<void>;
-    integrationLink: AgentContextMenuLink;
-    isUpdateUrlActionVisible: boolean;
-    shouldShowVisibilityAction: boolean;
-    usageAnalyticsHref: string;
-};
+type AgentContextMenuNavigationLink = Pick<ContextMenuLinkItem, 'href' | 'icon'> & { readonly title: string };
 
 /**
  * Builds one divider item.
@@ -93,298 +55,6 @@ type UseAgentContextMenuActionsResult = {
  */
 function createDividerItem(): ContextMenuItem {
     return { type: 'divider' };
-}
-
-/**
- * Finds one required agent link by id.
- *
- * @param links - Available generated links.
- * @param id - Link identifier to resolve.
- * @returns Matching link metadata.
- */
-function findAgentLink(
-    links: ReadonlyArray<AgentContextMenuLink>,
-    id: NonNullable<AgentContextMenuLink['id']>,
-): AgentContextMenuLink {
-    return links.find((link) => link.id === id)!;
-}
-
-/**
- * Builds the admin usage-analytics URL for the current agent filter.
- *
- * @param usageFilterAgentName - Agent name used in the analytics filter.
- * @returns Admin usage-analytics URL.
- */
-function createUsageAnalyticsHref(usageFilterAgentName: string): string {
-    const searchParams = new URLSearchParams();
-
-    if (usageFilterAgentName) {
-        searchParams.set('agentName', usageFilterAgentName);
-    }
-
-    searchParams.set('timeframe', '30d');
-    const query = searchParams.toString();
-
-    return query ? `/admin/usage?${query}` : '/admin/usage';
-}
-
-/**
- * Manages temporary clipboard feedback for copy actions.
- *
- * @returns Current feedback label and copy handler.
- */
-function useAgentContextMenuCopyFeedback(): {
-    copyFeedback: CopyFeedback | null;
-    handleCopy: (value: string, label: CopyFeedback) => Promise<void>;
-} {
-    const [copyFeedback, setCopyFeedback] = useState<CopyFeedback | null>(null);
-    const copyTimeoutRef = useRef<number | null>(null);
-
-    /**
-     * Clears any pending clipboard feedback timeout.
-     */
-    const clearCopyTimeout = useCallback(() => {
-        if (copyTimeoutRef.current !== null) {
-            window.clearTimeout(copyTimeoutRef.current);
-            copyTimeoutRef.current = null;
-        }
-    }, []);
-
-    useEffect(() => clearCopyTimeout, [clearCopyTimeout]);
-
-    /**
-     * Copies a value to the clipboard and shows short-lived success feedback.
-     *
-     * @param value - Text to copy.
-     * @param label - Feedback label for the copied value.
-     */
-    const handleCopy = useCallback(
-        async (value: string, label: CopyFeedback) => {
-            try {
-                await navigator.clipboard.writeText(value);
-                clearCopyTimeout();
-                setCopyFeedback(label);
-                copyTimeoutRef.current = window.setTimeout(() => setCopyFeedback(null), COPY_FEEDBACK_TIMEOUT_MS);
-            } catch (error) {
-                console.error('Failed to copy:', error);
-            }
-        },
-        [clearCopyTimeout],
-    );
-
-    return { copyFeedback, handleCopy };
-}
-
-/**
- * Resolves all action handlers and derived link state used by the menu.
- *
- * @param props - Shared agent menu props.
- * @param formatText - Agent-aware text formatter.
- * @returns Derived menu handlers and links.
- */
-function useAgentContextMenuActions(
-    props: AgentContextMenuBaseProps,
-    formatText: FormatAgentContextMenuText,
-): UseAgentContextMenuActionsResult {
-    const { agent, agentName, derivedAgentName, permanentId, isAdmin = false, onAgentRenamed, onRequestClose } = props;
-
-    const router = useRouter();
-    const agentIdentifier = permanentId || agentName;
-    const displayName = derivedAgentName || agentName;
-    const usageFilterAgentName = derivedAgentName || agentName;
-
-    const links = useMemo(() => getAgentLinks(agentIdentifier, formatText), [agentIdentifier, formatText]);
-    const editBookLink = useMemo(() => findAgentLink(links, 'book'), [links]);
-    const integrationLink = useMemo(() => findAgentLink(links, 'integration'), [links]);
-    const usageAnalyticsHref = useMemo(
-        () => createUsageAnalyticsHref(usageFilterAgentName),
-        [usageFilterAgentName],
-    );
-
-    const isUpdateUrlActionVisible = IS_UPDATE_URL_ACTION_ENABLED && agentName !== derivedAgentName;
-    const shouldShowVisibilityAction = Boolean(isAdmin && agent.visibility);
-    const updateUrlHref = `/agents/${encodeURIComponent(derivedAgentName)}`;
-
-    /**
-     * Confirms and performs the legacy URL update redirect.
-     */
-    const handleUpdateUrl = useCallback(async () => {
-        const updateUrlTitle = formatText('Update agent URL');
-        const updateUrlMessage = `${formatText(
-            'Are you sure you want to change the agent URL from',
-        )} "/agents/${agentName}" to "/agents/${derivedAgentName}"?`;
-        const isConfirmed = await showConfirm({
-            title: updateUrlTitle,
-            message: updateUrlMessage,
-            confirmLabel: formatText('Update URL'),
-            cancelLabel: formatText('Cancel'),
-        }).catch(() => false);
-
-        if (isConfirmed) {
-            window.location.href = updateUrlHref;
-        }
-    }, [agentName, derivedAgentName, formatText, updateUrlHref]);
-
-    /**
-     * Confirms deletion, removes the agent, and redirects to the homepage.
-     */
-    const handleDeleteAgent = useCallback(async () => {
-        const deleteAgentTitle = formatText('Delete agent');
-        const deleteAgentMessage = `${formatText(
-            'Are you sure you want to delete the agent',
-        )} "${displayName}"? ${formatText('This action can be undone by restoring it from the recycle bin.')}`;
-        const isConfirmed = await showConfirm({
-            title: deleteAgentTitle,
-            message: deleteAgentMessage,
-            confirmLabel: formatText('Delete agent'),
-            cancelLabel: formatText('Cancel'),
-        }).catch(() => false);
-
-        if (!isConfirmed) {
-            return;
-        }
-
-        try {
-            await deleteAgent(agentIdentifier);
-            window.location.href = '/';
-        } catch (error) {
-            console.error('Failed to delete agent:', error);
-            await showAlert({
-                title: formatText('Delete failed'),
-                message: formatText('Failed to delete agent. Please try again.'),
-            }).catch(() => undefined);
-        }
-    }, [agentIdentifier, displayName, formatText]);
-
-    /**
-     * Prompts for a new name, patches the agent, and notifies the caller.
-     */
-    const handleRenameAgent = useCallback(async () => {
-        const name = await showPrompt({
-            title: formatText('Rename agent'),
-            message: formatText('Enter a new name for this agent.'),
-            defaultValue: displayName,
-            confirmLabel: formatText('Rename'),
-            cancelLabel: formatText('Cancel'),
-            placeholder: formatText('Agent name'),
-            inputLabel: formatText('Agent name'),
-        }).catch(() => null);
-
-        if (!name) {
-            return;
-        }
-
-        const trimmedName = name.trim();
-
-        if (!trimmedName) {
-            await showAlert({
-                title: formatText('Invalid name'),
-                message: formatText('Agent name cannot be empty.'),
-            }).catch(() => undefined);
-            return;
-        }
-
-        try {
-            const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: trimmedName }),
-            });
-            const data = (await response.json()) as { success: boolean; agent?: AgentBasicInformation; error?: string };
-
-            if (!response.ok || !data.agent) {
-                throw new Error(data.error || formatText('Failed to rename agent.'));
-            }
-
-            onAgentRenamed?.({ agent: data.agent, previousIdentifier: agentIdentifier });
-            onRequestClose?.();
-        } catch (error) {
-            await showAlert({
-                title: formatText('Rename failed'),
-                message: error instanceof Error ? error.message : formatText('Failed to rename agent.'),
-            }).catch(() => undefined);
-        }
-    }, [agentIdentifier, displayName, formatText, onAgentRenamed, onRequestClose]);
-
-    /**
-     * Prompts for clone metadata, duplicates the agent, and opens the clone.
-     */
-    const handleCloneAgent = useCallback(async () => {
-        const clonedAgent = await promptCloneAgent({
-            agentIdentifier,
-            agentName: displayName,
-            formatText,
-        });
-
-        if (!clonedAgent) {
-            return;
-        }
-
-        onRequestClose?.();
-        router.push(`/agents/${encodeURIComponent(clonedAgent.agentName)}`);
-    }, [agentIdentifier, displayName, formatText, onRequestClose, router]);
-
-    /**
-     * Persists a new agent visibility and refreshes the page when successful.
-     *
-     * @param visibility - Visibility chosen in the dialog.
-     */
-    const handleSetVisibility = useCallback(
-        async (visibility: AgentVisibility) => {
-            try {
-                const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ visibility }),
-                });
-                const data = (await response.json()) as { success: boolean; error?: string };
-
-                if (!response.ok || !data.success) {
-                    throw new Error(data.error || formatText('Failed to update agent visibility.'));
-                }
-
-                window.location.reload();
-            } catch (error) {
-                await showAlert({
-                    title: formatText('Update failed'),
-                    message: error instanceof Error ? error.message : formatText('Failed to update agent visibility.'),
-                }).catch(() => undefined);
-            }
-        },
-        [agentIdentifier, formatText],
-    );
-
-    /**
-     * Opens the visibility dialog and applies the selected value when it changes.
-     */
-    const handleRequestVisibilityUpdate = useCallback(async () => {
-        const currentVisibility = agent.visibility ?? DEFAULT_AGENT_VISIBILITY;
-        const selectedVisibility = await showVisibilityDialog({
-            title: formatText('Update visibility'),
-            description: `${formatText('Set visibility for agent')} "${agent.agentName}".`,
-            confirmLabel: formatText('Update visibility'),
-            initialVisibility: currentVisibility,
-        }).catch(() => null);
-
-        if (!selectedVisibility || selectedVisibility === agent.visibility) {
-            return;
-        }
-
-        await handleSetVisibility(selectedVisibility);
-    }, [agent.agentName, agent.visibility, formatText, handleSetVisibility]);
-
-    return {
-        editBookLink,
-        handleCloneAgent,
-        handleDeleteAgent,
-        handleRenameAgent,
-        handleRequestVisibilityUpdate,
-        handleUpdateUrl,
-        integrationLink,
-        isUpdateUrlActionVisible,
-        shouldShowVisibilityAction,
-        usageAnalyticsHref,
-    };
 }
 
 /**
@@ -528,7 +198,7 @@ function createSharingMenuItems(
  */
 function createWorkspaceMenuItems(
     agentName: string,
-    editBookLink: AgentContextMenuLink,
+    editBookLink: AgentContextMenuNavigationLink,
     folderContext: AgentContextMenuBaseProps['folderContext'],
     formatText: FormatAgentContextMenuText,
 ): ContextMenuItem[] {
@@ -626,7 +296,7 @@ function createAdminMenuItems(
     agentName: string,
     formatText: FormatAgentContextMenuText,
     handleRequestVisibilityUpdate: () => Promise<void>,
-    integrationLink: AgentContextMenuLink,
+    integrationLink: AgentContextMenuNavigationLink,
     isAdmin: boolean,
     shouldShowVisibilityAction: boolean,
     usageAnalyticsHref: string,

@@ -1,3 +1,8 @@
+-   Refactored Agents Server `useAgentContextMenuItems.ts` into smaller private context-menu helpers without changing external behavior:
+
+    -   Moved the branching-heavy action logic and clipboard-feedback state into dedicated private hooks so `useAgentContextMenuItems` now focuses on composing menu sections.
+    -   Split rename, clone, delete, URL-update, and visibility flows into focused helpers while preserving the existing dialogs, redirects, admin links, and copy/share behavior.
+
 -   Added a rich terminal UI for `ptbk coder run` that replaces the raw console output with a branded interactive dashboard:
 
     -   Displays Promptbook Coder branding, active agent name, model, thinking level, context, and priority in a compact header section.
