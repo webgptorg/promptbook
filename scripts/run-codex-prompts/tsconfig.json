@@ -12,7 +12,6 @@
         "strictNullChecks": true,
         "suppressImplicitAnyIndexErrors": true,
         "experimentalDecorators": true,
-        "jsx": "react-jsx",
         "noUnusedLocals": false,
         "resolveJsonModule": true,
         "esModuleInterop": true

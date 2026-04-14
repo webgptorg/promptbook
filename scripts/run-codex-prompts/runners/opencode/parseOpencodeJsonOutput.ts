@@ -1,7 +1,6 @@
 import colors from 'colors';
 import type { Usage } from '../../../../src/execution/Usage';
 import { UNCERTAIN_USAGE } from '../../../../src/execution/utils/usage-constants';
-import { coderRunError } from '../../ui/CoderRunSessionContext';
 
 /**
  * Parses Opencode JSON output and extracts usage information.
@@ -75,7 +74,7 @@ export function parseOpencodeJsonOutput(output: string): Usage {
 
         return UNCERTAIN_USAGE;
     } catch (error) {
-        coderRunError(colors.bgRed(`Error parsing Opencode JSON output: ${String(error)}`));
+        console.error(colors.bgRed('Error parsing Opencode JSON output:'), error);
         return UNCERTAIN_USAGE;
     }
 }

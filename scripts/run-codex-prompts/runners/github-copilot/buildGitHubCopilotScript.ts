@@ -10,7 +10,6 @@ export function buildGitHubCopilotScript(options: GitHubCopilotScriptOptions): s
     const projectPath = toPosixPath(options.projectPath);
     const modelArgument = options.model ? ` --model ${options.model}` : '';
     const thinkingLevelArgument = options.thinkingLevel ? ` --reasoning-effort ${options.thinkingLevel}` : '';
-    const streamArgument = options.streamOutput ? 'on' : 'off';
 
     return spaceTrim(
         (block) => `
@@ -26,7 +25,7 @@ export function buildGitHubCopilotScript(options: GitHubCopilotScriptOptions): s
                 --no-ask-user \\
                 --no-color \\
                 --output-format json \\
-                --stream ${streamArgument}${modelArgument}${thinkingLevelArgument}
+                --stream off${modelArgument}${thinkingLevelArgument}
         `,
     );
 }

@@ -11,8 +11,4 @@ export type GitHubCopilotScriptOptions = {
      * Optional reasoning effort override forwarded to GitHub Copilot CLI.
      */
     thinkingLevel?: ThinkingLevel;
-    /**
-     * Enables realtime JSON event streaming.
-     */
-    streamOutput?: boolean;
 };

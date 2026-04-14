@@ -341,7 +341,6 @@
         "highlight.js": "11.11.1",
         "html-to-image": "1.11.13",
         "ignore": "^5.3.2",
-        "ink": "^3.2.0",
         "jsdom": "25.0.1",
         "jspdf": "4.1.0",
         "jszip": "3.10.1",

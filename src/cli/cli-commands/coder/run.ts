@@ -180,7 +180,6 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 autoMigrate,
                 allowDestructiveAutoMigrate,
                 noPush: !push,
-                isTerminalUiEnabled: true,
             };
 
             // Note: Import the function dynamically to avoid loading heavy dependencies until needed
@@ -191,10 +190,6 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 await runCodexPrompts(runOptions);
             } catch (error) {
                 assertsError(error);
-                if (error.name === 'CoderRunUsageError') {
-                    console.error(colors.red(error.message));
-                    return process.exit(1);
-                }
                 console.error(colors.bgRed(`${error.name}`));
                 console.error(colors.red(error.stack || error.message));
                 return process.exit(1);

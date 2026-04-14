@@ -9,8 +9,4 @@ export type GitHubCopilotRunnerOptions = {
      * Optional reasoning effort override forwarded to GitHub Copilot CLI.
      */
     thinkingLevel?: ThinkingLevel;
-    /**
-     * Enables realtime JSON event streaming for the terminal UI.
-     */
-    streamOutput?: boolean;
 };

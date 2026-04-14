@@ -107,7 +107,6 @@ export function parseRunOptions(args: string[]): RunOptions {
         testCommand,
         thinkingLevel,
         priority,
-        isTerminalUiEnabled: false,
     };
 }
 

@@ -1,6 +1,5 @@
 import colors from 'colors';
 import { spaceTrim } from 'spacetrim';
-import { coderRunInfo } from '../ui/CoderRunSessionContext';
 
 /**
  * Environment variable that configures the name used for agent commits.
@@ -89,7 +88,7 @@ export function printAgentGitIdentityTipIfNeeded(): void {
         return;
     }
 
-    coderRunInfo(
+    console.info(
         colors.cyan(spaceTrim(`
             Tip: \`ptbk coder run\` used your default Git config because the coding-agent identity environment variables are incomplete.
             For cleaner commit history, set \`CODING_AGENT_GIT_NAME\`, \`CODING_AGENT_GIT_EMAIL\`, and either \`CODING_AGENT_GIT_SIGNING_KEY\` or \`CODING_AGENT_GPG_KEY_ID\`.

@@ -1,4 +1,3 @@
-import { coderRunInfo } from '../ui/CoderRunSessionContext';
 import { buildPromptLabelForDisplay } from './buildPromptLabelForDisplay';
 import { buildPromptSummary } from './buildPromptSummary';
 import { listPromptsToBeWritten } from './listPromptsToBeWritten';
@@ -14,6 +13,6 @@ export function printPromptsToBeWritten(files: PromptFile[], minimumPriority = 0
     for (const { file, section } of promptsToWrite) {
         const label = buildPromptLabelForDisplay(file, section);
         const summary = buildPromptSummary(file, section);
-        coderRunInfo(`  ${++i}) ${label}: ${summary}`);
+        console.info(`  ${++i}) ${label}: ${summary}`);
     }
 }

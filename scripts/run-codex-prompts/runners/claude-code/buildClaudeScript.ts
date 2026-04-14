@@ -6,13 +6,10 @@ import type { ClaudeScriptOptions } from './ClaudeScriptOptions';
  */
 export function buildClaudeScript(options: ClaudeScriptOptions): string {
     const delimiter = 'CLAUDE_PROMPT';
-    const outputArguments = options.streamOutput
-        ? '--output-format stream-json --include-partial-messages'
-        : '--output-format json';
 
     return spaceTrim(
         (block) => `
-            claude --allowedTools "Bash,Read,Edit,Write" ${outputArguments} --print <<'${delimiter}'
+            claude --allowedTools "Bash,Read,Edit,Write" --output-format json --print <<'${delimiter}'
 
             ${block(options.prompt)}
 

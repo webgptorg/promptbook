@@ -51,8 +51,4 @@ export type RunOptions = {
      * Minimum prompt priority required for processing.
      */
     priority: number;
-    /**
-     * Enables the Ink terminal UI used by `ptbk coder run`.
-     */
-    isTerminalUiEnabled?: boolean;
 };

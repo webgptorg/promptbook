@@ -47,7 +47,6 @@ describe('$initializeCoderRunCommand', () => {
             expect.objectContaining({
                 dryRun: true,
                 waitForUser: true,
-                isTerminalUiEnabled: true,
             }),
         );
     });
@@ -61,7 +60,6 @@ describe('$initializeCoderRunCommand', () => {
             expect.objectContaining({
                 dryRun: true,
                 waitForUser: false,
-                isTerminalUiEnabled: true,
             }),
         );
     });
@@ -75,7 +73,6 @@ describe('$initializeCoderRunCommand', () => {
             expect.objectContaining({
                 dryRun: true,
                 thinkingLevel: 'xhigh',
-                isTerminalUiEnabled: true,
             }),
         );
     });
@@ -91,7 +88,6 @@ describe('$initializeCoderRunCommand', () => {
             expect.objectContaining({
                 dryRun: true,
                 testCommand: 'npm run test',
-                isTerminalUiEnabled: true,
             }),
         );
     });

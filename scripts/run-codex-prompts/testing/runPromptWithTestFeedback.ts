@@ -5,7 +5,6 @@ import { formatUnknownErrorDetails } from '../common/formatUnknownErrorDetails';
 import type { PromptRunOptions } from '../runners/types/PromptRunOptions';
 import type { PromptRunResult } from '../runners/types/PromptRunResult';
 import type { PromptRunner } from '../runners/types/PromptRunner';
-import { coderRunError, coderRunInfo, coderRunWarn } from '../ui/CoderRunSessionContext';
 import { runPromptTestCommand } from './runPromptTestCommand';
 
 /**
@@ -68,7 +67,7 @@ export async function runPromptWithTestFeedback(
             projectPath: options.projectPath,
         });
 
-        coderRunInfo(colors.gray(`Running verification command after attempt #${attemptCount}: ${normalizedTestCommand}`));
+        console.info(colors.gray(`Running verification command after attempt #${attemptCount}: ${normalizedTestCommand}`));
 
         try {
             await runPromptTestCommandExecutor({
@@ -83,7 +82,9 @@ export async function runPromptWithTestFeedback(
             const feedbackVerificationOutput = limitVerificationOutputForFeedback(fullVerificationOutput);
 
             if (attemptCount >= MAX_PROMPT_TEST_ATTEMPTS) {
-                coderRunError(colors.red(`Verification failed for ${options.promptLabel} after ${attemptCount} attempts.`));
+                console.error(
+                    colors.red(`Verification failed for ${options.promptLabel} after ${attemptCount} attempts.`),
+                );
 
                 throw new Error(
                     buildFinalVerificationFailureMessage({
@@ -95,7 +96,7 @@ export async function runPromptWithTestFeedback(
                 );
             }
 
-            coderRunWarn(
+            console.warn(
                 colors.yellow(
                     `Verification failed for ${options.promptLabel} on attempt #${attemptCount}. Sending feedback to ${options.runner.name} and retrying...`,
                 ),
