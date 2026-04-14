@@ -1,3 +1,8 @@
+-   Refactored Agents Server `CalendarIntegrationSection.tsx` into smaller focused calendar-integration helpers without changing external behavior:
+
+    -   Moved calendar loading, disconnect orchestration, connect-URL derivation, API error parsing, and activity-status resolution into small internal helpers so `CalendarIntegrationSection` now reads top-down instead of mixing every decision into one component body.
+    -   Split the connected-calendar and recent-activity render branches into focused internal UI helpers while keeping the existing OAuth readiness, connect or re-auth action, refresh flow, disconnect confirmation, empty states, and activity timeline behavior intact.
+
 -   Added an Ink + React terminal UI for `ptbk coder run` without changing other `ptbk` commands:
 
     -   Replaced the raw `ptbk coder run` streaming output with a branded Promptbook Coder terminal dashboard that shows runner metadata, prompt progress status, a loading bar, current prompt details, pause/resume controls, and a live recent-events panel.
