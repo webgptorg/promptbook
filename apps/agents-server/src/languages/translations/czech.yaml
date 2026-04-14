@@ -7,7 +7,7 @@ common.admin: Správce
 common.profile: Profil
 common.chat: Chat
 chat.answerDurationLabel: 'Odpověď za {duration}'
-common.book: Kniha
+common.book: Book
 common.timeouts: Časovače
 common.more: Více
 chatEnterBehavior.sectionEyebrow: Klávesové zkratky
@@ -68,10 +68,10 @@ controlPanel.notificationsDisableAction: Vypnout oznámení
 controlPanel.notificationsHint: Zapněte oznámení prohlížeče, aby vás agent mohl upozornit po delší nebo naplánované práci.
 controlPanel.notificationsHintAction: Zapnout oznámení
 controlPanel.selfLearningTitle: Sebeučení
-controlPanel.selfLearningSection: Kniha
-controlPanel.selfLearningDescriptionPrivate: V soukromém režimu zůstává kniha beze změny a nové učení je zablokované.
-controlPanel.selfLearningDescriptionLearning: Agent po každém chatu doplní do knihy nové commitmenty.
-controlPanel.selfLearningDescriptionPaused: Agent respektuje stávající knihu, dokud učení znovu nepovolíte.
+controlPanel.selfLearningSection: Book
+controlPanel.selfLearningDescriptionPrivate: V soukromém režimu zůstává book beze změny a nové učení je zablokované.
+controlPanel.selfLearningDescriptionLearning: Agent po každém chatu doplní do book nové commitmenty.
+controlPanel.selfLearningDescriptionPaused: Agent respektuje stávající book, dokud učení znovu nepovolíte.
 controlPanel.selfLearningStateDisabledPrivate: Vypnuto (soukromý režim)
 controlPanel.selfLearningStateLearning: Učí se
 controlPanel.selfLearningStatePaused: Pozastaveno
@@ -206,7 +206,7 @@ agentCreation.wizard.writingTitle: Styl odpovědí
 agentCreation.wizard.rulesTitle: Pravidla a omezení
 agentCreation.wizard.knowledgeTitle: Znalosti
 agentCreation.wizard.reviewTitle: Kontrola a vytvoření
-agentCreation.wizard.basicDescription: Nastavte základní identitu, cíl a viditelnost nového agenta, než na pozadí sestavíme zdroj knihy.
+agentCreation.wizard.basicDescription: Nastavte základní identitu, cíl a viditelnost nového agenta, než na pozadí sestavíme book.
 agentCreation.wizard.personaDescription: Vyberte osobnostní rysy, režim učení a schopnosti odvozené z dostupných `USE` commitmentů.
 agentCreation.wizard.teamDescription: Přidejte spolupracující agenty, které může nový agent oslovit přes `TEAM` commitmenty, včetně volitelného pseudo-agenta `{User}`.
 agentCreation.wizard.writingDescription: Zvolte předvolené styly odpovědí, přidejte vlastní pokyny a podívejte se na náhled tónu v ukázkovém chatu.
@@ -307,7 +307,7 @@ agentCreation.wizard.ruleConfirmRiskyActions: Před riskantními, drahými nebo 
 agentCreation.wizard.customInstructionsLabel: Vlastní instrukce
 agentCreation.wizard.customInstructionsPlaceholder: Napište pravidlo a potvrďte ho klávesou Enter.
 agentCreation.wizard.uploadLabel: Nahrát znalostní soubory
-agentCreation.wizard.uploadHint: Používá stejný importní proces jako editor knihy.
+agentCreation.wizard.uploadHint: Používá stejný importní proces jako editor booku.
 agentCreation.wizard.uploadAction: Nahrát soubory
 agentCreation.wizard.uploadFailed: Nahrávání se nezdařilo.
 agentCreation.wizard.urlsLabel: Přidat znalostní URL
@@ -319,7 +319,7 @@ agentCreation.wizard.noKnowledge: Zatím jste nepřidali žádné znalostní zdr
 agentCreation.wizard.uploadedFile: Nahraný soubor
 agentCreation.wizard.uploading: 'Nahrávám… {progress}%'
 agentCreation.wizard.removeKnowledgeAction: Odebrat
-agentCreation.wizard.openEditorAfterCreationLabel: Po vytvoření otevřít editor knihy
+agentCreation.wizard.openEditorAfterCreationLabel: Po vytvoření otevřít editor booku
 agentCreation.wizard.openEditorAfterCreationDescription: Nechte nezaškrtnuté, pokud chcete po vytvoření přejít na profil agenta.
 agentCreation.wizard.reviewBasicHeading: Základní údaje
 agentCreation.wizard.reviewPersonaHeading: Osobnost a vlastnosti
