@@ -1,3 +1,8 @@
+-   Refactored Agents Server `apps/agents-server/src/app/api/v1/folders/[folderId]/route.ts` into smaller focused folder-update helpers without changing external behavior:
+
+    -   Split the branching-heavy management API `PATCH` flow into dedicated owned-folder loading, parent validation, payload normalization, and persistence helpers so the route now reads top-down.
+    -   Kept the existing folder existence checks, parent-cycle validation, name/icon/color validation, unique-name conflict mapping, and response payloads intact while reducing branching complexity in the handler.
+
 -   Refactored Agents Server `apps/agents-server/src/app/api/v1/agents/[agentId]/route.ts` into smaller focused agent-update helpers without changing external behavior:
 
     -   Split the branching-heavy management API `PATCH` flow into dedicated owned-agent loading, folder validation, source update, metadata update, and reload helpers so the route now reads top-down.
