@@ -1,3 +1,9 @@
+-   Refactored Agents Server `useHeaderDropdownState.ts` into smaller focused private header-dropdown helpers without changing external behavior:
+
+    -   Extracted nested submenu state, desktop hover/click timing, mobile drawer state/effects, and repeated per-menu desktop controllers into dedicated private modules so `useHeaderDropdownState` now focuses on composing the shared header dropdown behavior.
+    -   Kept the existing desktop preview vs interactive dropdown behavior, nested submenu portals, touch-outside dismissal, mobile drawer swipe handling, scroll locking, and first-open hoisted mobile section behavior intact while reducing responsibility density in the hook.
+    -   Prevented the extracted desktop and nested dropdown hooks from clearing freshly scheduled hover timers during initial hydration, preserving the first desktop hover-open interaction after agent-view navigation.
+
 -   Refactored Agents Server `HeaderSearchBox.tsx` into a thinner facade plus focused private search helpers without changing external behavior:
 
     -   Moved debounced query orchestration, search fetching, active-option bookkeeping, and keyboard navigation into the private `useHeaderSearchBoxState` hook so `HeaderSearchBox.tsx` now focuses on composing the input.
