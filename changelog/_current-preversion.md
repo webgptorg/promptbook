@@ -1,3 +1,8 @@
+-   Refactored Agents Server `AgentDirectoryDropdown.tsx` into a smaller stateful wrapper and focused private menu-column helpers without changing external behavior:
+
+    -   Moved the recursive `AgentMenuColumn` renderer into a dedicated private module and split folder, action, agent, label, and child-branch rendering into smaller helpers so the dropdown reads more clearly top-down.
+    -   Kept the existing touch-first folder expansion, pointer-hover nested columns, action/button/link handling, and navigation callbacks intact while reducing branching density in the dropdown rendering path.
+
 -   Refactored Agents Server `ClientVersionMismatchListener.tsx` into smaller focused private client-version helpers without changing external behavior:
 
     -   Split mismatch subscription, fetch interception, response inspection, auto-refresh countdown orchestration, and overlay rendering into dedicated private modules so `ClientVersionMismatchListener.tsx` now reads as a thin composition layer.
