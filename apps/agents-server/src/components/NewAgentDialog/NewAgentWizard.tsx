@@ -125,12 +125,8 @@ function renderStepContent(props: {
             return (
                 <NewAgentWizardTeamStep
                     state={state}
-                    setState={setState}
                     t={t}
-                    addTeamReferenceFromDraft={wizard.addTeamReferenceFromDraft}
-                    addTeamReference={wizard.addTeamReference}
                     toggleTeamReference={wizard.toggleTeamReference}
-                    removeTeamReference={wizard.removeTeamReference}
                 />
             );
         case 3:

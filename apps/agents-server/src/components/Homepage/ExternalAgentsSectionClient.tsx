@@ -1,12 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { AgentCard } from './AgentCard';
-import { AgentCardsLoadingSkeleton } from '../Skeleton/AgentCardsLoadingSkeleton';
-import { Section } from './Section';
-import { HOMEPAGE_AGENT_GRID_CLASS } from './gridLayout';
 import { string_url } from '@promptbook-local/types';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
+import { AgentCardsSection } from './AgentCardsSection';
+import { getServerHeadingLabel } from './getServerHeadingLabel';
 import { loadFederatedServerAgents } from './loadFederatedServerAgents';
 import type { AgentWithVisibility } from './useFederatedAgents';
 
@@ -37,11 +35,6 @@ type ExternalAgentsSectionClientProps = {
      */
     readonly publicUrl: string_url;
 };
-
-/**
- * Number of skeleton cards shown while one federated server section loads.
- */
-const FEDERATED_SERVER_LOADING_CARD_COUNT = 4;
 
 /**
  * Handles external agents section client.
@@ -119,16 +112,14 @@ export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientPr
 
     if (initialLoading) {
         return (
-            <div
-                className="mt-8"
-                role="status"
-                aria-live="polite"
-                aria-busy="true"
-                aria-label="Loading federated agents"
-            >
-                <Section title={formatText('Federated agents')} gridClassName={HOMEPAGE_AGENT_GRID_CLASS}>
-                    <AgentCardsLoadingSkeleton cardCount={FEDERATED_SERVER_LOADING_CARD_COUNT} />
-                </Section>
+            <div className="mt-8" role="status" aria-live="polite" aria-busy="true" aria-label="Loading federated agents">
+                <AgentCardsSection
+                    title={formatText('Federated agents')}
+                    publicUrl={publicUrl}
+                    agents={[]}
+                    isLoading={true}
+                    loadingCardCount={4}
+                />
             </div>
         );
     }
@@ -143,62 +134,42 @@ export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientPr
         <>
             {serverUrls.map((serverUrl) => {
                 const state = servers[serverUrl];
-                const hostname = (() => {
-                    try {
-                        return new URL(serverUrl).hostname;
-                    } catch {
-                        return serverUrl;
-                    }
-                })();
+                const hostname = getServerHeadingLabel(serverUrl);
 
                 if (state.status === 'loading') {
                     return (
-                        <Section
+                        <AgentCardsSection
                             key={serverUrl}
                             title={`${formatText('Agents from')} ${hostname} (...)`}
-                            gridClassName={HOMEPAGE_AGENT_GRID_CLASS}
-                        >
-                            <AgentCardsLoadingSkeleton cardCount={FEDERATED_SERVER_LOADING_CARD_COUNT} />
-                        </Section>
+                            publicUrl={publicUrl}
+                            agents={[]}
+                            isLoading={true}
+                            loadingCardCount={4}
+                        />
                     );
                 }
 
                 if (state.status === 'error') {
                     return (
-                        <Section
+                        <AgentCardsSection
                             key={serverUrl}
                             title={`${formatText('Agents from')} ${hostname} (Error)`}
-                            gridClassName={HOMEPAGE_AGENT_GRID_CLASS}
-                        >
-                            <div className="py-4 text-sm text-red-500 text-center">
-                                {formatText('Failed to load agents from this server.')}
-                            </div>
-                        </Section>
+                            publicUrl={publicUrl}
+                            agents={[]}
+                            errorMessage={formatText('Failed to load agents from this server.')}
+                        />
                     );
                 }
 
-                if (state.status === 'success' && state.agents.length > 0) {
-                    return (
-                        <Section
-                            key={serverUrl}
-                            title={`${formatText('Agents from')} ${hostname} (${state.agents.length})`}
-                            gridClassName={HOMEPAGE_AGENT_GRID_CLASS}
-                        >
-                            {state.agents.map((agent) => (
-                                <AgentCard
-                                    key={agent.url}
-                                    agent={agent}
-                                    href={agent.url}
-                                    publicUrl={publicUrl}
-                                    serverUrl={serverUrl}
-                                />
-                            ))}
-                        </Section>
-                    );
-                }
-
-                // Hide sections with no agents if successfully loaded
-                return null;
+                return (
+                    <AgentCardsSection
+                        key={serverUrl}
+                        title={`${formatText('Agents from')} ${hostname} (${state.agents.length})`}
+                        publicUrl={publicUrl}
+                        agents={state.agents}
+                        hideWhenEmpty={true}
+                    />
+                );
             })}
         </>
     );

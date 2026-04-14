@@ -1,9 +1,8 @@
 import type { AgentsByServer } from '../../utils/AgentsByServer';
-import { AgentCard } from './AgentCard';
-import { Section } from './Section';
+import { AgentCardsSection } from './AgentCardsSection';
 import { formatAgentNamingText } from '../../utils/agentNaming';
 import { getAgentNaming } from '../../utils/getAgentNaming';
-import { HOMEPAGE_AGENT_GRID_CLASS } from './gridLayout';
+import { getServerHeadingLabel } from './getServerHeadingLabel';
 
 /**
  * Props for external agents section.
@@ -29,17 +28,15 @@ export async function ExternalAgentsSection(props: ExternalAgentsSectionProps) {
     return (
         <>
             {agentsByServer.map(({ serverUrl, agents }) => (
-                <Section
+                <AgentCardsSection
                     key={serverUrl}
-                    title={`${formatAgentNamingText('Agents from', agentNaming)} ${new URL(serverUrl).hostname} (${
+                    title={`${formatAgentNamingText('Agents from', agentNaming)} ${getServerHeadingLabel(serverUrl)} (${
                         agents.length
                     })`}
-                    gridClassName={HOMEPAGE_AGENT_GRID_CLASS}
-                >
-                    {agents.map((agent) => (
-                        <AgentCard key={agent.url} agent={agent} href={agent.url} publicUrl={publicUrl.href} />
-                    ))}
-                </Section>
+                    publicUrl={publicUrl.href}
+                    agents={agents}
+                    hideWhenEmpty={true}
+                />
             ))}
         </>
     );

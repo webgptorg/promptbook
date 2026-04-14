@@ -208,7 +208,7 @@ agentCreation.wizard.knowledgeTitle: Znalosti
 agentCreation.wizard.reviewTitle: Kontrola a vytvoření
 agentCreation.wizard.basicDescription: Nastavte základní identitu, cíl a viditelnost nového agenta, než na pozadí sestavíme book.
 agentCreation.wizard.personaDescription: Vyberte osobnostní rysy, režim učení a schopnosti odvozené z dostupných `USE` commitmentů.
-agentCreation.wizard.teamDescription: Přidejte spolupracující agenty, které může nový agent oslovit přes `TEAM` commitmenty, včetně volitelného pseudo-agenta `{User}`.
+agentCreation.wizard.teamDescription: Vyberte jednoho nebo více spolupracujících agentů, které může nový agent oslovit přes `TEAM` commitmenty.
 agentCreation.wizard.writingDescription: Zvolte předvolené styly odpovědí, přidejte vlastní pokyny a podívejte se na náhled tónu v ukázkovém chatu.
 agentCreation.wizard.rulesDescription: Vyberte ochranná pravidla a přidejte vlastní pravidla jako štítky.
 agentCreation.wizard.knowledgeDescription: Nahrajte soubory nebo přidejte URL, které se mají stát součástí znalostí agenta.
@@ -283,13 +283,8 @@ agentCreation.wizard.capabilityImageGenerator: Generuje obrázky
 agentCreation.wizard.capabilityPrivacy: Používá režim soukromí
 agentCreation.wizard.capabilityProject: Pracuje s projektem
 agentCreation.wizard.capabilityMcp: Připojuje se k MCP
-agentCreation.wizard.teamLabel: Členové týmu
-agentCreation.wizard.teamPlaceholder: Legal Reviewer, https://remote.example/agents/reviewer nebo {User}
-agentCreation.wizard.teamHint: Napište název agenta nebo URL a potvrďte klávesou Enter. Běžná jména uložíme jako kompaktní reference typu `{Legal Reviewer}`. Přidejte `{User}`, pokud se má agent v průběhu práce doptat přímo uživatele.
-agentCreation.wizard.teamAddUserAction: Přidat {User}
-agentCreation.wizard.noTeamMembers: Zatím jste nepřidali žádné spolupracující agenty.
 agentCreation.wizard.teamPickerTitle: Vyberte existující agenty
-agentCreation.wizard.teamPickerHint: Kliknutím na karty přidáte nebo odeberete spolupracující agenty z tohoto serveru i připojených serverů.
+agentCreation.wizard.teamPickerHint: Kliknutím na jednu nebo více karet přidáte nebo odeberete spolupracující agenty z tohoto serveru i připojených serverů.
 agentCreation.wizard.teamLocalSectionTitle: Tento server ({count})
 agentCreation.wizard.teamFederatedSectionTitle: '{serverName} ({count})'
 agentCreation.wizard.teamLoadFailed: Agenty pro tuto sekci se nepodařilo načíst.

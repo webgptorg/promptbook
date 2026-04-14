@@ -2681,3 +2681,8 @@
 
     -   Moved request-time runtime assembly, disclaimer and credential resolution, history initialization, and frozen team-member chat persistence behind the private `resolveAgentChatRouteContext` and `createTeamMemberFrozenChatPersistence` facades so `route.ts` now reads as a thin HTTP entrypoint.
     -   Extracted the long-lived markdown stream orchestration, cancellation handling, tool-call framing, and final post-processing into the private `createAgentChatStreamResponse` helper while preserving the existing stateless chat streaming behavior, keep-alives, history recording, learning, and calendar activity logging.
+-   Enhanced the Agents Server new-agent wizard team step so it now behaves as a homepage-style multi-select picker:
+
+    -   Removed the separate manual "Team members" entry UI and kept only the existing-agents picker headed by "Browse existing agents" / "Vyberte existující agenty".
+    -   Kept multi-selection for teammate agents across the local server and federated servers while continuing to exclude the hidden core server from federated lists.
+    -   Extracted a shared homepage-like `AgentCardsSection` renderer so the wizard and federated-agent surfaces reuse the same card-grid, loading, empty, and error presentation.

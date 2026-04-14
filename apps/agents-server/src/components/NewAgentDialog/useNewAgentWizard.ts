@@ -11,7 +11,6 @@ import { createNewAgentWizardSource } from './createNewAgentWizardSource';
 import { NEW_AGENT_WIZARD_STEP_DEFINITIONS } from './newAgentWizardPresets';
 import {
     addUniqueChip,
-    addUniqueTeamReference,
     buildWizardSourceOptions,
     createInitialWizardState,
     createKnowledgeItemId,
@@ -222,29 +221,6 @@ export function useNewAgentWizard(options: UseNewAgentWizardOptions) {
     }
 
     /**
-     * Adds the current teammate draft as one normalized TEAM reference chip.
-     */
-    function addTeamReferenceFromDraft(): void {
-        setState((previous) => ({
-            ...previous,
-            teamReferences: addUniqueTeamReference(previous.teamReferences, previous.teamReferenceDraft),
-            teamReferenceDraft: '',
-        }));
-    }
-
-    /**
-     * Adds one teammate reference directly, bypassing the current draft field.
-     *
-     * @param reference - Raw teammate reference to normalize and add.
-     */
-    function addTeamReference(reference: string): void {
-        setState((previous) => ({
-            ...previous,
-            teamReferences: addUniqueTeamReference(previous.teamReferences, reference),
-        }));
-    }
-
-    /**
      * Toggles one teammate reference directly from the selectable agent picker.
      *
      * @param reference - Raw teammate reference to normalize and toggle.
@@ -266,18 +242,6 @@ export function useNewAgentWizard(options: UseNewAgentWizardOptions) {
         setState((previous) => ({
             ...previous,
             [chipsKey]: removeChipAt(previous[chipsKey], chipIndex),
-        }));
-    }
-
-    /**
-     * Removes one teammate reference chip.
-     *
-     * @param teamReferenceIndex - Index of the teammate chip to remove.
-     */
-    function removeTeamReference(teamReferenceIndex: number): void {
-        setState((previous) => ({
-            ...previous,
-            teamReferences: removeChipAt(previous.teamReferences, teamReferenceIndex),
         }));
     }
 
@@ -496,11 +460,8 @@ export function useNewAgentWizard(options: UseNewAgentWizardOptions) {
         fileInputRef,
         togglePresetSelection,
         addDraftChip,
-        addTeamReferenceFromDraft,
-        addTeamReference,
         toggleTeamReference,
         removeDraftChip,
-        removeTeamReference,
         removeKnowledgeItem,
         handleKnowledgeFileSelection,
         handleKnowledgeUrlKeyDown,

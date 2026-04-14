@@ -96,11 +96,6 @@ export type NewAgentWizardState = {
     readonly selectedCapabilityIds: ReadonlyArray<string>;
 
     /**
-     * Draft teammate reference entered in the team step.
-     */
-    readonly teamReferenceDraft: string;
-
-    /**
      * Compact references or URLs emitted as `TEAM` commitments.
      */
     readonly teamReferences: ReadonlyArray<string>;
@@ -243,7 +238,6 @@ export function createInitialWizardState(
         customPersonaTraitDraft: '',
         customPersonaTraits: [],
         selectedCapabilityIds: [],
-        teamReferenceDraft: '',
         teamReferences: [],
         isOpenToLearning: true,
         selectedWritingStyleIds: selectDefaultPresetIds(NEW_AGENT_WIZARD_WRITING_STYLE_PRESETS),

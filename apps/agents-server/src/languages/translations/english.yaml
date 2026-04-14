@@ -212,7 +212,7 @@ agentCreation.wizard.knowledgeTitle: Knowledge
 agentCreation.wizard.reviewTitle: Review & create
 agentCreation.wizard.basicDescription: Set the core identity, goal, and visibility before we build the hidden book source.
 agentCreation.wizard.personaDescription: Choose persona traits, learning mode, and capability switches derived from the available USE commitments.
-agentCreation.wizard.teamDescription: Add teammate agents the new agent can consult through `TEAM` commitments, including the optional `{User}` pseudo-agent.
+agentCreation.wizard.teamDescription: Select one or more teammate agents the new agent can consult through `TEAM` commitments.
 agentCreation.wizard.writingDescription: Pick writing-style presets, add custom style guidance, and preview voice samples in mocked chat bubbles.
 agentCreation.wizard.rulesDescription: Select guardrails and add custom rule chips.
 agentCreation.wizard.knowledgeDescription: Upload files or add URLs that should become part of the agent's knowledge.
@@ -287,13 +287,8 @@ agentCreation.wizard.capabilityImageGenerator: Can generate images
 agentCreation.wizard.capabilityPrivacy: Can use privacy mode
 agentCreation.wizard.capabilityProject: Can work with a project
 agentCreation.wizard.capabilityMcp: Can connect to MCP
-agentCreation.wizard.teamLabel: Team members
-agentCreation.wizard.teamPlaceholder: Legal Reviewer, https://remote.example/agents/reviewer, or {User}
-agentCreation.wizard.teamHint: Type an agent name or URL and press Enter. Plain names are saved as compact references like `{Legal Reviewer}`. Add `{User}` if the agent should pause and ask the current user.
-agentCreation.wizard.teamAddUserAction: Add {User}
-agentCreation.wizard.noTeamMembers: No teammates added yet.
 agentCreation.wizard.teamPickerTitle: Browse existing agents
-agentCreation.wizard.teamPickerHint: Click cards to add or remove teammates from this server and connected servers.
+agentCreation.wizard.teamPickerHint: Click one or more cards to add or remove teammate agents from this server and connected servers.
 agentCreation.wizard.teamLocalSectionTitle: This server ({count})
 agentCreation.wizard.teamFederatedSectionTitle: '{serverName} ({count})'
 agentCreation.wizard.teamLoadFailed: Failed to load agents for this section.
