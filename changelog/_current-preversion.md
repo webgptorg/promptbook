@@ -1,3 +1,13 @@
+-   Added a rich terminal UI for `ptbk coder run` that replaces the raw console output with a branded interactive dashboard:
+
+    -   Displays Promptbook Coder branding, active agent name, model, thinking level, context, and priority in a compact header section.
+    -   Shows a live progress bar with session/total prompt counts, elapsed time, and estimated completion time that ticks every second.
+    -   Streams the coding agent's real-time thinking output in a scrolling area within the UI, keeping the last 12 lines visible.
+    -   Integrates pause/resume controls (press `P`) directly through keyboard input, with a dedicated control bar at the bottom.
+    -   Displays retry attempt counts and error messages inline as they occur during test-feedback loops.
+    -   Falls back gracefully to the existing console-based output on non-interactive (non-TTY) terminals.
+    -   Works universally across all supported runners (OpenAI Codex, GitHub Copilot, Cline, Claude Code, Opencode, Gemini).
+
 -   Added optional `--test <test-command...>` support to `ptbk coder run`, so Promptbook Coder can verify each completed prompt with a shell command, retry the same prompt up to three times with the failing test output fed back into the coding agent, and annotate prompt status lines with retry counts such as `[x] (2 attempts)` or `[!] (failed after 3 attempts)`; Promptbook's local `.vscode/terminals.json` coder workflows now pass `--test npm run test`.
 
 -   Refactored Agents Server `useAgentChatHistorySyncState.ts` into smaller focused private chat-history modules without changing external behavior:

@@ -7,8 +7,8 @@ import { OPENAI_MODELS } from '../../../src/llm-providers/openai/openai-models';
 import { just } from '../../../src/utils/organization/just';
 import type { RunOptions } from '../cli/RunOptions';
 import { parseRunOptions } from '../cli/parseRunOptions';
-import { CliProgressDisplay } from '../common/cliProgressDisplay';
 import { appendCoderContext } from '../common/appendCoderContext';
+import { CliProgressDisplay } from '../common/cliProgressDisplay';
 import {
     captureChangedFilesSnapshot,
     normalizeLineEndingsInFilesChangedSinceSnapshot,
@@ -46,6 +46,7 @@ import { OpenAiCodexRunner } from '../runners/openai-codex/OpenAiCodexRunner';
 import { OpencodeRunner } from '../runners/opencode/OpencodeRunner';
 import type { PromptRunner } from '../runners/types/PromptRunner';
 import { runPromptWithTestFeedback } from '../testing/runPromptWithTestFeedback';
+import { renderCoderRunUi, type CoderRunUiHandle } from '../ui/renderCoderRunUi';
 
 /**
  * Constant for prompts dir.
@@ -126,8 +127,14 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
     }
 
     const runStartDate = moment();
-    const progressDisplay = options.dryRun ? undefined : new CliProgressDisplay(runStartDate);
-    listenForPause();
+    const isUiMode = !options.dryRun && Boolean(process.stdout.isTTY);
+    const progressDisplay = options.dryRun || isUiMode ? undefined : new CliProgressDisplay(runStartDate);
+    const uiHandle: CoderRunUiHandle | undefined = isUiMode ? renderCoderRunUi(runStartDate) : undefined;
+
+    // When the Ink UI is active it handles keyboard input itself, so skip the raw stdin listener.
+    if (!isUiMode) {
+        listenForPause();
+    }
 
     try {
         const resolvedCoderContext = await resolveCoderContext(options.context, process.cwd());
@@ -231,39 +238,85 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
         console.info(colors.green(`Running prompts with ${runner.name}`));
         const runnerMetadata = getRunnerMetadata(options, actualRunnerModel);
 
+        // Feed configuration into the terminal UI
+        uiHandle?.state.setConfig({
+            agentName: runner.name,
+            modelName: actualRunnerModel,
+            thinkingLevel: options.thinkingLevel,
+            context: options.context,
+            priority: options.priority,
+            testCommand: options.testCommand,
+        });
+        uiHandle?.state.setPhase('loading');
+        uiHandle?.state.setStatusMessage(`Running prompts with ${runner.name}`);
+
         let hasShownUpcomingTasks = false;
         let hasWaitedForStart = false;
 
         while (just(true)) {
-            await checkPause();
+            await checkPause({
+                silent: isUiMode,
+                onPaused: () => {
+                    uiHandle?.state.pauseTimer();
+                    uiHandle?.state.setPhase('paused');
+                    uiHandle?.state.setStatusMessage('Paused');
+                },
+                onResumed: () => {
+                    uiHandle?.state.resumeTimer();
+                },
+            });
+            if (isUiMode) {
+                uiHandle?.state.setPhase('loading');
+                uiHandle?.state.setStatusMessage('Loading prompts...');
+            }
             const promptFiles = await loadPromptFiles(PROMPTS_DIR);
             const stats = summarizePrompts(promptFiles, options.priority);
             progressDisplay?.update(stats);
-            printStats(stats, options.priority);
+            uiHandle?.state.updateProgress(stats);
+            if (!isUiMode) {
+                printStats(stats, options.priority);
+            }
 
             const nextPrompt = findNextTodoPrompt(promptFiles, options.priority);
 
             if (!hasShownUpcomingTasks) {
-                if (stats.toBeWritten > 0) {
+                if (stats.toBeWritten > 0 && !isUiMode) {
                     console.info(colors.yellow('Following prompts need to be written:'));
                     printPromptsToBeWritten(promptFiles, options.priority);
                     console.info('');
                 }
-                printUpcomingTasks(listUpcomingTasks(promptFiles, options.priority));
+                if (!isUiMode) {
+                    printUpcomingTasks(listUpcomingTasks(promptFiles, options.priority));
+                }
                 hasShownUpcomingTasks = true;
             }
 
             if (!nextPrompt) {
                 if (stats.toBeWritten > 0) {
-                    console.info(colors.yellow('No prompts ready for agent.'));
+                    const message = 'No prompts ready for agent.';
+                    uiHandle?.state.setStatusMessage(message);
+                    uiHandle?.state.setPhase('done');
+                    if (!isUiMode) {
+                        console.info(colors.yellow(message));
+                    }
                 } else {
-                    console.info(colors.green('All prompts are done.'));
+                    const message = 'All prompts are done.';
+                    uiHandle?.state.setStatusMessage(message);
+                    uiHandle?.state.setPhase('done');
+                    if (!isUiMode) {
+                        console.info(colors.green(message));
+                    }
                 }
                 return;
             }
 
             if (options.waitForUser) {
+                uiHandle?.state.pauseTimer();
+                uiHandle?.state.setStatusMessage(
+                    hasWaitedForStart ? 'Waiting... Press Enter to continue' : 'Waiting... Press Enter to start',
+                );
                 await waitForPromptStart(nextPrompt.file, nextPrompt.section, !hasWaitedForStart);
+                uiHandle?.state.resumeTimer();
                 hasWaitedForStart = true;
             }
 
@@ -280,7 +333,13 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             const scriptPath = buildScriptPath(nextPrompt.file, nextPrompt.section);
             const promptLabel = buildPromptLabelForDisplay(nextPrompt.file, nextPrompt.section);
 
-            console.info(colors.blue(`Processing ${promptLabel}`));
+            if (isUiMode) {
+                uiHandle?.state.setCurrentPrompt(promptLabel);
+                uiHandle?.state.setPhase('running');
+                uiHandle?.state.setStatusMessage('Running');
+            } else {
+                console.info(colors.blue(`Processing ${promptLabel}`));
+            }
 
             const promptExecutionStartedDate = moment();
             let attemptCount = 1;
@@ -289,6 +348,8 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                 : undefined;
 
             try {
+                uiHandle?.startCapturingAgentOutput();
+
                 const result = await runPromptWithTestFeedback({
                     runner,
                     prompt: codexPrompt,
@@ -298,8 +359,16 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                     testCommand: options.testCommand,
                     onAttemptStarted: (nextAttemptCount) => {
                         attemptCount = nextAttemptCount;
+                        uiHandle?.state.setAttempt(nextAttemptCount);
+                        if (nextAttemptCount > 1) {
+                            uiHandle?.state.setStatusMessage(`Retrying (attempt ${nextAttemptCount})`);
+                            uiHandle?.state.setPhase('verifying');
+                        }
                     },
                 });
+
+                uiHandle?.stopCapturingAgentOutput();
+                uiHandle?.state.setStatusMessage('Committing changes');
 
                 markPromptDone(
                     nextPrompt.file,
@@ -314,13 +383,20 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                 await normalizeLineEndingsForCurrentRound(options, roundChangedFilesSnapshot);
 
                 if (options.waitForUser) {
+                    uiHandle?.state.pauseTimer();
+                    uiHandle?.state.setStatusMessage('Waiting... Press Enter to commit');
                     printCommitMessage(commitMessage);
                     await waitForEnter(colors.bgWhite('Press Enter to commit and continue...'));
+                    uiHandle?.state.resumeTimer();
                 }
 
                 await commitChanges(commitMessage, { noPush: options.noPush });
                 await runPostPromptAutoMigrationIfEnabled(options);
             } catch (error) {
+                uiHandle?.stopCapturingAgentOutput();
+                uiHandle?.state.setPhase('error');
+                uiHandle?.state.addError(error instanceof Error ? error.message : String(error));
+
                 markPromptFailed(
                     nextPrompt.file,
                     nextPrompt.section,
@@ -344,6 +420,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
         }
     } finally {
         progressDisplay?.stop();
+        uiHandle?.cleanup();
         if (!options.dryRun) {
             printAgentGitIdentityTipIfNeeded();
         }

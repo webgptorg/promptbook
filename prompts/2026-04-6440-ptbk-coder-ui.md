@@ -1,4 +1,4 @@
-[ ] !!!
+[x] Manually
 
 [✨🌉] `ptbk coder run` should have terminal UI
 
