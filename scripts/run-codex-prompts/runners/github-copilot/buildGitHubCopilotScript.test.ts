@@ -33,5 +33,6 @@ describe('buildGitHubCopilotScript', () => {
         expect(script).not.toContain('--model');
         expect(script).not.toContain('--reasoning-effort');
         expect(script).toContain('--output-format json');
+        expect(script).toContain('--stream on');
     });
 });

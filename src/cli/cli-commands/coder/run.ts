@@ -180,6 +180,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 autoMigrate,
                 allowDestructiveAutoMigrate,
                 noPush: !push,
+                useTerminalUi: true,
             };
 
             // Note: Import the function dynamically to avoid loading heavy dependencies until needed
@@ -224,7 +225,11 @@ function normalizeCommandOptionValue(value: string | string[] | undefined): stri
     }
 
     const parts = Array.isArray(value) ? value : [value];
-    const normalizedValue = parts.map((part) => part.trim()).filter(Boolean).join(' ').trim();
+    const normalizedValue = parts
+        .map((part) => part.trim())
+        .filter(Boolean)
+        .join(' ')
+        .trim();
     return normalizedValue === '' ? undefined : normalizedValue;
 }
 

@@ -25,7 +25,7 @@ export function buildGitHubCopilotScript(options: GitHubCopilotScriptOptions): s
                 --no-ask-user \\
                 --no-color \\
                 --output-format json \\
-                --stream off${modelArgument}${thinkingLevelArgument}
+                --stream on${modelArgument}${thinkingLevelArgument}
         `,
     );
 }

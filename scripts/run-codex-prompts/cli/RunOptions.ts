@@ -51,4 +51,8 @@ export type RunOptions = {
      * Minimum prompt priority required for processing.
      */
     priority: number;
+    /**
+     * When true, prefer the live Promptbook coder terminal UI for `ptbk coder run`.
+     */
+    useTerminalUi?: boolean;
 };

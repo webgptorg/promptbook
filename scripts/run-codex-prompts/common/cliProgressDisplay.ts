@@ -14,6 +14,16 @@ const PROGRESS_REFRESH_INTERVAL_MS = 1000;
 const PROGRESS_HEADER_RESERVED_LINES = 1;
 
 /**
+ * Number of seconds in one hour.
+ */
+const SECONDS_PER_HOUR = 3600;
+
+/**
+ * Number of seconds in one minute.
+ */
+const SECONDS_PER_MINUTE = 60;
+
+/**
  * Calendar formats used when displaying the estimated completion time.
  */
 const ESTIMATED_DONE_CALENDAR_FORMATS = {
@@ -28,7 +38,7 @@ const ESTIMATED_DONE_CALENDAR_FORMATS = {
 /**
  * Computed values used when rendering the progress header.
  */
-type ProgressSnapshot = {
+export type ProgressSnapshot = {
     /** Total number of prompts in the project. */
     totalPrompts: number;
     /** Total number of completed prompts in the project. */
@@ -81,10 +91,7 @@ export class CliProgressDisplay {
      * Updates the progress statistics shown in the header.
      */
     public update(stats: PromptStats): void {
-        if (
-            this.initialDone === undefined &&
-            (stats.done > 0 || stats.forAgent > 0 || stats.toBeWritten > 0)
-        ) {
+        if (this.initialDone === undefined && (stats.done > 0 || stats.forAgent > 0 || stats.toBeWritten > 0)) {
             this.initialDone = stats.done;
         }
 
@@ -141,9 +148,7 @@ export class CliProgressDisplay {
      */
     private buildProgressLine(): string {
         const snapshot = buildProgressSnapshot(this.stats, this.startTime, this.initialDone ?? this.stats.done);
-        const sessionLabel = `${snapshot.sessionDone}/${snapshot.sessionTotal} Prompts`;
-        const totalLabel = `(${snapshot.totalPrompts} total)`;
-        const baseLine = `${sessionLabel} ${totalLabel} | ${snapshot.percentage}% | ${snapshot.elapsedText}/${snapshot.estimatedTotalText} | Estimated done ${snapshot.estimatedLabel}`;
+        const baseLine = buildProgressLineText(snapshot);
         const columns = process.stdout.columns ?? baseLine.length;
         const padded = baseLine.padEnd(columns > baseLine.length ? columns : baseLine.length);
         return colors.bgWhite(colors.black(padded));
@@ -153,7 +158,7 @@ export class CliProgressDisplay {
 /**
  * Calculates progress metrics shown in the sticky header.
  */
-function buildProgressSnapshot(
+export function buildProgressSnapshot(
     stats: PromptStats,
     startTime: moment.Moment,
     initialDone: number,
@@ -191,13 +196,22 @@ function buildProgressSnapshot(
 }
 
 /**
+ * Builds the plain-text progress status line reused by both the legacy header and the Ink UI.
+ */
+export function buildProgressLineText(snapshot: ProgressSnapshot): string {
+    const sessionLabel = `${snapshot.sessionDone}/${snapshot.sessionTotal} Prompts`;
+    const totalLabel = `(${snapshot.totalPrompts} total)`;
+    return `${sessionLabel} ${totalLabel} | ${snapshot.percentage}% | ${snapshot.elapsedText}/${snapshot.estimatedTotalText} | Estimated done ${snapshot.estimatedLabel}`;
+}
+
+/**
  * Formats a duration into a compact string such as "3h 12m" or "45s".
  */
 function formatDurationBrief(duration: moment.Duration): string {
     const totalSeconds = Math.max(0, Math.round(duration.asSeconds()));
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
+    const hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
+    const minutes = Math.floor((totalSeconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE);
+    const seconds = totalSeconds % SECONDS_PER_MINUTE;
     const parts: string[] = [];
 
     if (hours > 0) {
