@@ -11,9 +11,8 @@ export async function waitForPromptStart(
     file: PromptFile,
     section: PromptSection,
     isFirstPrompt: boolean,
-    waitForEnterImplementation: typeof waitForEnter = waitForEnter,
 ): Promise<void> {
     printPromptStartSummary(file, section);
     const label = isFirstPrompt ? 'first task' : 'next task';
-    await waitForEnterImplementation(colors.bgWhite(`Press Enter to start the ${label}...`));
+    await waitForEnter(colors.bgWhite(`Press Enter to start the ${label}...`));
 }

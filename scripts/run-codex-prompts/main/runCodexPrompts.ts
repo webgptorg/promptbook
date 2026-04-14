@@ -46,7 +46,6 @@ import { OpenAiCodexRunner } from '../runners/openai-codex/OpenAiCodexRunner';
 import { OpencodeRunner } from '../runners/opencode/OpencodeRunner';
 import type { PromptRunner } from '../runners/types/PromptRunner';
 import { runPromptWithTestFeedback } from '../testing/runPromptWithTestFeedback';
-import { CoderRunTerminalSession } from '../ui/CoderRunTerminalSession';
 
 /**
  * Constant for prompts dir.
@@ -117,8 +116,6 @@ function getRunnerMetadata(options: RunOptions, actualModel?: string): RunnerMet
  */
 export async function runCodexPrompts(providedOptions?: RunOptions): Promise<void> {
     const options = providedOptions ?? parseRunOptions(process.argv.slice(2));
-    let progressDisplay: CliProgressDisplay | undefined;
-    let terminalSession: CoderRunTerminalSession | undefined;
 
     if (options.allowDestructiveAutoMigrate && !options.autoMigrate) {
         throw new DatabaseError(
@@ -129,13 +126,8 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
     }
 
     const runStartDate = moment();
-    const waitForEnterImplementation = async (prompt: string): Promise<void> => {
-        if (terminalSession) {
-            return terminalSession.waitForEnter(prompt);
-        }
-
-        return waitForEnter(prompt);
-    };
+    const progressDisplay = options.dryRun ? undefined : new CliProgressDisplay(runStartDate);
+    listenForPause();
 
     try {
         const resolvedCoderContext = await resolveCoderContext(options.context, process.cwd());
@@ -151,7 +143,6 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
 
         let runner: PromptRunner;
         let actualRunnerModel: string | undefined;
-        let shouldPrintAllowCreditsTip = false;
         const agentName = options.agentName;
 
         if (!agentName) {
@@ -190,7 +181,11 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             });
 
             if (!options.allowCredits) {
-                shouldPrintAllowCreditsTip = true;
+                console.info(
+                    colors.gray(
+                        'OpenAI Codex credit spending is disabled. Use `--allow-credits` to explicitly opt in.',
+                    ),
+                );
             }
         } else if (agentName === 'cline') {
             runner = new ClineRunner({
@@ -233,40 +228,17 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             throw new Error(`Unknown agent: ${agentName}`);
         }
 
-        const runnerMetadata = getRunnerMetadata(options, actualRunnerModel);
-        terminalSession = await CoderRunTerminalSession.create({
-            runOptions: options,
-            runStartDate,
-        });
-        terminalSession?.updateRunnerMetadata(runnerMetadata.runnerName, runnerMetadata.modelName);
-        progressDisplay = terminalSession ? undefined : new CliProgressDisplay(runStartDate);
-
-        if (!terminalSession) {
-            listenForPause();
-        }
-
-        if (shouldPrintAllowCreditsTip) {
-            console.info(
-                colors.gray('OpenAI Codex credit spending is disabled. Use `--allow-credits` to explicitly opt in.'),
-            );
-        }
-
         console.info(colors.green(`Running prompts with ${runner.name}`));
+        const runnerMetadata = getRunnerMetadata(options, actualRunnerModel);
 
         let hasShownUpcomingTasks = false;
         let hasWaitedForStart = false;
 
         while (just(true)) {
-            if (terminalSession) {
-                await terminalSession.checkPause();
-            } else {
-                await checkPause();
-            }
-
+            await checkPause();
             const promptFiles = await loadPromptFiles(PROMPTS_DIR);
             const stats = summarizePrompts(promptFiles, options.priority);
             progressDisplay?.update(stats);
-            terminalSession?.updateStats(stats);
             printStats(stats, options.priority);
 
             const nextPrompt = findNextTodoPrompt(promptFiles, options.priority);
@@ -282,7 +254,6 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             }
 
             if (!nextPrompt) {
-                terminalSession?.setCurrentPrompt(undefined);
                 if (stats.toBeWritten > 0) {
                     console.info(colors.yellow('No prompts ready for agent.'));
                 } else {
@@ -291,16 +262,8 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                 return;
             }
 
-            const promptLabel = buildPromptLabelForDisplay(nextPrompt.file, nextPrompt.section);
-            terminalSession?.setCurrentPrompt(promptLabel);
-
             if (options.waitForUser) {
-                await waitForPromptStart(
-                    nextPrompt.file,
-                    nextPrompt.section,
-                    !hasWaitedForStart,
-                    waitForEnterImplementation,
-                );
+                await waitForPromptStart(nextPrompt.file, nextPrompt.section, !hasWaitedForStart);
                 hasWaitedForStart = true;
             }
 
@@ -315,6 +278,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             );
 
             const scriptPath = buildScriptPath(nextPrompt.file, nextPrompt.section);
+            const promptLabel = buildPromptLabelForDisplay(nextPrompt.file, nextPrompt.section);
 
             console.info(colors.blue(`Processing ${promptLabel}`));
 
@@ -334,7 +298,6 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                     testCommand: options.testCommand,
                     onAttemptStarted: (nextAttemptCount) => {
                         attemptCount = nextAttemptCount;
-                        terminalSession?.setCurrentAttempt(nextAttemptCount);
                     },
                 });
 
@@ -352,12 +315,11 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
 
                 if (options.waitForUser) {
                     printCommitMessage(commitMessage);
-                    await waitForEnterImplementation(colors.bgWhite('Press Enter to commit and continue...'));
+                    await waitForEnter(colors.bgWhite('Press Enter to commit and continue...'));
                 }
 
                 await commitChanges(commitMessage, { noPush: options.noPush });
                 await runPostPromptAutoMigrationIfEnabled(options);
-                terminalSession?.setCurrentAttempt(undefined);
             } catch (error) {
                 markPromptFailed(
                     nextPrompt.file,
@@ -376,7 +338,6 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                     error,
                 });
                 await normalizeLineEndingsForCurrentRound(options, roundChangedFilesSnapshot);
-                terminalSession?.setCurrentAttempt(undefined);
 
                 throw error;
             }
@@ -386,7 +347,6 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
         if (!options.dryRun) {
             printAgentGitIdentityTipIfNeeded();
         }
-        terminalSession?.stop();
     }
 }
 
