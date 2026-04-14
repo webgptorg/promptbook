@@ -1,4 +1,5 @@
 import colors from 'colors';
+import { coderRunInfo } from '../ui/CoderRunSessionContext';
 import { buildPromptLabelForDisplay } from './buildPromptLabelForDisplay';
 import { buildPromptSummary } from './buildPromptSummary';
 import type { PromptFile } from './types/PromptFile';
@@ -10,6 +11,6 @@ import type { PromptSection } from './types/PromptSection';
 export function printPromptStartSummary(file: PromptFile, section: PromptSection): void {
     const label = buildPromptLabelForDisplay(file, section);
     const summary = buildPromptSummary(file, section);
-    console.info(colors.cyan('Next prompt:'));
-    console.info(` ${label}: ${summary}`);
+    coderRunInfo(colors.cyan('Next prompt:'));
+    coderRunInfo(` ${label}: ${summary}`);
 }

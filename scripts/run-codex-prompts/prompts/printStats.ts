@@ -1,4 +1,5 @@
 import colors from 'colors';
+import { coderRunInfo } from '../ui/CoderRunSessionContext';
 import type { PromptStats } from './types/PromptStats';
 
 /**
@@ -8,7 +9,7 @@ export function printStats(stats: PromptStats, minimumPriority = 0): void {
     const priorityStats =
         minimumPriority > 0 ? ` | Priority <${minimumPriority}: ${stats.belowMinimumPriority}` : '';
 
-    console.info(
+    coderRunInfo(
         colors.cyan(`Done: ${stats.done} | For agent: ${stats.forAgent}${priorityStats} | To be written: ${stats.toBeWritten}`),
     );
 }

@@ -2,6 +2,7 @@ import colors from 'colors';
 import type { Usage } from '../../../../src/execution/Usage';
 import { UNCERTAIN_USAGE } from '../../../../src/execution/utils/usage-constants';
 import { TODO_any } from '../../../../src/utils/organization/TODO_any';
+import { coderRunError } from '../../ui/CoderRunSessionContext';
 
 /**
  * Claude Code JSON output structure.
@@ -92,7 +93,7 @@ export function parseClaudeCodeJsonOutput(output: string): Usage {
             },
         };
     } catch (error) {
-        console.error(colors.bgRed('Error parsing Claude Code JSON output:'), error);
+        coderRunError(colors.bgRed(`Error parsing Claude Code JSON output: ${String(error)}`));
 
         // If JSON parsing fails, return uncertain usage
         return UNCERTAIN_USAGE;

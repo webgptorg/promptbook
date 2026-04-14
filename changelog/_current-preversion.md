@@ -1,3 +1,8 @@
+-   Added an Ink + React terminal UI for `ptbk coder run` without changing other `ptbk` commands:
+
+    -   Replaced the raw `ptbk coder run` streaming output with a branded Promptbook Coder terminal dashboard that shows runner metadata, prompt progress status, a loading bar, current prompt details, pause/resume controls, and a live recent-events panel.
+    -   Routed shared runner stdout/stderr, verification retries, Git retry warnings, and other coding-session messages through one session reporter so the current thinking/status line updates in real time across all runners, while GitHub Copilot and Claude Code now enable realtime streaming only when the terminal UI is active.
+
 -   Added optional `--test <test-command...>` support to `ptbk coder run`, so Promptbook Coder can verify each completed prompt with a shell command, retry the same prompt up to three times with the failing test output fed back into the coding agent, and annotate prompt status lines with retry counts such as `[x] (2 attempts)` or `[!] (failed after 3 attempts)`; Promptbook's local `.vscode/terminals.json` coder workflows now pass `--test npm run test`.
 
 -   Refactored Agents Server `useAgentChatHistorySyncState.ts` into smaller focused private chat-history modules without changing external behavior:

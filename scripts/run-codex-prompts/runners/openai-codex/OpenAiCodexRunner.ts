@@ -1,6 +1,7 @@
 import colors from 'colors';
 import { $runGoScriptUntilMarkerIdle } from '../../common/runGoScript/$runGoScriptUntilMarkerIdle';
 import { ProgressiveBackoff } from '../../common/ProgressiveBackoff';
+import { coderRunWarn } from '../../ui/CoderRunSessionContext';
 import type { PromptRunOptions } from '../types/PromptRunOptions';
 import type { PromptRunResult } from '../types/PromptRunResult';
 import type { PromptRunner } from '../types/PromptRunner';
@@ -132,7 +133,7 @@ export class OpenAiCodexRunner implements PromptRunner {
                 const retryIndex = this.rateLimitBackoff.retryCount;
                 const summary = extractFailureSummary(details);
 
-                console.warn(
+                coderRunWarn(
                     colors.yellow(
                         `[codex] Rate limit/quota detected (${summary}). Retry #${retryIndex} in ${formatDelay(delayMs)} at ${retryAt}.`,
                     ),

@@ -7,7 +7,6 @@ import { OPENAI_MODELS } from '../../../src/llm-providers/openai/openai-models';
 import { just } from '../../../src/utils/organization/just';
 import type { RunOptions } from '../cli/RunOptions';
 import { parseRunOptions } from '../cli/parseRunOptions';
-import { CliProgressDisplay } from '../common/cliProgressDisplay';
 import { appendCoderContext } from '../common/appendCoderContext';
 import {
     captureChangedFilesSnapshot,
@@ -16,8 +15,6 @@ import {
 } from '../common/normalizeLineEndingsInChangedFiles';
 import { printCommitMessage } from '../common/printCommitMessage';
 import { resolveCoderContext } from '../common/resolveCoderContext';
-import { waitForEnter } from '../common/waitForEnter';
-import { checkPause, listenForPause } from '../common/waitForPause';
 import { printAgentGitIdentityTipIfNeeded } from '../git/agentGitIdentity';
 import { commitChanges } from '../git/commitChanges';
 import { ensureWorkingTreeClean } from '../git/ensureWorkingTreeClean';
@@ -25,6 +22,7 @@ import { runAutoMigrateTestingServers } from '../migrations/runAutoMigrateTestin
 import { buildCodexPrompt } from '../prompts/buildCodexPrompt';
 import { buildCommitMessage } from '../prompts/buildCommitMessage';
 import { buildPromptLabelForDisplay } from '../prompts/buildPromptLabelForDisplay';
+import { buildPromptSummary } from '../prompts/buildPromptSummary';
 import { buildScriptPath } from '../prompts/buildScriptPath';
 import { findNextTodoPrompt } from '../prompts/findNextTodoPrompt';
 import { listUpcomingTasks } from '../prompts/listUpcomingTasks';
@@ -46,6 +44,8 @@ import { OpenAiCodexRunner } from '../runners/openai-codex/OpenAiCodexRunner';
 import { OpencodeRunner } from '../runners/opencode/OpencodeRunner';
 import type { PromptRunner } from '../runners/types/PromptRunner';
 import { runPromptWithTestFeedback } from '../testing/runPromptWithTestFeedback';
+import { createCoderRunSession } from '../ui/createCoderRunSession';
+import { coderRunError, coderRunInfo, coderRunWarn, setCurrentCoderRunSession } from '../ui/CoderRunSessionContext';
 
 /**
  * Constant for prompts dir.
@@ -84,6 +84,18 @@ type RunnerMetadata = {
     runnerName: string;
     modelName?: string;
 };
+
+/**
+ * Branded usage error used for early validation failures inside `ptbk coder run`.
+ */
+export class CoderRunUsageError extends Error {
+    public readonly name = 'CoderRunUsageError';
+
+    public constructor(message: string) {
+        super(message);
+        Object.setPrototypeOf(this, CoderRunUsageError.prototype);
+    }
+}
 
 /**
  * Resolves runner metadata for prompt status lines.
@@ -126,8 +138,18 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
     }
 
     const runStartDate = moment();
-    const progressDisplay = options.dryRun ? undefined : new CliProgressDisplay(runStartDate);
-    listenForPause();
+    const coderRunSession = options.dryRun
+        ? undefined
+        : createCoderRunSession({
+              startTime: runStartDate,
+              runOptions: options,
+          });
+    setCurrentCoderRunSession(coderRunSession);
+    const waitForUserConfirmation = async (prompt: string): Promise<void> => {
+        if (coderRunSession) {
+            await coderRunSession.waitForEnter(prompt);
+        }
+    };
 
     try {
         const resolvedCoderContext = await resolveCoderContext(options.context, process.cwd());
@@ -136,7 +158,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             const promptFiles = await loadPromptFiles(PROMPTS_DIR);
             const stats = summarizePrompts(promptFiles, options.priority);
             printStats(stats, options.priority);
-            console.info(colors.yellow('Following prompts need to be written:'));
+            coderRunInfo(colors.yellow('Following prompts need to be written:'));
             printPromptsToBeWritten(promptFiles, options.priority);
             return;
         }
@@ -152,18 +174,18 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
         if (agentName === 'openai-codex') {
             let modelToUse: string;
             if (!options.model) {
-                console.error(colors.red('Error: --model is required when using --agent openai-codex'));
-                console.error('');
-                console.error(colors.cyan('Available models:'));
+                coderRunError(colors.red('Error: --model is required when using --agent openai-codex'));
+                coderRunError('');
+                coderRunInfo(colors.cyan('Available models:'));
                 const codexModels = OPENAI_MODELS.filter((m) => m.modelVariant === 'CHAT').map((m) => m.modelName);
                 codexModels.forEach((model) => {
-                    console.error(colors.gray(`  - ${model}`));
+                    coderRunInfo(colors.gray(`  - ${model}`));
                 });
-                console.error('');
-                console.error(colors.cyan('Example usage:'));
-                console.error(colors.gray(`  --agent openai-codex --model gpt-5.2-codex`));
-                console.error(colors.gray(`  --agent openai-codex --model default`));
-                process.exit(1);
+                coderRunError('');
+                coderRunInfo(colors.cyan('Example usage:'));
+                coderRunInfo(colors.gray(`  --agent openai-codex --model gpt-5.2-codex`));
+                coderRunInfo(colors.gray(`  --agent openai-codex --model default`));
+                throw new CoderRunUsageError('Missing required `--model` for `--agent openai-codex`.');
             } else if (options.model === 'default') {
                 modelToUse = DEFAULT_CODEX_MODEL;
             } else {
@@ -181,7 +203,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             });
 
             if (!options.allowCredits) {
-                console.info(
+                coderRunInfo(
                     colors.gray(
                         'OpenAI Codex credit spending is disabled. Use `--allow-credits` to explicitly opt in.',
                     ),
@@ -198,9 +220,12 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             runner = new GitHubCopilotRunner({
                 model: modelToUse,
                 thinkingLevel: options.thinkingLevel,
+                streamOutput: Boolean(options.isTerminalUiEnabled && process.stdout.isTTY),
             });
         } else if (agentName === 'claude-code') {
-            runner = new ClaudeCodeRunner();
+            runner = new ClaudeCodeRunner({
+                streamOutput: Boolean(options.isTerminalUiEnabled && process.stdout.isTTY),
+            });
         } else if (agentName === 'opencode') {
             runner = new OpencodeRunner({
                 model: options.model,
@@ -208,12 +233,12 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
         } else if (agentName === 'gemini') {
             let modelToUse: string;
             if (!options.model) {
-                console.error(colors.red('Error: --model is required when using --agent gemini'));
-                console.error('');
-                console.error(colors.cyan('Example usage:'));
-                console.error(colors.gray(`  --agent gemini --model ${DEFAULT_GEMINI_MODEL}`));
-                console.error(colors.gray('  --agent gemini --model default'));
-                process.exit(1);
+                coderRunError(colors.red('Error: --model is required when using --agent gemini'));
+                coderRunError('');
+                coderRunInfo(colors.cyan('Example usage:'));
+                coderRunInfo(colors.gray(`  --agent gemini --model ${DEFAULT_GEMINI_MODEL}`));
+                coderRunInfo(colors.gray('  --agent gemini --model default'));
+                throw new CoderRunUsageError('Missing required `--model` for `--agent gemini`.');
             } else if (options.model === 'default') {
                 modelToUse = DEFAULT_GEMINI_MODEL;
             } else {
@@ -228,42 +253,56 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             throw new Error(`Unknown agent: ${agentName}`);
         }
 
-        console.info(colors.green(`Running prompts with ${runner.name}`));
+        coderRunSession?.setRunnerState({
+            runnerName: runner.name,
+        });
+        coderRunInfo(colors.green(`Running prompts with ${runner.name}`));
         const runnerMetadata = getRunnerMetadata(options, actualRunnerModel);
+        coderRunSession?.setRunnerState({
+            runnerName: runnerMetadata.runnerName,
+            modelName: runnerMetadata.modelName,
+        });
 
         let hasShownUpcomingTasks = false;
         let hasWaitedForStart = false;
 
         while (just(true)) {
-            await checkPause();
+            await coderRunSession?.checkPause();
             const promptFiles = await loadPromptFiles(PROMPTS_DIR);
             const stats = summarizePrompts(promptFiles, options.priority);
-            progressDisplay?.update(stats);
+            coderRunSession?.updateStats(stats);
             printStats(stats, options.priority);
 
             const nextPrompt = findNextTodoPrompt(promptFiles, options.priority);
 
             if (!hasShownUpcomingTasks) {
                 if (stats.toBeWritten > 0) {
-                    console.info(colors.yellow('Following prompts need to be written:'));
+                    coderRunInfo(colors.yellow('Following prompts need to be written:'));
                     printPromptsToBeWritten(promptFiles, options.priority);
-                    console.info('');
+                    coderRunInfo('');
                 }
                 printUpcomingTasks(listUpcomingTasks(promptFiles, options.priority));
                 hasShownUpcomingTasks = true;
             }
 
             if (!nextPrompt) {
+                coderRunSession?.setCurrentPrompt(undefined);
+                coderRunSession?.setThinkingMessage(undefined);
                 if (stats.toBeWritten > 0) {
-                    console.info(colors.yellow('No prompts ready for agent.'));
+                    coderRunInfo(colors.yellow('No prompts ready for agent.'));
                 } else {
-                    console.info(colors.green('All prompts are done.'));
+                    coderRunInfo(colors.green('All prompts are done.'));
                 }
                 return;
             }
 
             if (options.waitForUser) {
-                await waitForPromptStart(nextPrompt.file, nextPrompt.section, !hasWaitedForStart);
+                await waitForPromptStart(
+                    nextPrompt.file,
+                    nextPrompt.section,
+                    !hasWaitedForStart,
+                    waitForUserConfirmation,
+                );
                 hasWaitedForStart = true;
             }
 
@@ -279,8 +318,15 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
 
             const scriptPath = buildScriptPath(nextPrompt.file, nextPrompt.section);
             const promptLabel = buildPromptLabelForDisplay(nextPrompt.file, nextPrompt.section);
+            const promptSummary = buildPromptSummary(nextPrompt.file, nextPrompt.section);
+            coderRunSession?.setCurrentPrompt({
+                label: promptLabel,
+                summary: promptSummary,
+                attemptCount: 1,
+            });
+            coderRunSession?.setThinkingMessage('Preparing runner...');
 
-            console.info(colors.blue(`Processing ${promptLabel}`));
+            coderRunInfo(colors.blue(`Processing ${promptLabel}`));
 
             const promptExecutionStartedDate = moment();
             let attemptCount = 1;
@@ -298,6 +344,11 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                     testCommand: options.testCommand,
                     onAttemptStarted: (nextAttemptCount) => {
                         attemptCount = nextAttemptCount;
+                        coderRunSession?.setCurrentPrompt({
+                            label: promptLabel,
+                            summary: promptSummary,
+                            attemptCount: nextAttemptCount,
+                        });
                     },
                 });
 
@@ -315,11 +366,13 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
 
                 if (options.waitForUser) {
                     printCommitMessage(commitMessage);
-                    await waitForEnter(colors.bgWhite('Press Enter to commit and continue...'));
+                    await waitForUserConfirmation(colors.bgWhite('Press Enter to commit and continue...'));
                 }
 
                 await commitChanges(commitMessage, { noPush: options.noPush });
-                await runPostPromptAutoMigrationIfEnabled(options);
+                await runPostPromptAutoMigrationIfEnabled(options, coderRunSession?.logger);
+                coderRunSession?.setCurrentPrompt(undefined);
+                coderRunSession?.setThinkingMessage(undefined);
             } catch (error) {
                 markPromptFailed(
                     nextPrompt.file,
@@ -338,12 +391,14 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                     error,
                 });
                 await normalizeLineEndingsForCurrentRound(options, roundChangedFilesSnapshot);
+                coderRunWarn(colors.yellow(`Prompt failed: ${promptLabel}`));
 
                 throw error;
             }
         }
     } finally {
-        progressDisplay?.stop();
+        coderRunSession?.stop();
+        setCurrentCoderRunSession(undefined);
         if (!options.dryRun) {
             printAgentGitIdentityTipIfNeeded();
         }
@@ -353,14 +408,14 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
 /**
  * Runs post-prompt testing-server auto-migration when enabled.
  */
-async function runPostPromptAutoMigrationIfEnabled(options: RunOptions): Promise<void> {
+async function runPostPromptAutoMigrationIfEnabled(options: RunOptions, logger?: { info(message: string): void; warn(message: string): void; error(message: string): void; }): Promise<void> {
     if (!options.autoMigrate) {
         return;
     }
 
     await runAutoMigrateTestingServers({
         allowDestructiveAutoMigrate: options.allowDestructiveAutoMigrate,
-        logger: console,
+        logger,
     });
 }
 
@@ -382,10 +437,10 @@ async function normalizeLineEndingsForCurrentRound(
         });
 
         if (result.normalizedFiles > 0) {
-            console.info(colors.gray(`Normalized line endings to LF in ${result.normalizedFiles} changed file(s).`));
+            coderRunInfo(colors.gray(`Normalized line endings to LF in ${result.normalizedFiles} changed file(s).`));
         }
     } catch (error) {
         const details = error instanceof Error ? error.message : String(error);
-        console.warn(colors.yellow(`Automatic line-ending normalization failed: ${details}`));
+        coderRunWarn(colors.yellow(`Automatic line-ending normalization failed: ${details}`));
     }
 }

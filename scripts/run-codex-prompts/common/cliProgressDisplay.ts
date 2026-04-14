@@ -28,7 +28,7 @@ const ESTIMATED_DONE_CALENDAR_FORMATS = {
 /**
  * Computed values used when rendering the progress header.
  */
-type ProgressSnapshot = {
+export type ProgressSnapshot = {
     /** Total number of prompts in the project. */
     totalPrompts: number;
     /** Total number of completed prompts in the project. */
@@ -46,6 +46,15 @@ type ProgressSnapshot = {
     /** Formatted estimated completion time. */
     estimatedLabel: string;
 };
+
+/**
+ * Builds the summary line rendered both by the sticky console header and by the Ink terminal UI.
+ */
+export function formatProgressSummary(snapshot: ProgressSnapshot): string {
+    const sessionLabel = `${snapshot.sessionDone}/${snapshot.sessionTotal} Prompts`;
+    const totalLabel = `(${snapshot.totalPrompts} total)`;
+    return `${sessionLabel} ${totalLabel} | ${snapshot.percentage}% | ${snapshot.elapsedText}/${snapshot.estimatedTotalText} | Estimated done ${snapshot.estimatedLabel}`;
+}
 
 /**
  * Compact CLI progress display that stays pinned at the top of the terminal.
@@ -141,9 +150,7 @@ export class CliProgressDisplay {
      */
     private buildProgressLine(): string {
         const snapshot = buildProgressSnapshot(this.stats, this.startTime, this.initialDone ?? this.stats.done);
-        const sessionLabel = `${snapshot.sessionDone}/${snapshot.sessionTotal} Prompts`;
-        const totalLabel = `(${snapshot.totalPrompts} total)`;
-        const baseLine = `${sessionLabel} ${totalLabel} | ${snapshot.percentage}% | ${snapshot.elapsedText}/${snapshot.estimatedTotalText} | Estimated done ${snapshot.estimatedLabel}`;
+        const baseLine = formatProgressSummary(snapshot);
         const columns = process.stdout.columns ?? baseLine.length;
         const padded = baseLine.padEnd(columns > baseLine.length ? columns : baseLine.length);
         return colors.bgWhite(colors.black(padded));
@@ -153,7 +160,7 @@ export class CliProgressDisplay {
 /**
  * Calculates progress metrics shown in the sticky header.
  */
-function buildProgressSnapshot(
+export function buildProgressSnapshot(
     stats: PromptStats,
     startTime: moment.Moment,
     initialDone: number,

@@ -1,4 +1,5 @@
 import { spawn } from 'child_process';
+import { coderRunRawOutput } from '../../ui/CoderRunSessionContext';
 import type { RunScriptUntilMarkerIdleOptions } from './RunScriptUntilMarkerIdleOptions';
 import { toPosixPath } from './toPosixPath';
 
@@ -98,13 +99,7 @@ export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdle
          */
         const handleChunk = (chunk: string, source: 'stdout' | 'stderr'): void => {
             fullOutput += chunk;
-            if (source === 'stderr') {
-                if (chunk.trim()) {
-                    console.warn(chunk);
-                }
-            } else {
-                console.info(chunk);
-            }
+            coderRunRawOutput(chunk, source);
 
             if (source === 'stdout') {
                 stdoutBuffer += chunk;

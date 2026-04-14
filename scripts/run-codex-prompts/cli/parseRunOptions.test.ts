@@ -34,6 +34,7 @@ describe('parseRunOptions', () => {
             allowCredits: false,
             autoMigrate: false,
             allowDestructiveAutoMigrate: false,
+            isTerminalUiEnabled: false,
         });
     });
 
@@ -49,6 +50,7 @@ describe('parseRunOptions', () => {
             allowCredits: false,
             autoMigrate: false,
             allowDestructiveAutoMigrate: false,
+            isTerminalUiEnabled: false,
         });
     });
 
@@ -63,6 +65,7 @@ describe('parseRunOptions', () => {
             allowCredits: false,
             autoMigrate: false,
             allowDestructiveAutoMigrate: false,
+            isTerminalUiEnabled: false,
         });
     });
 

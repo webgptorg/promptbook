@@ -2,6 +2,7 @@ import colors from 'colors';
 import type { Usage } from '../../../../src/execution/Usage';
 import { uncertainNumber } from '../../../../src/execution/utils/uncertainNumber';
 import { UNCERTAIN_USAGE } from '../../../../src/execution/utils/usage-constants';
+import { coderRunError } from '../../ui/CoderRunSessionContext';
 import { CHARS_PER_TOKEN, resolveGeminiPricing } from './gemini-pricing';
 
 /**
@@ -35,7 +36,7 @@ export function parseGeminiUsageFromOutput(output: string, prompt: string, model
             },
         };
     } catch (error) {
-        console.error(colors.bgRed('Error parsing Gemini usage output:'), error);
+        coderRunError(colors.bgRed(`Error parsing Gemini usage output: ${String(error)}`));
         return UNCERTAIN_USAGE;
     }
 }

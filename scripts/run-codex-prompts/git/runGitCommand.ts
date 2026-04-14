@@ -6,6 +6,7 @@ import { forTime } from 'waitasecond';
 import { ConflictError } from '../../../src/errors/ConflictError';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
 import { ProgressiveBackoff } from '../common/ProgressiveBackoff';
+import { coderRunWarn } from '../ui/CoderRunSessionContext';
 
 /**
  * Delays used before retrying a Git command blocked by `index.lock`.
@@ -89,7 +90,7 @@ export async function runGitCommand(options: RunGitCommandOptions): Promise<stri
                     throw unlinkError;
                 });
                 isStaleIndexLockRemoved = true;
-                console.warn(colors.yellow(`Removed stale Git index lock: ${lastIndexLockState.path}`));
+                coderRunWarn(colors.yellow(`Removed stale Git index lock: ${lastIndexLockState.path}`));
                 continue;
             }
 
@@ -102,7 +103,7 @@ export async function runGitCommand(options: RunGitCommandOptions): Promise<stri
             }
 
             const delayMs = retryBackoff.nextDelayMs();
-            console.warn(
+            coderRunWarn(
                 colors.yellow(
                     `Git index is busy, retrying \`${options.command}\` in ${formatDelay(delayMs)} (attempt #${retryBackoff.retryCount}).`,
                 ),

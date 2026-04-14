@@ -33,5 +33,16 @@ describe('buildGitHubCopilotScript', () => {
         expect(script).not.toContain('--model');
         expect(script).not.toContain('--reasoning-effort');
         expect(script).toContain('--output-format json');
+        expect(script).toContain('--stream off');
+    });
+
+    it('enables streaming when requested for the terminal UI', () => {
+        const script = buildGitHubCopilotScript({
+            prompt: 'Prompt',
+            projectPath: '/project/path',
+            streamOutput: true,
+        });
+
+        expect(script).toContain('--stream on');
     });
 });

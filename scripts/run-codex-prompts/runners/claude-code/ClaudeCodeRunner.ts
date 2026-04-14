@@ -3,6 +3,7 @@ import type { PromptRunOptions } from '../types/PromptRunOptions';
 import type { PromptRunResult } from '../types/PromptRunResult';
 import type { PromptRunner } from '../types/PromptRunner';
 import { buildClaudeScript } from './buildClaudeScript';
+import type { ClaudeCodeRunnerOptions } from './ClaudeCodeRunnerOptions';
 import { parseClaudeCodeJsonOutput } from './parseClaudeCodeJsonOutput';
 
 /**
@@ -14,7 +15,7 @@ export class ClaudeCodeRunner implements PromptRunner {
     /**
      * Creates a new Claude Code runner.
      */
-    public constructor() {}
+    public constructor(private readonly options: ClaudeCodeRunnerOptions = {}) {}
 
     /**
      * Runs the prompt using Claude Code and parses usage output.
@@ -22,6 +23,7 @@ export class ClaudeCodeRunner implements PromptRunner {
     public async runPrompt(options: PromptRunOptions): Promise<PromptRunResult> {
         const scriptContent = buildClaudeScript({
             prompt: options.prompt,
+            streamOutput: this.options.streamOutput,
         });
 
         const output = await $runGoScriptWithOutput({
