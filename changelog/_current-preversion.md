@@ -1,3 +1,8 @@
+-   Refactored Agents Server `apps/agents-server/src/app/api/v1/agents/[agentId]/route.ts` into smaller focused agent-update helpers without changing external behavior:
+
+    -   Split the branching-heavy management API `PATCH` flow into dedicated owned-agent loading, folder validation, source update, metadata update, and reload helpers so the route now reads top-down.
+    -   Kept the existing rename and source persistence, folder validation, automatic sort-order reassignment on folder moves, error mapping, and response payloads intact while reducing branching complexity in the handler.
+
 -   Refactored Agents Server `AgentTextareaClient.tsx` into smaller focused textarea hooks without changing external behavior:
 
     -   Moved textarea submission and chat-route navigation into the private `useAgentTextareaSubmission` hook and extracted Enter-key handling, deferred preference resolution, and newline insertion into the private `useAgentTextareaEnterHandling` hook so `AgentTextareaClient.tsx` now reads primarily as presentation.
