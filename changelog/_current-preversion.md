@@ -1,3 +1,8 @@
+-   Refactored Agents Server `ClientVersionMismatchListener.tsx` into smaller focused private client-version helpers without changing external behavior:
+
+    -   Split mismatch subscription, fetch interception, response inspection, auto-refresh countdown orchestration, and overlay rendering into dedicated private modules so `ClientVersionMismatchListener.tsx` now reads as a thin composition layer.
+    -   Kept the existing mismatch reporting, 426/header detection, focus-gated 7-second refresh countdown, manual refresh/pause controls, and overlay copy/styling intact while reducing branching complexity in the listener component.
+
 -   Refactored Agents Server `useAgentContextMenuItems.ts` into smaller private context-menu helpers without changing external behavior:
 
     -   Moved the branching-heavy action logic and clipboard-feedback state into dedicated private hooks so `useAgentContextMenuItems` now focuses on composing menu sections.
