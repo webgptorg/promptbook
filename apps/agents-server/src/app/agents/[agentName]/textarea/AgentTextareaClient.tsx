@@ -1,17 +1,14 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
+import { useMemo } from 'react';
 import { AgentProfileImage } from '../../../../components/AgentProfile/AgentProfileImage';
 import { useAgentBackground } from '../../../../components/AgentProfile/useAgentBackground';
 import { useAgentNaming } from '../../../../components/AgentNaming/AgentNamingContext';
 import { useChatEnterBehaviorPreferences } from '../../../../components/ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
 import { getChatEnterBehaviorTextareaHint } from '../../../../components/ChatEnterBehavior/chatEnterBehaviorTranslations';
 import { useServerLanguage } from '../../../../components/ServerLanguage/ServerLanguageProvider';
-import {
-    invertAgentsServerChatEnterBehavior,
-    type AgentsServerChatEnterBehavior,
-} from '../../../../utils/chatEnterBehavior';
+import { useAgentTextareaEnterHandling } from './useAgentTextareaEnterHandling';
+import { useAgentTextareaSubmission } from './useAgentTextareaSubmission';
 
 /**
  * Props for the minimal textarea-driven chat launcher.
@@ -44,84 +41,6 @@ type AgentTextareaClientProps = {
 };
 
 /**
- * Trims user-entered content and returns non-empty message values.
- *
- * @param messageContent - Raw textarea value.
- * @returns Normalized message or `null` when empty.
- */
-function resolveMessageToSend(messageContent: string): string | null {
-    const normalizedMessage = messageContent.trim();
-    return normalizedMessage === '' ? null : normalizedMessage;
-}
-
-/**
- * Builds chat route that triggers standard auto-execution pipeline.
- *
- * @param agentName - Canonical agent identifier.
- * @param messageContent - Message to auto-send in chat.
- * @returns Chat route with serialized query parameters.
- */
-function buildChatMessageRoute(agentName: string, messageContent: string): string {
-    const searchParams = new URLSearchParams();
-    searchParams.set('message', messageContent);
-    searchParams.set('newChat', '1');
-    return `/agents/${encodeURIComponent(agentName)}/chat?${searchParams.toString()}`;
-}
-
-/**
- * Snapshot captured before the textarea waits for an unresolved Enter behavior.
- */
-type PendingTextareaEnterIntentSnapshot = {
-    readonly value: string;
-    readonly selectionStart: number;
-    readonly selectionEnd: number;
-};
-
-/**
- * Returns true when the textarea keydown event is still part of IME composition.
- */
-function isTextareaKeyboardEventComposing(event: KeyboardEvent<HTMLTextAreaElement>): boolean {
-    const nativeKeyboardEvent = event.nativeEvent as globalThis.KeyboardEvent & {
-        readonly isComposing?: boolean;
-        readonly keyCode?: number;
-    };
-
-    return nativeKeyboardEvent.isComposing === true || nativeKeyboardEvent.keyCode === 229;
-}
-
-/**
- * Resolves the effective action for one textarea Enter key press.
- */
-function resolveTextareaEnterAction(
-    enterBehavior: AgentsServerChatEnterBehavior,
-    isCtrlPressed: boolean,
-): AgentsServerChatEnterBehavior {
-    if (!isCtrlPressed) {
-        return enterBehavior;
-    }
-
-    return invertAgentsServerChatEnterBehavior(enterBehavior);
-}
-
-/**
- * Inserts plain text at the textarea's current selection.
- */
-function insertTextareaTextAtSelection(params: {
-    readonly currentValue: string;
-    readonly insertedText: string;
-    readonly selectionStart: number;
-    readonly selectionEnd: number;
-}): { nextValue: string; caret: number } {
-    const { currentValue, insertedText, selectionStart, selectionEnd } = params;
-
-    return {
-        nextValue:
-            currentValue.slice(0, selectionStart) + insertedText + currentValue.slice(selectionEnd),
-        caret: selectionStart + insertedText.length,
-    };
-}
-
-/**
  * Minimal centered textarea surface that forwards prompts to the standard chat page.
  */
 export function AgentTextareaClient({
@@ -131,163 +50,27 @@ export function AgentTextareaClient({
     agentBrandColor,
     inputPlaceholder,
 }: AgentTextareaClientProps) {
-    const router = useRouter();
     const { formatText } = useAgentNaming();
     const { t } = useServerLanguage();
     const { enterBehavior, resolveEnterBehavior } = useChatEnterBehaviorPreferences();
-    const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-    const [messageContent, setMessageContent] = useState('');
-    const messageContentRef = useRef(messageContent);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const isResolvingEnterBehaviorRef = useRef(false);
     const { backgroundImage } = useAgentBackground(agentBrandColor);
-
-    const normalizedMessage = useMemo(() => resolveMessageToSend(messageContent), [messageContent]);
+    const {
+        handleSubmit,
+        isSubmitDisabled,
+        isSubmitting,
+        messageContent,
+        messageContentRef,
+        setMessageContent,
+        submitMessage,
+    } = useAgentTextareaSubmission({ agentName });
+    const { handleTextareaKeyDown, textareaRef } = useAgentTextareaEnterHandling({
+        enterBehavior,
+        messageContentRef,
+        resolveEnterBehavior,
+        setMessageContent,
+        submitMessage,
+    });
     const keybindingHint = useMemo(() => getChatEnterBehaviorTextareaHint(t, enterBehavior), [enterBehavior, t]);
-    const isSubmitDisabled = isSubmitting || normalizedMessage === null;
-
-    useEffect(() => {
-        textareaRef.current?.focus();
-    }, []);
-
-    useEffect(() => {
-        messageContentRef.current = messageContent;
-    }, [messageContent]);
-
-    /**
-     * Submits current message and redirects to the canonical chat page.
-     */
-    const submitMessage = useCallback(() => {
-        if (isSubmitDisabled || normalizedMessage === null) {
-            return;
-        }
-
-        setIsSubmitting(true);
-        setMessageContent('');
-        router.push(buildChatMessageRoute(agentName, normalizedMessage));
-    }, [agentName, isSubmitDisabled, normalizedMessage, router]);
-
-    /**
-     * Handles native form submit action.
-     *
-     * @param event - Form submit event.
-     */
-    const handleSubmit = useCallback(
-        (event: FormEvent<HTMLFormElement>) => {
-            event.preventDefault();
-            submitMessage();
-        },
-        [submitMessage],
-    );
-
-    /**
-     * Inserts a newline without relying on the browser's default textarea behavior.
-     */
-    const handleInsertNewline = useCallback((selectionStart?: number, selectionEnd?: number) => {
-        const textareaElement = textareaRef.current;
-        if (!textareaElement) {
-            return;
-        }
-
-        const resolvedSelectionStart = selectionStart ?? textareaElement.selectionStart ?? messageContentRef.current.length;
-        const resolvedSelectionEnd = selectionEnd ?? textareaElement.selectionEnd ?? resolvedSelectionStart;
-        const insertion = insertTextareaTextAtSelection({
-            currentValue: messageContentRef.current,
-            insertedText: '\n',
-            selectionStart: resolvedSelectionStart,
-            selectionEnd: resolvedSelectionEnd,
-        });
-
-        setMessageContent(insertion.nextValue);
-
-        requestAnimationFrame(() => {
-            textareaElement.focus();
-            textareaElement.setSelectionRange(insertion.caret, insertion.caret);
-        });
-    }, []);
-
-    /**
-     * Applies the shared Enter/Ctrl+Enter keybinding behavior to the textarea launcher.
-     *
-     * @param event - Textarea keyboard event.
-     */
-    const handleTextareaKeyDown = useCallback(
-        (event: KeyboardEvent<HTMLTextAreaElement>) => {
-            if (event.key !== 'Enter') {
-                return;
-            }
-
-            if (isTextareaKeyboardEventComposing(event)) {
-                return;
-            }
-
-            if (event.shiftKey) {
-                return;
-            }
-
-            if (!enterBehavior && !event.ctrlKey) {
-                event.preventDefault();
-
-                if (isResolvingEnterBehaviorRef.current) {
-                    return;
-                }
-
-                const textareaElement = textareaRef.current;
-                if (!textareaElement) {
-                    return;
-                }
-
-                const snapshot: PendingTextareaEnterIntentSnapshot = {
-                    value: messageContentRef.current,
-                    selectionStart: textareaElement.selectionStart ?? messageContentRef.current.length,
-                    selectionEnd: textareaElement.selectionEnd ?? textareaElement.selectionStart ?? messageContentRef.current.length,
-                };
-
-                isResolvingEnterBehaviorRef.current = true;
-
-                void (async () => {
-                    try {
-                        const resolvedBehavior = await resolveEnterBehavior();
-                        if (!resolvedBehavior) {
-                            return;
-                        }
-
-                        if (messageContentRef.current !== snapshot.value) {
-                            return;
-                        }
-
-                        const resolvedAction = resolveTextareaEnterAction(resolvedBehavior, false);
-                        if (resolvedAction === 'SEND') {
-                            if (resolveMessageToSend(snapshot.value) === null) {
-                                return;
-                            }
-
-                            submitMessage();
-                            return;
-                        }
-
-                        handleInsertNewline(snapshot.selectionStart, snapshot.selectionEnd);
-                    } finally {
-                        isResolvingEnterBehaviorRef.current = false;
-                    }
-                })();
-
-                return;
-            }
-
-            const effectiveEnterBehavior = enterBehavior || 'SEND';
-            const resolvedAction = resolveTextareaEnterAction(effectiveEnterBehavior, event.ctrlKey);
-            event.preventDefault();
-
-            if (resolvedAction === 'SEND') {
-                submitMessage();
-                return;
-            }
-
-            handleInsertNewline();
-        },
-        [enterBehavior, handleInsertNewline, resolveEnterBehavior, submitMessage],
-    );
 
     return (
         <main

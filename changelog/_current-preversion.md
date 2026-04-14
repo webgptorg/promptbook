@@ -1,3 +1,8 @@
+-   Refactored Agents Server `AgentTextareaClient.tsx` into smaller focused textarea hooks without changing external behavior:
+
+    -   Moved textarea submission and chat-route navigation into the private `useAgentTextareaSubmission` hook and extracted Enter-key handling, deferred preference resolution, and newline insertion into the private `useAgentTextareaEnterHandling` hook so `AgentTextareaClient.tsx` now reads primarily as presentation.
+    -   Kept the existing autofocus behavior, Enter versus Ctrl+Enter semantics, IME and Shift+Enter handling, async first-use Enter-preference prompt, and chat handoff route generation intact while reducing branching inside the component.
+
 -   Refactored Agents Server `apps/agents-server/src/app/agents/[agentName]/page.tsx` into smaller focused profile-page helpers without changing external behavior:
 
     -   Split the branching-heavy `AgentPage` flow into focused route-resolution, redirect, data-loading, and render-model helpers so the main page now reads as a thin composition layer.
