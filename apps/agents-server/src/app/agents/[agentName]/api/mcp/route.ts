@@ -1,11 +1,12 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { $provideExecutionToolsForServer } from '@/src/tools/$provideExecutionToolsForServer';
+import { createInlineKnowledgeSourceUploader } from '@/src/utils/knowledge/createInlineKnowledgeSourceUploader';
 import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { JSONRPCMessage } from '@modelcontextprotocol/sdk/types.js';
-import { Agent } from '@promptbook-local/core';
+import { Agent, createAgentModelRequirements } from '@promptbook-local/core';
 import { ChatMessage, Prompt, TODO_any } from '@promptbook-local/types';
 import { $getCurrentDate } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
@@ -124,11 +125,22 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                             fallbackResolver: baseAgentReferenceResolver,
                         });
                         const agentSource = resolvedAgentContext.resolvedAgentSource;
+                        const modelRequirements = await createAgentModelRequirements(
+                            agentSource,
+                            undefined,
+                            undefined,
+                            undefined,
+                            {
+                                agentReferenceResolver: resolvedAgentContext.scopedAgentReferenceResolver,
+                                inlineKnowledgeSourceUploader: createInlineKnowledgeSourceUploader(),
+                            },
+                        );
 
                         const executionTools = await $provideExecutionToolsForServer();
                         const agent = new Agent({
                             agentSource,
                             executionTools,
+                            precomputedModelRequirements: modelRequirements,
                             isVerbose: true,
                             teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher
                         });

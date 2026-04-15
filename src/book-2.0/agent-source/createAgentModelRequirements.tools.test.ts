@@ -127,6 +127,38 @@ describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
         expect(requirements.systemMessage).toContain('Profile: I know DNS records of Domain ptbk.io.');
     });
 
+    it('should preserve TEAM instructions for compact teammate references resolved by the server', async () => {
+        const teammateUrl = 'https://local.example/agents/slave';
+        const agentSource = validateBook(`
+            Master
+            FROM {Void}
+            TEAM Ask for anything {slave}
+            CLOSED
+        `);
+
+        const requirements = await createAgentModelRequirements(agentSource, undefined, undefined, undefined, {
+            agentReferenceResolver: {
+                resolveCommitmentContent: async (_commitmentType, rawContent) =>
+                    rawContent.replace('{slave}', teammateUrl),
+                resolveTeammateProfile: async (url) =>
+                    url === teammateUrl
+                        ? {
+                              agentName: 'slave',
+                              personaDescription: 'I know DNS records of Domain ptbk.io.',
+                          }
+                        : null,
+            },
+        });
+        const teamTool = requirements.tools?.find((tool) => tool.name === 'team_chat_slave');
+
+        expect(teamTool).toBeDefined();
+        expect(teamTool?.description).toContain('Consult teammate slave');
+        expect(teamTool?.description).toContain('TEAM instructions: Ask for anything');
+        expect(teamTool?.description).toContain('Profile: I know DNS records of Domain ptbk.io.');
+        expect(requirements.systemMessage).toContain('## Teammates:');
+        expect(requirements.systemMessage).toContain('TEAM instructions: Ask for anything');
+    });
+
     it('should add project tools when USE PROJECT is used', async () => {
         const agentSource = validateBook(`
             Test Agent

@@ -392,12 +392,19 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
     private _cachedAgentInfo: ReturnType<typeof parseAgentSource> | null = null;
 
     /**
+     * Optional server-precomputed model requirements reused until the source changes.
+     */
+    private precomputedModelRequirements: AgentModelRequirements | null;
+
+    /**
      * Creates new AgentLlmExecutionTools
      *
      * @param llmTools The underlying LLM execution tools to wrap
      * @param agentSource The agent source string that defines the agent's behavior
      */
-    public constructor(protected readonly options: CreateAgentLlmExecutionToolsOptions) {}
+    public constructor(protected readonly options: CreateAgentLlmExecutionToolsOptions) {
+        this.precomputedModelRequirements = options.precomputedModelRequirements ?? null;
+    }
 
     /**
      * Updates the agent source and clears the cache
@@ -405,9 +412,14 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
      * @param agentSource The new agent source string
      */
     protected updateAgentSource(agentSource: string_book): void {
+        if (this.options.agentSource === agentSource) {
+            return;
+        }
+
         this.options.agentSource = agentSource;
         this._cachedAgentInfo = null;
         this._cachedModelRequirements = null;
+        this.precomputedModelRequirements = null;
     }
 
     /**
@@ -426,6 +438,17 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
      * Note: [🐤] This is names `getModelRequirements` *(not `getAgentModelRequirements`)* because in future these two will be united
      */
     public async getModelRequirements(): Promise<AgentModelRequirements> {
+        if (this.precomputedModelRequirements !== null) {
+            if (this.options.isVerbose) {
+                console.info('[🤰]', 'Using precomputed agent model requirements', {
+                    agent: this.title,
+                    toolCount: this.precomputedModelRequirements.tools?.length ?? 0,
+                });
+            }
+
+            return this.precomputedModelRequirements;
+        }
+
         if (this._cachedModelRequirements === null) {
             const preparationStartedAtMs = Date.now();
 
@@ -594,7 +617,16 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
             knowledgeSourcesForAgent,
         });
 
-        console.log('!!!! promptWithAgentModelRequirements:', forwardedPrompt);
+        if (this.options.isVerbose) {
+            console.info('[🤰]', 'Prepared agent chat prompt', {
+                agent: this.title,
+                usedPrecomputedModelRequirements: this.precomputedModelRequirements !== null,
+                toolNames: mergedTools.map((tool) => tool.name),
+                knowledgeSourcesCount: knowledgeSourcesForAgent?.length ?? 0,
+                promptSuffixLength: promptSuffix.length,
+                systemMessageLength: sanitizedRequirements.systemMessage.length,
+            });
+        }
 
         return {
             forwardedPrompt,
@@ -947,10 +979,18 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
             options.preparedChatPrompt.forwardedPrompt,
         );
 
-        console.log(
-            '!!!! promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools:',
-            promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools,
-        );
+        if (this.options.isVerbose) {
+            console.info('[🤰]', 'Prepared OpenAI Assistant prompt', {
+                agent: this.title,
+                toolNames:
+                    promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools.modelRequirements.tools?.map(
+                        (tool) => tool.name,
+                    ) ?? [],
+                knowledgeSourcesCount:
+                    promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools.modelRequirements
+                        .knowledgeSources?.length ?? 0,
+            });
+        }
 
         return assistant.callChatModelStream(
             promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools,

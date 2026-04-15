@@ -26,7 +26,8 @@ import { resolveUseCalendarGoogleToken } from '@/src/utils/resolveUseCalendarGoo
 import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithubToken';
 import { persistFrozenUserChat, USER_CHAT_SOURCES } from '@/src/utils/userChat';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
-import { Agent, computeAgentHash } from '@promptbook-local/core';
+import { createInlineKnowledgeSourceUploader } from '@/src/utils/knowledge/createInlineKnowledgeSourceUploader';
+import { Agent, computeAgentHash, createAgentModelRequirements } from '@promptbook-local/core';
 import type {
     ChatMessage,
     ChatPrompt,
@@ -1096,6 +1097,20 @@ async function createHandleChatCompletionAgent(options: {
 }): Promise<Agent> {
     const agentKitCacheManager = new AgentKitCacheManager({ isVerbose: true });
     const baseOpenAiToolsPromise = $provideOpenAiAgentKitExecutionToolsForServer();
+    const runtimeAgentReferenceResolver = options.hasDynamicContext
+        ? createBookScopedAgentReferenceResolver({
+              parentAgentSource: options.resolvedAgentContext.parentAgentSource,
+              parentAgentIdentifier: options.resolvedAgentContext.parentAgentPermanentId,
+              localServerUrl: options.localServerUrl,
+              fallbackResolver: options.baseAgentReferenceResolver,
+          })
+        : undefined;
+    const agentModelRequirements =
+        options.preparedAgentModelRequirements?.modelRequirements ||
+        (await createAgentModelRequirements(options.agentSource, undefined, undefined, undefined, {
+            agentReferenceResolver: runtimeAgentReferenceResolver,
+            inlineKnowledgeSourceUploader: createInlineKnowledgeSourceUploader(),
+        }));
 
     const agentKitResult = await agentKitCacheManager.getOrCreateAgentKitAgent(
         options.agentSource,
@@ -1104,18 +1119,7 @@ async function createHandleChatCompletionAgent(options: {
         {
             includeDynamicContext: true,
             agentId: options.agentId,
-            ...(options.hasDynamicContext
-                ? {
-                      agentReferenceResolver: createBookScopedAgentReferenceResolver({
-                          parentAgentSource: options.resolvedAgentContext.parentAgentSource,
-                          parentAgentIdentifier: options.resolvedAgentContext.parentAgentPermanentId,
-                          localServerUrl: options.localServerUrl,
-                          fallbackResolver: options.baseAgentReferenceResolver,
-                      }),
-                  }
-                : {
-                      modelRequirements: options.preparedAgentModelRequirements!.modelRequirements,
-                  }),
+            modelRequirements: agentModelRequirements,
         },
     );
 
@@ -1131,6 +1135,7 @@ async function createHandleChatCompletionAgent(options: {
         executionTools: {
             llm: agentKitResult.tools,
         },
+        precomputedModelRequirements: agentModelRequirements,
         assistantPreparationMode: 'external',
         isVerbose: true,
         teacherAgent: null,

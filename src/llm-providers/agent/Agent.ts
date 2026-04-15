@@ -166,6 +166,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
             llmTools: getSingleLlmExecutionTools(options.executionTools.llm),
             assistantPreparationMode: options.assistantPreparationMode,
             agentSource: agentSource.value, // <- TODO: [🐱‍🚀] Allow to pass BehaviorSubject<string_book> OR refresh llmExecutionTools.callChat on agentSource change
+            precomputedModelRequirements: options.precomputedModelRequirements,
         });
         // TODO: [🐱‍🚀] Add `Agent` simple "mocked" learning by appending to agent source
         // TODO: [🐱‍🚀] Add `Agent` learning by promptbookAgent

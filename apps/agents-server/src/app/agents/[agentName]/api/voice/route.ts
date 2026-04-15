@@ -16,7 +16,8 @@ import { resolveUseEmailSmtpCredential } from '@/src/utils/resolveUseEmailSmtpCr
 import { resolveUseCalendarGoogleToken } from '@/src/utils/resolveUseCalendarGoogleToken';
 import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithubToken';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
-import { Agent, computeAgentHash } from '@promptbook-local/core';
+import { createInlineKnowledgeSourceUploader } from '@/src/utils/knowledge/createInlineKnowledgeSourceUploader';
+import { Agent, computeAgentHash, createAgentModelRequirements } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
@@ -178,6 +179,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             calendarGoogleAccessToken,
             calendarConnections,
         });
+        const modelRequirements = await createAgentModelRequirements(agentSource, undefined, undefined, undefined, {
+            agentReferenceResolver: resolvedAgentContext.scopedAgentReferenceResolver,
+            inlineKnowledgeSourceUploader: createInlineKnowledgeSourceUploader(),
+        });
         const openAiAgentKitExecutionTools = await $provideOpenAiAgentKitExecutionToolsForServer();
         const agent = new Agent({
             isVerbose: true,
@@ -185,6 +190,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                 llm: openAiAgentKitExecutionTools,
             },
             agentSource,
+            precomputedModelRequirements: modelRequirements,
             teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher
         });
 

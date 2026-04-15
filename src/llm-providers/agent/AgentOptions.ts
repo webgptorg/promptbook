@@ -1,4 +1,5 @@
 import type { string_book } from '../../book-2.0/agent-source/string_book';
+import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { Updatable } from '../../types/Updatable';
@@ -30,6 +31,14 @@ export type AgentOptions = CommonToolsOptions & {
      * The source of the agent
      */
     agentSource: Updatable<string_book>;
+
+    /**
+     * Optional precomputed model requirements reused until `agentSource` changes.
+     *
+     * This keeps the actual runtime prompt aligned with server-prepared requirements
+     * such as compact-reference-resolved `TEAM` tools.
+     */
+    precomputedModelRequirements?: AgentModelRequirements;
 
     /**
      * Teacher agent for self-learning

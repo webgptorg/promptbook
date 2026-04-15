@@ -7,6 +7,8 @@
 
     -   Updated `src/commitments/TEAM/TEAM.ts` to carry parsed TEAM instruction text into teammate tool descriptions and the TEAM system-message section instead of dropping that guidance after URL resolution.
     -   Added explicit TEAM system-message guidance telling agents to consult relevant teammates before asking the user for information that a listed teammate can provide directly.
+    -   Fixed Agents Server chat runtimes to reuse already resolved model requirements during actual agent execution, so compact teammate references such as `TEAM Ask for anything {slave}` now reach the model as callable `team_chat_*` tools instead of being lost during a second unresolved compilation pass.
+    -   Replaced ad-hoc agent prompt debug dumps with structured verbose logging that shows whether precomputed model requirements, teammate tools, and prompt-level tool merges were actually forwarded to the model.
 
 -   Changed `ptbk coder run` / `scripts/run-codex-prompts` git pushing to opt-in mode, so coding-agent runs now keep commits local by default and only push when `--auto-push` is explicitly provided:
 

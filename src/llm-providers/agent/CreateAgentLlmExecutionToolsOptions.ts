@@ -1,4 +1,5 @@
 import type { string_book } from '../../book-2.0/agent-source/string_book';
+import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { OpenAiAgentKitExecutionTools } from '../openai/OpenAiAgentKitExecutionTools';
@@ -29,4 +30,13 @@ export type CreateAgentLlmExecutionToolsOptions = CommonToolsOptions & {
      * The agent source string that defines the agent's behavior
      */
     agentSource: string_book;
+
+    /**
+     * Optional precomputed model requirements reused until `agentSource` changes.
+     *
+     * This is useful for runtimes such as Agents Server that already resolved compact
+     * references (for example in `TEAM`) and need the executed prompt to stay aligned
+     * with the server-prepared tool list.
+     */
+    precomputedModelRequirements?: AgentModelRequirements;
 };

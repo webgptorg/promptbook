@@ -287,6 +287,7 @@ export async function runUserChatJob(job: UserChatJobRecord): Promise<'completed
                 llm: agentKitResult.tools,
             },
             agentSource,
+            precomputedModelRequirements: preparedAgentModelRequirements.modelRequirements,
             teacherAgent: await getTeacherRemoteAgent(),
         });
         const startedAt = Date.now();

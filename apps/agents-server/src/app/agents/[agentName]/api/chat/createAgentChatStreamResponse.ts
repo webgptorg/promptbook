@@ -264,6 +264,7 @@ function createAgentChatReadableStream(options: {
                         llm: agentKitResult.tools,
                     },
                     agentSource: context.agentSource,
+                    precomputedModelRequirements: context.modelRequirements,
                     teacherAgent: await getTeacherRemoteAgent(), // <- [🦋]
                 });
 
