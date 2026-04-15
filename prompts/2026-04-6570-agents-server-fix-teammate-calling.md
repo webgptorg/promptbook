@@ -1,9 +1,15 @@
 [x] _Commited manually_
 
+---
+
+[ ] !!!
+
 [✨🔢] Fix asking a teammate
 
 -   There is a commitment `TEAM` which can speficy a teammates to ask for help
 -   Teammate is there, tools are there, but the agent is not asking the teammate for help, even if it should according to the commitment
+-   Try to fix it or at least make logging better so we can understand why the agent is not asking the teammate
+-   Do a analysis of the current functionality, how the commitment is working, how the teammate calling is working, and why the agent is not asking the teammate for help, even if it should according to the commitment
 -   BUT currently when the agent are not asking their teammates, even if they have the commitment and there is no obvious reason why:
 
 **The agent source**
