@@ -12,6 +12,8 @@ import { after, NextResponse } from 'next/server';
 
 /**
  * Allows one worker invocation to run for the platform maximum.
+ *
+ * Next.js requires this segment config to stay a static literal instead of an imported constant.
  */
 export const maxDuration = 300;
 

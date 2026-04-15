@@ -44,20 +44,12 @@ import { finalizeUserChatJob } from './finalizeUserChatJob';
 import { getUserChat } from './getUserChat';
 import { heartbeatUserChatJob } from './heartbeatUserChatJob';
 import { persistUserChatJobTerminalState } from './persistUserChatJobTerminalState';
+import { USER_CHAT_JOB_ASSISTANT_MESSAGE_PERSIST_INTERVAL_MS } from './userChatJobRuntimeConstants';
 import { updateUserChatAssistantMessage } from './updateUserChatAssistantMessage';
 import type { UserChatJobRecord } from './UserChatJobRecord';
 import { createReplyAwareUserChatPromptContent, createReplyAwareUserChatPromptMessage } from './userChatReplies';
 import { resolvePromptThreadBeforeUserMessage } from './userChatMessageLifecycle';
 import { isUserChatNotFoundScopeError } from './UserChatScopeError';
-
-/**
- * Minimum interval between persisted assistant-message snapshots while streaming.
- *
- * Throttling this write path avoids overwhelming Supabase with token-level updates.
- *
- * @private function of `userChat`
- */
-const USER_CHAT_JOB_ASSISTANT_MESSAGE_PERSIST_INTERVAL_MS = 5_000;
 
 /**
  * Error name used when a running durable chat job is cancelled.

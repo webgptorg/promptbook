@@ -1,5 +1,11 @@
 import type { ChatMessage } from '@promptbook-local/types';
 import { createUserChatJobFailureDetails } from './createUserChatJobFailureDetails';
+import type { ExpiredRunningUserChatJobRuntimeSnapshot } from './expiredRunningUserChatJobDiagnostics';
+import {
+    createExpiredRunningUserChatJobFailureDiagnostics,
+    loadExpiredRunningUserChatJobRuntimeSnapshot,
+    logExpiredRunningUserChatJob,
+} from './expiredRunningUserChatJobDiagnostics';
 import { finalizeUserChatJob } from './finalizeUserChatJob';
 import { persistUserChatJobTerminalState } from './persistUserChatJobTerminalState';
 import type { UserChatJobRecord } from './UserChatJobRecord';
@@ -20,6 +26,7 @@ export async function reconcileUserChatActiveJobs(options: {
 }): Promise<boolean> {
     const now = new Date();
     let hasMutatedState = false;
+    let runtimeSnapshot: ExpiredRunningUserChatJobRuntimeSnapshot | null = null;
 
     for (const activeJob of options.activeJobs) {
         const assistantMessage = options.chat.messages.find((message) => message.id === activeJob.assistantMessageId);
@@ -37,7 +44,9 @@ export async function reconcileUserChatActiveJobs(options: {
             continue;
         }
 
-        const didFailExpiredJob = await failExpiredRunningUserChatJob(activeJob, assistantMessage);
+        runtimeSnapshot ||= await loadExpiredRunningUserChatJobRuntimeSnapshot();
+
+        const didFailExpiredJob = await failExpiredRunningUserChatJob(activeJob, assistantMessage, runtimeSnapshot);
         hasMutatedState = hasMutatedState || didFailExpiredJob;
     }
 
@@ -84,13 +93,25 @@ async function failExpiredRunningUserChatJob(
     assistantMessage:
         | Pick<ChatMessage, 'content' | 'toolCalls' | 'completedToolCalls' | 'ongoingToolCalls'>
         | undefined,
+    runtimeSnapshot: ExpiredRunningUserChatJobRuntimeSnapshot,
 ): Promise<boolean> {
     try {
+        const diagnostics = createExpiredRunningUserChatJobFailureDiagnostics({
+            job,
+            runtimeSnapshot,
+        });
         const failureDetails = createUserChatJobFailureDetails({
             job,
             summary: EXPIRED_RUNNING_USER_CHAT_JOB_FAILURE_REASON,
             source: 'reconcileUserChatActiveJobs',
+            recordedAt: runtimeSnapshot.recordedAt,
             provider: job.provider,
+            diagnostics,
+        });
+        logExpiredRunningUserChatJob({
+            source: 'reconcileUserChatActiveJobs',
+            job,
+            diagnostics,
         });
 
         await persistUserChatJobTerminalState({

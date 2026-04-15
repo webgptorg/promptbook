@@ -61,6 +61,15 @@ describe('createUserChatJobFailureDetails', () => {
     });
 
     it('captures expired-lease failures even when no runtime error object exists', () => {
+        const diagnostics = {
+            timings: {
+                leaseExpiredByMs: 1_234,
+            },
+            limitSignals: {
+                isLeaseExpired: true,
+                didExceedWorkerRouteMaxDurationAtRecovery: true,
+            },
+        };
         const details = JSON.parse(
             createUserChatJobFailureDetails({
                 job: {
@@ -81,14 +90,20 @@ describe('createUserChatJobFailureDetails', () => {
                 },
                 summary: 'Background worker lease expired before the chat turn finished.',
                 source: 'recoverExpiredRunningUserChatJobs',
+                recordedAt: '2026-04-07T09:05:01.234Z',
                 provider: null,
+                diagnostics,
             }),
         ) as {
+            recordedAt: string;
             error: unknown;
+            diagnostics: typeof diagnostics;
             job: { leaseExpiresAt: string | null; chatId: string };
         };
 
+        expect(details.recordedAt).toBe('2026-04-07T09:05:01.234Z');
         expect(details.error).toBeNull();
+        expect(details.diagnostics).toEqual(diagnostics);
         expect(details.job).toEqual(expect.objectContaining({
             leaseExpiresAt: '2026-04-07T09:05:00.000Z',
             chatId: 'chat-expired',

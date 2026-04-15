@@ -37,6 +37,7 @@ type UserChatJobFailureDetailsPayload = {
     provider: string | null;
     generationDurationMs: number | null;
     error: ReturnType<typeof serializeError> | UnknownUserChatJobFailureErrorDetails | null;
+    diagnostics: unknown | null;
     job: {
         id: string;
         status: UserChatJobRecord['status'];
@@ -80,17 +81,20 @@ export function createUserChatJobFailureDetails(options: {
     >;
     summary: string;
     source: string;
+    recordedAt?: string;
     provider?: string | null;
     generationDurationMs?: number;
     error?: unknown;
+    diagnostics?: unknown;
 }): string {
     const payload: UserChatJobFailureDetailsPayload = {
         summary: options.summary,
         source: options.source,
-        recordedAt: new Date().toISOString(),
+        recordedAt: options.recordedAt ?? new Date().toISOString(),
         provider: options.provider ?? null,
         generationDurationMs: options.generationDurationMs ?? null,
         error: resolveSerializableUserChatJobFailureError(options.error),
+        diagnostics: options.diagnostics ?? null,
         job: {
             id: options.job.id,
             status: options.job.status,

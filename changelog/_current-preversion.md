@@ -2714,3 +2714,7 @@
     -   Removed the separate manual "Team members" entry UI and kept only the existing-agents picker headed by "Browse existing agents" / "Vyberte existující agenty".
     -   Kept multi-selection for teammate agents across the local server and federated servers while continuing to exclude the hidden core server from federated lists.
     -   Extracted a shared homepage-like `AgentCardsSection` renderer so the wizard and federated-agent surfaces reuse the same card-grid, loading, empty, and error presentation.
+-   Improved Agents Server expired chat-worker diagnostics so the stale "Background worker lease expired before the chat turn finished." failure now leaves actionable evidence instead of a generic summary:
+
+    -   Added shared expired-lease diagnostics for durable chat jobs that record queue/run/heartbeat timing, worker runtime thresholds, configured server limits, and a snapshot of active chat jobs and timeouts at the moment recovery runs.
+    -   Started logging structured `lease_expired` recovery/reconciliation events so server logs show which background tasks were active and whether the job had already outlived the 300-second worker route limit when heartbeats stopped.
