@@ -440,7 +440,7 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.3-codex --thinking-level xhigh --context AGENTS.md --priority 1 --test npm run test"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.3-codex --thinking-level xhigh --context AGENTS.md --priority 1 --test npm run test --no-wait"
             ],
             "execute": true,
             "onlySingle": true,
@@ -451,7 +451,7 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --priority 1 --test npm run test"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --priority 1 --test npm run test --no-wait"
             ],
             "execute": true,
             "onlySingle": true,
