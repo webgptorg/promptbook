@@ -26,7 +26,7 @@ ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --c
 
 ---
 
-[ ]
+[ ] !
 
 [✨🌉] Add flag `--no-ui` to `ptbk coder run`
 
@@ -42,7 +42,7 @@ ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --c
 
 ---
 
-[ ]
+[ ] !
 
 [✨🌉] Enhance the UI of `ptbk coder run`
 
