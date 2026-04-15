@@ -1,4 +1,4 @@
-[ ]
+[ ] !
 
 [✨🔤] When creating agents through the wizard, it should be by default `CLOSED`
 

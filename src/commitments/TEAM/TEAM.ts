@@ -316,10 +316,12 @@ function buildTeamSystemMessageBody(teamEntries: ReadonlyArray<TeamToolEntry>): 
         if (!entry.description) {
             return toolLine;
         }
-        return spaceTrim(`
-            ${toolLine}
-               ${entry.description}
-        `);
+        return spaceTrim(
+            (block) => `
+                ${toolLine} with description:
+                    ${block(entry.description || 'No description available.')}
+        `,
+        );
     });
 
     return lines.join('\n');

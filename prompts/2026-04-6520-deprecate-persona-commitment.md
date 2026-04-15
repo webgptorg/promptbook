@@ -11,4 +11,5 @@
     -   Regression: inheritance resolution still works for previously supported cases.
 -   You are working with [Promptbook Engine commitment parsing and model requirements builder](src/commitments) and [book editor agent profile rendering](src/book-components)
 -   You are working with [Promptbook Engine agentSource parsing pipeline](src/book-2.0)
+-   Look at the Wizard modal to produce agnets with this change
 -   Update changelog entry in [changelog/\_current-preversion.md](changelog/_current-preversion.md)
