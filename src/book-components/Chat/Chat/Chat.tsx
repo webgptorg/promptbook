@@ -116,7 +116,7 @@ export function Chat(props: ChatProps) {
         teammates,
         teamAgentProfiles,
         visual,
-        CHAT_VISUAL_MODE = 'BUBBLE_MODE',
+        CHAT_VISUAL_MODE = 'ARTICLE_MODE',
         effectConfigs,
         soundSystem,
         speechRecognitionLanguage,

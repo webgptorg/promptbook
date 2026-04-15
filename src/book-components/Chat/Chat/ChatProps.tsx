@@ -864,7 +864,7 @@ export type ChatProps = {
      * - `BUBBLE_MODE`: keeps the default bubble appearance for all messages.
      * - `ARTICLE_MODE`: keeps user bubbles while rendering assistant replies as borderless article blocks.
      *
-     * @default 'BUBBLE_MODE'
+     * @default 'ARTICLE_MODE'
      */
     readonly CHAT_VISUAL_MODE?: ChatVisualMode;
 

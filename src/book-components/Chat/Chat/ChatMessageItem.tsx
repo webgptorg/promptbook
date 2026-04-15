@@ -254,7 +254,7 @@ export const ChatMessageItem = memo(
             onReplyToMessage,
             canReplyToMessage,
             teamAgentProfiles,
-            CHAT_VISUAL_MODE = 'BUBBLE_MODE',
+            CHAT_VISUAL_MODE = 'ARTICLE_MODE',
             onToolCallClick,
             onCitationClick,
             soundSystem,
