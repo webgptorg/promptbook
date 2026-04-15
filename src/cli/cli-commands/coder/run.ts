@@ -77,6 +77,11 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
         false,
     );
     command.option(
+        '--preserve-logs',
+        'Keep generated runner shells and runtime logs after successful prompt rounds; failures keep them automatically',
+        false,
+    );
+    command.option(
         '--no-normalize-line-endings',
         'Disable automatic LF normalization for files changed in each coding round',
     );
@@ -103,6 +108,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 wait,
                 ignoreGitChanges,
                 allowCredits,
+                preserveLogs,
                 normalizeLineEndings,
                 autoMigrate,
                 allowDestructiveAutoMigrate,
@@ -118,6 +124,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 readonly wait: boolean;
                 readonly ignoreGitChanges: boolean;
                 readonly allowCredits: boolean;
+                readonly preserveLogs: boolean;
                 readonly normalizeLineEndings: boolean;
                 readonly autoMigrate: boolean;
                 readonly allowDestructiveAutoMigrate: boolean;
@@ -178,6 +185,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 priority,
                 normalizeLineEndings,
                 allowCredits,
+                preserveLogs,
                 autoMigrate,
                 allowDestructiveAutoMigrate,
                 autoPush,

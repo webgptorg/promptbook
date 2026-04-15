@@ -3,7 +3,7 @@ import { runBashScriptWithOutput } from './runBashScriptWithOutput';
 import { withTempScript } from './withTempScript';
 
 /**
- * Creates a temporary script file, runs it, captures output, and then deletes it.
+ * Creates a temporary script file, runs it, captures output, and cleans it up immediately unless a round tracker defers that cleanup.
  */
 export async function $runGoScriptWithOutput(options: RunGoScriptOptions): Promise<string> {
     return await withTempScript(options, async (scriptPath) => {

@@ -112,6 +112,7 @@ export class OpenAiCodexRunner implements PromptRunner {
                     completionLineMatcher: CODEX_COMPLETION_LINE,
                     idleTimeoutMs: CODEX_COMPLETION_IDLE_MS,
                     logPath: options.logPath,
+                    promptRoundArtifacts: options.promptRoundArtifacts,
                 });
 
                 this.rateLimitBackoff.reset();

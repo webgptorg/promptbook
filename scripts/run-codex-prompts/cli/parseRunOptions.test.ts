@@ -33,6 +33,7 @@ describe('parseRunOptions', () => {
             autoPush: false,
             normalizeLineEndings: true,
             allowCredits: false,
+            preserveLogs: false,
             autoMigrate: false,
             allowDestructiveAutoMigrate: false,
         });
@@ -49,6 +50,7 @@ describe('parseRunOptions', () => {
             autoPush: false,
             normalizeLineEndings: true,
             allowCredits: false,
+            preserveLogs: false,
             autoMigrate: false,
             allowDestructiveAutoMigrate: false,
         });
@@ -64,6 +66,7 @@ describe('parseRunOptions', () => {
             autoPush: false,
             normalizeLineEndings: true,
             allowCredits: false,
+            preserveLogs: false,
             autoMigrate: false,
             allowDestructiveAutoMigrate: false,
         });
@@ -90,6 +93,7 @@ describe('parseRunOptions', () => {
             autoPush: false,
             normalizeLineEndings: true,
             allowCredits: false,
+            preserveLogs: false,
             autoMigrate: false,
             allowDestructiveAutoMigrate: false,
             agentName: 'openai-codex',
@@ -153,6 +157,7 @@ describe('parseRunOptions', () => {
             autoPush: false,
             normalizeLineEndings: true,
             allowCredits: false,
+            preserveLogs: false,
             autoMigrate: false,
             allowDestructiveAutoMigrate: false,
         });
@@ -177,6 +182,7 @@ describe('parseRunOptions', () => {
             autoPush: false,
             normalizeLineEndings: false,
             allowCredits: false,
+            preserveLogs: false,
             autoMigrate: false,
             allowDestructiveAutoMigrate: false,
         });
@@ -190,8 +196,20 @@ describe('parseRunOptions', () => {
             agentName: 'openai-codex',
             autoPush: false,
             allowCredits: true,
+            preserveLogs: false,
             autoMigrate: false,
             allowDestructiveAutoMigrate: false,
+        });
+    });
+
+    it('enables artifact preservation when --preserve-logs is provided', () => {
+        const options = parseRunOptions(['--agent', 'github-copilot', '--preserve-logs']);
+
+        expect(options).toMatchObject({
+            dryRun: false,
+            agentName: 'github-copilot',
+            preserveLogs: true,
+            autoPush: false,
         });
     });
 
@@ -202,6 +220,7 @@ describe('parseRunOptions', () => {
             dryRun: false,
             agentName: 'openai-codex',
             autoPush: false,
+            preserveLogs: false,
             autoMigrate: true,
             allowDestructiveAutoMigrate: false,
         });
@@ -219,6 +238,7 @@ describe('parseRunOptions', () => {
             dryRun: false,
             agentName: 'openai-codex',
             autoPush: false,
+            preserveLogs: false,
             autoMigrate: true,
             allowDestructiveAutoMigrate: true,
         });

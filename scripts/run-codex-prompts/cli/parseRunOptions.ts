@@ -7,7 +7,7 @@ import type { RunOptions } from './RunOptions';
  * CLI usage text for this script.
  */
 const USAGE =
-    'Usage: run-codex-prompts [--dry-run] [--agent <agent-name>] [--model <model>] [--context <context-or-file>] [--test <test-command...>] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--no-wait] [--ignore-git-changes] [--no-normalize-line-endings] [--auto-push]';
+    'Usage: run-codex-prompts [--dry-run] [--agent <agent-name>] [--model <model>] [--context <context-or-file>] [--test <test-command...>] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--allow-credits] [--preserve-logs] [--auto-migrate] [--allow-destructive-auto-migrate] [--no-wait] [--ignore-git-changes] [--no-normalize-line-endings] [--auto-push]';
 
 /**
  * Top-level flags supported by this command.
@@ -21,6 +21,7 @@ const KNOWN_OPTION_FLAGS = new Set([
     '--thinking-level',
     '--priority',
     '--allow-credits',
+    '--preserve-logs',
     '--auto-migrate',
     '--allow-destructive-auto-migrate',
     '--no-wait',
@@ -63,6 +64,7 @@ export function parseRunOptions(args: string[]): RunOptions {
     const ignoreGitChanges = args.includes('--ignore-git-changes');
     const normalizeLineEndings = !args.includes('--no-normalize-line-endings');
     const allowCredits = args.includes('--allow-credits');
+    const preserveLogs = args.includes('--preserve-logs');
     const autoMigrate = args.includes('--auto-migrate');
     const allowDestructiveAutoMigrate = args.includes('--allow-destructive-auto-migrate');
     const autoPush = args.includes('--auto-push');
@@ -98,6 +100,7 @@ export function parseRunOptions(args: string[]): RunOptions {
         ignoreGitChanges,
         normalizeLineEndings,
         allowCredits,
+        preserveLogs,
         autoMigrate,
         allowDestructiveAutoMigrate,
         autoPush,
