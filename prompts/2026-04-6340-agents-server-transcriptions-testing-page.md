@@ -1,8 +1,7 @@
-[ ]
+[ ] !
 
 [🛰️🎙️] Add transcriptions long-running test page (browser SpeechRecognition continuous restart)
 
--   *(@@@@ Written by agent)*
 -   Add a new testing page in the Agents Server menu named **Transcriptions**.
 -   This page is similar to the existing voice input test page, but it targets **long-running transcriptions** (e.g. up to 1 hour).
 -   The transcription should progressively output text during the run. If a provider stalls / stops (notably browser Web Speech API), the page should automatically restart it so that the overall UX is “one long transcription session”.
@@ -32,16 +31,3 @@
     -   `SpeechToTextFailoverRecognition` and telemetry/stall logic:【apps/agents-server/src/utils/speech-to-text/SpeechToTextFailoverRecognition.ts】
     -   `BrowserWebSpeechToTextProvider` partial/final event forwarding:【apps/agents-server/src/utils/speech-to-text/providers/BrowserWebSpeechToTextProvider.ts】
     -   Speech-to-text provider registry and failover creation:【apps/agents-server/src/utils/speech-to-text/createDefaultSpeechRecognition.ts】
-
-```ts
-// @@@ placeholder for any route/component names after we inspect the existing voice test page.
-```
-
-```md
-TODO(@@@):
--   Locate the existing voice input test page/menu entry so this PRD matches its routing + UI conventions.
--   Identify the exact component/classes used by the existing voice test so we can reuse them for output rendering.
--   Confirm whether the “restart repeatedly” hack should live in:
-    -   a new wrapper class for long sessions, or
-    -   an enhancement to the existing failover recognition implementation.
-```
