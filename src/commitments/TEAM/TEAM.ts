@@ -40,6 +40,16 @@ type TeamToolEntry = {
 };
 
 /**
+ * One model-facing detail carried by a teammate entry.
+ *
+ * @private
+ */
+type TeamEntryDetail = {
+    label: 'TEAM instructions' | 'Profile';
+    content: string;
+};
+
+/**
  * Serialized result returned by TEAM tool functions.
  *
  * @private
@@ -93,6 +103,15 @@ const teamToolFunctions: Record<string_javascript_name, ToolFunction> = {};
  * Map of team tool titles.
  */
 const teamToolTitles: Record<string_javascript_name, string> = {};
+/**
+ * Shared TEAM usage rules appended ahead of teammate listings.
+ *
+ * @private
+ */
+const TEAM_SYSTEM_MESSAGE_GUIDANCE_LINES = [
+    '- If a teammate is relevant to the request, consult that teammate using the matching tool.',
+    '- Do not ask the user for information that a listed teammate can provide directly.',
+] as const;
 /**
  * Constant for remote agents by Url.
  */
@@ -211,13 +230,9 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
                 continue;
             }
 
-            const toolDescription = entry.description
-                ? `Consult teammate ${entry.teammate.label}\n${entry.description}`
-                : `Consult teammate ${entry.teammate.label}`;
-
             updatedTools.push({
                 name: entry.toolName,
-                description: toolDescription,
+                description: buildTeamToolDescription(entry),
                 parameters: {
                     type: 'object',
                     properties: {
@@ -307,24 +322,79 @@ function resolveTeamTeammateLabels(teamContent: string, teammates: ReadonlyArray
 /**
  * Builds the textual TEAM section body for the final system message.
  *
- * Each teammate is listed with its tool name and, when available, a one-line description.
- * Uses `spaceTrim` to ensure consistent whitespace and indentation.
+ * Each teammate is listed with its tool name, TEAM instructions, and optional profile hints.
  */
 function buildTeamSystemMessageBody(teamEntries: ReadonlyArray<TeamToolEntry>): string {
-    const lines = teamEntries.map((entry, index) => {
-        const toolLine = `${index + 1}) ${entry.teammate.label} tool \`${entry.toolName}\``;
-        if (!entry.description) {
-            return toolLine;
-        }
-        return spaceTrim(
-            (block) => `
-                ${toolLine} with description:
-                    ${block(entry.description || 'No description available.')}
-        `,
-        );
-    });
+    const lines = [
+        ...TEAM_SYSTEM_MESSAGE_GUIDANCE_LINES,
+        '',
+        ...teamEntries.map((entry, index) => {
+            const toolLine = `${index + 1}) ${entry.teammate.label} tool \`${entry.toolName}\``;
+            const detailLines = collectTeamEntryDetails(entry).map(formatTeamEntryDetailLine);
+
+            return [toolLine, ...detailLines].join('\n');
+        }),
+    ];
 
     return lines.join('\n');
+}
+
+/**
+ * Builds the model-visible description for one teammate tool.
+ *
+ * @private
+ */
+function buildTeamToolDescription(entry: TeamToolEntry): string {
+    const detailLines = collectTeamEntryDetails(entry).map(({ label, content }) => `${label}: ${content}`);
+    return [`Consult teammate ${entry.teammate.label}`, ...detailLines].join('\n');
+}
+
+/**
+ * Collects structured teammate details that should stay visible to the model.
+ *
+ * @private
+ */
+function collectTeamEntryDetails(entry: TeamToolEntry): TeamEntryDetail[] {
+    const details: TeamEntryDetail[] = [];
+    const instructions = entry.teammate.instructions.trim();
+    const description = entry.description?.trim() || '';
+
+    if (instructions) {
+        details.push({
+            label: 'TEAM instructions',
+            content: instructions,
+        });
+    }
+
+    if (description) {
+        details.push({
+            label: 'Profile',
+            content: description,
+        });
+    }
+
+    return details;
+}
+
+/**
+ * Formats one teammate detail line for the TEAM system-message section.
+ *
+ * @private
+ */
+function formatTeamEntryDetailLine(detail: TeamEntryDetail): string {
+    return indentMultilineText(`${detail.label}: ${detail.content}`, '   ');
+}
+
+/**
+ * Indents all lines of one potentially multi-line text block.
+ *
+ * @private
+ */
+function indentMultilineText(text: string, prefix: string): string {
+    return text
+        .split('\n')
+        .map((line) => `${prefix}${line}`)
+        .join('\n');
 }
 
 /**

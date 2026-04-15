@@ -1,4 +1,4 @@
-[ ] !!!
+[x] _Commited manually_
 
 [✨🔢] Fix asking a teammate
 

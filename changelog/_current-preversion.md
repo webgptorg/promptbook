@@ -1,3 +1,8 @@
+-   Fixed TEAM teammate prompting so model-facing TEAM guidance now keeps both the original commitment instructions and resolved teammate profile hints:
+
+    -   Updated `src/commitments/TEAM/TEAM.ts` to carry parsed TEAM instruction text into teammate tool descriptions and the TEAM system-message section instead of dropping that guidance after URL resolution.
+    -   Added explicit TEAM system-message guidance telling agents to consult relevant teammates before asking the user for information that a listed teammate can provide directly.
+
 -   Changed `ptbk coder run` / `scripts/run-codex-prompts` git pushing to opt-in mode, so coding-agent runs now keep commits local by default and only push when `--auto-push` is explicitly provided:
 
     -   Replaced the old disable-style `--no-push` flag with the clearer `--auto-push` opt-in flag across the CLI wrapper, legacy option parser, and shared runner options.

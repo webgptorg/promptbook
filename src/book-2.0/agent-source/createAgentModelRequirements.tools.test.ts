@@ -72,19 +72,59 @@ describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
         const requirements = await createAgentModelRequirements(agentSource, undefined, undefined, undefined, {
             agentReferenceResolver: pseudoUserResolver,
         });
+        const pseudoUserTool = requirements.tools?.find((tool) => tool.name === expectedToolName);
 
         expect(requirements.tools).toEqual(
             expect.arrayContaining([
                 expect.objectContaining({
                     name: expectedToolName,
-                    description: `Consult teammate ${pseudoUserLabel}`,
                 }),
             ]),
         );
+        expect(pseudoUserTool?.description).toContain(`Consult teammate ${pseudoUserLabel}`);
+        expect(pseudoUserTool?.description).toContain('TEAM instructions:');
+        expect(pseudoUserTool?.description).toContain('for everything');
         expect(requirements.systemMessage).toContain('## Language:');
         expect(requirements.systemMessage).toContain('## Teammates:');
+        expect(requirements.systemMessage).toContain(
+            'If a teammate is relevant to the request, consult that teammate using the matching tool.',
+        );
         expect(requirements.systemMessage).toContain(`1) ${pseudoUserLabel} tool \`${expectedToolName}\``);
+        expect(requirements.systemMessage).toContain('TEAM instructions: for everything');
         expect(requirements.systemMessage).not.toContain('pseudo-agent.promptbook');
+    });
+
+    it('should keep TEAM instructions in the model-facing tool description and system message', async () => {
+        const teammateUrl = 'https://agents.ptbk.ik/agents/dns-expert';
+        const agentSource = validateBook(`
+            Test Agent
+            TEAM Ask for DNS records ${teammateUrl}
+        `);
+        const requirements = await createAgentModelRequirements(agentSource, undefined, undefined, undefined, {
+            agentReferenceResolver: {
+                resolveCommitmentContent: async (_commitmentType, rawContent) => rawContent,
+                resolveTeammateProfile: async (url) =>
+                    url === teammateUrl
+                        ? {
+                              agentName: 'DNS Expert',
+                              personaDescription: 'I know DNS records of Domain ptbk.io.',
+                          }
+                        : null,
+            },
+        });
+        const expectedToolName = createTeamToolName(teammateUrl, 'DNS Expert');
+        const teamTool = requirements.tools?.find((tool) => tool.name === expectedToolName);
+
+        expect(teamTool).toBeDefined();
+        expect(teamTool?.description).toContain('Consult teammate DNS Expert');
+        expect(teamTool?.description).toContain('TEAM instructions: Ask for DNS records');
+        expect(teamTool?.description).toContain('Profile: I know DNS records of Domain ptbk.io.');
+        expect(requirements.systemMessage).toContain(
+            'Do not ask the user for information that a listed teammate can provide directly.',
+        );
+        expect(requirements.systemMessage).toContain(`1) DNS Expert tool \`${expectedToolName}\``);
+        expect(requirements.systemMessage).toContain('TEAM instructions: Ask for DNS records');
+        expect(requirements.systemMessage).toContain('Profile: I know DNS records of Domain ptbk.io.');
     });
 
     it('should add project tools when USE PROJECT is used', async () => {
