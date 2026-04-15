@@ -50,7 +50,7 @@ import { buildToolInvocationScript } from './utils/buildToolInvocationScript';
 /**
  * Constant for default agent kit model name.
  */
-const DEFAULT_AGENT_KIT_MODEL_NAME = 'gpt-5.4-nano' as string_model_name;
+const DEFAULT_AGENT_KIT_MODEL_NAME = 'gpt-5.4-mini' as string_model_name;
 
 /**
  * Creates one structured log entry for streamed tool-call updates.
