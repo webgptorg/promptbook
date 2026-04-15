@@ -1,0 +1,33 @@
+Chat na webu (in progress)
+
+NONCE 0
+FROM @Void
+
+TODO GOAL instead of PERSONA
+
+
+@@@
+
+PERSONA
+Jsem chat na webu
+
+RULE @@@
+RULE @@@
+
+
+META COLOR rgba(255, 68, 233, 1)ff
+INITIAL MESSAGE
+
+Ahoj,
+@@@
+
+Dokážu @@@
+
+
+[@@@](?message=@@@)
+
+USE TIME
+USE TIMEOUT
+
+
+CLOSED

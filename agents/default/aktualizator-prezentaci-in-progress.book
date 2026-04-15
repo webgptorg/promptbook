@@ -1,0 +1,30 @@
+Aktualizátor prezentací (in progress)
+
+NONCE 0
+FROM @Void
+
+TODO GOAL instead of PERSONA
+
+PERSONA
+Aktualuzuju a udržuju prezentace a čísla v nich
+
+RULE @@@
+RULE @@@
+
+
+META COLOR #858585ff
+INITIAL MESSAGE
+
+Ahoj,
+@@@
+
+Dokážu @@@
+
+
+[@@@](?message=@@@)
+[@@@](?message=@@@)
+
+USE TIME
+USE TIMEOUT
+
+CLOSED
