@@ -44,3 +44,65 @@ export const DEFAULT_TIMEOUT_TOOL_USAGE_LIMITS: TimeoutToolUsageLimits = {
 export const DEFAULT_TOOL_USAGE_LIMITS: ToolUsageLimits = {
     timeout: DEFAULT_TIMEOUT_TOOL_USAGE_LIMITS,
 };
+
+/**
+ * Normalizes the complete tool-limits payload while preserving unknown future keys.
+ *
+ * @param rawValue - Unknown persisted payload.
+ * @returns Normalized tool-usage limits.
+ *
+ * @private shared Agents Server helper
+ */
+export function normalizeToolUsageLimits(rawValue: unknown): ToolUsageLimits {
+    const rawLimits =
+        rawValue && typeof rawValue === 'object' && !Array.isArray(rawValue)
+            ? (rawValue as Record<string, unknown>)
+            : {};
+
+    return {
+        ...rawLimits,
+        timeout: normalizeTimeoutToolUsageLimits(rawLimits.timeout),
+    };
+}
+
+/**
+ * Normalizes timeout-specific limits with defaults and integer guards.
+ *
+ * @param rawValue - Unknown timeout payload.
+ * @returns Normalized timeout tool limits.
+ *
+ * @private shared Agents Server helper
+ */
+export function normalizeTimeoutToolUsageLimits(rawValue: unknown): TimeoutToolUsageLimits {
+    const rawLimits =
+        rawValue && typeof rawValue === 'object' && !Array.isArray(rawValue)
+            ? (rawValue as Record<string, unknown>)
+            : {};
+
+    return {
+        maxActivePerChat: normalizePositiveInteger(rawLimits.maxActivePerChat, DEFAULT_TIMEOUT_TOOL_USAGE_LIMITS.maxActivePerChat),
+        maxFiredPerDayPerChat: normalizePositiveInteger(
+            rawLimits.maxFiredPerDayPerChat,
+            DEFAULT_TIMEOUT_TOOL_USAGE_LIMITS.maxFiredPerDayPerChat,
+        ),
+    };
+}
+
+/**
+ * Normalizes one positive integer with fallback.
+ *
+ * @param rawValue - Unknown raw value.
+ * @param fallbackValue - Default value used when parsing fails.
+ * @returns Safe positive integer.
+ *
+ * @private shared Agents Server helper
+ */
+function normalizePositiveInteger(rawValue: unknown, fallbackValue: number): number {
+    const parsedValue = Number(rawValue);
+
+    if (!Number.isFinite(parsedValue) || parsedValue <= 0) {
+        return fallbackValue;
+    }
+
+    return Math.floor(parsedValue);
+}

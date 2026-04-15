@@ -1,6 +1,5 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
-import { getMetadata } from '@/src/database/getMetadata';
 import type { Json } from '@/src/database/schema';
 import { FILE_SECURITY_CHECKERS } from '@/src/file-security-checkers';
 import { $provideServer } from '@/src/tools/$provideServer';
@@ -16,6 +15,7 @@ import { LimitReachedError } from '../../../../src/errors/LimitReachedError';
 import { NotAllowed } from '../../../../src/errors/NotAllowed';
 import type { ChatAttachment } from '../../../../src/utils/chat/chatAttachments';
 import { $randomBase58 } from '../../../../src/utils/random/$randomBase58';
+import { getMaxFileUploadSizeBytes } from './serverLimits';
 import { isSupportedShareTargetFile } from './shareTarget';
 
 /**
@@ -27,11 +27,6 @@ const SHARE_TARGET_PAYLOAD_ID_LENGTH = 18;
  * Default MIME type used when shared files do not provide one.
  */
 const DEFAULT_SHARE_TARGET_FILE_MIME_TYPE = 'application/octet-stream';
-
-/**
- * Default max upload size used when metadata is missing or malformed.
- */
-const DEFAULT_MAX_FILE_UPLOAD_SIZE_MB = 50;
 
 /**
  * Upload purpose stored for files arriving via the Android share target.
@@ -372,11 +367,7 @@ async function getShareTargetPayloadTableName(): Promise<string> {
  * Resolves the current max upload size from metadata with a stable fallback.
  */
 async function resolveMaxFileUploadBytes(): Promise<number> {
-    const configuredSizeMb = Number((await getMetadata('MAX_FILE_UPLOAD_SIZE_MB')) || DEFAULT_MAX_FILE_UPLOAD_SIZE_MB);
-    const normalizedSizeMb =
-        Number.isFinite(configuredSizeMb) && configuredSizeMb > 0 ? configuredSizeMb : DEFAULT_MAX_FILE_UPLOAD_SIZE_MB;
-
-    return normalizedSizeMb * 1024 * 1024;
+    return getMaxFileUploadSizeBytes();
 }
 
 /**

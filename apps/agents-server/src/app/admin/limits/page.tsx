@@ -1,12 +1,12 @@
 import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
 import { AdminConfigurationShell } from '../_components/AdminConfigurationShell';
-import { MetadataClient } from './MetadataClient';
+import { LimitsClient } from './LimitsClient';
 
 /**
- * Handles metadata page.
+ * Dedicated admin page for configuring operational server limits.
  */
-export default async function MetadataPage() {
+export default async function LimitsPage() {
     const isAdmin = await isUserAdmin();
 
     if (!isAdmin) {
@@ -14,8 +14,8 @@ export default async function MetadataPage() {
     }
 
     return (
-        <AdminConfigurationShell activePage="metadata">
-            <MetadataClient />
+        <AdminConfigurationShell activePage="limits">
+            <LimitsClient />
         </AdminConfigurationShell>
     );
 }

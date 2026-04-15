@@ -1,3 +1,10 @@
+-   Added a dedicated Agents Server limits configuration surface so operational quotas no longer live only in metadata blobs and hardcoded constants:
+
+    -   Added the new `ServerLimit` database table plus shared `constants/serverLimits.ts` and `utils/serverLimits.ts` helpers so defaults, validation, deprecated metadata mapping, and runtime reads stay DRY.
+    -   Added the new admin page `/admin/limits`, kept `/admin/tool-limits` as a backward-compatible redirect, and linked Metadata/Limits together through a shared configuration sub-navigation.
+    -   Moved timeout caps, file upload size, federated import retry delay, and `spawn_agent` depth/rate-window limits onto the dedicated limits service while keeping legacy metadata rows like `TOOL_USAGE_LIMITS`, `MAX_FILE_UPLOAD_SIZE_MB`, and `FEDERATED_AGENT_IMPORT_RETRY_DELAY_MS` mirrored for backward compatibility.
+    -   Updated `/admin/metadata` to clearly mark limit-backed metadata rows as deprecated, make them read-only in that screen, and send admins to the dedicated Limits page instead.
+
 -   Refactored Agents Server `useBrowserPushNotificationsState.ts` into smaller focused private browser-push hooks without changing external behavior:
 
     -   Split persisted settings bootstrap, permission synchronization, subscription/service-worker mutations, user-facing enable-disable actions, and consistency effects into dedicated private hooks so `useBrowserPushNotificationsState` now reads as a thin composition layer.

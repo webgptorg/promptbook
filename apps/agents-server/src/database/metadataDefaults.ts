@@ -8,6 +8,11 @@ import {
 } from '../constants/federatedAgentImport';
 import { MetadataType } from '../constants/metadataTypes';
 import { NEW_AGENT_WIZZARD_METADATA_KEY } from '../constants/newAgentWizard';
+import {
+    DEFAULT_SERVER_LIMIT_VALUES,
+    MAX_FILE_UPLOAD_SIZE_MB_METADATA_KEY,
+    SERVER_LIMIT_KEYS,
+} from '../constants/serverLimits';
 import { DEFAULT_TOOL_USAGE_LIMITS, TOOL_USAGE_LIMITS_METADATA_KEY } from '../constants/toolUsageLimits';
 import {
     CHAT_VISUAL_MODE_METADATA_KEY,
@@ -83,7 +88,7 @@ export const metadataDefaults = [
     {
         key: TOOL_USAGE_LIMITS_METADATA_KEY,
         value: JSON.stringify(DEFAULT_TOOL_USAGE_LIMITS),
-        note: 'JSON configuration for tool-specific usage limits. Currently supports thread-scoped `timeout` timers.',
+        note: 'Deprecated. Manage timeout tool limits in `/admin/limits`; this metadata row is mirrored for backward compatibility.',
         type: 'TEXT',
     },
     {
@@ -152,7 +157,7 @@ export const metadataDefaults = [
     {
         key: FEDERATED_AGENT_IMPORT_RETRY_DELAY_MS_METADATA_KEY,
         value: String(DEFAULT_FEDERATED_AGENT_IMPORT_RETRY_DELAY_MS),
-        note: 'Delay in milliseconds between the 3 retry attempts when importing agent books from federated servers.',
+        note: 'Deprecated. Manage federated import retry delay in `/admin/limits`; this metadata row is mirrored for backward compatibility.',
         type: 'NUMBER',
     },
     {
@@ -282,9 +287,9 @@ export const metadataDefaults = [
         type: 'TEXT',
     },
     {
-        key: 'MAX_FILE_UPLOAD_SIZE_MB',
-        value: '50', // <- TODO: [🌲] To /config.ts
-        note: 'Maximum size of file that can be uploaded in MB.',
+        key: MAX_FILE_UPLOAD_SIZE_MB_METADATA_KEY,
+        value: String(DEFAULT_SERVER_LIMIT_VALUES[SERVER_LIMIT_KEYS.MAX_FILE_UPLOAD_SIZE_MB]),
+        note: 'Deprecated. Manage file upload size in `/admin/limits`; this metadata row is mirrored for backward compatibility.',
         type: 'NUMBER',
     },
     {

@@ -40,6 +40,7 @@ const tables = new Map([
         ],
     ],
     ['Metadata', []],
+    ['ServerLimit', []],
     ['Agent', []],
     ['AgentFolder', []],
     ['User', []],

@@ -15,21 +15,7 @@ import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
 import { $provideAgentCollectionForServer } from './$provideAgentCollectionForServer';
 import { createAgentWithDefaultVisibility } from '../utils/createAgentWithDefaultVisibility';
 import { isUserAdmin } from '../utils/isUserAdmin';
-
-/**
- * Maximum accepted spawn depth in one tool-runtime context.
- */
-const SPAWN_AGENT_MAX_DEPTH = 2;
-
-/**
- * Maximum number of spawned agents per actor in one time window.
- */
-const SPAWN_AGENT_RATE_LIMIT_MAX = 5;
-
-/**
- * Spawn rate-limit window size in milliseconds.
- */
-const SPAWN_AGENT_RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
+import { getSpawnAgentLimits, type SpawnAgentLimits } from '../utils/serverLimits';
 
 /**
  * In-memory rate-limit buckets indexed by runtime actor key.
@@ -100,8 +86,9 @@ export async function spawn_agent(args: SpawnAgentToolArgs): Promise<string> {
         }
 
         const runtimeContext = readToolRuntimeContextFromToolArgs(args);
-        ensureSpawnDepthWithinLimit(runtimeContext);
-        registerSpawnAttempt(resolveSpawnRateLimitActorKey(runtimeContext), Date.now());
+        const spawnAgentLimits = await getSpawnAgentLimits();
+        ensureSpawnDepthWithinLimit(runtimeContext, spawnAgentLimits);
+        registerSpawnAttempt(resolveSpawnRateLimitActorKey(runtimeContext), Date.now(), spawnAgentLimits);
 
         const createAgentInput = parseCreateAgentInput(stripHiddenRuntimeContext(args));
         const collection = await $provideAgentCollectionForServer();
@@ -175,19 +162,19 @@ function resolveSpawnRateLimitActorKey(runtimeContext: ToolRuntimeContext | null
 /**
  * Registers a spawn attempt and throws when actor exceeds rate limit.
  */
-function registerSpawnAttempt(actorKey: string, nowMs: number): void {
+function registerSpawnAttempt(actorKey: string, nowMs: number, limits: SpawnAgentLimits): void {
     const previousAttempts = spawnRateLimitBuckets.get(actorKey) || [];
-    const attemptThreshold = nowMs - SPAWN_AGENT_RATE_LIMIT_WINDOW_MS;
+    const attemptThreshold = nowMs - limits.rateLimitWindowMs;
     const recentAttempts = previousAttempts.filter((attemptTimeMs) => attemptTimeMs >= attemptThreshold);
 
-    if (recentAttempts.length >= SPAWN_AGENT_RATE_LIMIT_MAX) {
+    if (recentAttempts.length >= limits.maxCreatedPerWindow) {
         throw new LimitReachedError(
             spaceTrim(`
                 Spawn rate limit exceeded.
 
-                You can create at most ${SPAWN_AGENT_RATE_LIMIT_MAX} agents per ${Math.floor(
-                    SPAWN_AGENT_RATE_LIMIT_WINDOW_MS / 60000,
-                )} minutes.
+                You can create at most ${limits.maxCreatedPerWindow} agents per ${formatSpawnRateLimitWindow(
+                    limits.rateLimitWindowMs,
+                )}.
             `),
         );
     }
@@ -199,19 +186,36 @@ function registerSpawnAttempt(actorKey: string, nowMs: number): void {
 /**
  * Ensures requested spawn depth stays within allowed limits.
  */
-function ensureSpawnDepthWithinLimit(runtimeContext: ToolRuntimeContext | null): void {
+function ensureSpawnDepthWithinLimit(runtimeContext: ToolRuntimeContext | null, limits: SpawnAgentLimits): void {
     const rawDepth = (runtimeContext as ToolRuntimeContext & { spawn?: { depth?: unknown } })?.spawn?.depth;
     const depth = typeof rawDepth === 'number' && Number.isFinite(rawDepth) ? Math.max(0, Math.floor(rawDepth)) : 0;
 
-    if (depth >= SPAWN_AGENT_MAX_DEPTH) {
+    if (depth >= limits.maxDepth) {
         throw new LimitReachedError(
             spaceTrim(`
                 Spawn depth limit exceeded.
 
-                Maximum supported spawn depth is ${SPAWN_AGENT_MAX_DEPTH}.
+                Maximum supported spawn depth is ${limits.maxDepth}.
             `),
         );
     }
+}
+
+/**
+ * Formats one spawn rate-limit window for human-readable error messages.
+ */
+function formatSpawnRateLimitWindow(windowMs: number): string {
+    if (windowMs % 60_000 === 0) {
+        const minutes = windowMs / 60_000;
+        return `${minutes} minute${minutes === 1 ? '' : 's'}`;
+    }
+
+    if (windowMs % 1_000 === 0) {
+        const seconds = windowMs / 1_000;
+        return `${seconds} second${seconds === 1 ? '' : 's'}`;
+    }
+
+    return `${windowMs} ms`;
 }
 
 /**

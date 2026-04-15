@@ -2,11 +2,13 @@
 
 import { upload } from '@vercel/blob/client';
 import { FileTextIcon, HashIcon, ImageIcon, ShieldIcon, ToggleLeftIcon, TypeIcon, Upload } from 'lucide-react';
+import Link from 'next/link';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
 import { metadataDefaults } from '../../../database/metadataDefaults';
 import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
 import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
+import { getDeprecatedLimitMetadataDefinition, type DeprecatedLimitMetadataDefinition } from '../../../constants/serverLimits';
 import { MetadataType } from '../../../constants/metadataTypes';
 import { SERVER_VISIBILITY_METADATA_KEY } from '../../../utils/serverVisibility';
 
@@ -22,6 +24,7 @@ type MetadataEntry = {
     updatedAt: string;
     isDefault?: boolean;
     type?: MetadataType;
+    deprecatedLimitMetadata?: DeprecatedLimitMetadataDefinition | null;
 };
 
 /**
@@ -290,7 +293,11 @@ function mergeMetadataWithDefaults(data: MetadataEntry[]): MetadataEntry[] {
         if (!existing || existing.isDefault) {
             // Find type from defaults
             const def = metadataDefaults.find((d) => d.key === entry.key);
-            byKey.set(entry.key, { ...entry, type: def?.type });
+            byKey.set(entry.key, {
+                ...entry,
+                type: def?.type,
+                deprecatedLimitMetadata: getDeprecatedLimitMetadataDefinition(entry.key),
+            });
         }
     }
 
@@ -306,6 +313,7 @@ function mergeMetadataWithDefaults(data: MetadataEntry[]): MetadataEntry[] {
                 updatedAt: new Date().toISOString(),
                 isDefault: true,
                 type: def.type,
+                deprecatedLimitMetadata: getDeprecatedLimitMetadataDefinition(def.key),
             });
         }
     }
@@ -549,12 +557,19 @@ export function MetadataClient() {
     }
 
     return (
-        <div className="w-full px-2 sm:px-4 md:px-8 py-8 max-w-screen-lg mx-auto">
-            <h1 className="text-3xl font-bold mb-8">Metadata Management</h1>
-
+        <div className="space-y-8">
             {error && (
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">{error}</div>
             )}
+
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-800">
+                Deprecated limit-backed metadata stays visible here for backward compatibility. Update operational
+                quotas, upload caps, and rate limits on{' '}
+                <Link href="/admin/limits" className="font-semibold underline underline-offset-2">
+                    the Limits page
+                </Link>{' '}
+                instead.
+            </div>
 
             <div className="bg-white shadow rounded-lg p-6 mb-8">
                 <h2 className="text-xl font-semibold mb-4">Add New Metadata</h2>
@@ -643,6 +658,7 @@ export function MetadataClient() {
                         ) : (
                             metadata.map((entry) => {
                                 const htmlIdSuffix = toHtmlIdSuffix(entry.key);
+                                const isDeprecatedLimitMetadata = Boolean(entry.deprecatedLimitMetadata);
                                 const editValueFieldId = `edit-metadata-value-${htmlIdSuffix}`;
                                 const editNoteFieldId = `edit-metadata-note-${htmlIdSuffix}`;
 
@@ -655,35 +671,68 @@ export function MetadataClient() {
                                                 </div>
                                             </td>
                                             <td className="px-4 py-2 whitespace-normal break-all text-sm font-medium text-gray-900 sm:px-6 sm:py-4">
-                                                {entry.key}
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <span>{entry.key}</span>
+                                                    {isDeprecatedLimitMetadata && (
+                                                        <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700">
+                                                            Deprecated
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="px-4 py-2 text-sm text-gray-500 max-w-xs break-all whitespace-normal sm:px-6 sm:py-4">
                                                 {entry.value}
                                             </td>
                                             <td className="px-4 py-2 text-sm text-gray-500 break-all whitespace-normal sm:px-6 sm:py-4">
-                                                {entry.note || '-'}
+                                                <div className="space-y-2">
+                                                    <div>{entry.note || '-'}</div>
+                                                    {entry.deprecatedLimitMetadata && (
+                                                        <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                                                            {entry.deprecatedLimitMetadata.message}{' '}
+                                                            <Link
+                                                                href={entry.deprecatedLimitMetadata.href}
+                                                                className="font-semibold underline underline-offset-2"
+                                                            >
+                                                                Open Limits
+                                                            </Link>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="px-4 py-2 whitespace-nowrap text-right text-sm font-medium sm:px-6 sm:py-4">
-                                                <button
-                                                    onClick={() => handleEdit(entry)}
-                                                    className="text-blue-600 hover:text-blue-900 mr-4"
-                                                >
-                                                    Edit
-                                                </button>
-                                                {!entry.isDefault && (
-                                                    <button
-                                                        onClick={() => handleDelete(entry.key)}
-                                                        className="text-red-600 hover:text-red-900"
+                                                {isDeprecatedLimitMetadata ? (
+                                                    <Link
+                                                        href={entry.deprecatedLimitMetadata!.href}
+                                                        className="text-amber-700 hover:text-amber-900"
                                                     >
-                                                        Delete
-                                                    </button>
-                                                )}
-                                                {entry.isDefault && (
-                                                    <span className="text-gray-400 text-xs italic ml-2">Default</span>
+                                                        Manage in Limits
+                                                    </Link>
+                                                ) : (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleEdit(entry)}
+                                                            className="text-blue-600 hover:text-blue-900 mr-4"
+                                                        >
+                                                            Edit
+                                                        </button>
+                                                        {!entry.isDefault && (
+                                                            <button
+                                                                onClick={() => handleDelete(entry.key)}
+                                                                className="text-red-600 hover:text-red-900"
+                                                            >
+                                                                Delete
+                                                            </button>
+                                                        )}
+                                                        {entry.isDefault && (
+                                                            <span className="text-gray-400 text-xs italic ml-2">
+                                                                Default
+                                                            </span>
+                                                        )}
+                                                    </>
                                                 )}
                                             </td>
                                         </tr>
-                                        {editingKey === entry.key && (
+                                        {editingKey === entry.key && !isDeprecatedLimitMetadata && (
                                             <tr>
                                                 <td colSpan={5} className="bg-gray-50 px-6 py-4">
                                                     <form onSubmit={handleEditSubmit} className="space-y-4">

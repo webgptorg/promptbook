@@ -207,7 +207,7 @@ export function buildHeaderSystemMenuItems({
         },
         {
             label: translate('header.toolLimits'),
-            href: '/admin/tool-limits',
+            href: '/admin/limits',
         },
         {
             label: translate('header.messagesEmails'),

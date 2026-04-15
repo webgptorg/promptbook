@@ -45,6 +45,30 @@ export type AgentsServerDatabase = {
                 };
                 Relationships: [];
             };
+            ServerLimit: {
+                Row: {
+                    id: number;
+                    createdAt: string;
+                    updatedAt: string;
+                    key: string;
+                    value: number;
+                };
+                Insert: {
+                    id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    key: string;
+                    value: number;
+                };
+                Update: {
+                    id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    key?: string;
+                    value?: number;
+                };
+                Relationships: [];
+            };
             Agent: {
                 Row: {
                     id: number;

@@ -130,7 +130,7 @@ header.models: Modely
 header.openApiDocumentation: Dokumentace OpenAPI
 header.apiTokens: API tokeny
 header.metadata: Metadata
-header.toolLimits: Limity nástrojů
+header.toolLimits: Limity
 header.customCss: Vlastní CSS
 header.customJs: Vlastní JS
 header.chatHistory: Historie chatů

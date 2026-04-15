@@ -6,9 +6,9 @@ import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { assertsError } from '../../../../../../src/errors/assertsError';
 import { getUserIdFromRequest } from '../../../../src/utils/getUserIdFromRequest';
-import { getMetadata } from '../../../database/getMetadata';
 import type { AgentsServerDatabase } from '../../../database/schema';
 import { FILE_SECURITY_CHECKERS } from '../../../file-security-checkers';
+import { getMaxFileUploadSizeBytes } from '../../../utils/serverLimits';
 
 /**
  * Additional metadata accepted from the client-side upload helper.
@@ -139,11 +139,7 @@ export async function POST(request: NextRequest) {
                 // Parse client payload for additional metadata
                 const { purpose, contentType } = resolveUploadClientPayload(clientPayload);
 
-                let maxFileSizeMb = Number((await getMetadata('MAX_FILE_UPLOAD_SIZE_MB')) || '50'); // <- TODO: [🌲] To /config.ts
-                if (Number.isNaN(maxFileSizeMb)) {
-                    maxFileSizeMb = 50; // <- TODO: [🌲] To /config.ts
-                }
-                const maxFileSize = maxFileSizeMb * 1024 * 1024;
+                const maxFileSize = await getMaxFileUploadSizeBytes();
 
                 // Generate the proper path with prefix
                 // Note: With client uploads, we use the original filename provided by the client

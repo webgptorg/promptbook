@@ -6,6 +6,7 @@ import {
 import { $provideAgentCollectionForServer } from './$provideAgentCollectionForServer';
 import { createAgentWithDefaultVisibility } from '../utils/createAgentWithDefaultVisibility';
 import { isUserAdmin } from '../utils/isUserAdmin';
+import { getSpawnAgentLimits } from '../utils/serverLimits';
 import { $clearSpawnAgentRateLimitBucketsForTests, spawn_agent } from './spawn_agent';
 
 jest.mock('./$provideAgentCollectionForServer', () => ({
@@ -18,6 +19,10 @@ jest.mock('../utils/createAgentWithDefaultVisibility', () => ({
 
 jest.mock('../utils/isUserAdmin', () => ({
     isUserAdmin: jest.fn(),
+}));
+
+jest.mock('../utils/serverLimits', () => ({
+    getSpawnAgentLimits: jest.fn(),
 }));
 
 /**
@@ -36,15 +41,25 @@ const createAgentWithDefaultVisibilityMock = createAgentWithDefaultVisibility as
  * Constant for is user admin mock.
  */
 const isUserAdminMock = isUserAdmin as jest.MockedFunction<typeof isUserAdmin>;
+/**
+ * Constant for spawn-agent limits mock.
+ */
+const getSpawnAgentLimitsMock = getSpawnAgentLimits as jest.MockedFunction<typeof getSpawnAgentLimits>;
 
 describe('spawn_agent tool', () => {
     beforeEach(() => {
         provideAgentCollectionForServerMock.mockReset();
         createAgentWithDefaultVisibilityMock.mockReset();
         isUserAdminMock.mockReset();
+        getSpawnAgentLimitsMock.mockReset();
         $clearSpawnAgentRateLimitBucketsForTests();
 
         isUserAdminMock.mockResolvedValue(true);
+        getSpawnAgentLimitsMock.mockResolvedValue({
+            maxDepth: 2,
+            maxCreatedPerWindow: 5,
+            rateLimitWindowMs: 10 * 60 * 1000,
+        });
         provideAgentCollectionForServerMock.mockResolvedValue({} as Awaited<
             ReturnType<typeof $provideAgentCollectionForServer>
         >);

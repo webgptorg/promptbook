@@ -141,6 +141,14 @@ function createNavigationItems(): ReadonlyArray<NavigationSearchItem> {
             adminOnly: true,
         },
         {
+            id: 'nav-admin-limits',
+            title: 'Limits',
+            href: '/admin/limits',
+            description: 'Configure operational quotas, upload caps, and rate limits.',
+            icon: 'system',
+            adminOnly: true,
+        },
+        {
             id: 'nav-admin-users',
             title: 'Users',
             href: '/admin/users',

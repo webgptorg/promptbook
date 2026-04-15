@@ -132,7 +132,7 @@ header.models: Models
 header.openApiDocumentation: OpenAPI Documentation
 header.apiTokens: API Tokens
 header.metadata: Metadata
-header.toolLimits: Tool limits
+header.toolLimits: Limits
 header.customCss: Custom CSS
 header.customJs: Custom JS
 header.chatHistory: Chat history
