@@ -27,7 +27,7 @@ export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL' | 
      * Short one-line description of GOAL.
      */
     get description(): string {
-        return 'Define main **goals** the AI assistant should achieve, with later goals having higher priority.';
+        return 'Define the effective agent **goal**; when multiple goals exist, only the last one stays effective.';
     }
 
     /**
@@ -44,12 +44,14 @@ export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL' | 
         return spaceTrim(`
             # ${this.type}
 
-            Defines the main goal which should be achieved by the AI assistant. There can be multiple goals, and later goals are more important than earlier goals.
+            Defines the main goal which should be achieved by the AI assistant.
+            There can be multiple goals in source, but after inheritance/source rewriting only the last \`GOAL\` /\`GOALS\` remains effective.
 
             ## Key aspects
 
             - Both terms work identically and can be used interchangeably.
-            - Later goals have higher priority and can override earlier goals.
+            - Later goals overwrite earlier goals.
+            - The public agent profile text is derived from the last goal.
             - Goals provide clear direction and purpose for the agent's responses.
             - Goals influence decision-making and response prioritization.
 
@@ -62,9 +64,7 @@ export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL' | 
             \`\`\`book
             Customer Support Agent
 
-            PERSONA You are a helpful customer support representative
             GOAL Resolve customer issues quickly and efficiently
-            GOAL Maintain high customer satisfaction scores
             GOAL Always follow company policies and procedures
             RULE Be polite and professional at all times
             \`\`\`
@@ -72,9 +72,7 @@ export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL' | 
             \`\`\`book
             Educational Assistant
 
-            PERSONA You are an educational assistant specializing in mathematics
             GOAL Help students understand mathematical concepts clearly
-            GOAL Encourage critical thinking and problem-solving skills
             GOAL Ensure all explanations are age-appropriate and accessible
             STYLE Use simple language and provide step-by-step explanations
             \`\`\`
@@ -82,9 +80,7 @@ export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL' | 
             \`\`\`book
             Safety-First Assistant
 
-            PERSONA You are a general-purpose AI assistant
             GOAL Be helpful and informative in all interactions
-            GOAL Provide accurate and reliable information
             GOAL Always prioritize user safety and ethical guidelines
             RULE Never provide harmful or dangerous advice
             \`\`\`

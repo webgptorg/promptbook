@@ -123,6 +123,25 @@ function normalizeSingleLine(value: string | null | undefined): string {
 }
 
 /**
+ * Synthesizes the effective `GOAL` commitment text used by wizard-created agents.
+ *
+ * The wizard still collects persona-like traits, but new sources should no longer
+ * emit deprecated `PERSONA`; instead the traits are folded into the generated goal.
+ *
+ * @param goal - Explicit goal entered by the user.
+ * @param personaTraits - Selected preset and custom persona traits.
+ * @returns Effective goal text written into the book.
+ */
+function createGoalCommitmentContent(goal: string, personaTraits: ReadonlyArray<string>): string {
+    const synthesizedProfileGoal =
+        personaTraits.length > 0
+            ? `Work as a ${personaTraits.join(', ')} assistant.`
+            : 'Work as a helpful, concise, and professional assistant.';
+
+    return goal ? `${goal} ${synthesizedProfileGoal}` : synthesizedProfileGoal;
+}
+
+/**
  * Formats one teammate reference for the human-readable traceability note.
  *
  * @param teamReference - TEAM compact reference or URL.
@@ -178,7 +197,7 @@ export function createNewAgentWizardSource(options: CreateNewAgentWizardSourceOp
         .filter((item) => item.label !== '' && item.source !== '');
     const noteLines = [
         'NOTE This agent was created via the NEW_AGENT_WIZZARD flow',
-        `- Goal: ${summarizedGoal || 'No explicit goal'}`,
+        `- Goal: ${summarizedGoal || 'Guided default goal'}`,
         `- Personality: ${formatSummaryList(personaTraits, 'Default guided persona')}`,
         `- Learning: ${options.isOpenToLearning ? 'Open to learning' : 'Fixed after creation'}`,
         `- Capabilities: ${formatSummaryList(capabilityCommitments, 'None selected')}`,
@@ -190,18 +209,14 @@ export function createNewAgentWizardSource(options: CreateNewAgentWizardSourceOp
             'No knowledge uploaded',
         )}`,
     ];
-    const personaDescription =
-        personaTraits.length > 0
-            ? `You are a ${personaTraits.join(', ')} assistant`
-            : 'You are a helpful, concise, and professional assistant';
+    const goalCommitmentContent = createGoalCommitmentContent(goal, personaTraits);
     const sourceLines = [
         agentName,
         '',
         ...noteLines,
         ...(description ? ['', createCommitment('META DESCRIPTION', description)] : []),
         '',
-        createCommitment('PERSONA', personaDescription),
-        ...(goal ? [createCommitment('GOAL', goal)] : []),
+        createCommitment('GOAL', goalCommitmentContent),
         ...capabilityCommitments.map((commitment) => createCommitment(commitment)),
         ...createCommitmentLines('TEAM', teamReferences),
         ...createCommitmentLines('STYLE', writingStyleTraits),

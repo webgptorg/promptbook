@@ -32,6 +32,31 @@ describe('parseAgentSource', () => {
         });
     });
 
+    it('parses agent profile text from GOAL and prefers the last goal', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                Agent Name
+                GOAL First goal
+                PERSONA Deprecated fallback
+                GOALS Final goal
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+        expect(result.personaDescription).toBe('Final goal');
+    });
+
+    it('falls back to PERSONA when no GOAL is present', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                Agent Name
+                PERSONA A helpful assistant
+                PERSONAE A more recent helper description
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+        expect(result.personaDescription).toBe('A more recent helper description');
+    });
+
     it('parses agent with system message lines', () => {
         const agentSource = validateBook(
             spaceTrim(`

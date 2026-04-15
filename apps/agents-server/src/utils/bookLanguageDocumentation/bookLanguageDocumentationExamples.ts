@@ -15,13 +15,13 @@ export const bookLanguageDocumentationExamples: ReadonlyArray<BookLanguageDocume
         source: spaceTrim(`
             Hello World Agent
 
-            PERSONA You are a concise and friendly assistant.
+            GOAL Be a concise and friendly assistant.
             INITIAL MESSAGE Hello! I am ready to help.
             CLOSED
         `),
         walkthrough: [
             'The first line (`Hello World Agent`) is the agent name.',
-            '`PERSONA` defines identity and style of behavior.',
+            '`GOAL` defines the effective role and profile text.',
             '`INITIAL MESSAGE` sets a deterministic first message for a new chat.',
             '`CLOSED` prevents conversational self-modification.',
         ],
@@ -33,7 +33,7 @@ export const bookLanguageDocumentationExamples: ReadonlyArray<BookLanguageDocume
         source: spaceTrim(`
             Web Research Assistant
 
-            PERSONA You are a research assistant focused on fresh and verifiable information.
+            GOAL Research topics using fresh and verifiable information.
             USE SEARCH ENGINE Prefer official sources and recent publications.
             USE BROWSER
             RULE Verify important claims across multiple sources when possible.
@@ -54,7 +54,7 @@ export const bookLanguageDocumentationExamples: ReadonlyArray<BookLanguageDocume
         source: spaceTrim(`
             Support Policy Assistant
 
-            PERSONA You answer questions about support policy.
+            GOAL Answer questions about support policy.
             KNOWLEDGE Refunds are available within 30 days with proof of purchase.
             KNOWLEDGE https://example.com/support-policy
             RULE If a policy item is missing in available knowledge, say it explicitly.
@@ -75,7 +75,7 @@ export const bookLanguageDocumentationExamples: ReadonlyArray<BookLanguageDocume
         source: spaceTrim(`
             Customer Success Memory Agent
 
-            PERSONA You are a customer success assistant for a SaaS product.
+            GOAL Support SaaS customers while remembering relevant setup and preference context.
             MEMORY Remember product setup, user goals, and communication preferences.
             RULE Store only user-approved preferences and project context.
             RULE Never store secrets or sensitive data unless explicitly requested and allowed.
@@ -95,7 +95,7 @@ export const bookLanguageDocumentationExamples: ReadonlyArray<BookLanguageDocume
         source: spaceTrim(`
             Repository Maintainer
 
-            PERSONA You maintain a GitHub repository and prepare safe pull requests.
+            GOAL Maintain a GitHub repository and prepare safe pull requests.
             USE PROJECT https://github.com/acme/website
             WALLET Store credentials for repository operations.
             RULE Before editing files, explain the planned change and impacted paths.
@@ -116,7 +116,7 @@ export const bookLanguageDocumentationExamples: ReadonlyArray<BookLanguageDocume
         source: spaceTrim(`
             Calendar Assistant
 
-            PERSONA You schedule meetings and keep the calendar conflict-free.
+            GOAL Schedule meetings and keep the calendar conflict-free.
             USE CALENDAR https://calendar.google.com/calendar/u/0/r
             SCOPES https://www.googleapis.com/auth/calendar
             RULE Confirm destructive actions before deleting an event.
@@ -136,7 +136,7 @@ export const bookLanguageDocumentationExamples: ReadonlyArray<BookLanguageDocume
         source: spaceTrim(`
             Team Manager
 
-            PERSONA You coordinate specialists and deliver one consolidated answer.
+            GOAL Coordinate specialists and deliver one consolidated answer.
             TEAM Ask {Legal Reviewer} for legal constraints and {Implementation Reviewer} for technical feasibility.
             RULE Always summarize teammate outputs into one action plan.
 
@@ -145,7 +145,7 @@ export const bookLanguageDocumentationExamples: ReadonlyArray<BookLanguageDocume
             Legal Reviewer
 
             FROM VOID
-            PERSONA You are a legal risk reviewer.
+            GOAL Review legal and compliance risk.
             RULE Flag legal/compliance risk and uncertainty clearly.
             CLOSED
 
@@ -154,7 +154,7 @@ export const bookLanguageDocumentationExamples: ReadonlyArray<BookLanguageDocume
             Implementation Reviewer
 
             FROM VOID
-            PERSONA You review implementation effort and delivery risk.
+            GOAL Review implementation effort and delivery risk.
             RULE Estimate complexity and identify blockers.
             CLOSED
         `),

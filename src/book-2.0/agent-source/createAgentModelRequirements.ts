@@ -51,7 +51,7 @@ export async function createAgentModelRequirements(
  * Selects the best model using the preparePersona function
  * This directly uses preparePersona to ensure DRY principle
  *
- * @param agentSource The agent source to derive persona description from
+ * @param agentSource The agent source to derive effective profile text from
  * @param llmTools LLM tools for preparing persona
  * @returns The name of the best selected model
  *
@@ -61,10 +61,10 @@ async function selectBestModelUsingPersona(
     agentSource: string_book,
     llmTools: LlmExecutionTools,
 ): Promise<string_model_name> {
-    // Parse agent source to get persona description
+    // Parse agent source to get the effective profile description
     const { agentName, personaDescription } = parseAgentSource(agentSource);
 
-    // Use agent name as fallback if no persona description is available
+    // Use agent name as fallback if no profile description is available
     const description = personaDescription || agentName || 'AI Agent';
 
     try {

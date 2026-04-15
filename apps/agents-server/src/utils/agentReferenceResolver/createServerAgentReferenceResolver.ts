@@ -125,7 +125,7 @@ class ServerAgentReferenceResolver implements IssueTrackingAgentReferenceResolve
      * Returns the human-readable agent profile for a teammate URL if it belongs to this server.
      *
      * Used during TEAM commitment processing to enrich tool definitions with real agent names
-     * and persona descriptions instead of technical IDs.
+     * and profile descriptions instead of technical IDs.
      *
      * @param url - Canonical teammate URL from the resolved TEAM commitment content.
      * @returns Agent profile or `null` when the URL is not a local agent.

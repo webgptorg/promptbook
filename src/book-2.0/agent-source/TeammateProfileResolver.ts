@@ -10,7 +10,8 @@ export type TeammateProfile = {
     readonly agentName: string;
 
     /**
-     * Short description of what the agent does, from its PERSONA commitment.
+     * Short profile text for what the agent does, from the last GOAL commitment
+     * or deprecated PERSONA fallback.
      */
     readonly personaDescription: string | null;
 };

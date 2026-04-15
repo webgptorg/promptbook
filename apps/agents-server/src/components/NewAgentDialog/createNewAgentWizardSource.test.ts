@@ -37,8 +37,10 @@ describe('createNewAgentWizardSource', () => {
         expect(agentSource).toContain('- Team: legal reviewer');
         expect(agentSource).toContain('- Writing style: professional, concise');
         expect(agentSource).toContain('META DESCRIPTION Answers cooking questions');
-        expect(agentSource).toContain('PERSONA You are a helpful, analytical, strong at practical kitchen advice assistant');
-        expect(agentSource).toContain('GOAL Help users cook with confidence using practical kitchen advice.');
+        expect(agentSource).not.toContain('PERSONA ');
+        expect(agentSource).toContain(
+            'GOAL Help users cook with confidence using practical kitchen advice. Work as a helpful, analytical, strong at practical kitchen advice assistant.',
+        );
         expect(agentSource).toContain('OPEN');
         expect(agentSource.indexOf('OPEN')).toBeGreaterThan(agentSource.indexOf('KNOWLEDGE https://example.com/faq'));
         expect(agentSource).toContain('USE BROWSER');
@@ -61,6 +63,9 @@ describe('createNewAgentWizardSource', () => {
         expect(parsedAgent.agentName).toBe('recipe-helper');
         expect(parsedAgent.meta.fullname).toBe('Recipe Helper');
         expect(parsedAgent.meta.description).toBe('Answers cooking questions');
+        expect(parsedAgent.personaDescription).toBe(
+            'Help users cook with confidence using practical kitchen advice. Work as a helpful, analytical, strong at practical kitchen advice assistant.',
+        );
         expect(parsedAgent.knowledgeSources).toHaveLength(2);
 
         const requirements = await createAgentModelRequirements(agentSource);
@@ -89,14 +94,15 @@ describe('createNewAgentWizardSource', () => {
             knowledgeItems: [],
         });
 
-        expect(agentSource).toContain('- Goal: No explicit goal');
+        expect(agentSource).toContain('- Goal: Guided default goal');
         expect(agentSource).toContain('- Learning: Fixed after creation');
         expect(agentSource).toContain('- Capabilities: None selected');
         expect(agentSource).toContain('- Team: No teammates');
         expect(agentSource).toContain('- Writing style: Default guided writing style');
         expect(agentSource).toContain('- Rules: None specified');
         expect(agentSource).toContain('- Knowledge: No knowledge uploaded');
-        expect(agentSource).toContain('PERSONA You are a helpful, concise, and professional assistant');
+        expect(agentSource).toContain('GOAL Work as a helpful, concise, and professional assistant.');
+        expect(agentSource).not.toContain('PERSONA ');
         expect(agentSource).toContain('CLOSED');
         expect(agentSource.trimEnd().endsWith('CLOSED')).toBe(true);
     });

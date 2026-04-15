@@ -129,4 +129,21 @@ describe('createAgentModelRequirements USE commitment aggregation', () => {
             requirements.systemMessage.indexOf('Second persona trait.'),
         );
     });
+
+    it('keeps only the last GOAL commitment effective after rewrite ordering', async () => {
+        const agentSource = validateBook(`
+            Goal Agent
+            GOAL Inherited goal.
+            RULE Stay concise.
+            GOALS Final goal.
+        `);
+
+        const requirements = await createAgentModelRequirements(agentSource);
+
+        expect(countOccurrences(requirements.systemMessage, 'Goal: Inherited goal.')).toBe(0);
+        expect(countOccurrences(requirements.systemMessage, 'Goal: Final goal.')).toBe(1);
+        expect(countOccurrences(requirements.promptSuffix, 'Goal: Inherited goal.')).toBe(0);
+        expect(countOccurrences(requirements.promptSuffix, 'Goal: Final goal.')).toBe(1);
+        expect(requirements.systemMessage).toContain('Rule: Stay concise.');
+    });
 });

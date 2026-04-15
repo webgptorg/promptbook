@@ -26,7 +26,7 @@ export type AssistantConfiguration = {
     readonly name: string;
 
     /**
-     * Base instructions (PERSONA) without dynamic context
+     * Base profile instructions (preferably from `GOAL`) without dynamic context
      */
     readonly instructions: string;
 
@@ -75,7 +75,7 @@ export function extractAssistantConfiguration(
     // Determine which source to use for configuration
     const configAgentSource = includeDynamicContext ? agentSource : baseAgentSource;
 
-    // Parse agent source to get name and persona
+    // Parse agent source to get name and effective profile text
     const parsed = parseAgentSource(configAgentSource);
     const name = parsed.agentName || 'assistant';
     const baseInstructions = parsed.personaDescription || 'You are a helpful assistant.';

@@ -1,4 +1,4 @@
-[ ] !!
+[x] ~$0.4568 an hour by OpenAI Codex `gpt-5.4`
 
 [🧭🧩] Deprecate PERSONA commitment in favor of GOAL for inheritance + agent profile
 
@@ -13,3 +13,4 @@
 -   You are working with [Promptbook Engine agentSource parsing pipeline](src/book-2.0)
 -   Look at the Wizard modal to produce agnets with this change
 -   Update changelog entry in [changelog/\_current-preversion.md](changelog/_current-preversion.md)
+

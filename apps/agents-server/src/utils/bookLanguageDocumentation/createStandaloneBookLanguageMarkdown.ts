@@ -36,6 +36,8 @@ const TOOLING_COMMITMENT_TYPES = new Set([
  * Commitment types that primarily define agent profile metadata.
  */
 const PROFILE_COMMITMENT_TYPES = new Set([
+    'GOAL',
+    'GOALS',
     'PERSONA',
     'PERSONAE',
     'META',
@@ -160,7 +162,7 @@ export function createStandaloneBookLanguageMarkdown(): string {
             Promptbook and Agents Server use two core passes:
 
             1. **Fast parse pass** (\`parseAgentSource\`):
-            It synchronously extracts agent profile/basic info (name, persona, meta, capabilities, samples, references).
+            It synchronously extracts agent profile/basic info (name, last goal/profile text, meta, capabilities, samples, references).
             2. **Compilation pass** (\`createAgentModelRequirements\`):
             It applies commitments in sequence and builds executable model requirements (system message, tools, memory/tool metadata, imports, etc.).
 
@@ -176,7 +178,7 @@ export function createStandaloneBookLanguageMarkdown(): string {
             Think of one agent source as four layers:
 
             1. **Identity/Profile layer**:
-            Agent name (first non-commitment line), \`PERSONA\`, and \`META*\` commitments.
+            Agent name (first non-commitment line), the last \`GOAL\` (preferred) or deprecated \`PERSONA\`, and \`META*\` commitments.
             2. **Behavior layer**:
             \`RULE\`, \`KNOWLEDGE\`, \`STYLE\`, \`LANGUAGE\`, \`GOAL\`, and related commitments.
             3. **Capability layer**:
@@ -228,7 +230,7 @@ export function createStandaloneBookLanguageMarkdown(): string {
             Recommended patterns and tradeoffs:
 
             1. **Single clear role first**:
-            Start with one role-focused \`PERSONA\` and a narrow \`GOAL\`.
+            Start with one narrow \`GOAL\`; use \`PERSONA\` only for backward-compatible legacy books.
             Tradeoff: less initial flexibility, much higher reliability.
             2. **Guardrails early**:
             Add concrete \`RULE\` commitments before adding many tools.
@@ -302,7 +304,7 @@ export function createStandaloneBookLanguageMarkdown(): string {
             This tutorial is sufficient without internet access.
 
             1. **Define role and goal**
-            Create a short name line, one \`PERSONA\`, and one \`GOAL\`.
+            Create a short name line and one clear \`GOAL\`.
             2. **Add behavioral constraints**
             Add 3-6 specific \`RULE\` commitments covering scope, tone, and safety boundaries.
             3. **Add grounding**
@@ -323,8 +325,7 @@ export function createStandaloneBookLanguageMarkdown(): string {
                     spaceTrim(`
                         Project Assistant
 
-                        PERSONA You are a focused assistant for project planning and execution.
-                        GOAL Help the user turn ideas into concrete deliverables.
+                        GOAL Help the user turn project ideas into concrete deliverables with focused planning support.
 
                         RULE Ask clarifying questions when requirements are ambiguous.
                         RULE Provide concise, structured outputs with actionable steps.

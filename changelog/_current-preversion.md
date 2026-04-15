@@ -1,3 +1,10 @@
+-   Deprecated `PERSONA` in favor of `GOAL` for agent profile text and inheritance-safe rewrites:
+
+    -   Updated `parseAgentSource` and related profile consumers to derive `personaDescription` from the last `GOAL` / `GOALS` commitment, while still falling back to deprecated `PERSONA` / `PERSONAE` for backward compatibility.
+    -   Changed commitment compilation so only the last effective `GOAL` survives inherited or rewritten sources, preventing stale parent goals from accumulating in the final system message and prompt suffix.
+    -   Marked `PERSONA` as deprecated in commitment metadata and Book editor diagnostics, and updated the New Agent wizard to emit only `GOAL`, folding selected persona traits into the generated goal text.
+    -   Added regression coverage for single-vs-multiple goal precedence, goal-over-persona profile resolution, inherited goal overrides, and the updated wizard source output.
+
 -   Added `--preserve-logs` to `ptbk coder run`, so successful coding rounds can now keep their generated runner shell and shared runtime log files for debugging and analytics, while failed rounds automatically preserve those artifacts even without the flag:
 
     -   Threaded the new option through the CLI wrapper and legacy `scripts/run-codex-prompts` option parser.

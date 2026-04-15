@@ -27,7 +27,7 @@ import type { string_book } from './string_book';
 export function parseAgentSource(agentSource: string_book): AgentBasicInformation {
     const parseResult = parseAgentSourceWithCommitments(agentSource);
     const resolvedAgentName = parseResult.agentName || createDefaultAgentName(agentSource);
-    const personaDescription = extractPersonaDescription(parseResult.commitments);
+    const personaDescription = extractAgentProfileText(parseResult.commitments);
     const initialMessage = extractInitialMessage(parseResult.commitments);
     const parsedProfile = extractParsedAgentProfile(parseResult.commitments);
 
@@ -171,28 +171,38 @@ const META_COMMITMENT_APPLIERS: Readonly<Record<string, MetaCommitmentApplier | 
 const LOCAL_AGENT_REFERENCE_PREFIXES = ['./', '../', '/'];
 
 /**
- * Builds the combined persona description from PERSONA commitments.
+ * Resolves the public agent profile text from the last GOAL/GOALS commitment,
+ * falling back to the deprecated PERSONA/PERSONAE commitments when no goal exists.
  *
  * @private internal utility of `parseAgentSource`
  */
-function extractPersonaDescription(commitments: ReadonlyArray<ParsedCommitment>): string | null {
-    let personaDescription: string | null = null;
+function extractAgentProfileText(commitments: ReadonlyArray<ParsedCommitment>): string | null {
+    let goalDescription = '';
+    let hasGoalDescription = false;
+    let personaDescription = '';
+    let hasPersonaDescription = false;
 
     for (const commitment of commitments) {
-        if (commitment.type !== 'PERSONA') {
-            continue;
+        if (commitment.type === 'GOAL' || commitment.type === 'GOALS') {
+            goalDescription = commitment.content;
+            hasGoalDescription = true;
         }
 
-        if (personaDescription === null) {
-            personaDescription = '';
-        } else {
-            personaDescription += `\n\n${personaDescription}`;
+        if (commitment.type === 'PERSONA' || commitment.type === 'PERSONAE') {
+            personaDescription = commitment.content;
+            hasPersonaDescription = true;
         }
-
-        personaDescription += commitment.content;
     }
 
-    return personaDescription;
+    if (hasGoalDescription) {
+        return goalDescription;
+    }
+
+    if (hasPersonaDescription) {
+        return personaDescription;
+    }
+
+    return null;
 }
 
 /**

@@ -28,6 +28,24 @@ EXAMPLE Newer legacy sample`),
         ]);
     });
 
+    it('creates warning diagnostics for deprecated PERSONA commitments', () => {
+        const diagnostics = createDeprecatedCommitmentDiagnostics(
+            validateBook(`Planner
+
+PERSONA You are a practical planning assistant.
+GOAL Help the user turn plans into concrete next steps.`),
+        );
+
+        expect(diagnostics).toEqual([
+            expect.objectContaining({
+                startLineNumber: 3,
+                message: '`PERSONA` is deprecated. Use `GOAL` for agent profile text and inheritance-safe rewrites.',
+                severity: 'warning',
+                source: 'Promptbook',
+            }),
+        ]);
+    });
+
     it('does not create warnings for WRITING SAMPLE, WRITING RULES, or RULE', () => {
         const diagnostics = createDeprecatedCommitmentDiagnostics(
             validateBook(`Copywriter

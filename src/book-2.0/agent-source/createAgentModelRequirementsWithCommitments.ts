@@ -45,6 +45,16 @@ const COMMITMENTS_WITH_AGENT_REFERENCES = new Set<BookCommitment>(['FROM', 'IMPO
 const DELETE_COMMITMENT_TYPES = new Set<BookCommitment>(['DELETE', 'CANCEL', 'DISCARD', 'REMOVE']);
 
 /**
+ * Commitments whose earlier occurrences are overwritten by the last occurrence in source order.
+ *
+ * @private internal constant of `createAgentModelRequirementsWithCommitments`
+ */
+const OVERWRITTEN_COMMITMENT_GROUP_BY_TYPE = new Map<BookCommitment, 'GOAL'>([
+    ['GOAL', 'GOAL'],
+    ['GOALS', 'GOAL'],
+]);
+
+/**
  * Regex pattern matching markdown horizontal lines that should not be copied into the final system message.
  *
  * @private internal constant of `createAgentModelRequirementsWithCommitments`
@@ -103,7 +113,7 @@ export async function createAgentModelRequirementsWithCommitments(
     options?: CreateAgentModelRequirementsOptions,
 ): Promise<AgentModelRequirements> {
     const parseResult = parseAgentSourceWithCommitments(agentSource);
-    const filteredCommitments = filterDeletedCommitments(parseResult.commitments);
+    const filteredCommitments = filterOverwrittenCommitments(filterDeletedCommitments(parseResult.commitments));
 
     let requirements = createInitialAgentModelRequirements(parseResult.agentName, modelName);
     requirements = await applyCommitmentsToRequirements(requirements, filteredCommitments, options);
@@ -115,6 +125,41 @@ export async function createAgentModelRequirementsWithCommitments(
     requirements = await applyPendingInlineKnowledgeSources(requirements, options?.inlineKnowledgeSourceUploader);
 
     return finalizeRequirements(requirements);
+}
+
+/**
+ * Removes earlier commitments that are overwritten by later commitments of the same semantic group.
+ *
+ * This currently keeps only the last `GOAL` / `GOALS` commitment so inheritance rewrites
+ * and multi-goal sources expose one effective goal to the runtime.
+ *
+ * @param commitments - Parsed commitments after DELETE-like filtering.
+ * @returns Commitments with overwritten entries removed while preserving source order.
+ *
+ * @private internal utility of `createAgentModelRequirementsWithCommitments`
+ */
+function filterOverwrittenCommitments(commitments: ReadonlyArray<ParsedCommitment>): ParsedCommitment[] {
+    const seenOverwriteGroups = new Set<string>();
+    const keptCommitments: ParsedCommitment[] = [];
+
+    for (let index = commitments.length - 1; index >= 0; index--) {
+        const commitment = commitments[index]!;
+        const overwriteGroup = OVERWRITTEN_COMMITMENT_GROUP_BY_TYPE.get(commitment.type);
+
+        if (!overwriteGroup) {
+            keptCommitments.push(commitment);
+            continue;
+        }
+
+        if (seenOverwriteGroups.has(overwriteGroup)) {
+            continue;
+        }
+
+        seenOverwriteGroups.add(overwriteGroup);
+        keptCommitments.push(commitment);
+    }
+
+    return keptCommitments.reverse();
 }
 
 /**

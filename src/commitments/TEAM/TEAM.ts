@@ -164,7 +164,7 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
             \`\`\`book
             Legal Assistant
 
-            PERSONA An expert software developer
+            GOAL Get expert software-development advice from the teammate when legal discussion needs technical context.
             TEAM You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss the legal aspects.
             \`\`\`
         `);

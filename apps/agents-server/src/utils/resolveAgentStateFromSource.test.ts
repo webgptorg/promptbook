@@ -119,4 +119,39 @@ describe('resolveAgentStateFromSource', () => {
         expect(modelRequirements.systemMessage).toContain('Follow the parent rule.');
         expect(modelRequirements.systemMessage).toContain('Follow the child rule.');
     });
+
+    it('uses the child last GOAL for resolved profile text while keeping inherited commitments', async () => {
+        const parentAgentUrl = 'https://example.com/agents/parent-goal';
+        mockFetchRoutes({
+            [`${parentAgentUrl}/api/book?recursionLevel=1`]: book`
+                Parent Agent
+
+                FROM VOID
+                GOAL Parent goal.
+                RULE Follow the parent rule.
+            `,
+        });
+
+        const resolvedAgentState = await resolveAgentStateFromSource(
+            `
+                Child Agent
+
+                FROM ${parentAgentUrl}
+                PERSONA Deprecated child persona.
+                GOAL Child goal.
+                RULE Follow the child rule.
+            ` as string_book,
+            {
+                adamAgentUrl: 'https://example.com/agents/adam',
+                canonicalAgentUrl: 'https://local.example/agents/child',
+            },
+        );
+        const modelRequirements = await createAgentModelRequirements(resolvedAgentState.resolvedAgentSource);
+
+        expect(resolvedAgentState.resolvedAgentProfile.personaDescription).toBe('Child goal.');
+        expect(modelRequirements.systemMessage).toContain('Goal: Child goal.');
+        expect(modelRequirements.systemMessage).not.toContain('Goal: Parent goal.');
+        expect(modelRequirements.systemMessage).toContain('Follow the parent rule.');
+        expect(modelRequirements.systemMessage).toContain('Follow the child rule.');
+    });
 });

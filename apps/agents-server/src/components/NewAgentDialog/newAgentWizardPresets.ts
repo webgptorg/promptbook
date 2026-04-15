@@ -50,7 +50,7 @@ type NewAgentWizardSelectablePreset = {
  */
 export type NewAgentWizardPersonaPreset = NewAgentWizardSelectablePreset & {
     /**
-     * Canonical English fragment written into the final `PERSONA` commitment.
+     * Canonical English fragment synthesized into the final `GOAL` commitment.
      */
     readonly sourceText: string;
 };

@@ -34,7 +34,17 @@ export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSO
      * Short one-line description of PERSONA.
      */
     get description(): string {
-        return 'Define who the agent is: background, expertise, and personality.';
+        return 'Deprecated legacy profile commitment. Prefer `GOAL` for agent profile text and inheritance-safe rewrites.';
+    }
+
+    /**
+     * Optional UI/docs-only deprecation metadata.
+     */
+    public override get deprecation() {
+        return {
+            message: 'Use `GOAL` for agent profile text and inheritance-safe rewrites.',
+            replacedBy: ['GOAL'],
+        } as const;
     }
 
     /**
@@ -51,16 +61,24 @@ export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSO
         return spaceTrim(`
             # ${this.type}
 
-            Defines who the agent is, their background, expertise, and personality traits.
+            Deprecated legacy commitment that defines who the agent is, their background, expertise, and personality traits.
 
-            ## Key aspects
+            ## Migration
 
-            - Multiple \`PERSONA\` and \`PERSONAE\` commitments are merged together.
-            - Both terms work identically and can be used interchangeably.
-            - If they are in conflict, the last one takes precedence.
-            - You can write persona content in multiple lines.
+            - Existing \`${this.type}\` books still parse and compile.
+            - New books should prefer \`GOAL\`.
+            - Agent profile rendering now prefers the last \`GOAL\` and only falls back to \`${this.type}\` when no goal exists.
+            - Runtime compilation keeps the legacy multi-\`PERSONA\` merge behavior for backward compatibility.
 
-            ## Examples
+            ## Preferred replacement
+
+            \`\`\`book
+            Programming Assistant
+
+            GOAL Help the user solve programming problems with practical TypeScript and React guidance.
+            \`\`\`
+
+            ## Legacy compatibility example
 
             \`\`\`book
             Programming Assistant

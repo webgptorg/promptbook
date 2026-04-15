@@ -19,7 +19,7 @@ function buildAgentUrlVariants(agent: AgentBasicInformation, normalizedServerUrl
 /**
  * Creates a `TeammateProfileResolver` backed by the local agent collection.
  *
- * The resolver maps teammate agent URLs to their human-readable names and persona
+ * The resolver maps teammate agent URLs to their human-readable names and profile
  * descriptions without making any network requests. Only agents hosted on the
  * current server can be resolved; remote agents will return `null`.
  *

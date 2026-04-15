@@ -104,7 +104,8 @@ export type AgentBasicInformation = {
 
     /**
      * Optional description of the agent
-     * This is the line starting with "PERSONA"
+     * This is derived from the last `GOAL` / `GOALS` commitment,
+     * falling back to deprecated `PERSONA` / `PERSONAE` for backward compatibility.
      */
     personaDescription: string | null;
     // <- TODO: [🕛][🧠]  Maybe rename to just `description`
