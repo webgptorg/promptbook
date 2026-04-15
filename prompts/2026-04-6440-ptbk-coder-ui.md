@@ -26,21 +26,15 @@ ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --c
 
 ---
 
-[-]
+[ ]
 
-[✨🌉] baz
+[✨🌉] Add flag `--no-ui` to `ptbk coder run`
 
 ```bash
-@@@
-
-npm install ptbk
-
-ptbk coder init
-
-ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md
+ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --no-ui
 ```
 
--   @@@
+-   When present, the `--no-ui` flag should disable the terminal UI and just print the output of the agent as it is currently done, without any UI, which is useful for logging and debugging purposes
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
@@ -48,25 +42,23 @@ ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --c
 
 ---
 
-[-]
+[ ]
 
-[✨🌉] baz
+[✨🌉] Enhance the UI of `ptbk coder run`
 
 ```bash
-@@@
-
-npm install ptbk
-
-ptbk coder init
-
 ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md
 ```
 
--   @@@
+-   The Promptbook coder should be in some box in the UI, and there should be some nice branding and design to make it look good, maybe some colors, borders, etc.
+-   The "Pause ..." is multiplicated at the end
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-04-6440-ptbk-coder-ui-1.png)
+![alt text](prompts/screenshots/2026-04-6440-ptbk-coder-ui-2.png)
 
 ---
 
