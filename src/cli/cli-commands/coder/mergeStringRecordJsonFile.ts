@@ -3,6 +3,7 @@ import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { ParseError } from '../../../errors/ParseError';
 import type { InitializationStatus } from './boilerplateTemplates';
+import { getTypescriptModule } from './getTypescriptModule';
 import { readTextFileIfExists } from './readTextFileIfExists';
 
 /**
@@ -88,7 +89,7 @@ async function parseJsonObjectFile(relativeFilePath: string, fileContent: string
         return {};
     }
 
-    const typescript = await import('typescript');
+    const typescript = await getTypescriptModule();
     const parsedFile = typescript.parseConfigFileTextToJson(relativeFilePath, fileContent);
     if (parsedFile.error) {
         throw new ParseError(

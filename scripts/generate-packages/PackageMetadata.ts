@@ -45,10 +45,10 @@ export type PackageMetadata = {
     packageFullname: string /* <- TODO: More specific */;
 
     /**
-     * List of dependencies for the package
+     * List of additional dependencies for the package
      *
      * Note: If undefined, dependencies are not yet known
-     * Note: [🧃] There are only dependencies (not devDependencies) to ensure that everything is always installed
+     * Note: [🧃] Generated packages use only `dependencies` (not `devDependencies`) to ensure that everything is installed
      */
     additionalDependencies:Array<string /* <- TODO: More specific */>;
 

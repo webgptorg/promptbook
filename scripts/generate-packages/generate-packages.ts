@@ -15,6 +15,10 @@ import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 import { addDependenciesForGeneratedPackages } from './addDependenciesForGeneratedPackages';
 import { assertGeneratedBundlesArePublishSafe } from './assertGeneratedBundlesArePublishSafe';
 import { buildGeneratedPackageBundles } from './buildGeneratedPackageBundles';
+import {
+    collectMainPackageDependencies,
+    collectMainPackageDevelopmentDependencies,
+} from './collectMainPackageDependencies';
 import { generatePackageEntryFiles } from './generatePackageEntryFiles';
 import { generatePackageReadmesAndMetadata } from './generatePackageReadmesAndMetadata';
 import type { PackageMetadata } from './PackageMetadata';
@@ -67,6 +71,7 @@ type GeneratePackagesOptions = {
  */
 type PackageGenerationContext = {
     readonly allDependencies: Record<string, string>;
+    readonly allDevelopmentDependencies: Record<string, string>;
     readonly mainPackageJson: PackageJson;
     readonly mainPackageVersion: string;
     readonly packagesMetadata: ReadonlyArray<PackageMetadata>;
@@ -108,6 +113,7 @@ async function generatePackages({ isCommitted, isBundlerSkipped }: GeneratePacka
     await addDependenciesForGeneratedPackages(
         packageGenerationContext.packagesMetadata,
         packageGenerationContext.allDependencies,
+        packageGenerationContext.allDevelopmentDependencies,
         packageGenerationContext.mainPackageVersion,
     );
     await maybeCopyAgentsServerAppToCliPackage();
@@ -142,10 +148,12 @@ async function preparePackageGenerationContext(): Promise<PackageGenerationConte
 
     const mainPackageVersion = getRequiredMainPackageVersion(mainPackageJson);
     const allDependencies = collectMainPackageDependencies(mainPackageJson);
+    const allDevelopmentDependencies = collectMainPackageDevelopmentDependencies(mainPackageJson);
     const packagesMetadata = await getPackagesMetadata();
 
     return {
         allDependencies,
+        allDevelopmentDependencies,
         mainPackageJson,
         mainPackageVersion,
         packagesMetadata,
@@ -165,26 +173,6 @@ function getRequiredMainPackageVersion(mainPackageJson: PackageJson): string {
     }
 
     return mainPackageJson.version;
-}
-
-/**
- * Collects dependency versions that generated packages may inherit from the root manifest.
- *
- * @param mainPackageJson - Parsed root package manifest
- * @returns Dependency name-to-version map
- * @private internal utility of package generation
- */
-function collectMainPackageDependencies(mainPackageJson: PackageJson): Record<string, string> {
-    const allDependencies: Record<string, string> = {};
-
-    for (const [dependencyName, dependencyVersion] of Object.entries(mainPackageJson.dependencies || {})) {
-        if (dependencyVersion !== undefined) {
-            allDependencies[dependencyName] = dependencyVersion;
-        }
-    }
-
-    return allDependencies;
-    // <- TODO: Maybe add `devDependencies` and check collisions between `dependencies` and `devDependencies`
 }
 
 /**

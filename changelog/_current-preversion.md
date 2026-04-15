@@ -1,3 +1,8 @@
+-   Fixed published `ptbk coder init` CLI bootstrapping so standalone projects no longer depend on an accidentally missing or differently-shaped local `typescript` install:
+
+    -   Normalized runtime loading of the `typescript` package before `mergeStringRecordJsonFile` calls `parseConfigFileTextToJson`, so bundled CLI builds now handle both direct module namespaces and `default`-wrapped imports when parsing JSONC files such as `tsconfig.json`.
+    -   Updated package generation metadata so `@promptbook/cli` explicitly publishes the required `typescript` runtime dependency, with the version resolved from the root manifest even though it is maintained in `devDependencies`.
+
 -   Fixed TEAM teammate prompting so model-facing TEAM guidance now keeps both the original commitment instructions and resolved teammate profile hints:
 
     -   Updated `src/commitments/TEAM/TEAM.ts` to carry parsed TEAM instruction text into teammate tool descriptions and the TEAM system-message section instead of dropping that guidance after URL resolution.

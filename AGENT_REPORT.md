@@ -126,3 +126,10 @@
   - Next.js compiles successfully, then fails in the type-validation phase with `Type error: Argument of type 'string | null' is not assignable to parameter of type 'string'.`
   - The reported call site in this run is `apps/agents-server/src/app/admin/usage/UsageClient.tsx:87`.
   - This failure surfaced while validating the branded `500` fallback page and does not map to the touched shared error-page, app-router error, or `src/pages/500.tsx` changes.
+
+## 2026-04-15
+
+- Generated package manifests appear to have another existing runtime-dependency gap outside this scoped `ptbk coder init` fix:
+  - `packages/cli/umd/index.umd.js` still references `llamaindex` in a dynamic import path, but `packages/cli/package.json` does not currently publish `llamaindex`.
+  - `packages/core/esm/index.es.js` and `packages/wizard/esm/index.es.js` also reference `llamaindex`, and `packages/components/esm/index.es.js` references `lucide-react`, while those package manifests do not currently declare those runtime dependencies either.
+  - I kept this task scoped to the reported `typescript` issue and did not widen the package-generation behavior to auto-publish every devDependency-backed bundle import.

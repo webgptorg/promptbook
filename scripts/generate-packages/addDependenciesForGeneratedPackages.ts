@@ -1,5 +1,6 @@
 import colors from 'colors';
 import fs, { readFile, writeFile } from 'fs/promises';
+import { spaceTrim } from 'spacetrim';
 import type { PackageJson } from 'type-fest';
 import { isFileExisting } from '../../src/utils/files/isFileExisting';
 import type { PackageMetadata } from './PackageMetadata';
@@ -28,6 +29,7 @@ const PACKAGE_FULLNAMES_WITHOUT_CORE_PEER_DEPENDENCY = new Set([
 export async function addDependenciesForGeneratedPackages(
     packagesMetadata: ReadonlyArray<PackageMetadata>,
     allDependencies: Record<string, string>,
+    allDevelopmentDependencies: Record<string, string>,
     mainPackageVersion: string,
 ): Promise<void> {
     logPackageGenerationStep(`7️⃣  Add dependencies for each package`);
@@ -38,7 +40,13 @@ export async function addDependenciesForGeneratedPackages(
         applyGeneratedPackageEntrypoints(packageJson, packageMetadata);
         applyGeneratedPackagePeerDependencies(packageJson, packageMetadata.packageFullname, mainPackageVersion);
         await applyDetectedBundleDependencies(packageJson, packageMetadata, allDependencies);
-        applyAdditionalPackageDependencies(packageJson, packageMetadata.additionalDependencies, mainPackageVersion);
+        applyAdditionalPackageDependencies(
+            packageJson,
+            packageMetadata.additionalDependencies,
+            allDependencies,
+            allDevelopmentDependencies,
+            mainPackageVersion,
+        );
         applyGeneratedPackageBin(packageJson, packageMetadata.packageFullname);
         removeReactRuntimeDependenciesFromComponents(packageJson, packageMetadata.packageFullname);
 
@@ -201,21 +209,68 @@ function bundleReferencesDependency(bundleContent: string, dependencyName: strin
 }
 
 /**
- * Adds explicitly declared package-to-package dependencies.
+ * Adds explicitly declared package dependencies.
  *
  * @param packageJson - Generated package manifest
- * @param additionalDependencies - Additional Promptbook package dependencies
+ * @param additionalDependencies - Additional package dependencies
+ * @param allDependencies - Dependency versions from the root manifest `dependencies`
+ * @param allDevelopmentDependencies - Dependency versions from the root manifest `devDependencies`
  * @param mainPackageVersion - Shared Promptbook version
  * @private internal utility of addDependenciesForGeneratedPackages
  */
 function applyAdditionalPackageDependencies(
     packageJson: PackageJson,
     additionalDependencies: ReadonlyArray<string>,
+    allDependencies: Record<string, string>,
+    allDevelopmentDependencies: Record<string, string>,
     mainPackageVersion: string,
 ): void {
     for (const dependencyName of additionalDependencies) {
-        upsertPackageDependency(packageJson, dependencyName, mainPackageVersion);
+        upsertPackageDependency(
+            packageJson,
+            dependencyName,
+            resolveAdditionalPackageDependencyVersion(
+                dependencyName,
+                allDependencies,
+                allDevelopmentDependencies,
+                mainPackageVersion,
+            ),
+        );
     }
+}
+
+/**
+ * Resolves one explicitly declared generated-package dependency to the version that should be published.
+ *
+ * @param dependencyName - Dependency name
+ * @param allDependencies - Dependency versions from the root manifest `dependencies`
+ * @param allDevelopmentDependencies - Dependency versions from the root manifest `devDependencies`
+ * @param mainPackageVersion - Shared Promptbook version
+ * @returns Dependency version to publish
+ * @private internal utility of addDependenciesForGeneratedPackages
+ */
+function resolveAdditionalPackageDependencyVersion(
+    dependencyName: string,
+    allDependencies: Record<string, string>,
+    allDevelopmentDependencies: Record<string, string>,
+    mainPackageVersion: string,
+): string {
+    if (dependencyName === 'promptbook' || dependencyName === 'ptbk' || dependencyName.startsWith('@promptbook/')) {
+        return mainPackageVersion;
+    }
+
+    const dependencyVersion = allDependencies[dependencyName] || allDevelopmentDependencies[dependencyName];
+    if (dependencyVersion === undefined) {
+        throw new Error(
+            spaceTrim(`
+                Cannot resolve additional dependency \`${dependencyName}\` for a generated package.
+
+                The dependency must exist in the root \`package.json\` under either \`dependencies\` or \`devDependencies\`.
+            `),
+        );
+    }
+
+    return dependencyVersion;
 }
 
 /**
