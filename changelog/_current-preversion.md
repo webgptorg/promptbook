@@ -1,3 +1,8 @@
+-   Refactored Agents Server `useBrowserPushNotificationsState.ts` into smaller focused private browser-push hooks without changing external behavior:
+
+    -   Split persisted settings bootstrap, permission synchronization, subscription/service-worker mutations, user-facing enable-disable actions, and consistency effects into dedicated private hooks so `useBrowserPushNotificationsState` now reads as a thin composition layer.
+    -   Kept the existing browser permission prompting, server preference persistence, service-worker registration, subscription upsert/delete cleanup, default-off hint persistence, auto-prompt-after-message flow, and focused-chat synchronization intact while reducing branching complexity in the hook.
+
 -   Refactored Agents Server `useNewAgentWizard.ts` into smaller focused private wizard helpers without changing external behavior:
 
     -   Extracted the wizard's preset/chip/team mutations, knowledge-upload and drag-and-drop orchestration, and source/submission actions into dedicated private modules so `useNewAgentWizard.ts` now reads as a thin composition layer.

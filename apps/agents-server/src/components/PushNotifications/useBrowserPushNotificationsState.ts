@@ -213,37 +213,29 @@ function convertBase64UrlToUint8Array(value: string): Uint8Array {
 }
 
 /**
- * Drives browser push settings, permission state, subscription sync, and focused-chat heartbeats.
+ * Settings state loaded and persisted for one browser user.
  *
  * @private function of BrowserPushNotificationsProvider
  */
-export function useBrowserPushNotificationsState({
-    defaultEnabled,
-    pushPublicKey,
-    isMetadataAvailable,
-}: UseBrowserPushNotificationsStateProps): BrowserPushNotificationsContextValue {
+type BrowserPushNotificationSettingsState = {
+    readonly storedEnabled: boolean | null;
+    readonly resolvedDefaultEnabled: boolean;
+    readonly isLoading: boolean;
+    readonly applyNotificationSettingsSnapshot: (snapshot: UserPushNotificationSettingsSnapshot) => void;
+};
+
+/**
+ * Tracks persisted notification settings and the initial settings bootstrap request.
+ *
+ * @param defaultEnabled - Metadata default used before the first server snapshot arrives.
+ * @returns Loaded settings state plus a snapshot applier shared by mutations.
+ *
+ * @private function of BrowserPushNotificationsProvider
+ */
+function useBrowserPushNotificationSettingsState(defaultEnabled: boolean): BrowserPushNotificationSettingsState {
     const [storedEnabled, setStoredEnabled] = useState<boolean | null>(null);
     const [resolvedDefaultEnabled, setResolvedDefaultEnabled] = useState(defaultEnabled);
     const [isLoading, setIsLoading] = useState(true);
-    const [pendingMutationCount, setPendingMutationCount] = useState(0);
-    const [permission, setPermission] = useState<BrowserPushNotificationPermission>(
-        resolveBrowserPushNotificationPermissionStatus,
-    );
-    const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
-    const [focusedChat, setFocusedChat] = useState<FocusedUserChat | null>(null);
-    const registrationPromiseRef = useRef<Promise<ServiceWorkerRegistration> | null>(null);
-    const subscriptionEndpointRef = useRef<string | null>(null);
-    const hasConsumedAutoPromptRef = useRef(false);
-
-    const isSupported = permission !== 'unsupported';
-    const isConfigured = isMetadataAvailable && Boolean(pushPublicKey);
-    const isEnabled =
-        permission === 'granted' &&
-        isConfigured &&
-        isBrowserPushPreferenceEnabled({
-            storedEnabled,
-            resolvedDefaultEnabled,
-        });
 
     /**
      * Mirrors one loaded or persisted settings snapshot into local React state.
@@ -254,6 +246,131 @@ export function useBrowserPushNotificationsState({
         setStoredEnabled(snapshot.storedEnabled);
         setResolvedDefaultEnabled(snapshot.defaultEnabled);
     }, []);
+
+    useEffect(() => {
+        let isDisposed = false;
+
+        void fetchBrowserPushNotificationSettings()
+            .then((snapshot) => {
+                if (isDisposed) {
+                    return;
+                }
+
+                applyNotificationSettingsSnapshot(snapshot);
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                console.error('[push-notification]', 'settings_load_failed', error);
+                if (!isDisposed) {
+                    setIsLoading(false);
+                }
+            });
+
+        return () => {
+            isDisposed = true;
+        };
+    }, [applyNotificationSettingsSnapshot]);
+
+    return {
+        storedEnabled,
+        resolvedDefaultEnabled,
+        isLoading,
+        applyNotificationSettingsSnapshot,
+    };
+}
+
+/**
+ * Permission state mirrored from the current browser permission plus focus/visibility updates.
+ *
+ * @private function of BrowserPushNotificationsProvider
+ */
+type BrowserPushNotificationPermissionState = {
+    readonly permission: BrowserPushNotificationPermission;
+    readonly setPermission: Dispatch<SetStateAction<BrowserPushNotificationPermission>>;
+};
+
+/**
+ * Keeps React permission state aligned with the current browser notification permission.
+ *
+ * @returns Permission state plus the setter reused by explicit permission requests.
+ *
+ * @private function of BrowserPushNotificationsProvider
+ */
+function useBrowserPushNotificationPermissionState(): BrowserPushNotificationPermissionState {
+    const [permission, setPermission] = useState<BrowserPushNotificationPermission>(
+        resolveBrowserPushNotificationPermissionStatus,
+    );
+
+    useEffect(() => {
+        /**
+         * Mirrors the latest browser permission into React state after focus changes.
+         */
+        const synchronizePermission = (): void => {
+            setPermission(resolveBrowserPushNotificationPermissionStatus());
+        };
+
+        synchronizePermission();
+        if (typeof document === 'undefined' || typeof window === 'undefined') {
+            return;
+        }
+
+        document.addEventListener('visibilitychange', synchronizePermission);
+        window.addEventListener('focus', synchronizePermission);
+
+        return () => {
+            document.removeEventListener('visibilitychange', synchronizePermission);
+            window.removeEventListener('focus', synchronizePermission);
+        };
+    }, []);
+
+    return {
+        permission,
+        setPermission,
+    };
+}
+
+/**
+ * Options for the extracted mutation and subscription orchestration hook.
+ *
+ * @private function of BrowserPushNotificationsProvider
+ */
+type UseBrowserPushNotificationMutationStateProps = {
+    readonly isConfigured: boolean;
+    readonly pushPublicKey: string | null;
+    readonly applyNotificationSettingsSnapshot: (snapshot: UserPushNotificationSettingsSnapshot) => void;
+};
+
+/**
+ * Mutation helpers and subscription state shared by the main browser push hook.
+ *
+ * @private function of BrowserPushNotificationsProvider
+ */
+type BrowserPushNotificationMutationState = {
+    readonly subscriptionId: string | null;
+    readonly isPersisting: boolean;
+    readonly persistNotificationSettings: (enabled: boolean) => Promise<boolean>;
+    readonly removeCurrentBrowserSubscription: () => Promise<void>;
+    readonly synchronizeDeniedPermissionState: () => Promise<void>;
+    readonly ensureCurrentBrowserSubscriptionSynced: () => Promise<boolean>;
+};
+
+/**
+ * Owns service-worker registration, server mutations, and subscription synchronization.
+ *
+ * @param props - Mutation and configuration inputs.
+ * @returns Subscription id, pending state, and focused mutation helpers.
+ *
+ * @private function of BrowserPushNotificationsProvider
+ */
+function useBrowserPushNotificationMutationState({
+    isConfigured,
+    pushPublicKey,
+    applyNotificationSettingsSnapshot,
+}: UseBrowserPushNotificationMutationStateProps): BrowserPushNotificationMutationState {
+    const [pendingMutationCount, setPendingMutationCount] = useState(0);
+    const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
+    const registrationPromiseRef = useRef<Promise<ServiceWorkerRegistration> | null>(null);
+    const subscriptionEndpointRef = useRef<string | null>(null);
 
     /**
      * Increments the mutation counter around one async client/server sync operation.
@@ -391,6 +508,77 @@ export function useBrowserPushNotificationsState({
         return true;
     }, [ensureServiceWorkerRegistration, isConfigured, pushPublicKey, runWithPendingMutation]);
 
+    useEffect(() => {
+        if (!isBrowserPushSupported()) {
+            return;
+        }
+
+        void ensureServiceWorkerRegistration().catch((error) => {
+            console.error('[push-notification]', 'service_worker_register_failed', error);
+        });
+    }, [ensureServiceWorkerRegistration]);
+
+    return {
+        subscriptionId,
+        isPersisting: pendingMutationCount > 0,
+        persistNotificationSettings,
+        removeCurrentBrowserSubscription,
+        synchronizeDeniedPermissionState,
+        ensureCurrentBrowserSubscriptionSynced,
+    };
+}
+
+/**
+ * Props required to build the user-facing browser push action handlers.
+ *
+ * @private function of BrowserPushNotificationsProvider
+ */
+type UseBrowserPushNotificationActionsProps = {
+    readonly isLoading: boolean;
+    readonly isConfigured: boolean;
+    readonly pushPublicKey: string | null;
+    readonly storedEnabled: boolean | null;
+    readonly resolvedDefaultEnabled: boolean;
+    readonly setPermission: Dispatch<SetStateAction<BrowserPushNotificationPermission>>;
+    readonly persistNotificationSettings: (enabled: boolean) => Promise<boolean>;
+    readonly removeCurrentBrowserSubscription: () => Promise<void>;
+    readonly synchronizeDeniedPermissionState: () => Promise<void>;
+    readonly ensureCurrentBrowserSubscriptionSynced: () => Promise<boolean>;
+};
+
+/**
+ * User-facing action handlers returned by the main browser push hook.
+ *
+ * @private function of BrowserPushNotificationsProvider
+ */
+type BrowserPushNotificationActions = {
+    readonly setNotificationsEnabled: (enabled: boolean) => Promise<boolean>;
+    readonly maybePromptAfterUserMessageGesture: () => void;
+    readonly rememberDefaultOffHintShown: () => Promise<boolean>;
+};
+
+/**
+ * Builds the explicit enable/disable actions plus the automatic prompt and hint flows.
+ *
+ * @param props - State and mutation helpers needed by the user-facing actions.
+ * @returns Focused action handlers for browser push UI interactions.
+ *
+ * @private function of BrowserPushNotificationsProvider
+ */
+function useBrowserPushNotificationActions({
+    isLoading,
+    isConfigured,
+    pushPublicKey,
+    storedEnabled,
+    resolvedDefaultEnabled,
+    setPermission,
+    persistNotificationSettings,
+    removeCurrentBrowserSubscription,
+    synchronizeDeniedPermissionState,
+    ensureCurrentBrowserSubscriptionSynced,
+}: UseBrowserPushNotificationActionsProps): BrowserPushNotificationActions {
+    const hasConsumedAutoPromptRef = useRef(false);
+
     /**
      * Prompts the user for permission and enables notifications when possible.
      *
@@ -439,6 +627,7 @@ export function useBrowserPushNotificationsState({
             isConfigured,
             persistNotificationSettings,
             pushPublicKey,
+            setPermission,
             synchronizeDeniedPermissionState,
         ],
     );
@@ -507,63 +696,27 @@ export function useBrowserPushNotificationsState({
         return true;
     }, [isConfigured, isLoading, persistNotificationSettings, resolvedDefaultEnabled, storedEnabled]);
 
-    useEffect(() => {
-        if (!isBrowserPushSupported()) {
-            setIsLoading(false);
-            return;
-        }
+    return {
+        setNotificationsEnabled,
+        maybePromptAfterUserMessageGesture,
+        rememberDefaultOffHintShown,
+    };
+}
 
-        void ensureServiceWorkerRegistration().catch((error) => {
-            console.error('[push-notification]', 'service_worker_register_failed', error);
-        });
-    }, [ensureServiceWorkerRegistration]);
-
-    useEffect(() => {
-        /**
-         * Mirrors the latest browser permission into React state after focus changes.
-         */
-        const synchronizePermission = (): void => {
-            setPermission(resolveBrowserPushNotificationPermissionStatus());
-        };
-
-        synchronizePermission();
-        if (typeof document === 'undefined' || typeof window === 'undefined') {
-            return;
-        }
-
-        document.addEventListener('visibilitychange', synchronizePermission);
-        window.addEventListener('focus', synchronizePermission);
-
-        return () => {
-            document.removeEventListener('visibilitychange', synchronizePermission);
-            window.removeEventListener('focus', synchronizePermission);
-        };
-    }, []);
-
-    useEffect(() => {
-        let isDisposed = false;
-
-        void fetchBrowserPushNotificationSettings()
-            .then((snapshot) => {
-                if (isDisposed) {
-                    return;
-                }
-
-                applyNotificationSettingsSnapshot(snapshot);
-                setIsLoading(false);
-            })
-            .catch((error) => {
-                console.error('[push-notification]', 'settings_load_failed', error);
-                if (!isDisposed) {
-                    setIsLoading(false);
-                }
-            });
-
-        return () => {
-            isDisposed = true;
-        };
-    }, [applyNotificationSettingsSnapshot]);
-
+/**
+ * Ensures enabled browser push settings always have one matching server-side subscription.
+ *
+ * @param isLoading - Whether the initial settings request is still pending.
+ * @param isEnabled - Whether notifications are currently enabled for this browser user.
+ * @param ensureCurrentBrowserSubscriptionSynced - Subscription synchronization helper.
+ *
+ * @private function of BrowserPushNotificationsProvider
+ */
+function useBrowserPushEnabledSubscriptionEffect(
+    isLoading: boolean,
+    isEnabled: boolean,
+    ensureCurrentBrowserSubscriptionSynced: () => Promise<boolean>,
+): void {
     useEffect(() => {
         if (isLoading || !isEnabled) {
             return;
@@ -573,7 +726,26 @@ export function useBrowserPushNotificationsState({
             notifyError(resolveBrowserPushErrorMessage(error, 'Failed to initialize browser notifications.'));
         });
     }, [ensureCurrentBrowserSubscriptionSynced, isEnabled, isLoading]);
+}
 
+/**
+ * Keeps persisted settings consistent after the browser permission is denied outside the app.
+ *
+ * @param isLoading - Whether the initial settings request is still pending.
+ * @param permission - Current browser notification permission.
+ * @param storedEnabled - Explicit stored user preference, when present.
+ * @param resolvedDefaultEnabled - Metadata default used when the user has not chosen yet.
+ * @param synchronizeDeniedPermissionState - Cleanup helper for denied permission state.
+ *
+ * @private function of BrowserPushNotificationsProvider
+ */
+function useBrowserPushDeniedPermissionCleanupEffect(
+    isLoading: boolean,
+    permission: BrowserPushNotificationPermission,
+    storedEnabled: boolean | null,
+    resolvedDefaultEnabled: boolean,
+    synchronizeDeniedPermissionState: () => Promise<void>,
+): void {
     useEffect(() => {
         if (
             !isDeniedBrowserPushCleanupNeeded({
@@ -588,6 +760,67 @@ export function useBrowserPushNotificationsState({
 
         void synchronizeDeniedPermissionState();
     }, [isLoading, permission, resolvedDefaultEnabled, storedEnabled, synchronizeDeniedPermissionState]);
+}
+
+/**
+ * Drives browser push settings, permission state, subscription sync, and focused-chat heartbeats.
+ *
+ * @private function of BrowserPushNotificationsProvider
+ */
+export function useBrowserPushNotificationsState({
+    defaultEnabled,
+    pushPublicKey,
+    isMetadataAvailable,
+}: UseBrowserPushNotificationsStateProps): BrowserPushNotificationsContextValue {
+    const [focusedChat, setFocusedChat] = useState<FocusedUserChat | null>(null);
+    const { permission, setPermission } = useBrowserPushNotificationPermissionState();
+    const { storedEnabled, resolvedDefaultEnabled, isLoading, applyNotificationSettingsSnapshot } =
+        useBrowserPushNotificationSettingsState(defaultEnabled);
+
+    const isConfigured = isMetadataAvailable && Boolean(pushPublicKey);
+    const {
+        subscriptionId,
+        isPersisting,
+        persistNotificationSettings,
+        removeCurrentBrowserSubscription,
+        synchronizeDeniedPermissionState,
+        ensureCurrentBrowserSubscriptionSynced,
+    } = useBrowserPushNotificationMutationState({
+        isConfigured,
+        pushPublicKey,
+        applyNotificationSettingsSnapshot,
+    });
+    const { setNotificationsEnabled, maybePromptAfterUserMessageGesture, rememberDefaultOffHintShown } =
+        useBrowserPushNotificationActions({
+            isLoading,
+            isConfigured,
+            pushPublicKey,
+            storedEnabled,
+            resolvedDefaultEnabled,
+            setPermission,
+            persistNotificationSettings,
+            removeCurrentBrowserSubscription,
+            synchronizeDeniedPermissionState,
+            ensureCurrentBrowserSubscriptionSynced,
+        });
+
+    const isSupported = permission !== 'unsupported';
+    const isEnabled =
+        permission === 'granted' &&
+        isConfigured &&
+        isBrowserPushPreferenceEnabled({
+            storedEnabled,
+            resolvedDefaultEnabled,
+        });
+
+    useBrowserPushEnabledSubscriptionEffect(isLoading, isEnabled, ensureCurrentBrowserSubscriptionSynced);
+    useBrowserPushDeniedPermissionCleanupEffect(
+        isLoading,
+        permission,
+        storedEnabled,
+        resolvedDefaultEnabled,
+        synchronizeDeniedPermissionState,
+    );
 
     useBrowserPushFocusedChatSync({
         focusedChat,
@@ -601,7 +834,7 @@ export function useBrowserPushNotificationsState({
             isConfigured,
             permission,
             isLoading,
-            isPersisting: pendingMutationCount > 0,
+            isPersisting,
             isEnabled,
             storedEnabled,
             defaultEnabled: resolvedDefaultEnabled,
@@ -615,7 +848,7 @@ export function useBrowserPushNotificationsState({
             isConfigured,
             permission,
             isLoading,
-            pendingMutationCount,
+            isPersisting,
             isEnabled,
             storedEnabled,
             resolvedDefaultEnabled,
