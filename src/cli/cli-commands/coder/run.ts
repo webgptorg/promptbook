@@ -32,6 +32,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
 
             Features:
             - Automatically stages and commits changes with agent identity
+            - Optional post-commit git push with explicit --auto-push opt-in
             - Supports GPG signing of commits
             - Optional post-prompt verification with test-feedback retries
             - Progress tracking and interactive controls
@@ -79,7 +80,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
         '--no-normalize-line-endings',
         'Disable automatic LF normalization for files changed in each coding round',
     );
-    command.option('--no-push', 'Disable automatic git push after each commit');
+    command.option('--auto-push', 'Automatically git push after each commit', false);
     command.option(
         '--auto-migrate',
         'Run testing-server database migrations automatically after each successfully processed prompt',
@@ -105,7 +106,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 normalizeLineEndings,
                 autoMigrate,
                 allowDestructiveAutoMigrate,
-                push,
+                autoPush,
             } = cliOptions as {
                 readonly dryRun: boolean;
                 readonly agent?: string;
@@ -120,7 +121,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 readonly normalizeLineEndings: boolean;
                 readonly autoMigrate: boolean;
                 readonly allowDestructiveAutoMigrate: boolean;
-                readonly push: boolean;
+                readonly autoPush: boolean;
             };
 
             const testCommand = normalizeCommandOptionValue(test);
@@ -179,7 +180,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 allowCredits,
                 autoMigrate,
                 allowDestructiveAutoMigrate,
-                noPush: !push,
+                autoPush,
             };
 
             // Note: Import the function dynamically to avoid loading heavy dependencies until needed

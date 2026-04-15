@@ -482,6 +482,7 @@ Prompts marked with `[-]` are not ready yet, prompts containing `@@@` are treate
 -   **Reasoning control:** `--thinking-level low|medium|high|xhigh` for supported runners
 -   **Interactive or unattended runs:** default wait mode, or `--no-wait` for batch execution
 -   **Git safety:** clean working tree check by default, optional `--ignore-git-changes`
+-   **Opt-in remote pushes:** commits stay local unless you explicitly pass `--auto-push`
 -   **Prompt triage:** `--priority` to process only more important tasks first
 -   **Failure logging:** failed runs write a neighboring `.error.log`
 -   **Line-ending normalization:** changed files are normalized back to LF by default
@@ -498,6 +499,8 @@ npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --template prompt
 npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --template prompts/templates/agents-server.md
 
 npx ts-node ./src/cli/test/ptbk.ts coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md
+
+npx ts-node ./src/cli/test/ptbk.ts coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --auto-push
 
 npx ts-node ./src/cli/test/ptbk.ts coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --ignore-git-changes --no-wait
 
@@ -523,6 +526,8 @@ npx ptbk coder generate-boilerplates --template prompts/templates/common.md
 
 npx ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --test npm run test
 
+npx ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --auto-push
+
 npx ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --test npm run test --ignore-git-changes --no-wait
 
 npx ptbk coder find-refactor-candidates
@@ -540,7 +545,7 @@ npx ptbk coder verify
 | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- | ------ | ---- | ----- | ------------------------------------------------------------------------ |
 | `ptbk coder init`                     | Creates `prompts/`, `prompts/done/`, the project-generic template files materialized in `prompts/templates/` (currently `common.md`), and a starter `AGENTS.md`; ensures `.env` contains `CODING_AGENT_GIT_NAME`, `CODING_AGENT_GIT_EMAIL`, and `CODING_AGENT_GIT_SIGNING_KEY`; adds helper coder scripts to `package.json`; ensures `.gitignore` contains `/.tmp`; and configures `.vscode/settings.json` to save pasted prompt images into `prompts/screenshots/`. |
 | `ptbk coder generate-boilerplates`    | Creates new prompt markdown files with fresh emoji tags so you can quickly fill in coding tasks; `--template` accepts either a built-in alias or a markdown file path relative to the project root.                                                                                                                                                                                                                                                                  |
-| `ptbk coder run`                      | Picks the next ready prompt, appends optional context, runs it through the selected coding agent, can optionally verify each attempt with a shell test command and feed failing output back for retries, then marks success or failure and commits and pushes the result.                                                                                                                                                                                                 |
+| `ptbk coder run`                      | Picks the next ready prompt, appends optional context, runs it through the selected coding agent, can optionally verify each attempt with a shell test command and feed failing output back for retries, then marks success or failure, commits the result, and pushes only when `--auto-push` is enabled.                                                                                                                                                             |
 | `ptbk coder find-refactor-candidates` | Scans the repository for oversized or overpacked files and writes prompt files for likely refactors; `--level <xlow                                                                                                                                                                                                                                                                                                                                                  | low | medium | high | xhigh | extreme>` ranges from a very benevolent scan to a very aggressive sweep. |
 | `ptbk coder verify`                   | Walks through completed prompts, archives truly finished work, and adds follow-up repair prompts for unfinished results.                                                                                                                                                                                                                                                                                                                                             |
 
@@ -558,6 +563,7 @@ npx ptbk coder verify
 | `--priority <n>`           | Runs only prompts at or above the given priority.                                                  |
 | `--dry-run`                | Prints which prompts are ready instead of executing them.                                          |
 | `--allow-credits`          | Lets OpenAI Codex spend credits when required.                                                     |
+| `--auto-push`              | Pushes each successful coding-agent commit to the configured remote.                               |
 | `--auto-migrate`           | Runs testing-server database migrations after each successful prompt.                              |
 
 #### Typical usage pattern

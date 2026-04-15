@@ -390,7 +390,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                     uiHandle?.state.resumeTimer();
                 }
 
-                await commitChanges(commitMessage, { noPush: options.noPush });
+                await commitChanges(commitMessage, { autoPush: options.autoPush });
                 await runPostPromptAutoMigrationIfEnabled(options);
             } catch (error) {
                 uiHandle?.stopCapturingAgentOutput();

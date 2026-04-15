@@ -51,6 +51,22 @@ const HOME_REQUEST_TIMEOUT_MS = 30000;
 const IS_STRICT_PRERENDER_ENABLED = process.env.PRERENDER_HOMEPAGE_STRICT === 'true';
 
 /**
+ * Detects child-process termination errors that can be safely ignored during cleanup.
+ *
+ * Windows can report `EPERM` when the child is already shutting down, so cleanup must stay best-effort.
+ *
+ * @param error - Unknown kill failure thrown by Node.
+ * @returns Whether the error should be ignored.
+ */
+function isIgnorableStopServerError(error) {
+    return (
+        error instanceof Error &&
+        'code' in error &&
+        (error.code === 'EPERM' || error.code === 'ESRCH')
+    );
+}
+
+/**
  * Waits for `next start` to report that it is ready to serve requests.
  *
  * HTTP probes are intentionally avoided here because the Agents Server middleware
@@ -137,9 +153,22 @@ async function prerenderHomePage() {
 
     let aborted = false;
     const stopServer = () => {
-        if (!aborted) {
-            aborted = true;
+        if (aborted) {
+            return;
+        }
+
+        aborted = true;
+
+        if (serverProcess.exitCode !== null || serverProcess.signalCode !== null) {
+            return;
+        }
+
+        try {
             serverProcess.kill();
+        } catch (error) {
+            if (!isIgnorableStopServerError(error)) {
+                throw error;
+            }
         }
     };
 

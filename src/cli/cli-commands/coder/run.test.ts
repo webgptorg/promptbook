@@ -64,6 +64,32 @@ describe('$initializeCoderRunCommand', () => {
         );
     });
 
+    it('defaults autoPush to false when --auto-push is omitted', async () => {
+        const program = createProgramWithRunCommand();
+
+        await program.parseAsync(['node', 'test', 'run', '--dry-run'], { from: 'node' });
+
+        expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                dryRun: true,
+                autoPush: false,
+            }),
+        );
+    });
+
+    it('passes autoPush as true when --auto-push is provided', async () => {
+        const program = createProgramWithRunCommand();
+
+        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--auto-push'], { from: 'node' });
+
+        expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                dryRun: true,
+                autoPush: true,
+            }),
+        );
+    });
+
     it('passes thinkingLevel through when provided', async () => {
         const program = createProgramWithRunCommand();
 

@@ -7,9 +7,9 @@ import { runGitCommand } from './runGitCommand';
 
 /**
  * Commits staged changes with the provided message using the dedicated coding-agent identity when configured,
- * otherwise falls back to the default Git configuration.
+ * otherwise falls back to the default Git configuration. Remote pushing is opt-in via `options.autoPush`.
  */
-export async function commitChanges(message: string, options?: { noPush?: boolean }): Promise<void> {
+export async function commitChanges(message: string, options?: { autoPush?: boolean }): Promise<void> {
     const projectPath = process.cwd();
     const commitMessagePath = join(projectPath, '.tmp', 'codex-prompts', `COMMIT_MESSAGE_${Date.now()}.txt`);
     await mkdir(dirname(commitMessagePath), { recursive: true });
@@ -30,7 +30,7 @@ export async function commitChanges(message: string, options?: { noPush?: boolea
             env: agentEnv,
         });
 
-        if (!options?.noPush) {
+        if (options?.autoPush) {
             await pushCommittedChanges(projectPath, agentEnv);
         }
     } finally {

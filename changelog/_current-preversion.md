@@ -1,3 +1,8 @@
+-   Changed `ptbk coder run` / `scripts/run-codex-prompts` git pushing to opt-in mode, so coding-agent runs now keep commits local by default and only push when `--auto-push` is explicitly provided:
+
+    -   Replaced the old disable-style `--no-push` flag with the clearer `--auto-push` opt-in flag across the CLI wrapper, legacy option parser, and shared runner options.
+    -   Updated coder documentation and examples to describe the safer default and the explicit push workflow.
+
 -   Added a dedicated Agents Server limits configuration surface so operational quotas no longer live only in metadata blobs and hardcoded constants:
 
     -   Added the new `ServerLimit` database table plus shared `constants/serverLimits.ts` and `utils/serverLimits.ts` helpers so defaults, validation, deprecated metadata mapping, and runtime reads stay DRY.

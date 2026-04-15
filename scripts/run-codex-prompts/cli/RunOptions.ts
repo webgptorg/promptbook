@@ -42,9 +42,9 @@ export type RunOptions = {
      */
     allowDestructiveAutoMigrate: boolean;
     /**
-     * When true, skip pushing after each commit.
+     * When true, push each successful coding-agent commit to the configured remote.
      */
-    noPush: boolean;
+    autoPush: boolean;
     agentName?: 'openai-codex' | 'github-copilot' | 'cline' | 'claude-code' | 'opencode' | 'gemini';
     model?: string;
     /**

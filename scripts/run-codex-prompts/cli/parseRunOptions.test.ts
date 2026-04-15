@@ -30,6 +30,7 @@ describe('parseRunOptions', () => {
             dryRun: false,
             agentName: 'gemini',
             priority: 0,
+            autoPush: false,
             normalizeLineEndings: true,
             allowCredits: false,
             autoMigrate: false,
@@ -45,6 +46,7 @@ describe('parseRunOptions', () => {
             agentName: 'github-copilot',
             model: 'gpt-5.4',
             priority: 0,
+            autoPush: false,
             normalizeLineEndings: true,
             allowCredits: false,
             autoMigrate: false,
@@ -59,6 +61,7 @@ describe('parseRunOptions', () => {
             dryRun: true,
             agentName: undefined,
             priority: 0,
+            autoPush: false,
             normalizeLineEndings: true,
             allowCredits: false,
             autoMigrate: false,
@@ -84,6 +87,7 @@ describe('parseRunOptions', () => {
             dryRun: false,
             waitForUser: false,
             ignoreGitChanges: true,
+            autoPush: false,
             normalizeLineEndings: true,
             allowCredits: false,
             autoMigrate: false,
@@ -101,6 +105,7 @@ describe('parseRunOptions', () => {
         expect(options).toMatchObject({
             dryRun: false,
             agentName: 'gemini',
+            autoPush: false,
             context: 'Follow AGENTS instructions',
             normalizeLineEndings: true,
         });
@@ -120,6 +125,7 @@ describe('parseRunOptions', () => {
         expect(options).toMatchObject({
             dryRun: false,
             agentName: 'github-copilot',
+            autoPush: false,
             testCommand: 'npm run test',
             waitForUser: false,
         });
@@ -131,6 +137,7 @@ describe('parseRunOptions', () => {
         expect(options).toMatchObject({
             dryRun: false,
             agentName: 'github-copilot',
+            autoPush: false,
             thinkingLevel: 'xhigh',
             normalizeLineEndings: true,
         });
@@ -143,10 +150,21 @@ describe('parseRunOptions', () => {
             dryRun: true,
             waitForUser: false,
             priority: 2,
+            autoPush: false,
             normalizeLineEndings: true,
             allowCredits: false,
             autoMigrate: false,
             allowDestructiveAutoMigrate: false,
+        });
+    });
+
+    it('enables automatic git push only when --auto-push is provided', () => {
+        const options = parseRunOptions(['--agent', 'github-copilot', '--auto-push']);
+
+        expect(options).toMatchObject({
+            dryRun: false,
+            agentName: 'github-copilot',
+            autoPush: true,
         });
     });
 
@@ -156,6 +174,7 @@ describe('parseRunOptions', () => {
         expect(options).toMatchObject({
             dryRun: false,
             agentName: 'gemini',
+            autoPush: false,
             normalizeLineEndings: false,
             allowCredits: false,
             autoMigrate: false,
@@ -169,6 +188,7 @@ describe('parseRunOptions', () => {
         expect(options).toMatchObject({
             dryRun: false,
             agentName: 'openai-codex',
+            autoPush: false,
             allowCredits: true,
             autoMigrate: false,
             allowDestructiveAutoMigrate: false,
@@ -181,6 +201,7 @@ describe('parseRunOptions', () => {
         expect(options).toMatchObject({
             dryRun: false,
             agentName: 'openai-codex',
+            autoPush: false,
             autoMigrate: true,
             allowDestructiveAutoMigrate: false,
         });
@@ -197,6 +218,7 @@ describe('parseRunOptions', () => {
         expect(options).toMatchObject({
             dryRun: false,
             agentName: 'openai-codex',
+            autoPush: false,
             autoMigrate: true,
             allowDestructiveAutoMigrate: true,
         });

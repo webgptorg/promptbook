@@ -7,7 +7,7 @@ import type { RunOptions } from './RunOptions';
  * CLI usage text for this script.
  */
 const USAGE =
-    'Usage: run-codex-prompts [--dry-run] [--agent <agent-name>] [--model <model>] [--context <context-or-file>] [--test <test-command...>] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--no-wait] [--ignore-git-changes] [--no-normalize-line-endings] [--no-push]';
+    'Usage: run-codex-prompts [--dry-run] [--agent <agent-name>] [--model <model>] [--context <context-or-file>] [--test <test-command...>] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--no-wait] [--ignore-git-changes] [--no-normalize-line-endings] [--auto-push]';
 
 /**
  * Top-level flags supported by this command.
@@ -26,7 +26,7 @@ const KNOWN_OPTION_FLAGS = new Set([
     '--no-wait',
     '--ignore-git-changes',
     '--no-normalize-line-endings',
-    '--no-push',
+    '--auto-push',
 ]);
 
 /**
@@ -65,7 +65,7 @@ export function parseRunOptions(args: string[]): RunOptions {
     const allowCredits = args.includes('--allow-credits');
     const autoMigrate = args.includes('--auto-migrate');
     const allowDestructiveAutoMigrate = args.includes('--allow-destructive-auto-migrate');
-    const noPush = args.includes('--no-push');
+    const autoPush = args.includes('--auto-push');
     let thinkingLevel: ThinkingLevel | undefined;
 
     if (hasTestCommandFlag && testCommand === undefined) {
@@ -100,7 +100,7 @@ export function parseRunOptions(args: string[]): RunOptions {
         allowCredits,
         autoMigrate,
         allowDestructiveAutoMigrate,
-        noPush,
+        autoPush,
         agentName,
         model,
         context,

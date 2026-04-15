@@ -1,6 +1,6 @@
 # run-codex-prompts
 
-`run-codex-prompts.ts` drives the Coding Agent workflow. It loads the `prompts/` tasks, runs them through the selected model runner (OpenAI, Gemini, Claude, etc.), and automatically writes, stages, and commits the generated files.
+`run-codex-prompts.ts` drives the Coding Agent workflow. It loads the `prompts/` tasks, runs them through the selected model runner (OpenAI, Gemini, Claude, etc.), and automatically writes, stages, commits, and optionally pushes the generated files.
 
 ## Usage
 
@@ -30,6 +30,7 @@ npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-code
 --thinking-level <level>      # Reasoning effort for OpenAI Codex and GitHub Copilot: low, medium, high, xhigh
 --priority <minimum-priority> # Filter prompts by minimum priority level (default: 0)
 --allow-credits               # Allow OpenAI Codex runner to spend credits when limits are exhausted
+--auto-push                  # Push each successful commit to the configured remote
 --auto-migrate                # Run testing-server DB migrations after each successful prompt
 --allow-destructive-auto-migrate # Override destructive SQL heuristic guard in auto-migrate mode
 --no-wait                     # Skip user prompts between processing
@@ -56,6 +57,9 @@ ptbk coder run --agent openai-codex --model gpt-5.2-codex --context "Focus only 
 
 # Run with OpenAI Codex and explicitly allow credit spending
 ptbk coder run --agent openai-codex --model gpt-5.2-codex --allow-credits
+
+# Run with explicit post-commit git pushing
+ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --auto-push
 
 # Run with GitHub Copilot
 ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --no-wait

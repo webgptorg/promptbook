@@ -94,6 +94,17 @@ describe('commitChanges', () => {
         jest.resetAllMocks();
     });
 
+    it('does not push by default when autoPush is not enabled', async () => {
+        const execMock = getExecCommandMock();
+        execMock.mockImplementation(async () => okResult());
+
+        await commitChanges('test commit');
+
+        const calledCommands = getCalledCommands(execMock);
+        expect(calledCommands).not.toContain('git push');
+        expect(calledCommands).not.toContain('git rev-parse --abbrev-ref --symbolic-full-name @{upstream}');
+    });
+
     it('pushes to upstream branch after commit when there are outgoing commits', async () => {
         const execMock = getExecCommandMock();
         execMock.mockImplementation(async (options) => {
@@ -110,7 +121,7 @@ describe('commitChanges', () => {
             return okResult();
         });
 
-        await commitChanges('test commit');
+        await commitChanges('test commit', { autoPush: true });
 
         const calledCommands = getCalledCommands(execMock);
         expect(calledCommands).toContain('git push');
@@ -132,7 +143,7 @@ describe('commitChanges', () => {
             return okResult();
         });
 
-        await commitChanges('test commit');
+        await commitChanges('test commit', { autoPush: true });
 
         const calledCommands = getCalledCommands(execMock);
         expect(calledCommands).not.toContain('git push');
@@ -166,7 +177,7 @@ describe('commitChanges', () => {
             return okResult();
         });
 
-        await commitChanges('test commit');
+        await commitChanges('test commit', { autoPush: true });
 
         const calledCommands = getCalledCommands(execMock);
         expect(calledCommands).toContain('git push --set-upstream "origin" "feature/auto-push"');
@@ -192,7 +203,7 @@ describe('commitChanges', () => {
             return okResult();
         });
 
-        await expect(commitChanges('test commit')).rejects.toThrow(
+        await expect(commitChanges('test commit', { autoPush: true })).rejects.toThrow(
             /Failed to push coding-agent commit to the remote repository\.[\s\S]*Local branch is behind remote history\./,
         );
     });
@@ -216,7 +227,7 @@ describe('commitChanges', () => {
             return okResult();
         });
 
-        await commitChanges('test commit');
+        await commitChanges('test commit', { autoPush: true });
 
         const calledCommands = getCalledCommands(execMock);
         const commitCommand = calledCommands.find((command) => command.startsWith('git commit '));
@@ -263,7 +274,7 @@ describe('commitChanges', () => {
             return okResult();
         });
 
-        await commitChanges('test commit');
+        await commitChanges('test commit', { autoPush: true });
 
         const calledCommands = getCalledCommands(execMock);
         expect(calledCommands.filter((command) => command === 'git add .')).toHaveLength(2);
@@ -312,7 +323,7 @@ describe('commitChanges', () => {
             return okResult();
         });
 
-        await commitChanges('test commit');
+        await commitChanges('test commit', { autoPush: true });
 
         const calledCommands = getCalledCommands(execMock);
         expect(calledCommands.filter((command) => command.startsWith('git commit '))).toHaveLength(2);
