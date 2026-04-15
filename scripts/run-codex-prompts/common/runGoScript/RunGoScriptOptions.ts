@@ -11,4 +11,9 @@ export type RunGoScriptOptions = {
      * Content of the temporary script file.
      */
     scriptContent: string;
+
+    /**
+     * Optional path to a live runtime log file that mirrors raw shell input/output during execution.
+     */
+    logPath?: string;
 };

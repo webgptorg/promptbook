@@ -5,4 +5,5 @@ export type PromptRunOptions = {
     prompt: string;
     scriptPath: string;
     projectPath: string;
+    logPath?: string;
 };

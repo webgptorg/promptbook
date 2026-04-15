@@ -9,6 +9,7 @@ type RunPromptTestCommandOptions = {
     command: string;
     projectPath: string;
     scriptPath: string;
+    logPath?: string;
 };
 
 /**
@@ -23,5 +24,6 @@ export async function runPromptTestCommand(options: RunPromptTestCommandOptions)
             cd "${projectPath}"
             ${options.command}
         `),
+        logPath: options.logPath,
     });
 }

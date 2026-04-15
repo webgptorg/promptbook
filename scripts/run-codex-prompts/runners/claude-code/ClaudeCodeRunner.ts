@@ -27,6 +27,7 @@ export class ClaudeCodeRunner implements PromptRunner {
         const output = await $runGoScriptWithOutput({
             scriptPath: options.scriptPath,
             scriptContent,
+            logPath: options.logPath,
         });
 
         const usage = parseClaudeCodeJsonOutput(output);

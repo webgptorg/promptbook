@@ -1,5 +1,10 @@
 import { spawn } from 'child_process';
 import type { RunScriptUntilMarkerIdleOptions } from './RunScriptUntilMarkerIdleOptions';
+import {
+    appendScriptExecutionLogFinish,
+    appendScriptExecutionLogStart,
+    buildLoggedBashExecution,
+} from './scriptExecutionLog';
 import { toPosixPath } from './toPosixPath';
 
 /**
@@ -39,15 +44,32 @@ function buildCommandFailureMessage(scriptPathPosix: string, code: number | null
 export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdleOptions): Promise<string> {
     const { scriptPath, completionLineMatcher, idleTimeoutMs } = options;
     const scriptPathPosix = toPosixPath(scriptPath);
+    await appendScriptExecutionLogStart(options);
+    const bashExecution = buildLoggedBashExecution(scriptPath, options.logPath);
 
     return await new Promise<string>((resolve, reject) => {
-        const commandProcess = spawn('bash', [scriptPathPosix], { env: process.env });
+        const commandProcess = spawn('bash', bashExecution.args, {
+            env: bashExecution.env ? { ...process.env, ...bashExecution.env } : process.env,
+        });
         let stdoutBuffer = '';
         let stderrBuffer = '';
         let fullOutput = '';
         let markerSeen = false;
         let idleTimer: NodeJS.Timeout | undefined;
         let settled = false;
+        let isSettling = false;
+
+        /**
+         * Appends the final log footer before settling.
+         */
+        const finishLog = async (status: string, details?: unknown): Promise<void> => {
+            await appendScriptExecutionLogFinish({
+                scriptPath,
+                logPath: options.logPath,
+                status,
+                details,
+            });
+        };
 
         /**
          * Ensures the promise settles only once.
@@ -65,6 +87,20 @@ export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdle
         };
 
         /**
+         * Appends the final log footer and settles the promise exactly once.
+         */
+        const settleWithLog = (status: string, handler: () => void, details?: unknown): void => {
+            if (isSettling || settled) {
+                return;
+            }
+
+            isSettling = true;
+            void finishLog(status, details).finally(() => {
+                settleOnce(handler);
+            });
+        };
+
+        /**
          * Resets the idle timer that triggers termination after inactivity.
          */
         const scheduleIdleExit = (): void => {
@@ -73,7 +109,7 @@ export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdle
             }
             idleTimer = setTimeout(() => {
                 commandProcess.kill();
-                settleOnce(() => resolve(fullOutput));
+                settleWithLog('completed after idle timeout', () => resolve(fullOutput));
             }, idleTimeoutMs);
         };
 
@@ -130,28 +166,31 @@ export async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdle
          * Handles process exit and resolves or rejects accordingly.
          */
         const handleExit = (code: number | null): void => {
-            settleOnce(() => {
-                if (code === 0 || markerSeen) {
+            const failure =
+                code === 0 || markerSeen ? undefined : new Error(buildCommandFailureMessage(scriptPathPosix, code, fullOutput));
+            const status = failure ? `failed with exit code ${code ?? 'unknown'}` : 'succeeded';
+
+            settleWithLog(status, () => {
+                if (!failure) {
                     resolve(fullOutput);
                     return;
                 }
-                reject(new Error(buildCommandFailureMessage(scriptPathPosix, code, fullOutput)));
+
+                reject(failure);
             });
         };
 
         commandProcess.on('close', handleExit);
         commandProcess.on('exit', handleExit);
         commandProcess.on('disconnect', () => {
-            settleOnce(() => {
-                reject(new Error(buildCommandFailureMessage(scriptPathPosix, null, fullOutput)));
-            });
+            const failure = new Error(buildCommandFailureMessage(scriptPathPosix, null, fullOutput));
+            settleWithLog('failed after disconnect', () => reject(failure), failure);
         });
         commandProcess.on('error', (error) => {
-            settleOnce(() => {
-                const outputSnippet = createOutputSnippet(fullOutput);
-                const details = outputSnippet ? `\n\n${outputSnippet}` : '';
-                reject(new Error(`Command "bash ${scriptPathPosix}" failed: ${error.message}${details}`));
-            });
+            const outputSnippet = createOutputSnippet(fullOutput);
+            const details = outputSnippet ? `\n\n${outputSnippet}` : '';
+            const failure = new Error(`Command "bash ${scriptPathPosix}" failed: ${error.message}${details}`);
+            settleWithLog('failed before completion', () => reject(failure), failure);
         });
     });
 }

@@ -10,8 +10,10 @@ export async function $runGoScriptUntilMarkerIdle(options: RunGoScriptUntilMarke
     return await withTempScript(options, async (scriptPath) => {
         return await runScriptUntilMarkerIdle({
             scriptPath,
+            scriptContent: options.scriptContent,
             completionLineMatcher: options.completionLineMatcher,
             idleTimeoutMs: options.idleTimeoutMs,
+            logPath: options.logPath,
         });
     });
 }

@@ -31,6 +31,7 @@ export class OpencodeRunner implements PromptRunner {
             output = await $runGoScriptWithOutput({
                 scriptPath: options.scriptPath,
                 scriptContent,
+                logPath: options.logPath,
             });
         } catch (error) {
             if (error instanceof Error) {

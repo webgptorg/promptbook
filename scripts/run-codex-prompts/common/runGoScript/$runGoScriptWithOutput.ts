@@ -1,6 +1,5 @@
-import { $execCommand } from '../../../../src/utils/execCommand/$execCommand';
 import type { RunGoScriptOptions } from './RunGoScriptOptions';
-import { toPosixPath } from './toPosixPath';
+import { runBashScriptWithOutput } from './runBashScriptWithOutput';
 import { withTempScript } from './withTempScript';
 
 /**
@@ -8,9 +7,9 @@ import { withTempScript } from './withTempScript';
  */
 export async function $runGoScriptWithOutput(options: RunGoScriptOptions): Promise<string> {
     return await withTempScript(options, async (scriptPath) => {
-        return await $execCommand({
-            command: `bash "${toPosixPath(scriptPath)}"`,
-            isVerbose: true, // <- Note: Proxy the raw command output to the console
+        return await runBashScriptWithOutput({
+            ...options,
+            scriptPath,
         });
     });
 }

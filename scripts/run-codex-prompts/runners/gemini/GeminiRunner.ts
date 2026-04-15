@@ -34,6 +34,7 @@ export class GeminiRunner implements PromptRunner {
         const output = await $runGoScriptWithOutput({
             scriptPath: options.scriptPath,
             scriptContent,
+            logPath: options.logPath,
         });
 
         const usage = parseGeminiUsageFromOutput(output, options.prompt, this.options.model);

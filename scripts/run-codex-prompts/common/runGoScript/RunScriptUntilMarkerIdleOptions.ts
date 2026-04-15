@@ -8,6 +8,11 @@ export type RunScriptUntilMarkerIdleOptions = {
     scriptPath: string;
 
     /**
+     * Content of the temporary script file.
+     */
+    scriptContent: string;
+
+    /**
      * Matches a line that marks the completion of the command.
      */
     completionLineMatcher: RegExp;
@@ -16,4 +21,9 @@ export type RunScriptUntilMarkerIdleOptions = {
      * Time to wait for additional output after the completion marker.
      */
     idleTimeoutMs: number;
+
+    /**
+     * Optional path to a live runtime log file that mirrors raw shell input/output during execution.
+     */
+    logPath?: string;
 };

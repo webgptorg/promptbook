@@ -41,6 +41,7 @@ export class ClineRunner implements PromptRunner {
             await $runGoScript({
                 scriptPath: options.scriptPath,
                 scriptContent,
+                logPath: options.logPath,
             });
 
             return { usage: UNCERTAIN_USAGE };

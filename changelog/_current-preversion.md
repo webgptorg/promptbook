@@ -1,3 +1,9 @@
+-   Added live temporary `.log.txt` shell tracing to `ptbk coder run`, so each prompt round now writes the raw runner/test shell input and streamed output into a sibling debug log such as `prompt-1.log.txt` while the agent is running and then deletes that log again after the round finishes:
+
+    -   Routed both the main runner shell and the optional verification `.test.sh` shell through one shared runtime-log pipeline so the log file updates progressively in real time for debugging without duplicating shell-runner logic.
+    -   Scoped the new log file lifecycle to a single prompt-processing round, matching the existing temporary shell artifacts and cleaning it up after both successful and failed runs.
+    -   Hardened shared temp-shell cleanup so `.sh` / `.test.sh` files are now removed even when the underlying shell command fails.
+
 -   Fixed published `ptbk coder init` CLI bootstrapping so standalone projects no longer depend on an accidentally missing or differently-shaped local `typescript` install:
 
     -   Normalized runtime loading of the `typescript` package before `mergeStringRecordJsonFile` calls `parseConfigFileTextToJson`, so bundled CLI builds now handle both direct module namespaces and `default`-wrapped imports when parsing JSONC files such as `tsconfig.json`.
