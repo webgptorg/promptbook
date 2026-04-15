@@ -184,6 +184,7 @@
         "test": "echo \"Note: Running from most lightweight to heaviest tests\" && npm run test-name-discrepancies && npm run test-spellcheck && npm run test-lint && npm run test-types && npm run test-books && npm run test-book-components-build && npm run test-package-generation && npm run test-unit && npm run test-app-agents-server && echo \"🎉 All tests passed!\"",
         "test-without-package-generation": "echo \"Note: Running from most lightweight to heaviest tests\" && npm run test-name-discrepancies && npm run test-spellcheck && npm run test-lint && npm run test-types && npm run test-books && npm run test-book-components-build && npm run test-unit",
         "test-without-package-generation-and-unit": "echo \"Note: Running from most lightweight to heaviest tests\" && npm run test-name-discrepancies && npm run test-spellcheck && npm run test-lint && npm run test-types && npm run test-books && npm run test-book-components-build",
+        "test-for-ptbk-coder": "echo \"Note: Running from most lightweight to heaviest tests\" && npm run test-name-discrepancies && npm run test-spellcheck && npm run test-lint && npm run test-types && npm run test-books && npm run test-book-components-build && npm run test-package-generation && npm run test-unit && (cd ./apps/agents-server/ && npm run lint && npm run test-build) && echo \"🎉 All tests passed!\"",
         "test-unit": "jest --forceExit",
         "_TODO-0": "           <- TODO: Remove `--forceExit` flag, now its present to ensure return code 0 when all tests ",
         "test-types": "tsc",
