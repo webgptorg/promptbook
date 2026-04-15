@@ -62,21 +62,33 @@ ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --c
 
 ---
 
-[-]
+[ ] !
 
-[✨🌉] baz
+[✨🌉] Enhance `ptbk coder run` statusbar
 
 ```bash
-@@@
-
-npm install ptbk
-
-ptbk coder init
-
 ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md
 ```
 
--   @@@
+**The status look like:**
+
+```
+1/8 Prompts (500 total) │ 0s/0s │ Est. done Today 12:46
+███████████████████████████████████████░ 97%
+```
+
+**But should look more like:**
+_(but maybe better put into the layout of the terminal UI)_
+
+```
+Working on 1/8 PRDs with Priority: ≥ 1 | Not working on 100 PRDs with Priority: ≥ 0 │ 10s / 1h 33m │ Est. done Today 12:46
+███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 20%
+```
+
+-   "0s/0s" is not very informative, it should show the elapsed time and the estimated total time, so it should look like "45m/1h30m" for example, and it should be updated in real time as the agent is running
+-   "97%" is also not very informative, it should show the percentage of completion based on the number of prompts completed out of the total number of prompts, so it should be "60%" for example, and it should be updated in real time as the agent is running
+-   Try to think of a way to report the status in a better way, maybe with some colors, or some other visual elements to make it more clear and informative
+-   The information there should not be ambiguous
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
