@@ -5,6 +5,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { Dialog } from '../../../components/Portal/Dialog';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { useDirtyModalGuard } from '../../../components/utils/useDirtyModalGuard';
+import type { PseudoUserConversationEntry } from './useAgentChatPseudoUserInteraction';
 
 /**
  * Props for pseudo-user chat dialog shown when agent talks to `{User}`.
@@ -26,6 +27,10 @@ export type PseudoUserChatDialogProps = {
      * Display name of the human participant.
      */
     readonly userName: string;
+    /**
+     * Mocked internal transcript rendered before the real reply form.
+     */
+    readonly conversation: ReadonlyArray<PseudoUserConversationEntry>;
     /**
      * Called with one user reply and then closes the dialog.
      */
@@ -50,7 +55,7 @@ function normalizeUserReply(value: string): string {
  * Dialog that asks the real user for exactly one reply to a `{User}` pseudo-agent prompt.
  */
 export function PseudoUserChatDialog(props: PseudoUserChatDialogProps) {
-    const { isOpen, prompt, agentName, userName, onSubmit, onClose } = props;
+    const { isOpen, prompt, agentName, userName, conversation, onSubmit, onClose } = props;
     const [reply, setReply] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const inputId = useId();
@@ -61,6 +66,16 @@ export function PseudoUserChatDialog(props: PseudoUserChatDialogProps) {
         isCloseBlocked: isSubmitting,
         onClose,
     });
+    const displayedConversation =
+        conversation.length > 0
+            ? conversation
+            : [
+                  {
+                      sender: 'AGENT' as const,
+                      name: agentName,
+                      content: prompt,
+                  },
+              ];
 
     useEffect(() => {
         if (!isOpen) {
@@ -104,11 +119,31 @@ export function PseudoUserChatDialog(props: PseudoUserChatDialogProps) {
             </div>
 
             <div className="space-y-4 px-5 py-5">
-                <div className="flex justify-start">
-                    <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-blue-50 px-4 py-3 text-sm text-blue-950 shadow-sm">
-                        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-blue-700">{agentName}</p>
-                        <p className="whitespace-pre-wrap">{prompt}</p>
-                    </div>
+                <div className="max-h-80 space-y-3 overflow-y-auto rounded-xl border border-gray-200 bg-gray-50 p-3">
+                    {displayedConversation.map(({ sender, name, content }, index) => {
+                        const isAgentMessage = sender === 'AGENT';
+
+                        return (
+                            <div key={`${sender}-${name}-${index}`} className={`flex ${isAgentMessage ? 'justify-start' : 'justify-end'}`}>
+                                <div
+                                    className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm ${
+                                        isAgentMessage
+                                            ? 'rounded-tl-sm bg-blue-50 text-blue-950'
+                                            : 'rounded-tr-sm border border-gray-200 bg-white text-gray-900'
+                                    }`}
+                                >
+                                    <p
+                                        className={`mb-1 text-xs font-semibold uppercase tracking-wide ${
+                                            isAgentMessage ? 'text-blue-700' : 'text-gray-500'
+                                        }`}
+                                    >
+                                        {name}
+                                    </p>
+                                    <p className="whitespace-pre-wrap">{content}</p>
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
 
                 <form

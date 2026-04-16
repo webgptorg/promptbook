@@ -1,3 +1,9 @@
+-   Fixed Agents Server teammate-call popup to render the mocked internal TEAM conversation instead of leaving the modal body visually empty:
+
+    -   Wired the existing TEAM tool `conversation` transcript through the pseudo-user interaction state so teammate calls now preserve the internal request/response preview returned by the engine.
+    -   Updated the pseudo-user dialog to show that transcript as a lightweight chat mockup above the reply box, while keeping the prompt fallback for older payloads.
+    -   Added a regression test covering the rendered internal conversation bubbles.
+
 -   Deprecated `PERSONA` in favor of `GOAL` for agent profile text and inheritance-safe rewrites:
 
     -   Updated `parseAgentSource` and related profile consumers to derive `personaDescription` from the last `GOAL` / `GOALS` commitment, while still falling back to deprecated `PERSONA` / `PERSONAE` for backward compatibility.
