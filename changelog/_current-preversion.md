@@ -1,3 +1,9 @@
+-   Fixed the Agents Server teammate-call popup so pseudo-user TEAM calls now show the mocked internal conversation instead of leaving the modal body empty:
+
+    -   Forwarded the existing TEAM `conversation` transcript through the pseudo-user interaction state used by both chat surfaces.
+    -   Updated `PseudoUserChatDialog` to render the mocked internal conversation as chat bubbles above the single-reply composer, while still falling back to the original one-message prompt when no transcript is available.
+    -   Added focused regression coverage for transcript propagation and dialog rendering.
+
 -   Deprecated `PERSONA` in favor of `GOAL` for agent profile text and inheritance-safe rewrites:
 
     -   Updated `parseAgentSource` and related profile consumers to derive `personaDescription` from the last `GOAL` / `GOALS` commitment, while still falling back to deprecated `PERSONA` / `PERSONAE` for backward compatibility.

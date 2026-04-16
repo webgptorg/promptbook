@@ -71,6 +71,43 @@ type TeamToolResult = {
          */
         readonly prompt?: string;
     };
+    /**
+     * Lightweight internal conversation transcript shown in the teammate-call popup.
+     */
+    readonly conversation?: ReadonlyArray<{
+        /**
+         * Which side sent the message.
+         */
+        readonly sender?: 'AGENT' | 'TEAMMATE' | string;
+        /**
+         * Display name of the sender.
+         */
+        readonly name?: string;
+        /**
+         * Bubble content rendered in the transcript.
+         */
+        readonly content?: string;
+    }>;
+};
+
+/**
+ * One mocked transcript message rendered in the pseudo-user teammate popup.
+ *
+ * @private function of AgentChatWrapper
+ */
+export type PendingPseudoUserInteractionConversationMessage = {
+    /**
+     * Which side sent the message.
+     */
+    readonly sender: 'AGENT' | 'TEAMMATE';
+    /**
+     * Display name rendered above the message.
+     */
+    readonly name: string;
+    /**
+     * Text content shown inside the message bubble.
+     */
+    readonly content: string;
 };
 
 /**
@@ -95,6 +132,10 @@ export type PendingPseudoUserInteraction = {
      * Display label of the pseudo teammate (`User`).
      */
     readonly teammateLabel: string;
+    /**
+     * Mocked internal teammate conversation shown above the reply box.
+     */
+    readonly conversation: ReadonlyArray<PendingPseudoUserInteractionConversationMessage>;
 };
 
 /**
@@ -200,6 +241,49 @@ function getPseudoUserLabel(toolCall: ToolCall): string {
 }
 
 /**
+ * Normalizes the teammate-call transcript returned by TEAM tools.
+ *
+ * @private function of AgentChatWrapper
+ */
+function getPseudoUserConversation(
+    toolCall: ToolCall,
+    fallbackAgentName: string,
+    fallbackTeammateLabel: string,
+    fallbackPrompt: string,
+): ReadonlyArray<PendingPseudoUserInteractionConversationMessage> {
+    const parsedResult = parseTeamToolResult(toolCall.result);
+    const parsedConversation = parsedResult?.conversation;
+    const normalizedConversation = (Array.isArray(parsedConversation) ? parsedConversation : []).flatMap((message) => {
+        const sender = message?.sender === 'AGENT' || message?.sender === 'TEAMMATE' ? message.sender : null;
+        const content = typeof message?.content === 'string' ? message.content.trim() : '';
+        if (!sender || !content) {
+            return [];
+        }
+
+        const rawName = typeof message.name === 'string' ? message.name.trim() : '';
+        return [
+            {
+                sender,
+                name: rawName || (sender === 'AGENT' ? fallbackAgentName : fallbackTeammateLabel),
+                content,
+            },
+        ];
+    });
+
+    if (normalizedConversation.length > 0) {
+        return normalizedConversation;
+    }
+
+    return [
+        {
+            sender: 'AGENT',
+            name: fallbackAgentName,
+            content: fallbackPrompt,
+        },
+    ];
+}
+
+/**
  * Manages the TEAM pseudo-user dialog state and reply actions.
  *
  * @private function of AgentChatWrapper
@@ -219,11 +303,15 @@ export function useAgentChatPseudoUserInteraction({
      */
     const openPendingPseudoUserInteraction = useCallback(
         (toolCall: ToolCall) => {
+            const agentName = agent?.meta?.fullname || agent?.agentName || 'Agent';
+            const teammateLabel = getPseudoUserLabel(toolCall);
+            const prompt = getPseudoUserPromptText(toolCall);
             setPendingPseudoUserInteraction({
                 marker: createToolCallMarker(toolCall),
-                prompt: getPseudoUserPromptText(toolCall),
-                agentName: agent?.meta?.fullname || agent?.agentName || 'Agent',
-                teammateLabel: getPseudoUserLabel(toolCall),
+                prompt,
+                agentName,
+                teammateLabel,
+                conversation: getPseudoUserConversation(toolCall, agentName, teammateLabel, prompt),
             });
         },
         [agent?.agentName, agent?.meta?.fullname],

@@ -461,6 +461,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             <PseudoUserChatDialog
                 isOpen={pendingPseudoUserInteraction !== null}
                 prompt={pendingPseudoUserInteraction?.prompt || ''}
+                conversation={pendingPseudoUserInteraction?.conversation || []}
                 agentName={pendingPseudoUserInteraction?.agentName || 'Agent'}
                 userName={pendingPseudoUserInteraction?.teammateLabel || 'User'}
                 onSubmit={handlePseudoUserReplySubmit}
