@@ -1,16 +1,21 @@
 'use client';
 
 import { useState } from 'react';
+import {
+    ALL_SERVER_BACKUP_SECTION_KEYS,
+    SERVER_BACKUP_SECTION_DEFINITIONS,
+    type ServerBackupSectionKey,
+} from '../../../utils/backup/serverBackupSections';
 
 /**
- * Endpoint serving the all-books ZIP backup.
+ * Endpoint serving the selectable server-backup ZIP export.
  */
-const BOOKS_BACKUP_ENDPOINT = '/api/admin/backups/books';
+const SERVER_BACKUP_ENDPOINT = '/api/admin/backups/server';
 
 /**
  * Fallback filename when response headers omit one.
  */
-const DEFAULT_BACKUP_FILENAME = 'promptbook-backup.zip';
+const DEFAULT_BACKUP_FILENAME = 'promptbook-server-backup.zip';
 
 /**
  * Minimal API error payload accepted from failed backup responses.
@@ -84,17 +89,57 @@ function downloadBlob(blob: Blob, filename: string): void {
 }
 
 /**
+ * Preserves canonical section ordering when toggling client selections.
+ *
+ * @param selectedSectionKeys - Current selected keys.
+ * @returns Ordered section keys ready for rendering and request building.
+ */
+function orderSelectedSectionKeys(selectedSectionKeys: ReadonlyArray<ServerBackupSectionKey>): Array<ServerBackupSectionKey> {
+    const selectedSectionKeySet = new Set(selectedSectionKeys);
+    return ALL_SERVER_BACKUP_SECTION_KEYS.filter((sectionKey) => selectedSectionKeySet.has(sectionKey));
+}
+
+/**
  * Admin UI for backup exports.
  */
 export function BackupClient() {
     const [isDownloading, setIsDownloading] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [selectedSectionKeys, setSelectedSectionKeys] = useState<Array<ServerBackupSectionKey>>([
+        ...ALL_SERVER_BACKUP_SECTION_KEYS,
+    ]);
+
+    const isSelectionEmpty = selectedSectionKeys.length === 0;
+    const isFullBackupSelected = selectedSectionKeys.length === ALL_SERVER_BACKUP_SECTION_KEYS.length;
+    let downloadButtonLabel = 'Download selected backup';
+    if (isDownloading) {
+        downloadButtonLabel = 'Generating backup...';
+    } else if (isSelectionEmpty) {
+        downloadButtonLabel = 'Select at least one section';
+    } else if (isFullBackupSelected) {
+        downloadButtonLabel = 'Download full backup';
+    }
 
     /**
-     * Starts the all-books backup download flow.
+     * Toggles one backup section in the export selection.
+     *
+     * @param sectionKey - Section being enabled or disabled.
      */
-    const handleDownloadAllBooks = async () => {
-        if (isDownloading) {
+    const toggleSectionSelection = (sectionKey: ServerBackupSectionKey) => {
+        setSelectedSectionKeys((previousSelectedSectionKeys) => {
+            const nextSelectedSectionKeys = previousSelectedSectionKeys.includes(sectionKey)
+                ? previousSelectedSectionKeys.filter((selectedSectionKey) => selectedSectionKey !== sectionKey)
+                : [...previousSelectedSectionKeys, sectionKey];
+
+            return orderSelectedSectionKeys(nextSelectedSectionKeys);
+        });
+    };
+
+    /**
+     * Starts the selected server-backup download flow.
+     */
+    const handleDownloadBackup = async () => {
+        if (isDownloading || isSelectionEmpty) {
             return;
         }
 
@@ -102,7 +147,13 @@ export function BackupClient() {
         setErrorMessage(null);
 
         try {
-            const response = await fetch(BOOKS_BACKUP_ENDPOINT, { method: 'GET' });
+            const requestUrl = new URL(SERVER_BACKUP_ENDPOINT, window.location.origin);
+
+            for (const sectionKey of selectedSectionKeys) {
+                requestUrl.searchParams.append('section', sectionKey);
+            }
+
+            const response = await fetch(requestUrl.toString(), { method: 'GET' });
             if (!response.ok) {
                 throw new Error(await resolveBackupErrorMessage(response));
             }
@@ -124,24 +175,61 @@ export function BackupClient() {
             <div className="mt-20 max-w-3xl">
                 <h1 className="text-3xl text-gray-900 font-light">Backups</h1>
                 <p className="mt-2 text-sm text-gray-600">
-                    Export all books as a ZIP archive. The download keeps the same folder structure shown in the Agents
-                    Server.
+                    Export one ZIP archive containing the selected server data. The backup keeps the existing books export
+                    and adds JSON snapshots for the other chosen entities in the same file.
                 </p>
 
                 <section className="mt-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-                    <h2 className="text-lg font-medium text-gray-900">Download all books</h2>
+                    <h2 className="text-lg font-medium text-gray-900">Download server backup</h2>
                     <p className="mt-2 text-sm text-gray-600">
-                        Use this option to create one backup ZIP containing every book in its folder hierarchy.
+                        All sections are enabled by default, so the standard download is a full backup. The generated ZIP
+                        also includes a <code className="rounded bg-gray-100 px-1 py-0.5 text-xs">manifest.json</code> file
+                        describing the selected sections.
                     </p>
 
-                    <div className="mt-4 flex items-center gap-3">
+                    <fieldset className="mt-6" disabled={isDownloading}>
+                        <legend className="text-sm font-medium text-gray-900">Include in backup</legend>
+                        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                            {SERVER_BACKUP_SECTION_DEFINITIONS.map((sectionDefinition) => {
+                                const checkboxId = `backup-section-${sectionDefinition.key}`;
+                                const isChecked = selectedSectionKeys.includes(sectionDefinition.key);
+
+                                return (
+                                    <label
+                                        key={sectionDefinition.key}
+                                        htmlFor={checkboxId}
+                                        className="flex rounded-lg border border-gray-200 p-3 transition-colors hover:border-gray-300 disabled:opacity-70"
+                                    >
+                                        <input
+                                            id={checkboxId}
+                                            type="checkbox"
+                                            checked={isChecked}
+                                            onChange={() => toggleSectionSelection(sectionDefinition.key)}
+                                            disabled={isDownloading}
+                                            className="mt-1 mr-3"
+                                        />
+                                        <span className="min-w-0">
+                                            <span className="block text-sm font-medium text-gray-900">
+                                                {sectionDefinition.label}
+                                            </span>
+                                            <span className="mt-1 block text-xs leading-5 text-gray-600">
+                                                {sectionDefinition.description}
+                                            </span>
+                                        </span>
+                                    </label>
+                                );
+                            })}
+                        </div>
+                    </fieldset>
+
+                    <div className="mt-6 flex flex-wrap items-center gap-3">
                         <button
                             type="button"
-                            onClick={() => void handleDownloadAllBooks()}
-                            disabled={isDownloading}
+                            onClick={() => void handleDownloadBackup()}
+                            disabled={isDownloading || isSelectionEmpty}
                             className="inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                            {isDownloading ? 'Generating backup...' : 'Download all books'}
+                            {downloadButtonLabel}
                         </button>
                         {isDownloading && (
                             <span className="inline-flex items-center gap-2 text-sm text-gray-600" role="status" aria-live="polite">

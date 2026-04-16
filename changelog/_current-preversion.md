@@ -1,3 +1,9 @@
+-   Enhanced the Agents Server backup page from a books-only export into a selectable full-server backup ZIP:
+
+    -   Reused the existing books backup ZIP generation as the base of a new server-backup archive that still exports `.book` files while also bundling selected server entities as JSON snapshots in the same download.
+    -   Added admin backup checkboxes for metadata, agents/books, conversations, users, files/media, messages, security/access, and caches/runtime state, with all sections enabled by default for a full backup.
+    -   Included a `manifest.json` file in each archive so the selected backup sections are recorded inside the downloaded backup itself.
+
 -   Fixed Agents Server teammate-call popup to render the mocked internal TEAM conversation instead of leaving the modal body visually empty:
 
     -   Wired the existing TEAM tool `conversation` transcript through the pseudo-user interaction state so teammate calls now preserve the internal request/response preview returned by the engine.

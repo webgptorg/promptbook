@@ -97,14 +97,15 @@ export type BooksBackupZipStream = {
 };
 
 /**
- * Builds a download-ready stream with all books organized by the Agents Server folder tree.
+ * Appends all exported books into a target ZIP folder while preserving the Agents Server folder tree.
  *
  * Uses canonical persisted `Agent.agentSource` values and resolves folder/file collisions
  * deterministically so backups remain stable and human-readable.
  *
- * @returns ZIP filename and stream payload.
+ * @param zip - ZIP archive being assembled.
+ * @param archiveRootPath - ZIP folder path where books should be written.
  */
-export async function createBooksBackupZipStream(): Promise<BooksBackupZipStream> {
+export async function appendBooksBackupEntriesToZip(zip: JSZip, archiveRootPath: string): Promise<void> {
     const supabase = $provideSupabaseForServer();
     const agentTable = await $getTableName('Agent');
     const folderTable = await $getTableName('AgentFolder');
@@ -126,11 +127,9 @@ export async function createBooksBackupZipStream(): Promise<BooksBackupZipStream
     const folders = (foldersResult.data || []) as BackupFolderRow[];
     const folderSegmentById = buildFolderSegmentById(folders);
     const resolveFolderPath = createFolderPathResolver(folders, folderSegmentById);
-    const backupRootFolderName = `${BACKUP_ROOT_PREFIX}${new Date().toISOString().slice(0, 10)}`;
-    const zip = new JSZip();
 
     // Keep the root directory explicit even when there are no agents.
-    zip.folder(backupRootFolderName);
+    zip.folder(archiveRootPath);
 
     const relativeFilePaths = new Set<string>();
     const folderPathByAgentId = new Map<number, string>();
@@ -153,8 +152,23 @@ export async function createBooksBackupZipStream(): Promise<BooksBackupZipStream
         const folderSegments = resolveFolderPath(agent.folderId ?? null);
         const initialBookFilename = createInitialBookFilename(agent);
         const relativePath = createUniqueBookRelativePath(relativeFilePaths, folderSegments, initialBookFilename, agent.id);
-        zip.file(`${backupRootFolderName}/${relativePath}`, agent.agentSource || '');
+        zip.file(`${archiveRootPath}/${relativePath}`, agent.agentSource || '');
     }
+}
+
+/**
+ * Builds a download-ready stream with all books organized by the Agents Server folder tree.
+ *
+ * Uses canonical persisted `Agent.agentSource` values and resolves folder/file collisions
+ * deterministically so backups remain stable and human-readable.
+ *
+ * @returns ZIP filename and stream payload.
+ */
+export async function createBooksBackupZipStream(): Promise<BooksBackupZipStream> {
+    const backupRootFolderName = `${BACKUP_ROOT_PREFIX}${new Date().toISOString().slice(0, 10)}`;
+    const zip = new JSZip();
+
+    await appendBooksBackupEntriesToZip(zip, backupRootFolderName);
 
     const stream = zip.generateNodeStream({
         streamFiles: true,

@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.00 an hour by GitHub Copilot `gpt-5.4`
 
 [🧰🌌] Enhance Agents Server backup page to allow selecting entities and exporting a single full backup file
 
@@ -17,3 +17,4 @@
 -   Reuse: the current implementation of backing up the books must be used as the base for the server backup export logic (data extraction + file creation + download endpoint/handler); extend it to include other entity exports and compose them into the same output file.
 -   Data integrity: ensure the backup file contains all data required to reconstruct the backed-up portions (as far as the current books backup format enables), including relationships needed between entities (e.g., conversations ↔ users/agents) when those portions are selected.
 -   Performance/UX: show progress or at least a loading state while generating the backup; block/disable the download action while generation is running.
+
