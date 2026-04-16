@@ -1,3 +1,16 @@
+-   Deprecated `PERSONA` in favor of `GOAL` for agent profile text and inheritance-safe rewrites:
+
+    -   Updated `parseAgentSource` and related profile consumers to derive `personaDescription` from the last `GOAL` / `GOALS` commitment, while still falling back to deprecated `PERSONA` / `PERSONAE` for backward compatibility.
+    -   Changed commitment compilation so only the last effective `GOAL` survives inherited or rewritten sources, preventing stale parent goals from accumulating in the final system message and prompt suffix.
+    -   Marked `PERSONA` as deprecated in commitment metadata and Book editor diagnostics, and updated the New Agent wizard to emit only `GOAL`, folding selected persona traits into the generated goal text.
+    -   Added regression coverage for single-vs-multiple goal precedence, goal-over-persona profile resolution, inherited goal overrides, and the updated wizard source output.
+
+-   Added `--preserve-logs` to `ptbk coder run`, so successful coding rounds can now keep their generated runner shell and shared runtime log files for debugging and analytics, while failed rounds automatically preserve those artifacts even without the flag:
+
+    -   Threaded the new option through the CLI wrapper and legacy `scripts/run-codex-prompts` option parser.
+    -   Refactored prompt-round temp artifact cleanup to decide once per whole round, which keeps runner `.sh` and `.log.txt` files after final failures without leaking artifacts from transient internal retries.
+    -   Kept generated verification `.test.sh` files temporary, while continuing to preserve the original prompt `.md` files in `prompts/` as before.
+
 -   Added live temporary `.log.txt` shell tracing to `ptbk coder run`, so each prompt round now writes the raw runner/test shell input and streamed output into a sibling debug log such as `prompt-1.log.txt` while the agent is running and then deletes that log again after the round finishes:
 
     -   Routed both the main runner shell and the optional verification `.test.sh` shell through one shared runtime-log pipeline so the log file updates progressively in real time for debugging without duplicating shell-runner logic.

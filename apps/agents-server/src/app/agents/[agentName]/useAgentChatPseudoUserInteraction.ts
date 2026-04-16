@@ -71,30 +71,6 @@ type TeamToolResult = {
          */
         readonly prompt?: string;
     };
-    /**
-     * Internal transcript returned by the TEAM tool for preview rendering.
-     */
-    readonly conversation?: ReadonlyArray<PseudoUserConversationEntry>;
-};
-
-/**
- * One message rendered inside the pseudo-user mocked chat transcript.
- *
- * @private function of AgentChatWrapper
- */
-export type PseudoUserConversationEntry = {
-    /**
-     * Source of the mocked chat message.
-     */
-    readonly sender: 'AGENT' | 'TEAMMATE';
-    /**
-     * Display name shown above the message bubble.
-     */
-    readonly name: string;
-    /**
-     * Message body shown in the bubble.
-     */
-    readonly content: string;
 };
 
 /**
@@ -119,10 +95,6 @@ export type PendingPseudoUserInteraction = {
      * Display label of the pseudo teammate (`User`).
      */
     readonly teammateLabel: string;
-    /**
-     * Mocked internal transcript shown inside the modal.
-     */
-    readonly conversation: ReadonlyArray<PseudoUserConversationEntry>;
 };
 
 /**
@@ -228,49 +200,6 @@ function getPseudoUserLabel(toolCall: ToolCall): string {
 }
 
 /**
- * Extracts the internal TEAM conversation preview shown in the pseudo-user dialog.
- *
- * @private function of AgentChatWrapper
- */
-function getPseudoUserConversation(
-    toolCall: ToolCall,
-    fallbackAgentName: string,
-    fallbackTeammateLabel: string,
-): ReadonlyArray<PseudoUserConversationEntry> {
-    const parsedResult = parseTeamToolResult(toolCall.result);
-    const normalizedConversation =
-        parsedResult?.conversation
-            ?.map((entry) => {
-                const content = entry?.content?.trim();
-
-                if (!content) {
-                    return null;
-                }
-
-                return {
-                    sender: entry.sender === 'TEAMMATE' ? 'TEAMMATE' : 'AGENT',
-                    name:
-                        entry?.name?.trim() ||
-                        (entry.sender === 'TEAMMATE' ? fallbackTeammateLabel : fallbackAgentName),
-                    content,
-                } satisfies PseudoUserConversationEntry;
-            })
-            .filter((entry): entry is PseudoUserConversationEntry => entry !== null) || [];
-
-    if (normalizedConversation.length > 0) {
-        return normalizedConversation;
-    }
-
-    return [
-        {
-            sender: 'AGENT',
-            name: fallbackAgentName,
-            content: getPseudoUserPromptText(toolCall),
-        },
-    ];
-}
-
-/**
  * Manages the TEAM pseudo-user dialog state and reply actions.
  *
  * @private function of AgentChatWrapper
@@ -290,15 +219,11 @@ export function useAgentChatPseudoUserInteraction({
      */
     const openPendingPseudoUserInteraction = useCallback(
         (toolCall: ToolCall) => {
-            const agentName = agent?.meta?.fullname || agent?.agentName || 'Agent';
-            const teammateLabel = getPseudoUserLabel(toolCall);
-
             setPendingPseudoUserInteraction({
                 marker: createToolCallMarker(toolCall),
                 prompt: getPseudoUserPromptText(toolCall),
-                agentName,
-                teammateLabel,
-                conversation: getPseudoUserConversation(toolCall, agentName, teammateLabel),
+                agentName: agent?.meta?.fullname || agent?.agentName || 'Agent',
+                teammateLabel: getPseudoUserLabel(toolCall),
             });
         },
         [agent?.agentName, agent?.meta?.fullname],
