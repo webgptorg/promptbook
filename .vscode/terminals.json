@@ -40,14 +40,6 @@
             "focus": true
         },
         {
-            "name": "(❗❗) ✨⏩ Migrate Agents server (all environments) (💤)",
-            "cwd": "./apps/agents-server/",
-            "command": "npx tsx ./src/database/migrate.ts",
-            "execute": false,
-            "onlySingle": true,
-            "focus": true
-        },
-        {
             "name": "✨🔼 Sync Agents server Vercel domains (dry-run)",
             "cwd": "./apps/agents-server/",
             "command": "npx tsx ./scripts/sync-vercel-domains.ts --dry-run",
@@ -78,16 +70,16 @@
             "focus": false
         },
         {
-            "name": "(❗❗) ✨🔼 Update the production Agents servers (`preview` -> `production`)",
+            "name": "(❗❗) ✨🔼 Update the production Agents servers (`preview` -> `production`) (💤)",
             "command": "git branch --force production preview && git push origin production --force-with-lease && (cd ./apps/agents-server/ && npx tsx ./src/database/migrate.ts --only=production)",
-            "execute": true,
+            "execute": false,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "(❗❗❗) ✨🔼 Update the LTS Agents servers (`production` -> `lts`)",
+            "name": "(❗❗❗) ✨🔼 Update the LTS Agents servers (`production` -> `lts`) (💤)",
             "command": "git branch --force lts production && git push origin lts --force-with-lease && (cd ./apps/agents-server/ && npx tsx ./src/database/migrate.ts --only=lts)",
-            "execute": true,
+            "execute": false,
             "onlySingle": true,
             "focus": true
         },
