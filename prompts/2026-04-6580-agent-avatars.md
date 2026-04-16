@@ -1,0 +1,59 @@
+[ ] !!!!
+
+[✨👝] Create avatars page
+
+-   The avatar should be a visual representation of the AI agent, it should be generated based on the colors of the agent, name of the agent, and hash.
+-   Make some system to have more avatar visuals, not just the default one
+-   Theese visuals can be either 2D or 3D but all based on canvas
+-   The `AvatarVisual` should recieve the agent name, hash and colors as input (in some standard object) and generate a unique avatar for each agent based on that input into the given canvas
+-   The avatar should be generated in a deterministic way, so that the same input will always generate the same avatar, and different input will generate different avatars
+-   The avatar can be animated or static, but it should be visually appealing and unique for each agent
+-   For now, implement 3 different avatar visuals:
+    -   A pixel-art avatar
+    -   A Octopus avatar
+    -   A Minecraft-style avatar in 3D
+-   Theese should be implemented in a way that allows us to easily add more avatar visuals in the future, and also to allow users to choose which visual they want to use for their agent
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Utils miniapp](apps/utils) and adding this as a new page there to test it
+-   The system for avatars should be in [its folder](src/avatars) the types, implementation of visuals, and the main `Avatar` component that will be used in the app should be there
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
+[-]
+
+[✨👝] foo
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   If you need to do the database migration, do it
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
+[-]
+
+[✨👝] foo
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   If you need to do the database migration, do it
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
+[-]
+
+[✨👝] foo
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   If you need to do the database migration, do it
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
