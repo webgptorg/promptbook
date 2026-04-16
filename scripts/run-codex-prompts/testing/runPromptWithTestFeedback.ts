@@ -51,7 +51,6 @@ export async function runPromptWithTestFeedback(
             scriptPath: options.scriptPath,
             projectPath: options.projectPath,
             logPath: options.logPath,
-            promptRoundArtifacts: options.promptRoundArtifacts,
         });
 
         return { ...result, attemptCount: 1 };
@@ -68,7 +67,6 @@ export async function runPromptWithTestFeedback(
             scriptPath: options.scriptPath,
             projectPath: options.projectPath,
             logPath: options.logPath,
-            promptRoundArtifacts: options.promptRoundArtifacts,
         });
 
         console.info(colors.gray(`Running verification command after attempt #${attemptCount}: ${normalizedTestCommand}`));

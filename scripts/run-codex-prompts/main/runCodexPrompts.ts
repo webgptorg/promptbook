@@ -17,10 +17,6 @@ import {
 import { printCommitMessage } from '../common/printCommitMessage';
 import { resolveCoderContext } from '../common/resolveCoderContext';
 import { withPromptRuntimeLog } from '../common/runGoScript/withPromptRuntimeLog';
-import {
-    createCoderRunPromptRoundArtifacts,
-    type PromptRoundOutcome,
-} from '../common/runGoScript/PromptRoundArtifacts';
 import { waitForEnter } from '../common/waitForEnter';
 import { checkPause, listenForPause } from '../common/waitForPause';
 import { printAgentGitIdentityTipIfNeeded } from '../git/agentGitIdentity';
@@ -337,7 +333,6 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
 
             const scriptPath = buildScriptPath(nextPrompt.file, nextPrompt.section);
             const promptLabel = buildPromptLabelForDisplay(nextPrompt.file, nextPrompt.section);
-            const promptRoundArtifacts = createCoderRunPromptRoundArtifacts(options.preserveLogs);
 
             if (isUiMode) {
                 uiHandle?.state.setCurrentPrompt(promptLabel);
@@ -349,94 +344,83 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
 
             const promptExecutionStartedDate = moment();
             let attemptCount = 1;
-            let promptRoundOutcome: PromptRoundOutcome = 'failure';
             const roundChangedFilesSnapshot = options.normalizeLineEndings
                 ? await captureChangedFilesSnapshot(process.cwd())
                 : undefined;
 
-            try {
-                await withPromptRuntimeLog(
-                    scriptPath,
-                    async (logPath) => {
-                        try {
-                            uiHandle?.startCapturingAgentOutput();
+            await withPromptRuntimeLog(scriptPath, async (logPath) => {
+                try {
+                    uiHandle?.startCapturingAgentOutput();
 
-                            const result = await runPromptWithTestFeedback({
-                                runner,
-                                prompt: codexPrompt,
-                                scriptPath,
-                                projectPath: process.cwd(),
-                                promptLabel,
-                                testCommand: options.testCommand,
-                                logPath,
-                                promptRoundArtifacts,
-                                onAttemptStarted: (nextAttemptCount) => {
-                                    attemptCount = nextAttemptCount;
-                                    uiHandle?.state.setAttempt(nextAttemptCount);
-                                    if (nextAttemptCount > 1) {
-                                        uiHandle?.state.setStatusMessage(`Retrying (attempt ${nextAttemptCount})`);
-                                        uiHandle?.state.setPhase('verifying');
-                                    }
-                                },
-                            });
-
-                            uiHandle?.stopCapturingAgentOutput();
-                            uiHandle?.state.setStatusMessage('Committing changes');
-
-                            markPromptDone(
-                                nextPrompt.file,
-                                nextPrompt.section,
-                                result.usage,
-                                runnerMetadata.runnerName,
-                                runnerMetadata.modelName,
-                                promptExecutionStartedDate,
-                                result.attemptCount,
-                            );
-                            await writePromptFile(nextPrompt.file);
-                            await normalizeLineEndingsForCurrentRound(options, roundChangedFilesSnapshot);
-
-                            if (options.waitForUser) {
-                                uiHandle?.state.pauseTimer();
-                                uiHandle?.state.setStatusMessage('Waiting... Press Enter to commit');
-                                printCommitMessage(commitMessage);
-                                await waitForEnter(colors.bgWhite('Press Enter to commit and continue...'));
-                                uiHandle?.state.resumeTimer();
+                    const result = await runPromptWithTestFeedback({
+                        runner,
+                        prompt: codexPrompt,
+                        scriptPath,
+                        projectPath: process.cwd(),
+                        promptLabel,
+                        testCommand: options.testCommand,
+                        logPath,
+                        onAttemptStarted: (nextAttemptCount) => {
+                            attemptCount = nextAttemptCount;
+                            uiHandle?.state.setAttempt(nextAttemptCount);
+                            if (nextAttemptCount > 1) {
+                                uiHandle?.state.setStatusMessage(`Retrying (attempt ${nextAttemptCount})`);
+                                uiHandle?.state.setPhase('verifying');
                             }
+                        },
+                    });
 
-                            await commitChanges(commitMessage, { autoPush: options.autoPush });
-                            await runPostPromptAutoMigrationIfEnabled(options);
-                            promptRoundOutcome = 'success';
-                        } catch (error) {
-                            uiHandle?.stopCapturingAgentOutput();
-                            uiHandle?.state.setPhase('error');
-                            uiHandle?.state.addError(error instanceof Error ? error.message : String(error));
+                    uiHandle?.stopCapturingAgentOutput();
+                    uiHandle?.state.setStatusMessage('Committing changes');
 
-                            markPromptFailed(
-                                nextPrompt.file,
-                                nextPrompt.section,
-                                runnerMetadata.runnerName,
-                                runnerMetadata.modelName,
-                                promptExecutionStartedDate,
-                                attemptCount,
-                            );
-                            await writePromptFile(nextPrompt.file);
-                            await writePromptErrorLog({
-                                file: nextPrompt.file,
-                                section: nextPrompt.section,
-                                runnerName: runnerMetadata.runnerName,
-                                modelName: runnerMetadata.modelName,
-                                error,
-                            });
-                            await normalizeLineEndingsForCurrentRound(options, roundChangedFilesSnapshot);
+                    markPromptDone(
+                        nextPrompt.file,
+                        nextPrompt.section,
+                        result.usage,
+                        runnerMetadata.runnerName,
+                        runnerMetadata.modelName,
+                        promptExecutionStartedDate,
+                        result.attemptCount,
+                    );
+                    await writePromptFile(nextPrompt.file);
+                    await normalizeLineEndingsForCurrentRound(options, roundChangedFilesSnapshot);
 
-                            throw error;
-                        }
-                    },
-                    promptRoundArtifacts,
-                );
-            } finally {
-                await promptRoundArtifacts.cleanup(promptRoundOutcome);
-            }
+                    if (options.waitForUser) {
+                        uiHandle?.state.pauseTimer();
+                        uiHandle?.state.setStatusMessage('Waiting... Press Enter to commit');
+                        printCommitMessage(commitMessage);
+                        await waitForEnter(colors.bgWhite('Press Enter to commit and continue...'));
+                        uiHandle?.state.resumeTimer();
+                    }
+
+                    await commitChanges(commitMessage, { autoPush: options.autoPush });
+                    await runPostPromptAutoMigrationIfEnabled(options);
+                } catch (error) {
+                    uiHandle?.stopCapturingAgentOutput();
+                    uiHandle?.state.setPhase('error');
+                    uiHandle?.state.addError(error instanceof Error ? error.message : String(error));
+
+                    markPromptFailed(
+                        nextPrompt.file,
+                        nextPrompt.section,
+                        runnerMetadata.runnerName,
+                        runnerMetadata.modelName,
+                        promptExecutionStartedDate,
+                        attemptCount,
+                    );
+                    await writePromptFile(nextPrompt.file);
+                    await writePromptErrorLog({
+                        file: nextPrompt.file,
+                        section: nextPrompt.section,
+                        runnerName: runnerMetadata.runnerName,
+                        modelName: runnerMetadata.modelName,
+                        error,
+                    });
+                    await normalizeLineEndingsForCurrentRound(options, roundChangedFilesSnapshot);
+
+                    throw error;
+                }
+            });
         }
     } finally {
         progressDisplay?.stop();

@@ -28,7 +28,6 @@ export class ClaudeCodeRunner implements PromptRunner {
             scriptPath: options.scriptPath,
             scriptContent,
             logPath: options.logPath,
-            promptRoundArtifacts: options.promptRoundArtifacts,
         });
 
         const usage = parseClaudeCodeJsonOutput(output);

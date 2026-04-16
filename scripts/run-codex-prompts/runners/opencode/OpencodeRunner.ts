@@ -32,7 +32,6 @@ export class OpencodeRunner implements PromptRunner {
                 scriptPath: options.scriptPath,
                 scriptContent,
                 logPath: options.logPath,
-                promptRoundArtifacts: options.promptRoundArtifacts,
             });
         } catch (error) {
             if (error instanceof Error) {

@@ -34,10 +34,6 @@ export type RunOptions = {
      */
     allowCredits: boolean;
     /**
-     * Keeps generated runner shells and runtime logs after successful prompt rounds.
-     */
-    preserveLogs: boolean;
-    /**
      * Enables automatic migration of testing servers after each successfully completed prompt.
      */
     autoMigrate: boolean;
