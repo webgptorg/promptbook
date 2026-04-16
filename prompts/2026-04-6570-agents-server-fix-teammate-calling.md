@@ -353,16 +353,15 @@ Please paste the DNS record list/zone file (or at least the lines that include C
 
 ---
 
-[-]
+[ ] !!!!
 
-[✨🔢] brr
+[✨🔢] When teammate was called, in the popup there must be a mocked chat with this internal conversation
 
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Now there is just empty space
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-04-6570-agents-server-fix-teammate-calling.png)
 
 ---
 
@@ -389,4 +388,3 @@ Please paste the DNS record list/zone file (or at least the lines that include C
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
