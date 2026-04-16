@@ -10,6 +10,7 @@ type RunPromptTestCommandOptions = {
     projectPath: string;
     scriptPath: string;
     logPath?: string;
+    preserveArtifactsOnSuccess?: boolean;
 };
 
 /**
@@ -25,5 +26,6 @@ export async function runPromptTestCommand(options: RunPromptTestCommandOptions)
             ${options.command}
         `),
         logPath: options.logPath,
+        preserveArtifactsOnSuccess: options.preserveArtifactsOnSuccess,
     });
 }

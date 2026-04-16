@@ -51,6 +51,7 @@ export async function runPromptWithTestFeedback(
             scriptPath: options.scriptPath,
             projectPath: options.projectPath,
             logPath: options.logPath,
+            preserveArtifactsOnSuccess: options.preserveArtifactsOnSuccess,
         });
 
         return { ...result, attemptCount: 1 };
@@ -67,6 +68,7 @@ export async function runPromptWithTestFeedback(
             scriptPath: options.scriptPath,
             projectPath: options.projectPath,
             logPath: options.logPath,
+            preserveArtifactsOnSuccess: options.preserveArtifactsOnSuccess,
         });
 
         console.info(colors.gray(`Running verification command after attempt #${attemptCount}: ${normalizedTestCommand}`));
@@ -77,6 +79,7 @@ export async function runPromptWithTestFeedback(
                 projectPath: options.projectPath,
                 scriptPath: buildPromptTestScriptPath(options.scriptPath),
                 logPath: options.logPath,
+                preserveArtifactsOnSuccess: options.preserveArtifactsOnSuccess,
             });
 
             return { ...result, attemptCount };

@@ -31,6 +31,7 @@ describe('parseRunOptions', () => {
             agentName: 'gemini',
             priority: 0,
             autoPush: false,
+            preserveLogs: false,
             normalizeLineEndings: true,
             allowCredits: false,
             autoMigrate: false,
@@ -47,6 +48,7 @@ describe('parseRunOptions', () => {
             model: 'gpt-5.4',
             priority: 0,
             autoPush: false,
+            preserveLogs: false,
             normalizeLineEndings: true,
             allowCredits: false,
             autoMigrate: false,
@@ -62,6 +64,7 @@ describe('parseRunOptions', () => {
             agentName: undefined,
             priority: 0,
             autoPush: false,
+            preserveLogs: false,
             normalizeLineEndings: true,
             allowCredits: false,
             autoMigrate: false,
@@ -88,6 +91,7 @@ describe('parseRunOptions', () => {
             waitForUser: false,
             ignoreGitChanges: true,
             autoPush: false,
+            preserveLogs: false,
             normalizeLineEndings: true,
             allowCredits: false,
             autoMigrate: false,
@@ -106,6 +110,7 @@ describe('parseRunOptions', () => {
             dryRun: false,
             agentName: 'gemini',
             autoPush: false,
+            preserveLogs: false,
             context: 'Follow AGENTS instructions',
             normalizeLineEndings: true,
         });
@@ -126,6 +131,7 @@ describe('parseRunOptions', () => {
             dryRun: false,
             agentName: 'github-copilot',
             autoPush: false,
+            preserveLogs: false,
             testCommand: 'npm run test',
             waitForUser: false,
         });
@@ -138,6 +144,7 @@ describe('parseRunOptions', () => {
             dryRun: false,
             agentName: 'github-copilot',
             autoPush: false,
+            preserveLogs: false,
             thinkingLevel: 'xhigh',
             normalizeLineEndings: true,
         });
@@ -151,6 +158,7 @@ describe('parseRunOptions', () => {
             waitForUser: false,
             priority: 2,
             autoPush: false,
+            preserveLogs: false,
             normalizeLineEndings: true,
             allowCredits: false,
             autoMigrate: false,
@@ -165,6 +173,18 @@ describe('parseRunOptions', () => {
             dryRun: false,
             agentName: 'github-copilot',
             autoPush: true,
+            preserveLogs: false,
+        });
+    });
+
+    it('preserves temp prompt artifacts only when --preserve-logs is provided', () => {
+        const options = parseRunOptions(['--agent', 'github-copilot', '--preserve-logs']);
+
+        expect(options).toMatchObject({
+            dryRun: false,
+            agentName: 'github-copilot',
+            autoPush: false,
+            preserveLogs: true,
         });
     });
 
@@ -175,6 +195,7 @@ describe('parseRunOptions', () => {
             dryRun: false,
             agentName: 'gemini',
             autoPush: false,
+            preserveLogs: false,
             normalizeLineEndings: false,
             allowCredits: false,
             autoMigrate: false,
@@ -189,6 +210,7 @@ describe('parseRunOptions', () => {
             dryRun: false,
             agentName: 'openai-codex',
             autoPush: false,
+            preserveLogs: false,
             allowCredits: true,
             autoMigrate: false,
             allowDestructiveAutoMigrate: false,
@@ -202,6 +224,7 @@ describe('parseRunOptions', () => {
             dryRun: false,
             agentName: 'openai-codex',
             autoPush: false,
+            preserveLogs: false,
             autoMigrate: true,
             allowDestructiveAutoMigrate: false,
         });
@@ -219,6 +242,7 @@ describe('parseRunOptions', () => {
             dryRun: false,
             agentName: 'openai-codex',
             autoPush: false,
+            preserveLogs: false,
             autoMigrate: true,
             allowDestructiveAutoMigrate: true,
         });

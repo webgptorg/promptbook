@@ -35,6 +35,7 @@ export class GeminiRunner implements PromptRunner {
             scriptPath: options.scriptPath,
             scriptContent,
             logPath: options.logPath,
+            preserveArtifactsOnSuccess: options.preserveArtifactsOnSuccess,
         });
 
         const usage = parseGeminiUsageFromOutput(output, options.prompt, this.options.model);

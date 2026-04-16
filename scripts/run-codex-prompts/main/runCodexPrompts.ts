@@ -348,79 +348,84 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                 ? await captureChangedFilesSnapshot(process.cwd())
                 : undefined;
 
-            await withPromptRuntimeLog(scriptPath, async (logPath) => {
-                try {
-                    uiHandle?.startCapturingAgentOutput();
+            await withPromptRuntimeLog(
+                scriptPath,
+                async (logPath) => {
+                    try {
+                        uiHandle?.startCapturingAgentOutput();
 
-                    const result = await runPromptWithTestFeedback({
-                        runner,
-                        prompt: codexPrompt,
-                        scriptPath,
-                        projectPath: process.cwd(),
-                        promptLabel,
-                        testCommand: options.testCommand,
-                        logPath,
-                        onAttemptStarted: (nextAttemptCount) => {
-                            attemptCount = nextAttemptCount;
-                            uiHandle?.state.setAttempt(nextAttemptCount);
-                            if (nextAttemptCount > 1) {
-                                uiHandle?.state.setStatusMessage(`Retrying (attempt ${nextAttemptCount})`);
-                                uiHandle?.state.setPhase('verifying');
-                            }
-                        },
-                    });
+                        const result = await runPromptWithTestFeedback({
+                            runner,
+                            prompt: codexPrompt,
+                            scriptPath,
+                            projectPath: process.cwd(),
+                            promptLabel,
+                            testCommand: options.testCommand,
+                            preserveArtifactsOnSuccess: options.preserveLogs,
+                            logPath,
+                            onAttemptStarted: (nextAttemptCount) => {
+                                attemptCount = nextAttemptCount;
+                                uiHandle?.state.setAttempt(nextAttemptCount);
+                                if (nextAttemptCount > 1) {
+                                    uiHandle?.state.setStatusMessage(`Retrying (attempt ${nextAttemptCount})`);
+                                    uiHandle?.state.setPhase('verifying');
+                                }
+                            },
+                        });
 
-                    uiHandle?.stopCapturingAgentOutput();
-                    uiHandle?.state.setStatusMessage('Committing changes');
+                        uiHandle?.stopCapturingAgentOutput();
+                        uiHandle?.state.setStatusMessage('Committing changes');
 
-                    markPromptDone(
-                        nextPrompt.file,
-                        nextPrompt.section,
-                        result.usage,
-                        runnerMetadata.runnerName,
-                        runnerMetadata.modelName,
-                        promptExecutionStartedDate,
-                        result.attemptCount,
-                    );
-                    await writePromptFile(nextPrompt.file);
-                    await normalizeLineEndingsForCurrentRound(options, roundChangedFilesSnapshot);
+                        markPromptDone(
+                            nextPrompt.file,
+                            nextPrompt.section,
+                            result.usage,
+                            runnerMetadata.runnerName,
+                            runnerMetadata.modelName,
+                            promptExecutionStartedDate,
+                            result.attemptCount,
+                        );
+                        await writePromptFile(nextPrompt.file);
+                        await normalizeLineEndingsForCurrentRound(options, roundChangedFilesSnapshot);
 
-                    if (options.waitForUser) {
-                        uiHandle?.state.pauseTimer();
-                        uiHandle?.state.setStatusMessage('Waiting... Press Enter to commit');
-                        printCommitMessage(commitMessage);
-                        await waitForEnter(colors.bgWhite('Press Enter to commit and continue...'));
-                        uiHandle?.state.resumeTimer();
+                        if (options.waitForUser) {
+                            uiHandle?.state.pauseTimer();
+                            uiHandle?.state.setStatusMessage('Waiting... Press Enter to commit');
+                            printCommitMessage(commitMessage);
+                            await waitForEnter(colors.bgWhite('Press Enter to commit and continue...'));
+                            uiHandle?.state.resumeTimer();
+                        }
+
+                        await commitChanges(commitMessage, { autoPush: options.autoPush });
+                        await runPostPromptAutoMigrationIfEnabled(options);
+                    } catch (error) {
+                        uiHandle?.stopCapturingAgentOutput();
+                        uiHandle?.state.setPhase('error');
+                        uiHandle?.state.addError(error instanceof Error ? error.message : String(error));
+
+                        markPromptFailed(
+                            nextPrompt.file,
+                            nextPrompt.section,
+                            runnerMetadata.runnerName,
+                            runnerMetadata.modelName,
+                            promptExecutionStartedDate,
+                            attemptCount,
+                        );
+                        await writePromptFile(nextPrompt.file);
+                        await writePromptErrorLog({
+                            file: nextPrompt.file,
+                            section: nextPrompt.section,
+                            runnerName: runnerMetadata.runnerName,
+                            modelName: runnerMetadata.modelName,
+                            error,
+                        });
+                        await normalizeLineEndingsForCurrentRound(options, roundChangedFilesSnapshot);
+
+                        throw error;
                     }
-
-                    await commitChanges(commitMessage, { autoPush: options.autoPush });
-                    await runPostPromptAutoMigrationIfEnabled(options);
-                } catch (error) {
-                    uiHandle?.stopCapturingAgentOutput();
-                    uiHandle?.state.setPhase('error');
-                    uiHandle?.state.addError(error instanceof Error ? error.message : String(error));
-
-                    markPromptFailed(
-                        nextPrompt.file,
-                        nextPrompt.section,
-                        runnerMetadata.runnerName,
-                        runnerMetadata.modelName,
-                        promptExecutionStartedDate,
-                        attemptCount,
-                    );
-                    await writePromptFile(nextPrompt.file);
-                    await writePromptErrorLog({
-                        file: nextPrompt.file,
-                        section: nextPrompt.section,
-                        runnerName: runnerMetadata.runnerName,
-                        modelName: runnerMetadata.modelName,
-                        error,
-                    });
-                    await normalizeLineEndingsForCurrentRound(options, roundChangedFilesSnapshot);
-
-                    throw error;
-                }
-            });
+                },
+                { preserveArtifactsOnSuccess: options.preserveLogs },
+            );
         }
     } finally {
         progressDisplay?.stop();

@@ -33,6 +33,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             Features:
             - Automatically stages and commits changes with agent identity
             - Optional post-commit git push with explicit --auto-push opt-in
+            - Optional --preserve-logs keeps temp prompt/log artifacts after successful rounds
             - Supports GPG signing of commits
             - Optional post-prompt verification with test-feedback retries
             - Progress tracking and interactive controls
@@ -61,6 +62,11 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
     command.option(
         '--test <test-command...>',
         'Run a verification command after each prompt; quote it when the command itself contains top-level flags',
+    );
+    command.option(
+        '--preserve-logs',
+        'Keep generated temp prompt/log artifacts after successful rounds for debugging and analytics',
+        false,
     );
     command.addOption(
         new Option(
@@ -98,6 +104,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 model,
                 context,
                 test,
+                preserveLogs,
                 thinkingLevel,
                 priority,
                 wait,
@@ -113,6 +120,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 readonly model?: string;
                 readonly context?: string;
                 readonly test?: string | string[];
+                readonly preserveLogs: boolean;
                 readonly thinkingLevel?: ThinkingLevel;
                 readonly priority: number;
                 readonly wait: boolean;
@@ -174,6 +182,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 model,
                 context,
                 testCommand,
+                preserveLogs,
                 thinkingLevel,
                 priority,
                 normalizeLineEndings,

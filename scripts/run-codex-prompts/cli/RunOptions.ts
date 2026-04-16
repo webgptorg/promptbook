@@ -17,6 +17,10 @@ export type RunOptions = {
      */
     testCommand?: string;
     /**
+     * Keeps generated prompt/debug artifacts after a successful round instead of cleaning them up.
+     */
+    preserveLogs: boolean;
+    /**
      * Optional reasoning effort override for runners that support configurable thinking levels.
      */
     thinkingLevel?: ThinkingLevel;

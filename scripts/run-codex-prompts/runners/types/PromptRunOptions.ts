@@ -6,4 +6,5 @@ export type PromptRunOptions = {
     scriptPath: string;
     projectPath: string;
     logPath?: string;
+    preserveArtifactsOnSuccess?: boolean;
 };

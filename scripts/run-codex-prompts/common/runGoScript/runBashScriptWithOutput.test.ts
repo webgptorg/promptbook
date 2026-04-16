@@ -39,7 +39,22 @@ describe('runGoScript runtime logging', () => {
         await expect(stat(scriptPath)).rejects.toMatchObject({ code: 'ENOENT' });
     });
 
-    it('keeps the runtime log but always deletes the temp shell file after failures', async () => {
+    it('keeps the temp shell file after success when preservation is enabled', async () => {
+        const scriptPath = join(temporaryDirectoryPath, 'prompt-keep.sh');
+        const logPath = buildScriptLogPath(scriptPath);
+
+        const output = await $runGoScriptWithOutput({
+            scriptPath,
+            logPath,
+            preserveArtifactsOnSuccess: true,
+            scriptContent: "printf 'runner stdout\\n'",
+        });
+
+        expect(output).toContain('runner stdout');
+        await expect(readFile(scriptPath, 'utf-8')).resolves.toContain("printf 'runner stdout\\n'");
+    });
+
+    it('keeps both the runtime log and temp shell file after failures', async () => {
         const scriptPath = join(temporaryDirectoryPath, 'prompt-1.test.sh');
         const logPath = buildScriptLogPath(scriptPath);
 
@@ -56,6 +71,6 @@ describe('runGoScript runtime logging', () => {
         expect(log).toContain('=== test shell started at ');
         expect(log).toContain('test failure');
         expect(log).toContain('Status: failed');
-        await expect(stat(scriptPath)).rejects.toMatchObject({ code: 'ENOENT' });
+        await expect(readFile(scriptPath, 'utf-8')).resolves.toContain("printf 'test failure\\n' >&2");
     });
 });

@@ -117,4 +117,30 @@ describe('$initializeCoderRunCommand', () => {
             }),
         );
     });
+
+    it('defaults preserveLogs to false when --preserve-logs is omitted', async () => {
+        const program = createProgramWithRunCommand();
+
+        await program.parseAsync(['node', 'test', 'run', '--dry-run'], { from: 'node' });
+
+        expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                dryRun: true,
+                preserveLogs: false,
+            }),
+        );
+    });
+
+    it('passes preserveLogs as true when --preserve-logs is provided', async () => {
+        const program = createProgramWithRunCommand();
+
+        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--preserve-logs'], { from: 'node' });
+
+        expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                dryRun: true,
+                preserveLogs: true,
+            }),
+        );
+    });
 });
