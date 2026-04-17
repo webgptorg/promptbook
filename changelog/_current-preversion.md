@@ -1,3 +1,8 @@
+-   Changed the Agents Server new-agent wizard default learning mode to **closed**, so clicking through the Wizard without changing any options now creates agent sources that end with `CLOSED` instead of `OPEN`:
+    
+    -   Switched the wizard's initial state to start in the fixed-after-creation mode, which also makes the closed learning card selected by default in the Persona step.
+    -   Added regression coverage for the untouched Wizard path and the initial wizard state so future refactors keep the default `CLOSED` behavior intact.
+
 -   Enhanced the `ptbk coder run` status bar so both the sticky fallback header and the rich terminal UI now report clear session-scoped progress instead of misleading repository-wide completion percentages:
 
     -   Extracted a shared coder-run progress snapshot and active-timer helper, so elapsed time, estimated total duration, and estimated completion stay in sync across both UI modes while excluding paused / waiting time.

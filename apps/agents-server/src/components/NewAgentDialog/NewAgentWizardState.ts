@@ -239,7 +239,7 @@ export function createInitialWizardState(
         customPersonaTraits: [],
         selectedCapabilityIds: [],
         teamReferences: [],
-        isOpenToLearning: true,
+        isOpenToLearning: false,
         selectedWritingStyleIds: selectDefaultPresetIds(NEW_AGENT_WIZARD_WRITING_STYLE_PRESETS),
         customWritingTraitDraft: '',
         customWritingTraits: [],

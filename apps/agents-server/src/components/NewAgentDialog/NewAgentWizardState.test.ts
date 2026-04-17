@@ -1,12 +1,17 @@
 import { describe, expect, it } from '@jest/globals';
 import {
     addUniqueTeamReference,
+    createInitialWizardState,
     hasTeamReference,
     normalizeTeamReferenceInput,
     toggleTeamReferenceSelection,
 } from './NewAgentWizardState';
 
 describe('NewAgentWizardState', () => {
+    it('defaults new wizard drafts to closed learning mode', () => {
+        expect(createInitialWizardState('UNLISTED', 'Starter Agent').isOpenToLearning).toBe(false);
+    });
+
     it('wraps plain teammate names into compact TEAM references', () => {
         expect(normalizeTeamReferenceInput('Legal Reviewer')).toBe('{Legal Reviewer}');
         expect(normalizeTeamReferenceInput('@User')).toBe('{User}');
