@@ -12,7 +12,7 @@ import {
     normalizeLinguisticHashLanguage,
     normalizeLinguisticHashWordCount,
     type LinguisticHashLanguage,
-} from '../../../../../src/utils/misc/linguisticHash';
+} from '../../../../../src/utils/linguistic-hash/linguisticHash';
 
 /**
  * Constant for default input.
@@ -192,7 +192,8 @@ export function LinguisticHashComponent() {
                     </li>
                     <li>
                         <strong>Stable length:</strong> Increasing the word count only appends more words, keeping the
-                        earlier ones intact (e.g. "Slick sigh beating" to "Slick sigh beating dancing").
+                        earlier ones intact (e.g. &quot;Slick sigh beating&quot; to &quot;Slick sigh beating
+                        dancing&quot;).
                     </li>
                     <li>
                         <strong>Word structure:</strong> One word uses a single noun, two words use adjective + noun.

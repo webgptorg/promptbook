@@ -1,3 +1,9 @@
+-   Added a new deterministic canvas avatar system plus a dedicated Utils miniapp playground page for testing agent visuals:
+
+    -   Implemented `src/avatars` with a shared `Avatar` canvas component, a low-level `renderAvatarVisual` renderer, a reusable avatar input object based on agent name/hash/colors, and an extensible visual registry for future avatar styles.
+    -   Added three built-in visuals - pixel art, octopus, and Minecraft-style 3D - each driven deterministically from the same avatar input while allowing static and animated canvas rendering.
+    -   Added the new `apps/utils/src/app/avatars` playground page so visuals can be previewed, compared, and regression-checked with editable avatar inputs and fixed sample agents.
+
 -   Fixed the Agents Server teammate-call popup so pseudo-user TEAM calls now show the mocked internal conversation instead of leaving the modal body empty:
 
     -   Forwarded the existing TEAM `conversation` transcript through the pseudo-user interaction state used by both chat surfaces.

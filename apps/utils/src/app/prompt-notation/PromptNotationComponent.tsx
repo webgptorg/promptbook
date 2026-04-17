@@ -224,10 +224,7 @@ export function PromptNotationComponent() {
     const [output, setOutput] = useState('');
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const editorRef = useRef<HTMLDivElement>(null);
-    const exampleOutputs = useMemo(
-        () => PROMPT_NOTATION_EXAMPLES.map((example) => evaluatePromptNotationExample(example)),
-        [PROMPT_NOTATION_EXAMPLES, evaluatePromptNotationExample],
-    );
+    const exampleOutputs = useMemo(() => PROMPT_NOTATION_EXAMPLES.map((example) => evaluatePromptNotationExample(example)), []);
     const actionButtonClassName =
         'inline-flex items-center gap-2 px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-sm font-medium transition-colors';
     const actionIconClassName = 'h-4 w-4';
