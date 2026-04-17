@@ -1,7 +1,7 @@
-import colors from 'colors';
 import moment from 'moment';
 import { clearLine, cursorTo } from 'readline';
 import { getPauseState, requestPause, requestResume } from '../common/waitForPause';
+import { buildCoderRunUiFrame } from './buildCoderRunUiFrame';
 import { CoderRunUiState } from './CoderRunUiState';
 
 /**
@@ -10,20 +10,6 @@ import { CoderRunUiState } from './CoderRunUiState';
  * @private internal constant of coder run UI
  */
 const UI_REFRESH_INTERVAL_MS = 200;
-
-/**
- * Character width used for the text progress bar.
- *
- * @private internal constant of coder run UI
- */
-const PROGRESS_BAR_WIDTH = 40;
-
-/**
- * Maximum number of output lines reserved for agent output in the UI.
- *
- * @private internal constant of coder run UI
- */
-const MAX_VISIBLE_OUTPUT_LINES = 8;
 
 /**
  * Spinner animation frames.
@@ -44,33 +30,12 @@ const SPINNER_FRAMES = [
 ];
 
 /**
- * Strips ANSI escape codes from a string.
- *
- * @private internal utility of coder run UI
- */
-function stripAnsi(text: string): string {
-    // eslint-disable-next-line no-control-regex
-    return text.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '');
-}
-
-/**
- * Returns the usable terminal width, capped at 80.
+ * Returns the usable terminal width, capped at 96.
  *
  * @private internal utility of coder run UI
  */
 function getTerminalWidth(): number {
-    return Math.min(process.stdout.columns || 80, 80);
-}
-
-/**
- * Builds a text progress bar string from a percentage.
- *
- * @private internal utility of coder run UI
- */
-function buildProgressBar(percentage: number): string {
-    const filled = Math.round((percentage / 100) * PROGRESS_BAR_WIDTH);
-    const empty = PROGRESS_BAR_WIDTH - filled;
-    return colors.green('\u2588'.repeat(filled)) + colors.gray('\u2591'.repeat(empty)) + ` ${percentage}%`;
+    return Math.min(process.stdout.columns || 80, 96);
 }
 
 /**
@@ -87,6 +52,9 @@ export type CoderRunUiHandle = {
 
     /** Disables console interception so normal logging resumes. */
     stopCapturingAgentOutput(): void;
+
+    /** Waits for Enter without leaving the rich terminal UI. */
+    waitForEnter(actionLabel: string): Promise<void>;
 
     /** Tears down the UI and restores original console methods. */
     cleanup(): void;
@@ -112,11 +80,10 @@ export function renderCoderRunUi(startTime: moment.Moment): CoderRunUiHandle {
             state,
             startCapturingAgentOutput: () => {},
             stopCapturingAgentOutput: () => {},
+            waitForEnter: async () => {},
             cleanup: () => {},
         };
     }
-
-    // --- Console interception ---
 
     const originalConsoleInfo = console.info;
     const originalConsoleWarn = console.warn;
@@ -124,13 +91,12 @@ export function renderCoderRunUi(startTime: moment.Moment): CoderRunUiHandle {
     const originalConsoleLog = console.log;
 
     let isCapturing = false;
+    let pendingEnterResolver: (() => void) | undefined;
 
     console.info = (...args: Array<unknown>): void => {
         if (isCapturing) {
             state.addAgentOutput(args.map(String).join(' '));
         }
-        // In UI mode, non-captured output is intentionally suppressed
-        // so it does not interfere with the repainted frame.
     };
 
     console.warn = (...args: Array<unknown>): void => {
@@ -151,32 +117,11 @@ export function renderCoderRunUi(startTime: moment.Moment): CoderRunUiHandle {
         }
     };
 
-    // --- Keyboard input (pause) ---
-
     const readline = require('readline') as typeof import('readline');
     readline.emitKeypressEvents(process.stdin);
     if (process.stdin.isTTY) {
         process.stdin.setRawMode(true);
     }
-
-    const keypressHandler = (_str: string, key: { ctrl?: boolean; name?: string }): void => {
-        if (key.ctrl && key.name === 'c') {
-            cleanup();
-            process.exit(0);
-        }
-        if (key.name === 'p') {
-            const current = getPauseState();
-            if (current === 'RUNNING') {
-                requestPause();
-            } else {
-                requestResume();
-            }
-        }
-    };
-
-    process.stdin.on('keypress', keypressHandler);
-
-    // --- Rendering ---
 
     let spinnerFrame = 0;
     let previousFrameLineCount = 0;
@@ -191,6 +136,7 @@ export function renderCoderRunUi(startTime: moment.Moment): CoderRunUiHandle {
         if (renderScheduled) {
             return;
         }
+
         renderScheduled = true;
         setImmediate(() => {
             renderScheduled = false;
@@ -205,12 +151,27 @@ export function renderCoderRunUi(startTime: moment.Moment): CoderRunUiHandle {
         if (isRendering) {
             return;
         }
+
         isRendering = true;
 
         try {
-            const lines = buildFrame();
+            const lines = buildCoderRunUiFrame({
+                terminalWidth: getTerminalWidth(),
+                spinner: SPINNER_FRAMES[spinnerFrame]!,
+                pauseState: getPauseState(),
+                config: state.config,
+                phase: state.phase,
+                currentPromptLabel: state.currentPromptLabel,
+                currentAttempt: state.currentAttempt,
+                maxAttempts: state.maxAttempts,
+                statusMessage: state.statusMessage,
+                detailLines: state.detailLines,
+                pendingEnterLabel: state.pendingEnterLabel,
+                agentOutputLines: state.agentOutputLines,
+                errors: state.errors,
+                progress: state.getProgress(),
+            });
 
-            // Move cursor up to clear the previous frame.
             if (previousFrameLineCount > 0) {
                 process.stdout.write(`\x1b[${previousFrameLineCount}A`);
             }
@@ -224,14 +185,13 @@ export function renderCoderRunUi(startTime: moment.Moment): CoderRunUiHandle {
                 }
             }
 
-            // Clear any leftover lines from a previous longer frame.
             if (lines.length < previousFrameLineCount) {
                 for (let i = lines.length; i < previousFrameLineCount; i++) {
                     process.stdout.write('\n');
                     clearLine(process.stdout, 0);
                     cursorTo(process.stdout, 0);
                 }
-                // Move back up to the end of the current frame.
+
                 const overshoot = previousFrameLineCount - lines.length;
                 if (overshoot > 0) {
                     process.stdout.write(`\x1b[${overshoot}A`);
@@ -245,119 +205,39 @@ export function renderCoderRunUi(startTime: moment.Moment): CoderRunUiHandle {
         }
     }
 
-    /**
-     * Builds the complete frame as an array of terminal lines.
-     */
-    function buildFrame(): string[] {
-        const w = getTerminalWidth();
-        const sep = colors.gray('\u2500'.repeat(w - 2));
-        const spinner = SPINNER_FRAMES[spinnerFrame]!;
-        const {
-            config,
-            phase,
-            currentPromptLabel,
-            currentAttempt,
-            maxAttempts,
-            statusMessage,
-            agentOutputLines,
-            errors,
-        } = state;
-        const progress = state.getProgress();
-        const isPaused = getPauseState() !== 'RUNNING';
-        const isActive = phase === 'running' || phase === 'verifying' || phase === 'loading';
-
-        const lines: string[] = [];
-
-        // --- Branding ---
-        lines.push(colors.bold.cyan('\u2728 Promptbook Coder'));
-
-        // --- Config ---
-        let configLine1 = `Agent: ${colors.bold.green(config.agentName)}`;
-        if (config.modelName) {
-            configLine1 += `  \u2502  Model: ${colors.bold(config.modelName)}`;
-        }
-        if (config.thinkingLevel) {
-            configLine1 += `  \u2502  Thinking: ${colors.bold(config.thinkingLevel)}`;
-        }
-        lines.push(configLine1);
-
-        let configLine2 = '';
-        if (config.context) {
-            configLine2 += `Context: ${colors.yellow(config.context)}  \u2502  `;
-        }
-        configLine2 += `Priority: \u2265${config.priority}`;
-        if (config.testCommand) {
-            configLine2 += `  \u2502  Test: ${colors.gray(config.testCommand)}`;
-        }
-        lines.push(configLine2);
-
-        // --- Separator ---
-        lines.push(sep);
-
-        // --- Progress ---
-        const progressSummary = [
-            `${progress.sessionDone}/${progress.sessionTotal} Prompts (${progress.totalPrompts} total)`,
-            `${progress.elapsedText}/${progress.estimatedTotalText}`,
-            `Est. done ${progress.estimatedLabel}`,
-        ].join(' \u2502 ');
-        lines.push(progressSummary);
-        lines.push(buildProgressBar(progress.percentage));
-
-        // --- Separator ---
-        lines.push(sep);
-
-        // --- Current prompt ---
-        if (currentPromptLabel) {
-            const spinnerPrefix = isActive ? colors.yellow(`${spinner} `) : '  ';
-            lines.push(spinnerPrefix + colors.bold(currentPromptLabel));
-            lines.push(colors.gray(`Attempt ${currentAttempt}/${maxAttempts} \u2502 ${statusMessage}`));
-        } else {
-            lines.push(colors.gray(statusMessage));
+    const keypressHandler = (_str: string, key: { ctrl?: boolean; name?: string }): void => {
+        if (key.ctrl && key.name === 'c') {
+            cleanup();
+            process.exit(0);
         }
 
-        // --- Agent output ---
-        if (agentOutputLines.length > 0) {
-            lines.push('');
-            lines.push(colors.gray.bold('Agent output:'));
-            const visibleLines = agentOutputLines.slice(-MAX_VISIBLE_OUTPUT_LINES);
-            for (const line of visibleLines) {
-                const cleanLine = stripAnsi(line);
-                // Truncate to terminal width.
-                const truncated = cleanLine.length > w - 2 ? cleanLine.slice(0, w - 5) + '...' : cleanLine;
-                lines.push(colors.gray(truncated));
+        if (key.name === 'p') {
+            if (getPauseState() === 'RUNNING') {
+                requestPause();
+            } else {
+                requestResume();
             }
+            return;
         }
 
-        // --- Errors ---
-        if (errors.length > 0) {
-            lines.push('');
-            for (const err of errors) {
-                lines.push(colors.red(`\u2717 ${err}`));
-            }
+        if ((key.name === 'return' || key.name === 'enter') && pendingEnterResolver) {
+            const resolvePendingEnter = pendingEnterResolver;
+            pendingEnterResolver = undefined;
+            state.setPendingEnterLabel(undefined);
+            resolvePendingEnter();
         }
+    };
 
-        // --- Separator ---
-        lines.push(sep);
+    process.stdin.on('keypress', keypressHandler);
 
-        // --- Controls ---
-        const pauseLabel = isPaused
-            ? colors.bgYellow.black(' PAUSED ') + colors.gray(' [P] Resume  \u2502  Ctrl+C Exit')
-            : colors.gray('[P] Pause  \u2502  Ctrl+C Exit');
-        lines.push(pauseLabel);
-
-        return lines;
-    }
-
-    // Initial render.
     process.stdout.write('\n');
     render();
     const interval = setInterval(scheduleRender, UI_REFRESH_INTERVAL_MS);
-
-    // Listen for state changes and schedule a re-render (debounced).
     state.on('change', scheduleRender);
 
-    // --- Cleanup ---
-
+    /**
+     * Tears down the terminal UI and restores console / stdin state.
+     */
     function cleanup(): void {
         clearInterval(interval);
         state.off('change', scheduleRender);
@@ -366,13 +246,16 @@ export function renderCoderRunUi(startTime: moment.Moment): CoderRunUiHandle {
             process.stdin.setRawMode(false);
         }
 
+        const resolvePendingEnter = pendingEnterResolver;
+        pendingEnterResolver = undefined;
+        resolvePendingEnter?.();
+
         isCapturing = false;
         console.info = originalConsoleInfo;
         console.warn = originalConsoleWarn;
         console.error = originalConsoleError;
         console.log = originalConsoleLog;
 
-        // Render one final frame so the user sees the last state.
         render();
         process.stdout.write('\n');
     }
@@ -384,6 +267,21 @@ export function renderCoderRunUi(startTime: moment.Moment): CoderRunUiHandle {
         },
         stopCapturingAgentOutput(): void {
             isCapturing = false;
+        },
+        waitForEnter(actionLabel: string): Promise<void> {
+            if (pendingEnterResolver) {
+                throw new Error('Coder run UI is already waiting for Enter.');
+            }
+
+            state.setPendingEnterLabel(actionLabel);
+            scheduleRender();
+
+            return new Promise((resolve) => {
+                pendingEnterResolver = () => {
+                    scheduleRender();
+                    resolve();
+                };
+            });
         },
         cleanup,
     };

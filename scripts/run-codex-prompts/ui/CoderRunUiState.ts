@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events';
 import moment from 'moment';
+import { ESTIMATED_DONE_CALENDAR_FORMATS, formatDurationBrief } from '../common/progressFormatting';
 import type { PromptStats } from '../prompts/types/PromptStats';
 
 /**
@@ -10,25 +11,19 @@ import type { PromptStats } from '../prompts/types/PromptStats';
 const MAX_AGENT_OUTPUT_LINES = 12;
 
 /**
- * Calendar formats used when displaying the estimated completion time.
- *
- * @private internal constant of coder run UI
- */
-const ESTIMATED_DONE_CALENDAR_FORMATS = {
-    sameDay: '[Today] h:mm',
-    nextDay: '[Tomorrow] h:mm',
-    nextWeek: 'dddd h:mm',
-    lastDay: '[Yesterday] h:mm',
-    lastWeek: 'dddd h:mm',
-    sameElse: 'MMM D h:mm',
-};
-
-/**
  * Execution phase of the coder run process.
  *
  * @private internal type of coder run UI
  */
-export type CoderRunPhase = 'initializing' | 'loading' | 'running' | 'verifying' | 'paused' | 'done' | 'error';
+export type CoderRunPhase =
+    | 'initializing'
+    | 'loading'
+    | 'running'
+    | 'verifying'
+    | 'waiting'
+    | 'paused'
+    | 'done'
+    | 'error';
 
 /**
  * Configuration display data for the coder run UI header.
@@ -72,6 +67,8 @@ export class CoderRunUiState extends EventEmitter {
     public currentPromptLabel = '';
     public currentAttempt = 1;
     public maxAttempts = 3;
+    public detailLines: string[] = [];
+    public pendingEnterLabel: string | undefined;
     public agentOutputLines: string[] = [];
     public phase: CoderRunPhase = 'initializing';
     public statusMessage = 'Initializing...';
@@ -180,6 +177,8 @@ export class CoderRunUiState extends EventEmitter {
      */
     public setCurrentPrompt(label: string): void {
         this.currentPromptLabel = label;
+        this.detailLines = [];
+        this.pendingEnterLabel = undefined;
         this.agentOutputLines = [];
         this.currentAttempt = 1;
         this.emitChange();
@@ -225,6 +224,22 @@ export class CoderRunUiState extends EventEmitter {
     }
 
     /**
+     * Replaces the contextual detail lines shown beneath the current prompt status.
+     */
+    public setDetailLines(detailLines: string[]): void {
+        this.detailLines = detailLines.filter((detailLine) => detailLine.trim() !== '');
+        this.emitChange();
+    }
+
+    /**
+     * Sets or clears the Enter-key action label shown in the controls panel.
+     */
+    public setPendingEnterLabel(pendingEnterLabel: string | undefined): void {
+        this.pendingEnterLabel = pendingEnterLabel;
+        this.emitChange();
+    }
+
+    /**
      * Appends an error message to the error list shown in the UI.
      */
     public addError(errorMessage: string): void {
@@ -235,32 +250,4 @@ export class CoderRunUiState extends EventEmitter {
     private emitChange(): void {
         this.emit('change');
     }
-}
-
-/**
- * Formats a duration into a compact string such as "3h 12m" or "45s".
- *
- * @private internal utility of coder run UI
- */
-function formatDurationBrief(duration: moment.Duration): string {
-    const totalSeconds = Math.max(0, Math.round(duration.asSeconds()));
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-    const parts: string[] = [];
-
-    if (hours > 0) {
-        parts.push(`${hours}h`);
-    }
-    if (minutes > 0) {
-        parts.push(`${minutes}m`);
-    }
-    if (!parts.length && seconds > 0) {
-        parts.push(`${seconds}s`);
-    }
-    if (!parts.length) {
-        parts.push('0s');
-    }
-
-    return parts.join(' ');
 }

@@ -1,3 +1,9 @@
+-   Enhanced the rich terminal UI of `ptbk coder run`, so the Promptbook coder dashboard now renders as a branded boxed layout and no longer corrupts the tail of the screen while waiting for Enter confirmations:
+
+    -   Refactored the rich dashboard into a shared frame builder with boxed branding, clearer session/task/output panels, colored status badges, and footer control pills for a more polished Promptbook-coder presentation.
+    -   Moved Enter-to-start / Enter-to-commit confirmations into the rich UI keyboard handler itself, which fixes the duplicated trailing `Pause ...` text caused by concurrent UI repainting and readline prompts fighting over stdout.
+    -   Extracted shared progress-duration formatting so the rich UI and fallback sticky progress header stay DRY while continuing to report the same completion estimates.
+
 -   Added `--no-ui` to `ptbk coder run` / `scripts/run-codex-prompts`, so coding-agent runs can now opt out of the rich terminal dashboard and keep plain streaming console output for logging and debugging:
 
     -   Routed the new flag through the CLI wrapper and legacy runner option parser so both entrypoints share the same UI toggle.

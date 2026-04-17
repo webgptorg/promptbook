@@ -9,6 +9,7 @@ import type { RunOptions } from '../cli/RunOptions';
 import { parseRunOptions } from '../cli/parseRunOptions';
 import { appendCoderContext } from '../common/appendCoderContext';
 import { CliProgressDisplay } from '../common/cliProgressDisplay';
+import { formatCommitMessageForDisplay } from '../common/formatCommitMessageForDisplay';
 import {
     captureChangedFilesSnapshot,
     normalizeLineEndingsInFilesChangedSinceSnapshot,
@@ -26,6 +27,7 @@ import { runAutoMigrateTestingServers } from '../migrations/runAutoMigrateTestin
 import { buildCodexPrompt } from '../prompts/buildCodexPrompt';
 import { buildCommitMessage } from '../prompts/buildCommitMessage';
 import { buildPromptLabelForDisplay } from '../prompts/buildPromptLabelForDisplay';
+import { buildPromptSummary } from '../prompts/buildPromptSummary';
 import { buildScriptPath } from '../prompts/buildScriptPath';
 import { findNextTodoPrompt } from '../prompts/findNextTodoPrompt';
 import { listUpcomingTasks } from '../prompts/listUpcomingTasks';
@@ -311,12 +313,22 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                 return;
             }
 
+            const promptLabel = buildPromptLabelForDisplay(nextPrompt.file, nextPrompt.section);
+
             if (options.waitForUser) {
                 uiHandle?.state.pauseTimer();
+                uiHandle?.state.setCurrentPrompt(promptLabel);
+                uiHandle?.state.setPhase('waiting');
                 uiHandle?.state.setStatusMessage(
-                    hasWaitedForStart ? 'Waiting... Press Enter to continue' : 'Waiting... Press Enter to start',
+                    hasWaitedForStart ? 'Waiting for confirmation to continue' : 'Waiting for confirmation to start',
                 );
-                await waitForPromptStart(nextPrompt.file, nextPrompt.section, !hasWaitedForStart);
+                uiHandle?.state.setDetailLines([buildPromptSummary(nextPrompt.file, nextPrompt.section)]);
+                if (isRichUiEnabled) {
+                    await uiHandle?.waitForEnter(hasWaitedForStart ? 'Continue' : 'Start');
+                } else {
+                    await waitForPromptStart(nextPrompt.file, nextPrompt.section, !hasWaitedForStart);
+                }
+                uiHandle?.state.setDetailLines([]);
                 uiHandle?.state.resumeTimer();
                 hasWaitedForStart = true;
             }
@@ -332,7 +344,6 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             );
 
             const scriptPath = buildScriptPath(nextPrompt.file, nextPrompt.section);
-            const promptLabel = buildPromptLabelForDisplay(nextPrompt.file, nextPrompt.section);
 
             if (isRichUiEnabled) {
                 uiHandle?.state.setCurrentPrompt(promptLabel);
@@ -390,9 +401,20 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
 
                         if (options.waitForUser) {
                             uiHandle?.state.pauseTimer();
-                            uiHandle?.state.setStatusMessage('Waiting... Press Enter to commit');
-                            printCommitMessage(commitMessage);
-                            await waitForEnter(colors.bgWhite('Press Enter to commit and continue...'));
+                            uiHandle?.state.setPhase('waiting');
+                            uiHandle?.state.setStatusMessage('Review the commit preview and confirm to continue');
+                            if (isRichUiEnabled) {
+                                uiHandle?.state.setDetailLines(
+                                    formatCommitMessageForDisplay(commitMessage)
+                                        .split(/\r?\n/)
+                                        .map((line) => line.trim()),
+                                );
+                                await uiHandle?.waitForEnter('Commit');
+                                uiHandle?.state.setDetailLines([]);
+                            } else {
+                                printCommitMessage(commitMessage);
+                                await waitForEnter(colors.bgWhite('Press Enter to commit and continue...'));
+                            }
                             uiHandle?.state.resumeTimer();
                         }
 

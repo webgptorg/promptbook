@@ -2,6 +2,7 @@ import colors from 'colors';
 import moment from 'moment';
 import { clearLine, cursorTo } from 'readline';
 import type { PromptStats } from '../prompts/types/PromptStats';
+import { ESTIMATED_DONE_CALENDAR_FORMATS, formatDurationBrief } from './progressFormatting';
 
 /**
  * Refresh interval for the progress header in milliseconds.
@@ -12,18 +13,6 @@ const PROGRESS_REFRESH_INTERVAL_MS = 1000;
  * Number of terminal lines reserved for the sticky progress header.
  */
 const PROGRESS_HEADER_RESERVED_LINES = 1;
-
-/**
- * Calendar formats used when displaying the estimated completion time.
- */
-const ESTIMATED_DONE_CALENDAR_FORMATS = {
-    sameDay: '[Today] h:mm',
-    nextDay: '[Tomorrow] h:mm',
-    nextWeek: 'dddd h:mm',
-    lastDay: '[Yesterday] h:mm',
-    lastWeek: 'dddd h:mm',
-    sameElse: 'MMM D h:mm',
-};
 
 /**
  * Computed values used when rendering the progress header.
@@ -137,7 +126,7 @@ export class CliProgressDisplay {
     }
 
     /**
-     * Builds the coloured progress text padded to the terminal width.
+     * Builds the colored progress text padded to the terminal width.
      */
     private buildProgressLine(): string {
         const snapshot = buildProgressSnapshot(this.stats, this.startTime, this.initialDone ?? this.stats.done);
@@ -188,30 +177,4 @@ function buildProgressSnapshot(
         estimatedTotalText,
         estimatedLabel,
     };
-}
-
-/**
- * Formats a duration into a compact string such as "3h 12m" or "45s".
- */
-function formatDurationBrief(duration: moment.Duration): string {
-    const totalSeconds = Math.max(0, Math.round(duration.asSeconds()));
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-    const parts: string[] = [];
-
-    if (hours > 0) {
-        parts.push(`${hours}h`);
-    }
-    if (minutes > 0) {
-        parts.push(`${minutes}m`);
-    }
-    if (!parts.length && seconds > 0) {
-        parts.push(`${seconds}s`);
-    }
-    if (!parts.length) {
-        parts.push('0s');
-    }
-
-    return parts.join(' ');
 }
