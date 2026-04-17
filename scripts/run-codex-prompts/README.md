@@ -27,6 +27,7 @@ npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-code
 --agent <agent-name>          # Select runner: openai-codex, github-copilot, cline, claude-code, opencode, gemini (required for non-dry-run)
 --model <model>               # Model to use (required for openai-codex and gemini, optional for github-copilot and opencode)
 --context <context-or-file>   # Append extra instructions inline or load them from a file in the current project
+--no-ui                       # Disable the rich terminal UI and stream plain console output instead
 --thinking-level <level>      # Reasoning effort for OpenAI Codex and GitHub Copilot: low, medium, high, xhigh
 --priority <minimum-priority> # Filter prompts by minimum priority level (default: 0)
 --allow-credits               # Allow OpenAI Codex runner to spend credits when limits are exhausted
@@ -63,6 +64,9 @@ ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --c
 
 # Run with GitHub Copilot
 ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --no-wait
+
+# Run with plain streaming output for logging/debugging
+ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --no-ui
 
 # Run with Gemini
 ptbk coder run --agent gemini --model gemini-3-flash-preview --no-wait

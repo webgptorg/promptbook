@@ -32,6 +32,7 @@ describe('parseRunOptions', () => {
             priority: 0,
             autoPush: false,
             preserveLogs: false,
+            noUi: false,
             normalizeLineEndings: true,
             allowCredits: false,
             autoMigrate: false,
@@ -49,6 +50,7 @@ describe('parseRunOptions', () => {
             priority: 0,
             autoPush: false,
             preserveLogs: false,
+            noUi: false,
             normalizeLineEndings: true,
             allowCredits: false,
             autoMigrate: false,
@@ -65,6 +67,7 @@ describe('parseRunOptions', () => {
             priority: 0,
             autoPush: false,
             preserveLogs: false,
+            noUi: false,
             normalizeLineEndings: true,
             allowCredits: false,
             autoMigrate: false,
@@ -92,6 +95,7 @@ describe('parseRunOptions', () => {
             ignoreGitChanges: true,
             autoPush: false,
             preserveLogs: false,
+            noUi: false,
             normalizeLineEndings: true,
             allowCredits: false,
             autoMigrate: false,
@@ -111,6 +115,7 @@ describe('parseRunOptions', () => {
             agentName: 'gemini',
             autoPush: false,
             preserveLogs: false,
+            noUi: false,
             context: 'Follow AGENTS instructions',
             normalizeLineEndings: true,
         });
@@ -132,6 +137,7 @@ describe('parseRunOptions', () => {
             agentName: 'github-copilot',
             autoPush: false,
             preserveLogs: false,
+            noUi: false,
             testCommand: 'npm run test',
             waitForUser: false,
         });
@@ -145,6 +151,7 @@ describe('parseRunOptions', () => {
             agentName: 'github-copilot',
             autoPush: false,
             preserveLogs: false,
+            noUi: false,
             thinkingLevel: 'xhigh',
             normalizeLineEndings: true,
         });
@@ -159,6 +166,7 @@ describe('parseRunOptions', () => {
             priority: 2,
             autoPush: false,
             preserveLogs: false,
+            noUi: false,
             normalizeLineEndings: true,
             allowCredits: false,
             autoMigrate: false,
@@ -174,6 +182,7 @@ describe('parseRunOptions', () => {
             agentName: 'github-copilot',
             autoPush: true,
             preserveLogs: false,
+            noUi: false,
         });
     });
 
@@ -185,6 +194,19 @@ describe('parseRunOptions', () => {
             agentName: 'github-copilot',
             autoPush: false,
             preserveLogs: true,
+            noUi: false,
+        });
+    });
+
+    it('disables the terminal UI only when --no-ui is provided', () => {
+        const options = parseRunOptions(['--agent', 'github-copilot', '--no-ui']);
+
+        expect(options).toMatchObject({
+            dryRun: false,
+            agentName: 'github-copilot',
+            autoPush: false,
+            preserveLogs: false,
+            noUi: true,
         });
     });
 
@@ -196,6 +218,7 @@ describe('parseRunOptions', () => {
             agentName: 'gemini',
             autoPush: false,
             preserveLogs: false,
+            noUi: false,
             normalizeLineEndings: false,
             allowCredits: false,
             autoMigrate: false,
@@ -211,6 +234,7 @@ describe('parseRunOptions', () => {
             agentName: 'openai-codex',
             autoPush: false,
             preserveLogs: false,
+            noUi: false,
             allowCredits: true,
             autoMigrate: false,
             allowDestructiveAutoMigrate: false,
@@ -225,6 +249,7 @@ describe('parseRunOptions', () => {
             agentName: 'openai-codex',
             autoPush: false,
             preserveLogs: false,
+            noUi: false,
             autoMigrate: true,
             allowDestructiveAutoMigrate: false,
         });
@@ -243,6 +268,7 @@ describe('parseRunOptions', () => {
             agentName: 'openai-codex',
             autoPush: false,
             preserveLogs: false,
+            noUi: false,
             autoMigrate: true,
             allowDestructiveAutoMigrate: true,
         });

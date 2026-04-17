@@ -34,6 +34,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             - Automatically stages and commits changes with agent identity
             - Optional post-commit git push with explicit --auto-push opt-in
             - Optional --preserve-logs keeps temp prompt/log artifacts after successful rounds
+            - Optional --no-ui keeps plain streaming console output for logging and debugging
             - Supports GPG signing of commits
             - Optional post-prompt verification with test-feedback retries
             - Progress tracking and interactive controls
@@ -67,6 +68,10 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
         '--preserve-logs',
         'Keep generated temp prompt/log artifacts after successful rounds for debugging and analytics',
         false,
+    );
+    command.option(
+        '--no-ui',
+        'Disable the rich terminal UI and keep plain streaming console output for logging and debugging',
     );
     command.addOption(
         new Option(
@@ -105,6 +110,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 context,
                 test,
                 preserveLogs,
+                ui,
                 thinkingLevel,
                 priority,
                 wait,
@@ -121,6 +127,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 readonly context?: string;
                 readonly test?: string | string[];
                 readonly preserveLogs: boolean;
+                readonly ui: boolean;
                 readonly thinkingLevel?: ThinkingLevel;
                 readonly priority: number;
                 readonly wait: boolean;
@@ -133,6 +140,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             };
 
             const testCommand = normalizeCommandOptionValue(test);
+            const noUi = !ui;
 
             // Validate agent
             let agentName:
@@ -183,6 +191,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
                 context,
                 testCommand,
                 preserveLogs,
+                noUi,
                 thinkingLevel,
                 priority,
                 normalizeLineEndings,

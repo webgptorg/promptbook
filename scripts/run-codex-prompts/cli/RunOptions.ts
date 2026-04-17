@@ -21,6 +21,10 @@ export type RunOptions = {
      */
     preserveLogs: boolean;
     /**
+     * Disables the rich terminal UI so runner output streams directly to the console.
+     */
+    noUi: boolean;
+    /**
      * Optional reasoning effort override for runners that support configurable thinking levels.
      */
     thinkingLevel?: ThinkingLevel;

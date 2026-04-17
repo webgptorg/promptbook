@@ -1,3 +1,8 @@
+-   Added `--no-ui` to `ptbk coder run` / `scripts/run-codex-prompts`, so coding-agent runs can now opt out of the rich terminal dashboard and keep plain streaming console output for logging and debugging:
+
+    -   Routed the new flag through the CLI wrapper and legacy runner option parser so both entrypoints share the same UI toggle.
+    -   Reused the existing non-UI console path instead of duplicating output handling, which keeps raw agent/test logs visible while fully skipping the rich terminal UI.
+
 -   Updated the Utils miniapp **Avatars** playground so the current preview is now shareable and refresh-safe through URL search parameters:
 
     -   Persisted the selected visual plus editable agent name, hash, and repeated color inputs into the page query string, so reloading or opening a copied URL restores the same deterministic avatar state.

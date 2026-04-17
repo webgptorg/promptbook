@@ -143,4 +143,30 @@ describe('$initializeCoderRunCommand', () => {
             }),
         );
     });
+
+    it('defaults noUi to false when --no-ui is omitted', async () => {
+        const program = createProgramWithRunCommand();
+
+        await program.parseAsync(['node', 'test', 'run', '--dry-run'], { from: 'node' });
+
+        expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                dryRun: true,
+                noUi: false,
+            }),
+        );
+    });
+
+    it('passes noUi as true when --no-ui is provided', async () => {
+        const program = createProgramWithRunCommand();
+
+        await program.parseAsync(['node', 'test', 'run', '--dry-run', '--no-ui'], { from: 'node' });
+
+        expect(getRunCodexPromptsMock()).toHaveBeenCalledWith(
+            expect.objectContaining({
+                dryRun: true,
+                noUi: true,
+            }),
+        );
+    });
 });

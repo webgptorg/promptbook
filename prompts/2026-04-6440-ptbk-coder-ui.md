@@ -26,7 +26,7 @@ ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --c
 
 ---
 
-[ ] !
+[x] ~$0.00 17 minutes by GitHub Copilot `gpt-5.4`
 
 [✨🌉] Add flag `--no-ui` to `ptbk coder run`
 
@@ -93,3 +93,4 @@ Working on 1/8 PRDs with Priority: ≥ 1 | Not working on 100 PRDs with Priority
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
+

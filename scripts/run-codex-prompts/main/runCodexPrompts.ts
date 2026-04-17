@@ -128,12 +128,12 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
     }
 
     const runStartDate = moment();
-    const isUiMode = !options.dryRun && Boolean(process.stdout.isTTY);
-    const progressDisplay = options.dryRun || isUiMode ? undefined : new CliProgressDisplay(runStartDate);
-    const uiHandle: CoderRunUiHandle | undefined = isUiMode ? renderCoderRunUi(runStartDate) : undefined;
+    const isRichUiEnabled = !options.dryRun && !options.noUi && Boolean(process.stdout.isTTY);
+    const progressDisplay = options.dryRun || options.noUi || isRichUiEnabled ? undefined : new CliProgressDisplay(runStartDate);
+    const uiHandle: CoderRunUiHandle | undefined = isRichUiEnabled ? renderCoderRunUi(runStartDate) : undefined;
 
     // When the Ink UI is active it handles keyboard input itself, so skip the raw stdin listener.
-    if (!isUiMode) {
+    if (!isRichUiEnabled) {
         listenForPause();
     }
 
@@ -256,7 +256,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
 
         while (just(true)) {
             await checkPause({
-                silent: isUiMode,
+                silent: isRichUiEnabled,
                 onPaused: () => {
                     uiHandle?.state.pauseTimer();
                     uiHandle?.state.setPhase('paused');
@@ -266,7 +266,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                     uiHandle?.state.resumeTimer();
                 },
             });
-            if (isUiMode) {
+            if (isRichUiEnabled) {
                 uiHandle?.state.setPhase('loading');
                 uiHandle?.state.setStatusMessage('Loading prompts...');
             }
@@ -274,19 +274,19 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             const stats = summarizePrompts(promptFiles, options.priority);
             progressDisplay?.update(stats);
             uiHandle?.state.updateProgress(stats);
-            if (!isUiMode) {
+            if (!isRichUiEnabled) {
                 printStats(stats, options.priority);
             }
 
             const nextPrompt = findNextTodoPrompt(promptFiles, options.priority);
 
             if (!hasShownUpcomingTasks) {
-                if (stats.toBeWritten > 0 && !isUiMode) {
+                if (stats.toBeWritten > 0 && !isRichUiEnabled) {
                     console.info(colors.yellow('Following prompts need to be written:'));
                     printPromptsToBeWritten(promptFiles, options.priority);
                     console.info('');
                 }
-                if (!isUiMode) {
+                if (!isRichUiEnabled) {
                     printUpcomingTasks(listUpcomingTasks(promptFiles, options.priority));
                 }
                 hasShownUpcomingTasks = true;
@@ -297,14 +297,14 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                     const message = 'No prompts ready for agent.';
                     uiHandle?.state.setStatusMessage(message);
                     uiHandle?.state.setPhase('done');
-                    if (!isUiMode) {
+                    if (!isRichUiEnabled) {
                         console.info(colors.yellow(message));
                     }
                 } else {
                     const message = 'All prompts are done.';
                     uiHandle?.state.setStatusMessage(message);
                     uiHandle?.state.setPhase('done');
-                    if (!isUiMode) {
+                    if (!isRichUiEnabled) {
                         console.info(colors.green(message));
                     }
                 }
@@ -334,7 +334,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             const scriptPath = buildScriptPath(nextPrompt.file, nextPrompt.section);
             const promptLabel = buildPromptLabelForDisplay(nextPrompt.file, nextPrompt.section);
 
-            if (isUiMode) {
+            if (isRichUiEnabled) {
                 uiHandle?.state.setCurrentPrompt(promptLabel);
                 uiHandle?.state.setPhase('running');
                 uiHandle?.state.setStatusMessage('Running');

@@ -7,7 +7,7 @@ import type { RunOptions } from './RunOptions';
  * CLI usage text for this script.
  */
 const USAGE =
-    'Usage: run-codex-prompts [--dry-run] [--agent <agent-name>] [--model <model>] [--context <context-or-file>] [--test <test-command...>] [--preserve-logs] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--no-wait] [--ignore-git-changes] [--no-normalize-line-endings] [--auto-push]';
+    'Usage: run-codex-prompts [--dry-run] [--agent <agent-name>] [--model <model>] [--context <context-or-file>] [--test <test-command...>] [--preserve-logs] [--no-ui] [--thinking-level <thinking-level>] [--priority <minimum-priority>] [--allow-credits] [--auto-migrate] [--allow-destructive-auto-migrate] [--no-wait] [--ignore-git-changes] [--no-normalize-line-endings] [--auto-push]';
 
 /**
  * Top-level flags supported by this command.
@@ -19,6 +19,7 @@ const KNOWN_OPTION_FLAGS = new Set([
     '--context',
     '--test',
     '--preserve-logs',
+    '--no-ui',
     '--thinking-level',
     '--priority',
     '--allow-credits',
@@ -58,6 +59,7 @@ export function parseRunOptions(args: string[]): RunOptions {
     const hasTestCommandFlag = args.includes('--test');
     const testCommand = readVariadicOptionValue(args, '--test');
     const preserveLogs = args.includes('--preserve-logs');
+    const noUi = args.includes('--no-ui');
     const hasThinkingLevelFlag = args.includes('--thinking-level');
     const thinkingLevelValue = readOptionValue(args, '--thinking-level');
     const hasPriorityFlag = args.includes('--priority');
@@ -104,6 +106,7 @@ export function parseRunOptions(args: string[]): RunOptions {
         allowDestructiveAutoMigrate,
         autoPush,
         preserveLogs,
+        noUi,
         agentName,
         model,
         context,
