@@ -7,3 +7,4 @@
 -   The background processing must reconcile with the server response: replace or update the optimistic message (status, temp id, streaming state) and then render the assistant response when it arrives.
 -   The UI must handle navigation + streaming consistently (no duplicated messages, correct ordering, correct auto-scroll behavior).
 -   If the server ultimately rejects the message or the request fails, update the optimistic message to an error state (and optionally allow retry), without breaking the already-visible chat.
+

@@ -21,16 +21,14 @@
 
 ---
 
-[-]
+[ ] !!!!
 
-[✨👝] foo
+[✨👝] `avatars` page in utils app should persist data in URL get search parameters
 
--   @@@
+-   The avatar page should persist the selected avatar visual and the input parameters (agent name, hash, colors) in the URL search parameters, so that when the page is refreshed or shared, the same avatar will be generated based on the URL parameters
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+-   You are working with the [Utils miniapp](apps/utils) and adding this as a new page there to test it
 
 ---
 
@@ -41,9 +39,7 @@
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+-   You are working with the [Utils miniapp](apps/utils) and adding this as a new page there to test it
 
 ---
 
@@ -54,7 +50,4 @@
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
-
+-   You are working with the [Utils miniapp](apps/utils) and adding this as a new page there to test it
