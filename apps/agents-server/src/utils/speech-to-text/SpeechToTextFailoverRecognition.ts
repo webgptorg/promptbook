@@ -155,6 +155,20 @@ export class SpeechToTextFailoverRecognition implements SpeechRecognition {
         return this._state;
     }
 
+    /**
+     * Exposes the currently active provider identifier when one is selected.
+     */
+    public get currentProviderId(): string | undefined {
+        return this.activeProvider?.id;
+    }
+
+    /**
+     * Exposes live diagnostics for the currently active provider.
+     */
+    public get currentProviderDiagnostics(): SpeechToTextProviderDiagnostics | undefined {
+        return this.activeProviderDiagnostics;
+    }
+
     public async $start(startOptions: SpeechRecognitionStartOptions = {}): Promise<void> {
         if (this._state === 'RECORDING' || this._state === 'STARTING' || this._state === 'TRANSCRIBING') {
             return;

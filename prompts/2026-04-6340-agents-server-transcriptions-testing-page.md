@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.00 37 minutes by GitHub Copilot `gpt-5.4`
 
 [🛰️🎙️] Add transcriptions long-running test page (browser SpeechRecognition continuous restart)
 
@@ -31,3 +31,4 @@
     -   `SpeechToTextFailoverRecognition` and telemetry/stall logic:【apps/agents-server/src/utils/speech-to-text/SpeechToTextFailoverRecognition.ts】
     -   `BrowserWebSpeechToTextProvider` partial/final event forwarding:【apps/agents-server/src/utils/speech-to-text/providers/BrowserWebSpeechToTextProvider.ts】
     -   Speech-to-text provider registry and failover creation:【apps/agents-server/src/utils/speech-to-text/createDefaultSpeechRecognition.ts】
+

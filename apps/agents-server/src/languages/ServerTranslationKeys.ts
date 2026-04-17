@@ -147,6 +147,7 @@ export const SERVER_TRANSLATION_KEYS = [
     'header.chatFeedback',
     'header.browser',
     'header.voiceInputTest',
+    'header.transcriptions',
     'header.searchEngineTest',
     'header.errorSimulation',
     'header.imagesGallery',

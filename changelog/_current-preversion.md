@@ -1,3 +1,9 @@
+-   Added an admin-only **Transcriptions** test page for long-running speech-to-text sessions in Agents Server:
+
+    -   Added `/admin/transcriptions` to the System > Developer / Debug menu with provider-mode toggles, language selection, live transcript output, elapsed-time/current-provider status, and a collapsible diagnostics panel for telemetry and provider capabilities.
+    -   Implemented `LongRunningSpeechRecognitionSession` on top of the existing speech-to-text failover stack so one outer session can survive repeated inner provider stops, especially for browser Web Speech runs, while keeping finalized chunks stable and reconciling overlapping partials after restarts.
+    -   Extended the failover recognizer with readable current-provider diagnostics and added regression coverage for wrapper restart, stop-guard, terminal-error, and transcript-deduplication behavior.
+
 -   Added a Book-editor shortcut to the Agents Server new-agent Wizard so users can switch to the full Book flow without losing the Wizard progress:
 
     -   Moved the Wizard-to-editor handoff into a persistent top-right Book link available from every Wizard step instead of only the knowledge step.

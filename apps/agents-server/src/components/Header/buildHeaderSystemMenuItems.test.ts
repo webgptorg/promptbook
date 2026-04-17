@@ -50,6 +50,7 @@ describe('buildHeaderSystemMenuItems', () => {
                 'translated:header.settings',
                 'translated:header.toolLimits',
                 'translated:header.backups',
+                'translated:header.transcriptions',
                 'translated:header.errorSimulation',
             ]),
         );

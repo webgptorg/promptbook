@@ -286,6 +286,10 @@ export function buildHeaderSystemMenuItems({
             href: '/admin/voice-input-test',
         },
         {
+            label: translate('header.transcriptions'),
+            href: '/admin/transcriptions',
+        },
+        {
             label: translate('header.searchEngineTest'),
             href: '/admin/search-engine-test',
         },

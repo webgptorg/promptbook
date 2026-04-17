@@ -143,6 +143,7 @@ header.backups: Backups
 header.chatFeedback: Chat feedback
 header.browser: Browser
 header.voiceInputTest: Voice Input Test
+header.transcriptions: Transcriptions
 header.searchEngineTest: Search Engine Test
 header.errorSimulation: Error simulation
 header.imagesGallery: Images gallery
