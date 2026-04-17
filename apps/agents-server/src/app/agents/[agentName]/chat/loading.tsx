@@ -1,9 +1,15 @@
-import { AgentPageLoadingSkeleton } from '../../../../components/Skeleton/AgentPageLoadingSkeleton';
-import { AgentPageLoadingSkeletonVariant } from '../../../../components/Skeleton/AgentPageLoadingSkeletonVariant';
+'use client';
+
+import { useParams } from 'next/navigation';
+import { OptimisticAgentChatRouteLoading } from './OptimisticAgentChatRouteLoading';
 
 /**
- * Renders the standalone chat skeleton while chat route segments stream.
+ * Route-level loading surface for the standalone agent chat page.
  */
 export default function Loading() {
-    return <AgentPageLoadingSkeleton variant={AgentPageLoadingSkeletonVariant.CHAT} />;
+    const params = useParams<{ agentName?: string | Array<string> }>() || {};
+    const agentNameParam = params.agentName;
+    const agentName = Array.isArray(agentNameParam) ? agentNameParam[0] || '' : agentNameParam || '';
+
+    return <OptimisticAgentChatRouteLoading agentName={decodeURIComponent(agentName)} />;
 }

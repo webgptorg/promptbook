@@ -58,6 +58,7 @@ type UseAgentChatHistoryClientStateResult = {
     shouldUseHistory: boolean;
     effectiveInitialAutoExecuteMessage: string | undefined;
     effectiveInitialAutoExecuteMessageAttachments: ChatMessage['attachments'] | undefined;
+    effectiveInitialAutoExecuteClientMessageId: string | undefined;
     chats: Array<UserChatSummary>;
     activeChatId: string | null;
     activeChatSummary: UserChatSummary | null;
@@ -142,6 +143,7 @@ export function useAgentChatHistoryClientState(
     const effectiveInitialAutoExecuteMessage = initialAutoExecuteMessage ?? pendingProfileMessage?.message;
     const effectiveInitialAutoExecuteMessageAttachments =
         initialAutoExecuteMessageAttachments ?? pendingProfileMessage?.attachments;
+    const effectiveInitialAutoExecuteClientMessageId = pendingProfileMessage?.clientMessageId;
     const hasInitialAutoExecutePayload = hasAutoExecutePayload(
         effectiveInitialAutoExecuteMessage,
         effectiveInitialAutoExecuteMessageAttachments,
@@ -316,6 +318,7 @@ export function useAgentChatHistoryClientState(
         shouldUseHistory,
         effectiveInitialAutoExecuteMessage,
         effectiveInitialAutoExecuteMessageAttachments,
+        effectiveInitialAutoExecuteClientMessageId,
         chats,
         activeChatId,
         activeChatSummary,

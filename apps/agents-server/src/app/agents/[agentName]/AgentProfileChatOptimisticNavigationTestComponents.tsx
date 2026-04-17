@@ -3,11 +3,7 @@ import { useLayoutEffect, useRef, type ReactNode } from 'react';
 /**
  * Mocked profile-page chat composer used to trigger optimistic-navigation scenarios.
  */
-function MockAgentProfileChatOptimisticNavigationChat({
-    onMessage,
-}: {
-    onMessage?: (message: string) => void;
-}) {
+function MockAgentProfileChatOptimisticNavigationChat({ onMessage }: { onMessage?: (message: string) => void }) {
     return (
         <div>
             <button
@@ -54,11 +50,7 @@ function MockAgentProfileChatOptimisticNavigationAgentChatWrapper() {
 /**
  * Mocked layout shell that preserves rendered children.
  */
-function MockAgentProfileChatOptimisticNavigationAgentChatPageLayout({
-    children,
-}: {
-    children: ReactNode;
-}) {
+function MockAgentProfileChatOptimisticNavigationAgentChatPageLayout({ children }: { children: ReactNode }) {
     return <div>{children}</div>;
 }
 
@@ -77,6 +69,7 @@ function MockAgentProfileChatOptimisticNavigationCanonicalAgentChatPanel({
     messages,
     autoExecuteMessage,
     autoExecuteMessageAttachments,
+    autoExecuteClientMessageId,
     onAutoExecuteMessagePending,
     onSubmitUserTurn,
 }: {
@@ -90,6 +83,7 @@ function MockAgentProfileChatOptimisticNavigationCanonicalAgentChatPanel({
     }>;
     autoExecuteMessage?: string;
     autoExecuteMessageAttachments?: Array<unknown>;
+    autoExecuteClientMessageId?: string;
     onAutoExecuteMessagePending?: (payload: {
         chatId: string;
         clientMessageId: string;
@@ -119,7 +113,7 @@ function MockAgentProfileChatOptimisticNavigationCanonicalAgentChatPanel({
             return;
         }
 
-        const clientMessageId = `auto:${chatId}`;
+        const clientMessageId = autoExecuteClientMessageId || `auto:${chatId}`;
         onAutoExecuteMessagePending?.({
             chatId,
             clientMessageId,
@@ -131,7 +125,14 @@ function MockAgentProfileChatOptimisticNavigationCanonicalAgentChatPanel({
             attachments: autoExecuteMessageAttachments,
             clientMessageId,
         });
-    }, [autoExecuteMessage, autoExecuteMessageAttachments, chatId, onAutoExecuteMessagePending, onSubmitUserTurn]);
+    }, [
+        autoExecuteClientMessageId,
+        autoExecuteMessage,
+        autoExecuteMessageAttachments,
+        chatId,
+        onAutoExecuteMessagePending,
+        onSubmitUserTurn,
+    ]);
 
     return (
         <div data-testid="canonical-agent-chat-panel">
@@ -141,7 +142,9 @@ function MockAgentProfileChatOptimisticNavigationCanonicalAgentChatPanel({
                     key={message.id || `${message.sender}-${message.content}-${message.lifecycleState || 'none'}`}
                     data-testid="rendered-message"
                 >
-                    {`${message.sender}:${message.content}:${message.lifecycleState || 'none'}:${message.lifecycleError || ''}`}
+                    {`${message.sender}:${message.content}:${message.lifecycleState || 'none'}:${
+                        message.lifecycleError || ''
+                    }`}
                 </div>
             ))}
         </div>

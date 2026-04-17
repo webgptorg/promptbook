@@ -1,5 +1,5 @@
 import { expect, jest } from '@jest/globals';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import type { ChatMessage } from '@promptbook-local/types';
 import type { ComponentType } from 'react';
 import { USER_CHAT_SOURCES } from '../../../utils/userChat/UserChatSource';
@@ -275,6 +275,20 @@ function createEmptySnapshot(): UserChatsSnapshot {
 }
 
 /**
+ * Creates one snapshot with an already selected existing chat.
+ */
+function createExistingChatSnapshot(chatId: string): UserChatsSnapshot {
+    return {
+        chats: [createChatDetail(chatId).chat],
+        activeChatId: chatId,
+        activeMessages: [],
+        activeDraftMessage: '',
+        activeJobs: [],
+        activeTimeouts: [],
+    };
+}
+
+/**
  * Creates one durable chat detail payload for mocked new-chat creation.
  */
 function createChatDetail(chatId: string, messages: Array<ChatMessage> = []): UserChatDetail {
@@ -371,6 +385,13 @@ function preparePendingExistingChatBootstrap(): Deferred<UserChatsSnapshot> {
 }
 
 /**
+ * Prepares one immediately resolved bootstrap snapshot for an existing chat.
+ */
+function prepareResolvedExistingChatBootstrap(chatId: string): void {
+    mockedFetchUserChats.mockReturnValueOnce(Promise.resolve(createExistingChatSnapshot(chatId)));
+}
+
+/**
  * Renders the profile-page chat preview with the stable props used by these tests.
  */
 function renderProfileChat(AgentProfileChatComponent: ComponentType<AgentProfileChatProps>) {
@@ -424,6 +445,21 @@ async function expectActiveChatId(chatId: string): Promise<void> {
 }
 
 /**
+ * Waits until the durable send request uses the expected client message id.
+ */
+async function expectSubmittedClientMessageId(clientMessageId: string, chatId: string = 'chat-created'): Promise<void> {
+    await waitFor(() =>
+        expect(mockedSendUserChatMessage).toHaveBeenCalledWith(
+            TEST_AGENT_PROFILE.name,
+            chatId,
+            expect.objectContaining({
+                clientMessageId,
+            }),
+        ),
+    );
+}
+
+/**
  * Shared mock/setup and render facade for `AgentProfileChat.optimisticNavigation.test.tsx`.
  *
  * @private function of `AgentProfileChat.optimisticNavigation.test.tsx`
@@ -435,8 +471,10 @@ export const AgentProfileChatOptimisticNavigationTestSupport = {
     teardown: teardownAgentProfileChatOptimisticNavigationTest,
     preparePendingNewChatBootstrap,
     preparePendingExistingChatBootstrap,
+    prepareResolvedExistingChatBootstrap,
     renderProfileChat,
     renderHistoryClient,
     expectQueuedUserMessage,
     expectActiveChatId,
+    expectSubmittedClientMessageId,
 };

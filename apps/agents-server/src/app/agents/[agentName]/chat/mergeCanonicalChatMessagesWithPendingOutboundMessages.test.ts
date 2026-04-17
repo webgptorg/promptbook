@@ -9,6 +9,7 @@ import {
  * Shared timestamp used by deterministic optimistic-message tests.
  */
 const TEST_CREATED_AT = '2026-03-14T12:00:00.000Z' as NonNullable<ChatMessage['createdAt']>;
+const TEST_ASSISTANT_CREATED_AT = '2026-03-14T12:00:01.000Z' as NonNullable<ChatMessage['createdAt']>;
 
 /**
  * Builds one optimistic outbound message record for test cases.
@@ -134,6 +135,30 @@ describe('mergeCanonicalChatMessagesWithPendingOutboundMessages', () => {
         });
 
         expect(renderedMessages[0]?.replyingTo).toEqual(pendingOutboundMessage.replyingTo);
+    });
+
+    it('should keep an unresolved optimistic user bubble before later assistant messages', () => {
+        const pendingOutboundMessage = createPendingOutboundMessageRecord({
+            createdAt: TEST_CREATED_AT,
+        });
+        const canonicalAssistantMessage: ChatMessage = {
+            id: 'assistant-1',
+            sender: 'AGENT',
+            content: 'Assistant is already streaming.',
+            createdAt: TEST_ASSISTANT_CREATED_AT,
+            isComplete: false,
+            lifecycleState: 'running',
+        };
+
+        const renderedMessages = mergeCanonicalChatMessagesWithPendingOutboundMessages({
+            canonicalMessages: [canonicalAssistantMessage],
+            pendingOutboundMessages: [pendingOutboundMessage],
+        });
+
+        expect(renderedMessages.map((message) => message.id)).toEqual([
+            pendingOutboundMessage.tempId,
+            canonicalAssistantMessage.id,
+        ]);
     });
 
     it('should not reconcile fallback-matched messages when their reply targets differ', () => {

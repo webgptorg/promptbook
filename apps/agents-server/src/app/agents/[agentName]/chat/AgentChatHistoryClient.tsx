@@ -81,6 +81,7 @@ type AgentChatHistoryReadyViewProps = Pick<
     currentTimestamp: number;
     autoExecuteMessage: string | undefined;
     autoExecuteMessageAttachments: ChatMessage['attachments'] | undefined;
+    autoExecuteClientMessageId: string | undefined;
     newChatHref: string;
     formatText: (text: string) => string;
     formatChatTimestamp: (timestamp: string) => string;
@@ -124,6 +125,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         shouldUseHistory,
         effectiveInitialAutoExecuteMessage,
         effectiveInitialAutoExecuteMessageAttachments,
+        effectiveInitialAutoExecuteClientMessageId,
         chats,
         activeChatId,
         activeChatSummary,
@@ -173,12 +175,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     }
 
     if (!activeChatId) {
-        return (
-            <AgentChatHistoryLoadingView
-                isHeadlessMode={isHeadlessMode}
-                isSidebarCollapsed={isSidebarCollapsed}
-            />
-        );
+        return <AgentChatHistoryLoadingView isHeadlessMode={isHeadlessMode} isSidebarCollapsed={isSidebarCollapsed} />;
     }
 
     return (
@@ -209,6 +206,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             currentTimestamp={currentTimestamp}
             autoExecuteMessage={autoExecuteMessage}
             autoExecuteMessageAttachments={effectiveInitialAutoExecuteMessageAttachments}
+            autoExecuteClientMessageId={effectiveInitialAutoExecuteClientMessageId}
             newChatHref={newChatHref}
             formatText={formatText}
             formatChatTimestamp={formatChatTimestamp}
@@ -311,6 +309,7 @@ function AgentChatHistoryReadyView(props: AgentChatHistoryReadyViewProps) {
         currentTimestamp,
         autoExecuteMessage,
         autoExecuteMessageAttachments,
+        autoExecuteClientMessageId,
         newChatHref,
         formatText,
         formatChatTimestamp,
@@ -348,6 +347,7 @@ function AgentChatHistoryReadyView(props: AgentChatHistoryReadyViewProps) {
                     draftMessage={isActiveChatReadOnly ? '' : activeChatDraftMessage}
                     autoExecuteMessage={autoExecuteMessage}
                     autoExecuteMessageAttachments={autoExecuteMessageAttachments}
+                    autoExecuteClientMessageId={autoExecuteClientMessageId}
                     areFileAttachmentsEnabled={areFileAttachmentsEnabled}
                     feedbackMode={feedbackMode}
                     activeJobs={activeJobs}

@@ -29,6 +29,7 @@ type CanonicalAgentChatPanelProps = {
     draftMessage?: string;
     autoExecuteMessage?: string;
     autoExecuteMessageAttachments?: ChatMessage['attachments'];
+    autoExecuteClientMessageId?: string;
     areFileAttachmentsEnabled: boolean;
     feedbackMode: ChatFeedbackMode;
     activeJobs: ReadonlyArray<UserChatJob>;
@@ -75,6 +76,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
         draftMessage,
         autoExecuteMessage,
         autoExecuteMessageAttachments,
+        autoExecuteClientMessageId,
         areFileAttachmentsEnabled,
         feedbackMode,
         activeJobs,
@@ -100,6 +102,7 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
         thinkingMessages,
         autoExecuteMessage,
         autoExecuteMessageAttachments,
+        autoExecuteClientMessageId,
         onSubmitUserTurn,
         onAutoExecuteMessagePending,
         onAutoExecuteMessageConsumed,

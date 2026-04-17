@@ -2784,7 +2784,14 @@
     -   Removed the separate manual "Team members" entry UI and kept only the existing-agents picker headed by "Browse existing agents" / "Vyberte existující agenty".
     -   Kept multi-selection for teammate agents across the local server and federated servers while continuing to exclude the hidden core server from federated lists.
     -   Extracted a shared homepage-like `AgentCardsSection` renderer so the wizard and federated-agent surfaces reuse the same card-grid, loading, empty, and error presentation.
+
 -   Improved Agents Server expired chat-worker diagnostics so the stale "Background worker lease expired before the chat turn finished." failure now leaves actionable evidence instead of a generic summary:
 
     -   Added shared expired-lease diagnostics for durable chat jobs that record queue/run/heartbeat timing, worker runtime thresholds, configured server limits, and a snapshot of active chat jobs and timeouts at the moment recovery runs.
     -   Started logging structured `lease_expired` recovery/reconciliation events so server logs show which background tasks were active and whether the job had already outlived the 300-second worker route limit when heartbeats stopped.
+
+-   Added immediate optimistic profile-to-chat navigation in Agents Server, so starting a first message from an agent profile now swaps to the chat route without waiting for the server and keeps the user bubble visible throughout the handoff:
+
+    -   Persisted profile-to-chat optimistic turn metadata across the route transition, including the client message id reused later for canonical reconciliation and failure states.
+    -   Added a chat-route loading surface that renders the pending user turn right away while the standalone chat page server data is still loading.
+    -   Tightened optimistic/canonical merge ordering so unresolved user bubbles stay ahead of later assistant streaming messages until the server confirms them.

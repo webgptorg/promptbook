@@ -12,9 +12,13 @@ const STORAGE_KEY_PREFIX = 'agents-server:agent-profile-message';
 /**
  * Payload for pending profile message.
  */
-type PendingProfileMessagePayload = {
+export type PendingProfileMessagePayload = {
     message?: string;
     attachments?: ChatMessage['attachments'];
+    clientMessageId?: string;
+    agentDisplayName?: string;
+    brandColorHex?: string;
+    inputPlaceholder?: string;
 };
 
 /**
@@ -44,6 +48,18 @@ function normalizePendingProfileMessagePayload(
     }
     if (payload.attachments && payload.attachments.length > 0) {
         normalizedPayload.attachments = payload.attachments;
+    }
+    if (typeof payload.clientMessageId === 'string' && payload.clientMessageId.trim() !== '') {
+        normalizedPayload.clientMessageId = payload.clientMessageId;
+    }
+    if (typeof payload.agentDisplayName === 'string' && payload.agentDisplayName.trim() !== '') {
+        normalizedPayload.agentDisplayName = payload.agentDisplayName;
+    }
+    if (typeof payload.brandColorHex === 'string' && payload.brandColorHex.trim() !== '') {
+        normalizedPayload.brandColorHex = payload.brandColorHex;
+    }
+    if (typeof payload.inputPlaceholder === 'string' && payload.inputPlaceholder.trim() !== '') {
+        normalizedPayload.inputPlaceholder = payload.inputPlaceholder;
     }
 
     if (normalizedPayload.message || normalizedPayload.attachments) {
@@ -79,10 +95,7 @@ function readPendingProfileMessage(agentName: string): PendingProfileMessagePayl
  *
  * @private Internal helper used by Agents Server profile routes.
  */
-export function setPendingProfileMessage(
-    agentName: string,
-    payload: PendingProfileMessagePayload,
-): void {
+export function setPendingProfileMessage(agentName: string, payload: PendingProfileMessagePayload): void {
     if (typeof window === 'undefined' || !window.sessionStorage) {
         return;
     }

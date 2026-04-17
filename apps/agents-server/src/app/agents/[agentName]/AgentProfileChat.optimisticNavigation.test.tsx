@@ -5,6 +5,7 @@ import { fireEvent, screen } from '@testing-library/react';
 import { AgentProfileChatOptimisticNavigationTestSupport } from './AgentProfileChatOptimisticNavigationTestSupport';
 import { AgentProfileChat } from './AgentProfileChat';
 import { AgentChatHistoryClient } from './chat/AgentChatHistoryClient';
+import { setPendingProfileMessage } from './profileMessageCache';
 
 /**
  * Exercises the profile-page handoff flow for one optimistic message label.
@@ -55,8 +56,22 @@ describe('Agent profile to chat optimistic handoff', () => {
         });
 
         await AgentProfileChatOptimisticNavigationTestSupport.expectActiveChatId('chat-existing');
-        await AgentProfileChatOptimisticNavigationTestSupport.expectQueuedUserMessage(
-            'Continue in the existing chat',
+        await AgentProfileChatOptimisticNavigationTestSupport.expectQueuedUserMessage('Continue in the existing chat');
+    });
+
+    it('reuses the persisted profile handoff client message id for the durable send request', async () => {
+        setPendingProfileMessage('test-agent', {
+            message: 'Typed hello from profile',
+            clientMessageId: 'profile-client-message-1',
+        });
+        AgentProfileChatOptimisticNavigationTestSupport.prepareResolvedExistingChatBootstrap('chat-existing');
+        AgentProfileChatOptimisticNavigationTestSupport.renderHistoryClient(AgentChatHistoryClient, {
+            initialChatId: 'chat-existing',
+        });
+
+        await AgentProfileChatOptimisticNavigationTestSupport.expectSubmittedClientMessageId(
+            'profile-client-message-1',
+            'chat-existing',
         );
     });
 });

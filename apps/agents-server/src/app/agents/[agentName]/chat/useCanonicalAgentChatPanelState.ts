@@ -73,6 +73,7 @@ type UseCanonicalAgentChatPanelStateOptions = {
     readonly thinkingMessages?: ReadonlyArray<string>;
     readonly autoExecuteMessage?: string;
     readonly autoExecuteMessageAttachments?: ChatMessage['attachments'];
+    readonly autoExecuteClientMessageId?: string;
     readonly onSubmitUserTurn: SubmitUserTurn;
     readonly onAutoExecuteMessagePending?: (payload: {
         chatId: string;
@@ -169,6 +170,7 @@ export function useCanonicalAgentChatPanelState(
         thinkingMessages,
         autoExecuteMessage,
         autoExecuteMessageAttachments,
+        autoExecuteClientMessageId,
         onSubmitUserTurn,
         onAutoExecuteMessagePending,
         onAutoExecuteMessageConsumed,
@@ -330,6 +332,7 @@ export function useCanonicalAgentChatPanelState(
         isReadOnly,
         autoExecuteMessage,
         autoExecuteMessageAttachments,
+        autoExecuteClientMessageId,
         effectiveAutoExecuteMessage,
         effectiveAutoExecuteMessageAttachments,
         onAutoExecuteMessagePending,
@@ -504,6 +507,7 @@ type UseCanonicalAgentAutoExecutionOptions = {
     readonly isReadOnly: boolean;
     readonly autoExecuteMessage?: string;
     readonly autoExecuteMessageAttachments?: ChatMessage['attachments'];
+    readonly autoExecuteClientMessageId?: string;
     readonly effectiveAutoExecuteMessage?: string;
     readonly effectiveAutoExecuteMessageAttachments?: ChatMessage['attachments'];
     readonly onAutoExecuteMessagePending?: (payload: {
@@ -526,6 +530,7 @@ function useCanonicalAgentAutoExecution(options: UseCanonicalAgentAutoExecutionO
         isReadOnly,
         autoExecuteMessage,
         autoExecuteMessageAttachments,
+        autoExecuteClientMessageId,
         effectiveAutoExecuteMessage,
         effectiveAutoExecuteMessageAttachments,
         onAutoExecuteMessagePending,
@@ -535,11 +540,15 @@ function useCanonicalAgentAutoExecution(options: UseCanonicalAgentAutoExecutionO
     const hasSeededAutoExecutePendingMessageRef = useRef(false);
     const autoExecuteClientMessageIdRef = useRef<string | undefined>(undefined);
     const lastAutoExecutePayloadRef = useRef<string | undefined>(
-        serializeAutoExecutePayload(autoExecuteMessage, autoExecuteMessageAttachments),
+        serializeAutoExecutePayload(autoExecuteMessage, autoExecuteMessageAttachments, autoExecuteClientMessageId),
     );
 
     useEffect(() => {
-        const nextAutoExecutePayload = serializeAutoExecutePayload(autoExecuteMessage, autoExecuteMessageAttachments);
+        const nextAutoExecutePayload = serializeAutoExecutePayload(
+            autoExecuteMessage,
+            autoExecuteMessageAttachments,
+            autoExecuteClientMessageId,
+        );
         if (lastAutoExecutePayloadRef.current === nextAutoExecutePayload) {
             return;
         }
@@ -548,15 +557,15 @@ function useCanonicalAgentAutoExecution(options: UseCanonicalAgentAutoExecutionO
         hasAutoExecutedRef.current = false;
         hasSeededAutoExecutePendingMessageRef.current = false;
         autoExecuteClientMessageIdRef.current = undefined;
-    }, [autoExecuteMessage, autoExecuteMessageAttachments]);
+    }, [autoExecuteClientMessageId, autoExecuteMessage, autoExecuteMessageAttachments]);
 
     const resolveAutoExecuteClientMessageId = useCallback((): string => {
         if (!autoExecuteClientMessageIdRef.current) {
-            autoExecuteClientMessageIdRef.current = createUserChatClientMessageId();
+            autoExecuteClientMessageIdRef.current = autoExecuteClientMessageId || createUserChatClientMessageId();
         }
 
         return autoExecuteClientMessageIdRef.current;
-    }, []);
+    }, [autoExecuteClientMessageId]);
 
     const shouldAutoExecute =
         (Boolean(effectiveAutoExecuteMessage) || Boolean(effectiveAutoExecuteMessageAttachments?.length)) &&
@@ -610,10 +619,14 @@ function useCanonicalAgentAutoExecution(options: UseCanonicalAgentAutoExecutionO
  *
  * @private function of CanonicalAgentChatPanel
  */
-function serializeAutoExecutePayload(message?: string, attachments?: ChatMessage['attachments']): string {
+function serializeAutoExecutePayload(
+    message?: string,
+    attachments?: ChatMessage['attachments'],
+    clientMessageId?: string,
+): string {
     const normalizedMessage = message ?? '';
     const normalizedAttachments = attachments && attachments.length > 0 ? JSON.stringify(attachments) : '';
-    return `${normalizedMessage}|${normalizedAttachments}`;
+    return `${normalizedMessage}|${normalizedAttachments}|${clientMessageId || ''}`;
 }
 
 /**

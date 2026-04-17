@@ -28,7 +28,7 @@ import { resolveChatMessageValidationIssue } from '../../../utils/chat/validateC
 import { createServerLanguageMoment } from '../../../utils/localization/createServerLanguageMoment';
 import { createDefaultSpeechRecognition } from '../../../utils/speech-to-text/createDefaultSpeechRecognition';
 import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
-import type { UserChatSummary } from '../../../utils/userChatClient';
+import { createUserChatClientMessageId, type UserChatSummary } from '../../../utils/userChatClient';
 import { setPendingProfileMessage } from './profileMessageCache';
 import { useAgentProfileChatExistingChats } from './useAgentProfileChatExistingChats';
 import { useAgentProfileChatNavigation } from './useAgentProfileChatNavigation';
@@ -174,8 +174,7 @@ function resolveAgentProfileChatInitialMessage(
     options: ResolveAgentProfileChatInitialMessageOptions,
 ): string | undefined {
     const { initialAgentMessage, remoteInitialMessage, fallbackInitialMessage } = options;
-    const configuredInitialMessage =
-        initialAgentMessage !== undefined ? initialAgentMessage : remoteInitialMessage;
+    const configuredInitialMessage = initialAgentMessage !== undefined ? initialAgentMessage : remoteInitialMessage;
 
     if (configuredInitialMessage === undefined) {
         return undefined;
@@ -347,16 +346,21 @@ export function AgentProfileChat({
             }
 
             const shouldForceNewChat = hasMessageContent(message) || Boolean(attachments?.length);
+            const clientMessageId = shouldForceNewChat ? createUserChatClientMessageId() : undefined;
             setPendingProfileMessage(agentName, {
                 message,
                 attachments,
+                clientMessageId,
+                agentDisplayName: fullname || agentName,
+                brandColorHex,
+                inputPlaceholder,
             });
 
             return navigateToChat({
                 shouldForceNewChat,
             });
         },
-        [agentName, navigateToChat],
+        [agentName, brandColorHex, fullname, inputPlaceholder, navigateToChat],
     );
     const handleCreateAgent = useCallback(
         async (bookContent: string) => {

@@ -82,10 +82,10 @@ export function mergeCanonicalChatMessagesWithPendingOutboundMessages(options: {
         return [...options.canonicalMessages];
     }
 
-    return [
+    return sortRenderedChatMessagesForDisplay([
         ...options.canonicalMessages,
         ...unresolvedPendingMessages.map(createOptimisticUserChatMessageFromPendingOutboundMessage),
-    ];
+    ]);
 }
 
 /**
@@ -165,7 +165,10 @@ function isCanonicalMessageConfirmationForPendingOutboundMessage(
         return false;
     }
 
-    if (serializeReplyingToSignature(canonicalMessage.replyingTo) !== serializeReplyingToSignature(pendingOutboundMessage.replyingTo)) {
+    if (
+        serializeReplyingToSignature(canonicalMessage.replyingTo) !==
+        serializeReplyingToSignature(pendingOutboundMessage.replyingTo)
+    ) {
         return false;
     }
 
@@ -176,9 +179,7 @@ function isCanonicalMessageConfirmationForPendingOutboundMessage(
         return false;
     }
 
-    return (
-        Math.abs(canonicalTimestamp - optimisticTimestamp) <= PENDING_OUTBOUND_MESSAGE_RECONCILIATION_WINDOW_MS
-    );
+    return Math.abs(canonicalTimestamp - optimisticTimestamp) <= PENDING_OUTBOUND_MESSAGE_RECONCILIATION_WINDOW_MS;
 }
 
 /**
@@ -198,6 +199,44 @@ function resolveTimestampMilliseconds(timestamp: string | undefined): number | n
 }
 
 /**
+ * Keeps merged optimistic/canonical messages ordered like one natural transcript,
+ * especially when assistant streaming begins before the server echoes the user
+ * message back canonically.
+ *
+ * @param messages - Combined canonical transcript plus unresolved optimistic turns.
+ * @returns Chronologically ordered messages ready for rendering.
+ */
+function sortRenderedChatMessagesForDisplay(messages: ReadonlyArray<ChatMessage>): Array<ChatMessage> {
+    return [...messages]
+        .map((message, index) => ({
+            message,
+            index,
+            timestamp: resolveTimestampMilliseconds(message.createdAt),
+            isOptimisticPendingUserMessage:
+                message.sender === 'USER' &&
+                typeof message.id === 'string' &&
+                message.id.startsWith('pending-outbound-user-message:'),
+        }))
+        .sort((left, right) => {
+            if (left.timestamp !== null && right.timestamp !== null && left.timestamp !== right.timestamp) {
+                return left.timestamp - right.timestamp;
+            }
+
+            if (left.timestamp !== null && right.timestamp !== null) {
+                if (left.isOptimisticPendingUserMessage && right.message.sender !== 'USER') {
+                    return -1;
+                }
+                if (right.isOptimisticPendingUserMessage && left.message.sender !== 'USER') {
+                    return 1;
+                }
+            }
+
+            return left.index - right.index;
+        })
+        .map(({ message }) => message);
+}
+
+/**
  * Returns true when canonical and optimistic attachments are equivalent for
  * fallback reconciliation purposes.
  *
@@ -205,10 +244,7 @@ function resolveTimestampMilliseconds(timestamp: string | undefined): number | n
  * @param right - Optimistic attachments.
  * @returns `true` when attachments are absent on both sides or serialize equally.
  */
-function areMessageAttachmentsEquivalent(
-    left: ChatMessage['attachments'],
-    right: ChatMessage['attachments'],
-): boolean {
+function areMessageAttachmentsEquivalent(left: ChatMessage['attachments'], right: ChatMessage['attachments']): boolean {
     return serializeAttachmentsForReconciliation(left) === serializeAttachmentsForReconciliation(right);
 }
 
