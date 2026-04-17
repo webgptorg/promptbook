@@ -39,15 +39,31 @@ export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
     const isPromptActive =
         options.phase === 'running' || options.phase === 'verifying' || options.phase === 'loading';
     const promptStatusPrefix = isPromptActive ? `${colors.yellow(`${options.spinner} `)}` : '';
+    const sessionScopeLine =
+        options.progress.sessionTotal > 0
+            ? `Working on ${options.progress.currentPromptIndex}/${options.progress.sessionTotal} prompts with Priority ≥${options.config.priority}`
+            : `No runnable prompts with Priority ≥${options.config.priority}`;
+    const sessionCountLine = `Done ${options.progress.sessionDone}/${options.progress.sessionTotal} this run  ·  Repo total ${options.progress.totalPrompts}`;
+    const sessionQueueParts: string[] = [];
+
+    if (options.progress.skippedPrompts > 0) {
+        sessionQueueParts.push(`Skipping ${formatPromptCount(options.progress.skippedPrompts)} with Priority <${options.config.priority}`);
+    }
+    if (options.progress.toBeWrittenPrompts > 0) {
+        sessionQueueParts.push(`Write first ${formatPromptCount(options.progress.toBeWrittenPrompts)}`);
+    }
+
     const sessionLines = [
         `${buildPhaseBadge(options.phase, options.pauseState)} ${fitPlainText(options.statusMessage, totalWidth - 18)}`,
-        [
-            `${options.progress.sessionDone}/${options.progress.sessionTotal} prompts this run`,
-            `${options.progress.totalPrompts} total`,
-            `${options.progress.elapsedText}/${options.progress.estimatedTotalText}`,
-            `done ${options.progress.estimatedLabel}`,
-        ].join('  ·  '),
-        buildProgressBar(options.progress.percentage, totalWidth - 6),
+        sessionScopeLine,
+        sessionCountLine,
+        ...(sessionQueueParts.length > 0 ? [sessionQueueParts.join('  ·  ')] : []),
+        `Elapsed ${options.progress.elapsedText}  ·  Est. total ${options.progress.estimatedTotalText}  ·  Est. done ${options.progress.estimatedLabel}`,
+        buildProgressBar(
+            options.progress.percentage,
+            totalWidth - 6,
+            `${options.progress.percentage}% complete (${options.progress.sessionDone}/${options.progress.sessionTotal} done)`,
+        ),
     ];
 
     const metadataParts = [options.config.agentName || 'No agent selected'];
@@ -177,13 +193,20 @@ function buildPhaseBadge(phase: CoderRunPhase, pauseState: CoderRunPauseState): 
 /**
  * Builds the progress bar shown in the session box.
  */
-function buildProgressBar(percentage: number, availableWidth: number): string {
-    const percentageLabel = `${percentage}%`;
+function buildProgressBar(percentage: number, availableWidth: number, label: string): string {
+    const percentageLabel = label;
     const barWidth = Math.max(10, availableWidth - percentageLabel.length - 1);
     const filledWidth = Math.round((percentage / 100) * barWidth);
     const emptyWidth = Math.max(0, barWidth - filledWidth);
 
     return `${colors.green('█'.repeat(filledWidth))}${colors.gray('░'.repeat(emptyWidth))} ${percentageLabel}`;
+}
+
+/**
+ * Formats a prompt count with singular/plural wording.
+ */
+function formatPromptCount(count: number): string {
+    return `${count} prompt${count === 1 ? '' : 's'}`;
 }
 
 /**

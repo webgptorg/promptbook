@@ -131,7 +131,8 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
 
     const runStartDate = moment();
     const isRichUiEnabled = !options.dryRun && !options.noUi && Boolean(process.stdout.isTTY);
-    const progressDisplay = options.dryRun || options.noUi || isRichUiEnabled ? undefined : new CliProgressDisplay(runStartDate);
+    const progressDisplay =
+        options.dryRun || options.noUi || isRichUiEnabled ? undefined : new CliProgressDisplay(runStartDate, options.priority);
     const uiHandle: CoderRunUiHandle | undefined = isRichUiEnabled ? renderCoderRunUi(runStartDate) : undefined;
 
     // When the Ink UI is active it handles keyboard input itself, so skip the raw stdin listener.
@@ -260,11 +261,13 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             await checkPause({
                 silent: isRichUiEnabled,
                 onPaused: () => {
+                    progressDisplay?.pauseTimer();
                     uiHandle?.state.pauseTimer();
                     uiHandle?.state.setPhase('paused');
                     uiHandle?.state.setStatusMessage('Paused');
                 },
                 onResumed: () => {
+                    progressDisplay?.resumeTimer();
                     uiHandle?.state.resumeTimer();
                 },
             });
@@ -316,6 +319,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             const promptLabel = buildPromptLabelForDisplay(nextPrompt.file, nextPrompt.section);
 
             if (options.waitForUser) {
+                progressDisplay?.pauseTimer();
                 uiHandle?.state.pauseTimer();
                 uiHandle?.state.setCurrentPrompt(promptLabel);
                 uiHandle?.state.setPhase('waiting');
@@ -329,6 +333,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                     await waitForPromptStart(nextPrompt.file, nextPrompt.section, !hasWaitedForStart);
                 }
                 uiHandle?.state.setDetailLines([]);
+                progressDisplay?.resumeTimer();
                 uiHandle?.state.resumeTimer();
                 hasWaitedForStart = true;
             }
@@ -400,6 +405,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                         await normalizeLineEndingsForCurrentRound(options, roundChangedFilesSnapshot);
 
                         if (options.waitForUser) {
+                            progressDisplay?.pauseTimer();
                             uiHandle?.state.pauseTimer();
                             uiHandle?.state.setPhase('waiting');
                             uiHandle?.state.setStatusMessage('Review the commit preview and confirm to continue');
@@ -415,6 +421,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                                 printCommitMessage(commitMessage);
                                 await waitForEnter(colors.bgWhite('Press Enter to commit and continue...'));
                             }
+                            progressDisplay?.resumeTimer();
                             uiHandle?.state.resumeTimer();
                         }
 

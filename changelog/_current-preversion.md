@@ -1,3 +1,9 @@
+-   Enhanced the `ptbk coder run` status bar so both the sticky fallback header and the rich terminal UI now report clear session-scoped progress instead of misleading repository-wide completion percentages:
+
+    -   Extracted a shared coder-run progress snapshot and active-timer helper, so elapsed time, estimated total duration, and estimated completion stay in sync across both UI modes while excluding paused / waiting time.
+    -   Changed progress percentages and prompt ordinals to be based on the prompts in the current run, and added explicit labels for skipped low-priority prompts and prompts that still need to be written before the agent can work on them.
+    -   Refreshed the fallback sticky header and the boxed session panel to use clearer wording such as `Working on 3/5 prompts`, `Elapsed 45m / 1h 19m`, and `25% complete (2/5 done)`.
+
 -   Enhanced the rich terminal UI of `ptbk coder run`, so the Promptbook coder dashboard now renders as a branded boxed layout and no longer corrupts the tail of the screen while waiting for Enter confirmations:
 
     -   Refactored the rich dashboard into a shared frame builder with boxed branding, clearer session/task/output panels, colored status badges, and footer control pills for a more polished Promptbook-coder presentation.

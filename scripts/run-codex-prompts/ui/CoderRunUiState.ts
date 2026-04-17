@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import moment from 'moment';
-import { ESTIMATED_DONE_CALENDAR_FORMATS, formatDurationBrief } from '../common/progressFormatting';
+import { buildCoderRunProgressSnapshot, type CoderRunProgressSnapshot } from '../common/buildCoderRunProgressSnapshot';
+import { CoderRunTimer } from '../common/CoderRunTimer';
 import type { PromptStats } from '../prompts/types/PromptStats';
 
 /**
@@ -40,19 +41,11 @@ export type CoderRunConfig = {
 };
 
 /**
- * Computed progress snapshot for the coder run UI.
+ * Re-exported shared progress snapshot type used by the coder run UI.
  *
  * @private internal type of coder run UI
  */
-export type CoderRunProgressSnapshot = {
-    readonly totalPrompts: number;
-    readonly sessionDone: number;
-    readonly sessionTotal: number;
-    readonly percentage: number;
-    readonly elapsedText: string;
-    readonly estimatedTotalText: string;
-    readonly estimatedLabel: string;
-};
+export type { CoderRunProgressSnapshot };
 
 /**
  * Reactive state manager for the coder run terminal UI.
@@ -75,43 +68,28 @@ export class CoderRunUiState extends EventEmitter {
     public errors: string[] = [];
 
     private stats: PromptStats = { done: 0, forAgent: 0, belowMinimumPriority: 0, toBeWritten: 0 };
-    private readonly startTime: moment.Moment;
+    private readonly timer: CoderRunTimer;
     private initialDone: number | undefined;
-
-    /**
-     * Total milliseconds the timer was paused/waiting (excluded from elapsed display).
-     */
-    private pausedMs = 0;
-
-    /**
-     * Timestamp when the timer was last paused, or `undefined` when running.
-     */
-    private pausedSince: moment.Moment | undefined;
 
     public constructor(startTime: moment.Moment) {
         super();
-        this.startTime = startTime;
-        // Timer starts paused — callers call `resumeTimer()` when actual work begins.
-        this.pausedSince = startTime.clone();
+        this.timer = new CoderRunTimer(startTime, true);
     }
 
     /**
      * Pauses the elapsed timer (e.g. while waiting for user input or paused state).
      */
     public pauseTimer(): void {
-        if (this.pausedSince === undefined) {
-            this.pausedSince = moment();
-        }
+        this.timer.pause();
+        this.emitChange();
     }
 
     /**
      * Resumes the elapsed timer after a pause.
      */
     public resumeTimer(): void {
-        if (this.pausedSince !== undefined) {
-            this.pausedMs += moment().diff(this.pausedSince);
-            this.pausedSince = undefined;
-        }
+        this.timer.resume();
+        this.emitChange();
     }
 
     /**
@@ -137,39 +115,11 @@ export class CoderRunUiState extends EventEmitter {
      * Computes a progress snapshot on demand so elapsed time ticks with periodic re-renders.
      */
     public getProgress(): CoderRunProgressSnapshot {
-        const stats = this.stats;
-        const totalPrompts = stats.done + stats.forAgent + stats.toBeWritten;
-        const sessionDone = Math.max(0, stats.done - (this.initialDone ?? stats.done));
-        const sessionTotal = sessionDone + stats.forAgent;
-        const percentage = totalPrompts > 0 ? Math.round((stats.done / totalPrompts) * 100) : 0;
-
-        const wallMs = moment().diff(this.startTime);
-        const currentPauseMs = this.pausedSince !== undefined ? moment().diff(this.pausedSince) : 0;
-        const activeMs = Math.max(0, wallMs - this.pausedMs - currentPauseMs);
-        const elapsedDuration = moment.duration(activeMs);
-        const elapsedText = formatDurationBrief(elapsedDuration);
-
-        let estimatedTotalText = '\u2014';
-        let estimatedLabel = 'unknown';
-
-        if (totalPrompts > 0 && stats.done > 0) {
-            const estimatedTotalMs = (elapsedDuration.asMilliseconds() * totalPrompts) / stats.done;
-            const estimatedRemainingMs = estimatedTotalMs - elapsedDuration.asMilliseconds();
-            const estimatedTotalDuration = moment.duration(estimatedTotalMs);
-            const estimatedCompletion = moment().add(estimatedRemainingMs, 'milliseconds');
-            estimatedTotalText = formatDurationBrief(estimatedTotalDuration);
-            estimatedLabel = estimatedCompletion.calendar(null, ESTIMATED_DONE_CALENDAR_FORMATS);
-        }
-
-        return {
-            totalPrompts,
-            sessionDone,
-            sessionTotal,
-            percentage,
-            elapsedText,
-            estimatedTotalText,
-            estimatedLabel,
-        };
+        return buildCoderRunProgressSnapshot(
+            this.stats,
+            this.timer.getElapsedDuration(),
+            this.initialDone ?? this.stats.done,
+        );
     }
 
     /**
