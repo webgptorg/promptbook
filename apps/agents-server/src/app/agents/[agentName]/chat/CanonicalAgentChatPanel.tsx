@@ -133,7 +133,6 @@ export function CanonicalAgentChatPanel(props: CanonicalAgentChatPanelProps) {
             <PseudoUserChatDialog
                 isOpen={panelState.dialogs.pseudoUser.isOpen}
                 prompt={panelState.dialogs.pseudoUser.prompt}
-                conversation={panelState.dialogs.pseudoUser.conversation}
                 agentName={panelState.dialogs.pseudoUser.agentName}
                 userName={panelState.dialogs.pseudoUser.userName}
                 onSubmit={panelState.dialogs.pseudoUser.onSubmit}

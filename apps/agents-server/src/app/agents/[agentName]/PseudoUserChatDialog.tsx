@@ -5,7 +5,6 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { Dialog } from '../../../components/Portal/Dialog';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { useDirtyModalGuard } from '../../../components/utils/useDirtyModalGuard';
-import type { PendingPseudoUserInteractionConversationMessage } from './useAgentChatPseudoUserInteraction';
 
 /**
  * Props for pseudo-user chat dialog shown when agent talks to `{User}`.
@@ -19,10 +18,6 @@ export type PseudoUserChatDialogProps = {
      * Prompt text coming from the agent.
      */
     readonly prompt: string;
-    /**
-     * Mocked internal conversation transcript shown above the reply box.
-     */
-    readonly conversation?: ReadonlyArray<PendingPseudoUserInteractionConversationMessage>;
     /**
      * Display name of the speaking agent.
      */
@@ -55,7 +50,7 @@ function normalizeUserReply(value: string): string {
  * Dialog that asks the real user for exactly one reply to a `{User}` pseudo-agent prompt.
  */
 export function PseudoUserChatDialog(props: PseudoUserChatDialogProps) {
-    const { isOpen, prompt, conversation = [], agentName, userName, onSubmit, onClose } = props;
+    const { isOpen, prompt, agentName, userName, onSubmit, onClose } = props;
     const [reply, setReply] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const inputId = useId();
@@ -83,17 +78,6 @@ export function PseudoUserChatDialog(props: PseudoUserChatDialogProps) {
         return null;
     }
 
-    const conversationMessages =
-        conversation.length > 0
-            ? conversation
-            : [
-                  {
-                      sender: 'AGENT' as const,
-                      name: agentName,
-                      content: prompt,
-                  },
-              ];
-
     return (
         <Dialog onClose={requestClose} isBackdropDismissible={false} className="w-full max-w-xl p-0 overflow-hidden">
             <div className="border-b border-gray-200 bg-gray-50 px-5 py-4">
@@ -120,33 +104,11 @@ export function PseudoUserChatDialog(props: PseudoUserChatDialogProps) {
             </div>
 
             <div className="space-y-4 px-5 py-5">
-                <div className="max-h-[40vh] space-y-3 overflow-y-auto rounded-2xl bg-gray-50 p-3">
-                    {conversationMessages.map((message, index) => {
-                        const isAgentMessage = message.sender === 'AGENT';
-                        return (
-                            <div
-                                key={`${message.sender}-${message.name}-${index}`}
-                                className={`flex ${isAgentMessage ? 'justify-start' : 'justify-end'}`}
-                            >
-                                <div
-                                    className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm ${
-                                        isAgentMessage
-                                            ? 'rounded-tl-sm bg-blue-50 text-blue-950'
-                                            : 'rounded-tr-sm border border-gray-200 bg-white text-gray-900'
-                                    }`}
-                                >
-                                    <p
-                                        className={`mb-1 text-xs font-semibold uppercase tracking-wide ${
-                                            isAgentMessage ? 'text-blue-700' : 'text-gray-500'
-                                        }`}
-                                    >
-                                        {message.name}
-                                    </p>
-                                    <p className="whitespace-pre-wrap">{message.content}</p>
-                                </div>
-                            </div>
-                        );
-                    })}
+                <div className="flex justify-start">
+                    <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-blue-50 px-4 py-3 text-sm text-blue-950 shadow-sm">
+                        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-blue-700">{agentName}</p>
+                        <p className="whitespace-pre-wrap">{prompt}</p>
+                    </div>
                 </div>
 
                 <form
