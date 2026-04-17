@@ -1,7 +1,7 @@
 'use client';
 
 import type { string_book } from '@promptbook-local/types';
-import { ArrowLeft, ArrowRight, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, X } from 'lucide-react';
 import { useId, type ReactNode } from 'react';
 import type { NewAgentWizardMode } from '../../constants/newAgentWizard';
 import type { AgentVisibility } from '../../utils/agentVisibility';
@@ -159,12 +159,9 @@ function renderStepContent(props: {
                     t={t}
                     fileInputRef={wizard.fileInputRef}
                     knowledgeFeedback={wizard.knowledgeFeedback}
-                    isCreating={wizard.isCreating}
-                    hasUploadingKnowledge={wizard.hasUploadingKnowledge}
                     handleKnowledgeFileSelection={wizard.handleKnowledgeFileSelection}
                     handleKnowledgeUrlKeyDown={wizard.handleKnowledgeUrlKeyDown}
                     removeKnowledgeItem={wizard.removeKnowledgeItem}
-                    handleOpenAdvancedEditor={wizard.handleOpenAdvancedEditor}
                 />
             );
         default:
@@ -199,6 +196,7 @@ export function NewAgentWizard(props: NewAgentWizardProps) {
     const currentStepTitle = t(currentStepDefinition.titleKey);
     const currentStepDescription = t(currentStepDefinition.descriptionKey);
     const isLastStep = wizard.step === NEW_AGENT_WIZARD_STEP_DEFINITIONS.length - 1;
+    const isOpenBookEditorDisabled = wizard.isCreating || wizard.hasUploadingKnowledge;
 
     return (
         <Dialog
@@ -227,14 +225,25 @@ export function NewAgentWizard(props: NewAgentWizardProps) {
                                 {currentStepDescription}
                             </p>
                         </div>
-                        <button
-                            type="button"
-                            onClick={wizard.requestClose}
-                            className="rounded-md p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-                        >
-                            <X className="h-5 w-5" />
-                            <span className="sr-only">{t('common.close')}</span>
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={wizard.handleOpenAdvancedEditor}
+                                disabled={isOpenBookEditorDisabled}
+                                className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-50 hover:text-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <BookOpen className="h-4 w-4" />
+                                {t('agentCreation.wizard.openAdvancedEditorAction')}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={wizard.requestClose}
+                                className="rounded-md p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                            >
+                                <X className="h-5 w-5" />
+                                <span className="sr-only">{t('common.close')}</span>
+                            </button>
+                        </div>
                     </div>
 
                     <div className="mt-4 flex flex-wrap gap-2">

@@ -34,16 +34,6 @@ type NewAgentWizardKnowledgeStepProps = {
     readonly knowledgeFeedback: string | null;
 
     /**
-     * Whether the wizard is currently creating the agent.
-     */
-    readonly isCreating: boolean;
-
-    /**
-     * Whether any knowledge upload is still running.
-     */
-    readonly hasUploadingKnowledge: boolean;
-
-    /**
      * Handles file uploads selected through the hidden input.
      */
     readonly handleKnowledgeFileSelection: (event: ChangeEvent<HTMLInputElement>) => void;
@@ -58,10 +48,6 @@ type NewAgentWizardKnowledgeStepProps = {
      */
     readonly removeKnowledgeItem: (knowledgeItemId: string) => void;
 
-    /**
-     * Switches the flow to the advanced editor.
-     */
-    readonly handleOpenAdvancedEditor: () => void;
 };
 
 /**
@@ -79,12 +65,9 @@ export function NewAgentWizardKnowledgeStep(props: NewAgentWizardKnowledgeStepPr
         t,
         fileInputRef,
         knowledgeFeedback,
-        isCreating,
-        hasUploadingKnowledge,
         handleKnowledgeFileSelection,
         handleKnowledgeUrlKeyDown,
         removeKnowledgeItem,
-        handleOpenAdvancedEditor,
     } = props;
 
     return (
@@ -173,15 +156,6 @@ export function NewAgentWizardKnowledgeStep(props: NewAgentWizardKnowledgeStepPr
                     ))
                 )}
             </div>
-
-            <button
-                type="button"
-                onClick={handleOpenAdvancedEditor}
-                disabled={isCreating || hasUploadingKnowledge}
-                className="text-sm font-medium text-blue-700 transition hover:text-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-                {t('agentCreation.wizard.openAdvancedEditorAction')}
-            </button>
         </div>
     );
 }

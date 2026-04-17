@@ -320,7 +320,7 @@ agentCreation.wizard.reviewBasicHeading: Základní údaje
 agentCreation.wizard.reviewPersonaHeading: Osobnost a vlastnosti
 agentCreation.wizard.reviewRulesHeading: Pravidla a omezení
 agentCreation.wizard.reviewKnowledgeHeading: Znalosti
-agentCreation.wizard.openAdvancedEditorAction: 'Pokročilé: místo průvodce otevřít editor'
+agentCreation.wizard.openAdvancedEditorAction: Otevřít Book editor
 agentCreation.wizard.backAction: Zpět
 agentCreation.wizard.nextAction: Další
 agentCreation.wizard.createAction: Vytvořit agenta

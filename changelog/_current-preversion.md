@@ -1,3 +1,9 @@
+-   Added a Book-editor shortcut to the Agents Server new-agent Wizard so users can switch to the full Book flow without losing the Wizard progress:
+
+    -   Moved the Wizard-to-editor handoff into a persistent top-right Book link available from every Wizard step instead of only the knowledge step.
+    -   Kept the existing synthesized Book handoff path shared, so partially filled Wizard values still prefill the Book editor without duplicating source-generation logic.
+    -   Added regression coverage for switching from the Wizard header into the Book editor with partially filled data.
+
 -   Added a new deterministic canvas avatar system plus a dedicated Utils miniapp playground page for testing agent visuals:
 
     -   Implemented `src/avatars` with a shared `Avatar` canvas component, a low-level `renderAvatarVisual` renderer, a reusable avatar input object based on agent name/hash/colors, and an extensible visual registry for future avatar styles.

@@ -324,7 +324,7 @@ agentCreation.wizard.reviewBasicHeading: Basic info
 agentCreation.wizard.reviewPersonaHeading: Persona & traits
 agentCreation.wizard.reviewRulesHeading: Rules & guardrails
 agentCreation.wizard.reviewKnowledgeHeading: Knowledge
-agentCreation.wizard.openAdvancedEditorAction: 'Advanced: open editor instead'
+agentCreation.wizard.openAdvancedEditorAction: Open Book editor
 agentCreation.wizard.backAction: Back
 agentCreation.wizard.nextAction: Next
 agentCreation.wizard.createAction: Create agent
