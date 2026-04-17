@@ -59,7 +59,11 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
     }, [requestClose]);
 
     return (
-        <Dialog onClose={handleClose} className="w-full max-w-4xl h-[80vh] flex flex-col">
+        <Dialog
+            onClose={handleClose}
+            isBackdropDismissible={false}
+            className="w-full max-w-4xl h-[80vh] flex flex-col"
+        >
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
                 <h2 className="text-xl font-semibold text-gray-900">
                     {formatText(t('agentCreation.dialogTitle'))}

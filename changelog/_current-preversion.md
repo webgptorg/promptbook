@@ -2812,3 +2812,7 @@
     -   Persisted profile-to-chat optimistic turn metadata across the route transition, including the client message id reused later for canonical reconciliation and failure states.
     -   Added a chat-route loading surface that renders the pending user turn right away while the standalone chat page server data is still loading.
     -   Tightened optimistic/canonical merge ordering so unresolved user bubbles stay ahead of later assistant streaming messages until the server confirms them.
+-   Reduced accidental data loss in Agents Server edit dialogs, so clicking outside no longer dismisses input-heavy modals and popups that users are actively working in:
+
+    -   Extended the shared portal `Dialog` with separate backdrop-dismiss and Escape-dismiss controls instead of coupling both behaviors together.
+    -   Disabled backdrop-click dismissal for editing flows such as the new-agent wizard/editor, folder editing, create-server setup, wallet credential entry, pseudo-user replies, password/login forms, timeout editing, and async prompt/visibility dialogs while keeping intentional close actions available.

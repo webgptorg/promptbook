@@ -52,7 +52,7 @@ export function LoginDialog(props: LoginDialogProps) {
     const dialogDescription = description ?? t('login.dialogDescription');
 
     return (
-        <Dialog onClose={requestClose} className="w-full max-w-md p-6">
+        <Dialog onClose={requestClose} isBackdropDismissible={false} className="w-full max-w-md p-6">
             <button
                 onClick={requestClose}
                 className="absolute top-4 right-4 text-gray-400 hover:text-gray-500 transition-colors"

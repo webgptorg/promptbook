@@ -101,18 +101,22 @@ type DialogShellProps = {
      * Optional submit handler for form dialogs.
      */
     readonly onSubmit?: () => void;
+    /**
+     * When false, outside clicks do not dismiss the dialog.
+     */
+    readonly isBackdropDismissible?: boolean;
 };
 
 /**
  * Shared dialog shell used by alert, confirm, and prompt dialogs.
  */
 function DialogShell(props: DialogShellProps) {
-    const { title, description, onClose, children, footer, onSubmit } = props;
+    const { title, description, onClose, children, footer, onSubmit, isBackdropDismissible = true } = props;
     const Wrapper = onSubmit ? 'form' : 'div';
     const { t } = useServerLanguage();
 
     return (
-        <Dialog onClose={onClose} className="w-full max-w-md p-6">
+        <Dialog onClose={onClose} isBackdropDismissible={isBackdropDismissible} className="w-full max-w-md p-6">
             <button
                 onClick={onClose}
                 className="absolute top-4 right-4 text-gray-400 hover:text-gray-500 transition-colors"
@@ -326,6 +330,7 @@ function PromptDialog(props: PromptDialogProps) {
             title={title || t('asyncDialog.defaultPromptTitle')}
             description={message}
             onClose={requestClose}
+            isBackdropDismissible={false}
             onSubmit={() => onConfirm(value)}
             footer={
                 <>
@@ -451,6 +456,7 @@ function VisibilityDialog(props: VisibilityDialogProps) {
             title={title || 'Update visibility'}
             description={description}
             onClose={onCancel}
+            isBackdropDismissible={false}
             onSubmit={() => onConfirm(currentVisibility)}
             footer={footer}
         >

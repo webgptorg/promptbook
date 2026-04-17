@@ -45,6 +45,14 @@ type DialogProps = {
      */
     readonly isDismissible?: boolean;
     /**
+     * When false, clicking the backdrop does not dismiss the dialog.
+     */
+    readonly isBackdropDismissible?: boolean;
+    /**
+     * When false, pressing Escape does not dismiss the dialog.
+     */
+    readonly isEscapeDismissible?: boolean;
+    /**
      * Accessible dialog role.
      */
     readonly role?: 'alertdialog' | 'dialog';
@@ -74,6 +82,8 @@ export function Dialog(props: DialogProps) {
         backdropClassName = '',
         containerId = 'portal-root',
         isDismissible = true,
+        isBackdropDismissible = isDismissible,
+        isEscapeDismissible = isDismissible,
         role = 'dialog',
         ariaLabel,
         ariaLabelledBy,
@@ -95,7 +105,7 @@ export function Dialog(props: DialogProps) {
     }, []);
 
     useEffect(() => {
-        if (!isDismissible) {
+        if (!isEscapeDismissible) {
             return;
         }
 
@@ -107,7 +117,7 @@ export function Dialog(props: DialogProps) {
 
         document.addEventListener('keydown', handleEscape);
         return () => document.removeEventListener('keydown', handleEscape);
-    }, [isDismissible, onClose]);
+    }, [isEscapeDismissible, onClose]);
 
     if (!container) {
         return null;
@@ -117,7 +127,7 @@ export function Dialog(props: DialogProps) {
         <div
             className={`${DEFAULT_DIALOG_BACKDROP_CLASS_NAME} ${backdropClassName}`.trim()}
             onClick={
-                isDismissible
+                isBackdropDismissible
                     ? (event) => {
                           if (event.target === event.currentTarget) {
                               onClose();

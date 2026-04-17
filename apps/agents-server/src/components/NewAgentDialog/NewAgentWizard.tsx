@@ -201,6 +201,7 @@ export function NewAgentWizard(props: NewAgentWizardProps) {
     return (
         <Dialog
             onClose={wizard.requestClose}
+            isBackdropDismissible={false}
             className="w-[min(96vw,60rem)]"
             ariaLabelledBy={titleId}
             ariaDescribedBy={descriptionId}
