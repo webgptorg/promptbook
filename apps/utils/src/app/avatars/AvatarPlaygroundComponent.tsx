@@ -1,22 +1,14 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { Avatar, AVATAR_VISUALS, type AvatarDefinition, type AvatarVisualId } from '../../../../../src/avatars';
-
-/**
- * Default custom avatar name shown in the playground.
- */
-const DEFAULT_AGENT_NAME = 'Nebula Librarian';
-
-/**
- * Default hash shown in the playground.
- */
-const DEFAULT_AGENT_HASH = '9ef4d6b45a8f0d73c4fb7b2f90d914550dfc8bcf5a053510c5bf09d37df8c7f3';
-
-/**
- * Default colors shown in the playground.
- */
-const DEFAULT_AGENT_COLORS = ['#6d5dfc', '#0ea5e9', '#f97316'] as const;
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
+import { Avatar, AVATAR_VISUALS, type AvatarDefinition } from '../../../../../src/avatars';
+import {
+    isSameAvatarPlaygroundState,
+    parseAvatarPlaygroundState,
+    stringifyAvatarPlaygroundState,
+    type AvatarPlaygroundState,
+} from './avatarPlaygroundUrlState';
 
 /**
  * Sample avatars used to demonstrate determinism and variation.
@@ -48,10 +40,35 @@ const SAMPLE_AVATARS: ReadonlyArray<AvatarDefinition> = [
  * Renders the interactive avatar playground.
  */
 export function AvatarPlaygroundComponent() {
-    const [agentName, setAgentName] = useState(DEFAULT_AGENT_NAME);
-    const [agentHash, setAgentHash] = useState(DEFAULT_AGENT_HASH);
-    const [visualId, setVisualId] = useState<AvatarVisualId>('octopus');
-    const [colors, setColors] = useState<Array<string>>([...DEFAULT_AGENT_COLORS]);
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
+    const [avatarPlaygroundState, setAvatarPlaygroundState] = useState<AvatarPlaygroundState>(() =>
+        parseAvatarPlaygroundState(searchParams),
+    );
+    const { agentName, agentHash, visualId, colors } = avatarPlaygroundState;
+
+    useEffect(() => {
+        const nextAvatarPlaygroundState = parseAvatarPlaygroundState(searchParams);
+
+        setAvatarPlaygroundState((currentAvatarPlaygroundState) =>
+            isSameAvatarPlaygroundState(currentAvatarPlaygroundState, nextAvatarPlaygroundState)
+                ? currentAvatarPlaygroundState
+                : nextAvatarPlaygroundState,
+        );
+    }, [searchParams]);
+
+    useEffect(() => {
+        const nextQueryString = stringifyAvatarPlaygroundState(avatarPlaygroundState, searchParams);
+        const currentQueryString = searchParams.toString();
+
+        if (nextQueryString === currentQueryString) {
+            return;
+        }
+
+        router.replace(`${pathname}${nextQueryString ? `?${nextQueryString}` : ''}`, { scroll: false });
+    }, [avatarPlaygroundState, pathname, router, searchParams]);
+
     const avatarDefinition = useMemo<AvatarDefinition>(
         () => ({
             agentName,
@@ -77,7 +94,9 @@ export function AvatarPlaygroundComponent() {
                             <input
                                 type="text"
                                 value={agentName}
-                                onChange={(event) => setAgentName(event.target.value)}
+                                onChange={(event) =>
+                                    updateAvatarPlaygroundState('agentName', event.target.value, setAvatarPlaygroundState)
+                                }
                                 className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                             />
                         </label>
@@ -86,7 +105,9 @@ export function AvatarPlaygroundComponent() {
                             <span className="text-sm font-medium text-slate-700">Agent hash</span>
                             <textarea
                                 value={agentHash}
-                                onChange={(event) => setAgentHash(event.target.value)}
+                                onChange={(event) =>
+                                    updateAvatarPlaygroundState('agentHash', event.target.value, setAvatarPlaygroundState)
+                                }
                                 rows={3}
                                 className="w-full rounded-xl border border-slate-300 px-4 py-3 font-mono text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                             />
@@ -99,13 +120,17 @@ export function AvatarPlaygroundComponent() {
                                     <input
                                         type="color"
                                         value={normalizeHexColor(color)}
-                                        onChange={(event) => updateColor(colorIndex, event.target.value, setColors)}
+                                        onChange={(event) =>
+                                            updateColor(colorIndex, event.target.value, setAvatarPlaygroundState)
+                                        }
                                         className="h-12 w-14 rounded-lg border border-slate-200 bg-transparent"
                                     />
                                     <input
                                         type="text"
                                         value={color}
-                                        onChange={(event) => updateColor(colorIndex, event.target.value, setColors)}
+                                        onChange={(event) =>
+                                            updateColor(colorIndex, event.target.value, setAvatarPlaygroundState)
+                                        }
                                         className="flex-1 rounded-xl border border-slate-300 px-4 py-3 font-mono text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                                     />
                                 </div>
@@ -119,7 +144,9 @@ export function AvatarPlaygroundComponent() {
                                     <button
                                         key={avatarVisual.id}
                                         type="button"
-                                        onClick={() => setVisualId(avatarVisual.id)}
+                                        onClick={() =>
+                                            updateAvatarPlaygroundVisualId(avatarVisual.id, setAvatarPlaygroundState)
+                                        }
                                         className={`rounded-2xl border px-4 py-3 text-left transition ${
                                             visualId === avatarVisual.id
                                                 ? 'border-blue-600 bg-blue-50 shadow-sm'
@@ -251,14 +278,51 @@ export function AvatarPlaygroundComponent() {
  *
  * @param colorIndex Edited color index.
  * @param nextColor New color string.
- * @param setColors React state setter.
+ * @param setAvatarPlaygroundState React state setter.
  */
 function updateColor(
     colorIndex: number,
     nextColor: string,
-    setColors: React.Dispatch<React.SetStateAction<Array<string>>>,
+    setAvatarPlaygroundState: React.Dispatch<React.SetStateAction<AvatarPlaygroundState>>,
 ): void {
-    setColors((currentColors) => currentColors.map((color, index) => (index === colorIndex ? nextColor : color)));
+    setAvatarPlaygroundState((currentAvatarPlaygroundState) => ({
+        ...currentAvatarPlaygroundState,
+        colors: currentAvatarPlaygroundState.colors.map((color, index) => (index === colorIndex ? nextColor : color)),
+    }));
+}
+
+/**
+ * Updates one top-level avatar playground field.
+ *
+ * @param field Updated field key.
+ * @param value Updated field value.
+ * @param setAvatarPlaygroundState React state setter.
+ */
+function updateAvatarPlaygroundState(
+    field: 'agentName' | 'agentHash',
+    value: string,
+    setAvatarPlaygroundState: React.Dispatch<React.SetStateAction<AvatarPlaygroundState>>,
+): void {
+    setAvatarPlaygroundState((currentAvatarPlaygroundState) => ({
+        ...currentAvatarPlaygroundState,
+        [field]: value,
+    }));
+}
+
+/**
+ * Updates the selected avatar visual.
+ *
+ * @param visualId Updated visual id.
+ * @param setAvatarPlaygroundState React state setter.
+ */
+function updateAvatarPlaygroundVisualId(
+    visualId: AvatarPlaygroundState['visualId'],
+    setAvatarPlaygroundState: React.Dispatch<React.SetStateAction<AvatarPlaygroundState>>,
+): void {
+    setAvatarPlaygroundState((currentAvatarPlaygroundState) => ({
+        ...currentAvatarPlaygroundState,
+        visualId,
+    }));
 }
 
 /**

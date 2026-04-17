@@ -1,6 +1,7 @@
 import logoImage from '@/public/logo-blue-white-256.png';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { AvatarPlaygroundComponent } from './AvatarPlaygroundComponent';
 
 /**
@@ -21,7 +22,9 @@ export default function AvatarsPage() {
                     utility for testing deterministic AI agent avatars rendered entirely on canvas.
                 </p>
 
-                <AvatarPlaygroundComponent />
+                <Suspense fallback={null}>
+                    <AvatarPlaygroundComponent />
+                </Suspense>
             </div>
         </div>
     );

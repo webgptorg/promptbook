@@ -1,3 +1,8 @@
+-   Updated the Utils miniapp **Avatars** playground so the current preview is now shareable and refresh-safe through URL search parameters:
+
+    -   Persisted the selected visual plus editable agent name, hash, and repeated color inputs into the page query string, so reloading or opening a copied URL restores the same deterministic avatar state.
+    -   Extracted the avatars-page URL parsing and serialization into a shared helper to keep the in-memory form state and URL state DRY and normalized.
+
 -   Added an admin-only **Transcriptions** test page for long-running speech-to-text sessions in Agents Server:
 
     -   Added `/admin/transcriptions` to the System > Developer / Debug menu with provider-mode toggles, language selection, live transcript output, elapsed-time/current-provider status, and a collapsible diagnostics panel for telemetry and provider capabilities.
