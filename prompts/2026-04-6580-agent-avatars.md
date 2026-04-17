@@ -32,6 +32,18 @@
 
 ---
 
+[ ] !!!!
+
+[✨👝] Add "fractal" avatar
+
+-   `avatars` page in utils app have misc avatar visuals, add new one called "fractal" that generates a fractal-like avatar based on the input parameters (agent name, hash, colors)
+-   Add it alongside the existing ones
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Utils miniapp](apps/utils) and adding this as a new page there to test it
+
+---
+
 [-]
 
 [✨👝] foo
@@ -52,3 +64,13 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Utils miniapp](apps/utils) and adding this as a new page there to test it
 
+---
+
+[-]
+
+[✨👝] foo
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Utils miniapp](apps/utils) and adding this as a new page there to test it

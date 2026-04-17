@@ -357,6 +357,7 @@ Please paste the DNS record list/zone file (or at least the lines that include C
 
 [✨🔢] When teammate was called, in the popup there must be a mocked chat with this internal conversation
 
+-   The conversation clearly exists, its just not shown anywhere, so we need to find a way to show it in the teammate calling popup
 -   Now there is just empty space
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
