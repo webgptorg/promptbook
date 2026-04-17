@@ -85,7 +85,7 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
             KNOWLEDGE Academic research requires careful citation and verification
             KNOWLEDGE https://example.com/research-guidelines.pdf
             ACTION Can help with literature reviews and data analysis
-            STYLE Present information in clear, academic format
+            WRITING RULES Present information in clear, academic format
             \`\`\`
         `);
     }

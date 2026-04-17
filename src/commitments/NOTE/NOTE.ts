@@ -85,7 +85,7 @@ export class NoteCommitmentDefinition extends BaseCommitmentDefinition<
             NOTE Uses RAG for accessing latest research papers
             PERSONA You are a knowledgeable research assistant
             ACTION Can help with literature reviews and citations
-            STYLE Present information in academic format
+            WRITING RULES Present information in academic format
             \`\`\`
         `);
     }

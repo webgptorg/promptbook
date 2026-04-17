@@ -61,7 +61,7 @@ export type CreateNewAgentWizardSourceOptions = {
      */
     readonly capabilityCommitments: ReadonlyArray<NewAgentWizardCapabilityCommitment>;
     /**
-     * `STYLE` commitments synthesized from writing-style presets and custom traits.
+     * Human-readable writing-style summaries kept only in the wizard traceability note.
      */
     readonly writingStyleTraits: ReadonlyArray<string>;
     /**
@@ -219,7 +219,6 @@ export function createNewAgentWizardSource(options: CreateNewAgentWizardSourceOp
         createCommitment('GOAL', goalCommitmentContent),
         ...capabilityCommitments.map((commitment) => createCommitment(commitment)),
         ...createCommitmentLines('TEAM', teamReferences),
-        ...createCommitmentLines('STYLE', writingStyleTraits),
         ...createCommitmentLines('WRITING RULES', writingRules),
         ...createCommitmentLines('WRITING SAMPLE', writingSamples),
         ...rules.map((rule) => createCommitment('RULE', rule)),

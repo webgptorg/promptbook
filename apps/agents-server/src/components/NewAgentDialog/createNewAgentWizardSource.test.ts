@@ -47,8 +47,7 @@ describe('createNewAgentWizardSource', () => {
         expect(agentSource).toContain('USE SEARCH ENGINE');
         expect(agentSource).toContain('USE EMAIL');
         expect(agentSource).toContain('TEAM https://example.com/agents/legal-reviewer');
-        expect(agentSource).toContain('STYLE professional');
-        expect(agentSource).toContain('STYLE concise');
+        expect(agentSource).not.toContain('STYLE ');
         expect(agentSource).toContain('WRITING RULES Use a professional tone.');
         expect(agentSource).toContain('WRITING RULES Keep responses concise.');
         expect(agentSource).toContain(
@@ -69,8 +68,7 @@ describe('createNewAgentWizardSource', () => {
         expect(parsedAgent.knowledgeSources).toHaveLength(2);
 
         const requirements = await createAgentModelRequirements(agentSource);
-        expect(requirements.systemMessage).toContain('Style: professional');
-        expect(requirements.systemMessage).toContain('Style: concise');
+        expect(requirements.systemMessage).not.toContain('Style: ');
         expect(requirements.systemMessage).toContain('## Writing rules');
         expect(requirements.systemMessage).toContain('## Writing sample');
         expect(requirements.systemMessage).toContain('Use a professional tone.');

@@ -80,7 +80,7 @@ export class MetaLinkCommitmentDefinition extends BaseCommitmentDefinition<'META
             META LINK https://twitter.com/devhandle
             PERSONA You are an experienced open source developer
             ACTION Can help with code reviews and architecture decisions
-            STYLE Be direct and technical in explanations
+            WRITING RULES Be direct and technical in explanations
             \`\`\`
         `);
     }

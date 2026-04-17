@@ -68,7 +68,7 @@ export class FormatCommitmentDefinition extends BaseCommitmentDefinition<'FORMAT
             PERSONA You are a data analysis expert
             FORMAT Present results in structured tables
             FORMAT Include confidence scores for all predictions
-            STYLE Be concise and precise in explanations
+            WRITING RULES Be concise and precise in explanations
             \`\`\`
         `);
     }

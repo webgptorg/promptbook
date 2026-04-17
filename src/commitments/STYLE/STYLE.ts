@@ -5,8 +5,8 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 /**
  * STYLE commitment definition
  *
- * The STYLE commitment defines how the agent should format and present its responses.
- * This includes tone, writing style, formatting preferences, and communication patterns.
+ * Deprecated legacy writing-style commitment kept for backward compatibility.
+ * New books should prefer `WRITING RULES` for writing-only constraints.
  *
  * Example usage in agent source:
  *
@@ -26,7 +26,17 @@ export class StyleCommitmentDefinition extends BaseCommitmentDefinition<'STYLE' 
      * Short one-line description of STYLE.
      */
     get description(): string {
-        return 'Control the tone and writing style of responses.';
+        return 'Deprecated legacy writing-style commitment. Prefer `WRITING RULES` for new books.';
+    }
+
+    /**
+     * Optional UI/docs-only deprecation metadata.
+     */
+    public override get deprecation() {
+        return {
+            message: 'Use `WRITING RULES` for writing-only constraints such as tone, length, formatting, or emoji usage.',
+            replacedBy: ['WRITING RULES'],
+        } as const;
     }
 
     /**
@@ -43,15 +53,34 @@ export class StyleCommitmentDefinition extends BaseCommitmentDefinition<'STYLE' 
         return spaceTrim(`
             # ${this.type}
 
-            Defines how the agent should format and present its responses (tone, writing style, formatting).
+            Deprecated legacy commitment for writing and presentation instructions.
+
+            ## Migration
+
+            - Existing \`${this.type}\` books still parse and compile.
+            - New books should prefer \`WRITING RULES\`.
+            - Use \`WRITING SAMPLE\` when you want to anchor voice by example instead of stating constraints directly.
+            - The plural alias \`STYLES\` is the same legacy commitment family.
 
             ## Key aspects
 
-            - Both terms work identically and can be used interchangeably.
+            - \`${this.type}\` remains functional for backward compatibility only.
             - Later style instructions can override earlier ones.
             - Style affects both tone and presentation format.
 
-            ## Examples
+            ## Preferred replacement
+
+            \`\`\`book
+            Technical Writer
+
+            GOAL Help the user understand technical topics with practical, accurate guidance.
+            WRITING RULES Write in a professional but friendly tone.
+            WRITING RULES Use bullet points for lists.
+            WRITING RULES Always provide code examples when explaining programming concepts.
+            FORMAT Use markdown formatting with clear headings
+            \`\`\`
+
+            ## Legacy compatibility examples
 
             \`\`\`book
             Technical Writer

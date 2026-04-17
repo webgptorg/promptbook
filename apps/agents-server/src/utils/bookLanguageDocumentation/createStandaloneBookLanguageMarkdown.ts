@@ -180,7 +180,7 @@ export function createStandaloneBookLanguageMarkdown(): string {
             1. **Identity/Profile layer**:
             Agent name (first non-commitment line), the last \`GOAL\` (preferred) or deprecated \`PERSONA\`, and \`META*\` commitments.
             2. **Behavior layer**:
-            \`RULE\`, \`KNOWLEDGE\`, \`STYLE\`, \`LANGUAGE\`, \`GOAL\`, and related commitments.
+            \`RULE\`, \`KNOWLEDGE\`, \`WRITING RULES\`, deprecated \`STYLE\`, \`LANGUAGE\`, \`GOAL\`, and related commitments.
             3. **Capability layer**:
             \`USE*\`, \`MEMORY\`, and other tooling commitments exposing runtime abilities.
             4. **Composition layer**:

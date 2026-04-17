@@ -59,7 +59,7 @@ export class RuleCommitmentDefinition extends BaseCommitmentDefinition<'RULE' | 
             RULE Always ask for clarification if the user's request is ambiguous
             RULE Be polite and professional in all interactions
             RULES Never provide medical or legal advice
-            STYLE Maintain a friendly and helpful tone
+            WRITING RULES Maintain a friendly and helpful tone
             \`\`\`
 
             \`\`\`book

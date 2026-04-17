@@ -1,3 +1,9 @@
+-   Deprecated the legacy `STYLE` commitment in favor of `WRITING RULES`, while keeping old books backward compatible:
+
+    -   Marked `STYLE` / `STYLES` as deprecated in commitment metadata and Book Editor diagnostics so new authors are guided toward `WRITING RULES`.
+    -   Updated the Agents Server new-agent Wizard to stop generating `STYLE` commitments and emit only `WRITING RULES` for writing constraints, while preserving the existing traceability note and writing-sample flow.
+    -   Refreshed Book-language documentation and commitment examples to prefer `WRITING RULES` in new agent sources.
+
 -   Changed the Agents Server new-agent wizard default learning mode to **closed**, so clicking through the Wizard without changing any options now creates agent sources that end with `CLOSED` instead of `OPEN`:
     
     -   Switched the wizard's initial state to start in the fixed-after-creation mode, which also makes the closed learning card selected by default in the Persona step.

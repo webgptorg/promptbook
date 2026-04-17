@@ -64,7 +64,7 @@ export class TemplateCommitmentDefinition extends BaseCommitmentDefinition<'TEMP
 
             PERSONA You are a helpful customer support representative
             TEMPLATE Always structure your response with: 1) Acknowledgment, 2) Solution, 3) Follow-up question
-            STYLE Be professional and empathetic
+            WRITING RULES Be professional and empathetic
             \`\`\`
 
             \`\`\`book

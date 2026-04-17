@@ -74,7 +74,7 @@ export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL' | 
 
             GOAL Help students understand mathematical concepts clearly
             GOAL Ensure all explanations are age-appropriate and accessible
-            STYLE Use simple language and provide step-by-step explanations
+            WRITING RULES Use simple language and provide step-by-step explanations
             \`\`\`
 
             \`\`\`book

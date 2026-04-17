@@ -90,7 +90,7 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
 
             PERSONA You are a news analyst who stays up-to-date with current events
             USE BROWSER
-            STYLE Present news in a balanced and objective manner
+            WRITING RULES Present news in a balanced and objective manner
             ACTION Can search for and summarize news articles
             \`\`\`
 

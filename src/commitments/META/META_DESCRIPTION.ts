@@ -61,7 +61,7 @@ export class MetaDescriptionCommitmentDefinition extends BaseCommitmentDefinitio
 
             META DESCRIPTION Specialized in strategic planning and project management
             PERSONA You are a professional business assistant
-            STYLE Maintain a formal and courteous tone
+            WRITING RULES Maintain a formal and courteous tone
             \`\`\`
         `);
     }

@@ -110,7 +110,7 @@ export class ModelCommitmentDefinition extends BaseCommitmentDefinition<'MODEL' 
             MODEL TEMPERATURE 0.8
             MODEL TOP_P 0.9
             MODEL MAX_TOKENS 2048
-            STYLE Be imaginative and expressive
+            WRITING RULES Be imaginative and expressive
             ACTION Can help with storytelling and character development
             \`\`\`
 

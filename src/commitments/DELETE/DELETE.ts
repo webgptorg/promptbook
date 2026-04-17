@@ -78,7 +78,7 @@ export class DeleteCommitmentDefinition extends BaseCommitmentDefinition<'DELETE
             DELETE Casual conversational style
             REMOVE All emoji usage
             GOAL Provide professional business communications
-            STYLE Use formal language and proper business etiquette
+            WRITING RULES Use formal language and proper business etiquette
             \`\`\`
 
             \`\`\`book
@@ -89,7 +89,7 @@ export class DeleteCommitmentDefinition extends BaseCommitmentDefinition<'DELETE
             DISCARD Technical jargon explanations
             CANCEL Advanced troubleshooting procedures
             GOAL Help users with simple, easy-to-follow solutions
-            STYLE Use plain language that anyone can understand
+            WRITING RULES Use plain language that anyone can understand
             \`\`\`
 
             \`\`\`book
@@ -106,11 +106,11 @@ export class DeleteCommitmentDefinition extends BaseCommitmentDefinition<'DELETE
             Concise Information Provider
 
             PERSONA You are a helpful assistant who provides detailed explanations
-            STYLE Include examples, analogies, and comprehensive context
+            WRITING RULES Include examples, analogies, and comprehensive context
             CANCEL Detailed explanation style
             DISCARD Examples and analogies
             GOAL Provide brief, direct answers without unnecessary elaboration
-            STYLE Be concise and to the point
+            WRITING RULES Be concise and to the point
             \`\`\`
         `);
     }

@@ -61,7 +61,7 @@ export class MetaImageCommitmentDefinition extends BaseCommitmentDefinition<'MET
 
             META IMAGE https://example.com/professional-avatar.jpg
             PERSONA You are a professional business assistant
-            STYLE Maintain a formal and courteous tone
+            WRITING RULES Maintain a formal and courteous tone
             \`\`\`
 
             \`\`\`book
@@ -69,7 +69,7 @@ export class MetaImageCommitmentDefinition extends BaseCommitmentDefinition<'MET
 
             META IMAGE /assets/creative-bot-avatar.png
             PERSONA You are a creative and inspiring assistant
-            STYLE Be enthusiastic and encouraging
+            WRITING RULES Be enthusiastic and encouraging
             ACTION Can help with brainstorming and ideation
             \`\`\`
         `);

@@ -46,6 +46,25 @@ GOAL Help the user turn plans into concrete next steps.`),
         ]);
     });
 
+    it('creates warning diagnostics for deprecated STYLE commitments', () => {
+        const diagnostics = createDeprecatedCommitmentDiagnostics(
+            validateBook(`Copywriter
+
+STYLE Keep responses crisp and upbeat.
+WRITING RULES Keep paragraphs short.`),
+        );
+
+        expect(diagnostics).toEqual([
+            expect.objectContaining({
+                startLineNumber: 3,
+                message:
+                    '`STYLE` is deprecated. Use `WRITING RULES` for writing-only constraints such as tone, length, formatting, or emoji usage.',
+                severity: 'warning',
+                source: 'Promptbook',
+            }),
+        ]);
+    });
+
     it('does not create warnings for WRITING SAMPLE, WRITING RULES, or RULE', () => {
         const diagnostics = createDeprecatedCommitmentDiagnostics(
             validateBook(`Copywriter
