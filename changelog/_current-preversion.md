@@ -1,3 +1,8 @@
+-   Refactored Agents Server `errorMessages.ts` into smaller focused helpers without changing external behavior:
+
+    -   Split the branching-heavy `categorizeError` flow into dedicated API-type, native-error-message, and status-code classification helpers while preserving the existing precedence.
+    -   Consolidated repeated unknown-error object parsing and friendly-message creation into small shared utilities so the file now reads top-down more clearly.
+
 -   Refactored Agents Server `AgentKitCacheManager.ts` into smaller focused private cache modules without changing external behavior:
 
     -   Extracted the short-lived prepared-agent cache, model-requirement resolution, citation-policy injection, knowledge-source hashing, and vector-store persistence into dedicated private modules behind the existing `AgentKitCacheManager` facade.
