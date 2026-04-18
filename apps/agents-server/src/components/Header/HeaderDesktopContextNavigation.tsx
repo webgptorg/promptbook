@@ -1,8 +1,6 @@
 'use client';
 
-import promptbookLogoBlueTransparent from '@/public/logo-blue-white-256.png';
 import { ChevronDown, FolderIcon } from 'lucide-react';
-import Image from 'next/image';
 import type { ReactNode } from 'react';
 import { ArrowIcon } from '../../../../../src/book-components/icons/ArrowIcon';
 import type { AgentOrganizationAgent } from '../../utils/agentOrganization/types';
@@ -11,6 +9,7 @@ import type { AgentMenuTreeNode } from './AgentMenuStructure';
 import { AgentDirectoryDropdown } from './AgentDirectoryDropdown';
 import { AgentNameWithAvatar } from './AgentNameWithAvatar';
 import type { AgentHierarchyView } from './createAgentViewLabel';
+import { HeaderHomepageLink } from './HeaderHomepageLink';
 import type { SubMenuItem } from './SubMenuItem';
 
 /**
@@ -111,31 +110,13 @@ export function HeaderDesktopContextNavigation({
         <div className="min-w-0 flex-1">
             <div className="flex min-w-0 items-center gap-2 sm:gap-3 rounded-2xl border border-gray-200 bg-white/90 px-2 sm:px-3 md:px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm shadow-slate-200/60 backdrop-blur">
                 <div className="relative flex min-w-0 items-center gap-3">
-                    <HeadlessLink href="/" className="flex min-w-0 items-center gap-3 hover:opacity-80 transition-opacity">
-                        {serverLogoUrl ? (
-                            // Note: `next/image` does not load external images well without extra config
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                                src={serverLogoUrl}
-                                alt={serverName}
-                                width={32}
-                                height={32}
-                                className="w-6 h-6 sm:w-8 sm:h-8 object-contain flex-shrink-0"
-                            />
-                        ) : (
-                            <Image
-                                src={promptbookLogoBlueTransparent}
-                                alt={serverName}
-                                width={32}
-                                height={32}
-                                className="w-6 h-6 sm:w-8 sm:h-8 object-contain flex-shrink-0"
-                            />
-                        )}
-                        <span className="text-base font-bold tracking-tight text-gray-900 truncate max-w-[180px] sm:max-w-[200px] md:max-w-[250px] lg:max-w-none">
-                            <span className="hidden sm:inline">{serverName}</span>
-                            <span className="sm:hidden">{serverName.split(' ')[0]}</span>
-                        </span>
-                    </HeadlessLink>
+                    <HeaderHomepageLink
+                        serverName={serverName}
+                        serverLogoUrl={serverLogoUrl}
+                        className="relative z-[1] transition-opacity hover:opacity-80"
+                        labelClassName="max-w-[180px] sm:max-w-[200px] md:max-w-[250px] lg:max-w-none"
+                        isCompactOnMobile={true}
+                    />
 
                     {hasFederatedServers && (
                         <div

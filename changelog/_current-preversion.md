@@ -1,3 +1,10 @@
+-   Fixed Agents Server homepage navigation in the responsive header so the server branding now reliably routes back to `/` on both desktop and mobile:
+
+    -   Extracted the shared header homepage link into one reusable component and reused it in both the desktop breadcrumb bar and the mobile drawer to keep the homepage affordance consistent without duplicating branding markup.
+    -   Added the missing mobile drawer homepage link, including the server logo/name branding and close-on-navigate behavior.
+    -   Hardened the mobile menu trigger and drawer navigation landmark accessibility so the responsive header interactions are easier to target and verify across touch/mobile regression tests.
+    -   Added e2e regression coverage for tapping the header branding and the mobile drawer server link from a mobile viewport.
+
 -   Added a new deterministic `fractal` avatar visual to the shared canvas avatar system and the Utils miniapp:
 
     -   Added `src/avatars/visuals/fractalAvatarVisual.ts` and registered it in the shared avatar registry, so the existing `/avatars` playground and gallery can render a recursive fractal-style badge derived from agent name, hash, and colors.

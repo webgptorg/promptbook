@@ -9,6 +9,7 @@ import { AgentNameWithAvatar } from './AgentNameWithAvatar';
 import type { AgentHierarchyView } from './createAgentViewLabel';
 import type { ServerTranslationKey } from '../../languages/ServerTranslationKeys';
 import { HeadlessLink } from '../_utils/headlessParam';
+import { HeaderHomepageLink } from './HeaderHomepageLink';
 import { HeaderSearchBox } from './HeaderSearchBox';
 import type { MenuItem } from './HeaderTypes';
 import type { SubMenuItem } from './SubMenuItem';
@@ -52,6 +53,7 @@ type HeaderMobileDrawerProps = {
     readonly isOpen: boolean;
     readonly mobileMenuDrawerRef: RefObject<HTMLDivElement | null>;
     readonly serverName: string;
+    readonly serverLogoUrl: string | null;
     readonly isAdmin: boolean;
     readonly activeAgent: unknown;
     readonly activeAgentLabel: string;
@@ -511,6 +513,7 @@ type HeaderMobileDrawerServerSectionProps = Pick<
     | 'isMobileAgentViewOpen'
     | 'renderMobileNestedMenuItems'
     | 'serverName'
+    | 'serverLogoUrl'
     | 'setIsFederatedOpen'
     | 'setIsMobileAgentsOpen'
     | 'setIsMobileAgentViewOpen'
@@ -542,6 +545,7 @@ function HeaderMobileDrawerServerSection({
     isMobileAgentViewOpen,
     renderMobileNestedMenuItems,
     serverName,
+    serverLogoUrl,
     setIsFederatedOpen,
     setIsMobileAgentsOpen,
     setIsMobileAgentViewOpen,
@@ -561,7 +565,14 @@ function HeaderMobileDrawerServerSection({
                     </button>
                 )}
             </div>
-            <p className="truncate text-base font-semibold text-gray-900">{serverName}</p>
+            <HeaderHomepageLink
+                serverName={serverName}
+                serverLogoUrl={serverLogoUrl}
+                className="mt-1 rounded-lg py-1 hover:bg-gray-50"
+                labelClassName="max-w-full text-base font-semibold tracking-normal"
+                logoClassName="h-8 w-8"
+                onClick={closeMenu}
+            />
 
             <HeaderMobileDrawerFederatedMenu
                 closeMenu={closeMenu}
@@ -858,6 +869,7 @@ export function HeaderMobileDrawer({
     isOpen,
     mobileMenuDrawerRef,
     serverName,
+    serverLogoUrl,
     isAdmin,
     activeAgent,
     activeAgentLabel,
@@ -909,7 +921,10 @@ export function HeaderMobileDrawer({
                     WebkitBackdropFilter: 'blur(20px)',
                 }}
             >
-                <nav className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 py-4 pb-6 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                <nav
+                    aria-label={translate('header.menuLabel')}
+                    className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 py-4 pb-6 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
+                >
                     <HeaderMobileDrawerHoistedMenuSection
                         hoistedMobileMenuItems={hoistedMobileMenuItems}
                         renderMobileNestedMenuItems={renderMobileNestedMenuItems}
@@ -933,6 +948,7 @@ export function HeaderMobileDrawer({
                         isMobileAgentViewOpen={isMobileAgentViewOpen}
                         renderMobileNestedMenuItems={renderMobileNestedMenuItems}
                         serverName={serverName}
+                        serverLogoUrl={serverLogoUrl}
                         setIsFederatedOpen={setIsFederatedOpen}
                         setIsMobileAgentsOpen={setIsMobileAgentsOpen}
                         setIsMobileAgentViewOpen={setIsMobileAgentViewOpen}

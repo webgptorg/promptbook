@@ -314,11 +314,15 @@ export function Header(props: HeaderProps) {
             <div className="relative h-full w-full">
                 <div className="flex h-full items-center gap-2 px-3 sm:gap-4 sm:px-4 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-5 lg:px-4">
                     <div className="relative z-[90] -ml-1 shrink-0 lg:hidden">
-                        <HamburgerMenu
-                            isOpen={isMenuOpen}
+                        <button
+                            type="button"
+                            aria-label={t('header.menuLabel')}
+                            aria-expanded={isMenuOpen}
+                            className="inline-flex items-center justify-center rounded-md text-gray-600 transition-colors duration-150 hover:text-gray-900"
                             onClick={() => setIsMenuOpen((isOpen) => !isOpen)}
-                            className="text-gray-600 transition-colors duration-150 hover:text-gray-900"
-                        />
+                        >
+                            <HamburgerMenu isOpen={isMenuOpen} />
+                        </button>
                     </div>
                     <HeaderDesktopContextNavigation
                         activeAgent={activeAgent}
@@ -434,6 +438,7 @@ export function Header(props: HeaderProps) {
                     isOpen={isMenuOpen}
                     mobileMenuDrawerRef={mobileMenuDrawerRef}
                     serverName={serverName}
+                    serverLogoUrl={serverLogoUrl}
                     isAdmin={isAdmin}
                     activeAgent={activeAgent}
                     activeAgentLabel={activeAgentLabel}
