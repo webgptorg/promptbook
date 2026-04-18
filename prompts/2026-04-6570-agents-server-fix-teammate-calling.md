@@ -355,8 +355,187 @@ Please paste the DNS record list/zone file (or at least the lines that include C
 
 [ ] !!!!
 
+[✨🔢] Fix asking a teammate
+
+-   Both agents Master and Slave exists
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a deep analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+**The agent source**
+
+```book
+Master
+
+FROM {Void}
+TEAM Ask for anything {slave}
+CLOSED
+```
+
+# Tool call report
+
+-   **Title:** � 🛠️ team_chat_slave
+-   **Tool:** `team_chat_slave`
+-   **State:** `ERROR`
+-   **Created at:** `2026-04-18T16:21:53.959Z`
+-   **Idempotency key:** `raw:call_iJ8gjWI4RIJ8TVE56k3OWLVu`
+
+## Input payload
+
+```json
+{
+    "toolName": "team_chat_slave",
+    "state": "ERROR",
+    "arguments": {
+        "context": "Please provide the CNAME DNS records you know for domain ptbk.io.",
+        "message": "What CNAMEs are in the records?"
+    }
+}
+```
+
+## Streamed logs
+
+```json
+[
+    {
+        "kind": "request",
+        "title": "Request prepared",
+        "message": "Prepared team_chat_slave request.",
+        "payload": {
+            "arguments": "{\"message\":\"What CNAMEs are in the records?\",\"context\":\"Please provide the CNAME DNS records you know for domain ptbk.io.\"}"
+        },
+        "createdAt": "2026-04-18T16:21:53.959Z"
+    },
+    {
+        "kind": "error",
+        "level": "error",
+        "title": "Execution failed",
+        "message": "team_chat_slave failed before returning a result.",
+        "payload": {
+            "id": "error-0109960113d95761",
+            "name": "PipelineExecutionError",
+            "stack": "PipelineExecutionError: Function team_chat_slave() is not defined\n\n-  Make sure that the function is one of built-in functions\n-  Or you have to defined the function during construction of JavascriptEvalExecutionTools\n\nOriginal error message:\nteam_chat_slave is not defined\n    at JavascriptEvalExecutionTools.execute (/var/task/apps/agents-server/.next/server/chunks/10.js:243:455)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.execute (/var/task/apps/agents-server/.next/server/chunks/9063.js:1:25841)\n    at async l (/var/task/apps/agents-server/.next/server/chunks/8343.js:6:30231)\n    at async ec.data.name (/var/task/apps/agents-server/.next/server/chunks/8343.js:10:71932)\n    at async /var/task/apps/agents-server/.next/server/chunks/8343.js:10:29932\n    at async Promise.all (index 0)\n    at async fG (/var/task/apps/agents-server/.next/server/chunks/8343.js:10:69803)\n    at async Promise.all (index 0)\n    at async gh (/var/task/apps/agents-server/.next/server/chunks/8343.js:10:91765)",
+            "message": "Function team_chat_slave() is not defined\n\n-  Make sure that the function is one of built-in functions\n-  Or you have to defined the function during construction of JavascriptEvalExecutionTools\n\nOriginal error message:\nteam_chat_slave is not defined"
+        },
+        "createdAt": "2026-04-18T16:21:53.962Z"
+    },
+    {
+        "kind": "result",
+        "title": "Execution finished",
+        "message": "team_chat_slave returned a result.",
+        "createdAt": "2026-04-18T16:21:53.963Z"
+    }
+]
+```
+
+## Output payload
+
+````text
+The invoked tool `team_chat_slave` failed with error:
+
+```json
+{
+    "name": "PipelineExecutionError",
+    "message": "Function team_chat_slave() is not defined\n\n-  Make sure that the function is one of built-in functions\n-  Or you have to defined the function during construction of JavascriptEvalExecutionTools\n\nOriginal error message:\nteam_chat_slave is not defined",
+    "stack": "PipelineExecutionError: Function team_chat_slave() is not defined\n\n-  Make sure that the function is one of built-in functions\n-  Or you have to defined the function during construction of JavascriptEvalExecutionTools\n\nOriginal error message:\nteam_chat_slave is not defined\n    at JavascriptEvalExecutionTools.execute (/var/task/apps/agents-server/.next/server/chunks/10.js:243:455)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.execute (/var/task/apps/agents-server/.next/server/chunks/9063.js:1:25841)\n    at async l (/var/task/apps/agents-server/.next/server/chunks/8343.js:6:30231)\n    at async ec.data.name (/var/task/apps/agents-server/.next/server/chunks/8343.js:10:71932)\n    at async /var/task/apps/agents-server/.next/server/chunks/8343.js:10:29932\n    at async Promise.all (index 0)\n    at async fG (/var/task/apps/agents-server/.next/server/chunks/8343.js:10:69803)\n    at async Promise.all (index 0)\n    at async gh (/var/task/apps/agents-server/.next/server/chunks/8343.js:10:91765)",
+    "id": "error-0109960113d95761"
+}
+````
+
+````
+
+## Model payload
+
+```json
+{
+  "name": "team_chat_slave",
+  "type": "function_call_result",
+  "callId": "call_iJ8gjWI4RIJ8TVE56k3OWLVu",
+  "output": {
+    "text": "The invoked tool `team_chat_slave` failed with error:\n\n```json\n{\n    \"name\": \"PipelineExecutionError\",\n    \"message\": \"Function team_chat_slave() is not defined\\n\\n-  Make sure that the function is one of built-in functions\\n-  Or you have to defined the function during construction of JavascriptEvalExecutionTools\\n\\nOriginal error message:\\nteam_chat_slave is not defined\",\n    \"stack\": \"PipelineExecutionError: Function team_chat_slave() is not defined\\n\\n-  Make sure that the function is one of built-in functions\\n-  Or you have to defined the function during construction of JavascriptEvalExecutionTools\\n\\nOriginal error message:\\nteam_chat_slave is not defined\\n    at JavascriptEvalExecutionTools.execute (/var/task/apps/agents-server/.next/server/chunks/10.js:243:455)\\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\\n    at async Object.execute (/var/task/apps/agents-server/.next/server/chunks/9063.js:1:25841)\\n    at async l (/var/task/apps/agents-server/.next/server/chunks/8343.js:6:30231)\\n    at async ec.data.name (/var/task/apps/agents-server/.next/server/chunks/8343.js:10:71932)\\n    at async /var/task/apps/agents-server/.next/server/chunks/8343.js:10:29932\\n    at async Promise.all (index 0)\\n    at async fG (/var/task/apps/agents-server/.next/server/chunks/8343.js:10:69803)\\n    at async Promise.all (index 0)\\n    at async gh (/var/task/apps/agents-server/.next/server/chunks/8343.js:10:91765)\",\n    \"id\": \"error-0109960113d95761\"\n}\n```",
+    "type": "text"
+  },
+  "status": "completed"
+}
+````
+
+## Available tools
+
+```json
+[]
+```
+
+## Full event
+
+````json
+{
+    "logs": [
+        {
+            "kind": "request",
+            "title": "Request prepared",
+            "message": "Prepared team_chat_slave request.",
+            "payload": {
+                "arguments": "{\"message\":\"What CNAMEs are in the records?\",\"context\":\"Please provide the CNAME DNS records you know for domain ptbk.io.\"}"
+            },
+            "createdAt": "2026-04-18T16:21:53.959Z"
+        },
+        {
+            "kind": "error",
+            "level": "error",
+            "title": "Execution failed",
+            "message": "team_chat_slave failed before returning a result.",
+            "payload": {
+                "id": "error-0109960113d95761",
+                "name": "PipelineExecutionError",
+                "stack": "PipelineExecutionError: Function team_chat_slave() is not defined\n\n-  Make sure that the function is one of built-in functions\n-  Or you have to defined the function during construction of JavascriptEvalExecutionTools\n\nOriginal error message:\nteam_chat_slave is not defined\n    at JavascriptEvalExecutionTools.execute (/var/task/apps/agents-server/.next/server/chunks/10.js:243:455)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.execute (/var/task/apps/agents-server/.next/server/chunks/9063.js:1:25841)\n    at async l (/var/task/apps/agents-server/.next/server/chunks/8343.js:6:30231)\n    at async ec.data.name (/var/task/apps/agents-server/.next/server/chunks/8343.js:10:71932)\n    at async /var/task/apps/agents-server/.next/server/chunks/8343.js:10:29932\n    at async Promise.all (index 0)\n    at async fG (/var/task/apps/agents-server/.next/server/chunks/8343.js:10:69803)\n    at async Promise.all (index 0)\n    at async gh (/var/task/apps/agents-server/.next/server/chunks/8343.js:10:91765)",
+                "message": "Function team_chat_slave() is not defined\n\n-  Make sure that the function is one of built-in functions\n-  Or you have to defined the function during construction of JavascriptEvalExecutionTools\n\nOriginal error message:\nteam_chat_slave is not defined"
+            },
+            "createdAt": "2026-04-18T16:21:53.962Z"
+        },
+        {
+            "kind": "result",
+            "title": "Execution finished",
+            "message": "team_chat_slave returned a result.",
+            "createdAt": "2026-04-18T16:21:53.963Z"
+        }
+    ],
+    "name": "team_chat_slave",
+    "state": "ERROR",
+    "errors": [
+        {
+            "id": "error-0109960113d95761",
+            "name": "PipelineExecutionError",
+            "stack": "PipelineExecutionError: Function team_chat_slave() is not defined\n\n-  Make sure that the function is one of built-in functions\n-  Or you have to defined the function during construction of JavascriptEvalExecutionTools\n\nOriginal error message:\nteam_chat_slave is not defined\n    at JavascriptEvalExecutionTools.execute (/var/task/apps/agents-server/.next/server/chunks/10.js:243:455)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Object.execute (/var/task/apps/agents-server/.next/server/chunks/9063.js:1:25841)\n    at async l (/var/task/apps/agents-server/.next/server/chunks/8343.js:6:30231)\n    at async ec.data.name (/var/task/apps/agents-server/.next/server/chunks/8343.js:10:71932)\n    at async /var/task/apps/agents-server/.next/server/chunks/8343.js:10:29932\n    at async Promise.all (index 0)\n    at async fG (/var/task/apps/agents-server/.next/server/chunks/8343.js:10:69803)\n    at async Promise.all (index 0)\n    at async gh (/var/task/apps/agents-server/.next/server/chunks/8343.js:10:91765)",
+            "message": "Function team_chat_slave() is not defined\n\n-  Make sure that the function is one of built-in functions\n-  Or you have to defined the function during construction of JavascriptEvalExecutionTools\n\nOriginal error message:\nteam_chat_slave is not defined"
+        }
+    ],
+    "result": "The invoked tool `team_chat_slave` failed with error:\n\n```json\n{\n    \"name\": \"PipelineExecutionError\",\n    \"message\": \"Function team_chat_slave() is not defined\\n\\n-  Make sure that the function is one of built-in functions\\n-  Or you have to defined the function during construction of JavascriptEvalExecutionTools\\n\\nOriginal error message:\\nteam_chat_slave is not defined\",\n    \"stack\": \"PipelineExecutionError: Function team_chat_slave() is not defined\\n\\n-  Make sure that the function is one of built-in functions\\n-  Or you have to defined the function during construction of JavascriptEvalExecutionTools\\n\\nOriginal error message:\\nteam_chat_slave is not defined\\n    at JavascriptEvalExecutionTools.execute (/var/task/apps/agents-server/.next/server/chunks/10.js:243:455)\\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\\n    at async Object.execute (/var/task/apps/agents-server/.next/server/chunks/9063.js:1:25841)\\n    at async l (/var/task/apps/agents-server/.next/server/chunks/8343.js:6:30231)\\n    at async ec.data.name (/var/task/apps/agents-server/.next/server/chunks/8343.js:10:71932)\\n    at async /var/task/apps/agents-server/.next/server/chunks/8343.js:10:29932\\n    at async Promise.all (index 0)\\n    at async fG (/var/task/apps/agents-server/.next/server/chunks/8343.js:10:69803)\\n    at async Promise.all (index 0)\\n    at async gh (/var/task/apps/agents-server/.next/server/chunks/8343.js:10:91765)\",\n    \"id\": \"error-0109960113d95761\"\n}\n```",
+    "arguments": {
+        "context": "Please provide the CNAME DNS records you know for domain ptbk.io.",
+        "message": "What CNAMEs are in the records?"
+    },
+    "createdAt": "2026-04-18T16:21:53.959Z",
+    "rawToolCall": {
+        "name": "team_chat_slave",
+        "type": "function_call_result",
+        "callId": "call_iJ8gjWI4RIJ8TVE56k3OWLVu",
+        "output": {
+            "text": "The invoked tool `team_chat_slave` failed with error:\n\n```json\n{\n    \"name\": \"PipelineExecutionError\",\n    \"message\": \"Function team_chat_slave() is not defined\\n\\n-  Make sure that the function is one of built-in functions\\n-  Or you have to defined the function during construction of JavascriptEvalExecutionTools\\n\\nOriginal error message:\\nteam_chat_slave is not defined\",\n    \"stack\": \"PipelineExecutionError: Function team_chat_slave() is not defined\\n\\n-  Make sure that the function is one of built-in functions\\n-  Or you have to defined the function during construction of JavascriptEvalExecutionTools\\n\\nOriginal error message:\\nteam_chat_slave is not defined\\n    at JavascriptEvalExecutionTools.execute (/var/task/apps/agents-server/.next/server/chunks/10.js:243:455)\\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\\n    at async Object.execute (/var/task/apps/agents-server/.next/server/chunks/9063.js:1:25841)\\n    at async l (/var/task/apps/agents-server/.next/server/chunks/8343.js:6:30231)\\n    at async ec.data.name (/var/task/apps/agents-server/.next/server/chunks/8343.js:10:71932)\\n    at async /var/task/apps/agents-server/.next/server/chunks/8343.js:10:29932\\n    at async Promise.all (index 0)\\n    at async fG (/var/task/apps/agents-server/.next/server/chunks/8343.js:10:69803)\\n    at async Promise.all (index 0)\\n    at async gh (/var/task/apps/agents-server/.next/server/chunks/8343.js:10:91765)\",\n    \"id\": \"error-0109960113d95761\"\n}\n```",
+            "type": "text"
+        },
+        "status": "completed"
+    },
+    "idempotencyKey": "raw:call_iJ8gjWI4RIJ8TVE56k3OWLVu"
+}
+````
+
+---
+
+[ ] !!!!
+
 [✨🔢] When teammate was called, in the popup there must be a mocked chat with this internal conversation
 
+-   @@@@ Maybe not needed
 -   The conversation clearly exists, its just not shown anywhere, so we need to find a way to show it in the teammate calling popup
 -   Now there is just empty space
 -   Do a proper analysis of the current functionality before you start implementing.
