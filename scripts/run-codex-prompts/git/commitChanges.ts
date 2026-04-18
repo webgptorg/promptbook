@@ -1,5 +1,5 @@
 import { mkdir, unlink, writeFile } from 'fs/promises';
-import { dirname, join } from 'path';
+import { dirname, join, relative, resolve } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
 import { buildAgentGitEnv, buildAgentGitSigningFlag } from './agentGitIdentity';
@@ -7,9 +7,16 @@ import { runGitCommand } from './runGitCommand';
 
 /**
  * Commits staged changes with the provided message using the dedicated coding-agent identity when configured,
- * otherwise falls back to the default Git configuration. Remote pushing is opt-in via `options.autoPush`.
+ * otherwise falls back to the default Git configuration. Remote pushing is opt-in via `options.autoPush`,
+ * while `options.excludePaths` can keep temporary artifacts out of the created commit.
  */
-export async function commitChanges(message: string, options?: { autoPush?: boolean }): Promise<void> {
+export async function commitChanges(
+    message: string,
+    options?: {
+        autoPush?: boolean;
+        excludePaths?: ReadonlyArray<string>;
+    },
+): Promise<void> {
     const projectPath = process.cwd();
     const commitMessagePath = join(projectPath, '.tmp', 'codex-prompts', `COMMIT_MESSAGE_${Date.now()}.txt`);
     await mkdir(dirname(commitMessagePath), { recursive: true });
@@ -18,11 +25,7 @@ export async function commitChanges(message: string, options?: { autoPush?: bool
     try {
         const agentEnv = buildAgentGitEnv();
         const signingFlag = buildAgentGitSigningFlag();
-        await runGitCommand({
-            command: 'git add .',
-            cwd: projectPath,
-            env: agentEnv,
-        });
+        await stageCommitChanges(projectPath, agentEnv, options?.excludePaths);
 
         await runGitCommand({
             command: buildGitCommitCommand(commitMessagePath, signingFlag),
@@ -36,6 +39,74 @@ export async function commitChanges(message: string, options?: { autoPush?: bool
     } finally {
         await unlink(commitMessagePath).catch(() => undefined);
     }
+}
+
+/**
+ * Stages repository changes and optionally unstages temporary files that should not end up inside the commit.
+ */
+async function stageCommitChanges(
+    projectPath: string,
+    agentEnv: Record<string, string> | undefined,
+    excludePaths: ReadonlyArray<string> | undefined,
+): Promise<void> {
+    await runGitCommand({
+        command: 'git add .',
+        cwd: projectPath,
+        env: agentEnv,
+    });
+
+    const excludedGitPaths = normalizeExcludedGitPaths(projectPath, excludePaths);
+    if (excludedGitPaths.length === 0) {
+        return;
+    }
+
+    await runGitCommand({
+        command: `git reset --quiet HEAD -- ${excludedGitPaths.map(quoteShellPath).join(' ')}`,
+        cwd: projectPath,
+        env: agentEnv,
+        isVerbose: false,
+    });
+}
+
+/**
+ * Converts excluded filesystem paths into unique repository-relative Git paths.
+ */
+function normalizeExcludedGitPaths(
+    projectPath: string,
+    excludePaths: ReadonlyArray<string> | undefined,
+): ReadonlyArray<string> {
+    if (!excludePaths || excludePaths.length === 0) {
+        return [];
+    }
+
+    return [
+        ...new Set(
+            excludePaths
+                .map((excludePath) => normalizeExcludedGitPath(projectPath, excludePath))
+                .filter((gitPath): gitPath is string => Boolean(gitPath)),
+        ),
+    ];
+}
+
+/**
+ * Converts one excluded filesystem path into a Git-friendly repository-relative path.
+ */
+function normalizeExcludedGitPath(projectPath: string, excludePath: string): string | undefined {
+    const absoluteExcludePath = resolve(projectPath, excludePath);
+    const relativeExcludePath = relative(projectPath, absoluteExcludePath).replace(/\\/gu, '/');
+
+    if (relativeExcludePath === '' || relativeExcludePath === '.' || relativeExcludePath.startsWith('../')) {
+        return undefined;
+    }
+
+    return relativeExcludePath;
+}
+
+/**
+ * Quotes one Git path for safe shell execution.
+ */
+function quoteShellPath(path: string): string {
+    return JSON.stringify(path);
 }
 
 /**

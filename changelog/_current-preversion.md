@@ -1,3 +1,9 @@
+-   Fixed `ptbk coder run` successful prompt rounds so temporary runtime `.log.txt` files no longer dirty the Git working tree between tasks:
+
+    -   Updated the shared coding-agent commit helper to stage all round changes first and then unstage selected temporary artifacts before `git commit`, keeping the logic DRY for future exclusions.
+    -   Excluded the per-round live runtime log from default successful commits unless `--preserve-logs` is explicitly enabled, so each finished prompt now stays self-contained in one clean commit without leaving a missing tracked log behind.
+    -   Added regression coverage for the new excluded-path staging flow in the shared Git commit helper.
+
 -   Hardened Agents Server durable chat jobs against false background-worker lease expirations during long-running Vercel chat turns:
 
     -   Added a bounded timeout to each `UserChatJob` heartbeat renewal, so one stuck Supabase lease-update call can no longer wedge the entire serialized heartbeat loop until the lease expires.

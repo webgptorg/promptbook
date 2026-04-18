@@ -105,6 +105,27 @@ describe('commitChanges', () => {
         expect(calledCommands).not.toContain('git rev-parse --abbrev-ref --symbolic-full-name @{upstream}');
     });
 
+    it('unstages excluded temporary files before creating the commit', async () => {
+        temporaryProjectPath = await createTemporaryGitProject();
+        process.chdir(temporaryProjectPath);
+
+        const execMock = getExecCommandMock();
+        execMock.mockImplementation(async () => okResult());
+
+        await commitChanges('test commit', {
+            excludePaths: [join(temporaryProjectPath, 'prompts', '2026-04-6490.log.txt')],
+        });
+
+        const calledCommands = getCalledCommands(execMock);
+        const gitAddIndex = calledCommands.indexOf('git add .');
+        const gitResetIndex = calledCommands.indexOf('git reset --quiet HEAD -- "prompts/2026-04-6490.log.txt"');
+        const gitCommitIndex = calledCommands.findIndex((command) => command.startsWith('git commit '));
+
+        expect(gitAddIndex).toBeGreaterThanOrEqual(0);
+        expect(gitResetIndex).toBeGreaterThan(gitAddIndex);
+        expect(gitCommitIndex).toBeGreaterThan(gitResetIndex);
+    });
+
     it('pushes to upstream branch after commit when there are outgoing commits', async () => {
         const execMock = getExecCommandMock();
         execMock.mockImplementation(async (options) => {

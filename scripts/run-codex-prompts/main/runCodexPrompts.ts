@@ -425,7 +425,11 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
                             uiHandle?.state.resumeTimer();
                         }
 
-                        await commitChanges(commitMessage, { autoPush: options.autoPush });
+                        await commitChanges(commitMessage, {
+                            autoPush: options.autoPush,
+                            // Keep the live runtime log out of default commits because it is deleted after a successful round.
+                            excludePaths: options.preserveLogs ? undefined : [logPath],
+                        });
                         await runPostPromptAutoMigrationIfEnabled(options);
                     } catch (error) {
                         uiHandle?.stopCapturingAgentOutput();
