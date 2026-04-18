@@ -1,10 +1,29 @@
 'use client';
 
+import { MockedChat } from '@promptbook-local/components';
+import type { ChatMessage, ChatParticipant } from '@promptbook-local/types';
 import { MessageCircle, SendHorizontal, X } from 'lucide-react';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Dialog } from '../../../components/Portal/Dialog';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { useDirtyModalGuard } from '../../../components/utils/useDirtyModalGuard';
+import type { PseudoUserConversationEntry } from './useAgentChatPseudoUserInteraction';
+
+/**
+ * Delay config used to render TEAM popup transcripts immediately.
+ */
+const PSEUDO_USER_CHAT_DELAY_CONFIG = {
+    beforeFirstMessage: 0,
+    thinkingBetweenMessages: 0,
+    waitAfterWord: 0,
+    extraWordDelay: 0,
+    longPauseChance: 0,
+};
+
+/**
+ * Fallback teammate line shown when the backend omits the stored transcript.
+ */
+const PSEUDO_USER_WAITING_REPLY_MESSAGE = 'Waiting for one user reply.';
 
 /**
  * Props for pseudo-user chat dialog shown when agent talks to `{User}`.
@@ -27,6 +46,10 @@ export type PseudoUserChatDialogProps = {
      */
     readonly userName: string;
     /**
+     * Internal conversation already captured by the TEAM tool call.
+     */
+    readonly conversation: ReadonlyArray<PseudoUserConversationEntry>;
+    /**
      * Called with one user reply and then closes the dialog.
      */
     readonly onSubmit: (message: string) => Promise<void> | void;
@@ -47,10 +70,45 @@ function normalizeUserReply(value: string): string {
 }
 
 /**
+ * Resolves the transcript shown in the mocked chat section of the popup.
+ *
+ * @param conversation - Internal TEAM conversation transcript.
+ * @param prompt - Fallback prompt when transcript is missing.
+ * @param agentName - Display name of the calling agent.
+ * @param userName - Display name of the pseudo-user teammate.
+ * @returns Normalized transcript entries.
+ */
+function resolvePseudoUserChatConversation(
+    conversation: ReadonlyArray<PseudoUserConversationEntry>,
+    prompt: string,
+    agentName: string,
+    userName: string,
+): ReadonlyArray<PseudoUserConversationEntry> {
+    if (conversation.length > 0) {
+        return conversation;
+    }
+
+    const fallbackConversation: Array<PseudoUserConversationEntry> = [
+        {
+            sender: 'AGENT',
+            name: agentName,
+            content: prompt,
+        },
+        {
+            sender: 'TEAMMATE',
+            name: userName,
+            content: PSEUDO_USER_WAITING_REPLY_MESSAGE,
+        },
+    ];
+
+    return fallbackConversation.filter((entry) => entry.content.trim().length > 0);
+}
+
+/**
  * Dialog that asks the real user for exactly one reply to a `{User}` pseudo-agent prompt.
  */
 export function PseudoUserChatDialog(props: PseudoUserChatDialogProps) {
-    const { isOpen, prompt, agentName, userName, onSubmit, onClose } = props;
+    const { isOpen, prompt, agentName, userName, conversation, onSubmit, onClose } = props;
     const [reply, setReply] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const inputId = useId();
@@ -61,6 +119,38 @@ export function PseudoUserChatDialog(props: PseudoUserChatDialogProps) {
         isCloseBlocked: isSubmitting,
         onClose,
     });
+    const mockedConversation = useMemo(
+        () => resolvePseudoUserChatConversation(conversation, prompt, agentName, userName),
+        [agentName, conversation, prompt, userName],
+    );
+    const mockedChatMessages = useMemo<ReadonlyArray<ChatMessage>>(
+        () =>
+            mockedConversation.map((entry, index) => ({
+                id: `pseudo-user-${index}`,
+                sender: entry.sender,
+                content: entry.content,
+                isComplete: true,
+            })),
+        [mockedConversation],
+    );
+    const mockedChatParticipants = useMemo<ReadonlyArray<ChatParticipant>>(
+        () => [
+            {
+                name: 'AGENT',
+                fullname:
+                    mockedConversation.find((entry) => entry.sender === 'AGENT')?.name || agentName,
+                color: '#64748b',
+            },
+            {
+                name: 'TEAMMATE',
+                fullname:
+                    mockedConversation.find((entry) => entry.sender === 'TEAMMATE')?.name || userName,
+                color: '#2563eb',
+                isMe: true,
+            },
+        ],
+        [agentName, mockedConversation, userName],
+    );
 
     useEffect(() => {
         if (!isOpen) {
@@ -79,7 +169,7 @@ export function PseudoUserChatDialog(props: PseudoUserChatDialogProps) {
     }
 
     return (
-        <Dialog onClose={requestClose} isBackdropDismissible={false} className="w-full max-w-xl p-0 overflow-hidden">
+        <Dialog onClose={requestClose} isBackdropDismissible={false} className="w-full max-w-4xl overflow-hidden p-0">
             <div className="border-b border-gray-200 bg-gray-50 px-5 py-4">
                 <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
@@ -104,10 +194,19 @@ export function PseudoUserChatDialog(props: PseudoUserChatDialogProps) {
             </div>
 
             <div className="space-y-4 px-5 py-5">
-                <div className="flex justify-start">
-                    <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-blue-50 px-4 py-3 text-sm text-blue-950 shadow-sm">
-                        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-blue-700">{agentName}</p>
-                        <p className="whitespace-pre-wrap">{prompt}</p>
+                <div className="overflow-hidden rounded-xl border border-gray-200 bg-gray-50 shadow-sm">
+                    <div className="h-[320px]">
+                        <MockedChat
+                            title={`Chat between ${agentName} and ${userName}`}
+                            messages={mockedChatMessages}
+                            participants={mockedChatParticipants}
+                            isResettable={false}
+                            isPausable={false}
+                            isSaveButtonEnabled={false}
+                            isCopyButtonEnabled={false}
+                            visual="STANDALONE"
+                            delayConfig={PSEUDO_USER_CHAT_DELAY_CONFIG}
+                        />
                     </div>
                 </div>
 

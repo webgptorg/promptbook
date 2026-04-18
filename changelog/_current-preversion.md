@@ -1,3 +1,9 @@
+-   Fixed the Agents Server teammate-calling popup so pseudo-user TEAM requests now show the stored internal conversation instead of leaving the transcript area empty:
+
+    -   Extended the pseudo-user TEAM interaction state to carry the existing `conversation` payload already returned by the TEAM tool result, with a fallback transcript when older payloads omit it.
+    -   Updated the teammate-calling popup to render that transcript through the existing `<MockedChat/>` UI while keeping the reply textarea flow unchanged.
+    -   Added regression coverage for both the TEAM-to-popup transcript mapping and the popup transcript rendering itself.
+
 -   Hardened Agents Server durable chat jobs against false background-worker lease expirations during long-running Vercel chat turns:
 
     -   Added a bounded timeout to each `UserChatJob` heartbeat renewal, so one stuck Supabase lease-update call can no longer wedge the entire serialized heartbeat loop until the lease expires.

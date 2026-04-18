@@ -463,6 +463,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 prompt={pendingPseudoUserInteraction?.prompt || ''}
                 agentName={pendingPseudoUserInteraction?.agentName || 'Agent'}
                 userName={pendingPseudoUserInteraction?.teammateLabel || 'User'}
+                conversation={pendingPseudoUserInteraction?.conversation || []}
                 onSubmit={handlePseudoUserReplySubmit}
                 onClose={handlePseudoUserReplyClose}
             />
