@@ -1,6 +1,10 @@
 [x] $3.12 an hour by OpenAI Codex `gpt-5.4`
 
-[✨🗓] Homepage navigation sometimes does not work on mobile
+---
+
+[ ] !!!
+
+[✨🗓] Homepage navigation does not work on mobile
 
 -   When clicking on the server name or logo in the header, the user should be navigated to the homepage
 -   But nothing happens on mobile, while it works correctly on desktop
@@ -47,4 +51,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
