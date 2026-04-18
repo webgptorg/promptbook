@@ -1,3 +1,8 @@
+-   Refactored Agents Server `runUserChatJob.ts` into smaller focused private helpers without changing external behavior:
+
+    -   Extracted agent/runtime preparation and streamed assistant-message persistence into dedicated private helpers so `runUserChatJob` now reads as a thin durable-job orchestrator.
+    -   Split the remaining orchestration into explicit startup, heartbeat wiring, success persistence, failure persistence, and self-learning follow-up steps while keeping the existing cancellation, completion, error handling, and prompt snapshot behavior intact.
+
 -   Refactored Agents Server `UsageAnalyticsAggregation.ts` into a thin usage-analytics facade plus focused private helper modules without changing external behavior:
 
     -   Extracted low-level aggregate math, call accumulation state management, and response formatting into dedicated private files so `UsageAnalyticsAggregation` now coordinates the flow instead of owning every detail directly.
