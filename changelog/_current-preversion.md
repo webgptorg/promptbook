@@ -1,3 +1,8 @@
+-   Refactored Agents Server `listUserWalletRecords.ts` into smaller focused private helpers without changing external behavior:
+
+    -   Split wallet-row loading into dedicated scope-resolution, active-row query, and agent-visible aggregation helpers so `listUserWalletRecords` now reads as a thin coordinator.
+    -   Extracted row de-duplication, filter normalization, broad-text search matching, sorting, and limiting into focused private helpers while preserving the existing wallet listing and search behavior.
+
 -   Refactored Agents Server `runUserChatJob.ts` into smaller focused private helpers without changing external behavior:
 
     -   Extracted agent/runtime preparation and streamed assistant-message persistence into dedicated private helpers so `runUserChatJob` now reads as a thin durable-job orchestrator.
