@@ -17,6 +17,24 @@ import {
 } from './userLocationPromptParameter';
 
 /**
+ * Calendar connection carried through the hidden tool runtime context.
+ *
+ * @private type of `composePromptParametersWithMemoryContext`
+ */
+type CalendarConnection = NonNullable<NonNullable<ToolRuntimeContext['calendars']>['connections']>[number];
+
+/**
+ * Normalized prompt-parameter views used while composing the hidden runtime context.
+ *
+ * @private type of `composePromptParametersWithMemoryContext`
+ */
+type PreparedPromptParameters = {
+    normalizedBaseParameters: Record<string, string>;
+    filteredBaseParameters: Record<string, string>;
+    promptParametersForChatContext: Record<string, string>;
+};
+
+/**
  * Input for composing prompt parameters with memory runtime context.
  */
 export type ComposePromptParametersWithMemoryContextOptions = {
@@ -32,12 +50,7 @@ export type ComposePromptParametersWithMemoryContextOptions = {
     emailSmtpCredential?: string;
     emailFromAddress?: string;
     calendarGoogleAccessToken?: string;
-    calendarConnections?: ReadonlyArray<{
-        provider: string;
-        url: string;
-        calendarId: string;
-        scopes?: string[];
-    }>;
+    calendarConnections?: ReadonlyArray<CalendarConnection>;
     chatAttachments?: ReadonlyArray<ChatAttachment>;
 };
 
@@ -47,125 +60,280 @@ export type ComposePromptParametersWithMemoryContextOptions = {
 export function composePromptParametersWithMemoryContext(
     options: ComposePromptParametersWithMemoryContextOptions,
 ): Record<string, string> {
-    const {
-        baseParameters,
-        currentUserIdentity,
-        agentPermanentId,
-        agentName,
-        chatId,
-        assistantMessageId,
-        isPrivateModeEnabled,
-        projectRepositories,
-        projectGithubToken,
-        emailSmtpCredential,
-        emailFromAddress,
-        calendarGoogleAccessToken,
-        calendarConnections,
-        chatAttachments,
-    } = options;
-    const normalizedBaseParameters = normalizePromptParameters(baseParameters);
-    const runtimeLocationContext = parseUserLocationPromptParameter(
-        normalizedBaseParameters[USER_LOCATION_PROMPT_PARAMETER],
+    const preparedPromptParameters = preparePromptParameters(options.baseParameters);
+    const existingRuntimeContext = resolveExistingRuntimeContext(preparedPromptParameters.normalizedBaseParameters);
+    const mergedRuntimeContext = createMergedRuntimeContext(
+        options,
+        preparedPromptParameters,
+        existingRuntimeContext,
     );
+
+    return {
+        ...preparedPromptParameters.filteredBaseParameters,
+        [TOOL_RUNTIME_CONTEXT_PARAMETER]: serializeToolRuntimeContext(mergedRuntimeContext),
+    };
+}
+
+/**
+ * Builds normalized prompt-parameter views used by the runtime-context composition steps.
+ */
+function preparePromptParameters(baseParameters: Record<string, unknown>): PreparedPromptParameters {
+    const normalizedBaseParameters = normalizePromptParameters(baseParameters);
+
+    return {
+        normalizedBaseParameters,
+        filteredBaseParameters: excludeInternalRuntimeParameters(normalizedBaseParameters),
+        promptParametersForChatContext: excludeToolRuntimeContextParameter(normalizedBaseParameters),
+    };
+}
+
+/**
+ * Parses any serialized hidden runtime context already present in the incoming prompt parameters.
+ */
+function resolveExistingRuntimeContext(parameters: Record<string, string>): ToolRuntimeContext {
+    return parseToolRuntimeContext(parameters[TOOL_RUNTIME_CONTEXT_PARAMETER]) || {};
+}
+
+/**
+ * Merges explicit request options with any previously serialized runtime context.
+ */
+function createMergedRuntimeContext(
+    options: ComposePromptParametersWithMemoryContextOptions,
+    preparedPromptParameters: PreparedPromptParameters,
+    existingRuntimeContext: ToolRuntimeContext,
+): ToolRuntimeContext {
+    return {
+        ...existingRuntimeContext,
+        memory: createMemoryRuntimeContext(options, existingRuntimeContext),
+        userLocation: resolveUserLocationRuntimeContext(
+            preparedPromptParameters.normalizedBaseParameters,
+            existingRuntimeContext,
+        ),
+        projects: createProjectsRuntimeContext(
+            options,
+            preparedPromptParameters.normalizedBaseParameters,
+            existingRuntimeContext,
+        ),
+        email: createEmailRuntimeContext(options, existingRuntimeContext),
+        calendars: createCalendarsRuntimeContext(options, existingRuntimeContext),
+        spawn: createSpawnRuntimeContext(options.agentPermanentId, existingRuntimeContext),
+        chat: createChatRuntimeContext(
+            options,
+            preparedPromptParameters.promptParametersForChatContext,
+            existingRuntimeContext,
+        ),
+    };
+}
+
+/**
+ * Resolves the memory-related runtime context shared with memory-aware tools.
+ */
+function createMemoryRuntimeContext(
+    options: ComposePromptParametersWithMemoryContextOptions,
+    existingRuntimeContext: ToolRuntimeContext,
+): NonNullable<ToolRuntimeContext['memory']> {
+    const isTeamConversation = existingRuntimeContext.memory?.isTeamConversation === true;
+    const isPrivateMode = options.isPrivateModeEnabled === true;
+    const isMemoryEnabled = Boolean(options.currentUserIdentity && !isTeamConversation && !isPrivateMode);
+
+    return {
+        ...(existingRuntimeContext.memory || {}),
+        enabled: isMemoryEnabled,
+        userId: options.currentUserIdentity?.userId,
+        username: options.currentUserIdentity?.user.username,
+        agentId: options.agentPermanentId,
+        agentName: options.agentName,
+        isTeamConversation,
+        isPrivateMode,
+    };
+}
+
+/**
+ * Resolves the user-location section from prompt parameters while preserving prior context when absent.
+ */
+function resolveUserLocationRuntimeContext(
+    normalizedBaseParameters: Record<string, string>,
+    existingRuntimeContext: ToolRuntimeContext,
+): ToolRuntimeContext['userLocation'] {
+    return (
+        parseUserLocationPromptParameter(normalizedBaseParameters[USER_LOCATION_PROMPT_PARAMETER]) ||
+        existingRuntimeContext.userLocation
+    );
+}
+
+/**
+ * Resolves the project-access runtime context used by repository-aware tools.
+ */
+function createProjectsRuntimeContext(
+    options: ComposePromptParametersWithMemoryContextOptions,
+    normalizedBaseParameters: Record<string, string>,
+    existingRuntimeContext: ToolRuntimeContext,
+): ToolRuntimeContext['projects'] {
+    const githubToken = resolveProjectGithubToken(options.projectGithubToken, normalizedBaseParameters);
+    const repositories = resolveProjectRepositories(options.projectRepositories, existingRuntimeContext);
+    const projectRuntimeContext = {
+        ...(existingRuntimeContext.projects || {}),
+        ...(githubToken ? { githubToken } : {}),
+        ...(repositories.length > 0 ? { repositories } : {}),
+    };
+
+    return projectRuntimeContext.githubToken || projectRuntimeContext.repositories
+        ? projectRuntimeContext
+        : undefined;
+}
+
+/**
+ * Resolves the email runtime context used by mail-sending tools.
+ */
+function createEmailRuntimeContext(
+    options: ComposePromptParametersWithMemoryContextOptions,
+    existingRuntimeContext: ToolRuntimeContext,
+): ToolRuntimeContext['email'] {
+    const smtpCredential = normalizeOptionalText(options.emailSmtpCredential);
+    const fromAddress = normalizeOptionalText(options.emailFromAddress);
+    const emailRuntimeContext = {
+        ...(existingRuntimeContext.email || {}),
+        ...(smtpCredential ? { smtpCredential } : {}),
+        ...(fromAddress ? { fromAddress } : {}),
+    };
+
+    return emailRuntimeContext.smtpCredential || emailRuntimeContext.fromAddress ? emailRuntimeContext : undefined;
+}
+
+/**
+ * Resolves the calendar runtime context used by calendar-aware tools.
+ */
+function createCalendarsRuntimeContext(
+    options: ComposePromptParametersWithMemoryContextOptions,
+    existingRuntimeContext: ToolRuntimeContext,
+): ToolRuntimeContext['calendars'] {
+    const googleAccessToken = normalizeOptionalText(options.calendarGoogleAccessToken);
+    const connections = resolveCalendarConnections(options.calendarConnections, existingRuntimeContext);
+    const calendarsRuntimeContext = {
+        ...(existingRuntimeContext.calendars || {}),
+        ...(googleAccessToken ? { googleAccessToken } : {}),
+        ...(connections.length > 0 ? { connections } : {}),
+    };
+
+    return calendarsRuntimeContext.googleAccessToken || calendarsRuntimeContext.connections
+        ? calendarsRuntimeContext
+        : undefined;
+}
+
+/**
+ * Resolves the spawn metadata carried into nested agent/tool executions.
+ */
+function createSpawnRuntimeContext(
+    agentPermanentId: string | undefined,
+    existingRuntimeContext: ToolRuntimeContext,
+): NonNullable<ToolRuntimeContext['spawn']> {
+    return {
+        ...(existingRuntimeContext.spawn || {}),
+        depth: normalizeSpawnDepth(existingRuntimeContext.spawn?.depth),
+        parentAgentId: agentPermanentId || existingRuntimeContext.spawn?.parentAgentId,
+    };
+}
+
+/**
+ * Resolves the chat-scoped runtime context used by thread-bound tools.
+ */
+function createChatRuntimeContext(
+    options: ComposePromptParametersWithMemoryContextOptions,
+    promptParametersForChatContext: Record<string, string>,
+    existingRuntimeContext: ToolRuntimeContext,
+): ToolRuntimeContext['chat'] {
+    const existingChatRuntimeContext = existingRuntimeContext.chat;
+    const normalizedChatAttachments = normalizeChatAttachments(options.chatAttachments);
+
+    if (
+        !shouldIncludeChatRuntimeContext(
+            options.chatId,
+            options.assistantMessageId,
+            existingChatRuntimeContext,
+            normalizedChatAttachments,
+        )
+    ) {
+        return existingChatRuntimeContext;
+    }
+
+    return {
+        ...(existingChatRuntimeContext || {}),
+        chatId: options.chatId || existingChatRuntimeContext?.chatId,
+        userId: options.currentUserIdentity?.userId || existingChatRuntimeContext?.userId,
+        agentId: options.agentPermanentId || existingChatRuntimeContext?.agentId,
+        agentName: options.agentName || existingChatRuntimeContext?.agentName,
+        assistantMessageId: options.assistantMessageId || existingChatRuntimeContext?.assistantMessageId,
+        parameters: promptParametersForChatContext,
+        attachments:
+            normalizedChatAttachments.length > 0 ? normalizedChatAttachments : existingChatRuntimeContext?.attachments,
+    };
+}
+
+/**
+ * Detects whether the chat runtime context should be materialized for this request.
+ */
+function shouldIncludeChatRuntimeContext(
+    chatId: string | undefined,
+    assistantMessageId: string | undefined,
+    existingChatRuntimeContext: ToolRuntimeContext['chat'],
+    normalizedChatAttachments: ReturnType<typeof normalizeChatAttachments>,
+): boolean {
+    return Boolean(
+        chatId ||
+            assistantMessageId ||
+            existingChatRuntimeContext?.chatId ||
+            existingChatRuntimeContext?.assistantMessageId ||
+            normalizedChatAttachments.length > 0,
+    );
+}
+
+/**
+ * Resolves the GitHub token from explicit options first and prompt parameters second.
+ */
+function resolveProjectGithubToken(
+    projectGithubToken: string | undefined,
+    normalizedBaseParameters: Record<string, string>,
+): string | undefined {
     const projectGithubTokenFromPrompt = parseProjectGithubTokenPromptParameter(
         normalizedBaseParameters[PROJECT_GITHUB_TOKEN_PROMPT_PARAMETER],
     );
-    const resolvedProjectGithubToken = projectGithubToken?.trim() || projectGithubTokenFromPrompt;
-    const filteredBaseParameters = excludeInternalRuntimeParameters(normalizedBaseParameters);
-    const promptParametersForChatContext = excludeToolRuntimeContextParameter(normalizedBaseParameters);
 
-    const existingRuntimeContext =
-        parseToolRuntimeContext(normalizedBaseParameters[TOOL_RUNTIME_CONTEXT_PARAMETER]) || {};
-    const resolvedProjectRepositories =
-        projectRepositories === undefined
-            ? normalizeProjectRepositories(existingRuntimeContext.projects?.repositories)
-            : normalizeProjectRepositories(projectRepositories);
-    const isTeamConversation = existingRuntimeContext.memory?.isTeamConversation === true;
-    const isPrivateMode = isPrivateModeEnabled === true;
-    const isMemoryEnabled = Boolean(currentUserIdentity && !isTeamConversation && !isPrivateMode);
-    const normalizedChatAttachments = normalizeChatAttachments(chatAttachments);
-    const projectsRuntimeContext = {
-        ...(existingRuntimeContext.projects || {}),
-        ...(resolvedProjectGithubToken ? { githubToken: resolvedProjectGithubToken } : {}),
-        ...(resolvedProjectRepositories.length > 0 ? { repositories: resolvedProjectRepositories } : {}),
-    };
-    const mergedEmailRuntimeContext = {
-        ...(existingRuntimeContext.email || {}),
-        ...(normalizeOptionalText(emailSmtpCredential) ? { smtpCredential: normalizeOptionalText(emailSmtpCredential) } : {}),
-        ...(normalizeOptionalText(emailFromAddress) ? { fromAddress: normalizeOptionalText(emailFromAddress) } : {}),
-    };
-    const resolvedCalendarConnections =
-        calendarConnections === undefined
-            ? normalizeCalendarConnections(existingRuntimeContext.calendars?.connections)
-            : normalizeCalendarConnections(calendarConnections);
-    const calendarsRuntimeContext = {
-        ...(existingRuntimeContext.calendars || {}),
-        ...(normalizeOptionalText(calendarGoogleAccessToken)
-            ? { googleAccessToken: normalizeOptionalText(calendarGoogleAccessToken) }
-            : {}),
-        ...(resolvedCalendarConnections.length > 0 ? { connections: resolvedCalendarConnections } : {}),
-    };
+    return normalizeOptionalText(projectGithubToken) || projectGithubTokenFromPrompt;
+}
 
-    const mergedRuntimeContext: ToolRuntimeContext = {
-        ...existingRuntimeContext,
-        memory: {
-            ...(existingRuntimeContext.memory || {}),
-            enabled: isMemoryEnabled,
-            userId: currentUserIdentity?.userId,
-            username: currentUserIdentity?.user.username,
-            agentId: agentPermanentId,
-            agentName,
-            isTeamConversation,
-            isPrivateMode,
-        },
-        userLocation: runtimeLocationContext ?? existingRuntimeContext.userLocation,
-        projects:
-            projectsRuntimeContext.githubToken || projectsRuntimeContext.repositories
-                ? projectsRuntimeContext
-                : undefined,
-        email:
-            mergedEmailRuntimeContext.smtpCredential || mergedEmailRuntimeContext.fromAddress
-                ? mergedEmailRuntimeContext
-                : undefined,
-        calendars:
-            calendarsRuntimeContext.googleAccessToken || calendarsRuntimeContext.connections
-                ? calendarsRuntimeContext
-                : undefined,
-        spawn: {
-            ...(existingRuntimeContext.spawn || {}),
-            depth:
-                typeof existingRuntimeContext.spawn?.depth === 'number' &&
-                Number.isFinite(existingRuntimeContext.spawn.depth)
-                    ? Math.max(0, Math.floor(existingRuntimeContext.spawn.depth))
-                    : 0,
-            parentAgentId: agentPermanentId || existingRuntimeContext.spawn?.parentAgentId,
-        },
-        chat:
-            chatId ||
-            assistantMessageId ||
-            existingRuntimeContext.chat?.chatId ||
-            existingRuntimeContext.chat?.assistantMessageId ||
-            normalizedChatAttachments.length > 0
-                ? {
-                      ...(existingRuntimeContext.chat || {}),
-                      chatId: chatId || existingRuntimeContext.chat?.chatId,
-                      userId: currentUserIdentity?.userId || existingRuntimeContext.chat?.userId,
-                      agentId: agentPermanentId || existingRuntimeContext.chat?.agentId,
-                      agentName: agentName || existingRuntimeContext.chat?.agentName,
-                      assistantMessageId: assistantMessageId || existingRuntimeContext.chat?.assistantMessageId,
-                      parameters: promptParametersForChatContext,
-                      attachments:
-                          normalizedChatAttachments.length > 0
-                              ? normalizedChatAttachments
-                              : existingRuntimeContext.chat?.attachments,
-                  }
-                : existingRuntimeContext.chat,
-    };
+/**
+ * Resolves project repositories from explicit options or the existing runtime context.
+ */
+function resolveProjectRepositories(
+    projectRepositories: ComposePromptParametersWithMemoryContextOptions['projectRepositories'],
+    existingRuntimeContext: ToolRuntimeContext,
+): string[] {
+    return projectRepositories === undefined
+        ? normalizeProjectRepositories(existingRuntimeContext.projects?.repositories)
+        : normalizeProjectRepositories(projectRepositories);
+}
 
-    return {
-        ...filteredBaseParameters,
-        [TOOL_RUNTIME_CONTEXT_PARAMETER]: serializeToolRuntimeContext(mergedRuntimeContext),
-    };
+/**
+ * Resolves calendar connections from explicit options or the existing runtime context.
+ */
+function resolveCalendarConnections(
+    calendarConnections: ComposePromptParametersWithMemoryContextOptions['calendarConnections'],
+    existingRuntimeContext: ToolRuntimeContext,
+): CalendarConnection[] {
+    return calendarConnections === undefined
+        ? normalizeCalendarConnections(existingRuntimeContext.calendars?.connections)
+        : normalizeCalendarConnections(calendarConnections);
+}
+
+/**
+ * Normalizes an existing spawn depth into a non-negative integer.
+ */
+function normalizeSpawnDepth(depth: unknown): number {
+    if (typeof depth !== 'number' || !Number.isFinite(depth)) {
+        return 0;
+    }
+
+    return Math.max(0, Math.floor(depth));
 }
 
 /**
@@ -256,22 +424,12 @@ function normalizeProjectRepositories(rawRepositories: unknown): string[] {
  */
 function normalizeCalendarConnections(
     rawConnections: unknown,
-): Array<{
-    provider: string;
-    url: string;
-    calendarId: string;
-    scopes?: string[];
-}> {
+): CalendarConnection[] {
     if (!Array.isArray(rawConnections)) {
         return [];
     }
 
-    const connections: Array<{
-        provider: string;
-        url: string;
-        calendarId: string;
-        scopes?: string[];
-    }> = [];
+    const connections: CalendarConnection[] = [];
     const knownConnections = new Set<string>();
 
     for (const rawConnection of rawConnections) {

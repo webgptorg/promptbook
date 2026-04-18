@@ -1,3 +1,8 @@
+-   Refactored Agents Server `memoryRuntimeContext.ts` into smaller focused helpers without changing external behavior:
+
+    -   Split prompt-parameter preparation, existing-runtime parsing, and each runtime-context section merge into dedicated private helpers so `composePromptParametersWithMemoryContext` now reads as a thin coordinator.
+    -   Kept the existing precedence between explicit options, hidden prompt parameters, and previously serialized runtime context intact for memory, project, email, calendar, spawn, and chat metadata.
+
 -   Refactored Agents Server `handleChatCompletion.ts` into a thinner chat-completion facade plus focused private helper modules without changing external behavior:
 
     -   Extracted OpenAI-compatible request parsing, runtime/agent resolution, prompt-context creation, frozen-chat persistence, shared post-response side effects, and the streaming vs non-streaming response branches into dedicated private files behind the existing `handleChatCompletion` entrypoint.

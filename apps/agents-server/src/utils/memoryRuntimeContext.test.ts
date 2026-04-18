@@ -217,4 +217,53 @@ describe('composePromptParametersWithMemoryContext', () => {
             ],
         });
     });
+
+    it('reuses existing serialized project and calendar runtime context when explicit overrides are omitted', () => {
+        const parameters = composePromptParametersWithMemoryContext({
+            baseParameters: {
+                [TOOL_RUNTIME_CONTEXT_PARAMETER]: JSON.stringify({
+                    projects: {
+                        githubToken: 'ghp_existing_token',
+                        repositories: ['example/project'],
+                    },
+                    calendars: {
+                        googleAccessToken: 'existing_google_token',
+                        connections: [
+                            {
+                                provider: 'google',
+                                url: 'https://calendar.google.com/calendar/u/0/r',
+                                calendarId: 'primary',
+                            },
+                        ],
+                    },
+                    spawn: {
+                        depth: 2,
+                        parentAgentId: 'agent-parent',
+                    },
+                }),
+            },
+            currentUserIdentity: null,
+            agentName: 'Test Agent',
+        });
+
+        const runtimeContext = JSON.parse(parameters[TOOL_RUNTIME_CONTEXT_PARAMETER]!);
+        expect(runtimeContext.projects).toEqual({
+            githubToken: 'ghp_existing_token',
+            repositories: ['example/project'],
+        });
+        expect(runtimeContext.calendars).toEqual({
+            googleAccessToken: 'existing_google_token',
+            connections: [
+                {
+                    provider: 'google',
+                    url: 'https://calendar.google.com/calendar/u/0/r',
+                    calendarId: 'primary',
+                },
+            ],
+        });
+        expect(runtimeContext.spawn).toEqual({
+            depth: 2,
+            parentAgentId: 'agent-parent',
+        });
+    });
 });
