@@ -1,3 +1,8 @@
+-   Refactored Agents Server `UsageAnalyticsAggregation.ts` into a thin usage-analytics facade plus focused private helper modules without changing external behavior:
+
+    -   Extracted low-level aggregate math, call accumulation state management, and response formatting into dedicated private files so `UsageAnalyticsAggregation` now coordinates the flow instead of owning every detail directly.
+    -   Kept the existing summary totals, timeline bucketing, breakdown ordering, detail sorting, lookup fallback labels, and top-25 detail limits intact while improving maintainability and readability.
+
 -   Refactored Agents Server `SpeechToTextFailoverRecognition.ts` into smaller focused private failover modules without changing external behavior:
 
     -   Extracted telemetry transport, provider runtime/session control, provider callback wiring, and stall-watchdog microphone monitoring into dedicated private helpers so `SpeechToTextFailoverRecognition` now reads as a thin orchestration facade.
