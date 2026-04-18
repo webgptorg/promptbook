@@ -1,3 +1,8 @@
+-   Refactored Agents Server `handleChatCompletion.ts` into a thinner chat-completion facade plus focused private helper modules without changing external behavior:
+
+    -   Extracted OpenAI-compatible request parsing, runtime/agent resolution, prompt-context creation, frozen-chat persistence, shared post-response side effects, and the streaming vs non-streaming response branches into dedicated private files behind the existing `handleChatCompletion` entrypoint.
+    -   Kept the existing API-key validation, deleted-agent handling, dynamic system-context injection, AgentKit cache usage, private-mode behavior, frozen audit snapshots, self-learning persistence, streaming chunk format, and OpenAI-compatible JSON response shape intact while reducing responsibility density in the main file.
+
 -   Refactored Agents Server `errorMessages.ts` into smaller focused helpers without changing external behavior:
 
     -   Split the branching-heavy `categorizeError` flow into dedicated API-type, native-error-message, and status-code classification helpers while preserving the existing precedence.
