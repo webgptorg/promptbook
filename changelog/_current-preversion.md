@@ -1,3 +1,10 @@
+-   Fixed rich `ptbk coder run` terminal UI flicker so long-running coding sessions no longer keep blinking the whole dashboard while waiting or streaming output:
+
+    -   Replaced the unconditional `200ms` full-frame repaint loop with an adaptive refresh policy that keeps timed redraws only for active running phases and stays visually still in waiting, paused, done, and error states.
+    -   Changed the ANSI renderer to rewrite only the frame lines whose visible content changed, which greatly reduces flicker during live agent output and other incremental updates.
+    -   Kept the live-output panel at a stable height so the frame no longer keeps resizing as the first streamed lines arrive.
+    -   Added regression coverage for the new refresh gating and the stable live-output frame height.
+
 -   Fixed `ptbk coder run` successful prompt rounds so temporary runtime `.log.txt` files no longer dirty the Git working tree between tasks:
 
     -   Updated the shared coding-agent commit helper to stage all round changes first and then unstage selected temporary artifacts before `git commit`, keeping the logic DRY for future exclusions.

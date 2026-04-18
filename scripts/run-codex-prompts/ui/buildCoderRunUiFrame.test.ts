@@ -1,4 +1,4 @@
-import { buildCoderRunUiFrame } from './buildCoderRunUiFrame';
+import { buildCoderRunUiFrame, type BuildCoderRunUiFrameOptions } from './buildCoderRunUiFrame';
 
 /**
  * Removes ANSI escape sequences from a rendered UI line for text assertions.
@@ -8,44 +8,54 @@ function stripAnsi(text: string): string {
     return text.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '');
 }
 
+/**
+ * Builds one stable frame input so individual tests only override the parts they care about.
+ */
+function createFrameOptions(
+    overrides: Partial<BuildCoderRunUiFrameOptions> = {},
+): BuildCoderRunUiFrameOptions {
+    return {
+        terminalWidth: 80,
+        spinner: '⠋',
+        pauseState: 'RUNNING',
+        config: {
+            agentName: 'GitHub Copilot',
+            modelName: 'gpt-5.4',
+            thinkingLevel: 'xhigh',
+            context: 'AGENTS.md',
+            priority: 1,
+            testCommand: 'npm test',
+        },
+        phase: 'waiting',
+        currentPromptLabel: 'prompts/001-task.md > Refresh the coder UI',
+        currentAttempt: 1,
+        maxAttempts: 3,
+        statusMessage: 'Ready to start the first task',
+        detailLines: ['Improve the boxed layout and stop duplicated tail prompts.'],
+        pendingEnterLabel: 'Start',
+        agentOutputLines: ['assistant: Drafting an improved terminal frame'],
+        errors: [],
+        progress: {
+            totalPrompts: 18,
+            sessionDone: 2,
+            sessionTotal: 5,
+            sessionRemaining: 3,
+            currentPromptIndex: 3,
+            skippedPrompts: 12,
+            toBeWrittenPrompts: 1,
+            percentage: 25,
+            elapsedText: '2m',
+            estimatedTotalText: '8m',
+            estimatedLabel: 'Today 9:45',
+            isEstimatedTotalKnown: true,
+        },
+        ...overrides,
+    };
+}
+
 describe('buildCoderRunUiFrame', () => {
     it('renders the branded boxed layout with enter and pause controls', () => {
-        const lines = buildCoderRunUiFrame({
-            terminalWidth: 80,
-            spinner: '⠋',
-            pauseState: 'RUNNING',
-            config: {
-                agentName: 'GitHub Copilot',
-                modelName: 'gpt-5.4',
-                thinkingLevel: 'xhigh',
-                context: 'AGENTS.md',
-                priority: 1,
-                testCommand: 'npm test',
-            },
-            phase: 'waiting',
-            currentPromptLabel: 'prompts/001-task.md > Refresh the coder UI',
-            currentAttempt: 1,
-            maxAttempts: 3,
-            statusMessage: 'Ready to start the first task',
-            detailLines: ['Improve the boxed layout and stop duplicated tail prompts.'],
-            pendingEnterLabel: 'Start',
-            agentOutputLines: ['assistant: Drafting an improved terminal frame'],
-            errors: [],
-            progress: {
-                totalPrompts: 18,
-                sessionDone: 2,
-                sessionTotal: 5,
-                sessionRemaining: 3,
-                currentPromptIndex: 3,
-                skippedPrompts: 12,
-                toBeWrittenPrompts: 1,
-                percentage: 25,
-                elapsedText: '2m',
-                estimatedTotalText: '8m',
-                estimatedLabel: 'Today 9:45',
-                isEstimatedTotalKnown: true,
-            },
-        }).map(stripAnsi);
+        const lines = buildCoderRunUiFrame(createFrameOptions()).map(stripAnsi);
 
         expect(lines.join('\n')).toContain('Promptbook Coder');
         expect(lines.join('\n')).toContain('GitHub Copilot  ·  gpt-5.4  ·  thinking xhigh');
@@ -58,5 +68,16 @@ describe('buildCoderRunUiFrame', () => {
         expect(lines.join('\n')).toContain('Current task');
         expect(lines.join('\n')).toContain('ENTER  Start');
         expect(lines.join('\n')).toContain('P  Pause');
+    });
+
+    it('keeps the frame height stable while live output grows', () => {
+        const emptyOutputFrame = buildCoderRunUiFrame(createFrameOptions({ agentOutputLines: [] }));
+        const streamingOutputFrame = buildCoderRunUiFrame(
+            createFrameOptions({
+                agentOutputLines: ['First chunk', 'Second chunk', 'Third chunk', 'Fourth chunk', 'Fifth chunk'],
+            }),
+        );
+
+        expect(streamingOutputFrame).toHaveLength(emptyOutputFrame.length);
     });
 });

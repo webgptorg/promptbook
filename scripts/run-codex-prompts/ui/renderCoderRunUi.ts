@@ -3,13 +3,7 @@ import { clearLine, cursorTo } from 'readline';
 import { getPauseState, requestPause, requestResume } from '../common/waitForPause';
 import { buildCoderRunUiFrame } from './buildCoderRunUiFrame';
 import { CoderRunUiState } from './CoderRunUiState';
-
-/**
- * Refresh interval for the terminal UI in milliseconds.
- *
- * @private internal constant of coder run UI
- */
-const UI_REFRESH_INTERVAL_MS = 200;
+import { getCoderRunUiAutoRefreshInterval } from './coderRunUiRefresh';
 
 /**
  * Spinner animation frames.
@@ -63,9 +57,10 @@ export type CoderRunUiHandle = {
 /**
  * Boots the ANSI terminal UI for `ptbk coder run`.
  *
- * The UI reserves a fixed number of terminal lines and repaints them periodically.
- * Between repaints, any console output from runners is captured and fed into the
- * scrolling agent-output area.
+ * The UI reserves a fixed number of terminal lines and refreshes them incrementally.
+ * While a prompt is actively running, it schedules lightweight timed refreshes for
+ * the spinner/progress area; otherwise it redraws only when real state changes arrive.
+ * Any console output from runners is captured and fed into the scrolling agent-output area.
  *
  * On non-interactive (non-TTY) terminals the UI is skipped entirely and
  * only the state object is provided.
@@ -124,82 +119,161 @@ export function renderCoderRunUi(startTime: moment.Moment): CoderRunUiHandle {
     }
 
     let spinnerFrame = 0;
-    let previousFrameLineCount = 0;
+    let previousFrameLines: string[] = [];
     let isRendering = false;
     let renderScheduled = false;
+    let autoRefreshTimeout: NodeJS.Timeout | undefined;
+    let isDisposed = false;
 
     /**
      * Schedules a render on the next tick if one isn't already pending.
      * Prevents overlapping renders that cause cursor desync.
      */
     function scheduleRender(): void {
-        if (renderScheduled) {
+        if (renderScheduled || isDisposed) {
             return;
         }
 
         renderScheduled = true;
         setImmediate(() => {
             renderScheduled = false;
+            if (isDisposed) {
+                return;
+            }
+
             render();
         });
     }
 
     /**
-     * Clears previously rendered lines and writes a new frame.
+     * Re-schedules automatic animation refreshes only while the frame can change by itself.
      */
-    function render(): void {
-        if (isRendering) {
+    function scheduleAutoRefresh(): void {
+        if (autoRefreshTimeout) {
+            clearTimeout(autoRefreshTimeout);
+            autoRefreshTimeout = undefined;
+        }
+
+        const autoRefreshInterval = getCoderRunUiAutoRefreshInterval(state.phase, getPauseState());
+        if (autoRefreshInterval === undefined) {
+            return;
+        }
+
+        autoRefreshTimeout = setTimeout(() => {
+            autoRefreshTimeout = undefined;
+            scheduleRender();
+        }, autoRefreshInterval);
+    }
+
+    /**
+     * Moves the cursor relative to the bottom of the current frame and rewrites one line in place.
+     */
+    function rewriteFrameLine(frameLineCount: number, lineIndex: number, line: string): void {
+        const linesUpFromBottom = Math.max(0, frameLineCount - 1 - lineIndex);
+
+        if (linesUpFromBottom > 0) {
+            process.stdout.write(`\x1b[${linesUpFromBottom}A`);
+        }
+
+        clearLine(process.stdout, 0);
+        cursorTo(process.stdout, 0);
+        process.stdout.write(line);
+        cursorTo(process.stdout, 0);
+
+        if (linesUpFromBottom > 0) {
+            process.stdout.write(`\x1b[${linesUpFromBottom}B`);
+            cursorTo(process.stdout, 0);
+        }
+    }
+
+    /**
+     * Fully rewrites the reserved frame area.
+     */
+    function renderFullFrame(lines: readonly string[]): void {
+        const previousFrameLineCount = previousFrameLines.length;
+        const linesToRewriteCount = Math.max(previousFrameLineCount, lines.length);
+
+        if (previousFrameLineCount > 1) {
+            process.stdout.write(`\x1b[${previousFrameLineCount - 1}A`);
+        }
+
+        for (let i = 0; i < linesToRewriteCount; i++) {
+            clearLine(process.stdout, 0);
+            cursorTo(process.stdout, 0);
+            process.stdout.write(lines[i] ?? '');
+
+            if (i < linesToRewriteCount - 1) {
+                process.stdout.write('\n');
+            }
+        }
+
+        const clearedTrailingLines = linesToRewriteCount - lines.length;
+        if (clearedTrailingLines > 0) {
+            process.stdout.write(`\x1b[${clearedTrailingLines}A`);
+        }
+
+        cursorTo(process.stdout, 0);
+    }
+
+    /**
+     * Updates only the frame rows whose visible content changed.
+     */
+    function renderChangedLines(lines: readonly string[]): void {
+        for (let i = 0; i < lines.length; i++) {
+            if (previousFrameLines[i] === lines[i]) {
+                continue;
+            }
+
+            rewriteFrameLine(lines.length, i, lines[i]!);
+        }
+    }
+
+    /**
+     * Builds the current frame snapshot from the latest state.
+     */
+    function buildFrameLines(): string[] {
+        return buildCoderRunUiFrame({
+            terminalWidth: getTerminalWidth(),
+            spinner: SPINNER_FRAMES[spinnerFrame]!,
+            pauseState: getPauseState(),
+            config: state.config,
+            phase: state.phase,
+            currentPromptLabel: state.currentPromptLabel,
+            currentAttempt: state.currentAttempt,
+            maxAttempts: state.maxAttempts,
+            statusMessage: state.statusMessage,
+            detailLines: state.detailLines,
+            pendingEnterLabel: state.pendingEnterLabel,
+            agentOutputLines: state.agentOutputLines,
+            errors: state.errors,
+            progress: state.getProgress(),
+        });
+    }
+
+    /**
+     * Clears previously rendered lines and writes a new frame only where needed.
+     */
+    function render(options?: { skipAutoRefresh?: boolean }): void {
+        if (isRendering || isDisposed) {
             return;
         }
 
         isRendering = true;
 
         try {
-            const lines = buildCoderRunUiFrame({
-                terminalWidth: getTerminalWidth(),
-                spinner: SPINNER_FRAMES[spinnerFrame]!,
-                pauseState: getPauseState(),
-                config: state.config,
-                phase: state.phase,
-                currentPromptLabel: state.currentPromptLabel,
-                currentAttempt: state.currentAttempt,
-                maxAttempts: state.maxAttempts,
-                statusMessage: state.statusMessage,
-                detailLines: state.detailLines,
-                pendingEnterLabel: state.pendingEnterLabel,
-                agentOutputLines: state.agentOutputLines,
-                errors: state.errors,
-                progress: state.getProgress(),
-            });
+            const lines = buildFrameLines();
 
-            if (previousFrameLineCount > 0) {
-                process.stdout.write(`\x1b[${previousFrameLineCount}A`);
+            if (previousFrameLines.length === 0 || previousFrameLines.length !== lines.length) {
+                renderFullFrame(lines);
+            } else {
+                renderChangedLines(lines);
             }
 
-            for (let i = 0; i < lines.length; i++) {
-                clearLine(process.stdout, 0);
-                cursorTo(process.stdout, 0);
-                process.stdout.write(lines[i]!);
-                if (i < lines.length - 1) {
-                    process.stdout.write('\n');
-                }
-            }
-
-            if (lines.length < previousFrameLineCount) {
-                for (let i = lines.length; i < previousFrameLineCount; i++) {
-                    process.stdout.write('\n');
-                    clearLine(process.stdout, 0);
-                    cursorTo(process.stdout, 0);
-                }
-
-                const overshoot = previousFrameLineCount - lines.length;
-                if (overshoot > 0) {
-                    process.stdout.write(`\x1b[${overshoot}A`);
-                }
-            }
-
-            previousFrameLineCount = lines.length;
+            previousFrameLines = [...lines];
             spinnerFrame = (spinnerFrame + 1) % SPINNER_FRAMES.length;
+            if (!options?.skipAutoRefresh) {
+                scheduleAutoRefresh();
+            }
         } finally {
             isRendering = false;
         }
@@ -217,6 +291,8 @@ export function renderCoderRunUi(startTime: moment.Moment): CoderRunUiHandle {
             } else {
                 requestResume();
             }
+
+            scheduleRender();
             return;
         }
 
@@ -229,19 +305,28 @@ export function renderCoderRunUi(startTime: moment.Moment): CoderRunUiHandle {
     };
 
     process.stdin.on('keypress', keypressHandler);
+    process.stdout.on('resize', scheduleRender);
 
     process.stdout.write('\n');
     render();
-    const interval = setInterval(scheduleRender, UI_REFRESH_INTERVAL_MS);
     state.on('change', scheduleRender);
 
     /**
      * Tears down the terminal UI and restores console / stdin state.
      */
     function cleanup(): void {
-        clearInterval(interval);
+        if (isDisposed) {
+            return;
+        }
+
+        if (autoRefreshTimeout) {
+            clearTimeout(autoRefreshTimeout);
+            autoRefreshTimeout = undefined;
+        }
+
         state.off('change', scheduleRender);
         process.stdin.off('keypress', keypressHandler);
+        process.stdout.off('resize', scheduleRender);
         if (process.stdin.isTTY) {
             process.stdin.setRawMode(false);
         }
@@ -256,8 +341,9 @@ export function renderCoderRunUi(startTime: moment.Moment): CoderRunUiHandle {
         console.error = originalConsoleError;
         console.log = originalConsoleLog;
 
-        render();
+        render({ skipAutoRefresh: true });
         process.stdout.write('\n');
+        isDisposed = true;
     }
 
     return {

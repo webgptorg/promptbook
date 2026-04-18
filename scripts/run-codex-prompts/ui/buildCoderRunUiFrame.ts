@@ -89,10 +89,7 @@ export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
           ]
         : [options.statusMessage, ...options.detailLines.map((detailLine) => `• ${detailLine}`)];
 
-    const visibleOutputLines =
-        options.agentOutputLines.length > 0
-            ? options.agentOutputLines.slice(-MAX_VISIBLE_OUTPUT_LINES).map((line) => `› ${stripAnsi(line)}`)
-            : ['No live agent output yet.'];
+    const visibleOutputLines = buildVisibleOutputLines(options.agentOutputLines);
 
     const controls = buildControlPills(options.pauseState, options.pendingEnterLabel).join('  ');
 
@@ -121,6 +118,22 @@ export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
 
     frame.push(...renderBox('Controls', [controls], totalWidth, colors.white.bold));
     return frame;
+}
+
+/**
+ * Builds the fixed-height live output section so streaming updates do not keep resizing the frame.
+ */
+function buildVisibleOutputLines(agentOutputLines: readonly string[]): readonly string[] {
+    const visibleOutputLines =
+        agentOutputLines.length > 0
+            ? agentOutputLines.slice(-MAX_VISIBLE_OUTPUT_LINES).map((line) => `› ${stripAnsi(line)}`)
+            : ['No live agent output yet.'];
+
+    while (visibleOutputLines.length < MAX_VISIBLE_OUTPUT_LINES) {
+        visibleOutputLines.push('');
+    }
+
+    return visibleOutputLines;
 }
 
 /**
