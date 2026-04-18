@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-import { Avatar, AVATAR_VISUALS, type AvatarDefinition } from '../../../../../src/avatars';
+import { Avatar, AVATAR_VISUALS, type AvatarDefinition, type AvatarVisualId } from '../../../../../src/avatars';
 import {
     isSameAvatarPlaygroundState,
     parseAvatarPlaygroundState,
@@ -37,26 +37,34 @@ const SAMPLE_AVATARS: ReadonlyArray<AvatarDefinition> = [
 ];
 
 /**
+ * Props for the interactive avatar playground.
+ */
+type AvatarPlaygroundComponentProps = {
+    readonly defaultVisualId?: AvatarVisualId;
+};
+
+/**
  * Renders the interactive avatar playground.
  */
-export function AvatarPlaygroundComponent() {
+export function AvatarPlaygroundComponent(props: AvatarPlaygroundComponentProps) {
+    const { defaultVisualId } = props;
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
     const [avatarPlaygroundState, setAvatarPlaygroundState] = useState<AvatarPlaygroundState>(() =>
-        parseAvatarPlaygroundState(searchParams),
+        parseAvatarPlaygroundState(searchParams, defaultVisualId),
     );
     const { agentName, agentHash, visualId, colors } = avatarPlaygroundState;
 
     useEffect(() => {
-        const nextAvatarPlaygroundState = parseAvatarPlaygroundState(searchParams);
+        const nextAvatarPlaygroundState = parseAvatarPlaygroundState(searchParams, defaultVisualId);
 
         setAvatarPlaygroundState((currentAvatarPlaygroundState) =>
             isSameAvatarPlaygroundState(currentAvatarPlaygroundState, nextAvatarPlaygroundState)
                 ? currentAvatarPlaygroundState
                 : nextAvatarPlaygroundState,
         );
-    }, [searchParams]);
+    }, [defaultVisualId, searchParams]);
 
     useEffect(() => {
         const nextQueryString = stringifyAvatarPlaygroundState(avatarPlaygroundState, searchParams);
@@ -254,9 +262,9 @@ export function AvatarPlaygroundComponent() {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-3 gap-4">
+                                <div className="flex flex-wrap gap-4 lg:justify-end">
                                     {AVATAR_VISUALS.map((avatarVisual) => (
-                                        <div key={`${sampleAvatar.agentHash}-${avatarVisual.id}`} className="text-center">
+                                        <div key={`${sampleAvatar.agentHash}-${avatarVisual.id}`} className="w-28 text-center">
                                             <Avatar avatarDefinition={sampleAvatar} visualId={avatarVisual.id} size={112} />
                                             <div className="mt-2 text-xs font-medium uppercase tracking-wide text-slate-500">
                                                 {avatarVisual.title}

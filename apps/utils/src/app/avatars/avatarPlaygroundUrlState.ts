@@ -55,15 +55,19 @@ export type AvatarPlaygroundState = {
  * Parses avatar state from URL search parameters.
  *
  * @param searchParams Current page search parameters.
+ * @param defaultVisualId Visual to fall back to when the URL does not specify a supported visual.
  * @returns Normalized avatar playground state.
  */
-export function parseAvatarPlaygroundState(searchParams: URLSearchParams | ReadonlyURLSearchParams): AvatarPlaygroundState {
+export function parseAvatarPlaygroundState(
+    searchParams: URLSearchParams | ReadonlyURLSearchParams,
+    defaultVisualId: AvatarVisualId = DEFAULT_AVATAR_VISUAL_ID,
+): AvatarPlaygroundState {
     const colors = searchParams.getAll(COLOR_QUERY_PARAM);
 
     return {
         agentName: searchParams.get(AGENT_NAME_QUERY_PARAM) || DEFAULT_AGENT_NAME,
         agentHash: searchParams.get(AGENT_HASH_QUERY_PARAM) || DEFAULT_AGENT_HASH,
-        visualId: normalizeAvatarVisualId(searchParams.get(VISUAL_QUERY_PARAM)),
+        visualId: normalizeAvatarVisualId(searchParams.get(VISUAL_QUERY_PARAM), defaultVisualId),
         colors: colors.length > 0 ? [...colors] : [...DEFAULT_AGENT_COLORS],
     };
 }
@@ -116,14 +120,15 @@ export function isSameAvatarPlaygroundState(
  * Normalizes a possibly invalid visual id into a supported one.
  *
  * @param visualId Raw visual id from the URL.
+ * @param defaultVisualId Visual to use when the URL value is missing or unsupported.
  * @returns Supported avatar visual id.
  */
-function normalizeAvatarVisualId(visualId: string | null): AvatarVisualId {
+function normalizeAvatarVisualId(visualId: string | null, defaultVisualId: AvatarVisualId): AvatarVisualId {
     if (isAvatarVisualId(visualId)) {
         return visualId;
     }
 
-    return DEFAULT_AVATAR_VISUAL_ID;
+    return defaultVisualId;
 }
 
 /**

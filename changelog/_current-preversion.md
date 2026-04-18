@@ -1,3 +1,8 @@
+-   Added a new deterministic `fractal` avatar visual to the shared canvas avatar system and the Utils miniapp:
+
+    -   Added `src/avatars/visuals/fractalAvatarVisual.ts` and registered it in the shared avatar registry, so the existing `/avatars` playground and gallery can render a recursive fractal-style badge derived from agent name, hash, and colors.
+    -   Added a dedicated Utils miniapp page `/fractal-avatar` that reuses the shared avatar playground with `fractal` selected by default for focused testing.
+
 -   Fixed the Agents Server teammate-calling popup so pseudo-user TEAM requests now show the stored internal conversation instead of leaving the transcript area empty:
 
     -   Extended the pseudo-user TEAM interaction state to carry the existing `conversation` payload already returned by the TEAM tool result, with a fallback transcript when older payloads omit it.
