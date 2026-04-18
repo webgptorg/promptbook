@@ -4,11 +4,11 @@
 
 [ ] !!!
 
-[✨🗓] Homepage navigation does not work on mobile
+[✨🗓] Homepage navigation does not work
 
 -   When clicking on the server name or logo in the header, the user should be navigated to the homepage
--   But nothing happens on mobile, while it works correctly on desktop
--   Go thtough the links and buttons across the app and make sure they work correctly on both desktop and mobile, especially the homepage navigation from the header
+-   It look like something is preventing the navigation
+-   Go through the links and buttons across the app and make sure they work correctly on both desktop and mobile
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
