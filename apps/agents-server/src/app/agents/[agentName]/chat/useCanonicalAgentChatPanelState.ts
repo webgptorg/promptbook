@@ -17,7 +17,6 @@ import {
     USER_LOCATION_PROMPT_PARAMETER,
 } from '../../../../utils/userLocationPromptParameter';
 import { useAgentChatMetaDisclaimer } from '../useAgentChatMetaDisclaimer';
-import type { PendingPseudoUserInteraction } from '../useAgentChatPseudoUserInteraction';
 import { useAgentChatToolInteractions } from '../useAgentChatToolInteractions';
 import { useTeamAgentProfiles } from '../useTeamAgentProfiles';
 import { createReplyingToSnapshot, isReplyableCanonicalChatMessage } from './chatReplies';
@@ -128,7 +127,6 @@ export type CanonicalAgentChatPanelState = {
         };
         readonly pseudoUser: {
             readonly agentName: string;
-            readonly conversation: PendingPseudoUserInteraction['conversation'];
             readonly isOpen: boolean;
             readonly onClose: ReturnType<typeof useAgentChatToolInteractions>['handlePseudoUserReplyClose'];
             readonly onSubmit: ReturnType<typeof useAgentChatToolInteractions>['handlePseudoUserReplySubmit'];
@@ -423,7 +421,6 @@ export function useCanonicalAgentChatPanelState(
             },
             pseudoUser: {
                 agentName: pendingPseudoUserInteraction?.agentName || 'Agent',
-                conversation: pendingPseudoUserInteraction?.conversation || [],
                 isOpen: pendingPseudoUserInteraction !== null,
                 onClose: handlePseudoUserReplyClose,
                 onSubmit: handlePseudoUserReplySubmit,
