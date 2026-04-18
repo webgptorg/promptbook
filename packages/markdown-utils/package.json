@@ -99,7 +99,8 @@
     },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
-    "typings": "./esm/typings/src/_packages/markdown-utils.index.d.ts",
+    "types": "./esm/src/_packages/markdown-utils.index.d.ts",
+    "typings": "./esm/src/_packages/markdown-utils.index.d.ts",
     "dependencies": {
         "crypto": "1.0.1",
         "crypto-js": "4.2.0",

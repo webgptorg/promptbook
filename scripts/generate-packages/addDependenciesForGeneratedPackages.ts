@@ -79,13 +79,27 @@ async function writeGeneratedPackageJson(packageBasename: string, packageJson: P
 }
 
 /**
- * Adds `main`, `module`, and `typings` fields where the generated package layout requires them.
+ * Computes the published declaration entrypoint path for one generated package.
+ *
+ * Rollup emits declaration files into `esm/src/_packages/*.index.d.ts`, so package manifests need
+ * to point TypeScript there rather than to the legacy non-existent `esm/typings` directory.
+ *
+ * @param packageBasename - Basename of the generated package
+ * @returns Relative declaration entrypoint path stored in generated package manifests
+ * @private internal utility of addDependenciesForGeneratedPackages
+ */
+export function getGeneratedPackageDeclarationEntrypoint(packageBasename: string): string {
+    return `./esm/src/_packages/${packageBasename}.index.d.ts`;
+}
+
+/**
+ * Adds `main`, `module`, `types`, and `typings` fields where the generated package layout requires them.
  *
  * @param packageJson - Generated package manifest
  * @param packageMetadata - Metadata of the generated package
  * @private internal utility of addDependenciesForGeneratedPackages
  */
-function applyGeneratedPackageEntrypoints(packageJson: PackageJson, packageMetadata: PackageMetadata): void {
+export function applyGeneratedPackageEntrypoints(packageJson: PackageJson, packageMetadata: PackageMetadata): void {
     const { isBuilded, packageBasename, packageFullname } = packageMetadata;
 
     if (!isBuilded || packageFullname === '@promptbook/cli') {
@@ -97,7 +111,9 @@ function applyGeneratedPackageEntrypoints(packageJson: PackageJson, packageMetad
         packageJson.module = `./esm/index.es.js`;
     }
 
-    packageJson.typings = `./esm/typings/src/_packages/${packageBasename}.index.d.ts`;
+    const declarationEntrypoint = getGeneratedPackageDeclarationEntrypoint(packageBasename);
+    packageJson.types = declarationEntrypoint;
+    packageJson.typings = declarationEntrypoint;
 }
 
 /**

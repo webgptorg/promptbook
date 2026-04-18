@@ -1,3 +1,8 @@
+-   Fixed published `@promptbook/*` package manifests so built-in TypeScript declarations now resolve correctly in downstream projects without extra `@types/*` packages:
+
+    -   Updated generated package manifests to point both `types` and `typings` at the declaration entrypoints Rollup actually emits in `esm/src/_packages/*.index.d.ts` instead of the stale non-existent `esm/typings/...` path.
+    -   Added regression coverage for generated package entrypoint metadata so buildable packages keep matching runtime/type entrypoints and `@promptbook/types` continues to publish declarations without fake runtime bundles.
+
 -   Fixed rich `ptbk coder run` terminal UI flicker so long-running coding sessions no longer keep blinking the whole dashboard while waiting or streaming output:
 
     -   Replaced the unconditional `200ms` full-frame repaint loop with an adaptive refresh policy that keeps timed redraws only for active running phases and stays visually still in waiting, paused, done, and error states.

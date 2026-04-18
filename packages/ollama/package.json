@@ -95,7 +95,8 @@
     },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
-    "typings": "./esm/typings/src/_packages/ollama.index.d.ts",
+    "types": "./esm/src/_packages/ollama.index.d.ts",
+    "typings": "./esm/src/_packages/ollama.index.d.ts",
     "peerDependencies": {
         "@promptbook/core": "0.112.0-45"
     },
