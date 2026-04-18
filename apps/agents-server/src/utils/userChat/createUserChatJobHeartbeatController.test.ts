@@ -1,6 +1,8 @@
 import { describe, expect, it, jest } from '@jest/globals';
+import { USER_CHAT_JOB_LEASE_DURATION_MS } from './claimNextQueuedUserChatJob';
 import {
     createUserChatJobHeartbeatController,
+    DEFAULT_USER_CHAT_JOB_HEARTBEAT_INTERVAL_MS,
     DEFAULT_USER_CHAT_JOB_HEARTBEAT_MAX_CONSECUTIVE_FAILURES,
 } from './createUserChatJobHeartbeatController';
 
@@ -28,6 +30,12 @@ describe('createUserChatJobHeartbeatController', () => {
 
     afterEach(() => {
         jest.useRealTimers();
+    });
+
+    it('derives the default heartbeat failure budget from the full lease window', () => {
+        expect(DEFAULT_USER_CHAT_JOB_HEARTBEAT_MAX_CONSECUTIVE_FAILURES).toBe(
+            Math.floor(USER_CHAT_JOB_LEASE_DURATION_MS / DEFAULT_USER_CHAT_JOB_HEARTBEAT_INTERVAL_MS),
+        );
     });
 
     it('does not overlap heartbeats while an earlier renewal is still running', async () => {

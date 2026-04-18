@@ -1,3 +1,10 @@
+-   Hardened Agents Server durable chat jobs against false background-worker lease expirations during long-running Vercel chat turns:
+
+    -   Added a bounded timeout to each `UserChatJob` heartbeat renewal, so one stuck Supabase lease-update call can no longer wedge the entire serialized heartbeat loop until the lease expires.
+    -   Changed the default heartbeat failure budget to span the full durable-job lease window instead of aborting a running chat turn after only three missed renewals, which better matches long-running background tasks and transient Vercel/Supabase stalls.
+    -   Extended expired-job diagnostics to record the heartbeat timeout threshold alongside the worker duration, lease duration, and heartbeat cadence used when the failure snapshot was captured.
+    -   Added regression coverage for the new heartbeat failure budget and the timed-out heartbeat query path.
+
 -   Deprecated `PERSONA` in favor of `GOAL` for agent profile text and inheritance-safe rewrites:
 
     -   Updated `parseAgentSource` and related profile consumers to derive `personaDescription` from the last `GOAL` / `GOALS` commitment, while still falling back to deprecated `PERSONA` / `PERSONAE` for backward compatibility.

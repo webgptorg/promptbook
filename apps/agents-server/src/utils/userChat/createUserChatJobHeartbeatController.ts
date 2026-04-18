@@ -1,3 +1,4 @@
+import { USER_CHAT_JOB_LEASE_DURATION_MS } from './claimNextQueuedUserChatJob';
 import type { UserChatJobRecord } from './UserChatJobRecord';
 
 /**
@@ -10,9 +11,15 @@ export const DEFAULT_USER_CHAT_JOB_HEARTBEAT_INTERVAL_MS = 30_000;
 /**
  * Default maximum number of consecutive heartbeat failures tolerated before aborting the job.
  *
+ * The failure budget spans the whole lease window so transient renewal stalls can recover
+ * without cancelling a chat turn long before the lease would actually expire.
+ *
  * @private function of `userChat`
  */
-export const DEFAULT_USER_CHAT_JOB_HEARTBEAT_MAX_CONSECUTIVE_FAILURES = 3;
+export const DEFAULT_USER_CHAT_JOB_HEARTBEAT_MAX_CONSECUTIVE_FAILURES = Math.max(
+    1,
+    Math.floor(USER_CHAT_JOB_LEASE_DURATION_MS / DEFAULT_USER_CHAT_JOB_HEARTBEAT_INTERVAL_MS),
+);
 
 /**
  * Minimal running-job snapshot returned from one heartbeat renewal.

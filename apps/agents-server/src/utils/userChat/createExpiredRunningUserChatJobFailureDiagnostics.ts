@@ -9,6 +9,7 @@ import {
 import type { UserChatJobRecord } from './UserChatJobRecord';
 import { isUserChatJobLeaseExpired } from './userChatJobState';
 import {
+    USER_CHAT_JOB_HEARTBEAT_TIMEOUT_MS,
     USER_CHAT_JOB_ASSISTANT_MESSAGE_PERSIST_INTERVAL_MS,
     USER_CHAT_JOB_WORKER_ROUTE_MAX_DURATION_MS,
 } from './userChatJobRuntimeConstants';
@@ -51,6 +52,7 @@ export type ExpiredRunningUserChatJobRuntimeSnapshot = {
         workerRouteMaxDurationMs: number;
         leaseDurationMs: number;
         heartbeatIntervalMs: number;
+        heartbeatTimeoutMs: number;
         heartbeatMaxConsecutiveFailures: number;
         assistantMessagePersistIntervalMs: number;
     };
@@ -75,6 +77,7 @@ export const EXPIRED_RUNNING_USER_CHAT_JOB_RUNTIME_LIMITS = {
     workerRouteMaxDurationMs: USER_CHAT_JOB_WORKER_ROUTE_MAX_DURATION_MS,
     leaseDurationMs: USER_CHAT_JOB_LEASE_DURATION_MS,
     heartbeatIntervalMs: DEFAULT_USER_CHAT_JOB_HEARTBEAT_INTERVAL_MS,
+    heartbeatTimeoutMs: USER_CHAT_JOB_HEARTBEAT_TIMEOUT_MS,
     heartbeatMaxConsecutiveFailures: DEFAULT_USER_CHAT_JOB_HEARTBEAT_MAX_CONSECUTIVE_FAILURES,
     assistantMessagePersistIntervalMs: USER_CHAT_JOB_ASSISTANT_MESSAGE_PERSIST_INTERVAL_MS,
 } as const;

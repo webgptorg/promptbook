@@ -12,6 +12,14 @@ export const USER_CHAT_JOB_WORKER_ROUTE_MAX_DURATION_MS =
     USER_CHAT_JOB_WORKER_ROUTE_MAX_DURATION_SECONDS * 1_000;
 
 /**
+ * Maximum time allowed for one heartbeat lease-renewal query before it is aborted.
+ *
+ * A bounded timeout prevents one stuck Supabase call from wedging the entire serialized
+ * heartbeat loop until the lease eventually expires.
+ */
+export const USER_CHAT_JOB_HEARTBEAT_TIMEOUT_MS = 10_000;
+
+/**
  * Minimum interval between persisted assistant-message snapshots while streaming.
  *
  * Throttling this write path avoids overwhelming Supabase with token-level updates.

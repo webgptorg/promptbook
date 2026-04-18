@@ -13,7 +13,8 @@ describe('expiredRunningUserChatJobDiagnostics', () => {
                 workerRouteMaxDurationMs: 300_000,
                 leaseDurationMs: 600_000,
                 heartbeatIntervalMs: 30_000,
-                heartbeatMaxConsecutiveFailures: 3,
+                heartbeatTimeoutMs: 10_000,
+                heartbeatMaxConsecutiveFailures: 20,
                 assistantMessagePersistIntervalMs: 5_000,
             },
             serverLimits: {
