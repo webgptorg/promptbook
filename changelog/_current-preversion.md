@@ -1,3 +1,8 @@
+-   Refactored Agents Server `resolveInheritedAgentSource.ts` into smaller focused helpers without changing external behavior:
+
+    -   Split parent resolution, shared import context setup, explicit `FROM` handling, `IMPORT` embedding, implicit Adam inheritance insertion, and final NOTE assembly into dedicated private helpers so `resolveInheritedAgentSource` now reads as a thin coordinator.
+    -   Kept the existing inheritance fallback rules, unresolved compact-reference NOTE output, imported-agent fallback embedding, and cycle detection behavior intact while making the control flow easier to follow and maintain.
+
 -   Refactored Agents Server `memoryRuntimeContext.ts` into smaller focused helpers without changing external behavior:
 
     -   Split prompt-parameter preparation, existing-runtime parsing, and each runtime-context section merge into dedicated private helpers so `composePromptParametersWithMemoryContext` now reads as a thin coordinator.
