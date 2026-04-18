@@ -1,3 +1,8 @@
+-   Refactored Agents Server `SpeechToTextFailoverRecognition.ts` into smaller focused private failover modules without changing external behavior:
+
+    -   Extracted telemetry transport, provider runtime/session control, provider callback wiring, and stall-watchdog microphone monitoring into dedicated private helpers so `SpeechToTextFailoverRecognition` now reads as a thin orchestration facade.
+    -   Kept the existing provider selection order, restart vs failover error policy, pending-stop-during-start handling, telemetry event flow, and stall-detection behavior intact while improving maintainability and readability.
+
 -   Refactored Agents Server `resolveInheritedAgentSource.ts` into smaller focused helpers without changing external behavior:
 
     -   Split parent resolution, shared import context setup, explicit `FROM` handling, `IMPORT` embedding, implicit Adam inheritance insertion, and final NOTE assembly into dedicated private helpers so `resolveInheritedAgentSource` now reads as a thin coordinator.
