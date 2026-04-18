@@ -1,3 +1,8 @@
+-   Refactored Agents Server `AgentKitCacheManager.ts` into smaller focused private cache modules without changing external behavior:
+
+    -   Extracted the short-lived prepared-agent cache, model-requirement resolution, citation-policy injection, knowledge-source hashing, and vector-store persistence into dedicated private modules behind the existing `AgentKitCacheManager` facade.
+    -   Kept the existing AgentKit cache keys, vector-store reuse behavior, knowledge-source hash persistence, and verbose logging flow intact while making the public manager easier to read and maintain.
+
 -   Fixed Agents Server homepage navigation in the responsive header so the server branding now reliably routes back to `/` on both desktop and mobile:
 
     -   Extracted the shared header homepage link into one reusable component and reused it in both the desktop breadcrumb bar and the mobile drawer to keep the homepage affordance consistent without duplicating branding markup.
