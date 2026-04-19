@@ -1,3 +1,5 @@
+'use client';
+
 // Utility to append ?headless param if present in current URL
 import Link, { LinkProps } from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -69,7 +71,7 @@ function isStandardClientNavigationClick(
  * @param href - Absolute or relative link destination.
  * @returns `true` when the href resolves to the current browser origin.
  */
-function isSameOriginHref(href: string): boolean {
+export function isSameOriginHref(href: string): boolean {
     if (typeof window === 'undefined') {
         return href.startsWith('/');
     }

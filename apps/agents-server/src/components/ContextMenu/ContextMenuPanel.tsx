@@ -3,6 +3,7 @@
 import { Barlow_Condensed } from 'next/font/google';
 import type { CSSProperties } from 'react';
 import type { ComponentType } from 'react';
+import { HeadlessLink, isSameOriginHref } from '../_utils/headlessParam';
 import { contextMenuViewportStyle } from './contextMenuUtils';
 
 /**
@@ -86,6 +87,20 @@ export function ContextMenuPanel({ menuItems, onClose, className = 'w-56', style
                 }
 
                 if (item.type === 'link') {
+                    if ((!item.target || item.target === '_self') && isSameOriginHref(item.href)) {
+                        return (
+                            <HeadlessLink
+                                key={index}
+                                href={item.href}
+                                className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors"
+                                onClick={onClose}
+                            >
+                                <item.icon className="w-4 h-4 text-gray-500" />
+                                <span className="text-sm font-medium">{item.label}</span>
+                            </HeadlessLink>
+                        );
+                    }
+
                     return (
                         <a
                             key={index}

@@ -18,9 +18,7 @@ const DEFAULT_HOISTED_MOBILE_MENU_KEY = 'mobile-hoisted-menu-0';
  * @private type of Header
  */
 type UseHeaderDropdownStateProps = {
-    readonly fallbackNavigateToHref: (href: string) => void;
     readonly hasHoistedMobileMenuItems: boolean;
-    readonly isHeadless: boolean;
 };
 
 /**
@@ -29,9 +27,7 @@ type UseHeaderDropdownStateProps = {
  * @private function of Header
  */
 export function useHeaderDropdownState({
-    fallbackNavigateToHref,
     hasHoistedMobileMenuItems,
-    isHeadless,
 }: UseHeaderDropdownStateProps) {
     const [isAgentsOpen, setIsAgentsOpen] = useState(false);
     const [isAgentViewOpen, setIsAgentViewOpen] = useState(false);
@@ -147,8 +143,6 @@ export function useHeaderDropdownState({
         keepSubMenuOpen,
         handleSubMenuPortalLeave,
         scheduleMenuClose,
-        fallbackNavigateToHref,
-        isHeadless,
     });
     const agentViewDesktopDropdown = createHeaderDesktopDropdownController({
         closeDesktopDropdownNow,

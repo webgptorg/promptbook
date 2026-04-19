@@ -2,7 +2,7 @@
 
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { CSSProperties, MouseEvent, ReactNode } from 'react';
-import { appendHeadlessParam, HeadlessLink } from '../_utils/headlessParam';
+import { HeadlessLink } from '../_utils/headlessParam';
 import { DropdownSubMenuPortal } from './DropdownSubMenuPortal';
 import type { OpenSubMenuState } from './HeaderTypes';
 import type { SubMenuItem } from './SubMenuItem';
@@ -36,8 +36,6 @@ type CreateHeaderDropdownRenderersOptions = {
     readonly keepSubMenuOpen: () => void;
     readonly handleSubMenuPortalLeave: () => void;
     readonly scheduleMenuClose: (menuId: string, close: () => void) => void;
-    readonly fallbackNavigateToHref: (href: string) => void;
-    readonly isHeadless: boolean;
 };
 
 /**
@@ -83,8 +81,6 @@ export function createHeaderDropdownRenderers({
     keepSubMenuOpen,
     handleSubMenuPortalLeave,
     scheduleMenuClose,
-    fallbackNavigateToHref,
-    isHeadless,
 }: CreateHeaderDropdownRenderersOptions): HeaderDropdownRenderers {
     const createMobileMenuItemPaddingStyle = (depth: number): CSSProperties => ({
         paddingLeft: `${12 + depth * MOBILE_SUBMENU_INDENT_PX}px`,
@@ -204,41 +200,18 @@ export function createHeaderDropdownRenderers({
         onItemSelected: () => void,
     ) => {
         if (item.href) {
-            const navigateToItemHref = () => {
-                void item.onClick?.();
-                onItemSelected();
-
-                const destination = appendHeadlessParam(item.href!, isHeadless);
-                if (typeof window !== 'undefined') {
-                    window.location.assign(destination);
-                    return;
-                }
-
-                fallbackNavigateToHref(item.href!);
-            };
-
             return (
-                <button
+                <HeadlessLink
                     key={key}
-                    type="button"
-                    className={`${className} w-full text-left`}
-                    onMouseDown={(event) => {
-                        if (event.button !== 0 || event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) {
-                            return;
-                        }
-                        event.preventDefault();
-                        navigateToItemHref();
-                    }}
-                    onClick={(event) => {
-                        if (event.defaultPrevented) {
-                            return;
-                        }
-                        event.preventDefault();
-                        navigateToItemHref();
+                    href={item.href}
+                    className={className}
+                    onClick={() => {
+                        void item.onClick?.();
+                        onItemSelected();
                     }}
                 >
                     {renderSubMenuItemLabel(item)}
-                </button>
+                </HeadlessLink>
             );
         }
 

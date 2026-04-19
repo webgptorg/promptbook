@@ -1,3 +1,9 @@
+-   Improved Agents Server optimistic route rendering so slow server responses no longer keep users staring at the previous screen during common navigation:
+
+    -   Switched same-origin desktop header dropdown navigation and shared context-menu links back onto the Next app router, so admin, system, docs, and agent-route selections now trigger client navigation with the existing route-loading UX instead of forcing a full document reload.
+    -   Replaced the agent profile action links with the shared `HeadlessLink`, preserving fast client-side transitions and the `?headless` query handoff for internal agent pages.
+    -   Added reusable console/docs loading skeletons and wired them to the slow route families that previously had no segment-level fallback: `/admin`, `/system`, `/docs`, `/swagger`, `/recycle-bin`, and `/agents/[agentName]/timeouts`.
+
 -   Improved Agents Server modal dismissal UX so edit dialogs and popups can now be closed by an intentional outside click without reintroducing accidental data loss:
 
     -   Reworked the shared portal `Dialog` backdrop handling to dismiss only when the pointer both starts and ends on the backdrop with minimal movement, which avoids closing while users drag, select text, or otherwise finish an interaction outside the modal.

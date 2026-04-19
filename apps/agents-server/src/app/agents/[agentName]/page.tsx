@@ -25,6 +25,7 @@ import { getAgentFolderContext, getAgentName, getAgentProfile, isAgentDeleted } 
 import { getPseudoAgentDescriptor } from '../../../utils/pseudoAgents';
 import { isPublicServerVisibility } from '@/src/utils/serverVisibility';
 import { PseudoAgentProfilePage } from './PseudoAgentProfile';
+import { HeadlessLink } from '../../../components/_utils/headlessParam';
 
 /**
  * Query parameters supported by the agent profile route.
@@ -508,7 +509,7 @@ function createAgentPageActions(
             {getAgentLinks(agentProfile.permanentId || canonicalAgentId, (text) => formatAgentNamingText(text, agentNaming))
                 .filter((link) => link.id === 'book' || link.id === 'integration')
                 .map((link) => (
-                    <a
+                    <HeadlessLink
                         key={link.href}
                         href={link.href}
                         className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors group"
@@ -518,7 +519,7 @@ function createAgentPageActions(
                             <link.icon className="w-5 h-5" />
                         </div>
                         <span className="font-medium text-sm">{link.title}</span>
-                    </a>
+                    </HeadlessLink>
                 ))}
         </>
     );

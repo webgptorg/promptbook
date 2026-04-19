@@ -130,9 +130,7 @@ export function Header(props: HeaderProps) {
         toggleFederatedDesktopDropdown,
         toggleProfileDesktopDropdown,
     } = useHeaderDropdownState({
-        fallbackNavigateToHref,
         hasHoistedMobileMenuItems: hoistedMobileMenuItems.length > 0,
-        isHeadless,
     });
     const {
         activeAgent,
