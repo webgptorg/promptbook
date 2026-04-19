@@ -1,3 +1,8 @@
+-   Fixed Agents Server teammate tool execution so TEAM calls like `team_chat_slave` now stay callable after the chat runtime is initialized:
+
+    -   Reworked `apps/agents-server/src/tools/getAllToolFunctionsForServer.ts` to preserve the live commitment tool-function proxy instead of flattening it into a one-time snapshot, which keeps dynamically registered TEAM tools available to the JavaScript execution layer.
+    -   Added a regression test that creates the server tool registry before compiling a TEAM-enabled agent and verifies the newly registered teammate tool becomes available afterward.
+
 -   Fixed published `@promptbook/*` package manifests so built-in TypeScript declarations now resolve correctly in downstream projects without extra `@types/*` packages:
 
     -   Updated generated package manifests to point both `types` and `typings` at the declaration entrypoints Rollup actually emits in `esm/src/_packages/*.index.d.ts` instead of the stale non-existent `esm/typings/...` path.
