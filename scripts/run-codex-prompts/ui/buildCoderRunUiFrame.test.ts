@@ -16,6 +16,7 @@ function createFrameOptions(
 ): BuildCoderRunUiFrameOptions {
     return {
         terminalWidth: 96,
+        animationFrame: 0,
         spinner: '⠋',
         pauseState: 'RUNNING',
         config: {
@@ -59,8 +60,9 @@ describe('buildCoderRunUiFrame', () => {
         const output = lines.join('\n');
 
         expect(output).toContain('ptbk.io');
-        expect(output).toContain('ptbk coder');
-        expect(output).toContain('run >_');
+        expect(output).not.toContain('ptbk coder');
+        expect(output).not.toContain('run >_');
+        expect(output).not.toContain('shipping fix');
         expect(output).not.toContain('┌ Brand');
         expect(output).toContain('GitHub Copilot  ·  gpt-5.4  ·  thinking xhigh');
         expect(output).toContain('Context  AGENTS.md');
@@ -84,5 +86,27 @@ describe('buildCoderRunUiFrame', () => {
         );
 
         expect(streamingOutputFrame).toHaveLength(emptyOutputFrame.length);
+    });
+
+    it('animates the octopus only during active phases', () => {
+        const waitingFrameA = buildCoderRunUiFrame(createFrameOptions({ phase: 'waiting', animationFrame: 0 }))
+            .slice(0, 6)
+            .map(stripAnsi)
+            .join('\n');
+        const waitingFrameB = buildCoderRunUiFrame(createFrameOptions({ phase: 'waiting', animationFrame: 1 }))
+            .slice(0, 6)
+            .map(stripAnsi)
+            .join('\n');
+        const runningFrameA = buildCoderRunUiFrame(createFrameOptions({ phase: 'running', animationFrame: 0 }))
+            .slice(0, 6)
+            .map(stripAnsi)
+            .join('\n');
+        const runningFrameB = buildCoderRunUiFrame(createFrameOptions({ phase: 'running', animationFrame: 1 }))
+            .slice(0, 6)
+            .map(stripAnsi)
+            .join('\n');
+
+        expect(waitingFrameB).toBe(waitingFrameA);
+        expect(runningFrameB).not.toBe(runningFrameA);
     });
 });

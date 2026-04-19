@@ -1,5 +1,8 @@
 import colors from 'colors';
 import type { CoderRunConfig, CoderRunPhase, CoderRunProgressSnapshot } from './CoderRunUiState';
+import { buildCoderRunOctopusVisual } from './buildCoderRunOctopusVisual';
+import { fitAnsiText, fitPlainText, padAnsiText, stripAnsi, visibleLength } from './coderRunUiText';
+import { isCoderRunUiAutoRefreshing } from './coderRunUiRefresh';
 
 /**
  * Maximum number of output lines reserved for agent output in the UI.
@@ -39,6 +42,7 @@ export type CoderRunPauseState = 'RUNNING' | 'PAUSING' | 'PAUSED';
  */
 export type BuildCoderRunUiFrameOptions = {
     readonly terminalWidth: number;
+    readonly animationFrame: number;
     readonly spinner: string;
     readonly pauseState: CoderRunPauseState;
     readonly config: CoderRunConfig;
@@ -61,6 +65,9 @@ export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
     const totalWidth = Math.max(MIN_FRAME_WIDTH, Math.min(options.terminalWidth, MAX_FRAME_WIDTH));
     const isPromptActive = options.phase === 'running' || options.phase === 'verifying' || options.phase === 'loading';
     const promptStatusPrefix = isPromptActive ? `${colors.yellow(`${options.spinner} `)}` : '';
+    const octopusAnimationFrame = isCoderRunUiAutoRefreshing(options.phase, options.pauseState)
+        ? options.animationFrame
+        : 0;
     const sessionLines = buildSessionLines(options, totalWidth);
 
     const currentTaskLines = options.currentPromptLabel
@@ -76,7 +83,7 @@ export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
     const controls = buildControlPills(options.pauseState, options.pendingEnterLabel).join('  ');
 
     const frame = [
-        ...buildBrandIllustration(totalWidth),
+        ...buildCoderRunOctopusVisual({ totalWidth, animationFrame: octopusAnimationFrame }),
         '',
         ...renderBox('Session', sessionLines, totalWidth, colors.yellow.bold),
         ...renderBox(
@@ -101,28 +108,6 @@ export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
 
     frame.push(...renderBox('Controls', [controls], totalWidth, colors.white.bold));
     return frame;
-}
-
-/**
- * Builds the colorful standalone branding shown above the session box.
- */
-function buildBrandIllustration(totalWidth: number): readonly string[] {
-    const lines = [
-        colors.green.bold('ptbk.io'),
-        `${colors.magenta.bold('        .-""""-.')}      ${colors.blue(' .----------------. ')}`,
-        `${colors.magenta.bold("      .'  .-.  '.")}     ${colors.blue('|  ptbk coder    |')}`,
-        `${colors.magenta.bold('     /   (')}${colors.yellow.bold('o o')}${colors.magenta.bold(
-            ')   \\',
-        )}    ${colors.blue('|   run >_       |')}`,
-        `${colors.magenta.bold('    |      ^      |')}   ${colors.blue('|  shipping fix  |')}`,
-        `${colors.magenta.bold("    |   '---'     |")}   ${colors.blue("'----------------'")}`,
-        colors.cyan(' .-./\\  /|   |\\  /\\.-.                  '),
-        colors.cyan(' / /  \\/ |   | \\/  \\ \\                  '),
-        colors.cyan(' \\ \\_/\\__|   |__/\\_/ /                  '),
-        colors.cyan('  \\/_/   /_/ \\_\\   \\_/                  '),
-    ];
-
-    return lines.map((line) => centerAnsiText(line, totalWidth));
 }
 
 /**
@@ -357,61 +342,4 @@ function buildControlPills(pauseState: CoderRunPauseState, pendingEnterLabel: st
     pills.push(colors.bgRed.white(' CTRL+C ') + colors.white(' Exit'));
 
     return pills;
-}
-
-/**
- * Centers an ANSI-colored line within the available frame width.
- */
-function centerAnsiText(text: string, width: number): string {
-    const paddingWidth = Math.max(0, Math.floor((width - visibleLength(text)) / 2));
-    return `${' '.repeat(paddingWidth)}${text}`;
-}
-
-/**
- * Pads or truncates a possibly ANSI-colored line to the target visible width.
- */
-function padAnsiText(text: string, width: number): string {
-    const fittedText = fitAnsiText(text, width);
-    return fittedText + ' '.repeat(Math.max(0, width - visibleLength(fittedText)));
-}
-
-/**
- * Truncates a possibly ANSI-colored line to the target visible width.
- */
-function fitAnsiText(text: string, width: number): string {
-    if (visibleLength(text) <= width) {
-        return text;
-    }
-
-    return fitPlainText(stripAnsi(text), width);
-}
-
-/**
- * Truncates a plain-text line to the target width with an ellipsis.
- */
-function fitPlainText(text: string, width: number): string {
-    if (text.length <= width) {
-        return text;
-    }
-
-    if (width <= 3) {
-        return '.'.repeat(width);
-    }
-
-    return `${text.slice(0, width - 3)}...`;
-}
-
-/**
- * Measures visible string width by stripping ANSI escape codes.
- */
-function visibleLength(text: string): number {
-    return stripAnsi(text).length;
-}
-
-/**
- * Strips ANSI escape codes from a string.
- */
-function stripAnsi(text: string): string {
-    // eslint-disable-next-line no-control-regex
-    return text.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '');
 }

@@ -1,6 +1,17 @@
-import { ACTIVE_CODER_RUN_UI_REFRESH_INTERVAL_MS, getCoderRunUiAutoRefreshInterval } from './coderRunUiRefresh';
+import {
+    ACTIVE_CODER_RUN_UI_REFRESH_INTERVAL_MS,
+    getCoderRunUiAutoRefreshInterval,
+    isCoderRunUiAutoRefreshing,
+} from './coderRunUiRefresh';
 
 describe('getCoderRunUiAutoRefreshInterval', () => {
+    it('shares one animation gate for both timed refreshes and visual animation', () => {
+        expect(isCoderRunUiAutoRefreshing('initializing', 'RUNNING')).toBe(true);
+        expect(isCoderRunUiAutoRefreshing('running', 'RUNNING')).toBe(true);
+        expect(isCoderRunUiAutoRefreshing('waiting', 'RUNNING')).toBe(false);
+        expect(isCoderRunUiAutoRefreshing('running', 'PAUSED')).toBe(false);
+    });
+
     it('keeps automatic refreshes only for active running phases', () => {
         expect(getCoderRunUiAutoRefreshInterval('initializing', 'RUNNING')).toBe(
             ACTIVE_CODER_RUN_UI_REFRESH_INTERVAL_MS,

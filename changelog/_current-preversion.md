@@ -1,3 +1,9 @@
+-   Enhanced the `ptbk coder run` octopus branding so the dashboard now opens with a wider animated mascot that uses space more efficiently while prompts are actively running:
+
+    -   Replaced the stacked octopus-and-terminal splash with a horizontal octopus illustration that keeps the head on the left, tentacles on the right, and only the natural `ptbk.io` label inside the visual.
+    -   Moved the branding art into a dedicated reusable UI helper and extracted shared ANSI text-layout helpers so the frame builder and animated brand stay DRY.
+    -   Tied the octopus motion to the same active-phase refresh gate as the timed UI redraws, increasing the refresh cadence so tentacles visibly animate during loading/running/verifying without reintroducing idle-state flicker.
+
 -   Refined `ptbk coder run` rich terminal branding so the dashboard now opens with standalone `ptbk.io` octopus art and a more readable session summary:
 
     -   Replaced the boxed `Brand` header with a centered colorful octopus-and-terminal illustration, keeping the branding outside the framed status sections as requested.

@@ -234,6 +234,7 @@ export function renderCoderRunUi(startTime: moment.Moment): CoderRunUiHandle {
     function buildFrameLines(): string[] {
         return buildCoderRunUiFrame({
             terminalWidth: getTerminalWidth(),
+            animationFrame: spinnerFrame,
             spinner: SPINNER_FRAMES[spinnerFrame]!,
             pauseState: getPauseState(),
             config: state.config,

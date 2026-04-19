@@ -6,7 +6,7 @@ import type { CoderRunPhase } from './CoderRunUiState';
  *
  * @private internal constant of coder run UI
  */
-export const ACTIVE_CODER_RUN_UI_REFRESH_INTERVAL_MS = 1000;
+export const ACTIVE_CODER_RUN_UI_REFRESH_INTERVAL_MS = 300;
 
 /**
  * Phases that still benefit from automatic refreshes because the frame can change
@@ -15,6 +15,19 @@ export const ACTIVE_CODER_RUN_UI_REFRESH_INTERVAL_MS = 1000;
  * @private internal constant of coder run UI
  */
 const AUTO_REFRESH_PHASES: readonly CoderRunPhase[] = ['initializing', 'loading', 'running', 'verifying'];
+
+/**
+ * Returns whether the rich coder UI should keep animating on its own.
+ *
+ * @private internal utility of coder run UI
+ */
+export function isCoderRunUiAutoRefreshing(phase: CoderRunPhase, pauseState: CoderRunPauseState): boolean {
+    if (pauseState !== 'RUNNING') {
+        return false;
+    }
+
+    return AUTO_REFRESH_PHASES.includes(phase);
+}
 
 /**
  * Returns the automatic refresh interval for the current UI state.
@@ -28,9 +41,5 @@ export function getCoderRunUiAutoRefreshInterval(
     phase: CoderRunPhase,
     pauseState: CoderRunPauseState,
 ): number | undefined {
-    if (pauseState !== 'RUNNING') {
-        return undefined;
-    }
-
-    return AUTO_REFRESH_PHASES.includes(phase) ? ACTIVE_CODER_RUN_UI_REFRESH_INTERVAL_MS : undefined;
+    return isCoderRunUiAutoRefreshing(phase, pauseState) ? ACTIVE_CODER_RUN_UI_REFRESH_INTERVAL_MS : undefined;
 }
