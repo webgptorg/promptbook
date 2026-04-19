@@ -52,8 +52,25 @@
 
 [✨👝] Add "Octopus3" avatar
 
--   "Octopus3" will exists alongside the existing "Octopus" and "Octopus2" avatar, but it will have a different visual style
+-   "Octopus3" will exists alongside the existing "Octopus" and "Octopus2" avatar and other avatars, but it will have a different visual style
 -   Difference from "Octopus2" is that it should have more visible tentacles
+-   Both blobbyness, tenticles and number of tenticles, physiognomy, colors,... should be dynamic and based on the input parameters (agent name, hash, colors) It should be blobby, organic, alien-looking avatar that morphs and changes its shape in a smooth and visually appealing way based on the input parameters, while still maintaining a recognizable octopus-like form
+-   Add it alongside the existing ones, do not replace or change the existing avatar visuals, just add this new one
+-   Do not create extra page for this avatar, just add it to the existing `/avatars` utils page
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Utils miniapp](apps/utils) and adding this as a new page there to test it
+
+![alt text](prompts/screenshots/2026-04-6580-agent-avatars-2.png)
+
+---
+
+[ ] !
+
+[✨👝] Add "AsciiOctopus" avatar
+
+-   "AsciiOctopus" will exists alongside the existing "Octopus", "Octopus2", "Octopus3" and other avatars, but it will have a different visual style
+-   Difference from "Octopus3" (which should be the reference point) is that it should have ASCII art style
 -   Both blobbyness, tenticles and number of tenticles, physiognomy, colors,... should be dynamic and based on the input parameters (agent name, hash, colors) It should be blobby, organic, alien-looking avatar that morphs and changes its shape in a smooth and visually appealing way based on the input parameters, while still maintaining a recognizable octopus-like form
 -   Add it alongside the existing ones, do not replace or change the existing avatar visuals, just add this new one
 -   Do not create extra page for this avatar, just add it to the existing `/avatars` utils page
