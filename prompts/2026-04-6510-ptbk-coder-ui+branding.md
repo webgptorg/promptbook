@@ -52,25 +52,64 @@ $ ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh -
 
 ---
 
-[-]
+[ ] !!
 
-[✨👾] brr
+[✨👾] Enhance the octopus visual of `ptbk coder run`
 
 ```bash
-@@@
+me@DESKTOP-2QD9KQQ MINGW64 ~/work/ai/promptbook (main)
+$ npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.4 --thinking-level xhigh --context AGENTS.md --priority 1 --test npm run test-for-ptbk-coder
 
-npm install ptbk
+                                            ptbk.io
+                                   .-""""-.       .----------------.
+                                  .'  .-.  '.     |  ptbk coder    |
+                                 /   (o o)   \    |   run >_       |
+                                |      ^      |   |  shipping fix  |
+                                |   '---'     |   '----------------'
+                             .-./\  /|   |\  /\.-.
+                             / /  \/ |   | \/  \ \
+                             \ \_/\__|   |__/\_/ /
+                              \/_/   /_/ \_\   \_/
 
-ptbk coder init
-
-ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --context AGENTS.md
+┌ Session ─────────────────────────────────────────────────────────────────────────────────────┐
+│ State     WAITING  Waiting for confirmation to start                                         │
+│ Runner   codex  ·  gpt-5.4  ·  thinking xhigh                                                │
+│ Context  AGENTS.md                                                                           │
+│ Test     npm run test-for-ptbk-coder                                                         │
+│ This run Task 1/8  ·  0 done  ·  8 left                                                      │
+│ Backlog  Repo 490 total  ·  44 prompts below priority                                        │
+│ Scope    Priority ≥1  ·  Write 9 prompts first                                               │
+│ Timing   Elapsed 0s  ·  Total estimating...  ·  ETA after first completion                   │
+│ Progress ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 0% complete (0/8 done) │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ Current task ────────────────────────────────────────────────────────────────────────────────┐
+│ prompts/2026-04-6620-agents-server-optimistic-ui-for-lagged-backend.md#12                    │
+│ Attempt 1/3  ·  Waiting for confirmation to start                                            │
+│ • The server is slow, use optimistic renders whenever its possible                           │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ Live output ─────────────────────────────────────────────────────────────────────────────────┐
+│ No live agent output yet.                                                                    │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+│                                                                                              │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ Controls ────────────────────────────────────────────────────────────────────────────────────┐
+│  ENTER  Start   P  Pause   CTRL+C  Exit                                                      │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
--   @@@
+-   The ocutopus visual should be horizontal to use space more efficiently and to look better
+-   Head on the left, tentacles on the right
+-   The text "ptbk.io" should somewhere naturally fit into the visual
+-   Also no other text should be in the visual
+-   The octopus should be animated as the coder is running, maybe some tentacles should be moving, or the head should be moving, or something like that, to make it more alive and fun
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
 
 ---
 
@@ -115,4 +154,3 @@ ptbk coder run --agent github-copilot --model gpt-5.4 --thinking-level xhigh --c
 -   Do a proper analysis of the current functionality of `ptbk coder` and related functionality before you start implementing.
 -   You are working with [`ptbk coder`](src/cli/cli-commands/coder/run.ts)
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
-
