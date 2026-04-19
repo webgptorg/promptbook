@@ -10,16 +10,14 @@
 
 ---
 
-[-]
+[ ] !!
 
-[✨🛋] brr
+[✨🛋] The server is slow, use optimistic renders whenever its possible
 
--   @@@
+-   For example when user clicks on folder to navigate into it, do the navigation immediately and then load the data, instead of nothing happening until the data is loaded and then showing the new page
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -46,4 +44,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
