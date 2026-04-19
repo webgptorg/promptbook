@@ -25,6 +25,21 @@ export type NewAgentWizardKnowledgeItem = {
 export type { NewAgentWizardCapabilityCommitment } from './newAgentWizardPresets';
 
 /**
+ * One capability commitment emitted by the wizard, with optional content.
+ */
+export type NewAgentWizardCapabilityCommitmentEntry = {
+    /**
+     * Canonical capability commitment keyword.
+     */
+    readonly keyword: NewAgentWizardCapabilityCommitment;
+
+    /**
+     * Optional capability-specific content written after the keyword.
+     */
+    readonly content?: string;
+};
+
+/**
  * Data required to synthesize the hidden book source from the wizard form.
  */
 export type CreateNewAgentWizardSourceOptions = {
@@ -59,7 +74,7 @@ export type CreateNewAgentWizardSourceOptions = {
     /**
      * Tool capability commitments selected in the wizard.
      */
-    readonly capabilityCommitments: ReadonlyArray<NewAgentWizardCapabilityCommitment>;
+    readonly capabilityCommitments: ReadonlyArray<NewAgentWizardCapabilityCommitmentEntry>;
     /**
      * Human-readable writing-style summaries kept only in the wizard traceability note.
      */
@@ -183,8 +198,10 @@ export function createNewAgentWizardSource(options: CreateNewAgentWizardSourceOp
     const teamReferences = options.teamReferences.map((teamReference) => spaceTrim(teamReference)).filter(Boolean);
     const rules = options.rules.map((rule) => spaceTrim(rule)).filter(Boolean);
     const capabilityCommitments = options.capabilityCommitments.filter(
-        (commitment): commitment is NewAgentWizardCapabilityCommitment =>
-            NEW_AGENT_WIZARD_KNOWN_CAPABILITY_COMMITMENTS.has(commitment),
+        (
+            commitment,
+        ): commitment is NewAgentWizardCapabilityCommitmentEntry & { readonly keyword: NewAgentWizardCapabilityCommitment } =>
+            NEW_AGENT_WIZARD_KNOWN_CAPABILITY_COMMITMENTS.has(commitment.keyword),
     );
     const writingStyleTraits = options.writingStyleTraits.map(normalizeSingleLine).filter(Boolean);
     const writingRules = options.writingRules.map((rule) => spaceTrim(rule)).filter(Boolean);
@@ -200,7 +217,10 @@ export function createNewAgentWizardSource(options: CreateNewAgentWizardSourceOp
         `- Goal: ${summarizedGoal || 'Guided default goal'}`,
         `- Personality: ${formatSummaryList(personaTraits, 'Default guided persona')}`,
         `- Learning: ${options.isOpenToLearning ? 'Open to learning' : 'Fixed after creation'}`,
-        `- Capabilities: ${formatSummaryList(capabilityCommitments, 'None selected')}`,
+        `- Capabilities: ${formatSummaryList(
+            capabilityCommitments.map((commitment) => commitment.keyword),
+            'None selected',
+        )}`,
         `- Team: ${formatSummaryList(teamReferences.map(summarizeTeamReference).filter(Boolean), 'No teammates')}`,
         `- Writing style: ${formatSummaryList(writingStyleTraits, 'Default guided writing style')}`,
         `- Rules: ${formatSummaryList(rules, 'None specified')}`,
@@ -217,7 +237,7 @@ export function createNewAgentWizardSource(options: CreateNewAgentWizardSourceOp
         ...(description ? ['', createCommitment('META DESCRIPTION', description)] : []),
         '',
         createCommitment('GOAL', goalCommitmentContent),
-        ...capabilityCommitments.map((commitment) => createCommitment(commitment)),
+        ...capabilityCommitments.map((commitment) => createCommitment(commitment.keyword, commitment.content)),
         ...createCommitmentLines('TEAM', teamReferences),
         ...createCommitmentLines('WRITING RULES', writingRules),
         ...createCommitmentLines('WRITING SAMPLE', writingSamples),

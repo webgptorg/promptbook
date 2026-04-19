@@ -209,6 +209,7 @@ agentCreation.wizard.knowledgeTitle: Znalosti
 agentCreation.wizard.reviewTitle: Kontrola a vytvoření
 agentCreation.wizard.basicDescription: Nastavte základní identitu, cíl a viditelnost nového agenta, než na pozadí sestavíme book.
 agentCreation.wizard.personaDescription: Vyberte osobnostní rysy, režim učení a schopnosti odvozené z dostupných `USE` commitmentů.
+agentCreation.wizard.useSetupDescription: Nastavte vybrané `USE` commitmenty, které potřebují konkrétní hodnoty, jako jsou URL repozitáře, e-mail odesílatele, odkaz na kalendář nebo URL MCP serveru.
 agentCreation.wizard.teamDescription: Vyberte jednoho nebo více spolupracujících agentů, které může nový agent oslovit přes `TEAM` commitmenty.
 agentCreation.wizard.writingDescription: Zvolte předvolené styly odpovědí, přidejte vlastní pokyny a podívejte se na náhled tónu v ukázkovém chatu.
 agentCreation.wizard.rulesDescription: Vyberte ochranná pravidla a přidejte vlastní pravidla jako štítky.
@@ -216,6 +217,7 @@ agentCreation.wizard.knowledgeDescription: Nahrajte soubory nebo přidejte URL, 
 agentCreation.wizard.reviewDescription: Zkontrolujte vybraná nastavení, nebo se před vytvořením přepněte do pokročilého editoru.
 agentCreation.wizard.basicShort: Základ
 agentCreation.wizard.personaShort: Osobnost
+agentCreation.wizard.useSetupShort: USE nastavení
 agentCreation.wizard.teamShort: Tým
 agentCreation.wizard.writingShort: Styl
 agentCreation.wizard.rulesShort: Pravidla
@@ -239,7 +241,7 @@ agentCreation.wizard.learningModeOpenDescription: Přidá `OPEN`, takže agent p
 agentCreation.wizard.learningModeClosed: Bez dalšího učení
 agentCreation.wizard.learningModeClosedDescription: Přidá `CLOSED`, takže agent zůstane stabilní a nebude se dál učit.
 agentCreation.wizard.capabilitiesLabel: Schopnosti
-agentCreation.wizard.capabilitiesHint: Některé pokročilé schopnosti vyžadují další nastavení v editoru.
+agentCreation.wizard.capabilitiesHint: Některé schopnosti po této obrazovce otevřou další krok s nastavením.
 agentCreation.wizard.capabilityRequiresEditor: Tuto schopnost nastavte v pokročilém editoru.
 agentCreation.wizard.customTraitLabel: Vlastní vlastnost
 agentCreation.wizard.customTraitPlaceholder: Napište vlastnost a potvrďte ji klávesou Enter.
@@ -284,6 +286,25 @@ agentCreation.wizard.capabilityImageGenerator: Generuje obrázky
 agentCreation.wizard.capabilityPrivacy: Používá režim soukromí
 agentCreation.wizard.capabilityProject: Pracuje s projektem
 agentCreation.wizard.capabilityMcp: Připojuje se k MCP
+agentCreation.wizard.useSetupTitle: USE nastavení
+agentCreation.wizard.useSetupSectionHint: Zobrazují se zde jen vybrané `USE` commitmenty, které mají smysl ještě upřesnit. Pole můžete nechat prázdná a doplnit je později v Book editoru.
+agentCreation.wizard.useSetupProjectRepositoryLabel: GitHub repozitář
+agentCreation.wizard.useSetupProjectRepositoryPlaceholder: https://github.com/example/project nebo example/project
+agentCreation.wizard.useSetupProjectRepositoryHint: Vložte URL repozitáře nebo slug `owner/repository`. Pokud znáte jen název, použijte zkratku pro hledání na GitHubu.
+agentCreation.wizard.useSetupEmailSenderLabel: E-mail odesílatele
+agentCreation.wizard.useSetupEmailSenderPlaceholder: agent@example.com
+agentCreation.wizard.useSetupEmailSenderHint: Volitelné. Když pole necháte prázdné, `USE EMAIL` použije nastavení odesílatele z peněženky nebo z běhového prostředí.
+agentCreation.wizard.useSetupCalendarUrlLabel: URL Google Kalendáře
+agentCreation.wizard.useSetupCalendarUrlPlaceholder: https://calendar.google.com/calendar/u/0/r
+agentCreation.wizard.useSetupCalendarUrlHint: Vložte URL Google Kalendáře, aby byl agent omezený na jeden konkrétní kalendář.
+agentCreation.wizard.useSetupMcpUrlLabel: URL MCP serveru
+agentCreation.wizard.useSetupMcpUrlPlaceholder: https://mcp.example.com/server
+agentCreation.wizard.useSetupMcpUrlHint: Vložte URL MCP serveru, ke kterému se má agent připojit.
+agentCreation.wizard.useSetupInstructionsLabel: Doplňující instrukce
+agentCreation.wizard.useSetupInstructionsPlaceholder: Volitelné doplnění pro tento `USE` commitment.
+agentCreation.wizard.useSetupPreviewLabel: Náhled
+agentCreation.wizard.useSetupOpenLinkAction: Otevřít odkaz
+agentCreation.wizard.useSetupSearchGithubAction: Hledat na GitHubu
 agentCreation.wizard.teamPickerTitle: Vyberte existující agenty
 agentCreation.wizard.teamPickerHint: Kliknutím na jednu nebo více karet přidáte nebo odeberete spolupracující agenty z tohoto serveru i připojených serverů.
 agentCreation.wizard.teamLocalSectionTitle: Tento server ({count})

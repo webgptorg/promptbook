@@ -1,11 +1,14 @@
 import type { AgentVisibility } from '../../utils/agentVisibility';
 import {
-    NEW_AGENT_WIZARD_CAPABILITY_PRESETS,
     NEW_AGENT_WIZARD_PERSONA_PRESETS,
     NEW_AGENT_WIZARD_RULE_PRESETS,
     NEW_AGENT_WIZARD_WRITING_STYLE_PRESETS,
+    getNewAgentWizardSelectedCapabilityPresets,
 } from './newAgentWizardPresets';
-import type { CreateNewAgentWizardSourceOptions } from './createNewAgentWizardSource';
+import type {
+    CreateNewAgentWizardSourceOptions,
+    NewAgentWizardCapabilityCommitmentEntry,
+} from './createNewAgentWizardSource';
 
 /**
  * Local knowledge item tracked while uploads finish.
@@ -47,6 +50,30 @@ export type WizardKnowledgeItem = {
      * Optional upload error message.
      */
     readonly errorMessage?: string;
+};
+
+/**
+ * Structured setup values captured for content-driven `USE` commitments.
+ *
+ * @private internal type of <NewAgentWizard/>.
+ */
+export type NewAgentWizardCapabilitySetupByCommitment = {
+    readonly 'USE CALENDAR': {
+        readonly calendarUrl: string;
+        readonly instructions: string;
+    };
+    readonly 'USE EMAIL': {
+        readonly instructions: string;
+        readonly senderEmail: string;
+    };
+    readonly 'USE MCP': {
+        readonly instructions: string;
+        readonly serverUrl: string;
+    };
+    readonly 'USE PROJECT': {
+        readonly instructions: string;
+        readonly repositoryReference: string;
+    };
 };
 
 /**
@@ -94,6 +121,11 @@ export type NewAgentWizardState = {
      * Selected capability preset ids.
      */
     readonly selectedCapabilityIds: ReadonlyArray<string>;
+
+    /**
+     * Additional setup collected for content-driven `USE` commitments.
+     */
+    readonly capabilitySetupByCommitment: NewAgentWizardCapabilitySetupByCommitment;
 
     /**
      * Compact references or URLs emitted as `TEAM` commitments.
@@ -238,6 +270,24 @@ export function createInitialWizardState(
         customPersonaTraitDraft: '',
         customPersonaTraits: [],
         selectedCapabilityIds: [],
+        capabilitySetupByCommitment: {
+            'USE CALENDAR': {
+                calendarUrl: '',
+                instructions: '',
+            },
+            'USE EMAIL': {
+                instructions: '',
+                senderEmail: '',
+            },
+            'USE MCP': {
+                instructions: '',
+                serverUrl: '',
+            },
+            'USE PROJECT': {
+                instructions: '',
+                repositoryReference: '',
+            },
+        },
         teamReferences: [],
         isOpenToLearning: false,
         selectedWritingStyleIds: selectDefaultPresetIds(NEW_AGENT_WIZARD_WRITING_STYLE_PRESETS),
@@ -482,6 +532,36 @@ function createWritingTraitRule(trait: string): string {
 }
 
 /**
+ * Normalizes multiline free-form input while preserving intentional line breaks.
+ *
+ * @param value - Raw user input.
+ * @returns Trimmed multiline content.
+ */
+function normalizeMultilineInput(value: string | null | undefined): string {
+    return (value || '').trim();
+}
+
+/**
+ * Builds one optional capability-commitment payload from a primary value and extra instructions.
+ *
+ * @param commitmentKeyword - Capability commitment keyword.
+ * @param primaryValue - Canonical first-line value such as URL or sender email.
+ * @param instructions - Optional free-form instructions.
+ * @returns Capability commitment entry ready for source synthesis.
+ */
+function createCapabilityCommitmentEntry(
+    commitmentKeyword: NewAgentWizardCapabilityCommitmentEntry['keyword'],
+    primaryValue: string | null | undefined,
+    instructions: string | null | undefined,
+): NewAgentWizardCapabilityCommitmentEntry {
+    const normalizedPrimaryValue = normalizeSingleLineInput(primaryValue);
+    const normalizedInstructions = normalizeMultilineInput(instructions);
+    const content = [normalizedPrimaryValue, normalizedInstructions].filter(Boolean).join('\n').trim();
+
+    return content === '' ? { keyword: commitmentKeyword } : { keyword: commitmentKeyword, content };
+}
+
+/**
  * Builds the pure source-builder payload from the current wizard state.
  *
  * @param state - Current wizard state.
@@ -496,11 +576,38 @@ export function buildWizardSourceOptions(state: NewAgentWizardState): CreateNewA
         state.selectedWritingStyleIds,
     );
     const selectedRulePresets = selectPresetsById(NEW_AGENT_WIZARD_RULE_PRESETS, state.selectedRuleIds);
-    const selectedCapabilityPresets = selectPresetsById(
-        NEW_AGENT_WIZARD_CAPABILITY_PRESETS,
-        state.selectedCapabilityIds,
-    ).filter((preset) => preset.availability === 'wizard');
+    const selectedCapabilityPresets = getNewAgentWizardSelectedCapabilityPresets(state.selectedCapabilityIds).filter(
+        (preset) => preset.availability === 'wizard',
+    );
     const customWritingSample = state.customWritingSample.trim();
+    const capabilityCommitments = selectedCapabilityPresets.map((preset) => {
+        switch (preset.commitmentKeyword) {
+            case 'USE PROJECT': {
+                const setup = state.capabilitySetupByCommitment['USE PROJECT'];
+                return createCapabilityCommitmentEntry(
+                    'USE PROJECT',
+                    setup.repositoryReference,
+                    setup.instructions,
+                );
+            }
+            case 'USE EMAIL': {
+                const setup = state.capabilitySetupByCommitment['USE EMAIL'];
+                return createCapabilityCommitmentEntry('USE EMAIL', setup.senderEmail, setup.instructions);
+            }
+            case 'USE CALENDAR': {
+                const setup = state.capabilitySetupByCommitment['USE CALENDAR'];
+                return createCapabilityCommitmentEntry('USE CALENDAR', setup.calendarUrl, setup.instructions);
+            }
+            case 'USE MCP': {
+                const setup = state.capabilitySetupByCommitment['USE MCP'];
+                return createCapabilityCommitmentEntry('USE MCP', setup.serverUrl, setup.instructions);
+            }
+            default:
+                return {
+                    keyword: preset.commitmentKeyword,
+                };
+        }
+    });
 
     return {
         agentName: state.name,
@@ -510,7 +617,7 @@ export function buildWizardSourceOptions(state: NewAgentWizardState): CreateNewA
         teamReferences: state.teamReferences,
         isOpenToLearning: state.isOpenToLearning,
         rules: [...selectedRulePresets.map((preset) => preset.sourceText), ...state.customRules],
-        capabilityCommitments: selectedCapabilityPresets.map((preset) => preset.commitmentKeyword),
+        capabilityCommitments,
         writingStyleTraits: [
             ...selectedWritingPresets.map((preset) => preset.sourceText),
             ...state.customWritingTraits,

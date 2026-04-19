@@ -11,7 +11,6 @@ import {
 } from 'react';
 import { simplifyKnowledgeLabel } from '../../utils/knowledge/simplifyKnowledgeLabel';
 import { bookEditorUploadHandler } from '../../utils/upload/createBookEditorUploadHandler';
-import { NEW_AGENT_WIZARD_STEP_DEFINITIONS } from './newAgentWizardPresets';
 import {
     createKnowledgeItemId,
     parseKnowledgeUrl,
@@ -40,6 +39,11 @@ type UseNewAgentWizardKnowledgeStateOptions = {
      * Wizard step updater used by drag-and-drop uploads.
      */
     readonly setStep: Dispatch<SetStateAction<number>>;
+
+    /**
+     * Absolute step index of the knowledge step in the current dynamic flow.
+     */
+    readonly knowledgeStepIndex: number;
 
     /**
      * Translation helper.
@@ -139,7 +143,7 @@ function updateKnowledgeItem(
  * @private internal hook of <NewAgentWizard/>.
  */
 export function useNewAgentWizardKnowledgeState(options: UseNewAgentWizardKnowledgeStateOptions) {
-    const { state, setState, setStep, t } = options;
+    const { state, setState, setStep, knowledgeStepIndex, t } = options;
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const dragDepthRef = useRef(0);
     const [knowledgeFeedback, setKnowledgeFeedback] = useState<string | null>(null);
@@ -333,7 +337,7 @@ export function useNewAgentWizardKnowledgeState(options: UseNewAgentWizardKnowle
         }
 
         queueKnowledgeFiles(files);
-        setStep(NEW_AGENT_WIZARD_STEP_DEFINITIONS.length - 1);
+        setStep(knowledgeStepIndex);
     }
 
     return {

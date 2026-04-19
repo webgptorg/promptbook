@@ -1,4 +1,4 @@
-[ ] !!
+[x] ~$0.5488 an hour by OpenAI Codex `gpt-5.4`
 
 [✨🧶] When creating new agent through wizard, add optional step for propperly setup selected `USE` commitments
 
@@ -46,3 +46,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

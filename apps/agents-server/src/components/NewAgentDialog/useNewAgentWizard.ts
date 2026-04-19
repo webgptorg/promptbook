@@ -1,13 +1,13 @@
 'use client';
 
 import type { string_book } from '@promptbook-local/types';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { NewAgentWizardMode } from '../../constants/newAgentWizard';
 import type { AgentVisibility } from '../../utils/agentVisibility';
 import { useDirtyModalGuard } from '../utils/useDirtyModalGuard';
 import { createNewAgentWizardFormActions } from './createNewAgentWizardFormActions';
 import { createNewAgentWizardSubmissionActions } from './createNewAgentWizardSubmissionActions';
-import { NEW_AGENT_WIZARD_STEP_DEFINITIONS } from './newAgentWizardPresets';
+import { getNewAgentWizardStepDefinitions } from './newAgentWizardPresets';
 import { createInitialWizardState, hasWizardChanges, type NewAgentWizardState } from './NewAgentWizardState';
 import type { NewAgentWizardTranslate } from './NewAgentWizardTranslate';
 import { useNewAgentWizardKnowledgeState } from './useNewAgentWizardKnowledgeState';
@@ -81,6 +81,14 @@ export function useNewAgentWizard(options: UseNewAgentWizardOptions) {
     const [state, setState] = useState<NewAgentWizardState>(initialState);
     const [step, setStep] = useState(0);
     const [isCreating, setIsCreating] = useState(false);
+    const stepDefinitions = useMemo(
+        () => getNewAgentWizardStepDefinitions(state.selectedCapabilityIds),
+        [state.selectedCapabilityIds],
+    );
+    const knowledgeStepIndex = useMemo(() => {
+        const stepIndex = stepDefinitions.findIndex((stepDefinition) => stepDefinition.id === 'knowledge');
+        return stepIndex === -1 ? stepDefinitions.length - 1 : stepIndex;
+    }, [stepDefinitions]);
     const hasUnsavedChanges = hasWizardChanges(state, initialState);
     const { requestClose } = useDirtyModalGuard({
         hasUnsavedChanges,
@@ -91,6 +99,7 @@ export function useNewAgentWizard(options: UseNewAgentWizardOptions) {
         state,
         setState,
         setStep,
+        knowledgeStepIndex,
         t,
     });
     const formActions = createNewAgentWizardFormActions({ setState });
@@ -103,11 +112,15 @@ export function useNewAgentWizard(options: UseNewAgentWizardOptions) {
         setIsCreating,
     });
 
+    useEffect(() => {
+        setStep((previous) => Math.min(previous, stepDefinitions.length - 1));
+    }, [stepDefinitions.length]);
+
     /**
      * Moves the wizard one step forward.
      */
     function handleNext(): void {
-        setStep((previous) => Math.min(previous + 1, NEW_AGENT_WIZARD_STEP_DEFINITIONS.length - 1));
+        setStep((previous) => Math.min(previous + 1, stepDefinitions.length - 1));
     }
 
     /**
@@ -121,6 +134,7 @@ export function useNewAgentWizard(options: UseNewAgentWizardOptions) {
         state,
         setState,
         step,
+        stepDefinitions,
         setStep,
         isCreating,
         hasUnsavedChanges,

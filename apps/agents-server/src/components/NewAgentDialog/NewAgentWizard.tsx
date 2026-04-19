@@ -8,13 +8,13 @@ import type { AgentVisibility } from '../../utils/agentVisibility';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { Dialog } from '../Portal/Dialog';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
-import { NEW_AGENT_WIZARD_STEP_DEFINITIONS } from './newAgentWizardPresets';
 import { NewAgentWizardBasicStep } from './NewAgentWizardBasicStep';
 import { NewAgentWizardClassNames } from './NewAgentWizardClassNames';
 import { NewAgentWizardKnowledgeStep } from './NewAgentWizardKnowledgeStep';
 import { NewAgentWizardPersonaStep } from './NewAgentWizardPersonaStep';
 import { NewAgentWizardRulesStep } from './NewAgentWizardRulesStep';
 import { NewAgentWizardTeamStep } from './NewAgentWizardTeamStep';
+import { NewAgentWizardUseSetupStep } from './NewAgentWizardUseSetupStep';
 import { NewAgentWizardWritingStep } from './NewAgentWizardWritingStep';
 import { useNewAgentWizard } from './useNewAgentWizard';
 
@@ -100,17 +100,17 @@ export type NewAgentWizardOpenEditorRequest = {
  * @returns Current step body.
  */
 function renderStepContent(props: {
-    readonly step: number;
+    readonly stepId: string;
     readonly wizard: ReturnType<typeof useNewAgentWizard>;
     readonly t: ReturnType<typeof useServerLanguage>['t'];
 }): ReactNode {
-    const { step, wizard, t } = props;
+    const { stepId, wizard, t } = props;
     const { state, setState, togglePresetSelection, addDraftChip, removeDraftChip } = wizard;
 
-    switch (step) {
-        case 0:
+    switch (stepId) {
+        case 'basic':
             return <NewAgentWizardBasicStep state={state} setState={setState} t={t} />;
-        case 1:
+        case 'persona':
             return (
                 <NewAgentWizardPersonaStep
                     state={state}
@@ -121,7 +121,9 @@ function renderStepContent(props: {
                     removeDraftChip={removeDraftChip}
                 />
             );
-        case 2:
+        case 'use-setup':
+            return <NewAgentWizardUseSetupStep state={state} setState={setState} t={t} />;
+        case 'team':
             return (
                 <NewAgentWizardTeamStep
                     state={state}
@@ -129,7 +131,7 @@ function renderStepContent(props: {
                     toggleTeamReference={wizard.toggleTeamReference}
                 />
             );
-        case 3:
+        case 'writing':
             return (
                 <NewAgentWizardWritingStep
                     state={state}
@@ -140,7 +142,7 @@ function renderStepContent(props: {
                     removeDraftChip={removeDraftChip}
                 />
             );
-        case 4:
+        case 'rules':
             return (
                 <NewAgentWizardRulesStep
                     state={state}
@@ -151,7 +153,7 @@ function renderStepContent(props: {
                     removeDraftChip={removeDraftChip}
                 />
             );
-        case 5:
+        case 'knowledge':
             return (
                 <NewAgentWizardKnowledgeStep
                     state={state}
@@ -191,11 +193,10 @@ export function NewAgentWizard(props: NewAgentWizardProps) {
         onOpenEditor,
         t,
     });
-    const currentStepDefinition =
-        NEW_AGENT_WIZARD_STEP_DEFINITIONS[wizard.step] || NEW_AGENT_WIZARD_STEP_DEFINITIONS[0];
+    const currentStepDefinition = wizard.stepDefinitions[wizard.step] || wizard.stepDefinitions[0];
     const currentStepTitle = t(currentStepDefinition.titleKey);
     const currentStepDescription = t(currentStepDefinition.descriptionKey);
-    const isLastStep = wizard.step === NEW_AGENT_WIZARD_STEP_DEFINITIONS.length - 1;
+    const isLastStep = wizard.step === wizard.stepDefinitions.length - 1;
     const isOpenBookEditorDisabled = wizard.isCreating || wizard.hasUploadingKnowledge;
 
     return (
@@ -247,9 +248,9 @@ export function NewAgentWizard(props: NewAgentWizardProps) {
                     </div>
 
                     <div className="mt-4 flex flex-wrap gap-2">
-                        {NEW_AGENT_WIZARD_STEP_DEFINITIONS.map((stepDefinition, stepIndex) => (
+                        {wizard.stepDefinitions.map((stepDefinition, stepIndex) => (
                             <button
-                                key={stepDefinition.shortKey}
+                                key={stepDefinition.id}
                                 type="button"
                                 onClick={() => wizard.setStep(stepIndex)}
                                 disabled={wizard.isCreating}
@@ -269,7 +270,7 @@ export function NewAgentWizard(props: NewAgentWizardProps) {
                     <div className="mx-auto max-w-4xl">
                         <h3 className="text-lg font-semibold text-slate-900">{currentStepTitle}</h3>
                         {renderStepContent({
-                            step: wizard.step,
+                            stepId: currentStepDefinition.id,
                             wizard,
                             t,
                         })}

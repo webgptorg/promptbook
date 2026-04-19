@@ -5,6 +5,11 @@ import type { ServerTranslationKey } from '../../languages/ServerTranslationKeys
  */
 export type NewAgentWizardStepDefinition = {
     /**
+     * Stable identifier used by the wizard step renderer.
+     */
+    readonly id: NewAgentWizardStepId;
+
+    /**
      * Localized title key displayed as the current section heading.
      */
     readonly titleKey: ServerTranslationKey;
@@ -19,6 +24,11 @@ export type NewAgentWizardStepDefinition = {
      */
     readonly shortKey: ServerTranslationKey;
 };
+
+/**
+ * Stable step identifiers used by the wizard flow.
+ */
+export type NewAgentWizardStepId = 'basic' | 'persona' | 'use-setup' | 'team' | 'writing' | 'rules' | 'knowledge';
 
 /**
  * Base shape for one selectable wizard preset.
@@ -91,6 +101,11 @@ export type NewAgentWizardRulePreset = NewAgentWizardSelectablePreset & {
 export type NewAgentWizardCapabilityAvailability = 'wizard' | 'advanced-editor';
 
 /**
+ * Extra setup surfaces supported by wizard capability cards.
+ */
+export type NewAgentWizardCapabilitySetupKind = 'none' | 'calendar' | 'email' | 'mcp' | 'project';
+
+/**
  * One capability preset shown in page 2 of the wizard.
  */
 export type NewAgentWizardCapabilityPreset = {
@@ -118,43 +133,86 @@ export type NewAgentWizardCapabilityPreset = {
      * Whether the capability can be fully configured from the simple wizard.
      */
     readonly availability: NewAgentWizardCapabilityAvailability;
+
+    /**
+     * Additional setup surface rendered after the persona step.
+     */
+    readonly setupKind: NewAgentWizardCapabilitySetupKind;
 };
 
 /**
- * Ordered wizard steps.
+ * Ordered base wizard steps shared by every wizard session.
  */
-export const NEW_AGENT_WIZARD_STEP_DEFINITIONS = [
+const NEW_AGENT_WIZARD_BASE_STEP_DEFINITIONS = [
     {
+        id: 'basic',
         titleKey: 'agentCreation.wizard.basicTitle',
         descriptionKey: 'agentCreation.wizard.basicDescription',
         shortKey: 'agentCreation.wizard.basicShort',
     },
     {
+        id: 'persona',
         titleKey: 'agentCreation.wizard.personaTitle',
         descriptionKey: 'agentCreation.wizard.personaDescription',
         shortKey: 'agentCreation.wizard.personaShort',
     },
     {
+        id: 'team',
         titleKey: 'agentCreation.wizard.teamTitle',
         descriptionKey: 'agentCreation.wizard.teamDescription',
         shortKey: 'agentCreation.wizard.teamShort',
     },
     {
+        id: 'writing',
         titleKey: 'agentCreation.wizard.writingTitle',
         descriptionKey: 'agentCreation.wizard.writingDescription',
         shortKey: 'agentCreation.wizard.writingShort',
     },
     {
+        id: 'rules',
         titleKey: 'agentCreation.wizard.rulesTitle',
         descriptionKey: 'agentCreation.wizard.rulesDescription',
         shortKey: 'agentCreation.wizard.rulesShort',
     },
     {
+        id: 'knowledge',
         titleKey: 'agentCreation.wizard.knowledgeTitle',
         descriptionKey: 'agentCreation.wizard.knowledgeDescription',
         shortKey: 'agentCreation.wizard.knowledgeShort',
     },
 ] as const satisfies ReadonlyArray<NewAgentWizardStepDefinition>;
+
+/**
+ * Optional step inserted after persona selection when the chosen `USE`
+ * commitments need additional setup.
+ */
+const NEW_AGENT_WIZARD_USE_SETUP_STEP_DEFINITION = {
+    id: 'use-setup',
+    titleKey: 'agentCreation.wizard.useSetupTitle',
+    descriptionKey: 'agentCreation.wizard.useSetupDescription',
+    shortKey: 'agentCreation.wizard.useSetupShort',
+} as const satisfies NewAgentWizardStepDefinition;
+
+/**
+ * Returns the step sequence for the current wizard capability selection.
+ *
+ * @param selectedCapabilityIds - Capability preset ids currently enabled in the wizard.
+ * @returns Ordered step definitions for the current session.
+ */
+export function getNewAgentWizardStepDefinitions(
+    selectedCapabilityIds: ReadonlyArray<string>,
+): Array<NewAgentWizardStepDefinition> {
+    if (!hasNewAgentWizardUseSetupStep(selectedCapabilityIds)) {
+        return [...NEW_AGENT_WIZARD_BASE_STEP_DEFINITIONS];
+    }
+
+    return [
+        NEW_AGENT_WIZARD_BASE_STEP_DEFINITIONS[0]!,
+        NEW_AGENT_WIZARD_BASE_STEP_DEFINITIONS[1]!,
+        NEW_AGENT_WIZARD_USE_SETUP_STEP_DEFINITION,
+        ...NEW_AGENT_WIZARD_BASE_STEP_DEFINITIONS.slice(2),
+    ];
+}
 
 /**
  * Persona presets available in page 2 of the wizard.
@@ -296,10 +354,6 @@ export const NEW_AGENT_WIZARD_WRITING_STYLE_PRESETS = [
 
 /**
  * Capability presets available in page 2.
- *
- * The catalogue intentionally includes all concrete `USE *` commitments, but
- * some of them are marked as `advanced-editor` because a bare checkbox would
- * not collect enough configuration to make the commitment meaningful.
  */
 export const NEW_AGENT_WIZARD_CAPABILITY_PRESETS = [
     {
@@ -308,6 +362,7 @@ export const NEW_AGENT_WIZARD_CAPABILITY_PRESETS = [
         icon: '🌐',
         commitmentKeyword: 'USE BROWSER',
         availability: 'wizard',
+        setupKind: 'none',
     },
     {
         id: 'search-engine',
@@ -315,6 +370,7 @@ export const NEW_AGENT_WIZARD_CAPABILITY_PRESETS = [
         icon: '🔍',
         commitmentKeyword: 'USE SEARCH ENGINE',
         availability: 'wizard',
+        setupKind: 'none',
     },
     {
         id: 'spawn',
@@ -322,6 +378,7 @@ export const NEW_AGENT_WIZARD_CAPABILITY_PRESETS = [
         icon: '🧬',
         commitmentKeyword: 'USE SPAWN',
         availability: 'wizard',
+        setupKind: 'none',
     },
     {
         id: 'timeout',
@@ -329,6 +386,7 @@ export const NEW_AGENT_WIZARD_CAPABILITY_PRESETS = [
         icon: '⏱️',
         commitmentKeyword: 'USE TIMEOUT',
         availability: 'wizard',
+        setupKind: 'none',
     },
     {
         id: 'time',
@@ -336,6 +394,7 @@ export const NEW_AGENT_WIZARD_CAPABILITY_PRESETS = [
         icon: '🕒',
         commitmentKeyword: 'USE TIME',
         availability: 'wizard',
+        setupKind: 'none',
     },
     {
         id: 'user-location',
@@ -343,6 +402,7 @@ export const NEW_AGENT_WIZARD_CAPABILITY_PRESETS = [
         icon: '📍',
         commitmentKeyword: 'USE USER LOCATION',
         availability: 'wizard',
+        setupKind: 'none',
     },
     {
         id: 'calendar',
@@ -350,6 +410,7 @@ export const NEW_AGENT_WIZARD_CAPABILITY_PRESETS = [
         icon: '📅',
         commitmentKeyword: 'USE CALENDAR',
         availability: 'wizard',
+        setupKind: 'calendar',
     },
     {
         id: 'email',
@@ -357,6 +418,7 @@ export const NEW_AGENT_WIZARD_CAPABILITY_PRESETS = [
         icon: '📧',
         commitmentKeyword: 'USE EMAIL',
         availability: 'wizard',
+        setupKind: 'email',
     },
     {
         id: 'popup',
@@ -364,6 +426,7 @@ export const NEW_AGENT_WIZARD_CAPABILITY_PRESETS = [
         icon: '🪟',
         commitmentKeyword: 'USE POPUP',
         availability: 'wizard',
+        setupKind: 'none',
     },
     {
         id: 'image-generator',
@@ -371,6 +434,7 @@ export const NEW_AGENT_WIZARD_CAPABILITY_PRESETS = [
         icon: '🖼️',
         commitmentKeyword: 'USE IMAGE GENERATOR',
         availability: 'wizard',
+        setupKind: 'none',
     },
     {
         id: 'privacy',
@@ -378,22 +442,59 @@ export const NEW_AGENT_WIZARD_CAPABILITY_PRESETS = [
         icon: '🛡️',
         commitmentKeyword: 'USE PRIVACY',
         availability: 'wizard',
+        setupKind: 'none',
     },
     {
         id: 'project',
         labelKey: 'agentCreation.wizard.capabilityProject',
         icon: '🧑‍💻',
         commitmentKeyword: 'USE PROJECT',
-        availability: 'advanced-editor',
+        availability: 'wizard',
+        setupKind: 'project',
     },
     {
         id: 'mcp',
         labelKey: 'agentCreation.wizard.capabilityMcp',
         icon: '🔌',
         commitmentKeyword: 'USE MCP',
-        availability: 'advanced-editor',
+        availability: 'wizard',
+        setupKind: 'mcp',
     },
 ] as const satisfies ReadonlyArray<NewAgentWizardCapabilityPreset>;
+
+/**
+ * Returns capability presets selected in the wizard, preserving preset order.
+ *
+ * @param selectedCapabilityIds - Capability ids currently selected in wizard state.
+ * @returns Ordered selected capability presets.
+ */
+export function getNewAgentWizardSelectedCapabilityPresets(
+    selectedCapabilityIds: ReadonlyArray<string>,
+) {
+    return NEW_AGENT_WIZARD_CAPABILITY_PRESETS.filter((preset) => selectedCapabilityIds.includes(preset.id));
+}
+
+/**
+ * Returns selected capability presets that need the extra USE setup step.
+ *
+ * @param selectedCapabilityIds - Capability ids currently selected in wizard state.
+ * @returns Ordered selected capability presets with additional setup UI.
+ */
+export function getNewAgentWizardSelectedSetupCapabilityPresets(
+    selectedCapabilityIds: ReadonlyArray<string>,
+) {
+    return getNewAgentWizardSelectedCapabilityPresets(selectedCapabilityIds).filter((preset) => preset.setupKind !== 'none');
+}
+
+/**
+ * Returns whether the current capability selection should show the extra USE setup step.
+ *
+ * @param selectedCapabilityIds - Capability ids currently selected in wizard state.
+ * @returns `true` when the wizard should render the extra setup step.
+ */
+export function hasNewAgentWizardUseSetupStep(selectedCapabilityIds: ReadonlyArray<string>): boolean {
+    return getNewAgentWizardSelectedSetupCapabilityPresets(selectedCapabilityIds).length > 0;
+}
 
 /**
  * Rule presets available in page 4 of the wizard.
@@ -475,6 +576,15 @@ export const NEW_AGENT_WIZARD_KNOWN_CAPABILITY_COMMITMENTS = new Set<NewAgentWiz
  */
 export const NEW_AGENT_WIZARD_SELECTABLE_CAPABILITY_COMMITMENTS = new Set<NewAgentWizardCapabilityCommitment>(
     NEW_AGENT_WIZARD_CAPABILITY_PRESETS.filter((preset) => preset.availability === 'wizard').map(
+        (preset) => preset.commitmentKeyword as NewAgentWizardCapabilityCommitment,
+    ),
+);
+
+/**
+ * Capability commitments that open the additional USE setup step in the wizard.
+ */
+export const NEW_AGENT_WIZARD_CONFIGURABLE_CAPABILITY_COMMITMENTS = new Set<NewAgentWizardCapabilityCommitment>(
+    NEW_AGENT_WIZARD_CAPABILITY_PRESETS.filter((preset) => preset.setupKind !== 'none').map(
         (preset) => preset.commitmentKeyword as NewAgentWizardCapabilityCommitment,
     ),
 );

@@ -213,6 +213,7 @@ agentCreation.wizard.knowledgeTitle: Knowledge
 agentCreation.wizard.reviewTitle: Review & create
 agentCreation.wizard.basicDescription: Set the core identity, goal, and visibility before we build the hidden book source.
 agentCreation.wizard.personaDescription: Choose persona traits, learning mode, and capability switches derived from the available USE commitments.
+agentCreation.wizard.useSetupDescription: Configure the selected `USE` commitments that need concrete values such as repository URLs, sender emails, calendar links, or MCP server URLs.
 agentCreation.wizard.teamDescription: Select one or more teammate agents the new agent can consult through `TEAM` commitments.
 agentCreation.wizard.writingDescription: Pick writing-style presets, add custom style guidance, and preview voice samples in mocked chat bubbles.
 agentCreation.wizard.rulesDescription: Select guardrails and add custom rule chips.
@@ -220,6 +221,7 @@ agentCreation.wizard.knowledgeDescription: Upload files or add URLs that should 
 agentCreation.wizard.reviewDescription: Confirm the high-level choices below, or switch to the advanced editor before creating.
 agentCreation.wizard.basicShort: Basics
 agentCreation.wizard.personaShort: Persona
+agentCreation.wizard.useSetupShort: USE setup
 agentCreation.wizard.teamShort: Team
 agentCreation.wizard.writingShort: Writing
 agentCreation.wizard.rulesShort: Rules
@@ -243,7 +245,7 @@ agentCreation.wizard.learningModeOpenDescription: Adds `OPEN` so the agent stays
 agentCreation.wizard.learningModeClosed: Fixed after creation
 agentCreation.wizard.learningModeClosedDescription: Adds `CLOSED` so the agent stays stable and non-learning.
 agentCreation.wizard.capabilitiesLabel: Capabilities
-agentCreation.wizard.capabilitiesHint: Some advanced capabilities require extra setup in the editor.
+agentCreation.wizard.capabilitiesHint: Some capabilities open an extra setup step after this screen.
 agentCreation.wizard.capabilityRequiresEditor: Configure this capability in the advanced editor.
 agentCreation.wizard.customTraitLabel: Custom trait
 agentCreation.wizard.customTraitPlaceholder: Type a trait and press Enter.
@@ -288,6 +290,25 @@ agentCreation.wizard.capabilityImageGenerator: Can generate images
 agentCreation.wizard.capabilityPrivacy: Can use privacy mode
 agentCreation.wizard.capabilityProject: Can work with a project
 agentCreation.wizard.capabilityMcp: Can connect to MCP
+agentCreation.wizard.useSetupTitle: USE setup
+agentCreation.wizard.useSetupSectionHint: Only the selected `USE` commitments that benefit from extra setup are shown here. You can leave the fields blank and refine them later in the Book editor.
+agentCreation.wizard.useSetupProjectRepositoryLabel: GitHub repository
+agentCreation.wizard.useSetupProjectRepositoryPlaceholder: https://github.com/example/project or example/project
+agentCreation.wizard.useSetupProjectRepositoryHint: Paste a repository URL or `owner/repository` slug. If you only know a name, use the GitHub search shortcut.
+agentCreation.wizard.useSetupEmailSenderLabel: Sender email
+agentCreation.wizard.useSetupEmailSenderPlaceholder: agent@example.com
+agentCreation.wizard.useSetupEmailSenderHint: Optional. If empty, `USE EMAIL` falls back to wallet or runtime sender configuration.
+agentCreation.wizard.useSetupCalendarUrlLabel: Google Calendar URL
+agentCreation.wizard.useSetupCalendarUrlPlaceholder: https://calendar.google.com/calendar/u/0/r
+agentCreation.wizard.useSetupCalendarUrlHint: Paste a Google Calendar URL to scope the agent to one calendar.
+agentCreation.wizard.useSetupMcpUrlLabel: MCP server URL
+agentCreation.wizard.useSetupMcpUrlPlaceholder: https://mcp.example.com/server
+agentCreation.wizard.useSetupMcpUrlHint: Paste the MCP server URL the agent should connect to.
+agentCreation.wizard.useSetupInstructionsLabel: Additional instructions
+agentCreation.wizard.useSetupInstructionsPlaceholder: Optional extra guidance for this USE commitment.
+agentCreation.wizard.useSetupPreviewLabel: Preview
+agentCreation.wizard.useSetupOpenLinkAction: Open link
+agentCreation.wizard.useSetupSearchGithubAction: Search GitHub
 agentCreation.wizard.teamPickerTitle: Browse existing agents
 agentCreation.wizard.teamPickerHint: Click one or more cards to add or remove teammate agents from this server and connected servers.
 agentCreation.wizard.teamLocalSectionTitle: This server ({count})

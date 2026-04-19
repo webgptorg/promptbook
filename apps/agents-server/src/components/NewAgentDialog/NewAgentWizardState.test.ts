@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import {
     addUniqueTeamReference,
+    buildWizardSourceOptions,
     createInitialWizardState,
     hasTeamReference,
     normalizeTeamReferenceInput,
@@ -43,5 +44,49 @@ describe('NewAgentWizardState', () => {
     it('toggles teammate references using normalized comparisons', () => {
         expect(toggleTeamReferenceSelection([], 'Legal Reviewer')).toEqual(['{Legal Reviewer}']);
         expect(toggleTeamReferenceSelection(['{Legal Reviewer}'], '@legal reviewer')).toEqual([]);
+    });
+
+    it('builds configured USE commitments from the wizard setup state', () => {
+        const state = {
+            ...createInitialWizardState('UNLISTED', 'Starter Agent'),
+            selectedCapabilityIds: ['project', 'email', 'calendar', 'mcp'],
+            capabilitySetupByCommitment: {
+                'USE CALENDAR': {
+                    calendarUrl: 'calendar.google.com/calendar/u/0/r?cid=team%40example.com',
+                    instructions: 'Prefer the shared team calendar.',
+                },
+                'USE EMAIL': {
+                    senderEmail: 'agent@example.com',
+                    instructions: 'Keep emails concise.',
+                },
+                'USE MCP': {
+                    serverUrl: 'https://mcp.example.com/server',
+                    instructions: 'Use the legal tools only for compliance questions.',
+                },
+                'USE PROJECT': {
+                    repositoryReference: 'example/project',
+                    instructions: 'Work only in the docs folder.',
+                },
+            },
+        };
+
+        expect(buildWizardSourceOptions(state).capabilityCommitments).toEqual([
+            {
+                keyword: 'USE CALENDAR',
+                content: 'calendar.google.com/calendar/u/0/r?cid=team%40example.com\nPrefer the shared team calendar.',
+            },
+            {
+                keyword: 'USE EMAIL',
+                content: 'agent@example.com\nKeep emails concise.',
+            },
+            {
+                keyword: 'USE PROJECT',
+                content: 'example/project\nWork only in the docs folder.',
+            },
+            {
+                keyword: 'USE MCP',
+                content: 'https://mcp.example.com/server\nUse the legal tools only for compliance questions.',
+            },
+        ]);
     });
 });
