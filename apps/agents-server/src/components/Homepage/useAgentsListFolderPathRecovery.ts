@@ -1,7 +1,7 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { updateHistorySearchParams } from './historySearchParams';
 import { logOrganizationSyncDebug } from './useAgentsListSyncState';
 
 /**
@@ -16,6 +16,7 @@ type UseAgentsListFolderPathRecoveryProps = {
     readonly folderQuery: string | null;
     readonly pathname: string;
     readonly routeSyncKey: string;
+    readonly router: ReturnType<typeof useRouter>;
     readonly searchParamsSnapshot: string;
 };
 
@@ -33,6 +34,7 @@ export function useAgentsListFolderPathRecovery({
     folderQuery,
     pathname,
     routeSyncKey,
+    router,
     searchParamsSnapshot,
 }: UseAgentsListFolderPathRecoveryProps): void {
     useEffect(() => {
@@ -54,14 +56,7 @@ export function useAgentsListFolderPathRecovery({
             nextQuery: nextQuery || null,
         });
 
-        updateHistorySearchParams({
-            mode: 'replace',
-            pathname,
-            searchParamsSnapshot,
-            updateSearchParams: (nextSearchParams) => {
-                nextSearchParams.delete('folder');
-            },
-        });
+        router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
     }, [
         currentFolderId,
         folderPathSegments,
@@ -69,6 +64,7 @@ export function useAgentsListFolderPathRecovery({
         lastSyncedRouteKey,
         pathname,
         routeSyncKey,
+        router,
         searchParamsSnapshot,
     ]);
 }

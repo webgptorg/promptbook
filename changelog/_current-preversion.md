@@ -1,15 +1,3 @@
--   Enhanced the Agents Server new-agent wizard with an optional `USE` setup step so content-driven capabilities can be configured before the agent is created:
-
-    -   Added a dynamic wizard step after persona selection that appears only when the chosen `USE` commitments need extra setup, instead of forcing those cases into the advanced Book editor.
-    -   Enabled guided setup for `USE PROJECT`, `USE EMAIL`, `USE CALENDAR`, and `USE MCP`, including a GitHub repository preview/search helper for project commitments.
-    -   Updated wizard source synthesis and regression coverage so configured capabilities emit concrete `USE ...` commitment content rather than only bare keywords.
-
--   Improved Agents Server homepage folder/view navigation so slow server responses no longer block the visible page transition:
-
-    -   Moved the homepage/dashboard root-vs-subfolder UI gating into a shared client wrapper driven by live query params, so folder browsing and list-vs-graph toggles no longer wait for server-side `searchParams` rendering before the screen updates.
-    -   Replaced homepage folder navigation and view-mode query updates with a shared native-history helper, so opening a folder updates the URL and rendered list immediately while the background organization sync catches up.
-    -   Added regression coverage for the shared query-history helper and the new homepage wrapper behavior around root-only sections.
-
 -   Refined `ptbk coder run` rich terminal branding so the dashboard now opens with standalone `ptbk.io` octopus art and a more readable session summary:
 
     -   Replaced the boxed `Brand` header with a centered colorful octopus-and-terminal illustration, keeping the branding outside the framed status sections as requested.

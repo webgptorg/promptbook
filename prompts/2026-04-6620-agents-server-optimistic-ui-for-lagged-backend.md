@@ -10,7 +10,7 @@
 
 ---
 
-[x] ~$0.7984 an hour by OpenAI Codex `gpt-5.4`
+[ ] !!
 
 [✨🛋] The server is slow, use optimistic renders whenever its possible
 
@@ -44,4 +44,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
