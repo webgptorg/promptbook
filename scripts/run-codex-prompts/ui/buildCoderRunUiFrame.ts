@@ -59,8 +59,7 @@ export type BuildCoderRunUiFrameOptions = {
  */
 export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): string[] {
     const totalWidth = Math.max(MIN_FRAME_WIDTH, Math.min(options.terminalWidth, MAX_FRAME_WIDTH));
-    const isPromptActive =
-        options.phase === 'running' || options.phase === 'verifying' || options.phase === 'loading';
+    const isPromptActive = options.phase === 'running' || options.phase === 'verifying' || options.phase === 'loading';
     const promptStatusPrefix = isPromptActive ? `${colors.yellow(`${options.spinner} `)}` : '';
     const sessionLines = buildSessionLines(options, totalWidth);
 
@@ -112,7 +111,9 @@ function buildBrandIllustration(totalWidth: number): readonly string[] {
         colors.green.bold('ptbk.io'),
         `${colors.magenta.bold('        .-""""-.')}      ${colors.blue(' .----------------. ')}`,
         `${colors.magenta.bold("      .'  .-.  '.")}     ${colors.blue('|  ptbk coder    |')}`,
-        `${colors.magenta.bold('     /   (')}${colors.yellow.bold('o o')}${colors.magenta.bold(')   \\')}    ${colors.blue('|   run >_       |')}`,
+        `${colors.magenta.bold('     /   (')}${colors.yellow.bold('o o')}${colors.magenta.bold(
+            ')   \\',
+        )}    ${colors.blue('|   run >_       |')}`,
         `${colors.magenta.bold('    |      ^      |')}   ${colors.blue('|  shipping fix  |')}`,
         `${colors.magenta.bold("    |   '---'     |")}   ${colors.blue("'----------------'")}`,
         colors.cyan(' .-./\\  /|   |\\  /\\.-.'),
@@ -328,7 +329,7 @@ function buildProgressBar(percentage: number, availableWidth: number, label: str
     const filledWidth = Math.round((percentage / 100) * barWidth);
     const emptyWidth = Math.max(0, barWidth - filledWidth);
 
-    return `${colors.green('█'.repeat(filledWidth))}${colors.gray('░'.repeat(emptyWidth))} ${percentageLabel}`;
+    return `${colors.green('█'.repeat(filledWidth))}${colors.blue('░'.repeat(emptyWidth))} ${percentageLabel}`;
 }
 
 /**
@@ -341,10 +342,7 @@ function formatPromptCount(count: number): string {
 /**
  * Builds the control pills shown in the footer box.
  */
-function buildControlPills(
-    pauseState: CoderRunPauseState,
-    pendingEnterLabel: string | undefined,
-): readonly string[] {
+function buildControlPills(pauseState: CoderRunPauseState, pendingEnterLabel: string | undefined): readonly string[] {
     const pills: string[] = [];
 
     if (pendingEnterLabel) {
