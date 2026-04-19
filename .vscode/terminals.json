@@ -423,7 +423,7 @@
             "focus": false
         },
         {
-            "name": "⚡🚀 Run Coding Agent (💤)(💸)(⏳)",
+            "name": "⚡🚀 Run ptbk coder (💤)(💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
@@ -434,7 +434,7 @@
             "focus": false
         },
         {
-            "name": "⚡🚀 Run `gpt-5.3-codex` Coding Agent (💸)(⏳)",
+            "name": "⚡🚀 Run ptbk coder `gpt-5.3-codex` Coding Agent (💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
@@ -445,7 +445,7 @@
             "focus": true
         },
         {
-            "name": "⚡🚀 Run `gpt-5.4` Coding Agent (💸)(⏳)",
+            "name": "⚡🚀 Run ptbk coder `gpt-5.4` Coding Agent (💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
@@ -456,7 +456,7 @@
             "focus": true
         },
         {
-            "name": "⚡🚀 Run `gpt-5.1-codex-mini` Coding Agent (💸)(⏳)",
+            "name": "⚡🚀 Run ptbk coder `gpt-5.1-codex-mini` Coding Agent (💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
@@ -467,7 +467,7 @@
             "focus": true
         },
         {
-            "name": "⚡🚀 Run `GitHub Copilot with gpt-5.4` Coding Agent (💸)(⏳)",
+            "name": "⚡🚀 Run ptbk coder `GitHub Copilot with gpt-5.4` Coding Agent (💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",
                 "unset GITHUB_TOKEN",
@@ -480,7 +480,7 @@
             "focus": true
         },
         {
-            "name": "⚡🚀 Run `claude-4.6-opus` Coding Agent (💸)(⏳)",
+            "name": "⚡🚀 Run ptbk coder `claude-4.6-opus` Coding Agent (💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
@@ -491,7 +491,7 @@
             "focus": true
         },
         {
-            "name": "⚡🚀 Run `gemini-3-flash` Coding Agent (💸)(⏳)",
+            "name": "⚡🚀 Run ptbk coder `gemini-3-flash` Coding Agent (💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",
                 "npx ts-node ./src/cli/test/ptbk.ts coder run --agent gemini --model gemini-3-flash-preview --context AGENTS.md --test npm run test-for-ptbk-coder --no-wait"
@@ -501,7 +501,7 @@
             "focus": true
         },
         {
-            "name": "⚡🚀 Run `gemini-3.1` Coding Agent (💸)(⏳)",
+            "name": "⚡🚀 Run ptbk coder `gemini-3.1` Coding Agent (💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",
                 "npx ts-node ./src/cli/test/ptbk.ts coder run --agent gemini --model gemini-3.1-pro-preview --context AGENTS.md --test npm run test-for-ptbk-coder --no-wait"
@@ -511,7 +511,7 @@
             "focus": true
         },
         {
-            "name": "*(not working)* ⚡🚀 Run `promptbook-coder` Coding Agent (💸)(⏳)",
+            "name": "*(not working)* ⚡🚀 Run ptbk coder `promptbook-coder` Coding Agent (💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",
                 "export OPENAI_API_KEY=$PROMPTBOOK_AGENTS_SERVER_API_KEY && export OPENAI_BASE_URL=https://pavol-hejny.ptbk.io/agents/NFR94UDUAHzmAX/api/openai/v1",
@@ -522,7 +522,7 @@
             "focus": true
         },
         {
-            "name": "*(not working)* ⚡🚀 Run `gpt-5.1-codex-mini` via OpenAI API Coding Agent (💸)(⏳)",
+            "name": "*(not working)* ⚡🚀 Run ptbk coder `gpt-5.1-codex-mini` via OpenAI API Coding Agent (💸)(⏳)",
 
             "commands": [
                 "set -a && source .env && set +a",
