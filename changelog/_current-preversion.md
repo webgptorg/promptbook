@@ -1,3 +1,9 @@
+-   Improved Agents Server modal dismissal UX so edit dialogs and popups can now be closed by an intentional outside click without reintroducing accidental data loss:
+
+    -   Reworked the shared portal `Dialog` backdrop handling to dismiss only when the pointer both starts and ends on the backdrop with minimal movement, which avoids closing while users drag, select text, or otherwise finish an interaction outside the modal.
+    -   Enabled outside-click dismissal for the guarded create/edit flows such as the new-agent editor and wizard, folder editor, wallet dialog, login/change-password dialogs, create-server wizard, pseudo-user reply dialog, and async prompt/visibility popups, while continuing to reuse their existing unsaved-changes confirmation prompts before discarding progress.
+    -   Added a dirty-close guard to the agent timeout edit dialog so both its close button and intentional outside clicks now confirm before discarding unsaved timeout edits.
+
 -   Fixed Agents Server shared navigation links so header, drawer, and menu links still navigate reliably when surrounding UI state closes immediately on click:
 
     -   Updated the shared `HeadlessLink` helper to drive same-origin client navigation itself for normal left-clicks, which keeps route changes working even when a drawer or dropdown unmounts the clicked link during the same event.
@@ -2813,7 +2819,3 @@
     -   Persisted profile-to-chat optimistic turn metadata across the route transition, including the client message id reused later for canonical reconciliation and failure states.
     -   Added a chat-route loading surface that renders the pending user turn right away while the standalone chat page server data is still loading.
     -   Tightened optimistic/canonical merge ordering so unresolved user bubbles stay ahead of later assistant streaming messages until the server confirms them.
--   Reduced accidental data loss in Agents Server edit dialogs, so clicking outside no longer dismisses input-heavy modals and popups that users are actively working in:
-
-    -   Extended the shared portal `Dialog` with separate backdrop-dismiss and Escape-dismiss controls instead of coupling both behaviors together.
-    -   Disabled backdrop-click dismissal for editing flows such as the new-agent wizard/editor, folder editing, create-server setup, wallet credential entry, pseudo-user replies, password/login forms, timeout editing, and async prompt/visibility dialogs while keeping intentional close actions available.

@@ -659,7 +659,7 @@ export function CreateServerDialog(props: CreateServerDialogProps) {
         );
 
     return (
-        <Dialog onClose={requestClose} isBackdropDismissible={false} className="mx-4 w-full max-w-5xl overflow-hidden">
+        <Dialog onClose={requestClose} className="mx-4 w-full max-w-5xl overflow-hidden">
             <div className="max-h-[90vh] overflow-y-auto">
                 <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-6 py-5">
                     <div>

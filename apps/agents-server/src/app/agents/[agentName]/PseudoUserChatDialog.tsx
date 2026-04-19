@@ -79,7 +79,7 @@ export function PseudoUserChatDialog(props: PseudoUserChatDialogProps) {
     }
 
     return (
-        <Dialog onClose={requestClose} isBackdropDismissible={false} className="w-full max-w-xl p-0 overflow-hidden">
+        <Dialog onClose={requestClose} className="w-full max-w-xl p-0 overflow-hidden">
             <div className="border-b border-gray-200 bg-gray-50 px-5 py-4">
                 <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">

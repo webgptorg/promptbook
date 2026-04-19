@@ -1,6 +1,7 @@
 'use client';
 
 import { showAlert, showConfirm, showPrompt } from '@/src/components/AsyncDialogs/asyncDialogs';
+import { useDirtyModalGuard } from '@/src/components/utils/useDirtyModalGuard';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     cancelAgentUserTimeout,
@@ -84,6 +85,7 @@ type UseAgentTimeoutsClientStateResult = {
     busyTimeoutId: string | null;
     counters: AgentUserTimeoutCounters | null;
     closeEditDialog: () => void;
+    requestCloseEditDialog: () => void;
     editDraft: TimeoutEditDraft;
     editingTimeout: UserChatTimeout | null;
     errorMessage: string | null;
@@ -548,6 +550,25 @@ export function useAgentTimeoutsClientState({
         setEditingTimeout(null);
         setEditDraft(createEmptyTimeoutEditDraft());
     }, []);
+    const hasEditDraftUnsavedChanges = useMemo(() => {
+        if (!editingTimeout) {
+            return false;
+        }
+
+        const initialEditDraft = createTimeoutEditDraft(editingTimeout);
+
+        return (
+            editDraft.dueAtLocalValue !== initialEditDraft.dueAtLocalValue ||
+            editDraft.recurrenceMinutesValue !== initialEditDraft.recurrenceMinutesValue ||
+            editDraft.messageValue !== initialEditDraft.messageValue ||
+            editDraft.parametersValue !== initialEditDraft.parametersValue
+        );
+    }, [editDraft, editingTimeout]);
+    const { requestClose: requestCloseEditDialog } = useDirtyModalGuard({
+        hasUnsavedChanges: hasEditDraftUnsavedChanges,
+        isCloseBlocked: busyAction === 'save' && busyTimeoutId === editingTimeout?.timeoutId,
+        onClose: closeEditDialog,
+    });
 
     /**
      * Updates the selected manager filter.
@@ -723,6 +744,7 @@ export function useAgentTimeoutsClientState({
         busyTimeoutId,
         counters,
         closeEditDialog,
+        requestCloseEditDialog,
         editDraft,
         editingTimeout,
         errorMessage,

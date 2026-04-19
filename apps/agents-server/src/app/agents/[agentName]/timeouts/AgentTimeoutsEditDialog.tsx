@@ -25,7 +25,7 @@ export function AgentTimeoutsEditDialog({ state }: AgentTimeoutsEditDialogProps)
     const isSaving = state.busyTimeoutId === editingTimeout.timeoutId && state.busyAction === 'save';
 
     return (
-        <Dialog onClose={state.closeEditDialog} isBackdropDismissible={false} className="w-full max-w-2xl p-5 sm:p-6">
+        <Dialog onClose={state.requestCloseEditDialog} className="w-full max-w-2xl p-5 sm:p-6">
             <div className="space-y-4">
                 <div>
                     <h2 className="text-lg font-semibold text-slate-900">Edit timeout</h2>
@@ -76,7 +76,7 @@ export function AgentTimeoutsEditDialog({ state }: AgentTimeoutsEditDialogProps)
                 <div className="flex justify-end gap-2">
                     <button
                         type="button"
-                        onClick={state.closeEditDialog}
+                        onClick={state.requestCloseEditDialog}
                         className="rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700"
                     >
                         Close

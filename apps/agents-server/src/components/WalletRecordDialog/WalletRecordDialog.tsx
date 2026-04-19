@@ -114,7 +114,7 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
     }
 
     return (
-        <Dialog onClose={state.requestClose} isBackdropDismissible={false} className="w-full max-w-xl p-0 overflow-hidden">
+        <Dialog onClose={state.requestClose} className="w-full max-w-xl p-0 overflow-hidden">
             <WalletRecordDialogHeader
                 title={state.t('walletDialog.title')}
                 subtitle={state.t('walletDialog.subtitle')}

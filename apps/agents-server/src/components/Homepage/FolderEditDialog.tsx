@@ -110,7 +110,7 @@ export function FolderEditDialog(props: FolderEditDialogProps) {
     }
 
     return (
-        <Dialog onClose={requestClose} isBackdropDismissible={false} className="w-full max-w-lg p-6">
+        <Dialog onClose={requestClose} className="w-full max-w-lg p-6">
             <form
                 className="space-y-6"
                 onSubmit={(event) => {

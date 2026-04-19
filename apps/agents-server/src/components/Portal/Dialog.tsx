@@ -1,8 +1,8 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import type { MouseEvent as ReactMouseEvent, ReactNode, TouchEvent as ReactTouchEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 /**
  * Default backdrop styling shared by Agents Server modal dialogs.
@@ -15,6 +15,19 @@ const DEFAULT_DIALOG_BACKDROP_CLASS_NAME =
  */
 const DEFAULT_DIALOG_SURFACE_CLASS_NAME =
     'relative bg-white rounded-lg shadow-lg border border-gray-200 animate-in zoom-in-95 duration-200';
+
+/**
+ * Maximum pointer travel still treated as one intentional backdrop click.
+ */
+const INTENTIONAL_BACKDROP_CLICK_MAX_MOVEMENT_PX = 8;
+
+/**
+ * Pointer-down metadata remembered until the matching pointer-up arrives.
+ */
+type DialogBackdropPointerGesture = {
+    readonly clientX: number;
+    readonly clientY: number;
+};
 
 /**
  * Props accepted by the shared portal-backed dialog.
@@ -90,6 +103,7 @@ export function Dialog(props: DialogProps) {
         ariaDescribedBy,
     } = props;
     const [container, setContainer] = useState<Element | null>(null);
+    const backdropPointerGestureRef = useRef<DialogBackdropPointerGesture | null>(null);
 
     useEffect(() => {
         const element = document.getElementById(containerId);
@@ -123,18 +137,107 @@ export function Dialog(props: DialogProps) {
         return null;
     }
 
+    /**
+     * Arms one potential backdrop-dismiss gesture only when the press starts on the backdrop itself.
+     */
+    function handleBackdropMouseDown(event: ReactMouseEvent<HTMLDivElement>) {
+        if (!isBackdropDismissible || event.button !== 0 || event.target !== event.currentTarget) {
+            backdropPointerGestureRef.current = null;
+            return;
+        }
+
+        backdropPointerGestureRef.current = {
+            clientX: event.clientX,
+            clientY: event.clientY,
+        };
+    }
+
+    /**
+     * Closes the dialog only for deliberate click-like mouse sequences that both start and end on the backdrop.
+     */
+    function handleBackdropMouseUp(event: ReactMouseEvent<HTMLDivElement>) {
+        if (!isBackdropDismissible || event.button !== 0 || event.target !== event.currentTarget) {
+            backdropPointerGestureRef.current = null;
+            return;
+        }
+
+        const backdropPointerGesture = backdropPointerGestureRef.current;
+        backdropPointerGestureRef.current = null;
+
+        if (!backdropPointerGesture) {
+            return;
+        }
+
+        const horizontalMovement = Math.abs(event.clientX - backdropPointerGesture.clientX);
+        const verticalMovement = Math.abs(event.clientY - backdropPointerGesture.clientY);
+        const isIntentionalBackdropClick =
+            horizontalMovement <= INTENTIONAL_BACKDROP_CLICK_MAX_MOVEMENT_PX &&
+            verticalMovement <= INTENTIONAL_BACKDROP_CLICK_MAX_MOVEMENT_PX;
+
+        if (isIntentionalBackdropClick) {
+            onClose();
+        }
+    }
+
+    /**
+     * Arms one potential backdrop-dismiss gesture only when the touch starts on the backdrop itself.
+     */
+    function handleBackdropTouchStart(event: ReactTouchEvent<HTMLDivElement>) {
+        if (!isBackdropDismissible || event.target !== event.currentTarget) {
+            backdropPointerGestureRef.current = null;
+            return;
+        }
+
+        const touch = event.changedTouches[0];
+        if (!touch) {
+            backdropPointerGestureRef.current = null;
+            return;
+        }
+
+        backdropPointerGestureRef.current = {
+            clientX: touch.clientX,
+            clientY: touch.clientY,
+        };
+    }
+
+    /**
+     * Closes the dialog only for deliberate touch sequences that both start and end on the backdrop.
+     */
+    function handleBackdropTouchEnd(event: ReactTouchEvent<HTMLDivElement>) {
+        if (!isBackdropDismissible || event.target !== event.currentTarget) {
+            backdropPointerGestureRef.current = null;
+            return;
+        }
+
+        const backdropPointerGesture = backdropPointerGestureRef.current;
+        const touch = event.changedTouches[0];
+        backdropPointerGestureRef.current = null;
+
+        if (!backdropPointerGesture || !touch) {
+            return;
+        }
+
+        const horizontalMovement = Math.abs(touch.clientX - backdropPointerGesture.clientX);
+        const verticalMovement = Math.abs(touch.clientY - backdropPointerGesture.clientY);
+        const isIntentionalBackdropClick =
+            horizontalMovement <= INTENTIONAL_BACKDROP_CLICK_MAX_MOVEMENT_PX &&
+            verticalMovement <= INTENTIONAL_BACKDROP_CLICK_MAX_MOVEMENT_PX;
+
+        if (isIntentionalBackdropClick) {
+            onClose();
+        }
+    }
+
     return createPortal(
         <div
             className={`${DEFAULT_DIALOG_BACKDROP_CLASS_NAME} ${backdropClassName}`.trim()}
-            onClick={
-                isBackdropDismissible
-                    ? (event) => {
-                          if (event.target === event.currentTarget) {
-                              onClose();
-                          }
-                      }
-                    : undefined
-            }
+            onMouseDown={handleBackdropMouseDown}
+            onMouseUp={handleBackdropMouseUp}
+            onTouchStart={handleBackdropTouchStart}
+            onTouchEnd={handleBackdropTouchEnd}
+            onTouchCancel={() => {
+                backdropPointerGestureRef.current = null;
+            }}
         >
             <div
                 role={role}

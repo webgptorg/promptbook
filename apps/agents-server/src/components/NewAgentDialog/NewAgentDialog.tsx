@@ -61,7 +61,6 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
     return (
         <Dialog
             onClose={handleClose}
-            isBackdropDismissible={false}
             className="w-full max-w-4xl h-[80vh] flex flex-col"
         >
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
