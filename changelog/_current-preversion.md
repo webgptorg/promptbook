@@ -1,3 +1,9 @@
+-   Added the new deterministic `Octopus2` avatar visual alongside the existing avatar set, with a single smooth morphing blob silhouette that keeps an octopus-like form while changing its organic alien shape from the agent name, hash, colors, and animation time:
+    
+    -   Added the new built-in `octopus2` canvas renderer to the shared avatar registry without changing the existing `Octopus`, pixel-art, or Minecraft visuals.
+    -   Updated the utils `/avatars` playground so the new renderer appears in the existing selector, preview grid, and deterministic sample gallery without creating a separate page.
+    -   Added regression coverage that verifies `octopus2` stays registered as a supported avatar visual and remains selectable through the utils avatar playground URL state.
+
 -   Fixed Agents Server teammate tool execution so TEAM calls like `team_chat_slave` now stay callable after the chat runtime is initialized:
 
     -   Reworked `apps/agents-server/src/tools/getAllToolFunctionsForServer.ts` to preserve the live commitment tool-function proxy instead of flattening it into a one-time snapshot, which keeps dynamically registered TEAM tools available to the JavaScript execution layer.

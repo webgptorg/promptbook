@@ -1,6 +1,7 @@
 import type { AvatarVisualDefinition, AvatarVisualId } from '../types/AvatarVisualDefinition';
 import { minecraftAvatarVisual } from './minecraftAvatarVisual';
 import { octopusAvatarVisual } from './octopusAvatarVisual';
+import { octopus2AvatarVisual } from './octopus2AvatarVisual';
 import { pixelArtAvatarVisual } from './pixelArtAvatarVisual';
 
 // Note: [💞] Ignore a discrepancy between file name and entity name
@@ -13,6 +14,7 @@ import { pixelArtAvatarVisual } from './pixelArtAvatarVisual';
 export const AVATAR_VISUALS: ReadonlyArray<AvatarVisualDefinition> = [
     pixelArtAvatarVisual,
     octopusAvatarVisual,
+    octopus2AvatarVisual,
     minecraftAvatarVisual,
 ];
 

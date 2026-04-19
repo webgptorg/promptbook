@@ -254,7 +254,7 @@ export function AvatarPlaygroundComponent() {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-3 gap-4">
+                                <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                                     {AVATAR_VISUALS.map((avatarVisual) => (
                                         <div key={`${sampleAvatar.agentHash}-${avatarVisual.id}`} className="text-center">
                                             <Avatar avatarDefinition={sampleAvatar} visualId={avatarVisual.id} size={112} />
