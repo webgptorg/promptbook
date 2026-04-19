@@ -3,7 +3,7 @@
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
 import { Pause, Play, Reply } from 'lucide-react';
-import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactElement } from 'react';
+import type { CSSProperties, ReactElement, PointerEvent as ReactPointerEvent } from 'react';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { colorToDataUrl } from '../../../_packages/color.index';
 import { PROMPTBOOK_CHAT_COLOR, USER_CHAT_COLOR } from '../../../config';
@@ -16,10 +16,10 @@ import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import { SourceChip } from '../SourceChip';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
-import { getChatMessageTimingDisplay } from '../utils/getChatMessageTimingDisplay';
 import { createCitationFootnoteRenderModel } from '../utils/createCitationFootnoteRenderModel';
-import { parseMessageButtons, type MessageButton } from '../utils/parseMessageButtons';
+import { getChatMessageTimingDisplay } from '../utils/getChatMessageTimingDisplay';
 import { type ParsedCitation } from '../utils/parseCitationsFromContent';
+import { parseMessageButtons, type MessageButton } from '../utils/parseMessageButtons';
 import { resolveChatMessageReplyPreviewText } from '../utils/resolveChatMessageReplyPreviewText';
 import { resolveChatMessageReplySenderLabel } from '../utils/resolveChatMessageReplySenderLabel';
 import {
@@ -113,7 +113,7 @@ type ChatMessageItemProps = Pick<
     /**
      * Controls whether assistant replies render as bubbles or article blocks.
      */
-    CHAT_VISUAL_MODE?: ChatProps['CHAT_VISUAL_MODE'];
+    visualMode?: ChatProps['visualMode'];
     /**
      * Called when a tool call chiplet is clicked.
      */
@@ -254,7 +254,7 @@ export const ChatMessageItem = memo(
             onReplyToMessage,
             canReplyToMessage,
             teamAgentProfiles,
-            CHAT_VISUAL_MODE = 'ARTICLE_MODE',
+            visualMode = 'ARTICLE_MODE',
             onToolCallClick,
             onCitationClick,
             soundSystem,
@@ -279,7 +279,7 @@ export const ChatMessageItem = memo(
         const toolCallChipCountRef = useRef(0);
 
         const isMe = participant?.isMe;
-        const isAgentArticleMode = CHAT_VISUAL_MODE === 'ARTICLE_MODE' && !isMe;
+        const isAgentArticleMode = visualMode === 'ARTICLE_MODE' && !isMe;
         const timingDisplay = getChatMessageTimingDisplay(message, chatLocale);
         const replyPreviewLabel = chatUiTranslations?.replyingToLabel || 'Replying to';
         const replyActionLabel = chatUiTranslations?.replyActionLabel || 'Reply';
@@ -1177,7 +1177,7 @@ export const ChatMessageItem = memo(
             return false;
         }
 
-        if (prev.CHAT_VISUAL_MODE !== next.CHAT_VISUAL_MODE) {
+        if (prev.visualMode !== next.visualMode) {
             return false;
         }
 

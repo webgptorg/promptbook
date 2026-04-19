@@ -866,7 +866,7 @@ export type ChatProps = {
      *
      * @default 'ARTICLE_MODE'
      */
-    readonly CHAT_VISUAL_MODE?: ChatVisualMode;
+    readonly visualMode?: ChatVisualMode;
 
     /**
      * Visual style of the chat component

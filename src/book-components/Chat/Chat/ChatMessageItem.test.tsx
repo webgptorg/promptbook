@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, jest } from '@jest/globals';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import moment from 'moment';
 import 'moment/locale/cs';
 import type { ComponentProps } from 'react';
@@ -352,7 +352,7 @@ describe('ChatMessageItem progress checklist rendering', () => {
                 currentRating={0}
                 handleRating={() => undefined}
                 mode="LIGHT"
-                CHAT_VISUAL_MODE="ARTICLE_MODE"
+                visualMode="ARTICLE_MODE"
             />,
         );
 
@@ -386,7 +386,7 @@ describe('ChatMessageItem progress checklist rendering', () => {
                 currentRating={0}
                 handleRating={() => undefined}
                 mode="LIGHT"
-                CHAT_VISUAL_MODE="ARTICLE_MODE"
+                visualMode="ARTICLE_MODE"
             />,
         );
 

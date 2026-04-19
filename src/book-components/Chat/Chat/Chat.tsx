@@ -11,6 +11,7 @@ import type { ChatEffectConfig } from '../effects/types/ChatEffectConfig';
 import { useChatCompleteNotification } from '../hooks/useChatCompleteNotification';
 import { useChatRatings } from '../hooks/useChatRatings';
 import type { ChatMessage } from '../types/ChatMessage';
+import styles from './Chat.module.css';
 import { ChatActionsBar } from './ChatActionsBar';
 import { ChatCitationModal } from './ChatCitationModal';
 import { ChatInputArea } from './ChatInputArea';
@@ -22,7 +23,6 @@ import { chatCssClassNames, getChatCssClassName } from './chatCssClassNames';
 import { useChatPostprocessedMessages } from './useChatPostprocessedMessages';
 import { useChatScrollState } from './useChatScrollState';
 import { useChatToolCallState } from './useChatToolCallState';
-import styles from './Chat.module.css';
 
 /**
  * Returns whether feedback controls should be rendered for the current chat.
@@ -116,7 +116,7 @@ export function Chat(props: ChatProps) {
         teammates,
         teamAgentProfiles,
         visual,
-        CHAT_VISUAL_MODE = 'ARTICLE_MODE',
+        visualMode = 'ARTICLE_MODE',
         effectConfigs,
         soundSystem,
         speechRecognitionLanguage,
@@ -217,7 +217,7 @@ export function Chat(props: ChatProps) {
         extraActions,
         isSaveButtonEnabled,
     });
-    const isConstrainedArticleMode = CHAT_VISUAL_MODE === 'ARTICLE_MODE' && visual === 'FULL_PAGE';
+    const isConstrainedArticleMode = visualMode === 'ARTICLE_MODE' && visual === 'FULL_PAGE';
 
     useChatCompleteNotification(messages, soundSystem);
 
@@ -344,7 +344,7 @@ export function Chat(props: ChatProps) {
                         toolTitles={toolTitles}
                         teammates={teammates}
                         teamAgentProfiles={teamAgentProfiles}
-                        CHAT_VISUAL_MODE={CHAT_VISUAL_MODE}
+                        visualMode={visualMode}
                         soundSystem={soundSystem}
                         onToolCallClick={openToolCall}
                         onCitationClick={openCitation}

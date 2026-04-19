@@ -9,12 +9,12 @@ import { useServerLanguage } from '../../../../components/ServerLanguage/ServerL
 import { ChatThreadLoadingSkeleton } from '../../../../components/Skeleton/ChatThreadLoadingSkeleton';
 import { useSoundSystem } from '../../../../components/SoundSystemProvider/SoundSystemProvider';
 import { createDefaultChatEffects } from '../../../../utils/chat/createDefaultChatEffects';
+import { executeQuickActionButton } from '../../../../utils/chat/executeQuickActionButton';
 import {
     isChatFeedbackEnabled,
     toChatComponentFeedbackMode,
     type ChatFeedbackMode,
 } from '../../../../utils/chatFeedbackMode';
-import { executeQuickActionButton } from '../../../../utils/chat/executeQuickActionButton';
 import { createDefaultSpeechRecognition } from '../../../../utils/speech-to-text/createDefaultSpeechRecognition';
 import { chatFileUploadHandler } from '../../../../utils/upload/createBookEditorUploadHandler';
 import { getUserChatSourceBannerLabel, type UserChatSource } from '../../../../utils/userChat/UserChatSource';
@@ -123,10 +123,7 @@ export function CanonicalAgentChatSurface({
         [brandColorHex, state.agentAvatarSrc, state.agentDisplayName],
     );
     const { language, t: translateText } = useServerLanguage();
-    const translations = useMemo(
-        () => createCanonicalAgentChatTranslations(translateText),
-        [translateText],
-    );
+    const translations = useMemo(() => createCanonicalAgentChatTranslations(translateText), [translateText]);
     const frozenChatBannerLabel = useMemo(
         () => (readOnlySource ? getUserChatSourceBannerLabel(readOnlySource) : null),
         [readOnlySource],
@@ -216,7 +213,7 @@ export function CanonicalAgentChatSurface({
             feedbackTranslations={translations.feedbackTranslations}
             buttonColor={brandColorHex}
             visual="FULL_PAGE"
-            CHAT_VISUAL_MODE={chatVisualMode}
+            visualMode={chatVisualMode}
             effectConfigs={effectConfigs}
             soundSystem={soundSystem}
             speechRecognition={speechRecognition}

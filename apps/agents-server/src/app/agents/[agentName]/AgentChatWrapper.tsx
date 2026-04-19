@@ -9,25 +9,25 @@ import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'r
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
 import { useAgentBackground } from '../../../components/AgentProfile/useAgentBackground';
 import { useChatEnterBehaviorPreferences } from '../../../components/ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
-import { useChatVisualMode } from '../../../components/ChatVisualMode/ChatVisualModeProvider';
 import { ChatErrorDialog } from '../../../components/ChatErrorDialog';
+import { useChatVisualMode } from '../../../components/ChatVisualMode/ChatVisualModeProvider';
 import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { useSelfLearningPreferences } from '../../../components/SelfLearningPreferences/SelfLearningPreferencesProvider';
-import { ChatThreadLoadingSkeleton } from '../../../components/Skeleton/ChatThreadLoadingSkeleton';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
+import { ChatThreadLoadingSkeleton } from '../../../components/Skeleton/ChatThreadLoadingSkeleton';
 import { useSoundSystem } from '../../../components/SoundSystemProvider/SoundSystemProvider';
+import { fetchCalendarOAuthStatus, type CalendarOAuthStatusResponse } from '../../../utils/calendarOAuthClient';
 import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatEffects';
+import { executeQuickActionButton } from '../../../utils/chat/executeQuickActionButton';
 import {
     isChatFeedbackEnabled,
     toChatComponentFeedbackMode,
     type ChatFeedbackMode,
 } from '../../../utils/chatFeedbackMode';
 import { reportClientVersionMismatch } from '../../../utils/clientVersionClient';
-import { fetchCalendarOAuthStatus, type CalendarOAuthStatusResponse } from '../../../utils/calendarOAuthClient';
 import type { FriendlyErrorMessage } from '../../../utils/errorMessages';
 import { handleChatError } from '../../../utils/errorMessages';
 import { fetchGithubAppStatus, type GithubAppStatusResponse } from '../../../utils/githubAppClient';
-import { executeQuickActionButton } from '../../../utils/chat/executeQuickActionButton';
 import { createDefaultSpeechRecognition } from '../../../utils/speech-to-text/createDefaultSpeechRecognition';
 import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
 import {
@@ -438,7 +438,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             sendMessage={sendMessage}
             speechRecognition={speechRecognition}
             visual="FULL_PAGE"
-            CHAT_VISUAL_MODE={chatVisualMode}
+            visualMode={chatVisualMode}
             effectConfigs={effectConfigs}
             soundSystem={soundSystem}
             thinkingMessages={thinkingMessages}

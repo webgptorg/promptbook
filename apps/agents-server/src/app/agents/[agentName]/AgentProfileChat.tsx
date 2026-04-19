@@ -11,6 +11,7 @@ import { string_agent_url, string_color } from '../../../../../../src/types/type
 import { $getCurrentDate } from '../../../../../../src/utils/misc/$getCurrentDate';
 import { keepUnused } from '../../../../../../src/utils/organization/keepUnused';
 import { $createAgentFromBookAction } from '../../../app/actions';
+import { HeadlessLink } from '../../../components/_utils/headlessParam';
 import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
 import { showAlert } from '../../../components/AsyncDialogs/asyncDialogs';
 import { useChatEnterBehaviorPreferences } from '../../../components/ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
@@ -18,7 +19,6 @@ import { useChatVisualMode } from '../../../components/ChatVisualMode/ChatVisual
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 import { createMyChatsMobileMenuItem } from '../../../components/Header/createMyChatsMobileMenuItem';
 import { useHoistedMobileMenuItems } from '../../../components/Header/MobileMenuHoistingContext';
-import { HeadlessLink } from '../../../components/_utils/headlessParam';
 import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { ChatThreadLoadingSkeleton } from '../../../components/Skeleton/ChatThreadLoadingSkeleton';
@@ -467,7 +467,7 @@ export function AgentProfileChat({
                             enterBehavior={enterBehavior}
                             resolveEnterBehavior={resolveEnterBehavior}
                             isSpeechPlaybackEnabled={isSpeechFeaturesEnabled}
-                            CHAT_VISUAL_MODE={chatVisualMode}
+                            visualMode={chatVisualMode}
                             visual={'STANDALONE'}
                         />
                     )}
