@@ -159,7 +159,7 @@ async function prerenderHomePage() {
 
         aborted = true;
 
-        if (serverProcess.exitCode !== null || serverProcess.signalCode !== null) {
+        if (serverProcess.killed || serverProcess.exitCode !== null || serverProcess.signalCode !== null) {
             return;
         }
 
@@ -170,6 +170,10 @@ async function prerenderHomePage() {
                 throw error;
             }
         }
+    };
+    const detachStopServerHandlers = () => {
+        process.off('SIGINT', stopServer);
+        process.off('SIGTERM', stopServer);
     };
 
     process.on('SIGINT', stopServer);
@@ -189,6 +193,7 @@ async function prerenderHomePage() {
         await writeFile(OUTPUT_FILE, html, 'utf8');
         console.log(`Prerendered home page and saved to ${OUTPUT_FILE}`);
     } finally {
+        detachStopServerHandlers();
         stopServer();
         await gracefulExit;
     }

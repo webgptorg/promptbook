@@ -43,6 +43,18 @@ async function openMobileHeaderDrawer(page: Page): Promise<Locator> {
  * Regression coverage for homepage navigation through the shared header branding.
  */
 test.describe('header homepage navigation', () => {
+    test('navigates to the homepage from the desktop header brand link', async ({ page }) => {
+        await page.goto('/docs');
+
+        const headerHomepageLink = page
+            .getByRole('banner')
+            .getByRole('link', { name: HOMEPAGE_BRANDING_LINK_NAME });
+        await expect(headerHomepageLink).toBeVisible();
+        await headerHomepageLink.click();
+
+        await expect(page).toHaveURL(/\/$/);
+    });
+
     test('navigates to the homepage from the compact header brand link on mobile', async ({ page }) => {
         await setMobileViewport(page);
         await page.goto('/docs');

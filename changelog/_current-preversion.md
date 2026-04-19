@@ -1,3 +1,8 @@
+-   Fixed Agents Server shared navigation links so header, drawer, and menu links still navigate reliably when surrounding UI state closes immediately on click:
+
+    -   Updated the shared `HeadlessLink` helper to drive same-origin client navigation itself for normal left-clicks, which keeps route changes working even when a drawer or dropdown unmounts the clicked link during the same event.
+    -   Added regression coverage for homepage branding navigation on desktop and mobile, plus a unit test that verifies shared links still navigate after their own click handler removes them from the tree.
+
 -   Added the new deterministic `Fractal` avatar visual alongside the existing avatar set, with layered dragon-curve geometry that changes its ribbon composition, orientation, and color interplay from the agent name, hash, and colors:
     
     -   Added the new built-in `fractal` canvas renderer to the shared avatar registry without changing the existing Octopus, Octopus2, pixel-art, or Minecraft visuals.
