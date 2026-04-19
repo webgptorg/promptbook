@@ -13,3 +13,14 @@
 -   You are working with [Agents Server](apps/agents-server)
 -   Please update the [changelog](changelog/_current-preversion.md) with a short entry about the fix.
 
+---
+
+[ ] !
+
+[🧠🔔] Play sound/vibration only when the agent finishes responding
+
+-   The UI currently plays the “new message” sound/vibration also on initial message
+-   Keep existing user settings and notification permissions behavior unchanged.
+-   Ensure the change covers both desktop notifications (sound) and mobile vibration (vibration), if both are implemented.
+-   You are working with [Agents Server](apps/agents-server)
+-   Please update the [changelog](changelog/_current-preversion.md) with a short entry about the fix.
