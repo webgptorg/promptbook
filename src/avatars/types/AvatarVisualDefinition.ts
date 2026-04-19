@@ -6,7 +6,7 @@ import type { AvatarDefinition } from './AvatarDefinition';
  *
  * @private shared contract for the avatar rendering system
  */
-export type AvatarVisualId = 'pixel-art' | 'octopus' | 'octopus2' | 'minecraft';
+export type AvatarVisualId = 'pixel-art' | 'octopus' | 'octopus2' | 'minecraft' | 'fractal';
 
 /**
  * Derived color palette used by avatar visuals.

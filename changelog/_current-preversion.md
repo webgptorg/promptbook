@@ -1,3 +1,9 @@
+-   Added the new deterministic `Fractal` avatar visual alongside the existing avatar set, with layered dragon-curve geometry that changes its ribbon composition, orientation, and color interplay from the agent name, hash, and colors:
+    
+    -   Added the new built-in `fractal` canvas renderer to the shared avatar registry without changing the existing Octopus, Octopus2, pixel-art, or Minecraft visuals.
+    -   Kept the utils `/avatars` playground on the existing page while automatically exposing the new renderer in the selector, preview grid, and deterministic sample gallery through the shared avatar registry.
+    -   Added regression coverage that verifies `fractal` stays registered as a supported avatar visual and remains selectable through the utils avatar playground URL state.
+
 -   Added the new deterministic `Octopus2` avatar visual alongside the existing avatar set, with a single smooth morphing blob silhouette that keeps an octopus-like form while changing its organic alien shape from the agent name, hash, colors, and animation time:
     
     -   Added the new built-in `octopus2` canvas renderer to the shared avatar registry without changing the existing `Octopus`, pixel-art, or Minecraft visuals.
