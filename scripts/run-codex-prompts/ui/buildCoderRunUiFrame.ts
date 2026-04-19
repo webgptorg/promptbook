@@ -7,6 +7,29 @@ import type { CoderRunConfig, CoderRunPhase, CoderRunProgressSnapshot } from './
 const MAX_VISIBLE_OUTPUT_LINES = 8;
 
 /**
+ * Minimum width used for the rich coder-run frame.
+ */
+const MIN_FRAME_WIDTH = 56;
+
+/**
+ * Maximum width used for the rich coder-run frame.
+ */
+const MAX_FRAME_WIDTH = 96;
+
+/**
+ * Visible width reserved for aligned labels in the session box.
+ */
+const SESSION_LABEL_WIDTH = 8;
+
+/**
+ * One structured row rendered inside the session box.
+ */
+type SessionRow = {
+    readonly label: string;
+    readonly value: string;
+};
+
+/**
  * Shared pause-state shape between the renderer and the frame builder.
  */
 export type CoderRunPauseState = 'RUNNING' | 'PAUSING' | 'PAUSED';
@@ -35,51 +58,11 @@ export type BuildCoderRunUiFrameOptions = {
  * Builds the complete boxed terminal frame for the rich `ptbk coder run` UI.
  */
 export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): string[] {
-    const totalWidth = Math.max(56, Math.min(options.terminalWidth, 96));
+    const totalWidth = Math.max(MIN_FRAME_WIDTH, Math.min(options.terminalWidth, MAX_FRAME_WIDTH));
     const isPromptActive =
         options.phase === 'running' || options.phase === 'verifying' || options.phase === 'loading';
     const promptStatusPrefix = isPromptActive ? `${colors.yellow(`${options.spinner} `)}` : '';
-    const sessionScopeLine =
-        options.progress.sessionTotal > 0
-            ? `Working on ${options.progress.currentPromptIndex}/${options.progress.sessionTotal} prompts with Priority ≥${options.config.priority}`
-            : `No runnable prompts with Priority ≥${options.config.priority}`;
-    const sessionCountLine = `Done ${options.progress.sessionDone}/${options.progress.sessionTotal} this run  ·  Repo total ${options.progress.totalPrompts}`;
-    const sessionQueueParts: string[] = [];
-
-    if (options.progress.skippedPrompts > 0) {
-        sessionQueueParts.push(`Skipping ${formatPromptCount(options.progress.skippedPrompts)} with Priority <${options.config.priority}`);
-    }
-    if (options.progress.toBeWrittenPrompts > 0) {
-        sessionQueueParts.push(`Write first ${formatPromptCount(options.progress.toBeWrittenPrompts)}`);
-    }
-
-    const sessionLines = [
-        `${buildPhaseBadge(options.phase, options.pauseState)} ${fitPlainText(options.statusMessage, totalWidth - 18)}`,
-        sessionScopeLine,
-        sessionCountLine,
-        ...(sessionQueueParts.length > 0 ? [sessionQueueParts.join('  ·  ')] : []),
-        `Elapsed ${options.progress.elapsedText}  ·  Est. total ${options.progress.estimatedTotalText}  ·  Est. done ${options.progress.estimatedLabel}`,
-        buildProgressBar(
-            options.progress.percentage,
-            totalWidth - 6,
-            `${options.progress.percentage}% complete (${options.progress.sessionDone}/${options.progress.sessionTotal} done)`,
-        ),
-    ];
-
-    const metadataParts = [options.config.agentName || 'No agent selected'];
-    if (options.config.modelName) {
-        metadataParts.push(options.config.modelName);
-    }
-    if (options.config.thinkingLevel) {
-        metadataParts.push(`thinking ${options.config.thinkingLevel}`);
-    }
-
-    const runnerDetails = [
-        [`${colors.bgCyan.black(' PTBK ')}`, colors.bgBlue.white(' CODER '), colors.bold.white(' Promptbook Coder')]
-            .join(''),
-        metadataParts.join('  ·  '),
-        buildConfigSummaryLine(options.config),
-    ];
+    const sessionLines = buildSessionLines(options, totalWidth);
 
     const currentTaskLines = options.currentPromptLabel
         ? [
@@ -94,7 +77,8 @@ export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
     const controls = buildControlPills(options.pauseState, options.pendingEnterLabel).join('  ');
 
     const frame = [
-        ...renderBox('Brand', runnerDetails, totalWidth, colors.cyan.bold),
+        ...buildBrandIllustration(totalWidth),
+        '',
         ...renderBox('Session', sessionLines, totalWidth, colors.yellow.bold),
         ...renderBox(
             options.currentPromptLabel ? 'Current task' : 'Queue',
@@ -118,6 +102,91 @@ export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
 
     frame.push(...renderBox('Controls', [controls], totalWidth, colors.white.bold));
     return frame;
+}
+
+/**
+ * Builds the colorful standalone branding shown above the session box.
+ */
+function buildBrandIllustration(totalWidth: number): readonly string[] {
+    const lines = [
+        colors.green.bold('ptbk.io'),
+        `${colors.magenta.bold('        .-""""-.')}      ${colors.blue(' .----------------. ')}`,
+        `${colors.magenta.bold("      .'  .-.  '.")}     ${colors.blue('|  ptbk coder    |')}`,
+        `${colors.magenta.bold('     /   (')}${colors.yellow.bold('o o')}${colors.magenta.bold(')   \\')}    ${colors.blue('|   run >_       |')}`,
+        `${colors.magenta.bold('    |      ^      |')}   ${colors.blue('|  shipping fix  |')}`,
+        `${colors.magenta.bold("    |   '---'     |")}   ${colors.blue("'----------------'")}`,
+        colors.cyan(' .-./\\  /|   |\\  /\\.-.'),
+        colors.cyan(' / /  \\/ |   | \\/  \\ \\'),
+        colors.cyan(' \\ \\_/\\__|   |__/\\_/ /'),
+        colors.cyan('  \\/_/   /_/ \\_\\   \\_/'),
+    ];
+
+    return lines.map((line) => centerAnsiText(line, totalWidth));
+}
+
+/**
+ * Builds the structured session lines that combine state, runner, queue, and timing metadata.
+ */
+function buildSessionLines(options: BuildCoderRunUiFrameOptions, totalWidth: number): readonly string[] {
+    const bodyWidth = Math.max(10, totalWidth - 4);
+    return buildSessionRows(options, bodyWidth).map((sessionRow) =>
+        buildLabeledSessionLine(sessionRow.label, sessionRow.value, bodyWidth),
+    );
+}
+
+/**
+ * Builds the session rows so the renderer can keep one consistent structure without duplicating labels.
+ */
+function buildSessionRows(options: BuildCoderRunUiFrameOptions, bodyWidth: number): readonly SessionRow[] {
+    const runnerParts = [options.config.agentName || 'No agent selected'];
+
+    if (options.config.modelName) {
+        runnerParts.push(options.config.modelName);
+    }
+    if (options.config.thinkingLevel) {
+        runnerParts.push(`thinking ${options.config.thinkingLevel}`);
+    }
+
+    const configurationRows = [
+        ...buildOptionalSessionRow('Context', options.config.context),
+        ...buildOptionalSessionRow('Test', options.config.testCommand),
+    ];
+
+    return [
+        {
+            label: 'State',
+            value: `${buildPhaseBadge(options.phase, options.pauseState)} ${options.statusMessage}`,
+        },
+        {
+            label: 'Runner',
+            value: runnerParts.join('  ·  '),
+        },
+        ...configurationRows,
+        {
+            label: 'This run',
+            value: buildThisRunSummary(options.progress),
+        },
+        {
+            label: 'Backlog',
+            value: buildBacklogSummary(options.progress),
+        },
+        {
+            label: 'Scope',
+            value: buildScopeSummary(options.progress, options.config),
+        },
+        {
+            label: 'Timing',
+            value: buildTimingSummary(options.progress),
+        },
+        {
+            label: 'Progress',
+            value: buildProgressBar(
+                options.progress.percentage,
+                bodyWidth - SESSION_LABEL_WIDTH - 1,
+                `${options.progress.percentage}% complete (${options.progress.sessionDone}/${options.progress.sessionTotal} done)`,
+            ),
+        },
+    ];
 }
 
 /**
@@ -161,19 +230,66 @@ function renderBox(
 }
 
 /**
- * Builds the compact config summary line shown in the branding box.
+ * Builds one aligned labeled line inside the session box.
  */
-function buildConfigSummaryLine(config: CoderRunConfig): string {
-    const parts = [`Priority ≥${config.priority}`];
+function buildLabeledSessionLine(label: string, value: string, bodyWidth: number): string {
+    const formattedLabel = colors.gray(label.padEnd(SESSION_LABEL_WIDTH));
+    return `${formattedLabel} ${fitAnsiText(value, bodyWidth - SESSION_LABEL_WIDTH - 1)}`;
+}
 
-    if (config.context) {
-        parts.unshift(`Context ${config.context}`);
+/**
+ * Builds zero or one structured session row for optional metadata.
+ */
+function buildOptionalSessionRow(label: string, value: string | undefined): readonly SessionRow[] {
+    if (!value) {
+        return [];
     }
-    if (config.testCommand) {
-        parts.push(`Test ${config.testCommand}`);
+
+    return [{ label, value }];
+}
+
+/**
+ * Builds the active-session summary shown in the session box.
+ */
+function buildThisRunSummary(progress: CoderRunProgressSnapshot): string {
+    if (progress.sessionTotal === 0) {
+        return 'No runnable prompts in current scope';
+    }
+
+    return `Task ${progress.currentPromptIndex}/${progress.sessionTotal}  ·  ${progress.sessionDone} done  ·  ${progress.sessionRemaining} left`;
+}
+
+/**
+ * Builds the backlog/filter summary shown in the session box.
+ */
+function buildBacklogSummary(progress: CoderRunProgressSnapshot): string {
+    const parts = [`Repo ${progress.totalPrompts} total`];
+
+    if (progress.skippedPrompts > 0) {
+        parts.push(`${formatPromptCount(progress.skippedPrompts)} below priority`);
     }
 
     return parts.join('  ·  ');
+}
+
+/**
+ * Builds the priority/write-order summary shown in the session box.
+ */
+function buildScopeSummary(progress: CoderRunProgressSnapshot, config: CoderRunConfig): string {
+    const parts = [`Priority ≥${config.priority}`];
+
+    if (progress.toBeWrittenPrompts > 0) {
+        parts.push(`Write ${formatPromptCount(progress.toBeWrittenPrompts)} first`);
+    }
+
+    return parts.join('  ·  ');
+}
+
+/**
+ * Builds the elapsed/estimate summary shown in the session box.
+ */
+function buildTimingSummary(progress: CoderRunProgressSnapshot): string {
+    return `Elapsed ${progress.elapsedText}  ·  Total ${progress.estimatedTotalText}  ·  ETA ${progress.estimatedLabel}`;
 }
 
 /**
@@ -243,6 +359,14 @@ function buildControlPills(
     pills.push(colors.bgRed.white(' CTRL+C ') + colors.white(' Exit'));
 
     return pills;
+}
+
+/**
+ * Centers an ANSI-colored line within the available frame width.
+ */
+function centerAnsiText(text: string, width: number): string {
+    const paddingWidth = Math.max(0, Math.floor((width - visibleLength(text)) / 2));
+    return `${' '.repeat(paddingWidth)}${text}`;
 }
 
 /**

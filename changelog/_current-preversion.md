@@ -1,3 +1,9 @@
+-   Refined `ptbk coder run` rich terminal branding so the dashboard now opens with standalone `ptbk.io` octopus art and a more readable session summary:
+
+    -   Replaced the boxed `Brand` header with a centered colorful octopus-and-terminal illustration, keeping the branding outside the framed status sections as requested.
+    -   Moved runner/config metadata into the `Session` box and reorganized it into labeled state, runner, context, test, current-run, backlog, scope, timing, and progress rows.
+    -   Refactored the rich UI frame builder so the session summary is assembled through shared helpers instead of duplicating config strings across separate header sections.
+
 -   Improved Agents Server optimistic route rendering so slow server responses no longer keep users staring at the previous screen during common navigation:
 
     -   Switched same-origin desktop header dropdown navigation and shared context-menu links back onto the Next app router, so admin, system, docs, and agent-route selections now trigger client navigation with the existing route-loading UX instead of forcing a full document reload.

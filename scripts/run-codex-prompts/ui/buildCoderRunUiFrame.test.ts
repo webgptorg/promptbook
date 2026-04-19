@@ -15,7 +15,7 @@ function createFrameOptions(
     overrides: Partial<BuildCoderRunUiFrameOptions> = {},
 ): BuildCoderRunUiFrameOptions {
     return {
-        terminalWidth: 80,
+        terminalWidth: 96,
         spinner: '⠋',
         pauseState: 'RUNNING',
         config: {
@@ -54,20 +54,25 @@ function createFrameOptions(
 }
 
 describe('buildCoderRunUiFrame', () => {
-    it('renders the branded boxed layout with enter and pause controls', () => {
+    it('renders standalone branding and a structured session box with enter and pause controls', () => {
         const lines = buildCoderRunUiFrame(createFrameOptions()).map(stripAnsi);
+        const output = lines.join('\n');
 
-        expect(lines.join('\n')).toContain('Promptbook Coder');
-        expect(lines.join('\n')).toContain('GitHub Copilot  ·  gpt-5.4  ·  thinking xhigh');
-        expect(lines.join('\n')).toContain('Context AGENTS.md  ·  Priority ≥1  ·  Test npm test');
-        expect(lines.join('\n')).toContain('Working on 3/5 prompts with Priority ≥1');
-        expect(lines.join('\n')).toContain('Skipping 12 prompts with Priority <1');
-        expect(lines.join('\n')).toContain('Write first 1 prompt');
-        expect(lines.join('\n')).toContain('Elapsed 2m  ·  Est. total 8m  ·  Est. done Today 9:45');
-        expect(lines.join('\n')).toContain('25% complete (2/5 done)');
-        expect(lines.join('\n')).toContain('Current task');
-        expect(lines.join('\n')).toContain('ENTER  Start');
-        expect(lines.join('\n')).toContain('P  Pause');
+        expect(output).toContain('ptbk.io');
+        expect(output).toContain('ptbk coder');
+        expect(output).toContain('run >_');
+        expect(output).not.toContain('┌ Brand');
+        expect(output).toContain('GitHub Copilot  ·  gpt-5.4  ·  thinking xhigh');
+        expect(output).toContain('Context  AGENTS.md');
+        expect(output).toContain('Test     npm test');
+        expect(output).toContain('This run Task 3/5  ·  2 done  ·  3 left');
+        expect(output).toContain('Backlog  Repo 18 total  ·  12 prompts below priority');
+        expect(output).toContain('Scope    Priority ≥1  ·  Write 1 prompt first');
+        expect(output).toContain('Timing   Elapsed 2m  ·  Total 8m  ·  ETA Today 9:45');
+        expect(output).toContain('25% complete (2/5 done)');
+        expect(output).toContain('Current task');
+        expect(output).toContain('ENTER  Start');
+        expect(output).toContain('P  Pause');
     });
 
     it('keeps the frame height stable while live output grows', () => {
