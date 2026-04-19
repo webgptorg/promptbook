@@ -4,17 +4,9 @@ import type { string_url } from '@promptbook-local/types';
 import { useCallback, useMemo } from 'react';
 import type { AgentOrganizationFolder } from '../../utils/agentOrganization/types';
 import { buildFolderMaps, buildFolderPath, getFolderPathSegments } from './agentOrganizationUtils';
+import { updateHistorySearchParams } from './historySearchParams';
 import type { HomeViewMode } from './homeViewMode';
 import { useFederatedAgents, type AgentWithVisibility } from './useFederatedAgents';
-
-/**
- * Minimal router interface required by the private navigation hook.
- *
- * @private function of AgentsList
- */
-type AgentsListNavigationRouter = {
-    readonly push: (href: string, options?: { scroll?: boolean }) => void;
-};
 
 /**
  * Props accepted by the private navigation and agent-address helper hook.
@@ -24,8 +16,8 @@ type AgentsListNavigationRouter = {
 type UseAgentsListNavigationStateProps = {
     readonly folders: AgentOrganizationFolder[];
     readonly initialExternalAgents?: AgentWithVisibility[];
+    readonly pathname: string;
     readonly publicUrl: string_url;
-    readonly router: AgentsListNavigationRouter;
     readonly searchParamsSnapshot: string;
     readonly showFederatedAgents: boolean;
     readonly viewMode: HomeViewMode;
@@ -55,8 +47,8 @@ type UseAgentsListNavigationStateResult = {
 export function useAgentsListNavigationState({
     folders,
     initialExternalAgents,
+    pathname,
     publicUrl,
-    router,
     searchParamsSnapshot,
     showFederatedAgents,
     viewMode,
@@ -84,17 +76,21 @@ export function useAgentsListNavigationState({
             const targetFolders = overrideFolders || folders;
             const { folderById } = buildFolderMaps(targetFolders);
             const targetSegments = getFolderPathSegments(folderId, folderById).map((folder) => folder.name);
-            const nextSearchParams = new URLSearchParams(searchParamsSnapshot);
+            updateHistorySearchParams({
+                mode: 'push',
+                pathname,
+                searchParamsSnapshot,
+                updateSearchParams: (nextSearchParams) => {
+                    if (targetSegments.length === 0) {
+                        nextSearchParams.delete('folder');
+                        return;
+                    }
 
-            if (targetSegments.length === 0) {
-                nextSearchParams.delete('folder');
-            } else {
-                nextSearchParams.set('folder', buildFolderPath(targetSegments));
-            }
-
-            router.push(`?${nextSearchParams.toString()}`, { scroll: false });
+                    nextSearchParams.set('folder', buildFolderPath(targetSegments));
+                },
+            });
         },
-        [folders, router, searchParamsSnapshot],
+        [folders, pathname, searchParamsSnapshot],
     );
 
     const buildAgentUrl = useCallback(

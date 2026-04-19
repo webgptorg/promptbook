@@ -1,8 +1,9 @@
 'use client';
 
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useCallback } from 'react';
 import type { HomeViewMode } from './homeViewMode';
+import { updateHistorySearchParams } from './historySearchParams';
 import { getHomeViewQueryValue, resolveHomeViewMode } from './homeViewMode';
 
 /**
@@ -14,7 +15,6 @@ type UseAgentsListQueryStateResult = {
     readonly folderQuery: string | null;
     readonly pathname: string;
     readonly routeSyncKey: string;
-    readonly router: ReturnType<typeof useRouter>;
     readonly searchParamsSnapshot: string;
     readonly setViewMode: (mode: HomeViewMode) => void;
     readonly viewMode: HomeViewMode;
@@ -29,35 +29,38 @@ type UseAgentsListQueryStateResult = {
  */
 export function useAgentsListQueryState(): UseAgentsListQueryStateResult {
     const pathname = usePathname();
-    const router = useRouter();
     const searchParams = useSearchParams();
     const pathnameSnapshot = pathname || '/';
     const searchParamsSnapshot = searchParams?.toString() || '';
-    const routeSyncKey = `${pathnameSnapshot}?${searchParamsSnapshot}`;
     const folderQuery = searchParams?.get('folder') || null;
+    const routeSyncKey = folderQuery ? `${pathnameSnapshot}?folder=${folderQuery}` : pathnameSnapshot;
     const viewMode = resolveHomeViewMode(searchParams?.get('view'));
 
     const setViewMode = useCallback(
         (mode: HomeViewMode) => {
-            const nextSearchParams = new URLSearchParams(searchParams?.toString() || '');
-            const viewQueryValue = getHomeViewQueryValue(mode);
+            updateHistorySearchParams({
+                mode: 'replace',
+                pathname: pathnameSnapshot,
+                searchParamsSnapshot,
+                updateSearchParams: (nextSearchParams) => {
+                    const viewQueryValue = getHomeViewQueryValue(mode);
 
-            if (viewQueryValue === null) {
-                nextSearchParams.delete('view');
-            } else {
-                nextSearchParams.set('view', viewQueryValue);
-            }
+                    if (viewQueryValue === null) {
+                        nextSearchParams.delete('view');
+                        return;
+                    }
 
-            router.replace(`?${nextSearchParams.toString()}`, { scroll: false });
+                    nextSearchParams.set('view', viewQueryValue);
+                },
+            });
         },
-        [router, searchParams],
+        [pathnameSnapshot, searchParamsSnapshot],
     );
 
     return {
         folderQuery,
         pathname: pathnameSnapshot,
         routeSyncKey,
-        router,
         searchParamsSnapshot,
         setViewMode,
         viewMode,

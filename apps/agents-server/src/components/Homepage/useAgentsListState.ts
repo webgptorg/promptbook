@@ -81,7 +81,7 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         showFederatedAgents,
         externalAgents: initialExternalAgents,
     } = props;
-    const { folderQuery, pathname, routeSyncKey, router, searchParamsSnapshot, setViewMode, viewMode } =
+    const { folderQuery, pathname, routeSyncKey, searchParamsSnapshot, setViewMode, viewMode } =
         useAgentsListQueryState();
     const { formatText } = useAgentNaming();
     const isTouchInput = useIsTouchInput();
@@ -128,7 +128,6 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         folderQuery,
         pathname,
         routeSyncKey,
-        router,
         searchParamsSnapshot,
     });
 
@@ -136,8 +135,8 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         useAgentsListNavigationState({
             folders,
             initialExternalAgents,
+            pathname,
             publicUrl,
-            router,
             searchParamsSnapshot,
             showFederatedAgents,
             viewMode,
