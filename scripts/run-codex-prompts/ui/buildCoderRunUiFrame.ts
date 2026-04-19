@@ -116,10 +116,10 @@ function buildBrandIllustration(totalWidth: number): readonly string[] {
         )}    ${colors.blue('|   run >_       |')}`,
         `${colors.magenta.bold('    |      ^      |')}   ${colors.blue('|  shipping fix  |')}`,
         `${colors.magenta.bold("    |   '---'     |")}   ${colors.blue("'----------------'")}`,
-        colors.cyan(' .-./\\  /|   |\\  /\\.-.'),
-        colors.cyan(' / /  \\/ |   | \\/  \\ \\'),
-        colors.cyan(' \\ \\_/\\__|   |__/\\_/ /'),
-        colors.cyan('  \\/_/   /_/ \\_\\   \\_/'),
+        colors.cyan(' .-./\\  /|   |\\  /\\.-.                  '),
+        colors.cyan(' / /  \\/ |   | \\/  \\ \\                  '),
+        colors.cyan(' \\ \\_/\\__|   |__/\\_/ /                  '),
+        colors.cyan('  \\/_/   /_/ \\_\\   \\_/                  '),
     ];
 
     return lines.map((line) => centerAnsiText(line, totalWidth));
