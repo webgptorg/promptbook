@@ -1,5 +1,9 @@
 [x] ~$0.00 35 minutes by GitHub Copilot `gpt-5.4`
 
+---
+
+[ ] !
+
 [✨▫️] Enhance the showing of agent progress
 
 -   For ongoing points there should be some spinner animation to show that this point is actively being worked on by the agent, and for completed points there should be a checkmark or something to show that this point is completed.
@@ -48,4 +52,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
