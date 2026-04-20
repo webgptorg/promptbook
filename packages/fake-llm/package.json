@@ -104,6 +104,7 @@
     },
     "dependencies": {
         "crypto": "1.0.1",
+        "crypto-js": "4.2.0",
         "lorem-ipsum": "2.0.8",
         "spacetrim": "0.11.60",
         "waitasecond": "1.11.164"

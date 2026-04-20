@@ -1,5 +1,6 @@
 import colors from 'colors';
 import fs, { readFile, writeFile } from 'fs/promises';
+import { dirname, join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import type { PackageJson } from 'type-fest';
 import { isFileExisting } from '../../src/utils/files/isFileExisting';
@@ -50,6 +51,7 @@ export async function addDependenciesForGeneratedPackages(
         applyGeneratedPackageBin(packageJson, packageMetadata.packageFullname);
         removeReactRuntimeDependenciesFromComponents(packageJson, packageMetadata.packageFullname);
 
+        await writeGeneratedPackageExecutableFiles(packageMetadata.packageBasename, packageMetadata.packageFullname);
         await writeGeneratedPackageJson(packageMetadata.packageBasename, packageJson);
     }
 }
@@ -214,14 +216,46 @@ async function detectBundleDependencies(
  * @returns Whether the bundle references the dependency
  * @private internal utility of addDependenciesForGeneratedPackages
  */
-function bundleReferencesDependency(bundleContent: string, dependencyName: string): boolean {
-    return (
-        bundleContent.includes(`from '${dependencyName}'`) ||
-        bundleContent.includes(`require('${dependencyName}')`) ||
-        bundleContent.includes(`require("${dependencyName}")`) ||
-        bundleContent.includes(`import('${dependencyName}')`) ||
-        bundleContent.includes(`import("${dependencyName}")`)
+export function bundleReferencesDependency(bundleContent: string, dependencyName: string): boolean {
+    return createDependencyReferenceNeedles(dependencyName).some((dependencyReferenceNeedle) =>
+        bundleContent.includes(dependencyReferenceNeedle),
     );
+}
+
+/**
+ * Creates string needles that match exact and subpath bundle references for one dependency.
+ *
+ * @param dependencyName - Dependency name
+ * @returns Bundle substrings that indicate a runtime reference
+ * @private internal utility of addDependenciesForGeneratedPackages
+ */
+function createDependencyReferenceNeedles(dependencyName: string): Array<string> {
+    return [
+        ...createDependencyReferenceNeedlesWithPrefix('import ', dependencyName),
+        ...createDependencyReferenceNeedlesWithPrefix('from ', dependencyName),
+        ...createDependencyReferenceNeedlesWithPrefix('require(', dependencyName),
+        ...createDependencyReferenceNeedlesWithPrefix('import(', dependencyName),
+    ];
+}
+
+/**
+ * Creates bundle-reference needles for one prefix and dependency.
+ *
+ * Matching both exact imports and `dependency/subpath` imports keeps package detection aligned
+ * with Node resolution for entries such as `react-dom/server` and `crypto-js/sha256`.
+ *
+ * @param prefix - Syntax prefix preceding the module specifier
+ * @param dependencyName - Dependency name
+ * @returns Candidate substrings to search for in generated bundles
+ * @private internal utility of addDependenciesForGeneratedPackages
+ */
+function createDependencyReferenceNeedlesWithPrefix(prefix: string, dependencyName: string): Array<string> {
+    return [
+        `${prefix}'${dependencyName}'`,
+        `${prefix}"${dependencyName}"`,
+        `${prefix}'${dependencyName}/`,
+        `${prefix}"${dependencyName}/`,
+    ];
 }
 
 /**
@@ -327,6 +361,72 @@ function applyGeneratedPackageBin(packageJson: PackageJson, packageFullname: str
             ptbk: 'bin/promptbook-cli-proxy.js',
         };
     }
+}
+
+/**
+ * Returns generated executable files that should be published with one package.
+ *
+ * @param packageFullname - Full package name
+ * @returns Relative file path to generated file content map
+ * @private internal utility of addDependenciesForGeneratedPackages
+ */
+export function getGeneratedPackageExecutableFiles(packageFullname: string): Record<string, string> {
+    if (packageFullname === 'ptbk') {
+        return {
+            'bin/promptbook-cli-proxy.js': createPtbkCliProxyFileContent(),
+        };
+    }
+
+    return {};
+}
+
+/**
+ * Writes generated executable files for one package.
+ *
+ * @param packageBasename - Basename of the generated package
+ * @param packageFullname - Full package name
+ * @private internal utility of addDependenciesForGeneratedPackages
+ */
+async function writeGeneratedPackageExecutableFiles(packageBasename: string, packageFullname: string): Promise<void> {
+    const generatedPackageExecutableFiles = getGeneratedPackageExecutableFiles(packageFullname);
+
+    for (const [relativeFilePath, content] of Object.entries(generatedPackageExecutableFiles)) {
+        const filePath = join('./packages', packageBasename, relativeFilePath);
+
+        await fs.mkdir(dirname(filePath), { recursive: true });
+        await writeFile(filePath, content + '\n');
+    }
+}
+
+/**
+ * Creates the published `ptbk` proxy launcher that forwards to `@promptbook/cli`.
+ *
+ * The proxy resolves `@promptbook/cli` from the installed `promptbook` dependency so it works
+ * whether npm hoists `@promptbook/cli` next to `promptbook` or nests it inside `promptbook/node_modules`.
+ *
+ * @returns JavaScript launcher content for `packages/ptbk/bin/promptbook-cli-proxy.js`
+ * @private internal utility of addDependenciesForGeneratedPackages
+ */
+function createPtbkCliProxyFileContent(): string {
+    return spaceTrim(`
+        #!/usr/bin/env node
+        //               <- TODO: [🎺] Ensure correct version of Node.js is used
+        // promptbook-cli-proxy.js
+
+        /**
+         * Note: [🔺] Purpose of this file is to forward \`ptbk\` package launches to \`@promptbook/cli\`
+         */
+
+        const { dirname } = require('path');
+
+        // Resolve through \`promptbook\` so the proxy works for both hoisted and nested installs.
+        const promptbookPackageRoot = dirname(require.resolve('promptbook/package.json'));
+        const promptbookCliEntrypoint = require.resolve('@promptbook/cli/bin/promptbook-cli.js', {
+            paths: [promptbookPackageRoot, __dirname],
+        });
+
+        require(promptbookCliEntrypoint);
+    `);
 }
 
 /**

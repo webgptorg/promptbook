@@ -1,3 +1,9 @@
+-   Fixed published `ptbk` CLI packaging so installed `ptbk` commands now run directly without `npx`:
+
+    -   Replaced the generated `ptbk` wrapper placeholder with a real Node proxy that resolves and executes the published `@promptbook/cli` launcher through the installed `promptbook` dependency, so `ptbk ...` works for both hoisted and nested installs.
+    -   Fixed generated package dependency detection for side-effect-only and subpath ESM imports, so published CLI manifests now include runtime dependencies such as `@supabase/supabase-js` and `react-dom` when the bundle imports `@supabase/supabase-js` or `react-dom/server`.
+    -   Added regression coverage for both generated `ptbk` executable files and runtime dependency detection, keeping the forwarding launcher in package generation instead of relying on a checked-in placeholder script.
+
 -   Improved Agents Server optimistic folder/query navigation so slow same-page server renders no longer block common workspace browsing flows:
 
     -   Moved homepage and dashboard folder/view query handling onto a shared client-side section wrapper, so opening folders, returning to parent folders, and switching homepage view modes now update immediately while reusing the existing client-maintained agent/folder snapshot.
