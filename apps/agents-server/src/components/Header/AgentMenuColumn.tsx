@@ -345,6 +345,7 @@ function AgentMenuFolderNodeItem({
         <div className={createFolderWrapperClassName(isTouchInput)}>
             <HeadlessLink
                 href={node.href}
+                isOptimisticSamePathNavigation={true}
                 onClick={(event) =>
                     handleFolderLinkClick(
                         event,

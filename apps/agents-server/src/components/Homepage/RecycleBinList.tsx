@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useMemo } from 'react';
 import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
+import { useCurrentPathQueryNavigation } from '../_utils/useCurrentPathQueryNavigation';
 import { AgentCard } from './AgentCard';
 import { FolderCard } from './FolderCard';
 import { showAlert } from '../AsyncDialogs/asyncDialogs';
@@ -50,6 +51,7 @@ export function RecycleBinList(props: RecycleBinListProps) {
     const { agents, folders, canRestore, publicUrl } = props;
     const router = useRouter();
     const searchParams = useSearchParams();
+    const updateCurrentPathQuery = useCurrentPathQueryNavigation();
     const { formatText } = useAgentNaming();
     const folderPathSegments = parseFolderPath(searchParams?.get('folder') ?? null);
     const currentFolderId = useMemo(
@@ -95,7 +97,7 @@ export function RecycleBinList(props: RecycleBinListProps) {
             params.set('folder', buildFolderPath(targetSegments));
         }
 
-        router.push(`?${params.toString()}`, { scroll: false });
+        updateCurrentPathQuery(params);
     };
 
     /**

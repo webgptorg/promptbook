@@ -1,3 +1,9 @@
+-   Improved Agents Server optimistic folder/query navigation so slow same-page server renders no longer block common workspace browsing flows:
+
+    -   Moved homepage and dashboard folder/view query handling onto a shared client-side section wrapper, so opening folders, returning to parent folders, and switching homepage view modes now update immediately while reusing the existing client-maintained agent/folder snapshot.
+    -   Replaced homepage and recycle-bin folder query pushes with one shared current-path history helper, keeping the URL in sync without waiting for a server round-trip when the page already has the data needed to render the next folder.
+    -   Added opt-in same-path optimistic behavior to the shared `HeadlessLink` and enabled it across the main header folder-navigation links, so folder navigation from the header now feels immediate on the homepage as well.
+
 -   Changed Agents Server default agent avatars to the shared animated `Octopus2` visual whenever an agent does not define `META IMAGE`, while still honoring explicit `META IMAGE` overrides and `META COLOR` palettes across agent cards, chat UI, profile views, metadata images, and default avatar image routes:
 
     -   Added one shared avatar-resolution contract that can return either an explicit image or a deterministic built-in visual, keeping the fallback logic DRY and making future default-visual swaps straightforward.

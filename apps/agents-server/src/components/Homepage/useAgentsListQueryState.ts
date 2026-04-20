@@ -1,7 +1,8 @@
 'use client';
 
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useCallback } from 'react';
+import { useCurrentPathQueryNavigation } from '../_utils/useCurrentPathQueryNavigation';
 import type { HomeViewMode } from './homeViewMode';
 import { getHomeViewQueryValue, resolveHomeViewMode } from './homeViewMode';
 
@@ -12,12 +13,11 @@ import { getHomeViewQueryValue, resolveHomeViewMode } from './homeViewMode';
  */
 type UseAgentsListQueryStateResult = {
     readonly folderQuery: string | null;
-    readonly pathname: string;
     readonly routeSyncKey: string;
-    readonly router: ReturnType<typeof useRouter>;
     readonly searchParamsSnapshot: string;
     readonly setViewMode: (mode: HomeViewMode) => void;
     readonly viewMode: HomeViewMode;
+    readonly updateCurrentPathQuery: ReturnType<typeof useCurrentPathQueryNavigation>;
 };
 
 /**
@@ -28,12 +28,10 @@ type UseAgentsListQueryStateResult = {
  * @private function of AgentsList
  */
 export function useAgentsListQueryState(): UseAgentsListQueryStateResult {
-    const pathname = usePathname();
-    const router = useRouter();
     const searchParams = useSearchParams();
-    const pathnameSnapshot = pathname || '/';
+    const updateCurrentPathQuery = useCurrentPathQueryNavigation();
     const searchParamsSnapshot = searchParams?.toString() || '';
-    const routeSyncKey = `${pathnameSnapshot}?${searchParamsSnapshot}`;
+    const routeSyncKey = `?${searchParamsSnapshot}`;
     const folderQuery = searchParams?.get('folder') || null;
     const viewMode = resolveHomeViewMode(searchParams?.get('view'));
 
@@ -48,18 +46,17 @@ export function useAgentsListQueryState(): UseAgentsListQueryStateResult {
                 nextSearchParams.set('view', viewQueryValue);
             }
 
-            router.replace(`?${nextSearchParams.toString()}`, { scroll: false });
+            updateCurrentPathQuery(nextSearchParams, 'replace');
         },
-        [router, searchParams],
+        [searchParams, updateCurrentPathQuery],
     );
 
     return {
         folderQuery,
-        pathname: pathnameSnapshot,
         routeSyncKey,
-        router,
         searchParamsSnapshot,
         setViewMode,
         viewMode,
+        updateCurrentPathQuery,
     };
 }

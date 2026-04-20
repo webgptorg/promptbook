@@ -114,6 +114,7 @@ export function createHeaderDropdownRenderers({
                     key={itemKey}
                     href={item.href}
                     className={className}
+                    isOptimisticSamePathNavigation={true}
                     style={style}
                     onClick={() => {
                         void item.onClick?.();
@@ -205,6 +206,7 @@ export function createHeaderDropdownRenderers({
                     key={key}
                     href={item.href}
                     className={className}
+                    isOptimisticSamePathNavigation={true}
                     onClick={() => {
                         void item.onClick?.();
                         onItemSelected();

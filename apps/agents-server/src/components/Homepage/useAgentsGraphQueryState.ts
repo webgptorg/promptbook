@@ -1,7 +1,8 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useCallback, useState } from 'react';
+import { useCurrentPathQueryNavigation } from '../_utils/useCurrentPathQueryNavigation';
 import { CONNECTION_TYPES, normalizeServerUrl, parseConnectionTypes, type ConnectionType } from './buildGraphData';
 
 /**
@@ -155,8 +156,8 @@ function toggleConnectionType(
  * @private function of AgentsGraph
  */
 export function useAgentsGraphQueryState(): UseAgentsGraphQueryStateResult {
-    const router = useRouter();
     const searchParams = useSearchParams();
+    const updateCurrentPathQuery = useCurrentPathQueryNavigation();
     const [filterType, setFilterType] = useState<ConnectionType[]>(
         parseConnectionTypes(searchParams?.get('connectionTypes') ?? null),
     );
@@ -179,9 +180,9 @@ export function useAgentsGraphQueryState(): UseAgentsGraphQueryStateResult {
                 nextSelectedServerUrl,
                 nextSelectedAgentName,
             );
-            router.replace(`?${params.toString()}`, { scroll: false });
+            updateCurrentPathQuery(params, 'replace');
         },
-        [router, searchParams],
+        [searchParams, updateCurrentPathQuery],
     );
 
     const toggleFilter = useCallback(

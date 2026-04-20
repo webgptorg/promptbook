@@ -101,4 +101,20 @@ describe('HeadlessLink', () => {
         expect(routerPushMock).not.toHaveBeenCalled();
         expect(dispatchNavigationProgressStartMock).not.toHaveBeenCalled();
     });
+
+    it('updates same-path query links optimistically when explicitly enabled', () => {
+        window.history.replaceState(null, '', 'http://localhost/?folder=engineering');
+
+        render(
+            <HeadlessLink href="/?folder=sales" isOptimisticSamePathNavigation={true}>
+                Open folder
+            </HeadlessLink>,
+        );
+
+        fireEvent.click(screen.getByRole('link', { name: 'Open folder' }));
+
+        expect(window.location.search).toBe('?folder=sales');
+        expect(routerPushMock).not.toHaveBeenCalled();
+        expect(dispatchNavigationProgressStartMock).not.toHaveBeenCalled();
+    });
 });

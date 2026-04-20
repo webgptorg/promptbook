@@ -1,3 +1,5 @@
+'use client';
+
 import { MarkdownContent } from '@promptbook-local/components';
 
 /**

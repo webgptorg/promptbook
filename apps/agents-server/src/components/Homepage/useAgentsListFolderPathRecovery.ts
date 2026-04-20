@@ -1,7 +1,7 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import type { CurrentPathQueryNavigationMode } from '../_utils/useCurrentPathQueryNavigation';
 import { logOrganizationSyncDebug } from './useAgentsListSyncState';
 
 /**
@@ -14,10 +14,9 @@ type UseAgentsListFolderPathRecoveryProps = {
     readonly folderPathSegments: ReadonlyArray<string>;
     readonly lastSyncedRouteKey: string | null;
     readonly folderQuery: string | null;
-    readonly pathname: string;
     readonly routeSyncKey: string;
-    readonly router: ReturnType<typeof useRouter>;
     readonly searchParamsSnapshot: string;
+    readonly updateCurrentPathQuery: (nextQuery: URLSearchParams, mode?: CurrentPathQueryNavigationMode) => void;
 };
 
 /**
@@ -32,10 +31,9 @@ export function useAgentsListFolderPathRecovery({
     folderPathSegments,
     lastSyncedRouteKey,
     folderQuery,
-    pathname,
     routeSyncKey,
-    router,
     searchParamsSnapshot,
+    updateCurrentPathQuery,
 }: UseAgentsListFolderPathRecoveryProps): void {
     useEffect(() => {
         if (folderPathSegments.length === 0 || currentFolderId !== null) {
@@ -56,15 +54,14 @@ export function useAgentsListFolderPathRecovery({
             nextQuery: nextQuery || null,
         });
 
-        router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+        updateCurrentPathQuery(params, 'replace');
     }, [
         currentFolderId,
         folderPathSegments,
         folderQuery,
         lastSyncedRouteKey,
-        pathname,
         routeSyncKey,
-        router,
         searchParamsSnapshot,
+        updateCurrentPathQuery,
     ]);
 }

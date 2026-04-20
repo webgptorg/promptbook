@@ -37,6 +37,7 @@ export function HeaderHomepageLink({
     return (
         <HeadlessLink
             href="/"
+            isOptimisticSamePathNavigation={true}
             aria-label={serverName}
             className={`flex min-w-0 items-center gap-3 ${className}`.trim()}
             onClick={onClick}

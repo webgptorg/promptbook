@@ -7,19 +7,15 @@ import { getSingleLlmExecutionTools } from '@promptbook-local/core';
 import moment from 'moment';
 import { headers } from 'next/headers';
 import { AboutPromptbookInformation } from '../../../../../src/utils/misc/xAboutPromptbookInformation';
-import { AgentsList } from '../../components/Homepage/AgentsList';
-import { ExternalAgentsSectionClient } from '../../components/Homepage/ExternalAgentsSectionClient';
-import { HomepageMessage } from '../../components/Homepage/HomepageMessage';
+import { HomepagePrimarySections } from '../../components/Homepage/HomepagePrimarySections';
 import { ModelsSection } from '../../components/Homepage/ModelsSection';
 import { Section } from '../../components/Homepage/Section';
 import { TechInfoCard } from '../../components/Homepage/TechInfoCard';
-import { isHomeListViewMode, resolveHomeViewModeFromSearchParam } from '../../components/Homepage/homeViewMode';
 import { UsersList } from '../../components/UsersList/UsersList';
 import VercelDeploymentCard from '../../components/VercelDeploymentCard/VercelDeploymentCard';
 import { getLongRunningTask } from '../../deamons/longRunningTask';
 import { $provideExecutionToolsForServer } from '../../tools/$provideExecutionToolsForServer';
 import { $provideServer } from '../../tools/$provideServer';
-import { getIsSubfolderView } from '../../utils/getIsSubfolderView';
 import { isUserAdmin } from '../../utils/isUserAdmin';
 import { getHomePageAgents } from '../_data/getHomePageAgents';
 
@@ -37,16 +33,9 @@ const calendarWithSeconds = {
 };
 
 /**
- * Props for the system dashboard page.
- */
-type DashboardPageProps = {
-    searchParams: Promise<Record<string, string | string[] | undefined>>;
-};
-
-/**
  * Renders the legacy dashboard with system and admin details.
  */
-export default async function DashboardPage(props: DashboardPageProps) {
+export default async function DashboardPage() {
     const server = await $provideServer();
     const { publicUrl } = server;
     const isAdmin = await isUserAdmin(); /* <- TODO: [??] Here should be user permissions */
@@ -66,28 +55,17 @@ export default async function DashboardPage(props: DashboardPageProps) {
 
     const host = (await headers()).get('host') || 'unknown';
 
-    const searchParams = await props.searchParams;
-    const viewMode = resolveHomeViewModeFromSearchParam(searchParams?.view);
-    const isListView = isHomeListViewMode(viewMode);
-    const isSubfolderView = getIsSubfolderView(searchParams);
-
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
             <div className="container mx-auto px-4 py-16">
-                {!isSubfolderView && <HomepageMessage message={homepageMessage} />}
-                <AgentsList
-                    agents={[...agents]}
-                    folders={[...folders]}
+                <HomepagePrimarySections
+                    agents={agents}
+                    folders={folders}
                     isAdmin={isAdmin}
                     canOrganize={Boolean(currentUser)}
-                    publicUrl={publicUrl.href /* <- [??] */}
-                    showFederatedAgents={!isSubfolderView}
-                    isSubfolderView={isSubfolderView}
+                    publicUrl={publicUrl.href}
+                    homepageMessage={homepageMessage}
                 />
-
-                {isListView && !isSubfolderView && (
-                    <ExternalAgentsSectionClient publicUrl={publicUrl.href /* <- [??] */} />
-                )}
 
                 {isAdmin && <UsersList allowCreate={false} />}
 

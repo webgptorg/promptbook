@@ -13,6 +13,11 @@ import { dispatchNavigationProgressStart } from '../NavigationProgress/navigatio
 type HeadlessLinkProps = LinkProps &
     AnchorHTMLAttributes<HTMLAnchorElement> & {
         children: ReactNode;
+        /**
+         * Applies the navigation immediately through the browser history API when
+         * the destination only changes the current pathname's query string/hash.
+         */
+        isOptimisticSamePathNavigation?: boolean;
     };
 
 /**
@@ -84,6 +89,37 @@ export function isSameOriginHref(href: string): boolean {
 }
 
 /**
+ * Attempts one immediate same-path browser-history navigation.
+ *
+ * @param href - Destination href to evaluate.
+ * @returns True when the current location was updated optimistically.
+ */
+function tryOptimisticSamePathNavigation(href: string): boolean {
+    if (typeof window === 'undefined') {
+        return false;
+    }
+
+    try {
+        const destination = new URL(href, window.location.href);
+        if (destination.origin !== window.location.origin || destination.pathname !== window.location.pathname) {
+            return false;
+        }
+
+        const nextRelativeLocation = `${destination.pathname}${destination.search}${destination.hash}`;
+        const currentRelativeLocation = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+
+        if (nextRelativeLocation === currentRelativeLocation) {
+            return true;
+        }
+
+        window.history.pushState(null, '', nextRelativeLocation);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+/**
  * Custom Link that preserves `?headless` query param across client-side navigations.
  *
  * @param props - Link props and HTML anchor attributes.
@@ -93,6 +129,7 @@ export function HeadlessLink({
     href,
     children,
     download,
+    isOptimisticSamePathNavigation = false,
     onClick,
     target,
     ...rest
@@ -113,10 +150,15 @@ export function HeadlessLink({
             }
 
             event.preventDefault();
+
+            if (isOptimisticSamePathNavigation && tryOptimisticSamePathNavigation(finalHref)) {
+                return;
+            }
+
             dispatchNavigationProgressStart({ href: finalHref, source: 'link' });
             router.push(finalHref);
         },
-        [download, finalHref, onClick, router, target],
+        [download, finalHref, isOptimisticSamePathNavigation, onClick, router, target],
     );
 
     return (

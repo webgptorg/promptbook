@@ -3,18 +3,17 @@
 import type { string_url } from '@promptbook-local/types';
 import { useCallback, useMemo } from 'react';
 import type { AgentOrganizationFolder } from '../../utils/agentOrganization/types';
+import type { CurrentPathQueryNavigationMode } from '../_utils/useCurrentPathQueryNavigation';
 import { buildFolderMaps, buildFolderPath, getFolderPathSegments } from './agentOrganizationUtils';
 import type { HomeViewMode } from './homeViewMode';
 import { useFederatedAgents, type AgentWithVisibility } from './useFederatedAgents';
 
 /**
- * Minimal router interface required by the private navigation hook.
+ * Minimal current-path query navigation interface required by the private navigation hook.
  *
  * @private function of AgentsList
  */
-type AgentsListNavigationRouter = {
-    readonly push: (href: string, options?: { scroll?: boolean }) => void;
-};
+type AgentsListNavigationHandler = (nextQuery: URLSearchParams, mode?: CurrentPathQueryNavigationMode) => void;
 
 /**
  * Props accepted by the private navigation and agent-address helper hook.
@@ -25,9 +24,9 @@ type UseAgentsListNavigationStateProps = {
     readonly folders: AgentOrganizationFolder[];
     readonly initialExternalAgents?: AgentWithVisibility[];
     readonly publicUrl: string_url;
-    readonly router: AgentsListNavigationRouter;
     readonly searchParamsSnapshot: string;
     readonly showFederatedAgents: boolean;
+    readonly updateCurrentPathQuery: AgentsListNavigationHandler;
     readonly viewMode: HomeViewMode;
 };
 
@@ -56,9 +55,9 @@ export function useAgentsListNavigationState({
     folders,
     initialExternalAgents,
     publicUrl,
-    router,
     searchParamsSnapshot,
     showFederatedAgents,
+    updateCurrentPathQuery,
     viewMode,
 }: UseAgentsListNavigationStateProps): UseAgentsListNavigationStateResult {
     const normalizedPublicUrl = useMemo(
@@ -92,9 +91,9 @@ export function useAgentsListNavigationState({
                 nextSearchParams.set('folder', buildFolderPath(targetSegments));
             }
 
-            router.push(`?${nextSearchParams.toString()}`, { scroll: false });
+            updateCurrentPathQuery(nextSearchParams);
         },
-        [folders, router, searchParamsSnapshot],
+        [folders, searchParamsSnapshot, updateCurrentPathQuery],
     );
 
     const buildAgentUrl = useCallback(
