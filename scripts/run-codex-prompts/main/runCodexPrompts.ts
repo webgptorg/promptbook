@@ -134,6 +134,23 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
     const progressDisplay =
         options.dryRun || options.noUi || isRichUiEnabled ? undefined : new CliProgressDisplay(runStartDate, options.priority);
     const uiHandle: CoderRunUiHandle | undefined = isRichUiEnabled ? renderCoderRunUi(runStartDate) : undefined;
+    const waitForRequestedPause = async (): Promise<void> => {
+        await checkPause({
+            silent: isRichUiEnabled,
+            onPaused: () => {
+                progressDisplay?.pauseTimer();
+                uiHandle?.state.pauseTimer();
+                uiHandle?.state.setPhase('paused');
+                uiHandle?.state.setStatusMessage('Paused');
+            },
+            onResumed: () => {
+                progressDisplay?.resumeTimer();
+                uiHandle?.state.resumeTimer();
+                uiHandle?.state.setPhase('loading');
+                uiHandle?.state.setStatusMessage('Resuming...');
+            },
+        });
+    };
 
     // When the Ink UI is active it handles keyboard input itself, so skip the raw stdin listener.
     if (!isRichUiEnabled) {
@@ -258,19 +275,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
         let hasWaitedForStart = false;
 
         while (just(true)) {
-            await checkPause({
-                silent: isRichUiEnabled,
-                onPaused: () => {
-                    progressDisplay?.pauseTimer();
-                    uiHandle?.state.pauseTimer();
-                    uiHandle?.state.setPhase('paused');
-                    uiHandle?.state.setStatusMessage('Paused');
-                },
-                onResumed: () => {
-                    progressDisplay?.resumeTimer();
-                    uiHandle?.state.resumeTimer();
-                },
-            });
+            await waitForRequestedPause();
             if (isRichUiEnabled) {
                 uiHandle?.state.setPhase('loading');
                 uiHandle?.state.setStatusMessage('Loading prompts...');
@@ -349,6 +354,7 @@ export async function runCodexPrompts(providedOptions?: RunOptions): Promise<voi
             );
 
             const scriptPath = buildScriptPath(nextPrompt.file, nextPrompt.section);
+            await waitForRequestedPause();
 
             if (isRichUiEnabled) {
                 uiHandle?.state.setCurrentPrompt(promptLabel);

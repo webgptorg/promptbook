@@ -1,3 +1,9 @@
+-   Fixed `ptbk coder run` pausing/resuming so the runner now behaves as an explicit three-state flow: `running`, `pausing`, and `paused`:
+
+    -   Kept the shared pause controller DRY by routing both the plain terminal listener and the rich UI hotkey through the same toggle lifecycle, so pressing `P` while running requests a pause, pressing it again while pausing cancels that request, and pressing it while paused resumes the runner.
+    -   Tightened the main `scripts/run-codex-prompts` loop so a pending pause is checked again immediately before each new task starts, which prevents `--no-wait` runs from launching another prompt after the current one finishes when the user already requested a pause.
+    -   Updated the rich `ptbk coder run` dashboard to render distinct `PAUSING` and `PAUSED` states, including pause-aware badges, footer controls, and animation timing so the UI stays visibly active while the current task is finishing and then becomes fully paused before the next task.
+
 -   Optimized `ptbk coder generate-boilerplates` emoji selection so large repositories no longer rescan every file against every emoji on each run:
 
     -   Replaced the old nested `files x emojis` string-search loop with a shared bracketed-emoji scanner that reads each file once and extracts matching tags with a compiled regex, which also speeds up the related `ptbk coder find-fresh-emoji-tags` path.

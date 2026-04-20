@@ -1,4 +1,4 @@
-import type { CoderRunPauseState } from './buildCoderRunUiFrame';
+import type { CoderRunPauseState } from '../common/waitForPause';
 import type { CoderRunPhase } from './CoderRunUiState';
 
 /**
@@ -22,7 +22,9 @@ const AUTO_REFRESH_PHASES: readonly CoderRunPhase[] = ['initializing', 'loading'
  * @private internal utility of coder run UI
  */
 export function isCoderRunUiAutoRefreshing(phase: CoderRunPhase, pauseState: CoderRunPauseState): boolean {
-    if (pauseState !== 'RUNNING') {
+    // `PAUSING` still means the current task is winding down, so keep active
+    // animations/timers running until the runner reaches the fully paused state.
+    if (pauseState === 'PAUSED') {
         return false;
     }
 

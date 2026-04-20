@@ -8,6 +8,7 @@ describe('getCoderRunUiAutoRefreshInterval', () => {
     it('shares one animation gate for both timed refreshes and visual animation', () => {
         expect(isCoderRunUiAutoRefreshing('initializing', 'RUNNING')).toBe(true);
         expect(isCoderRunUiAutoRefreshing('running', 'RUNNING')).toBe(true);
+        expect(isCoderRunUiAutoRefreshing('running', 'PAUSING')).toBe(true);
         expect(isCoderRunUiAutoRefreshing('waiting', 'RUNNING')).toBe(false);
         expect(isCoderRunUiAutoRefreshing('running', 'PAUSED')).toBe(false);
     });
@@ -25,6 +26,9 @@ describe('getCoderRunUiAutoRefreshInterval', () => {
         expect(getCoderRunUiAutoRefreshInterval('verifying', 'RUNNING')).toBe(
             ACTIVE_CODER_RUN_UI_REFRESH_INTERVAL_MS,
         );
+        expect(getCoderRunUiAutoRefreshInterval('running', 'PAUSING')).toBe(
+            ACTIVE_CODER_RUN_UI_REFRESH_INTERVAL_MS,
+        );
     });
 
     it('stops automatic refreshes while the UI should stay visually still', () => {
@@ -32,7 +36,6 @@ describe('getCoderRunUiAutoRefreshInterval', () => {
         expect(getCoderRunUiAutoRefreshInterval('paused', 'RUNNING')).toBeUndefined();
         expect(getCoderRunUiAutoRefreshInterval('done', 'RUNNING')).toBeUndefined();
         expect(getCoderRunUiAutoRefreshInterval('error', 'RUNNING')).toBeUndefined();
-        expect(getCoderRunUiAutoRefreshInterval('running', 'PAUSING')).toBeUndefined();
         expect(getCoderRunUiAutoRefreshInterval('running', 'PAUSED')).toBeUndefined();
     });
 });

@@ -1,6 +1,6 @@
 import moment from 'moment';
 import { clearLine, cursorTo } from 'readline';
-import { getPauseState, requestPause, requestResume } from '../common/waitForPause';
+import { getPauseState, togglePauseState } from '../common/waitForPause';
 import { buildCoderRunUiFrame } from './buildCoderRunUiFrame';
 import { CoderRunUiState } from './CoderRunUiState';
 import { getCoderRunUiAutoRefreshInterval } from './coderRunUiRefresh';
@@ -287,12 +287,7 @@ export function renderCoderRunUi(startTime: moment.Moment): CoderRunUiHandle {
         }
 
         if (key.name === 'p') {
-            if (getPauseState() === 'RUNNING') {
-                requestPause();
-            } else {
-                requestResume();
-            }
-
+            togglePauseState();
             scheduleRender();
             return;
         }

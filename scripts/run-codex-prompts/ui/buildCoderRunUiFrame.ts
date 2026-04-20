@@ -1,7 +1,8 @@
 import colors from 'colors';
+import type { CoderRunPauseState } from '../common/waitForPause';
 import type { CoderRunConfig, CoderRunPhase, CoderRunProgressSnapshot } from './CoderRunUiState';
 import { buildCoderRunOctopusVisual } from './buildCoderRunOctopusVisual';
-import { fitAnsiText, fitPlainText, padAnsiText, stripAnsi, visibleLength } from './coderRunUiText';
+import { fitAnsiText, fitPlainText, padAnsiText, stripAnsi } from './coderRunUiText';
 import { isCoderRunUiAutoRefreshing } from './coderRunUiRefresh';
 
 /**
@@ -35,7 +36,16 @@ type SessionRow = {
 /**
  * Shared pause-state shape between the renderer and the frame builder.
  */
-export type CoderRunPauseState = 'RUNNING' | 'PAUSING' | 'PAUSED';
+export type { CoderRunPauseState };
+
+/**
+ * Shared copy and colors derived from the current pause lifecycle state.
+ */
+type PausePresentation = {
+    readonly badge: string;
+    readonly stateMessage: string;
+    readonly pauseControl: string;
+};
 
 /**
  * Snapshot consumed by the pure coder-run frame builder.
@@ -68,7 +78,8 @@ export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
     const octopusAnimationFrame = isCoderRunUiAutoRefreshing(options.phase, options.pauseState)
         ? options.animationFrame
         : 0;
-    const sessionLines = buildSessionLines(options, totalWidth);
+    const pausePresentation = buildPausePresentation(options.phase, options.pauseState, options.statusMessage);
+    const sessionLines = buildSessionLines(options, totalWidth, pausePresentation);
 
     const currentTaskLines = options.currentPromptLabel
         ? [
@@ -80,7 +91,7 @@ export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
 
     const visibleOutputLines = buildVisibleOutputLines(options.agentOutputLines);
 
-    const controls = buildControlPills(options.pauseState, options.pendingEnterLabel).join('  ');
+    const controls = buildControlPills(pausePresentation.pauseControl, options.pendingEnterLabel).join('  ');
 
     const frame = [
         ...buildCoderRunOctopusVisual({ totalWidth, animationFrame: octopusAnimationFrame }),
@@ -113,9 +124,13 @@ export function buildCoderRunUiFrame(options: BuildCoderRunUiFrameOptions): stri
 /**
  * Builds the structured session lines that combine state, runner, queue, and timing metadata.
  */
-function buildSessionLines(options: BuildCoderRunUiFrameOptions, totalWidth: number): readonly string[] {
+function buildSessionLines(
+    options: BuildCoderRunUiFrameOptions,
+    totalWidth: number,
+    pausePresentation: PausePresentation,
+): readonly string[] {
     const bodyWidth = Math.max(10, totalWidth - 4);
-    return buildSessionRows(options, bodyWidth).map((sessionRow) =>
+    return buildSessionRows(options, bodyWidth, pausePresentation).map((sessionRow) =>
         buildLabeledSessionLine(sessionRow.label, sessionRow.value, bodyWidth),
     );
 }
@@ -123,7 +138,11 @@ function buildSessionLines(options: BuildCoderRunUiFrameOptions, totalWidth: num
 /**
  * Builds the session rows so the renderer can keep one consistent structure without duplicating labels.
  */
-function buildSessionRows(options: BuildCoderRunUiFrameOptions, bodyWidth: number): readonly SessionRow[] {
+function buildSessionRows(
+    options: BuildCoderRunUiFrameOptions,
+    bodyWidth: number,
+    pausePresentation: PausePresentation,
+): readonly SessionRow[] {
     const runnerParts = [options.config.agentName || 'No agent selected'];
 
     if (options.config.modelName) {
@@ -141,7 +160,7 @@ function buildSessionRows(options: BuildCoderRunUiFrameOptions, bodyWidth: numbe
     return [
         {
             label: 'State',
-            value: `${buildPhaseBadge(options.phase, options.pauseState)} ${options.statusMessage}`,
+            value: `${pausePresentation.badge} ${pausePresentation.stateMessage}`,
         },
         {
             label: 'Runner',
@@ -281,11 +300,38 @@ function buildTimingSummary(progress: CoderRunProgressSnapshot): string {
 /**
  * Builds the colored phase badge shown in the session box.
  */
-function buildPhaseBadge(phase: CoderRunPhase, pauseState: CoderRunPauseState): string {
-    if (pauseState !== 'RUNNING' || phase === 'paused') {
-        return colors.bgYellow.black(' PAUSED ');
+function buildPausePresentation(
+    phase: CoderRunPhase,
+    pauseState: CoderRunPauseState,
+    statusMessage: string,
+): PausePresentation {
+    if (pauseState === 'PAUSING') {
+        return {
+            badge: colors.bgYellow.black(' PAUSING '),
+            stateMessage: 'Pausing before the next task',
+            pauseControl: colors.bgMagenta.white(' P ') + colors.white(' Cancel pause'),
+        };
     }
 
+    if (pauseState === 'PAUSED') {
+        return {
+            badge: colors.bgWhite.black(' PAUSED '),
+            stateMessage: 'Paused until resumed',
+            pauseControl: colors.bgGreen.black(' P ') + colors.white(' Resume'),
+        };
+    }
+
+    return {
+        badge: buildRunningPhaseBadge(phase),
+        stateMessage: statusMessage,
+        pauseControl: colors.bgYellow.black(' P ') + colors.white(' Pause'),
+    };
+}
+
+/**
+ * Builds the active phase badge shown in the session box while the runner is not paused.
+ */
+function buildRunningPhaseBadge(phase: CoderRunPhase): string {
     switch (phase) {
         case 'loading':
         case 'initializing':
@@ -300,6 +346,8 @@ function buildPhaseBadge(phase: CoderRunPhase, pauseState: CoderRunPauseState): 
             return colors.bgGreen.black(' DONE ');
         case 'error':
             return colors.bgRed.white(' ERROR ');
+        case 'paused':
+            return colors.bgWhite.black(' READY ');
         default:
             return colors.bgWhite.black(' READY ');
     }
@@ -327,18 +375,14 @@ function formatPromptCount(count: number): string {
 /**
  * Builds the control pills shown in the footer box.
  */
-function buildControlPills(pauseState: CoderRunPauseState, pendingEnterLabel: string | undefined): readonly string[] {
+function buildControlPills(pauseControl: string, pendingEnterLabel: string | undefined): readonly string[] {
     const pills: string[] = [];
 
     if (pendingEnterLabel) {
         pills.push(colors.bgWhite.black(' ENTER ') + colors.white(` ${pendingEnterLabel}`));
     }
 
-    pills.push(
-        pauseState === 'RUNNING'
-            ? colors.bgYellow.black(' P ') + colors.white(' Pause')
-            : colors.bgYellow.black(' P ') + colors.white(' Resume'),
-    );
+    pills.push(pauseControl);
     pills.push(colors.bgRed.white(' CTRL+C ') + colors.white(' Exit'));
 
     return pills;

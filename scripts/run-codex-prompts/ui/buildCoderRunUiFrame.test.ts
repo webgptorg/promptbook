@@ -109,4 +109,21 @@ describe('buildCoderRunUiFrame', () => {
         expect(waitingFrameB).toBe(waitingFrameA);
         expect(runningFrameB).not.toBe(runningFrameA);
     });
+
+    it('renders distinct pausing and paused controls', () => {
+        const pausingOutput = buildCoderRunUiFrame(createFrameOptions({ phase: 'running', pauseState: 'PAUSING' }))
+            .map(stripAnsi)
+            .join('\n');
+        const pausedOutput = buildCoderRunUiFrame(createFrameOptions({ phase: 'paused', pauseState: 'PAUSED' }))
+            .map(stripAnsi)
+            .join('\n');
+
+        expect(pausingOutput).toContain('PAUSING');
+        expect(pausingOutput).toContain('Pausing before the next task');
+        expect(pausingOutput).toContain('P  Cancel pause');
+
+        expect(pausedOutput).toContain('PAUSED');
+        expect(pausedOutput).toContain('Paused until resumed');
+        expect(pausedOutput).toContain('P  Resume');
+    });
 });
