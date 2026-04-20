@@ -1,8 +1,13 @@
 <!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->
 
-# 🐙 Promptbook: AI Agents
+# 🐙 Promptbook: Invisible AI Agents
 
-Create persistent AI agents that turn your company's scattered knowledge into action — powered by the [Agents Server](https://gallery.ptbk.io/)
+Create persistent AI agents that turn your company's scattered knowledge into action - powered by the [Agents Server](https://gallery.ptbk.io/)
+
+
+
+
+
 
 [![NPM Version of ![Promptbook logo](./design/logo-h1.png) Promptbook](https://badge.fury.io/js/promptbook.svg)](https://www.npmjs.com/package/promptbook)
 [![Quality of package ![Promptbook logo](./design/logo-h1.png) Promptbook](https://packagequality.com/shield/promptbook.svg)](https://packagequality.com/#?package=promptbook)
@@ -16,7 +21,13 @@ Create persistent AI agents that turn your company's scattered knowledge into ac
 
 ## 🚀 Quick deploy
 
+
+
 [![Vercel](https://img.shields.io/badge/Vercel-Deploy%20Agents%20Server-black?logo=vercel)](https://vercel.com/new/clone?project-name=promptbook-agents-server&repository-name=promptbook-agents-server&repository-url=https%3A%2F%2Fgithub.com%2Fwebgptorg%2Fpromptbook&root-directory=apps%2Fagents-server&demo-title=Promptbook+Agents+Server&demo-description=Persistent+AI+agents+with+a+built-in+admin+UI.+This+deploy+creates+a+Supabase+project+automatically%2C+injects+the+required+database+credentials%2C+and+Promptbook+runs+the+SQL+migrations+on+first+startup.&demo-url=https%3A%2F%2Fgallery.ptbk.io%2F&external-id=https%3A%2F%2Fgithub.com%2Fwebgptorg%2Fpromptbook%2Ftree%2Fmain%2Fapps%2Fagents-server&env=OPENAI_API_KEY%2CADMIN_PASSWORD%2CSUPABASE_AUTO_MIGRATE&envDescription=Supabase+is+created+automatically+by+the+required+Vercel+integration.+Add+OPENAI_API_KEY+from+https%3A%2F%2Fplatform.openai.com%2Fapi-keys%2C+choose+ADMIN_PASSWORD+for+your+first+admin+login%2C+and+leave+SUPABASE_AUTO_MIGRATE+enabled.&envLink=https%3A%2F%2Fgithub.com%2Fwebgptorg%2Fpromptbook%2Fblob%2Fmain%2FREADME.md%23vercel-form-fields&envDefaults=%7B%22SUPABASE_AUTO_MIGRATE%22%3A%22true%22%7D&stores=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22supabase%22%2C%22productSlug%22%3A%22supabase%22%7D%5D)
+
+
+
+
 
 <blockquote style="color: #ff8811">
     <b>⚠ Warning:</b> This is a pre-release version of the library. It is not yet ready for production use. Please look at <a href="https://www.npmjs.com/package/@promptbook/core?activeTab=versions">latest stable release</a>.
@@ -24,8 +35,8 @@ Create persistent AI agents that turn your company's scattered knowledge into ac
 
 ## 📦 Package `@promptbook/javascript`
 
--   Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
--   This package `@promptbook/javascript` is one part of the promptbook ecosystem.
+- Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
+- This package `@promptbook/javascript` is one part of the promptbook ecosystem.
 
 To install this package, run:
 
@@ -85,19 +96,23 @@ The package provides JavaScript execution capabilities:
 
 > 💡 This package provides JavaScript execution for promptbook applications. For the core functionality, see [@promptbook/core](#-packages) or install all packages with `npm i ptbk`
 
+
 ---
 
 Rest of the documentation is common for **entire promptbook ecosystem**:
 
+
+
+
 ## 📖 The Book Whitepaper
 
-Promptbook lets you create **persistent AI agents** that work on real goals for your company. The [**Agents Server**](https://gallery.ptbk.io/) is the heart of the project — a place where your AI agents live, remember context, collaborate in teams, and get things done.
+Promptbook lets you create **persistent AI agents** that work on real goals for your company. The [**Agents Server**](https://gallery.ptbk.io/) is the heart of the project - a place where your AI agents live, remember context, collaborate in teams, and get things done.
 
 Nowadays, the biggest challenge for most business applications isn't the raw capabilities of AI models. Large language models such as GPT-5.2 and Claude-4.5 are incredibly capable.
 
 The main challenge lies in **managing the context**, providing rules and knowledge, and narrowing the personality.
 
-In Promptbook, you define your agents **using simple Books** — a human-readable language that is explicit, easy to understand and write, reliable, and highly portable. You then deploy them to the **Agents Server**, where they run persistently and work toward their goals.
+In Promptbook, you define your agents **using simple Books** - a human-readable language that is explicit, easy to understand and write, reliable, and highly portable. You then deploy them to the **Agents Server**, where they run persistently and work toward their goals.
 
 <table style="border: 1px solid #777; border-radius: 10px;"><tr><td>
 
@@ -198,7 +213,7 @@ Your job is to provide legal advice and support to the company and its employees
 
 #### `Use` commitments
 
-Use commitments grant the agent real capabilities — tools it can use to interact with the outside world. `USE EMAIL` lets the agent send emails, `USE BROWSER` lets it access and read web content, `USE SEARCH ENGINE` lets it search the web, and many more.
+Use commitments grant the agent real capabilities - tools it can use to interact with the outside world. `USE EMAIL` lets the agent send emails, `USE BROWSER` lets it access and read web content, `USE SEARCH ENGINE` lets it search the web, and many more.
 
 These are what turn a chatbot into a persistent agent that actually does work.
 
@@ -247,7 +262,7 @@ Your job is to provide legal advice and support to the company and its employees
 
 ### Promptbook Ecosystem
 
-Promptbook is an ecosystem of tools centered around the **Agents Server** — a production-ready platform for running persistent AI agents.
+Promptbook is an ecosystem of tools centered around the **Agents Server** - a production-ready platform for running persistent AI agents.
 
 #### Agents Server
 
@@ -257,9 +272,19 @@ The [**Agents Server**](https://gallery.ptbk.io/) is the primary way to use Prom
 
 The [Promptbook Engine](https://github.com/webgptorg/promptbook) is the open-source core that powers everything. It parses the Book language, applies commitments, manages LLM provider integrations, and executes agents. The Agents Server is built on top of the Engine. If you need to embed agent capabilities directly into your own application, you can use the Engine as a standalone TypeScript/JavaScript library via [NPM packages](https://www.npmjs.com/package/@promptbook/core).
 
+
+
+
+
+
+
+
+
+
+
 ## 💜 The Promptbook Project
 
-Promptbook project is an ecosystem centered around the **Agents Server** — a platform for creating, deploying, and running persistent AI agents. Following is a list of the most important pieces of the project:
+Promptbook project is an ecosystem centered around the **Agents Server** - a platform for creating, deploying, and running persistent AI agents. Following is a list of the most important pieces of the project:
 
 <table>
   <thead>
@@ -272,7 +297,7 @@ Promptbook project is an ecosystem centered around the **Agents Server** — a p
     <tr>
       <td><a href="https://gallery.ptbk.io/"><strong>⭐ Agents Server</strong></a></td>
       <td>
-          The primary way to use Promptbook. A production-ready platform where your AI agents live — create, manage, deploy, and interact with persistent agents that work on goals. Available as a hosted service or <a href="https://hub.docker.com/r/hejny/promptbook/">self-hosted via Docker</a>.
+          The primary way to use Promptbook. A production-ready platform where your AI agents live - create, manage, deploy, and interact with persistent agents that work on goals. Available as a hosted service or <a href="https://hub.docker.com/r/hejny/promptbook/">self-hosted via Docker</a>.
       </td>
     </tr>
     <tr>
@@ -343,6 +368,13 @@ Join our growing community of developers and users:
   </tbody>
 </table>
 
+
+
+
+
+
+
+
 ## 📚 Documentation
 
 See detailed guides and API reference in the [docs](https://github.com/webgptorg/promptbook/discussions/categories/concepts) or [online](https://discord.gg/x3QWNaa89N).
@@ -355,8 +387,8 @@ For information on reporting security vulnerabilities, see our [Security Policy]
 
 The fastest way to get started is with the **Agents Server**:
 
--   🐋 **[Docker image](https://hub.docker.com/r/hejny/promptbook/)** — Self-host the Agents Server with full control over your data
--   ☁️ **[Hosted Agents Server](https://gallery.ptbk.io/)** — Start creating agents immediately, no setup required
+-   🐋 **[Docker image](https://hub.docker.com/r/hejny/promptbook/)** - Self-host the Agents Server with full control over your data
+-   ☁️ **[Hosted Agents Server](https://gallery.ptbk.io/)** - Start creating agents immediately, no setup required
 
 ### NPM Packages _(for developers embedding the Engine)_
 
@@ -381,7 +413,7 @@ Or you can install them separately:
 -   **[@promptbook/markdown-utils](https://www.npmjs.com/package/@promptbook/markdown-utils)** - Utility functions used for processing markdown
 -   **[@promptbook/javascript](https://www.npmjs.com/package/@promptbook/javascript)** - Execution tools for javascript inside promptbooks
 -   **[@promptbook/openai](https://www.npmjs.com/package/@promptbook/openai)** - Execution tools for OpenAI API, wrapper around OpenAI SDK
--   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK
+-   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK 
 -   **[@promptbook/vercel](https://www.npmjs.com/package/@promptbook/vercel)** - Adapter for Vercel functionalities
 -   **[@promptbook/google](https://www.npmjs.com/package/@promptbook/google)** - Integration with Google's Gemini API
 -   **[@promptbook/deepseek](https://www.npmjs.com/package/@promptbook/deepseek)** - Integration with [DeepSeek API](https://www.deepseek.com/)
@@ -401,6 +433,8 @@ Or you can install them separately:
 -   **[@promptbook/types](https://www.npmjs.com/package/@promptbook/types)** - Just typescript types used in the library
 -   **[@promptbook/color](https://www.npmjs.com/package/@promptbook/color)** - Color manipulation library
 -   **[@promptbook/cli](https://www.npmjs.com/package/@promptbook/cli)** - Command line interface utilities for promptbooks
+
+
 
 ### 🤖 Promptbook Coder
 
@@ -528,6 +562,9 @@ npx ptbk coder verify
 4. Run one prompt at a time interactively, or use `--no-wait` for unattended batches.
 5. Finish with `ptbk coder verify` so resolved prompts are archived and broken ones get explicit repair follow-ups.
 
+
+
+
 ## 📚 Dictionary
 
 The following glossary is used to clarify certain concepts:
@@ -604,12 +641,14 @@ _Note: This section is not a complete dictionary, more list of general AI / LLM 
 
 <p align="center"><a href="https://github.com/webgptorg/promptbook/discussions/categories/concepts">🔍 View more concepts</a></p>
 
+
+
 ## � Agents Server
 
 The **[Agents Server](https://gallery.ptbk.io/)** is the primary way to use Promptbook. It is a production-ready platform where you create, deploy, and manage persistent AI agents that work toward goals. Agents remember context across conversations, collaborate in teams, and follow the rules and knowledge you define in the Book language.
 
--   **Hosted** at [gallery.ptbk.io](https://gallery.ptbk.io/) — start creating agents immediately
--   **Self-hosted** via [Docker](https://hub.docker.com/r/hejny/promptbook/) — full control over your data and infrastructure
+-   **Hosted** at [gallery.ptbk.io](https://gallery.ptbk.io/) - start creating agents immediately
+-   **Self-hosted** via [Docker](https://hub.docker.com/r/hejny/promptbook/) - full control over your data and infrastructure
 -   **API** for integrating agents into your own applications
 
 ## 🚂 Promptbook Engine
@@ -627,7 +666,7 @@ The Engine is the open-source core that powers the Agents Server. If you need to
 -   When you want agents that **collaborate in teams** and consult each other
 -   When you need to **integrate AI agents into your existing applications** via API
 -   When you want to **self-host** your AI agents with full control over data and infrastructure
--   When you are writing an app that generates complex things via LLM — like **websites, articles, presentations, code, stories, songs**,...
+-   When you are writing an app that generates complex things via LLM - like **websites, articles, presentations, code, stories, songs**,...
 -   When you want to **version** your agent definitions and **test multiple versions**
 -   When you want to **log** agent execution and backtrace issues
 
@@ -639,7 +678,7 @@ The Engine is the open-source core that powers the Agents Server. If you need to
 -   When [OpenAI Assistant (GPTs)](https://help.openai.com/en/articles/8673914-gpts-vs-assistants) is enough for you
 -   When you need streaming _(this may be implemented in the future, [see discussion](https://github.com/webgptorg/promptbook/discussions/102))_
 -   When you need to use something other than JavaScript or TypeScript _(other languages are on the way, [see the discussion](https://github.com/webgptorg/promptbook/discussions/101))_
--   When your main focus is on something other than text — like images, audio, video, spreadsheets _(other media types may be added in the future, [see discussion](https://github.com/webgptorg/promptbook/discussions/103))_
+-   When your main focus is on something other than text - like images, audio, video, spreadsheets _(other media types may be added in the future, [see discussion](https://github.com/webgptorg/promptbook/discussions/103))_
 -   When you need to use recursion _([see the discussion](https://github.com/webgptorg/promptbook/discussions/38))_
 
 [See more](https://github.com/webgptorg/promptbook/discussions/112)
