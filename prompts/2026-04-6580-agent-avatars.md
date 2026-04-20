@@ -99,7 +99,7 @@
 
 ---
 
-[ ] !!
+[ ] !!!!
 
 [✨👝] Octopus3 avatar visual should have tenticles from head not cuted
 
@@ -110,14 +110,18 @@
 
 ---
 
-[-]
+[ ] !!!!
 
-[✨👝] foo
+[✨👝] Agent avatar visuals should follow user cursor or touch with eyes
 
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add eyes interaction to the avatar visuals, so that the eyes of the avatar follow the user cursor on desktop or user touch on mobile, to make it more fun and engaging, and to give the avatar more personality and life
+-   The agent avatar visual shouldnt be static looping animation, but it should be interactive and responsive "living" animation that reacts to user cursor or touch, so that it looks more visually appealing and engaging
+-   The avatar visuals should infinitely morph and change their shape in a smooth and visually appealing way
+-   Now there is also a ugly jump in the animation when the avatar reaches the end of the animation loop and starts again from the beginning, but it should be a smooth infinite loop without any jumps or glitches, so that it looks more visually appealing and polished
 -   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Utils miniapp](apps/utils) and adding this as a new page there to test it
+-   The agent avatar visuals are in [Utils miniapp](apps/utils) as preview and used in production in [Agents Server](apps/agents-server)
+-   This is relevant for both desktop and mobile, both for folder view and agent profile view and also for utils preview
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---
 

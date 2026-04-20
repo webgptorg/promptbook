@@ -17,3 +17,46 @@
 -   Do not delete the feature of generating images, just change the default avatar to the avatar visuals
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+---
+
+[ ] !!
+
+[✨👝] Unique avatar visuals
+
+-   @@@@ Maybe not needed
+-   The octopuses avatar visuals should be based on the agent profile and should be unique for each agent, so that its easier to distinguish different agents in the UI and to make it more fun and engaging, instead of having multiple agents with the same avatar visual
+-   The octopus color(s) should respect the `META COLOR` (either one or multiple colors) of the agent, and the shape, blobbyness, number of tentacles,... should be based on the agent name and hash, so that we can have a variety of different avatar visuals for different agents, while still maintaining a recognizable octopus-like form
+-   Implement it in a way that it can be easily extended and changed to different avatar visuals in the future
+-   You are working with the [Agents Server](apps/agents-server) with the default avatars of the agents
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+![avatars arent much unique](prompts/screenshots/2026-04-6581-agent-avatars-use.png)
+![alt text](prompts/screenshots/2026-04-6581-agent-avatars-use-1.png)
+
+---
+
+[ ] !!!!!
+
+[✨👝] Avatar visual should look better on profile page of the agent
+
+-   Use "Octopus3" avatar visual instead of "Octopus2" for the agents
+-   The octopuses avatar visuals are in the square box inside a card, but they should be only in the card without secondary square box, and they should be bigger and more visible, so that it looks better and more visually appealing on the profile page of the agent
+-   Also the background should be only from the vertical card not from the square box
+-   Implement it in a way that it can be easily extended and changed to different avatar visuals in the future
+-   You are working with the [Agents Server](apps/agents-server) with the default avatars of the agents
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+![alt text](prompts/screenshots/2026-04-6581-agent-avatars-use-1.png)
+
+---
+
+[ ] !!
+
+[✨👝] Animation loop
+
+-   @@@@ Maybe not needed
+-   The avatar visuals should infinitely morph and change their shape in a smooth and visually appealing way
+-   Now there is a ugly jump in the animation when the avatar reaches the end of the animation loop and starts again from the beginning, but it should be a smooth infinite loop without any jumps or glitches, so that it looks more visually appealing and polished
+-   Implement it in a way that it can be easily extended and changed to different avatar visuals in the future
+-   You are working with the [Agents Server](apps/agents-server) with the default avatars of the agents
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
