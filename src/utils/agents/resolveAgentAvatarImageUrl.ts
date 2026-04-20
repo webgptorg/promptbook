@@ -44,7 +44,7 @@ export type ResolveAgentAvatarImageUrlOptions = ResolveAgentAvatarOptions;
  *
  * @private shared avatar contract
  */
-export const DEFAULT_AGENT_AVATAR_VISUAL_ID: AvatarVisualId = 'octopus2';
+export const DEFAULT_AGENT_AVATAR_VISUAL_ID: AvatarVisualId = 'octopus3';
 
 /**
  * Resolved avatar descriptor used by interactive UIs to pick either an image or a live canvas visual.

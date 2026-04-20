@@ -8,7 +8,7 @@ import { darken } from '../utils/color/operators/darken';
 import { lighten } from '../utils/color/operators/lighten';
 import { saturate } from '../utils/color/operators/saturate';
 import type { AvatarDefinition } from './types/AvatarDefinition';
-import type { AvatarPalette } from './types/AvatarVisualDefinition';
+import type { AvatarPalette, AvatarSurfaceStyle } from './types/AvatarVisualDefinition';
 
 // Note: [💞] Ignore a discrepancy between file name and entity name
 
@@ -152,11 +152,15 @@ export function createAvatarDefinitionFromAgentBasicInformation(
  * Creates the shared derived palette used by every avatar visual.
  *
  * @param avatarDefinition Stable avatar definition.
+ * @param surface Surface style used by the parent UI.
  * @returns Derived palette.
  *
  * @private utility of the avatar rendering system
  */
-export function createAvatarPalette(avatarDefinition: AvatarDefinition): AvatarPalette {
+export function createAvatarPalette(
+    avatarDefinition: AvatarDefinition,
+    surface: AvatarSurfaceStyle = 'framed',
+): AvatarPalette {
     const normalizedAvatarDefinition = normalizeAvatarDefinition(avatarDefinition);
     const primaryColor = Color.fromSafe(normalizedAvatarDefinition.colors[0] || PROMPTBOOK_COLOR);
     const secondaryColor = Color.fromSafe(
@@ -173,8 +177,9 @@ export function createAvatarPalette(avatarDefinition: AvatarDefinition): AvatarP
     const shadowColor = Color.fromSafe(primaryColor.then(darken(0.46)).then(saturate(0.14)));
 
     return {
-        background: backgroundColor.toHex(),
-        backgroundSecondary: backgroundSecondaryColor.toHex(),
+        background: surface === 'transparent' ? ('transparent' as string_color) : backgroundColor.toHex(),
+        backgroundSecondary:
+            surface === 'transparent' ? ('transparent' as string_color) : backgroundSecondaryColor.toHex(),
         primary: primaryColor.toHex(),
         secondary: secondaryColor.toHex(),
         accent: accentColor.toHex(),
@@ -194,6 +199,10 @@ export function createAvatarPalette(avatarDefinition: AvatarDefinition): AvatarP
  * @private utility of the avatar rendering system
  */
 export function drawAvatarFrame(context: CanvasRenderingContext2D, size: number, palette: AvatarPalette): void {
+    if (palette.background === 'transparent' && palette.backgroundSecondary === 'transparent') {
+        return;
+    }
+
     const gradient = context.createLinearGradient(0, 0, size, size);
     gradient.addColorStop(0, palette.background);
     gradient.addColorStop(1, palette.backgroundSecondary);

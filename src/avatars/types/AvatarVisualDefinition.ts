@@ -26,6 +26,13 @@ export type AvatarPalette = {
 };
 
 /**
+ * Surface style used when placing the avatar into different UI shells.
+ *
+ * @private shared contract for the avatar rendering system
+ */
+export type AvatarSurfaceStyle = 'framed' | 'transparent';
+
+/**
  * Rendering context forwarded to a single avatar visual.
  *
  * @private shared contract for the avatar rendering system
@@ -39,6 +46,7 @@ export type AvatarVisualRenderContext = {
     readonly avatarDefinition: AvatarDefinition;
     readonly palette: AvatarPalette;
     readonly createRandom: (salt: string) => () => number;
+    readonly surface: AvatarSurfaceStyle;
 };
 
 /**
@@ -78,6 +86,11 @@ export type AvatarProps = {
     readonly visualId: AvatarVisualId;
 
     /**
+     * Surface used to composite the avatar in its parent UI.
+     */
+    readonly surface?: AvatarSurfaceStyle;
+
+    /**
      * Output size in CSS pixels.
      */
     readonly size?: number;
@@ -107,6 +120,7 @@ export type RenderAvatarVisualOptions = {
     readonly canvas: HTMLCanvasElement;
     readonly avatarDefinition: AvatarDefinition;
     readonly visualId: AvatarVisualId;
+    readonly surface?: AvatarSurfaceStyle;
     readonly size: number;
     readonly timeMs: number;
     readonly devicePixelRatio?: number;

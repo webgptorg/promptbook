@@ -1,3 +1,9 @@
+-   Improved Agents Server agent profile avatars so default agents now use the shared animated `Octopus3` visual and profile cards render built-in visuals directly on the tall card background instead of inside a smaller framed square:
+
+    -   Switched the shared default fallback avatar from `Octopus2` to `Octopus3`, so profile APIs, live agent UIs, and generated `default-avatar.png` routes all inherit the same updated built-in visual without per-surface overrides.
+    -   Added a shared avatar surface mode that lets deterministic visuals render either in their existing framed square or transparently on top of a parent card, keeping future avatar-presentation changes DRY instead of special-casing the agent profile page.
+    -   Updated the Agents Server agent profile card to show built-in avatar visuals larger and more prominently, with the profile card itself owning the background instead of nesting the octopus inside a second square box.
+
 -   Fixed `ptbk coder run` rich UI time estimation so elapsed time, total duration, and ETA now advance correctly during normal `--no-wait` runs:
 
     -   Started the rich dashboard timer immediately like the plain CLI progress header, while still excluding explicit wait/pause periods, so the shared estimate logic now receives real elapsed active time instead of staying pinned at `0s`.

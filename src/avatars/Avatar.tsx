@@ -19,7 +19,7 @@ const AVATAR_CANVAS_RADIUS_RATIO = 0.18;
  * @private shared component for in-repository avatar previews
  */
 export function Avatar(props: AvatarProps) {
-    const { avatarDefinition, visualId, size = DEFAULT_AVATAR_SIZE, title, className, style } = props;
+    const { avatarDefinition, visualId, surface = 'framed', size = DEFAULT_AVATAR_SIZE, title, className, style } = props;
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const normalizedAvatarDefinition = useMemo(() => normalizeAvatarDefinition(avatarDefinition), [avatarDefinition]);
     const avatarVisual = useMemo(() => getAvatarVisualById(visualId), [visualId]);
@@ -39,6 +39,7 @@ export function Avatar(props: AvatarProps) {
                 canvas,
                 avatarDefinition: normalizedAvatarDefinition,
                 visualId,
+                surface,
                 size,
                 timeMs: now - animationStart,
                 devicePixelRatio: window.devicePixelRatio || 1,
@@ -56,7 +57,7 @@ export function Avatar(props: AvatarProps) {
                 window.cancelAnimationFrame(animationFrameId);
             }
         };
-    }, [avatarVisual.isAnimated, normalizedAvatarDefinition, size, visualId]);
+    }, [avatarVisual.isAnimated, normalizedAvatarDefinition, size, surface, visualId]);
 
     return (
         <canvas
@@ -67,7 +68,7 @@ export function Avatar(props: AvatarProps) {
                 width: size,
                 height: size,
                 display: 'block',
-                borderRadius: size * AVATAR_CANVAS_RADIUS_RATIO,
+                borderRadius: surface === 'transparent' ? 0 : size * AVATAR_CANVAS_RADIUS_RATIO,
                 ...style,
             }}
         />

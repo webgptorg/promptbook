@@ -4,7 +4,7 @@ import type { CSSProperties } from 'react';
 import type { string_css_class, string_url_image } from '../types/typeAliases';
 import { Avatar } from './Avatar';
 import type { AvatarDefinition } from './types/AvatarDefinition';
-import type { AvatarVisualId } from './types/AvatarVisualDefinition';
+import type { AvatarSurfaceStyle, AvatarVisualId } from './types/AvatarVisualDefinition';
 
 /**
  * Shared avatar-rendering props for places that may receive either an image URL or a deterministic avatar visual.
@@ -26,6 +26,11 @@ export type AvatarOrImageProps = {
      * Selected built-in visual id used with `avatarDefinition`.
      */
     readonly visualId?: AvatarVisualId | null;
+
+    /**
+     * Surface used to composite a built-in visual in its parent shell.
+     */
+    readonly surface?: AvatarSurfaceStyle;
 
     /**
      * Output size in CSS pixels.
@@ -54,13 +59,14 @@ export type AvatarOrImageProps = {
  * @private shared component for avatar media rendering
  */
 export function AvatarOrImage(props: AvatarOrImageProps) {
-    const { imageUrl, avatarDefinition, visualId, size, alt, className, style } = props;
+    const { imageUrl, avatarDefinition, visualId, surface, size, alt, className, style } = props;
 
     if (avatarDefinition && visualId) {
         return (
             <Avatar
                 avatarDefinition={avatarDefinition}
                 visualId={visualId}
+                surface={surface}
                 size={size}
                 title={alt}
                 className={className}

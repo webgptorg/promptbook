@@ -1,5 +1,3 @@
-'use client';
-
 import {
     createAvatarPalette,
     createAvatarRandomFactory,
@@ -19,6 +17,7 @@ import type { RenderAvatarVisualOptions } from './types/AvatarVisualDefinition';
 export function renderAvatarVisual(options: RenderAvatarVisualOptions): void {
     const normalizedAvatarDefinition = normalizeAvatarDefinition(options.avatarDefinition);
     const avatarVisual = getAvatarVisualById(options.visualId);
+    const surface = options.surface || 'framed';
     const context = options.canvas.getContext('2d');
 
     if (!context) {
@@ -34,7 +33,8 @@ export function renderAvatarVisual(options: RenderAvatarVisualOptions): void {
         devicePixelRatio: options.devicePixelRatio || 1,
         timeMs: options.timeMs,
         avatarDefinition: normalizedAvatarDefinition,
-        palette: createAvatarPalette(normalizedAvatarDefinition),
+        palette: createAvatarPalette(normalizedAvatarDefinition, surface),
         createRandom: createAvatarRandomFactory(normalizedAvatarDefinition),
+        surface,
     });
 }

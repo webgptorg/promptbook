@@ -35,7 +35,7 @@
 
 ---
 
-[ ] !!!!!
+[x] $1.98 2 hours by OpenAI Codex `gpt-5.4`
 
 [✨👝] Avatar visual should look better on profile page of the agent
 
@@ -60,3 +60,4 @@
 -   Implement it in a way that it can be easily extended and changed to different avatar visuals in the future
 -   You are working with the [Agents Server](apps/agents-server) with the default avatars of the agents
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+

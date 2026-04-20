@@ -3,6 +3,7 @@
 import type { AgentBasicInformation } from '@promptbook-local/types';
 import type { CSSProperties } from 'react';
 import { AvatarOrImage } from '../../../../../src/avatars/AvatarOrImage';
+import type { AvatarSurfaceStyle } from '../../../../../src/avatars/types/AvatarVisualDefinition';
 import { resolveAgentAvatar } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 
 /**
@@ -25,6 +26,11 @@ type AgentAvatarProps = {
      * Output size in CSS pixels.
      */
     readonly size: number;
+
+    /**
+     * Surface used when rendering a built-in avatar visual.
+     */
+    readonly surface?: AvatarSurfaceStyle;
 
     /**
      * Accessible label for the rendered avatar.
@@ -52,7 +58,7 @@ type AgentAvatarProps = {
  *
  * @private shared component of Agents Server
  */
-export function AgentAvatar({ agent, baseUrl, size, alt, className, imageClassName, style }: AgentAvatarProps) {
+export function AgentAvatar({ agent, baseUrl, size, surface, alt, className, imageClassName, style }: AgentAvatarProps) {
     const resolvedAgentAvatar = resolveAgentAvatar({ agent, baseUrl });
     const fallbackAlt = alt || agent.meta.fullname || agent.agentName || 'Agent avatar';
 
@@ -65,6 +71,7 @@ export function AgentAvatar({ agent, baseUrl, size, alt, className, imageClassNa
             imageUrl={resolvedAgentAvatar?.type === 'image' ? resolvedAgentAvatar.imageUrl : undefined}
             avatarDefinition={resolvedAgentAvatar?.type === 'visual' ? resolvedAgentAvatar.avatarDefinition : undefined}
             visualId={resolvedAgentAvatar?.type === 'visual' ? resolvedAgentAvatar.visualId : undefined}
+            surface={surface}
         />
     );
 }

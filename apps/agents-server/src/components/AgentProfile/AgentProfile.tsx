@@ -166,7 +166,7 @@ export function AgentProfile(props: AgentProfileProps) {
                                 className="absolute inset-0 w-full h-full backface-hidden rounded-lg md:rounded-3xl shadow-lg md:shadow-2xl overflow-hidden backdrop-blur-sm"
                                 style={{
                                     backfaceVisibility: 'hidden',
-                                    backgroundColor: brandColorDarkHex,
+                                    background: `radial-gradient(circle at 30% 18%, ${brandColorLightHex}d9 0%, ${brandColorHex} 42%, ${brandColorDarkHex} 100%)`,
                                     boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px ${brandColorLightHex}40`,
 
                                     // Note: Make it squircle
@@ -186,17 +186,22 @@ export function AgentProfile(props: AgentProfileProps) {
                                     />
                                 ) : (
                                     <div
-                                        className="flex h-full w-full items-center justify-center"
-                                        style={{
-                                            background: `radial-gradient(circle at 35% 20%, ${brandColorLightHex}, ${brandColorDarkHex})`,
-                                        }}
+                                        className="flex h-full w-full items-end justify-center overflow-hidden px-2 pt-6 md:px-4 md:pt-10"
                                     >
                                         <AgentAvatar
                                             agent={agent}
                                             baseUrl={publicUrl}
-                                            size={320}
+                                            surface="transparent"
+                                            size={420}
                                             alt={fullname}
-                                            style={{ width: '76%', height: 'auto', maxWidth: '320px' }}
+                                            className="pointer-events-none select-none"
+                                            style={{
+                                                width: '110%',
+                                                height: 'auto',
+                                                maxWidth: '360px',
+                                                filter: 'drop-shadow(0 24px 30px rgba(0, 0, 0, 0.28))',
+                                                transform: 'translateY(6%)',
+                                            }}
                                         />
                                     </div>
                                 )}
