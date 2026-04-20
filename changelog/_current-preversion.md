@@ -1,3 +1,5 @@
+-   Fixed Agents Server chat reply notifications so the “new message” sound and vibration now play only after a live assistant reply finishes, not for the initial seeded message or preloaded chat history.
+
 -   Fixed `ptbk coder run` pausing/resuming so the runner now behaves as an explicit three-state flow: `running`, `pausing`, and `paused`:
 
     -   Kept the shared pause controller DRY by routing both the plain terminal listener and the rich UI hotkey through the same toggle lifecycle, so pressing `P` while running requests a pause, pressing it again while pausing cancels that request, and pressing it while paused resumes the runner.

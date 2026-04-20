@@ -15,7 +15,7 @@
 
 ---
 
-[ ] !
+[x] (2 attempts) $0.8197 an hour by OpenAI Codex `gpt-5.4`
 
 [🧠🔔] Play sound/vibration only when the agent finishes responding
 
@@ -24,3 +24,4 @@
 -   Ensure the change covers both desktop notifications (sound) and mobile vibration (vibration), if both are implemented.
 -   You are working with [Agents Server](apps/agents-server)
 -   Please update the [changelog](changelog/_current-preversion.md) with a short entry about the fix.
+

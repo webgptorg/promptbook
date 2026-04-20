@@ -70,6 +70,21 @@ function HookHarness({
 // ---------------------------------------------------------------------------
 
 describe('useChatCompleteNotification', () => {
+    it('does not play sound for a preloaded completed assistant message on initial mount', async () => {
+        const soundSystem = createMockSoundSystem();
+        const container = document.createElement('div');
+        document.body.appendChild(container);
+
+        await act(async () => {
+            const root = createRoot(container);
+            root.render(<HookHarness messages={[makeMessage({ id: 'msg-1', isComplete: true })]} soundSystem={soundSystem} />);
+        });
+
+        expect(soundSystem.play).not.toHaveBeenCalled();
+
+        document.body.removeChild(container);
+    });
+
     it('plays message_receive once when an assistant message transitions to complete', async () => {
         const soundSystem = createMockSoundSystem();
         const container = document.createElement('div');
@@ -155,15 +170,14 @@ describe('useChatCompleteNotification', () => {
             root.render(<HookHarness messages={completedMessages} soundSystem={soundSystem} />);
         });
 
-        expect(soundSystem.play).toHaveBeenCalledTimes(1);
+        expect(soundSystem.play).not.toHaveBeenCalled();
 
         // Rerender with a new array reference but identical content
         await act(async () => {
             root.render(<HookHarness messages={[...completedMessages]} soundSystem={soundSystem} />);
         });
 
-        // Must still be exactly 1 call – idempotent on rerenders
-        expect(soundSystem.play).toHaveBeenCalledTimes(1);
+        expect(soundSystem.play).not.toHaveBeenCalled();
 
         document.body.removeChild(container);
     });
@@ -188,14 +202,14 @@ describe('useChatCompleteNotification', () => {
         document.body.removeChild(container);
     });
 
-    it('fires once per completed response when multiple sequential responses arrive', async () => {
+    it('fires once for a streamed response after existing completed history', async () => {
         const soundSystem = createMockSoundSystem();
         const container = document.createElement('div');
         document.body.appendChild(container);
 
         let root: ReturnType<typeof createRoot>;
 
-        // First assistant message completes
+        // Existing history is already complete, so it establishes the baseline only.
         await act(async () => {
             root = createRoot(container);
             root.render(
@@ -203,14 +217,15 @@ describe('useChatCompleteNotification', () => {
             );
         });
 
-        expect(soundSystem.play).toHaveBeenCalledTimes(1);
+        expect(soundSystem.play).not.toHaveBeenCalled();
 
-        // Second assistant message arrives, still streaming
+        // User sends a new turn, then assistant starts streaming a reply.
         await act(async () => {
             root.render(
                 <HookHarness
                     messages={[
                         makeMessage({ id: 'msg-1', isComplete: true }),
+                        makeMessage({ id: 'msg-user-1', sender: 'USER' as const, isComplete: true, content: 'Question' }),
                         makeMessage({ id: 'msg-2', isComplete: false, content: 'Second...' }),
                     ]}
                     soundSystem={soundSystem}
@@ -218,8 +233,7 @@ describe('useChatCompleteNotification', () => {
             );
         });
 
-        // No extra notification for intermediate state
-        expect(soundSystem.play).toHaveBeenCalledTimes(1);
+        expect(soundSystem.play).not.toHaveBeenCalled();
 
         // Second message completes
         await act(async () => {
@@ -227,6 +241,7 @@ describe('useChatCompleteNotification', () => {
                 <HookHarness
                     messages={[
                         makeMessage({ id: 'msg-1', isComplete: true }),
+                        makeMessage({ id: 'msg-user-1', sender: 'USER' as const, isComplete: true, content: 'Question' }),
                         makeMessage({ id: 'msg-2', isComplete: true, content: 'Second complete' }),
                     ]}
                     soundSystem={soundSystem}
@@ -234,8 +249,75 @@ describe('useChatCompleteNotification', () => {
             );
         });
 
-        // Exactly one additional notification for the second response
-        expect(soundSystem.play).toHaveBeenCalledTimes(2);
+        expect(soundSystem.play).toHaveBeenCalledTimes(1);
+
+        document.body.removeChild(container);
+    });
+
+    it('plays when a completed assistant reply is appended after the same user turn', async () => {
+        const soundSystem = createMockSoundSystem();
+        const container = document.createElement('div');
+        document.body.appendChild(container);
+
+        let root: ReturnType<typeof createRoot>;
+
+        await act(async () => {
+            root = createRoot(container);
+            root.render(
+                <HookHarness
+                    messages={[makeMessage({ id: 'msg-user-1', sender: 'USER' as const, isComplete: true, content: 'Question' })]}
+                    soundSystem={soundSystem}
+                />,
+            );
+        });
+
+        expect(soundSystem.play).not.toHaveBeenCalled();
+
+        await act(async () => {
+            root.render(
+                <HookHarness
+                    messages={[
+                        makeMessage({ id: 'msg-user-1', sender: 'USER' as const, isComplete: true, content: 'Question' }),
+                        makeMessage({ id: 'msg-2', isComplete: true, content: 'Answer' }),
+                    ]}
+                    soundSystem={soundSystem}
+                />,
+            );
+        });
+
+        expect(soundSystem.play).toHaveBeenCalledTimes(1);
+        expect(soundSystem.play).toHaveBeenCalledWith('message_receive');
+
+        document.body.removeChild(container);
+    });
+
+    it('does not play when switching to unrelated preloaded completed history', async () => {
+        const soundSystem = createMockSoundSystem();
+        const container = document.createElement('div');
+        document.body.appendChild(container);
+
+        let root: ReturnType<typeof createRoot>;
+
+        await act(async () => {
+            root = createRoot(container);
+            root.render(
+                <HookHarness
+                    messages={[makeMessage({ id: 'msg-user-1', sender: 'USER' as const, isComplete: true, content: 'Draft' })]}
+                    soundSystem={soundSystem}
+                />,
+            );
+        });
+
+        await act(async () => {
+            root.render(
+                <HookHarness
+                    messages={[makeMessage({ id: 'other-chat-msg-1', isComplete: true, content: 'Earlier answer' })]}
+                    soundSystem={soundSystem}
+                />,
+            );
+        });
+
+        expect(soundSystem.play).not.toHaveBeenCalled();
 
         document.body.removeChild(container);
     });
