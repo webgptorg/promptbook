@@ -1,6 +1,6 @@
-# ✨ Promptbook: AI Agents
+# 🐙 Promptbook: Invisible AI Agents
 
-Create persistent AI agents that turn your company's scattered knowledge into action — powered by the [Agents Server](https://gallery.ptbk.io/)
+Create persistent AI agents that turn your company's scattered knowledge into action - powered by the [Agents Server](https://gallery.ptbk.io/)
 
 <!-- <- [🐊] -->
 
@@ -71,13 +71,13 @@ TODO: [🥗][🧠] Maybe do table of contents in both `book` and `promptbook`
 
 ## 📖 The Book Whitepaper
 
-Promptbook lets you create **persistent AI agents** that work on real goals for your company. The [**Agents Server**](https://gallery.ptbk.io/) is the heart of the project — a place where your AI agents live, remember context, collaborate in teams, and get things done.
+Promptbook lets you create **persistent AI agents** that work on real goals for your company. The [**Agents Server**](https://gallery.ptbk.io/) is the heart of the project - a place where your AI agents live, remember context, collaborate in teams, and get things done.
 
 Nowadays, the biggest challenge for most business applications isn't the raw capabilities of AI models. Large language models such as GPT-5.2 and Claude-4.5 are incredibly capable.
 
 The main challenge lies in **managing the context**, providing rules and knowledge, and narrowing the personality.
 
-In Promptbook, you define your agents **using simple Books** — a human-readable language that is explicit, easy to understand and write, reliable, and highly portable. You then deploy them to the **Agents Server**, where they run persistently and work toward their goals.
+In Promptbook, you define your agents **using simple Books** - a human-readable language that is explicit, easy to understand and write, reliable, and highly portable. You then deploy them to the **Agents Server**, where they run persistently and work toward their goals.
 
 <table style="border: 1px solid #777; border-radius: 10px;"><tr><td>
 
@@ -178,7 +178,7 @@ Your job is to provide legal advice and support to the company and its employees
 
 #### `Use` commitments
 
-Use commitments grant the agent real capabilities — tools it can use to interact with the outside world. `USE EMAIL` lets the agent send emails, `USE BROWSER` lets it access and read web content, `USE SEARCH ENGINE` lets it search the web, and many more.
+Use commitments grant the agent real capabilities - tools it can use to interact with the outside world. `USE EMAIL` lets the agent send emails, `USE BROWSER` lets it access and read web content, `USE SEARCH ENGINE` lets it search the web, and many more.
 
 These are what turn a chatbot into a persistent agent that actually does work.
 
@@ -227,7 +227,7 @@ Your job is to provide legal advice and support to the company and its employees
 
 ### Promptbook Ecosystem
 
-Promptbook is an ecosystem of tools centered around the **Agents Server** — a production-ready platform for running persistent AI agents.
+Promptbook is an ecosystem of tools centered around the **Agents Server** - a production-ready platform for running persistent AI agents.
 
 #### Agents Server
 
@@ -249,7 +249,7 @@ The [Promptbook Engine](https://github.com/webgptorg/promptbook) is the open-sou
 
 ## 💜 The Promptbook Project
 
-Promptbook project is an ecosystem centered around the **Agents Server** — a platform for creating, deploying, and running persistent AI agents. Following is a list of the most important pieces of the project:
+Promptbook project is an ecosystem centered around the **Agents Server** - a platform for creating, deploying, and running persistent AI agents. Following is a list of the most important pieces of the project:
 
 <table>
   <thead>
@@ -262,7 +262,7 @@ Promptbook project is an ecosystem centered around the **Agents Server** — a p
     <tr>
       <td><a href="https://gallery.ptbk.io/"><strong>⭐ Agents Server</strong></a></td>
       <td>
-          The primary way to use Promptbook. A production-ready platform where your AI agents live — create, manage, deploy, and interact with persistent agents that work on goals. Available as a hosted service or <a href="https://hub.docker.com/r/hejny/promptbook/">self-hosted via Docker</a>.
+          The primary way to use Promptbook. A production-ready platform where your AI agents live - create, manage, deploy, and interact with persistent agents that work on goals. Available as a hosted service or <a href="https://hub.docker.com/r/hejny/promptbook/">self-hosted via Docker</a>.
       </td>
     </tr>
     <tr>
@@ -352,8 +352,8 @@ For information on reporting security vulnerabilities, see our [Security Policy]
 
 The fastest way to get started is with the **Agents Server**:
 
--   🐋 **[Docker image](https://hub.docker.com/r/hejny/promptbook/)** — Self-host the Agents Server with full control over your data
--   ☁️ **[Hosted Agents Server](https://gallery.ptbk.io/)** — Start creating agents immediately, no setup required
+-   🐋 **[Docker image](https://hub.docker.com/r/hejny/promptbook/)** - Self-host the Agents Server with full control over your data
+-   ☁️ **[Hosted Agents Server](https://gallery.ptbk.io/)** - Start creating agents immediately, no setup required
 
 ### NPM Packages _(for developers embedding the Engine)_
 
@@ -498,7 +498,7 @@ npx ptbk coder verify
 | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- | ------ | ---- | ----- | ------------------------------------------------------------------------ |
 | `ptbk coder init`                     | Creates `prompts/`, `prompts/done/`, the project-generic template files materialized in `prompts/templates/` (currently `common.md`), and a starter `AGENTS.md`; ensures `.env` contains `CODING_AGENT_GIT_NAME`, `CODING_AGENT_GIT_EMAIL`, and `CODING_AGENT_GIT_SIGNING_KEY`; adds helper coder scripts to `package.json`; ensures `.gitignore` contains `/.tmp`; and configures `.vscode/settings.json` to save pasted prompt images into `prompts/screenshots/`. |
 | `ptbk coder generate-boilerplates`    | Creates new prompt markdown files with fresh emoji tags so you can quickly fill in coding tasks; `--template` accepts either a built-in alias or a markdown file path relative to the project root.                                                                                                                                                                                                                                                                  |
-| `ptbk coder run`                      | Picks the next ready prompt, appends optional context, runs it through the selected coding agent, can optionally verify each attempt with a shell test command and feed failing output back for retries, then marks success or failure, commits the result, and pushes only when `--auto-push` is enabled.                                                                                                                                                             |
+| `ptbk coder run`                      | Picks the next ready prompt, appends optional context, runs it through the selected coding agent, can optionally verify each attempt with a shell test command and feed failing output back for retries, then marks success or failure, commits the result, and pushes only when `--auto-push` is enabled.                                                                                                                                                           |
 | `ptbk coder find-refactor-candidates` | Scans the repository for oversized or overpacked files and writes prompt files for likely refactors; `--level <xlow                                                                                                                                                                                                                                                                                                                                                  | low | medium | high | xhigh | extreme>` ranges from a very benevolent scan to a very aggressive sweep. |
 | `ptbk coder verify`                   | Walks through completed prompts, archives truly finished work, and adds follow-up repair prompts for unfinished results.                                                                                                                                                                                                                                                                                                                                             |
 
@@ -509,7 +509,7 @@ npx ptbk coder verify
 | `--agent <name>`           | Selects the coding backend.                                                                        |
 | `--model <model>`          | Chooses the runner model; required for `openai-codex` and `gemini`, optional for `github-copilot`. |
 | `--context <text-or-file>` | Appends extra instructions inline or from a file like `AGENTS.md`.                                 |
-| `--test <command>`         | Runs a verification command after each prompt attempt and feeds failing output back for retries.    |
+| `--test <command>`         | Runs a verification command after each prompt attempt and feeds failing output back for retries.   |
 | `--thinking-level <level>` | Sets reasoning effort for supported runners.                                                       |
 | `--no-wait`                | Skips interactive pauses between prompts for unattended execution.                                 |
 | `--ignore-git-changes`     | Disables the clean-working-tree guard.                                                             |
@@ -612,8 +612,8 @@ _Note: This section is not a complete dictionary, more list of general AI / LLM 
 
 The **[Agents Server](https://gallery.ptbk.io/)** is the primary way to use Promptbook. It is a production-ready platform where you create, deploy, and manage persistent AI agents that work toward goals. Agents remember context across conversations, collaborate in teams, and follow the rules and knowledge you define in the Book language.
 
--   **Hosted** at [gallery.ptbk.io](https://gallery.ptbk.io/) — start creating agents immediately
--   **Self-hosted** via [Docker](https://hub.docker.com/r/hejny/promptbook/) — full control over your data and infrastructure
+-   **Hosted** at [gallery.ptbk.io](https://gallery.ptbk.io/) - start creating agents immediately
+-   **Self-hosted** via [Docker](https://hub.docker.com/r/hejny/promptbook/) - full control over your data and infrastructure
 -   **API** for integrating agents into your own applications
 
 ## 🚂 Promptbook Engine
@@ -631,7 +631,7 @@ The Engine is the open-source core that powers the Agents Server. If you need to
 -   When you want agents that **collaborate in teams** and consult each other
 -   When you need to **integrate AI agents into your existing applications** via API
 -   When you want to **self-host** your AI agents with full control over data and infrastructure
--   When you are writing an app that generates complex things via LLM — like **websites, articles, presentations, code, stories, songs**,...
+-   When you are writing an app that generates complex things via LLM - like **websites, articles, presentations, code, stories, songs**,...
 -   When you want to **version** your agent definitions and **test multiple versions**
 -   When you want to **log** agent execution and backtrace issues
 
@@ -643,7 +643,7 @@ The Engine is the open-source core that powers the Agents Server. If you need to
 -   When [OpenAI Assistant (GPTs)](https://help.openai.com/en/articles/8673914-gpts-vs-assistants) is enough for you
 -   When you need streaming _(this may be implemented in the future, [see discussion](https://github.com/webgptorg/promptbook/discussions/102))_
 -   When you need to use something other than JavaScript or TypeScript _(other languages are on the way, [see the discussion](https://github.com/webgptorg/promptbook/discussions/101))_
--   When your main focus is on something other than text — like images, audio, video, spreadsheets _(other media types may be added in the future, [see discussion](https://github.com/webgptorg/promptbook/discussions/103))_
+-   When your main focus is on something other than text - like images, audio, video, spreadsheets _(other media types may be added in the future, [see discussion](https://github.com/webgptorg/promptbook/discussions/103))_
 -   When you need to use recursion _([see the discussion](https://github.com/webgptorg/promptbook/discussions/38))_
 
 [See more](https://github.com/webgptorg/promptbook/discussions/112)

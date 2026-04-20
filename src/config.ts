@@ -57,7 +57,7 @@ export const ADMIN_GITHUB_NAME: string_name = 'hejny';
  *
  * @public exported from `@promptbook/core`
  */
-export const CLAIM = `Turn your company's scattered knowledge into AI ready books`;
+export const CLAIM = `Create persistent AI agents that turn your company's scattered knowledge into action`;
 //            <- TODO: [🐊] Pick the best claim
 
 /**
@@ -115,7 +115,7 @@ export const USER_CHAT_COLOR = Color.fromHex('#1D4ED8');
  *
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_BOOK_TITLE = `✨ Untitled Book`;
+export const DEFAULT_BOOK_TITLE = `🐙 Untitled agent`;
 
 /**
  * When the title of task is not provided, the default title is used

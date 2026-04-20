@@ -1,236 +1,61 @@
-✨ Promptbook: AI apps in plain Language
-Write AI applications using plain human language across multiple models and platforms.
-
-
-
-
-
-
-
-
-
-
-
-
-🌟 New Features
-
-
-
-
-
-🤍 The Book Abstract
-It's time for a paradigm shift! The future of software is written in plain English, French, or Latin.
-During the computer revolution, we have seen multiple generations of computer languages, from the physical rewiring of the vacuum tubes through low-level machine code to the high-level languages like Python or JavaScript. And now, we're on the edge of the next revolution!
-It's a revolution of writing software in plain human language that is understandable and executable by both humans and machines – and it's going to change everything!
-The incredible growth in power of microprocessors and the Moore's Law have been the driving force behind the ever-more powerful languages, and it's been an amazing journey! Similarly, the large language models (like GPT or Claude) are the next big thing in language technology, and they're set to transform the way we interact with computers.
-This shift will happen whether we're ready or not. Our mission is to make it excellent, not just good.
-Join us in this journey!
-
-
-
-🚀 Get started
-Take a look at the simple starter kit with books integrated into the Hello World sample applications:
-
-
-
-
-💜 The Promptbook Project
-Promptbook project is ecosystem of multiple projects and tools, following is a list of most important pieces of the project:
-
-  
-    
-      Project
-      About
-    
-  
-  
-    
-      Book language
-      
-          Book is a human-understandable markup language for writing AI applications such as chatbots, knowledge bases, agents, avarars, translators, automations and more.
-          
-          There is also a plugin for VSCode to support .book file extension
-      
-    
-    
-      Promptbook Engine
-      
-          Promptbook engine can run applications written in Book language. It is released as multiple NPM packages and Docker HUB
-      
-    
-    
-      Promptbook Studio
-      
-          Promptbook.studio is a web-based editor and runner for book applications. It is still in the experimental MVP stage.
-      
-    
-  
-
-Hello world examples:
-
-🌐 Community & Social Media
-Join our growing community of developers and users:
-
-  
-    
-      Platform
-      Description
-    
-  
-  
-    
-      💬 Discord
-      Join our active developer community for discussions and support
-    
-    
-      🗣️ GitHub Discussions
-      Technical discussions, feature requests, and community Q&A
-    
-    
-      👔 LinkedIn
-      Professional updates and industry insights
-    
-    
-      📱 Facebook
-      General announcements and community engagement
-    
-    
-      🔗 ptbk.io
-      Official landing page with project information
-    
-  
-
-🖼️ Product & Brand Channels
-Promptbook.studio
-
-
-
-
-📘 Book Language Blueprint
-A concise, Markdown-based DSL for crafting AI workflows and automations.
-Introduction
-Book is a Markdown-based language that simplifies the creation of AI applications, workflows, and automations. With human-readable commands, you can define inputs, outputs, personas, knowledge sources, and actions—without needing model-specific details.
-Example
-
-Each part of the book defines one of three circles:
-1. What: Workflows, Tasks and Parameters
-What work needs to be done. Each book defines a workflow (scenario or pipeline), which is one or more tasks. Each workflow has a fixed input and output. For example, you have a book that generates an article from a topic. Once it generates an article about AI, once about marketing, once about cooking. The workflow (= your AI program) is the same, only the input and output change.
-Related commands:
-
-2. Who: Personas
-Who does the work. Each task is performed by a persona. A persona is a description of your virtual employee. It is a higher abstraction than the model, tokens, temperature, top-k, top-p and other model parameters.
-You can describe what you want in human language like Jane, creative writer with a sense of sharp humour instead of gpt-4-2024-13-31, temperature 1.2, top-k 40, STOP token ".\n",....
-Personas can have access to different knowledge, tools and actions. They can also consult their work with other personas or user, if allowed.
-Related commands:
-
-3. How: Knowledge, Instruments and Actions
-The resources used by the personas are used to do the work.
-Related commands:
-
-KNOWLEDGE of documents, websites, and other resources
-INSTRUMENT for real-time data like time, location, weather, stock prices, searching the internet, calculations, etc.
-ACTION for actions like sending emails, creating files, ending a workflow, etc.
-
-General Principles
-Book language is based on markdown. It is subset of markdown. It is designed to be easy to read and write. It is designed to be understandable by both humans and machines and without specific knowledge of the language.
-The file has a .book extension and uses UTF-8 encoding without BOM.
-Books have two variants: flat — just a prompt without structure, and full — with tasks, commands, and prompts.
-As it is source code, it can leverage all the features of version control systems like git and does not suffer from the problems of binary formats, proprietary formats, or no-code solutions.
-But unlike programming languages, it is designed to be understandable by non-programmers and non-technical people.
-
-📚 Documentation
-See detailed guides and API reference in the docs or online.
-🔒 Security
-For information on reporting security vulnerabilities, see our Security Policy.
-📦 Packages (for developers)
-This library is divided into several packages, all are published from single monorepo.
-You can install all of them at once:
-
-Or you can install them separately:
-
-⭐ Marked packages are worth to try first
-
-
-
-
-
-
-
-📚 Dictionary
-The following glossary is used to clarify certain concepts:
-General LLM / AI terms
-
-Note: This section is not a complete dictionary, more list of general AI / LLM terms that has connection with Promptbook
-💯 Core concepts
-
-Advanced concepts
-
-  
-    Data & Knowledge Management
-    Pipeline Control
-  
-  
-    
-      
-        📚 Knowledge (RAG) - Retrieve and use external information
-        📽 Media handling - Working with images, audio, video, spreadsheets
-        🔴 Anomaly detection - Identifying unusual patterns or outputs
-      
-    
-    
-      
-        🌏 Remote server - Executing workflows on remote infrastructure
-        🃏 Jokers (conditions) - Adding conditional logic to workflows
-        🔳 Metaprompting - Creating prompts that generate other prompts
-      
-    
-  
-  
-    Language & Output Control
-    Advanced Generation
-  
-  
-    
-      
-        🌏 Linguistically typed languages - Type systems for natural language
-        🌍 Auto-Translations - Automatic multilingual support
-        👮 Agent adversary expectations - Safety and control mechanisms
-      
-    
-    
-      
-        🔙 Expectation-aware generation - Outputs that meet defined criteria
-        ⏳ Just-in-time fine-tuning - Dynamic model adaptation
-      
-    
-  
-
-🔍 View more concepts
-
-🚂 Promptbook Engine
-
-➕➖ When to use Promptbook?
-➕ When to use
-
-See more
-➖ When not to use
-
-See more
-🐜 Known issues
-
-🧼 Intentionally not implemented features
-
-❔ FAQ
-If you have a question start a discussion, open an issue or write me an email.
-
-📅 Changelog
-See CHANGELOG.md
-📜 License
-This project is licensed under BUSL 1.1.
-🤝 Contributing
-We welcome contributions! See CONTRIBUTING.md for guidelines.
-You can also ⭐ star the project, follow us on GitHub or various other social networks.We are open to pull requests, feedback, and suggestions.
-🆘 Support & Community
-Need help with Book language? We're here for you!
-
-We welcome contributions and feedback to make Book language better for everyone!
+🐙 Promptbook: AI apps in plain Language Write AI applications using plain human language across multiple models and
+platforms. 🌟 New Features 🤍 The Book Abstract It's time for a paradigm shift! The future of software is written in
+plain English, French, or Latin. During the computer revolution, we have seen multiple generations of computer
+languages, from the physical rewiring of the vacuum tubes through low-level machine code to the high-level languages
+like Python or JavaScript. And now, we're on the edge of the next revolution! It's a revolution of writing software in
+plain human language that is understandable and executable by both humans and machines – and it's going to change
+everything! The incredible growth in power of microprocessors and the Moore's Law have been the driving force behind the
+ever-more powerful languages, and it's been an amazing journey! Similarly, the large language models (like GPT or
+Claude) are the next big thing in language technology, and they're set to transform the way we interact with computers.
+This shift will happen whether we're ready or not. Our mission is to make it excellent, not just good. Join us in this
+journey! 🚀 Get started Take a look at the simple starter kit with books integrated into the Hello World sample
+applications: 💜 The Promptbook Project Promptbook project is ecosystem of multiple projects and tools, following is a
+list of most important pieces of the project: Project About Book language Book is a human-understandable markup language
+for writing AI applications such as chatbots, knowledge bases, agents, avarars, translators, automations and more. There
+is also a plugin for VSCode to support .book file extension Promptbook Engine Promptbook engine can run applications
+written in Book language. It is released as multiple NPM packages and Docker HUB Promptbook Studio Promptbook.studio is
+a web-based editor and runner for book applications. It is still in the experimental MVP stage. Hello world examples: 🌐
+Community & Social Media Join our growing community of developers and users: Platform Description 💬 Discord Join our
+active developer community for discussions and support 🗣️ GitHub Discussions Technical discussions, feature requests,
+and community Q&A 👔 LinkedIn Professional updates and industry insights 📱 Facebook General announcements and community
+engagement 🔗 ptbk.io Official landing page with project information 🖼️ Product & Brand Channels Promptbook.studio 📘
+Book Language Blueprint A concise, Markdown-based DSL for crafting AI workflows and automations. Introduction Book is a
+Markdown-based language that simplifies the creation of AI applications, workflows, and automations. With human-readable
+commands, you can define inputs, outputs, personas, knowledge sources, and actions—without needing model-specific
+details. Example Each part of the book defines one of three circles: 1. What: Workflows, Tasks and Parameters What work
+needs to be done. Each book defines a workflow (scenario or pipeline), which is one or more tasks. Each workflow has a
+fixed input and output. For example, you have a book that generates an article from a topic. Once it generates an
+article about AI, once about marketing, once about cooking. The workflow (= your AI program) is the same, only the input
+and output change. Related commands: 2. Who: Personas Who does the work. Each task is performed by a persona. A persona
+is a description of your virtual employee. It is a higher abstraction than the model, tokens, temperature, top-k, top-p
+and other model parameters. You can describe what you want in human language like Jane, creative writer with a sense of
+sharp humour instead of gpt-4-2024-13-31, temperature 1.2, top-k 40, STOP token ".\n",.... Personas can have access to
+different knowledge, tools and actions. They can also consult their work with other personas or user, if allowed.
+Related commands: 3. How: Knowledge, Instruments and Actions The resources used by the personas are used to do the work.
+Related commands: KNOWLEDGE of documents, websites, and other resources INSTRUMENT for real-time data like time,
+location, weather, stock prices, searching the internet, calculations, etc. ACTION for actions like sending emails,
+creating files, ending a workflow, etc. General Principles Book language is based on markdown. It is subset of markdown.
+It is designed to be easy to read and write. It is designed to be understandable by both humans and machines and without
+specific knowledge of the language. The file has a .book extension and uses UTF-8 encoding without BOM. Books have two
+variants: flat — just a prompt without structure, and full — with tasks, commands, and prompts. As it is source code, it
+can leverage all the features of version control systems like git and does not suffer from the problems of binary
+formats, proprietary formats, or no-code solutions. But unlike programming languages, it is designed to be
+understandable by non-programmers and non-technical people. 📚 Documentation See detailed guides and API reference in
+the docs or online. 🔒 Security For information on reporting security vulnerabilities, see our Security Policy. 📦
+Packages (for developers) This library is divided into several packages, all are published from single monorepo. You can
+install all of them at once: Or you can install them separately: ⭐ Marked packages are worth to try first 📚 Dictionary
+The following glossary is used to clarify certain concepts: General LLM / AI terms Note: This section is not a complete
+dictionary, more list of general AI / LLM terms that has connection with Promptbook 💯 Core concepts Advanced concepts
+Data & Knowledge Management Pipeline Control 📚 Knowledge (RAG) - Retrieve and use external information 📽 Media handling
+- Working with images, audio, video, spreadsheets 🔴 Anomaly detection - Identifying unusual patterns or outputs 🌏
+Remote server - Executing workflows on remote infrastructure 🃏 Jokers (conditions) - Adding conditional logic to
+workflows 🔳 Metaprompting - Creating prompts that generate other prompts Language & Output Control Advanced Generation
+🌏 Linguistically typed languages - Type systems for natural language 🌍 Auto-Translations - Automatic multilingual
+support 👮 Agent adversary expectations - Safety and control mechanisms 🔙 Expectation-aware generation - Outputs that
+meet defined criteria ⏳ Just-in-time fine-tuning - Dynamic model adaptation 🔍 View more concepts 🚂 Promptbook Engine
+➕➖ When to use Promptbook? ➕ When to use See more ➖ When not to use See more 🐜 Known issues 🧼 Intentionally not
+implemented features ❔ FAQ If you have a question start a discussion, open an issue or write me an email. 📅 Changelog
+See CHANGELOG.md 📜 License This project is licensed under BUSL 1.1. 🤝 Contributing We welcome contributions! See
+CONTRIBUTING.md for guidelines. You can also ⭐ star the project, follow us on GitHub or various other social
+networks.We are open to pull requests, feedback, and suggestions. 🆘 Support & Community Need help with Book language?
+We're here for you! We welcome contributions and feedback to make Book language better for everyone!

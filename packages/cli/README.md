@@ -1,13 +1,8 @@
 <!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->
 
-# ✨ Promptbook: AI Agents
+# 🐙 Promptbook: AI Agents
 
 Create persistent AI agents that turn your company's scattered knowledge into action — powered by the [Agents Server](https://gallery.ptbk.io/)
-
-
-
-
-
 
 [![NPM Version of ![Promptbook logo](./design/logo-h1.png) Promptbook](https://badge.fury.io/js/promptbook.svg)](https://www.npmjs.com/package/promptbook)
 [![Quality of package ![Promptbook logo](./design/logo-h1.png) Promptbook](https://packagequality.com/shield/promptbook.svg)](https://packagequality.com/#?package=promptbook)
@@ -21,13 +16,7 @@ Create persistent AI agents that turn your company's scattered knowledge into ac
 
 ## 🚀 Quick deploy
 
-
-
 [![Vercel](https://img.shields.io/badge/Vercel-Deploy%20Agents%20Server-black?logo=vercel)](https://vercel.com/new/clone?project-name=promptbook-agents-server&repository-name=promptbook-agents-server&repository-url=https%3A%2F%2Fgithub.com%2Fwebgptorg%2Fpromptbook&root-directory=apps%2Fagents-server&demo-title=Promptbook+Agents+Server&demo-description=Persistent+AI+agents+with+a+built-in+admin+UI.+This+deploy+creates+a+Supabase+project+automatically%2C+injects+the+required+database+credentials%2C+and+Promptbook+runs+the+SQL+migrations+on+first+startup.&demo-url=https%3A%2F%2Fgallery.ptbk.io%2F&external-id=https%3A%2F%2Fgithub.com%2Fwebgptorg%2Fpromptbook%2Ftree%2Fmain%2Fapps%2Fagents-server&env=OPENAI_API_KEY%2CADMIN_PASSWORD%2CSUPABASE_AUTO_MIGRATE&envDescription=Supabase+is+created+automatically+by+the+required+Vercel+integration.+Add+OPENAI_API_KEY+from+https%3A%2F%2Fplatform.openai.com%2Fapi-keys%2C+choose+ADMIN_PASSWORD+for+your+first+admin+login%2C+and+leave+SUPABASE_AUTO_MIGRATE+enabled.&envLink=https%3A%2F%2Fgithub.com%2Fwebgptorg%2Fpromptbook%2Fblob%2Fmain%2FREADME.md%23vercel-form-fields&envDefaults=%7B%22SUPABASE_AUTO_MIGRATE%22%3A%22true%22%7D&stores=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22supabase%22%2C%22productSlug%22%3A%22supabase%22%7D%5D)
-
-
-
-
 
 <blockquote style="color: #ff8811">
     <b>⚠ Warning:</b> This is a pre-release version of the library. It is not yet ready for production use. Please look at <a href="https://www.npmjs.com/package/@promptbook/core?activeTab=versions">latest stable release</a>.
@@ -35,8 +24,8 @@ Create persistent AI agents that turn your company's scattered knowledge into ac
 
 ## 📦 Package `@promptbook/cli`
 
-- Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
-- This package `@promptbook/cli` is one part of the promptbook ecosystem.
+-   Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
+-   This package `@promptbook/cli` is one part of the promptbook ecosystem.
 
 To install this package, run:
 
@@ -60,22 +49,23 @@ The CLI package provides essential command-line tools for Promptbook development
 ## 🔧 High-Level Functionality
 
 The package provides command-line tools for:
-- **Library Building**: Pre-compile promptbook collections into optimized formats
-- **Code Generation**: Generate TypeScript, JavaScript, or JSON libraries
-- **Prettification**: Format and enhance promptbook files with diagrams
-- **Validation**: Check promptbooks for errors during build time
-- **Knowledge Building**: Build RAG (Retrieval-Augmented Generation) knowledge bases
-- **Provider Registration**: Include all LLM providers and scrapers for CLI operations
+
+-   **Library Building**: Pre-compile promptbook collections into optimized formats
+-   **Code Generation**: Generate TypeScript, JavaScript, or JSON libraries
+-   **Prettification**: Format and enhance promptbook files with diagrams
+-   **Validation**: Check promptbooks for errors during build time
+-   **Knowledge Building**: Build RAG (Retrieval-Augmented Generation) knowledge bases
+-   **Provider Registration**: Include all LLM providers and scrapers for CLI operations
 
 ## ✨ Key Features
 
-- 🏗️ **Pre-compilation** - Build optimized promptbook libraries at build time
-- 📝 **Code Generation** - Generate TypeScript, JavaScript, or JSON outputs
-- 🎨 **Auto-prettification** - Format promptbooks and add Mermaid diagrams
-- ✅ **Build-time Validation** - Catch errors early in the development process
-- 🧠 **Knowledge Building** - Automatically build RAG knowledge bases
-- 🔧 **All Providers Included** - Complete set of LLM providers and scrapers
-- 🚀 **Performance Optimization** - Pre-built libraries for faster runtime execution
+-   🏗️ **Pre-compilation** - Build optimized promptbook libraries at build time
+-   📝 **Code Generation** - Generate TypeScript, JavaScript, or JSON outputs
+-   🎨 **Auto-prettification** - Format promptbooks and add Mermaid diagrams
+-   ✅ **Build-time Validation** - Catch errors early in the development process
+-   🧠 **Knowledge Building** - Automatically build RAG knowledge bases
+-   🔧 **All Providers Included** - Complete set of LLM providers and scrapers
+-   🚀 **Performance Optimization** - Pre-built libraries for faster runtime execution
 
 ## Make your Promptbook Library
 
@@ -131,53 +121,53 @@ This will prettify all promptbooks in `promptbook` directory and adds Mermaid gr
 ## 📦 Exported Entities
 
 ### Version Information
-- `BOOK_LANGUAGE_VERSION` - Current book language version
-- `PROMPTBOOK_ENGINE_VERSION` - Current engine version
+
+-   `BOOK_LANGUAGE_VERSION` - Current book language version
+-   `PROMPTBOOK_ENGINE_VERSION` - Current engine version
 
 ### CLI Core
-- `_CLI` - Main CLI application implementation
+
+-   `_CLI` - Main CLI application implementation
 
 ### LLM Provider Registrations
-- `_AnthropicClaudeMetadataRegistration` - Anthropic Claude metadata registration
-- `_AnthropicClaudeRegistration` - Anthropic Claude provider registration
-- `_AzureOpenAiMetadataRegistration` - Azure OpenAI metadata registration
-- `_AzureOpenAiRegistration` - Azure OpenAI provider registration
-- `_DeepseekMetadataRegistration` - Deepseek metadata registration
-- `_DeepseekRegistration` - Deepseek provider registration
-- `_GoogleMetadataRegistration` - Google metadata registration
-- `_GoogleRegistration` - Google provider registration
-- `_OllamaMetadataRegistration` - Ollama metadata registration
-- `_OllamaRegistration` - Ollama provider registration
-- `_OpenAiMetadataRegistration` - OpenAI metadata registration
-- `_OpenAiAssistantMetadataRegistration` - OpenAI Assistant metadata registration
-- `_OpenAiCompatibleMetadataRegistration` - OpenAI Compatible metadata registration
-- `_OpenAiRegistration` - OpenAI provider registration
-- `_OpenAiAssistantRegistration` - OpenAI Assistant provider registration
-- `_OpenAiCompatibleRegistration` - OpenAI Compatible provider registration
+
+-   `_AnthropicClaudeMetadataRegistration` - Anthropic Claude metadata registration
+-   `_AnthropicClaudeRegistration` - Anthropic Claude provider registration
+-   `_AzureOpenAiMetadataRegistration` - Azure OpenAI metadata registration
+-   `_AzureOpenAiRegistration` - Azure OpenAI provider registration
+-   `_DeepseekMetadataRegistration` - Deepseek metadata registration
+-   `_DeepseekRegistration` - Deepseek provider registration
+-   `_GoogleMetadataRegistration` - Google metadata registration
+-   `_GoogleRegistration` - Google provider registration
+-   `_OllamaMetadataRegistration` - Ollama metadata registration
+-   `_OllamaRegistration` - Ollama provider registration
+-   `_OpenAiMetadataRegistration` - OpenAI metadata registration
+-   `_OpenAiAssistantMetadataRegistration` - OpenAI Assistant metadata registration
+-   `_OpenAiCompatibleMetadataRegistration` - OpenAI Compatible metadata registration
+-   `_OpenAiRegistration` - OpenAI provider registration
+-   `_OpenAiAssistantRegistration` - OpenAI Assistant provider registration
+-   `_OpenAiCompatibleRegistration` - OpenAI Compatible provider registration
 
 ### Scraper Registrations
-- `_BoilerplateScraperRegistration` - Boilerplate scraper registration
-- `_BoilerplateScraperMetadataRegistration` - Boilerplate scraper metadata registration
-- `_LegacyDocumentScraperRegistration` - Legacy document scraper registration
-- `_LegacyDocumentScraperMetadataRegistration` - Legacy document scraper metadata registration
-- `_DocumentScraperRegistration` - Document scraper registration
-- `_DocumentScraperMetadataRegistration` - Document scraper metadata registration
-- `_MarkdownScraperRegistration` - Markdown scraper registration
-- `_MarkdownScraperMetadataRegistration` - Markdown scraper metadata registration
-- `_MarkitdownScraperRegistration` - Markitdown scraper registration
-- `_MarkitdownScraperMetadataRegistration` - Markitdown scraper metadata registration
-- `_PdfScraperRegistration` - PDF scraper registration
-- `_PdfScraperMetadataRegistration` - PDF scraper metadata registration
-- `_WebsiteScraperRegistration` - Website scraper registration
-- `_WebsiteScraperMetadataRegistration` - Website scraper metadata registration
 
+-   `_BoilerplateScraperRegistration` - Boilerplate scraper registration
+-   `_BoilerplateScraperMetadataRegistration` - Boilerplate scraper metadata registration
+-   `_LegacyDocumentScraperRegistration` - Legacy document scraper registration
+-   `_LegacyDocumentScraperMetadataRegistration` - Legacy document scraper metadata registration
+-   `_DocumentScraperRegistration` - Document scraper registration
+-   `_DocumentScraperMetadataRegistration` - Document scraper metadata registration
+-   `_MarkdownScraperRegistration` - Markdown scraper registration
+-   `_MarkdownScraperMetadataRegistration` - Markdown scraper metadata registration
+-   `_MarkitdownScraperRegistration` - Markitdown scraper registration
+-   `_MarkitdownScraperMetadataRegistration` - Markitdown scraper metadata registration
+-   `_PdfScraperRegistration` - PDF scraper registration
+-   `_PdfScraperMetadataRegistration` - PDF scraper metadata registration
+-   `_WebsiteScraperRegistration` - Website scraper registration
+-   `_WebsiteScraperMetadataRegistration` - Website scraper metadata registration
 
 ---
 
 Rest of the documentation is common for **entire promptbook ecosystem**:
-
-
-
 
 ## 📖 The Book Whitepaper
 
@@ -347,16 +337,6 @@ The [**Agents Server**](https://gallery.ptbk.io/) is the primary way to use Prom
 
 The [Promptbook Engine](https://github.com/webgptorg/promptbook) is the open-source core that powers everything. It parses the Book language, applies commitments, manages LLM provider integrations, and executes agents. The Agents Server is built on top of the Engine. If you need to embed agent capabilities directly into your own application, you can use the Engine as a standalone TypeScript/JavaScript library via [NPM packages](https://www.npmjs.com/package/@promptbook/core).
 
-
-
-
-
-
-
-
-
-
-
 ## 💜 The Promptbook Project
 
 Promptbook project is an ecosystem centered around the **Agents Server** — a platform for creating, deploying, and running persistent AI agents. Following is a list of the most important pieces of the project:
@@ -443,13 +423,6 @@ Join our growing community of developers and users:
   </tbody>
 </table>
 
-
-
-
-
-
-
-
 ## 📚 Documentation
 
 See detailed guides and API reference in the [docs](https://github.com/webgptorg/promptbook/discussions/categories/concepts) or [online](https://discord.gg/x3QWNaa89N).
@@ -488,7 +461,7 @@ Or you can install them separately:
 -   **[@promptbook/markdown-utils](https://www.npmjs.com/package/@promptbook/markdown-utils)** - Utility functions used for processing markdown
 -   **[@promptbook/javascript](https://www.npmjs.com/package/@promptbook/javascript)** - Execution tools for javascript inside promptbooks
 -   **[@promptbook/openai](https://www.npmjs.com/package/@promptbook/openai)** - Execution tools for OpenAI API, wrapper around OpenAI SDK
--   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK 
+-   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK
 -   **[@promptbook/vercel](https://www.npmjs.com/package/@promptbook/vercel)** - Adapter for Vercel functionalities
 -   **[@promptbook/google](https://www.npmjs.com/package/@promptbook/google)** - Integration with Google's Gemini API
 -   **[@promptbook/deepseek](https://www.npmjs.com/package/@promptbook/deepseek)** - Integration with [DeepSeek API](https://www.deepseek.com/)
@@ -508,8 +481,6 @@ Or you can install them separately:
 -   **[@promptbook/types](https://www.npmjs.com/package/@promptbook/types)** - Just typescript types used in the library
 -   **[@promptbook/color](https://www.npmjs.com/package/@promptbook/color)** - Color manipulation library
 -   **[@promptbook/cli](https://www.npmjs.com/package/@promptbook/cli)** - Command line interface utilities for promptbooks
-
-
 
 ### 🤖 Promptbook Coder
 
@@ -608,7 +579,7 @@ npx ptbk coder verify
 | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- | ------ | ---- | ----- | ------------------------------------------------------------------------ |
 | `ptbk coder init`                     | Creates `prompts/`, `prompts/done/`, the project-generic template files materialized in `prompts/templates/` (currently `common.md`), and a starter `AGENTS.md`; ensures `.env` contains `CODING_AGENT_GIT_NAME`, `CODING_AGENT_GIT_EMAIL`, and `CODING_AGENT_GIT_SIGNING_KEY`; adds helper coder scripts to `package.json`; ensures `.gitignore` contains `/.tmp`; and configures `.vscode/settings.json` to save pasted prompt images into `prompts/screenshots/`. |
 | `ptbk coder generate-boilerplates`    | Creates new prompt markdown files with fresh emoji tags so you can quickly fill in coding tasks; `--template` accepts either a built-in alias or a markdown file path relative to the project root.                                                                                                                                                                                                                                                                  |
-| `ptbk coder run`                      | Picks the next ready prompt, appends optional context, runs it through the selected coding agent, can optionally verify each attempt with a shell test command and feed failing output back for retries, then marks success or failure, commits the result, and pushes only when `--auto-push` is enabled.                                                                                                                                                             |
+| `ptbk coder run`                      | Picks the next ready prompt, appends optional context, runs it through the selected coding agent, can optionally verify each attempt with a shell test command and feed failing output back for retries, then marks success or failure, commits the result, and pushes only when `--auto-push` is enabled.                                                                                                                                                           |
 | `ptbk coder find-refactor-candidates` | Scans the repository for oversized or overpacked files and writes prompt files for likely refactors; `--level <xlow                                                                                                                                                                                                                                                                                                                                                  | low | medium | high | xhigh | extreme>` ranges from a very benevolent scan to a very aggressive sweep. |
 | `ptbk coder verify`                   | Walks through completed prompts, archives truly finished work, and adds follow-up repair prompts for unfinished results.                                                                                                                                                                                                                                                                                                                                             |
 
@@ -619,7 +590,7 @@ npx ptbk coder verify
 | `--agent <name>`           | Selects the coding backend.                                                                        |
 | `--model <model>`          | Chooses the runner model; required for `openai-codex` and `gemini`, optional for `github-copilot`. |
 | `--context <text-or-file>` | Appends extra instructions inline or from a file like `AGENTS.md`.                                 |
-| `--test <command>`         | Runs a verification command after each prompt attempt and feeds failing output back for retries.    |
+| `--test <command>`         | Runs a verification command after each prompt attempt and feeds failing output back for retries.   |
 | `--thinking-level <level>` | Sets reasoning effort for supported runners.                                                       |
 | `--no-wait`                | Skips interactive pauses between prompts for unattended execution.                                 |
 | `--ignore-git-changes`     | Disables the clean-working-tree guard.                                                             |
@@ -636,9 +607,6 @@ npx ptbk coder verify
 3. Customize the starter `AGENTS.md` with repository-specific instructions, then pass `--context AGENTS.md`.
 4. Run one prompt at a time interactively, or use `--no-wait` for unattended batches.
 5. Finish with `ptbk coder verify` so resolved prompts are archived and broken ones get explicit repair follow-ups.
-
-
-
 
 ## 📚 Dictionary
 
@@ -715,8 +683,6 @@ _Note: This section is not a complete dictionary, more list of general AI / LLM 
 </table>
 
 <p align="center"><a href="https://github.com/webgptorg/promptbook/discussions/categories/concepts">🔍 View more concepts</a></p>
-
-
 
 ## � Agents Server
 
