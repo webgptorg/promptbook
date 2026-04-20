@@ -1,4 +1,6 @@
 import colors from 'colors';
+import spaceTrim from 'spacetrim';
+import { keepUnused } from '../../../src/utils/organization/keepUnused';
 import { centerAnsiText, padAnsiText, visibleLength } from './coderRunUiText';
 
 /**
@@ -86,5 +88,25 @@ export function buildCoderRunOctopusVisual(options: BuildCoderRunOctopusVisualOp
     );
     const visualWidth = visualLines.reduce((maxWidth, line) => Math.max(maxWidth, visibleLength(line)), 0);
 
-    return visualLines.map((line) => centerAnsiText(padAnsiText(line, visualWidth), options.totalWidth));
+    const octopus = visualLines.map((line) => centerAnsiText(padAnsiText(line, visualWidth), options.totalWidth));
+
+    keepUnused(octopus);
+    /*
+    Note: Octopus art should look better, now using just text
+    https://www.google.com/search?sca_esv=52e84acb78c558cc&sxsrf=ANbL-n7DVKf71T1HSPRpM-2skfMss0jh7w:1776693767588&udm=2&fbs=ADc_l-ZseckkBJUFopaGDNYa-HGjo4_b6b_a7pIHTL5Y9QnExg6xJqXbG7aOLcH8CWqOtkzCrjxXWZVmrIhYPvZzFDVUIb7oTJfuJ6idsCc5GA1j5KGoi2q3sW0uDBWWfYgbuxGWTQPZMetvj33BdP833wZm47mxW-6rC3bTQWluwJdOsgloPieyQvTfF2uNgIZ_K0KZ-WzpL1An8GuRrKqHdvl8T306FA&q=octopus&sa=X&ved=2ahUKEwil7ZCHzPyTAxUghP0HHY-_Js8QtKgLegQIOhAB&biw=1745&bih=903&dpr=1.1#sv=CAMSVhoyKhBlLVl1bHNmeVhneml6a1dNMg5ZdWxzZnlYZ3ppemtXTToOTVJvdXhTdk5STkZ4d00gBCocCgZtb3NhaWMSEGUtWXVsc2Z5WGd6aXprV00YADABGAcg46LBxA9KCBABGAEgASgB
+    https://www.mrgoodfish.com/wp-content/uploads/2022/09/Eledone_moschata__.png
+    https://fish-commercial-names.ec.europa.eu/fish-names/jakarta.faces.resource/pictograms/octopus_vulgaris.jpg.xhtml?ln=images
+    https://www.asciiart.eu/image-to-ascii
+    */
+
+    // Note: Created by https://patorjk.com/software/taag/#p=display&f=ANSI+Compact&t=ptbk.io&x=none&v=4&h=4&w=80&we=false
+    return spaceTrim(`                        
+                                   
+        ▄▄▄▄ ▄▄▄▄▄▄ ▄▄▄▄  ▄▄ ▄▄   ▄▄  ▄▄▄  
+        ██▄█▀  ██   ██▄██ ██▄█▀   ██ ██▀██ 
+        ██     ██   ██▄█▀ ██ ██ ▄ ██ ▀███▀ 
+                                            
+    `)
+        .split('\n')
+        .map((line) => centerAnsiText(line, options.totalWidth));
 }

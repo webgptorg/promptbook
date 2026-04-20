@@ -2,8 +2,8 @@ import colors from 'colors';
 import type { CoderRunPauseState } from '../common/waitForPause';
 import type { CoderRunConfig, CoderRunPhase, CoderRunProgressSnapshot } from './CoderRunUiState';
 import { buildCoderRunOctopusVisual } from './buildCoderRunOctopusVisual';
-import { fitAnsiText, fitPlainText, padAnsiText, stripAnsi } from './coderRunUiText';
 import { isCoderRunUiAutoRefreshing } from './coderRunUiRefresh';
+import { fitAnsiText, fitPlainText, padAnsiText, stripAnsi } from './coderRunUiText';
 
 /**
  * Maximum number of output lines reserved for agent output in the UI.
@@ -201,7 +201,7 @@ function buildVisibleOutputLines(agentOutputLines: readonly string[]): readonly 
     const visibleOutputLines =
         agentOutputLines.length > 0
             ? agentOutputLines.slice(-MAX_VISIBLE_OUTPUT_LINES).map((line) => `› ${stripAnsi(line)}`)
-            : ['No live agent output yet.'];
+            : [colors.gray('No live agent output yet.')];
 
     while (visibleOutputLines.length < MAX_VISIBLE_OUTPUT_LINES) {
         visibleOutputLines.push('');
