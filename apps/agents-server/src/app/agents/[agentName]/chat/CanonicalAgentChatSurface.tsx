@@ -2,6 +2,7 @@
 
 import { Chat } from '@promptbook-local/components';
 import { useCallback, useMemo, type CSSProperties, type ReactNode } from 'react';
+import type { ChatParticipant } from '../../../../../../../src/book-components/Chat/types/ChatParticipant';
 import { useAgentBackground } from '../../../../components/AgentProfile/useAgentBackground';
 import { useChatEnterBehaviorPreferences } from '../../../../components/ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
 import { useChatVisualMode } from '../../../../components/ChatVisualMode/ChatVisualModeProvider';
@@ -116,11 +117,13 @@ export function CanonicalAgentChatSurface({
     const participants = useMemo(
         () =>
             createCanonicalAgentChatParticipants({
+                agentAvatarDefinition: state.agentAvatarDefinition,
                 agentAvatarSrc: state.agentAvatarSrc,
+                agentAvatarVisualId: state.agentAvatarVisualId,
                 agentDisplayName: state.agentDisplayName,
                 brandColorHex,
             }),
-        [brandColorHex, state.agentAvatarSrc, state.agentDisplayName],
+        [brandColorHex, state.agentAvatarDefinition, state.agentAvatarSrc, state.agentAvatarVisualId, state.agentDisplayName],
     );
     const { language, t: translateText } = useServerLanguage();
     const translations = useMemo(() => createCanonicalAgentChatTranslations(translateText), [translateText]);
@@ -273,24 +276,24 @@ function createCanonicalAgentChatBackgroundStyle({
  */
 function createCanonicalAgentChatParticipants({
     agentDisplayName,
+    agentAvatarDefinition,
     agentAvatarSrc,
+    agentAvatarVisualId,
     brandColorHex,
 }: {
     agentDisplayName: string;
-    agentAvatarSrc: string;
+    agentAvatarDefinition: CanonicalAgentChatPanelState['surface']['agentAvatarDefinition'];
+    agentAvatarSrc: CanonicalAgentChatPanelState['surface']['agentAvatarSrc'];
+    agentAvatarVisualId: CanonicalAgentChatPanelState['surface']['agentAvatarVisualId'];
     brandColorHex: string;
-}): ReadonlyArray<{
-    name: string;
-    fullname: string;
-    avatarSrc?: string;
-    color: string;
-    isMe: boolean;
-}> {
+}): ReadonlyArray<ChatParticipant> {
     return [
         {
             name: 'AGENT',
             fullname: agentDisplayName,
-            avatarSrc: agentAvatarSrc,
+            avatarSrc: agentAvatarSrc || undefined,
+            avatarDefinition: agentAvatarDefinition || undefined,
+            avatarVisualId: agentAvatarVisualId || undefined,
             color: brandColorHex,
             isMe: false,
         },

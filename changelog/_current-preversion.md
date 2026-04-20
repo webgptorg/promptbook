@@ -1,3 +1,9 @@
+-   Changed Agents Server default agent avatars to the shared animated `Octopus2` visual whenever an agent does not define `META IMAGE`, while still honoring explicit `META IMAGE` overrides and `META COLOR` palettes across agent cards, chat UI, profile views, metadata images, and default avatar image routes:
+
+    -   Added one shared avatar-resolution contract that can return either an explicit image or a deterministic built-in visual, keeping the fallback logic DRY and making future default-visual swaps straightforward.
+    -   Replaced the old AI-generated default-avatar route output with a deterministic `Octopus2` PNG rendered from the shared avatar visual system, so OG images, manifests, icons, embeds, push notifications, and other image-only surfaces now inherit the same default avatar, while preserving the legacy generated-image flow behind an explicit `?mode=generated` opt-in.
+    -   Updated interactive Agents Server surfaces such as homepage agent cards, folder previews, graph nodes, header breadcrumbs, profile cards, and chat participant rendering to show the live animated visual instead of a static fallback image when no explicit `META IMAGE` is set.
+
 -   Enhanced the `ptbk coder run` octopus branding so the dashboard now opens with a wider animated mascot that uses space more efficiently while prompts are actively running:
 
     -   Replaced the stacked octopus-and-terminal splash with a horizontal octopus illustration that keeps the head on the left, tentacles on the right, and only the natural `ptbk.io` label inside the visual.

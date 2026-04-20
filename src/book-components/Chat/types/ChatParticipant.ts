@@ -1,6 +1,8 @@
 import type { string_book } from '../../../book-2.0/agent-source/string_book';
 import type { id, string_color, string_person_fullname, string_url_image } from '../../../types/typeAliases';
 import { Color } from '../../../utils/color/Color';
+import type { AvatarDefinition } from '../../../avatars/types/AvatarDefinition';
+import type { AvatarVisualId } from '../../../avatars/types/AvatarVisualDefinition';
 
 /**
  * A participant in the chat
@@ -27,6 +29,16 @@ export type ChatParticipant = {
      * Profile picture
      */
     avatarSrc?: string_url_image;
+
+    /**
+     * Deterministic avatar definition used when no static image should be shown.
+     */
+    avatarDefinition?: AvatarDefinition;
+
+    /**
+     * Built-in avatar visual id used with `avatarDefinition`.
+     */
+    avatarVisualId?: AvatarVisualId;
 
     /**
      * Color associated with the participant

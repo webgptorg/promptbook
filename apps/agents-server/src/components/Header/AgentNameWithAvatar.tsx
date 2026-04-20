@@ -1,5 +1,7 @@
 import Image from 'next/image';
 import type { ReactNode } from 'react';
+import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
+import { AgentAvatar } from '../AgentAvatar/AgentAvatar';
 
 /**
  * Props for the agent label that includes its avatar.
@@ -7,6 +9,11 @@ import type { ReactNode } from 'react';
  * @private type of Header
  */
 type AgentNameWithAvatarProps = {
+    /**
+     * Optional agent metadata used to render the animated default avatar when no explicit image is set.
+     */
+    readonly agent?: Pick<AgentBasicInformation, 'agentName' | 'agentHash' | 'permanentId' | 'meta'> | null;
+
     /**
      * Human-readable label for the agent.
      */
@@ -21,6 +28,11 @@ type AgentNameWithAvatarProps = {
      * Tailwind classes used to size the avatar element.
      */
     readonly avatarSizeClassName?: string;
+
+    /**
+     * Output size in CSS pixels used by the rendered avatar media.
+     */
+    readonly avatarSize?: number;
 
     /**
      * Tailwind classes that style the text portion of the label.
@@ -44,16 +56,19 @@ type AgentNameWithAvatarProps = {
  * @private function of Header
  */
 export function AgentNameWithAvatar({
+    agent,
     label,
     avatarUrl,
     avatarSizeClassName,
+    avatarSize,
     textClassName,
     maxWidthClassName,
     fallbackIcon,
 }: AgentNameWithAvatarProps) {
     const safeLabel = label || 'Agent';
     const fallbackLetter = safeLabel.split('/').pop()?.trim().charAt(0)?.toUpperCase() || 'A';
-    const avatarSize = avatarSizeClassName ?? 'h-5 w-5';
+    const avatarSizeClasses = avatarSizeClassName ?? 'h-5 w-5';
+    const resolvedAvatarSize = avatarSize ?? 20;
     const textClasses = `truncate ${textClassName ?? 'text-sm font-semibold text-gray-900'} ${
         maxWidthClassName ?? ''
     }`.trim();
@@ -62,9 +77,17 @@ export function AgentNameWithAvatar({
     return (
         <span className="flex min-w-0 items-center gap-2">
             <span
-                className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-white text-xs font-semibold uppercase text-gray-500 ${avatarSize}`}
+                className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-white text-xs font-semibold uppercase text-gray-500 ${avatarSizeClasses}`}
             >
-                {avatarUrl ? (
+                {agent && !agent.meta.image ? (
+                    <AgentAvatar
+                        agent={agent}
+                        size={resolvedAvatarSize}
+                        alt={`${safeLabel} avatar`}
+                        className="h-full w-full"
+                        imageClassName="agent-avatar-pixelated h-full w-full object-cover"
+                    />
+                ) : avatarUrl ? (
                     <Image
                         src={avatarUrl}
                         alt={`${safeLabel} avatar`}

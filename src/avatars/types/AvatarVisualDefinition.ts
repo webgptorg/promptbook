@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import type { string_color, string_css_class } from '../../types/typeAliases';
 import type { AvatarDefinition } from './AvatarDefinition';
 
@@ -90,6 +91,11 @@ export type AvatarProps = {
      * Optional CSS class name applied to the canvas.
      */
     readonly className?: string_css_class;
+
+    /**
+     * Optional inline style applied to the canvas.
+     */
+    readonly style?: CSSProperties;
 };
 
 /**

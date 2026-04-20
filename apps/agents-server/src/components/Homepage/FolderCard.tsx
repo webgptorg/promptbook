@@ -3,8 +3,8 @@
 import { string_url } from '@promptbook-local/types';
 import { Edit3Icon, RotateCcwIcon, Trash2Icon } from 'lucide-react';
 import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
-import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { resolveFolderColor } from '../../utils/agentOrganization/folderAppearance';
+import { AgentAvatar } from '../AgentAvatar/AgentAvatar';
 import { FolderAppearanceIcon } from '../FolderAppearance/FolderAppearanceIcon';
 import { FILE_ACTION_BUTTON_CLASSES, FileCard } from './FileCard';
 
@@ -88,18 +88,18 @@ export function FolderCard({
                                     );
                                 }
 
-                                const imageUrl = resolveAgentAvatarImageUrl({ agent, baseUrl: publicUrl });
-
                                 return (
                                     <div
                                         key={agent.permanentId || agent.agentName}
                                         className="h-5 w-5 rounded overflow-hidden border border-yellow-200 bg-white/70"
                                     >
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img
-                                            src={imageUrl! /* <- TODO: Do the real check */}
+                                        <AgentAvatar
+                                            agent={agent}
+                                            baseUrl={publicUrl}
+                                            size={20}
                                             alt={agent.agentName}
-                                            className="agent-avatar-pixelated w-full h-full object-cover"
+                                            className="h-full w-full"
+                                            imageClassName="agent-avatar-pixelated h-full w-full object-cover"
                                         />
                                     </div>
                                 );

@@ -4,11 +4,11 @@ import { string_url } from '@promptbook-local/types';
 import { CheckCircle2Icon, EyeIcon, EyeOffIcon, LockIcon, RotateCcwIcon } from 'lucide-react';
 import Link from 'next/link';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
-import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import type { AgentVisibility } from '../../utils/agentVisibility';
 import { AgentCapabilityChips, HOMEPAGE_CAPABILITY_CHIPS_LIMIT } from '../AgentProfile/AgentCapabilityChips';
 import { useAgentBackground } from '../AgentProfile/useAgentBackground';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
+import { AgentAvatar } from '../AgentAvatar/AgentAvatar';
 import { FILE_ACTION_BUTTON_CLASSES, FileCard } from './FileCard';
 
 /**
@@ -99,12 +99,11 @@ export function AgentCard({
     const { meta, agentName } = agent;
     const fallbackName = formatText('Agent');
     const fullname = (meta.fullname as string) || agentName || fallbackName;
-    const imageUrl = resolveAgentAvatarImageUrl({ agent, baseUrl: serverUrl || publicUrl });
     const personaDescription = agent.personaDescription || '';
     const resolvedVisibility = visibility || 'PRIVATE';
     const isSelectable = typeof onSelect === 'function';
 
-    const { brandColorLightHex, brandColorDarkHex, backgroundImage } = useAgentBackground(meta.color);
+    const { brandColorLightHex, backgroundImage } = useAgentBackground(meta.color);
 
     return (
         <div className="relative h-full group">
@@ -131,21 +130,14 @@ export function AgentCard({
                             className="relative z-10 mt-0.5 h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg border bg-white shadow-sm"
                             style={{ borderColor: `${brandColorLightHex}80` }}
                         >
-                            {imageUrl ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img
-                                    src={imageUrl}
-                                    alt={fullname}
-                                    className="agent-avatar-pixelated h-full w-full object-cover"
-                                />
-                            ) : (
-                                <div
-                                    className="flex h-full w-full items-center justify-center text-lg font-semibold text-white/90"
-                                    style={{ backgroundColor: brandColorDarkHex }}
-                                >
-                                    {fullname.charAt(0).toUpperCase()}
-                                </div>
-                            )}
+                            <AgentAvatar
+                                agent={agent}
+                                baseUrl={serverUrl || publicUrl}
+                                size={48}
+                                alt={fullname}
+                                className="h-full w-full"
+                                imageClassName="agent-avatar-pixelated h-full w-full object-cover"
+                            />
                         </div>
                         <div className="relative z-10 min-w-0 flex-1">
                             <h3 className="truncate text-sm font-bold text-gray-900" title={fullname}>
@@ -187,21 +179,14 @@ export function AgentCard({
                             className="relative z-10 mt-0.5 h-12 w-12 rounded-lg overflow-hidden flex-shrink-0 bg-white shadow-sm border"
                             style={{ borderColor: `${brandColorLightHex}80` }}
                         >
-                            {imageUrl ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img
-                                    src={imageUrl}
-                                    alt={fullname}
-                                    className="agent-avatar-pixelated w-full h-full object-cover"
-                                />
-                            ) : (
-                                <div
-                                    className="w-full h-full flex items-center justify-center text-lg font-semibold text-white/90"
-                                    style={{ backgroundColor: brandColorDarkHex }}
-                                >
-                                    {fullname.charAt(0).toUpperCase()}
-                                </div>
-                            )}
+                            <AgentAvatar
+                                agent={agent}
+                                baseUrl={serverUrl || publicUrl}
+                                size={48}
+                                alt={fullname}
+                                className="h-full w-full"
+                                imageClassName="agent-avatar-pixelated h-full w-full object-cover"
+                            />
                         </div>
                         <div className="relative z-10 min-w-0 flex-1">
                             <h3 className="text-sm font-bold text-gray-900 truncate" title={fullname}>

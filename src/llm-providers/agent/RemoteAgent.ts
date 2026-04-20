@@ -17,6 +17,7 @@ import type {
     string_fonts,
     string_url_image,
 } from '../../types/typeAliases';
+import type { AvatarVisualId } from '../../avatars/types/AvatarVisualDefinition';
 import { decodeChatStreamWhitespaceFromTransport } from '../../utils/chat/decodeChatStreamWhitespaceFromTransport';
 import { attachClientVersionHeader } from '../../utils/clientVersion';
 import type { TODO_any } from '../../utils/organization/TODO_any';
@@ -51,6 +52,8 @@ type RemoteAgentProfile = {
     isVoiceCallingEnabled?: boolean;
     isVoiceTtsSttEnabled?: boolean;
     knowledgeSources?: Array<{ url: string; filename: string }>;
+    isMetaImageExplicit?: boolean;
+    avatarVisualId?: AvatarVisualId;
 };
 
 /**
@@ -155,9 +158,10 @@ function formatMetaLine(label: string, value?: string): string | null {
  * Build a minimal agent source snapshot for remote agents.
  */
 function buildRemoteAgentSource(profile: RemoteAgentProfile, meta: RemoteAgentProfile['meta']): string_book {
+    const isMetaImageExplicit = profile.isMetaImageExplicit !== false;
     const metaLines = [
         formatMetaLine('FULLNAME', meta?.fullname),
-        formatMetaLine('IMAGE', meta?.image),
+        formatMetaLine('IMAGE', isMetaImageExplicit ? meta?.image : undefined),
         formatMetaLine('DESCRIPTION', meta?.description),
         formatMetaLine('COLOR', meta?.color),
         formatMetaLine('FONT', meta?.font),
@@ -270,6 +274,8 @@ export class RemoteAgent extends Agent {
         remoteAgent._isVoiceCallingEnabled = profile.isVoiceCallingEnabled === true; // [✨✷] Store voice calling status
         remoteAgent._isVoiceTtsSttEnabled = profile.isVoiceTtsSttEnabled !== false;
         remoteAgent.knowledgeSources = profile.knowledgeSources || [];
+        remoteAgent.isMetaImageExplicit = profile.isMetaImageExplicit !== false;
+        remoteAgent.avatarVisualId = profile.avatarVisualId;
 
         return remoteAgent;
     }
@@ -283,6 +289,8 @@ export class RemoteAgent extends Agent {
     public toolTitles: Record<string, string> = {};
     private _isVoiceCallingEnabled: boolean = false; // [✨✷] Track voice calling status
     private _isVoiceTtsSttEnabled: boolean = true;
+    public isMetaImageExplicit: boolean = true;
+    public avatarVisualId: AvatarVisualId | undefined = undefined;
 
     /**
      * Indicates whether the remote server allows text-to-speech and speech-to-text.

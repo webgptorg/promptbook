@@ -19,7 +19,7 @@ const AVATAR_CANVAS_RADIUS_RATIO = 0.18;
  * @private shared component for in-repository avatar previews
  */
 export function Avatar(props: AvatarProps) {
-    const { avatarDefinition, visualId, size = DEFAULT_AVATAR_SIZE, title, className } = props;
+    const { avatarDefinition, visualId, size = DEFAULT_AVATAR_SIZE, title, className, style } = props;
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const normalizedAvatarDefinition = useMemo(() => normalizeAvatarDefinition(avatarDefinition), [avatarDefinition]);
     const avatarVisual = useMemo(() => getAvatarVisualById(visualId), [visualId]);
@@ -68,6 +68,7 @@ export function Avatar(props: AvatarProps) {
                 height: size,
                 display: 'block',
                 borderRadius: size * AVATAR_CANVAS_RADIUS_RATIO,
+                ...style,
             }}
         />
     );

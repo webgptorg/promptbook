@@ -7,7 +7,7 @@ import { spaceTrim } from 'spacetrim';
 import { Color, saturate } from '../../../_packages/color.index';
 import { PROMPTBOOK_COLOR } from '../../../config';
 import { asUpdatableSubject } from '../../../types/Updatable';
-import { resolveAgentAvatarImageUrl } from '../../../utils/agents/resolveAgentAvatarImageUrl';
+import { resolveAgentAvatar } from '../../../utils/agents/resolveAgentAvatarImageUrl';
 import { $getCurrentDate } from '../../../utils/misc/$getCurrentDate';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { LlmChat } from '../LlmChat/LlmChat';
@@ -34,7 +34,7 @@ export function AgentChat(props: AgentChatProps) {
     const { agent, title, persistenceKey, onChange, sendMessage, toolTitles, teamAgentProfiles, ...restProps } = props;
 
     const brandColor = Color.fromSafe(agent.meta.color || PROMPTBOOK_COLOR).then(saturate(-0.2));
-    const agentAvatarUrl = resolveAgentAvatarImageUrl({ agent });
+    const resolvedAgentAvatar = resolveAgentAvatar({ agent });
     const elevenLabsVoiceId = agent.meta.voice;
 
     return (
@@ -64,7 +64,10 @@ export function AgentChat(props: AgentChatProps) {
                     {
                         name: 'AGENT',
                         fullname: agent.meta.fullname || agent.agentName || 'Agent',
-                        avatarSrc: agentAvatarUrl || undefined,
+                        avatarSrc: resolvedAgentAvatar?.type === 'image' ? resolvedAgentAvatar.imageUrl : undefined,
+                        avatarDefinition:
+                            resolvedAgentAvatar?.type === 'visual' ? resolvedAgentAvatar.avatarDefinition : undefined,
+                        avatarVisualId: resolvedAgentAvatar?.type === 'visual' ? resolvedAgentAvatar.visualId : undefined,
                         color: brandColor,
                         isMe: false,
                         agentSource: asUpdatableSubject(agent.agentSource).getValue() /* <- TODO: [🐱‍🚀] asValue */,

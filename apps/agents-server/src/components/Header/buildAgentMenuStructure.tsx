@@ -117,12 +117,19 @@ function createFolderMenuEntryLabel(folder: HeaderAgentMenuFolder, depth: number
  *
  * @private function of Header
  */
-function createAgentMenuEntryLabel(label: string, avatarUrl: string | null, depth: number): ReactNode {
+function createAgentMenuEntryLabel(
+    agent: HeaderAgentMenuAgent,
+    label: string,
+    avatarUrl: string | null,
+    depth: number,
+): ReactNode {
     return createIndentedMenuLabel(
         <AgentNameWithAvatar
+            agent={agent}
             label={label}
             avatarUrl={avatarUrl}
             avatarSizeClassName={AGENT_MENU_AVATAR_SIZE_CLASS}
+            avatarSize={24}
             textClassName={AGENT_MENU_TEXT_CLASS}
             maxWidthClassName={AGENT_MENU_MAX_WIDTH_CLASS}
         />,
@@ -289,7 +296,7 @@ function createAgentMenuItems(
 
         for (const agent of agentsByFolderId.get(folderId) || []) {
             items.push({
-                label: createAgentMenuEntryLabel(getAgentMenuLabel(agent), getAgentAvatarUrl(agent), depth + 1),
+                label: createAgentMenuEntryLabel(agent, getAgentMenuLabel(agent), getAgentAvatarUrl(agent), depth + 1),
                 href: createAgentHref(agent),
             });
         }
@@ -305,7 +312,7 @@ function createAgentMenuItems(
 
     for (const agent of agentsByFolderId.get(null) || []) {
         items.push({
-            label: createAgentMenuEntryLabel(getAgentMenuLabel(agent), getAgentAvatarUrl(agent), 0),
+            label: createAgentMenuEntryLabel(agent, getAgentMenuLabel(agent), getAgentAvatarUrl(agent), 0),
             href: createAgentHref(agent),
         });
     }
@@ -328,7 +335,7 @@ function createAgentNode(
         type: 'agent',
         agentName: agent.agentName,
         label,
-        renderLabel: createAgentMenuEntryLabel(label, getAgentAvatarUrl(agent), 0),
+        renderLabel: createAgentMenuEntryLabel(agent, label, getAgentAvatarUrl(agent), 0),
         href: createAgentHref(agent),
     };
 }

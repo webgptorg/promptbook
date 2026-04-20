@@ -60,6 +60,8 @@ export function renderSelfLearningToolCallDetails(options: RenderSelfLearningToo
                     <SelfLearningAvatar
                         label={agentLabel}
                         avatarSrc={agentParticipant?.avatarSrc}
+                        avatarDefinition={agentParticipant?.avatarDefinition}
+                        avatarVisualId={agentParticipant?.avatarVisualId}
                         fallbackColor={agentAvatarColor}
                     />
                     <SelfLearningAvatar label="Teacher" className={styles.selfLearningTeacher}>

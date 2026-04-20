@@ -1,6 +1,9 @@
 'use client';
 
 import { type CSSProperties, type ReactNode } from 'react';
+import { AvatarOrImage } from '../../../avatars/AvatarOrImage';
+import type { AvatarDefinition } from '../../../avatars/types/AvatarDefinition';
+import type { AvatarVisualId } from '../../../avatars/types/AvatarVisualDefinition';
 import { classNames } from '../../_common/react-utils/classNames';
 import styles from './Chat.module.css';
 
@@ -12,6 +15,8 @@ import styles from './Chat.module.css';
 export type TeamHeaderProfileProps = {
     label: string;
     avatarSrc?: string | null;
+    avatarDefinition?: AvatarDefinition;
+    avatarVisualId?: AvatarVisualId;
     href?: string;
     fallbackColor?: string;
 };
@@ -21,15 +26,30 @@ export type TeamHeaderProfileProps = {
  *
  * @private component of `<Chat/>`
  */
-export function TeamHeaderProfile({ label, avatarSrc, href, fallbackColor }: TeamHeaderProfileProps) {
+export function TeamHeaderProfile({
+    label,
+    avatarSrc,
+    avatarDefinition,
+    avatarVisualId,
+    href,
+    fallbackColor,
+}: TeamHeaderProfileProps) {
     const avatarStyles: CSSProperties = {
         backgroundColor: fallbackColor || '#e2e8f0',
-        backgroundImage: avatarSrc ? `url(${avatarSrc})` : undefined,
     };
 
     const content = (
         <>
-            <span className={styles.teamHeaderAvatar} style={avatarStyles} aria-hidden="true" />
+            <span className={styles.teamHeaderAvatar} style={avatarStyles} aria-hidden="true">
+                <AvatarOrImage
+                    imageUrl={avatarSrc}
+                    avatarDefinition={avatarDefinition}
+                    visualId={avatarVisualId}
+                    size={36}
+                    alt={label}
+                    style={{ width: '100%', height: '100%', borderRadius: '50%' }}
+                />
+            </span>
             <span className={styles.teamHeaderName}>{label}</span>
         </>
     );
@@ -58,6 +78,8 @@ export function TeamHeaderProfile({ label, avatarSrc, href, fallbackColor }: Tea
 export type SelfLearningAvatarProps = {
     label: string;
     avatarSrc?: string | null;
+    avatarDefinition?: AvatarDefinition;
+    avatarVisualId?: AvatarVisualId;
     fallbackColor?: string;
     className?: string;
     children?: ReactNode;
@@ -71,13 +93,14 @@ export type SelfLearningAvatarProps = {
 export function SelfLearningAvatar({
     label,
     avatarSrc,
+    avatarDefinition,
+    avatarVisualId,
     fallbackColor = '#e2e8f0',
     className,
     children,
 }: SelfLearningAvatarProps) {
     const avatarStyle: CSSProperties = {
         backgroundColor: fallbackColor,
-        backgroundImage: avatarSrc ? `url(${avatarSrc})` : undefined,
     };
 
     const initial = label.trim().charAt(0).toUpperCase() || '?';
@@ -90,7 +113,18 @@ export function SelfLearningAvatar({
             aria-label={label}
             title={label}
         >
-            {!avatarSrc && (children || <span className={styles.selfLearningAvatarInitial}>{initial}</span>)}
+            {avatarSrc || (avatarDefinition && avatarVisualId) ? (
+                <AvatarOrImage
+                    imageUrl={avatarSrc}
+                    avatarDefinition={avatarDefinition}
+                    visualId={avatarVisualId}
+                    size={48}
+                    alt={label}
+                    style={{ width: '100%', height: '100%', borderRadius: '50%' }}
+                />
+            ) : (
+                children || <span className={styles.selfLearningAvatarInitial}>{initial}</span>
+            )}
         </div>
     );
 }

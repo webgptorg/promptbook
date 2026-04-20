@@ -6,6 +6,7 @@ import { computeAgentHash } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
+import { DEFAULT_AGENT_AVATAR_VISUAL_ID } from '../../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 
 /**
  * Handles options.
@@ -49,9 +50,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         const agentHash = computeAgentHash(agentSource);
         const isVoiceCallingEnabled = metadata.IS_EXPERIMENTAL_VOICE_CALLING_ENABLED === 'true';
         const isVoiceTtsSttEnabled = metadata.IS_EXPERIMENTAL_VOICE_TTS_STT_ENABLED === 'true';
+        const isMetaImageExplicit = Boolean(agentProfile.meta.image);
+        const defaultAvatarImageUrl =
+            !isMetaImageExplicit && !resolvedAgentContext.isBookScopedAgent
+                ? `/agents/${encodeURIComponent(agentName)}/images/default-avatar.png`
+                : undefined;
 
-        if (!agentProfile.meta.image && !resolvedAgentContext.isBookScopedAgent) {
-            agentProfile.meta.image = `/agents/${encodeURIComponent(agentName)}/images/default-avatar.png`;
+        if (defaultAvatarImageUrl) {
+            agentProfile.meta.image = defaultAvatarImageUrl;
         }
 
         return new Response(
@@ -64,6 +70,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                     isVoiceTtsSttEnabled, // [✨✷] Add TTS/STT availability
                     toolTitles: agentProfile.meta.toolTitles || {}, // <- [🧠] Should we have this in meta?
                     knowledgeSources: agentProfile.knowledgeSources || [], // <- [📚] Explicitly include knowledge sources for citation resolution
+                    isMetaImageExplicit,
+                    avatarVisualId: isMetaImageExplicit ? undefined : DEFAULT_AGENT_AVATAR_VISUAL_ID,
                 },
                 // <- TODO: [🐱‍🚀] Rename `serializeError` to `errorToJson`
                 null,

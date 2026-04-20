@@ -1,5 +1,5 @@
 import { BookOpen, MessageSquare, UserRound } from 'lucide-react';
-import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
+import { AgentAvatar } from '../AgentAvatar/AgentAvatar';
 import type { OfficeAgentVisual } from './buildOfficeLayout';
 
 /**
@@ -22,7 +22,6 @@ type OfficeTooltipProps = {
  */
 export function OfficeTooltip(props: OfficeTooltipProps) {
     const { agent, publicUrl, x, y, onOpenProfile, onOpenChat, onOpenBook } = props;
-    const avatarUrl = resolveAgentAvatarImageUrl({ agent: agent.agent, baseUrl: agent.agent.serverUrl || publicUrl });
     const displayName = agent.agent.meta.fullname || agent.agent.agentName;
 
     return (
@@ -32,16 +31,14 @@ export function OfficeTooltip(props: OfficeTooltipProps) {
         >
             <div className="flex items-start gap-3">
                 <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-slate-100">
-                    {avatarUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                            src={avatarUrl}
-                            alt={displayName}
-                            className="agent-avatar-pixelated h-full w-full object-cover"
-                        />
-                    ) : (
-                        <span className="text-sm font-bold text-slate-700">{displayName.charAt(0).toUpperCase()}</span>
-                    )}
+                    <AgentAvatar
+                        agent={agent.agent}
+                        baseUrl={agent.agent.serverUrl || publicUrl}
+                        size={48}
+                        alt={displayName}
+                        className="h-full w-full"
+                        imageClassName="agent-avatar-pixelated h-full w-full object-cover"
+                    />
                 </div>
 
                 <div className="min-w-0 flex-1">

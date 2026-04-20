@@ -17,7 +17,7 @@ const nextConfig: NextConfig = {
     // <- TODO: [🐱‍🚀][🧠] How to properly build Next.js app, for both Vercel and Doceker?
 
     distDir: nextDistDir,
-    serverExternalPackages: ['pg'],
+    serverExternalPackages: ['pg', '@napi-rs/canvas'],
 
     experimental: {
         externalDir: true,

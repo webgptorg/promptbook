@@ -4,8 +4,9 @@ import { colorToDataUrl } from '@promptbook-local/color';
 import { AgentBasicInformation, string_agent_permanent_id, string_url } from '@promptbook-local/types';
 import { RepeatIcon } from 'lucide-react';
 import { useState } from 'react';
-import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
+import { resolveAgentAvatar } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { AGENT_PROFILE_CAPABILITY_CHIPS_LIMIT, AgentCapabilityChips } from './AgentCapabilityChips';
+import { AgentAvatar } from '../AgentAvatar/AgentAvatar';
 import { AgentProfileDescription } from './AgentProfileDescription';
 import { AgentProfileImage } from './AgentProfileImage';
 import { AgentQrCode } from './AgentQrCode';
@@ -95,7 +96,7 @@ export function AgentProfile(props: AgentProfileProps) {
     const personaDescription = meta.description || agent.personaDescription || '';
     const showMoreLabel = formatText('Show more');
     const showLessLabel = formatText('Show less');
-    const imageUrl = resolveAgentAvatarImageUrl({ agent, baseUrl: publicUrl });
+    const resolvedAgentAvatar = resolveAgentAvatar({ agent, baseUrl: publicUrl });
 
     const [isQrModalOpen, setIsQrModalOpen] = useState(false);
     const [isFlipped, setIsFlipped] = useState(false);
@@ -173,15 +174,32 @@ export function AgentProfile(props: AgentProfileProps) {
                                     // ['cornerShape' as really_any /* <- Note: `cornerShape` is non standard CSS property */]: 'squircle ',
                                 }}
                             >
-                                <AgentProfileImage
-                                    src={imageUrl! /* <- TODO: Do the real check */}
-                                    alt={fullname}
-                                    className="w-full h-full object-cover"
-                                    style={{
-                                        objectFit: 'cover',
-                                        backgroundImage: `url(${colorToDataUrl(brandColorLightHex)})`,
-                                    }}
-                                />
+                                {resolvedAgentAvatar?.type === 'image' ? (
+                                    <AgentProfileImage
+                                        src={resolvedAgentAvatar.imageUrl}
+                                        alt={fullname}
+                                        className="w-full h-full object-cover"
+                                        style={{
+                                            objectFit: 'cover',
+                                            backgroundImage: `url(${colorToDataUrl(brandColorLightHex)})`,
+                                        }}
+                                    />
+                                ) : (
+                                    <div
+                                        className="flex h-full w-full items-center justify-center"
+                                        style={{
+                                            background: `radial-gradient(circle at 35% 20%, ${brandColorLightHex}, ${brandColorDarkHex})`,
+                                        }}
+                                    >
+                                        <AgentAvatar
+                                            agent={agent}
+                                            baseUrl={publicUrl}
+                                            size={320}
+                                            alt={fullname}
+                                            style={{ width: '76%', height: 'auto', maxWidth: '320px' }}
+                                        />
+                                    </div>
+                                )}
 
                                 {/* Flip hint icon */}
                                 <div className="absolute bottom-2 md:bottom-4 right-2 md:right-4 bg-black/30 p-1 md:p-2 rounded-full text-white/80 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity">

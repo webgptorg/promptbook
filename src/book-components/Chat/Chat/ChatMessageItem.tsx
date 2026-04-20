@@ -6,6 +6,7 @@ import { Pause, Play, Reply } from 'lucide-react';
 import type { CSSProperties, ReactElement, PointerEvent as ReactPointerEvent } from 'react';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { colorToDataUrl } from '../../../_packages/color.index';
+import { AvatarOrImage } from '../../../avatars/AvatarOrImage';
 import { PROMPTBOOK_CHAT_COLOR, USER_CHAT_COLOR } from '../../../config';
 import type { id } from '../../../types/typeAliases';
 import { Color } from '../../../utils/color/Color';
@@ -267,6 +268,8 @@ export const ChatMessageItem = memo(
             // <- TODO: Destruct all `messages` properties like `isComplete`
         } = message;
         const avatarSrc = participant?.avatarSrc || null;
+        const avatarDefinition = participant?.avatarDefinition || null;
+        const avatarVisualId = participant?.avatarVisualId || null;
         const {
             avatarRef,
             tooltipRef,
@@ -798,7 +801,7 @@ export const ChatMessageItem = memo(
                     console.groupEnd();
                 }}
             >
-                {avatarSrc && (
+                {(avatarSrc || (avatarDefinition && avatarVisualId)) && (
                     <div
                         ref={avatarRef}
                         className={classNames(
@@ -811,24 +814,38 @@ export const ChatMessageItem = memo(
                         onMouseLeave={handleMouseLeave}
                         onClick={showTooltip}
                     >
-                        {/* Note: [㊗️] Using <div/> not <img/> for avatar to 1:1 aspect ratio in every circumstance */}
-                        <div
-                            style={
-                                {
+                        {avatarSrc ? (
+                            <div
+                                style={
+                                    {
+                                        width: '100%',
+                                        height: '100%',
+                                        aspectRatio: '1 / 1',
+
+                                        backgroundImage: `url(${participant?.avatarSrc || colorToDataUrl(color)})`,
+                                        backgroundColor: color.toHex(),
+                                        backgroundRepeat: 'no-repeat',
+                                        backgroundSize: 'cover',
+                                        borderRadius: '50%',
+                                        backgroundPosition: '50% 20%', // <- Note: Center avatar image to the head
+                                        '--avatar-bg-color': color.toHex(), // <- TODO: Maybe remove these deprecated CSS variables
+                                    } as CSSProperties
+                                }
+                            />
+                        ) : (
+                            <AvatarOrImage
+                                avatarDefinition={avatarDefinition}
+                                visualId={avatarVisualId}
+                                size={42}
+                                alt={String(participantLabel || 'Agent avatar')}
+                                style={{
                                     width: '100%',
                                     height: '100%',
                                     aspectRatio: '1 / 1',
-
-                                    backgroundImage: `url(${participant?.avatarSrc || colorToDataUrl(color)})`,
-                                    backgroundColor: color.toHex(),
-                                    backgroundRepeat: 'no-repeat',
-                                    backgroundSize: 'cover',
                                     borderRadius: '50%',
-                                    backgroundPosition: '50% 20%', // <- Note: Center avatar image to the head
-                                    '--avatar-bg-color': color.toHex(), // <- TODO: Maybe remove these deprecated CSS variables
-                                } as CSSProperties
-                            }
-                        />
+                                }}
+                            />
+                        )}
                         {isAvatarTooltipVisible && participant?.agentSource && avatarTooltipPosition && (
                             <AvatarProfileTooltip
                                 ref={tooltipRef}

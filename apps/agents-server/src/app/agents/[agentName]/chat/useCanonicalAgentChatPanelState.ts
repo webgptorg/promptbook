@@ -4,6 +4,9 @@ import { usePromise } from '@common/hooks/usePromise';
 import { RemoteAgent } from '@promptbook-local/core';
 import type { ChatMessage } from '@promptbook-local/types';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import type { AvatarDefinition } from '../../../../../../../src/avatars/types/AvatarDefinition';
+import type { AvatarVisualId } from '../../../../../../../src/avatars/types/AvatarVisualDefinition';
+import { resolveAgentAvatar } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { spaceTrim } from 'spacetrim';
 import { usePrivateModePreferences } from '../../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { useSelfLearningPreferences } from '../../../../components/SelfLearningPreferences/SelfLearningPreferencesProvider';
@@ -102,7 +105,9 @@ type CanonicalAgentManualMessageHandler = (
  */
 export type CanonicalAgentChatPanelState = {
     readonly surface: {
-        readonly agentAvatarSrc: string;
+        readonly agentAvatarDefinition: AvatarDefinition | null;
+        readonly agentAvatarSrc: string | null;
+        readonly agentAvatarVisualId: AvatarVisualId | null;
         readonly agentDisplayName: string;
         readonly elevenLabsVoiceId: string | undefined;
         readonly initialMessage: string | undefined;
@@ -338,7 +343,10 @@ export function useCanonicalAgentChatPanelState(
     });
 
     const agentDisplayName = useMemo(() => resolveAgentDisplayName(agent, agentName), [agent, agentName]);
-    const agentAvatarSrc = useMemo(() => resolveAgentAvatarSrc(agent, agentUrl), [agent, agentUrl]);
+    const resolvedAgentAvatar = useMemo(
+        () => resolveResolvedAgentAvatar(agent, agentName, agentUrl),
+        [agent, agentName, agentUrl],
+    );
     const fallbackInitialMessage = useMemo(() => createFallbackInitialMessage(agentDisplayName), [agentDisplayName]);
     const resolvedConfiguredInitialMessage = useMemo(() => {
         if (initialAgentMessage !== undefined) {
@@ -392,7 +400,10 @@ export function useCanonicalAgentChatPanelState(
 
     return {
         surface: {
-            agentAvatarSrc,
+            agentAvatarDefinition:
+                resolvedAgentAvatar?.type === 'visual' ? resolvedAgentAvatar.avatarDefinition : null,
+            agentAvatarSrc: resolvedAgentAvatar?.type === 'image' ? resolvedAgentAvatar.imageUrl : null,
+            agentAvatarVisualId: resolvedAgentAvatar?.type === 'visual' ? resolvedAgentAvatar.visualId : null,
             agentDisplayName,
             elevenLabsVoiceId: agent?.meta.voice,
             initialMessage,
@@ -651,8 +662,22 @@ function resolveAgentDisplayName(agent: RemoteAgent | null | undefined, agentNam
  *
  * @private function of CanonicalAgentChatPanel
  */
-function resolveAgentAvatarSrc(agent: RemoteAgent | null | undefined, agentUrl: string): string {
-    return agent?.meta.image || `${agentUrl}/images/default-avatar.png`;
+function resolveResolvedAgentAvatar(
+    agent: RemoteAgent | null | undefined,
+    agentName: string,
+    agentUrl: string,
+) {
+    return resolveAgentAvatar({
+        agent: {
+            agentName: agent?.agentName || agentName,
+            agentHash: agent?.agentHash || agentName,
+            permanentId: (agent as { permanentId?: string } | null | undefined)?.permanentId,
+            meta: agent?.meta || {},
+            isMetaImageExplicit: (agent as { isMetaImageExplicit?: boolean } | null | undefined)?.isMetaImageExplicit,
+            avatarVisualId: (agent as { avatarVisualId?: AvatarVisualId } | null | undefined)?.avatarVisualId,
+        },
+        baseUrl: agentUrl,
+    });
 }
 
 /**

@@ -216,9 +216,11 @@ export function HeaderDesktopContextNavigation({
                             aria-expanded={isAgentsOpen}
                         >
                             <AgentNameWithAvatar
+                                agent={activeAgent}
                                 label={activeAgentLabel}
                                 avatarUrl={activeAgentAvatarUrl}
                                 avatarSizeClassName="h-5 w-5"
+                                avatarSize={20}
                                 textClassName="text-xs sm:text-sm font-semibold text-gray-900"
                                 maxWidthClassName="max-w-[80px] sm:max-w-[120px] md:max-w-[180px] lg:max-w-[200px]"
                                 fallbackIcon={
@@ -268,9 +270,11 @@ export function HeaderDesktopContextNavigation({
                         className="inline-flex min-w-0 items-center gap-2 rounded-full px-2 sm:px-3 py-1 hover:bg-gray-100 transition"
                     >
                         <AgentNameWithAvatar
+                            agent={activeAgent}
                             label={activeAgentLabel}
                             avatarUrl={activeAgentAvatarUrl}
                             avatarSizeClassName="h-7 w-7"
+                            avatarSize={28}
                             textClassName="text-xs sm:text-sm font-semibold text-gray-900"
                             maxWidthClassName="max-w-[80px] sm:max-w-[120px] md:max-w-[180px] lg:max-w-[200px]"
                             fallbackIcon={

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { NodeProps } from 'reactflow';
+import { AgentAvatar } from '../AgentAvatar/AgentAvatar';
 import type { AgentNodeData } from './buildGraphLayoutNodes';
 
 /**
@@ -48,13 +49,23 @@ export function AgentGraphNode({ data }: NodeProps<AgentNodeData>) {
                     style={{ borderColor: data.style.ring }}
                 >
                     <div className="relative h-8 w-8 overflow-hidden rounded-full bg-white">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                            src={imageSrc}
-                            alt={data.name}
-                            className="agent-avatar-pixelated h-full w-full object-cover"
-                            onError={handleImageError}
-                        />
+                        {data.agent.meta.image ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                                src={imageSrc}
+                                alt={data.name}
+                                className="agent-avatar-pixelated h-full w-full object-cover"
+                                onError={handleImageError}
+                            />
+                        ) : (
+                            <AgentAvatar
+                                agent={data.agent}
+                                baseUrl={data.agent.serverUrl}
+                                size={32}
+                                alt={data.name}
+                                className="h-full w-full"
+                            />
+                        )}
                     </div>
                 </div>
                 <div className="min-w-0">

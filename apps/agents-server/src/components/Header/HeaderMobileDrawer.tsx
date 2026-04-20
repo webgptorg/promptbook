@@ -5,6 +5,7 @@ import type { ReactNode, RefObject } from 'react';
 import type { HoistedMenuItem } from '../../../../../src/book-components/_common/MenuHoisting/MenuHoistingContext';
 import { ArrowIcon } from '../../../../../src/book-components/icons/ArrowIcon';
 import { just } from '../../../../../src/utils/organization/just';
+import type { AgentOrganizationAgent } from '../../utils/agentOrganization/types';
 import { AgentNameWithAvatar } from './AgentNameWithAvatar';
 import type { AgentHierarchyView } from './createAgentViewLabel';
 import type { ServerTranslationKey } from '../../languages/ServerTranslationKeys';
@@ -55,7 +56,7 @@ type HeaderMobileDrawerProps = {
     readonly serverName: string;
     readonly serverLogoUrl: string | null;
     readonly isAdmin: boolean;
-    readonly activeAgent: unknown;
+    readonly activeAgent: AgentOrganizationAgent | null;
     readonly activeAgentLabel: string;
     readonly activeAgentAvatarUrl: string | null;
     readonly activeAgentHref: string;
@@ -242,9 +243,11 @@ function HeaderMobileDrawerActiveAgentIdentity({
 }: HeaderMobileDrawerActiveAgentIdentityProps) {
     return (
         <AgentNameWithAvatar
+            agent={activeAgent}
             label={activeAgentLabel}
             avatarUrl={activeAgentAvatarUrl}
             avatarSizeClassName="h-6 w-6"
+            avatarSize={24}
             textClassName="text-sm font-semibold text-gray-900"
             maxWidthClassName="max-w-[12rem]"
             fallbackIcon={!activeAgent ? <FolderIcon className="h-4 w-4 text-gray-500" aria-hidden /> : undefined}

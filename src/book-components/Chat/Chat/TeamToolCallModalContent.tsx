@@ -108,6 +108,8 @@ export function TeamToolCallModalContent(options: TeamToolCallModalContentOption
 
     const resolvedAgentLabel = resolvePreferredAgentLabel([agentParticipant?.fullname, agentName], agentName);
     const resolvedAgentAvatar = agentParticipant?.avatarSrc || null;
+    const resolvedAgentAvatarDefinition = agentParticipant?.avatarDefinition;
+    const resolvedAgentAvatarVisualId = agentParticipant?.avatarVisualId;
     const resolvedAgentHeaderColor = agentParticipant?.color
         ? Color.fromSafe(agentParticipant.color).toHex()
         : '#64748b';
@@ -126,6 +128,8 @@ export function TeamToolCallModalContent(options: TeamToolCallModalContentOption
             fullname: resolvedAgentLabel,
             color: agentParticipant?.color || '#64748b',
             avatarSrc: resolvedAgentAvatar || undefined,
+            avatarDefinition: resolvedAgentAvatarDefinition,
+            avatarVisualId: resolvedAgentAvatarVisualId,
             isMe: true,
         },
         {
@@ -143,6 +147,8 @@ export function TeamToolCallModalContent(options: TeamToolCallModalContentOption
                     <TeamHeaderProfile
                         label={resolvedAgentLabel}
                         avatarSrc={resolvedAgentAvatar}
+                        avatarDefinition={resolvedAgentAvatarDefinition}
+                        avatarVisualId={resolvedAgentAvatarVisualId}
                         fallbackColor={resolvedAgentHeaderColor}
                     />
                     <span className={styles.teamHeaderDivider}>talking with</span>
