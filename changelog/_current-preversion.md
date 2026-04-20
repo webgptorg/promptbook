@@ -1,3 +1,8 @@
+-   Fixed Agents Server chat progress checklists so in-progress items show an animated spinner and completed items render a visible checkmark again:
+
+    -   Fixed the shared chat markdown progress-marker styling used by Agents Server progress cards, so the completed-state checkmark no longer collapses and disappears inside checklist items.
+    -   Kept the progress-state rendering DRY by fixing the shared `@promptbook-local/components` markdown checklist marker instead of adding Agents Server-specific progress UI logic.
+
 -   Fixed Agents Server chat reply notifications so the “new message” sound and vibration now play only after a live assistant reply finishes, not for the initial seeded message or preloaded chat history.
 
 -   Fixed `ptbk coder run` pausing/resuming so the runner now behaves as an explicit three-state flow: `running`, `pausing`, and `paused`:

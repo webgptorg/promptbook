@@ -144,6 +144,8 @@
 
 .MarkdownContent [data-chat-progress-marker='completed']::before {
     content: '';
+    display: block;
+    box-sizing: border-box;
     width: 0.26rem;
     height: 0.5rem;
     margin-top: -0.06rem;
