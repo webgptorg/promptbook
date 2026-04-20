@@ -1,3 +1,9 @@
+-   Fixed Agents Server header navigation so the shared server logo/name link now reliably reaches the homepage even when client-side routing stalls on agent pages:
+
+    -   Hardened the shared Agents Server client navigation helpers with one reusable hard-navigation fallback, so header links, search navigation, and other shared `router.push(...)` flows recover automatically when the SPA transition never updates the URL.
+    -   Reused the same fallback logic in the agent profile chat navigation helper, keeping the stalled-navigation recovery DRY instead of maintaining a second copy of the timeout-and-assign logic.
+    -   Added regression coverage for navigating to the homepage from both desktop and mobile header branding while already on an agent profile page.
+
 -   Added the new deterministic `Octopus3` avatar visual alongside the existing avatar set, with a morphing alien mantle and more visible ribbon tentacles that vary from the agent name, hash, colors, and animation time:
 
     -   Added the new built-in `octopus3` canvas renderer to the shared avatar registry without changing the existing `Octopus`, `Octopus2`, pixel-art, Minecraft, or Fractal visuals.

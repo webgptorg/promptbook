@@ -1,3 +1,5 @@
+export { normalizeDestinationForLocationComparison } from '../../../components/_utils/clientNavigationFallback';
+
 /**
  * Query parameter name used to convey the chat selection intent on the chat page.
  * When this parameter equals `FORCE_NEW_CHAT_QUERY_VALUE` the chat page opens a
@@ -36,23 +38,4 @@ export function buildAgentChatDestinationUrl(
     }
     const query = queryParams.toString();
     return query ? `${chatRoute}?${query}` : chatRoute;
-}
-
-/**
- * Normalizes one destination URL into a comparable location suffix.
- *
- * Used by the SPA-navigation stall detector: after `router.push` fires the
- * component reads `window.location` and compares the current path against the
- * normalised destination to decide whether to fall back to a hard navigation.
- *
- * @param destination - Destination URL passed to navigation helpers.
- * @returns Path + query + hash used for current-location comparison.
- */
-export function normalizeDestinationForLocationComparison(destination: string): string {
-    try {
-        const parsedDestination = new URL(destination, window.location.href);
-        return `${parsedDestination.pathname}${parsedDestination.search}${parsedDestination.hash}`;
-    } catch {
-        return destination;
-    }
 }

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import type { AnchorHTMLAttributes, MouseEvent, ReactNode } from 'react';
 import { useCallback, useMemo } from 'react';
 import { dispatchNavigationProgressStart } from '../NavigationProgress/navigationProgressEvents';
+import { scheduleClientNavigationFallback } from './clientNavigationFallback';
 
 /**
  * Props supported by `HeadlessLink`.
@@ -157,6 +158,7 @@ export function HeadlessLink({
 
             dispatchNavigationProgressStart({ href: finalHref, source: 'link' });
             router.push(finalHref);
+            scheduleClientNavigationFallback(finalHref, 'HeadlessLink');
         },
         [download, finalHref, isOptimisticSamePathNavigation, onClick, router, target],
     );
@@ -179,4 +181,5 @@ export function pushWithHeadless(router: ReturnType<typeof useRouter>, href: str
     const destination = appendHeadlessParam(href, isHeadless);
     dispatchNavigationProgressStart({ href: destination, source: 'router' });
     router.push(destination);
+    scheduleClientNavigationFallback(destination, 'pushWithHeadless');
 }

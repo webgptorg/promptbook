@@ -2,8 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { scheduleClientNavigationFallback } from '../../../components/_utils/clientNavigationFallback';
 import { dispatchNavigationProgressStart } from '../../../components/NavigationProgress/navigationProgressEvents';
-import { buildAgentChatDestinationUrl, normalizeDestinationForLocationComparison } from './agentChatNavigationUtils';
+import { buildAgentChatDestinationUrl } from './agentChatNavigationUtils';
 
 /**
  * Inputs required to orchestrate the profile-to-chat navigation flow.
@@ -28,13 +29,6 @@ type UseAgentProfileChatNavigationResult = {
     resolveExistingChatHref: (chatId: string) => string;
     newChatHref: string;
 };
-
-/**
- * Wait duration before falling back to hard navigation when SPA push stalls.
- *
- * @private function of AgentProfileChat
- */
-const PROFILE_CHAT_NAVIGATION_FALLBACK_DELAY_MS = 1_200;
 
 /**
  * Maximum time the component will remain in the "navigating" visual state before
@@ -124,19 +118,10 @@ export function useAgentProfileChatNavigation(
             router.push(destination);
 
             clearPendingNavigationFallback();
-
-            const locationBeforePush = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-            const normalizedDestination = normalizeDestinationForLocationComparison(destination);
-            pendingNavigationFallbackTimeoutRef.current = setTimeout(() => {
-                pendingNavigationFallbackTimeoutRef.current = null;
-                const locationAfterPush = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-                if (locationAfterPush === locationBeforePush && locationAfterPush !== normalizedDestination) {
-                    console.warn('[AgentProfileChat] SPA navigation stalled — falling back to hard navigation', {
-                        destination,
-                    });
-                    window.location.assign(destination);
-                }
-            }, PROFILE_CHAT_NAVIGATION_FALLBACK_DELAY_MS);
+            pendingNavigationFallbackTimeoutRef.current = scheduleClientNavigationFallback(
+                destination,
+                'AgentProfileChat',
+            );
 
             return Promise.resolve();
         },
