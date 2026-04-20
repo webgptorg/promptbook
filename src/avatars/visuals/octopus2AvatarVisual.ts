@@ -2,6 +2,7 @@
 
 import { drawAvatarFrame } from '../avatarRenderingUtils';
 import type { AvatarPalette, AvatarVisualDefinition } from '../types/AvatarVisualDefinition';
+import { createOrganicOctopusBodyPoints, traceSmoothClosedPath } from './octopusAvatarVisualShared';
 
 /**
  * Octopus2 avatar visual.
@@ -26,7 +27,7 @@ export const octopus2AvatarVisual: AvatarVisualDefinition = {
         const wobbleAmplitude = size * (0.014 + staticRandom() * 0.008);
         const lobeCount = 6 + Math.floor(staticRandom() * 3);
         const shapePhase = staticRandom() * Math.PI * 2;
-        const bodyPoints = createMorphingBodyPoints({
+        const bodyPoints = createOrganicOctopusBodyPoints({
             centerX,
             centerY,
             bodyRadius,
@@ -126,114 +127,6 @@ export const octopus2AvatarVisual: AvatarVisualDefinition = {
         context.fill();
     },
 };
-
-/**
- * Builds the continuously morphing octopus silhouette.
- *
- * @param options Shape construction options.
- * @returns Closed-loop body points.
- *
- * @private helper of `octopus2AvatarVisual`
- */
-function createMorphingBodyPoints(options: {
-    centerX: number;
-    centerY: number;
-    bodyRadius: number;
-    horizontalStretch: number;
-    verticalStretch: number;
-    mantleLift: number;
-    lowerDrop: number;
-    tentacleDepth: number;
-    wobbleAmplitude: number;
-    lobeCount: number;
-    shapePhase: number;
-    timeMs: number;
-}): Array<{ x: number; y: number }> {
-    const {
-        centerX,
-        centerY,
-        bodyRadius,
-        horizontalStretch,
-        verticalStretch,
-        mantleLift,
-        lowerDrop,
-        tentacleDepth,
-        wobbleAmplitude,
-        lobeCount,
-        shapePhase,
-        timeMs,
-    } = options;
-
-    return Array.from({ length: 36 }, (_, pointIndex) => {
-        const progress = pointIndex / 36;
-        const angle = -Math.PI / 2 + progress * Math.PI * 2;
-        const cosine = Math.cos(angle);
-        const sine = Math.sin(angle);
-        const upperFactor = Math.max(0, -sine);
-        const lowerFactor = Math.max(0, sine);
-        const lobeEnvelope = Math.pow(lowerFactor, 1.35);
-        const tentacleWave =
-            Math.max(0, Math.cos(angle * lobeCount + shapePhase + timeMs / 780)) * tentacleDepth * lobeEnvelope;
-        const surfaceWave =
-            Math.sin(angle * 3 + shapePhase + timeMs / 1200) * 0.62 +
-            Math.sin(angle * 5 - shapePhase * 0.7 - timeMs / 910) * 0.38;
-        const breathingWave = Math.sin(timeMs / 960 + shapePhase + angle * 0.45) * wobbleAmplitude;
-        const radius =
-            bodyRadius *
-                (1 + upperFactor * 0.12 + lowerFactor * 0.08 + surfaceWave * 0.05) +
-            tentacleWave +
-            breathingWave;
-
-        return {
-            x:
-                centerX +
-                cosine * radius * horizontalStretch +
-                Math.sin(angle * 2 + shapePhase) * lobeEnvelope * wobbleAmplitude * 0.7,
-            y:
-                centerY +
-                sine * radius * verticalStretch -
-                upperFactor * mantleLift +
-                lowerFactor * lowerDrop +
-                tentacleWave * 0.28,
-        };
-    });
-}
-
-/**
- * Traces a smooth closed path through the provided points.
- *
- * @param context Canvas 2D context.
- * @param points Closed-loop points.
- *
- * @private helper of `octopus2AvatarVisual`
- */
-function traceSmoothClosedPath(
-    context: CanvasRenderingContext2D,
-    points: ReadonlyArray<{ x: number; y: number }>,
-): void {
-    const lastPoint = points[points.length - 1]!;
-    const firstPoint = points[0]!;
-    const initialMidpoint = {
-        x: (lastPoint.x + firstPoint.x) / 2,
-        y: (lastPoint.y + firstPoint.y) / 2,
-    };
-
-    context.beginPath();
-    context.moveTo(initialMidpoint.x, initialMidpoint.y);
-
-    for (let pointIndex = 0; pointIndex < points.length; pointIndex++) {
-        const point = points[pointIndex]!;
-        const nextPoint = points[(pointIndex + 1) % points.length]!;
-        const midpoint = {
-            x: (point.x + nextPoint.x) / 2,
-            y: (point.y + nextPoint.y) / 2,
-        };
-
-        context.quadraticCurveTo(point.x, point.y, midpoint.x, midpoint.y);
-    }
-
-    context.closePath();
-}
 
 /**
  * Draws translucent inner filaments clipped inside the main body mesh.

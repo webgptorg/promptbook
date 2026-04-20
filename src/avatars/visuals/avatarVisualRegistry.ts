@@ -3,6 +3,7 @@ import { fractalAvatarVisual } from './fractalAvatarVisual';
 import { minecraftAvatarVisual } from './minecraftAvatarVisual';
 import { octopusAvatarVisual } from './octopusAvatarVisual';
 import { octopus2AvatarVisual } from './octopus2AvatarVisual';
+import { octopus3AvatarVisual } from './octopus3AvatarVisual';
 import { pixelArtAvatarVisual } from './pixelArtAvatarVisual';
 
 // Note: [💞] Ignore a discrepancy between file name and entity name
@@ -16,6 +17,7 @@ export const AVATAR_VISUALS: ReadonlyArray<AvatarVisualDefinition> = [
     pixelArtAvatarVisual,
     octopusAvatarVisual,
     octopus2AvatarVisual,
+    octopus3AvatarVisual,
     minecraftAvatarVisual,
     fractalAvatarVisual,
 ];

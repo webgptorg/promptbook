@@ -1,3 +1,9 @@
+-   Added the new deterministic `Octopus3` avatar visual alongside the existing avatar set, with a morphing alien mantle and more visible ribbon tentacles that vary from the agent name, hash, colors, and animation time:
+
+    -   Added the new built-in `octopus3` canvas renderer to the shared avatar registry without changing the existing `Octopus`, `Octopus2`, pixel-art, Minecraft, or Fractal visuals.
+    -   Extracted the shared smooth organic octopus geometry helpers so `Octopus2` and `Octopus3` stay DRY while keeping `Octopus2` visually unchanged.
+    -   Updated the existing utils `/avatars` playground and regression coverage so the new renderer appears in the selector, preview grid, deterministic sample gallery, and supported URL-state parsing without creating a separate page.
+
 -   Fixed Agents Server chat progress checklists so in-progress items show an animated spinner and completed items render a visible checkmark again:
 
     -   Fixed the shared chat markdown progress-marker styling used by Agents Server progress cards, so the completed-state checkmark no longer collapses and disappears inside checklist items.
