@@ -1,9 +1,7 @@
-import { readFileSync } from 'fs';
-import glob from 'glob-promise';
 import type { string_char_emoji } from '../../../src/types/typeAliasEmoji';
-import { difference } from '../../../src/utils/sets/difference';
 import { $shuffleItems } from '../../find-fresh-emoji-tags/utils/$shuffleItems';
 import { EMOJIS_OF_SINGLE_PICTOGRAM } from '../../find-fresh-emoji-tags/utils/emojis';
+import { scanEmojiTagUsage } from '../emojiTags/scanEmojiTagUsage';
 
 /**
  * Emoji prefix used for prompt tags (e.g. `[prefix + emoji]`).
@@ -75,9 +73,16 @@ export async function getFreshPromptEmojiTags(options: PromptEmojiTagOptions): P
     const ignoreGlobs = options.ignoreGlobs ?? ['**/node_modules/**'];
     const tagPrefix = options.tagPrefix ?? PROMPT_EMOJI_TAG_PREFIX;
 
-    const filesToScan = await findFilesToScan(rootDir, includeGlobs, ignoreGlobs);
-    const usedEmojis = collectUsedPromptEmojis(filesToScan, tagPrefix);
-    const freshEmojis = difference(EMOJIS_OF_SINGLE_PICTOGRAM, usedEmojis);
+    const { usedEmojis } = await scanEmojiTagUsage({
+        rootDir,
+        includeGlobs,
+        ignoreGlobs,
+        tagPrefix,
+        candidateEmojis: EMOJIS_OF_SINGLE_PICTOGRAM,
+    });
+    const freshEmojis = new Set(
+        Array.from(EMOJIS_OF_SINGLE_PICTOGRAM).filter((emoji) => !usedEmojis.has(emoji)),
+    );
     const shuffledEmojis = $shuffleItems(...Array.from(freshEmojis));
     const selectedEmojis = shuffledEmojis.slice(0, count);
 
@@ -90,51 +95,6 @@ export async function getFreshPromptEmojiTags(options: PromptEmojiTagOptions): P
         selectedEmojis,
         tagPrefix,
     };
-}
-
-/**
- * Resolves files to scan for existing prompt emoji tags.
- */
-async function findFilesToScan(
-    rootDir: string,
-    includeGlobs: ReadonlyArray<string>,
-    ignoreGlobs: ReadonlyArray<string>,
-): Promise<ReadonlyArray<string>> {
-    const files = new Set<string>();
-
-    for (const pattern of includeGlobs) {
-        const matches = await glob(pattern, {
-            cwd: rootDir,
-            ignore: ignoreGlobs,
-            nodir: true,
-            absolute: true,
-        });
-
-        for (const match of matches) {
-            files.add(match);
-        }
-    }
-
-    return Array.from(files);
-}
-
-/**
- * Collects emojis already used with the configured prompt prefix.
- */
-function collectUsedPromptEmojis(filePaths: ReadonlyArray<string>, tagPrefix: string): Set<string_char_emoji> {
-    const usedEmojis = new Set<string_char_emoji>();
-
-    for (const file of filePaths) {
-        const content = readFileSync(file, 'utf-8'); /* Note: sync read is fine for script tooling. */
-        for (const emoji of EMOJIS_OF_SINGLE_PICTOGRAM) {
-            const tag = formatPromptEmojiTag(emoji, tagPrefix);
-            if (content.includes(tag)) {
-                usedEmojis.add(emoji);
-            }
-        }
-    }
-
-    return usedEmojis;
 }
 
 // Note: [?] Code in this file should never be published in any package

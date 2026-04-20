@@ -1,3 +1,9 @@
+-   Optimized `ptbk coder generate-boilerplates` emoji selection so large repositories no longer rescan every file against every emoji on each run:
+
+    -   Replaced the old nested `files x emojis` string-search loop with a shared bracketed-emoji scanner that reads each file once and extracts matching tags with a compiled regex, which also speeds up the related `ptbk coder find-fresh-emoji-tags` path.
+    -   Added a best-effort persisted cache in `.promptbook/ptbk-coder/emoji-tag-scan-cache.json`, so unchanged files reuse their previously discovered emoji tags across repeated boilerplate-generation runs instead of being reread every time.
+    -   Updated `ptbk coder init` gitignore bootstrapping to ignore the new `.promptbook/ptbk-coder` cache directory while preserving existing project rules without duplicating unchanged entries.
+
 -   Fixed published `ptbk` CLI packaging so installed `ptbk` commands now run directly without `npx`:
 
     -   Replaced the generated `ptbk` wrapper placeholder with a real Node proxy that resolves and executes the published `@promptbook/cli` launcher through the installed `promptbook` dependency, so `ptbk ...` works for both hoisted and nested installs.

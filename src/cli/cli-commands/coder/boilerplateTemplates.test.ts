@@ -96,7 +96,9 @@ describe('coder boilerplate templates', () => {
         ).rejects.toThrow();
 
         const gitignoreContent = await readFile(join(projectPath, '.gitignore'), 'utf-8');
-        expect(normalizeLineEndings(gitignoreContent)).toBe('# Promptbook Coder\n/.tmp\n');
+        expect(normalizeLineEndings(gitignoreContent)).toBe(
+            '# Promptbook Coder\n/.tmp\n/.promptbook/ptbk-coder\n',
+        );
 
         expect(await readJsonFile(join(projectPath, 'package.json'))).toEqual({
             scripts: getDefaultCoderPackageJsonScripts(),
@@ -127,14 +129,16 @@ describe('coder boilerplate templates', () => {
 
         const summary = await initializeCoderProjectConfiguration(projectPath);
 
-        expect(summary.gitignoreFileStatus).toBe('unchanged');
+        expect(summary.gitignoreFileStatus).toBe('updated');
         expect(summary.packageJsonFileStatus).toBe('updated');
         expect(summary.vscodeSettingsFileStatus).toBe('updated');
         expect(summary.agentsFileStatus).toBe('unchanged');
         expect(summary.agentCodingFileStatus).toBe('unchanged');
 
         const gitignoreContent = await readFile(join(projectPath, '.gitignore'), 'utf-8');
-        expect(normalizeLineEndings(gitignoreContent)).toBe('node_modules\n.tmp\n');
+        expect(normalizeLineEndings(gitignoreContent)).toBe(
+            'node_modules\n.tmp\n\n# Promptbook Coder\n/.promptbook/ptbk-coder\n',
+        );
 
         expect(await readJsonFile(join(projectPath, 'package.json'))).toEqual({
             name: 'demo',

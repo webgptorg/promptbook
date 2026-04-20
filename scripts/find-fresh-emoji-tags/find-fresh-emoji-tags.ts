@@ -3,13 +3,10 @@
 import * as dotenv from 'dotenv';
 
 import colors from 'colors';
-import { readFileSync } from 'fs';
-import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob'
 import { basename } from 'path';
-import type { string_char_emoji } from '../../src/types/typeAliasEmoji';
-import { difference } from '../../src/utils/sets/difference';
 import { $shuffleItems } from './utils/$shuffleItems';
 import { EMOJIS, EMOJIS_OF_SINGLE_PICTOGRAM } from './utils/emojis';
+import { scanEmojiTagUsage } from '../utils/emojiTags/scanEmojiTagUsage';
 
 // Note: When run as a standalone script, call the exported function
 if (require.main === module) {
@@ -47,32 +44,16 @@ export async function findFreshEmojiTag(): Promise<void> {
     //========================================>
     EMOJIS;
 
-    const allFiles = await glob('**/*.{ts,tsx,js,jsx,json,md,txt}', {
-        ignore: '**/node_modules/**', // <- TODO: [🚰] Ignore also hidden folders like *(`.promptbook`, `.next`, `.git`,...)*
-    });
-
     const allEmojis = EMOJIS_OF_SINGLE_PICTOGRAM;
-    // const allEmojis = new Set<string_char_emoji>(['🧎' as string_char_emoji, '🥎' as string_char_emoji]);
-    const usedEmojis = new Set<string_char_emoji>();
-
-    for (const file of allFiles) {
-        try {
-            const content = readFileSync(file, 'utf-8'); /* <- Note: Its OK to use sync in tooling for scripts */
-
-            for (const emoji of allEmojis) {
-                const tag = `[${emoji}]`;
-                if (content.includes(tag)) {
-                    usedEmojis.add(emoji);
-                }
-            }
-        } catch (error) {
-            console.error(colors.red('Error in checking file file /' + file));
+    const { usedEmojis } = await scanEmojiTagUsage({
+        candidateEmojis: allEmojis,
+        tagPrefix: '',
+        onFileError: (error, filePath) => {
+            console.error(colors.red('Error in checking file /' + filePath));
             console.error(error);
-        }
-    }
-
-    //console.info({ usedEmojis });
-    const freshEmojis = difference(allEmojis, usedEmojis);
+        },
+    });
+    const freshEmojis = new Set(Array.from(allEmojis).filter((emoji) => !usedEmojis.has(emoji)));
 
     console.info(colors.green(`Avialable fresh tags:`));
 
