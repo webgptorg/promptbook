@@ -84,7 +84,8 @@ function waitForServerReady(serverProcess) {
         const cleanup = () => {
             clearTimeout(timeoutId);
             serverProcess.stdout?.off('data', handleStdout);
-            serverProcess.off('error', handleError);
+            // Keep the `error` listener attached after readiness so Windows shutdown can emit
+            // a final `kill EPERM` event without turning cleanup into an uncaught exception.
             serverProcess.off('exit', handleExit);
         };
 

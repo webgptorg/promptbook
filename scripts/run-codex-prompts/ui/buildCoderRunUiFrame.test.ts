@@ -59,7 +59,7 @@ describe('buildCoderRunUiFrame', () => {
         const lines = buildCoderRunUiFrame(createFrameOptions()).map(stripAnsi);
         const output = lines.join('\n');
 
-        expect(output).toContain('ptbk.io');
+        expect(output).toContain('▄▄▄▄ ▄▄▄▄▄▄ ▄▄▄▄');
         expect(output).not.toContain('ptbk coder');
         expect(output).not.toContain('run >_');
         expect(output).not.toContain('shipping fix');
@@ -89,20 +89,18 @@ describe('buildCoderRunUiFrame', () => {
     });
 
     it('animates the octopus only during active phases', () => {
-        const waitingFrameA = buildCoderRunUiFrame(createFrameOptions({ phase: 'waiting', animationFrame: 0 }))
+        const waitingFrameA = buildCoderRunUiFrame(createFrameOptions({ phase: 'waiting', animationFrame: 0, spinner: '⠋' }))
             .slice(0, 6)
             .map(stripAnsi)
             .join('\n');
-        const waitingFrameB = buildCoderRunUiFrame(createFrameOptions({ phase: 'waiting', animationFrame: 1 }))
+        const waitingFrameB = buildCoderRunUiFrame(createFrameOptions({ phase: 'waiting', animationFrame: 1, spinner: '⠙' }))
             .slice(0, 6)
             .map(stripAnsi)
             .join('\n');
-        const runningFrameA = buildCoderRunUiFrame(createFrameOptions({ phase: 'running', animationFrame: 0 }))
-            .slice(0, 6)
+        const runningFrameA = buildCoderRunUiFrame(createFrameOptions({ phase: 'running', animationFrame: 0, spinner: '⠋' }))
             .map(stripAnsi)
             .join('\n');
-        const runningFrameB = buildCoderRunUiFrame(createFrameOptions({ phase: 'running', animationFrame: 1 }))
-            .slice(0, 6)
+        const runningFrameB = buildCoderRunUiFrame(createFrameOptions({ phase: 'running', animationFrame: 1, spinner: '⠙' }))
             .map(stripAnsi)
             .join('\n');
 

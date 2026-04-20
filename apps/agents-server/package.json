@@ -8,8 +8,8 @@
         "test": "npm run lint && npm run test-build && npm run test-e2e",
         "test-e2e": "playwright test",
         "pretest-build": "npx kill-port 4021",
-        "test-build": "next build && node ./scripts/prerender-homepage.js",
-        "build": "next build && node ./scripts/prerender-homepage.js",
+        "test-build": "node -r ./scripts/ignore-kill-eperm.js ../../node_modules/next/dist/bin/next build && node ./scripts/prerender-homepage.js",
+        "build": "node -r ./scripts/ignore-kill-eperm.js ../../node_modules/next/dist/bin/next build && node ./scripts/prerender-homepage.js",
         "start": "next start -p 4440",
         "lint": "eslint src/ --max-warnings=0",
         "postinstall": "cd ../../ && npm ci"

@@ -1,3 +1,9 @@
+-   Fixed `ptbk coder run` rich UI time estimation so elapsed time, total duration, and ETA now advance correctly during normal `--no-wait` runs:
+
+    -   Started the rich dashboard timer immediately like the plain CLI progress header, while still excluding explicit wait/pause periods, so the shared estimate logic now receives real elapsed active time instead of staying pinned at `0s`.
+    -   Added regression coverage for the rich UI state so a run that has already completed prompts no longer reports `Total 0s` and an ETA equal to the current clock time.
+    -   Hardened the Agents Server build verification path on Windows, so `npm run test-for-ptbk-coder` no longer aborts when Next.js worker cleanup or the temporary prerender server hits `kill EPERM` during best-effort shutdown.
+
 -   Fixed Agents Server header navigation so the shared server logo/name link now reliably reaches the homepage even when client-side routing stalls on agent pages:
 
     -   Hardened the shared Agents Server client navigation helpers with one reusable hard-navigation fallback, so header links, search navigation, and other shared `router.push(...)` flows recover automatically when the SPA transition never updates the URL.

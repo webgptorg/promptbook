@@ -73,7 +73,9 @@ export class CoderRunUiState extends EventEmitter {
 
     public constructor(startTime: moment.Moment) {
         super();
-        this.timer = new CoderRunTimer(startTime, true);
+        // Match the plain CLI progress header and count active run time from startup.
+        // Explicit waits/pauses are excluded later through `pauseTimer()` / `resumeTimer()`.
+        this.timer = new CoderRunTimer(startTime);
     }
 
     /**
