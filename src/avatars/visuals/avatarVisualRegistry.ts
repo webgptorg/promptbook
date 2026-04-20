@@ -1,3 +1,4 @@
+import { asciiOctopusAvatarVisual } from './asciiOctopusAvatarVisual';
 import type { AvatarVisualDefinition, AvatarVisualId } from '../types/AvatarVisualDefinition';
 import { fractalAvatarVisual } from './fractalAvatarVisual';
 import { minecraftAvatarVisual } from './minecraftAvatarVisual';
@@ -18,6 +19,7 @@ export const AVATAR_VISUALS: ReadonlyArray<AvatarVisualDefinition> = [
     octopusAvatarVisual,
     octopus2AvatarVisual,
     octopus3AvatarVisual,
+    asciiOctopusAvatarVisual,
     minecraftAvatarVisual,
     fractalAvatarVisual,
 ];

@@ -2880,3 +2880,8 @@
     -   Persisted profile-to-chat optimistic turn metadata across the route transition, including the client message id reused later for canonical reconciliation and failure states.
     -   Added a chat-route loading surface that renders the pending user turn right away while the standalone chat page server data is still loading.
     -   Tightened optimistic/canonical merge ordering so unresolved user bubbles stay ahead of later assistant streaming messages until the server confirms them.
+-   Added the new deterministic `AsciiOctopus` avatar visual alongside the existing avatar set, with an animated ASCII-art rendering that keeps the same organic alien octopus feel as `Octopus3` while varying its blob silhouette, tentacle count, face, and colors from the agent name, hash, colors, and animation time:
+
+    -   Added the new built-in `ascii-octopus` canvas renderer to the shared avatar registry without changing the existing `Octopus`, `Octopus2`, `Octopus3`, pixel-art, Minecraft, or Fractal visuals.
+    -   Kept the implementation DRY by reusing shared octopus body and tentacle geometry helpers, while translating that geometry into deterministic ASCII glyphs instead of painted surfaces.
+    -   Updated the existing utils `/avatars` playground and regression coverage so the new renderer appears in the selector, preview grid, deterministic sample gallery, and supported URL-state parsing without creating a separate page.
