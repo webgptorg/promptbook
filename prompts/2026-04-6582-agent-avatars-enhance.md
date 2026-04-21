@@ -22,3 +22,13 @@
 
 ![alt text](prompts/screenshots/2026-04-6582-agent-avatars-enhance.png)
 ![alt text](prompts/screenshots/2026-04-6582-agent-avatars-enhance-1.png)
+
+---
+
+[ ] !!
+
+[✨👝] Make the "Octopus3" avatar visual more diverse
+
+-   Now the "Octopus3" avatar visual is looking very similar for different agents, we should make it more diverse and visually different for different agents, so it can be more easily distinguishable and visually appealing
+-   Both blobbyness, tenticles and number of tenticles, physiognomy
+-   It should be always recognizable as an octopus, but it should have more visual diversity and variety for different agents, so it can be more visually appealing and interesting to look at
