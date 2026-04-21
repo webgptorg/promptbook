@@ -1,3 +1,9 @@
+-   Fixed Agents Server teammate-call popups so the internal TEAM conversation now renders immediately as a visible mocked chat instead of opening with an empty-looking blank panel:
+
+    -   Kept the existing TEAM tool-call modal and shared `MockedChat` renderer, but prefilled the teammate exchange from the stored `conversation` payload so the popup shows the full internal discussion as soon as it opens.
+    -   Preserved the existing request/response fallback path for older TEAM payloads that do not include a structured `conversation`, so the popup still shows a two-message mocked chat instead of an empty area.
+    -   Added regression coverage for both structured TEAM conversations and the request/response fallback inside the shared chat modal component.
+
 -   Improved Agents Server agent profile avatars so default agents now use the shared animated `Octopus3` visual and profile cards render built-in visuals directly on the tall card background instead of inside a smaller framed square:
 
     -   Switched the shared default fallback avatar from `Octopus2` to `Octopus3`, so profile APIs, live agent UIs, and generated `default-avatar.png` routes all inherit the same updated built-in visual without per-surface overrides.

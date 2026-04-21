@@ -93,6 +93,13 @@ export function TeamToolCallModalContent(options: TeamToolCallModalContentOption
         }
     }
 
+    const staticConversationDelayConfig = {
+        ...FAST_FLOW,
+        beforeFirstMessage: 0,
+        // Show the full internal exchange immediately so the modal never opens as a blank panel.
+        showIntermediateMessages: messages.length,
+    };
+
     const agentName =
         teamResult.conversation?.find((entry) => entry.sender === 'AGENT' || entry.role === 'AGENT')?.name || 'Agent';
 
@@ -173,7 +180,7 @@ export function TeamToolCallModalContent(options: TeamToolCallModalContentOption
                             isSaveButtonEnabled={false}
                             isCopyButtonEnabled={false}
                             visual="STANDALONE"
-                            delayConfig={FAST_FLOW}
+                            delayConfig={staticConversationDelayConfig}
                         />
                     </div>
                 ) : (
