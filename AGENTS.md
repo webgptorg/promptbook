@@ -55,25 +55,16 @@ Do not edit these places manually, as they will be overwritten by the code gener
 -   Always analyze the context and requirements before generating any code.
 -   Write clear, maintainable, and well-documented code.
 -   Write JSDoc comments for all entities - functions, classes, types, top-level constants, etc.
-    -   When this entity is exported from the file and it is under `src` folder *(not for example in the `apps` folder)*, it must be marked either as `@public` or `@private` at the end of the JSDoc comment.
+    -   When this entity is exported from the file and it is under `src` folder _(not for example in the `apps` folder)_, it must be marked either as `@public` or `@private` at the end of the JSDoc comment.
     -   For example: "@private internal utility of <Chat/>" / "@public exported from `@promptbook/browser`"
     -   If you don't know, prefer to mark it as private, we can always change it to public later, but changing from public to private may cause breaking changes.
--   After code change, run the following tests to ensure everything works as expected:
-    1) `npm run test-name-discrepancies` - Tests that file names match the exported names.
-    2) `npm run test-spellcheck` - When using some new word, add it into the [dictionary](other/cspell-dictionaries).
-    3) `npm run test-lint` - Linting.
-    4) `npm run test-types` - Checks TypeScript types.
-    5) `npm run test-package-generation` - Tests build/package generation and public/private JSDoc coverage.
-    6) `npm run test-unit` - Unit tests.
-    7) `npm run test-app-agents-server` - Tests that the Agents Server app is working correctly.
--   You don't need to run every test, run them only when you make changes which may cause them to fail.
 -   You (the AI coding agent) are running inside a Node process, so do not kill all Node processes such as `taskkill /F /IM node.exe`. If you need to stop something you spawned, kill only that specific process, for example by PID or by port.
 
 ## Additional context
 
 -   Attached images (if any) are relative to the root of the project.
 
-### The Agents Server menu *(as additional context)*
+### The Agents Server menu _(as additional context)_
 
 The menu of the agent server looks like this:
 
@@ -88,7 +79,7 @@ The menu of the agent server looks like this:
     - Control panel
     - User menu with the avatar and the name of the user
 
-### Database migrations for Agents server *(as additional context)*
+### Database migrations for Agents server _(as additional context)_
 
 -   Migrations are located in `apps/agents-server/src/database/migrations`
 -   Be aware that table names in migrations have prefix `prefix_` _(look at existing migrations for reference)_
@@ -100,13 +91,13 @@ The menu of the agent server looks like this:
     -   Adding new columns, tables, etc. is fine, but do not remove or rename existing ones, and do not change the meaning of existing columns or tables.
     -   When in doubt, prefer to add new things instead of changing existing ones.
 
-### Metadata of Agents server *(as additional context)*
+### Metadata of Agents server _(as additional context)_
 
 -   There is a table called `Metadata`.
 -   It has `key` and `value` fields.
 -   It is a similar concept to configuration, but this configuration can be changed by administrators in the Agents Server website.
 
-### Book Language blueprint *(as additional context)*
+### Book Language blueprint _(as additional context)_
 
 Book language is a domain-specific language used for defining AI agents in the Promptbook Engine and Agents server.
 It has lightweight syntax and keywords (the commitments) that allow you to define the "soul" of the agent.
@@ -118,7 +109,7 @@ This agent source is internally converted to a structured format called "agent m
 There is a standalone book language documentation on each agent server on `/api/docs/book.md` route, for example `https://pavol-hejny.ptbk.io/api/docs/book.md`.
 Use it as a reference for the syntax and semantics of the book language, and modify `apps/agents-server/src/utils/bookLanguageDocumentation/createStandaloneBookLanguageMarkdown.ts` if it is relevant to the change you are doing.
 
-#### Commitments *(as additional context and part of Book Language)*
+#### Commitments _(as additional context and part of Book Language)_
 
 Commitments are basic syntax elements that add specific functionalities to AI agents written in `book` language.
 
