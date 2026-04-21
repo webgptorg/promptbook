@@ -2939,3 +2939,8 @@
     -   Added the new built-in `ascii-octopus` canvas renderer to the shared avatar registry without changing the existing `Octopus`, `Octopus2`, `Octopus3`, pixel-art, Minecraft, or Fractal visuals.
     -   Kept the implementation DRY by reusing shared octopus body and tentacle geometry helpers, while translating that geometry into deterministic ASCII glyphs instead of painted surfaces.
     -   Updated the existing utils `/avatars` playground and regression coverage so the new renderer appears in the selector, preview grid, deterministic sample gallery, and supported URL-state parsing without creating a separate page.
+-   Added a new `Maze` homepage view to Agents Server so the agents index can render a playful top-down office maze with rooms, corridors, and animated avatar pods:
+
+    -   Added a `Maze` tab alongside `List`, `Graph`, `Office`, and `Pixel`, wiring it through the existing homepage view-mode query state and folder-scoped office-agent filtering.
+    -   Built the maze scene on top of the shared office-layout model, keeping room grouping, federated-agent placement, routing, and tooltip/profile links DRY across the office-based homepage visualizations.
+    -   Rendered agents through the shared `AgentAvatar` component inside animated capability pods, so the maze works with the default octopus avatars while remaining agnostic to future built-in or image-based avatar visuals.
