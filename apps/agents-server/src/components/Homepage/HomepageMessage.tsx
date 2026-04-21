@@ -1,6 +1,6 @@
 'use client';
 
-import { MarkdownContent } from '@promptbook-local/components';
+import { ThemedMarkdownContent } from '../ThemePreferences/ThemedMarkdownContent';
 
 /**
  * Props for the homepage message section.
@@ -26,7 +26,7 @@ export function HomepageMessage({ message }: HomepageMessageProps) {
         <section className="mb-10">
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
                 <article className="prose prose-slate max-w-none">
-                    <MarkdownContent content={trimmedMessage} />
+                    <ThemedMarkdownContent content={trimmedMessage} />
                 </article>
             </div>
         </section>

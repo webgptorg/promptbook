@@ -9,6 +9,7 @@ import { usePrivateModePreferences } from '../../PrivateModePreferences/PrivateM
 import { useBrowserPushNotifications } from '../../PushNotifications/BrowserPushNotificationsProvider';
 import { useSelfLearningPreferences } from '../../SelfLearningPreferences/SelfLearningPreferencesProvider';
 import { useServerLanguage } from '../../ServerLanguage/ServerLanguageProvider';
+import { useThemePreferences } from '../../ThemePreferences/ThemePreferencesProvider';
 import type {
     ControlPanelContentState,
     ControlPanelContentStateProps,
@@ -36,6 +37,7 @@ export function useControlPanelContentState({
         setStoredEnterBehavior,
     } = useChatEnterBehaviorPreferences();
     const { language, setLanguage, availableLanguages, t } = useServerLanguage();
+    const { themePreference, setThemePreference } = useThemePreferences();
     const { isSelfLearningEnabled, setIsSelfLearningEnabled } = useSelfLearningPreferences();
     const { isPrivateModeEnabled, setIsPrivateModeEnabled } = usePrivateModePreferences();
     const {
@@ -50,7 +52,15 @@ export function useControlPanelContentState({
     const { soundSystem, isVibrationSupported, soundToggle, vibrationToggle } = useControlPanelAudioState();
 
     const languageSelectId = useId();
+    const themeSelectId = useId();
     const chatVisualModeSelectId = useId();
+
+    const handleThemeChange = useCallback(
+        (nextThemePreference: string) => {
+            void setThemePreference(nextThemePreference as typeof themePreference);
+        },
+        [setThemePreference, themePreference],
+    );
 
     const handleLanguageChange = useCallback(
         (nextLanguage: string) => {
@@ -115,6 +125,9 @@ export function useControlPanelContentState({
         onToggleNotifications: toggleNotifications,
         onToggleSelfLearning: toggleSelfLearning,
         onTogglePrivateMode: togglePrivateMode,
+        themeSelectId,
+        themePreference,
+        onThemeChange: handleThemeChange,
         languageSelectId,
         language,
         availableLanguages,

@@ -2,7 +2,6 @@ import { cookies, headers } from 'next/headers';
 import os from 'node:os';
 import type { ReactNode } from 'react';
 
-import { MarkdownContent } from '@promptbook-local/components';
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION, aboutPromptbookInformation } from '@promptbook-local/core';
 
 import {
@@ -28,6 +27,7 @@ import {
 import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
 import { Card } from '../../../components/Homepage/Card';
 import { Section } from '../../../components/Homepage/Section';
+import { ThemedMarkdownContent } from '../../../components/ThemePreferences/ThemedMarkdownContent';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
 import { getSession } from '../../../utils/session';
 import { listRegisteredServersUsingServiceRole } from '../../../utils/serverRegistry';
@@ -429,7 +429,7 @@ export default async function AdminAboutPage() {
                     <Card className="md:col-span-2 lg:col-span-3">
                         <h2 className="text-2xl font-semibold text-gray-900 mb-4">Promptbook</h2>
                         <article className="prose prose-slate max-w-none">
-                            <MarkdownContent content={promptbookAboutText} />
+                            <ThemedMarkdownContent content={promptbookAboutText} />
                         </article>
                     </Card>
 

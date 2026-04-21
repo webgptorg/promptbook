@@ -2,20 +2,36 @@
     margin: 10px 0;
     border-radius: 5px;
     overflow: hidden;
-    border: 1px solid #444; /* Dark mode border */
     width: 100%;
     max-width: 100%;
 }
 
+.darkTheme {
+    border: 1px solid #444;
+}
+
+.lightTheme {
+    border: 1px solid #cbd5e1;
+}
+
 .CodeBlockHeader {
-    background-color: #2d2d2d;
-    color: #ccc;
     padding: 5px 10px;
     font-size: 0.8em;
-    border-bottom: 1px solid #444;
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.darkTheme .CodeBlockHeader {
+    background-color: #2d2d2d;
+    color: #ccc;
+    border-bottom: 1px solid #444;
+}
+
+.lightTheme .CodeBlockHeader {
+    background-color: #f8fafc;
+    color: #475569;
+    border-bottom: 1px solid #cbd5e1;
 }
 
 .CodeBlockButtons {
@@ -28,7 +44,6 @@
 .CreateAgentButton {
     background: transparent;
     border: none;
-    color: #aaa;
     cursor: pointer;
     font-size: inherit;
     padding: 0;
@@ -38,10 +53,28 @@
     transition: color 0.2s;
 }
 
-.CopyButton:hover,
-.DownloadButton:hover,
-.CreateAgentButton:hover {
+.darkTheme .CopyButton,
+.darkTheme .DownloadButton,
+.darkTheme .CreateAgentButton {
+    color: #aaa;
+}
+
+.lightTheme .CopyButton,
+.lightTheme .DownloadButton,
+.lightTheme .CreateAgentButton {
+    color: #64748b;
+}
+
+.darkTheme .CopyButton:hover,
+.darkTheme .DownloadButton:hover,
+.darkTheme .CreateAgentButton:hover {
     color: #fff;
+}
+
+.lightTheme .CopyButton:hover,
+.lightTheme .DownloadButton:hover,
+.lightTheme .CreateAgentButton:hover {
+    color: #0f172a;
 }
 
 .CodeBlock :global(.monaco-editor),

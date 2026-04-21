@@ -35,6 +35,11 @@ import {
     CONTROL_PANEL_OPTION_AVAILABILITY_METADATA_KEYS,
     getControlPanelOptionAvailability,
 } from '../utils/getControlPanelOptionAvailability';
+import {
+    AGENTS_SERVER_THEME_COOKIE_NAME,
+    resolveAgentsServerThemePreference,
+    resolveAgentsServerThemePreferenceDomValue,
+} from '../constants/themePreferences';
 import './globals.css';
 
 /**
@@ -334,12 +339,14 @@ export default async function RootLayout({
     const webPushPublicKey = process.env.NEXT_PUBLIC_WEB_PUSH_PUBLIC_KEY?.trim() || null;
     const chatVisualModeCookie = cookieStore.get(CHAT_VISUAL_MODE_COOKIE_NAME)?.value || null;
     const cookieLanguage = cookieStore.get(SERVER_LANGUAGE_COOKIE_NAME)?.value || null;
+    const themePreferenceCookie = cookieStore.get(AGENTS_SERVER_THEME_COOKIE_NAME)?.value || null;
     const isServerLanguageEnforced = parseServerLanguageEnforcedMetadata(
         layoutMetadata[IS_SERVER_LANGUAGE_ENFORCED_METADATA_KEY],
     );
     const rawServerLanguage = layoutMetadata[SERVER_LANGUAGE_METADATA_KEY];
     const rawChatVisualMode = layoutMetadata[CHAT_VISUAL_MODE_METADATA_KEY];
     const defaultChatVisualMode = resolveChatVisualMode(chatVisualModeCookie || rawChatVisualMode);
+    const defaultThemePreference = resolveAgentsServerThemePreference(themePreferenceCookie);
     const preferredLanguageSource = isServerLanguageEnforced ? rawServerLanguage : cookieLanguage || rawServerLanguage;
     const serverLanguage = resolveServerLanguageCode(preferredLanguageSource);
     const controlPanelOptionAvailability = getControlPanelOptionAvailability({
@@ -348,9 +355,13 @@ export default async function RootLayout({
     });
 
     return (
-        <html lang={serverLanguage}>
+        <html
+            lang={serverLanguage}
+            data-agents-theme-preference={resolveAgentsServerThemePreferenceDomValue(defaultThemePreference)}
+            suppressHydrationWarning
+        >
             {/* Note: Icon is set via metadata to allow agent-page specific icons to override it */}
-            <body className={`${APPLICATION_FONT_VARIABLE_CLASS_NAME} antialiased bg-white text-gray-900`}>
+            <body className={`${APPLICATION_FONT_VARIABLE_CLASS_NAME} antialiased bg-background text-foreground`}>
                 {customStylesheetCss && <style id="agents-server-custom-css">{customStylesheetCss}</style>}
                 <LayoutWrapper
                     isAdmin={isAdmin}
@@ -374,6 +385,7 @@ export default async function RootLayout({
                     defaultServerLanguage={serverLanguage}
                     isServerLanguageEnforced={isServerLanguageEnforced}
                     defaultChatVisualMode={defaultChatVisualMode}
+                    defaultThemePreference={defaultThemePreference}
                     webPushPublicKey={webPushPublicKey}
                 >
                     {children}

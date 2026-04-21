@@ -3,11 +3,11 @@
 import { string_book } from '@promptbook-local/types';
 import { X } from 'lucide-react';
 import { useCallback, useState } from 'react';
-import { BookEditor } from '../../../../../src/book-components/BookEditor/BookEditor';
 import { bookEditorUploadHandler } from '../../utils/upload/createBookEditorUploadHandler';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { Dialog } from '../Portal/Dialog';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
+import { ThemedBookEditor } from '../ThemePreferences/ThemedBookEditor';
 import { useDirtyModalGuard } from '../utils/useDirtyModalGuard';
 
 /**
@@ -76,7 +76,7 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
             <div
                 className="flex-1 overflow-hidden p-4 relative" /* [✨🧬] onDragEnter={() => setIsInteracted(true)} */
             >
-                <BookEditor
+                <ThemedBookEditor
                     agentSource={agentSource}
                     onChange={(source) => {
                         setAgentSource(source);

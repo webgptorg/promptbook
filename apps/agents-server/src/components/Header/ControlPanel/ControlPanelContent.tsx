@@ -1,6 +1,6 @@
 'use client';
 
-import { CornerDownLeft, Languages, MessageSquare, Settings2, type LucideIcon } from 'lucide-react';
+import { CornerDownLeft, Languages, MessageSquare, Monitor, Settings2, type LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { ChatEnterBehaviorSettingsPanel } from '../../ChatEnterBehavior/ChatEnterBehaviorSettingsPanel';
 import type {
@@ -316,6 +316,10 @@ export function ControlPanelContent({ title, subtitle, isMobile = false }: Contr
                         <ControlPanelToggleTile key={key} {...tileProps} />
                     ))}
                 </div>
+            )}
+
+            {controlPanelState.themeSection && (
+                <ControlPanelSelectSection icon={Monitor} section={controlPanelState.themeSection} />
             )}
 
             {controlPanelState.languageSection && (

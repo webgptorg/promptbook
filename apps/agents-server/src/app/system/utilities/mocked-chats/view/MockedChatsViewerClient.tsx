@@ -5,10 +5,10 @@ import {
     type MockedChatPreset,
     type MockedChatTimingPreset,
 } from '@/src/utils/mockedChatsSchema';
-import { MockedChat } from '@promptbook-local/components';
 import type { ChatMessage, ChatParticipant, string_date_iso8601 } from '@promptbook-local/types';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { ThemedMockedChat } from '../../../../components/ThemePreferences/ThemedMockedChat';
 
 /**
  * Properties for the mocked-chat recording viewer.
@@ -144,7 +144,7 @@ export function MockedChatsViewerClient(props: MockedChatsViewerClientProps) {
             </aside>
 
             <section className="flex min-w-0 flex-1 flex-col overflow-hidden p-4">
-                <MockedChat
+                <ThemedMockedChat
                     key={`${selectedMockedChat.id}:${replayNonce}`}
                     title={selectedMockedChat.name}
                     layout="STANDALONE"

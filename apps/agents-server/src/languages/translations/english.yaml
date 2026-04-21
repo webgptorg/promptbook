@@ -88,6 +88,14 @@ controlPanel.privateModeStateStandard: Standard
 controlPanel.privateModeDetail: Enabling private mode keeps the current chat local to your browser.
 controlPanel.privateModeDisableAction: Disable private mode
 controlPanel.privateModeEnableAction: Enable private mode
+controlPanel.themeTitle: Appearance
+controlPanel.themeSubtitle: Choose whether this browser follows the system theme or stays light/dark.
+controlPanel.themeSelectLabel: Color theme
+controlPanel.themeOptionSystem: System
+controlPanel.themeOptionLight: Light
+controlPanel.themeOptionDark: Dark
+controlPanel.themeHelp: The default follows your operating system or browser color scheme.
+controlPanel.themeSaveFailed: Failed to save the theme preference.
 controlPanel.languageTitle: Language
 controlPanel.languageSubtitle: Choose your interface language for this browser.
 controlPanel.languageSection: Locale

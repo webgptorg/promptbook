@@ -2,6 +2,11 @@
 
 import { useId, useMemo, useState } from 'react';
 import type { string_book } from '../../../book-2.0/agent-source/string_book';
+import {
+    PROMPTBOOK_COMPONENT_THEMES,
+    resolvePromptbookComponentTheme,
+    type PromptbookComponentTheme,
+} from '../../_common/PromptbookComponentTheme';
 import { MonacoEditorWithShadowDom } from '../../_common/MonacoEditorWithShadowDom';
 import { classNames } from '../../_common/react-utils/classNames';
 import { BookEditor } from '../../BookEditor/BookEditor';
@@ -19,6 +24,7 @@ type CodeBlockProps = {
     language?: string;
     className?: string;
     onCreateAgent?: (bookContent: string) => void;
+    theme?: PromptbookComponentTheme;
 };
 
 /**
@@ -66,7 +72,8 @@ function createCodeBlockMonacoModelPath(reactId: string, language: MonacoCodeBlo
  *
  * @private Internal utility of `<ChatMessage />` component
  */
-export function CodeBlock({ code, language, className, onCreateAgent }: CodeBlockProps) {
+export function CodeBlock({ code, language, className, onCreateAgent, theme }: CodeBlockProps) {
+    const resolvedTheme = resolvePromptbookComponentTheme(theme);
     const reactId = useId();
     const normalizedLanguage = resolveCodeBlockLanguage(language);
     const isBookLanguage = normalizedLanguage === 'book';
@@ -127,26 +134,39 @@ export function CodeBlock({ code, language, className, onCreateAgent }: CodeBloc
 
     if (isBookLanguage) {
         return (
-            <div className={classNames(styles.CodeBlock, className)}>
+            <div
+                className={classNames(
+                    styles.CodeBlock,
+                    resolvedTheme === PROMPTBOOK_COMPONENT_THEMES.DARK ? styles.darkTheme : styles.lightTheme,
+                    className,
+                )}
+            >
                 {header}
                 <BookEditor
                     value={code as string_book}
                     isReadonly={true}
                     height={lines * 25 /* <- [🧠] A bit more than 19px to accommodate BookEditor lines */}
+                    theme={resolvedTheme}
                 />
             </div>
         );
     }
 
     return (
-        <div className={classNames(styles.CodeBlock, className)}>
+        <div
+            className={classNames(
+                styles.CodeBlock,
+                resolvedTheme === PROMPTBOOK_COMPONENT_THEMES.DARK ? styles.darkTheme : styles.lightTheme,
+                className,
+            )}
+        >
             {header}
             <MonacoEditorWithShadowDom
                 height={`${height}px`}
                 language={normalizedLanguage}
                 path={modelPath}
                 value={code}
-                theme="vs-dark"
+                theme={resolvedTheme === PROMPTBOOK_COMPONENT_THEMES.DARK ? 'vs-dark' : 'vs-light'}
                 options={{
                     readOnly: true,
                     minimap: { enabled: false },

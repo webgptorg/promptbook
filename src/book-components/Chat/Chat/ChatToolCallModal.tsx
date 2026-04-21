@@ -3,6 +3,7 @@
 import type { MouseEvent } from 'react';
 import { Color } from '../../../utils/color/Color';
 import type { WithTake } from '../../../utils/take/interfaces/ITakeChain';
+import type { PromptbookComponentTheme } from '../../_common/PromptbookComponentTheme';
 import { classNames } from '../../_common/react-utils/classNames';
 import { CloseIcon } from '../../icons/CloseIcon';
 import type { AgentChipData } from '../AgentChip/AgentChip';
@@ -50,6 +51,7 @@ export type ChatToolCallModalProps = {
      * inspect what capabilities the model had access to at the exact moment of the request.
      */
     availableTools?: ChatMessage['availableTools'];
+    theme?: PromptbookComponentTheme;
 };
 
 /**
@@ -81,6 +83,7 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
         chatUiTranslations,
         locale,
         availableTools,
+        theme,
     } = props;
     const {
         clearSelectedTeamToolCall,
@@ -158,6 +161,7 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
                     locale={locale}
                     chatUiTranslations={chatUiTranslations}
                     availableTools={availableTools}
+                    theme={theme}
                     onRequestAdvancedView={openAdvancedView}
                 />
                 <div className={styles.toolCallModeFooter}>

@@ -1,10 +1,10 @@
 'use client';
 
 import { CHAT_STREAM_KEEP_ALIVE_TOKEN } from '@/src/constants/streaming';
-import { BookEditor } from '@promptbook-local/components';
 import { validateBook } from '@promptbook-local/core';
 import { ChevronDown, Save } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { ThemedBookEditor } from '../../../components/ThemePreferences/ThemedBookEditor';
 import { AgentsPanel } from './AgentsPanel';
 import { getStories, saveStories } from './actions';
 import {
@@ -333,7 +333,7 @@ export function StoryClient() {
                         </div>
                     </div>
                     <div className="flex-grow p-4">
-                        <BookEditor
+                        <ThemedBookEditor
                             value={validateBook(activeStory.content)}
                             onChange={(newSource) => {
                                 handleContentChange(newSource);

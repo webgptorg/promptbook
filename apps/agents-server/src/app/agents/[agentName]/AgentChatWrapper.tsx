@@ -2,7 +2,7 @@
 
 import { WalletRecordDialog } from '@/src/components/WalletRecordDialog/WalletRecordDialog';
 import { usePromise } from '@common/hooks/usePromise';
-import { AgentChat, ChatMessage, useSendMessageToLlmChat } from '@promptbook-local/components';
+import { ChatMessage, useSendMessageToLlmChat } from '@promptbook-local/components';
 import { RemoteAgent } from '@promptbook-local/core';
 import { ClientVersionMismatchError } from '@promptbook-local/utils';
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
@@ -16,6 +16,7 @@ import { useSelfLearningPreferences } from '../../../components/SelfLearningPref
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { ChatThreadLoadingSkeleton } from '../../../components/Skeleton/ChatThreadLoadingSkeleton';
 import { useSoundSystem } from '../../../components/SoundSystemProvider/SoundSystemProvider';
+import { ThemedAgentChat } from '../../../components/ThemePreferences/ThemedAgentChat';
 import { fetchCalendarOAuthStatus, type CalendarOAuthStatusResponse } from '../../../utils/calendarOAuthClient';
 import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatEffects';
 import { executeQuickActionButton } from '../../../utils/chat/executeQuickActionButton';
@@ -335,7 +336,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     }
 
     const chatElement = (
-        <AgentChat
+        <ThemedAgentChat
             key={chatKey}
             className="agent-chat-panel__chat h-full min-h-0 w-full"
             style={chatBackgroundStyle}

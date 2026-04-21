@@ -23,6 +23,7 @@ import { BrowserPushNotificationsProvider } from '../PushNotifications/BrowserPu
 import { ServerLanguageProvider } from '../ServerLanguage/ServerLanguageProvider';
 import { SelfLearningPreferencesProvider } from '../SelfLearningPreferences/SelfLearningPreferencesProvider';
 import { SoundSystemProvider } from '../SoundSystemProvider/SoundSystemProvider';
+import { ThemePreferencesProvider } from '../ThemePreferences/ThemePreferencesProvider';
 import { ViewportHeightController } from '../ViewportHeightController/ViewportHeightController';
 import type { ControlPanelOptionAvailability } from '../../utils/getControlPanelOptionAvailability';
 
@@ -61,6 +62,7 @@ type LayoutWrapperProps = {
      */
     isServerLanguageEnforced: boolean;
     defaultChatVisualMode: string;
+    defaultThemePreference: string;
     webPushPublicKey: string | null;
 };
 
@@ -90,6 +92,7 @@ export function LayoutWrapper({
     defaultServerLanguage,
     isServerLanguageEnforced,
     defaultChatVisualMode,
+    defaultThemePreference,
     webPushPublicKey,
 }: LayoutWrapperProps) {
     const pathname = usePathname();
@@ -113,68 +116,72 @@ export function LayoutWrapper({
             defaultLanguage={defaultServerLanguage}
             isServerLanguageEnforced={isServerLanguageEnforced}
         >
-            <ChatVisualModeProvider defaultChatVisualMode={defaultChatVisualMode}>
-                <AsyncDialogsProvider>
-                    <AgentNamingProvider naming={agentNaming}>
-                        <LegacyUiAutoTranslator />
-                        <PrivateModePreferencesProvider>
-                            <SelfLearningPreferencesProvider>
-                                <SoundSystemProvider
-                                    initialIsSoundsOn={defaultIsSoundsOn}
-                                    initialIsVibrationOn={defaultIsVibrationOn}
-                                >
-                                    <NotificationsProvider>
-                                        <BrowserPushNotificationsProvider
-                                            defaultEnabled={defaultIsNotificationsOn}
-                                            pushPublicKey={webPushPublicKey}
-                                            isMetadataAvailable={controlPanelOptionAvailability.notifications}
-                                        >
-                                            <ChatEnterBehaviorPreferencesProvider>
-                                                <ClientVersionMismatchListener />
-                                                <ViewportHeightController />
-                                                <NavigationProgressBar />
-                                                <MenuHoistingProvider>
-                                                    <MobileMenuHoistingProvider>
-                                                        <MetadataFlagsProvider
-                                                            value={{
-                                                                isExperimentalPwaAppEnabled,
-                                                                controlPanelOptionAvailability,
-                                                            }}
-                                                        >
-                                                            {shouldRenderMinimalShell ? (
-                                                                <main className={minimalMainClassName}>{children}</main>
-                                                            ) : (
-                                                                <div className="agents-server-app-shell flex flex-col">
-                                                                    <Header
-                                                                        isAdmin={isAdmin}
-                                                                        isGlobalAdmin={isGlobalAdmin}
-                                                                        currentUser={currentUser}
-                                                                        serverName={serverName}
-                                                                        serverLogoUrl={serverLogoUrl}
-                                                                        agents={agents}
-                                                                        agentFolders={agentFolders}
-                                                                        federatedServers={federatedServers}
-                                                                        isExperimental={isExperimental}
-                                                                        feedbackMode={feedbackMode}
-                                                                    />
-                                                                    <main className={mainClassName}>{children}</main>
-                                                                    {isFooterShown && !isFooterHiddenOnPage && (
-                                                                        <Footer extraLinks={footerLinks} />
-                                                                    )}
-                                                                </div>
-                                                            )}
-                                                        </MetadataFlagsProvider>
-                                                    </MobileMenuHoistingProvider>
-                                                </MenuHoistingProvider>
-                                            </ChatEnterBehaviorPreferencesProvider>
-                                        </BrowserPushNotificationsProvider>
-                                    </NotificationsProvider>
-                                </SoundSystemProvider>
-                            </SelfLearningPreferencesProvider>
-                        </PrivateModePreferencesProvider>
-                    </AgentNamingProvider>
-                </AsyncDialogsProvider>
-            </ChatVisualModeProvider>
+            <ThemePreferencesProvider defaultThemePreference={defaultThemePreference}>
+                <ChatVisualModeProvider defaultChatVisualMode={defaultChatVisualMode}>
+                    <AsyncDialogsProvider>
+                        <AgentNamingProvider naming={agentNaming}>
+                            <LegacyUiAutoTranslator />
+                            <PrivateModePreferencesProvider>
+                                <SelfLearningPreferencesProvider>
+                                    <SoundSystemProvider
+                                        initialIsSoundsOn={defaultIsSoundsOn}
+                                        initialIsVibrationOn={defaultIsVibrationOn}
+                                    >
+                                        <NotificationsProvider>
+                                            <BrowserPushNotificationsProvider
+                                                defaultEnabled={defaultIsNotificationsOn}
+                                                pushPublicKey={webPushPublicKey}
+                                                isMetadataAvailable={controlPanelOptionAvailability.notifications}
+                                            >
+                                                <ChatEnterBehaviorPreferencesProvider>
+                                                    <ClientVersionMismatchListener />
+                                                    <ViewportHeightController />
+                                                    <NavigationProgressBar />
+                                                    <MenuHoistingProvider>
+                                                        <MobileMenuHoistingProvider>
+                                                            <MetadataFlagsProvider
+                                                                value={{
+                                                                    isExperimentalPwaAppEnabled,
+                                                                    controlPanelOptionAvailability,
+                                                                }}
+                                                            >
+                                                                {shouldRenderMinimalShell ? (
+                                                                    <main className={minimalMainClassName}>
+                                                                        {children}
+                                                                    </main>
+                                                                ) : (
+                                                                    <div className="agents-server-app-shell flex flex-col">
+                                                                        <Header
+                                                                            isAdmin={isAdmin}
+                                                                            isGlobalAdmin={isGlobalAdmin}
+                                                                            currentUser={currentUser}
+                                                                            serverName={serverName}
+                                                                            serverLogoUrl={serverLogoUrl}
+                                                                            agents={agents}
+                                                                            agentFolders={agentFolders}
+                                                                            federatedServers={federatedServers}
+                                                                            isExperimental={isExperimental}
+                                                                            feedbackMode={feedbackMode}
+                                                                        />
+                                                                        <main className={mainClassName}>{children}</main>
+                                                                        {isFooterShown && !isFooterHiddenOnPage && (
+                                                                            <Footer extraLinks={footerLinks} />
+                                                                        )}
+                                                                    </div>
+                                                                )}
+                                                            </MetadataFlagsProvider>
+                                                        </MobileMenuHoistingProvider>
+                                                    </MenuHoistingProvider>
+                                                </ChatEnterBehaviorPreferencesProvider>
+                                            </BrowserPushNotificationsProvider>
+                                        </NotificationsProvider>
+                                    </SoundSystemProvider>
+                                </SelfLearningPreferencesProvider>
+                            </PrivateModePreferencesProvider>
+                        </AgentNamingProvider>
+                    </AsyncDialogsProvider>
+                </ChatVisualModeProvider>
+            </ThemePreferencesProvider>
         </ServerLanguageProvider>
     );
 }

@@ -1,9 +1,9 @@
 'use client';
 
-import { BookEditor } from '@promptbook-local/components';
 import type { string_book } from '@promptbook-local/types';
 import { bookEditorUploadHandler } from '../../../../utils/upload/createBookEditorUploadHandler';
 import { SaveFailureNotice } from '../../../../components/SaveFailureNotice/SaveFailureNotice';
+import { ThemedBookEditor } from '../../../../components/ThemePreferences/ThemedBookEditor';
 import { BookEditorHistoryPanel } from './BookEditorHistoryPanel';
 import { BookEditorMissingReferences } from './BookEditorMissingReferences';
 import { useBookEditorWrapper } from './useBookEditorWrapper';
@@ -50,7 +50,7 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
             <div className="flex min-h-0 flex-1 gap-4">
                 <div className="flex min-h-0 min-w-0 flex-1 gap-6">
                     <div className="min-h-0 min-w-0 flex-1">
-                        <BookEditor
+                        <ThemedBookEditor
                             className="h-full w-full"
                             isBorderRadiusDisabled
                             height={null}

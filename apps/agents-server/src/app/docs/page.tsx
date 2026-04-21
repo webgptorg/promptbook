@@ -1,4 +1,3 @@
-import { MarkdownContent } from '@promptbook-local/components';
 import Link from 'next/link';
 import { DocsToolbar } from '../../components/DocsToolbar/DocsToolbar';
 import { DocumentationContent } from '../../components/DocumentationContent/DocumentationContent';
@@ -6,6 +5,7 @@ import { Card } from '../../components/Homepage/Card';
 import { Section } from '../../components/Homepage/Section';
 import { OpenMojiIcon } from '../../components/OpenMojiIcon/OpenMojiIcon';
 import { PrintHeader } from '../../components/PrintHeader/PrintHeader';
+import { ThemedMarkdownContent } from '../../components/ThemePreferences/ThemedMarkdownContent';
 import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
 
 /**
@@ -45,7 +45,7 @@ export default function DocsPage() {
                                     </div>
                                     {primary.description && (
                                         <p className="text-gray-600 line-clamp-3">
-                                            <MarkdownContent content={primary.description} />
+                                            <ThemedMarkdownContent content={primary.description} />
                                         </p>
                                     )}
                                 </Card>

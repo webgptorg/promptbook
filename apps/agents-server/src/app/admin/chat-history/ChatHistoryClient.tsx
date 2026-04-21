@@ -1,10 +1,10 @@
 'use client';
 
-import { MockedChat } from '@promptbook-local/components';
 import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
 import { ChatHistoryFiltersCard } from './ChatHistoryFiltersCard';
 import { ChatHistoryPagination } from './ChatHistoryPagination';
 import { ChatHistoryTable } from './ChatHistoryTable';
+import { ThemedMockedChat } from '../../../components/ThemePreferences/ThemedMockedChat';
 import { useChatHistoryState } from './useChatHistoryState';
 
 /**
@@ -94,7 +94,7 @@ export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) 
             {chatHistoryState.viewMode === 'chat' ? (
                 <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden flex flex-col">
                     <div className="h-[800px] relative">
-                        <MockedChat
+                        <ThemedMockedChat
                             messages={chatHistoryState.chatMessages}
                             isPausable={true}
                             isResettable={false}

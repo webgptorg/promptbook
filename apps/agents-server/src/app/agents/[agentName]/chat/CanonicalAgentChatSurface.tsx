@@ -1,6 +1,5 @@
 'use client';
 
-import { Chat } from '@promptbook-local/components';
 import { useCallback, useMemo, type CSSProperties, type ReactNode } from 'react';
 import type { ChatParticipant } from '../../../../../../../src/book-components/Chat/types/ChatParticipant';
 import { useAgentBackground } from '../../../../components/AgentProfile/useAgentBackground';
@@ -9,6 +8,7 @@ import { useChatVisualMode } from '../../../../components/ChatVisualMode/ChatVis
 import { useServerLanguage } from '../../../../components/ServerLanguage/ServerLanguageProvider';
 import { ChatThreadLoadingSkeleton } from '../../../../components/Skeleton/ChatThreadLoadingSkeleton';
 import { useSoundSystem } from '../../../../components/SoundSystemProvider/SoundSystemProvider';
+import { ThemedChat } from '../../../../components/ThemePreferences/ThemedChat';
 import { createDefaultChatEffects } from '../../../../utils/chat/createDefaultChatEffects';
 import { executeQuickActionButton } from '../../../../utils/chat/executeQuickActionButton';
 import {
@@ -193,7 +193,7 @@ export function CanonicalAgentChatSurface({
     const chatElement = shouldRenderLoadingSkeleton ? (
         renderCanonicalAgentChatLoadingSkeleton()
     ) : (
-        <Chat
+        <ThemedChat
             className="agent-chat-panel__chat h-full min-h-0 w-full"
             style={chatBackgroundStyle}
             title={`Chat with ${state.agentDisplayName}`}
@@ -239,7 +239,7 @@ export function CanonicalAgentChatSurface({
                     {translateText('chat.frozenBannerLabel', { source: frozenChatBannerLabel })}
                 </div>
             )}
-        </Chat>
+        </ThemedChat>
     );
 
     return (

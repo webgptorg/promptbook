@@ -1,7 +1,7 @@
 'use client';
 
-import { BookEditor } from '@promptbook-local/components';
 import { string_book } from '@promptbook-local/types';
+import { ThemedBookEditor } from '../../../../components/ThemePreferences/ThemedBookEditor';
 
 /**
  * Read-only client-only wrapper around `<BookEditor/>`.
@@ -10,5 +10,5 @@ import { string_book } from '@promptbook-local/types';
  * of browser-only editor dependencies.
  */
 export function SystemMessageBookEditor({ value }: { value: string }) {
-    return <BookEditor isReadonly value={value as string_book} />;
+    return <ThemedBookEditor isReadonly value={value as string_book} />;
 }

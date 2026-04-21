@@ -1,5 +1,6 @@
 'use client';
 
+import type { PromptbookComponentTheme } from '../../_common/PromptbookComponentTheme';
 import { CodeBlock } from '../CodeBlock/CodeBlock';
 import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import type { ChatMessage } from '../types/ChatMessage';
@@ -31,6 +32,10 @@ export type ChatMessageRichContentProps = {
      * Optional callback for creating a new agent from a book code block.
      */
     readonly onCreateAgent?: (bookContent: string) => void;
+    /**
+     * Explicit light/dark theme inherited from the host chat.
+     */
+    readonly theme?: PromptbookComponentTheme;
 };
 
 /**
@@ -39,7 +44,7 @@ export type ChatMessageRichContentProps = {
  * @private internal component of `<ChatMessageItem/>`
  */
 export function ChatMessageRichContent(props: ChatMessageRichContentProps) {
-    const { content, contentSegments, streamingFeaturePlaceholderKind, onCreateAgent } = props;
+    const { content, contentSegments, streamingFeaturePlaceholderKind, onCreateAgent, theme } = props;
 
     if (content === LOADING_INTERACTIVE_IMAGE) {
         return null;
@@ -54,6 +59,7 @@ export function ChatMessageRichContent(props: ChatMessageRichContentProps) {
                             key={`text-${segmentIndex}`}
                             content={segment.content}
                             onCreateAgent={onCreateAgent}
+                            theme={theme}
                         />
                     );
                 }
@@ -65,6 +71,7 @@ export function ChatMessageRichContent(props: ChatMessageRichContentProps) {
                             code={segment.code}
                             language={segment.language}
                             onCreateAgent={onCreateAgent}
+                            theme={theme}
                         />
                     );
                 }

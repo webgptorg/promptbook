@@ -2,7 +2,8 @@ import type { editor, Position } from 'monaco-editor';
 import { useEffect } from 'react';
 import { getAllCommitmentDefinitions } from '../../commitments/_common/getAllCommitmentDefinitions';
 import { PROMPTBOOK_SYNTAX_COLORS } from '../../config';
-import { BookEditorMonacoConstants } from './BookEditorMonacoConstants';
+import { PROMPTBOOK_COMPONENT_THEMES, type PromptbookComponentTheme } from '../_common/PromptbookComponentTheme';
+import { BookEditorMonacoConstants, resolveBookEditorMonacoThemeId } from './BookEditorMonacoConstants';
 import { BookEditorMonacoTokenization } from './BookEditorMonacoTokenization';
 
 /**
@@ -15,6 +16,7 @@ type MonacoEditor = typeof import('monaco-editor');
  */
 type UseBookEditorMonacoLanguageProps = {
     readonly monaco: MonacoEditor | null;
+    readonly theme: PromptbookComponentTheme;
 };
 
 /**
@@ -188,10 +190,13 @@ function createNoteLikeBodyRules(
  *
  * @private function of BookEditorMonaco
  */
-export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor): void {
+export function ensureBookEditorMonacoLanguage(
+    monaco: MonacoEditor,
+    theme: PromptbookComponentTheme = PROMPTBOOK_COMPONENT_THEMES.LIGHT,
+): void {
     const monacoWithLanguageState = monaco as MonacoEditorWithBookEditorLanguageState;
     if (monacoWithLanguageState[BOOK_EDITOR_LANGUAGE_INITIALIZED_FLAG]) {
-        monaco.editor.setTheme(BookEditorMonacoConstants.BOOK_THEME_ID);
+        monaco.editor.setTheme(resolveBookEditorMonacoThemeId(theme));
         return;
     }
 
@@ -314,8 +319,8 @@ export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor): void {
         },
     });
 
-    monaco.editor.defineTheme(BookEditorMonacoConstants.BOOK_THEME_ID, {
-        base: 'vs',
+    const createBookEditorThemeDefinition = (base: 'vs' | 'vs-dark') => ({
+        base,
         inherit: true,
         rules: [
             {
@@ -354,13 +359,43 @@ export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor): void {
             },
         ],
         colors: {
-            'editor.scrollbarSlider.background': '#E0E0E0',
-            'editor.scrollbarSlider.hoverBackground': '#D0D0D0',
-            'editor.scrollbarSlider.activeBackground': '#C0C0C0',
+            ...(base === 'vs'
+                ? {
+                      'editor.background': '#ffffff',
+                      'editor.foreground': '#0f172a',
+                      'editor.lineHighlightBackground': '#f8fafc',
+                      'editorLineNumber.foreground': '#94a3b8',
+                      'editorLineNumber.activeForeground': '#475569',
+                      'editor.scrollbarSlider.background': '#E0E0E0',
+                      'editor.scrollbarSlider.hoverBackground': '#D0D0D0',
+                      'editor.scrollbarSlider.activeBackground': '#C0C0C0',
+                  }
+                : {
+                      'editor.background': '#0f172a',
+                      'editor.foreground': '#e2e8f0',
+                      'editor.lineHighlightBackground': '#111827',
+                      'editorLineNumber.foreground': '#64748b',
+                      'editorLineNumber.activeForeground': '#cbd5e1',
+                      'editorCursor.foreground': '#38bdf8',
+                      'editor.selectionBackground': '#1d4ed833',
+                      'editor.inactiveSelectionBackground': '#1e293b',
+                      'editor.scrollbarSlider.background': '#334155',
+                      'editor.scrollbarSlider.hoverBackground': '#475569',
+                      'editor.scrollbarSlider.activeBackground': '#64748b',
+                  }),
         },
     });
 
-    monaco.editor.setTheme(BookEditorMonacoConstants.BOOK_THEME_ID);
+    monaco.editor.defineTheme(
+        BookEditorMonacoConstants.BOOK_THEME_LIGHT_ID,
+        createBookEditorThemeDefinition('vs'),
+    );
+    monaco.editor.defineTheme(
+        BookEditorMonacoConstants.BOOK_THEME_DARK_ID,
+        createBookEditorThemeDefinition('vs-dark'),
+    );
+
+    monaco.editor.setTheme(resolveBookEditorMonacoThemeId(theme));
 }
 
 /**
@@ -371,6 +406,7 @@ export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor): void {
 type EnsureBookEditorMonacoLanguageForEditorProps = {
     readonly monaco: MonacoEditor;
     readonly monacoEditor: editor.IStandaloneCodeEditor;
+    readonly theme: PromptbookComponentTheme;
 };
 
 /**
@@ -384,8 +420,8 @@ type EnsureBookEditorMonacoLanguageForEditorProps = {
  * @private function of BookEditorMonaco
  */
 export function ensureBookEditorMonacoLanguageForEditor(props: EnsureBookEditorMonacoLanguageForEditorProps): void {
-    const { monaco, monacoEditor } = props;
-    ensureBookEditorMonacoLanguage(monaco);
+    const { monaco, monacoEditor, theme } = props;
+    ensureBookEditorMonacoLanguage(monaco, theme);
 
     const model = monacoEditor.getModel();
     if (!model) {
@@ -396,7 +432,7 @@ export function ensureBookEditorMonacoLanguageForEditor(props: EnsureBookEditorM
         monaco.editor.setModelLanguage(model, BookEditorMonacoConstants.BOOK_LANGUAGE_ID);
     }
 
-    monaco.editor.setTheme(BookEditorMonacoConstants.BOOK_THEME_ID);
+    monaco.editor.setTheme(resolveBookEditorMonacoThemeId(theme));
 }
 
 /**
@@ -404,12 +440,12 @@ export function ensureBookEditorMonacoLanguageForEditor(props: EnsureBookEditorM
  *
  * @private function of BookEditorMonaco
  */
-export function useBookEditorMonacoLanguage({ monaco }: UseBookEditorMonacoLanguageProps) {
+export function useBookEditorMonacoLanguage({ monaco, theme }: UseBookEditorMonacoLanguageProps) {
     useEffect(() => {
         if (!monaco) {
             return;
         }
 
-        ensureBookEditorMonacoLanguage(monaco);
-    }, [monaco]);
+        ensureBookEditorMonacoLanguage(monaco, theme);
+    }, [monaco, theme]);
 }
