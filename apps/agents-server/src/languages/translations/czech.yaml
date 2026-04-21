@@ -88,14 +88,6 @@ controlPanel.privateModeStateStandard: Standardní
 controlPanel.privateModeDetail: V soukromém režimu zůstane aktuální chat jen ve vašem prohlížeči.
 controlPanel.privateModeDisableAction: Vypnout soukromý režim
 controlPanel.privateModeEnableAction: Zapnout soukromý režim
-controlPanel.themeTitle: Vzhled
-controlPanel.themeSubtitle: Vyberte, jestli se má tento prohlížeč řídit systémovým motivem nebo zůstat světlý/tmavý.
-controlPanel.themeSelectLabel: Barevný motiv
-controlPanel.themeOptionSystem: Systém
-controlPanel.themeOptionLight: Světlý
-controlPanel.themeOptionDark: Tmavý
-controlPanel.themeHelp: Výchozí chování přebírá barevné schéma z operačního systému nebo prohlížeče.
-controlPanel.themeSaveFailed: Nepodařilo se uložit motiv.
 controlPanel.languageTitle: Jazyk
 controlPanel.languageSubtitle: Vyberte jazyk rozhraní pro tento prohlížeč.
 controlPanel.languageSection: Lokalizace

@@ -22,7 +22,7 @@ import { SaveIcon } from '../icons/SaveIcon';
 import type { BookEditorProps } from './BookEditor';
 import styles from './BookEditor.module.css';
 import { BookEditorActionbar } from './BookEditorActionbar';
-import { BookEditorMonacoConstants, resolveBookEditorMonacoThemeId } from './BookEditorMonacoConstants';
+import { BookEditorMonacoConstants } from './BookEditorMonacoConstants';
 import { createDeprecatedCommitmentDiagnostics } from './createDeprecatedCommitmentDiagnostics';
 import { useBookEditorMonacoDecorations } from './useBookEditorMonacoDecorations';
 import { useBookEditorMonacoDiagnostics } from './useBookEditorMonacoDiagnostics';
@@ -282,7 +282,6 @@ export function BookEditorMonaco(props: BookEditorProps) {
         isFullscreen,
         zoom = 1,
         monacoModelPath,
-        theme = 'LIGHT',
         hoistedMenuItems,
     } = props;
 
@@ -319,7 +318,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
     });
     const combinedDiagnostics = [...(diagnostics || []), ...createDeprecatedCommitmentDiagnostics(value)];
 
-    useBookEditorMonacoLanguage({ monaco, theme });
+    useBookEditorMonacoLanguage({ monaco });
     useBookEditorMonacoDiagnostics({ monaco, editor, diagnostics: combinedDiagnostics });
     useBookEditorMonacoDecorations({ editor, monaco });
     useBookEditorMonacoStyles({
@@ -339,10 +338,10 @@ export function BookEditorMonaco(props: BookEditorProps) {
                 return;
             }
 
-            ensureBookEditorMonacoLanguageForEditor({ monaco, monacoEditor: editor, theme });
+            ensureBookEditorMonacoLanguageForEditor({ monaco, monacoEditor: editor });
             logBookEditorMonacoDebug(`Re-applied Book Monaco language/theme (${reason}).`);
         },
-        [editor, monaco, theme],
+        [editor, monaco],
     );
 
     useEffect(() => {
@@ -481,9 +480,9 @@ export function BookEditorMonaco(props: BookEditorProps) {
      */
     const handleBeforeMonacoMount = useCallback(
         (beforeMountMonaco: Parameters<typeof ensureBookEditorMonacoLanguage>[0]) => {
-            ensureBookEditorMonacoLanguage(beforeMountMonaco, theme);
+            ensureBookEditorMonacoLanguage(beforeMountMonaco);
         },
-        [theme],
+        [],
     );
 
     /**
@@ -495,14 +494,10 @@ export function BookEditorMonaco(props: BookEditorProps) {
             mountedMonaco: Parameters<typeof ensureBookEditorMonacoLanguage>[0],
         ) => {
             setEditor(mountedEditor);
-            ensureBookEditorMonacoLanguageForEditor({
-                monaco: mountedMonaco,
-                monacoEditor: mountedEditor,
-                theme,
-            });
+            ensureBookEditorMonacoLanguageForEditor({ monaco: mountedMonaco, monacoEditor: mountedEditor });
             logBookEditorMonacoDebug('Mounted Monaco editor and re-applied Book language/theme.');
         },
-        [theme],
+        [],
     );
 
     const handleDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
@@ -630,7 +625,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
                 )}
                 <MonacoEditorWithShadowDom
                     language={BookEditorMonacoConstants.BOOK_LANGUAGE_ID}
-                    theme={resolveBookEditorMonacoThemeId(theme)}
+                    theme={BookEditorMonacoConstants.BOOK_THEME_ID}
                     path={monacoModelPath}
                     saveViewState={Boolean(monacoModelPath)}
                     value={value}

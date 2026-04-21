@@ -41,16 +41,6 @@
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
-.darkTheme {
-    border-color: rgba(71, 85, 105, 0.72);
-    background-color: #0f172a;
-    box-shadow: 0 16px 40px rgba(2, 6, 23, 0.35);
-}
-
-.darkTheme:hover {
-    box-shadow: 0 18px 44px rgba(2, 6, 23, 0.42);
-}
-
 .bookEditorWrapper:focus-within {
     /*
     outline: 2px solid transparent;
@@ -127,18 +117,6 @@
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
 }
 
-.darkTheme .button {
-    background-color: rgba(15, 23, 42, 0.92);
-    border-color: rgba(100, 116, 139, 0.6);
-    color: #e2e8f0;
-    box-shadow: 0 10px 24px rgba(2, 6, 23, 0.24);
-}
-
-.darkTheme .button:hover {
-    background-color: rgba(30, 41, 59, 0.94);
-    border-color: rgba(148, 163, 184, 0.68);
-}
-
 .savedNotification {
     position: absolute;
     top: 50%;
@@ -174,12 +152,6 @@
     z-index: 220;
 }
 
-.darkTheme .uploadPanel {
-    background: rgba(15, 23, 42, 0.98);
-    border-color: rgba(71, 85, 105, 0.72);
-    box-shadow: 0 18px 44px rgba(2, 6, 23, 0.4);
-}
-
 .uploadPanelHeader {
     display: flex;
     align-items: center;
@@ -193,21 +165,9 @@
     color: #111827;
 }
 
-.darkTheme .uploadPanelTitle,
-.darkTheme .uploadRowName {
-    color: #f8fafc;
-}
-
 .uploadPanelHeaderMeta {
     font-size: 0.75rem;
     color: #6b7280;
-}
-
-.darkTheme .uploadPanelHeaderMeta,
-.darkTheme .uploadPanelSummary,
-.darkTheme .uploadRowStatus,
-.darkTheme .uploadRowMeta {
-    color: #94a3b8;
 }
 
 .uploadPanelSummary {
@@ -223,11 +183,6 @@
     background: #e5e7eb;
     border-radius: 999px;
     overflow: hidden;
-}
-
-.darkTheme .uploadPanelProgressBar,
-.darkTheme .uploadRowProgressBar {
-    background: rgba(51, 65, 85, 0.92);
 }
 
 .uploadPanelProgressFill {
@@ -253,11 +208,6 @@
     flex-direction: column;
     gap: 6px;
     background: #fff;
-}
-
-.darkTheme .uploadRow {
-    border-color: rgba(71, 85, 105, 0.64);
-    background: rgba(15, 23, 42, 0.92);
 }
 
 .uploadRowHeader {

@@ -1,9 +1,9 @@
 'use client';
 
+import { MarkdownContent } from '@promptbook-local/components';
 import { useId } from 'react';
 import { Dialog } from '../../../components/Portal/Dialog';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
-import { ThemedMarkdownContent } from '../../../components/ThemePreferences/ThemedMarkdownContent';
 
 /**
  * Props for the blocking META DISCLAIMER dialog shown before chat interaction.
@@ -65,7 +65,7 @@ export function MetaDisclaimerDialog({
 
                 {!errorMessage && markdown && (
                     <article className="prose prose-slate max-w-none">
-                        <ThemedMarkdownContent content={markdown} />
+                        <MarkdownContent content={markdown} />
                     </article>
                 )}
             </div>

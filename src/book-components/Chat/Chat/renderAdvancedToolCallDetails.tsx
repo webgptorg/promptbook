@@ -1,6 +1,5 @@
 import { type ReactElement } from 'react';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
-import { PROMPTBOOK_COMPONENT_THEMES, type PromptbookComponentTheme } from '../../_common/PromptbookComponentTheme';
 import { MonacoEditorWithShadowDom } from '../../_common/MonacoEditorWithShadowDom';
 import type { ChatMessage } from '../types/ChatMessage';
 import { getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletInfo';
@@ -27,7 +26,6 @@ type AdvancedToolCallDetailsOptions = {
      * Optional list of tools that were available to the model during the turn that produced this tool call.
      */
     availableTools?: ChatMessage['availableTools'];
-    theme?: PromptbookComponentTheme;
 };
 
 /**
@@ -173,7 +171,6 @@ export function renderAdvancedToolCallDetails(options: AdvancedToolCallDetailsOp
                             toolCall,
                             sectionId: payloadSection.id,
                             payload: payloadSection.payload,
-                            theme: options.theme,
                         })}
                     </section>
                 ))}
@@ -343,10 +340,6 @@ type RenderAdvancedToolCallPayloadOptions = {
      * Raw payload for this section.
      */
     payload: TODO_any;
-    /**
-     * Active light/dark theme inherited from the host chat.
-     */
-    theme?: PromptbookComponentTheme;
 };
 
 /**
@@ -358,7 +351,7 @@ type RenderAdvancedToolCallPayloadOptions = {
  * @private function of ChatToolCallModal
  */
 function renderAdvancedToolCallPayload(options: RenderAdvancedToolCallPayloadOptions): ReactElement {
-    const { toolCall, sectionId, payload, theme } = options;
+    const { toolCall, sectionId, payload } = options;
     const formattedPayload = formatToolCallPayload(payload);
     const modelPath = createToolCallPayloadMonacoPath({
         toolCall,
@@ -375,7 +368,7 @@ function renderAdvancedToolCallPayload(options: RenderAdvancedToolCallPayloadOpt
                     language={formattedPayload.language}
                     path={modelPath}
                     value={formattedPayload.content}
-                    theme={theme === PROMPTBOOK_COMPONENT_THEMES.DARK ? 'vs-dark' : 'vs-light'}
+                    theme="vs-light"
                     options={TOOL_CALL_PAYLOAD_EDITOR_OPTIONS}
                 />
             </div>

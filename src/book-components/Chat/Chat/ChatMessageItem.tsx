@@ -916,7 +916,6 @@ export const ChatMessageItem = memo(
                                 contentSegments={contentSegments}
                                 streamingFeaturePlaceholderKind={streamingFeaturePlaceholderKind}
                                 onCreateAgent={onCreateAgent}
-                                theme={mode}
                             />
                         </div>
 

@@ -1,5 +1,5 @@
 import type { ChangeEvent } from 'react';
-import { ThemedMonacoEditorWithShadowDom } from '../../../components/ThemePreferences/ThemedMonacoEditorWithShadowDom';
+import { MonacoEditorWithShadowDom } from '../../../components/_utils/MonacoEditorWithShadowDom';
 import { CUSTOM_RESOURCE_INPUT_CLASS_NAME } from '../custom-resource/shared';
 import type { CustomStylesheetFileState } from './CustomStylesheetFileState';
 
@@ -69,9 +69,10 @@ export function CustomCssEditorPanel({
                         />
                     </div>
 
-                    <ThemedMonacoEditorWithShadowDom
+                    <MonacoEditorWithShadowDom
                         height="520px"
                         language="css"
+                        theme="vs-light"
                         value={currentFile.css}
                         onChange={onEditorChange}
                         options={{

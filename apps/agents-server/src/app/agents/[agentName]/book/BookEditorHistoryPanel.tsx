@@ -1,8 +1,8 @@
 'use client';
 
+import { BookEditor } from '@promptbook-local/components';
 import type { string_book } from '@promptbook-local/types';
 import { XIcon } from 'lucide-react';
-import { ThemedBookEditor } from '../../../../components/ThemePreferences/ThemedBookEditor';
 
 /**
  * Builds stable Monaco model path for one history preview item.
@@ -290,7 +290,7 @@ export function BookEditorHistoryPanel({
                                 </div>
 
                                 <div className="min-h-0 flex-1 overflow-hidden border-t border-slate-200 bg-slate-100 p-3">
-                                    <ThemedBookEditor
+                                    <BookEditor
                                         key={selectedVersion.id}
                                         className="h-full w-full"
                                         isBorderRadiusDisabled

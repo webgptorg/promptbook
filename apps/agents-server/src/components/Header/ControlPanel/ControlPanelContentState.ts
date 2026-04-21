@@ -4,7 +4,6 @@ import type { useMetadataFlags } from '../../MetadataFlags/MetadataFlagsContext'
 import type { useBrowserPushNotifications } from '../../PushNotifications/BrowserPushNotificationsProvider';
 import type { useServerLanguage } from '../../ServerLanguage/ServerLanguageProvider';
 import type { useSoundSystem } from '../../SoundSystemProvider/SoundSystemProvider';
-import type { useThemePreferences } from '../../ThemePreferences/ThemePreferencesProvider';
 
 /**
  * Props accepted by `useControlPanelContentState`.
@@ -64,13 +63,6 @@ export type ControlPanelLanguage = ReturnType<typeof useServerLanguage>['languag
  * @private function of ControlPanelContent
  */
 export type ControlPanelAvailableLanguages = ReturnType<typeof useServerLanguage>['availableLanguages'];
-
-/**
- * Shared theme preference shape used by the control panel.
- *
- * @private function of ControlPanelContent
- */
-export type ControlPanelThemePreference = ReturnType<typeof useThemePreferences>['themePreference'];
 
 /**
  * Visual emphasis variants shared by control-panel chips and tiles.
@@ -175,7 +167,6 @@ export type ControlPanelContentState = {
     readonly feedbackSubtitle: string;
     readonly summaryBadges: ReadonlyArray<ControlPanelSummaryBadge>;
     readonly toggleTiles: ReadonlyArray<ControlPanelToggleTileState>;
-    readonly themeSection: ControlPanelSelectSectionState | null;
     readonly languageSection: ControlPanelSelectSectionState | null;
     readonly chatVisualModeSection: ControlPanelSelectSectionState | null;
     readonly chatEnterBehaviorSection: ControlPanelEnterBehaviorSectionState;

@@ -8,7 +8,6 @@ import { Color } from '../../../_packages/color.index';
 import { SpeechRecognition } from '../../../types/SpeechRecognition';
 import type { string_href } from '../../../types/typeAliases';
 import { string_color } from '../../../types/typeAliases';
-import type { PromptbookComponentTheme } from '../../_common/PromptbookComponentTheme';
 import type { AgentChipData } from '../AgentChip/AgentChip';
 import type { string_chat_format_name } from '../save/_common/string_chat_format_name';
 import type { ChatMessage } from '../types/ChatMessage';
@@ -873,13 +872,6 @@ export type ChatProps = {
      * Layout of the chat component
      */
     readonly layout: 'STANDALONE' | 'FULL_PAGE';
-
-    /**
-     * Explicit light/dark theme used for chat chrome and embedded technical viewers.
-     *
-     * @default 'LIGHT'
-     */
-    readonly theme?: PromptbookComponentTheme;
 
     /**
      * Optional array of effect configurations for chat animations

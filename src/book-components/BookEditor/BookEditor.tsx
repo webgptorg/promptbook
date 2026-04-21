@@ -15,11 +15,6 @@ import type {
     string_knowledge_source_content,
 } from '../../types/typeAliases';
 import { countLines } from '../../utils/expectation-counters/countLines';
-import {
-    PROMPTBOOK_COMPONENT_THEMES,
-    resolvePromptbookComponentTheme,
-    type PromptbookComponentTheme,
-} from '../_common/PromptbookComponentTheme';
 import { classNames } from '../_common/react-utils/classNames';
 import type { HoistedMenuItem } from '../_common/MenuHoisting/MenuHoistingContext';
 import styles from './BookEditor.module.css';
@@ -268,13 +263,6 @@ export type BookEditorProps = {
     readonly monacoModelPath?: string;
 
     /**
-     * Explicit light/dark theme used for the editor chrome and Monaco instance.
-     *
-     * @default 'LIGHT'
-     */
-    readonly theme?: PromptbookComponentTheme;
-
-    /**
      * Additional actions merged into the BookEditor actionbar and hoisted header menu.
      *
      * @private Internal to Promptbook app integrations.
@@ -308,10 +296,8 @@ export function BookEditor(props: BookEditorProps) {
         isFullscreenButtonShown = true,
         sync,
         monacoModelPath,
-        theme,
         hoistedMenuItems,
     } = props;
-    const resolvedTheme = resolvePromptbookComponentTheme(theme);
 
     const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -329,7 +315,6 @@ export function BookEditor(props: BookEditorProps) {
                 styles.BookEditor,
                 isVerbose && styles.isVerbose,
                 styles.bookEditorWrapper,
-                resolvedTheme === PROMPTBOOK_COMPONENT_THEMES.DARK && styles.darkTheme,
                 isBorderRadiusDisabled && styles.isBorderRadiusDisabled,
                 isFullscreen && styles.fullscreen,
                 className,
@@ -369,7 +354,6 @@ export function BookEditor(props: BookEditorProps) {
                 sync={sync}
                 zoom={zoom}
                 monacoModelPath={monacoModelPath}
-                theme={resolvedTheme}
                 hoistedMenuItems={hoistedMenuItems}
             />
         </div>

@@ -1,7 +1,6 @@
 import { type ReactElement } from 'react';
 import { Color } from '../../../utils/color/Color';
 import type { WithTake } from '../../../utils/take/interfaces/ITakeChain';
-import type { PromptbookComponentTheme } from '../../_common/PromptbookComponentTheme';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { type TeamToolCallSummary, type TransitiveToolCall } from '../utils/collectTeamToolCallSummary';
@@ -42,7 +41,6 @@ type ChatToolCallModalContentProps = {
     readonly toolCall: ToolCallModalToolCall;
     readonly toolCallDate: Date | null;
     readonly toolTitles?: Record<string, string>;
-    readonly theme?: PromptbookComponentTheme;
 };
 
 /**
@@ -68,14 +66,12 @@ export function ChatToolCallModalContent({
     toolCall,
     toolCallDate,
     toolTitles,
-    theme,
 }: ChatToolCallModalContentProps): ReactElement {
     if (isAdvancedView) {
         return renderAdvancedToolCallDetails({
             toolCall: focusedToolCall,
             toolTitles,
             availableTools,
-            theme,
         });
     }
 

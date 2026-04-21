@@ -4,7 +4,6 @@
 
 import { useCallback, useMemo, type MouseEvent } from 'react';
 import { Color } from '../../../utils/color/Color';
-import { resolvePromptbookComponentTheme } from '../../_common/PromptbookComponentTheme';
 import { classNames } from '../../_common/react-utils/classNames';
 import { SolidArrowButton } from '../../icons/SolidArrowButton';
 import { ChatEffectsSystem } from '../effects/ChatEffectsSystem';
@@ -118,7 +117,6 @@ export function Chat(props: ChatProps) {
         teamAgentProfiles,
         layout,
         visualMode = 'ARTICLE_MODE',
-        theme,
         effectConfigs,
         soundSystem,
         speechRecognitionLanguage,
@@ -192,7 +190,7 @@ export function Chat(props: ChatProps) {
     } = useChatToolCallState({
         messages: postprocessedMessages,
     });
-    const mode = resolvePromptbookComponentTheme(theme);
+    const mode: 'LIGHT' | 'DARK' = 'LIGHT';
 
     const scrollToBottomCssClassName = getChatCssClassName('scrollToBottom');
 
@@ -252,18 +250,17 @@ export function Chat(props: ChatProps) {
                 className={classNames(
                     className,
                     styles.Chat,
-                    mode === 'DARK' && styles.darkTheme,
                     layout === 'STANDALONE' && styles.standaloneVisual,
                     layout === 'FULL_PAGE' && styles.fullPageVisual,
                     isConstrainedArticleMode && styles.constrainedArticleVisual,
                     getChatCssClassName('Chat'),
                     chatCssClassNames.chat,
                 )}
-                data-chat-theme={mode}
                 {...{ style }}
             >
                 <div
                     className={classNames(
+                        className,
                         styles.chatMainFlow,
                         getChatCssClassName('chatMainFlow'),
                         chatCssClassNames.chatMainFlow,
@@ -407,10 +404,9 @@ export function Chat(props: ChatProps) {
                 buttonColor={buttonColor}
                 teamAgentProfiles={teamAgentProfiles}
                 chatUiTranslations={chatUiTranslations}
-                    locale={chatLocale}
-                    availableTools={selectedMessageAvailableTools}
-                    theme={mode}
-                />
+                locale={chatLocale}
+                availableTools={selectedMessageAvailableTools}
+            />
 
             <ChatCitationModal
                 isOpen={citationModalOpen}

@@ -1,6 +1,7 @@
 'use client';
 
 import { usePromise } from '@common/hooks/usePromise';
+import { Chat } from '@promptbook-local/components';
 import { RemoteAgent } from '@promptbook-local/core';
 import { string_book, type ChatMessage } from '@promptbook-local/types';
 import { useRouter } from 'next/navigation';
@@ -21,7 +22,6 @@ import { useHoistedMobileMenuItems } from '../../../components/Header/MobileMenu
 import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { ChatThreadLoadingSkeleton } from '../../../components/Skeleton/ChatThreadLoadingSkeleton';
-import { ThemedChat } from '../../../components/ThemePreferences/ThemedChat';
 import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
 import { executeQuickActionButton } from '../../../utils/chat/executeQuickActionButton';
 import { resolveChatMessageValidationIssue } from '../../../utils/chat/validateChatMessageContent';
@@ -445,7 +445,7 @@ export function AgentProfileChat({
                             className="h-full w-full rounded-[28px] border border-white/40 bg-white/75"
                         />
                     ) : (
-                        <ThemedChat
+                        <Chat
                             title={`Chat with ${fullname}`}
                             participants={chatParticipants}
                             chatLocale={language}

@@ -1,9 +1,5 @@
 import { Bell, EyeOff, Sparkles, SpeakerIcon, Vibrate } from 'lucide-react';
 import { CHAT_VISUAL_MODES, type ChatVisualMode } from '../../../constants/chatVisualMode';
-import {
-    AGENTS_SERVER_THEME_PREFERENCES,
-    type AgentsServerThemePreference,
-} from '../../../constants/themePreferences';
 import { getChatEnterBehaviorStateLabel } from '../../ChatEnterBehavior/chatEnterBehaviorTranslations';
 import type {
     ControlPanelAvailableLanguages,
@@ -17,7 +13,6 @@ import type {
     ControlPanelSoundSystem,
     ControlPanelStoredEnterBehavior,
     ControlPanelSummaryBadge,
-    ControlPanelThemePreference,
     ControlPanelToggleTileState,
     ControlPanelTranslator,
 } from './ControlPanelContentState';
@@ -57,9 +52,6 @@ type CreateControlPanelContentStateProps = {
     readonly onToggleNotifications: () => void;
     readonly onToggleSelfLearning: () => void;
     readonly onTogglePrivateMode: () => void;
-    readonly themeSelectId: string;
-    readonly themePreference: ControlPanelThemePreference;
-    readonly onThemeChange: (nextValue: string) => void;
     readonly languageSelectId: string;
     readonly language: ControlPanelLanguage;
     readonly availableLanguages: ControlPanelAvailableLanguages;
@@ -98,9 +90,6 @@ export function createControlPanelContentState({
     onToggleNotifications,
     onToggleSelfLearning,
     onTogglePrivateMode,
-    themeSelectId,
-    themePreference,
-    onThemeChange,
     languageSelectId,
     language,
     availableLanguages,
@@ -128,7 +117,6 @@ export function createControlPanelContentState({
     });
     const soundStateLabel = resolveControlPanelToggleStateLabel(t, soundToggle.isEnabled);
     const vibrationStateLabel = resolveControlPanelToggleStateLabel(t, vibrationToggle.isEnabled);
-    const activeThemeLabel = resolveControlPanelThemeLabel(t, themePreference);
     const activeLanguageName = resolveControlPanelActiveLanguageName(availableLanguages, language);
     const chatEnterBehaviorStateLabel = getChatEnterBehaviorStateLabel(t, storedEnterBehavior);
     const activeChatVisualModeLabel = resolveControlPanelChatVisualModeLabel(t, chatVisualMode);
@@ -143,7 +131,6 @@ export function createControlPanelContentState({
             notificationState,
             soundStateLabel,
             isSoundEnabled: soundToggle.isEnabled,
-            activeThemeLabel,
             activeLanguageName,
             chatEnterBehaviorStateLabel,
             isEnterBehaviorLoading,
@@ -165,12 +152,6 @@ export function createControlPanelContentState({
             privateModeState,
             onTogglePrivateMode,
             t,
-        }),
-        themeSection: createControlPanelThemeSection({
-            selectId: themeSelectId,
-            t,
-            themePreference,
-            onChange: onThemeChange,
         }),
         languageSection: createControlPanelLanguageSection({
             isAvailable: controlPanelOptionAvailability.language,
@@ -198,25 +179,6 @@ export function createControlPanelContentState({
             (controlPanelOptionAvailability.sound || controlPanelOptionAvailability.vibration) && !soundSystem,
         audioLoadingLabel: t('controlPanel.audioLoading'),
     };
-}
-
-/**
- * Resolves the label shown for the currently active app theme preference.
- *
- * @private function of ControlPanelContent
- */
-function resolveControlPanelThemeLabel(
-    t: ControlPanelTranslator,
-    themePreference: AgentsServerThemePreference,
-): string {
-    switch (themePreference) {
-        case AGENTS_SERVER_THEME_PREFERENCES.DARK:
-            return t('controlPanel.themeOptionDark');
-        case AGENTS_SERVER_THEME_PREFERENCES.LIGHT:
-            return t('controlPanel.themeOptionLight');
-        default:
-            return t('controlPanel.themeOptionSystem');
-    }
 }
 
 /**
@@ -430,7 +392,6 @@ function createControlPanelSummaryBadges({
     notificationState,
     soundStateLabel,
     isSoundEnabled,
-    activeThemeLabel,
     activeLanguageName,
     chatEnterBehaviorStateLabel,
     isEnterBehaviorLoading,
@@ -443,7 +404,6 @@ function createControlPanelSummaryBadges({
     readonly notificationState: ControlPanelNotificationState;
     readonly soundStateLabel: string;
     readonly isSoundEnabled: boolean;
-    readonly activeThemeLabel: string;
     readonly activeLanguageName: string;
     readonly chatEnterBehaviorStateLabel: string;
     readonly isEnterBehaviorLoading: boolean;
@@ -475,12 +435,6 @@ function createControlPanelSummaryBadges({
                 isAvailable: controlPanelOptionAvailability.sound,
                 label: soundStateLabel,
                 tone: isSoundEnabled ? 'positive' : 'neutral',
-            },
-            {
-                key: 'theme',
-                isAvailable: true,
-                label: activeThemeLabel,
-                tone: 'informative',
             },
             {
                 key: 'language',
@@ -607,47 +561,6 @@ function createControlPanelToggleTiles({
             },
         ] satisfies Array<ControlPanelToggleTileState & { readonly isAvailable: boolean }>
     ).flatMap(({ isAvailable, ...tile }) => (isAvailable ? [tile] : []));
-}
-
-/**
- * Builds the state for the theme select card.
- *
- * @private function of ControlPanelContent
- */
-function createControlPanelThemeSection({
-    selectId,
-    t,
-    themePreference,
-    onChange,
-}: {
-    readonly selectId: string;
-    readonly t: ControlPanelTranslator;
-    readonly themePreference: ControlPanelThemePreference;
-    readonly onChange: (nextValue: string) => void;
-}): ControlPanelSelectSectionState {
-    return {
-        title: t('controlPanel.themeTitle'),
-        subtitle: t('controlPanel.themeSubtitle'),
-        selectId,
-        selectLabel: t('controlPanel.themeSelectLabel'),
-        value: themePreference,
-        options: [
-            {
-                value: AGENTS_SERVER_THEME_PREFERENCES.SYSTEM,
-                label: t('controlPanel.themeOptionSystem'),
-            },
-            {
-                value: AGENTS_SERVER_THEME_PREFERENCES.LIGHT,
-                label: t('controlPanel.themeOptionLight'),
-            },
-            {
-                value: AGENTS_SERVER_THEME_PREFERENCES.DARK,
-                label: t('controlPanel.themeOptionDark'),
-            },
-        ],
-        helpText: t('controlPanel.themeHelp'),
-        onChange,
-    };
 }
 
 /**
