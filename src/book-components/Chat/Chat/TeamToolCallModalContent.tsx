@@ -172,7 +172,7 @@ export function TeamToolCallModalContent(options: TeamToolCallModalContentOption
                             isPausable={false}
                             isSaveButtonEnabled={false}
                             isCopyButtonEnabled={false}
-                            visual="STANDALONE"
+                            layout="STANDALONE"
                             delayConfig={FAST_FLOW}
                             visualMode="BUBBLE_MODE"
                         />

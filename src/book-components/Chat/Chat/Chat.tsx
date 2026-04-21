@@ -115,7 +115,7 @@ export function Chat(props: ChatProps) {
         toolTitles,
         teammates,
         teamAgentProfiles,
-        visual,
+        layout,
         visualMode = 'ARTICLE_MODE',
         effectConfigs,
         soundSystem,
@@ -217,7 +217,7 @@ export function Chat(props: ChatProps) {
         extraActions,
         isSaveButtonEnabled,
     });
-    const isConstrainedArticleMode = visualMode === 'ARTICLE_MODE' && visual === 'FULL_PAGE';
+    const isConstrainedArticleMode = visualMode === 'ARTICLE_MODE' && layout === 'FULL_PAGE';
 
     useChatCompleteNotification(messages, soundSystem);
 
@@ -250,8 +250,8 @@ export function Chat(props: ChatProps) {
                 className={classNames(
                     className,
                     styles.Chat,
-                    visual === 'STANDALONE' && styles.standaloneVisual,
-                    visual === 'FULL_PAGE' && styles.fullPageVisual,
+                    layout === 'STANDALONE' && styles.standaloneVisual,
+                    layout === 'FULL_PAGE' && styles.fullPageVisual,
                     isConstrainedArticleMode && styles.constrainedArticleVisual,
                     getChatCssClassName('Chat'),
                     chatCssClassNames.chat,
