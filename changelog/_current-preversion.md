@@ -1,3 +1,9 @@
+-   Optimized Agents Server default avatar visuals so animated built-in avatars, especially the octopus family, use substantially less rendering work without changing their look or capabilities:
+
+    -   Reworked the shared `src/avatars` runtime to use one global animation-frame scheduler, pause avatar animation when the canvas is off-screen, and keep pointer-tracking bounds cached between frames instead of forcing repeated layout reads for every live avatar.
+    -   Fixed the shared canvas preparation path so avatar renders no longer recreate the canvas backing store on every frame, preserving the same visual output while removing a major source of CPU/GPU churn across all built-in avatar visuals.
+    -   Kept the optimization avatar-visual-agnostic by applying it in the common renderer used by Agents Server chat, profile, modal, and shared avatar surfaces, and added regression coverage for the new canvas reuse behavior.
+
 -   Fixed Agents Server agent profile avatar visuals so built-in default avatars now render centered inside the tall profile card instead of sitting oversized near the bottom edge:
 
     -   Replaced the profile page's bottom-aligned built-in avatar layout with one centered square stage, so default visuals such as the octopus family fit the card consistently without depending on visual-specific tweaks.

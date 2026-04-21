@@ -302,10 +302,27 @@ export function prepareAvatarCanvas(
     devicePixelRatio: number,
 ): void {
     const normalizedDevicePixelRatio = Math.max(1, Math.round(devicePixelRatio * 100) / 100);
-    canvas.width = Math.round(size * normalizedDevicePixelRatio);
-    canvas.height = Math.round(size * normalizedDevicePixelRatio);
-    canvas.style.width = `${size}px`;
-    canvas.style.height = `${size}px`;
+    const nextCanvasWidth = Math.round(size * normalizedDevicePixelRatio);
+    const nextCanvasHeight = Math.round(size * normalizedDevicePixelRatio);
+    const nextCanvasStyleWidth = `${size}px`;
+    const nextCanvasStyleHeight = `${size}px`;
+
+    if (canvas.width !== nextCanvasWidth) {
+        canvas.width = nextCanvasWidth;
+    }
+
+    if (canvas.height !== nextCanvasHeight) {
+        canvas.height = nextCanvasHeight;
+    }
+
+    if (canvas.style.width !== nextCanvasStyleWidth) {
+        canvas.style.width = nextCanvasStyleWidth;
+    }
+
+    if (canvas.style.height !== nextCanvasStyleHeight) {
+        canvas.style.height = nextCanvasStyleHeight;
+    }
+
     context.setTransform(normalizedDevicePixelRatio, 0, 0, normalizedDevicePixelRatio, 0, 0);
     context.clearRect(0, 0, size, size);
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
     createAvatarDefinitionKey,
     createAvatarInteractionRuntimeState,
@@ -8,11 +8,17 @@ import {
     resolveAvatarPointerTarget,
     stepAvatarInteractionRuntimeState,
 } from './avatarInteractionUtils';
-import { getAvatarPointerSnapshot, retainAvatarPointerTracking } from './avatarPointerTracking';
+import { retainAvatarAnimationListener } from './avatarAnimationScheduler';
+import { observeAvatarVisibility } from './avatarVisibilityTracking';
+import {
+    getAvatarPointerSnapshot,
+    getAvatarPointerSnapshotVersion,
+    getAvatarViewportLayoutVersion,
+    retainAvatarPointerTracking,
+} from './avatarPointerTracking';
 import type { AvatarProps } from './types/AvatarVisualDefinition';
-import { renderAvatarVisual } from './renderAvatarVisual';
-import { getAvatarVisualById } from './visuals/avatarVisualRegistry';
-import { DEFAULT_AVATAR_SIZE, normalizeAvatarDefinition } from './avatarRenderingUtils';
+import { renderAvatarVisual, resolveAvatarRenderDefinition } from './renderAvatarVisual';
+import { DEFAULT_AVATAR_SIZE } from './avatarRenderingUtils';
 
 /**
  * Border radius ratio for the shared avatar canvas.
@@ -20,6 +26,15 @@ import { DEFAULT_AVATAR_SIZE, normalizeAvatarDefinition } from './avatarRenderin
  * @private helper of `<Avatar/>`
  */
 const AVATAR_CANVAS_RADIUS_RATIO = 0.18;
+
+/**
+ * Maximum time between layout-bound refreshes while pointer tracking is active.
+ *
+ * This keeps pointer-aware visuals aligned with chat/layout shifts without forcing a layout read every frame.
+ *
+ * @private helper of `<Avatar/>`
+ */
+const ACTIVE_POINTER_BOUNDS_REFRESH_MS = 120;
 
 /**
  * Canvas-based deterministic avatar component.
@@ -31,20 +46,29 @@ export function Avatar(props: AvatarProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const animationStartRef = useRef<number | null>(null);
     const interactionRuntimeStateRef = useRef(createAvatarInteractionRuntimeState());
+    const avatarBoundsRef = useRef<DOMRectReadOnly | null>(null);
+    const lastResolvedPointerVersionRef = useRef<number>(-1);
+    const lastResolvedViewportLayoutVersionRef = useRef<number>(-1);
+    const lastAvatarBoundsRefreshAtRef = useRef<number>(0);
     const avatarColorsKey = avatarDefinition.colors.join('|');
-    const normalizedAvatarDefinition = useMemo(
-        () => normalizeAvatarDefinition(avatarDefinition),
-        [avatarDefinition.agentHash, avatarDefinition.agentName, avatarColorsKey],
+    const resolvedAvatarRenderDefinition = useMemo(
+        () =>
+            resolveAvatarRenderDefinition({
+                avatarDefinition,
+                visualId,
+                surface,
+            }),
+        [avatarDefinition.agentHash, avatarDefinition.agentName, avatarColorsKey, surface, visualId],
     );
     const avatarDefinitionKey = useMemo(
-        () => createAvatarDefinitionKey(normalizedAvatarDefinition),
-        [normalizedAvatarDefinition.agentHash, normalizedAvatarDefinition.agentName, normalizedAvatarDefinition.colors.join('|')],
+        () => createAvatarDefinitionKey(resolvedAvatarRenderDefinition.avatarDefinition),
+        [
+            resolvedAvatarRenderDefinition.avatarDefinition.agentHash,
+            resolvedAvatarRenderDefinition.avatarDefinition.agentName,
+            resolvedAvatarRenderDefinition.avatarDefinition.colors.join('|'),
+        ],
     );
-    const avatarVisual = useMemo(() => getAvatarVisualById(visualId), [visualId]);
-
-    useEffect(() => {
-        interactionRuntimeStateRef.current = createAvatarInteractionRuntimeState();
-    }, [avatarDefinitionKey, visualId]);
+    const [isVisible, setIsVisible] = useState(true);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -53,9 +77,45 @@ export function Avatar(props: AvatarProps) {
             throw new Error('Avatar canvas is not mounted.');
         }
 
+        return observeAvatarVisibility(canvas, setIsVisible);
+    }, []);
+
+    useEffect(() => {
+        interactionRuntimeStateRef.current = createAvatarInteractionRuntimeState();
+        avatarBoundsRef.current = null;
+        lastResolvedPointerVersionRef.current = -1;
+        lastResolvedViewportLayoutVersionRef.current = -1;
+        lastAvatarBoundsRefreshAtRef.current = 0;
+    }, [avatarDefinitionKey, isVisible, visualId]);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+
+        if (!canvas || typeof ResizeObserver === 'undefined') {
+            return;
+        }
+
+        const resizeObserver = new ResizeObserver(() => {
+            avatarBoundsRef.current = null;
+        });
+        resizeObserver.observe(canvas);
+
+        return () => {
+            resizeObserver.disconnect();
+        };
+    }, []);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+
+        if (!canvas) {
+            throw new Error('Avatar canvas is not mounted.');
+        }
+
+        const avatarVisual = resolvedAvatarRenderDefinition.avatarVisual;
         const isDynamicAvatar = avatarVisual.isAnimated || avatarVisual.supportsPointerTracking === true;
-        const releasePointerTracking = avatarVisual.supportsPointerTracking ? retainAvatarPointerTracking() : null;
-        let animationFrameId: number | null = null;
+        const shouldTrackPointer = avatarVisual.supportsPointerTracking === true && isVisible;
+        const releasePointerTracking = shouldTrackPointer ? retainAvatarPointerTracking() : null;
         if (animationStartRef.current === null) {
             animationStartRef.current = performance.now();
         }
@@ -65,9 +125,24 @@ export function Avatar(props: AvatarProps) {
             let interactionState = createIdleAvatarInteractionState();
 
             if (avatarVisual.supportsPointerTracking && pointerSnapshot) {
+                const pointerSnapshotVersion = getAvatarPointerSnapshotVersion();
+                const viewportLayoutVersion = getAvatarViewportLayoutVersion();
+
+                if (
+                    avatarBoundsRef.current === null ||
+                    lastResolvedPointerVersionRef.current !== pointerSnapshotVersion ||
+                    lastResolvedViewportLayoutVersionRef.current !== viewportLayoutVersion ||
+                    now - lastAvatarBoundsRefreshAtRef.current >= ACTIVE_POINTER_BOUNDS_REFRESH_MS
+                ) {
+                    avatarBoundsRef.current = canvas.getBoundingClientRect();
+                    lastResolvedPointerVersionRef.current = pointerSnapshotVersion;
+                    lastResolvedViewportLayoutVersionRef.current = viewportLayoutVersion;
+                    lastAvatarBoundsRefreshAtRef.current = now;
+                }
+
                 interactionRuntimeStateRef.current = stepAvatarInteractionRuntimeState(
                     interactionRuntimeStateRef.current,
-                    resolveAvatarPointerTarget(canvas.getBoundingClientRect(), pointerSnapshot),
+                    resolveAvatarPointerTarget(avatarBoundsRef.current, pointerSnapshot),
                     now,
                 );
                 interactionState = interactionRuntimeStateRef.current;
@@ -82,34 +157,34 @@ export function Avatar(props: AvatarProps) {
 
             renderAvatarVisual({
                 canvas,
-                avatarDefinition: normalizedAvatarDefinition,
+                avatarDefinition: resolvedAvatarRenderDefinition.avatarDefinition,
                 visualId,
                 surface,
                 size,
                 timeMs: now - animationStartRef.current!,
                 devicePixelRatio: window.devicePixelRatio || 1,
                 interaction: interactionState,
-            });
-
-            if (isDynamicAvatar) {
-                animationFrameId = window.requestAnimationFrame(renderFrame);
-            }
+            }, resolvedAvatarRenderDefinition);
         };
 
         renderFrame(performance.now());
 
-        return () => {
-            if (animationFrameId !== null) {
-                window.cancelAnimationFrame(animationFrameId);
-            }
+        if (!isDynamicAvatar || !isVisible) {
+            return () => {
+                releasePointerTracking?.();
+            };
+        }
 
+        const releaseAnimationListener = retainAvatarAnimationListener(renderFrame);
+
+        return () => {
+            releaseAnimationListener();
             releasePointerTracking?.();
         };
     }, [
         avatarDefinitionKey,
-        avatarVisual.isAnimated,
-        avatarVisual.supportsPointerTracking,
-        normalizedAvatarDefinition,
+        isVisible,
+        resolvedAvatarRenderDefinition,
         size,
         surface,
         visualId,
@@ -118,7 +193,7 @@ export function Avatar(props: AvatarProps) {
     return (
         <canvas
             ref={canvasRef}
-            title={title || `${normalizedAvatarDefinition.agentName} avatar`}
+            title={title || `${resolvedAvatarRenderDefinition.avatarDefinition.agentName} avatar`}
             className={className}
             style={{
                 width: size,

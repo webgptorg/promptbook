@@ -100,7 +100,7 @@
             - text: © 2026 Promptbook
             - text: All rights reserved.
             - text: Made with ❤️ in the Czech Republic.
-          - paragraph [ref=e112]: Promptbook engine version 0.112.0-47
+          - paragraph [ref=e112]: Promptbook engine version 0.112.0-48
   - generic:
     - region "Notifications"
   - alert [ref=e113]

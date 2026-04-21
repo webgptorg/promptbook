@@ -18,6 +18,20 @@ let avatarPointerTrackingConsumerCount = 0;
 let currentAvatarPointerSnapshot: AvatarPointerSnapshot | null = null;
 
 /**
+ * Monotonic version incremented whenever the shared pointer snapshot changes.
+ *
+ * @private utility of the avatar rendering system
+ */
+let currentAvatarPointerSnapshotVersion = 0;
+
+/**
+ * Monotonic version incremented whenever scrolling or resizing may invalidate cached avatar bounds.
+ *
+ * @private utility of the avatar rendering system
+ */
+let currentAvatarViewportLayoutVersion = 0;
+
+/**
  * Cleanup function for the lazily attached global listeners.
  *
  * @private utility of the avatar rendering system
@@ -61,6 +75,28 @@ export function getAvatarPointerSnapshot(): AvatarPointerSnapshot | null {
 }
 
 /**
+ * Returns the current pointer snapshot version.
+ *
+ * @returns Monotonic pointer snapshot version.
+ *
+ * @private utility of the avatar rendering system
+ */
+export function getAvatarPointerSnapshotVersion(): number {
+    return currentAvatarPointerSnapshotVersion;
+}
+
+/**
+ * Returns the current viewport-layout version used to invalidate cached avatar bounds.
+ *
+ * @returns Monotonic viewport-layout version.
+ *
+ * @private utility of the avatar rendering system
+ */
+export function getAvatarViewportLayoutVersion(): number {
+    return currentAvatarViewportLayoutVersion;
+}
+
+/**
  * Attaches the global pointer/touch listeners used by all live avatar canvases.
  *
  * @returns Cleanup function for the attached listeners.
@@ -73,7 +109,12 @@ function attachAvatarPointerTrackingListeners(): () => void {
     }
 
     const clearPointerSnapshot = () => {
+        if (currentAvatarPointerSnapshot === null) {
+            return;
+        }
+
         currentAvatarPointerSnapshot = null;
+        currentAvatarPointerSnapshotVersion++;
     };
 
     const updatePointerSnapshot = (
@@ -87,6 +128,11 @@ function attachAvatarPointerTrackingListeners(): () => void {
             isPointerActive: true,
             pointerType,
         };
+        currentAvatarPointerSnapshotVersion++;
+    };
+
+    const invalidateViewportLayout = () => {
+        currentAvatarViewportLayoutVersion++;
     };
 
     const handlePointerMove = (event: PointerEvent) => {
@@ -130,6 +176,8 @@ function attachAvatarPointerTrackingListeners(): () => void {
     window.addEventListener('touchmove', handleTouchEvent, { passive: true });
     window.addEventListener('touchend', clearPointerSnapshot, { passive: true });
     window.addEventListener('touchcancel', clearPointerSnapshot, { passive: true });
+    window.addEventListener('scroll', invalidateViewportLayout, { passive: true, capture: true });
+    window.addEventListener('resize', invalidateViewportLayout, { passive: true });
 
     return () => {
         window.removeEventListener('pointermove', handlePointerMove);
@@ -142,6 +190,8 @@ function attachAvatarPointerTrackingListeners(): () => void {
         window.removeEventListener('touchmove', handleTouchEvent);
         window.removeEventListener('touchend', clearPointerSnapshot);
         window.removeEventListener('touchcancel', clearPointerSnapshot);
+        window.removeEventListener('scroll', invalidateViewportLayout, true);
+        window.removeEventListener('resize', invalidateViewportLayout);
     };
 }
 

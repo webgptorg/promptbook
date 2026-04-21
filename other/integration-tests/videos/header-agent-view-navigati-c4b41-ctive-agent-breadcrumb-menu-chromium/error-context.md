@@ -14,117 +14,117 @@
             - button "Switch server" [ref=e13] [cursor=pointer]:
               - img [ref=e14]
           - img [ref=e16]
-          - button "E2E Header Agent View Navigation avatar E2E Header Agent View Navigation" [ref=e20] [cursor=pointer]:
+          - button "e2e-header-agent-view-navigation" [ref=e20] [cursor=pointer]:
             - generic [ref=e21]:
-              - generic "E2E Header Agent View Navigation avatar" [ref=e23]
-              - generic [ref=e24]: E2E Header Agent View Navigation
-            - img [ref=e25]
-          - img [ref=e27]
-          - generic [ref=e30]:
-            - button "Chat" [expanded] [ref=e31] [cursor=pointer]:
-              - generic [ref=e32]:
-                - img [ref=e33]
-                - generic [ref=e35]: Chat
-              - img [ref=e36]
-            - generic [ref=e39]:
-              - link "Profile" [ref=e40] [cursor=pointer]:
-                - /url: /agents/1Yxn7zTtLtyrbW
-                - generic [ref=e41]:
-                  - img [ref=e42]
-                  - generic [ref=e45]: Profile
-              - link "Chat" [ref=e46] [cursor=pointer]:
-                - /url: /agents/1Yxn7zTtLtyrbW/chat
-                - generic [ref=e47]:
-                  - img [ref=e48]
-                  - generic [ref=e50]: Chat
-              - link "Timeouts" [ref=e51] [cursor=pointer]:
-                - /url: /agents/1Yxn7zTtLtyrbW/timeouts
-                - generic [ref=e52]:
-                  - img [ref=e53]
-                  - generic [ref=e56]: Timeouts
-              - link "Book" [ref=e57] [cursor=pointer]:
-                - /url: /agents/1Yxn7zTtLtyrbW/book
-                - generic [ref=e58]:
-                  - img [ref=e59]
-                  - generic [ref=e62]: Book
-              - button "More" [ref=e64] [cursor=pointer]:
-                - generic [ref=e66]:
-                  - img [ref=e67]
-                  - generic [ref=e71]: More
-                - img [ref=e72]
-        - generic [ref=e76]:
-          - generic [ref=e77]: Global search
-          - generic [ref=e78]:
+              - img [ref=e23]
+              - generic [ref=e25]: e2e-header-agent-view-navigation
+            - img [ref=e26]
+          - img [ref=e28]
+          - generic [ref=e31]:
+            - button "Chat" [expanded] [ref=e32] [cursor=pointer]:
+              - generic [ref=e33]:
+                - img [ref=e34]
+                - generic [ref=e36]: Chat
+              - img [ref=e37]
+            - generic [ref=e40]:
+              - link "Profile" [ref=e41] [cursor=pointer]:
+                - /url: /agents/e2e-header-agent-view-navigation
+                - generic [ref=e42]:
+                  - img [ref=e43]
+                  - generic [ref=e46]: Profile
+              - link "Chat" [ref=e47] [cursor=pointer]:
+                - /url: /agents/e2e-header-agent-view-navigation/chat
+                - generic [ref=e48]:
+                  - img [ref=e49]
+                  - generic [ref=e51]: Chat
+              - link "Timeouts" [ref=e52] [cursor=pointer]:
+                - /url: /agents/e2e-header-agent-view-navigation/timeouts
+                - generic [ref=e53]:
+                  - img [ref=e54]
+                  - generic [ref=e57]: Timeouts
+              - link "Book" [ref=e58] [cursor=pointer]:
+                - /url: /agents/e2e-header-agent-view-navigation/book
+                - generic [ref=e59]:
+                  - img [ref=e60]
+                  - generic [ref=e63]: Book
+              - button "More" [ref=e65] [cursor=pointer]:
+                - generic [ref=e67]:
+                  - img [ref=e68]
+                  - generic [ref=e72]: More
+                - img [ref=e73]
+        - generic [ref=e77]:
+          - generic [ref=e78]: Global search
+          - generic [ref=e79]:
             - img
-            - combobox "Global search" [ref=e79]
-        - generic [ref=e80]:
-          - navigation [ref=e81]:
-            - button "Documentation" [ref=e83] [cursor=pointer]:
+            - combobox "Global search" [ref=e80]
+        - generic [ref=e81]:
+          - navigation [ref=e82]:
+            - button "Documentation" [ref=e84] [cursor=pointer]:
               - text: Documentation
-              - img [ref=e84]
-            - button "System" [ref=e87] [cursor=pointer]:
+              - img [ref=e85]
+            - button "System" [ref=e88] [cursor=pointer]:
               - text: System
-              - img [ref=e88]
-          - button "Open global control panel" [ref=e91] [cursor=pointer]:
-            - img [ref=e92]
-            - generic [ref=e95]: Control panel
-          - button "A admin Admin" [ref=e98] [cursor=pointer]:
-            - generic [ref=e100]: A
-            - generic [ref=e101]:
-              - generic [ref=e102]: admin
-              - generic [ref=e103]: Admin
-            - img [ref=e104]
-    - main [ref=e106]:
-      - main [ref=e107]:
-        - generic [ref=e108]:
-          - complementary [ref=e109]:
-            - button "Expand sidebar" [ref=e111] [cursor=pointer]:
-              - img [ref=e112]
-            - generic [ref=e115]:
-              - link "New chat" [ref=e116] [cursor=pointer]:
+              - img [ref=e89]
+          - button "Open global control panel" [ref=e92] [cursor=pointer]:
+            - img [ref=e93]
+            - generic [ref=e96]: Control panel
+          - button "A admin Admin" [ref=e99] [cursor=pointer]:
+            - generic [ref=e101]: A
+            - generic [ref=e102]:
+              - generic [ref=e103]: admin
+              - generic [ref=e104]: Admin
+            - img [ref=e105]
+    - main [ref=e107]:
+      - main [ref=e108]:
+        - generic [ref=e109]:
+          - complementary [ref=e110]:
+            - button "Expand sidebar" [ref=e112] [cursor=pointer]:
+              - img [ref=e113]
+            - generic [ref=e116]:
+              - link "New chat" [ref=e117] [cursor=pointer]:
                 - /url: /agents/e2e-header-agent-view-navigation/chat?chat=new
-                - img [ref=e117]
-              - button "New chat (0 messages, a few seconds ago)" [ref=e120] [cursor=pointer]:
-                - generic "0 messages" [ref=e122]: "0"
-                - generic [ref=e123]:
-                  - generic [ref=e124]: New chat
-                  - generic [ref=e125]: No messages yet
-                - generic [ref=e126]: a few seconds ago
-              - generic [ref=e127]:
-                - button "Hide empty chats" [ref=e128] [cursor=pointer]:
-                  - img [ref=e129]
-                - button "EXT" [ref=e134] [cursor=pointer]
-              - paragraph [ref=e135]: Chats
-          - generic [ref=e140]:
-            - generic [ref=e141]:
-              - link "New chat" [ref=e142] [cursor=pointer]:
+                - img [ref=e118]
+              - button "New chat (0 messages, a few seconds ago)" [ref=e121] [cursor=pointer]:
+                - generic "0 messages" [ref=e123]: "0"
+                - generic [ref=e124]:
+                  - generic [ref=e125]: New chat
+                  - generic [ref=e126]: No messages yet
+                - generic [ref=e127]: a few seconds ago
+              - generic [ref=e128]:
+                - button "Hide empty chats" [ref=e129] [cursor=pointer]:
+                  - img [ref=e130]
+                - button "EXT" [ref=e135] [cursor=pointer]
+              - paragraph [ref=e136]: Chats
+          - generic [ref=e141]:
+            - generic [ref=e142]:
+              - link "New chat" [ref=e143] [cursor=pointer]:
                 - /url: /agents/e2e-header-agent-view-navigation/chat?chat=new
-                - img [ref=e143]
-                - generic [ref=e145]: New chat
-              - button "Save" [ref=e147] [cursor=pointer]:
-                - img [ref=e148]
-                - generic [ref=e151]: Save
-            - generic [ref=e153]:
-              - generic "E2E Header Agent View Navigation" [ref=e155]
-              - generic [ref=e157]:
-                - generic [ref=e158]:
-                  - button "Read message aloud" [ref=e159] [cursor=pointer]:
-                    - img [ref=e160]
-                  - button "Copy message" [ref=e162] [cursor=pointer]:
-                    - img [ref=e163]
-                - paragraph [ref=e168]: Hello! I am E2E Header Agent View Navigation.
-                - button "Hello" [ref=e170] [cursor=pointer]:
-                  - paragraph [ref=e172]: Hello
-                - generic [ref=e174] [cursor=pointer]: ⭐
-            - generic [ref=e177]:
-              - textbox "Write a message..." [active] [ref=e178]
-              - button "Attach file" [ref=e179] [cursor=pointer]:
-                - img [ref=e180]
-              - button "Start dictation" [ref=e182] [cursor=pointer]:
-                - img [ref=e183]
-              - button [ref=e186] [cursor=pointer]:
-                - img [ref=e187]
+                - img [ref=e144]
+                - generic [ref=e146]: New chat
+              - button "Save" [ref=e148] [cursor=pointer]:
+                - img [ref=e149]
+                - generic [ref=e152]: Save
+            - generic [ref=e154]:
+              - generic "E2E Header Agent View Navigation" [ref=e156]
+              - generic [ref=e158]:
+                - generic [ref=e159]:
+                  - button "Read message aloud" [ref=e160] [cursor=pointer]:
+                    - img [ref=e161]
+                  - button "Copy message" [ref=e163] [cursor=pointer]:
+                    - img [ref=e164]
+                - paragraph [ref=e169]: Hello! I am E2E Header Agent View Navigation.
+                - button "Hello" [ref=e171] [cursor=pointer]:
+                  - paragraph [ref=e173]: Hello
+                - generic [ref=e175] [cursor=pointer]: ⭐
+            - generic [ref=e178]:
+              - textbox "Write a message..." [active] [ref=e179]
+              - button "Attach file" [ref=e180] [cursor=pointer]:
+                - img [ref=e181]
+              - button "Start dictation" [ref=e183] [cursor=pointer]:
+                - img [ref=e184]
+              - button [ref=e187] [cursor=pointer]:
+                - img [ref=e188]
   - generic:
     - region "Notifications"
-  - alert [ref=e189]
+  - alert [ref=e190]
 ```
