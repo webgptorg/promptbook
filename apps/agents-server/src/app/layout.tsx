@@ -20,6 +20,7 @@ import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../utils/a
 import { getAgentNaming } from '../utils/getAgentNaming';
 import { getCurrentUser } from '../utils/getCurrentUser';
 import { getDefaultChatPreferences } from '../utils/chatPreferences';
+import { APPEARANCE_PREFERENCES, APPEARANCE_COOKIE_NAME, resolveAppearancePreference } from '../constants/appearance';
 import {
     CHAT_VISUAL_MODE_COOKIE_NAME,
     CHAT_VISUAL_MODE_METADATA_KEY,
@@ -259,10 +260,7 @@ export default async function RootLayout({
         'custom stylesheet CSS',
         getAggregatedCustomStylesheetCss,
     );
-    const customJavascriptPromise = resolveOptionalLayoutText(
-        'custom JavaScript',
-        getCustomJavascriptWithIntegrations,
-    );
+    const customJavascriptPromise = resolveOptionalLayoutText('custom JavaScript', getCustomJavascriptWithIntegrations);
     const cookieStorePromise = cookies();
     const federatedServersPromise = Promise.all([layoutMetadataPromise, currentUserPromise]).then(
         ([layoutMetadata, currentUser]) =>
@@ -271,23 +269,25 @@ export default async function RootLayout({
                 showFederatedServersPublicly: (layoutMetadata.SHOW_FEDERATED_SERVERS_PUBLICLY ?? 'false') === 'true',
             }),
     );
-    const footerLinksPromise = Promise.all([layoutMetadataPromise, federatedServersPromise, serverVisibilityPromise]).then(
-        ([layoutMetadata, federatedServers, serverVisibility]) => {
-            const footerLinks = [
-                ...parseFooterLinks(layoutMetadata.FOOTER_LINKS),
-                ...federatedServers.map(({ title, url }) => ({ title, url })),
-            ];
+    const footerLinksPromise = Promise.all([
+        layoutMetadataPromise,
+        federatedServersPromise,
+        serverVisibilityPromise,
+    ]).then(([layoutMetadata, federatedServers, serverVisibility]) => {
+        const footerLinks = [
+            ...parseFooterLinks(layoutMetadata.FOOTER_LINKS),
+            ...federatedServers.map(({ title, url }) => ({ title, url })),
+        ];
 
-            if (isPublicServerVisibility(serverVisibility)) {
-                footerLinks.push({
-                    title: 'Sitemap',
-                    url: '/sitemap.xml',
-                });
-            }
+        if (isPublicServerVisibility(serverVisibility)) {
+            footerLinks.push({
+                title: 'Sitemap',
+                url: '/sitemap.xml',
+            });
+        }
 
-            return footerLinks;
-        },
-    );
+        return footerLinks;
+    });
 
     const [
         isAdmin,
@@ -333,12 +333,14 @@ export default async function RootLayout({
     const safeCustomJavascript = customJavascript.replace(/<\/script>/gi, '<\\/script>');
     const webPushPublicKey = process.env.NEXT_PUBLIC_WEB_PUSH_PUBLIC_KEY?.trim() || null;
     const chatVisualModeCookie = cookieStore.get(CHAT_VISUAL_MODE_COOKIE_NAME)?.value || null;
+    const appearanceCookie = cookieStore.get(APPEARANCE_COOKIE_NAME)?.value || null;
     const cookieLanguage = cookieStore.get(SERVER_LANGUAGE_COOKIE_NAME)?.value || null;
     const isServerLanguageEnforced = parseServerLanguageEnforcedMetadata(
         layoutMetadata[IS_SERVER_LANGUAGE_ENFORCED_METADATA_KEY],
     );
     const rawServerLanguage = layoutMetadata[SERVER_LANGUAGE_METADATA_KEY];
     const rawChatVisualMode = layoutMetadata[CHAT_VISUAL_MODE_METADATA_KEY];
+    const defaultAppearance = resolveAppearancePreference(appearanceCookie);
     const defaultChatVisualMode = resolveChatVisualMode(chatVisualModeCookie || rawChatVisualMode);
     const preferredLanguageSource = isServerLanguageEnforced ? rawServerLanguage : cookieLanguage || rawServerLanguage;
     const serverLanguage = resolveServerLanguageCode(preferredLanguageSource);
@@ -348,9 +350,15 @@ export default async function RootLayout({
     });
 
     return (
-        <html lang={serverLanguage}>
+        <html
+            lang={serverLanguage}
+            data-appearance={defaultAppearance}
+            data-resolved-appearance={
+                defaultAppearance === APPEARANCE_PREFERENCES.SYSTEM ? undefined : defaultAppearance
+            }
+        >
             {/* Note: Icon is set via metadata to allow agent-page specific icons to override it */}
-            <body className={`${APPLICATION_FONT_VARIABLE_CLASS_NAME} antialiased bg-white text-gray-900`}>
+            <body className={`${APPLICATION_FONT_VARIABLE_CLASS_NAME} antialiased bg-background text-foreground`}>
                 {customStylesheetCss && <style id="agents-server-custom-css">{customStylesheetCss}</style>}
                 <LayoutWrapper
                     isAdmin={isAdmin}
@@ -362,7 +370,9 @@ export default async function RootLayout({
                     agentFolders={JSON.parse(JSON.stringify(agentFolders))}
                     agentNaming={agentNaming}
                     isFooterShown={isFooterShown}
-                    footerLinks={isPublicServer ? footerLinks : footerLinks.filter((link) => link.url !== '/sitemap.xml')}
+                    footerLinks={
+                        isPublicServer ? footerLinks : footerLinks.filter((link) => link.url !== '/sitemap.xml')
+                    }
                     federatedServers={federatedServers}
                     defaultIsSoundsOn={chatPreferences.defaultIsSoundsOn}
                     defaultIsVibrationOn={chatPreferences.defaultIsVibrationOn}
@@ -374,15 +384,13 @@ export default async function RootLayout({
                     defaultServerLanguage={serverLanguage}
                     isServerLanguageEnforced={isServerLanguageEnforced}
                     defaultChatVisualMode={defaultChatVisualMode}
+                    defaultAppearance={defaultAppearance}
                     webPushPublicKey={webPushPublicKey}
                 >
                     {children}
                 </LayoutWrapper>
                 {customJavascript && (
-                    <script
-                        id="agents-server-custom-js"
-                        dangerouslySetInnerHTML={{ __html: safeCustomJavascript }}
-                    />
+                    <script id="agents-server-custom-js" dangerouslySetInnerHTML={{ __html: safeCustomJavascript }} />
                 )}
                 {/* Global portal root for modals/popups */}
                 <div id="portal-root" />

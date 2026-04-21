@@ -2,6 +2,7 @@
 
 import { Settings2, X } from 'lucide-react';
 import { useCallback, useEffect, useId, useRef, useState, type RefObject } from 'react';
+import { useAppearance } from '../../Appearance/AppearanceProvider';
 import { useServerLanguage } from '../../ServerLanguage/ServerLanguageProvider';
 import { ControlPanelContent } from './ControlPanelContent';
 
@@ -50,10 +51,12 @@ function useHideOnClickOutside(
  */
 export function HeaderControlPanelDropdown() {
     const { t } = useServerLanguage();
+    const { resolvedAppearance } = useAppearance();
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement | null>(null);
     const buttonRef = useRef<HTMLButtonElement | null>(null);
     const panelId = useId();
+    const isDarkMode = resolvedAppearance === 'dark';
 
     const handleClose = useCallback(() => {
         setIsOpen(false);
@@ -71,10 +74,14 @@ export function HeaderControlPanelDropdown() {
                 aria-controls={panelId}
                 aria-haspopup="dialog"
                 aria-label={t('controlPanel.openAriaLabel')}
-                className={`rounded-full border p-2 text-gray-600 shadow-sm shadow-black/5 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 ${
+                className={`rounded-full border p-2 shadow-sm shadow-black/5 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 ${
                     isOpen
-                        ? 'border-blue-200 bg-blue-50 text-blue-700'
-                        : 'border-transparent bg-white/70 hover:bg-white hover:text-gray-900'
+                        ? isDarkMode
+                            ? 'border-sky-500/40 bg-sky-500/15 text-sky-100'
+                            : 'border-blue-200 bg-blue-50 text-blue-700'
+                        : isDarkMode
+                        ? 'border-slate-700 bg-slate-900/75 text-slate-300 hover:bg-slate-800/90 hover:text-white'
+                        : 'border-transparent bg-white/70 text-gray-600 hover:bg-white hover:text-gray-900'
                 }`}
             >
                 <Settings2 className="h-5 w-5" />
@@ -87,17 +94,29 @@ export function HeaderControlPanelDropdown() {
                     ref={dropdownRef}
                     role="dialog"
                     aria-label={t('controlPanel.label')}
-                    className="absolute right-0 top-full z-50 mt-2 w-[22rem] max-w-[calc(100vw-0.75rem)] rounded-3xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-100/80 p-2 shadow-2xl shadow-black/10"
+                    className={`absolute right-0 top-full z-50 mt-2 w-[22rem] max-w-[calc(100vw-0.75rem)] rounded-3xl border p-2 shadow-2xl shadow-black/10 ${
+                        isDarkMode
+                            ? 'border-slate-700/80 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-900/95'
+                            : 'border-slate-200/90 bg-gradient-to-b from-white to-slate-100/80'
+                    }`}
                 >
                     <div className="flex items-center justify-between px-1 pb-2 pt-1">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                        <p
+                            className={`text-[11px] font-semibold uppercase tracking-[0.16em] ${
+                                isDarkMode ? 'text-slate-400' : 'text-slate-500'
+                            }`}
+                        >
                             {t('controlPanel.label')}
                         </p>
                         <button
                             type="button"
                             onClick={handleClose}
                             aria-label={t('common.close')}
-                            className="rounded-full border border-transparent p-1 text-gray-400 transition hover:border-gray-200 hover:bg-white hover:text-gray-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                            className={`rounded-full border border-transparent p-1 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 ${
+                                isDarkMode
+                                    ? 'text-slate-400 hover:border-slate-700 hover:bg-slate-800 hover:text-slate-100'
+                                    : 'text-gray-400 hover:border-gray-200 hover:bg-white hover:text-gray-600'
+                            }`}
                         >
                             <X className="h-3.5 w-3.5" />
                         </button>

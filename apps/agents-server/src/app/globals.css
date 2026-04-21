@@ -71,10 +71,49 @@
 }
 
 :root {
-    --background: #ffffff;
-    --foreground: #171717;
+    --background: #f8fafc;
+    --foreground: #0f172a;
+    --agents-server-surface: #ffffff;
+    --agents-server-surface-40: rgba(255, 255, 255, 0.4);
+    --agents-server-surface-60: rgba(255, 255, 255, 0.6);
+    --agents-server-surface-70: rgba(255, 255, 255, 0.7);
+    --agents-server-surface-80: rgba(255, 255, 255, 0.8);
+    --agents-server-surface-90: rgba(255, 255, 255, 0.9);
+    --agents-server-surface-95: rgba(255, 255, 255, 0.95);
+    --agents-server-surface-subtle: #f8fafc;
+    --agents-server-surface-subtle-70: rgba(248, 250, 252, 0.7);
+    --agents-server-surface-subtle-80: rgba(248, 250, 252, 0.8);
+    --agents-server-surface-muted: #f1f5f9;
+    --agents-server-surface-muted-80: rgba(241, 245, 249, 0.8);
+    --agents-server-border: #e2e8f0;
+    --agents-server-border-strong: #cbd5e1;
+    --agents-server-text-strong: #0f172a;
+    --agents-server-text-body: #334155;
+    --agents-server-text-secondary: #475569;
+    --agents-server-text-muted: #64748b;
+    --agents-server-text-subtle: #94a3b8;
+    --agents-server-shadow-color: rgba(15, 23, 42, 0.28);
+    --agents-server-scrollbar-track: #e2e8f0;
+    --agents-server-scrollbar-thumb: #94a3b8;
+    --agents-server-scrollbar-thumb-hover: #64748b;
+    --agents-server-graph-surface: radial-gradient(circle at 15% 15%, rgba(186, 230, 253, 0.45), transparent 55%),
+        radial-gradient(circle at 85% 85%, rgba(253, 230, 138, 0.35), transparent 60%), #f8fafc;
+    --agents-server-component-preview: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    --agents-server-skeleton-background: linear-gradient(135deg, rgba(226, 232, 240, 0.95), rgba(248, 250, 252, 0.95));
+    --agents-server-skeleton-highlight: linear-gradient(
+        100deg,
+        transparent 10%,
+        rgba(255, 255, 255, 0.7) 42%,
+        rgba(255, 255, 255, 0.35) 52%,
+        transparent 85%
+    );
     --agents-server-app-height: 100vh;
     --agents-server-header-height: 64px;
+}
+
+html {
+    color-scheme: light;
+    background: var(--background);
 }
 
 @supports (height: 100svh) {
@@ -89,10 +128,89 @@
     }
 }
 
+html[data-resolved-appearance='light'] {
+    color-scheme: light;
+}
+
+html[data-resolved-appearance='dark'] {
+    --background: #020617;
+    --foreground: #e2e8f0;
+    --agents-server-surface: #0f172a;
+    --agents-server-surface-40: rgba(15, 23, 42, 0.4);
+    --agents-server-surface-60: rgba(15, 23, 42, 0.6);
+    --agents-server-surface-70: rgba(15, 23, 42, 0.7);
+    --agents-server-surface-80: rgba(15, 23, 42, 0.8);
+    --agents-server-surface-90: rgba(15, 23, 42, 0.9);
+    --agents-server-surface-95: rgba(15, 23, 42, 0.95);
+    --agents-server-surface-subtle: #162033;
+    --agents-server-surface-subtle-70: rgba(22, 32, 51, 0.7);
+    --agents-server-surface-subtle-80: rgba(22, 32, 51, 0.8);
+    --agents-server-surface-muted: #1e293b;
+    --agents-server-surface-muted-80: rgba(30, 41, 59, 0.8);
+    --agents-server-border: #334155;
+    --agents-server-border-strong: #475569;
+    --agents-server-text-strong: #f8fafc;
+    --agents-server-text-body: #e2e8f0;
+    --agents-server-text-secondary: #cbd5e1;
+    --agents-server-text-muted: #94a3b8;
+    --agents-server-text-subtle: #64748b;
+    --agents-server-shadow-color: rgba(2, 6, 23, 0.58);
+    --agents-server-scrollbar-track: #0f172a;
+    --agents-server-scrollbar-thumb: #475569;
+    --agents-server-scrollbar-thumb-hover: #64748b;
+    --agents-server-graph-surface: radial-gradient(circle at 18% 15%, rgba(14, 165, 233, 0.18), transparent 55%),
+        radial-gradient(circle at 82% 82%, rgba(250, 204, 21, 0.14), transparent 60%), #020617;
+    --agents-server-component-preview: linear-gradient(135deg, #111827 0%, #0f172a 100%);
+    --agents-server-skeleton-background: linear-gradient(135deg, rgba(30, 41, 59, 0.96), rgba(15, 23, 42, 0.96));
+    --agents-server-skeleton-highlight: linear-gradient(
+        100deg,
+        transparent 10%,
+        rgba(148, 163, 184, 0.18) 42%,
+        rgba(226, 232, 240, 0.08) 52%,
+        transparent 85%
+    );
+    color-scheme: dark;
+}
+
 @media (prefers-color-scheme: dark) {
-    :root {
-        --background: #0a0a0a;
-        --foreground: #ededed;
+    html:not([data-resolved-appearance]) {
+        --background: #020617;
+        --foreground: #e2e8f0;
+        --agents-server-surface: #0f172a;
+        --agents-server-surface-40: rgba(15, 23, 42, 0.4);
+        --agents-server-surface-60: rgba(15, 23, 42, 0.6);
+        --agents-server-surface-70: rgba(15, 23, 42, 0.7);
+        --agents-server-surface-80: rgba(15, 23, 42, 0.8);
+        --agents-server-surface-90: rgba(15, 23, 42, 0.9);
+        --agents-server-surface-95: rgba(15, 23, 42, 0.95);
+        --agents-server-surface-subtle: #162033;
+        --agents-server-surface-subtle-70: rgba(22, 32, 51, 0.7);
+        --agents-server-surface-subtle-80: rgba(22, 32, 51, 0.8);
+        --agents-server-surface-muted: #1e293b;
+        --agents-server-surface-muted-80: rgba(30, 41, 59, 0.8);
+        --agents-server-border: #334155;
+        --agents-server-border-strong: #475569;
+        --agents-server-text-strong: #f8fafc;
+        --agents-server-text-body: #e2e8f0;
+        --agents-server-text-secondary: #cbd5e1;
+        --agents-server-text-muted: #94a3b8;
+        --agents-server-text-subtle: #64748b;
+        --agents-server-shadow-color: rgba(2, 6, 23, 0.58);
+        --agents-server-scrollbar-track: #0f172a;
+        --agents-server-scrollbar-thumb: #475569;
+        --agents-server-scrollbar-thumb-hover: #64748b;
+        --agents-server-graph-surface: radial-gradient(circle at 18% 15%, rgba(14, 165, 233, 0.18), transparent 55%),
+            radial-gradient(circle at 82% 82%, rgba(250, 204, 21, 0.14), transparent 60%), #020617;
+        --agents-server-component-preview: linear-gradient(135deg, #111827 0%, #0f172a 100%);
+        --agents-server-skeleton-background: linear-gradient(135deg, rgba(30, 41, 59, 0.96), rgba(15, 23, 42, 0.96));
+        --agents-server-skeleton-highlight: linear-gradient(
+            100deg,
+            transparent 10%,
+            rgba(148, 163, 184, 0.18) 42%,
+            rgba(226, 232, 240, 0.08) 52%,
+            transparent 85%
+        );
+        color-scheme: dark;
     }
 }
 
@@ -128,6 +246,13 @@ body {
 
 .agents-server-app-shell {
     min-height: var(--agents-server-app-height);
+}
+
+.agents-server-dialog-surface {
+    background: var(--agents-server-surface);
+    color: var(--foreground);
+    border-color: var(--agents-server-border);
+    box-shadow: 0 28px 80px var(--agents-server-shadow-color);
 }
 
 .agents-server-chat-main {
@@ -209,10 +334,198 @@ body {
     overflow: hidden;
 }
 
+/* Shared theme remapping for the most common neutral Tailwind utilities used across the app */
+.bg-white {
+    background-color: var(--agents-server-surface) !important;
+}
+
+.bg-white\/40 {
+    background-color: var(--agents-server-surface-40) !important;
+}
+
+.bg-white\/60 {
+    background-color: var(--agents-server-surface-60) !important;
+}
+
+.bg-white\/70 {
+    background-color: var(--agents-server-surface-70) !important;
+}
+
+.bg-white\/80 {
+    background-color: var(--agents-server-surface-80) !important;
+}
+
+.bg-white\/90 {
+    background-color: var(--agents-server-surface-90) !important;
+}
+
+.bg-white\/95 {
+    background-color: var(--agents-server-surface-95) !important;
+}
+
+.bg-gray-50,
+.bg-slate-50 {
+    background-color: var(--agents-server-surface-subtle) !important;
+}
+
+.bg-gray-50\/70,
+.bg-slate-50\/70 {
+    background-color: var(--agents-server-surface-subtle-70) !important;
+}
+
+.bg-gray-50\/80,
+.bg-slate-50\/80 {
+    background-color: var(--agents-server-surface-subtle-80) !important;
+}
+
+.bg-gray-100,
+.bg-slate-100 {
+    background-color: var(--agents-server-surface-muted) !important;
+}
+
+.bg-gray-100\/80,
+.bg-slate-100\/80 {
+    background-color: var(--agents-server-surface-muted-80) !important;
+}
+
+.border-gray-100,
+.border-gray-200,
+.border-slate-200,
+.border-white\/70,
+.border-white\/80 {
+    border-color: var(--agents-server-border) !important;
+}
+
+.border-gray-300,
+.border-slate-300 {
+    border-color: var(--agents-server-border-strong) !important;
+}
+
+.text-gray-900,
+.text-slate-900,
+.text-slate-950 {
+    color: var(--agents-server-text-strong) !important;
+}
+
+.text-gray-800,
+.text-gray-700,
+.text-slate-800,
+.text-slate-700 {
+    color: var(--agents-server-text-body) !important;
+}
+
+.text-gray-600,
+.text-slate-600 {
+    color: var(--agents-server-text-secondary) !important;
+}
+
+.text-gray-500,
+.text-slate-500 {
+    color: var(--agents-server-text-muted) !important;
+}
+
+.text-gray-400,
+.text-slate-400 {
+    color: var(--agents-server-text-subtle) !important;
+}
+
+.divide-gray-200 > :not([hidden]) ~ :not([hidden]),
+.divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+    border-color: var(--agents-server-border) !important;
+}
+
+.hover\:bg-white:hover {
+    background-color: var(--agents-server-surface) !important;
+}
+
+.hover\:bg-white\/90:hover {
+    background-color: var(--agents-server-surface-90) !important;
+}
+
+.hover\:bg-gray-50:hover,
+.hover\:bg-slate-50:hover {
+    background-color: var(--agents-server-surface-subtle) !important;
+}
+
+.hover\:bg-gray-100:hover,
+.hover\:bg-slate-100:hover {
+    background-color: var(--agents-server-surface-muted) !important;
+}
+
+.hover\:border-gray-300:hover,
+.hover\:border-slate-300:hover {
+    border-color: var(--agents-server-border-strong) !important;
+}
+
+.hover\:border-gray-400:hover,
+.hover\:border-slate-400:hover {
+    border-color: var(--agents-server-text-muted) !important;
+}
+
+.hover\:text-gray-900:hover,
+.hover\:text-slate-900:hover {
+    color: var(--agents-server-text-strong) !important;
+}
+
+.hover\:text-gray-800:hover,
+.hover\:text-gray-700:hover,
+.hover\:text-slate-800:hover,
+.hover\:text-slate-700:hover {
+    color: var(--agents-server-text-body) !important;
+}
+
+.focus-visible\:ring-offset-white:focus-visible {
+    --tw-ring-offset-color: var(--background) !important;
+}
+
+.from-white {
+    --tw-gradient-from: var(--agents-server-surface) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position) !important;
+}
+
+.via-white {
+    --tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--agents-server-surface) var(--tw-gradient-via-position),
+        var(--tw-gradient-to) !important;
+}
+
+.to-white {
+    --tw-gradient-to: var(--agents-server-surface) var(--tw-gradient-to-position) !important;
+}
+
+.from-gray-50,
+.from-slate-50 {
+    --tw-gradient-from: var(--agents-server-surface-subtle) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(248 250 252 / 0) var(--tw-gradient-to-position) !important;
+}
+
+.via-gray-50,
+.via-slate-50 {
+    --tw-gradient-to: rgb(248 250 252 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--agents-server-surface-subtle) var(--tw-gradient-via-position),
+        var(--tw-gradient-to) !important;
+}
+
+.to-gray-50,
+.to-slate-50 {
+    --tw-gradient-to: var(--agents-server-surface-subtle) var(--tw-gradient-to-position) !important;
+}
+
+.from-gray-100,
+.from-slate-100 {
+    --tw-gradient-from: var(--agents-server-surface-muted) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(241 245 249 / 0) var(--tw-gradient-to-position) !important;
+}
+
+.to-gray-100,
+.to-slate-100,
+.to-slate-100\/80 {
+    --tw-gradient-to: var(--agents-server-surface-muted) var(--tw-gradient-to-position) !important;
+}
+
 /* Agents graph styling */
 .agents-graph-surface {
-    background: radial-gradient(circle at 15% 15%, rgba(186, 230, 253, 0.45), transparent 55%),
-        radial-gradient(circle at 85% 85%, rgba(253, 230, 138, 0.35), transparent 60%), #f8fafc;
+    background: var(--agents-server-graph-surface);
 }
 
 .agents-graph-canvas {
@@ -254,16 +567,16 @@ textarea:focus-visible {
 }
 
 ::-webkit-scrollbar-track {
-    background: #f1f5f9;
+    background: var(--agents-server-scrollbar-track);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
+    background: var(--agents-server-scrollbar-thumb);
     border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
+    background: var(--agents-server-scrollbar-thumb-hover);
 }
 
 /* Hide scrollbar while keeping scroll functionality */
@@ -343,20 +656,14 @@ textarea:focus-visible {
 .skeleton-block {
     position: relative;
     overflow: hidden;
-    background: linear-gradient(135deg, rgba(226, 232, 240, 0.95), rgba(248, 250, 252, 0.95));
+    background: var(--agents-server-skeleton-background);
 }
 
 .skeleton-block::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(
-        100deg,
-        transparent 10%,
-        rgba(255, 255, 255, 0.7) 42%,
-        rgba(255, 255, 255, 0.35) 52%,
-        transparent 85%
-    );
+    background: var(--agents-server-skeleton-highlight);
     animation: skeleton-shimmer 1.4s ease-in-out infinite;
 }
 
@@ -395,8 +702,22 @@ textarea:focus-visible {
     --agent-chat-scroll-badge-caret-background: rgba(248, 250, 252, 0.95);
 }
 
+html[data-resolved-appearance='dark'] .agent-chat-route-surface {
+    --agent-chat-primary-action-border-color: rgba(59, 130, 246, 0.9);
+    --agent-chat-primary-action-border-color-hover: rgba(96, 165, 250, 0.96);
+    --agent-chat-primary-action-background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+    --agent-chat-primary-action-background-hover: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    --agent-chat-primary-action-shadow: 0 10px 24px rgba(30, 64, 175, 0.38);
+    --agent-chat-primary-action-shadow-hover: 0 12px 28px rgba(37, 99, 235, 0.46);
+    --agent-chat-primary-action-focus-color: rgba(125, 211, 252, 0.66);
+    --agent-chat-scroll-badge-border-color: rgba(125, 211, 252, 0.58);
+    --agent-chat-scroll-badge-text-color: #e2e8f0;
+    --agent-chat-scroll-badge-background: linear-gradient(150deg, rgba(8, 47, 73, 0.94), rgba(15, 23, 42, 0.92));
+    --agent-chat-scroll-badge-caret-background: rgba(8, 47, 73, 0.95);
+}
+
 @media (prefers-color-scheme: dark) {
-    .agent-chat-route-surface {
+    html:not([data-resolved-appearance]) .agent-chat-route-surface {
         --agent-chat-primary-action-border-color: rgba(59, 130, 246, 0.9);
         --agent-chat-primary-action-border-color-hover: rgba(96, 165, 250, 0.96);
         --agent-chat-primary-action-background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
@@ -616,8 +937,8 @@ textarea:focus-visible {
 
 /* Component preview container */
 .component-preview {
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    border: 1px solid #e2e8f0;
+    background: var(--agents-server-component-preview);
+    border: 1px solid var(--agents-server-border);
 }
 
 /* Print styles */

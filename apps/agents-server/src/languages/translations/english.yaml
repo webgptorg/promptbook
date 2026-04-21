@@ -38,10 +38,18 @@ chatEnterBehavior.promptFooter: You can change this later in the Control panel o
 chatEnterBehavior.notNow: Not now
 chatEnterBehavior.saveFailed: We updated chat keybindings here, but could not save them to the server yet.
 systemSettings.pageDescription: Personal browser-side preferences for how the Agents Server feels while you chat.
+appearance.title: Appearance
+appearance.subtitle: Choose dark, light, or follow your device theme for this browser.
+appearance.selectLabel: Color theme
+appearance.optionSystem: System
+appearance.optionLight: Light
+appearance.optionDark: Dark
+appearance.help: Saved for this browser only. System follows your operating-system appearance automatically.
+appearance.currentlyApplied: 'Currently applied: {appearance}'
 controlPanel.label: Control panel
 controlPanel.openAriaLabel: Open global control panel
-controlPanel.feedbackTitle: Feedback
-controlPanel.feedbackSubtitle: Control sounds and vibration globally
+controlPanel.feedbackTitle: Preferences
+controlPanel.feedbackSubtitle: Tune appearance, feedback, privacy, and chat behavior for this browser.
 controlPanel.audioLabel: Audio
 controlPanel.soundTitle: Sounds
 controlPanel.soundDescription: Audio cues for chat replies and controls.
