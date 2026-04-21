@@ -468,7 +468,7 @@ export function AgentProfileChat({
                             resolveEnterBehavior={resolveEnterBehavior}
                             isSpeechPlaybackEnabled={isSpeechFeaturesEnabled}
                             visualMode={chatVisualMode}
-                            visual={'STANDALONE'}
+                            layout="STANDALONE"
                         />
                     )}
                 </div>
