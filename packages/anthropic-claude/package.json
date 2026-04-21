@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/anthropic-claude",
-    "version": "0.112.0-47",
+    "version": "0.112.0-48",
     "description": "Promptbook: Create persistent AI agents that turn your company's scattered knowledge into action",
     "private": false,
     "sideEffects": false,
@@ -101,7 +101,7 @@
     "types": "./esm/src/_packages/anthropic-claude.index.d.ts",
     "typings": "./esm/src/_packages/anthropic-claude.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.112.0-47"
+        "@promptbook/core": "0.112.0-48"
     },
     "dependencies": {
         "@anthropic-ai/sdk": "0.68.0",
