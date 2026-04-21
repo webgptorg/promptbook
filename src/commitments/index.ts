@@ -41,6 +41,7 @@ import { TemplateCommitmentDefinition } from './TEMPLATE/TEMPLATE';
 import { UseCommitmentDefinition } from './USE/USE';
 import { UseBrowserCommitmentDefinition } from './USE_BROWSER/USE_BROWSER';
 import { UseCalendarCommitmentDefinition } from './USE_CALENDAR/USE_CALENDAR';
+import { UseDeepSearchCommitmentDefinition } from './USE_DEEPSEARCH/USE_DEEPSEARCH';
 import { UseEmailCommitmentDefinition } from './USE_EMAIL/USE_EMAIL';
 import { UseImageGeneratorCommitmentDefinition } from './USE_IMAGE_GENERATOR/USE_IMAGE_GENERATOR';
 import { UseMcpCommitmentDefinition } from './USE_MCP/USE_MCP';
@@ -126,6 +127,7 @@ export const COMMITMENT_REGISTRY = [
     new ClosedCommitmentDefinition(),
     new TeamCommitmentDefinition(),
     new UseBrowserCommitmentDefinition(),
+    new UseDeepSearchCommitmentDefinition(),
     new UseSearchEngineCommitmentDefinition(),
     new UseSpawnCommitmentDefinition(),
     new UseTimeoutCommitmentDefinition(),

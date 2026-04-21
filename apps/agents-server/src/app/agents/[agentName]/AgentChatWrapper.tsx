@@ -401,6 +401,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 delete_wallet_record: t('chat.toolTitle.walletDeleter'),
                 request_wallet_record: t('chat.toolTitle.walletRequester'),
                 web_search: t('chat.toolTitle.webSearch'),
+                deep_search: t('chat.toolTitle.webSearch'),
                 useSearchEngine: t('chat.toolTitle.webSearch'),
                 search: t('chat.toolTitle.webSearch'),
                 useBrowser: t('chat.toolTitle.websiteScraping'),

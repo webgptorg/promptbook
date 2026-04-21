@@ -10,7 +10,7 @@ import { formatOptionalInstructionBlock } from '../_base/formatOptionalInstructi
  *
  * @private internal utility of `createAgentModelRequirementsWithCommitments`
  */
-type AggregatedUseCommitmentType = 'USE BROWSER' | 'USE SEARCH ENGINE' | 'USE TIME';
+type AggregatedUseCommitmentType = 'USE BROWSER' | 'USE DEEPSEARCH' | 'USE SEARCH ENGINE' | 'USE TIME';
 
 /**
  * All `USE` commitment types currently participating in final system-message aggregation.
@@ -19,6 +19,7 @@ type AggregatedUseCommitmentType = 'USE BROWSER' | 'USE SEARCH ENGINE' | 'USE TI
  */
 const AGGREGATED_USE_COMMITMENT_TYPES = [
     'USE BROWSER',
+    'USE DEEPSEARCH',
     'USE SEARCH ENGINE',
     'USE TIME',
 ] as const satisfies ReadonlyArray<AggregatedUseCommitmentType>;
@@ -113,6 +114,18 @@ function createAggregatedUseCommitmentSystemMessage(
                     - Do not make up information when you can search for it.
                     - Do not tell the user you cannot search for information, YOU CAN.
                     ${block(formatOptionalInstructionBlock('Search instructions', combinedAdditionalInstructions))}
+                `,
+            );
+
+        case 'USE DEEPSEARCH':
+            return spaceTrim(
+                (block) => `
+                    Tool:
+                    - You have access to DeepSearch via the tool "deep_search".
+                    - Use it for broader research tasks that need multi-step investigation, comparison, or synthesis across multiple sources.
+                    - Prefer it over quick search when the user asks for a well-grounded brief, report, or deeper investigation.
+                    - Do not pretend you cannot research current information when this tool is available.
+                    ${block(formatOptionalInstructionBlock('DeepSearch instructions', combinedAdditionalInstructions))}
                 `,
             );
     }

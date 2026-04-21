@@ -399,6 +399,7 @@ function createCanonicalAgentChatTranslations(translateText: TranslateText): Can
             delete_wallet_record: translateText('chat.toolTitle.walletDeleter'),
             request_wallet_record: translateText('chat.toolTitle.walletRequester'),
             web_search: translateText('chat.toolTitle.webSearch'),
+            deep_search: translateText('chat.toolTitle.webSearch'),
             useSearchEngine: translateText('chat.toolTitle.webSearch'),
             search: translateText('chat.toolTitle.webSearch'),
             useBrowser: translateText('chat.toolTitle.websiteScraping'),

@@ -2,8 +2,8 @@ import { spaceTrim } from 'spacetrim';
 import { string_javascript_name, TODO_any } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
-import { SerpSearchEngine } from '../../search-engines/serp/SerpSearchEngine';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
+import { createSerpSearchToolFunction } from '../_common/createSerpSearchToolFunction';
 import { appendAggregatedUseCommitmentPlaceholder } from '../USE/aggregateUseCommitmentSystemMessages';
 
 /**
@@ -162,38 +162,7 @@ export class UseSearchEngineCommitmentDefinition extends BaseCommitmentDefinitio
      */
     getToolFunctions(): Record<string_javascript_name, ToolFunction> {
         return {
-            async web_search(args: { query: string } & Record<string, unknown>): Promise<string> {
-                console.log('!!!! [Tool] web_search called', { args });
-
-                const { query, ...options } = args;
-
-                if (!query) {
-                    throw new Error('Search query is required');
-                }
-
-                const searchEngine = new SerpSearchEngine();
-                const results = await searchEngine.search(query, options);
-
-                return spaceTrim(
-                    (block) => `
-                        Search results for "${query}"${
-                        Object.keys(options).length === 0 ? '' : ` with options ${JSON.stringify(options)}`
-                    }:
-
-                        ${block(
-                            results
-                                .map((result) =>
-                                    spaceTrim(`
-                                            - **${result.title}**
-                                              ${result.url}
-                                              ${result.snippet}
-                                        `),
-                                )
-                                .join('\n\n'),
-                        )}
-                    `,
-                );
-            },
+            web_search: createSerpSearchToolFunction('web_search', 'Search'),
         };
     }
 }

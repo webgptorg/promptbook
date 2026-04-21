@@ -6,6 +6,7 @@ import {
     run,
     setDefaultOpenAIClient,
     setDefaultOpenAIKey,
+    webSearchTool,
 } from '@openai/agents';
 import OpenAI from 'openai';
 import { spaceTrim } from 'spacetrim';
@@ -31,6 +32,7 @@ import type { Prompt } from '../../types/Prompt';
 import type { ToolCall, ToolCallLogEntry, ToolCallState } from '../../types/ToolCall';
 import type {
     string_date_iso8601,
+    string_javascript_name,
     string_markdown,
     string_markdown_text,
     string_model_name,
@@ -51,6 +53,16 @@ import { buildToolInvocationScript } from './utils/buildToolInvocationScript';
  * Constant for default agent kit model name.
  */
 const DEFAULT_AGENT_KIT_MODEL_NAME = 'gpt-5.4-mini' as string_model_name;
+
+/**
+ * Default model used for nested DeepSearch tool invocations.
+ */
+const DEFAULT_DEEP_SEARCH_MODEL_NAME = 'o4-mini-deep-research' as string_model_name;
+
+/**
+ * Tool name used by the Book commitment-backed DeepSearch capability.
+ */
+const DEEP_SEARCH_TOOL_NAME = 'deep_search' as string_javascript_name;
 
 /**
  * Creates one structured log entry for streamed tool-call updates.
@@ -105,6 +117,119 @@ function resolveFinalToolCallState(options: {
     }
 
     return 'COMPLETE';
+}
+
+/**
+ * One Promptbook tool definition normalized for AgentKit conversion.
+ *
+ * @private helper of `OpenAiAgentKitExecutionTools`
+ */
+type AgentKitToolDefinition = NonNullable<ModelRequirements['tools']>[number];
+
+/**
+ * Returns true when one tool definition represents the dedicated DeepSearch capability.
+ *
+ * @param toolDefinition - Tool definition from compiled model requirements.
+ * @returns `true` when the tool should be backed by a nested deep-research agent.
+ *
+ * @private helper of `OpenAiAgentKitExecutionTools`
+ */
+function isDeepSearchToolDefinition(toolDefinition: AgentKitToolDefinition): boolean {
+    return toolDefinition.name === DEEP_SEARCH_TOOL_NAME;
+}
+
+/**
+ * Normalizes Promptbook JSON-schema tool parameters for AgentKit function tools.
+ *
+ * @param parameters - Promptbook tool parameters.
+ * @returns AgentKit-compatible JSON schema or `undefined`.
+ *
+ * @private helper of `OpenAiAgentKitExecutionTools`
+ */
+function normalizeAgentKitToolParameters(parameters: AgentKitToolDefinition['parameters'] | undefined): TODO_any {
+    if (!parameters) {
+        return undefined;
+    }
+
+    return {
+        ...parameters,
+        additionalProperties: parameters.additionalProperties ?? false,
+        required: parameters.required ?? [],
+    } as TODO_any;
+}
+
+/**
+ * Creates instructions for the nested DeepSearch specialist agent.
+ *
+ * @param toolDescription - Model-facing description from the original tool definition.
+ * @returns System instructions for the nested deep-research agent.
+ *
+ * @private helper of `OpenAiAgentKitExecutionTools`
+ */
+function createDeepSearchAgentInstructions(toolDescription: string): string {
+    const normalizedDescription = toolDescription.trim();
+
+    return spaceTrim(
+        (block) => `
+            You are a DeepSearch specialist working as a tool for another agent.
+            Perform thorough, source-grounded public-web research based on the provided request.
+            Use web search to gather current information, compare relevant viewpoints, and synthesize a concise research brief.
+            Do not ask follow-up questions. If the request is not specific enough, state the assumptions you had to make.
+            Include citations in the research brief whenever sources were used.
+            ${block(normalizedDescription ? `Tool guidance:\n${normalizedDescription}` : '')}
+        `,
+    );
+}
+
+/**
+ * Builds the nested DeepSearch prompt from structured tool arguments.
+ *
+ * @param rawInput - Parsed function-tool arguments provided by the outer agent.
+ * @returns Prompt text passed to the nested deep-research agent.
+ *
+ * @private helper of `OpenAiAgentKitExecutionTools`
+ */
+function buildDeepSearchToolInput(rawInput: unknown): string {
+    const input =
+        rawInput && typeof rawInput === 'object' ? (rawInput as Record<string, unknown>) : ({} as Record<string, unknown>);
+    const query = typeof input.query === 'string' ? input.query.trim() : '';
+    const additionalHints = Object.entries(input)
+        .filter(([key, value]) => key !== 'query' && value !== undefined && value !== null && String(value).trim() !== '')
+        .map(([key, value]) => `- ${key}: ${typeof value === 'string' ? value : JSON.stringify(value)}`);
+
+    return spaceTrim(
+        (block) => `
+            Research request:
+            ${query || JSON.stringify(input)}
+            ${block(additionalHints.length > 0 ? `Execution hints:\n${additionalHints.join('\n')}` : '')}
+        `,
+    );
+}
+
+/**
+ * Creates the native Agent SDK tool used for `USE DEEPSEARCH`.
+ *
+ * @param toolDefinition - Promptbook tool definition for `deep_search`.
+ * @returns AgentKit tool backed by a nested deep-research agent.
+ *
+ * @private helper of `OpenAiAgentKitExecutionTools`
+ */
+function createDeepSearchAgentKitTool(toolDefinition: AgentKitToolDefinition): AgentKitTool {
+    const deepSearchAgent = new AgentFromKit({
+        name: 'DeepSearch',
+        model: DEFAULT_DEEP_SEARCH_MODEL_NAME,
+        instructions: createDeepSearchAgentInstructions(toolDefinition.description),
+        tools: [webSearchTool({ searchContextSize: 'high' })],
+    });
+
+    return deepSearchAgent.asTool({
+        toolName: toolDefinition.name,
+        toolDescription: toolDefinition.description,
+        parameters: normalizeAgentKitToolParameters(toolDefinition.parameters),
+        inputBuilder: ({ params }) => buildDeepSearchToolInput(params),
+        customOutputExtractor: (result) =>
+            typeof result.finalOutput === 'string' ? result.finalOutput : JSON.stringify(result.finalOutput ?? ''),
+    });
 }
 
 // Type definitions for AgentKit structured output
@@ -625,23 +750,24 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
         }
 
         if (tools && tools.length > 0) {
-            const scriptTools = this.resolveScriptTools();
+            let scriptTools: Array<ScriptExecutionTools> | null = null;
 
             for (const toolDefinition of tools) {
+                if (isDeepSearchToolDefinition(toolDefinition)) {
+                    agentKitTools.push(createDeepSearchAgentKitTool(toolDefinition));
+                    continue;
+                }
+
+                scriptTools ??= this.resolveScriptTools();
+
                 agentKitTools.push(
                     agentKitTool({
                         name: toolDefinition.name,
                         description: toolDefinition.description,
-                        parameters: toolDefinition.parameters
-                            ? ({
-                                  ...toolDefinition.parameters,
-                                  additionalProperties: false,
-                                  required: toolDefinition.parameters.required ?? [],
-                              } as TODO_any)
-                            : undefined,
+                        parameters: normalizeAgentKitToolParameters(toolDefinition.parameters),
                         strict: false,
                         execute: async (input, runContext, details) => {
-                            const scriptTool = scriptTools[0]!;
+                            const scriptTool = scriptTools![0]!;
                             const functionName = toolDefinition.name;
                             const calledAt = $getCurrentDate();
                             const callId = details?.toolCall?.callId;

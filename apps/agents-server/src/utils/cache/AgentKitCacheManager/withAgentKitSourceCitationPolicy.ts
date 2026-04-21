@@ -12,7 +12,7 @@ const SOURCE_CITATION_POLICY_SENTINEL = 'Source citation policy:';
  *
  * @private function of AgentKitCacheManager
  */
-const SOURCE_CITATION_TOOL_NAMES = new Set(['web_search', 'fetch_url_content', 'run_browser']);
+const SOURCE_CITATION_TOOL_NAMES = new Set(['web_search', 'deep_search', 'fetch_url_content', 'run_browser']);
 
 /**
  * Minimal shape needed to inspect tool names for citation policy decisions.

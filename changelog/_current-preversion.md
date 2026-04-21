@@ -1,3 +1,9 @@
+-   Added the new `USE DEEPSEARCH` commitment for Book 2.0 agents and Agents Server, so agents can explicitly request deeper web research instead of lightweight search:
+
+    -   Added `USE DEEPSEARCH` to the commitment registry, fast agent-source parsing, and standalone Book language documentation, including aggregated system-message guidance and regression coverage for the new commitment.
+    -   Compiled `USE DEEPSEARCH` into a dedicated `deep_search` tool instead of reusing regular `web_search`, keeping the capability explicit in model requirements and chat/tool UIs.
+    -   Implemented the Agents Server runtime with native OpenAI Agents SDK primitives by mapping `deep_search` to a nested deep-research agent that uses hosted OpenAI web search, while keeping a local SERP-backed fallback tool implementation for non-AgentKit paths.
+
 -   Improved built-in agent avatar visuals so the default animated octopus now feels more alive and polished across Agents Server and the utils avatar playground:
 
     -   Added one shared avatar interaction layer in `src/avatars` that tracks desktop cursor and mobile touch position once, then feeds smoothed gaze/body motion into the live canvas renderers without duplicating behavior across Agents Server and utils preview surfaces.

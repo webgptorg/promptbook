@@ -103,6 +103,11 @@ const SIMPLE_CAPABILITY_BY_COMMITMENT_TYPE: Readonly<Record<string, AgentCapabil
         label: 'Internet',
         iconName: 'Search',
     },
+    'USE DEEPSEARCH': {
+        type: 'search-engine',
+        label: 'DeepSearch',
+        iconName: 'Search',
+    },
     'USE TIME': {
         type: 'time',
         label: 'Time',

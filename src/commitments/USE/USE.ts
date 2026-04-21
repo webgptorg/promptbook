@@ -12,6 +12,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * Supported USE types:
  * - USE BROWSER: Enables the agent to use a web browser tool
  * - USE SEARCH ENGINE (future): Enables search engine access
+ * - USE DEEPSEARCH: Enables deeper research-oriented search access
  * - USE FILE SYSTEM (future): Enables file system operations
  * - USE MCP (future): Enables MCP server connections
  *
@@ -35,7 +36,7 @@ export class UseCommitmentDefinition extends BaseCommitmentDefinition<`USE${stri
      * Short one-line description of USE commitments.
      */
     get description(): string {
-        return 'Enable the agent to use specific tools or capabilities (BROWSER, SEARCH ENGINE, etc.).';
+        return 'Enable the agent to use specific tools or capabilities (BROWSER, SEARCH ENGINE, DEEPSEARCH, etc.).';
     }
 
     /**
@@ -58,6 +59,7 @@ export class UseCommitmentDefinition extends BaseCommitmentDefinition<`USE${stri
 
             - **USE BROWSER** - Enables the agent to use a web browser tool to access and retrieve information from the internet
             - **USE SEARCH ENGINE** (future) - Enables search engine access
+            - **USE DEEPSEARCH** - Enables deeper research-oriented search access
             - **USE FILE SYSTEM** (future) - Enables file system operations
             - **USE MCP** (future) - Enables MCP server connections
 
@@ -116,7 +118,7 @@ export class UseCommitmentDefinition extends BaseCommitmentDefinition<`USE${stri
      * Checks if this is a known USE type
      */
     isKnownUseType(useType: string): boolean {
-        const knownTypes = ['BROWSER', 'SEARCH ENGINE', 'FILE SYSTEM', 'MCP'];
+        const knownTypes = ['BROWSER', 'SEARCH ENGINE', 'DEEPSEARCH', 'FILE SYSTEM', 'MCP'];
         return knownTypes.includes(useType.toUpperCase());
     }
 }

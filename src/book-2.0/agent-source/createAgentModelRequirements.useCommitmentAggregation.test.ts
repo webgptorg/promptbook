@@ -113,6 +113,22 @@ describe('createAgentModelRequirements USE commitment aggregation', () => {
         expect((requirements.tools || []).filter((tool) => tool.name === 'web_search')).toHaveLength(1);
     });
 
+    it('aggregates repeated USE DEEPSEARCH instructions and keeps the tool only once', async () => {
+        const agentSource = validateBook(`
+            Deep Research Agent
+            USE DEEPSEARCH Compare primary sources.
+            USE DEEPSEARCH Summarize competing viewpoints.
+        `);
+
+        const requirements = await createAgentModelRequirements(agentSource);
+
+        expect(countOccurrences(requirements.systemMessage, 'You have access to DeepSearch')).toBe(1);
+        expect(countOccurrences(requirements.systemMessage, 'DeepSearch instructions')).toBe(1);
+        expect(countOccurrences(requirements.systemMessage, 'Compare primary sources.')).toBe(1);
+        expect(countOccurrences(requirements.systemMessage, 'Summarize competing viewpoints.')).toBe(1);
+        expect((requirements.tools || []).filter((tool) => tool.name === 'deep_search')).toHaveLength(1);
+    });
+
     it('keeps multi-PERSONA content merged without duplication or reordering', async () => {
         const agentSource = validateBook(`
             Persona Agent

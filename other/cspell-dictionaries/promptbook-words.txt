@@ -2,6 +2,7 @@ promptbook
 ptbk
 azureopenai
 deepseek
+deepsearch
 ollama
 markitdown
 prebuild

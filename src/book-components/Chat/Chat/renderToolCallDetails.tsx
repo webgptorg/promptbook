@@ -353,7 +353,7 @@ function renderGenericToolCallDetails(options: RenderGenericToolCallDetailsOptio
  * @private function of ChatToolCallModal
  */
 function isSearchToolCallName(toolName: string): boolean {
-    return toolName === 'web_search' || toolName === 'useSearchEngine' || toolName === 'search';
+    return toolName === 'web_search' || toolName === 'deep_search' || toolName === 'useSearchEngine' || toolName === 'search';
 }
 
 /**
