@@ -174,10 +174,10 @@ export function TeamToolCallModalContent(options: TeamToolCallModalContentOption
                             isCopyButtonEnabled={false}
                             layout="STANDALONE"
                             delayConfig={{
+                                // Note+TODO: For some strange reason, <MockedChat/> is not running and stay stayic on the initial frame, so doing this hack to force it to show the entire chat at once. Need to investigate why the animation is not running as expected and then just use `delayConfig={FAST_FLOW}`
                                 ...FAST_FLOW,
                                 beforeFirstMessage: 0,
-                                // Show the full internal exchange immediately so the modal never opens as a blank panel.
-                                showIntermediateMessages: messages.length - 1,
+                                showIntermediateMessages: messages.length,
                             }}
                             visualMode="BUBBLE_MODE"
                         />
