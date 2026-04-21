@@ -1,9 +1,3 @@
--   Added dark mode to Agents Server with one shared browser-side appearance preference:
-
-    -   Added a persisted `system` / `light` / `dark` appearance setting, wired through the shared layout shell and exposed in both the control panel and `System > Settings`.
-    -   Applied the new theme across the main Agents Server shell, shared dialogs, chat keybinding preference surfaces, control-panel UI, and Monaco-based custom CSS/JS editors instead of leaving dark mode as isolated page-specific styling.
-    -   Kept the default behavior aligned with the operating system by honoring `prefers-color-scheme` until a browser override is chosen, while mirroring that override through cookies so server-rendered navigation stays visually consistent.
-
 -   Reworked the Agents Server backup download so the archive now follows user-facing data instead of raw database tables:
 
     -   Flattened metadata and limits into one key-value JSON file, kept the existing agents/books layout, and changed conversations into per-chat JSON exports with sidecar metadata for feedback details.
@@ -137,13 +131,13 @@
     -   Added regression coverage for homepage branding navigation on desktop and mobile, plus a unit test that verifies shared links still navigate after their own click handler removes them from the tree.
 
 -   Added the new deterministic `Fractal` avatar visual alongside the existing avatar set, with layered dragon-curve geometry that changes its ribbon composition, orientation, and color interplay from the agent name, hash, and colors:
-
+    
     -   Added the new built-in `fractal` canvas renderer to the shared avatar registry without changing the existing Octopus, Octopus2, pixel-art, or Minecraft visuals.
     -   Kept the utils `/avatars` playground on the existing page while automatically exposing the new renderer in the selector, preview grid, and deterministic sample gallery through the shared avatar registry.
     -   Added regression coverage that verifies `fractal` stays registered as a supported avatar visual and remains selectable through the utils avatar playground URL state.
 
 -   Added the new deterministic `Octopus2` avatar visual alongside the existing avatar set, with a single smooth morphing blob silhouette that keeps an octopus-like form while changing its organic alien shape from the agent name, hash, colors, and animation time:
-
+    
     -   Added the new built-in `octopus2` canvas renderer to the shared avatar registry without changing the existing `Octopus`, pixel-art, or Minecraft visuals.
     -   Updated the utils `/avatars` playground so the new renderer appears in the existing selector, preview grid, and deterministic sample gallery without creating a separate page.
     -   Added regression coverage that verifies `octopus2` stays registered as a supported avatar visual and remains selectable through the utils avatar playground URL state.
@@ -2946,13 +2940,11 @@
     -   Persisted profile-to-chat optimistic turn metadata across the route transition, including the client message id reused later for canonical reconciliation and failure states.
     -   Added a chat-route loading surface that renders the pending user turn right away while the standalone chat page server data is still loading.
     -   Tightened optimistic/canonical merge ordering so unresolved user bubbles stay ahead of later assistant streaming messages until the server confirms them.
-
 -   Added the new deterministic `AsciiOctopus` avatar visual alongside the existing avatar set, with an animated ASCII-art rendering that keeps the same organic alien octopus feel as `Octopus3` while varying its blob silhouette, tentacle count, face, and colors from the agent name, hash, colors, and animation time:
 
     -   Added the new built-in `ascii-octopus` canvas renderer to the shared avatar registry without changing the existing `Octopus`, `Octopus2`, `Octopus3`, pixel-art, Minecraft, or Fractal visuals.
     -   Kept the implementation DRY by reusing shared octopus body and tentacle geometry helpers, while translating that geometry into deterministic ASCII glyphs instead of painted surfaces.
     -   Updated the existing utils `/avatars` playground and regression coverage so the new renderer appears in the selector, preview grid, deterministic sample gallery, and supported URL-state parsing without creating a separate page.
-
 -   Added a new `Maze` homepage view to Agents Server so the agents index can render a playful top-down office maze with rooms, corridors, and animated avatar pods:
 
     -   Added a `Maze` tab alongside `List`, `Graph`, `Office`, and `Pixel`, wiring it through the existing homepage view-mode query state and folder-scoped office-agent filtering.

@@ -1,5 +1,4 @@
 import type { ChangeEvent } from 'react';
-import { useAppearance } from '../../../components/Appearance/AppearanceProvider';
 import { MonacoEditorWithShadowDom } from '../../../components/_utils/MonacoEditorWithShadowDom';
 import { CUSTOM_RESOURCE_INPUT_CLASS_NAME } from '../custom-resource/shared';
 import type { CustomJavascriptFileState } from './CustomJavascriptFileState';
@@ -47,17 +46,12 @@ export function CustomJsEditorPanel({
     onReloadFromServer,
     onSaveCurrentFile,
 }: CustomJsEditorPanelProps) {
-    const { resolvedAppearance } = useAppearance();
-    const monacoTheme = resolvedAppearance === 'dark' ? 'vs-dark' : 'vs-light';
-
     return (
         <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-lg font-semibold text-gray-900">Script editor</h2>
                 {currentFile?.updatedAt && (
-                    <div className="text-xs text-gray-500">
-                        Last saved: {new Date(currentFile.updatedAt).toLocaleString()}
-                    </div>
+                    <div className="text-xs text-gray-500">Last saved: {new Date(currentFile.updatedAt).toLocaleString()}</div>
                 )}
             </div>
 
@@ -78,7 +72,7 @@ export function CustomJsEditorPanel({
                     <MonacoEditorWithShadowDom
                         height="520px"
                         language="javascript"
-                        theme={monacoTheme}
+                        theme="vs-light"
                         value={currentFile.javascript}
                         onChange={onEditorChange}
                         options={{

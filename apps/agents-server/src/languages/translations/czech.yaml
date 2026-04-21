@@ -38,18 +38,10 @@ chatEnterBehavior.promptFooter: Později to můžete změnit v Ovládacím panel
 chatEnterBehavior.notNow: Teď ne
 chatEnterBehavior.saveFailed: Nastavení kláves se tady změnilo, ale zatím se nepodařilo uložit na server.
 systemSettings.pageDescription: Osobní nastavení uložená v prohlížeči, která ovlivňují, jak se Agents Server chová během chatu.
-appearance.title: Vzhled
-appearance.subtitle: Vyberte si pro tento prohlížeč tmavý, světlý nebo systémový motiv.
-appearance.selectLabel: Barevný motiv
-appearance.optionSystem: Systém
-appearance.optionLight: Světlý
-appearance.optionDark: Tmavý
-appearance.help: Ukládá se jen pro tento prohlížeč. Systémový motiv automaticky následuje vzhled operačního systému.
-appearance.currentlyApplied: 'Právě použito: {appearance}'
 controlPanel.label: Ovládací panel
 controlPanel.openAriaLabel: Otevřít globální ovládací panel
-controlPanel.feedbackTitle: Předvolby
-controlPanel.feedbackSubtitle: Upravte si vzhled, odezvu, soukromí a chování chatu pro tento prohlížeč.
+controlPanel.feedbackTitle: Nastavení odezvy
+controlPanel.feedbackSubtitle: Globální nastavení zvuků, vibrací a dalších voleb
 controlPanel.audioLabel: Zvuk
 controlPanel.soundTitle: Zvuky
 controlPanel.soundDescription: Zvukové signály pro odpovědi v chatu a ovládací prvky.

@@ -2,8 +2,6 @@
 
 import { type ChatVisualMode } from '../../../constants/chatVisualMode';
 import { useCallback, useEffect, useId } from 'react';
-import { type AppearancePreference } from '../../../constants/appearance';
-import { useAppearance } from '../../Appearance/AppearanceProvider';
 import { useChatEnterBehaviorPreferences } from '../../ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
 import { useChatVisualMode } from '../../ChatVisualMode/ChatVisualModeProvider';
 import { useMetadataFlags } from '../../MetadataFlags/MetadataFlagsContext';
@@ -30,7 +28,6 @@ export function useControlPanelContentState({
     subtitle,
 }: ControlPanelContentStateProps): ControlPanelContentState {
     const { controlPanelOptionAvailability } = useMetadataFlags();
-    const { appearance, resolvedAppearance, setAppearance } = useAppearance();
     const { chatVisualMode, setChatVisualMode } = useChatVisualMode();
     const {
         storedEnterBehavior,
@@ -53,15 +50,7 @@ export function useControlPanelContentState({
     const { soundSystem, isVibrationSupported, soundToggle, vibrationToggle } = useControlPanelAudioState();
 
     const languageSelectId = useId();
-    const appearanceSelectId = useId();
     const chatVisualModeSelectId = useId();
-
-    const handleAppearanceChange = useCallback(
-        (nextAppearance: string) => {
-            setAppearance(nextAppearance as AppearancePreference);
-        },
-        [setAppearance],
-    );
 
     const handleLanguageChange = useCallback(
         (nextLanguage: string) => {
@@ -126,10 +115,6 @@ export function useControlPanelContentState({
         onToggleNotifications: toggleNotifications,
         onToggleSelfLearning: toggleSelfLearning,
         onTogglePrivateMode: togglePrivateMode,
-        appearanceSelectId,
-        appearance,
-        resolvedAppearance,
-        onAppearanceChange: handleAppearanceChange,
         languageSelectId,
         language,
         availableLanguages,

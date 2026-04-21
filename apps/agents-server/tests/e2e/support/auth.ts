@@ -16,36 +16,13 @@ export const E2E_ADMIN_PASSWORD = 'e2e-admin-password';
 const LOGIN_DIALOG_OPEN_RETRIES = 3;
 
 /**
- * Resolves the visible login trigger for both desktop and mobile headers.
- *
- * @param page - Current Playwright page.
- * @returns The login button that can be clicked in the current viewport.
- */
-async function getVisibleLoginButton(page: Page) {
-    const desktopLoginButton = page.getByRole('button', { name: 'Log in' });
-    if (await desktopLoginButton.isVisible()) {
-        return desktopLoginButton;
-    }
-
-    const mobileMenuButton = page.getByRole('banner').getByRole('button', { name: 'Menu' });
-    await expect(mobileMenuButton).toBeVisible();
-    await mobileMenuButton.click();
-
-    const mobileNavigation = page.getByRole('navigation', { name: 'Menu' });
-    await expect(mobileNavigation).toBeVisible();
-
-    const mobileLoginButton = mobileNavigation.getByRole('button', { name: 'Log in' });
-    await expect(mobileLoginButton).toBeVisible();
-    return mobileLoginButton;
-}
-
-/**
  * Opens the login dialog from the header.
  *
  * @param page - Current Playwright page.
  */
 export async function openLoginDialog(page: Page): Promise<void> {
-    const loginButton = await getVisibleLoginButton(page);
+    const loginButton = page.getByRole('button', { name: 'Log in' });
+    await expect(loginButton).toBeVisible();
 
     let lastError: unknown = null;
     for (let attempt = 0; attempt < LOGIN_DIALOG_OPEN_RETRIES; attempt++) {
@@ -74,27 +51,7 @@ export async function loginAsAdmin(page: Page): Promise<void> {
     await page.getByLabel('Password').fill(E2E_ADMIN_PASSWORD);
     await page.getByLabel('Password').press('Enter');
     await expect(page.getByLabel('Username')).toBeHidden();
-    await expect
-        .poll(async () => {
-            return await page.evaluate(async () => {
-                const response = await fetch('/api/profile');
-                if (!response.ok) {
-                    return null;
-                }
-
-                const payload = (await response.json()) as {
-                    username?: string;
-                    isAdmin?: boolean;
-                };
-
-                if (!payload.isAdmin) {
-                    return null;
-                }
-
-                return payload.username ?? null;
-            });
-        })
-        .toBe(E2E_ADMIN_USERNAME);
+    await expect(page.getByRole('button', { name: /admin/i })).toBeVisible();
 }
 
 /**

@@ -2,7 +2,6 @@ import type { LucideIcon } from 'lucide-react';
 import type { useChatEnterBehaviorPreferences } from '../../ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
 import type { useMetadataFlags } from '../../MetadataFlags/MetadataFlagsContext';
 import type { useBrowserPushNotifications } from '../../PushNotifications/BrowserPushNotificationsProvider';
-import type { useAppearance } from '../../Appearance/AppearanceProvider';
 import type { useServerLanguage } from '../../ServerLanguage/ServerLanguageProvider';
 import type { useSoundSystem } from '../../SoundSystemProvider/SoundSystemProvider';
 
@@ -64,20 +63,6 @@ export type ControlPanelLanguage = ReturnType<typeof useServerLanguage>['languag
  * @private function of ControlPanelContent
  */
 export type ControlPanelAvailableLanguages = ReturnType<typeof useServerLanguage>['availableLanguages'];
-
-/**
- * Shared appearance preference exposed by the appearance provider.
- *
- * @private function of ControlPanelContent
- */
-export type ControlPanelAppearance = ReturnType<typeof useAppearance>['appearance'];
-
-/**
- * Shared resolved light/dark appearance exposed by the appearance provider.
- *
- * @private function of ControlPanelContent
- */
-export type ControlPanelResolvedAppearance = ReturnType<typeof useAppearance>['resolvedAppearance'];
 
 /**
  * Visual emphasis variants shared by control-panel chips and tiles.
@@ -182,7 +167,6 @@ export type ControlPanelContentState = {
     readonly feedbackSubtitle: string;
     readonly summaryBadges: ReadonlyArray<ControlPanelSummaryBadge>;
     readonly toggleTiles: ReadonlyArray<ControlPanelToggleTileState>;
-    readonly appearanceSection: ControlPanelSelectSectionState | null;
     readonly languageSection: ControlPanelSelectSectionState | null;
     readonly chatVisualModeSection: ControlPanelSelectSectionState | null;
     readonly chatEnterBehaviorSection: ControlPanelEnterBehaviorSectionState;

@@ -1,12 +1,9 @@
 import { Bell, EyeOff, Sparkles, SpeakerIcon, Vibrate } from 'lucide-react';
-import { createAppearancePreferenceOptions, getAppearanceLabel } from '../../Appearance/appearanceLabels';
 import { CHAT_VISUAL_MODES, type ChatVisualMode } from '../../../constants/chatVisualMode';
 import { getChatEnterBehaviorStateLabel } from '../../ChatEnterBehavior/chatEnterBehaviorTranslations';
 import type {
-    ControlPanelAppearance,
     ControlPanelAvailableLanguages,
     ControlPanelContentState,
-    ControlPanelResolvedAppearance,
     ControlPanelLanguage,
     ControlPanelNotificationPermission,
     ControlPanelNotificationState,
@@ -55,10 +52,6 @@ type CreateControlPanelContentStateProps = {
     readonly onToggleNotifications: () => void;
     readonly onToggleSelfLearning: () => void;
     readonly onTogglePrivateMode: () => void;
-    readonly appearanceSelectId: string;
-    readonly appearance: ControlPanelAppearance;
-    readonly resolvedAppearance: ControlPanelResolvedAppearance;
-    readonly onAppearanceChange: (nextValue: string) => void;
     readonly languageSelectId: string;
     readonly language: ControlPanelLanguage;
     readonly availableLanguages: ControlPanelAvailableLanguages;
@@ -97,10 +90,6 @@ export function createControlPanelContentState({
     onToggleNotifications,
     onToggleSelfLearning,
     onTogglePrivateMode,
-    appearanceSelectId,
-    appearance,
-    resolvedAppearance,
-    onAppearanceChange,
     languageSelectId,
     language,
     availableLanguages,
@@ -128,7 +117,6 @@ export function createControlPanelContentState({
     });
     const soundStateLabel = resolveControlPanelToggleStateLabel(t, soundToggle.isEnabled);
     const vibrationStateLabel = resolveControlPanelToggleStateLabel(t, vibrationToggle.isEnabled);
-    const activeAppearanceLabel = getAppearanceLabel(t, resolvedAppearance);
     const activeLanguageName = resolveControlPanelActiveLanguageName(availableLanguages, language);
     const chatEnterBehaviorStateLabel = getChatEnterBehaviorStateLabel(t, storedEnterBehavior);
     const activeChatVisualModeLabel = resolveControlPanelChatVisualModeLabel(t, chatVisualMode);
@@ -143,7 +131,6 @@ export function createControlPanelContentState({
             notificationState,
             soundStateLabel,
             isSoundEnabled: soundToggle.isEnabled,
-            activeAppearanceLabel,
             activeLanguageName,
             chatEnterBehaviorStateLabel,
             isEnterBehaviorLoading,
@@ -165,12 +152,6 @@ export function createControlPanelContentState({
             privateModeState,
             onTogglePrivateMode,
             t,
-        }),
-        appearanceSection: createControlPanelAppearanceSection({
-            selectId: appearanceSelectId,
-            t,
-            appearance,
-            onChange: onAppearanceChange,
         }),
         languageSection: createControlPanelLanguageSection({
             isAvailable: controlPanelOptionAvailability.language,
@@ -390,7 +371,10 @@ function resolveControlPanelActiveLanguageName(
  *
  * @private function of ControlPanelContent
  */
-function resolveControlPanelChatVisualModeLabel(t: ControlPanelTranslator, chatVisualMode: ChatVisualMode): string {
+function resolveControlPanelChatVisualModeLabel(
+    t: ControlPanelTranslator,
+    chatVisualMode: ChatVisualMode,
+): string {
     return chatVisualMode === CHAT_VISUAL_MODES.ARTICLE_MODE
         ? t('controlPanel.chatVisualModeOptionArticle')
         : t('controlPanel.chatVisualModeOptionBubble');
@@ -408,7 +392,6 @@ function createControlPanelSummaryBadges({
     notificationState,
     soundStateLabel,
     isSoundEnabled,
-    activeAppearanceLabel,
     activeLanguageName,
     chatEnterBehaviorStateLabel,
     isEnterBehaviorLoading,
@@ -421,7 +404,6 @@ function createControlPanelSummaryBadges({
     readonly notificationState: ControlPanelNotificationState;
     readonly soundStateLabel: string;
     readonly isSoundEnabled: boolean;
-    readonly activeAppearanceLabel: string;
     readonly activeLanguageName: string;
     readonly chatEnterBehaviorStateLabel: string;
     readonly isEnterBehaviorLoading: boolean;
@@ -455,12 +437,6 @@ function createControlPanelSummaryBadges({
                 tone: isSoundEnabled ? 'positive' : 'neutral',
             },
             {
-                key: 'appearance',
-                isAvailable: true,
-                label: activeAppearanceLabel,
-                tone: 'informative',
-            },
-            {
                 key: 'language',
                 isAvailable: controlPanelOptionAvailability.language,
                 label: activeLanguageName,
@@ -480,34 +456,6 @@ function createControlPanelSummaryBadges({
             },
         ] satisfies Array<ControlPanelSummaryBadge & { readonly isAvailable: boolean }>
     ).flatMap(({ isAvailable, ...badge }) => (isAvailable ? [badge] : []));
-}
-
-/**
- * Builds the state for the appearance select card.
- *
- * @private function of ControlPanelContent
- */
-function createControlPanelAppearanceSection({
-    selectId,
-    t,
-    appearance,
-    onChange,
-}: {
-    readonly selectId: string;
-    readonly t: ControlPanelTranslator;
-    readonly appearance: ControlPanelAppearance;
-    readonly onChange: (nextValue: string) => void;
-}): ControlPanelSelectSectionState {
-    return {
-        title: t('appearance.title'),
-        subtitle: t('appearance.subtitle'),
-        selectId,
-        selectLabel: t('appearance.selectLabel'),
-        value: appearance,
-        options: createAppearancePreferenceOptions(t),
-        helpText: t('appearance.help'),
-        onChange,
-    };
 }
 
 /**
