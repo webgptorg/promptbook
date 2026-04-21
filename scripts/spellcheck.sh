@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 cspell "src/**/*.{ts,tsx,js,jsx,md,json}" || {
     cat <<EOF

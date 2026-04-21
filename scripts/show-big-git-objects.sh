@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Source: https://stackoverflow.com/a/42544963
 
 git rev-list --objects --all |

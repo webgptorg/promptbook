@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 AUTHOR_LOGIN=$(printf '%s' "$VERCEL_GIT_COMMIT_AUTHOR_LOGIN" | tr '[:upper:]' '[:lower:]')
 AUTHOR_NAME=$(printf '%s' "$VERCEL_GIT_COMMIT_AUTHOR_NAME" | tr '[:upper:]' '[:lower:]')
