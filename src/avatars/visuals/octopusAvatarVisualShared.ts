@@ -66,6 +66,7 @@ type CreateOrganicOctopusTentacleShapesOptions = {
     readonly createRandom: (salt: string) => () => number;
     readonly timeMs: number;
     readonly saltPrefix: string;
+    readonly bodyPoints?: ReadonlyArray<Point>;
 };
 
 /**
@@ -189,19 +190,10 @@ export function traceSmoothClosedPath(
 export function createOrganicOctopusTentacleShapes(
     options: CreateOrganicOctopusTentacleShapesOptions,
 ): Array<OrganicTentacleShape> {
-    const {
-        size,
-        centerX,
-        centerY,
-        bodyRadius,
-        horizontalStretch,
-        tentacleCount,
-        shapePhase,
-        createRandom,
-        timeMs,
-        saltPrefix,
-    } = options;
+    const { size, centerX, centerY, bodyRadius, horizontalStretch, tentacleCount, shapePhase, createRandom, timeMs, saltPrefix, bodyPoints } =
+        options;
     const baseY = centerY + bodyRadius * 0.74;
+    const lowerBodyAnchorPoints = bodyPoints ? resolveTentacleBodyAnchorPoints(bodyPoints, centerY + bodyRadius * 0.04) : null;
 
     return Array.from({ length: tentacleCount }, (_, tentacleIndex) => {
         const tentacleRandom = createRandom(`${saltPrefix}-tentacle-${tentacleIndex}`);
@@ -215,10 +207,22 @@ export function createOrganicOctopusTentacleShapes(
         const curlDirection = centeredProgress === 0 ? (tentacleRandom() < 0.5 ? -1 : 1) : Math.sign(centeredProgress);
         const lateralReach = centeredProgress * size * (0.1 + tentacleRandom() * 0.1) + temporalSway;
         const tipReach = curlDirection * size * (0.025 + tentacleRandom() * 0.07);
-        const startPoint = {
-            x: centerX + centeredProgress * bodyRadius * horizontalStretch * 1.52,
-            y: baseY + Math.abs(centeredProgress) * size * 0.012 + tentacleRandom() * size * 0.01,
-        };
+        const startYOffset = Math.abs(centeredProgress) * size * 0.012 + tentacleRandom() * size * 0.01;
+        const startPoint =
+            lowerBodyAnchorPoints && lowerBodyAnchorPoints.length >= 2
+                ? createInsetTentacleStartPoint({
+                      bodyPoints: lowerBodyAnchorPoints,
+                      anchorProgress: spreadProgress,
+                      centerX,
+                      centerY,
+                      bodyRadius,
+                      centeredProgress,
+                      startYOffset,
+                  })
+                : {
+                      x: centerX + centeredProgress * bodyRadius * horizontalStretch * 1.52,
+                      y: baseY + startYOffset,
+                  };
         const controlPointOne = {
             x: startPoint.x + centeredProgress * size * 0.045 + temporalSway * 0.4,
             y: startPoint.y + flowLength * (0.21 + tentacleRandom() * 0.08),
@@ -249,6 +253,83 @@ export function createOrganicOctopusTentacleShapes(
             sampleCount: 14 + Math.floor(tentacleRandom() * 6),
         };
     });
+}
+
+/**
+ * Narrows the body contour to lower anchor points that can safely host tentacle roots.
+ *
+ * @param bodyPoints Generated closed-loop body points.
+ * @param lowerBodyThresholdY Minimum Y coordinate considered part of the lower mantle.
+ * @returns Body points sorted from left to right across the lower silhouette.
+ *
+ * @private shared geometry helper of `octopus3AvatarVisual`
+ */
+function resolveTentacleBodyAnchorPoints(bodyPoints: ReadonlyArray<Point>, lowerBodyThresholdY: number): Array<Point> {
+    const lowerBodyPoints = bodyPoints.filter((bodyPoint) => bodyPoint.y >= lowerBodyThresholdY).sort((leftPoint, rightPoint) => leftPoint.x - rightPoint.x);
+
+    if (lowerBodyPoints.length >= 2) {
+        return lowerBodyPoints;
+    }
+
+    return [...bodyPoints].sort((leftPoint, rightPoint) => leftPoint.x - rightPoint.x);
+}
+
+/**
+ * Resolves one tentacle root from the provided lower body contour and nudges it inside the mantle.
+ *
+ * @param options Tentacle anchor options.
+ * @returns Tentacle start point safely embedded inside the body silhouette.
+ *
+ * @private shared geometry helper of `octopus3AvatarVisual`
+ */
+function createInsetTentacleStartPoint(options: {
+    readonly bodyPoints: ReadonlyArray<Point>;
+    readonly anchorProgress: number;
+    readonly centerX: number;
+    readonly centerY: number;
+    readonly bodyRadius: number;
+    readonly centeredProgress: number;
+    readonly startYOffset: number;
+}): Point {
+    const { bodyPoints, anchorProgress, centerX, centerY, bodyRadius, centeredProgress, startYOffset } = options;
+    const clampedAnchorProgress = Math.min(0.94, Math.max(0.06, anchorProgress));
+    const bodyAnchorPoint = interpolatePointAlongTentacleAnchors(bodyPoints, clampedAnchorProgress);
+    const inwardX = centerX - bodyAnchorPoint.x;
+    const inwardY = centerY + bodyRadius * 0.08 - bodyAnchorPoint.y;
+    const inwardLength = Math.hypot(inwardX, inwardY) || 1;
+    const insetDistance = bodyRadius * (0.12 + Math.abs(centeredProgress) * 0.05) + startYOffset * 0.32;
+
+    return {
+        x: bodyAnchorPoint.x + (inwardX / inwardLength) * insetDistance,
+        y: bodyAnchorPoint.y + (inwardY / inwardLength) * insetDistance,
+    };
+}
+
+/**
+ * Interpolates one left-to-right anchor point along the prepared lower body contour.
+ *
+ * @param bodyPoints Lower body contour points sorted from left to right.
+ * @param progress Interpolation progress in the range `[0, 1]`.
+ * @returns Interpolated anchor point.
+ *
+ * @private shared geometry helper of `octopus3AvatarVisual`
+ */
+function interpolatePointAlongTentacleAnchors(bodyPoints: ReadonlyArray<Point>, progress: number): Point {
+    if (bodyPoints.length === 1) {
+        return bodyPoints[0]!;
+    }
+
+    const anchorIndex = progress * (bodyPoints.length - 1);
+    const startIndex = Math.floor(anchorIndex);
+    const endIndex = Math.min(bodyPoints.length - 1, startIndex + 1);
+    const blend = anchorIndex - startIndex;
+    const startPoint = bodyPoints[startIndex]!;
+    const endPoint = bodyPoints[endIndex]!;
+
+    return {
+        x: startPoint.x + (endPoint.x - startPoint.x) * blend,
+        y: startPoint.y + (endPoint.y - startPoint.y) * blend,
+    };
 }
 
 /**

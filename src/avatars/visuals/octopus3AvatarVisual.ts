@@ -64,6 +64,7 @@ export const octopus3AvatarVisual: AvatarVisualDefinition = {
             createRandom,
             timeMs,
             saltPrefix: 'octopus3',
+            bodyPoints,
         });
 
         drawAvatarFrame(context, size, palette);

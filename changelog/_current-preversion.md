@@ -1,3 +1,9 @@
+-   Refined the built-in `Octopus3` avatar visual so tentacle roots now emerge cleanly from the mantle instead of appearing clipped or detached near the head:
+
+    -   Anchored `Octopus3` tentacle roots against the generated mantle silhouette instead of distributing them on a fixed horizontal band, so outer tentacles no longer start from visible empty space on some seeded avatars.
+    -   Kept the shared ribbon-tentacle generator backward compatible by making the new body-aware anchoring opt-in, limiting the visual change to `Octopus3` instead of shifting `AsciiOctopus` and other visuals at the same time.
+    -   Added deterministic geometry regression coverage that checks seeded `Octopus3` tentacle roots stay inside the generated mantle silhouette across multiple avatar seeds.
+
 -   Fixed Agents Server teammate-call popups so the internal TEAM conversation now renders immediately as a visible mocked chat instead of opening with an empty-looking blank panel:
 
     -   Kept the existing TEAM tool-call modal and shared `MockedChat` renderer, but prefilled the teammate exchange from the stored `conversation` payload so the popup shows the full internal discussion as soon as it opens.
