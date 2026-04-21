@@ -173,7 +173,12 @@ export function TeamToolCallModalContent(options: TeamToolCallModalContentOption
                             isSaveButtonEnabled={false}
                             isCopyButtonEnabled={false}
                             layout="STANDALONE"
-                            delayConfig={FAST_FLOW}
+                            delayConfig={{
+                                ...FAST_FLOW,
+                                beforeFirstMessage: 0,
+                                // Show the full internal exchange immediately so the modal never opens as a blank panel.
+                                showIntermediateMessages: messages.length - 1,
+                            }}
                             visualMode="BUBBLE_MODE"
                         />
                     </div>
