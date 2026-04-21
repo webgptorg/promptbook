@@ -1,6 +1,6 @@
 'use client';
 
-import { Building2, FolderPlusIcon, Gamepad2, Grid, Map, Network, type LucideIcon } from 'lucide-react';
+import { Building2, FolderPlusIcon, Gamepad2, Grid, Network, type LucideIcon } from 'lucide-react';
 import type { AgentOrganizationFolder } from '../../utils/agentOrganization/types';
 import type { HomeViewMode } from './homeViewMode';
 import { BreadcrumbDropTarget } from './BreadcrumbDropTarget';
@@ -82,7 +82,6 @@ const VIEW_MODE_BUTTONS: ReadonlyArray<ViewModeButton> = [
     { mode: 'LIST', label: 'List', title: 'List View', icon: Grid },
     { mode: 'GRAPH', label: 'Graph', title: 'Graph View', icon: Network },
     { mode: 'OFFICE', label: 'Office', title: 'Office View', icon: Building2 },
-    { mode: 'MAZE', label: 'Maze', title: 'Maze View', icon: Map },
     { mode: 'PIXEL_OFFICE', label: 'Pixel', title: 'Pixel Office View', icon: Gamepad2 },
 ];
 

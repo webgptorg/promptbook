@@ -90,7 +90,7 @@ function resolveAgentCount(
         return visibleAgentCount;
     }
 
-    if (viewMode === 'OFFICE' || viewMode === 'MAZE' || viewMode === 'PIXEL_OFFICE') {
+    if (viewMode === 'OFFICE' || viewMode === 'PIXEL_OFFICE') {
         return officeAgentCount;
     }
 
