@@ -13,9 +13,9 @@ import { buildToolCallChipText, getToolCallChipletInfo } from '../utils/getToolC
 import type { AgentProfileData } from '../utils/loadAgentProfile';
 import { resolveAgentProfileFallback, resolvePreferredAgentLabel } from '../utils/loadAgentProfile';
 import type { TeamToolResult } from '../utils/toolCallParsing';
+import styles from './Chat.module.css';
 import { TeamHeaderProfile } from './ChatToolCallModalComponents';
 import { renderToolCallDetails } from './renderToolCallDetails';
-import styles from './Chat.module.css';
 
 /**
  * Rendering options for TEAM tool-call modal content.
@@ -92,13 +92,6 @@ export function TeamToolCallModalContent(options: TeamToolCallModalContentOption
             });
         }
     }
-
-    const staticConversationDelayConfig = {
-        ...FAST_FLOW,
-        beforeFirstMessage: 0,
-        // Show the full internal exchange immediately so the modal never opens as a blank panel.
-        showIntermediateMessages: messages.length,
-    };
 
     const agentName =
         teamResult.conversation?.find((entry) => entry.sender === 'AGENT' || entry.role === 'AGENT')?.name || 'Agent';
@@ -180,7 +173,8 @@ export function TeamToolCallModalContent(options: TeamToolCallModalContentOption
                             isSaveButtonEnabled={false}
                             isCopyButtonEnabled={false}
                             visual="STANDALONE"
-                            delayConfig={staticConversationDelayConfig}
+                            delayConfig={FAST_FLOW}
+                            visualMode="BUBBLE_MODE"
                         />
                     </div>
                 ) : (
