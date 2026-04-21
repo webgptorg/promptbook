@@ -103,6 +103,7 @@ export function AgentProfile(props: AgentProfileProps) {
 
     // Dynamic Font Loading
     const fontString = meta.font;
+    const primaryFontFamily = fontString ? (fontString.split(',')[0] || '').trim().replace(/['"]/g, '') : '';
     let fontStyle: React.CSSProperties = {};
 
     if (fontString) {
@@ -118,11 +119,9 @@ export function AgentProfile(props: AgentProfileProps) {
 
     return (
         <>
-            {fontString && (
+            {primaryFontFamily && (
                 <style jsx global>{`
-                    @import url('https://fonts.googleapis.com/css2?family=${encodeURIComponent(
-                        fontString.split(',')[0].trim().replace(/['"]/g, ''),
-                    )}:wght@400;600;700&display=swap');
+                    @import url('https://fonts.googleapis.com/css2?family=${encodeURIComponent(primaryFontFamily)}:wght@400;600;700&display=swap');
                 `}</style>
             )}
 
@@ -185,24 +184,28 @@ export function AgentProfile(props: AgentProfileProps) {
                                         }}
                                     />
                                 ) : (
-                                    <div
-                                        className="flex h-full w-full items-end justify-center overflow-hidden px-2 pt-6 md:px-4 md:pt-10"
-                                    >
-                                        <AgentAvatar
-                                            agent={agent}
-                                            baseUrl={publicUrl}
-                                            surface="transparent"
-                                            size={420}
-                                            alt={fullname}
-                                            className="pointer-events-none select-none"
-                                            style={{
-                                                width: '110%',
-                                                height: 'auto',
-                                                maxWidth: '360px',
-                                                filter: 'drop-shadow(0 24px 30px rgba(0, 0, 0, 0.28))',
-                                                transform: 'translateY(6%)',
-                                            }}
-                                        />
+                                    <div className="flex h-full w-full items-center justify-center overflow-hidden p-4 md:p-8">
+                                        {/* Keep built-in visuals inside a centered square stage so different avatar renderers fit the tall profile card consistently. */}
+                                        <div
+                                            className="flex h-full w-full max-h-[80%] max-w-[80%] items-center justify-center"
+                                            style={{ aspectRatio: '1 / 1' }}
+                                        >
+                                            <AgentAvatar
+                                                agent={agent}
+                                                baseUrl={publicUrl}
+                                                surface="transparent"
+                                                size={420}
+                                                alt={fullname}
+                                                className="h-full w-full pointer-events-none select-none"
+                                                style={{
+                                                    width: '100%',
+                                                    height: '100%',
+                                                    maxWidth: '100%',
+                                                    maxHeight: '100%',
+                                                    filter: 'drop-shadow(0 24px 30px rgba(0, 0, 0, 0.28))',
+                                                }}
+                                            />
+                                        </div>
                                     </div>
                                 )}
 

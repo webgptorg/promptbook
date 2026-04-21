@@ -1,3 +1,9 @@
+-   Fixed Agents Server agent profile avatar visuals so built-in default avatars now render centered inside the tall profile card instead of sitting oversized near the bottom edge:
+
+    -   Replaced the profile page's bottom-aligned built-in avatar layout with one centered square stage, so default visuals such as the octopus family fit the card consistently without depending on visual-specific tweaks.
+    -   Reduced the built-in avatar footprint on the profile page while leaving thumbnail and explicit `META IMAGE` rendering behavior unchanged across other surfaces.
+    -   Added component regression coverage for the shared profile card layout so future avatar-visual changes keep the centered, size-constrained presentation.
+
 -   Added the new `USE DEEPSEARCH` commitment for Book 2.0 agents and Agents Server, so agents can explicitly request deeper web research instead of lightweight search:
 
     -   Added `USE DEEPSEARCH` to the commitment registry, fast agent-source parsing, and standalone Book language documentation, including aggregated system-message guidance and regression coverage for the new commitment.
