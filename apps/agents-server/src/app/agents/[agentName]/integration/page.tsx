@@ -230,7 +230,7 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
                 return <div>Connecting to agent...</div>;
             }
 
-            return <AgentChat agent={agent} visual="STANDALONE" />;
+            return <AgentChat agent={agent} layout="STANDALONE" />;
         }
     `);
 

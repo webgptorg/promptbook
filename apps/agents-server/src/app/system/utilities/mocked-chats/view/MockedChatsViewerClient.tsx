@@ -147,7 +147,7 @@ export function MockedChatsViewerClient(props: MockedChatsViewerClientProps) {
                 <MockedChat
                     key={`${selectedMockedChat.id}:${replayNonce}`}
                     title={selectedMockedChat.name}
-                    visual="STANDALONE"
+                    layout="STANDALONE"
                     messages={scriptedMessages}
                     participants={participants}
                     isResettable={!selectedMockedChat.settings.loopPlayback}

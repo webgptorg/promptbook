@@ -123,7 +123,13 @@ export function CanonicalAgentChatSurface({
                 agentDisplayName: state.agentDisplayName,
                 brandColorHex,
             }),
-        [brandColorHex, state.agentAvatarDefinition, state.agentAvatarSrc, state.agentAvatarVisualId, state.agentDisplayName],
+        [
+            brandColorHex,
+            state.agentAvatarDefinition,
+            state.agentAvatarSrc,
+            state.agentAvatarVisualId,
+            state.agentDisplayName,
+        ],
     );
     const { language, t: translateText } = useServerLanguage();
     const translations = useMemo(() => createCanonicalAgentChatTranslations(translateText), [translateText]);
@@ -215,7 +221,7 @@ export function CanonicalAgentChatSurface({
             timingTranslations={translations.timingTranslations}
             feedbackTranslations={translations.feedbackTranslations}
             buttonColor={brandColorHex}
-            visual="FULL_PAGE"
+            layout="FULL_PAGE"
             visualMode={chatVisualMode}
             effectConfigs={effectConfigs}
             soundSystem={soundSystem}

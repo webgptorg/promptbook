@@ -438,7 +438,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             onActionButton={executeQuickActionButton}
             sendMessage={sendMessage}
             speechRecognition={speechRecognition}
-            visual="FULL_PAGE"
+            layout="FULL_PAGE"
             visualMode={chatVisualMode}
             effectConfigs={effectConfigs}
             soundSystem={soundSystem}

@@ -43,7 +43,7 @@ export function ChatFeedbackThreadDialog({ selectedThread, onClose }: ChatFeedba
                     </button>
                 </div>
                 <div className="flex-1 overflow-hidden relative">
-                    <Chat messages={selectedThread} visual="STANDALONE" />
+                    <Chat messages={selectedThread} layout="STANDALONE" />
                 </div>
             </div>
         </div>

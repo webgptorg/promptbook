@@ -177,7 +177,7 @@ export default function ChatPreview() {
                 onReset={handleReset}
                 isFocusedOnLoad={false}
                 isSaveButtonEnabled={true}
-                visual="STANDALONE"
+                layout="STANDALONE"
                 {...(scenario === 'chatWithChildren'
                     ? {
                           children: (
