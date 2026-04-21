@@ -6,6 +6,7 @@ import type { OrganicTentacleRibbonPoint } from './octopusAvatarVisualShared';
 import {
     createOrganicOctopusBodyPoints,
     createOrganicOctopusTentacleShapes,
+    resolveOrganicEyeMotion,
     sampleOrganicTentacleRibbonPoints,
 } from './octopusAvatarVisualShared';
 
@@ -80,6 +81,11 @@ type AsciiOctopusLayout = {
     readonly bodyRadius: number;
     readonly horizontalStretch: number;
     readonly shapePhase: number;
+    readonly interaction: {
+        readonly gazeX: number;
+        readonly gazeY: number;
+        readonly intensity: number;
+    };
     readonly bodyPoints: ReadonlyArray<Point>;
     readonly sampledTentacles: ReadonlyArray<ReadonlyArray<OrganicTentacleRibbonPoint>>;
     readonly leftEye: EyeFeature;
@@ -120,13 +126,14 @@ type TentacleCoverage = {
 export const asciiOctopusAvatarVisual: AvatarVisualDefinition = {
     id: 'ascii-octopus',
     title: 'AsciiOctopus',
-    description: 'Morphing alien octopus translated into animated ASCII glyphs with deterministic blob and tentacle geometry.',
+    description: 'Morphing alien octopus translated into animated ASCII glyphs with responsive eyes and seeded geometry.',
     isAnimated: true,
-    render({ context, size, palette, createRandom, timeMs }) {
+    supportsPointerTracking: true,
+    render({ context, size, palette, createRandom, timeMs, interaction }) {
         const gridRandom = createRandom('ascii-octopus-grid');
         const staticRandom = createRandom('ascii-octopus-static');
         const gridMetrics = createAsciiGridMetrics(size, gridRandom);
-        const layout = createAsciiOctopusLayout(size, timeMs, createRandom, staticRandom);
+        const layout = createAsciiOctopusLayout(size, timeMs, createRandom, staticRandom, interaction);
 
         drawAvatarFrame(context, size, palette);
         drawAsciiBackdrop(context, size, palette, layout, timeMs);
@@ -247,7 +254,9 @@ function resolveAsciiGlyph(options: {
     timeMs: number;
 }): AsciiGlyphDescriptor | null {
     const { point, layout, palette, cellWidth, cellHeight, noise, timeMs } = options;
-    const eyeGlyphDescriptor = resolveEyeGlyph(point, layout.leftEye, palette, timeMs) || resolveEyeGlyph(point, layout.rightEye, palette, timeMs);
+    const eyeGlyphDescriptor =
+        resolveEyeGlyph(point, layout.leftEye, layout.interaction, palette, timeMs) ||
+        resolveEyeGlyph(point, layout.rightEye, layout.interaction, palette, timeMs);
 
     if (eyeGlyphDescriptor) {
         return eyeGlyphDescriptor;
@@ -305,11 +314,21 @@ function resolveAsciiGlyph(options: {
 function resolveEyeGlyph(
     point: Point,
     eyeFeature: EyeFeature,
+    interaction: {
+        readonly gazeX: number;
+        readonly gazeY: number;
+        readonly intensity: number;
+    },
     palette: AvatarPalette,
     timeMs: number,
 ): AsciiGlyphDescriptor | null {
-    const pupilOffsetX = Math.sin(timeMs / 1280 + eyeFeature.phase) * eyeFeature.radiusX * 0.12;
-    const pupilOffsetY = Math.cos(timeMs / 940 + eyeFeature.phase) * eyeFeature.radiusY * 0.08;
+    const { pupilOffsetX, pupilOffsetY } = resolveOrganicEyeMotion({
+        radiusX: eyeFeature.radiusX,
+        radiusY: eyeFeature.radiusY,
+        timeMs,
+        phase: eyeFeature.phase,
+        interaction,
+    });
     const scleraDistance = measureRotatedEllipseDistance(
         point,
         eyeFeature.centerX,
@@ -572,9 +591,16 @@ function createAsciiOctopusLayout(
     timeMs: number,
     createRandom: (salt: string) => () => number,
     staticRandom: () => number,
+    interaction: {
+        readonly gazeX: number;
+        readonly gazeY: number;
+        readonly bodyOffsetX: number;
+        readonly bodyOffsetY: number;
+        readonly intensity: number;
+    },
 ): AsciiOctopusLayout {
-    const centerX = size * (0.5 + (staticRandom() - 0.5) * 0.02);
-    const centerY = size * (0.41 + staticRandom() * 0.05);
+    const centerX = size * (0.5 + (staticRandom() - 0.5) * 0.02) + interaction.bodyOffsetX * size * 0.05;
+    const centerY = size * (0.41 + staticRandom() * 0.05) + interaction.bodyOffsetY * size * 0.035;
     const bodyRadius = size * (0.195 + staticRandom() * 0.05);
     const horizontalStretch = 1.08 + staticRandom() * 0.22;
     const verticalStretch = 0.88 + staticRandom() * 0.14;
@@ -614,6 +640,7 @@ function createAsciiOctopusLayout(
         createRandom,
         timeMs,
         saltPrefix: 'ascii-octopus',
+        bodyPoints,
     });
     const sampledTentacles = tentacleShapes.map(sampleOrganicTentacleRibbonPoints);
     const leftEye = {
@@ -636,7 +663,7 @@ function createAsciiOctopusLayout(
         { x: centerX - size * 0.074, y: centerY + size * 0.092 },
         {
             x: centerX,
-            y: centerY + size * (0.142 + Math.sin(timeMs / 620 + shapePhase) * 0.016),
+            y: centerY + size * (0.142 + Math.sin(timeMs / 620 + shapePhase) * 0.016) + interaction.gazeY * size * 0.012,
         },
         { x: centerX + size * 0.074, y: centerY + size * 0.092 },
         12,
@@ -669,6 +696,7 @@ function createAsciiOctopusLayout(
         bodyRadius,
         horizontalStretch,
         shapePhase,
+        interaction,
         bodyPoints,
         sampledTentacles,
         leftEye,

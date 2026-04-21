@@ -1,3 +1,9 @@
+-   Improved built-in agent avatar visuals so the default animated octopus now feels more alive and polished across Agents Server and the utils avatar playground:
+
+    -   Added one shared avatar interaction layer in `src/avatars` that tracks desktop cursor and mobile touch position once, then feeds smoothed gaze/body motion into the live canvas renderers without duplicating behavior across Agents Server and utils preview surfaces.
+    -   Updated the octopus-family visuals, including the default `Octopus3` agent avatar, so their eyes now follow the viewer and the body subtly leans with the interaction while preserving the existing deterministic palette/shape generation.
+    -   Fixed visible animation resets caused by harmless React re-renders by keying the shared avatar animation loop off normalized avatar data instead of transient object identity, keeping the morphing loop continuous instead of snapping back to the start.
+
 -   Refined the built-in `Octopus3` avatar visual so tentacle roots now emerge cleanly from the mantle instead of appearing clipped or detached near the head:
 
     -   Anchored `Octopus3` tentacle roots against the generated mantle silhouette instead of distributing them on a fixed horizontal band, so outer tentacles no longer start from visible empty space on some seeded avatars.

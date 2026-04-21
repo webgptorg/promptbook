@@ -7,6 +7,7 @@ import {
     createOrganicOctopusBodyPoints,
     createOrganicOctopusTentacleShapes,
     getCubicBezierPoint,
+    resolveOrganicEyeMotion,
     sampleOrganicTentacleRibbonPoints,
     traceSmoothClosedPath,
 } from './octopusAvatarVisualShared';
@@ -19,12 +20,13 @@ import {
 export const octopus3AvatarVisual: AvatarVisualDefinition = {
     id: 'octopus3',
     title: 'Octopus3',
-    description: 'Gelatinous alien octopus with a morphing mantle, visible ribbon tentacles, and seeded facial features.',
+    description: 'Gelatinous alien octopus with a morphing mantle, responsive eyes, and visible ribbon tentacles.',
     isAnimated: true,
-    render({ context, size, palette, createRandom, timeMs }) {
+    supportsPointerTracking: true,
+    render({ context, size, palette, createRandom, timeMs, interaction }) {
         const staticRandom = createRandom('octopus3-static');
-        const centerX = size * (0.5 + (staticRandom() - 0.5) * 0.02);
-        const centerY = size * (0.41 + staticRandom() * 0.05);
+        const centerX = size * (0.5 + (staticRandom() - 0.5) * 0.02) + interaction.bodyOffsetX * size * 0.05;
+        const centerY = size * (0.41 + staticRandom() * 0.05) + interaction.bodyOffsetY * size * 0.035;
         const bodyRadius = size * (0.2 + staticRandom() * 0.045);
         const horizontalStretch = 1.08 + staticRandom() * 0.22;
         const verticalStretch = 0.9 + staticRandom() * 0.12;
@@ -137,6 +139,7 @@ export const octopus3AvatarVisual: AvatarVisualDefinition = {
             palette,
             timeMs,
             shapePhase,
+            interaction,
         );
         drawSeededEye(
             context,
@@ -148,13 +151,14 @@ export const octopus3AvatarVisual: AvatarVisualDefinition = {
             palette,
             timeMs,
             shapePhase + Math.PI / 4,
+            interaction,
         );
 
         context.beginPath();
         context.moveTo(centerX - size * 0.07, centerY + size * 0.09);
         context.quadraticCurveTo(
             centerX,
-            centerY + size * (0.14 + Math.sin(timeMs / 620 + shapePhase) * 0.016),
+            centerY + size * (0.14 + Math.sin(timeMs / 620 + shapePhase) * 0.016) + interaction.gazeY * size * 0.012,
             centerX + size * 0.07,
             centerY + size * 0.09,
         );
@@ -460,6 +464,7 @@ function drawMantleNodes(
  * @param palette Derived avatar palette.
  * @param timeMs Current animation time in milliseconds.
  * @param phase Seed-based animation phase.
+ * @param interaction Smoothed avatar interaction state.
  *
  * @private helper of `octopus3AvatarVisual`
  */
@@ -473,9 +478,19 @@ function drawSeededEye(
     palette: AvatarPalette,
     timeMs: number,
     phase: number,
+    interaction: {
+        readonly gazeX: number;
+        readonly gazeY: number;
+        readonly intensity: number;
+    },
 ): void {
-    const pupilOffsetX = Math.sin(timeMs / 1280 + phase) * radiusX * 0.12;
-    const pupilOffsetY = Math.cos(timeMs / 940 + phase) * radiusY * 0.08;
+    const { pupilOffsetX, pupilOffsetY } = resolveOrganicEyeMotion({
+        radiusX,
+        radiusY,
+        timeMs,
+        phase,
+        interaction,
+    });
 
     context.save();
     context.translate(centerX, centerY);
@@ -517,7 +532,12 @@ function drawSeededEye(
 
     context.beginPath();
     context.moveTo(-radiusX * 0.88, -radiusY * 0.08);
-    context.quadraticCurveTo(0, -radiusY * 0.9, radiusX * 0.88, -radiusY * 0.08);
+    context.quadraticCurveTo(
+        0,
+        -radiusY * (0.9 - interaction.gazeY * 0.16 + interaction.intensity * 0.08),
+        radiusX * 0.88,
+        -radiusY * 0.08,
+    );
     context.strokeStyle = `${palette.shadow}73`;
     context.lineWidth = radiusX * 0.16;
     context.lineCap = 'round';

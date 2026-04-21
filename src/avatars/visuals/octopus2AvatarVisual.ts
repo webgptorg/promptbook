@@ -2,7 +2,7 @@
 
 import { drawAvatarFrame } from '../avatarRenderingUtils';
 import type { AvatarPalette, AvatarVisualDefinition } from '../types/AvatarVisualDefinition';
-import { createOrganicOctopusBodyPoints, traceSmoothClosedPath } from './octopusAvatarVisualShared';
+import { createOrganicOctopusBodyPoints, resolveOrganicEyeMotion, traceSmoothClosedPath } from './octopusAvatarVisualShared';
 
 /**
  * Octopus2 avatar visual.
@@ -12,12 +12,13 @@ import { createOrganicOctopusBodyPoints, traceSmoothClosedPath } from './octopus
 export const octopus2AvatarVisual: AvatarVisualDefinition = {
     id: 'octopus2',
     title: 'Octopus2',
-    description: 'Organic alien octopus rendered as one continuously morphing blob with luminous eyes and soft inner motion.',
+    description: 'Organic alien octopus rendered as one continuously morphing blob with responsive luminous eyes.',
     isAnimated: true,
-    render({ context, size, palette, createRandom, timeMs }) {
+    supportsPointerTracking: true,
+    render({ context, size, palette, createRandom, timeMs, interaction }) {
         const staticRandom = createRandom('octopus2-static');
-        const centerX = size * 0.5;
-        const centerY = size * (0.48 + staticRandom() * 0.03);
+        const centerX = size * 0.5 + interaction.bodyOffsetX * size * 0.042;
+        const centerY = size * (0.48 + staticRandom() * 0.03) + interaction.bodyOffsetY * size * 0.028;
         const bodyRadius = size * (0.25 + staticRandom() * 0.035);
         const horizontalStretch = 1.04 + staticRandom() * 0.16;
         const verticalStretch = 0.94 + staticRandom() * 0.12;
@@ -105,14 +106,24 @@ export const octopus2AvatarVisual: AvatarVisualDefinition = {
         const eyeRadiusX = size * 0.072;
         const eyeRadiusY = size * 0.086;
 
-        drawAlienEye(context, centerX - eyeOffsetX, eyeCenterY, eyeRadiusX, eyeRadiusY, palette, timeMs, shapePhase);
-        drawAlienEye(context, centerX + eyeOffsetX, eyeCenterY, eyeRadiusX, eyeRadiusY, palette, timeMs, shapePhase + Math.PI / 5);
+        drawAlienEye(context, centerX - eyeOffsetX, eyeCenterY, eyeRadiusX, eyeRadiusY, palette, timeMs, shapePhase, interaction);
+        drawAlienEye(
+            context,
+            centerX + eyeOffsetX,
+            eyeCenterY,
+            eyeRadiusX,
+            eyeRadiusY,
+            palette,
+            timeMs,
+            shapePhase + Math.PI / 5,
+            interaction,
+        );
 
         context.beginPath();
         context.moveTo(centerX - size * 0.08, centerY + size * 0.12);
         context.quadraticCurveTo(
             centerX,
-            centerY + size * (0.175 + Math.sin(timeMs / 520 + shapePhase) * 0.012),
+            centerY + size * (0.175 + Math.sin(timeMs / 520 + shapePhase) * 0.012) + interaction.gazeY * size * 0.01,
             centerX + size * 0.08,
             centerY + size * 0.12,
         );
@@ -223,6 +234,7 @@ function drawLowerSuckers(
  * @param palette Derived avatar palette.
  * @param timeMs Current animation time in milliseconds.
  * @param phase Seed-based animation phase.
+ * @param interaction Smoothed avatar interaction state.
  *
  * @private helper of `octopus2AvatarVisual`
  */
@@ -235,9 +247,20 @@ function drawAlienEye(
     palette: AvatarPalette,
     timeMs: number,
     phase: number,
+    interaction: {
+        readonly gazeX: number;
+        readonly gazeY: number;
+        readonly intensity: number;
+    },
 ): void {
-    const pupilOffsetX = Math.sin(timeMs / 1300 + phase) * radiusX * 0.12;
-    const pupilOffsetY = Math.cos(timeMs / 970 + phase) * radiusY * 0.1;
+    const { pupilOffsetX, pupilOffsetY } = resolveOrganicEyeMotion({
+        radiusX,
+        radiusY,
+        timeMs,
+        phase,
+        interaction,
+        autonomousDriftRatioY: 0.1,
+    });
 
     context.save();
     context.beginPath();

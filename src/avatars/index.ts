@@ -5,7 +5,9 @@ export { createAvatarDefinitionFromAgentBasicInformation } from './avatarRenderi
 export { AVATAR_VISUALS, getAvatarVisualById } from './visuals/avatarVisualRegistry';
 export type { AvatarDefinition } from './types/AvatarDefinition';
 export type {
+    AvatarInteractionState,
     AvatarPalette,
+    AvatarPointerType,
     AvatarProps,
     AvatarVisual,
     AvatarVisualDefinition,

@@ -1,5 +1,7 @@
 /* eslint-disable no-magic-numbers */
 
+import type { AvatarInteractionState } from '../types/AvatarVisualDefinition';
+
 // Note: [💞] Ignore a discrepancy between file name and entity name
 
 /**
@@ -82,6 +84,23 @@ export type OrganicTentacleRibbonPoint = {
     readonly width: number;
     readonly progress: number;
 };
+
+/**
+ * One resolved eye-motion sample shared by the octopus-family renderers.
+ *
+ * @private shared geometry helper of octopus avatar visuals
+ */
+export type OrganicEyeMotion = {
+    readonly pupilOffsetX: number;
+    readonly pupilOffsetY: number;
+};
+
+/**
+ * Minimal interaction subset needed to steer octopus-eye pupils.
+ *
+ * @private shared geometry helper of octopus avatar visuals
+ */
+type OrganicEyeInteraction = Pick<AvatarInteractionState, 'gazeX' | 'gazeY' | 'intensity'>;
 
 /**
  * Builds a smoothly morphing octopus-like silhouette from deterministic parameters.
@@ -380,6 +399,46 @@ export function sampleOrganicTentacleRibbonPoints(tentacleShape: OrganicTentacle
             progress,
         };
     });
+}
+
+/**
+ * Resolves smooth pupil offsets that blend autonomous idle drift with live viewer tracking.
+ *
+ * @param options Eye motion options.
+ * @returns Resolved pupil offsets.
+ *
+ * @private shared geometry helper of octopus avatar visuals
+ */
+export function resolveOrganicEyeMotion(options: {
+    readonly radiusX: number;
+    readonly radiusY: number;
+    readonly timeMs: number;
+    readonly phase: number;
+    readonly interaction: OrganicEyeInteraction;
+    readonly autonomousDriftRatioX?: number;
+    readonly autonomousDriftRatioY?: number;
+}): OrganicEyeMotion {
+    const {
+        radiusX,
+        radiusY,
+        timeMs,
+        phase,
+        interaction,
+        autonomousDriftRatioX = 0.12,
+        autonomousDriftRatioY = 0.08,
+    } = options;
+    const autonomousOffsetX = Math.sin(timeMs / 1280 + phase) * radiusX * autonomousDriftRatioX;
+    const autonomousOffsetY = Math.cos(timeMs / 940 + phase) * radiusY * autonomousDriftRatioY;
+    const interactionBlend = Math.min(1, interaction.intensity * 0.9);
+
+    return {
+        pupilOffsetX:
+            autonomousOffsetX * (1 - interactionBlend) +
+            interaction.gazeX * radiusX * (0.18 + interactionBlend * 0.18),
+        pupilOffsetY:
+            autonomousOffsetY * (1 - interactionBlend) +
+            interaction.gazeY * radiusY * (0.16 + interactionBlend * 0.16),
+    };
 }
 
 /**

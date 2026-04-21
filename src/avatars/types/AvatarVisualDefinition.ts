@@ -33,6 +33,28 @@ export type AvatarPalette = {
 export type AvatarSurfaceStyle = 'framed' | 'transparent';
 
 /**
+ * Pointer source currently driving avatar interaction.
+ *
+ * @private shared contract for the avatar rendering system
+ */
+export type AvatarPointerType = 'idle' | 'mouse' | 'touch' | 'pen';
+
+/**
+ * Smoothed interaction state forwarded to animated avatar visuals.
+ *
+ * @private shared contract for the avatar rendering system
+ */
+export type AvatarInteractionState = {
+    readonly gazeX: number;
+    readonly gazeY: number;
+    readonly bodyOffsetX: number;
+    readonly bodyOffsetY: number;
+    readonly intensity: number;
+    readonly isPointerActive: boolean;
+    readonly pointerType: AvatarPointerType;
+};
+
+/**
  * Rendering context forwarded to a single avatar visual.
  *
  * @private shared contract for the avatar rendering system
@@ -47,6 +69,7 @@ export type AvatarVisualRenderContext = {
     readonly palette: AvatarPalette;
     readonly createRandom: (salt: string) => () => number;
     readonly surface: AvatarSurfaceStyle;
+    readonly interaction: AvatarInteractionState;
 };
 
 /**
@@ -66,6 +89,7 @@ export type AvatarVisualDefinition = {
     readonly title: string;
     readonly description: string;
     readonly isAnimated: boolean;
+    readonly supportsPointerTracking?: boolean;
     readonly render: AvatarVisual;
 };
 
@@ -124,4 +148,5 @@ export type RenderAvatarVisualOptions = {
     readonly size: number;
     readonly timeMs: number;
     readonly devicePixelRatio?: number;
+    readonly interaction?: AvatarInteractionState;
 };

@@ -4,6 +4,7 @@ import {
     normalizeAvatarDefinition,
     prepareAvatarCanvas,
 } from './avatarRenderingUtils';
+import { createIdleAvatarInteractionState } from './avatarInteractionUtils';
 import { getAvatarVisualById } from './visuals/avatarVisualRegistry';
 import type { RenderAvatarVisualOptions } from './types/AvatarVisualDefinition';
 
@@ -36,5 +37,6 @@ export function renderAvatarVisual(options: RenderAvatarVisualOptions): void {
         palette: createAvatarPalette(normalizedAvatarDefinition, surface),
         createRandom: createAvatarRandomFactory(normalizedAvatarDefinition),
         surface,
+        interaction: options.interaction || createIdleAvatarInteractionState(),
     });
 }

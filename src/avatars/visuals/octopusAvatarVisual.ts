@@ -2,6 +2,7 @@
 
 import { drawAvatarFrame, pickRandomItem } from '../avatarRenderingUtils';
 import type { AvatarVisualDefinition } from '../types/AvatarVisualDefinition';
+import { resolveOrganicEyeMotion } from './octopusAvatarVisualShared';
 
 /**
  * Octopus avatar visual.
@@ -11,15 +12,16 @@ import type { AvatarVisualDefinition } from '../types/AvatarVisualDefinition';
 export const octopusAvatarVisual: AvatarVisualDefinition = {
     id: 'octopus',
     title: 'Octopus',
-    description: 'Playful underwater mascot with animated tentacles, bubbles, and seed-based markings.',
+    description: 'Playful underwater mascot with cursor-following eyes, animated tentacles, bubbles, and seeded markings.',
     isAnimated: true,
-    render({ context, size, palette, createRandom, timeMs }) {
+    supportsPointerTracking: true,
+    render({ context, size, palette, createRandom, timeMs, interaction }) {
         const staticRandom = createRandom('octopus-static');
         const bubbleRandom = createRandom('octopus-bubbles');
         const bubbleCount = 8;
         const bubbleRadiusBase = size * 0.02;
-        const centerX = size * 0.5;
-        const centerY = size * 0.42;
+        const centerX = size * 0.5 + interaction.bodyOffsetX * size * 0.035;
+        const centerY = size * 0.42 + interaction.bodyOffsetY * size * 0.024;
         const headRadius = size * (0.19 + staticRandom() * 0.03);
         const mantleHeight = headRadius * 1.18;
         const tentacleLength = size * (0.18 + staticRandom() * 0.06);
@@ -114,12 +116,10 @@ export const octopusAvatarVisual: AvatarVisualDefinition = {
 
         const eyeOffsetX = headRadius * 0.42;
         const eyeY = centerY + headRadius * 0.04;
-        const pupilDriftX = Math.sin(timeMs / 850) * headRadius * 0.05;
-        const pupilDriftY = Math.cos(timeMs / 930) * headRadius * 0.03;
         const eyeRadius = headRadius * 0.22;
 
-        drawEye(context, centerX - eyeOffsetX, eyeY, eyeRadius, palette, pupilDriftX, pupilDriftY);
-        drawEye(context, centerX + eyeOffsetX, eyeY, eyeRadius, palette, pupilDriftX, pupilDriftY);
+        drawEye(context, centerX - eyeOffsetX, eyeY, eyeRadius, palette, timeMs, interaction, 0);
+        drawEye(context, centerX + eyeOffsetX, eyeY, eyeRadius, palette, timeMs, interaction, Math.PI / 5);
 
         context.beginPath();
         context.arc(centerX - headRadius * 0.28, centerY + headRadius * 0.3, headRadius * 0.12, 0, Math.PI * 2);
@@ -145,8 +145,9 @@ export const octopusAvatarVisual: AvatarVisualDefinition = {
  * @param centerY Eye center Y coordinate.
  * @param radius Eye radius.
  * @param palette Derived avatar palette.
- * @param pupilDriftX Horizontal pupil drift.
- * @param pupilDriftY Vertical pupil drift.
+ * @param timeMs Current animation time in milliseconds.
+ * @param interaction Smoothed avatar interaction state.
+ * @param phase Seed-based phase offset.
  *
  * @private helper of `octopusAvatarVisual`
  */
@@ -156,21 +157,42 @@ function drawEye(
     centerY: number,
     radius: number,
     palette: { ink: string; shadow: string },
-    pupilDriftX: number,
-    pupilDriftY: number,
+    timeMs: number,
+    interaction: {
+        readonly gazeX: number;
+        readonly gazeY: number;
+        readonly intensity: number;
+    },
+    phase: number,
 ): void {
+    const { pupilOffsetX, pupilOffsetY } = resolveOrganicEyeMotion({
+        radiusX: radius,
+        radiusY: radius,
+        timeMs,
+        phase,
+        interaction,
+        autonomousDriftRatioX: 0.05,
+        autonomousDriftRatioY: 0.03,
+    });
+
     context.beginPath();
     context.arc(centerX, centerY, radius, 0, Math.PI * 2);
     context.fillStyle = '#ffffff';
     context.fill();
 
     context.beginPath();
-    context.arc(centerX + pupilDriftX, centerY + pupilDriftY, radius * 0.45, 0, Math.PI * 2);
+    context.arc(centerX + pupilOffsetX, centerY + pupilOffsetY, radius * 0.45, 0, Math.PI * 2);
     context.fillStyle = palette.ink;
     context.fill();
 
     context.beginPath();
-    context.arc(centerX + pupilDriftX - radius * 0.12, centerY + pupilDriftY - radius * 0.12, radius * 0.15, 0, Math.PI * 2);
+    context.arc(
+        centerX + pupilOffsetX - radius * 0.12,
+        centerY + pupilOffsetY - radius * 0.12,
+        radius * 0.15,
+        0,
+        Math.PI * 2,
+    );
     context.fillStyle = '#ffffff';
     context.fill();
 
