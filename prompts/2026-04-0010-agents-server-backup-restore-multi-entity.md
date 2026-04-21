@@ -20,7 +20,7 @@
 
 ---
 
-[ ] !
+[x] $2.62 an hour by OpenAI Codex `gpt-5.4`
 
 [🧰🌌] Enhance Agents Server backup page to be less internal database focuses
 
@@ -37,3 +37,4 @@
 -   **Zprávy** - Each message should be backed up separately in a JSON file
 -   **Security and access** - Do not include any sensitive information in the backup (e.g., passwords and tokens from wallet)
 -   **Caches and runtime state** - Do not include any caches or runtime state in the backup
+

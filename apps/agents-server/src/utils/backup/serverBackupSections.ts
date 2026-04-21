@@ -14,6 +14,11 @@ export type ServerBackupSectionKey =
     | 'caches';
 
 /**
+ * Selection mode exposed for one backup section.
+ */
+export type ServerBackupSectionSelectionKind = 'exportable' | 'excluded';
+
+/**
  * One backup-section definition shared between the UI and the server export route.
  */
 export type ServerBackupSectionDefinition = {
@@ -30,13 +35,17 @@ export type ServerBackupSectionDefinition = {
      */
     readonly description: string;
     /**
+     * Whether admins can actively include this section in the archive.
+     */
+    readonly selectionKind: ServerBackupSectionSelectionKind;
+    /**
      * Directory name used inside the generated ZIP.
      */
     readonly directoryName: string;
     /**
-     * Tables exported as JSON files for this section.
+     * Legacy tables preserved for sections that intentionally keep the existing structure.
      */
-    readonly tables: ReadonlyArray<keyof AgentsServerDatabase['public']['Tables']>;
+    readonly tables?: ReadonlyArray<keyof AgentsServerDatabase['public']['Tables']>;
     /**
      * Whether this section also includes the books tree export.
      */
@@ -50,15 +59,16 @@ export const SERVER_BACKUP_SECTION_DEFINITIONS: ReadonlyArray<ServerBackupSectio
     {
         key: 'metadata',
         label: 'Metadata and limits',
-        description: 'Server-wide metadata rows and explicit limit overrides.',
+        description: 'Server-wide settings and admin-defined limits exported as one JSON key-value file.',
+        selectionKind: 'exportable',
         directoryName: 'metadata',
-        tables: ['Metadata', 'ServerLimit'],
         includesBooks: false,
     },
     {
         key: 'agents',
         label: 'Agents and books',
-        description: 'Agents, folders, version history, externals, and the exported `.book` files.',
+        description: 'Agents, folders, version history, externals, and the existing `.book` backup tree.',
+        selectionKind: 'exportable',
         directoryName: 'agents',
         tables: ['Agent', 'AgentFolder', 'AgentHistory', 'AgentExternals'],
         includesBooks: true,
@@ -66,49 +76,49 @@ export const SERVER_BACKUP_SECTION_DEFINITIONS: ReadonlyArray<ServerBackupSectio
     {
         key: 'conversations',
         label: 'Conversations and feedback',
-        description: 'User chat threads, chat jobs, raw chat history, and feedback records.',
+        description: 'One JSON chat export per conversation plus feedback threads and feedback details.',
+        selectionKind: 'exportable',
         directoryName: 'conversations',
-        tables: ['UserChat', 'UserChatJob', 'ChatHistory', 'ChatFeedback'],
         includesBooks: false,
     },
     {
         key: 'users',
         label: 'Users and user data',
-        description: 'Users plus related memories, structured user data, and wallet records.',
+        description: 'One JSON file per user with profile, memories, structured data, and redacted wallet records.',
+        selectionKind: 'exportable',
         directoryName: 'users',
-        tables: ['User', 'UserMemory', 'UserData', 'Wallet'],
         includesBooks: false,
     },
     {
         key: 'files',
         label: 'Files and media',
-        description: 'Uploaded files, generated images, and vector-store source hash records.',
+        description: 'Original uploaded files and generated media, each paired with restore metadata.',
+        selectionKind: 'exportable',
         directoryName: 'files',
-        tables: ['File', 'Image', 'VectorStoreKnowledgeSourceHashes'],
         includesBooks: false,
     },
     {
         key: 'messages',
-        label: 'Messages',
-        description: 'System messages and their send-attempt delivery records.',
+        label: 'Zpravy',
+        description: 'One JSON file per inbound or outbound message with delivery history.',
+        selectionKind: 'exportable',
         directoryName: 'messages',
-        tables: ['Message', 'MessageSendAttempt'],
         includesBooks: false,
     },
     {
         key: 'security',
         label: 'Security and access',
-        description: 'API tokens and other access-control records used by the server.',
+        description: 'Sensitive secrets such as tokens and passwords are intentionally excluded from backups.',
+        selectionKind: 'excluded',
         directoryName: 'security',
-        tables: ['ApiTokens'],
         includesBooks: false,
     },
     {
         key: 'caches',
         label: 'Caches and runtime state',
-        description: 'LLM caches and runtime coordination tables that may help restore server state.',
+        description: 'Runtime caches and coordination state are intentionally excluded from backups.',
+        selectionKind: 'excluded',
         directoryName: 'caches',
-        tables: ['LlmCache', 'OpenAiAssistantCache', 'GenerationLock'],
         includesBooks: false,
     },
 ] as const;
@@ -117,6 +127,13 @@ export const SERVER_BACKUP_SECTION_DEFINITIONS: ReadonlyArray<ServerBackupSectio
  * All available backup section keys in canonical display/export order.
  */
 export const ALL_SERVER_BACKUP_SECTION_KEYS = SERVER_BACKUP_SECTION_DEFINITIONS.map(({ key }) => key);
+
+/**
+ * Section keys enabled by default when the admin downloads a full backup.
+ */
+export const DEFAULT_SERVER_BACKUP_SECTION_KEYS = SERVER_BACKUP_SECTION_DEFINITIONS.filter(
+    ({ selectionKind }) => selectionKind === 'exportable',
+).map(({ key }) => key);
 
 /**
  * Fast lookup table for section definitions.
@@ -149,7 +166,7 @@ export function normalizeServerBackupSectionKeys(
     const requestedSectionKeySet = new Set(requestedSectionKeys.filter(isServerBackupSectionKey));
 
     if (requestedSectionKeySet.size === 0) {
-        return ALL_SERVER_BACKUP_SECTION_KEYS;
+        return DEFAULT_SERVER_BACKUP_SECTION_KEYS;
     }
 
     return ALL_SERVER_BACKUP_SECTION_KEYS.filter((sectionKey) => requestedSectionKeySet.has(sectionKey));

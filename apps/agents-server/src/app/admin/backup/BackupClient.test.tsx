@@ -3,7 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { BackupClient } from './BackupClient';
-import { ALL_SERVER_BACKUP_SECTION_KEYS } from '../../../utils/backup/serverBackupSections';
+import { DEFAULT_SERVER_BACKUP_SECTION_KEYS } from '../../../utils/backup/serverBackupSections';
 
 /**
  * Small deferred helper used to keep the backup request pending during loading-state assertions.
@@ -56,12 +56,14 @@ describe('BackupClient', () => {
         render(<BackupClient />);
 
         const metadataCheckbox = screen.getByRole('checkbox', { name: /^Metadata and limits/ }) as HTMLInputElement;
-        const cachesCheckbox = screen.getByRole('checkbox', { name: /^Caches and runtime state/ }) as HTMLInputElement;
+        const messagesCheckbox = screen.getByRole('checkbox', { name: /^Zpravy/ }) as HTMLInputElement;
         expect(metadataCheckbox.checked).toBe(true);
-        expect(cachesCheckbox.checked).toBe(true);
+        expect(messagesCheckbox.checked).toBe(true);
+        expect(screen.getByText('Always excluded')).toBeTruthy();
+        expect(screen.getByText('Caches and runtime state')).toBeTruthy();
 
-        fireEvent.click(cachesCheckbox);
-        expect(cachesCheckbox.checked).toBe(false);
+        fireEvent.click(messagesCheckbox);
+        expect(messagesCheckbox.checked).toBe(false);
 
         fireEvent.click(screen.getByRole('button', { name: 'Download selected backup' }));
 
@@ -72,7 +74,7 @@ describe('BackupClient', () => {
         const requestUrl = new URL(String(fetchMock.mock.calls[0]![0]));
         expect(requestUrl.pathname).toBe('/api/admin/backups/server');
         expect(requestUrl.searchParams.getAll('section')).toEqual(
-            ALL_SERVER_BACKUP_SECTION_KEYS.filter((sectionKey) => sectionKey !== 'caches'),
+            DEFAULT_SERVER_BACKUP_SECTION_KEYS.filter((sectionKey) => sectionKey !== 'messages'),
         );
     });
 

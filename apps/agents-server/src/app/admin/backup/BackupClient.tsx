@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import {
-    ALL_SERVER_BACKUP_SECTION_KEYS,
+    DEFAULT_SERVER_BACKUP_SECTION_KEYS,
     SERVER_BACKUP_SECTION_DEFINITIONS,
     type ServerBackupSectionKey,
 } from '../../../utils/backup/serverBackupSections';
@@ -96,21 +96,27 @@ function downloadBlob(blob: Blob, filename: string): void {
  */
 function orderSelectedSectionKeys(selectedSectionKeys: ReadonlyArray<ServerBackupSectionKey>): Array<ServerBackupSectionKey> {
     const selectedSectionKeySet = new Set(selectedSectionKeys);
-    return ALL_SERVER_BACKUP_SECTION_KEYS.filter((sectionKey) => selectedSectionKeySet.has(sectionKey));
+    return DEFAULT_SERVER_BACKUP_SECTION_KEYS.filter((sectionKey) => selectedSectionKeySet.has(sectionKey));
 }
 
 /**
  * Admin UI for backup exports.
  */
 export function BackupClient() {
+    const exportableSectionDefinitions = SERVER_BACKUP_SECTION_DEFINITIONS.filter(
+        ({ selectionKind }) => selectionKind === 'exportable',
+    );
+    const excludedSectionDefinitions = SERVER_BACKUP_SECTION_DEFINITIONS.filter(
+        ({ selectionKind }) => selectionKind === 'excluded',
+    );
     const [isDownloading, setIsDownloading] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
-    const [selectedSectionKeys, setSelectedSectionKeys] = useState<Array<ServerBackupSectionKey>>([
-        ...ALL_SERVER_BACKUP_SECTION_KEYS,
-    ]);
+    const [selectedSectionKeys, setSelectedSectionKeys] = useState<Array<ServerBackupSectionKey>>(
+        [...DEFAULT_SERVER_BACKUP_SECTION_KEYS],
+    );
 
     const isSelectionEmpty = selectedSectionKeys.length === 0;
-    const isFullBackupSelected = selectedSectionKeys.length === ALL_SERVER_BACKUP_SECTION_KEYS.length;
+    const isFullBackupSelected = selectedSectionKeys.length === DEFAULT_SERVER_BACKUP_SECTION_KEYS.length;
     let downloadButtonLabel = 'Download selected backup';
     if (isDownloading) {
         downloadButtonLabel = 'Generating backup...';
@@ -175,22 +181,24 @@ export function BackupClient() {
             <div className="mt-20 max-w-3xl">
                 <h1 className="text-3xl text-gray-900 font-light">Backups</h1>
                 <p className="mt-2 text-sm text-gray-600">
-                    Export one ZIP archive containing the selected server data. The backup keeps the existing books export
-                    and adds JSON snapshots for the other chosen entities in the same file.
+                    Export one ZIP archive containing the data admins and users actually work with: settings, agents,
+                    chats, users, uploads, and messages. Internal database layouts, secrets, and caches are not the focus
+                    of this backup.
                 </p>
 
                 <section className="mt-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
                     <h2 className="text-lg font-medium text-gray-900">Download server backup</h2>
                     <p className="mt-2 text-sm text-gray-600">
                         All sections are enabled by default, so the standard download is a full backup. The generated ZIP
-                        also includes a <code className="rounded bg-gray-100 px-1 py-0.5 text-xs">manifest.json</code> file
-                        describing the selected sections.
+                        includes user-facing exports for the selected sections together with a{' '}
+                        <code className="rounded bg-gray-100 px-1 py-0.5 text-xs">manifest.json</code> file describing the
+                        archive contents.
                     </p>
 
                     <fieldset className="mt-6" disabled={isDownloading}>
                         <legend className="text-sm font-medium text-gray-900">Include in backup</legend>
                         <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                            {SERVER_BACKUP_SECTION_DEFINITIONS.map((sectionDefinition) => {
+                            {exportableSectionDefinitions.map((sectionDefinition) => {
                                 const checkboxId = `backup-section-${sectionDefinition.key}`;
                                 const isChecked = selectedSectionKeys.includes(sectionDefinition.key);
 
@@ -221,6 +229,18 @@ export function BackupClient() {
                             })}
                         </div>
                     </fieldset>
+
+                    <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
+                        <h3 className="text-sm font-medium text-amber-900">Always excluded</h3>
+                        <div className="mt-2 grid gap-3 sm:grid-cols-2">
+                            {excludedSectionDefinitions.map((sectionDefinition) => (
+                                <div key={sectionDefinition.key} className="rounded-md border border-amber-200 bg-white px-3 py-2">
+                                    <div className="text-sm font-medium text-gray-900">{sectionDefinition.label}</div>
+                                    <div className="mt-1 text-xs leading-5 text-gray-600">{sectionDefinition.description}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
 
                     <div className="mt-6 flex flex-wrap items-center gap-3">
                         <button

@@ -1,3 +1,9 @@
+-   Reworked the Agents Server backup download so the archive now follows user-facing data instead of raw database tables:
+
+    -   Flattened metadata and limits into one key-value JSON file, kept the existing agents/books layout, and changed conversations into per-chat JSON exports with sidecar metadata for feedback details.
+    -   Exported one JSON file per user with memories, structured user data, and wallet records redacted to omit secrets, while keeping uploaded files and generated media as original binaries paired with restore metadata sidecars.
+    -   Switched the backup page UI to selectable user-facing sections, moved security and cache/runtime parts into explicit "always excluded" notes, and exported messages as one JSON file per message with delivery history instead of raw send-attempt tables.
+
 -   Optimized Agents Server default avatar visuals so animated built-in avatars, especially the octopus family, use substantially less rendering work without changing their look or capabilities:
 
     -   Reworked the shared `src/avatars` runtime to use one global animation-frame scheduler, pause avatar animation when the canvas is off-screen, and keep pointer-tracking bounds cached between frames instead of forcing repeated layout reads for every live avatar.
