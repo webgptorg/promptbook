@@ -11,7 +11,6 @@ import { AgentCard } from './AgentCard';
 import { FolderCard } from './FolderCard';
 import { showAlert } from '../AsyncDialogs/asyncDialogs';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
-import { buildDefaultAgentRoutePath } from '../../utils/agentRouting/buildAgentRouteHref';
 import {
     buildFolderMaps,
     buildFolderPath,
@@ -207,7 +206,7 @@ export function RecycleBinList(props: RecycleBinListProps) {
                         key={agent.permanentId || agent.agentName}
                         agent={agent}
                         publicUrl={publicUrl}
-                        href={buildDefaultAgentRoutePath(agent.permanentId || agent.agentName)}
+                        href={`/agents/${encodeURIComponent(agent.permanentId || agent.agentName)}`}
                         isAdmin={canRestore}
                         onRestore={handleRestoreAgent}
                     />

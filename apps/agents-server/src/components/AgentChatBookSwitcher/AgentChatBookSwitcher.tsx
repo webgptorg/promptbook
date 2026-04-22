@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { MessageSquareIcon, NotebookPenIcon } from 'lucide-react';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
-import { buildAgentRoutePath, buildDefaultAgentRoutePath } from '../../utils/agentRouting/buildAgentRouteHref';
 
 /**
  * Allowed switches between an agent chat view and its knowledge book.
@@ -36,16 +35,14 @@ type AgentChatBookSwitcherProps = {
  */
 export function AgentChatBookSwitcher({ agentName, activeTab }: AgentChatBookSwitcherProps) {
     const { formatText } = useAgentNaming();
+    const encodedAgentName = encodeURIComponent(agentName);
     const navigationItems: AgentChatBookSwitcherTab[] = ['chat', 'book'];
 
     return (
         <div className="flex items-center gap-2">
             {navigationItems.map((tabId) => {
                 const isActive = tabId === activeTab;
-                const href =
-                    tabId === 'chat'
-                        ? buildDefaultAgentRoutePath(agentName)
-                        : buildAgentRoutePath(agentName, 'book');
+                const href = tabId === 'chat' ? `/agents/${encodedAgentName}` : `/agents/${encodedAgentName}/book`;
                 const Icon = tabId === 'chat' ? MessageSquareIcon : NotebookPenIcon;
                 const label = tabId === 'chat' ? formatText('Chat') : formatText('Source');
                 const baseStyles =

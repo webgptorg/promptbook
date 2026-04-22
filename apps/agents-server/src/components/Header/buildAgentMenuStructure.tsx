@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { buildFolderPath, getFolderPathSegments } from '../../utils/agentOrganization/folderPath';
 import type { AgentOrganizationAgent } from '../../utils/agentOrganization/types';
-import { buildDefaultAgentRoutePath } from '../../utils/agentRouting/buildAgentRouteHref';
 import { FolderAppearanceIcon } from '../FolderAppearance/FolderAppearanceIcon';
 import { AgentNameWithAvatar } from './AgentNameWithAvatar';
 import type {
@@ -240,7 +239,7 @@ function createFolderHref(folderId: number, folderById: Map<number, HeaderAgentM
  * @private function of Header
  */
 function createAgentHref(agent: HeaderAgentMenuAgent): string {
-    return buildDefaultAgentRoutePath(getAgentNavigationId(agent));
+    return `/agents/${encodeURIComponent(getAgentNavigationId(agent))}`;
 }
 
 /**

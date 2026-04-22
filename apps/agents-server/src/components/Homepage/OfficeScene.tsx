@@ -100,7 +100,7 @@ export function OfficeScene(props: OfficeSceneProps) {
                         metrics={sceneMetrics}
                         onHover={(event) => onAgentHover(event, agent.id)}
                         onLeave={onAgentLeave}
-                        onOpen={() => onAgentOpen(agent.chatHref)}
+                        onOpen={() => onAgentOpen(agent.profileHref)}
                     />
                 ))}
             </g>

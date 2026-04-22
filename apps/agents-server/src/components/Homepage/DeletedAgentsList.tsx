@@ -5,7 +5,6 @@ import { useState } from 'react';
 import { showAlert, showConfirm } from '../AsyncDialogs/asyncDialogs';
 import { AgentCard } from './AgentCard';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
-import { buildDefaultAgentRoutePath } from '../../utils/agentRouting/buildAgentRouteHref';
 
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 
@@ -80,7 +79,7 @@ export function DeletedAgentsList(props: DeletedAgentsListProps) {
                     key={agent.permanentId || agent.agentName}
                     agent={agent}
                     publicUrl={publicUrl.href}
-                    href={buildDefaultAgentRoutePath(agent.permanentId || agent.agentName)}
+                    href={`/agents/${encodeURIComponent(agent.permanentId || agent.agentName)}`}
                     isAdmin={isAdmin}
                     onRestore={handleRestore}
                 />

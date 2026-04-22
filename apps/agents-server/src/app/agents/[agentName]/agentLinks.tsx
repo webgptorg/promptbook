@@ -1,7 +1,6 @@
 import { string_agent_name, string_agent_permanent_id } from '@promptbook-local/types';
 import { BookOpenIcon, CodeIcon, GlobeIcon, MessageSquareIcon, NotebookPenIcon } from 'lucide-react';
 import type { ComponentType } from 'react';
-import { buildAgentRoutePath, buildDefaultAgentRoutePath } from '../../../utils/agentRouting/buildAgentRouteHref';
 
 /**
  * Identifier for agent-specific navigation links.
@@ -46,28 +45,28 @@ export const getAgentLinks = (
         {
             id: 'chat',
             title: formatText('Chat with Agent'),
-            href: buildDefaultAgentRoutePath(permanentId),
+            href: `/agents/${permanentId}`,
             icon: MessageSquareIcon,
             description: formatText('Direct interface to converse with the agent.'),
         },
         {
             id: 'book',
             title: formatText('Edit Book'),
-            href: buildAgentRoutePath(permanentId, 'book'),
+            href: `/agents/${permanentId}/book`,
             icon: NotebookPenIcon,
             description: formatText("Edit the agent's knowledge book."),
         },
         {
             id: 'integration',
             title: formatText('Integration'),
-            href: buildAgentRoutePath(permanentId, 'integration'),
+            href: `/agents/${permanentId}/integration`,
             icon: CodeIcon,
             description: formatText('Learn how to integrate this agent into your applications.'),
         },
         {
             id: 'website',
             title: formatText('Website Integration'),
-            href: buildAgentRoutePath(permanentId, 'website-integration'),
+            href: `/agents/${permanentId}/website-integration`,
             icon: GlobeIcon,
             description: formatText('Embed the agent chat widget directly into your React application.'),
         },

@@ -109,7 +109,7 @@ type PixelAgentRenderModel = {
     id: string;
     name: string;
     summary: string;
-    chatHref: string;
+    profileHref: string;
     state: OfficeAgentVisual['state'];
     isRemote: boolean;
     left: number;
@@ -343,7 +343,7 @@ function createPixelAgentRenderModels(
             id: agent.id,
             name: agent.agent.agentName,
             summary: agent.summaryText,
-            chatHref: agent.chatHref,
+            profileHref: agent.profileHref,
             state: agent.state,
             isRemote: agent.isRemote,
             left,
@@ -394,7 +394,7 @@ export function AgentsPixelOffice(props: AgentsPixelOfficeProps) {
     );
 
     /**
-     * Opens one local or remote agent destination from the pixel-office scene.
+     * Opens one local or remote profile URL from the pixel-office scene.
      *
      * @param href - Local route or remote absolute URL.
      */
@@ -514,7 +514,7 @@ export function AgentsPixelOffice(props: AgentsPixelOfficeProps) {
                     <button
                         key={agent.id}
                         type="button"
-                        onClick={() => openProfile(agent.chatHref)}
+                        onClick={() => openProfile(agent.profileHref)}
                         className="absolute flex flex-col items-center bg-transparent p-0 text-left"
                         style={{
                             left: agent.left,

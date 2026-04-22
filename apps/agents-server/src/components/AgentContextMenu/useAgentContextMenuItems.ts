@@ -23,7 +23,6 @@ import {
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import type { ContextMenuItem, ContextMenuLinkItem } from '../ContextMenu/ContextMenuPanel';
 import { useMetadataFlags } from '../MetadataFlags/MetadataFlagsContext';
-import { buildDefaultAgentRoutePath } from '../../utils/agentRouting/buildAgentRouteHref';
 import type { AgentContextMenuBaseProps } from './AgentContextMenu';
 import { useAgentContextMenuActions } from './useAgentContextMenuActions';
 import { useAgentContextMenuCopyFeedback } from './useAgentContextMenuCopyFeedback';
@@ -78,7 +77,7 @@ function createDirectoryListingMenuItems(
     return [
         {
             type: 'link',
-            href: buildDefaultAgentRoutePath(agentName),
+            href: `/agents/${encodeURIComponent(agentName)}`,
             icon: ExternalLinkIcon,
             label: formatText('Open in new tab'),
             target: '_blank',
