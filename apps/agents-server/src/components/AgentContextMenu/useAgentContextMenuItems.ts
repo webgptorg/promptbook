@@ -20,6 +20,7 @@ import {
     SquareSplitHorizontalIcon,
     TrashIcon,
 } from 'lucide-react';
+import { buildFreshAgentChatHref } from '../../utils/agentRouting/agentRouteHrefs';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import type { ContextMenuItem, ContextMenuLinkItem } from '../ContextMenu/ContextMenuPanel';
 import { useMetadataFlags } from '../MetadataFlags/MetadataFlagsContext';
@@ -60,13 +61,13 @@ function createDividerItem(): ContextMenuItem {
 /**
  * Creates menu items specific to the directory-listing context.
  *
- * @param agentName - Current routed agent name.
+ * @param agentIdentifier - Current permanent id or routed agent name.
  * @param formatText - Agent-aware text formatter.
  * @param fromDirectoryListing - Whether the menu was opened in the directory listing.
  * @returns Optional directory-listing menu items.
  */
 function createDirectoryListingMenuItems(
-    agentName: string,
+    agentIdentifier: string,
     formatText: FormatAgentContextMenuText,
     fromDirectoryListing?: boolean,
 ): ContextMenuItem[] {
@@ -77,7 +78,7 @@ function createDirectoryListingMenuItems(
     return [
         {
             type: 'link',
-            href: `/agents/${encodeURIComponent(agentName)}`,
+            href: buildFreshAgentChatHref(agentIdentifier),
             icon: ExternalLinkIcon,
             label: formatText('Open in new tab'),
             target: '_blank',
@@ -190,14 +191,14 @@ function createSharingMenuItems(
 /**
  * Creates navigation items for opening the current agent in related views.
  *
- * @param agentName - Current routed agent name.
+ * @param agentIdentifier - Current permanent id or routed agent name.
  * @param editBookLink - Generated edit-book link metadata.
  * @param folderContext - Optional folder navigation context.
  * @param formatText - Agent-aware text formatter.
  * @returns Navigation and workspace menu items.
  */
 function createWorkspaceMenuItems(
-    agentName: string,
+    agentIdentifier: string,
     editBookLink: AgentContextMenuNavigationLink,
     folderContext: AgentContextMenuBaseProps['folderContext'],
     formatText: FormatAgentContextMenuText,
@@ -216,19 +217,19 @@ function createWorkspaceMenuItems(
     menuItems.push(
         {
             type: 'link',
-            href: `/agents/${encodeURIComponent(agentName)}/chat`,
+            href: buildFreshAgentChatHref(agentIdentifier),
             icon: MessageSquareShareIcon,
             label: formatText('Standalone Chat'),
         },
         {
             type: 'link',
-            href: `/agents/${encodeURIComponent(agentName)}/book+chat`,
+            href: `/agents/${encodeURIComponent(agentIdentifier)}/book+chat`,
             icon: SquareSplitHorizontalIcon,
             label: formatText('Edit Book & Chat'),
         },
         {
             type: 'link',
-            href: `/agents/${encodeURIComponent(agentName)}/textarea`,
+            href: `/agents/${encodeURIComponent(agentIdentifier)}/textarea`,
             icon: MessageSquareIcon,
             label: formatText('Textarea Entry'),
         },
@@ -376,6 +377,7 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
         agentName,
         agentUrl,
         agentEmail,
+        permanentId,
         folderContext,
         isAdmin = false,
         onShowQrCode,
@@ -388,6 +390,7 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
     const { isExperimentalPwaAppEnabled } = useMetadataFlags();
     const { formatText } = useAgentNaming();
     const { copyFeedback, handleCopy } = useAgentContextMenuCopyFeedback();
+    const agentIdentifier = permanentId || agentName;
     const {
         editBookLink,
         handleCloneAgent,
@@ -402,7 +405,7 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
     } = useAgentContextMenuActions(props, formatText);
 
     return [
-        ...createDirectoryListingMenuItems(agentName, formatText, fromDirectoryListing),
+        ...createDirectoryListingMenuItems(agentIdentifier, formatText, fromDirectoryListing),
         ...createUpdateUrlMenuItems(formatText, handleUpdateUrl, isUpdateUrlActionVisible),
         ...createInstallPromptMenuItems(
             formatText,
@@ -413,7 +416,7 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
         ),
         ...createSharingMenuItems(agentEmail, agentUrl, copyFeedback, formatText, handleCopy, onShowQrCode),
         createDividerItem(),
-        ...createWorkspaceMenuItems(agentName, editBookLink, folderContext, formatText),
+        ...createWorkspaceMenuItems(agentIdentifier, editBookLink, folderContext, formatText),
         createDividerItem(),
         ...createManagementMenuItems(formatText, handleCloneAgent, handleDeleteAgent, handleRenameAgent),
         ...createAdminMenuItems(

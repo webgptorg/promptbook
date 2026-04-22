@@ -23,6 +23,7 @@ export const DEFAULT_CONNECTION_TYPES = [...CONNECTION_TYPES];
 export type AgentWithVisibility = AgentBasicInformation & {
     visibility?: AgentVisibility;
     serverUrl?: string;
+    url?: string;
     folderId?: number | null;
     sortOrder?: number;
 };

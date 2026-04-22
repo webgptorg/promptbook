@@ -1,20 +1,7 @@
+import { appendFreshChatQuery } from '../../../utils/agentRouting/agentRouteHrefs';
+
 export { normalizeDestinationForLocationComparison } from '../../../components/_utils/clientNavigationFallback';
-
-/**
- * Query parameter name used to convey the chat selection intent on the chat page.
- * When this parameter equals `FORCE_NEW_CHAT_QUERY_VALUE` the chat page opens a
- * fresh conversation instead of resuming the most recent one.
- */
-const FORCE_NEW_CHAT_QUERY_PARAM = 'chat';
-
-/**
- * Sentinel value for the `chat` query parameter that signals "open a new chat".
- *
- * Using a dedicated value inside the existing `chat` parameter (rather than a
- * separate flag) means the link is a plain navigable URL — browsers will show
- * the native context-menu options ("Open in new tab / window") for it.
- */
-export const FORCE_NEW_CHAT_QUERY_VALUE = 'new';
+export { FORCE_NEW_CHAT_QUERY_VALUE } from '../../../utils/agentRouting/agentRouteHrefs';
 
 /**
  * Builds the destination URL for navigating from the agent profile page to the chat page.
@@ -32,10 +19,9 @@ export function buildAgentChatDestinationUrl(
     chatRoute: string,
     options: { shouldForceNewChat: boolean; isHistoryEnabled: boolean },
 ): string {
-    const queryParams = new URLSearchParams();
     if (options.shouldForceNewChat && options.isHistoryEnabled) {
-        queryParams.set(FORCE_NEW_CHAT_QUERY_PARAM, FORCE_NEW_CHAT_QUERY_VALUE);
+        return appendFreshChatQuery(chatRoute);
     }
-    const query = queryParams.toString();
-    return query ? `${chatRoute}?${query}` : chatRoute;
+
+    return chatRoute;
 }

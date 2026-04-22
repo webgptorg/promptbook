@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { buildAgentFolderContext, type AgentFolderContext } from '../../utils/agentOrganization/agentFolderContext';
 import type { AgentOrganizationAgent } from '../../utils/agentOrganization/types';
+import { buildAgentProfileHref, buildFreshAgentChatHref } from '../../utils/agentRouting/agentRouteHrefs';
 import type { ServerTranslationKey } from '../../languages/ServerTranslationKeys';
 import type { HeaderAgentMenuFolder } from './AgentMenuStructure';
 import { buildAgentMenuStructure } from './buildAgentMenuStructure';
@@ -130,7 +131,7 @@ function createActiveAgentHref(activeAgentNavigationId: string | null): string {
         return '/agents';
     }
 
-    return `/agents/${encodeURIComponent(activeAgentNavigationId)}`;
+    return buildFreshAgentChatHref(activeAgentNavigationId);
 }
 
 /**
@@ -176,12 +177,12 @@ function readWindowLocationState(): { origin: string; hostname: string } {
  *
  * @private function of Header
  */
-function createActiveAgentUrl(activeAgentNavigationId: string | null, activeAgentHref: string, origin: string): string {
+function createActiveAgentUrl(activeAgentNavigationId: string | null, origin: string): string {
     if (!activeAgentNavigationId) {
         return '';
     }
 
-    return `${origin}${activeAgentHref}`;
+    return `${origin}${buildAgentProfileHref(activeAgentNavigationId)}`;
 }
 
 /**
@@ -250,7 +251,7 @@ export function useHeaderActiveAgent({
         activeAgentMenuAgent,
         activeAgentNavigationId,
         activeAgentOrigin: origin,
-        activeAgentUrl: createActiveAgentUrl(activeAgentNavigationId, activeAgentHref, origin),
+        activeAgentUrl: createActiveAgentUrl(activeAgentNavigationId, origin),
         activeAgentView: activeAgentNavigation.view,
         activeAgentViewLabel: activeAgentNavigation.view
             ? createAgentViewLabel(activeAgentNavigation.view, translate)

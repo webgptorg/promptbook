@@ -1,4 +1,5 @@
 import { $provideServer } from '../../tools/$provideServer';
+import { buildFreshAgentChatHrefFromAgentUrl } from '../../utils/agentRouting/agentRouteHrefs';
 import { getFederatedServers } from '../../utils/getFederatedServers';
 import type { ServerSearchProvider } from '../ServerSearchProvider';
 import type { ServerSearchResultItem } from '../ServerSearchResultItem';
@@ -79,7 +80,9 @@ export function createFederatedAgentsSearchProvider(): ServerSearchProvider {
                     }
 
                     const fallbackRouteAgentId = encodeURIComponent(agent.permanentId || agent.agentName);
-                    const href = agent.url || `${serverUrl}/agents/${fallbackRouteAgentId}`;
+                    const href = buildFreshAgentChatHrefFromAgentUrl(
+                        agent.url || `${serverUrl}/agents/${fallbackRouteAgentId}`,
+                    );
 
                     results.push({
                         id: `federated-${normalizeServerSearchText(serverUrl)}-${agent.agentName}`,

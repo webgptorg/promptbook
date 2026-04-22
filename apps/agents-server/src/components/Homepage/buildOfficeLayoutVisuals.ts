@@ -1,5 +1,6 @@
 import type { AgentWithVisibility } from './useFederatedAgents';
 import {
+    buildAgentFreshChatPath,
     buildAgentPath,
     getAgentIdentifier,
     hashString,
@@ -191,8 +192,9 @@ function createOfficeAgentVisual(
         summaryText: assignment.agent.personaDescription || assignment.agent.meta.description || room.subtitle,
         capabilityBadges: (assignment.agent.capabilities || []).slice(0, 3).map((capability) => capability.label),
         isRemote: isRemoteAgent(assignment.agent),
+        defaultHref: buildAgentFreshChatPath(assignment.agent, normalizedPublicUrl),
         profileHref: buildAgentPath(assignment.agent, normalizedPublicUrl, ''),
-        chatHref: buildAgentPath(assignment.agent, normalizedPublicUrl, '/chat'),
+        chatHref: buildAgentFreshChatPath(assignment.agent, normalizedPublicUrl),
         bookHref: buildAgentPath(assignment.agent, normalizedPublicUrl, '/book'),
         seed: assignment.seed,
     };
@@ -229,4 +231,3 @@ function createPreviewText(agent: AgentWithVisibility, state: OfficeAgentState):
 
     return state === 'working' ? 'Focused work' : 'Available at desk';
 }
-

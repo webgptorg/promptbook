@@ -1,3 +1,4 @@
+import { buildFreshAgentChatHrefFromAgentUrl } from '../../utils/agentRouting/agentRouteHrefs';
 import type { AgentWithVisibility } from './useFederatedAgents';
 
 /**
@@ -194,3 +195,15 @@ export function buildAgentPath(agent: AgentWithVisibility, publicUrl: string, su
     return `/agents/${identifier}${suffix}`;
 }
 
+/**
+ * Builds the generic agent-entry href used by homepage visualizations.
+ *
+ * @param agent - Agent to link to.
+ * @param publicUrl - Base URL of the current server.
+ * @returns Relative or absolute href that starts a fresh chat.
+ *
+ * @private function of buildOfficeLayout
+ */
+export function buildAgentFreshChatPath(agent: AgentWithVisibility, publicUrl: string): string {
+    return buildFreshAgentChatHrefFromAgentUrl(buildAgentPath(agent, publicUrl, ''));
+}

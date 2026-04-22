@@ -14,7 +14,7 @@ import { Section } from './Section';
  */
 type AgentCardsSectionBaseAgent = AgentBasicInformation & {
     /**
-     * Canonical profile URL of the rendered agent.
+     * Primary entry URL of the rendered agent.
      */
     readonly url?: string;
 

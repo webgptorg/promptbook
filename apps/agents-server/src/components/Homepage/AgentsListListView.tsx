@@ -9,6 +9,7 @@ import type { ComponentProps } from 'react';
 import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import { AddAgentButton } from '../../app/AddAgentButton';
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
+import { buildFreshAgentChatHref } from '../../utils/agentRouting/agentRouteHrefs';
 import { AgentCard } from './AgentCard';
 import type { DragItem } from './DragItem';
 import type { DropIndicator } from './DropIndicator';
@@ -284,7 +285,7 @@ export function AgentsListListView({
                         <AgentCard
                             agent={activeAgent}
                             publicUrl={publicUrl}
-                            href={`/agents/${encodeURIComponent(activeAgent.permanentId || activeAgent.agentName)}`}
+                            href={buildFreshAgentChatHref(activeAgent.permanentId || activeAgent.agentName)}
                             isAdmin={false}
                             visibility={activeAgent.visibility}
                         />

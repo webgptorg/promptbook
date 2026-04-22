@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useMemo } from 'react';
 import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
+import { buildFreshAgentChatHref } from '../../utils/agentRouting/agentRouteHrefs';
 import { useCurrentPathQueryNavigation } from '../_utils/useCurrentPathQueryNavigation';
 import { AgentCard } from './AgentCard';
 import { FolderCard } from './FolderCard';
@@ -206,7 +207,7 @@ export function RecycleBinList(props: RecycleBinListProps) {
                         key={agent.permanentId || agent.agentName}
                         agent={agent}
                         publicUrl={publicUrl}
-                        href={`/agents/${encodeURIComponent(agent.permanentId || agent.agentName)}`}
+                        href={buildFreshAgentChatHref(agent.permanentId || agent.agentName)}
                         isAdmin={canRestore}
                         onRestore={handleRestoreAgent}
                     />

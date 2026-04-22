@@ -4,6 +4,10 @@ import type { string_url } from '@promptbook-local/types';
 import { useRouter } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
 import type { AgentOrganizationFolder } from '../../utils/agentOrganization/types';
+import {
+    buildFreshAgentChatHref,
+    buildFreshAgentChatHrefFromAgentUrl,
+} from '../../utils/agentRouting/agentRouteHrefs';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import {
     buildGraphData,
@@ -63,17 +67,19 @@ export function useAgentsGraphState(props: UseAgentsGraphStateProps) {
     const graphSummary = useMemo(() => buildGraphSummaryInfo(graphData, serverGroups), [graphData, serverGroups]);
 
     /**
-     * Open the local agent page or the remote federated agent URL.
+     * Opens the generic agent entry point as a fresh new chat.
      */
     const openGraphNode = useCallback(
         (node: GraphNode) => {
             const agent = node.agent;
             if (agent.serverUrl && normalizeServerUrl(agent.serverUrl) !== normalizedPublicUrl) {
-                window.open(`${agent.serverUrl}/agents/${agent.agentName}`, '_blank');
+                const remoteAgentUrl =
+                    agent.url || `${agent.serverUrl}/agents/${encodeURIComponent(agent.permanentId || agent.agentName)}`;
+                window.open(buildFreshAgentChatHrefFromAgentUrl(remoteAgentUrl), '_blank');
                 return;
             }
 
-            router.push(`/agents/${encodeURIComponent(agent.permanentId || agent.agentName)}`);
+            router.push(buildFreshAgentChatHref(agent.permanentId || agent.agentName));
         },
         [router, normalizedPublicUrl],
     );

@@ -3,6 +3,7 @@ import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-so
 import type { ServerSearchProvider } from '../ServerSearchProvider';
 import type { ServerSearchResultItem } from '../ServerSearchResultItem';
 import { createServerSearchMatcher } from '../createServerSearchMatcher';
+import { buildFreshAgentChatHref } from '../../utils/agentRouting/agentRouteHrefs';
 import { loadLocalOrganizationSearchDataset } from './loadLocalOrganizationSearchDataset';
 import { prefixSnippet } from './prefixSnippet';
 import { sortAndLimitProviderResults } from './sortAndLimitProviderResults';
@@ -23,7 +24,7 @@ type AgentSearchRow = Pick<
 };
 
 /**
- * Creates provider for local agents (profile and book).
+ * Creates provider for local agents (fresh chat entry and book).
  *
  * @returns Configured local-agent search provider.
  *
@@ -39,7 +40,8 @@ export function createAgentsSearchProvider(): ServerSearchProvider {
 
             for (const agent of dataset.agents as ReadonlyArray<AgentSearchRow>) {
                 const profile = agent.resolvedAgentProfile;
-                const routeAgentId = encodeURIComponent(agent.permanentId || agent.agentName);
+                const agentIdentifier = agent.permanentId || agent.agentName;
+                const routeAgentId = encodeURIComponent(agentIdentifier);
                 const agentLabel = profile.meta?.fullname || agent.agentName;
                 const folderPath = toFolderPathLabel(agent.folderId, dataset.folderById);
                 const profileSearchText = [
@@ -67,7 +69,7 @@ export function createAgentsSearchProvider(): ServerSearchProvider {
                         icon: 'agent',
                         title: agentLabel,
                         snippet: prefixSnippet(folderPath, profileMatch.snippet),
-                        href: `/agents/${routeAgentId}`,
+                        href: buildFreshAgentChatHref(agentIdentifier),
                         score: profileMatch.score + 42,
                     });
                 }

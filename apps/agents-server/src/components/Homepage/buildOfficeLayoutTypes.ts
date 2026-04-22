@@ -92,6 +92,7 @@ export type OfficeAgentVisual = {
     summaryText: string;
     capabilityBadges: Array<string>;
     isRemote: boolean;
+    defaultHref: string;
     profileHref: string;
     chatHref: string;
     bookHref: string;
@@ -149,4 +150,3 @@ export type OfficeAgentAssignment = {
     state: OfficeAgentState;
     seed: number;
 };
-

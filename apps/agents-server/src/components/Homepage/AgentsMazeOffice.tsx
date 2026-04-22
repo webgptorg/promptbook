@@ -454,7 +454,7 @@ export function AgentsMazeOffice(props: AgentsMazeOfficeProps) {
                         <button
                             key={projectedAgent.agent.id}
                             type="button"
-                            onClick={() => openHref(projectedAgent.agent.profileHref)}
+                            onClick={() => openHref(projectedAgent.agent.defaultHref)}
                             onMouseEnter={(event) => updateTooltip(event, projectedAgent.agent.id)}
                             onMouseMove={(event) => updateTooltip(event, projectedAgent.agent.id)}
                             onMouseLeave={() => setTooltipState(null)}

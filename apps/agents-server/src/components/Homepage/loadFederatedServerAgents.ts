@@ -1,5 +1,6 @@
 'use client';
 
+import { buildFreshAgentChatHrefFromAgentUrl } from '../../utils/agentRouting/agentRouteHrefs';
 import type { AgentWithVisibility } from './useFederatedAgents';
 import { normalizeServerUrl } from './normalizeServerUrl';
 
@@ -15,7 +16,7 @@ type FederatedAgentsResponse = {
  *
  * @param serverUrl - Base URL of the federated server.
  * @param agent - Federated agent record.
- * @returns Canonical agent profile URL.
+ * @returns Canonical base agent URL before the fresh-chat suffix is applied.
  */
 function createFederatedAgentUrl(serverUrl: string, agent: AgentWithVisibility): string {
     return `${serverUrl}/agents/${encodeURIComponent(agent.permanentId || agent.agentName)}`;
@@ -43,7 +44,7 @@ async function parseFederatedAgentsResponse(
         ...agent,
         visibility: 'PUBLIC',
         serverUrl,
-        url: agent.url || createFederatedAgentUrl(serverUrl, agent),
+        url: buildFreshAgentChatHrefFromAgentUrl(agent.url || createFederatedAgentUrl(serverUrl, agent)),
     }));
 }
 

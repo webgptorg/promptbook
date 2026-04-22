@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import NextLink from 'next/link';
 import { simplifyKnowledgeLabel } from '@/src/utils/knowledge/simplifyKnowledgeLabel';
+import { buildFreshAgentChatHrefFromAgentUrl } from '../../utils/agentRouting/agentRouteHrefs';
 import { TeamCommitmentChip } from './TeamCommitmentChip';
 
 /**
@@ -137,6 +138,8 @@ export function AgentCapabilityChips({ agent, className, maxChips, size = 'defau
                     } else if (href.startsWith('/')) {
                         href = `/agents${href}`;
                     }
+
+                    href = buildFreshAgentChatHrefFromAgentUrl(href);
                 }
 
                 const displayLabel =

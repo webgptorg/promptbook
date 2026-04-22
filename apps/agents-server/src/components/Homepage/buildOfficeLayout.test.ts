@@ -120,8 +120,10 @@ describe('buildOfficeLayout', () => {
         const localAlice = layout.agents.find((agent) => agent.agent.agentName === 'Alice');
         const remoteAdam = layout.agents.find((agent) => agent.agent.agentName === 'Adam');
 
+        expect(localAlice?.defaultHref).toBe('/agents/Alice-id/chat?chat=new');
         expect(localAlice?.profileHref).toBe('/agents/Alice-id');
-        expect(localAlice?.chatHref).toBe('/agents/Alice-id/chat');
+        expect(localAlice?.chatHref).toBe('/agents/Alice-id/chat?chat=new');
+        expect(remoteAdam?.defaultHref).toBe('https://ptbk.io/agents/Adam-id/chat?chat=new');
         expect(remoteAdam?.profileHref).toBe('https://ptbk.io/agents/Adam-id');
         expect(remoteAdam?.bookHref).toBe('https://ptbk.io/agents/Adam-id/book');
     });

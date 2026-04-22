@@ -5,6 +5,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import type { string_url } from '@promptbook-local/types';
 import type { CSSProperties, MouseEvent } from 'react';
 import type { AgentOrganizationAgent } from '../../utils/agentOrganization/types';
+import { buildFreshAgentChatHref } from '../../utils/agentRouting/agentRouteHrefs';
 import { AgentCard } from './AgentCard';
 import { buildCardDragProps, DragHandle } from './DragHandle';
 import type { DragItem } from './DragItem';
@@ -114,7 +115,7 @@ export function SortableAgentCard({
             <AgentCard
                 agent={agent}
                 publicUrl={publicUrl}
-                href={`/agents/${encodeURIComponent(agentIdentifier)}`}
+                href={buildFreshAgentChatHref(agentIdentifier)}
                 isAdmin={isAdmin}
                 onDelete={onDelete}
                 onRequestVisibilityChange={onRequestVisibilityChange}

@@ -1,6 +1,7 @@
 import { string_agent_name, string_agent_permanent_id } from '@promptbook-local/types';
 import { BookOpenIcon, CodeIcon, GlobeIcon, MessageSquareIcon, NotebookPenIcon } from 'lucide-react';
 import type { ComponentType } from 'react';
+import { buildFreshAgentChatHref } from '../../../utils/agentRouting/agentRouteHrefs';
 
 /**
  * Identifier for agent-specific navigation links.
@@ -45,7 +46,7 @@ export const getAgentLinks = (
         {
             id: 'chat',
             title: formatText('Chat with Agent'),
-            href: `/agents/${permanentId}`,
+            href: buildFreshAgentChatHref(permanentId),
             icon: MessageSquareIcon,
             description: formatText('Direct interface to converse with the agent.'),
         },

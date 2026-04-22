@@ -1,3 +1,9 @@
+-   Suppressed default agent-profile navigation in Agents Server so generic agent clicks now open a fresh chat instead of landing on the profile page:
+
+    -   Replaced shared agent entry links across homepage cards and visualizations, graph nodes, header agent navigation, search results, teammate capability chips, and directory context-menu actions with fresh-chat URLs that force `chat=new`.
+    -   Kept the agent profile page itself available for direct/profile-specific navigation, while preserving explicit profile/share URLs in places that still need the canonical agent page.
+    -   Added regression coverage for the shared fresh-chat href builder and updated office-layout route expectations so local and federated agent entry points stay aligned.
+
 -   Added a new `Maze` homepage view to Agents Server that turns the shared office layout into a responsive isometric maze office for built-in agent avatars:
 
     -   Added the `Maze` tab alongside `List`, `Graph`, `Office`, and `Pixel`, including query-state support and lazy client loading through the existing homepage view-mode plumbing.

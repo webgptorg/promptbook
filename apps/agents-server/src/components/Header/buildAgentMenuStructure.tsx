@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { buildFolderPath, getFolderPathSegments } from '../../utils/agentOrganization/folderPath';
 import type { AgentOrganizationAgent } from '../../utils/agentOrganization/types';
+import { buildFreshAgentChatHref } from '../../utils/agentRouting/agentRouteHrefs';
 import { FolderAppearanceIcon } from '../FolderAppearance/FolderAppearanceIcon';
 import { AgentNameWithAvatar } from './AgentNameWithAvatar';
 import type {
@@ -239,7 +240,7 @@ function createFolderHref(folderId: number, folderById: Map<number, HeaderAgentM
  * @private function of Header
  */
 function createAgentHref(agent: HeaderAgentMenuAgent): string {
-    return `/agents/${encodeURIComponent(getAgentNavigationId(agent))}`;
+    return buildFreshAgentChatHref(getAgentNavigationId(agent));
 }
 
 /**
