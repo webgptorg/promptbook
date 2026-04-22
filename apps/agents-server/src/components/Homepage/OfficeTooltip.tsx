@@ -26,11 +26,11 @@ export function OfficeTooltip(props: OfficeTooltipProps) {
 
     return (
         <div
-            className="absolute z-20 w-[240px] rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-[0_20px_60px_rgba(15,23,42,0.18)] backdrop-blur"
+            className="absolute z-20 w-[240px] rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-[0_20px_60px_rgba(15,23,42,0.18)] backdrop-blur dark:border-slate-700 dark:bg-slate-900/95 dark:shadow-[0_20px_60px_rgba(2,6,23,0.5)]"
             style={{ left: x, top: y }}
         >
             <div className="flex items-start gap-3">
-                <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-slate-100">
+                <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-800">
                     <AgentAvatar
                         agent={agent.agent}
                         baseUrl={agent.agent.serverUrl || publicUrl}
@@ -42,24 +42,29 @@ export function OfficeTooltip(props: OfficeTooltipProps) {
                 </div>
 
                 <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-bold text-slate-900">{displayName}</div>
-                    <div className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
+                    <div className="truncate text-sm font-bold text-slate-900 dark:text-slate-50">{displayName}</div>
+                    <div className="mt-1 text-xs font-medium uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                         {formatOfficeState(agent.state)}
                     </div>
-                    <div className="mt-2 text-xs text-slate-600">
+                    <div className="mt-2 text-xs text-slate-600 dark:text-slate-300">
                         {agent.roomLabel}
                         {agent.serverLabel ? ` / ${agent.serverLabel}` : ''}
                     </div>
                 </div>
             </div>
 
-            <p className="mt-3 text-sm leading-5 text-slate-700">{agent.summaryText}</p>
-            <div className="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700">{agent.previewText}</div>
+            <p className="mt-3 text-sm leading-5 text-slate-700 dark:text-slate-200">{agent.summaryText}</p>
+            <div className="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                {agent.previewText}
+            </div>
 
             {agent.capabilityBadges.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-1.5">
                     {agent.capabilityBadges.map((badge) => (
-                        <span key={badge} className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700">
+                        <span
+                            key={badge}
+                            className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                        >
                             {badge}
                         </span>
                     ))}
@@ -70,7 +75,7 @@ export function OfficeTooltip(props: OfficeTooltipProps) {
                 <button
                     type="button"
                     onClick={onOpenProfile}
-                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-300"
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-300 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:border-slate-600"
                 >
                     <UserRound className="h-4 w-4" />
                     Profile
@@ -78,7 +83,7 @@ export function OfficeTooltip(props: OfficeTooltipProps) {
                 <button
                     type="button"
                     onClick={onOpenChat}
-                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-300"
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-300 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:border-slate-600"
                 >
                     <MessageSquare className="h-4 w-4" />
                     Message
@@ -86,7 +91,7 @@ export function OfficeTooltip(props: OfficeTooltipProps) {
                 <button
                     type="button"
                     onClick={onOpenBook}
-                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-300"
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-300 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:border-slate-600"
                 >
                     <BookOpen className="h-4 w-4" />
                     Book

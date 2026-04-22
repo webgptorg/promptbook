@@ -112,6 +112,7 @@ export function AgentsList(props: AgentsListProps) {
                 handleRenameFolder={state.handleRenameFolder}
                 handleRequestAgentVisibilityChange={state.handleRequestAgentVisibilityChange}
                 isAdmin={isAdmin}
+                mazeAgents={state.mazeAgents}
                 officeAgents={state.officeAgents}
                 officeFolders={state.officeFolders}
                 onNavigateToFolder={state.navigateToFolder}

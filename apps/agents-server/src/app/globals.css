@@ -326,6 +326,44 @@ html.dark ::-webkit-scrollbar-thumb:hover {
     animation: spin 1s linear infinite;
 }
 
+@keyframes agents-maze-bob {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-4px);
+    }
+}
+
+@keyframes agents-maze-pulse {
+    0%,
+    100% {
+        opacity: 0.24;
+        transform: scale(0.7);
+    }
+    50% {
+        opacity: 0.52;
+        transform: scale(1);
+    }
+}
+
+.agents-maze-avatar {
+    animation: agents-maze-bob 3s ease-in-out infinite;
+    transform-origin: center bottom;
+}
+
+.agents-maze-pulse {
+    animation: agents-maze-pulse 2.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .agents-maze-avatar,
+    .agents-maze-pulse {
+        animation: none;
+    }
+}
+
 /* Global route-transition progress bar */
 .agents-server-navigation-progress {
     position: fixed;

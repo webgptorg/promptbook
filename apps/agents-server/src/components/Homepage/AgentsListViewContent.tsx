@@ -132,6 +132,10 @@ type AgentsListViewContentProps = {
      */
     readonly officeAgents: AgentOrganizationAgent[];
     /**
+     * Maze-view subset of agents.
+     */
+    readonly mazeAgents: AgentOrganizationAgent[];
+    /**
      * Office-view subset of folders.
      */
     readonly officeFolders: AgentOrganizationFolder[];
@@ -192,6 +196,19 @@ const DeferredAgentsOffice = dynamic(() => import('./AgentsOffice').then((mod) =
     ssr: false,
     loading: () => <GraphLoadingSkeleton />,
 });
+
+/**
+ * Deferred maze-office chunk loaded only when the maze view is active.
+ *
+ * @private function of AgentsList
+ */
+const DeferredAgentsMazeOffice = dynamic(
+    () => import('./AgentsMazeOffice').then((mod) => mod.AgentsMazeOffice),
+    {
+        ssr: false,
+        loading: () => <GraphLoadingSkeleton />,
+    },
+);
 
 /**
  * Deferred pixel-office chunk loaded only when the pixel-office view is active.
@@ -256,6 +273,7 @@ export function AgentsListViewContent({
     handleRenameFolder,
     handleRequestAgentVisibilityChange,
     isAdmin,
+    mazeAgents,
     officeAgents,
     officeFolders,
     onNavigateToFolder,
@@ -325,6 +343,19 @@ export function AgentsListViewContent({
             <div className="w-full">
                 <DeferredAgentsOffice
                     agents={officeAgents}
+                    federatedAgents={federatedAgents}
+                    publicUrl={publicUrl}
+                    folders={officeFolders}
+                />
+            </div>
+        );
+    }
+
+    if (viewMode === 'MAZE') {
+        return (
+            <div className="w-full">
+                <DeferredAgentsMazeOffice
+                    agents={mazeAgents}
                     federatedAgents={federatedAgents}
                     publicUrl={publicUrl}
                     folders={officeFolders}

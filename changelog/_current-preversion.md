@@ -1,8 +1,9 @@
--   Added a new `Maze` homepage view to Agents Server that turns the shared office layout into a responsive top-down maze office for agent avatars:
+-   Added a new `Maze` homepage view to Agents Server that turns the shared office layout into a responsive isometric maze office for built-in agent avatars:
 
     -   Added the `Maze` tab alongside `List`, `Graph`, `Office`, and `Pixel`, including query-state support and lazy client loading through the existing homepage view-mode plumbing.
-    -   Reused the shared office layout and avatar pipeline so local and federated agents render inside themed rooms and corridors, while built-in avatar visuals use transparent surfaces to stay integrated into the environment instead of inside square cards.
-    -   Designed the new scene to stay lightweight and theme-aware with CSS-driven corridor and avatar motion, room/desk ambience, responsive mobile scrolling, and dark-mode styling instead of introducing a heavier continuously animated canvas scene.
+    -   Reused the shared office layout and avatar pipeline so local and federated agents render inside themed rooms and corridors in an isometric 2D scene, while built-in avatar visuals use transparent surfaces to stay integrated into the environment instead of inside square cards.
+    -   Omitted agents with explicit `META IMAGE` from the maze so the visualization keeps one coherent in-world avatar language, while still remaining avatar-visual-agnostic for future built-in visuals beyond the default octopus family.
+    -   Designed the new scene to stay lightweight and theme-aware with CSS-driven corridor and avatar motion, room/desk ambience, responsive pan/zoom on desktop and mobile, and dark-mode styling instead of introducing a heavier continuously animated canvas scene.
 
 -   Made the built-in `Octopus3` avatar visual more diverse across agents, so seeded default avatars now feel more distinct while staying clearly octopus-like:
 

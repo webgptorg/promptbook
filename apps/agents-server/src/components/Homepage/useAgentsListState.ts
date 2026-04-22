@@ -108,6 +108,7 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         folderPathSegments,
         getFolderPreviewAgents,
         headingTitle,
+        mazeAgents,
         officeAgents,
         officeFolders,
         parentFolderInfo,
@@ -118,6 +119,7 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         folderQuery,
         folders,
         formatText,
+        publicUrl,
         viewMode,
     });
 
@@ -263,6 +265,7 @@ export function useAgentsListState(props: UseAgentsListStateProps) {
         headingTitle,
         isFolderEditSubmitting: folderState.isFolderEditSubmitting,
         navigateToFolder,
+        mazeAgents,
         officeAgents,
         officeFolders,
         parentFolderInfo,

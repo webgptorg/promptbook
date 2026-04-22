@@ -27,12 +27,12 @@ export function AgentsOfficeToolbar(props: AgentsOfficeToolbarProps) {
 
     return (
         <>
-            <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm">
+            <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900/85">
                 <div className="flex flex-wrap items-center gap-2">
                     <button
                         type="button"
                         onClick={onZoomIn}
-                        className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300"
+                        className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:border-slate-600"
                     >
                         <ZoomIn className="h-4 w-4" />
                         Zoom in
@@ -40,7 +40,7 @@ export function AgentsOfficeToolbar(props: AgentsOfficeToolbarProps) {
                     <button
                         type="button"
                         onClick={onZoomOut}
-                        className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300"
+                        className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:border-slate-600"
                     >
                         <ZoomOut className="h-4 w-4" />
                         Zoom out
@@ -48,7 +48,7 @@ export function AgentsOfficeToolbar(props: AgentsOfficeToolbarProps) {
                     <button
                         type="button"
                         onClick={onResetCamera}
-                        className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300"
+                        className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:border-slate-600"
                     >
                         <RefreshCcw className="h-4 w-4" />
                         Reset
@@ -56,7 +56,7 @@ export function AgentsOfficeToolbar(props: AgentsOfficeToolbarProps) {
                     <button
                         type="button"
                         onClick={onAutoArrange}
-                        className="inline-flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-900 transition hover:border-amber-300"
+                        className="inline-flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-900 transition hover:border-amber-300 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100 dark:hover:border-amber-400/60"
                     >
                         <Search className="h-4 w-4" />
                         Auto-arrange
@@ -64,7 +64,7 @@ export function AgentsOfficeToolbar(props: AgentsOfficeToolbarProps) {
                     <button
                         type="button"
                         onClick={onFocusMeetingRoom}
-                        className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-900 transition hover:border-emerald-300"
+                        className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-900 transition hover:border-emerald-300 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-100 dark:hover:border-emerald-400/60"
                     >
                         <Users className="h-4 w-4" />
                         Focus team
@@ -79,8 +79,8 @@ export function AgentsOfficeToolbar(props: AgentsOfficeToolbarProps) {
                             onClick={() => onFocusRoom(room.id)}
                             className={`rounded-full border px-3 py-1.5 text-xs font-semibold tracking-wide transition ${
                                 focusedRoomId === room.id
-                                    ? 'border-slate-900 bg-slate-900 text-white'
-                                    : 'border-white/70 bg-white/90 text-slate-700 hover:border-slate-300'
+                                    ? 'border-slate-900 bg-slate-900 text-white dark:border-cyan-400 dark:bg-cyan-400 dark:text-slate-950'
+                                    : 'border-white/70 bg-white/90 text-slate-700 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-950/90 dark:text-slate-200 dark:hover:border-slate-600'
                             }`}
                         >
                             {room.label}
@@ -89,7 +89,7 @@ export function AgentsOfficeToolbar(props: AgentsOfficeToolbarProps) {
                 </div>
             </div>
 
-            <div className="flex flex-wrap gap-2 text-xs font-semibold text-slate-600">
+            <div className="flex flex-wrap gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
                 <OfficeStatusChip label="Idle" value={stateCounts.idle} tone="slate" />
                 <OfficeStatusChip label="Working" value={stateCounts.working} tone="amber" />
                 <OfficeStatusChip label="Meeting" value={stateCounts.meeting} tone="emerald" />
@@ -114,17 +114,19 @@ type OfficeStatusChipProps = {
 function OfficeStatusChip(props: OfficeStatusChipProps) {
     const toneClassName =
         props.tone === 'amber'
-            ? 'border-amber-200 bg-amber-50 text-amber-900'
+            ? 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100'
             : props.tone === 'emerald'
-              ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
+              ? 'border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-100'
               : props.tone === 'sky'
-                ? 'border-sky-200 bg-sky-50 text-sky-900'
-                : 'border-slate-200 bg-white text-slate-700';
+                ? 'border-sky-200 bg-sky-50 text-sky-900 dark:border-sky-500/40 dark:bg-sky-500/10 dark:text-sky-100'
+                : 'border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200';
 
     return (
         <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 ${toneClassName}`}>
             <span>{props.label}</span>
-            <span className="rounded-full bg-white/80 px-2 py-0.5 text-[11px] text-slate-700">{props.value}</span>
+            <span className="rounded-full bg-white/80 px-2 py-0.5 text-[11px] text-slate-700 dark:bg-slate-900/90 dark:text-slate-100">
+                {props.value}
+            </span>
         </div>
     );
 }

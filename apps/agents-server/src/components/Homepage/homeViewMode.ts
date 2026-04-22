@@ -1,7 +1,7 @@
 /**
  * Supported visualization modes for the agents homepage.
  */
-export type HomeViewMode = 'LIST' | 'GRAPH' | 'OFFICE' | 'PIXEL_OFFICE';
+export type HomeViewMode = 'LIST' | 'GRAPH' | 'OFFICE' | 'MAZE' | 'PIXEL_OFFICE';
 
 /**
  * Query token used for graph view.
@@ -14,6 +14,11 @@ const GRAPH_HOME_VIEW_QUERY = 'graph';
 const OFFICE_HOME_VIEW_QUERY = 'office';
 
 /**
+ * Query token used for maze-office view.
+ */
+const MAZE_HOME_VIEW_QUERY = 'maze';
+
+/**
  * Query token used for pixel-office view.
  */
 const PIXEL_OFFICE_HOME_VIEW_QUERY = 'pixel-office';
@@ -24,6 +29,7 @@ const PIXEL_OFFICE_HOME_VIEW_QUERY = 'pixel-office';
 const HOME_VIEW_QUERY_BY_MODE: Record<Exclude<HomeViewMode, 'LIST'>, string> = {
     GRAPH: GRAPH_HOME_VIEW_QUERY,
     OFFICE: OFFICE_HOME_VIEW_QUERY,
+    MAZE: MAZE_HOME_VIEW_QUERY,
     PIXEL_OFFICE: PIXEL_OFFICE_HOME_VIEW_QUERY,
 };
 
@@ -54,6 +60,10 @@ export function resolveHomeViewMode(value: string | null | undefined): HomeViewM
 
     if (value === OFFICE_HOME_VIEW_QUERY) {
         return 'OFFICE';
+    }
+
+    if (value === MAZE_HOME_VIEW_QUERY) {
+        return 'MAZE';
     }
 
     if (value === PIXEL_OFFICE_HOME_VIEW_QUERY) {
