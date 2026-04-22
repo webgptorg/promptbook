@@ -4,6 +4,7 @@ import type { string_url } from '@promptbook-local/types';
 import { useRouter } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
 import type { AgentOrganizationFolder } from '../../utils/agentOrganization/types';
+import { buildDefaultAgentRoutePath, buildDefaultAgentRouteUrl } from '../../utils/agentRouting/buildAgentRouteHref';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import {
     buildGraphData,
@@ -68,12 +69,13 @@ export function useAgentsGraphState(props: UseAgentsGraphStateProps) {
     const openGraphNode = useCallback(
         (node: GraphNode) => {
             const agent = node.agent;
+            const agentIdentifier = agent.permanentId || agent.agentName;
             if (agent.serverUrl && normalizeServerUrl(agent.serverUrl) !== normalizedPublicUrl) {
-                window.open(`${agent.serverUrl}/agents/${agent.agentName}`, '_blank');
+                window.open(buildDefaultAgentRouteUrl(agent.serverUrl, agentIdentifier), '_blank');
                 return;
             }
 
-            router.push(`/agents/${encodeURIComponent(agent.permanentId || agent.agentName)}`);
+            router.push(buildDefaultAgentRoutePath(agentIdentifier));
         },
         [router, normalizedPublicUrl],
     );

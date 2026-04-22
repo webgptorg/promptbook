@@ -2,6 +2,7 @@ import type { AgentsServerDatabase } from '../../database/schema';
 import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import type { ServerSearchProvider } from '../ServerSearchProvider';
 import type { ServerSearchResultItem } from '../ServerSearchResultItem';
+import { buildAgentRoutePath, buildDefaultAgentRoutePath } from '../../utils/agentRouting/buildAgentRouteHref';
 import { createServerSearchMatcher } from '../createServerSearchMatcher';
 import { loadLocalOrganizationSearchDataset } from './loadLocalOrganizationSearchDataset';
 import { prefixSnippet } from './prefixSnippet';
@@ -39,7 +40,7 @@ export function createAgentsSearchProvider(): ServerSearchProvider {
 
             for (const agent of dataset.agents as ReadonlyArray<AgentSearchRow>) {
                 const profile = agent.resolvedAgentProfile;
-                const routeAgentId = encodeURIComponent(agent.permanentId || agent.agentName);
+                const routeAgentId = agent.permanentId || agent.agentName;
                 const agentLabel = profile.meta?.fullname || agent.agentName;
                 const folderPath = toFolderPathLabel(agent.folderId, dataset.folderById);
                 const profileSearchText = [
@@ -67,7 +68,7 @@ export function createAgentsSearchProvider(): ServerSearchProvider {
                         icon: 'agent',
                         title: agentLabel,
                         snippet: prefixSnippet(folderPath, profileMatch.snippet),
-                        href: `/agents/${routeAgentId}`,
+                        href: buildDefaultAgentRoutePath(routeAgentId),
                         score: profileMatch.score + 42,
                     });
                 }
@@ -86,7 +87,7 @@ export function createAgentsSearchProvider(): ServerSearchProvider {
                         icon: 'book',
                         title: `${agentLabel} (Book)`,
                         snippet: prefixSnippet(folderPath, bookMatch.snippet),
-                        href: `/agents/${routeAgentId}/book`,
+                        href: buildAgentRoutePath(routeAgentId, 'book'),
                         score: bookMatch.score + 28,
                     });
                 }

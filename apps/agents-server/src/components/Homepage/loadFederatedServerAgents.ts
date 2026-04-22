@@ -1,6 +1,7 @@
 'use client';
 
 import type { AgentWithVisibility } from './useFederatedAgents';
+import { buildDefaultAgentRouteUrl } from '../../utils/agentRouting/buildAgentRouteHref';
 import { normalizeServerUrl } from './normalizeServerUrl';
 
 /**
@@ -11,14 +12,14 @@ type FederatedAgentsResponse = {
 };
 
 /**
- * Builds a canonical agent URL when the remote payload does not include one explicitly.
+ * Builds the default chat URL when the remote payload does not include one explicitly.
  *
  * @param serverUrl - Base URL of the federated server.
  * @param agent - Federated agent record.
- * @returns Canonical agent profile URL.
+ * @returns Canonical agent chat URL.
  */
 function createFederatedAgentUrl(serverUrl: string, agent: AgentWithVisibility): string {
-    return `${serverUrl}/agents/${encodeURIComponent(agent.permanentId || agent.agentName)}`;
+    return buildDefaultAgentRouteUrl(serverUrl, agent.permanentId || agent.agentName);
 }
 
 /**
@@ -43,7 +44,7 @@ async function parseFederatedAgentsResponse(
         ...agent,
         visibility: 'PUBLIC',
         serverUrl,
-        url: agent.url || createFederatedAgentUrl(serverUrl, agent),
+        url: createFederatedAgentUrl(serverUrl, agent),
     }));
 }
 

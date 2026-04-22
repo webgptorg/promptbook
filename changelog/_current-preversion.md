@@ -1,3 +1,9 @@
+-   Suppressed the Agents Server agent profile page as the default navigation target, so clicking an agent from the main list and visual navigation views now opens the standalone chat instead:
+
+    -   Added one shared agent-route helper that keeps explicit profile/book/integration routes available while defining chat as the default destination for generic “open agent” links.
+    -   Rewired homepage list cards, federated agent cards, graph/office/maze/pixel visualizations, header agent-menu entries, and directory-listing “open in new tab” actions to land on `/agents/[agentName]/chat` instead of `/agents/[agentName]`.
+    -   Updated shared chat-facing links and search results so “Chat with Agent” and search-driven agent opens also route to the standalone chat page without removing the underlying profile page.
+
 -   Added a new `Maze` homepage view to Agents Server that turns the shared office layout into a responsive top-down maze office for agent avatars:
 
     -   Added the `Maze` tab alongside `List`, `Graph`, `Office`, and `Pixel`, including query-state support and lazy client loading through the existing homepage view-mode plumbing.

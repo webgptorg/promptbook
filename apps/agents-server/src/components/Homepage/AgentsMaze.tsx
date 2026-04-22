@@ -364,7 +364,7 @@ export function AgentsMaze(props: AgentsMazeProps) {
                                 onClick={(event) => {
                                     event.stopPropagation();
                                     if (isActiveAgent) {
-                                        openHref(agentModel.agent.profileHref);
+                                        openHref(agentModel.agent.chatHref);
                                         return;
                                     }
 
