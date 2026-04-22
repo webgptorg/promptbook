@@ -20,6 +20,7 @@ import { useChatToolCallModalState } from './useChatToolCallModalState';
 export type ChatToolCallModalProps = {
     isOpen: boolean;
     toolCall: NonNullable<ChatMessage['toolCalls']>[number] | null;
+    mode?: 'LIGHT' | 'DARK';
     /**
      * Stable identity of the selected tool call.
      *
@@ -72,6 +73,7 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
     const {
         isOpen,
         toolCall,
+        mode = 'LIGHT',
         toolCallIdentity,
         onClose,
         toolTitles,
@@ -121,6 +123,8 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
     return (
         <div
             className={styles.ratingModal}
+            data-chat-modal="tool-call"
+            data-chat-theme={mode.toLowerCase()}
             onClick={(event) => {
                 handleModalBackdropClick(event, onClose);
             }}
@@ -159,6 +163,7 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
                     chatUiTranslations={chatUiTranslations}
                     availableTools={availableTools}
                     onRequestAdvancedView={openAdvancedView}
+                    mode={mode}
                 />
                 <div className={styles.toolCallModeFooter}>
                     {isAdvancedView && (

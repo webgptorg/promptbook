@@ -40,9 +40,17 @@ chatEnterBehavior.saveFailed: We updated chat keybindings here, but could not sa
 systemSettings.pageDescription: Personal browser-side preferences for how the Agents Server feels while you chat.
 controlPanel.label: Control panel
 controlPanel.openAriaLabel: Open global control panel
-controlPanel.feedbackTitle: Feedback
-controlPanel.feedbackSubtitle: Control sounds and vibration globally
+controlPanel.feedbackTitle: Personal settings
+controlPanel.feedbackSubtitle: Tune appearance, feedback, and browser-side behavior
 controlPanel.audioLabel: Audio
+controlPanel.themeTitle: Theme
+controlPanel.themeSubtitle: Choose whether the interface follows your system, stays light, or stays dark.
+controlPanel.themeSelectLabel: Interface theme
+controlPanel.themeOptionSystem: System
+controlPanel.themeOptionLight: Light
+controlPanel.themeOptionDark: Dark
+controlPanel.themeHelp: System follows your operating system preference and updates automatically when it changes.
+controlPanel.themeSaveFailed: We updated the theme here, but could not save it to the server yet.
 controlPanel.soundTitle: Sounds
 controlPanel.soundDescription: Audio cues for chat replies and controls.
 controlPanel.vibrationTitle: Vibration

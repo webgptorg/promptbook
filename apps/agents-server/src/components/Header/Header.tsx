@@ -295,7 +295,7 @@ export function Header(props: HeaderProps) {
     return (
         <header
             ref={headerRef}
-            className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 h-16"
+            className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-gray-200 bg-white/80 backdrop-blur-md dark:border-slate-700 dark:bg-slate-950/78"
         >
             {isChangePasswordOpen && <ChangePasswordDialog onClose={() => setIsChangePasswordOpen(false)} />}
             {isAgentQrCodeOpen && activeAgent && (
@@ -316,7 +316,7 @@ export function Header(props: HeaderProps) {
                             type="button"
                             aria-label={t('header.menuLabel')}
                             aria-expanded={isMenuOpen}
-                            className="inline-flex items-center justify-center rounded-md text-gray-600 transition-colors duration-150 hover:text-gray-900"
+                            className="inline-flex items-center justify-center rounded-md text-gray-600 transition-colors duration-150 hover:text-gray-900 dark:text-slate-300 dark:hover:text-slate-100"
                             onClick={() => setIsMenuOpen((isOpen) => !isOpen)}
                         >
                             <HamburgerMenu isOpen={isMenuOpen} />
@@ -382,13 +382,13 @@ export function Header(props: HeaderProps) {
                             renderDesktopDropdownItems={renderDesktopDropdownItems}
                         />
                         {menuHoisting && menuHoisting.menu.length > 0 && (
-                            <div className="hidden lg:flex items-center gap-2 border-r border-gray-200 pr-4 mr-2">
+                            <div className="mr-2 hidden items-center gap-2 border-r border-gray-200 pr-4 dark:border-slate-700 lg:flex">
                                 {menuHoisting.menu.map((item, index) => (
                                     <button
                                         key={index}
                                         onClick={item.onClick}
-                                        className={`p-2 rounded-md hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900 ${
-                                            item.isActive ? 'bg-gray-100 text-gray-900' : ''
+                                        className={`rounded-md p-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100 ${
+                                            item.isActive ? 'bg-gray-100 text-gray-900 dark:bg-slate-800 dark:text-slate-100' : ''
                                         }`}
                                         title={item.name}
                                     >

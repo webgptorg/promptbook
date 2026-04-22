@@ -9,6 +9,7 @@ import { useChatVisualMode } from '../../../../components/ChatVisualMode/ChatVis
 import { useServerLanguage } from '../../../../components/ServerLanguage/ServerLanguageProvider';
 import { ChatThreadLoadingSkeleton } from '../../../../components/Skeleton/ChatThreadLoadingSkeleton';
 import { useSoundSystem } from '../../../../components/SoundSystemProvider/SoundSystemProvider';
+import { usePromptbookTheme } from '../../../../components/ThemeMode/usePromptbookTheme';
 import { createDefaultChatEffects } from '../../../../utils/chat/createDefaultChatEffects';
 import { executeQuickActionButton } from '../../../../utils/chat/executeQuickActionButton';
 import {
@@ -142,6 +143,7 @@ export function CanonicalAgentChatSurface({
     const { chatVisualMode } = useChatVisualMode();
     const { enterBehavior, resolveEnterBehavior } = useChatEnterBehaviorPreferences();
     const { soundSystem } = useSoundSystem();
+    const { promptbookTheme } = usePromptbookTheme();
     const effectConfigs = useMemo(() => createDefaultChatEffects(), []);
     const speechRecognition = useMemo(() => {
         if (typeof window === 'undefined' || !state.isSpeechPlaybackEnabled) {
@@ -233,9 +235,10 @@ export function CanonicalAgentChatSurface({
             elevenLabsVoiceId={state.elevenLabsVoiceId}
             teamAgentProfiles={state.teamAgentProfiles}
             extraActions={extraActionNodes}
+            theme={promptbookTheme}
         >
             {isReadOnly && frozenChatBannerLabel && (
-                <div className="mx-4 mt-4 rounded-2xl border border-amber-200 bg-amber-50/95 px-4 py-3 text-sm font-medium text-amber-900 shadow-sm">
+                <div className="mx-4 mt-4 rounded-2xl border border-amber-200 bg-amber-50/95 px-4 py-3 text-sm font-medium text-amber-900 shadow-sm dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
                     {translateText('chat.frozenBannerLabel', { source: frozenChatBannerLabel })}
                 </div>
             )}
@@ -243,7 +246,7 @@ export function CanonicalAgentChatSurface({
     );
 
     return (
-        <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm">
+        <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm dark:border-slate-700/60 dark:bg-slate-950/70">
             {chatElement}
         </div>
     );

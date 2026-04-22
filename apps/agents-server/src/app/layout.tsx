@@ -1,5 +1,6 @@
 import faviconLogoImage from '@/public/favicon.ico';
 import { LayoutWrapper } from '@/src/components/LayoutWrapper/LayoutWrapper';
+import { createThemeModeBootstrapScript } from '@/src/components/ThemeMode/createThemeModeBootstrapScript';
 import { APPLICATION_FONT_VARIABLE_CLASS_NAME } from '@/src/utils/applicationFonts';
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
@@ -25,10 +26,12 @@ import {
     CHAT_VISUAL_MODE_METADATA_KEY,
     resolveChatVisualMode,
 } from '../constants/chatVisualMode';
+import { THEME_MODE_COOKIE_NAME, resolveThemeMode } from '../constants/themeMode';
 import { parseChatFeedbackMode } from '../utils/chatFeedbackMode';
 import { getFederatedServers } from '../utils/getFederatedServers';
 import { isUserAdmin } from '../utils/isUserAdmin';
 import { isUserGlobalAdmin } from '../utils/isUserGlobalAdmin';
+import { getUserThemeModeSettingsForUser } from '../utils/userThemeModeSettings';
 import { getDefaultIsNotificationsOn } from '../utils/userPushNotificationSettings';
 import { isPublicServerVisibility } from '../utils/serverVisibility';
 import {
@@ -264,6 +267,21 @@ export default async function RootLayout({
         getCustomJavascriptWithIntegrations,
     );
     const cookieStorePromise = cookies();
+    const defaultThemeModePromise = Promise.all([currentUserPromise, cookieStorePromise]).then(
+        async ([currentUser, cookieStore]) => {
+            const cookieThemeMode = cookieStore.get(THEME_MODE_COOKIE_NAME)?.value || null;
+            if (cookieThemeMode) {
+                return resolveThemeMode(cookieThemeMode);
+            }
+
+            if (!currentUser?.id) {
+                return resolveThemeMode(null);
+            }
+
+            const storedThemeSettings = await getUserThemeModeSettingsForUser(currentUser.id);
+            return storedThemeSettings?.themeMode || resolveThemeMode(null);
+        },
+    );
     const federatedServersPromise = Promise.all([layoutMetadataPromise, currentUserPromise]).then(
         ([layoutMetadata, currentUser]) =>
             getLayoutFederatedServers({
@@ -301,6 +319,7 @@ export default async function RootLayout({
         customStylesheetCss,
         customJavascript,
         cookieStore,
+        defaultThemeMode,
         federatedServers,
         footerLinks,
         serverVisibility,
@@ -316,6 +335,7 @@ export default async function RootLayout({
         customStylesheetCssPromise,
         customJavascriptPromise,
         cookieStorePromise,
+        defaultThemeModePromise,
         federatedServersPromise,
         footerLinksPromise,
         serverVisibilityPromise,
@@ -346,11 +366,22 @@ export default async function RootLayout({
         metadata: layoutMetadata,
         isPushNotificationsConfigured: Boolean(webPushPublicKey),
     });
+    const themeModeBootstrapScript = createThemeModeBootstrapScript(defaultThemeMode);
 
     return (
-        <html lang={serverLanguage}>
+        <html
+            lang={serverLanguage}
+            suppressHydrationWarning
+            className={defaultThemeMode === 'DARK' ? 'dark' : undefined}
+            data-theme-mode={defaultThemeMode.toLowerCase()}
+            data-theme-resolved={defaultThemeMode === 'DARK' ? 'dark' : 'light'}
+        >
             {/* Note: Icon is set via metadata to allow agent-page specific icons to override it */}
-            <body className={`${APPLICATION_FONT_VARIABLE_CLASS_NAME} antialiased bg-white text-gray-900`}>
+            <body className={`${APPLICATION_FONT_VARIABLE_CLASS_NAME} bg-background text-foreground antialiased`}>
+                <script
+                    id="agents-server-theme-mode"
+                    dangerouslySetInnerHTML={{ __html: themeModeBootstrapScript }}
+                />
                 {customStylesheetCss && <style id="agents-server-custom-css">{customStylesheetCss}</style>}
                 <LayoutWrapper
                     isAdmin={isAdmin}
@@ -373,6 +404,7 @@ export default async function RootLayout({
                     controlPanelOptionAvailability={controlPanelOptionAvailability}
                     defaultServerLanguage={serverLanguage}
                     isServerLanguageEnforced={isServerLanguageEnforced}
+                    defaultThemeMode={defaultThemeMode}
                     defaultChatVisualMode={defaultChatVisualMode}
                     webPushPublicKey={webPushPublicKey}
                 >

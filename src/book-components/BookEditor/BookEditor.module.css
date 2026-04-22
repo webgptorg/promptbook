@@ -41,6 +41,16 @@
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
+.BookEditor[data-book-editor-theme='dark'] .bookEditorWrapper {
+    border-color: rgba(51, 65, 85, 0.92);
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(8, 15, 28, 0.98));
+    box-shadow: 0 20px 45px rgba(2, 6, 23, 0.4);
+}
+
+.BookEditor[data-book-editor-theme='dark'] .bookEditorWrapper:hover {
+    box-shadow: 0 24px 50px rgba(2, 6, 23, 0.48);
+}
+
 .bookEditorWrapper:focus-within {
     /*
     outline: 2px solid transparent;
@@ -117,6 +127,19 @@
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
 }
 
+.BookEditor[data-book-editor-theme='dark'] .button {
+    background-color: rgba(15, 23, 42, 0.92);
+    border-color: rgba(71, 85, 105, 0.9);
+    color: #e2e8f0;
+    box-shadow: 0 1px 2px 0 rgba(2, 6, 23, 0.35);
+}
+
+.BookEditor[data-book-editor-theme='dark'] .button:hover {
+    background-color: rgba(30, 41, 59, 0.98);
+    border-color: rgba(125, 211, 252, 0.5);
+    box-shadow: 0 10px 24px rgba(2, 6, 23, 0.35);
+}
+
 .savedNotification {
     position: absolute;
     top: 50%;
@@ -133,6 +156,12 @@
     align-items: center;
     gap: 0.5rem;
     animation: fadeOut 2s forwards;
+}
+
+.BookEditor[data-book-editor-theme='dark'] .savedNotification {
+    background-color: rgba(2, 6, 23, 0.86);
+    color: #e2e8f0;
+    border: 1px solid rgba(51, 65, 85, 0.9);
 }
 
 .uploadPanel {
@@ -152,6 +181,12 @@
     z-index: 220;
 }
 
+.BookEditor[data-book-editor-theme='dark'] .uploadPanel {
+    background: rgba(8, 15, 28, 0.96);
+    border-color: rgba(51, 65, 85, 0.9);
+    box-shadow: 0 18px 40px rgba(2, 6, 23, 0.45);
+}
+
 .uploadPanelHeader {
     display: flex;
     align-items: center;
@@ -165,9 +200,20 @@
     color: #111827;
 }
 
+.BookEditor[data-book-editor-theme='dark'] .uploadPanelTitle {
+    color: #f8fafc;
+}
+
 .uploadPanelHeaderMeta {
     font-size: 0.75rem;
     color: #6b7280;
+}
+
+.BookEditor[data-book-editor-theme='dark'] .uploadPanelHeaderMeta,
+.BookEditor[data-book-editor-theme='dark'] .uploadPanelSummary,
+.BookEditor[data-book-editor-theme='dark'] .uploadRowStatus,
+.BookEditor[data-book-editor-theme='dark'] .uploadRowMeta {
+    color: #94a3b8;
 }
 
 .uploadPanelSummary {
@@ -191,6 +237,11 @@
     transition: width 0.2s ease;
 }
 
+.BookEditor[data-book-editor-theme='dark'] .uploadPanelProgressBar,
+.BookEditor[data-book-editor-theme='dark'] .uploadRowProgressBar {
+    background: #1e293b;
+}
+
 .uploadPanelList {
     display: flex;
     flex-direction: column;
@@ -210,6 +261,11 @@
     background: #fff;
 }
 
+.BookEditor[data-book-editor-theme='dark'] .uploadRow {
+    border-color: #334155;
+    background: rgba(15, 23, 42, 0.92);
+}
+
 .uploadRowHeader {
     display: flex;
     align-items: center;
@@ -224,6 +280,10 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.BookEditor[data-book-editor-theme='dark'] .uploadRowName {
+    color: #f8fafc;
 }
 
 .uploadRowStatus {
@@ -270,6 +330,17 @@
 .uploadActionButton:hover {
     background: #eef2f7;
     border-color: #cbd5f5;
+}
+
+.BookEditor[data-book-editor-theme='dark'] .uploadActionButton {
+    border-color: #475569;
+    background: #0f172a;
+    color: #e2e8f0;
+}
+
+.BookEditor[data-book-editor-theme='dark'] .uploadActionButton:hover {
+    background: #1e293b;
+    border-color: #7dd3fc;
 }
 
 .uploadRowError {

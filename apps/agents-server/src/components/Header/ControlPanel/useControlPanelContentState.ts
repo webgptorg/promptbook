@@ -1,6 +1,7 @@
 'use client';
 
 import { type ChatVisualMode } from '../../../constants/chatVisualMode';
+import type { ThemeMode } from '../../../constants/themeMode';
 import { useCallback, useEffect, useId } from 'react';
 import { useChatEnterBehaviorPreferences } from '../../ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
 import { useChatVisualMode } from '../../ChatVisualMode/ChatVisualModeProvider';
@@ -9,6 +10,7 @@ import { usePrivateModePreferences } from '../../PrivateModePreferences/PrivateM
 import { useBrowserPushNotifications } from '../../PushNotifications/BrowserPushNotificationsProvider';
 import { useSelfLearningPreferences } from '../../SelfLearningPreferences/SelfLearningPreferencesProvider';
 import { useServerLanguage } from '../../ServerLanguage/ServerLanguageProvider';
+import { useThemeMode } from '../../ThemeMode/ThemeModeProvider';
 import type {
     ControlPanelContentState,
     ControlPanelContentStateProps,
@@ -29,6 +31,7 @@ export function useControlPanelContentState({
 }: ControlPanelContentStateProps): ControlPanelContentState {
     const { controlPanelOptionAvailability } = useMetadataFlags();
     const { chatVisualMode, setChatVisualMode } = useChatVisualMode();
+    const { themeMode, setThemeMode } = useThemeMode();
     const {
         storedEnterBehavior,
         isLoading: isEnterBehaviorLoading,
@@ -50,6 +53,7 @@ export function useControlPanelContentState({
     const { soundSystem, isVibrationSupported, soundToggle, vibrationToggle } = useControlPanelAudioState();
 
     const languageSelectId = useId();
+    const themeSelectId = useId();
     const chatVisualModeSelectId = useId();
 
     const handleLanguageChange = useCallback(
@@ -64,6 +68,13 @@ export function useControlPanelContentState({
             setChatVisualMode(nextChatVisualMode as ChatVisualMode);
         },
         [setChatVisualMode],
+    );
+
+    const handleThemeModeChange = useCallback(
+        (nextThemeMode: string) => {
+            void setThemeMode(nextThemeMode as ThemeMode);
+        },
+        [setThemeMode],
     );
 
     const handleEnterBehaviorChange = useCallback(
@@ -115,6 +126,9 @@ export function useControlPanelContentState({
         onToggleNotifications: toggleNotifications,
         onToggleSelfLearning: toggleSelfLearning,
         onTogglePrivateMode: togglePrivateMode,
+        themeSelectId,
+        themeMode,
+        onThemeModeChange: handleThemeModeChange,
         languageSelectId,
         language,
         availableLanguages,

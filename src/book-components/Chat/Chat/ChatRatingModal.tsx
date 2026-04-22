@@ -90,6 +90,8 @@ export function ChatRatingModal(props: ChatRatingModalProps) {
     return (
         <div
             className={styles.ratingModal}
+            data-chat-modal="rating"
+            data-chat-theme={mode.toLowerCase()}
             onClick={(event) => {
                 if (event.target === event.currentTarget && isMobile) {
                     onClose();

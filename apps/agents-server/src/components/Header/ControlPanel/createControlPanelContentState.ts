@@ -1,5 +1,6 @@
 import { Bell, EyeOff, Sparkles, SpeakerIcon, Vibrate } from 'lucide-react';
 import { CHAT_VISUAL_MODES, type ChatVisualMode } from '../../../constants/chatVisualMode';
+import { THEME_MODES } from '../../../constants/themeMode';
 import { getChatEnterBehaviorStateLabel } from '../../ChatEnterBehavior/chatEnterBehaviorTranslations';
 import type {
     ControlPanelAvailableLanguages,
@@ -13,6 +14,7 @@ import type {
     ControlPanelSoundSystem,
     ControlPanelStoredEnterBehavior,
     ControlPanelSummaryBadge,
+    ControlPanelThemeMode,
     ControlPanelToggleTileState,
     ControlPanelTranslator,
 } from './ControlPanelContentState';
@@ -52,6 +54,9 @@ type CreateControlPanelContentStateProps = {
     readonly onToggleNotifications: () => void;
     readonly onToggleSelfLearning: () => void;
     readonly onTogglePrivateMode: () => void;
+    readonly themeSelectId: string;
+    readonly themeMode: ControlPanelThemeMode;
+    readonly onThemeModeChange: (nextValue: string) => void;
     readonly languageSelectId: string;
     readonly language: ControlPanelLanguage;
     readonly availableLanguages: ControlPanelAvailableLanguages;
@@ -90,6 +95,9 @@ export function createControlPanelContentState({
     onToggleNotifications,
     onToggleSelfLearning,
     onTogglePrivateMode,
+    themeSelectId,
+    themeMode,
+    onThemeModeChange,
     languageSelectId,
     language,
     availableLanguages,
@@ -117,6 +125,7 @@ export function createControlPanelContentState({
     });
     const soundStateLabel = resolveControlPanelToggleStateLabel(t, soundToggle.isEnabled);
     const vibrationStateLabel = resolveControlPanelToggleStateLabel(t, vibrationToggle.isEnabled);
+    const activeThemeModeLabel = resolveControlPanelThemeModeLabel(t, themeMode);
     const activeLanguageName = resolveControlPanelActiveLanguageName(availableLanguages, language);
     const chatEnterBehaviorStateLabel = getChatEnterBehaviorStateLabel(t, storedEnterBehavior);
     const activeChatVisualModeLabel = resolveControlPanelChatVisualModeLabel(t, chatVisualMode);
@@ -131,6 +140,7 @@ export function createControlPanelContentState({
             notificationState,
             soundStateLabel,
             isSoundEnabled: soundToggle.isEnabled,
+            activeThemeModeLabel,
             activeLanguageName,
             chatEnterBehaviorStateLabel,
             isEnterBehaviorLoading,
@@ -152,6 +162,12 @@ export function createControlPanelContentState({
             privateModeState,
             onTogglePrivateMode,
             t,
+        }),
+        themeSection: createControlPanelThemeSection({
+            selectId: themeSelectId,
+            t,
+            themeMode,
+            onChange: onThemeModeChange,
         }),
         languageSection: createControlPanelLanguageSection({
             isAvailable: controlPanelOptionAvailability.language,
@@ -381,6 +397,22 @@ function resolveControlPanelChatVisualModeLabel(
 }
 
 /**
+ * Resolves the label shown for the currently active theme mode.
+ *
+ * @private function of ControlPanelContent
+ */
+function resolveControlPanelThemeModeLabel(t: ControlPanelTranslator, themeMode: ControlPanelThemeMode): string {
+    switch (themeMode) {
+        case THEME_MODES.DARK:
+            return t('controlPanel.themeOptionDark');
+        case THEME_MODES.LIGHT:
+            return t('controlPanel.themeOptionLight');
+        default:
+            return t('controlPanel.themeOptionSystem');
+    }
+}
+
+/**
  * Builds the summary badge list shown in the control-panel hero card.
  *
  * @private function of ControlPanelContent
@@ -392,6 +424,7 @@ function createControlPanelSummaryBadges({
     notificationState,
     soundStateLabel,
     isSoundEnabled,
+    activeThemeModeLabel,
     activeLanguageName,
     chatEnterBehaviorStateLabel,
     isEnterBehaviorLoading,
@@ -404,6 +437,7 @@ function createControlPanelSummaryBadges({
     readonly notificationState: ControlPanelNotificationState;
     readonly soundStateLabel: string;
     readonly isSoundEnabled: boolean;
+    readonly activeThemeModeLabel: string;
     readonly activeLanguageName: string;
     readonly chatEnterBehaviorStateLabel: string;
     readonly isEnterBehaviorLoading: boolean;
@@ -435,6 +469,12 @@ function createControlPanelSummaryBadges({
                 isAvailable: controlPanelOptionAvailability.sound,
                 label: soundStateLabel,
                 tone: isSoundEnabled ? 'positive' : 'neutral',
+            },
+            {
+                key: 'theme',
+                isAvailable: true,
+                label: activeThemeModeLabel,
+                tone: 'informative',
             },
             {
                 key: 'language',
@@ -561,6 +601,47 @@ function createControlPanelToggleTiles({
             },
         ] satisfies Array<ControlPanelToggleTileState & { readonly isAvailable: boolean }>
     ).flatMap(({ isAvailable, ...tile }) => (isAvailable ? [tile] : []));
+}
+
+/**
+ * Builds the state for the theme-mode select card.
+ *
+ * @private function of ControlPanelContent
+ */
+function createControlPanelThemeSection({
+    selectId,
+    t,
+    themeMode,
+    onChange,
+}: {
+    readonly selectId: string;
+    readonly t: ControlPanelTranslator;
+    readonly themeMode: ControlPanelThemeMode;
+    readonly onChange: (nextValue: string) => void;
+}): ControlPanelSelectSectionState {
+    return {
+        title: t('controlPanel.themeTitle'),
+        subtitle: t('controlPanel.themeSubtitle'),
+        selectId,
+        selectLabel: t('controlPanel.themeSelectLabel'),
+        value: themeMode,
+        options: [
+            {
+                value: THEME_MODES.SYSTEM,
+                label: t('controlPanel.themeOptionSystem'),
+            },
+            {
+                value: THEME_MODES.LIGHT,
+                label: t('controlPanel.themeOptionLight'),
+            },
+            {
+                value: THEME_MODES.DARK,
+                label: t('controlPanel.themeOptionDark'),
+            },
+        ],
+        helpText: t('controlPanel.themeHelp'),
+        onChange,
+    };
 }
 
 /**

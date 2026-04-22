@@ -22,6 +22,7 @@ import { useHoistedMobileMenuItems } from '../../../components/Header/MobileMenu
 import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { ChatThreadLoadingSkeleton } from '../../../components/Skeleton/ChatThreadLoadingSkeleton';
+import { usePromptbookTheme } from '../../../components/ThemeMode/usePromptbookTheme';
 import type { ServerLanguageCode } from '../../../languages/ServerLanguageRegistry';
 import { executeQuickActionButton } from '../../../utils/chat/executeQuickActionButton';
 import { resolveChatMessageValidationIssue } from '../../../utils/chat/validateChatMessageContent';
@@ -253,6 +254,7 @@ export function AgentProfileChat({
     const { chatVisualMode } = useChatVisualMode();
     const { enterBehavior, resolveEnterBehavior } = useChatEnterBehaviorPreferences();
     const { isPrivateModeEnabled } = usePrivateModePreferences();
+    const { promptbookTheme } = usePromptbookTheme();
 
     keepUnused(isCreatingAgent);
 
@@ -437,12 +439,12 @@ export function AgentProfileChat({
                 }`}
                 aria-busy={isNavigatingToChat || undefined}
             >
-                <div className="absolute inset-0 rounded-[32px] border border-white/30 bg-gradient-to-br from-white/80 via-white/70 to-slate-100/70 shadow-[0_25px_80px_rgba(15,23,42,0.25)]" />
-                <div className="relative z-10 h-full w-full rounded-[32px] border border-white/40 bg-white/80 p-4 shadow-2xl backdrop-blur-3xl">
+                <div className="absolute inset-0 rounded-[32px] border border-white/30 bg-gradient-to-br from-white/80 via-white/70 to-slate-100/70 shadow-[0_25px_80px_rgba(15,23,42,0.25)] dark:border-slate-700/70 dark:from-slate-950/95 dark:via-slate-900/90 dark:to-sky-950/55 dark:shadow-[0_28px_90px_rgba(2,6,23,0.55)]" />
+                <div className="relative z-10 h-full w-full rounded-[32px] border border-white/40 bg-white/80 p-4 shadow-2xl backdrop-blur-3xl dark:border-slate-700/70 dark:bg-slate-950/78">
                     {initialMessage === undefined ? (
                         <ChatThreadLoadingSkeleton
                             withComposer
-                            className="h-full w-full rounded-[28px] border border-white/40 bg-white/75"
+                            className="h-full w-full rounded-[28px] border border-white/40 bg-white/75 dark:border-slate-700/60 dark:bg-slate-950/70"
                         />
                     ) : (
                         <Chat
@@ -468,6 +470,7 @@ export function AgentProfileChat({
                             resolveEnterBehavior={resolveEnterBehavior}
                             isSpeechPlaybackEnabled={isSpeechFeaturesEnabled}
                             visualMode={chatVisualMode}
+                            theme={promptbookTheme}
                             layout="STANDALONE"
                         />
                     )}
@@ -508,7 +511,7 @@ type PrivateModeChatPanelProps = {
  */
 function PrivateModeChatPanel({ formatText, brandColorHex }: PrivateModeChatPanelProps) {
     return (
-        <section className="relative w-full overflow-hidden rounded-[28px] border border-blue-200 bg-gradient-to-br from-blue-50 to-white/80 shadow-2xl shadow-blue-200/30">
+        <section className="relative w-full overflow-hidden rounded-[28px] border border-blue-200 bg-gradient-to-br from-blue-50 to-white/80 shadow-2xl shadow-blue-200/30 dark:border-blue-500/30 dark:from-slate-950 dark:to-blue-950/55 dark:shadow-slate-950/50">
             <div
                 className="absolute left-4 right-4 top-3 h-1 rounded-full"
                 style={{
@@ -517,20 +520,20 @@ function PrivateModeChatPanel({ formatText, brandColorHex }: PrivateModeChatPane
             />
             <div className="relative z-10 px-5 py-5">
                 <div className="flex items-center justify-between gap-2">
-                    <p className="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-slate-500">
+                    <p className="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-slate-500 dark:text-slate-400">
                         {formatText('My chats')}
                     </p>
-                    <span className="rounded-full bg-blue-100 px-2 py-1 text-[0.55rem] font-semibold uppercase tracking-[0.3em] text-blue-600">
+                    <span className="rounded-full bg-blue-100 px-2 py-1 text-[0.55rem] font-semibold uppercase tracking-[0.3em] text-blue-600 dark:bg-blue-500/15 dark:text-blue-200">
                         {formatText('Private')}
                     </span>
                 </div>
-                <p className="text-sm font-semibold text-slate-900">{formatText('This chat is private')}</p>
-                <p className="text-xs text-slate-500">
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{formatText('This chat is private')}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-300">
                     {formatText(
                         'Messages are kept local, and nothing is stored or learned while private mode is active.',
                     )}
                 </p>
-                <div className="mt-4 rounded-2xl border border-blue-100 bg-white/90 p-3 text-xs font-medium text-slate-600">
+                <div className="mt-4 rounded-2xl border border-blue-100 bg-white/90 p-3 text-xs font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-900/90 dark:text-slate-300">
                     {formatText(
                         'Use the chat area below to keep the same agent and settings, knowing no history, memories, or learning will be persisted.',
                     )}
@@ -558,7 +561,7 @@ function ExistingChatsPanel({
         (PROFILE_VISIBLE_CHAT_ROWS - 1) * PROFILE_CHAT_ROW_GAP_PX;
 
     return (
-        <section className="relative w-full overflow-hidden rounded-[28px] border border-white/50 bg-white/80 shadow-2xl shadow-slate-900/20 backdrop-blur-3xl">
+        <section className="relative w-full overflow-hidden rounded-[28px] border border-white/50 bg-white/80 shadow-2xl shadow-slate-900/20 backdrop-blur-3xl dark:border-slate-700/60 dark:bg-slate-950/78 dark:shadow-slate-950/50">
             <div
                 className="absolute left-4 right-4 top-3 h-1 rounded-full"
                 style={{
@@ -567,10 +570,10 @@ function ExistingChatsPanel({
             />
             <div className="relative z-10 px-5 py-5">
                 <div className="flex flex-col gap-1">
-                    <p className="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-slate-500">
+                    <p className="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-slate-500 dark:text-slate-400">
                         {formatText('My chats')}
                     </p>
-                    <p className="text-sm font-semibold text-slate-900">{formatText('Pick up where you left off')}</p>
+                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{formatText('Pick up where you left off')}</p>
                 </div>
                 <div className="mt-4 space-y-3 overflow-y-auto pr-1" style={{ maxHeight: `${scrollViewportHeight}px` }}>
                     {chats.map((chat) => {
@@ -596,7 +599,7 @@ function ExistingChatsPanel({
                                     onNavigateToChat(chatHref);
                                 }}
                                 title={titleWithPreview}
-                                className="flex w-full flex-col gap-2 rounded-2xl border border-slate-200/70 bg-white/90 px-4 py-3 text-left shadow-sm shadow-slate-900/10 transition duration-150 hover:border-slate-400 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500/80 min-h-[96px]"
+                                className="flex w-full flex-col gap-2 rounded-2xl border border-slate-200/70 bg-white/90 px-4 py-3 text-left shadow-sm shadow-slate-900/10 transition duration-150 hover:border-slate-400 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500/80 min-h-[96px] dark:border-slate-700 dark:bg-slate-900/88 dark:shadow-slate-950/35 dark:hover:border-slate-500 dark:hover:bg-slate-900"
                             >
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="flex min-w-0 items-center gap-2">
@@ -604,19 +607,19 @@ function ExistingChatsPanel({
                                             className="h-2 w-2 flex-shrink-0 rounded-full"
                                             style={{ backgroundColor: brandColorHex }}
                                         />
-                                        <span className="text-sm font-semibold text-slate-900 line-clamp-1">
+                                        <span className="text-sm font-semibold text-slate-900 line-clamp-1 dark:text-slate-100">
                                             {title}
                                         </span>
                                     </div>
                                     <time
                                         dateTime={updatedAtMoment ? updatedAtMoment.toISOString() : chat.updatedAt}
                                         title={fullTimeLabel}
-                                        className="text-[0.65rem] font-semibold text-slate-400"
+                                        className="text-[0.65rem] font-semibold text-slate-400 dark:text-slate-500"
                                     >
                                         {timeLabel}
                                     </time>
                                 </div>
-                                <p className="text-[0.74rem] font-medium text-slate-500 line-clamp-2">{previewText}</p>
+                                <p className="text-[0.74rem] font-medium text-slate-500 line-clamp-2 dark:text-slate-300">{previewText}</p>
                             </HeadlessLink>
                         );
                     })}

@@ -2,6 +2,7 @@
 
 import { BookEditor } from '@promptbook-local/components';
 import { string_book } from '@promptbook-local/types';
+import { usePromptbookTheme } from '../../../../components/ThemeMode/usePromptbookTheme';
 
 /**
  * Read-only client-only wrapper around `<BookEditor/>`.
@@ -10,5 +11,7 @@ import { string_book } from '@promptbook-local/types';
  * of browser-only editor dependencies.
  */
 export function SystemMessageBookEditor({ value }: { value: string }) {
-    return <BookEditor isReadonly value={value as string_book} />;
+    const { promptbookTheme } = usePromptbookTheme();
+
+    return <BookEditor isReadonly value={value as string_book} theme={promptbookTheme} />;
 }

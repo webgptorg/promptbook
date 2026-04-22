@@ -31,6 +31,10 @@ export type ChatMessageRichContentProps = {
      * Optional callback for creating a new agent from a book code block.
      */
     readonly onCreateAgent?: (bookContent: string) => void;
+    /**
+     * Resolved theme used by nested code blocks and editors.
+     */
+    readonly mode: 'LIGHT' | 'DARK';
 };
 
 /**
@@ -39,7 +43,7 @@ export type ChatMessageRichContentProps = {
  * @private internal component of `<ChatMessageItem/>`
  */
 export function ChatMessageRichContent(props: ChatMessageRichContentProps) {
-    const { content, contentSegments, streamingFeaturePlaceholderKind, onCreateAgent } = props;
+    const { content, contentSegments, streamingFeaturePlaceholderKind, onCreateAgent, mode } = props;
 
     if (content === LOADING_INTERACTIVE_IMAGE) {
         return null;
@@ -65,6 +69,7 @@ export function ChatMessageRichContent(props: ChatMessageRichContentProps) {
                             code={segment.code}
                             language={segment.language}
                             onCreateAgent={onCreateAgent}
+                            theme={mode}
                         />
                     );
                 }

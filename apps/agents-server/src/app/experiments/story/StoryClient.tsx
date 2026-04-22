@@ -5,6 +5,7 @@ import { BookEditor } from '@promptbook-local/components';
 import { validateBook } from '@promptbook-local/core';
 import { ChevronDown, Save } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { usePromptbookTheme } from '../../../components/ThemeMode/usePromptbookTheme';
 import { AgentsPanel } from './AgentsPanel';
 import { getStories, saveStories } from './actions';
 import {
@@ -40,6 +41,7 @@ type AgentsApiResponse = {
  * Story writing client for `/experiments/story`.
  */
 export function StoryClient() {
+    const { promptbookTheme } = usePromptbookTheme();
     const [stories, setStories] = useState<Array<Story>>([]);
     const [activeStoryId, setActiveStoryId] = useState('');
     const [isLoadingStories, setIsLoadingStories] = useState(true);
@@ -339,6 +341,7 @@ export function StoryClient() {
                                 handleContentChange(newSource);
                             }}
                             isReadonly={false}
+                            theme={promptbookTheme}
                         />
                     </div>
                     <div className="px-4 pb-2 text-xs text-gray-500">

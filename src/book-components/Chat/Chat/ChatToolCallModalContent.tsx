@@ -31,6 +31,7 @@ type ChatToolCallModalContentProps = {
     readonly focusedToolCall: ToolCallModalToolCall;
     readonly isAdvancedView: boolean;
     readonly locale?: string;
+    readonly mode: 'LIGHT' | 'DARK';
     readonly onClearSelectedTeamToolCall: () => void;
     readonly onRequestAdvancedView: () => void;
     readonly onSelectTeamToolCall: (toolCall: TransitiveToolCall) => void;
@@ -56,6 +57,7 @@ export function ChatToolCallModalContent({
     focusedToolCall,
     isAdvancedView,
     locale,
+    mode,
     onClearSelectedTeamToolCall,
     onRequestAdvancedView,
     onSelectTeamToolCall,
@@ -72,6 +74,7 @@ export function ChatToolCallModalContent({
             toolCall: focusedToolCall,
             toolTitles,
             availableTools,
+            mode,
         });
     }
 

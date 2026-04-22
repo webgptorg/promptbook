@@ -869,6 +869,16 @@ export type ChatProps = {
     readonly visualMode?: ChatVisualMode;
 
     /**
+     * Resolved visual theme used for chat surfaces, modals, and embedded Monaco viewers.
+     *
+     * Host applications should pass the final light/dark theme here instead of leaving
+     * `<Chat/>` to infer anything from the document.
+     *
+     * @default 'LIGHT'
+     */
+    readonly theme?: 'LIGHT' | 'DARK';
+
+    /**
      * Layout of the chat component
      */
     readonly layout: 'STANDALONE' | 'FULL_PAGE';

@@ -4,6 +4,7 @@ import { BookEditor } from '@promptbook-local/components';
 import type { string_book } from '@promptbook-local/types';
 import { bookEditorUploadHandler } from '../../../../utils/upload/createBookEditorUploadHandler';
 import { SaveFailureNotice } from '../../../../components/SaveFailureNotice/SaveFailureNotice';
+import { usePromptbookTheme } from '../../../../components/ThemeMode/usePromptbookTheme';
 import { BookEditorHistoryPanel } from './BookEditorHistoryPanel';
 import { BookEditorMissingReferences } from './BookEditorMissingReferences';
 import { useBookEditorWrapper } from './useBookEditorWrapper';
@@ -22,6 +23,7 @@ type BookEditorWrapperProps = {
  * Wraps the BookEditor with autosave and file upload support.
  */
 export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorWrapperProps) {
+    const { promptbookTheme } = usePromptbookTheme();
     const {
         agentSource,
         monacoModelPath,
@@ -60,18 +62,19 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                             onFileUpload={bookEditorUploadHandler}
                             diagnostics={diagnostics}
                             hoistedMenuItems={hoistedMenuItems}
+                            theme={promptbookTheme}
                         />
                     </div>
 
                     <BookEditorMissingReferences
-                        className="hidden w-80 shrink-0 flex-col gap-4 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-lg shadow-slate-900/5 backdrop-blur-md xl:flex"
+                        className="hidden w-80 shrink-0 flex-col gap-4 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-lg shadow-slate-900/5 backdrop-blur-md dark:border-slate-700 dark:bg-slate-950/85 dark:shadow-slate-950/30 xl:flex"
                         missingAgentReferences={missingAgentReferences}
                         creatingReference={creatingReference}
                         onCreateReferencedAgent={handleCreateReferencedAgent}
                     />
                 </div>
 
-                <BookEditorHistoryPanel {...historyPanelProps} />
+                <BookEditorHistoryPanel {...historyPanelProps} theme={promptbookTheme} />
             </div>
 
             <BookEditorMissingReferences

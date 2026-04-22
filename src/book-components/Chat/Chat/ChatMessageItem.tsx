@@ -441,6 +441,8 @@ export const ChatMessageItem = memo(
         const swipeDirectionMultiplier = isMe ? -1 : 1;
         const swipeTranslation = `${isMe ? -replySwipeDistance : replySwipeDistance}px`;
         const isReplySwipeArmed = replySwipeDistance >= REPLY_SWIPE_TRIGGER_PX * 0.5;
+        const articleModeBackgroundColor = mode === 'DARK' ? 'rgba(15, 23, 42, 0.78)' : '#ffffff';
+        const articleModeTextColor = mode === 'DARK' ? '#e2e8f0' : '#0f172a';
 
         /**
          * Renders the optional message utility buttons used for copy/read actions.
@@ -870,8 +872,10 @@ export const ChatMessageItem = memo(
                         )}
                         style={
                             {
-                                '--message-bg-color': isAgentArticleMode ? '#ffffff' : color.toHex(),
-                                '--message-text-color': isAgentArticleMode ? '#0f172a' : colorOfText.toHex(),
+                                '--message-bg-color': isAgentArticleMode ? articleModeBackgroundColor : color.toHex(),
+                                '--message-text-color': isAgentArticleMode
+                                    ? articleModeTextColor
+                                    : colorOfText.toHex(),
                                 '--chat-message-swipe-offset': swipeTranslation,
                             } as CSSProperties
                         }
@@ -916,6 +920,7 @@ export const ChatMessageItem = memo(
                                 contentSegments={contentSegments}
                                 streamingFeaturePlaceholderKind={streamingFeaturePlaceholderKind}
                                 onCreateAgent={onCreateAgent}
+                                mode={mode}
                             />
                         </div>
 

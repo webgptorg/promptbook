@@ -9,6 +9,7 @@ import { MockedChat } from '@promptbook-local/components';
 import type { ChatMessage, ChatParticipant, string_date_iso8601 } from '@promptbook-local/types';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { usePromptbookTheme } from '../../../../../components/ThemeMode/usePromptbookTheme';
 
 /**
  * Properties for the mocked-chat recording viewer.
@@ -23,6 +24,7 @@ type MockedChatsViewerClientProps = {
  */
 export function MockedChatsViewerClient(props: MockedChatsViewerClientProps) {
     const { mockedChats, initialMockedChatId } = props;
+    const { promptbookTheme } = usePromptbookTheme();
 
     const selectedMockedChat = useMemo(() => {
         if (mockedChats.length === 0) {
@@ -158,6 +160,7 @@ export function MockedChatsViewerClient(props: MockedChatsViewerClientProps) {
                     appendMessagesLocallyOnSend={true}
                     messageOffsetsMs={replayOffsetsMs}
                     delayConfig={resolveDelayConfigByTimingPreset(selectedMockedChat.settings.timingPreset)}
+                    theme={promptbookTheme}
                     onSimulationComplete={
                         selectedMockedChat.settings.loopPlayback
                             ? () => {

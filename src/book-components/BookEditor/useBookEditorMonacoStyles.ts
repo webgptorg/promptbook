@@ -17,6 +17,7 @@ type UseBookEditorMonacoStylesProps = {
     readonly scaledContentPaddingLeft: number;
     readonly scaledVerticalLineLeft: number;
     readonly zoomLevel: number;
+    readonly theme: 'LIGHT' | 'DARK';
 };
 
 /**
@@ -30,9 +31,14 @@ export function useBookEditorMonacoStyles({
     scaledContentPaddingLeft,
     scaledVerticalLineLeft,
     zoomLevel,
+    theme,
 }: UseBookEditorMonacoStylesProps) {
     useEffect(() => {
         const styleId = `notebook-margin-line-style-${instanceClass}`;
+        const lineColor = theme === 'DARK' ? '#1f2937' : PROMPTBOOK_SYNTAX_COLORS.LINE.toHex();
+        const separatorColor = theme === 'DARK' ? '#334155' : PROMPTBOOK_SYNTAX_COLORS.SEPARATOR.toHex();
+        const codeBlockBackground = theme === 'DARK' ? '#0f172a99' : '#f5f5f566';
+        const codeBlockBorderColor = theme === 'DARK' ? '#38bdf8aa' : PROMPTBOOK_SYNTAX_COLORS.CODE_BLOCK.toHex();
 
         let style = document.getElementById(styleId) as HTMLStyleElement | null;
         if (!style) {
@@ -49,7 +55,7 @@ export function useBookEditorMonacoStyles({
             .${instanceClass} .monaco-editor .view-lines {
                 background-image: linear-gradient(to bottom, transparent ${
                     scaledLineHeight - 1
-                }px, ${PROMPTBOOK_SYNTAX_COLORS.LINE.toHex()} ${scaledLineHeight - 1}px);
+                }px, ${lineColor} ${scaledLineHeight - 1}px);
                 background-size: calc(100% + ${scaledContentPaddingLeft}px) ${scaledLineHeight}px;
                 background-position-x: -${scaledContentPaddingLeft}px;
                 background-position-y: ${scaledLineHeight * BACKGROUND_POSITION_Y_MULTIPLIER}px;
@@ -61,7 +67,7 @@ export function useBookEditorMonacoStyles({
                 top: 0;
                 bottom: 0;
                 width: 1px;
-                background-color: ${PROMPTBOOK_SYNTAX_COLORS.LINE.toHex()};
+                background-color: ${lineColor};
                 z-index: 10;
             }
 
@@ -69,8 +75,8 @@ export function useBookEditorMonacoStyles({
                 background: linear-gradient(
                     to bottom, 
                     transparent ${scaledLineHeight * 0.9 - 2}px, 
-                    ${PROMPTBOOK_SYNTAX_COLORS.SEPARATOR.toHex()} ${scaledLineHeight * 0.9 - 2}px, 
-                    ${PROMPTBOOK_SYNTAX_COLORS.SEPARATOR.toHex()} ${scaledLineHeight * 0.9 + 1}px, 
+                    ${separatorColor} ${scaledLineHeight * 0.9 - 2}px, 
+                    ${separatorColor} ${scaledLineHeight * 0.9 + 1}px, 
                     transparent ${scaledLineHeight * 0.9 + 1}px
                 );
             }
@@ -80,22 +86,22 @@ export function useBookEditorMonacoStyles({
             }
             
             .${instanceClass} .monaco-editor .code-block-box {
-                background-color: #f5f5f566;
-                border-left: 1px solid ${PROMPTBOOK_SYNTAX_COLORS.CODE_BLOCK.toHex()};
-                border-right: 1px solid ${PROMPTBOOK_SYNTAX_COLORS.CODE_BLOCK.toHex()};
+                background-color: ${codeBlockBackground};
+                border-left: 1px solid ${codeBlockBorderColor};
+                border-right: 1px solid ${codeBlockBorderColor};
                 padding-left: ${Math.round(8 * zoomLevel)}px;
                 padding-right: ${Math.round(8 * zoomLevel)}px;
             }
             
             .${instanceClass} .monaco-editor .code-block-top {
-                border-top: 1px solid ${PROMPTBOOK_SYNTAX_COLORS.CODE_BLOCK.toHex()};
+                border-top: 1px solid ${codeBlockBorderColor};
                 border-top-left-radius: ${Math.round(10 * zoomLevel)}px;
                 border-top-right-radius: ${Math.round(10 * zoomLevel)}px;
                 overflow: hidden;
             }
             
             .${instanceClass} .monaco-editor .code-block-bottom {
-                border-bottom: 1px solid ${PROMPTBOOK_SYNTAX_COLORS.CODE_BLOCK.toHex()};
+                border-bottom: 1px solid ${codeBlockBorderColor};
                 border-bottom-left-radius: ${Math.round(10 * zoomLevel)}px;
                 border-bottom-right-radius: ${Math.round(10 * zoomLevel)}px;
                 overflow: hidden;
@@ -107,5 +113,5 @@ export function useBookEditorMonacoStyles({
                 style?.remove();
             }
         };
-    }, [instanceClass, scaledLineHeight, scaledContentPaddingLeft, scaledVerticalLineLeft, zoomLevel]);
+    }, [instanceClass, scaledLineHeight, scaledContentPaddingLeft, scaledVerticalLineLeft, theme, zoomLevel]);
 }

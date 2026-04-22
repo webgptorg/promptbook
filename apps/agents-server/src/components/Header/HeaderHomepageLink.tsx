@@ -32,7 +32,8 @@ export function HeaderHomepageLink({
 }: HeaderHomepageLinkProps) {
     const compactServerName = serverName.split(' ')[0] || serverName;
     const mergedLogoClassName = `h-6 w-6 shrink-0 object-contain sm:h-8 sm:w-8 ${logoClassName}`.trim();
-    const mergedLabelClassName = `min-w-0 truncate text-base font-bold tracking-tight text-gray-900 ${labelClassName}`.trim();
+    const mergedLabelClassName =
+        `min-w-0 truncate text-base font-bold tracking-tight text-gray-900 dark:text-slate-100 ${labelClassName}`.trim();
 
     return (
         <HeadlessLink
@@ -42,27 +43,29 @@ export function HeaderHomepageLink({
             className={`flex min-w-0 items-center gap-3 ${className}`.trim()}
             onClick={onClick}
         >
-            {serverLogoUrl ? (
-                // Note: `next/image` does not load external images well without extra config
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                    src={serverLogoUrl}
-                    alt=""
-                    aria-hidden
-                    width={32}
-                    height={32}
-                    className={mergedLogoClassName}
-                />
-            ) : (
-                <Image
-                    src={promptbookLogoBlueTransparent}
-                    alt=""
-                    aria-hidden
-                    width={32}
-                    height={32}
-                    className={mergedLogoClassName}
-                />
-            )}
+            <span className="inline-flex shrink-0 items-center justify-center rounded-2xl bg-white/90 p-1 shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-900/90 dark:ring-slate-700/80">
+                {serverLogoUrl ? (
+                    // Note: `next/image` does not load external images well without extra config
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                        src={serverLogoUrl}
+                        alt=""
+                        aria-hidden
+                        width={32}
+                        height={32}
+                        className={mergedLogoClassName}
+                    />
+                ) : (
+                    <Image
+                        src={promptbookLogoBlueTransparent}
+                        alt=""
+                        aria-hidden
+                        width={32}
+                        height={32}
+                        className={mergedLogoClassName}
+                    />
+                )}
+            </span>
             <span className={mergedLabelClassName}>
                 {isCompactOnMobile ? (
                     <>

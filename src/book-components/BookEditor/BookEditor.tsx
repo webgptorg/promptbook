@@ -125,6 +125,16 @@ export type BookEditorProps = {
     readonly style?: CSSProperties;
 
     /**
+     * Resolved visual theme used for the editor wrapper and Monaco instance.
+     *
+     * Host applications should pass the final light/dark theme instead of relying on
+     * browser media-query inference inside `<BookEditor/>`.
+     *
+     * @default 'LIGHT'
+     */
+    readonly theme?: 'LIGHT' | 'DARK';
+
+    /**
      * Height of the `BookEditor` component
      *
      * - You can use any valid CSS value, e.g., `500px`, `100%`, `50vh`, etc.
@@ -280,6 +290,7 @@ export function BookEditor(props: BookEditorProps) {
         agentSource,
         className,
         style,
+        theme = 'LIGHT',
         zoom = 1,
         value,
         onChange,
@@ -311,6 +322,7 @@ export function BookEditor(props: BookEditorProps) {
     const editorContent = (
         <div
             data-book-component="BookEditor"
+            data-book-editor-theme={theme.toLowerCase()}
             className={classNames(
                 styles.BookEditor,
                 isVerbose && styles.isVerbose,
@@ -355,6 +367,7 @@ export function BookEditor(props: BookEditorProps) {
                 zoom={zoom}
                 monacoModelPath={monacoModelPath}
                 hoistedMenuItems={hoistedMenuItems}
+                theme={theme}
             />
         </div>
     );

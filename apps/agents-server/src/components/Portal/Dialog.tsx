@@ -14,7 +14,7 @@ const DEFAULT_DIALOG_BACKDROP_CLASS_NAME =
  * Default surface styling shared by Agents Server modal dialogs.
  */
 const DEFAULT_DIALOG_SURFACE_CLASS_NAME =
-    'relative bg-white rounded-lg shadow-lg border border-gray-200 animate-in zoom-in-95 duration-200';
+    'relative rounded-lg border border-gray-200 bg-white shadow-lg animate-in zoom-in-95 duration-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
 /**
  * Maximum pointer travel still treated as one intentional backdrop click.

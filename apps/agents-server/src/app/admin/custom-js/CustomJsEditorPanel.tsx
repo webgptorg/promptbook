@@ -1,5 +1,8 @@
+'use client';
+
 import type { ChangeEvent } from 'react';
 import { MonacoEditorWithShadowDom } from '../../../components/_utils/MonacoEditorWithShadowDom';
+import { usePromptbookTheme } from '../../../components/ThemeMode/usePromptbookTheme';
 import { CUSTOM_RESOURCE_INPUT_CLASS_NAME } from '../custom-resource/shared';
 import type { CustomJavascriptFileState } from './CustomJavascriptFileState';
 
@@ -46,19 +49,21 @@ export function CustomJsEditorPanel({
     onReloadFromServer,
     onSaveCurrentFile,
 }: CustomJsEditorPanelProps) {
+    const { monacoTheme } = usePromptbookTheme();
+
     return (
-        <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-950">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-lg font-semibold text-gray-900">Script editor</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100">Script editor</h2>
                 {currentFile?.updatedAt && (
-                    <div className="text-xs text-gray-500">Last saved: {new Date(currentFile.updatedAt).toLocaleString()}</div>
+                    <div className="text-xs text-gray-500 dark:text-slate-400">Last saved: {new Date(currentFile.updatedAt).toLocaleString()}</div>
                 )}
             </div>
 
             {currentFile ? (
                 <>
                     <div>
-                        <label htmlFor="custom-js-name" className="mb-2 block text-sm font-medium text-gray-700">
+                        <label htmlFor="custom-js-name" className="mb-2 block text-sm font-medium text-gray-700 dark:text-slate-300">
                             File name
                         </label>
                         <input
@@ -72,7 +77,7 @@ export function CustomJsEditorPanel({
                     <MonacoEditorWithShadowDom
                         height="520px"
                         language="javascript"
-                        theme="vs-light"
+                        theme={monacoTheme}
                         value={currentFile.javascript}
                         onChange={onEditorChange}
                         options={{
@@ -84,10 +89,10 @@ export function CustomJsEditorPanel({
                     />
 
                     <div className="mt-2 flex flex-wrap items-center justify-between gap-3 text-xs">
-                        <span className={remainingCharacters < 0 ? 'text-red-600' : 'text-gray-500'}>
+                        <span className={remainingCharacters < 0 ? 'text-red-600 dark:text-red-300' : 'text-gray-500 dark:text-slate-400'}>
                             {remainingCharacters.toLocaleString()} characters remaining
                         </span>
-                        <span className="text-gray-400">Limit: {maxLength.toLocaleString()}</span>
+                        <span className="text-gray-400 dark:text-slate-500">Limit: {maxLength.toLocaleString()}</span>
                     </div>
 
                     <div className="mt-4 flex flex-wrap gap-3">
@@ -103,14 +108,14 @@ export function CustomJsEditorPanel({
                             type="button"
                             onClick={onResetToTemplate}
                             disabled={isSaving}
-                            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-60"
+                            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
                         >
                             Reset to template
                         </button>
                         <button
                             type="button"
                             onClick={onDownloadCurrentFile}
-                            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
                         >
                             Download file
                         </button>
@@ -118,7 +123,7 @@ export function CustomJsEditorPanel({
                             type="button"
                             onClick={() => void onDeleteCurrentFile()}
                             disabled={isDeleting}
-                            className="rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-50 disabled:opacity-60"
+                            className="rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-50 disabled:opacity-60 dark:border-red-500/40 dark:bg-slate-900 dark:text-red-300 dark:hover:bg-red-500/10"
                         >
                             {isDeleting ? 'Deleting...' : 'Delete file'}
                         </button>
@@ -126,14 +131,14 @@ export function CustomJsEditorPanel({
                             type="button"
                             onClick={() => void onReloadFromServer()}
                             disabled={isSaving || isLoading}
-                            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-60"
+                            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
                         >
                             Reload from server
                         </button>
                     </div>
                 </>
             ) : (
-                <div className="rounded border border-dashed border-gray-300 px-4 py-10 text-center text-sm text-gray-500">
+                <div className="rounded border border-dashed border-gray-300 px-4 py-10 text-center text-sm text-gray-500 dark:border-slate-700 dark:text-slate-400">
                     No scripts yet. Click New file to start.
                 </div>
             )}

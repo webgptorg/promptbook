@@ -71,10 +71,10 @@ export function HeaderControlPanelDropdown() {
                 aria-controls={panelId}
                 aria-haspopup="dialog"
                 aria-label={t('controlPanel.openAriaLabel')}
-                className={`rounded-full border p-2 text-gray-600 shadow-sm shadow-black/5 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 ${
+                className={`rounded-full border p-2 text-gray-600 shadow-sm shadow-black/5 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:text-slate-300 dark:shadow-slate-950/20 ${
                     isOpen
-                        ? 'border-blue-200 bg-blue-50 text-blue-700'
-                        : 'border-transparent bg-white/70 hover:bg-white hover:text-gray-900'
+                        ? 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/40 dark:bg-blue-500/15 dark:text-blue-100'
+                        : 'border-transparent bg-white/70 hover:bg-white hover:text-gray-900 dark:bg-slate-900/70 dark:hover:bg-slate-900 dark:hover:text-slate-100'
                 }`}
             >
                 <Settings2 className="h-5 w-5" />
@@ -87,17 +87,17 @@ export function HeaderControlPanelDropdown() {
                     ref={dropdownRef}
                     role="dialog"
                     aria-label={t('controlPanel.label')}
-                    className="absolute right-0 top-full z-50 mt-2 w-[22rem] max-w-[calc(100vw-0.75rem)] rounded-3xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-100/80 p-2 shadow-2xl shadow-black/10"
+                    className="absolute right-0 top-full z-50 mt-2 w-[22rem] max-w-[calc(100vw-0.75rem)] rounded-3xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-100/80 p-2 shadow-2xl shadow-black/10 dark:border-slate-700/80 dark:from-slate-950 dark:to-slate-900/95 dark:shadow-slate-950/40"
                 >
                     <div className="flex items-center justify-between px-1 pb-2 pt-1">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
                             {t('controlPanel.label')}
                         </p>
                         <button
                             type="button"
                             onClick={handleClose}
                             aria-label={t('common.close')}
-                            className="rounded-full border border-transparent p-1 text-gray-400 transition hover:border-gray-200 hover:bg-white hover:text-gray-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                            className="rounded-full border border-transparent p-1 text-gray-400 transition hover:border-gray-200 hover:bg-white hover:text-gray-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-900 dark:hover:text-slate-200"
                         >
                             <X className="h-3.5 w-3.5" />
                         </button>

@@ -11,10 +11,18 @@ import { BookEditorMonacoTokenization } from './BookEditorMonacoTokenization';
 type MonacoEditor = typeof import('monaco-editor');
 
 /**
+ * Resolved visual theme supported by the Book editor.
+ *
+ * @private function of BookEditorMonaco
+ */
+type BookEditorTheme = 'LIGHT' | 'DARK';
+
+/**
  * Props for use book editor monaco language.
  */
 type UseBookEditorMonacoLanguageProps = {
     readonly monaco: MonacoEditor | null;
+    readonly theme: BookEditorTheme;
 };
 
 /**
@@ -79,6 +87,13 @@ const NOTE_LIKE_COMMITMENT_GROUPS = [
 const BOOK_EDITOR_LANGUAGE_INITIALIZED_FLAG = 'promptbookBookEditorLanguageInitialized';
 
 /**
+ * Internal Monaco flag used to avoid re-defining the Book theme when the requested mode stays unchanged.
+ *
+ * @private function of BookEditorMonaco
+ */
+const BOOK_EDITOR_THEME_MODE_FLAG = 'promptbookBookEditorThemeMode';
+
+/**
  * Matches fenced code-block delimiters, including optional leading indentation.
  *
  * @private function of BookEditorMonaco
@@ -92,7 +107,86 @@ const CODE_BLOCK_FENCE_REGEX = /^\s*```.*$/;
  */
 type MonacoEditorWithBookEditorLanguageState = MonacoEditor & {
     [BOOK_EDITOR_LANGUAGE_INITIALIZED_FLAG]?: boolean;
+    [BOOK_EDITOR_THEME_MODE_FLAG]?: BookEditorTheme;
 };
+
+/**
+ * Shared token rules reused by both light and dark Book Monaco themes.
+ *
+ * @private function of BookEditorMonaco
+ */
+const BOOK_EDITOR_THEME_RULES = [
+    {
+        token: 'title',
+        foreground: PROMPTBOOK_SYNTAX_COLORS.TITLE.toHex(),
+        fontStyle: 'bold underline',
+    },
+    {
+        token: 'commitment',
+        foreground: PROMPTBOOK_SYNTAX_COLORS.COMMITMENT.toHex(),
+        fontStyle: 'bold',
+    },
+    {
+        token: 'note-commitment',
+        foreground: PROMPTBOOK_SYNTAX_COLORS.NOTE_COMMITMENT.toHex(),
+    },
+    {
+        token: 'todo-commitment',
+        foreground: PROMPTBOOK_SYNTAX_COLORS.TODO_COMMITMENT_TEXT.toHex(),
+        background: PROMPTBOOK_SYNTAX_COLORS.TODO_COMMITMENT_BACKGROUND.toHex(),
+        fontStyle: 'bold',
+    },
+    {
+        token: 'parameter',
+        foreground: PROMPTBOOK_SYNTAX_COLORS.PARAMETER.toHex(),
+        fontStyle: 'italic',
+    },
+    {
+        token: 'agent-reference',
+        foreground: PROMPTBOOK_SYNTAX_COLORS.COMMITMENT.toHex(),
+        fontStyle: 'underline',
+    },
+    {
+        token: 'code-block',
+        foreground: PROMPTBOOK_SYNTAX_COLORS.CODE_BLOCK.toHex(),
+    },
+] as const;
+
+/**
+ * Re-defines the shared Book Monaco theme according to the requested light/dark mode.
+ *
+ * @private function of BookEditorMonaco
+ */
+function applyBookEditorMonacoTheme(monaco: MonacoEditor, theme: BookEditorTheme): void {
+    const colors: Record<string, string> =
+        theme === 'DARK'
+            ? {
+                  'editor.background': '#09111f',
+                  'editor.foreground': '#e2e8f0',
+                  'editorLineNumber.foreground': '#64748b',
+                  'editorLineNumber.activeForeground': '#cbd5e1',
+                  'editorCursor.foreground': '#7dd3fc',
+                  'editor.selectionBackground': '#1d4ed866',
+                  'editor.inactiveSelectionBackground': '#1e3a8a44',
+                  'editor.scrollbarSlider.background': '#334155',
+                  'editor.scrollbarSlider.hoverBackground': '#475569',
+                  'editor.scrollbarSlider.activeBackground': '#64748b',
+              }
+            : {
+                  'editor.scrollbarSlider.background': '#E0E0E0',
+                  'editor.scrollbarSlider.hoverBackground': '#D0D0D0',
+                  'editor.scrollbarSlider.activeBackground': '#C0C0C0',
+              };
+
+    monaco.editor.defineTheme(BookEditorMonacoConstants.BOOK_THEME_ID, {
+        base: theme === 'DARK' ? 'vs-dark' : 'vs',
+        inherit: true,
+        rules: [...BOOK_EDITOR_THEME_RULES],
+        colors,
+    });
+
+    monaco.editor.setTheme(BookEditorMonacoConstants.BOOK_THEME_ID);
+}
 
 /**
  * Builds a regex that matches one commitment keyword at line start.
@@ -188,14 +282,21 @@ function createNoteLikeBodyRules(
  *
  * @private function of BookEditorMonaco
  */
-export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor): void {
+export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor, theme: BookEditorTheme = 'LIGHT'): void {
     const monacoWithLanguageState = monaco as MonacoEditorWithBookEditorLanguageState;
     if (monacoWithLanguageState[BOOK_EDITOR_LANGUAGE_INITIALIZED_FLAG]) {
+        if (monacoWithLanguageState[BOOK_EDITOR_THEME_MODE_FLAG] !== theme) {
+            applyBookEditorMonacoTheme(monaco, theme);
+            monacoWithLanguageState[BOOK_EDITOR_THEME_MODE_FLAG] = theme;
+            return;
+        }
+
         monaco.editor.setTheme(BookEditorMonacoConstants.BOOK_THEME_ID);
         return;
     }
 
     monacoWithLanguageState[BOOK_EDITOR_LANGUAGE_INITIALIZED_FLAG] = true;
+    monacoWithLanguageState[BOOK_EDITOR_THEME_MODE_FLAG] = theme;
 
     monaco.languages.register({ id: BookEditorMonacoConstants.BOOK_LANGUAGE_ID });
 
@@ -314,53 +415,7 @@ export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor): void {
         },
     });
 
-    monaco.editor.defineTheme(BookEditorMonacoConstants.BOOK_THEME_ID, {
-        base: 'vs',
-        inherit: true,
-        rules: [
-            {
-                token: 'title',
-                foreground: PROMPTBOOK_SYNTAX_COLORS.TITLE.toHex(),
-                fontStyle: 'bold underline',
-            },
-            {
-                token: 'commitment',
-                foreground: PROMPTBOOK_SYNTAX_COLORS.COMMITMENT.toHex(),
-                fontStyle: 'bold',
-            },
-            {
-                token: 'note-commitment',
-                foreground: PROMPTBOOK_SYNTAX_COLORS.NOTE_COMMITMENT.toHex(),
-            },
-            {
-                token: 'todo-commitment',
-                foreground: PROMPTBOOK_SYNTAX_COLORS.TODO_COMMITMENT_TEXT.toHex(),
-                background: PROMPTBOOK_SYNTAX_COLORS.TODO_COMMITMENT_BACKGROUND.toHex(),
-                fontStyle: 'bold',
-            },
-            {
-                token: 'parameter',
-                foreground: PROMPTBOOK_SYNTAX_COLORS.PARAMETER.toHex(),
-                fontStyle: 'italic',
-            },
-            {
-                token: 'agent-reference',
-                foreground: PROMPTBOOK_SYNTAX_COLORS.COMMITMENT.toHex(),
-                fontStyle: 'underline',
-            },
-            {
-                token: 'code-block',
-                foreground: PROMPTBOOK_SYNTAX_COLORS.CODE_BLOCK.toHex(),
-            },
-        ],
-        colors: {
-            'editor.scrollbarSlider.background': '#E0E0E0',
-            'editor.scrollbarSlider.hoverBackground': '#D0D0D0',
-            'editor.scrollbarSlider.activeBackground': '#C0C0C0',
-        },
-    });
-
-    monaco.editor.setTheme(BookEditorMonacoConstants.BOOK_THEME_ID);
+    applyBookEditorMonacoTheme(monaco, theme);
 }
 
 /**
@@ -371,6 +426,7 @@ export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor): void {
 type EnsureBookEditorMonacoLanguageForEditorProps = {
     readonly monaco: MonacoEditor;
     readonly monacoEditor: editor.IStandaloneCodeEditor;
+    readonly theme?: BookEditorTheme;
 };
 
 /**
@@ -384,8 +440,8 @@ type EnsureBookEditorMonacoLanguageForEditorProps = {
  * @private function of BookEditorMonaco
  */
 export function ensureBookEditorMonacoLanguageForEditor(props: EnsureBookEditorMonacoLanguageForEditorProps): void {
-    const { monaco, monacoEditor } = props;
-    ensureBookEditorMonacoLanguage(monaco);
+    const { monaco, monacoEditor, theme = 'LIGHT' } = props;
+    ensureBookEditorMonacoLanguage(monaco, theme);
 
     const model = monacoEditor.getModel();
     if (!model) {
@@ -404,12 +460,12 @@ export function ensureBookEditorMonacoLanguageForEditor(props: EnsureBookEditorM
  *
  * @private function of BookEditorMonaco
  */
-export function useBookEditorMonacoLanguage({ monaco }: UseBookEditorMonacoLanguageProps) {
+export function useBookEditorMonacoLanguage({ monaco, theme }: UseBookEditorMonacoLanguageProps) {
     useEffect(() => {
         if (!monaco) {
             return;
         }
 
-        ensureBookEditorMonacoLanguage(monaco);
-    }, [monaco]);
+        ensureBookEditorMonacoLanguage(monaco, theme);
+    }, [monaco, theme]);
 }

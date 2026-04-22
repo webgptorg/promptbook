@@ -1,3 +1,9 @@
+-   Added full light/dark theming to Agents Server with a persisted per-user theme preference and consistent dark-mode support across the app shell, control panel, chat surfaces, editors, and Monaco-based tools:
+
+    -   Added a new theme preference stored alongside the other browser-user settings, exposed it in the control panel as `System`, `Light`, and `Dark`, and applied it immediately on first paint with shared client/server theme bootstrapping.
+    -   Extended the shared Promptbook `Chat`, `MockedChat`, `BookEditor`, and nested Monaco/code-block renderers so Agents Server can pass an explicit resolved theme instead of relying on document-level inference.
+    -   Updated Agents Server shell, header, dialogs, chat routes, book/history editors, admin custom CSS/JS editors, and global styling tokens so both light and dark mode render as complete, polished themes rather than a partially inverted UI.
+
 -   Reworked the Agents Server backup download so the archive now follows user-facing data instead of raw database tables:
 
     -   Flattened metadata and limits into one key-value JSON file, kept the existing agents/books layout, and changed conversations into per-chat JSON exports with sidecar metadata for feedback details.

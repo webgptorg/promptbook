@@ -1,4 +1,4 @@
-import { expect, type Page } from 'playwright/test';
+import { expect, type Locator, type Page } from 'playwright/test';
 
 /**
  * Username of the built-in admin account used in e2e tests.
@@ -21,7 +21,17 @@ const LOGIN_DIALOG_OPEN_RETRIES = 3;
  * @param page - Current Playwright page.
  */
 export async function openLoginDialog(page: Page): Promise<void> {
-    const loginButton = page.getByRole('button', { name: 'Log in' });
+    const inlineLoginButton = page.getByRole('banner').getByRole('button', { name: 'Log in' });
+    let loginButton: Locator = inlineLoginButton;
+
+    if (!(await inlineLoginButton.isVisible().catch(() => false))) {
+        const mobileMenuButton = page.getByRole('banner').getByRole('button', { name: 'Menu' });
+        await expect(mobileMenuButton).toBeVisible();
+        await mobileMenuButton.click();
+
+        loginButton = page.getByRole('navigation', { name: 'Menu' }).getByRole('button', { name: 'Log in' });
+    }
+
     await expect(loginButton).toBeVisible();
 
     let lastError: unknown = null;
@@ -51,7 +61,25 @@ export async function loginAsAdmin(page: Page): Promise<void> {
     await page.getByLabel('Password').fill(E2E_ADMIN_PASSWORD);
     await page.getByLabel('Password').press('Enter');
     await expect(page.getByLabel('Username')).toBeHidden();
-    await expect(page.getByRole('button', { name: /admin/i })).toBeVisible();
+
+    const desktopAdminButton = page.getByRole('button', { name: /admin/i });
+    if (await desktopAdminButton.isVisible().catch(() => false)) {
+        return;
+    }
+
+    const mobileMenuButton = page.getByRole('banner').getByRole('button', { name: 'Menu' });
+    if (await mobileMenuButton.isVisible().catch(() => false)) {
+        await mobileMenuButton.click();
+
+        const mobileNavigation = page.getByRole('navigation', { name: 'Menu' });
+        await expect(mobileNavigation.getByRole('button', { name: 'Log out' })).toBeVisible();
+
+        await mobileMenuButton.click();
+        await expect(mobileNavigation).toBeHidden();
+        return;
+    }
+
+    await expect(desktopAdminButton).toBeVisible();
 }
 
 /**

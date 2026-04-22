@@ -19,6 +19,7 @@ type CodeBlockProps = {
     language?: string;
     className?: string;
     onCreateAgent?: (bookContent: string) => void;
+    theme?: 'LIGHT' | 'DARK';
 };
 
 /**
@@ -66,7 +67,7 @@ function createCodeBlockMonacoModelPath(reactId: string, language: MonacoCodeBlo
  *
  * @private Internal utility of `<ChatMessage />` component
  */
-export function CodeBlock({ code, language, className, onCreateAgent }: CodeBlockProps) {
+export function CodeBlock({ code, language, className, onCreateAgent, theme = 'LIGHT' }: CodeBlockProps) {
     const reactId = useId();
     const normalizedLanguage = resolveCodeBlockLanguage(language);
     const isBookLanguage = normalizedLanguage === 'book';
@@ -127,26 +128,27 @@ export function CodeBlock({ code, language, className, onCreateAgent }: CodeBloc
 
     if (isBookLanguage) {
         return (
-            <div className={classNames(styles.CodeBlock, className)}>
+            <div className={classNames(styles.CodeBlock, className)} data-code-theme={theme.toLowerCase()}>
                 {header}
                 <BookEditor
                     value={code as string_book}
                     isReadonly={true}
                     height={lines * 25 /* <- [🧠] A bit more than 19px to accommodate BookEditor lines */}
+                    theme={theme}
                 />
             </div>
         );
     }
 
     return (
-        <div className={classNames(styles.CodeBlock, className)}>
+        <div className={classNames(styles.CodeBlock, className)} data-code-theme={theme.toLowerCase()}>
             {header}
             <MonacoEditorWithShadowDom
                 height={`${height}px`}
                 language={normalizedLanguage}
                 path={modelPath}
                 value={code}
-                theme="vs-dark"
+                theme={theme === 'DARK' ? 'vs-dark' : 'vs-light'}
                 options={{
                     readOnly: true,
                     minimap: { enabled: false },

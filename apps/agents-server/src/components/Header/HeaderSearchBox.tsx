@@ -65,7 +65,7 @@ export function HeaderSearchBox({
             </label>
             <div className="relative">
                 <Search
-                    className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                    className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500"
                     aria-hidden
                 />
                 <input
@@ -75,7 +75,7 @@ export function HeaderSearchBox({
                     onFocus={onInputFocus}
                     onKeyDown={onInputKeyDown}
                     placeholder={placeholder || t('header.searchBoxDefaultPlaceholder')}
-                    className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-9 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                    className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-9 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-blue-500/30"
                     role="combobox"
                     aria-expanded={isOpen}
                     aria-controls="global-server-search-results"
@@ -84,7 +84,7 @@ export function HeaderSearchBox({
                 />
                 {isLoading && (
                     <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
-                        <span className="inline-flex h-3 w-3 animate-spin rounded-full border-2 border-slate-200 border-t-blue-500" />
+                        <span className="inline-flex h-3 w-3 animate-spin rounded-full border-2 border-slate-200 border-t-blue-500 dark:border-slate-700 dark:border-t-blue-300" />
                     </span>
                 )}
             </div>

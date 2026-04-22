@@ -117,6 +117,7 @@ export function Chat(props: ChatProps) {
         teamAgentProfiles,
         layout,
         visualMode = 'ARTICLE_MODE',
+        theme = 'LIGHT',
         effectConfigs,
         soundSystem,
         speechRecognitionLanguage,
@@ -190,7 +191,7 @@ export function Chat(props: ChatProps) {
     } = useChatToolCallState({
         messages: postprocessedMessages,
     });
-    const mode: 'LIGHT' | 'DARK' = 'LIGHT';
+    const mode: 'LIGHT' | 'DARK' = theme;
 
     const scrollToBottomCssClassName = getChatCssClassName('scrollToBottom');
 
@@ -246,18 +247,19 @@ export function Chat(props: ChatProps) {
                 />
             )}
 
-            <div
-                className={classNames(
-                    className,
-                    styles.Chat,
+                <div
+                    className={classNames(
+                        className,
+                        styles.Chat,
                     layout === 'STANDALONE' && styles.standaloneVisual,
                     layout === 'FULL_PAGE' && styles.fullPageVisual,
                     isConstrainedArticleMode && styles.constrainedArticleVisual,
                     getChatCssClassName('Chat'),
-                    chatCssClassNames.chat,
-                )}
-                {...{ style }}
-            >
+                        chatCssClassNames.chat,
+                    )}
+                    data-chat-theme={mode.toLowerCase()}
+                    {...{ style }}
+                >
                 <div
                     className={classNames(
                         className,
@@ -320,7 +322,7 @@ export function Chat(props: ChatProps) {
                         onButtonClick={handleButtonClick}
                     />
 
-                    <ChatMessageList
+                        <ChatMessageList
                         messages={postprocessedMessages}
                         participants={participants}
                         expandedMessageId={expandedMessageId}
@@ -351,11 +353,11 @@ export function Chat(props: ChatProps) {
                         setChatMessagesElement={setChatMessagesElement}
                         onScroll={handleChatScroll}
                         isSpeechPlaybackEnabled={isSpeechPlaybackEnabled}
-                        elevenLabsVoiceId={elevenLabsVoiceId}
-                        chatUiTranslations={chatUiTranslations}
-                        chatMessagesClassName={classNames(
-                            isConstrainedArticleMode && styles.articleModeChatMessages,
-                            getChatCssClassName('chatMessages'),
+                            elevenLabsVoiceId={elevenLabsVoiceId}
+                            chatUiTranslations={chatUiTranslations}
+                            chatMessagesClassName={classNames(
+                                isConstrainedArticleMode && styles.articleModeChatMessages,
+                                getChatCssClassName('chatMessages'),
                             chatCssClassNames.chatMessages,
                         )}
                         hasActions={hasActions}
@@ -406,6 +408,7 @@ export function Chat(props: ChatProps) {
                 chatUiTranslations={chatUiTranslations}
                 locale={chatLocale}
                 availableTools={selectedMessageAvailableTools}
+                mode={mode}
             />
 
             <ChatCitationModal

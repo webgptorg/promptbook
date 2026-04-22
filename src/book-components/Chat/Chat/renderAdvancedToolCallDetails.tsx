@@ -26,6 +26,10 @@ type AdvancedToolCallDetailsOptions = {
      * Optional list of tools that were available to the model during the turn that produced this tool call.
      */
     availableTools?: ChatMessage['availableTools'];
+    /**
+     * Resolved theme used by embedded Monaco viewers in the advanced modal.
+     */
+    mode?: 'LIGHT' | 'DARK';
 };
 
 /**
@@ -145,6 +149,7 @@ const TOOL_CALL_REPORT_FILENAME_UNSAFE_CHARACTER_PATTERN = /[^a-zA-Z0-9_-]/g;
  */
 export function renderAdvancedToolCallDetails(options: AdvancedToolCallDetailsOptions): ReactElement {
     const { toolCall } = options;
+    const mode = options.mode || 'LIGHT';
     const header = resolveAdvancedToolCallHeader(options);
     const payloadSections = createAdvancedToolCallPayloadSections(toolCall, options.availableTools);
 
@@ -171,6 +176,7 @@ export function renderAdvancedToolCallDetails(options: AdvancedToolCallDetailsOp
                             toolCall,
                             sectionId: payloadSection.id,
                             payload: payloadSection.payload,
+                            mode,
                         })}
                     </section>
                 ))}
@@ -340,6 +346,10 @@ type RenderAdvancedToolCallPayloadOptions = {
      * Raw payload for this section.
      */
     payload: TODO_any;
+    /**
+     * Resolved host theme used by Monaco.
+     */
+    mode: 'LIGHT' | 'DARK';
 };
 
 /**
@@ -351,7 +361,7 @@ type RenderAdvancedToolCallPayloadOptions = {
  * @private function of ChatToolCallModal
  */
 function renderAdvancedToolCallPayload(options: RenderAdvancedToolCallPayloadOptions): ReactElement {
-    const { toolCall, sectionId, payload } = options;
+    const { toolCall, sectionId, payload, mode } = options;
     const formattedPayload = formatToolCallPayload(payload);
     const modelPath = createToolCallPayloadMonacoPath({
         toolCall,
@@ -368,7 +378,7 @@ function renderAdvancedToolCallPayload(options: RenderAdvancedToolCallPayloadOpt
                     language={formattedPayload.language}
                     path={modelPath}
                     value={formattedPayload.content}
-                    theme="vs-light"
+                    theme={mode === 'DARK' ? 'vs-dark' : 'vs-light'}
                     options={TOOL_CALL_PAYLOAD_EDITOR_OPTIONS}
                 />
             </div>

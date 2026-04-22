@@ -110,14 +110,14 @@ test.describe('header agent-view navigation', () => {
 
         await page.goto(`/agents/${encodeURIComponent(agent.agentName)}/chat`);
 
-        await header.getByRole('button', { name: 'Chat', exact: true }).hover();
-        await expect(header.getByRole('button', { name: 'Profile', exact: true })).toBeVisible();
-        await header.getByRole('button', { name: 'Profile', exact: true }).click();
+        await header.getByRole('button', { name: 'Chat', exact: true }).click();
+        await expect(page.getByRole('link', { name: 'Profile', exact: true })).toBeVisible();
+        await page.getByRole('link', { name: 'Profile', exact: true }).click();
         await expect(page).toHaveURL(new RegExp(`/agents/${escapedAgentName}$`));
 
-        await header.getByRole('button', { name: 'Profile', exact: true }).hover();
-        await expect(header.getByRole('button', { name: 'Chat', exact: true })).toBeVisible();
-        await header.getByRole('button', { name: 'Chat', exact: true }).click();
+        await header.getByRole('button', { name: 'Profile', exact: true }).click();
+        await expect(page.getByRole('link', { name: 'Chat', exact: true })).toBeVisible();
+        await page.getByRole('link', { name: 'Chat', exact: true }).click();
         await expect(page).toHaveURL(new RegExp(`/agents/${escapedAgentName}/chat(?:\\?|$)`));
     });
 });

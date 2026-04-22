@@ -40,9 +40,17 @@ chatEnterBehavior.saveFailed: Nastavení kláves se tady změnilo, ale zatím se
 systemSettings.pageDescription: Osobní nastavení uložená v prohlížeči, která ovlivňují, jak se Agents Server chová během chatu.
 controlPanel.label: Ovládací panel
 controlPanel.openAriaLabel: Otevřít globální ovládací panel
-controlPanel.feedbackTitle: Nastavení odezvy
-controlPanel.feedbackSubtitle: Globální nastavení zvuků, vibrací a dalších voleb
+controlPanel.feedbackTitle: Osobní nastavení
+controlPanel.feedbackSubtitle: Upravte vzhled, odezvu i chování uložené v tomto prohlížeči
 controlPanel.audioLabel: Zvuk
+controlPanel.themeTitle: Motiv
+controlPanel.themeSubtitle: Vyberte, zda se má rozhraní řídit systémem, zůstat světlé, nebo zůstat tmavé.
+controlPanel.themeSelectLabel: Motiv rozhraní
+controlPanel.themeOptionSystem: Systémový
+controlPanel.themeOptionLight: Světlý
+controlPanel.themeOptionDark: Tmavý
+controlPanel.themeHelp: Systémový motiv sleduje nastavení operačního systému a při jeho změně se automaticky přepne.
+controlPanel.themeSaveFailed: Motiv se tady změnil, ale zatím se nepodařilo uložit na server.
 controlPanel.soundTitle: Zvuky
 controlPanel.soundDescription: Zvukové signály pro odpovědi v chatu a ovládací prvky.
 controlPanel.vibrationTitle: Vibrace
