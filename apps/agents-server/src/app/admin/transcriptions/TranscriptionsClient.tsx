@@ -56,11 +56,16 @@ type LatestEventState = {
 };
 
 /**
+ * High-level outer session status rendered in the page header.
+ */
+type SessionStatus = 'Idle' | 'Starting' | 'Listening' | 'Stopping' | 'Transcribing' | 'Error';
+
+/**
  * Human labels for provider identifiers.
  */
 const PROVIDER_LABELS: Record<SpeechToTextProviderId, string> = {
     'browser-web-speech': 'Browser Web Speech API',
-    'openai-whisper-proxy': 'OpenAI Whisper Proxy',
+    'openai-whisper-proxy': 'OpenAI transcription proxy',
 };
 
 /**
@@ -68,12 +73,13 @@ const PROVIDER_LABELS: Record<SpeechToTextProviderId, string> = {
  */
 export function TranscriptionsClient() {
     const sessionRef = useRef<LongRunningSpeechRecognitionSession | null>(null);
+    const transcriptTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
     const [providerMode, setProviderMode] = useState<ProviderMode>('default');
     const [selectedLanguage, setSelectedLanguage] = useState<(typeof LANGUAGE_OPTIONS)[number]['value']>('auto');
     const [isWhisperModeEnabled, setIsWhisperModeEnabled] = useState(false);
 
-    const [isRunning, setIsRunning] = useState(false);
+    const [isSessionActive, setIsSessionActive] = useState(false);
     const [elapsedMs, setElapsedMs] = useState(0);
     const [sessionStartedAtMs, setSessionStartedAtMs] = useState<number | null>(null);
 
@@ -86,6 +92,7 @@ export function TranscriptionsClient() {
     const [currentProviderDiagnostics, setCurrentProviderDiagnostics] = useState<SpeechToTextProviderDiagnostics | undefined>(
         undefined,
     );
+    const [sessionStatus, setSessionStatus] = useState<SessionStatus>('Idle');
     const [latestEvent, setLatestEvent] = useState<LatestEventState>({
         label: 'Idle',
     });
@@ -138,7 +145,8 @@ export function TranscriptionsClient() {
      */
     const handleRecognitionEvent = (event: SpeechRecognitionEvent) => {
         if (event.type === 'START') {
-            setIsRunning(true);
+            setIsSessionActive(true);
+            setSessionStatus('Listening');
             setLatestEvent({
                 label: 'Recording',
                 detail: 'Recording is active.',
@@ -147,6 +155,7 @@ export function TranscriptionsClient() {
         }
 
         if (event.type === 'TRANSCRIBING') {
+            setSessionStatus('Transcribing');
             setLatestEvent({
                 label: 'Transcribing',
                 detail: 'Provider is finishing a chunk.',
@@ -176,6 +185,7 @@ export function TranscriptionsClient() {
         }
 
         if (event.type === 'ERROR') {
+            setSessionStatus('Error');
             setErrorMessage(event.message);
             setLastErrorCode(event.code || null);
             setLatestEvent({
@@ -185,7 +195,11 @@ export function TranscriptionsClient() {
             return;
         }
 
-        setIsRunning(false);
+        setIsSessionActive(false);
+        setSessionStatus('Idle');
+        setSessionStartedAtMs(null);
+        setElapsedMs(0);
+        sessionRef.current = null;
         setLatestEvent({
             label: 'Stopped',
             detail: 'Long-running transcription session stopped.',
@@ -196,12 +210,11 @@ export function TranscriptionsClient() {
      * Starts a brand new long-running transcription session.
      */
     const handleStart = () => {
-        if (isRunning) {
+        if (isSessionActive) {
             return;
         }
 
         stopActiveSession();
-        setFinalChunks([]);
         setPartialText('');
         setErrorMessage(null);
         setLastErrorCode(null);
@@ -224,6 +237,8 @@ export function TranscriptionsClient() {
 
         session.subscribe(handleRecognitionEvent);
         sessionRef.current = session;
+        setIsSessionActive(true);
+        setSessionStatus('Starting');
         setSessionStartedAtMs(Date.now());
         setElapsedMs(0);
         setLatestEvent({
@@ -241,19 +256,20 @@ export function TranscriptionsClient() {
      * Stops the active transcription session immediately.
      */
     const handleStop = () => {
-        stopActiveSession();
-        setIsRunning(false);
-        setSessionStartedAtMs(null);
-        setElapsedMs(0);
-        setPartialText('');
+        if (!isSessionActive) {
+            return;
+        }
+
+        sessionRef.current?.$stop();
+        setSessionStatus('Stopping');
         setLatestEvent({
-            label: 'Stopped',
-            detail: 'Stopped by user.',
+            label: 'Stopping',
+            detail: 'Finishing the current chunk before stopping.',
         });
     };
 
     useEffect(() => {
-        if (!isRunning || !sessionStartedAtMs) {
+        if (!isSessionActive || !sessionStartedAtMs) {
             return;
         }
 
@@ -264,7 +280,7 @@ export function TranscriptionsClient() {
         return () => {
             clearInterval(interval);
         };
-    }, [isRunning, sessionStartedAtMs]);
+    }, [isSessionActive, sessionStartedAtMs]);
 
     useEffect(() => {
         return () => {
@@ -273,10 +289,71 @@ export function TranscriptionsClient() {
     }, []);
 
     const transcriptText = useMemo(() => {
-        return [...finalChunks, partialText].filter(Boolean).join('\n');
+        return [...finalChunks, partialText].filter(Boolean).join('\n\n');
     }, [finalChunks, partialText]);
 
+    const transcriptWordCount = useMemo(() => {
+        return countWords(transcriptText);
+    }, [transcriptText]);
+
+    useEffect(() => {
+        if (!transcriptTextareaRef.current) {
+            return;
+        }
+
+        transcriptTextareaRef.current.scrollTop = transcriptTextareaRef.current.scrollHeight;
+    }, [transcriptText]);
+
     const currentProviderLabel = currentProviderId ? PROVIDER_LABELS[currentProviderId] : 'Waiting for provider selection';
+
+    const handleCopyTranscript = async () => {
+        if (!transcriptText) {
+            return;
+        }
+
+        try {
+            await navigator.clipboard.writeText(transcriptText);
+            setLatestEvent({
+                label: 'Copied',
+                detail: 'Transcript copied to clipboard.',
+            });
+        } catch (error) {
+            setLatestEvent({
+                label: 'Copy failed',
+                detail: error instanceof Error ? error.message : 'Clipboard write failed.',
+            });
+        }
+    };
+
+    const handleDownloadTranscript = () => {
+        if (!transcriptText) {
+            return;
+        }
+
+        const downloadUrl = URL.createObjectURL(new Blob([transcriptText], { type: 'text/plain;charset=utf-8' }));
+        const linkElement = document.createElement('a');
+        linkElement.href = downloadUrl;
+        linkElement.download = createTranscriptDownloadFileName();
+        linkElement.click();
+        URL.revokeObjectURL(downloadUrl);
+        setLatestEvent({
+            label: 'Downloaded',
+            detail: 'Transcript downloaded as a text file.',
+        });
+    };
+
+    const handleClearTranscript = () => {
+        if (isSessionActive) {
+            return;
+        }
+
+        setFinalChunks([]);
+        setPartialText('');
+        setLatestEvent({
+            label: 'Cleared',
+            detail: 'Transcript workspace cleared.',
+        });
+    };
 
     return (
         <div className="container mx-auto px-4 py-8 space-y-6">
@@ -284,8 +361,8 @@ export function TranscriptionsClient() {
                 <div>
                     <h1 className="text-3xl text-gray-900 font-light">Transcriptions</h1>
                     <p className="mt-1 max-w-3xl text-sm text-gray-500">
-                        Long-running speech-to-text test page for extended sessions. It keeps one outer transcription session
-                        alive while restarting short-lived providers when they stall or end unexpectedly.
+                        Continuous microphone transcription workspace for Agents Server. OpenAI transcription is preferred
+                        for accuracy, with browser speech used only as a fallback when the primary provider is unavailable.
                     </p>
                 </div>
             </div>
@@ -297,11 +374,11 @@ export function TranscriptionsClient() {
                         <select
                             value={providerMode}
                             onChange={(event) => setProviderMode(event.target.value as ProviderMode)}
-                            disabled={isRunning}
+                            disabled={isSessionActive}
                             className="w-full rounded border border-gray-300 p-2"
                         >
                             <option value="default">Automatic failover (OpenAI -&gt; Browser)</option>
-                            <option value="openai-only">OpenAI Whisper only</option>
+                            <option value="openai-only">OpenAI transcription only</option>
                             <option value="browser-only">Browser Web Speech only</option>
                         </select>
                     </div>
@@ -311,7 +388,7 @@ export function TranscriptionsClient() {
                         <select
                             value={selectedLanguage}
                             onChange={(event) => setSelectedLanguage(event.target.value as (typeof LANGUAGE_OPTIONS)[number]['value'])}
-                            disabled={isRunning}
+                            disabled={isSessionActive}
                             className="w-full rounded border border-gray-300 p-2"
                         >
                             {LANGUAGE_OPTIONS.map((languageOption) => (
@@ -327,9 +404,9 @@ export function TranscriptionsClient() {
                             type="checkbox"
                             checked={isWhisperModeEnabled}
                             onChange={(event) => setIsWhisperModeEnabled(event.target.checked)}
-                            disabled={isRunning}
+                            disabled={isSessionActive}
                         />
-                        More sensitive whisper mode
+                        Quiet speech mode
                     </label>
                 </div>
 
@@ -337,7 +414,7 @@ export function TranscriptionsClient() {
                     <button
                         type="button"
                         onClick={handleStart}
-                        disabled={isRunning}
+                        disabled={isSessionActive}
                         className="rounded bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         Start
@@ -345,7 +422,7 @@ export function TranscriptionsClient() {
                     <button
                         type="button"
                         onClick={handleStop}
-                        disabled={!isRunning}
+                        disabled={!isSessionActive}
                         className="rounded bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         Stop
@@ -353,6 +430,7 @@ export function TranscriptionsClient() {
                 </div>
 
                 <div className="mt-6 grid gap-4 lg:grid-cols-3">
+                    <StatusTile title="Status">{sessionStatus}</StatusTile>
                     <StatusTile title="Elapsed">{formatElapsedTime(elapsedMs)}</StatusTile>
                     <StatusTile title="Current provider">{currentProviderLabel}</StatusTile>
                     <StatusTile title="Last event">
@@ -368,29 +446,58 @@ export function TranscriptionsClient() {
                 )}
 
                 <div className="mt-6 space-y-2">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-medium text-gray-900">Transcript</h2>
-                        <span className="text-xs text-gray-500">{restartCount} restart(s)</span>
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                        <div>
+                            <h2 className="text-lg font-medium text-gray-900">Transcript</h2>
+                            <div className="mt-1 flex flex-wrap gap-3 text-xs text-gray-500">
+                                <span>{finalChunks.length} finalized chunk(s)</span>
+                                <span>{transcriptWordCount} word(s)</span>
+                                <span>{restartCount} restart(s)</span>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                            <button
+                                type="button"
+                                onClick={handleCopyTranscript}
+                                disabled={!transcriptText}
+                                className="rounded border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                Copy
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleDownloadTranscript}
+                                disabled={!transcriptText}
+                                className="rounded border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                Download
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleClearTranscript}
+                                disabled={isSessionActive || !transcriptText}
+                                className="rounded border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                Clear
+                            </button>
+                        </div>
                     </div>
 
-                    <div className="min-h-72 rounded border border-gray-200 bg-gray-50 p-4">
-                        {transcriptText ? (
-                            <div className="space-y-3 whitespace-pre-wrap text-sm leading-6 text-gray-800">
-                                {finalChunks.map((chunk, index) => (
-                                    <p key={`${index}:${chunk}`} className="rounded bg-white px-3 py-2 shadow-sm">
-                                        {chunk}
-                                    </p>
-                                ))}
-                                {partialText && (
-                                    <p className="rounded border border-dashed border-blue-200 bg-blue-50 px-3 py-2 italic text-blue-900">
-                                        {partialText}
-                                    </p>
-                                )}
-                            </div>
-                        ) : (
-                            <p className="text-sm text-gray-500">Transcript output will appear here once the session starts.</p>
-                        )}
-                    </div>
+                    <textarea
+                        ref={transcriptTextareaRef}
+                        value={transcriptText}
+                        readOnly
+                        placeholder="Transcript output will appear here once the session starts."
+                        className="min-h-80 w-full rounded border border-gray-200 bg-gray-50 p-4 text-sm leading-7 text-gray-900 shadow-inner outline-none"
+                    />
+
+                    {partialText && isSessionActive && (
+                        <div className="rounded border border-dashed border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+                            <div className="text-xs font-medium uppercase tracking-wide text-blue-700">Live segment</div>
+                            <div className="mt-1 italic">{partialText}</div>
+                        </div>
+                    )}
                 </div>
 
                 <details className="mt-6 rounded border border-gray-200 bg-gray-50 p-4">
@@ -509,4 +616,24 @@ function createTranscriptPreview(text: string, prefix: string): string {
 
     const preview = normalizedText.length > 80 ? `${normalizedText.slice(0, 77)}...` : normalizedText;
     return `${prefix}: ${preview}`;
+}
+
+/**
+ * Counts words in one transcript string using whitespace tokenization.
+ */
+function countWords(text: string): number {
+    const normalizedText = text.trim();
+    if (!normalizedText) {
+        return 0;
+    }
+
+    return normalizedText.split(/\s+/).length;
+}
+
+/**
+ * Creates a stable download file name for exported transcripts.
+ */
+function createTranscriptDownloadFileName(): string {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    return `transcription-${timestamp}.txt`;
 }

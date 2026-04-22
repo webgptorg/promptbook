@@ -9,7 +9,7 @@ import type {
 import { normalizeSpeechToTextProviderError } from '../normalizeSpeechToTextProviderError';
 
 /**
- * OpenAI Whisper provider that uses server-side proxy transcription.
+ * OpenAI transcription provider that uses server-side proxy transcription.
  */
 export class OpenAiSpeechToTextProvider implements SpeechToTextProvider {
     public readonly id = 'openai-whisper-proxy' as const;
@@ -26,7 +26,7 @@ export class OpenAiSpeechToTextProvider implements SpeechToTextProvider {
         providerId: this.id,
         supportsPartials: false,
         limitations:
-            'OpenAI Whisper proxy emits final chunks. Interim text may be estimated using browser speech recognition when available.',
+            'OpenAI server-side transcription emits final chunks. Interim text may be estimated using browser speech recognition when available.',
     };
 
     /**
@@ -95,6 +95,7 @@ export class OpenAiSpeechToTextProvider implements SpeechToTextProvider {
         await this.coreRecognition.$start({
             language: options.language,
             interimResults: true,
+            transcriptionPrompt: options.transcriptionPrompt,
             whisperMode: options.whisperMode,
         });
     }

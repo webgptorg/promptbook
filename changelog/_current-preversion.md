@@ -1,3 +1,9 @@
+-   Enhanced Agents Server `/admin/transcriptions` so microphone transcription is now usable as a real transcription workspace instead of a fragile diagnostics demo:
+
+    -   Fixed the shared recorder upload path to send the browser's real audio format and filename to OpenAI, enabled stronger microphone capture constraints, and upgraded the server-side transcription fallback chain to prefer `gpt-4o-transcribe`, then `gpt-4o-mini-transcribe`, and finally `whisper-1`.
+    -   Preserved the last spoken chunk on manual stop by letting the active recognition cycle finish transcribing before the outer session closes, and now forward recent transcript tail text into the next chunk to improve continuity across restarts.
+    -   Reworked the admin page into a transcript workspace with persistent transcript text, copy/download/clear actions, clearer session-state handling, and live status output that matches real recording and transcribing behavior.
+
 -   Suppressed the Agents Server agent profile page as the default navigation target, so clicking an agent from the main list and visual navigation views now opens the standalone chat instead:
 
     -   Added one shared agent-route helper that keeps explicit profile/book/integration routes available while defining chat as the default destination for generic “open agent” links.

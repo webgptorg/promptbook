@@ -13,6 +13,11 @@ import type { SpeechToTextProviderDiagnostics, SpeechToTextProviderId } from './
 const DEFAULT_RESTART_DELAY_MS = 350;
 
 /**
+ * Maximum amount of stable transcript context forwarded to the next recognition cycle.
+ */
+const TRANSCRIPTION_PROMPT_MAXIMUM_LENGTH = 320;
+
+/**
  * Configuration consumed by `LongRunningSpeechRecognitionSession`.
  */
 export type LongRunningSpeechRecognitionSessionOptions = {
@@ -64,6 +69,7 @@ export class LongRunningSpeechRecognitionSession implements SpeechRecognition {
     private startOptions: SpeechRecognitionStartOptions = {};
     private restartTimer: ReturnType<typeof setTimeout> | null = null;
     private isRunningExternally = false;
+    private isStoppingExternally = false;
     private hasTerminalFailure = false;
 
     private _currentProviderId: SpeechToTextProviderId | undefined;
@@ -120,6 +126,7 @@ export class LongRunningSpeechRecognitionSession implements SpeechRecognition {
 
         this.startOptions = startOptions;
         this.isRunningExternally = true;
+        this.isStoppingExternally = false;
         this.hasTerminalFailure = false;
         this._restartCount = 0;
         this._finalChunks = [];
@@ -137,11 +144,29 @@ export class LongRunningSpeechRecognitionSession implements SpeechRecognition {
         }
 
         this.isRunningExternally = false;
+        this.isStoppingExternally = true;
         this.hasTerminalFailure = false;
         this.clearRestartTimer();
-        this.detachActiveRecognition({ shouldStopRecognition: true });
-        this.transitionState('IDLE');
-        this.emit({ type: 'STOP' });
+
+        if (!this.activeRecognition) {
+            this.isStoppingExternally = false;
+            this.transitionState('IDLE');
+            this.emit({ type: 'STOP' });
+            return;
+        }
+
+        if (this._state === 'RECORDING') {
+            this.transitionState('TRANSCRIBING');
+        }
+
+        try {
+            this.activeRecognition.$stop();
+        } catch {
+            this.detachActiveRecognition({ shouldStopRecognition: false });
+            this.isStoppingExternally = false;
+            this.transitionState('IDLE');
+            this.emit({ type: 'STOP' });
+        }
     }
 
     public subscribe(callback: (event: SpeechRecognitionEvent) => void): () => void {
@@ -206,7 +231,10 @@ export class LongRunningSpeechRecognitionSession implements SpeechRecognition {
             this.handleRecognitionEvent(event);
         });
 
-        recognition.$start(this.startOptions);
+        recognition.$start({
+            ...this.startOptions,
+            transcriptionPrompt: createTranscriptionPrompt(this.getStableTranscript()),
+        });
     }
 
     /**
@@ -214,6 +242,11 @@ export class LongRunningSpeechRecognitionSession implements SpeechRecognition {
      */
     private handleRecognitionEvent(event: SpeechRecognitionEvent): void {
         if (event.type === 'START') {
+            if (this.isStoppingExternally) {
+                this.activeRecognition?.$stop();
+                return;
+            }
+
             this.transitionState('RECORDING');
             this.emit(event);
             return;
@@ -246,6 +279,7 @@ export class LongRunningSpeechRecognitionSession implements SpeechRecognition {
 
             if (!this.isRunningExternally || this.hasTerminalFailure) {
                 this.isRunningExternally = false;
+                this.isStoppingExternally = false;
                 this.transitionState('IDLE');
                 this.emit({ type: 'STOP' });
                 return;
@@ -395,6 +429,18 @@ export class LongRunningSpeechRecognitionSession implements SpeechRecognition {
  */
 function normalizeTranscriptText(text: string): string {
     return text.replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * Creates a short stable-transcript tail used to improve chunk-to-chunk transcription continuity.
+ */
+function createTranscriptionPrompt(stableTranscript: string): string | undefined {
+    const normalizedStableTranscript = normalizeTranscriptText(stableTranscript);
+    if (!normalizedStableTranscript) {
+        return undefined;
+    }
+
+    return normalizedStableTranscript.slice(-TRANSCRIPTION_PROMPT_MAXIMUM_LENGTH);
 }
 
 /**

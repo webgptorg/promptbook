@@ -141,6 +141,7 @@ export class SpeechToTextFailoverRecognitionProviderRuntime {
                     createSpeechToTextFailoverRecognitionProviderStartOptions({
                         language: currentStartOptions?.language,
                         whisperMode: currentStartOptions?.whisperMode,
+                        transcriptionPrompt: currentStartOptions?.transcriptionPrompt,
                         isCurrentProviderSession: () => providerSessionToken === this.providerSessionToken,
                         onStart: this.options.onProviderStart,
                         onProcessing: this.options.onProviderProcessing,

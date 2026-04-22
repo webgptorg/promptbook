@@ -59,6 +59,11 @@ export type SpeechRecognitionStartOptions = {
      * Enables a more sensitive profile for quiet speech.
      */
     readonly whisperMode?: boolean;
+
+    /**
+     * Optional text prompt used to preserve continuity across multiple transcription chunks.
+     */
+    readonly transcriptionPrompt?: string;
 };
 
 /**

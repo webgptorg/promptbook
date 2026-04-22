@@ -3,6 +3,7 @@ import type { SpeechToTextProviderError, SpeechToTextProviderStartOptions } from
 type CreateSpeechToTextFailoverRecognitionProviderStartOptionsOptions = {
     readonly language?: string;
     readonly whisperMode?: boolean;
+    readonly transcriptionPrompt?: string;
     readonly isCurrentProviderSession: () => boolean;
     readonly onStart: () => void;
     readonly onProcessing: () => void;
@@ -23,6 +24,7 @@ export function createSpeechToTextFailoverRecognitionProviderStartOptions(
     return {
         language: options.language,
         whisperMode: options.whisperMode,
+        transcriptionPrompt: options.transcriptionPrompt,
         onStart: () => {
             if (!options.isCurrentProviderSession()) {
                 return;

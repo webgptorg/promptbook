@@ -70,6 +70,11 @@ export type SpeechToTextProviderStartOptions = {
     readonly whisperMode?: boolean;
 
     /**
+     * Optional transcript tail forwarded to providers that can preserve continuity across chunks.
+     */
+    readonly transcriptionPrompt?: string;
+
+    /**
      * Emits low-latency partial text updates.
      */
     readonly onPartial: (text: string) => void;

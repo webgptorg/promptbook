@@ -1,4 +1,4 @@
-import type { SpeechRecognition, SpeechRecognitionEvent } from '../../../../../src/types/SpeechRecognition';
+import type { SpeechRecognition, SpeechRecognitionEvent, SpeechRecognitionStartOptions } from '../../../../../src/types/SpeechRecognition';
 import { LongRunningSpeechRecognitionSession } from './LongRunningSpeechRecognitionSession';
 
 /**
@@ -11,8 +11,8 @@ class FakeSpeechRecognition implements SpeechRecognition {
     public readonly start = jest.fn();
     public state = 'IDLE' as const;
 
-    public $start(): void {
-        this.start();
+    public $start(startOptions: SpeechRecognitionStartOptions): void {
+        this.start(startOptions);
     }
 
     public $stop(): void {
@@ -142,6 +142,63 @@ describe('LongRunningSpeechRecognitionSession', () => {
         expect(events).toEqual([{ type: 'STOP' }]);
     });
 
+    it('flushes the active final chunk before emitting the outer STOP event', () => {
+        const recognitions: Array<FakeSpeechRecognition> = [];
+        const session = new LongRunningSpeechRecognitionSession({
+            createRecognition: () => {
+                const recognition = new FakeSpeechRecognition();
+                recognitions.push(recognition);
+                return recognition;
+            },
+        });
+
+        const events: Array<SpeechRecognitionEvent> = [];
+        session.subscribe((event) => {
+            events.push(event);
+        });
+
+        session.$start({ language: 'en-US' });
+        recognitions[0]!.emit({ type: 'START' });
+
+        session.$stop();
+        recognitions[0]!.emit({ type: 'RESULT', text: 'Finishing the sentence', isFinal: true });
+        recognitions[0]!.emit({ type: 'STOP' });
+
+        expect(events).toEqual([
+            { type: 'START' },
+            { type: 'RESULT', text: 'Finishing the sentence', isFinal: true },
+            { type: 'STOP' },
+        ]);
+        expect(session.finalChunks).toEqual(['Finishing the sentence']);
+    });
+
+    it('forwards recent finalized transcript text as transcription prompt on the next cycle', () => {
+        const recognitions: Array<FakeSpeechRecognition> = [];
+        const session = new LongRunningSpeechRecognitionSession({
+            createRecognition: () => {
+                const recognition = new FakeSpeechRecognition();
+                recognitions.push(recognition);
+                return recognition;
+            },
+            restartDelayMs: 1,
+        });
+
+        session.$start({ language: 'en-US' });
+        recognitions[0]!.emit({ type: 'START' });
+        recognitions[0]!.emit({ type: 'RESULT', text: 'Hello world', isFinal: true });
+        recognitions[0]!.emit({ type: 'STOP' });
+        jest.runAllTimers();
+
+        expect(recognitions[0]!.start).toHaveBeenCalledWith({
+            language: 'en-US',
+            transcriptionPrompt: undefined,
+        });
+        expect(recognitions[1]!.start).toHaveBeenCalledWith({
+            language: 'en-US',
+            transcriptionPrompt: 'Hello world',
+        });
+    });
+
     it('does not restart after a terminal error', () => {
         const recognitions: Array<FakeSpeechRecognition> = [];
         const createRecognition = jest.fn(() => {
@@ -184,4 +241,3 @@ describe('LongRunningSpeechRecognitionSession', () => {
         ]);
     });
 });
-
