@@ -194,6 +194,16 @@ const DeferredAgentsOffice = dynamic(() => import('./AgentsOffice').then((mod) =
 });
 
 /**
+ * Deferred maze chunk loaded only when the maze view is active.
+ *
+ * @private function of AgentsList
+ */
+const DeferredAgentsMaze = dynamic(() => import('./AgentsMaze').then((mod) => mod.AgentsMaze), {
+    ssr: false,
+    loading: () => <GraphLoadingSkeleton />,
+});
+
+/**
  * Deferred pixel-office chunk loaded only when the pixel-office view is active.
  *
  * @private function of AgentsList
@@ -324,6 +334,19 @@ export function AgentsListViewContent({
         return (
             <div className="w-full">
                 <DeferredAgentsOffice
+                    agents={officeAgents}
+                    federatedAgents={federatedAgents}
+                    publicUrl={publicUrl}
+                    folders={officeFolders}
+                />
+            </div>
+        );
+    }
+
+    if (viewMode === 'MAZE') {
+        return (
+            <div className="w-full">
+                <DeferredAgentsMaze
                     agents={officeAgents}
                     federatedAgents={federatedAgents}
                     publicUrl={publicUrl}
