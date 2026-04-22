@@ -22,7 +22,7 @@ export type {
  * @param options - Local agents, federated agents, folders, and public URL.
  * @returns Deterministic office layout ready for rendering.
  *
- * @private function of <AgentsOffice/>, <AgentsMaze/>, and <AgentsPixelOffice/>
+ * @private function of <AgentsOffice/> and <AgentsPixelOffice/>
  */
 export function buildOfficeLayout(options: BuildOfficeLayoutOptions): OfficeLayout {
     const normalizedPublicUrl = normalizeBaseUrl(options.publicUrl);

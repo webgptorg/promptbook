@@ -1,6 +1,6 @@
 'use client';
 
-import { Building2, FolderPlusIcon, Gamepad2, Grid, Network, Route, type LucideIcon } from 'lucide-react';
+import { Building2, FolderPlusIcon, Gamepad2, Grid, Network, type LucideIcon } from 'lucide-react';
 import type { AgentOrganizationFolder } from '../../utils/agentOrganization/types';
 import type { HomeViewMode } from './homeViewMode';
 import { BreadcrumbDropTarget } from './BreadcrumbDropTarget';
@@ -82,7 +82,6 @@ const VIEW_MODE_BUTTONS: ReadonlyArray<ViewModeButton> = [
     { mode: 'LIST', label: 'List', title: 'List View', icon: Grid },
     { mode: 'GRAPH', label: 'Graph', title: 'Graph View', icon: Network },
     { mode: 'OFFICE', label: 'Office', title: 'Office View', icon: Building2 },
-    { mode: 'MAZE', label: 'Maze', title: 'Maze View', icon: Route },
     { mode: 'PIXEL_OFFICE', label: 'Pixel', title: 'Pixel Office View', icon: Gamepad2 },
 ];
 
@@ -109,14 +108,14 @@ export function AgentsListHeader({
     const showBreadcrumbs = viewMode !== 'GRAPH';
 
     return (
-        <h2 className="mb-6 text-3xl font-light text-slate-900 dark:text-slate-50">
+        <h2 className="text-3xl text-gray-900 mb-6 font-light">
             <div className="flex flex-wrap items-center justify-between w-full gap-4">
                 <div>
                     <span>
                         {headingTitle} ({agentCount})
                     </span>
                     {showBreadcrumbs && (
-                        <div className="mt-2 flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                        <div className="mt-2 flex items-center gap-2 text-sm text-gray-600">
                             <BreadcrumbDropTarget
                                 label={allAgentsLabel}
                                 folderId={null}
@@ -142,14 +141,14 @@ export function AgentsListHeader({
                         <button
                             type="button"
                             onClick={onCreateFolder}
-                            className="flex items-center gap-2 rounded-lg bg-amber-100 px-3 py-2 text-sm text-amber-800 transition-colors hover:bg-amber-200 dark:bg-amber-500/20 dark:text-amber-100 dark:hover:bg-amber-500/30"
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-yellow-100 text-yellow-800 hover:bg-yellow-200 transition-colors text-sm"
                             title="Create folder"
                         >
                             <FolderPlusIcon className="w-4 h-4" />
                             New Folder
                         </button>
                     )}
-                    <div className="ml-4 flex items-center gap-2 rounded-lg bg-slate-100 p-1 dark:bg-slate-900/70 dark:ring-1 dark:ring-white/10">
+                    <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg ml-4">
                         {VIEW_MODE_BUTTONS.map(({ mode, label, title, icon: Icon }) => (
                             <button
                                 key={mode}
@@ -157,8 +156,8 @@ export function AgentsListHeader({
                                 onClick={() => onSetViewMode(mode)}
                                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors ${
                                     viewMode === mode
-                                        ? 'bg-white font-medium text-sky-600 shadow-sm dark:bg-slate-800 dark:text-sky-300'
-                                        : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
+                                        ? 'bg-white shadow-sm text-blue-600 font-medium'
+                                        : 'text-gray-500 hover:text-gray-900'
                                 }`}
                                 title={title}
                             >

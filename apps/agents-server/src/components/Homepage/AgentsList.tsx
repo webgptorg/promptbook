@@ -34,7 +34,7 @@ type AgentsListProps = {
     readonly canOrganize: boolean;
 
     /**
-     * Controls whether federated agents are loaded and shown in non-list views.
+     * Controls whether federated agents are loaded and shown in graph view.
      */
     readonly showFederatedAgents: boolean;
 
