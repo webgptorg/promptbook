@@ -37,15 +37,44 @@ describe('createOrganicOctopusTentacleShapes', () => {
 
         expect(failingTentacleRoots).toEqual([]);
     });
+
+    it('applies Octopus3 tentacle variation scales without changing the anchored-root contract', () => {
+        const defaultGeometry = buildOctopus3GeometrySample(7);
+        const expandedGeometry = buildOctopus3GeometrySample(7, {
+            flowLengthScale: 1.28,
+            lateralReachScale: 1.34,
+            rootSpreadScale: 1.18,
+            swayScale: 1.16,
+        });
+
+        expect(resolveAverageTentacleReach(expandedGeometry.tentacleShapes)).toBeGreaterThan(
+            resolveAverageTentacleReach(defaultGeometry.tentacleShapes),
+        );
+        expect(resolveTentacleRootSpan(expandedGeometry.tentacleShapes)).toBeGreaterThan(
+            resolveTentacleRootSpan(defaultGeometry.tentacleShapes),
+        );
+        expandedGeometry.tentacleShapes.forEach((tentacleShape) => {
+            expect(isPointInsidePolygon(tentacleShape.startPoint, expandedGeometry.bodyPoints)).toBe(true);
+        });
+    });
 });
 
 /**
  * Builds one deterministic Octopus3 geometry sample using the same ranges as the production renderer.
  *
  * @param sampleIndex Deterministic sample index.
+ * @param tentacleVariation Optional tentacle-variation overrides.
  * @returns Body and tentacle geometry for one seeded Octopus3 avatar.
  */
-function buildOctopus3GeometrySample(sampleIndex: number): {
+function buildOctopus3GeometrySample(
+    sampleIndex: number,
+    tentacleVariation?: {
+        readonly flowLengthScale?: number;
+        readonly lateralReachScale?: number;
+        readonly rootSpreadScale?: number;
+        readonly swayScale?: number;
+    },
+): {
     readonly bodyPoints: ReadonlyArray<{ readonly x: number; readonly y: number }>;
     readonly tentacleShapes: ReturnType<typeof createOrganicOctopusTentacleShapes>;
 } {
@@ -91,9 +120,42 @@ function buildOctopus3GeometrySample(sampleIndex: number): {
         timeMs: TEST_TIME_MS,
         saltPrefix: 'octopus3',
         bodyPoints,
+        variation: tentacleVariation,
     });
 
     return { bodyPoints, tentacleShapes };
+}
+
+/**
+ * Resolves the average tentacle centerline reach for one geometry sample.
+ *
+ * @param tentacleShapes Tentacle geometry sample.
+ * @returns Average start-to-tip distance.
+ */
+function resolveAverageTentacleReach(tentacleShapes: ReturnType<typeof createOrganicOctopusTentacleShapes>): number {
+    const totalReach = tentacleShapes.reduce((sum, tentacleShape) => {
+        return (
+            sum +
+            Math.hypot(
+                tentacleShape.endPoint.x - tentacleShape.startPoint.x,
+                tentacleShape.endPoint.y - tentacleShape.startPoint.y,
+            )
+        );
+    }, 0);
+
+    return totalReach / tentacleShapes.length;
+}
+
+/**
+ * Resolves the horizontal span between the outermost tentacle roots.
+ *
+ * @param tentacleShapes Tentacle geometry sample.
+ * @returns Root span in CSS pixels.
+ */
+function resolveTentacleRootSpan(tentacleShapes: ReturnType<typeof createOrganicOctopusTentacleShapes>): number {
+    const tentacleRootXs = tentacleShapes.map((tentacleShape) => tentacleShape.startPoint.x);
+
+    return Math.max(...tentacleRootXs) - Math.min(...tentacleRootXs);
 }
 
 /**

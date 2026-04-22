@@ -69,6 +69,23 @@ type CreateOrganicOctopusTentacleShapesOptions = {
     readonly timeMs: number;
     readonly saltPrefix: string;
     readonly bodyPoints?: ReadonlyArray<Point>;
+    readonly variation?: OrganicTentacleVariationOptions;
+};
+
+/**
+ * Opt-in shape multipliers that let one visual broaden or tighten the shared tentacle generator.
+ *
+ * @private shared geometry helper of `octopus3AvatarVisual` and `asciiOctopusAvatarVisual`
+ */
+type OrganicTentacleVariationOptions = {
+    readonly flowLengthScale?: number;
+    readonly lateralReachScale?: number;
+    readonly tipReachScale?: number;
+    readonly baseWidthScale?: number;
+    readonly tipWidthScale?: number;
+    readonly rootSpreadScale?: number;
+    readonly startYOffsetScale?: number;
+    readonly swayScale?: number;
 };
 
 /**
@@ -209,41 +226,66 @@ export function traceSmoothClosedPath(
 export function createOrganicOctopusTentacleShapes(
     options: CreateOrganicOctopusTentacleShapesOptions,
 ): Array<OrganicTentacleShape> {
-    const { size, centerX, centerY, bodyRadius, horizontalStretch, tentacleCount, shapePhase, createRandom, timeMs, saltPrefix, bodyPoints } =
-        options;
+    const {
+        size,
+        centerX,
+        centerY,
+        bodyRadius,
+        horizontalStretch,
+        tentacleCount,
+        shapePhase,
+        createRandom,
+        timeMs,
+        saltPrefix,
+        bodyPoints,
+        variation,
+    } = options;
     const baseY = centerY + bodyRadius * 0.74;
     const lowerBodyAnchorPoints = bodyPoints ? resolveTentacleBodyAnchorPoints(bodyPoints, centerY + bodyRadius * 0.04) : null;
+    const flowLengthScale = variation?.flowLengthScale ?? 1;
+    const lateralReachScale = variation?.lateralReachScale ?? 1;
+    const tipReachScale = variation?.tipReachScale ?? 1;
+    const baseWidthScale = variation?.baseWidthScale ?? 1;
+    const tipWidthScale = variation?.tipWidthScale ?? 1;
+    const rootSpreadScale = variation?.rootSpreadScale ?? 1;
+    const startYOffsetScale = variation?.startYOffsetScale ?? 1;
+    const swayScale = variation?.swayScale ?? 1;
 
     return Array.from({ length: tentacleCount }, (_, tentacleIndex) => {
         const tentacleRandom = createRandom(`${saltPrefix}-tentacle-${tentacleIndex}`);
         const spreadProgress = tentacleCount === 1 ? 0.5 : tentacleIndex / (tentacleCount - 1);
         const centeredProgress = spreadProgress - 0.5;
+        const spreadCenteredProgress = centeredProgress * rootSpreadScale;
+        const spreadAnchorProgress = Math.min(1, Math.max(0, 0.5 + spreadCenteredProgress));
         const temporalSway =
             Math.sin(timeMs / (720 + tentacleIndex * 34) + shapePhase + tentacleRandom() * Math.PI * 2) *
             size *
-            (0.014 + tentacleRandom() * 0.015);
-        const flowLength = size * (0.24 + tentacleRandom() * 0.18);
-        const curlDirection = centeredProgress === 0 ? (tentacleRandom() < 0.5 ? -1 : 1) : Math.sign(centeredProgress);
-        const lateralReach = centeredProgress * size * (0.1 + tentacleRandom() * 0.1) + temporalSway;
-        const tipReach = curlDirection * size * (0.025 + tentacleRandom() * 0.07);
-        const startYOffset = Math.abs(centeredProgress) * size * 0.012 + tentacleRandom() * size * 0.01;
+            (0.014 + tentacleRandom() * 0.015) *
+            swayScale;
+        const flowLength = size * (0.24 + tentacleRandom() * 0.18) * flowLengthScale;
+        const curlDirection =
+            spreadCenteredProgress === 0 ? (tentacleRandom() < 0.5 ? -1 : 1) : Math.sign(spreadCenteredProgress);
+        const lateralReach = spreadCenteredProgress * size * (0.1 + tentacleRandom() * 0.1) * lateralReachScale + temporalSway;
+        const tipReach = curlDirection * size * (0.025 + tentacleRandom() * 0.07) * tipReachScale;
+        const startYOffset =
+            (Math.abs(spreadCenteredProgress) * size * 0.012 + tentacleRandom() * size * 0.01) * startYOffsetScale;
         const startPoint =
             lowerBodyAnchorPoints && lowerBodyAnchorPoints.length >= 2
                 ? createInsetTentacleStartPoint({
                       bodyPoints: lowerBodyAnchorPoints,
-                      anchorProgress: spreadProgress,
+                      anchorProgress: spreadAnchorProgress,
                       centerX,
                       centerY,
                       bodyRadius,
-                      centeredProgress,
+                      centeredProgress: spreadCenteredProgress,
                       startYOffset,
                   })
                 : {
-                      x: centerX + centeredProgress * bodyRadius * horizontalStretch * 1.52,
+                      x: centerX + spreadCenteredProgress * bodyRadius * horizontalStretch * 1.52,
                       y: baseY + startYOffset,
                   };
         const controlPointOne = {
-            x: startPoint.x + centeredProgress * size * 0.045 + temporalSway * 0.4,
+            x: startPoint.x + spreadCenteredProgress * size * 0.045 * lateralReachScale + temporalSway * 0.4,
             y: startPoint.y + flowLength * (0.21 + tentacleRandom() * 0.08),
         };
         const controlPointTwo = {
@@ -257,8 +299,9 @@ export function createOrganicOctopusTentacleShapes(
                 flowLength * (0.9 + tentacleRandom() * 0.12) +
                 Math.cos(timeMs / (840 + tentacleIndex * 41) + shapePhase) * size * (0.008 + tentacleRandom() * 0.01),
         };
-        const baseWidth = size * (0.038 + tentacleRandom() * 0.02) * (1 - Math.abs(centeredProgress) * 0.18);
-        const tipWidth = baseWidth * (0.18 + tentacleRandom() * 0.2);
+        const baseWidth =
+            size * (0.038 + tentacleRandom() * 0.02) * (1 - Math.abs(spreadCenteredProgress) * 0.18) * baseWidthScale;
+        const tipWidth = baseWidth * Math.min(0.52, (0.18 + tentacleRandom() * 0.2) * tipWidthScale);
 
         return {
             startPoint,

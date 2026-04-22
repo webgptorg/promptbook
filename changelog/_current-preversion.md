@@ -1,3 +1,9 @@
+-   Made the built-in `Octopus3` avatar visual more diverse across agents, so seeded default avatars now feel more distinct while staying clearly octopus-like:
+
+    -   Reworked `Octopus3` into deterministic morphology families that vary body proportions, blob silhouette, crown highlight, and shadow footprint more broadly from the agent seed instead of clustering around one similar mantle shape.
+    -   Expanded the shared ribbon-tentacle generator with opt-in shape scales and used them in `Octopus3`, so different agents can now render noticeably different arm counts, reach, spread, thickness, and motion without shifting other octopus-family visuals.
+    -   Added deterministic regression coverage for the new `Octopus3` morphology profiles and tentacle scaling, keeping the broader variety intentional while preserving anchored tentacle roots inside the mantle.
+
 -   Added full light/dark theming to Agents Server with a persisted per-user theme preference and consistent dark-mode support across the app shell, control panel, chat surfaces, editors, and Monaco-based tools:
 
     -   Added a new theme preference stored alongside the other browser-user settings, exposed it in the control panel as `System`, `Light`, and `Dark`, and applied it immediately on first paint with shared client/server theme bootstrapping.
