@@ -9,6 +9,7 @@
 -   Its between visualisation and game (maybe bit more visualization), it should be fun and visually appealing, but also it should represent the concept of AI agents working together in a shared environment
 -   The environment should be dynamic and lively, with some subtle animations and interactions, like octopuses moving around, interacting with each other, maybe some visual effects representing the communication and collaboration between agents
 -   It should be isometric view, so it looks like a 3D environment but it is actually 2D, with a fixed perspective, so it is easier to implement and it can look good without needing complex 3D graphics
+-   The octopuses (the default agents without `META IMAGE`) should naturally fit into the maze environment, so it looks like they are part of the maze, the agent with extarnal avatar should be ommited from this visialisation, because it can look weird and not fit into the maze environment, so for the purpose of this visualization we will focus on the default octopus avatars which can be easily integrated into the maze design
 -   You are working with the [Agents Server](apps/agents-server) with the default avatars of the agents
 -   Implement it in a way that its agnostic to the avatar visual and it can work with different types of avatar visuals, not just the octopus ones
 -   Keep in mind the performance, it should not cause lag or high resource usage, so optimize the implementation and visuals to be performant
