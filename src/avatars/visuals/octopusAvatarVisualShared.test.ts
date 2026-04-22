@@ -19,7 +19,11 @@ const TEST_SAMPLE_COUNT = 48;
 
 describe('createOrganicOctopusTentacleShapes', () => {
     it('keeps Octopus3 tentacle roots inside the mantle when body anchors are provided', () => {
-        const failingTentacleRoots: Array<{ sampleIndex: number; tentacleIndex: number; startPoint: { x: number; y: number } }> = [];
+        const failingTentacleRoots: Array<{
+            sampleIndex: number;
+            tentacleIndex: number;
+            startPoint: { x: number; y: number };
+        }> = [];
 
         for (let sampleIndex = 0; sampleIndex < TEST_SAMPLE_COUNT; sampleIndex++) {
             const { bodyPoints, tentacleShapes } = buildOctopus3GeometrySample(sampleIndex);
@@ -171,14 +175,18 @@ function isPointInsidePolygon(
 ): boolean {
     let isInside = false;
 
-    for (let pointIndex = 0, previousPointIndex = polygon.length - 1; pointIndex < polygon.length; previousPointIndex = pointIndex++) {
+    for (
+        let pointIndex = 0, previousPointIndex = polygon.length - 1;
+        pointIndex < polygon.length;
+        previousPointIndex = pointIndex++
+    ) {
         const currentPoint = polygon[pointIndex]!;
         const previousPoint = polygon[previousPointIndex]!;
         const doesRayIntersectSegment =
             currentPoint.y > point.y !== previousPoint.y > point.y &&
             point.x <
                 ((previousPoint.x - currentPoint.x) * (point.y - currentPoint.y)) /
-                    ((previousPoint.y - currentPoint.y) || Number.EPSILON) +
+                    (previousPoint.y - currentPoint.y || Number.EPSILON) +
                     currentPoint.x;
 
         if (doesRayIntersectSegment) {

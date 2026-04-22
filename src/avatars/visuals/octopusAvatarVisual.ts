@@ -12,7 +12,8 @@ import { resolveOrganicEyeMotion } from './octopusAvatarVisualShared';
 export const octopusAvatarVisual: AvatarVisualDefinition = {
     id: 'octopus',
     title: 'Octopus',
-    description: 'Playful underwater mascot with cursor-following eyes, animated tentacles, bubbles, and seeded markings.',
+    description:
+        'Playful underwater mascot with cursor-following eyes, animated tentacles, bubbles, and seeded markings.',
     isAnimated: true,
     supportsPointerTracking: true,
     render({ context, size, palette, createRandom, timeMs, interaction }) {
@@ -31,7 +32,14 @@ export const octopusAvatarVisual: AvatarVisualDefinition = {
 
         drawAvatarFrame(context, size, palette);
 
-        const waterGlow = context.createRadialGradient(centerX, size * 0.22, size * 0.06, centerX, size * 0.22, size * 0.58);
+        const waterGlow = context.createRadialGradient(
+            centerX,
+            size * 0.22,
+            size * 0.06,
+            centerX,
+            size * 0.22,
+            size * 0.58,
+        );
         waterGlow.addColorStop(0, `${palette.highlight}66`);
         waterGlow.addColorStop(1, `${palette.highlight}00`);
         context.fillStyle = waterGlow;
@@ -73,10 +81,8 @@ export const octopusAvatarVisual: AvatarVisualDefinition = {
 
             for (let cupIndex = 1; cupIndex <= 3; cupIndex++) {
                 const cupT = cupIndex / 4;
-                const cupX =
-                    (1 - cupT) * (1 - cupT) * startX + 2 * (1 - cupT) * cupT * controlX + cupT * cupT * endX;
-                const cupY =
-                    (1 - cupT) * (1 - cupT) * startY + 2 * (1 - cupT) * cupT * controlY + cupT * cupT * endY;
+                const cupX = (1 - cupT) * (1 - cupT) * startX + 2 * (1 - cupT) * cupT * controlX + cupT * cupT * endX;
+                const cupY = (1 - cupT) * (1 - cupT) * startY + 2 * (1 - cupT) * cupT * controlY + cupT * cupT * endY;
 
                 context.beginPath();
                 context.arc(cupX, cupY, lineWidth * 0.18, 0, Math.PI * 2);
@@ -98,7 +104,15 @@ export const octopusAvatarVisual: AvatarVisualDefinition = {
         context.restore();
 
         context.beginPath();
-        context.ellipse(centerX, centerY - headRadius * 0.22, headRadius * 0.74, headRadius * 0.42, 0, Math.PI, Math.PI * 2);
+        context.ellipse(
+            centerX,
+            centerY - headRadius * 0.22,
+            headRadius * 0.74,
+            headRadius * 0.42,
+            0,
+            Math.PI,
+            Math.PI * 2,
+        );
         context.fillStyle = `${palette.highlight}55`;
         context.fill();
 
@@ -129,7 +143,12 @@ export const octopusAvatarVisual: AvatarVisualDefinition = {
 
         context.beginPath();
         context.moveTo(centerX - headRadius * 0.18, centerY + headRadius * 0.24);
-        context.quadraticCurveTo(centerX, centerY + headRadius * 0.42, centerX + headRadius * 0.18, centerY + headRadius * 0.24);
+        context.quadraticCurveTo(
+            centerX,
+            centerY + headRadius * 0.42,
+            centerX + headRadius * 0.18,
+            centerY + headRadius * 0.24,
+        );
         context.strokeStyle = palette.shadow;
         context.lineWidth = size * 0.016;
         context.lineCap = 'round';

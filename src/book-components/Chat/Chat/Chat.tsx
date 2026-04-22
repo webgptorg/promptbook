@@ -247,19 +247,19 @@ export function Chat(props: ChatProps) {
                 />
             )}
 
-                <div
-                    className={classNames(
-                        className,
-                        styles.Chat,
+            <div
+                className={classNames(
+                    className,
+                    styles.Chat,
                     layout === 'STANDALONE' && styles.standaloneVisual,
                     layout === 'FULL_PAGE' && styles.fullPageVisual,
                     isConstrainedArticleMode && styles.constrainedArticleVisual,
                     getChatCssClassName('Chat'),
-                        chatCssClassNames.chat,
-                    )}
-                    data-chat-theme={mode.toLowerCase()}
-                    {...{ style }}
-                >
+                    chatCssClassNames.chat,
+                )}
+                data-chat-theme={mode.toLowerCase()}
+                {...{ style }}
+            >
                 <div
                     className={classNames(
                         className,
@@ -322,7 +322,7 @@ export function Chat(props: ChatProps) {
                         onButtonClick={handleButtonClick}
                     />
 
-                        <ChatMessageList
+                    <ChatMessageList
                         messages={postprocessedMessages}
                         participants={participants}
                         expandedMessageId={expandedMessageId}
@@ -353,11 +353,11 @@ export function Chat(props: ChatProps) {
                         setChatMessagesElement={setChatMessagesElement}
                         onScroll={handleChatScroll}
                         isSpeechPlaybackEnabled={isSpeechPlaybackEnabled}
-                            elevenLabsVoiceId={elevenLabsVoiceId}
-                            chatUiTranslations={chatUiTranslations}
-                            chatMessagesClassName={classNames(
-                                isConstrainedArticleMode && styles.articleModeChatMessages,
-                                getChatCssClassName('chatMessages'),
+                        elevenLabsVoiceId={elevenLabsVoiceId}
+                        chatUiTranslations={chatUiTranslations}
+                        chatMessagesClassName={classNames(
+                            isConstrainedArticleMode && styles.articleModeChatMessages,
+                            getChatCssClassName('chatMessages'),
                             chatCssClassNames.chatMessages,
                         )}
                         hasActions={hasActions}

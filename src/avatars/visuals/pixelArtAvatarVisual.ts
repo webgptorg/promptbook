@@ -28,7 +28,14 @@ export const pixelArtAvatarVisual: AvatarVisualDefinition = {
 
         drawAvatarFrame(context, size, palette);
 
-        const glow = context.createRadialGradient(size * 0.5, size * 0.32, size * 0.05, size * 0.5, size * 0.32, size * 0.5);
+        const glow = context.createRadialGradient(
+            size * 0.5,
+            size * 0.32,
+            size * 0.05,
+            size * 0.5,
+            size * 0.32,
+            size * 0.5,
+        );
         glow.addColorStop(0, `${palette.highlight}aa`);
         glow.addColorStop(1, `${palette.highlight}00`);
         context.fillStyle = glow;
@@ -62,27 +69,44 @@ export const pixelArtAvatarVisual: AvatarVisualDefinition = {
                                     (rowIndex < foreheadRowCount
                                         ? 2
                                         : rowIndex > pixelGridSize - emblemHeight - 1
-                                          ? colorStops.length
-                                          : 3),
+                                        ? colorStops.length
+                                        : 3),
                             ),
                         )
                     ]!;
 
-                if (columnIndex === 0 && rowIndex >= cheekInset && rowIndex <= pixelGridSize - cheekInset - 1 && random() < 0.4) {
+                if (
+                    columnIndex === 0 &&
+                    rowIndex >= cheekInset &&
+                    rowIndex <= pixelGridSize - cheekInset - 1 &&
+                    random() < 0.4
+                ) {
                     continue;
                 }
 
                 drawPixel(context, panelX + columnIndex * pixelSize, panelY + rowIndex * pixelSize, pixelSize, color);
 
                 if (mirroredColumnIndex !== columnIndex) {
-                    drawPixel(context, panelX + mirroredColumnIndex * pixelSize, panelY + rowIndex * pixelSize, pixelSize, color);
+                    drawPixel(
+                        context,
+                        panelX + mirroredColumnIndex * pixelSize,
+                        panelY + rowIndex * pixelSize,
+                        pixelSize,
+                        color,
+                    );
                 }
             }
         }
 
         const eyeRowIndex = 3 + Math.floor(random() * 2);
         const eyeColumnOffset = 2 + Math.floor(random() * 2);
-        drawPixel(context, panelX + eyeColumnOffset * pixelSize, panelY + eyeRowIndex * pixelSize, pixelSize, palette.ink);
+        drawPixel(
+            context,
+            panelX + eyeColumnOffset * pixelSize,
+            panelY + eyeRowIndex * pixelSize,
+            pixelSize,
+            palette.ink,
+        );
         drawPixel(
             context,
             panelX + (pixelGridSize - eyeColumnOffset - 1) * pixelSize,
@@ -90,7 +114,13 @@ export const pixelArtAvatarVisual: AvatarVisualDefinition = {
             pixelSize,
             palette.ink,
         );
-        drawPixel(context, panelX + eyeColumnOffset * pixelSize, panelY + eyeRowIndex * pixelSize, pixelSize * 0.44, '#ffffff');
+        drawPixel(
+            context,
+            panelX + eyeColumnOffset * pixelSize,
+            panelY + eyeRowIndex * pixelSize,
+            pixelSize * 0.44,
+            '#ffffff',
+        );
         drawPixel(
             context,
             panelX + (pixelGridSize - eyeColumnOffset - 1) * pixelSize,

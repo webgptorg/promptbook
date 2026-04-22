@@ -12,10 +12,7 @@ import { SerpSearchEngine } from '../../search-engines/serp/SerpSearchEngine';
  *
  * @private internal helper for search-like commitments
  */
-export function createSerpSearchToolFunction(
-    toolName: string_javascript_name,
-    resultLabel: string,
-): ToolFunction {
+export function createSerpSearchToolFunction(toolName: string_javascript_name, resultLabel: string): ToolFunction {
     return async (rawArgs: Record<string, unknown>): Promise<string> => {
         const { query, ...searchOptions } = rawArgs;
 
@@ -29,10 +26,8 @@ export function createSerpSearchToolFunction(
         return spaceTrim(
             (block) => `
                 ${resultLabel} results for "${query}"${
-                    Object.keys(searchOptions).length === 0
-                        ? ''
-                        : ` with options ${JSON.stringify(searchOptions)}`
-                }:
+                Object.keys(searchOptions).length === 0 ? '' : ` with options ${JSON.stringify(searchOptions)}`
+            }:
 
                 ${block(
                     results

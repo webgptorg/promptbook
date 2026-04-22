@@ -69,7 +69,8 @@ export function useChatCompleteNotification(
         }
 
         const isSameMessageCompletionTransition =
-            previousSnapshot.lastMessageKey === currentSnapshot.lastMessageKey && !previousSnapshot.isLastMessageComplete;
+            previousSnapshot.lastMessageKey === currentSnapshot.lastMessageKey &&
+            !previousSnapshot.isLastMessageComplete;
         const isCompletedReplyAppended =
             previousSnapshot.lastMessageSender === 'USER' &&
             areMessageKeyListsSequentialPrefix(previousSnapshot.messageKeys, currentSnapshot.messageKeys);

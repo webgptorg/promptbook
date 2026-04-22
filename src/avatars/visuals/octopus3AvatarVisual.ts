@@ -335,7 +335,8 @@ export const octopus3AvatarVisual: AvatarVisualDefinition = {
         const morphologyProfile = createOctopus3MorphologyProfile(createRandom);
         const animationRandom = createRandom('octopus3-animation-profile');
         const eyeRandom = createRandom('octopus3-eye-profile');
-        const centerX = size * (0.5 + morphologyProfile.body.centerXJitterRatio) + interaction.bodyOffsetX * size * 0.05;
+        const centerX =
+            size * (0.5 + morphologyProfile.body.centerXJitterRatio) + interaction.bodyOffsetX * size * 0.05;
         const centerY = size * morphologyProfile.body.centerYRatio + interaction.bodyOffsetY * size * 0.035;
         const bodyRadius = size * morphologyProfile.body.bodyRadiusRatio;
         const horizontalStretch = morphologyProfile.body.horizontalStretch;
@@ -434,7 +435,12 @@ export const octopus3AvatarVisual: AvatarVisualDefinition = {
         traceSmoothClosedPath(context, bodyPoints);
         context.clip();
 
-        const innerGlowGradient = context.createLinearGradient(centerX, centerY - size * 0.24, centerX, centerY + size * 0.26);
+        const innerGlowGradient = context.createLinearGradient(
+            centerX,
+            centerY - size * 0.24,
+            centerX,
+            centerY + size * 0.26,
+        );
         innerGlowGradient.addColorStop(0, `${palette.highlight}66`);
         innerGlowGradient.addColorStop(0.4, `${palette.secondary}26`);
         innerGlowGradient.addColorStop(1, `${palette.shadow}00`);
@@ -713,8 +719,7 @@ function drawTentacleSuckers(
         const normalX = (-tangentY / tangentLength) * undersideDirection;
         const normalY = (tangentX / tangentLength) * undersideDirection;
         const width =
-            tentacleShape.baseWidth +
-            (tentacleShape.tipWidth - tentacleShape.baseWidth) * Math.pow(progress, 1.1);
+            tentacleShape.baseWidth + (tentacleShape.tipWidth - tentacleShape.baseWidth) * Math.pow(progress, 1.1);
         const suckerX = point.x + normalX * width * 0.52;
         const suckerY = point.y + normalY * width * 0.52;
         const rotation = Math.atan2(normalY, normalX);
@@ -763,7 +768,10 @@ function drawMantleCurrents(
         const sway = Math.sin(timeMs / 680 + currentIndex * 0.78 + shapePhase) * size * 0.024;
 
         context.beginPath();
-        context.moveTo(centerX + horizontalOffset * 0.3, centerY - size * (0.11 + morphologyProfile.body.verticalStretch * 0.02));
+        context.moveTo(
+            centerX + horizontalOffset * 0.3,
+            centerY - size * (0.11 + morphologyProfile.body.verticalStretch * 0.02),
+        );
         context.bezierCurveTo(
             centerX + horizontalOffset - sway * 0.25,
             centerY - size * 0.04,
@@ -773,7 +781,8 @@ function drawMantleCurrents(
             centerY + size * (0.16 + morphologyProfile.body.verticalStretch * 0.035),
         );
         context.strokeStyle = currentIndex % 2 === 0 ? `${palette.highlight}30` : `${palette.accent}26`;
-        context.lineWidth = size * (0.0075 + currentIndex * 0.00065 + morphologyProfile.tentacles.baseWidthScale * 0.0005);
+        context.lineWidth =
+            size * (0.0075 + currentIndex * 0.00065 + morphologyProfile.tentacles.baseWidthScale * 0.0005);
         context.lineCap = 'round';
         context.stroke();
     }
@@ -869,7 +878,14 @@ function drawSeededEye(
     context.fill();
     context.clip();
 
-    const irisGradient = context.createRadialGradient(-radiusX * 0.18, -radiusY * 0.24, radiusX * 0.05, 0, 0, radiusX * 0.92);
+    const irisGradient = context.createRadialGradient(
+        -radiusX * 0.18,
+        -radiusY * 0.24,
+        radiusX * 0.05,
+        0,
+        0,
+        radiusX * 0.92,
+    );
     irisGradient.addColorStop(0, palette.highlight);
     irisGradient.addColorStop(0.58, palette.secondary);
     irisGradient.addColorStop(1, palette.shadow);
@@ -900,7 +916,15 @@ function drawSeededEye(
     context.fill();
 
     context.beginPath();
-    context.ellipse(pupilOffsetX - radiusX * 0.22, pupilOffsetY - radiusY * 0.24, radiusX * 0.12, radiusY * 0.14, 0, 0, Math.PI * 2);
+    context.ellipse(
+        pupilOffsetX - radiusX * 0.22,
+        pupilOffsetY - radiusY * 0.24,
+        radiusX * 0.12,
+        radiusY * 0.14,
+        0,
+        0,
+        Math.PI * 2,
+    );
     context.fillStyle = '#ffffff';
     context.fill();
     context.restore();

@@ -243,7 +243,11 @@ function normalizeCommandOptionValue(value: string | string[] | undefined): stri
     }
 
     const parts = Array.isArray(value) ? value : [value];
-    const normalizedValue = parts.map((part) => part.trim()).filter(Boolean).join(' ').trim();
+    const normalizedValue = parts
+        .map((part) => part.trim())
+        .filter(Boolean)
+        .join(' ')
+        .trim();
     return normalizedValue === '' ? undefined : normalizedValue;
 }
 

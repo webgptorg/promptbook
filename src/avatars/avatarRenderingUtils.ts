@@ -280,7 +280,9 @@ export function createSeededRandom(seedSource: string): () => number {
  */
 export function createAvatarRandomFactory(avatarDefinition: AvatarDefinition): (salt: string) => () => number {
     const normalizedAvatarDefinition = normalizeAvatarDefinition(avatarDefinition);
-    const seedBase = `${normalizedAvatarDefinition.agentName}|${normalizedAvatarDefinition.agentHash}|${normalizedAvatarDefinition.colors.join('|')}`;
+    const seedBase = `${normalizedAvatarDefinition.agentName}|${
+        normalizedAvatarDefinition.agentHash
+    }|${normalizedAvatarDefinition.colors.join('|')}`;
 
     return (salt: string) => createSeededRandom(`${seedBase}|${salt}`);
 }

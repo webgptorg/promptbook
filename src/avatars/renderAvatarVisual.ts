@@ -8,7 +8,12 @@ import { createIdleAvatarInteractionState } from './avatarInteractionUtils';
 import { getAvatarVisualById } from './visuals/avatarVisualRegistry';
 import type { RenderAvatarVisualOptions } from './types/AvatarVisualDefinition';
 import type { AvatarDefinition } from './types/AvatarDefinition';
-import type { AvatarPalette, AvatarSurfaceStyle, AvatarVisualDefinition, AvatarVisualId } from './types/AvatarVisualDefinition';
+import type {
+    AvatarPalette,
+    AvatarSurfaceStyle,
+    AvatarVisualDefinition,
+    AvatarVisualId,
+} from './types/AvatarVisualDefinition';
 
 /**
  * Stable render data derived once from the avatar definition, surface, and visual id.

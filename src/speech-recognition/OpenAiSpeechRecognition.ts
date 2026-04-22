@@ -260,7 +260,9 @@ export class OpenAiSpeechRecognition implements SpeechRecognition {
                 formData.append('language', isoLanguage);
             }
 
-            const transcriptionPrompt = normalizeOpenAiSpeechRecognitionTranscriptionPrompt(options.transcriptionPrompt);
+            const transcriptionPrompt = normalizeOpenAiSpeechRecognitionTranscriptionPrompt(
+                options.transcriptionPrompt,
+            );
             if (transcriptionPrompt) {
                 formData.append('prompt', transcriptionPrompt);
             }
@@ -540,7 +542,9 @@ export function resolveOpenAiSpeechRecognitionPreferredRecordingFormat():
         return undefined;
     }
 
-    return PREFERRED_AUDIO_RECORDING_FORMATS.find((recordingFormat) => MediaRecorder.isTypeSupported(recordingFormat.mimeType));
+    return PREFERRED_AUDIO_RECORDING_FORMATS.find((recordingFormat) =>
+        MediaRecorder.isTypeSupported(recordingFormat.mimeType),
+    );
 }
 
 /**
@@ -557,7 +561,9 @@ export function resolveOpenAiSpeechRecognitionAudioFileDescriptor(options: {
 } {
     const mimeType =
         normalizeOpenAiSpeechRecognitionAudioMimeType(options.recorderMimeType) ||
-        options.audioChunks.map((audioChunk) => normalizeOpenAiSpeechRecognitionAudioMimeType(audioChunk.type)).find(Boolean) ||
+        options.audioChunks
+            .map((audioChunk) => normalizeOpenAiSpeechRecognitionAudioMimeType(audioChunk.type))
+            .find(Boolean) ||
         DEFAULT_AUDIO_RECORDING_MIME_TYPE;
 
     const fileExtension = resolveOpenAiSpeechRecognitionAudioFileExtension(mimeType);

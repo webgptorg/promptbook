@@ -77,7 +77,9 @@ describe('useChatCompleteNotification', () => {
 
         await act(async () => {
             const root = createRoot(container);
-            root.render(<HookHarness messages={[makeMessage({ id: 'msg-1', isComplete: true })]} soundSystem={soundSystem} />);
+            root.render(
+                <HookHarness messages={[makeMessage({ id: 'msg-1', isComplete: true })]} soundSystem={soundSystem} />,
+            );
         });
 
         expect(soundSystem.play).not.toHaveBeenCalled();
@@ -225,7 +227,12 @@ describe('useChatCompleteNotification', () => {
                 <HookHarness
                     messages={[
                         makeMessage({ id: 'msg-1', isComplete: true }),
-                        makeMessage({ id: 'msg-user-1', sender: 'USER' as const, isComplete: true, content: 'Question' }),
+                        makeMessage({
+                            id: 'msg-user-1',
+                            sender: 'USER' as const,
+                            isComplete: true,
+                            content: 'Question',
+                        }),
                         makeMessage({ id: 'msg-2', isComplete: false, content: 'Second...' }),
                     ]}
                     soundSystem={soundSystem}
@@ -241,7 +248,12 @@ describe('useChatCompleteNotification', () => {
                 <HookHarness
                     messages={[
                         makeMessage({ id: 'msg-1', isComplete: true }),
-                        makeMessage({ id: 'msg-user-1', sender: 'USER' as const, isComplete: true, content: 'Question' }),
+                        makeMessage({
+                            id: 'msg-user-1',
+                            sender: 'USER' as const,
+                            isComplete: true,
+                            content: 'Question',
+                        }),
                         makeMessage({ id: 'msg-2', isComplete: true, content: 'Second complete' }),
                     ]}
                     soundSystem={soundSystem}
@@ -265,7 +277,14 @@ describe('useChatCompleteNotification', () => {
             root = createRoot(container);
             root.render(
                 <HookHarness
-                    messages={[makeMessage({ id: 'msg-user-1', sender: 'USER' as const, isComplete: true, content: 'Question' })]}
+                    messages={[
+                        makeMessage({
+                            id: 'msg-user-1',
+                            sender: 'USER' as const,
+                            isComplete: true,
+                            content: 'Question',
+                        }),
+                    ]}
                     soundSystem={soundSystem}
                 />,
             );
@@ -277,7 +296,12 @@ describe('useChatCompleteNotification', () => {
             root.render(
                 <HookHarness
                     messages={[
-                        makeMessage({ id: 'msg-user-1', sender: 'USER' as const, isComplete: true, content: 'Question' }),
+                        makeMessage({
+                            id: 'msg-user-1',
+                            sender: 'USER' as const,
+                            isComplete: true,
+                            content: 'Question',
+                        }),
                         makeMessage({ id: 'msg-2', isComplete: true, content: 'Answer' }),
                     ]}
                     soundSystem={soundSystem}
@@ -302,7 +326,9 @@ describe('useChatCompleteNotification', () => {
             root = createRoot(container);
             root.render(
                 <HookHarness
-                    messages={[makeMessage({ id: 'msg-user-1', sender: 'USER' as const, isComplete: true, content: 'Draft' })]}
+                    messages={[
+                        makeMessage({ id: 'msg-user-1', sender: 'USER' as const, isComplete: true, content: 'Draft' }),
+                    ]}
                     soundSystem={soundSystem}
                 />,
             );

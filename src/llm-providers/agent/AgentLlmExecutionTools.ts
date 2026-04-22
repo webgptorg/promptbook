@@ -987,8 +987,8 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                         (tool) => tool.name,
                     ) ?? [],
                 knowledgeSourcesCount:
-                    promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools.modelRequirements
-                        .knowledgeSources?.length ?? 0,
+                    promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools.modelRequirements.knowledgeSources
+                        ?.length ?? 0,
             });
         }
 

@@ -53,9 +53,9 @@ export function useBookEditorMonacoStyles({
             /* <- [🚚] */
 
             .${instanceClass} .monaco-editor .view-lines {
-                background-image: linear-gradient(to bottom, transparent ${
-                    scaledLineHeight - 1
-                }px, ${lineColor} ${scaledLineHeight - 1}px);
+                background-image: linear-gradient(to bottom, transparent ${scaledLineHeight - 1}px, ${lineColor} ${
+            scaledLineHeight - 1
+        }px);
                 background-size: calc(100% + ${scaledContentPaddingLeft}px) ${scaledLineHeight}px;
                 background-position-x: -${scaledContentPaddingLeft}px;
                 background-position-y: ${scaledLineHeight * BACKGROUND_POSITION_Y_MULTIPLIER}px;

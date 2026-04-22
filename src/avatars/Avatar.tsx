@@ -42,7 +42,15 @@ const ACTIVE_POINTER_BOUNDS_REFRESH_MS = 120;
  * @private shared component for in-repository avatar previews
  */
 export function Avatar(props: AvatarProps) {
-    const { avatarDefinition, visualId, surface = 'framed', size = DEFAULT_AVATAR_SIZE, title, className, style } = props;
+    const {
+        avatarDefinition,
+        visualId,
+        surface = 'framed',
+        size = DEFAULT_AVATAR_SIZE,
+        title,
+        className,
+        style,
+    } = props;
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const animationStartRef = useRef<number | null>(null);
     const interactionRuntimeStateRef = useRef(createAvatarInteractionRuntimeState());
@@ -155,16 +163,19 @@ export function Avatar(props: AvatarProps) {
                 interactionState = interactionRuntimeStateRef.current;
             }
 
-            renderAvatarVisual({
-                canvas,
-                avatarDefinition: resolvedAvatarRenderDefinition.avatarDefinition,
-                visualId,
-                surface,
-                size,
-                timeMs: now - animationStartRef.current!,
-                devicePixelRatio: window.devicePixelRatio || 1,
-                interaction: interactionState,
-            }, resolvedAvatarRenderDefinition);
+            renderAvatarVisual(
+                {
+                    canvas,
+                    avatarDefinition: resolvedAvatarRenderDefinition.avatarDefinition,
+                    visualId,
+                    surface,
+                    size,
+                    timeMs: now - animationStartRef.current!,
+                    devicePixelRatio: window.devicePixelRatio || 1,
+                    interaction: interactionState,
+                },
+                resolvedAvatarRenderDefinition,
+            );
         };
 
         renderFrame(performance.now());
@@ -181,14 +192,7 @@ export function Avatar(props: AvatarProps) {
             releaseAnimationListener();
             releasePointerTracking?.();
         };
-    }, [
-        avatarDefinitionKey,
-        isVisible,
-        resolvedAvatarRenderDefinition,
-        size,
-        surface,
-        visualId,
-    ]);
+    }, [avatarDefinitionKey, isVisible, resolvedAvatarRenderDefinition, size, surface, visualId]);
 
     return (
         <canvas

@@ -2,7 +2,11 @@
 
 import { drawAvatarFrame } from '../avatarRenderingUtils';
 import type { AvatarPalette, AvatarVisualDefinition } from '../types/AvatarVisualDefinition';
-import { createOrganicOctopusBodyPoints, resolveOrganicEyeMotion, traceSmoothClosedPath } from './octopusAvatarVisualShared';
+import {
+    createOrganicOctopusBodyPoints,
+    resolveOrganicEyeMotion,
+    traceSmoothClosedPath,
+} from './octopusAvatarVisualShared';
 
 /**
  * Octopus2 avatar visual.
@@ -45,14 +49,28 @@ export const octopus2AvatarVisual: AvatarVisualDefinition = {
 
         drawAvatarFrame(context, size, palette);
 
-        const hazeGradient = context.createRadialGradient(centerX, size * 0.22, size * 0.05, centerX, centerY, size * 0.6);
+        const hazeGradient = context.createRadialGradient(
+            centerX,
+            size * 0.22,
+            size * 0.05,
+            centerX,
+            centerY,
+            size * 0.6,
+        );
         hazeGradient.addColorStop(0, `${palette.highlight}4d`);
         hazeGradient.addColorStop(0.45, `${palette.accent}24`);
         hazeGradient.addColorStop(1, `${palette.highlight}00`);
         context.fillStyle = hazeGradient;
         context.fillRect(0, 0, size, size);
 
-        const rimGlowGradient = context.createRadialGradient(centerX, centerY + size * 0.08, size * 0.14, centerX, centerY, size * 0.5);
+        const rimGlowGradient = context.createRadialGradient(
+            centerX,
+            centerY + size * 0.08,
+            size * 0.14,
+            centerX,
+            centerY,
+            size * 0.5,
+        );
         rimGlowGradient.addColorStop(0, `${palette.secondary}26`);
         rimGlowGradient.addColorStop(1, `${palette.secondary}00`);
         context.fillStyle = rimGlowGradient;
@@ -83,7 +101,12 @@ export const octopus2AvatarVisual: AvatarVisualDefinition = {
         traceSmoothClosedPath(context, bodyPoints);
         context.clip();
 
-        const interiorGlowGradient = context.createLinearGradient(centerX, centerY - size * 0.22, centerX, centerY + size * 0.36);
+        const interiorGlowGradient = context.createLinearGradient(
+            centerX,
+            centerY - size * 0.22,
+            centerX,
+            centerY + size * 0.36,
+        );
         interiorGlowGradient.addColorStop(0, `${palette.highlight}59`);
         interiorGlowGradient.addColorStop(0.45, `${palette.accent}1a`);
         interiorGlowGradient.addColorStop(1, `${palette.shadow}00`);
@@ -106,7 +129,17 @@ export const octopus2AvatarVisual: AvatarVisualDefinition = {
         const eyeRadiusX = size * 0.072;
         const eyeRadiusY = size * 0.086;
 
-        drawAlienEye(context, centerX - eyeOffsetX, eyeCenterY, eyeRadiusX, eyeRadiusY, palette, timeMs, shapePhase, interaction);
+        drawAlienEye(
+            context,
+            centerX - eyeOffsetX,
+            eyeCenterY,
+            eyeRadiusX,
+            eyeRadiusY,
+            palette,
+            timeMs,
+            shapePhase,
+            interaction,
+        );
         drawAlienEye(
             context,
             centerX + eyeOffsetX,

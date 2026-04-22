@@ -42,9 +42,11 @@ describe('resolveAgentAvatar', () => {
         expect(resolvedAgentAvatar?.type === 'visual' ? resolvedAgentAvatar.visualId : null).toBe(
             DEFAULT_AGENT_AVATAR_VISUAL_ID,
         );
-        expect(
-            resolvedAgentAvatar?.type === 'visual' ? resolvedAgentAvatar.avatarDefinition.colors : null,
-        ).toEqual(['#ff3366', '#0a141eb3', '#00ffaa']);
+        expect(resolvedAgentAvatar?.type === 'visual' ? resolvedAgentAvatar.avatarDefinition.colors : null).toEqual([
+            '#ff3366',
+            '#0a141eb3',
+            '#00ffaa',
+        ]);
         expect(
             resolveAgentAvatarImageUrl({
                 agent: {

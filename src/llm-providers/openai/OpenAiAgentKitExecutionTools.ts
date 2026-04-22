@@ -191,10 +191,14 @@ function createDeepSearchAgentInstructions(toolDescription: string): string {
  */
 function buildDeepSearchToolInput(rawInput: unknown): string {
     const input =
-        rawInput && typeof rawInput === 'object' ? (rawInput as Record<string, unknown>) : ({} as Record<string, unknown>);
+        rawInput && typeof rawInput === 'object'
+            ? (rawInput as Record<string, unknown>)
+            : ({} as Record<string, unknown>);
     const query = typeof input.query === 'string' ? input.query.trim() : '';
     const additionalHints = Object.entries(input)
-        .filter(([key, value]) => key !== 'query' && value !== undefined && value !== null && String(value).trim() !== '')
+        .filter(
+            ([key, value]) => key !== 'query' && value !== undefined && value !== null && String(value).trim() !== '',
+        )
         .map(([key, value]) => `- ${key}: ${typeof value === 'string' ? value : JSON.stringify(value)}`);
 
     return spaceTrim(

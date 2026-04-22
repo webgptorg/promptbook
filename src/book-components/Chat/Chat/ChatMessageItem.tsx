@@ -873,9 +873,7 @@ export const ChatMessageItem = memo(
                         style={
                             {
                                 '--message-bg-color': isAgentArticleMode ? articleModeBackgroundColor : color.toHex(),
-                                '--message-text-color': isAgentArticleMode
-                                    ? articleModeTextColor
-                                    : colorOfText.toHex(),
+                                '--message-text-color': isAgentArticleMode ? articleModeTextColor : colorOfText.toHex(),
                                 '--chat-message-swipe-offset': swipeTranslation,
                             } as CSSProperties
                         }

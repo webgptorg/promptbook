@@ -29,7 +29,7 @@ const OUTLINE_GLYPHS = ['#', '%', '@'];
  *
  * @private helper of `asciiOctopusAvatarVisual`
  */
-const ATMOSPHERE_GLYPHS = ['.', ':', '\'', '`'];
+const ATMOSPHERE_GLYPHS = ['.', ':', "'", '`'];
 
 /**
  * One 2D point used by the ASCII octopus helpers.
@@ -126,7 +126,8 @@ type TentacleCoverage = {
 export const asciiOctopusAvatarVisual: AvatarVisualDefinition = {
     id: 'ascii-octopus',
     title: 'AsciiOctopus',
-    description: 'Morphing alien octopus translated into animated ASCII glyphs with responsive eyes and seeded geometry.',
+    description:
+        'Morphing alien octopus translated into animated ASCII glyphs with responsive eyes and seeded geometry.',
     isAnimated: true,
     supportsPointerTracking: true,
     render({ context, size, palette, createRandom, timeMs, interaction }) {
@@ -223,15 +224,7 @@ function drawAsciiBackdrop(
     context.fillRect(0, 0, size, size);
 
     context.beginPath();
-    context.ellipse(
-        layout.centerX,
-        layout.centerY + size * 0.29,
-        size * 0.23,
-        size * 0.065,
-        0,
-        0,
-        Math.PI * 2,
-    );
+    context.ellipse(layout.centerX, layout.centerY + size * 0.29, size * 0.23, size * 0.065, 0, 0, Math.PI * 2);
     context.fillStyle = `${palette.shadow}33`;
     context.fill();
 }
@@ -279,7 +272,9 @@ function resolveAsciiGlyph(options: {
     }
 
     const isInsideBody = isPointInsidePolygon(point, layout.bodyPoints);
-    const bodyEdgeDistance = isInsideBody ? getDistanceToPolyline(point, layout.bodyPoints, true) : Number.POSITIVE_INFINITY;
+    const bodyEdgeDistance = isInsideBody
+        ? getDistanceToPolyline(point, layout.bodyPoints, true)
+        : Number.POSITIVE_INFINITY;
     const tentacleCoverage = measureTentacleCoverage(point, layout.sampledTentacles, cellWidth);
 
     if (isInsideBody || tentacleCoverage) {
@@ -413,7 +408,10 @@ function resolveMouthGlyph(
         return null;
     }
 
-    const horizontalProgress = clamp01((point.x - layout.mouthPoints[0]!.x) / (layout.mouthPoints[layout.mouthPoints.length - 1]!.x - layout.mouthPoints[0]!.x));
+    const horizontalProgress = clamp01(
+        (point.x - layout.mouthPoints[0]!.x) /
+            (layout.mouthPoints[layout.mouthPoints.length - 1]!.x - layout.mouthPoints[0]!.x),
+    );
     let character = '-';
 
     if (horizontalProgress < 0.28) {
@@ -450,17 +448,8 @@ function resolveOctopusSurfaceGlyph(options: {
     noise: number;
     timeMs: number;
 }): AsciiGlyphDescriptor {
-    const {
-        point,
-        layout,
-        palette,
-        isInsideBody,
-        bodyEdgeDistance,
-        tentacleCoverage,
-        cellHeight,
-        noise,
-        timeMs,
-    } = options;
+    const { point, layout, palette, isInsideBody, bodyEdgeDistance, tentacleCoverage, cellHeight, noise, timeMs } =
+        options;
     const isTentacleDominant =
         tentacleCoverage !== null && (!isInsideBody || point.y > layout.centerY + layout.bodyRadius * 0.08);
 
@@ -480,10 +469,10 @@ function resolveOctopusSurfaceGlyph(options: {
                 tentacleCoverage.progress < 0.24
                     ? `${palette.secondary}c7`
                     : tentacleCoverage.progress > 0.72
-                      ? `${palette.accent}bf`
-                      : tentacleCoverage.normalizedDistance > 0.7
-                        ? `${palette.highlight}bf`
-                        : `${palette.primary}c9`,
+                    ? `${palette.accent}bf`
+                    : tentacleCoverage.normalizedDistance > 0.7
+                    ? `${palette.highlight}bf`
+                    : `${palette.primary}c9`,
         };
     }
 
@@ -530,8 +519,10 @@ function resolveAtmosphereGlyph(
     noise: number,
     timeMs: number,
 ): AsciiGlyphDescriptor | null {
-    const horizontalDistance = Math.abs(point.x - layout.centerX) / (layout.bodyRadius * layout.horizontalStretch * 2.2);
-    const verticalDistance = Math.abs(point.y - (layout.centerY + layout.bodyRadius * 0.04)) / (layout.bodyRadius * 2.1);
+    const horizontalDistance =
+        Math.abs(point.x - layout.centerX) / (layout.bodyRadius * layout.horizontalStretch * 2.2);
+    const verticalDistance =
+        Math.abs(point.y - (layout.centerY + layout.bodyRadius * 0.04)) / (layout.bodyRadius * 2.1);
     const haloDistance = Math.hypot(horizontalDistance, verticalDistance);
     const shimmer = Math.sin(timeMs / 1450 + point.x * 0.03 + point.y * 0.04 + layout.shapePhase) * 0.06;
     const density = clamp01(1.16 - haloDistance + shimmer + (noise - 0.5) * 0.14);
@@ -663,7 +654,10 @@ function createAsciiOctopusLayout(
         { x: centerX - size * 0.074, y: centerY + size * 0.092 },
         {
             x: centerX,
-            y: centerY + size * (0.142 + Math.sin(timeMs / 620 + shapePhase) * 0.016) + interaction.gazeY * size * 0.012,
+            y:
+                centerY +
+                size * (0.142 + Math.sin(timeMs / 620 + shapePhase) * 0.016) +
+                interaction.gazeY * size * 0.012,
         },
         { x: centerX + size * 0.074, y: centerY + size * 0.092 },
         12,
@@ -873,7 +867,11 @@ function measureRotatedEllipseDistance(
 function isPointInsidePolygon(point: Point, polygonPoints: ReadonlyArray<Point>): boolean {
     let isInside = false;
 
-    for (let currentPointIndex = 0, previousPointIndex = polygonPoints.length - 1; currentPointIndex < polygonPoints.length; previousPointIndex = currentPointIndex++) {
+    for (
+        let currentPointIndex = 0, previousPointIndex = polygonPoints.length - 1;
+        currentPointIndex < polygonPoints.length;
+        previousPointIndex = currentPointIndex++
+    ) {
         const currentPoint = polygonPoints[currentPointIndex]!;
         const previousPoint = polygonPoints[previousPointIndex]!;
         const isIntersecting =

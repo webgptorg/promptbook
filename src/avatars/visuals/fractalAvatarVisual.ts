@@ -44,8 +44,7 @@ export const fractalAvatarVisual: AvatarVisualDefinition = {
                 centerX: centerX + (layerRandom() - 0.5) * size * 0.08,
                 centerY: centerY + (layerRandom() - 0.5) * size * 0.08,
                 rotation:
-                    layerRandom() * Math.PI * 2 +
-                    Math.sin(timeMs / (1700 + layerIndex * 280) + layerIndex) * 0.14,
+                    layerRandom() * Math.PI * 2 + Math.sin(timeMs / (1700 + layerIndex * 280) + layerIndex) * 0.14,
                 scale: size * (0.19 + layerIndex * 0.055 + layerRandom() * 0.045),
                 horizontalStretch: 0.74 + layerRandom() * 0.9,
                 verticalStretch: 0.74 + layerRandom() * 0.9,
@@ -108,15 +107,7 @@ function drawFractalBackground(
         const rotation = haloRotation + haloIndex * 0.85 + timeMs / (4400 + haloIndex * 700);
 
         context.beginPath();
-        context.ellipse(
-            centerX,
-            centerY,
-            radius,
-            radius * (0.62 + haloIndex * 0.06),
-            rotation,
-            0,
-            Math.PI * 2,
-        );
+        context.ellipse(centerX, centerY, radius, radius * (0.62 + haloIndex * 0.06), rotation, 0, Math.PI * 2);
         context.strokeStyle = haloIndex % 2 === 0 ? `${palette.secondary}24` : `${palette.accent}20`;
         context.lineWidth = size * 0.006;
         context.stroke();
@@ -135,7 +126,14 @@ function createDragonCurveTurns(order: number): Array<number> {
     let turns: Array<number> = [];
 
     for (let iteration = 0; iteration < order; iteration++) {
-        turns = [...turns, 1, ...turns.slice().reverse().map((turn) => (turn === 1 ? -1 : 1))];
+        turns = [
+            ...turns,
+            1,
+            ...turns
+                .slice()
+                .reverse()
+                .map((turn) => (turn === 1 ? -1 : 1)),
+        ];
     }
 
     return turns;
@@ -202,8 +200,20 @@ function transformDragonCurvePoints(
         timeMs: number;
     },
 ): Array<Point> {
-    const { size, centerX, centerY, rotation, scale, horizontalStretch, verticalStretch, warpAmplitude, warpPhase, mirrorX, mirrorY, timeMs } =
-        options;
+    const {
+        size,
+        centerX,
+        centerY,
+        rotation,
+        scale,
+        horizontalStretch,
+        verticalStretch,
+        warpAmplitude,
+        warpPhase,
+        mirrorX,
+        mirrorY,
+        timeMs,
+    } = options;
     const bounds = getPointBounds(points);
     const width = Math.max(1, bounds.maxX - bounds.minX);
     const height = Math.max(1, bounds.maxY - bounds.minY);
@@ -223,7 +233,11 @@ function transformDragonCurvePoints(
 
         return {
             x: centerX + rotatedX + Math.sin(progress * Math.PI * 2 + warpPhase) * localWarp,
-            y: centerY + rotatedY + Math.cos(progress * Math.PI * 3 + warpPhase * 0.6) * localWarp + (progress - 0.5) * size * 0.02,
+            y:
+                centerY +
+                rotatedY +
+                Math.cos(progress * Math.PI * 3 + warpPhase * 0.6) * localWarp +
+                (progress - 0.5) * size * 0.02,
         };
     });
 }

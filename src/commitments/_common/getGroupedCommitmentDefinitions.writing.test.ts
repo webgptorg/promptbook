@@ -20,7 +20,8 @@ describe('getGroupedCommitmentDefinitions writing commitments', () => {
         });
         expect(styleGroup?.aliases).toEqual(['STYLES']);
         expect(styleGroup?.primary.deprecation).toEqual({
-            message: 'Use `WRITING RULES` for writing-only constraints such as tone, length, formatting, or emoji usage.',
+            message:
+                'Use `WRITING RULES` for writing-only constraints such as tone, length, formatting, or emoji usage.',
             replacedBy: ['WRITING RULES'],
         });
     });

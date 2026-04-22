@@ -63,9 +63,7 @@ function buildCoderGitignoreBlock(missingRules: ReadonlyArray<string>): string {
  * Detects whether `.gitignore` already covers one exact rule.
  */
 function hasGitignoreRule(gitignoreContent: string, rule: string): boolean {
-    const normalizedRulePattern = rule.startsWith('/')
-        ? `/?${escapeRegExp(rule.slice(1))}`
-        : escapeRegExp(rule);
+    const normalizedRulePattern = rule.startsWith('/') ? `/?${escapeRegExp(rule.slice(1))}` : escapeRegExp(rule);
     return new RegExp(`(^|[\\r\\n])${normalizedRulePattern}(?:[\\r\\n]|$)`, 'u').test(gitignoreContent);
 }
 

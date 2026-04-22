@@ -159,8 +159,7 @@ export function createOrganicOctopusBodyPoints(options: CreateOrganicOctopusBody
             Math.sin(angle * 5 - shapePhase * 0.7 - timeMs / 910) * 0.38;
         const breathingWave = Math.sin(timeMs / 960 + shapePhase + angle * 0.45) * wobbleAmplitude;
         const radius =
-            bodyRadius *
-                (1 + upperFactor * 0.12 + lowerFactor * 0.08 + surfaceWave * 0.05) +
+            bodyRadius * (1 + upperFactor * 0.12 + lowerFactor * 0.08 + surfaceWave * 0.05) +
             tentacleWave +
             breathingWave;
 
@@ -187,10 +186,7 @@ export function createOrganicOctopusBodyPoints(options: CreateOrganicOctopusBody
  *
  * @private shared geometry helper of `octopus2AvatarVisual` and `octopus3AvatarVisual`
  */
-export function traceSmoothClosedPath(
-    context: CanvasRenderingContext2D,
-    points: ReadonlyArray<Point>,
-): void {
+export function traceSmoothClosedPath(context: CanvasRenderingContext2D, points: ReadonlyArray<Point>): void {
     const lastPoint = points[points.length - 1]!;
     const firstPoint = points[0]!;
     const initialMidpoint = {
@@ -241,7 +237,9 @@ export function createOrganicOctopusTentacleShapes(
         variation,
     } = options;
     const baseY = centerY + bodyRadius * 0.74;
-    const lowerBodyAnchorPoints = bodyPoints ? resolveTentacleBodyAnchorPoints(bodyPoints, centerY + bodyRadius * 0.04) : null;
+    const lowerBodyAnchorPoints = bodyPoints
+        ? resolveTentacleBodyAnchorPoints(bodyPoints, centerY + bodyRadius * 0.04)
+        : null;
     const flowLengthScale = variation?.flowLengthScale ?? 1;
     const lateralReachScale = variation?.lateralReachScale ?? 1;
     const tipReachScale = variation?.tipReachScale ?? 1;
@@ -265,7 +263,8 @@ export function createOrganicOctopusTentacleShapes(
         const flowLength = size * (0.24 + tentacleRandom() * 0.18) * flowLengthScale;
         const curlDirection =
             spreadCenteredProgress === 0 ? (tentacleRandom() < 0.5 ? -1 : 1) : Math.sign(spreadCenteredProgress);
-        const lateralReach = spreadCenteredProgress * size * (0.1 + tentacleRandom() * 0.1) * lateralReachScale + temporalSway;
+        const lateralReach =
+            spreadCenteredProgress * size * (0.1 + tentacleRandom() * 0.1) * lateralReachScale + temporalSway;
         const tipReach = curlDirection * size * (0.025 + tentacleRandom() * 0.07) * tipReachScale;
         const startYOffset =
             (Math.abs(spreadCenteredProgress) * size * 0.012 + tentacleRandom() * size * 0.01) * startYOffsetScale;
@@ -327,7 +326,9 @@ export function createOrganicOctopusTentacleShapes(
  * @private shared geometry helper of `octopus3AvatarVisual`
  */
 function resolveTentacleBodyAnchorPoints(bodyPoints: ReadonlyArray<Point>, lowerBodyThresholdY: number): Array<Point> {
-    const lowerBodyPoints = bodyPoints.filter((bodyPoint) => bodyPoint.y >= lowerBodyThresholdY).sort((leftPoint, rightPoint) => leftPoint.x - rightPoint.x);
+    const lowerBodyPoints = bodyPoints
+        .filter((bodyPoint) => bodyPoint.y >= lowerBodyThresholdY)
+        .sort((leftPoint, rightPoint) => leftPoint.x - rightPoint.x);
 
     if (lowerBodyPoints.length >= 2) {
         return lowerBodyPoints;
@@ -402,7 +403,9 @@ function interpolatePointAlongTentacleAnchors(bodyPoints: ReadonlyArray<Point>, 
  *
  * @private shared geometry helper of `octopus3AvatarVisual` and `asciiOctopusAvatarVisual`
  */
-export function sampleOrganicTentacleRibbonPoints(tentacleShape: OrganicTentacleShape): Array<OrganicTentacleRibbonPoint> {
+export function sampleOrganicTentacleRibbonPoints(
+    tentacleShape: OrganicTentacleShape,
+): Array<OrganicTentacleRibbonPoint> {
     return Array.from({ length: tentacleShape.sampleCount + 1 }, (_, sampleIndex) => {
         const progress = sampleIndex / tentacleShape.sampleCount;
         const point = getCubicBezierPoint(
@@ -430,8 +433,7 @@ export function sampleOrganicTentacleRibbonPoints(tentacleShape: OrganicTentacle
         const tangentY = nextPoint.y - previousPoint.y;
         const tangentLength = Math.hypot(tangentX, tangentY) || 1;
         const width =
-            tentacleShape.baseWidth +
-            (tentacleShape.tipWidth - tentacleShape.baseWidth) * Math.pow(progress, 1.1);
+            tentacleShape.baseWidth + (tentacleShape.tipWidth - tentacleShape.baseWidth) * Math.pow(progress, 1.1);
 
         return {
             x: point.x,
@@ -476,11 +478,9 @@ export function resolveOrganicEyeMotion(options: {
 
     return {
         pupilOffsetX:
-            autonomousOffsetX * (1 - interactionBlend) +
-            interaction.gazeX * radiusX * (0.18 + interactionBlend * 0.18),
+            autonomousOffsetX * (1 - interactionBlend) + interaction.gazeX * radiusX * (0.18 + interactionBlend * 0.18),
         pupilOffsetY:
-            autonomousOffsetY * (1 - interactionBlend) +
-            interaction.gazeY * radiusY * (0.16 + interactionBlend * 0.16),
+            autonomousOffsetY * (1 - interactionBlend) + interaction.gazeY * radiusY * (0.16 + interactionBlend * 0.16),
     };
 }
 

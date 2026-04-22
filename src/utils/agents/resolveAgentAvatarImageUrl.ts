@@ -135,9 +135,7 @@ function resolveMetaImageUrl(metaImage: string_url_image, baseUrl: string | null
  *
  * @private utility of `<Chat/>`
  */
-function createResolvedAvatarDefinition(
-    agent: ResolveAgentAvatarOptions['agent'],
-): AvatarDefinition {
+function createResolvedAvatarDefinition(agent: ResolveAgentAvatarOptions['agent']): AvatarDefinition {
     return createAvatarDefinitionFromAgentBasicInformation({
         agentName: agent.agentName || agent.permanentId || 'Agent',
         agentHash: agent.agentHash || agent.permanentId || agent.agentName,

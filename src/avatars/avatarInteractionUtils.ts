@@ -219,7 +219,12 @@ export function stepAvatarInteractionRuntimeState(
             deltaMs,
             smoothingWindowMs * BODY_INTERACTION_SMOOTHING_MULTIPLIER,
         ),
-        intensity: interpolateExponentially(runtimeState.intensity, pointerTarget.intensity, deltaMs, smoothingWindowMs),
+        intensity: interpolateExponentially(
+            runtimeState.intensity,
+            pointerTarget.intensity,
+            deltaMs,
+            smoothingWindowMs,
+        ),
         isPointerActive: pointerTarget.isPointerActive,
         pointerType: pointerTarget.pointerType,
         lastFrameMs: nowMs,

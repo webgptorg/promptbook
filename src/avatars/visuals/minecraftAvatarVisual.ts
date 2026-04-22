@@ -31,7 +31,14 @@ export const minecraftAvatarVisual: AvatarVisualDefinition = {
 
         drawAvatarFrame(context, size, palette);
 
-        const spotlight = context.createRadialGradient(size * 0.5, size * 0.18, size * 0.05, size * 0.5, size * 0.18, size * 0.5);
+        const spotlight = context.createRadialGradient(
+            size * 0.5,
+            size * 0.18,
+            size * 0.05,
+            size * 0.5,
+            size * 0.18,
+            size * 0.5,
+        );
         spotlight.addColorStop(0, `${palette.highlight}66`);
         spotlight.addColorStop(1, `${palette.highlight}00`);
         context.fillStyle = spotlight;

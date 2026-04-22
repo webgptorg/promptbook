@@ -4,7 +4,10 @@ import { normalizeImportedTypescriptModule } from './getTypescriptModule';
 /**
  * Minimal subset of the TypeScript runtime used by coder JSON parsing.
  */
-type TypescriptModuleStub = Pick<typeof import('typescript'), 'flattenDiagnosticMessageText' | 'parseConfigFileTextToJson'>;
+type TypescriptModuleStub = Pick<
+    typeof import('typescript'),
+    'flattenDiagnosticMessageText' | 'parseConfigFileTextToJson'
+>;
 
 describe('getTypescriptModule', () => {
     const typescriptModuleStub = {

@@ -67,7 +67,8 @@ export function AgentChat(props: AgentChatProps) {
                         avatarSrc: resolvedAgentAvatar?.type === 'image' ? resolvedAgentAvatar.imageUrl : undefined,
                         avatarDefinition:
                             resolvedAgentAvatar?.type === 'visual' ? resolvedAgentAvatar.avatarDefinition : undefined,
-                        avatarVisualId: resolvedAgentAvatar?.type === 'visual' ? resolvedAgentAvatar.visualId : undefined,
+                        avatarVisualId:
+                            resolvedAgentAvatar?.type === 'visual' ? resolvedAgentAvatar.visualId : undefined,
                         color: brandColor,
                         isMe: false,
                         agentSource: asUpdatableSubject(agent.agentSource).getValue() /* <- TODO: [🐱‍🚀] asValue */,

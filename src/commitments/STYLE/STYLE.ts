@@ -34,7 +34,8 @@ export class StyleCommitmentDefinition extends BaseCommitmentDefinition<'STYLE' 
      */
     public override get deprecation() {
         return {
-            message: 'Use `WRITING RULES` for writing-only constraints such as tone, length, formatting, or emoji usage.',
+            message:
+                'Use `WRITING RULES` for writing-only constraints such as tone, length, formatting, or emoji usage.',
             replacedBy: ['WRITING RULES'],
         } as const;
     }

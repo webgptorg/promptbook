@@ -61,7 +61,8 @@ describe('TeamToolCallModalContent', () => {
                         {
                             sender: 'AGENT',
                             name: 'Master',
-                            content: 'What CNAMEs are in the records?\n\nContext:\nPlease provide the CNAME DNS records for the domain ptbk.io.',
+                            content:
+                                'What CNAMEs are in the records?\n\nContext:\nPlease provide the CNAME DNS records for the domain ptbk.io.',
                         },
                         {
                             sender: 'TEAMMATE',

@@ -6,7 +6,15 @@ describe('avatar visual registry', () => {
         const visualIds = AVATAR_VISUALS.map((avatarVisual) => avatarVisual.id);
 
         expect(visualIds).toEqual(
-            expect.arrayContaining(['pixel-art', 'octopus', 'octopus2', 'octopus3', 'ascii-octopus', 'minecraft', 'fractal']),
+            expect.arrayContaining([
+                'pixel-art',
+                'octopus',
+                'octopus2',
+                'octopus3',
+                'ascii-octopus',
+                'minecraft',
+                'fractal',
+            ]),
         );
         expect(new Set(visualIds).size).toBe(AVATAR_VISUALS.length);
         expect(getAvatarVisualById('ascii-octopus').title).toBe('AsciiOctopus');
