@@ -1,0 +1,28 @@
+Ukázkový playbook pro firemní web
+
+Hlavní webové cíle:
+- rychle vysvětlit, co produkt řeší
+- ukázat konkrétní use-casey
+- převést návštěvníka na demo, pilot nebo poptávku
+
+Homepage má obsahovat:
+1. Jasnou hodnotovou větu
+2. Komu je produkt určený
+3. Hlavní use-casey
+4. Důkaz nebo reference
+5. Jeden silný call to action
+
+SEO zásady:
+- každá stránka má mít jedno hlavní téma
+- titulky mají být srozumitelné člověku, ne jen robotovi
+- FAQ sekce má odpovídat na skutečné otázky z obchodu a supportu
+
+UX zásady:
+- text musí být skenovatelný během několika sekund
+- první CTA nesmí být schované až pod přehyb
+- složité pojmy vždy vysvětli konkrétním příkladem
+
+Redakční workflow:
+- nejdřív připrav outline
+- pak headline a CTA
+- až potom doplň detailní copy a proof points

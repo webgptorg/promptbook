@@ -1,0 +1,41 @@
+Ukázkový brand manuál pro demo firmu Northwind Atelier
+
+Co prodáváme:
+- AI asistenty pro interní znalosti, support a provozní procesy
+
+Komu:
+- středním firmám a týmům, které chtějí rychle zavádět AI bez těžkého vývoje
+
+Tón značky:
+- sebejistý, ale ne nafoukaný
+- lidský a konkrétní
+- spíš "pomůžeme vám to rozchodit" než "změníme svět"
+
+Preferované formulace:
+- rychlý start
+- jasné use-casey
+- měřitelné úspory času
+- pilot během dnů, ne měsíců
+- bezpečné napojení na firemní procesy
+
+Vyhýbej se:
+- slovům revoluční, gamechanger, cutting-edge
+- příliš technickému žargonu bez vysvětlení
+- slibům bez důkazu
+- vykřičníkům a caps locku
+
+Struktura dobrého textu:
+1. Kontext problému
+2. Praktický přínos
+3. Důkaz nebo příklad
+4. Jeden jasný call to action
+
+Preferované CTA:
+- Domluvte si demo
+- Vyzkoušejte pilot
+- Pošlete nám váš use-case
+
+Cílové persony:
+- provozní manažer chce méně repetitivní práce
+- HR tým chce rychlejší onboarding
+- support lead chce konzistentní odpovědi

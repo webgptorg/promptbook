@@ -1,0 +1,25 @@
+Ukázková data pro prezentace a reporty
+
+Kontext:
+- firma dodává AI asistenty pro interní znalosti a provozní procesy
+
+Ukázkové metriky za Q1 2026:
+- 18 aktivních pilotů
+- 7 placených produkčních nasazení
+- průměrné zkrácení času na interní odpověď o 34 procent
+- 82 procent uživatelů hodnotí onboarding s agentem jako rychlejší
+
+Hlavní produktové moduly:
+- agent nad interními dokumenty
+- agent s přístupem na web
+- agent s emailem a kalendářem
+
+Klíčová obchodní sdělení:
+- rychlý start bez dlouhé implementace
+- jeden pilot místo velkého transformačního projektu
+- měřitelný dopad na čas a konzistenci odpovědí
+
+Pravidla pro slidy:
+- jedna slide = jedna hlavní message
+- headline má být tvrzení, ne obecné téma
+- číslo bez kontextu nestačí, přidej co znamená pro zákazníka

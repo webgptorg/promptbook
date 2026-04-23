@@ -1,0 +1,26 @@
+Ukázkové FAQ pro webový chat
+
+Co produkt dělá:
+- pomáhá firmám vytvářet AI asistenty nad interními dokumenty, pravidly a procesy
+
+Jak probíhá pilot:
+- obvykle začíná jedním jasným use-casem
+- první funkční verze může vzniknout během několika dnů
+- pilot má ukázat dopad, ne vyřešit vše najednou
+
+Co ovlivňuje cenu:
+- počet agentů a use-caseů
+- potřebné integrace
+- míra podpory při zavádění
+
+Integrace:
+- běžné jsou dokumenty, web, email, kalendář a další nástroje podle use-casu
+
+Pro koho je řešení vhodné:
+- pro týmy, které opakují stejné odpovědi nebo onboarding
+- pro firmy, které chtějí zavádět AI postupně a bezpečně
+
+Kdy návštěvníka předat člověku:
+- chce přesnou cenovou nabídku
+- má specifické bezpečnostní nebo právní požadavky
+- chce řešit enterprise integrace

@@ -1,3 +1,9 @@
+-   Added completed sample Book agent definitions in `agents/default`, so the built-in examples now demonstrate realistic Book 2.0 patterns instead of placeholder drafts:
+
+    -   Finished the previously sketched sample agents such as `Product Manager`, `Správce kalendáře`, `Copywriter`, `Firemní advokát`, `Social Media Manager`, `Webmaster`, `Chat nad firemními dokumenty`, `Chat na webu`, and `Aktualizátor prezentací` with concrete `GOAL`, `RULE`, `INITIAL MESSAGE`, and tool commitments.
+    -   Added a new `agents/default/knowledge` folder with reusable example knowledge documents referenced from the sample agents via local `KNOWLEDGE ./knowledge/...` commitments.
+    -   Kept all of the new sample agents `CLOSED` so they act as deterministic examples of static agent definitions.
+
 -   Fixed Agents Server standalone chat-route loading so the skeleton now matches the page that actually resolves instead of briefly showing a different card-style shell:
 
     -   Reused the shared chat loading skeleton for `/agents/[agentName]/chat`, including the default collapsed sidebar geometry, so the route fallback stays aligned with the durable chat layout.

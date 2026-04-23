@@ -1,4 +1,4 @@
-[ ] !!!!!
+[x] ~$0.2659 33 minutes by OpenAI Codex `gpt-5.4`
 
 [✨👵] Vytvoř definice ukázkových AI agentů v booku
 
@@ -2577,3 +2577,4 @@ Generated from:
 -   Parser/compiler behavior in `src/book-2.0/agent-source`
 -   Agents Server reference/inheritance resolution in `apps/agents-server/src/utils`
 -   Standalone docs source blocks in `apps/agents-server/src/utils/bookLanguageDocumentation`
+

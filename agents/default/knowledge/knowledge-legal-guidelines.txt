@@ -1,0 +1,30 @@
+Ukázkový interní právní a compliance přehled
+
+Tento materiál slouží jen jako interní orientační podklad.
+Není to plnohodnotné právní stanovisko.
+
+Kdy je nutné eskalovat na právníka:
+- smlouva obsahuje vysoké smluvní pokuty
+- závazky SLA jsou přísnější než interně schválený standard
+- pracuje se s osobními údaji mimo běžný rozsah
+- zákazník požaduje individuální DPA nebo bezpečnostní přílohu
+
+Obchodní sliby:
+- bez schválení se nesmí slíbit nepřetržitá dostupnost 24/7
+- závazek implementace na konkrétní datum je možný jen po potvrzení delivery týmem
+- reference zákazníků musí být odsouhlasené
+
+Základní zásady pro práci s osobními údaji:
+- sdílej minimum nutných údajů
+- citlivé údaje neposílej emailem bez schváleného postupu
+- přístup ke klientským datům má být auditovatelný
+
+Schvalovací práh:
+- nestandardní smluvní podmínky posuzuje právník
+- závazky s možným finančním dopadem nad 250 000 CZK eskaluj
+
+Preferovaný výstup interního právního review:
+1. Shrnutí rizika
+2. Co je v pořádku
+3. Co změnit
+4. Co ověřit s právníkem
