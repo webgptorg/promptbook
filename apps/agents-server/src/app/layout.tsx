@@ -26,6 +26,10 @@ import {
     CHAT_VISUAL_MODE_METADATA_KEY,
     resolveChatVisualMode,
 } from '../constants/chatVisualMode';
+import {
+    DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY,
+    resolveDefaultAgentAvatarVisualId,
+} from '../constants/defaultAgentAvatarVisual';
 import { THEME_MODE_COOKIE_NAME, resolveThemeMode } from '../constants/themeMode';
 import { parseChatFeedbackMode } from '../utils/chatFeedbackMode';
 import { getFederatedServers } from '../utils/getFederatedServers';
@@ -244,6 +248,7 @@ export default async function RootLayout({
         'IS_FEEDBACK_ENABLED',
         'IS_EXPERIMENTAL_PWA_APP_ENABLED',
         CHAT_VISUAL_MODE_METADATA_KEY,
+        DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY,
         SERVER_LANGUAGE_METADATA_KEY,
         IS_SERVER_LANGUAGE_ENFORCED_METADATA_KEY,
         ...CONTROL_PANEL_OPTION_AVAILABILITY_METADATA_KEYS,
@@ -359,7 +364,9 @@ export default async function RootLayout({
     );
     const rawServerLanguage = layoutMetadata[SERVER_LANGUAGE_METADATA_KEY];
     const rawChatVisualMode = layoutMetadata[CHAT_VISUAL_MODE_METADATA_KEY];
+    const rawDefaultAgentAvatarVisual = layoutMetadata[DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY];
     const defaultChatVisualMode = resolveChatVisualMode(chatVisualModeCookie || rawChatVisualMode);
+    const defaultAgentAvatarVisualId = resolveDefaultAgentAvatarVisualId(rawDefaultAgentAvatarVisual);
     const preferredLanguageSource = isServerLanguageEnforced ? rawServerLanguage : cookieLanguage || rawServerLanguage;
     const serverLanguage = resolveServerLanguageCode(preferredLanguageSource);
     const controlPanelOptionAvailability = getControlPanelOptionAvailability({
@@ -406,6 +413,7 @@ export default async function RootLayout({
                     isServerLanguageEnforced={isServerLanguageEnforced}
                     defaultThemeMode={defaultThemeMode}
                     defaultChatVisualMode={defaultChatVisualMode}
+                    defaultAgentAvatarVisualId={defaultAgentAvatarVisualId}
                     webPushPublicKey={webPushPublicKey}
                 >
                     {children}

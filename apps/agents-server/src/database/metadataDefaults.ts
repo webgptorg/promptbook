@@ -20,6 +20,11 @@ import {
     CHAT_VISUAL_MODES,
 } from '../constants/chatVisualMode';
 import {
+    DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY,
+    DEFAULT_AGENT_AVATAR_VISUAL_METADATA_VALUE,
+    DEFAULT_AGENT_AVATAR_VISUAL_METADATA_VALUES,
+} from '../constants/defaultAgentAvatarVisual';
+import {
     IS_SERVER_LANGUAGE_ENFORCED_METADATA_KEY,
     SERVER_LANGUAGE_METADATA_KEY,
 } from '../languages/ServerLanguageRegistry';
@@ -272,6 +277,14 @@ export const metadataDefaults = [
         key: CHAT_VISUAL_MODE_METADATA_KEY,
         value: DEFAULT_CHAT_VISUAL_MODE,
         note: `Default chat visual mode for new browser sessions. Allowed values: ${CHAT_VISUAL_MODES.BUBBLE_MODE}, ${CHAT_VISUAL_MODES.ARTICLE_MODE}.`,
+        type: 'TEXT_SINGLE_LINE',
+    },
+    {
+        key: DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY,
+        value: DEFAULT_AGENT_AVATAR_VISUAL_METADATA_VALUE,
+        note: `Default built-in avatar visual used for agents without \`META IMAGE\`. Allowed values: ${DEFAULT_AGENT_AVATAR_VISUAL_METADATA_VALUES.join(
+            ', ',
+        )}.`,
         type: 'TEXT_SINGLE_LINE',
     },
     {

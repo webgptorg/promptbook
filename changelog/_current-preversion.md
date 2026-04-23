@@ -1,3 +1,9 @@
+-   Added a metadata-controlled default agent avatar visual in Agents Server, so agents without `META IMAGE` can switch away from the built-in octopus globally while keeping one shared fallback pipeline:
+
+    -   Added new metadata key `DEFAULT_AGENT_AVATAR_VISUAL` with default value `OCTOPUS3`, derived its allowed values from the shared built-in avatar registry, and resolved invalid values back to the safe `Octopus3` fallback.
+    -   Wired the metadata-resolved visual through the live Agents Server avatar components, the remote agent profile API payload, and the generated `/images/default-avatar.png` route, so interactive UIs and static fallback images stay aligned.
+    -   Kept the change avatar-visual-agnostic by reusing one shared resolver instead of hardcoding `Octopus3` across metadata defaults, layout wiring, and avatar image generation paths.
+
 -   Suppressed default agent-profile navigation in Agents Server so generic agent clicks now open a fresh chat instead of landing on the profile page:
 
     -   Replaced shared agent entry links across homepage cards and visualizations, graph nodes, header agent navigation, search results, teammate capability chips, and directory context-menu actions with fresh-chat URLs that force `chat=new`.

@@ -63,7 +63,7 @@
 
 ---
 
-[ ] !!!
+[x] $2.75 an hour by OpenAI Codex `gpt-5.4`
 
 [✨👝] Allow to set default agent avatar visual throught metadata
 
@@ -74,3 +74,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ![alt text](prompts/screenshots/2026-04-6581-agent-avatars-use-2.png)
+

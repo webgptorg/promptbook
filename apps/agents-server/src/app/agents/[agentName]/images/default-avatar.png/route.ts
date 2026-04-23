@@ -1,3 +1,8 @@
+import { getMetadataMap } from '@/src/database/getMetadata';
+import {
+    DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY,
+    resolveDefaultAgentAvatarVisualId,
+} from '@/src/constants/defaultAgentAvatarVisual';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideCdnForServer } from '@/src/tools/$provideCdnForServer';
 import { $provideExecutionToolsForServer } from '@/src/tools/$provideExecutionToolsForServer';
@@ -163,14 +168,20 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             return renderGeneratedDefaultAvatar(agentName, agentProfile);
         }
 
+        const metadata = await getMetadataMap([DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY]);
+        const defaultAgentAvatarVisualId = resolveDefaultAgentAvatarVisualId(
+            metadata[DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY],
+        );
         const imageBuffer = renderAgentAvatarVisualPng(agentProfile, {
             size: DEFAULT_AGENT_AVATAR_IMAGE_SIZE,
+            visualId: defaultAgentAvatarVisualId,
         });
         const avatarHash = computeHash(
             JSON.stringify({
                 agentHash: agentProfile.agentHash,
                 color: agentProfile.meta.color || '',
                 image: agentProfile.meta.image || '',
+                visualId: defaultAgentAvatarVisualId,
             }),
         );
 
