@@ -61,3 +61,16 @@
 -   You are working with the [Agents Server](apps/agents-server) with the default avatars of the agents
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
+---
+
+[ ] !!!
+
+[✨👝] Allow to set default agent avatar visual throught metadata
+
+-   There are multiple avatar visuals but only used is "Octopus3", but it should be possible to set the default avatar visual for the agents without `META IMAGE` globally for the entire agents server through metadata
+-   The default option should be `OCTOPUS3`
+-   Implement it in a way that it can be easily extended add more avatar visuals in the future
+-   You are working with the [Agents Server](apps/agents-server) with the default avatars of the agents
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+![alt text](prompts/screenshots/2026-04-6581-agent-avatars-use-2.png)
