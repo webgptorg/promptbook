@@ -12,7 +12,7 @@
 
 ---
 
-[ ] !
+[x] ~$0.6362 an hour by OpenAI Codex `gpt-5.4`
 
 [✨🤐] Loading skeleton should corresponds to the loaded chat page
 
@@ -48,3 +48,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

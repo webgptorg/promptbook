@@ -1,6 +1,6 @@
 'use client';
 
-import { ChatThreadLoadingSkeleton } from '../../../../components/Skeleton/ChatThreadLoadingSkeleton';
+import { AgentChatLoadingSkeleton } from '../../../../components/Skeleton/AgentChatLoadingSkeleton';
 import { peekPendingProfileMessage } from '../profileMessageCache';
 
 /**
@@ -8,58 +8,74 @@ import { peekPendingProfileMessage } from '../profileMessageCache';
  */
 type OptimisticAgentChatRouteLoadingProps = {
     agentName: string;
+    isHeadlessMode?: boolean;
 };
 
 /**
  * Renders a lightweight chat shell while the standalone chat route is loading,
  * reusing the pending profile-message handoff when available.
  */
-export function OptimisticAgentChatRouteLoading({ agentName }: OptimisticAgentChatRouteLoadingProps) {
+export function OptimisticAgentChatRouteLoading({
+    agentName,
+    isHeadlessMode = false,
+}: OptimisticAgentChatRouteLoadingProps) {
     const pendingProfileMessage = peekPendingProfileMessage(agentName);
     const optimisticMessageContent = resolveOptimisticLoadingMessageContent(pendingProfileMessage);
-    const agentDisplayName = pendingProfileMessage?.agentDisplayName || agentName;
     const inputPlaceholder = pendingProfileMessage?.inputPlaceholder || 'Send a message';
     const brandColorHex = pendingProfileMessage?.brandColorHex || '#2563eb';
 
     return (
         <main className="agents-server-chat-route relative agent-chat-route-surface">
-            <div className="mx-auto flex h-full min-h-0 w-full max-w-5xl flex-1 flex-col overflow-hidden px-4 py-4 md:px-6 md:py-6">
-                <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border border-white/30 bg-white/70 shadow-[0_25px_80px_rgba(15,23,42,0.18)] backdrop-blur-sm">
-                    <div className="border-b border-slate-200/80 bg-white/85 px-5 py-4">
-                        <div className="text-sm font-semibold text-slate-500">Chat</div>
-                        <div className="text-lg font-semibold text-slate-900">{agentDisplayName}</div>
-                    </div>
-                    <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-                        <ChatThreadLoadingSkeleton
-                            withComposer
-                            className="absolute inset-0 h-full w-full rounded-none border-0 bg-transparent"
-                        />
-                        {optimisticMessageContent && (
-                            <div className="relative z-10 mt-auto flex flex-col gap-3 px-4 pb-24 pt-6 md:px-6">
-                                <div className="flex justify-end">
-                                    <div
-                                        className="max-w-[min(85%,42rem)] rounded-[24px] px-4 py-3 text-sm font-medium text-white shadow-lg"
-                                        style={{ backgroundColor: brandColorHex }}
-                                    >
-                                        <div className="whitespace-pre-wrap break-words">
-                                            {optimisticMessageContent}
-                                        </div>
-                                        <div className="mt-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/75">
-                                            Sending...
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 border-t border-white/60 bg-white/90 px-4 py-4 backdrop-blur md:px-6">
-                            <div className="rounded-2xl border border-slate-200/80 bg-slate-50/90 px-4 py-3 text-sm text-slate-400">
-                                {inputPlaceholder}
+            <AgentChatLoadingSkeleton
+                showSidebar={!isHeadlessMode}
+                isSidebarCollapsed={true}
+                threadOverlay={
+                    <OptimisticAgentChatThreadOverlay
+                        optimisticMessageContent={optimisticMessageContent}
+                        inputPlaceholder={inputPlaceholder}
+                        brandColorHex={brandColorHex}
+                    />
+                }
+            />
+        </main>
+    );
+}
+
+/**
+ * Overlay shown on top of the shared chat skeleton while the first route response is pending.
+ */
+function OptimisticAgentChatThreadOverlay({
+    optimisticMessageContent,
+    inputPlaceholder,
+    brandColorHex,
+}: {
+    optimisticMessageContent: string | undefined;
+    inputPlaceholder: string;
+    brandColorHex: string;
+}) {
+    return (
+        <div className="flex h-full flex-col justify-end">
+            {optimisticMessageContent && (
+                <div className="flex flex-col gap-3 px-4 pb-24 pt-6 md:px-6">
+                    <div className="flex justify-end">
+                        <div
+                            className="max-w-[min(85%,42rem)] rounded-[24px] px-4 py-3 text-sm font-medium text-white shadow-lg"
+                            style={{ backgroundColor: brandColorHex }}
+                        >
+                            <div className="whitespace-pre-wrap break-words">{optimisticMessageContent}</div>
+                            <div className="mt-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/75">
+                                Sending...
                             </div>
                         </div>
                     </div>
                 </div>
+            )}
+            <div className="border-t border-slate-200/70 bg-white/70 p-4">
+                <div className="rounded-full border border-slate-200/80 bg-white/90 px-4 py-3 text-sm text-slate-400 shadow-sm">
+                    {inputPlaceholder}
+                </div>
             </div>
-        </main>
+        </div>
     );
 }
 

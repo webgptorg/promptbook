@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { ChatListLoadingSkeleton } from './ChatListLoadingSkeleton';
 import { ChatThreadLoadingSkeleton } from './ChatThreadLoadingSkeleton';
 import { Skeleton } from './Skeleton';
@@ -14,6 +15,10 @@ type AgentChatLoadingSkeletonProps = {
      * Whether the sidebar should use compact/collapsed placeholders.
      */
     readonly isSidebarCollapsed?: boolean;
+    /**
+     * Optional overlay rendered above the thread skeleton.
+     */
+    readonly threadOverlay?: ReactNode;
 };
 
 /**
@@ -22,6 +27,7 @@ type AgentChatLoadingSkeletonProps = {
 export function AgentChatLoadingSkeleton({
     showSidebar = true,
     isSidebarCollapsed = false,
+    threadOverlay,
 }: AgentChatLoadingSkeletonProps) {
     return (
         <div
@@ -44,8 +50,11 @@ export function AgentChatLoadingSkeleton({
                         <ChatListLoadingSkeleton isCollapsed={isSidebarCollapsed} />
                     </aside>
                 )}
-                <section className="flex min-w-0 flex-1 flex-col">
-                    <ChatThreadLoadingSkeleton />
+                <section className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
+                    <div className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm">
+                        <ChatThreadLoadingSkeleton className="h-full" />
+                    </div>
+                    {threadOverlay && <div className="pointer-events-none absolute inset-0">{threadOverlay}</div>}
                 </section>
             </div>
         </div>

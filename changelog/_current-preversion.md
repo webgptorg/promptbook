@@ -1,3 +1,9 @@
+-   Fixed Agents Server standalone chat-route loading so the skeleton now matches the page that actually resolves instead of briefly showing a different card-style shell:
+
+    -   Reused the shared chat loading skeleton for `/agents/[agentName]/chat`, including the default collapsed sidebar geometry, so the route fallback stays aligned with the durable chat layout.
+    -   Kept the optimistic profile-to-chat handoff bubble and composer placeholder, but layered them onto the shared chat shell instead of maintaining a separate loading layout.
+    -   Made the standalone chat loading route respect `?headless`, so embedded chat transitions do not render the desktop sidebar skeleton.
+
 -   Added a metadata-controlled default agent avatar visual in Agents Server, so agents without `META IMAGE` can switch away from the built-in octopus globally while keeping one shared fallback pipeline:
 
     -   Added new metadata key `DEFAULT_AGENT_AVATAR_VISUAL` with default value `OCTOPUS3`, derived its allowed values from the shared built-in avatar registry, and resolved invalid values back to the safe `Octopus3` fallback.

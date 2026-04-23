@@ -22,7 +22,7 @@ describe('OptimisticAgentChatRouteLoading', () => {
 
         render(<OptimisticAgentChatRouteLoading agentName="test-agent" />);
 
-        expect(screen.getByText('Test Agent')).not.toBeNull();
+        expect(screen.getByRole('status', { name: 'Loading chat' })).not.toBeNull();
         expect(screen.getByText('Hello from the profile handoff')).not.toBeNull();
         expect(screen.getByText('Sending...')).not.toBeNull();
         expect(screen.getByText('Ask anything')).not.toBeNull();
@@ -41,6 +41,7 @@ describe('OptimisticAgentChatRouteLoading', () => {
 
         render(<OptimisticAgentChatRouteLoading agentName="test-agent" />);
 
+        expect(screen.getByRole('status', { name: 'Loading chat' })).not.toBeNull();
         expect(screen.getByText('1 attachment')).not.toBeNull();
     });
 });

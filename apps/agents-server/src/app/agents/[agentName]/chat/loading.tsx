@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { OptimisticAgentChatRouteLoading } from './OptimisticAgentChatRouteLoading';
 
 /**
@@ -8,8 +8,10 @@ import { OptimisticAgentChatRouteLoading } from './OptimisticAgentChatRouteLoadi
  */
 export default function Loading() {
     const params = useParams<{ agentName?: string | Array<string> }>() || {};
+    const searchParams = useSearchParams();
     const agentNameParam = params.agentName;
     const agentName = Array.isArray(agentNameParam) ? agentNameParam[0] || '' : agentNameParam || '';
+    const isHeadlessMode = searchParams?.has('headless') || false;
 
-    return <OptimisticAgentChatRouteLoading agentName={decodeURIComponent(agentName)} />;
+    return <OptimisticAgentChatRouteLoading agentName={decodeURIComponent(agentName)} isHeadlessMode={isHeadlessMode} />;
 }
