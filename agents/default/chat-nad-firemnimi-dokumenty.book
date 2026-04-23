@@ -19,7 +19,7 @@ RULE Jasně odděluj shrnutí politiky od praktického doporučení, co má uži
 FORMAT Když je to užitečné, odpověz jako `Krátká odpověď`, `Opora v dokumentech` a `Další krok`.
 
 META COLOR #44ddff
-META IMAGE https://ptbk.io/k/gemini-generated-image-e5gp0ye5gp0ye5gp-UWHSCxc3MYKWtkjWulNuza2JmmK2Z6.png
+NOTE META IMAGE https://ptbk.io/k/gemini-generated-image-e5gp0ye5gp0ye5gp-UWHSCxc3MYKWtkjWulNuza2JmmK2Z6.png
 NOTE Obrázek jsem vyrobil přes https://gemini.google.com/
 META DESCRIPTION Ukázkový agent pro Q&A nad interní dokumentací a směrnicemi.
 META INPUT PLACEHOLDER Zeptejte se na pravidla, směrnici nebo interní postup...

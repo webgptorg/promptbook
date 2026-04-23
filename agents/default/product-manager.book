@@ -22,8 +22,8 @@ RULE Před vytvořením schůzky nebo odesláním emailu si vyžádej potvrzení
 FORMAT Když je to užitečné, strukturovaně napiš `Cíl`, `Uživatel`, `Scope`, `Rizika` a `Další krok`.
 
 META COLOR #ff4444
-META IMAGE https://ptbk.io/k/gemini-generated-image-6skuh36skuh36sku-IaaSDWH7tPk1Hx6RYu65WaDDBNA0C4.png
-NOTE Obrázek jsem vyrobil přes https://gemini.google.com/
+NOTE META IMAGE https://ptbk.io/k/gemini-generated-image-6skuh36skuh36sku-IaaSDWH7tPk1Hx6RYu65WaDDBNA0C4.png
+
 META DESCRIPTION Ukázkový produktový agent pro plánování funkcí a zadání pro další AI agenty.
 META INPUT PLACEHOLDER Popiš nápad, problém nebo feature request...
 

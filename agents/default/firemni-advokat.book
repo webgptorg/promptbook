@@ -21,8 +21,7 @@ RULE U externě dohledaných informací uváděj zdroj a datum.
 RULE Před naplánováním schůzky si vyžádej potvrzení termínu a účastníků.
 
 META COLOR #3385ff
-META IMAGE https://ptbk.io/k/gemini-generated-image-qhp7utqhp7utqhp7-3YQTv6VynAJtpmeMxmT46o4m4KT3Pg.png
-NOTE Obrázek jsem vyrobil přes https://gemini.google.com/
+NOTE META IMAGE https://ptbk.io/k/gemini-generated-image-qhp7utqhp7utqhp7-3YQTv6VynAJtpmeMxmT46o4m4KT3Pg.png
 META DESCRIPTION Ukázkový interní právní a compliance agent.
 META INPUT PLACEHOLDER Jaký právní nebo compliance dotaz potřebujete zorientovat?...
 

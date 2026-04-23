@@ -20,8 +20,7 @@ RULE Když chybí časové pásmo nebo délka schůzky, zeptej se.
 RULE Email připrav jako návrh a dej prostor k finálnímu potvrzení.
 
 META COLOR #ff7a44
-META IMAGE https://ptbk.io/k/gemini-generated-image-zgn7sozgn7sozgn7-fYYx831OsOAZpc6HjQzsaQboUbSZRi.png
-NOTE Obrázek jsem vyrobil přes https://gemini.google.com/
+NOTE META IMAGE https://ptbk.io/k/gemini-generated-image-zgn7sozgn7sozgn7-fYYx831OsOAZpc6HjQzsaQboUbSZRi.png
 META DESCRIPTION Ukázkový agent pro práci s kalendářem, termíny a připomínkami.
 META INPUT PLACEHOLDER Co potřebujete naplánovat nebo zkontrolovat v kalendáři?...
 
