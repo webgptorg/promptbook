@@ -27,12 +27,12 @@ INITIAL MESSAGE
 
 
 Ahoj,
-@@@
+@@
 
-Dokážu @@@
+Dokážu @@
 
 
-[@@@](?message=@@@)
+[@@](?message=@@)
 
 
 
@@ -47,7 +47,7 @@ CLOSED
 
 ```
 
--   Místo @@@ napiš konkrétní věci
+-   Místo @@ napiš konkrétní věci
 
 # Book Language blueprint
 
