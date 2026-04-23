@@ -14,3 +14,40 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+---
+
+[ ] !
+
+[✨🌘] Finish the dark mode
+
+-   In dark mode there are some ungly and unfinished places, look at the screenshots and enhance it and fix it
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing
+-   You are working with the [Agents Server](apps/agents-server)
+
+![background of the page](prompts/screenshots/2026-04-6670-agents-server-dark-mode-2.png)
+![alt text](prompts/screenshots/2026-04-6670-agents-server-dark-mode-3.png)
+![alt text](prompts/screenshots/2026-04-6670-agents-server-dark-mode-4.png)
+![alt text](prompts/screenshots/2026-04-6670-agents-server-dark-mode-5.png)
+![alt text](prompts/screenshots/2026-04-6670-agents-server-dark-mode-6.png)
+![alt text](prompts/screenshots/2026-04-6670-agents-server-dark-mode-7.png)
+![alt text](prompts/screenshots/2026-04-6670-agents-server-dark-mode-8.png)
+![alt text](prompts/screenshots/2026-04-6670-agents-server-dark-mode-9.png)
+![alt text](prompts/screenshots/2026-04-6670-agents-server-dark-mode-10.png)
+
+---
+
+[ ] !
+
+[✨🌘] Simplify and enhance UI and UX of control panel
+
+-   Control panel has theese parts:
+    1. Overview <- This is redundant, it just sumarize information from (2) and (3), remove it
+    2. The square tiles with icons <- This is how the control panel should look like
+    3. Rest of the tiles (from "Private mode" and bellow) <- This should be remade as (2) square tiles
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing
+-   You are working with the [Agents Server](apps/agents-server)
+
+![alt text](prompts/screenshots/2026-04-6670-agents-server-dark-mode.png)
+![alt text](prompts/screenshots/2026-04-6670-agents-server-dark-mode-1.png)
