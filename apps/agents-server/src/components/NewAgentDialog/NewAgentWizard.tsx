@@ -213,16 +213,16 @@ export function NewAgentWizard(props: NewAgentWizardProps) {
                 onDragLeave={wizard.handleDialogDragLeave}
                 onDrop={wizard.handleDialogDrop}
             >
-                <div className="border-b border-slate-200 bg-white px-5 py-4">
+                <div className="border-b border-slate-200 bg-white px-5 py-4 dark:border-slate-700 dark:bg-slate-950/95">
                     <div className="flex items-start justify-between gap-4">
                         <div>
-                            <div className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
+                            <div className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                                 {t('agentCreation.wizardEyebrow')}
                             </div>
-                            <h2 id={titleId} className="mt-1 text-xl font-semibold text-slate-900">
+                            <h2 id={titleId} className="mt-1 text-xl font-semibold text-slate-900 dark:text-slate-100">
                                 {formatText(t('agentCreation.wizardTitle'))}
                             </h2>
-                            <p id={descriptionId} className="mt-1 text-sm text-slate-600">
+                            <p id={descriptionId} className="mt-1 text-sm text-slate-600 dark:text-slate-300">
                                 {currentStepDescription}
                             </p>
                         </div>
@@ -231,7 +231,7 @@ export function NewAgentWizard(props: NewAgentWizardProps) {
                                 type="button"
                                 onClick={wizard.handleOpenAdvancedEditor}
                                 disabled={isOpenBookEditorDisabled}
-                                className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-50 hover:text-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
+                                className={NewAgentWizardClassNames.wizardHeaderAction}
                             >
                                 <BookOpen className="h-4 w-4" />
                                 {t('agentCreation.wizard.openAdvancedEditorAction')}
@@ -239,7 +239,7 @@ export function NewAgentWizard(props: NewAgentWizardProps) {
                             <button
                                 type="button"
                                 onClick={wizard.requestClose}
-                                className="rounded-md p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                                className={NewAgentWizardClassNames.wizardCloseButton}
                             >
                                 <X className="h-5 w-5" />
                                 <span className="sr-only">{t('common.close')}</span>
@@ -257,7 +257,7 @@ export function NewAgentWizard(props: NewAgentWizardProps) {
                                 className={`rounded-full border px-3 py-1.5 text-sm transition ${
                                     stepIndex === wizard.step
                                         ? 'border-blue-600 bg-blue-600 text-white'
-                                        : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50'
+                                        : NewAgentWizardClassNames.wizardStepButtonInactive
                                 }`}
                             >
                                 {stepIndex + 1}. {t(stepDefinition.shortKey)}
@@ -266,9 +266,9 @@ export function NewAgentWizard(props: NewAgentWizardProps) {
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto bg-slate-50 px-5 py-4">
+                <div className="flex-1 overflow-y-auto bg-slate-50 px-5 py-4 dark:bg-slate-900/78">
                     <div className="mx-auto max-w-4xl">
-                        <h3 className="text-lg font-semibold text-slate-900">{currentStepTitle}</h3>
+                        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{currentStepTitle}</h3>
                         {renderStepContent({
                             stepId: currentStepDefinition.id,
                             wizard,
@@ -277,7 +277,7 @@ export function NewAgentWizard(props: NewAgentWizardProps) {
                     </div>
                 </div>
 
-                <div className="border-t border-slate-200 bg-white px-5 py-3">
+                <div className="border-t border-slate-200 bg-white px-5 py-3 dark:border-slate-700 dark:bg-slate-950/95">
                     <div className="mx-auto flex max-w-4xl items-center justify-between gap-3">
                         <button
                             type="button"
@@ -317,12 +317,14 @@ export function NewAgentWizard(props: NewAgentWizardProps) {
                 </div>
 
                 {wizard.isDragOverDialog && (
-                    <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-blue-50/80">
-                        <div className="rounded-xl border border-blue-300 bg-white px-5 py-4 text-center">
-                            <div className="text-sm font-semibold text-blue-900">
+                    <div className={NewAgentWizardClassNames.wizardOverlayBackdrop}>
+                        <div className={NewAgentWizardClassNames.wizardOverlayCard}>
+                            <div className={NewAgentWizardClassNames.wizardOverlayTitle}>
                                 {t('agentCreation.wizard.uploadLabel')}
                             </div>
-                            <div className="mt-1 text-sm text-blue-700">{t('agentCreation.wizard.uploadHint')}</div>
+                            <div className={NewAgentWizardClassNames.wizardOverlayDescription}>
+                                {t('agentCreation.wizard.uploadHint')}
+                            </div>
                         </div>
                     </div>
                 )}

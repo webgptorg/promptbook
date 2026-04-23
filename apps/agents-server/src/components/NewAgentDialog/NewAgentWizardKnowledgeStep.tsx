@@ -47,7 +47,6 @@ type NewAgentWizardKnowledgeStepProps = {
      * Removes one knowledge item from the state.
      */
     readonly removeKnowledgeItem: (knowledgeItemId: string) => void;
-
 };
 
 /**
@@ -72,11 +71,11 @@ export function NewAgentWizardKnowledgeStep(props: NewAgentWizardKnowledgeStepPr
 
     return (
         <div className="mt-4 space-y-4">
-            <div className="rounded-xl border border-dashed border-slate-300 bg-white p-4">
+            <div className={NewAgentWizardClassNames.dashedSurfaceCard}>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                        <div className="text-sm font-medium text-slate-900">{t('agentCreation.wizard.uploadLabel')}</div>
-                        <div className="mt-1 text-sm text-slate-600">{t('agentCreation.wizard.uploadHint')}</div>
+                        <div className={NewAgentWizardClassNames.sectionTitle}>{t('agentCreation.wizard.uploadLabel')}</div>
+                        <div className={`mt-1 ${NewAgentWizardClassNames.sectionHint}`}>{t('agentCreation.wizard.uploadHint')}</div>
                     </div>
                     <button
                         type="button"
@@ -96,8 +95,8 @@ export function NewAgentWizardKnowledgeStep(props: NewAgentWizardKnowledgeStepPr
                 />
             </div>
 
-            <div className="rounded-xl border border-slate-200 bg-white p-4">
-                <label className="mb-1.5 block text-sm font-medium text-slate-800">{t('agentCreation.wizard.urlsLabel')}</label>
+            <div className={NewAgentWizardClassNames.surfaceCard}>
+                <label className={NewAgentWizardClassNames.fieldLabel}>{t('agentCreation.wizard.urlsLabel')}</label>
                 <input
                     value={state.knowledgeUrlDraft}
                     onChange={(event) => setState((previous) => ({ ...previous, knowledgeUrlDraft: event.target.value }))}
@@ -105,33 +104,33 @@ export function NewAgentWizardKnowledgeStep(props: NewAgentWizardKnowledgeStepPr
                     placeholder={t('agentCreation.wizard.urlsPlaceholder')}
                     className={NewAgentWizardClassNames.input}
                 />
-                <p className="mt-2 text-sm text-slate-500">{t('agentCreation.wizard.urlsHint')}</p>
+                <p className={`mt-2 ${NewAgentWizardClassNames.sectionHint}`}>{t('agentCreation.wizard.urlsHint')}</p>
                 {knowledgeFeedback && <p className="mt-2 text-sm text-amber-700">{knowledgeFeedback}</p>}
             </div>
 
             <div className="space-y-2">
                 {state.knowledgeItems.length === 0 ? (
-                    <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+                    <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-950/90 dark:text-slate-300">
                         {t('agentCreation.wizard.noKnowledge')}
                     </div>
                 ) : (
                     state.knowledgeItems.map((item) => (
-                        <div key={item.id} className="rounded-xl border border-slate-200 bg-white px-4 py-3">
+                        <div key={item.id} className="rounded-xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-950/90">
                             <div className="flex items-start justify-between gap-4">
                                 <div className="min-w-0">
-                                    <div className="truncate text-sm font-medium text-slate-900">{item.label}</div>
-                                    <div className="mt-1 text-xs text-slate-500">
+                                    <div className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">{item.label}</div>
+                                    <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                                         {item.kind === 'file' ? t('agentCreation.wizard.uploadedFile') : item.source}
                                     </div>
                                     {item.status === 'uploading' && (
                                         <div className="mt-2">
-                                            <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
+                                            <div className="h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                                                 <div
                                                     className="h-full rounded-full bg-blue-500 transition-[width]"
                                                     style={{ width: `${Math.round(item.progress * 100)}%` }}
                                                 />
                                             </div>
-                                            <div className="mt-1 text-xs text-slate-500">
+                                            <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                                                 {t('agentCreation.wizard.uploading', {
                                                     progress: String(Math.round(item.progress * 100)),
                                                 })}
@@ -146,7 +145,7 @@ export function NewAgentWizardKnowledgeStep(props: NewAgentWizardKnowledgeStepPr
                                     <button
                                         type="button"
                                         onClick={() => removeKnowledgeItem(item.id)}
-                                        className="text-sm font-medium text-slate-500 transition hover:text-slate-800"
+                                        className="text-sm font-medium text-slate-500 transition hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"
                                     >
                                         {t('agentCreation.wizard.removeKnowledgeAction')}
                                     </button>

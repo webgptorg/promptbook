@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { AgentCardsSection } from '../Homepage/AgentCardsSection';
 import { getServerHeadingLabel } from '../Homepage/getServerHeadingLabel';
 import type { FederatedServerStatus } from '../Homepage/useFederatedAgents';
+import { NewAgentWizardClassNames } from './NewAgentWizardClassNames';
 import { hasTeamReference, type NewAgentWizardState } from './NewAgentWizardState';
 import { resolveWizardTeamReference } from './resolveWizardTeamReference';
 import type { NewAgentWizardTranslate } from './NewAgentWizardTranslate';
@@ -70,12 +71,10 @@ export function NewAgentWizardTeamStep(props: NewAgentWizardTeamStepProps) {
 
     return (
         <div className="mt-4">
-            <div className="rounded-xl border border-slate-200 bg-white p-4">
+            <div className={NewAgentWizardClassNames.surfaceCard}>
                 <div>
-                    <h3 className="text-base font-semibold text-slate-900">
-                        {t('agentCreation.wizard.teamPickerTitle')}
-                    </h3>
-                    <p className="mt-1 text-sm text-slate-500">{t('agentCreation.wizard.teamPickerHint')}</p>
+                    <h3 className={NewAgentWizardClassNames.sectionTitle}>{t('agentCreation.wizard.teamPickerTitle')}</h3>
+                    <p className={`mt-1 ${NewAgentWizardClassNames.sectionHint}`}>{t('agentCreation.wizard.teamPickerHint')}</p>
                 </div>
 
                 <div className="mt-5 space-y-6">
@@ -101,7 +100,7 @@ export function NewAgentWizardTeamStep(props: NewAgentWizardTeamStepProps) {
                         }
                         selectionStateLabel={selectionStateLabel}
                         sectionClassName="mt-0 mb-0 first:mt-0"
-                        titleClassName="mb-3 text-sm font-semibold text-slate-900"
+                        titleClassName="mb-3 text-sm font-semibold text-slate-900 dark:text-slate-100"
                     />
 
                     {federatedServerUrls.map((serverUrl) => {
@@ -137,7 +136,7 @@ export function NewAgentWizardTeamStep(props: NewAgentWizardTeamStepProps) {
                                 }
                                 selectionStateLabel={selectionStateLabel}
                                 sectionClassName="mt-0 mb-0 first:mt-0"
-                                titleClassName="mb-3 text-sm font-semibold text-slate-900"
+                                titleClassName="mb-3 text-sm font-semibold text-slate-900 dark:text-slate-100"
                             />
                         );
                     })}

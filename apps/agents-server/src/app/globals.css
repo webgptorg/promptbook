@@ -151,6 +151,19 @@ body {
     min-height: var(--agents-server-app-height);
 }
 
+.agents-server-route-shell {
+    background:
+        radial-gradient(circle at 14% 0%, rgba(59, 130, 246, 0.08), transparent 34%),
+        radial-gradient(circle at 86% 2%, rgba(168, 85, 247, 0.06), transparent 28%);
+}
+
+html.dark .agents-server-route-shell {
+    background:
+        radial-gradient(circle at 16% 0%, rgba(34, 211, 238, 0.11), transparent 28%),
+        radial-gradient(circle at 84% 4%, rgba(59, 130, 246, 0.1), transparent 26%),
+        linear-gradient(180deg, rgba(2, 6, 23, 0.14), rgba(2, 6, 23, 0.32));
+}
+
 .agents-server-chat-main {
     width: 100%;
     height: var(--agents-server-app-height);
@@ -716,6 +729,7 @@ html.dark .skeleton-block::after {
 }
 
 html.dark .bg-white,
+html.dark .bg-white\/85,
 html.dark .bg-white\/70,
 html.dark .bg-white\/75,
 html.dark .bg-white\/80,
@@ -726,7 +740,8 @@ html.dark .bg-white\/95 {
 
 html.dark .bg-gray-50,
 html.dark .bg-slate-50,
-html.dark .bg-slate-50\/70 {
+html.dark .bg-slate-50\/70,
+html.dark .bg-slate-50\/80 {
     background-color: rgba(15, 23, 42, 0.82) !important;
 }
 

@@ -36,22 +36,22 @@ export function ChatEnterBehaviorPrompt(props: ChatEnterBehaviorPromptProps) {
             onClose={onDismiss}
             ariaLabelledBy={titleId}
             ariaDescribedBy={descriptionId}
-            className="h-full w-full overflow-hidden rounded-none border-0 bg-[radial-gradient(circle_at_top_left,_rgba(191,219,254,0.45),_transparent_42%),linear-gradient(140deg,_rgba(255,255,255,0.98),_rgba(248,250,252,0.97))] shadow-none sm:h-auto sm:w-[calc(100%-2rem)] sm:max-h-[min(92vh,820px)] sm:max-w-5xl sm:rounded-[34px] sm:border sm:border-slate-200 sm:shadow-[0_28px_80px_rgba(15,23,42,0.28)]"
+            className="h-full w-full overflow-hidden rounded-none border-0 bg-[radial-gradient(circle_at_top_left,_rgba(191,219,254,0.45),_transparent_42%),linear-gradient(140deg,_rgba(255,255,255,0.98),_rgba(248,250,252,0.97))] shadow-none dark:bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.16),_transparent_34%),linear-gradient(145deg,_rgba(2,6,23,0.98),_rgba(8,15,28,0.98))] sm:h-auto sm:w-[calc(100%-2rem)] sm:max-h-[min(92vh,820px)] sm:max-w-5xl sm:rounded-[34px] sm:border sm:border-slate-200 sm:shadow-[0_28px_80px_rgba(15,23,42,0.28)] dark:sm:border-slate-700 dark:sm:shadow-[0_28px_80px_rgba(2,6,23,0.55)]"
         >
             <section aria-live="polite" className="flex h-full flex-col overflow-y-auto">
                 <div className="flex flex-1 flex-col gap-5 px-4 pb-6 pt-[max(env(safe-area-inset-top),1rem)] sm:px-6 sm:py-6">
                     <div className="flex flex-col gap-3 sm:gap-4">
-                        <p className="text-[0.72rem] font-semibold uppercase tracking-[0.32em] text-slate-500">
+                        <p className="text-[0.72rem] font-semibold uppercase tracking-[0.32em] text-slate-500 dark:text-slate-400">
                             {t('chatEnterBehavior.sectionEyebrow')}
                         </p>
                         <div className="max-w-2xl space-y-2">
                             <h2
                                 id={titleId}
-                                className="text-2xl font-semibold text-slate-950 sm:text-[2rem] sm:leading-tight"
+                                className="text-2xl font-semibold text-slate-950 dark:text-slate-100 sm:text-[2rem] sm:leading-tight"
                             >
                                 {t('chatEnterBehavior.promptTitle')}
                             </h2>
-                            <p id={descriptionId} className="text-sm leading-6 text-slate-600 sm:text-base">
+                            <p id={descriptionId} className="text-sm leading-6 text-slate-600 dark:text-slate-300 sm:text-base">
                                 {t('chatEnterBehavior.promptDescription')}
                             </p>
                         </div>
@@ -75,14 +75,14 @@ export function ChatEnterBehaviorPrompt(props: ChatEnterBehaviorPromptProps) {
                     </div>
                 </div>
 
-                <div className="border-t border-slate-200/80 bg-white/70 px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-4 backdrop-blur sm:px-6 sm:pb-6">
+                <div className="border-t border-slate-200/80 bg-white/70 px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-4 backdrop-blur dark:border-slate-700/80 dark:bg-slate-950/72 sm:px-6 sm:pb-6">
                     <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <p className="text-sm text-slate-500">{t('chatEnterBehavior.promptFooter')}</p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">{t('chatEnterBehavior.promptFooter')}</p>
                         <button
                             type="button"
                             onClick={onDismiss}
                             onMouseDown={(event) => event.preventDefault()}
-                            className="self-start rounded-full border border-slate-300 bg-white/90 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:text-slate-900"
+                            className="self-start rounded-full border border-slate-300 bg-white/90 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-950/92 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:text-slate-100"
                         >
                             {t('chatEnterBehavior.notNow')}
                         </button>

@@ -116,7 +116,9 @@ export function AgentCard({
                 >
                     <FileCard
                         className={`relative flex h-full items-start gap-3 overflow-hidden ${
-                            isSelected ? 'border-blue-500 bg-blue-50/90 shadow-md ring-2 ring-blue-100' : ''
+                            isSelected
+                                ? 'border-blue-500 bg-blue-50/90 shadow-md ring-2 ring-blue-100 dark:border-blue-500/50 dark:bg-blue-500/12 dark:ring-blue-500/20'
+                                : ''
                         }`}
                         style={{
                             background: `url("${backgroundImage}")`,
@@ -124,10 +126,10 @@ export function AgentCard({
                             backgroundPosition: 'center',
                         }}
                     >
-                        <div className="absolute inset-0 pointer-events-none bg-white/40 backdrop-blur-[2px]" />
+                        <div className="absolute inset-0 pointer-events-none bg-white/40 backdrop-blur-[2px] dark:bg-slate-950/58" />
 
                         <div
-                            className="relative z-10 mt-0.5 h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg border bg-white shadow-sm"
+                            className="relative z-10 mt-0.5 h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg border bg-white shadow-sm dark:bg-slate-900 dark:shadow-slate-950/35"
                             style={{ borderColor: `${brandColorLightHex}80` }}
                         >
                             <AgentAvatar
@@ -173,10 +175,10 @@ export function AgentCard({
                             backgroundPosition: 'center',
                         }}
                     >
-                        <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] pointer-events-none" />
+                        <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] pointer-events-none dark:bg-slate-950/58" />
 
                         <div
-                            className="relative z-10 mt-0.5 h-12 w-12 rounded-lg overflow-hidden flex-shrink-0 bg-white shadow-sm border"
+                            className="relative z-10 mt-0.5 h-12 w-12 rounded-lg overflow-hidden flex-shrink-0 bg-white shadow-sm border dark:bg-slate-900 dark:shadow-slate-950/35"
                             style={{ borderColor: `${brandColorLightHex}80` }}
                         >
                             <AgentAvatar

@@ -63,9 +63,9 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
     return (
         <Dialog
             onClose={handleClose}
-            className="w-full max-w-4xl h-[80vh] flex flex-col"
+            className="flex h-[80vh] w-full max-w-4xl flex-col overflow-hidden"
         >
-            <div className="flex items-center justify-between border-b border-gray-200 p-4 dark:border-slate-700">
+            <div className="flex items-center justify-between border-b border-gray-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-950/95">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100">
                     {formatText(t('agentCreation.dialogTitle'))}
                 </h2>
@@ -79,19 +79,23 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
             </div>
 
             <div
-                className="flex-1 overflow-hidden p-4 relative" /* [✨🧬] onDragEnter={() => setIsInteracted(true)} */
+                className="relative flex-1 overflow-hidden bg-slate-50/60 p-4 dark:bg-slate-950/55" /* [✨🧬] onDragEnter={() => setIsInteracted(true)} */
             >
-                <BookEditor
-                    agentSource={agentSource}
-                    onChange={(source) => {
-                        setAgentSource(source);
-                        // [✨🧬] setIsInteracted(true);
-                    }}
-                    height="100%"
-                    isVerbose={false}
-                    onFileUpload={bookEditorUploadHandler}
-                    theme={promptbookTheme}
-                />
+                <div className="h-full overflow-hidden rounded-2xl border border-slate-200/80 shadow-inner dark:border-slate-800/80">
+                    <BookEditor
+                        className="h-full w-full"
+                        agentSource={agentSource}
+                        onChange={(source) => {
+                            setAgentSource(source);
+                            // [✨🧬] setIsInteracted(true);
+                        }}
+                        height="100%"
+                        isBorderRadiusDisabled
+                        isVerbose={false}
+                        onFileUpload={bookEditorUploadHandler}
+                        theme={promptbookTheme}
+                    />
+                </div>
 
                 {/* TODO: [✨🧬] When creating new agent, show the floating hint
                 {!isInteracted && (
@@ -124,7 +128,7 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
                 */}
             </div>
 
-            <div className="flex items-center justify-end gap-3 rounded-b-lg border-t border-gray-200 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-900">
+            <div className="flex items-center justify-end gap-3 border-t border-gray-200 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-950/95">
                 <button
                     onClick={handleClose}
                     className="rounded-md px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800"

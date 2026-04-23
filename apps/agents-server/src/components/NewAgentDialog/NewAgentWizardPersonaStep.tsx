@@ -6,6 +6,7 @@ import type {
     NewAgentWizardPresetSelectionKey,
     NewAgentWizardState,
 } from './NewAgentWizardState';
+import { NewAgentWizardClassNames } from './NewAgentWizardClassNames';
 import type { NewAgentWizardTranslate } from './NewAgentWizardTranslate';
 import { WizardChipInput } from './WizardChipInput';
 import { WizardSelectableCard } from './WizardSelectableCard';
@@ -57,9 +58,9 @@ export function NewAgentWizardPersonaStep(props: NewAgentWizardPersonaStepProps)
     const { state, setState, t, togglePresetSelection, addDraftChip, removeDraftChip } = props;
 
     return (
-        <div className="mt-4 space-y-6 rounded-xl border border-slate-200 bg-white p-4">
+        <div className={`mt-4 space-y-6 ${NewAgentWizardClassNames.surfaceCard}`}>
             <div>
-                <label className="mb-2 block text-sm font-medium text-slate-800">{t('agentCreation.wizard.traitsLabel')}</label>
+                <label className={NewAgentWizardClassNames.fieldLabel}>{t('agentCreation.wizard.traitsLabel')}</label>
                 <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                     {NEW_AGENT_WIZARD_PERSONA_PRESETS.map((preset) => (
                         <WizardSelectableCard
@@ -85,7 +86,7 @@ export function NewAgentWizardPersonaStep(props: NewAgentWizardPersonaStepProps)
             />
 
             <div>
-                <label className="mb-2 block text-sm font-medium text-slate-800">
+                <label className={NewAgentWizardClassNames.fieldLabel}>
                     {t('agentCreation.wizard.learningModeLabel')}
                 </label>
                 <div className="grid gap-3 md:grid-cols-2">
@@ -110,10 +111,10 @@ export function NewAgentWizardPersonaStep(props: NewAgentWizardPersonaStepProps)
 
             <div>
                 <div className="mb-2 flex items-center justify-between gap-3">
-                    <label className="block text-sm font-medium text-slate-800">
+                    <label className="block text-sm font-medium text-slate-800 dark:text-slate-100">
                         {t('agentCreation.wizard.capabilitiesLabel')}
                     </label>
-                    <span className="text-xs text-slate-500">{t('agentCreation.wizard.capabilitiesHint')}</span>
+                    <span className={NewAgentWizardClassNames.sectionHint}>{t('agentCreation.wizard.capabilitiesHint')}</span>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                     {NEW_AGENT_WIZARD_CAPABILITY_PRESETS.map((preset) => {

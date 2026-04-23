@@ -1,3 +1,9 @@
+-   Fixed the remaining Agents Server dark-mode regressions across homepage surfaces, chat layouts, control-panel keybinding cards, and new-agent creation dialogs:
+
+    -   Replaced the light-only homepage directory background and card overlays with shared dark-aware route/card surfaces, so the agents home and folder views no longer fall back to bright page chrome in dark mode.
+    -   Reworked the shared Enter-key preference cards and first-run prompt used by the control panel, keeping the keyboard previews, helper states, and dismiss actions readable in dark mode instead of rendering as white tiles inside the dark panel.
+    -   Centralized dark-aware wizard surface, input, chip, and preview styling for the new-agent flow and advanced editor dialog, so selected presets, upload/setup panels, mocked chat previews, and the raw book editor all render as finished dark UI rather than bright fallback blocks.
+
 -   Added completed sample Book agent definitions in `agents/default`, so the built-in examples now demonstrate realistic Book 2.0 patterns instead of placeholder drafts:
 
     -   Finished the previously sketched sample agents such as `Product Manager`, `Správce kalendáře`, `Copywriter`, `Firemní advokát`, `Social Media Manager`, `Webmaster`, `Chat nad firemními dokumenty`, `Chat na webu`, and `Aktualizátor prezentací` with concrete `GOAL`, `RULE`, `INITIAL MESSAGE`, and tool commitments.

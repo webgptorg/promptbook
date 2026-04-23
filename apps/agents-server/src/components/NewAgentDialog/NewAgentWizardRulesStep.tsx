@@ -6,6 +6,7 @@ import type {
     NewAgentWizardPresetSelectionKey,
     NewAgentWizardState,
 } from './NewAgentWizardState';
+import { NewAgentWizardClassNames } from './NewAgentWizardClassNames';
 import type { NewAgentWizardTranslate } from './NewAgentWizardTranslate';
 import { WizardChipInput } from './WizardChipInput';
 import { WizardSelectableCard } from './WizardSelectableCard';
@@ -57,7 +58,7 @@ export function NewAgentWizardRulesStep(props: NewAgentWizardRulesStepProps) {
     const { state, setState, t, togglePresetSelection, addDraftChip, removeDraftChip } = props;
 
     return (
-        <div className="mt-4 space-y-4 rounded-xl border border-slate-200 bg-white p-4">
+        <div className={`mt-4 space-y-4 ${NewAgentWizardClassNames.surfaceCard}`}>
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {NEW_AGENT_WIZARD_RULE_PRESETS.map((preset) => (
                     <WizardSelectableCard

@@ -30,7 +30,7 @@ type FileCardProps = {
 export function FileCard({ children, className = '', style }: FileCardProps) {
     return (
         <div
-            className={`block h-full rounded-lg border border-gray-200 bg-white/80 p-3 shadow-sm transition-[box-shadow,transform,border-color] duration-200 hover:border-blue-300 hover:shadow-md hover:-translate-y-0.5 ${className}`}
+            className={`block h-full rounded-lg border border-gray-200 bg-white/80 p-3 shadow-sm transition-[box-shadow,transform,border-color] duration-200 hover:border-blue-300 hover:shadow-md hover:-translate-y-0.5 dark:border-slate-700 dark:bg-slate-950/88 dark:shadow-slate-950/35 dark:hover:border-blue-500/50 dark:hover:shadow-[0_18px_32px_rgba(2,6,23,0.42)] ${className}`}
             style={style}
         >
             {children}

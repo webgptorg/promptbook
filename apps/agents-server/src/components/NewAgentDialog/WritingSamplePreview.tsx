@@ -1,3 +1,5 @@
+import { NewAgentWizardClassNames } from './NewAgentWizardClassNames';
+
 /**
  * Props for one mocked-chat preview bubble stack.
  */
@@ -30,15 +32,15 @@ export function WritingSamplePreview(props: WritingSamplePreviewProps) {
     const { assistantMessage, title, userMessage } = props;
 
     return (
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-            {title && <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{title}</div>}
+        <div className={NewAgentWizardClassNames.mutedSurfaceCard}>
+            {title && <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">{title}</div>}
             <div className="flex justify-end">
-                <div className="max-w-[85%] rounded-2xl rounded-br-md bg-white px-3 py-2 text-xs text-slate-700 shadow-sm">
+                <div className="max-w-[85%] rounded-2xl rounded-br-md bg-white px-3 py-2 text-xs text-slate-700 shadow-sm dark:bg-slate-950 dark:text-slate-200 dark:shadow-slate-950/35">
                     {userMessage}
                 </div>
             </div>
             <div className="mt-2 flex justify-start">
-                <div className="max-w-[85%] rounded-2xl rounded-bl-md bg-blue-600 px-3 py-2 text-xs text-white shadow-sm">
+                <div className="max-w-[85%] rounded-2xl rounded-bl-md bg-blue-600 px-3 py-2 text-xs text-white shadow-sm dark:bg-blue-500">
                     {assistantMessage}
                 </div>
             </div>

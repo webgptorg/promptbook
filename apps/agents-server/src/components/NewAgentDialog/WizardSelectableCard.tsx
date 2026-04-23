@@ -60,14 +60,14 @@ type WizardSelectableCardProps = {
  */
 function getSelectedCardClassName(variant: WizardCardVariant): string {
     if (variant === 'emerald') {
-        return 'border-emerald-500 bg-emerald-50 text-emerald-950 shadow-emerald-100';
+        return 'border-emerald-500 bg-emerald-50 text-emerald-950 shadow-emerald-100 dark:border-emerald-500/40 dark:bg-emerald-500/12 dark:text-emerald-100 dark:shadow-transparent';
     }
 
     if (variant === 'amber') {
-        return 'border-amber-500 bg-amber-50 text-amber-950 shadow-amber-100';
+        return 'border-amber-500 bg-amber-50 text-amber-950 shadow-amber-100 dark:border-amber-500/40 dark:bg-amber-500/12 dark:text-amber-100 dark:shadow-transparent';
     }
 
-    return 'border-blue-500 bg-blue-50 text-blue-950 shadow-blue-100';
+    return 'border-blue-500 bg-blue-50 text-blue-950 shadow-blue-100 dark:border-blue-500/40 dark:bg-blue-500/12 dark:text-blue-100 dark:shadow-transparent';
 }
 
 /**
@@ -88,10 +88,10 @@ export function WizardSelectableCard(props: WizardSelectableCardProps) {
             disabled={isDisabled}
             className={`flex min-h-24 flex-col rounded-xl border p-3 text-left transition ${
                 isDisabled
-                    ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-500'
+                    ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-500 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-500'
                     : isSelected
                       ? `shadow-sm ${getSelectedCardClassName(variant)}`
-                      : 'border-slate-200 bg-white text-slate-800 hover:border-slate-300 hover:bg-slate-50'
+                      : 'border-slate-200 bg-white text-slate-800 shadow-sm hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950/90 dark:text-slate-100 dark:hover:border-slate-600 dark:hover:bg-slate-900'
             }`}
         >
             <div className="flex items-center gap-2">
@@ -100,7 +100,7 @@ export function WizardSelectableCard(props: WizardSelectableCardProps) {
                 </span>
                 <span className="text-sm font-semibold">{label}</span>
             </div>
-            {note && <p className="mt-1 text-xs leading-5 opacity-80">{note}</p>}
+            {note && <p className="mt-1 text-xs leading-5 opacity-80 dark:text-slate-300">{note}</p>}
             {children && <div className="mt-3">{children}</div>}
         </button>
     );

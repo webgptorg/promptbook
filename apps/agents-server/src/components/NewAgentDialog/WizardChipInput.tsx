@@ -74,20 +74,20 @@ export function WizardChipInput(props: WizardChipInputProps) {
     } = props;
     const chipClassName =
         chipVariant === 'amber'
-            ? 'border-amber-200 bg-amber-50 text-amber-900'
+            ? 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/12 dark:text-amber-100'
             : chipVariant === 'emerald'
-              ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
-              : 'border-blue-200 bg-blue-50 text-blue-900';
+              ? 'border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/12 dark:text-emerald-100'
+              : 'border-blue-200 bg-blue-50 text-blue-900 dark:border-blue-500/30 dark:bg-blue-500/12 dark:text-blue-100';
     const iconClassName =
         chipVariant === 'amber'
-            ? 'text-amber-700 hover:text-amber-900'
+            ? 'text-amber-700 hover:text-amber-900 dark:text-amber-200 dark:hover:text-amber-100'
             : chipVariant === 'emerald'
-              ? 'text-emerald-700 hover:text-emerald-900'
-              : 'text-blue-700 hover:text-blue-900';
+              ? 'text-emerald-700 hover:text-emerald-900 dark:text-emerald-200 dark:hover:text-emerald-100'
+              : 'text-blue-700 hover:text-blue-900 dark:text-blue-200 dark:hover:text-blue-100';
 
     return (
         <div>
-            <label className="mb-1.5 block text-sm font-medium text-slate-800">{label}</label>
+            <label className={NewAgentWizardClassNames.fieldLabel}>{label}</label>
             <input
                 value={draftValue}
                 onChange={(event) => onDraftChange(event.target.value)}

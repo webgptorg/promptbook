@@ -92,7 +92,7 @@ function renderCapabilitySetupFields(options: {
                 <>
                     <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(16rem,1fr)]">
                         <div>
-                            <label className="mb-1.5 block text-sm font-medium text-slate-800">
+                            <label className={NewAgentWizardClassNames.fieldLabel}>
                                 {t('agentCreation.wizard.useSetupProjectRepositoryLabel')}
                             </label>
                             <input
@@ -113,21 +113,21 @@ function renderCapabilitySetupFields(options: {
                                 placeholder={t('agentCreation.wizard.useSetupProjectRepositoryPlaceholder')}
                                 className={NewAgentWizardClassNames.input}
                             />
-                            <p className="mt-2 text-sm text-slate-500">
+                            <p className={`mt-2 ${NewAgentWizardClassNames.sectionHint}`}>
                                 {t('agentCreation.wizard.useSetupProjectRepositoryHint')}
                             </p>
                         </div>
 
-                        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                        <div className={NewAgentWizardClassNames.mutedSurfaceCard}>
+                            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
                                 {t('agentCreation.wizard.useSetupPreviewLabel')}
                             </div>
                             {parsedRepository ? (
                                 <>
-                                    <div className="mt-2 text-sm font-semibold text-slate-900">
+                                    <div className="mt-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
                                         {parsedRepository.slug}
                                     </div>
-                                    <div className="mt-1 break-all text-xs text-slate-500">{parsedRepository.url}</div>
+                                    <div className="mt-1 break-all text-xs text-slate-500 dark:text-slate-400">{parsedRepository.url}</div>
                                     <a
                                         href={parsedRepository.url}
                                         target="_blank"
@@ -140,7 +140,7 @@ function renderCapabilitySetupFields(options: {
                                 </>
                             ) : searchUrl ? (
                                 <>
-                                    <p className="mt-2 text-sm text-slate-600">
+                                    <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
                                         {t('agentCreation.wizard.useSetupProjectRepositoryHint')}
                                     </p>
                                     <a
@@ -154,7 +154,7 @@ function renderCapabilitySetupFields(options: {
                                     </a>
                                 </>
                             ) : (
-                                <p className="mt-2 text-sm text-slate-500">
+                                <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
                                     {t('agentCreation.wizard.useSetupProjectRepositoryHint')}
                                 </p>
                             )}
@@ -162,7 +162,7 @@ function renderCapabilitySetupFields(options: {
                     </div>
 
                     <div className="mt-4">
-                        <label className="mb-1.5 block text-sm font-medium text-slate-800">
+                        <label className={NewAgentWizardClassNames.fieldLabel}>
                             {t('agentCreation.wizard.useSetupInstructionsLabel')}
                         </label>
                         <textarea
@@ -193,7 +193,7 @@ function renderCapabilitySetupFields(options: {
             return (
                 <>
                     <div>
-                        <label className="mb-1.5 block text-sm font-medium text-slate-800">
+                        <label className={NewAgentWizardClassNames.fieldLabel}>
                             {t('agentCreation.wizard.useSetupEmailSenderLabel')}
                         </label>
                         <input
@@ -214,13 +214,13 @@ function renderCapabilitySetupFields(options: {
                             placeholder={t('agentCreation.wizard.useSetupEmailSenderPlaceholder')}
                             className={NewAgentWizardClassNames.input}
                         />
-                        <p className="mt-2 text-sm text-slate-500">
+                        <p className={`mt-2 ${NewAgentWizardClassNames.sectionHint}`}>
                             {t('agentCreation.wizard.useSetupEmailSenderHint')}
                         </p>
                     </div>
 
                     <div className="mt-4">
-                        <label className="mb-1.5 block text-sm font-medium text-slate-800">
+                        <label className={NewAgentWizardClassNames.fieldLabel}>
                             {t('agentCreation.wizard.useSetupInstructionsLabel')}
                         </label>
                         <textarea
@@ -252,7 +252,7 @@ function renderCapabilitySetupFields(options: {
             return (
                 <>
                     <div>
-                        <label className="mb-1.5 block text-sm font-medium text-slate-800">
+                        <label className={NewAgentWizardClassNames.fieldLabel}>
                             {t('agentCreation.wizard.useSetupCalendarUrlLabel')}
                         </label>
                         <input
@@ -273,18 +273,18 @@ function renderCapabilitySetupFields(options: {
                             placeholder={t('agentCreation.wizard.useSetupCalendarUrlPlaceholder')}
                             className={NewAgentWizardClassNames.input}
                         />
-                        <p className="mt-2 text-sm text-slate-500">
+                        <p className={`mt-2 ${NewAgentWizardClassNames.sectionHint}`}>
                             {t('agentCreation.wizard.useSetupCalendarUrlHint')}
                         </p>
                     </div>
 
                     {parsedCalendar && (
-                        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
-                            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                        <div className={`mt-4 ${NewAgentWizardClassNames.mutedSurfaceCard}`}>
+                            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
                                 {t('agentCreation.wizard.useSetupPreviewLabel')}
                             </div>
-                            <div className="mt-2 text-sm font-semibold text-slate-900">{parsedCalendar.calendarId}</div>
-                            <div className="mt-1 break-all text-xs text-slate-500">{parsedCalendar.url}</div>
+                            <div className="mt-2 text-sm font-semibold text-slate-900 dark:text-slate-100">{parsedCalendar.calendarId}</div>
+                            <div className="mt-1 break-all text-xs text-slate-500 dark:text-slate-400">{parsedCalendar.url}</div>
                             <a
                                 href={parsedCalendar.url}
                                 target="_blank"
@@ -298,7 +298,7 @@ function renderCapabilitySetupFields(options: {
                     )}
 
                     <div className="mt-4">
-                        <label className="mb-1.5 block text-sm font-medium text-slate-800">
+                        <label className={NewAgentWizardClassNames.fieldLabel}>
                             {t('agentCreation.wizard.useSetupInstructionsLabel')}
                         </label>
                         <textarea
@@ -330,7 +330,7 @@ function renderCapabilitySetupFields(options: {
             return (
                 <>
                     <div>
-                        <label className="mb-1.5 block text-sm font-medium text-slate-800">
+                        <label className={NewAgentWizardClassNames.fieldLabel}>
                             {t('agentCreation.wizard.useSetupMcpUrlLabel')}
                         </label>
                         <input
@@ -351,15 +351,15 @@ function renderCapabilitySetupFields(options: {
                             placeholder={t('agentCreation.wizard.useSetupMcpUrlPlaceholder')}
                             className={NewAgentWizardClassNames.input}
                         />
-                        <p className="mt-2 text-sm text-slate-500">{t('agentCreation.wizard.useSetupMcpUrlHint')}</p>
+                        <p className={`mt-2 ${NewAgentWizardClassNames.sectionHint}`}>{t('agentCreation.wizard.useSetupMcpUrlHint')}</p>
                     </div>
 
                     {parsedServerUrl && (
-                        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
-                            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                        <div className={`mt-4 ${NewAgentWizardClassNames.mutedSurfaceCard}`}>
+                            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
                                 {t('agentCreation.wizard.useSetupPreviewLabel')}
                             </div>
-                            <div className="mt-2 break-all text-sm text-slate-700">{parsedServerUrl}</div>
+                            <div className="mt-2 break-all text-sm text-slate-700 dark:text-slate-200">{parsedServerUrl}</div>
                             <a
                                 href={parsedServerUrl}
                                 target="_blank"
@@ -373,7 +373,7 @@ function renderCapabilitySetupFields(options: {
                     )}
 
                     <div className="mt-4">
-                        <label className="mb-1.5 block text-sm font-medium text-slate-800">
+                        <label className={NewAgentWizardClassNames.fieldLabel}>
                             {t('agentCreation.wizard.useSetupInstructionsLabel')}
                         </label>
                         <textarea
@@ -417,16 +417,16 @@ export function NewAgentWizardUseSetupStep(props: NewAgentWizardUseSetupStepProp
 
     return (
         <div className="mt-4 space-y-4">
-            <div className="rounded-xl border border-slate-200 bg-white p-4">
-                <p className="text-sm text-slate-600">{t('agentCreation.wizard.useSetupSectionHint')}</p>
+            <div className={NewAgentWizardClassNames.surfaceCard}>
+                <p className="text-sm text-slate-600 dark:text-slate-300">{t('agentCreation.wizard.useSetupSectionHint')}</p>
             </div>
 
             {selectedSetupCapabilityPresets.map((preset) => (
-                <section key={preset.id} className="rounded-xl border border-slate-200 bg-white p-4">
+                <section key={preset.id} className={NewAgentWizardClassNames.surfaceCard}>
                     <div className="flex items-start gap-3">
                         <div className="text-2xl leading-none">{preset.icon}</div>
                         <div>
-                            <h3 className="text-base font-semibold text-slate-900">{t(preset.labelKey)}</h3>
+                            <h3 className={NewAgentWizardClassNames.sectionTitle}>{t(preset.labelKey)}</h3>
                         </div>
                     </div>
 

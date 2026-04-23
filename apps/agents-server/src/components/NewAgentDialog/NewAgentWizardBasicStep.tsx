@@ -45,9 +45,9 @@ export function NewAgentWizardBasicStep(props: NewAgentWizardBasicStepProps) {
     const { state, setState, t } = props;
 
     return (
-        <div className="mt-4 space-y-4 rounded-xl border border-slate-200 bg-white p-4">
+        <div className={`mt-4 space-y-4 ${NewAgentWizardClassNames.surfaceCard}`}>
             <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-800">{t('agentCreation.wizard.nameLabel')}</label>
+                <label className={NewAgentWizardClassNames.fieldLabel}>{t('agentCreation.wizard.nameLabel')}</label>
                 <input
                     value={state.name}
                     onChange={(event) => setState((previous) => ({ ...previous, name: event.target.value }))}
@@ -60,7 +60,7 @@ export function NewAgentWizardBasicStep(props: NewAgentWizardBasicStepProps) {
             </div>
 
             <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-800">
+                <label className={NewAgentWizardClassNames.fieldLabel}>
                     {t('agentCreation.wizard.descriptionLabel')}
                 </label>
                 <input
@@ -72,7 +72,7 @@ export function NewAgentWizardBasicStep(props: NewAgentWizardBasicStepProps) {
             </div>
 
             <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-800">{t('agentCreation.wizard.goalLabel')}</label>
+                <label className={NewAgentWizardClassNames.fieldLabel}>{t('agentCreation.wizard.goalLabel')}</label>
                 <textarea
                     value={state.goal}
                     onChange={(event) => setState((previous) => ({ ...previous, goal: event.target.value }))}
@@ -82,7 +82,7 @@ export function NewAgentWizardBasicStep(props: NewAgentWizardBasicStepProps) {
             </div>
 
             <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-800">
+                <label className={NewAgentWizardClassNames.fieldLabel}>
                     {t('agentCreation.wizard.visibilityLabel')}
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -91,10 +91,10 @@ export function NewAgentWizardBasicStep(props: NewAgentWizardBasicStepProps) {
                             key={visibility}
                             type="button"
                             onClick={() => setState((previous) => ({ ...previous, visibility }))}
-                            className={`rounded-full border px-3 py-1.5 text-sm transition ${
+                            className={`${
                                 state.visibility === visibility
-                                    ? 'border-blue-600 bg-blue-50 text-blue-900'
-                                    : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50'
+                                    ? NewAgentWizardClassNames.selectionPillActive
+                                    : NewAgentWizardClassNames.selectionPill
                             }`}
                         >
                             {t(labelKey)}

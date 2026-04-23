@@ -135,14 +135,14 @@ export function AgentCardsSection<TAgent extends AgentCardsSectionBaseAgent>({
             {isLoading ? (
                 <AgentCardsLoadingSkeleton cardCount={loadingCardCount} />
             ) : errorMessage ? (
-                <div className="col-span-full rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <div className="col-span-full rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-100">
                     <div className="flex items-start gap-2">
                         <AlertCircleIcon className="mt-0.5 h-4 w-4 flex-shrink-0" />
                         <div>{errorMessage}</div>
                     </div>
                 </div>
             ) : agents.length === 0 ? (
-                <div className="col-span-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                <div className="col-span-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-300">
                     {emptyLabel}
                 </div>
             ) : (

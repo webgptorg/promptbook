@@ -60,9 +60,9 @@ export function NewAgentWizardWritingStep(props: NewAgentWizardWritingStepProps)
     const writingPreviewUserMessage = t('agentCreation.wizard.writingPreviewUserMessage');
 
     return (
-        <div className="mt-4 space-y-6 rounded-xl border border-slate-200 bg-white p-4">
+        <div className={`mt-4 space-y-6 ${NewAgentWizardClassNames.surfaceCard}`}>
             <div>
-                <label className="mb-2 block text-sm font-medium text-slate-800">
+                <label className={NewAgentWizardClassNames.fieldLabel}>
                     {t('agentCreation.wizard.writingStylesLabel')}
                 </label>
                 <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
@@ -108,7 +108,7 @@ export function NewAgentWizardWritingStep(props: NewAgentWizardWritingStepProps)
             />
 
             <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-800">
+                <label className={NewAgentWizardClassNames.fieldLabel}>
                     {t('agentCreation.wizard.customWritingSampleLabel')}
                 </label>
                 <textarea
