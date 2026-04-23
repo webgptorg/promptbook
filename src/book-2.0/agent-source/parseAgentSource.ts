@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
-import type { ParsedCommitment } from '../../commitments/_base/ParsedCommitment';
 import { TODO_any } from '../../_packages/types.index';
+import type { ParsedCommitment } from '../../commitments/_base/ParsedCommitment';
 import { parseUseProjectCommitmentContent } from '../../commitments/USE_PROJECT/projectReference';
 import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_camelCase';
 import { extractUrlsFromText } from '../../utils/validators/url/extractUrlsFromText';
@@ -381,8 +381,9 @@ function createInheritanceCapability(content: string): AgentCapability | null {
     }
 
     if (isVoidPseudoAgentReference(reference)) {
-        label = VOID_PSEUDO_AGENT_REFERENCE;
+        label = VOID_PSEUDO_AGENT_REFERENCE; // <- {Void} label
         iconName = 'ShieldAlert';
+        return null; // <- Note: Do not show `{Void}` in capabilities, it's only used for internal logic
     }
 
     return {
