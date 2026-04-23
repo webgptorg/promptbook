@@ -1,7 +1,20 @@
-import { Bell, EyeOff, Sparkles, SpeakerIcon, Vibrate } from 'lucide-react';
+import {
+    Bell,
+    CornerDownLeft,
+    EyeOff,
+    Languages,
+    MessageSquare,
+    Sparkles,
+    SpeakerIcon,
+    SunMoon,
+    Vibrate,
+} from 'lucide-react';
 import { CHAT_VISUAL_MODES, type ChatVisualMode } from '../../../constants/chatVisualMode';
 import { THEME_MODES } from '../../../constants/themeMode';
-import { getChatEnterBehaviorStateLabel } from '../../ChatEnterBehavior/chatEnterBehaviorTranslations';
+import {
+    getChatEnterBehaviorSettingsHelperText,
+    getChatEnterBehaviorStateLabel,
+} from '../../ChatEnterBehavior/chatEnterBehaviorTranslations';
 import type {
     ControlPanelAvailableLanguages,
     ControlPanelContentState,
@@ -10,10 +23,9 @@ import type {
     ControlPanelNotificationState,
     ControlPanelOptionAvailability,
     ControlPanelPreferenceState,
-    ControlPanelSelectSectionState,
+    ControlPanelSelectTileState,
     ControlPanelSoundSystem,
     ControlPanelStoredEnterBehavior,
-    ControlPanelSummaryBadge,
     ControlPanelThemeMode,
     ControlPanelToggleTileState,
     ControlPanelTranslator,
@@ -30,13 +42,18 @@ type ControlPanelBooleanToggleState = {
 };
 
 /**
+ * Sentinel value used by the compact Enter-key select tile for the undecided state.
+ *
+ * @private function of ControlPanelContent
+ */
+const CONTROL_PANEL_ENTER_BEHAVIOR_UNDECIDED_VALUE = '__CONTROL_PANEL_ENTER_BEHAVIOR_UNDECIDED__';
+
+/**
  * Inputs required to build the final `ControlPanelContentState` view model.
  *
  * @private function of ControlPanelContent
  */
 type CreateControlPanelContentStateProps = {
-    readonly title?: string;
-    readonly subtitle?: string;
     readonly t: ControlPanelTranslator;
     readonly controlPanelOptionAvailability: ControlPanelOptionAvailability;
     readonly soundSystem: ControlPanelSoundSystem;
@@ -64,6 +81,7 @@ type CreateControlPanelContentStateProps = {
     readonly chatVisualModeSelectId: string;
     readonly chatVisualMode: ChatVisualMode;
     readonly onChatVisualModeChange: (nextValue: string) => void;
+    readonly chatEnterBehaviorSelectId: string;
     readonly storedEnterBehavior: ControlPanelStoredEnterBehavior;
     readonly isEnterBehaviorLoading: boolean;
     readonly isEnterBehaviorPersisting: boolean;
@@ -76,8 +94,6 @@ type CreateControlPanelContentStateProps = {
  * @private function of ControlPanelContent
  */
 export function createControlPanelContentState({
-    title,
-    subtitle,
     t,
     controlPanelOptionAvailability,
     soundSystem,
@@ -105,6 +121,7 @@ export function createControlPanelContentState({
     chatVisualModeSelectId,
     chatVisualMode,
     onChatVisualModeChange,
+    chatEnterBehaviorSelectId,
     storedEnterBehavior,
     isEnterBehaviorLoading,
     isEnterBehaviorPersisting,
@@ -127,70 +144,51 @@ export function createControlPanelContentState({
     const vibrationStateLabel = resolveControlPanelToggleStateLabel(t, vibrationToggle.isEnabled);
     const activeThemeModeLabel = resolveControlPanelThemeModeLabel(t, themeMode);
     const activeLanguageName = resolveControlPanelActiveLanguageName(availableLanguages, language);
-    const chatEnterBehaviorStateLabel = getChatEnterBehaviorStateLabel(t, storedEnterBehavior);
     const activeChatVisualModeLabel = resolveControlPanelChatVisualModeLabel(t, chatVisualMode);
+    const chatEnterBehaviorStateLabel = getChatEnterBehaviorStateLabel(t, storedEnterBehavior);
 
     return {
-        feedbackTitle: title || t('controlPanel.feedbackTitle'),
-        feedbackSubtitle: subtitle || t('controlPanel.feedbackSubtitle'),
-        summaryBadges: createControlPanelSummaryBadges({
-            controlPanelOptionAvailability,
-            privateModeState,
-            selfLearningState,
-            notificationState,
-            soundStateLabel,
-            isSoundEnabled: soundToggle.isEnabled,
-            activeThemeModeLabel,
-            activeLanguageName,
-            chatEnterBehaviorStateLabel,
-            isEnterBehaviorLoading,
-            storedEnterBehavior,
-            activeChatVisualModeLabel,
-        }),
-        toggleTiles: createControlPanelToggleTiles({
-            controlPanelOptionAvailability,
-            soundSystem,
-            soundStateLabel,
-            soundToggle,
-            isVibrationSupported,
-            vibrationStateLabel,
-            vibrationToggle,
-            notificationState,
-            onToggleNotifications,
-            selfLearningState,
-            onToggleSelfLearning,
-            privateModeState,
-            onTogglePrivateMode,
-            t,
-        }),
-        themeSection: createControlPanelThemeSection({
-            selectId: themeSelectId,
-            t,
-            themeMode,
-            onChange: onThemeModeChange,
-        }),
-        languageSection: createControlPanelLanguageSection({
-            isAvailable: controlPanelOptionAvailability.language,
-            selectId: languageSelectId,
-            t,
-            language,
-            availableLanguages,
-            onChange: onLanguageChange,
-        }),
-        chatVisualModeSection: createControlPanelChatVisualModeSection({
-            isAvailable: controlPanelOptionAvailability.chatVisualMode,
-            selectId: chatVisualModeSelectId,
-            t,
-            chatVisualMode,
-            onChange: onChatVisualModeChange,
-        }),
-        chatEnterBehaviorSection: createControlPanelChatEnterBehaviorSection({
-            t,
-            storedEnterBehavior,
-            isLoading: isEnterBehaviorLoading,
-            isPersisting: isEnterBehaviorPersisting,
-            onSelectBehavior: onEnterBehaviorChange,
-        }),
+        tiles: [
+            ...createControlPanelToggleTiles({
+                controlPanelOptionAvailability,
+                soundSystem,
+                soundStateLabel,
+                soundToggle,
+                isVibrationSupported,
+                vibrationStateLabel,
+                vibrationToggle,
+                notificationState,
+                onToggleNotifications,
+                selfLearningState,
+                onToggleSelfLearning,
+                privateModeState,
+                onTogglePrivateMode,
+                t,
+            }),
+            ...createControlPanelSelectTiles({
+                controlPanelOptionAvailability,
+                themeSelectId,
+                themeMode,
+                activeThemeModeLabel,
+                onThemeModeChange,
+                languageSelectId,
+                language,
+                availableLanguages,
+                activeLanguageName,
+                onLanguageChange,
+                chatVisualModeSelectId,
+                chatVisualMode,
+                activeChatVisualModeLabel,
+                onChatVisualModeChange,
+                chatEnterBehaviorSelectId,
+                storedEnterBehavior,
+                isEnterBehaviorLoading,
+                isEnterBehaviorPersisting,
+                chatEnterBehaviorStateLabel,
+                onEnterBehaviorChange,
+                t,
+            }),
+        ],
         isAudioLoadingHintVisible:
             (controlPanelOptionAvailability.sound || controlPanelOptionAvailability.vibration) && !soundSystem,
         audioLoadingLabel: t('controlPanel.audioLoading'),
@@ -306,7 +304,7 @@ function resolveControlPanelNotificationPermissionLabel(
 }
 
 /**
- * Resolves the translated notification tile and summary presentation state.
+ * Resolves the translated notification tile presentation state.
  *
  * @private function of ControlPanelContent
  */
@@ -413,93 +411,7 @@ function resolveControlPanelThemeModeLabel(t: ControlPanelTranslator, themeMode:
 }
 
 /**
- * Builds the summary badge list shown in the control-panel hero card.
- *
- * @private function of ControlPanelContent
- */
-function createControlPanelSummaryBadges({
-    controlPanelOptionAvailability,
-    privateModeState,
-    selfLearningState,
-    notificationState,
-    soundStateLabel,
-    isSoundEnabled,
-    activeThemeModeLabel,
-    activeLanguageName,
-    chatEnterBehaviorStateLabel,
-    isEnterBehaviorLoading,
-    storedEnterBehavior,
-    activeChatVisualModeLabel,
-}: {
-    readonly controlPanelOptionAvailability: ControlPanelOptionAvailability;
-    readonly privateModeState: ControlPanelPreferenceState;
-    readonly selfLearningState: ControlPanelPreferenceState;
-    readonly notificationState: ControlPanelNotificationState;
-    readonly soundStateLabel: string;
-    readonly isSoundEnabled: boolean;
-    readonly activeThemeModeLabel: string;
-    readonly activeLanguageName: string;
-    readonly chatEnterBehaviorStateLabel: string;
-    readonly isEnterBehaviorLoading: boolean;
-    readonly storedEnterBehavior: ControlPanelStoredEnterBehavior;
-    readonly activeChatVisualModeLabel: string;
-}): ControlPanelContentState['summaryBadges'] {
-    return (
-        [
-            {
-                key: 'private-mode',
-                isAvailable: controlPanelOptionAvailability.privateMode,
-                label: privateModeState.stateLabel,
-                tone: privateModeState.tone,
-            },
-            {
-                key: 'self-learning',
-                isAvailable: controlPanelOptionAvailability.selfLearning,
-                label: selfLearningState.stateLabel,
-                tone: selfLearningState.tone,
-            },
-            {
-                key: 'notifications',
-                isAvailable: controlPanelOptionAvailability.notifications,
-                label: notificationState.stateLabel,
-                tone: notificationState.tone,
-            },
-            {
-                key: 'sound',
-                isAvailable: controlPanelOptionAvailability.sound,
-                label: soundStateLabel,
-                tone: isSoundEnabled ? 'positive' : 'neutral',
-            },
-            {
-                key: 'theme',
-                isAvailable: true,
-                label: activeThemeModeLabel,
-                tone: 'informative',
-            },
-            {
-                key: 'language',
-                isAvailable: controlPanelOptionAvailability.language,
-                label: activeLanguageName,
-                tone: 'neutral',
-            },
-            {
-                key: 'chat-enter-behavior',
-                isAvailable: !isEnterBehaviorLoading,
-                label: chatEnterBehaviorStateLabel,
-                tone: storedEnterBehavior === null ? 'informative' : 'neutral',
-            },
-            {
-                key: 'chat-visual-mode',
-                isAvailable: controlPanelOptionAvailability.chatVisualMode,
-                label: activeChatVisualModeLabel,
-                tone: 'informative',
-            },
-        ] satisfies Array<ControlPanelSummaryBadge & { readonly isAvailable: boolean }>
-    ).flatMap(({ isAvailable, ...badge }) => (isAvailable ? [badge] : []));
-}
-
-/**
- * Builds the compact toggle-tile list shown at the top of the control panel.
+ * Builds the compact toggle tiles shown in the control-panel grid.
  *
  * @private function of ControlPanelContent
  */
@@ -533,14 +445,15 @@ function createControlPanelToggleTiles({
     readonly privateModeState: ControlPanelPreferenceState;
     readonly onTogglePrivateMode: () => void;
     readonly t: ControlPanelTranslator;
-}): ControlPanelContentState['toggleTiles'] {
+}): ReadonlyArray<ControlPanelToggleTileState> {
     return (
         [
             {
                 key: 'sound',
+                kind: 'toggle',
                 isAvailable: controlPanelOptionAvailability.sound,
                 icon: SpeakerIcon,
-                label: t('controlPanel.soundTitle'),
+                title: t('controlPanel.soundTitle'),
                 description: t('controlPanel.soundDescription'),
                 stateLabel: soundStateLabel,
                 isActive: soundToggle.isEnabled,
@@ -550,9 +463,10 @@ function createControlPanelToggleTiles({
             },
             {
                 key: 'vibration',
+                kind: 'toggle',
                 isAvailable: controlPanelOptionAvailability.vibration,
                 icon: Vibrate,
-                label: t('controlPanel.vibrationTitle'),
+                title: t('controlPanel.vibrationTitle'),
                 description: isVibrationSupported
                     ? t('controlPanel.vibrationDescription')
                     : t('controlPanel.vibrationDescriptionUnsupported'),
@@ -564,9 +478,10 @@ function createControlPanelToggleTiles({
             },
             {
                 key: 'notifications',
+                kind: 'toggle',
                 isAvailable: controlPanelOptionAvailability.notifications,
                 icon: Bell,
-                label: t('controlPanel.notificationsTitle'),
+                title: t('controlPanel.notificationsTitle'),
                 description: notificationState.description,
                 auxiliaryDetail: notificationState.permissionDetail,
                 stateLabel: notificationState.stateLabel,
@@ -577,9 +492,10 @@ function createControlPanelToggleTiles({
             },
             {
                 key: 'self-learning',
+                kind: 'toggle',
                 isAvailable: controlPanelOptionAvailability.selfLearning,
                 icon: Sparkles,
-                label: t('controlPanel.selfLearningTitle'),
+                title: t('controlPanel.selfLearningTitle'),
                 description: selfLearningState.description,
                 stateLabel: selfLearningState.stateLabel,
                 isActive: selfLearningState.isActive,
@@ -589,39 +505,133 @@ function createControlPanelToggleTiles({
             },
             {
                 key: 'private-mode',
+                kind: 'toggle',
                 isAvailable: controlPanelOptionAvailability.privateMode,
                 icon: EyeOff,
-                label: t('controlPanel.privateModeTitle'),
+                title: t('controlPanel.privateModeTitle'),
                 description: privateModeState.description,
                 stateLabel: privateModeState.stateLabel,
                 isActive: privateModeState.isActive,
                 onToggle: onTogglePrivateMode,
                 tone: privateModeState.tone,
-                columnSpan: 2,
             },
         ] satisfies Array<ControlPanelToggleTileState & { readonly isAvailable: boolean }>
     ).flatMap(({ isAvailable, ...tile }) => (isAvailable ? [tile] : []));
 }
 
 /**
- * Builds the state for the theme-mode select card.
+ * Builds the select-based tiles shown in the control-panel grid.
  *
  * @private function of ControlPanelContent
  */
-function createControlPanelThemeSection({
-    selectId,
-    t,
+function createControlPanelSelectTiles({
+    controlPanelOptionAvailability,
+    themeSelectId,
     themeMode,
+    activeThemeModeLabel,
+    onThemeModeChange,
+    languageSelectId,
+    language,
+    availableLanguages,
+    activeLanguageName,
+    onLanguageChange,
+    chatVisualModeSelectId,
+    chatVisualMode,
+    activeChatVisualModeLabel,
+    onChatVisualModeChange,
+    chatEnterBehaviorSelectId,
+    storedEnterBehavior,
+    isEnterBehaviorLoading,
+    isEnterBehaviorPersisting,
+    chatEnterBehaviorStateLabel,
+    onEnterBehaviorChange,
+    t,
+}: {
+    readonly controlPanelOptionAvailability: ControlPanelOptionAvailability;
+    readonly themeSelectId: string;
+    readonly themeMode: ControlPanelThemeMode;
+    readonly activeThemeModeLabel: string;
+    readonly onThemeModeChange: (nextValue: string) => void;
+    readonly languageSelectId: string;
+    readonly language: ControlPanelLanguage;
+    readonly availableLanguages: ControlPanelAvailableLanguages;
+    readonly activeLanguageName: string;
+    readonly onLanguageChange: (nextValue: string) => void;
+    readonly chatVisualModeSelectId: string;
+    readonly chatVisualMode: ChatVisualMode;
+    readonly activeChatVisualModeLabel: string;
+    readonly onChatVisualModeChange: (nextValue: string) => void;
+    readonly chatEnterBehaviorSelectId: string;
+    readonly storedEnterBehavior: ControlPanelStoredEnterBehavior;
+    readonly isEnterBehaviorLoading: boolean;
+    readonly isEnterBehaviorPersisting: boolean;
+    readonly chatEnterBehaviorStateLabel: string;
+    readonly onEnterBehaviorChange: (behavior: ControlPanelStoredEnterBehavior) => void;
+    readonly t: ControlPanelTranslator;
+}): ReadonlyArray<ControlPanelSelectTileState> {
+    return [
+        createControlPanelThemeTile({
+            selectId: themeSelectId,
+            themeMode,
+            stateLabel: activeThemeModeLabel,
+            onChange: onThemeModeChange,
+            t,
+        }),
+        ...createControlPanelLanguageTile({
+            isAvailable: controlPanelOptionAvailability.language,
+            selectId: languageSelectId,
+            language,
+            availableLanguages,
+            stateLabel: activeLanguageName,
+            onChange: onLanguageChange,
+            t,
+        }),
+        ...createControlPanelChatVisualModeTile({
+            isAvailable: controlPanelOptionAvailability.chatVisualMode,
+            selectId: chatVisualModeSelectId,
+            chatVisualMode,
+            stateLabel: activeChatVisualModeLabel,
+            onChange: onChatVisualModeChange,
+            t,
+        }),
+        createControlPanelChatEnterBehaviorTile({
+            storedEnterBehavior,
+            isLoading: isEnterBehaviorLoading,
+            isPersisting: isEnterBehaviorPersisting,
+            stateLabel: chatEnterBehaviorStateLabel,
+            onChange: onEnterBehaviorChange,
+            selectId: chatEnterBehaviorSelectId,
+            t,
+        }),
+    ];
+}
+
+/**
+ * Builds the theme-mode tile.
+ *
+ * @private function of ControlPanelContent
+ */
+function createControlPanelThemeTile({
+    selectId,
+    themeMode,
+    stateLabel,
     onChange,
+    t,
 }: {
     readonly selectId: string;
-    readonly t: ControlPanelTranslator;
     readonly themeMode: ControlPanelThemeMode;
+    readonly stateLabel: string;
     readonly onChange: (nextValue: string) => void;
-}): ControlPanelSelectSectionState {
+    readonly t: ControlPanelTranslator;
+}): ControlPanelSelectTileState {
     return {
+        key: 'theme',
+        kind: 'select',
+        icon: SunMoon,
         title: t('controlPanel.themeTitle'),
-        subtitle: t('controlPanel.themeSubtitle'),
+        description: t('controlPanel.themeSubtitle'),
+        tone: 'informative',
+        stateLabel,
         selectId,
         selectLabel: t('controlPanel.themeSelectLabel'),
         value: themeMode,
@@ -645,111 +655,184 @@ function createControlPanelThemeSection({
 }
 
 /**
- * Builds the state for the language select card when that option is enabled.
+ * Builds the language tile when the server allows local language overrides.
  *
  * @private function of ControlPanelContent
  */
-function createControlPanelLanguageSection({
+function createControlPanelLanguageTile({
     isAvailable,
     selectId,
-    t,
     language,
     availableLanguages,
+    stateLabel,
     onChange,
+    t,
 }: {
     readonly isAvailable: boolean;
     readonly selectId: string;
-    readonly t: ControlPanelTranslator;
     readonly language: ControlPanelLanguage;
     readonly availableLanguages: ControlPanelAvailableLanguages;
+    readonly stateLabel: string;
     readonly onChange: (nextValue: string) => void;
-}): ControlPanelSelectSectionState | null {
+    readonly t: ControlPanelTranslator;
+}): ReadonlyArray<ControlPanelSelectTileState> {
     if (!isAvailable) {
-        return null;
+        return [];
     }
 
-    return {
-        title: t('controlPanel.languageTitle'),
-        subtitle: t('controlPanel.languageSubtitle'),
-        selectId,
-        selectLabel: t('controlPanel.languageSelectLabel'),
-        value: language,
-        options: availableLanguages.map((languagePack) => ({
-            value: languagePack.language,
-            label: `${languagePack.nativeName} (${languagePack.englishName})`,
-        })),
-        helpText: t('controlPanel.languageHelp'),
-        onChange,
-    };
+    return [
+        {
+            key: 'language',
+            kind: 'select',
+            icon: Languages,
+            title: t('controlPanel.languageTitle'),
+            description: t('controlPanel.languageSubtitle'),
+            tone: 'neutral',
+            stateLabel,
+            selectId,
+            selectLabel: t('controlPanel.languageSelectLabel'),
+            value: language,
+            options: availableLanguages.map((languagePack) => ({
+                value: languagePack.language,
+                label: `${languagePack.nativeName} (${languagePack.englishName})`,
+            })),
+            helpText: t('controlPanel.languageHelp'),
+            onChange,
+        },
+    ];
 }
 
 /**
- * Builds the state for the chat-visual-mode select card when that option is enabled.
+ * Builds the chat visual-mode tile when that override is enabled.
  *
  * @private function of ControlPanelContent
  */
-function createControlPanelChatVisualModeSection({
+function createControlPanelChatVisualModeTile({
     isAvailable,
     selectId,
-    t,
     chatVisualMode,
+    stateLabel,
     onChange,
+    t,
 }: {
     readonly isAvailable: boolean;
     readonly selectId: string;
-    readonly t: ControlPanelTranslator;
     readonly chatVisualMode: ChatVisualMode;
+    readonly stateLabel: string;
     readonly onChange: (nextValue: string) => void;
-}): ControlPanelSelectSectionState | null {
+    readonly t: ControlPanelTranslator;
+}): ReadonlyArray<ControlPanelSelectTileState> {
     if (!isAvailable) {
-        return null;
+        return [];
     }
 
-    return {
-        title: t('controlPanel.chatVisualModeTitle'),
-        subtitle: t('controlPanel.chatVisualModeSubtitle'),
-        selectId,
-        selectLabel: t('controlPanel.chatVisualModeSelectLabel'),
-        value: chatVisualMode,
-        options: [
-            {
-                value: CHAT_VISUAL_MODES.BUBBLE_MODE,
-                label: t('controlPanel.chatVisualModeOptionBubble'),
-            },
-            {
-                value: CHAT_VISUAL_MODES.ARTICLE_MODE,
-                label: t('controlPanel.chatVisualModeOptionArticle'),
-            },
-        ],
-        helpText: t('controlPanel.chatVisualModeHelp'),
-        onChange,
-    };
+    return [
+        {
+            key: 'chat-visual-mode',
+            kind: 'select',
+            icon: MessageSquare,
+            title: t('controlPanel.chatVisualModeTitle'),
+            description: t('controlPanel.chatVisualModeSubtitle'),
+            tone: 'informative',
+            stateLabel,
+            selectId,
+            selectLabel: t('controlPanel.chatVisualModeSelectLabel'),
+            value: chatVisualMode,
+            options: [
+                {
+                    value: CHAT_VISUAL_MODES.BUBBLE_MODE,
+                    label: t('controlPanel.chatVisualModeOptionBubble'),
+                },
+                {
+                    value: CHAT_VISUAL_MODES.ARTICLE_MODE,
+                    label: t('controlPanel.chatVisualModeOptionArticle'),
+                },
+            ],
+            helpText: t('controlPanel.chatVisualModeHelp'),
+            onChange,
+        },
+    ];
 }
 
 /**
- * Builds the state consumed by the shared Enter-key settings panel.
+ * Builds the compact Enter-key preference tile used in the dropdown.
  *
  * @private function of ControlPanelContent
  */
-function createControlPanelChatEnterBehaviorSection({
-    t,
+function createControlPanelChatEnterBehaviorTile({
     storedEnterBehavior,
     isLoading,
     isPersisting,
-    onSelectBehavior,
+    stateLabel,
+    onChange,
+    selectId,
+    t,
 }: {
-    readonly t: ControlPanelTranslator;
     readonly storedEnterBehavior: ControlPanelStoredEnterBehavior;
     readonly isLoading: boolean;
     readonly isPersisting: boolean;
-    readonly onSelectBehavior: (behavior: ControlPanelStoredEnterBehavior) => void;
-}): ControlPanelContentState['chatEnterBehaviorSection'] {
+    readonly stateLabel: string;
+    readonly onChange: (behavior: ControlPanelStoredEnterBehavior) => void;
+    readonly selectId: string;
+    readonly t: ControlPanelTranslator;
+}): ControlPanelSelectTileState {
     return {
+        key: 'chat-enter-behavior',
+        kind: 'select',
+        icon: CornerDownLeft,
         title: t('chatEnterBehavior.sectionTitle'),
-        subtitle: t('chatEnterBehavior.sectionDescription'),
-        storedEnterBehavior,
-        isLoading,
-        isPersisting,
-        onSelectBehavior,
+        description: t('chatEnterBehavior.sectionDescription'),
+        tone: storedEnterBehavior === null ? 'informative' : 'positive',
+        stateLabel,
+        selectId,
+        selectLabel: t('chatEnterBehavior.sectionTitle'),
+        value: encodeControlPanelEnterBehaviorValue(storedEnterBehavior),
+        options: [
+            {
+                value: CONTROL_PANEL_ENTER_BEHAVIOR_UNDECIDED_VALUE,
+                label: t('chatEnterBehavior.stateUndecided'),
+            },
+            {
+                value: 'SEND',
+                label: t('chatEnterBehavior.sendTitle'),
+            },
+            {
+                value: 'NEWLINE',
+                label: t('chatEnterBehavior.newlineTitle'),
+            },
+        ],
+        helpText: getChatEnterBehaviorSettingsHelperText(t, {
+            isLoading,
+            isPersisting,
+            storedEnterBehavior,
+        }),
+        onChange: (nextValue) => {
+            onChange(decodeControlPanelEnterBehaviorValue(nextValue));
+        },
+        isDisabled: isLoading || isPersisting,
     };
+}
+
+/**
+ * Encodes the stored Enter-key preference into the compact select control value.
+ *
+ * @private function of ControlPanelContent
+ */
+function encodeControlPanelEnterBehaviorValue(
+    storedEnterBehavior: ControlPanelStoredEnterBehavior,
+): string {
+    return storedEnterBehavior === null ? CONTROL_PANEL_ENTER_BEHAVIOR_UNDECIDED_VALUE : storedEnterBehavior;
+}
+
+/**
+ * Decodes the compact select value back into the stored Enter-key preference shape.
+ *
+ * @private function of ControlPanelContent
+ */
+function decodeControlPanelEnterBehaviorValue(
+    nextValue: string,
+): ControlPanelStoredEnterBehavior {
+    return nextValue === CONTROL_PANEL_ENTER_BEHAVIOR_UNDECIDED_VALUE
+        ? null
+        : (nextValue as Exclude<ControlPanelStoredEnterBehavior, null>);
 }

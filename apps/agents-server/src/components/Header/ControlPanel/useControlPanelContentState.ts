@@ -13,7 +13,6 @@ import { useServerLanguage } from '../../ServerLanguage/ServerLanguageProvider';
 import { useThemeMode } from '../../ThemeMode/ThemeModeProvider';
 import type {
     ControlPanelContentState,
-    ControlPanelContentStateProps,
     ControlPanelStoredEnterBehavior,
 } from './ControlPanelContentState';
 import { createControlPanelContentState } from './createControlPanelContentState';
@@ -25,10 +24,7 @@ import { useControlPanelAudioState } from './useControlPanelAudioState';
  *
  * @private function of ControlPanelContent
  */
-export function useControlPanelContentState({
-    title,
-    subtitle,
-}: ControlPanelContentStateProps): ControlPanelContentState {
+export function useControlPanelContentState(): ControlPanelContentState {
     const { controlPanelOptionAvailability } = useMetadataFlags();
     const { chatVisualMode, setChatVisualMode } = useChatVisualMode();
     const { themeMode, setThemeMode } = useThemeMode();
@@ -55,6 +51,7 @@ export function useControlPanelContentState({
     const languageSelectId = useId();
     const themeSelectId = useId();
     const chatVisualModeSelectId = useId();
+    const chatEnterBehaviorSelectId = useId();
 
     const handleLanguageChange = useCallback(
         (nextLanguage: string) => {
@@ -107,8 +104,6 @@ export function useControlPanelContentState({
     }, [isPrivateModeEnabled, isSelfLearningEnabled, setIsSelfLearningEnabled]);
 
     return createControlPanelContentState({
-        title,
-        subtitle,
         t,
         controlPanelOptionAvailability,
         soundSystem,
@@ -136,6 +131,7 @@ export function useControlPanelContentState({
         chatVisualModeSelectId,
         chatVisualMode,
         onChatVisualModeChange: handleChatVisualModeChange,
+        chatEnterBehaviorSelectId,
         storedEnterBehavior,
         isEnterBehaviorLoading,
         isEnterBehaviorPersisting,

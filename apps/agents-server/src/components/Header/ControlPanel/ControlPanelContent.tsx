@@ -1,12 +1,11 @@
 'use client';
 
-import { CornerDownLeft, Languages, MessageSquare, Settings2, SunMoon, type LucideIcon } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { ChatEnterBehaviorSettingsPanel } from '../../ChatEnterBehavior/ChatEnterBehaviorSettingsPanel';
 import type {
-    ControlPanelContentState,
-    ControlPanelSelectSectionState,
+    ControlPanelSelectTileState,
     ControlPanelStatusTone,
+    ControlPanelToggleTileState,
 } from './ControlPanelContentState';
 import { useControlPanelContentState } from './useControlPanelContentState';
 
@@ -16,17 +15,15 @@ import { useControlPanelContentState } from './useControlPanelContentState';
  * @private function of HeaderControlPanelDropdown
  */
 type ControlPanelContentProps = {
-    readonly title?: string;
-    readonly subtitle?: string;
     readonly isMobile?: boolean;
 };
 
 /**
- * Tone-specific styles used by compact control-center toggle tiles.
+ * Tone-specific styles used by compact control-panel tiles.
  *
  * @private function of ControlPanelContent
  */
-type ControlPanelToggleToneClasses = {
+type ControlPanelTileToneClasses = {
     readonly activeSurface: string;
     readonly iconWrap: string;
     readonly switchTrack: string;
@@ -34,11 +31,33 @@ type ControlPanelToggleToneClasses = {
 };
 
 /**
- * Props for one compact status chip in the control panel summary.
+ * Props for one reusable control-panel tile surface.
  *
  * @private function of ControlPanelContent
  */
-type ControlPanelStatusBadgeProps = Pick<ControlPanelContentState['summaryBadges'][number], 'label' | 'tone'>;
+type ControlPanelTileSurfaceProps = {
+    readonly icon: LucideIcon;
+    readonly title: string;
+    readonly description: string;
+    readonly tone: ControlPanelStatusTone;
+    readonly isEmphasized?: boolean;
+    readonly isDisabled?: boolean;
+    readonly className?: string;
+    readonly headerAccessory?: ReactNode;
+    readonly children?: ReactNode;
+    readonly footer?: ReactNode;
+};
+
+/**
+ * Props for the compact state badge shown inside control-panel tiles.
+ *
+ * @private function of ControlPanelContent
+ */
+type ControlPanelStateBadgeProps = {
+    readonly label: string;
+    readonly tone: ControlPanelStatusTone;
+    readonly isEmphasized?: boolean;
+};
 
 /**
  * Props for the visual switch displayed in each toggle tile.
@@ -52,55 +71,25 @@ type ControlPanelToggleSwitchProps = {
 };
 
 /**
- * Props for one compact toggle tile rendered inside the control-center grid.
+ * Props for one compact toggle tile rendered inside the control-panel grid.
  *
  * @private function of ControlPanelContent
  */
-type ControlPanelToggleTileProps = Omit<ControlPanelContentState['toggleTiles'][number], 'key'>;
+type ControlPanelToggleTileProps = Omit<ControlPanelToggleTileState, 'key' | 'kind'>;
 
 /**
- * Props for one reusable control-panel card section.
+ * Props for one select-based tile rendered inside the control-panel grid.
  *
  * @private function of ControlPanelContent
  */
-type ControlPanelSectionCardProps = {
-    readonly icon: LucideIcon;
-    readonly title: string;
-    readonly subtitle: string;
-    readonly children: ReactNode;
-};
+type ControlPanelSelectTileProps = Omit<ControlPanelSelectTileState, 'key' | 'kind'>;
 
 /**
- * Props for the reusable select-based control-panel card.
+ * Lookup map of all tone-specific class groups for control-panel tiles.
  *
  * @private function of ControlPanelContent
  */
-type ControlPanelSelectSectionProps = {
-    readonly icon: LucideIcon;
-    readonly section: ControlPanelSelectSectionState;
-};
-
-/**
- * Tailwind classes used by status chips for each visual tone.
- *
- * @private function of ControlPanelContent
- */
-const CONTROL_PANEL_STATUS_TONE_CLASS_MAP: Record<ControlPanelStatusTone, string> = {
-    neutral: 'border-gray-200 bg-gray-50 text-gray-700 dark:border-slate-700 dark:bg-slate-800/90 dark:text-slate-200',
-    informative:
-        'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/40 dark:bg-blue-500/15 dark:text-blue-100',
-    positive:
-        'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/40 dark:bg-emerald-500/15 dark:text-emerald-100',
-    danger:
-        'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/40 dark:bg-rose-500/15 dark:text-rose-100',
-};
-
-/**
- * Lookup map of all tone-specific class groups for toggle tiles.
- *
- * @private function of ControlPanelContent
- */
-const CONTROL_PANEL_TOGGLE_TONE_CLASS_MAP: Record<ControlPanelStatusTone, ControlPanelToggleToneClasses> = {
+const CONTROL_PANEL_TILE_TONE_CLASS_MAP: Record<ControlPanelStatusTone, ControlPanelTileToneClasses> = {
     neutral: {
         activeSurface:
             'border-slate-300 bg-gradient-to-br from-slate-100 to-white text-slate-700 dark:border-slate-600 dark:from-slate-800 dark:to-slate-900 dark:text-slate-100',
@@ -133,14 +122,71 @@ const CONTROL_PANEL_TOGGLE_TONE_CLASS_MAP: Record<ControlPanelStatusTone, Contro
 };
 
 /**
- * Renders one compact status chip summarizing current panel state.
+ * Renders the shared card surface reused by toggle and select tiles.
  *
  * @private function of ControlPanelContent
  */
-function ControlPanelStatusBadge({ label, tone }: ControlPanelStatusBadgeProps) {
+function ControlPanelTileSurface({
+    icon: Icon,
+    title,
+    description,
+    tone,
+    isEmphasized = false,
+    isDisabled = false,
+    className,
+    headerAccessory,
+    children,
+    footer,
+}: ControlPanelTileSurfaceProps) {
+    const toneClasses = CONTROL_PANEL_TILE_TONE_CLASS_MAP[tone];
+
+    return (
+        <div
+            className={`flex min-h-[8.8rem] flex-col rounded-2xl border p-3 shadow-sm ${
+                isEmphasized
+                    ? toneClasses.activeSurface
+                    : 'border-gray-200 bg-white text-gray-700 dark:border-slate-700 dark:bg-slate-900/95 dark:text-slate-200'
+            } ${isDisabled ? 'opacity-60' : ''} ${className || ''}`}
+        >
+            <div className="flex items-start justify-between gap-2">
+                <span
+                    className={`inline-flex h-9 w-9 items-center justify-center rounded-xl transition ${
+                        isEmphasized ? toneClasses.iconWrap : 'bg-gray-100 text-gray-500 dark:bg-slate-800 dark:text-slate-400'
+                    }`}
+                >
+                    <Icon className="h-4 w-4" aria-hidden="true" />
+                </span>
+
+                {headerAccessory}
+            </div>
+
+            <div className="mt-2 min-w-0">
+                <p className="text-sm font-semibold text-gray-900 dark:text-slate-50">{title}</p>
+                <p className="mt-0.5 text-[11px] leading-snug text-gray-600 dark:text-slate-300">{description}</p>
+            </div>
+
+            {children && <div className="mt-3">{children}</div>}
+
+            {footer && <div className="mt-auto pt-2">{footer}</div>}
+        </div>
+    );
+}
+
+/**
+ * Renders a compact state badge matching the current tile tone.
+ *
+ * @private function of ControlPanelContent
+ */
+function ControlPanelStateBadge({ label, tone, isEmphasized = true }: ControlPanelStateBadgeProps) {
+    const toneClasses = CONTROL_PANEL_TILE_TONE_CLASS_MAP[tone];
+
     return (
         <span
-            className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold ${CONTROL_PANEL_STATUS_TONE_CLASS_MAP[tone]}`}
+            className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest ${
+                isEmphasized
+                    ? toneClasses.stateBadge
+                    : 'border-gray-200 bg-gray-50 text-gray-500 dark:border-slate-700 dark:bg-slate-800/90 dark:text-slate-300'
+            }`}
         >
             {label}
         </span>
@@ -148,12 +194,12 @@ function ControlPanelStatusBadge({ label, tone }: ControlPanelStatusBadgeProps) 
 }
 
 /**
- * Renders the compact switch indicator used by tile toggles.
+ * Renders the compact switch indicator used by toggle tiles.
  *
  * @private function of ControlPanelContent
  */
 function ControlPanelToggleSwitch({ isOn, tone, isDisabled = false }: ControlPanelToggleSwitchProps) {
-    const toneClasses = CONTROL_PANEL_TOGGLE_TONE_CLASS_MAP[tone];
+    const toneClasses = CONTROL_PANEL_TILE_TONE_CLASS_MAP[tone];
 
     return (
         <span
@@ -179,8 +225,8 @@ function ControlPanelToggleSwitch({ isOn, tone, isDisabled = false }: ControlPan
  * @private function of ControlPanelContent
  */
 function ControlPanelToggleTile({
-    icon: Icon,
-    label,
+    icon,
+    title,
     description,
     stateLabel,
     isActive,
@@ -190,170 +236,147 @@ function ControlPanelToggleTile({
     auxiliaryDetail,
     columnSpan = 1,
 }: ControlPanelToggleTileProps) {
-    const toneClasses = CONTROL_PANEL_TOGGLE_TONE_CLASS_MAP[tone];
-
     return (
         <button
             type="button"
             onClick={onToggle}
             aria-pressed={isActive}
             disabled={isDisabled}
-            className={`flex min-h-[8.4rem] flex-col rounded-2xl border p-3 text-left shadow-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 ${
-                isActive
-                    ? toneClasses.activeSurface
-                    : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-900/95 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:bg-slate-900'
-            } ${isDisabled ? 'cursor-not-allowed opacity-60' : 'hover:-translate-y-[1px] hover:shadow-md'} ${
+            className={`group text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 ${
                 columnSpan === 2 ? 'col-span-2' : ''
-            }`}
+            } ${isDisabled ? 'cursor-not-allowed' : ''}`}
         >
-            <div className="flex items-start justify-between gap-2">
-                <span
-                    className={`inline-flex h-9 w-9 items-center justify-center rounded-xl transition ${
-                        isActive ? toneClasses.iconWrap : 'bg-gray-100 text-gray-500 dark:bg-slate-800 dark:text-slate-400'
-                    }`}
-                >
-                    <Icon className="h-4 w-4" aria-hidden="true" />
-                </span>
-
-                <ControlPanelToggleSwitch isOn={isActive} tone={tone} isDisabled={isDisabled} />
-            </div>
-
-            <div className="mt-2 min-w-0">
-                <p className="truncate text-sm font-semibold text-gray-900 dark:text-slate-50">{label}</p>
-                <p className="mt-0.5 text-[11px] leading-snug text-gray-600 dark:text-slate-300">{description}</p>
-                {auxiliaryDetail && <p className="mt-1 text-[10px] text-gray-500 dark:text-slate-400">{auxiliaryDetail}</p>}
-            </div>
-
-            <div className="mt-auto pt-2">
-                <span
-                    className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest ${
-                        isActive
-                            ? toneClasses.stateBadge
-                            : 'border-gray-200 bg-gray-50 text-gray-500 dark:border-slate-700 dark:bg-slate-800/90 dark:text-slate-300'
-                    }`}
-                >
-                    {stateLabel}
-                </span>
-            </div>
+            <ControlPanelTileSurface
+                icon={icon}
+                title={title}
+                description={description}
+                tone={tone}
+                isEmphasized={isActive}
+                isDisabled={isDisabled}
+                className={`transition ${
+                    isDisabled
+                        ? ''
+                        : isActive
+                          ? 'group-hover:-translate-y-[1px] group-hover:shadow-md'
+                          : 'group-hover:-translate-y-[1px] group-hover:border-gray-300 group-hover:bg-gray-50 group-hover:shadow-md dark:group-hover:border-slate-600 dark:group-hover:bg-slate-900'
+                }`}
+                headerAccessory={<ControlPanelToggleSwitch isOn={isActive} tone={tone} isDisabled={isDisabled} />}
+                footer={<ControlPanelStateBadge label={stateLabel} tone={tone} isEmphasized={isActive} />}
+            >
+                {auxiliaryDetail && <p className="text-[10px] leading-snug text-gray-500 dark:text-slate-400">{auxiliaryDetail}</p>}
+            </ControlPanelTileSurface>
         </button>
     );
 }
 
 /**
- * Renders one shared card surface used by the select and Enter-key sections.
+ * Renders one select-based tile aligned with the toggle tile styling.
  *
  * @private function of ControlPanelContent
  */
-function ControlPanelSectionCard({ icon: Icon, title, subtitle, children }: ControlPanelSectionCardProps) {
+function ControlPanelSelectTile({
+    icon,
+    title,
+    description,
+    tone,
+    stateLabel,
+    selectId,
+    selectLabel,
+    value,
+    options,
+    helpText,
+    onChange,
+    isDisabled = false,
+    columnSpan = 1,
+}: ControlPanelSelectTileProps) {
     return (
-        <section className="rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900/95 dark:shadow-slate-950/30">
-            <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-gray-900 dark:text-slate-50">{title}</p>
-                    <p className="mt-0.5 text-[11px] text-gray-600 dark:text-slate-300">{subtitle}</p>
+        <section className={columnSpan === 2 ? 'col-span-2' : ''}>
+            <ControlPanelTileSurface
+                icon={icon}
+                title={title}
+                description={description}
+                tone={tone}
+                isEmphasized
+                isDisabled={isDisabled}
+                className={`transition ${isDisabled ? '' : 'hover:-translate-y-[1px] hover:shadow-md'}`}
+                headerAccessory={<ControlPanelStateBadge label={stateLabel} tone={tone} />}
+            >
+                <div className="space-y-1.5">
+                    <label htmlFor={selectId} className="sr-only">
+                        {selectLabel}
+                    </label>
+                    <select
+                        id={selectId}
+                        value={value}
+                        onChange={(event) => onChange(event.target.value)}
+                        disabled={isDisabled}
+                        className="w-full rounded-xl border border-gray-200 bg-white/95 px-3 py-2 text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-blue-400 dark:focus:ring-blue-500/30"
+                    >
+                        {options.map((option) => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </select>
+                    <p className="text-[10px] leading-snug text-gray-500 dark:text-slate-400">{helpText}</p>
                 </div>
-                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-100">
-                    <Icon className="h-4 w-4" aria-hidden="true" />
-                </span>
-            </div>
-
-            {children}
+            </ControlPanelTileSurface>
         </section>
     );
 }
 
 /**
- * Renders one select-based control-panel section with consistent layout.
- *
- * @private function of ControlPanelContent
- */
-function ControlPanelSelectSection({ icon, section }: ControlPanelSelectSectionProps) {
-    return (
-        <ControlPanelSectionCard icon={icon} title={section.title} subtitle={section.subtitle}>
-            <div className="mt-2.5 space-y-1.5">
-                <label htmlFor={section.selectId} className="text-xs font-medium text-gray-600 dark:text-slate-300">
-                    {section.selectLabel}
-                </label>
-                <select
-                    id={section.selectId}
-                    value={section.value}
-                    onChange={(event) => section.onChange(event.target.value)}
-                    className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-blue-400 dark:focus:ring-blue-500/30"
-                >
-                    {section.options.map((option) => (
-                        <option key={option.value} value={option.value}>
-                            {option.label}
-                        </option>
-                    ))}
-                </select>
-                <p className="text-[11px] text-gray-500 dark:text-slate-400">{section.helpText}</p>
-            </div>
-        </ControlPanelSectionCard>
-    );
-}
-
-/**
- * Renders the compact control-center content used by desktop and mobile wrappers.
+ * Renders the compact control-panel content used by desktop and mobile wrappers.
  *
  * @private function of HeaderControlPanelDropdown
  */
-export function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanelContentProps) {
-    const controlPanelState = useControlPanelContentState({ title, subtitle });
+export function ControlPanelContent({ isMobile = false }: ControlPanelContentProps) {
+    const controlPanelState = useControlPanelContentState();
 
     return (
         <div className={`space-y-2 ${isMobile ? 'pt-0.5' : ''}`}>
-            <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-100/90 via-white to-blue-50 p-2.5 shadow-sm dark:border-slate-700 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/70 dark:shadow-slate-950/30">
-                <div className="flex items-start justify-between gap-2">
-                    <div>
-                        <p className="text-xs font-semibold text-slate-700 dark:text-slate-100">{controlPanelState.feedbackTitle}</p>
-                        <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-300">{controlPanelState.feedbackSubtitle}</p>
-                    </div>
-                    <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/95 text-blue-600 shadow-sm dark:bg-slate-800/95 dark:text-blue-200">
-                        <Settings2 className="h-4 w-4" aria-hidden="true" />
-                    </span>
-                </div>
-
-                {controlPanelState.summaryBadges.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                        {controlPanelState.summaryBadges.map(({ key, tone, label }) => (
-                            <ControlPanelStatusBadge key={key} tone={tone} label={label} />
-                        ))}
-                    </div>
-                )}
-            </div>
-
-            {controlPanelState.toggleTiles.length > 0 && (
+            {controlPanelState.tiles.length > 0 && (
                 <div className="grid grid-cols-2 gap-2">
-                    {controlPanelState.toggleTiles.map(({ key, ...tileProps }) => (
-                        <ControlPanelToggleTile key={key} {...tileProps} />
-                    ))}
+                    {controlPanelState.tiles.map((tile) => {
+                        if (tile.kind === 'toggle') {
+                            return (
+                                <ControlPanelToggleTile
+                                    key={tile.key}
+                                    icon={tile.icon}
+                                    title={tile.title}
+                                    description={tile.description}
+                                    stateLabel={tile.stateLabel}
+                                    isActive={tile.isActive}
+                                    onToggle={tile.onToggle}
+                                    tone={tile.tone}
+                                    isDisabled={tile.isDisabled}
+                                    auxiliaryDetail={tile.auxiliaryDetail}
+                                    columnSpan={tile.columnSpan}
+                                />
+                            );
+                        }
+
+                        return (
+                            <ControlPanelSelectTile
+                                key={tile.key}
+                                icon={tile.icon}
+                                title={tile.title}
+                                description={tile.description}
+                                tone={tile.tone}
+                                stateLabel={tile.stateLabel}
+                                selectId={tile.selectId}
+                                selectLabel={tile.selectLabel}
+                                value={tile.value}
+                                options={tile.options}
+                                helpText={tile.helpText}
+                                onChange={tile.onChange}
+                                isDisabled={tile.isDisabled}
+                                columnSpan={tile.columnSpan}
+                            />
+                        );
+                    })}
                 </div>
             )}
-
-            <ControlPanelSelectSection icon={SunMoon} section={controlPanelState.themeSection} />
-
-            {controlPanelState.languageSection && (
-                <ControlPanelSelectSection icon={Languages} section={controlPanelState.languageSection} />
-            )}
-
-            {controlPanelState.chatVisualModeSection && (
-                <ControlPanelSelectSection icon={MessageSquare} section={controlPanelState.chatVisualModeSection} />
-            )}
-
-            <ControlPanelSectionCard
-                icon={CornerDownLeft}
-                title={controlPanelState.chatEnterBehaviorSection.title}
-                subtitle={controlPanelState.chatEnterBehaviorSection.subtitle}
-            >
-                <div className="mt-2.5">
-                    <ChatEnterBehaviorSettingsPanel
-                        storedEnterBehavior={controlPanelState.chatEnterBehaviorSection.storedEnterBehavior}
-                        isLoading={controlPanelState.chatEnterBehaviorSection.isLoading}
-                        isPersisting={controlPanelState.chatEnterBehaviorSection.isPersisting}
-                        onSelectBehavior={controlPanelState.chatEnterBehaviorSection.onSelectBehavior}
-                    />
-                </div>
-            </ControlPanelSectionCard>
 
             {controlPanelState.isAudioLoadingHintVisible && (
                 <p className="px-1 text-[11px] text-gray-500 dark:text-slate-400">{controlPanelState.audioLoadingLabel}</p>

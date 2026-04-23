@@ -87,7 +87,7 @@ export function HeaderControlPanelDropdown() {
                     ref={dropdownRef}
                     role="dialog"
                     aria-label={t('controlPanel.label')}
-                    className="absolute right-0 top-full z-50 mt-2 w-[22rem] max-w-[calc(100vw-0.75rem)] rounded-3xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-100/80 p-2 shadow-2xl shadow-black/10 dark:border-slate-700/80 dark:from-slate-950 dark:to-slate-900/95 dark:shadow-slate-950/40"
+                    className="absolute right-0 top-full z-50 mt-2 w-[24rem] max-w-[calc(100vw-0.75rem)] rounded-3xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-100/80 p-2 shadow-2xl shadow-black/10 dark:border-slate-700/80 dark:from-slate-950 dark:to-slate-900/95 dark:shadow-slate-950/40"
                 >
                     <div className="flex items-center justify-between px-1 pb-2 pt-1">
                         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">

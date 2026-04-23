@@ -7,16 +7,6 @@ import type { useSoundSystem } from '../../SoundSystemProvider/SoundSystemProvid
 import type { useThemeMode } from '../../ThemeMode/ThemeModeProvider';
 
 /**
- * Props accepted by `useControlPanelContentState`.
- *
- * @private function of ControlPanelContent
- */
-export type ControlPanelContentStateProps = {
-    readonly title?: string;
-    readonly subtitle?: string;
-};
-
-/**
  * Shared sound-system type used by the control-panel sound helpers.
  *
  * @private function of ControlPanelContent
@@ -103,14 +93,27 @@ export type ControlPanelNotificationState = ControlPanelPreferenceState & {
 };
 
 /**
- * Summary chip state rendered in the control-panel hero card.
+ * One selectable option displayed inside a compact control-panel tile.
  *
  * @private function of ControlPanelContent
  */
-export type ControlPanelSummaryBadge = {
-    readonly key: string;
+export type ControlPanelSelectOptionState = {
+    readonly value: string;
     readonly label: string;
+};
+
+/**
+ * Shared base state rendered by every tile inside the control-panel grid.
+ *
+ * @private function of ControlPanelContent
+ */
+type ControlPanelTileStateBase = {
+    readonly key: string;
+    readonly icon: LucideIcon;
+    readonly title: string;
+    readonly description: string;
     readonly tone: ControlPanelStatusTone;
+    readonly columnSpan?: 1 | 2;
 };
 
 /**
@@ -118,52 +121,38 @@ export type ControlPanelSummaryBadge = {
  *
  * @private function of ControlPanelContent
  */
-export type ControlPanelToggleTileState = {
-    readonly key: string;
-    readonly icon: LucideIcon;
-    readonly label: string;
-    readonly description: string;
+export type ControlPanelToggleTileState = ControlPanelTileStateBase & {
+    readonly kind: 'toggle';
     readonly stateLabel: string;
     readonly isActive: boolean;
     readonly onToggle: () => void;
-    readonly tone: ControlPanelStatusTone;
     readonly isDisabled?: boolean;
     readonly auxiliaryDetail?: string;
-    readonly columnSpan?: 1 | 2;
 };
 
 /**
- * Shared select-card state used by the language and chat-visual-mode sections.
+ * One select-based tile used by appearance, language, and keybinding controls.
  *
  * @private function of ControlPanelContent
  */
-export type ControlPanelSelectSectionState = {
-    readonly title: string;
-    readonly subtitle: string;
+export type ControlPanelSelectTileState = ControlPanelTileStateBase & {
+    readonly kind: 'select';
+    readonly stateLabel: string;
     readonly selectId: string;
     readonly selectLabel: string;
     readonly value: string;
-    readonly options: ReadonlyArray<{
-        readonly value: string;
-        readonly label: string;
-    }>;
+    readonly options: ReadonlyArray<ControlPanelSelectOptionState>;
     readonly helpText: string;
     readonly onChange: (nextValue: string) => void;
+    readonly isDisabled?: boolean;
 };
 
 /**
- * Enter-key picker state consumed by `ChatEnterBehaviorSettingsPanel`.
+ * One tile rendered by the unified control-panel grid.
  *
  * @private function of ControlPanelContent
  */
-export type ControlPanelEnterBehaviorSectionState = {
-    readonly title: string;
-    readonly subtitle: string;
-    readonly storedEnterBehavior: ControlPanelStoredEnterBehavior;
-    readonly isLoading: boolean;
-    readonly isPersisting: boolean;
-    readonly onSelectBehavior: (behavior: ControlPanelStoredEnterBehavior) => void;
-};
+export type ControlPanelTileState = ControlPanelToggleTileState | ControlPanelSelectTileState;
 
 /**
  * Aggregated presentation state returned to `ControlPanelContent`.
@@ -171,14 +160,7 @@ export type ControlPanelEnterBehaviorSectionState = {
  * @private function of ControlPanelContent
  */
 export type ControlPanelContentState = {
-    readonly feedbackTitle: string;
-    readonly feedbackSubtitle: string;
-    readonly summaryBadges: ReadonlyArray<ControlPanelSummaryBadge>;
-    readonly toggleTiles: ReadonlyArray<ControlPanelToggleTileState>;
-    readonly themeSection: ControlPanelSelectSectionState;
-    readonly languageSection: ControlPanelSelectSectionState | null;
-    readonly chatVisualModeSection: ControlPanelSelectSectionState | null;
-    readonly chatEnterBehaviorSection: ControlPanelEnterBehaviorSectionState;
+    readonly tiles: ReadonlyArray<ControlPanelTileState>;
     readonly isAudioLoadingHintVisible: boolean;
     readonly audioLoadingLabel: string;
 };

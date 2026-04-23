@@ -1,3 +1,9 @@
+-   Simplified the Agents Server control panel so the dropdown now uses one consistent tile grid instead of mixing an overview banner with separate lower cards:
+
+    -   Removed the redundant overview summary card from the control panel header because it only repeated the state already visible in the individual controls.
+    -   Reworked the lower Theme, Language, Chat visual mode, and Enter-key preference controls into the same icon-tile visual language as the existing top toggles, keeping the compact dropdown more consistent and easier to scan.
+    -   Kept the richer dedicated keybindings settings page unchanged, while using one shared control-panel state model and adding regression coverage for the new unified tile layout.
+
 -   Fixed the remaining Agents Server dark-mode regressions across homepage surfaces, chat layouts, control-panel keybinding cards, and new-agent creation dialogs:
 
     -   Replaced the light-only homepage directory background and card overlays with shared dark-aware route/card surfaces, so the agents home and folder views no longer fall back to bright page chrome in dark mode.
