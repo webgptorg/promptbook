@@ -40,6 +40,41 @@ export type MigratePrefixOptions = {
      * If true, print SQL before execution.
      */
     readonly logSqlStatements: boolean;
+    /**
+     * Optional observer notified about the current prefix migration sub-step.
+     */
+    readonly onProgress?: (progress: MigratePrefixProgress) => void;
+};
+
+/**
+ * Detailed prefix-migration stages used for richer error reporting.
+ *
+ * @private function of runDatabaseMigrations
+ */
+export type MigratePrefixProgressStage =
+    | 'ensure-migrations-table-schema'
+    | 'read-applied-migrations'
+    | 'apply-migration-file'
+    | 'record-applied-migration';
+
+/**
+ * Progress snapshot emitted while one prefix is being migrated.
+ *
+ * @private function of runDatabaseMigrations
+ */
+export type MigratePrefixProgress = {
+    /**
+     * Prefix currently being migrated.
+     */
+    readonly prefix: string;
+    /**
+     * Detailed migration sub-step.
+     */
+    readonly stage: MigratePrefixProgressStage;
+    /**
+     * Migration file currently being applied, when relevant.
+     */
+    readonly migrationFile?: string;
 };
 
 /**
@@ -75,12 +110,20 @@ export async function applyPendingMigrationsForPrefix(options: MigratePrefixOpti
     const migrationsTableName = `${options.prefix}Migrations`;
     const migrationsTableIdentifier = quoteIdentifier(migrationsTableName);
 
+    options.onProgress?.({
+        prefix: options.prefix,
+        stage: 'ensure-migrations-table-schema',
+    });
     await ensureMigrationsTableSchema({
         client: options.client,
         migrationsTableIdentifier,
         manualAppliedByDefault: options.manualAppliedByDefault,
     });
 
+    options.onProgress?.({
+        prefix: options.prefix,
+        stage: 'read-applied-migrations',
+    });
     const { rows } = await options.client.query<{ filename: string }>(
         `SELECT "filename" FROM ${migrationsTableIdentifier}`,
     );
@@ -95,12 +138,22 @@ export async function applyPendingMigrationsForPrefix(options: MigratePrefixOpti
         const migrationFilePath = `${options.migrationsDirectory}/${migrationFile}`;
         options.logger.info(`  🔼 Applying ${migrationFilePath.split('\\').join('/')}...`);
 
+        options.onProgress?.({
+            prefix: options.prefix,
+            stage: 'apply-migration-file',
+            migrationFile,
+        });
         const sql = (await readFile(migrationFilePath, 'utf-8')).replace(/prefix_/g, options.prefix);
         if (options.logSqlStatements) {
             options.logger.info(sql);
         }
 
         await options.client.query(sql);
+        options.onProgress?.({
+            prefix: options.prefix,
+            stage: 'record-applied-migration',
+            migrationFile,
+        });
         await options.client.query(
             `INSERT INTO ${migrationsTableIdentifier} ("filename", "appliedBy") VALUES ($1, $2)`,
             [migrationFile, options.appliedBy],

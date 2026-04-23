@@ -1,3 +1,9 @@
+-   Improved Agents Server migration failure diagnostics so blocked or broken SQL runs now report actionable context instead of only dumping the raw PostgreSQL error:
+
+    -   Added shared migration failure enrichment in the Agents Server migration runner, so manual migrations, automatic startup checks, and managed-server migration flows now include the failing stage, selected prefixes, and current prefix/migration file when available.
+    -   Detect advisory-lock timeouts caused by waiting on `pg_advisory_lock(...)` and explain that another migration process is likely holding the lock until PostgreSQL `statement_timeout` cancels the wait.
+    -   Kept downstream PostgreSQL logging compatible by preserving the original `pg` error fields on the branded migration error while making the CLI output print the richer human-readable message directly.
+
 -   Simplified the Agents Server control panel so the dropdown now uses one consistent tile grid instead of mixing an overview banner with separate lower cards:
 
     -   Removed the redundant overview summary card from the control panel header because it only repeated the state already visible in the individual controls.

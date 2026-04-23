@@ -7,6 +7,10 @@ import {
     releaseMigrationExecutionLock,
     type DatabaseMigrationExecutionLockMode,
 } from './acquireMigrationExecutionLock';
+import {
+    createDatabaseMigrationFailureError,
+    type DatabaseMigrationFailureContext,
+} from './createDatabaseMigrationFailureError';
 import { importRuntimeModule } from './importRuntimeModule';
 import { listRegisteredServersFromDatabase } from './listRegisteredServersFromDatabase';
 import { migratePrefix } from './migratePrefix';
@@ -209,31 +213,45 @@ export async function runDatabaseMigrations(
     options: RunDatabaseMigrationsOptions,
 ): Promise<RunDatabaseMigrationsResult> {
     const logger = options.logger ?? console;
-    const selectedPrefixes = selectPrefixesForMigration(
-        options.prefixes,
-        options.registeredServers ?? [],
-        options.onlyTargets,
-    );
-    const migrationsDirectory = options.migrationsDirectory ?? (await resolveMigrationsDirectory());
-    const migrationFiles = await readMigrationFiles(migrationsDirectory);
-    const totalMigrationFiles = migrationFiles.length;
+    const failureContext: DatabaseMigrationFailureContext = {
+        stage: 'prepare-migration-plan',
+        onlyTargets: options.onlyTargets ?? null,
+        selectedPrefixes: [],
+        totalMigrationFiles: 0,
+        executionLockMode: options.executionLockMode ?? 'wait',
+    };
     const perPrefix: Array<DatabaseMigrationPrefixResult> = [];
-
-    logger.info(`📂 Found ${totalMigrationFiles} migration files`);
-    logger.info(
-        `📋 Found ${selectedPrefixes.length} prefixes to migrate: ${selectedPrefixes
-            .map((prefix) => prefix || '<default>')
-            .join(', ')}`,
-    );
-
-    const client = await createPostgresClient(options.connectionString);
-
+    let client: Client | null = null;
+    let selectedPrefixes: Array<string> = [];
+    let totalMigrationFiles = 0;
     let hasExecutionLock = false;
     let isSkippedDueToActiveMigrationLock = false;
+    let migrationFailure: unknown = null;
+    let migrationsDirectory = '';
+    let migrationFiles: Array<string> = [];
 
     try {
+        selectedPrefixes = selectPrefixesForMigration(options.prefixes, options.registeredServers ?? [], options.onlyTargets);
+        failureContext.selectedPrefixes = selectedPrefixes;
+
+        migrationsDirectory = options.migrationsDirectory ?? (await resolveMigrationsDirectory());
+        migrationFiles = await readMigrationFiles(migrationsDirectory);
+        totalMigrationFiles = migrationFiles.length;
+        failureContext.totalMigrationFiles = totalMigrationFiles;
+
+        logger.info(`📂 Found ${totalMigrationFiles} migration files`);
+        logger.info(
+            `📋 Found ${selectedPrefixes.length} prefixes to migrate: ${selectedPrefixes
+                .map((prefix) => prefix || '<default>')
+                .join(', ')}`,
+        );
+
+        failureContext.stage = 'connect-to-database';
+        client = await createPostgresClient(options.connectionString);
         await client.connect();
         logger.info('🔌 Connected to database');
+
+        failureContext.stage = 'acquire-migration-lock';
         hasExecutionLock = await acquireMigrationExecutionLock(client, logger, options.executionLockMode ?? 'wait');
 
         if (!hasExecutionLock) {
@@ -248,6 +266,10 @@ export async function runDatabaseMigrations(
         }
 
         for (const prefix of selectedPrefixes) {
+            failureContext.stage = 'migrate-prefix';
+            failureContext.currentPrefix = prefix;
+            failureContext.currentPrefixStage = undefined;
+            failureContext.currentMigrationFile = undefined;
             logger.info(`\n🏗️ Migrating prefix: "${prefix}"`);
             const appliedCount = await migratePrefix({
                 prefix,
@@ -258,22 +280,43 @@ export async function runDatabaseMigrations(
                 migrationFiles,
                 migrationsDirectory,
                 logSqlStatements: options.logSqlStatements ?? false,
+                onProgress: ({ prefix, stage, migrationFile }) => {
+                    failureContext.currentPrefix = prefix;
+                    failureContext.currentPrefixStage = stage;
+                    failureContext.currentMigrationFile = migrationFile;
+                },
             });
             perPrefix.push({ prefix, appliedCount });
         }
+
+        return {
+            processedPrefixes: selectedPrefixes,
+            totalMigrationFiles,
+            perPrefix,
+            isSkippedDueToActiveMigrationLock,
+        };
+    } catch (error) {
+        migrationFailure = createDatabaseMigrationFailureError(error, failureContext);
     } finally {
-        if (hasExecutionLock) {
-            await releaseMigrationExecutionLock(client, logger);
+        if (client) {
+            if (hasExecutionLock) {
+                await releaseMigrationExecutionLock(client, logger);
+            }
+
+            try {
+                await client.end();
+            } catch (clientEndError) {
+                if (migrationFailure === null) {
+                    migrationFailure = clientEndError;
+                } else {
+                    logger.warn('⚠️ Failed to close migration database connection');
+                    logger.warn(String(clientEndError));
+                }
+            }
         }
-        await client.end();
     }
 
-    return {
-        processedPrefixes: selectedPrefixes,
-        totalMigrationFiles,
-        perPrefix,
-        isSkippedDueToActiveMigrationLock,
-    };
+    throw migrationFailure;
 }
 
 /**

@@ -37,7 +37,11 @@ async function migrate(): Promise<void> {
         console.info(colors.bgGreen('\n🎉 All migrations completed successfully'));
     } catch (error) {
         console.error(colors.bgRed('\n❌ Migration failed:'));
-        console.error(error);
+        if (error instanceof Error) {
+            console.error(error.message);
+        } else {
+            console.error(error);
+        }
         process.exit(1);
     }
 }
