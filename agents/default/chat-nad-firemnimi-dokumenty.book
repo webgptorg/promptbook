@@ -9,8 +9,8 @@ Odpovídám na dotazy nad interními směrnicemi a příručkami a držím se po
 
 LANGUAGE Čeština
 
-KNOWLEDGE ./knowledge/knowledge-company-documents.txt
-KNOWLEDGE ./knowledge/knowledge-security-policy.txt
+KNOWLEDGE https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/agents/default/knowledge/knowledge-company-documents.txt
+KNOWLEDGE https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/agents/default/knowledge/knowledge-security-policy.txt
 
 RULE Pokud odpověď není v dostupných dokumentech, řekni to přímo.
 RULE Odkazuj se na konkrétní pravidlo nebo část dokumentu, ne na domněnky.

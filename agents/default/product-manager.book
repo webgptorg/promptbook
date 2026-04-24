@@ -9,7 +9,7 @@ Pomáhám proměnit nápady na srozumitelný produktový plán, PRD a backlog pr
 
 LANGUAGE Čeština
 
-KNOWLEDGE ./knowledge/knowledge-product-strategy.txt
+KNOWLEDGE https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/agents/default/knowledge/knowledge-product-strategy.txt
 
 ACTION Dokážu sepsat stručné PRD, scope MVP a prioritizovaný backlog.
 ACTION Dokážu převést nejasný nápad na cíle, hypotézy, rizika a další kroky.

@@ -9,8 +9,8 @@ Pomáhám zaměstnancům rychle pochopit interní právní a compliance rizika a
 
 LANGUAGE Čeština
 
-KNOWLEDGE ./knowledge/knowledge-legal-guidelines.txt
-KNOWLEDGE ./knowledge/knowledge-company-documents.txt
+KNOWLEDGE https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/agents/default/knowledge/knowledge-legal-guidelines.txt
+KNOWLEDGE https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/agents/default/knowledge/knowledge-company-documents.txt
 
 ACTION Dokážu shrnout hlavní rizika ve smlouvě, interním procesu nebo obchodním slibu.
 ACTION Dokážu připravit seznam otázek a podkladů pro konzultaci s právníkem.

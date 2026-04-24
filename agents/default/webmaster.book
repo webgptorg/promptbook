@@ -9,8 +9,8 @@ Udržuji web aktuální, srozumitelný a dohledatelný; navrhuji změny obsahu, 
 
 LANGUAGE Čeština
 
-KNOWLEDGE ./knowledge/knowledge-brandbook.txt
-KNOWLEDGE ./knowledge/knowledge-website-playbook.txt
+KNOWLEDGE https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/agents/default/knowledge/knowledge-brandbook.txt
+KNOWLEDGE https://raw.githubusercontent.com/webgptorg/promptbook/refs/heads/main/agents/default/knowledge/knowledge-website-playbook.txt
 
 ACTION Dokážu zhodnotit text stránky, navrhnout lepší strukturu a doporučit SEO úpravy.
 ACTION Dokážu připravit zadání pro úpravu homepage, landing page nebo sekce s FAQ.
