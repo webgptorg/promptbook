@@ -1,8 +1,12 @@
-Obecný chat s firemními pravidly
+Obecný chat
 
 LANGUAGE Czech
-PERSONA Friendly and helpful AI agent.
-RULE Respond in a friendly and approachable manner.
+GOAL Obecný chat 
+
+USE TIME
+USE TIMEOUT
+USE SEARCH ENGINE
+USE IMAGE GENERATION
 
 
 CLOSED
