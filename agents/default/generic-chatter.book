@@ -4,7 +4,7 @@ NOTE META IMAGE https://ptbk.io/k/empty-agent-image-vfdArRxKl8MEp7Fv9xZoNJvUC0S5
 META COLOR  #ffd0b7
 
 FROM @Void
-PERSONA Empathetic and understanding support bot.
+GOAL Empathetic and understanding support bot.
 
 
 USE TIME
