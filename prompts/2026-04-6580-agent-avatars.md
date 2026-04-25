@@ -125,6 +125,24 @@
 
 ---
 
+[ ] !
+
+[✨👝] Add "Orb" avatar
+
+-   `avatars` page in utils app have misc avatar visuals, add new one called "Orb" that looks like a glowing abstract circle orb based on the input parameters (agent name, hash, colors)
+-   The orb should generate a unique and visually appealing avatar for each agent based on the input parameters
+-   But all based on a circle shape that can morph and change its shape in a smooth and visually appealing way based on the input parameters, while still maintaining a recognizable orb-like form
+-   Vary gradient and colors of the orb based on the input parameters to create a wide variety of unique personality-filled avatars
+-   Add it alongside the existing ones, do not replace or change the existing avatar visuals, just add this new one
+-   Do not create extra page for this avatar, just add it to the existing `/avatars` utils page
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Utils miniapp](apps/utils) and adding this as a new page there to test it
+
+![alt text](prompts/screenshots/2026-04-6580-agent-avatars-1.png)
+
+---
+
 [-]
 
 [✨👝] foo
@@ -133,5 +151,3 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Utils miniapp](apps/utils) and adding this as a new page there to test it
-
-

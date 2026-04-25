@@ -42,7 +42,7 @@
 
 ---
 
-[ ] !!
+[ ] !!!
 
 [✨✫] Fix transpiled code export `tools` to be syntactically correct
 
@@ -74,6 +74,19 @@ const toolImplementations = {
 
 [ ] !
 
+[✨✫] Add `@openai/agents` transpiler
+
+-   Now there is alreasy OpenAI SDK transpiler, but we should also add the `@openai/agents` transpiler to be able to export the agent as code that can be run with `@openai/agents` package
+-   The RAG should be based on native vector store provided by OpenAI
+-   It should be available through `export-as-transpiled-code` page
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+---
+
+[ ] !!
+
 [✨✫] Add AgentOS transpiler
 
 -   Read the documentation of https://rivet.dev/agent-os/ and implement the transpiler to export the agent as AgentOS agent
@@ -85,6 +98,18 @@ const toolImplementations = {
 ---
 
 [ ] !
+
+[✨✫] Add E2B transpiler
+
+-   Add transpiler to export the agent as E2B agent, read the documentation of https://e2b.dev/ and implement the transpiler to export the agent as E2B agent
+-   It should be available through `export-as-transpiled-code` page
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+---
+
+[ ] !!
 
 [✨✫] Add Anthropic Claude Managed agents transpiler
 
