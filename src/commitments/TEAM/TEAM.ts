@@ -147,7 +147,7 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
      * Icon for this commitment.
      */
     get icon(): string {
-        return '??';
+        return '👥';
     }
 
     /**
