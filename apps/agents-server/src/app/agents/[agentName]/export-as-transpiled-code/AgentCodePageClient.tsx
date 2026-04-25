@@ -1,229 +1,535 @@
 'use client';
 
-import { AgentBasicInformation, string_url } from '@promptbook-local/types';
-import { ChevronDownIcon, CodeIcon } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { BookEditor } from '@promptbook-local/components';
+import type { AgentBasicInformation, string_book, string_url } from '@promptbook-local/types';
+import { ChevronDownIcon, CodeIcon, DownloadIcon, PencilIcon } from 'lucide-react';
+import Link from 'next/link';
+import { type ReactNode, useCallback, useEffect, useState } from 'react';
 import { MonacoEditorWithShadowDom } from '../../../../components/_utils/MonacoEditorWithShadowDom';
-import { AgentCodeViewerLoadingSkeleton } from '../../../../components/Skeleton/AgentCodeViewerLoadingSkeleton';
+import { usePromptbookTheme } from '../../../../components/ThemeMode/usePromptbookTheme';
+import { downloadBlob, parseFilenameFromContentDisposition } from '../../../../utils/download/browserFileDownload';
+import { getTranspiledCodeFileMetadata } from '../../../../utils/transpilers/getTranspiledCodeFileMetadata';
 import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 
 /**
- * Type describing transpiler.
+ * Type describing one selectable transpiler.
  */
 type Transpiler = {
-    name: string;
-    title: string;
+    readonly name: string;
+    readonly title: string;
 };
 
 /**
- * Result of transpilation.
+ * Minimal payload returned by the transpiler-list endpoint.
+ */
+type TranspilerListResponse = {
+    readonly transpilers?: Array<Transpiler>;
+};
+
+/**
+ * Result returned by the transpilation endpoint.
  */
 type TranspilationResult = {
-    code: string;
-    transpiler: Transpiler;
+    readonly code: string;
+    readonly transpiler: Transpiler;
 };
 
 /**
- * Gets language from transpiler.
+ * Minimal API error payload accepted from export endpoints.
  */
-function getLanguageFromTranspiler(transpilerName?: string): string {
-    if (!transpilerName) return 'plaintext';
-
-    // Map transpiler names to Monaco language identifiers
-    if (transpilerName.includes('openai-sdk')) return 'javascript';
-    if (transpilerName.includes('langchain') || transpilerName.includes('python')) return 'python';
-    if (transpilerName.includes('markdown')) return 'markdown';
-
-    // Default to plaintext for unknown transpilers
-    return 'plaintext';
-}
+type TranspiledCodeApiErrorPayload = {
+    readonly error?: string;
+    readonly message?: string;
+};
 
 /**
- * Props for agent code page client.
+ * Props for one page section card.
+ */
+type AgentCodePageSectionProps = {
+    /**
+     * Section heading shown above the content.
+     */
+    readonly title: string;
+
+    /**
+     * Supporting copy shown under the title.
+     */
+    readonly description: string;
+
+    /**
+     * Optional header actions rendered beside the title.
+     */
+    readonly actions?: ReactNode;
+
+    /**
+     * Main section content.
+     */
+    readonly children: ReactNode;
+};
+
+/**
+ * Props for the export-as-transpiled-code page client.
  */
 type AgentCodePageClientProps = {
     /**
-     * The name of the agent
+     * Routed agent name.
      */
     readonly agentName: string;
 
     /**
-     * Base URL of the agents server
+     * Stored source book shown in the read-only Book viewer.
+     */
+    readonly agentSource: string_book;
+
+    /**
+     * Base URL of the Agents Server.
      *
-     * Note: [👭] Using `string_url`, not `URL` object because we are passing prop from server to client.
+     * Note: [👭] Using `string_url`, not `URL`, because the value crosses the server/client boundary.
      */
     readonly publicUrl: string_url;
 };
 
 /**
- * Handles agent code page client.
+ * Creates the JSON export API path for one agent.
+ *
+ * @param agentName - Routed agent name.
+ * @returns Relative API path used for transpiler listing and code generation.
  */
-export function AgentCodePageClient({ agentName, publicUrl }: AgentCodePageClientProps) {
+function createTranspiledCodeApiPath(agentName: string): string {
+    return `/agents/${encodeURIComponent(agentName)}/export-as-transpiled-code/api`;
+}
+
+/**
+ * Creates the ZIP download API path for one agent and selected transpiler.
+ *
+ * @param agentName - Routed agent name.
+ * @param transpilerName - Selected transpiler identifier.
+ * @returns Relative download URL with the selected transpiler encoded in the query string.
+ */
+function createTranspiledCodeDownloadApiPath(agentName: string, transpilerName: string): string {
+    const searchParams = new URLSearchParams({ transpilerName });
+    return `${createTranspiledCodeApiPath(agentName)}/download?${searchParams.toString()}`;
+}
+
+/**
+ * Reads a user-facing API error from a failed export response.
+ *
+ * @param response - Failed HTTP response.
+ * @param fallbackMessage - Fallback message when the body has no structured error.
+ * @returns Friendly error message suitable for rendering in the UI.
+ */
+async function resolveTranspiledCodeApiErrorMessage(response: Response, fallbackMessage: string): Promise<string> {
+    try {
+        const payload = (await response.json()) as TranspiledCodeApiErrorPayload;
+        const message = payload.message || payload.error;
+
+        if (message && message.trim().length > 0) {
+            return message.trim();
+        }
+    } catch {
+        // Keep the fallback message when the error body is not valid JSON.
+    }
+
+    return fallbackMessage;
+}
+
+/**
+ * Resolves the avatar image URL for the current agent header.
+ *
+ * @param options - Agent identity and loaded profile data.
+ * @returns Avatar URL preferred by the profile, falling back to the default generated avatar.
+ */
+function resolveAgentAvatarSource(options: {
+    readonly agentName: string;
+    readonly agentProfile: AgentBasicInformation | null;
+    readonly publicUrl: string_url;
+}): string {
+    const { agentName, agentProfile, publicUrl } = options;
+    const fallbackIdentifier = agentProfile?.permanentId || agentName;
+
+    if (!agentProfile) {
+        return `/agents/${encodeURIComponent(fallbackIdentifier)}/images/default-avatar.png`;
+    }
+
+    return (
+        resolveAgentAvatarImageUrl({
+            agent: agentProfile,
+            baseUrl: publicUrl,
+        }) || `/agents/${encodeURIComponent(fallbackIdentifier)}/images/default-avatar.png`
+    );
+}
+
+/**
+ * Shared card section used on the export page.
+ */
+function AgentCodePageSection({ title, description, actions, children }: AgentCodePageSectionProps) {
+    return (
+        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex flex-col gap-4 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-start sm:justify-between dark:border-slate-800">
+                <div className="min-w-0">
+                    <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h2>
+                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{description}</p>
+                </div>
+
+                {actions ? <div className="flex shrink-0 flex-wrap items-center gap-3">{actions}</div> : null}
+            </div>
+
+            <div className="p-5">{children}</div>
+        </section>
+    );
+}
+
+/**
+ * Handles the export-as-transpiled-code page.
+ */
+export function AgentCodePageClient({ agentName, agentSource, publicUrl }: AgentCodePageClientProps) {
+    const { promptbookTheme } = usePromptbookTheme();
     const [agentProfile, setAgentProfile] = useState<AgentBasicInformation | null>(null);
-    const [transpilers, setTranspilers] = useState<Transpiler[]>([]);
-    const [selectedTranspiler, setSelectedTranspiler] = useState<Transpiler | null>(null);
-    const [transpiledCode, setTranspiledCode] = useState<string>('');
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string>('');
+    const [transpilers, setTranspilers] = useState<Array<Transpiler>>([]);
+    const [selectedTranspilerName, setSelectedTranspilerName] = useState('');
+    const [transpiledCode, setTranspiledCode] = useState('');
+    const [isPageLoading, setIsPageLoading] = useState(true);
+    const [isTranspiling, setIsTranspiling] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
+    const [pageErrorMessage, setPageErrorMessage] = useState<string | null>(null);
+    const [transpileErrorMessage, setTranspileErrorMessage] = useState<string | null>(null);
+    const [downloadErrorMessage, setDownloadErrorMessage] = useState<string | null>(null);
+
+    const selectedTranspiler = transpilers.find((transpiler) => transpiler.name === selectedTranspilerName) || null;
+    const agentDisplayName = agentProfile?.meta.fullname || agentName;
+    const agentAvatarSource = resolveAgentAvatarSource({ agentName, agentProfile, publicUrl });
 
     useEffect(() => {
-        if (!agentName) return;
+        const abortController = new AbortController();
+        let isDisposed = false;
 
-        // Fetch agent profile
-        fetch(`/agents/${encodeURIComponent(agentName)}/api/profile`)
-            .then((res) => res.json())
-            .then((data) => setAgentProfile(data))
-            .catch((err) => console.error('Error fetching agent profile:', err));
+        setIsPageLoading(true);
+        setPageErrorMessage(null);
+        setTranspileErrorMessage(null);
+        setDownloadErrorMessage(null);
+        setAgentProfile(null);
+        setTranspiledCode('');
+        setTranspilers([]);
+        setSelectedTranspilerName('');
 
-        // Fetch available transpilers
-        fetch(`/agents/${encodeURIComponent(agentName)}/export-as-transpiled-code/api`)
-            .then((res) => res.json())
-            .then((data) => {
-                setTranspilers(data.transpilers || []);
-                if (data.transpilers && data.transpilers.length > 0) {
-                    setSelectedTranspiler(data.transpilers[0]);
+        void (async () => {
+            try {
+                const response = await fetch(createTranspiledCodeApiPath(agentName), {
+                    method: 'GET',
+                    signal: abortController.signal,
+                });
+
+                if (!response.ok) {
+                    throw new Error(await resolveTranspiledCodeApiErrorMessage(response, 'Failed to load transpilers'));
                 }
-            })
-            .catch((err) => console.error('Error fetching transpilers:', err));
+
+                const payload = (await response.json()) as TranspilerListResponse;
+                if (isDisposed) {
+                    return;
+                }
+
+                const nextTranspilers = payload.transpilers || [];
+                setTranspilers(nextTranspilers);
+                setSelectedTranspilerName(nextTranspilers[0]?.name || '');
+            } catch (error) {
+                if (abortController.signal.aborted || isDisposed) {
+                    return;
+                }
+
+                setPageErrorMessage(error instanceof Error ? error.message : 'Failed to load transpilers');
+            } finally {
+                if (!isDisposed) {
+                    setIsPageLoading(false);
+                }
+            }
+        })();
+
+        void (async () => {
+            try {
+                const response = await fetch(`/agents/${encodeURIComponent(agentName)}/api/profile`, {
+                    method: 'GET',
+                    signal: abortController.signal,
+                });
+
+                if (!response.ok) {
+                    return;
+                }
+
+                const profile = (await response.json()) as AgentBasicInformation;
+                if (!isDisposed) {
+                    setAgentProfile(profile);
+                }
+            } catch (error) {
+                if (!abortController.signal.aborted) {
+                    console.error('Error fetching agent profile:', error);
+                }
+            }
+        })();
+
+        return () => {
+            isDisposed = true;
+            abortController.abort();
+        };
     }, [agentName]);
 
-    const transpileCode = useCallback(
-        async (transpilerName: string) => {
-            setLoading(true);
-            setError('');
+    useEffect(() => {
+        if (!selectedTranspilerName) {
+            setIsTranspiling(false);
+            setTranspiledCode('');
+            return;
+        }
 
+        const abortController = new AbortController();
+        let isDisposed = false;
+
+        setIsTranspiling(true);
+        setTranspileErrorMessage(null);
+        setDownloadErrorMessage(null);
+        setTranspiledCode('');
+
+        void (async () => {
             try {
-                const response = await fetch(`/agents/${encodeURIComponent(agentName)}/export-as-transpiled-code/api`, {
+                const response = await fetch(createTranspiledCodeApiPath(agentName), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ transpilerName }),
+                    body: JSON.stringify({ transpilerName: selectedTranspilerName }),
+                    signal: abortController.signal,
                 });
 
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Failed to transpile code');
+                    throw new Error(await resolveTranspiledCodeApiErrorMessage(response, 'Failed to transpile code'));
                 }
 
-                const result: TranspilationResult = await response.json();
-                setTranspiledCode(result.code);
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'Failed to transpile code');
-                setTranspiledCode('');
+                const result = (await response.json()) as TranspilationResult;
+                if (!isDisposed) {
+                    setTranspiledCode(result.code);
+                }
+            } catch (error) {
+                if (abortController.signal.aborted || isDisposed) {
+                    return;
+                }
+
+                setTranspileErrorMessage(error instanceof Error ? error.message : 'Failed to transpile code');
             } finally {
-                setLoading(false);
+                if (!isDisposed) {
+                    setIsTranspiling(false);
+                }
             }
-        },
-        [agentName],
-    );
+        })();
 
-    useEffect(() => {
-        if (selectedTranspiler && agentName) {
-            transpileCode(selectedTranspiler.name);
+        return () => {
+            isDisposed = true;
+            abortController.abort();
+        };
+    }, [agentName, selectedTranspilerName]);
+
+    /**
+     * Downloads the selected transpiled harness as a ZIP archive.
+     */
+    const handleDownloadTranspiledCode = useCallback(async () => {
+        if (!selectedTranspilerName || isDownloading) {
+            return;
         }
-    }, [selectedTranspiler, agentName, transpileCode]);
 
-    if (!agentProfile) {
-        return <AgentCodeViewerLoadingSkeleton />;
-    }
+        setIsDownloading(true);
+        setDownloadErrorMessage(null);
+
+        try {
+            const response = await fetch(createTranspiledCodeDownloadApiPath(agentName, selectedTranspilerName), {
+                method: 'GET',
+            });
+
+            if (!response.ok) {
+                throw new Error(await resolveTranspiledCodeApiErrorMessage(response, 'Failed to download ZIP export'));
+            }
+
+            const filename =
+                parseFilenameFromContentDisposition(response.headers.get('Content-Disposition')) ||
+                'promptbook-agent-export.zip';
+            const exportBlob = await response.blob();
+            downloadBlob(exportBlob, filename);
+        } catch (error) {
+            setDownloadErrorMessage(error instanceof Error ? error.message : 'Failed to download ZIP export');
+        } finally {
+            setIsDownloading(false);
+        }
+    }, [agentName, isDownloading, selectedTranspilerName]);
+
+    const downloadButtonLabel = isDownloading ? 'Preparing ZIP...' : 'Download ZIP';
+    const isDownloadButtonDisabled = !selectedTranspilerName || isPageLoading || isTranspiling || isDownloading;
 
     return (
-        <div className="min-h-screen p-6 md:p-12 flex flex-col items-center bg-gray-50">
-            <div className="w-full max-w-4xl bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                {/* Header */}
-                <div className="p-6 border-b border-gray-200 flex items-center gap-4">
-                    {/* eslint-disable @typescript-eslint/no-explicit-any, @next/next/no-img-element */}
+        <div className="min-h-screen bg-slate-50 px-6 py-8 md:px-12 dark:bg-slate-950">
+            <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+                <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <div className="flex flex-col gap-4 border-b border-slate-200 px-6 py-6 sm:flex-row sm:items-center dark:border-slate-800">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                            src={agentAvatarSource}
+                            alt={agentDisplayName}
+                            className="agent-avatar-pixelated h-16 w-16 rounded-full border-2 border-slate-200 object-cover dark:border-slate-700"
+                        />
 
-                    <img
-                        src={
-                            resolveAgentAvatarImageUrl({ agent: agentProfile, baseUrl: publicUrl }) ||
-                            `/agents/${encodeURIComponent(
-                                agentProfile.permanentId || agentName,
-                            )}/images/default-avatar.png`
-                        }
-                        alt={agentProfile.meta.fullname || agentName}
-                        className="w-16 h-16 rounded-full object-cover border-2 border-gray-200 agent-avatar-pixelated"
-                    />
-
-                    <div className="flex-1">
-                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                        <h1 className="text-2xl font-bold text-gray-900">
-                            {(agentProfile as any)?.meta?.fullname || agentName}
-                        </h1>
-                        <p className="text-gray-500 flex items-center gap-2">
-                            <CodeIcon className="w-4 h-4" />
-                            Generated Code
-                        </p>
-                    </div>
-                </div>
-
-                <div className="p-6">
-                    {/* Transpiler Selector */}
-                    <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Select Transpiler</label>
-                        <div className="relative">
-                            <select
-                                value={selectedTranspiler?.name || ''}
-                                onChange={(e) => {
-                                    const transpiler = transpilers.find((t) => t.name === e.target.value);
-                                    if (transpiler) setSelectedTranspiler(transpiler);
-                                }}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            >
-                                {transpilers.map((transpiler) => (
-                                    <option key={transpiler.name} value={transpiler.name}>
-                                        {transpiler.title}
-                                    </option>
-                                ))}
-                            </select>
-                            <ChevronDownIcon className="absolute right-3 top-3 w-4 h-4 text-gray-400 pointer-events-none" />
+                        <div className="min-w-0 flex-1">
+                            <h1 className="truncate text-2xl font-bold text-slate-900 dark:text-slate-100">
+                                {agentDisplayName}
+                            </h1>
+                            <p className="mt-1 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                                <CodeIcon className="h-4 w-4" />
+                                Export as transpiled code / agent harness
+                            </p>
                         </div>
                     </div>
 
-                    {/* Code Display */}
-                    <div className="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
-                        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                            <h2 className="text-lg font-semibold text-gray-900">
-                                {selectedTranspiler?.title || 'Generated Code'}
-                            </h2>
-                            {loading && <div className="text-sm text-gray-500">Generating...</div>}
-                        </div>
-                        <div className="p-4">
-                            {error && (
-                                <div className="text-red-600 text-sm mb-4 p-3 bg-red-50 rounded border border-red-200">
-                                    {error}
+                    <div className="grid gap-6 p-6">
+                        <AgentCodePageSection
+                            title="Source Book"
+                            description="Review the stored Book source used to create this agent. Editing stays in the dedicated Book editor."
+                            actions={
+                                <Link
+                                    href={`/agents/${encodeURIComponent(agentName)}/book`}
+                                    className="inline-flex items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                                >
+                                    <PencilIcon className="h-4 w-4" />
+                                    Edit Book
+                                </Link>
+                            }
+                        >
+                            <div className="h-[28rem] overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
+                                <BookEditor
+                                    className="h-full w-full"
+                                    height={null}
+                                    value={agentSource}
+                                    isReadonly
+                                    isUploadButtonShown={false}
+                                    isCameraButtonShown={false}
+                                    isDownloadButtonShown={false}
+                                    isAboutButtonShown={false}
+                                    isFullscreenButtonShown={false}
+                                    translations={{ readonlyMessage: 'Use Edit Book to change the source.' }}
+                                    theme={promptbookTheme}
+                                />
+                            </div>
+                        </AgentCodePageSection>
+
+                        <AgentCodePageSection
+                            title="Generated Harness"
+                            description="Generate runnable output from the current agent and download the source book plus transpiled harness as one ZIP archive."
+                            actions={
+                                <button
+                                    type="button"
+                                    onClick={() => void handleDownloadTranspiledCode()}
+                                    disabled={isDownloadButtonDisabled}
+                                    className="inline-flex items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                    <DownloadIcon className="h-4 w-4" />
+                                    {downloadButtonLabel}
+                                </button>
+                            }
+                        >
+                            <div className="space-y-4">
+                                <div>
+                                    <label
+                                        htmlFor="agent-code-transpiler"
+                                        className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300"
+                                    >
+                                        Select transpiler
+                                    </label>
+                                    <div className="relative">
+                                        <select
+                                            id="agent-code-transpiler"
+                                            value={selectedTranspilerName}
+                                            onChange={(event) => setSelectedTranspilerName(event.target.value)}
+                                            disabled={isPageLoading || transpilers.length === 0}
+                                            className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                                        >
+                                            {transpilers.length === 0 ? (
+                                                <option value="">
+                                                    {isPageLoading ? 'Loading transpilers...' : 'No transpilers available'}
+                                                </option>
+                                            ) : (
+                                                transpilers.map((transpiler) => (
+                                                    <option key={transpiler.name} value={transpiler.name}>
+                                                        {transpiler.title}
+                                                    </option>
+                                                ))
+                                            )}
+                                        </select>
+                                        <ChevronDownIcon className="pointer-events-none absolute right-3 top-2.5 h-4 w-4 text-slate-400" />
+                                    </div>
                                 </div>
-                            )}
-                            {transpiledCode ? (
-                                <div className="h-96 border border-gray-200 rounded">
-                                    <MonacoEditorWithShadowDom
-                                        value={transpiledCode}
-                                        language={getLanguageFromTranspiler(selectedTranspiler?.name)}
-                                        options={{
-                                            readOnly: true,
-                                            minimap: { enabled: false },
-                                            fontSize: 14,
-                                            lineNumbers: 'on',
-                                            scrollBeyondLastLine: false,
-                                            automaticLayout: true,
-                                            wordWrap: 'on',
-                                        }}
-                                        loading={
-                                            <div className="flex items-center justify-center h-full text-gray-500">
-                                                Loading editor...
+
+                                {pageErrorMessage ? (
+                                    <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
+                                        {pageErrorMessage}
+                                    </div>
+                                ) : null}
+
+                                {transpileErrorMessage ? (
+                                    <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
+                                        {transpileErrorMessage}
+                                    </div>
+                                ) : null}
+
+                                {downloadErrorMessage ? (
+                                    <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
+                                        {downloadErrorMessage}
+                                    </div>
+                                ) : null}
+
+                                <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-950">
+                                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 dark:border-slate-700">
+                                        <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
+                                            {selectedTranspiler?.title || 'Generated code'}
+                                        </h3>
+                                        {(isTranspiling || isDownloading) && (
+                                            <div className="text-sm text-slate-500 dark:text-slate-400" role="status" aria-live="polite">
+                                                {isDownloading ? 'Preparing ZIP archive...' : 'Generating code...'}
                                             </div>
-                                        }
-                                    />
+                                        )}
+                                    </div>
+
+                                    <div className="p-4">
+                                        {transpiledCode ? (
+                                            <div className="h-[32rem] overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700">
+                                                <MonacoEditorWithShadowDom
+                                                    value={transpiledCode}
+                                                    language={getTranspiledCodeFileMetadata(selectedTranspilerName).language}
+                                                    options={{
+                                                        readOnly: true,
+                                                        minimap: { enabled: false },
+                                                        fontSize: 14,
+                                                        lineNumbers: 'on',
+                                                        scrollBeyondLastLine: false,
+                                                        automaticLayout: true,
+                                                        wordWrap: 'on',
+                                                    }}
+                                                    loading={
+                                                        <div className="flex h-full items-center justify-center text-slate-500 dark:text-slate-400">
+                                                            Loading editor...
+                                                        </div>
+                                                    }
+                                                />
+                                            </div>
+                                        ) : isTranspiling ? (
+                                            <div className="py-12 text-center text-sm text-slate-500 dark:text-slate-400">
+                                                Generating code...
+                                            </div>
+                                        ) : selectedTranspilerName ? (
+                                            <div className="py-12 text-center text-sm text-slate-500 dark:text-slate-400">
+                                                Generated code will appear here.
+                                            </div>
+                                        ) : (
+                                            <div className="py-12 text-center text-sm text-slate-500 dark:text-slate-400">
+                                                Select a transpiler to generate code.
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                            ) : loading ? (
-                                <div className="text-gray-500 text-center py-8">Generating code...</div>
-                            ) : (
-                                <div className="text-gray-500 text-center py-8">
-                                    Select a transpiler to generate code
-                                </div>
-                            )}
-                        </div>
+                            </div>
+                        </AgentCodePageSection>
                     </div>
                 </div>
             </div>

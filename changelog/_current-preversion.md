@@ -1,3 +1,9 @@
+-   Enhanced the Agents Server `export-as-transpiled-code` page so it now works as a fuller export workspace instead of only a code preview:
+
+    -   Added a read-only Book viewer showing the stored agent source directly on the export page, together with a dedicated `Edit Book` action that jumps to the existing Book editor instead of making the export page itself editable.
+    -   Added ZIP downloads for transpiled exports, so the page can now bundle the stored `agent.book`, the generated harness file, and a small manifest into one archive from the selected transpiler.
+    -   Kept the export flow DRY by centralizing transpiler resolution, transpiled ZIP generation, and browser download helpers that are now shared across the export page and existing backup download UI.
+
 -   Improved Agents Server migration failure diagnostics so blocked or broken SQL runs now report actionable context instead of only dumping the raw PostgreSQL error:
 
     -   Added shared migration failure enrichment in the Agents Server migration runner, so manual migrations, automatic startup checks, and managed-server migration flows now include the failing stage, selected prefixes, and current prefix/migration file when available.
