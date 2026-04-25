@@ -97,7 +97,7 @@ export class ChatPersistence {
                 ...message,
                 createdAt: message.createdAt,
                 // Clear transient streaming state so stale "Preparing agent" chips are not
-                // shown after a page reload — the streaming session is gone at that point.
+                // shown after a page reload - the streaming session is gone at that point.
                 ongoingToolCalls: message.isComplete === true ? message.ongoingToolCalls : undefined,
             }));
         } catch (error) {

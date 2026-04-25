@@ -199,7 +199,7 @@ runChat().catch(console.error);
         }
     },
     "promptResult": {
-        "content": "Here are two ready-to-use promo codes:\n- Grocery (Prague): PRG-GROC-10OFF — 10% off\n- Electronics (Berlin): BER-ELEC-15OFF — 15% off\n\nUse them at checkout on platforms that accept generic promo codes. If you need store-specific coupons, tell me the retailer(s).",
+        "content": "Here are two ready-to-use promo codes:\n- Grocery (Prague): PRG-GROC-10OFF - 10% off\n- Electronics (Berlin): BER-ELEC-15OFF - 15% off\n\nUse them at checkout on platforms that accept generic promo codes. If you need store-specific coupons, tell me the retailer(s).",
         "modelName": "gpt-5-2025-08-07",
         "timing": {
             "start": "2026-01-02T14:00:07.880Z",
@@ -325,7 +325,7 @@ runChat().catch(console.error);
                 },
                 {
                     "role": "assistant",
-                    "content": "Here are two ready-to-use promo codes:\n- Grocery (Prague): PRG-GROC-10OFF — 10% off\n- Electronics (Berlin): BER-ELEC-15OFF — 15% off\n\nUse them at checkout on platforms that accept generic promo codes. If you need store-specific coupons, tell me the retailer(s).",
+                    "content": "Here are two ready-to-use promo codes:\n- Grocery (Prague): PRG-GROC-10OFF - 10% off\n- Electronics (Berlin): BER-ELEC-15OFF - 15% off\n\nUse them at checkout on platforms that accept generic promo codes. If you need store-specific coupons, tell me the retailer(s).",
                     "refusal": null,
                     "annotations": []
                 }
@@ -365,7 +365,7 @@ runChat().catch(console.error);
                     "index": 0,
                     "message": {
                         "role": "assistant",
-                        "content": "Here are two ready-to-use promo codes:\n- Grocery (Prague): PRG-GROC-10OFF — 10% off\n- Electronics (Berlin): BER-ELEC-15OFF — 15% off\n\nUse them at checkout on platforms that accept generic promo codes. If you need store-specific coupons, tell me the retailer(s).",
+                        "content": "Here are two ready-to-use promo codes:\n- Grocery (Prague): PRG-GROC-10OFF - 10% off\n- Electronics (Berlin): BER-ELEC-15OFF - 15% off\n\nUse them at checkout on platforms that accept generic promo codes. If you need store-specific coupons, tell me the retailer(s).",
                         "refusal": null,
                         "annotations": []
                     },

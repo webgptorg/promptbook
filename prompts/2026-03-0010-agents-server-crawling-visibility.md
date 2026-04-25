@@ -1,6 +1,6 @@
 [x] ~$0.7355 30 minutes by OpenAI Codex `gpt-5.3-codex`
 
-[🔐🤖] Agents Server — crawling, robots.txt, sitemap and visibility policy
+[🔐🤖] Agents Server - crawling, robots.txt, sitemap and visibility policy
 
 -   Overview: Define and implement server-level and agent-level crawling/scraping visibility so that by default the server is private (no sitemap, no crawling allowed), while explicitly public agents are discoverable and fully indexable. Ensure robots.txt, sitemap generation, OG tags, headers and metadata honor the server and agent visibility settings.
 -   Goals:
@@ -44,4 +44,3 @@
     -   DB migration script to add Agent.visibility (if missing) and default to private/unlisted as appropriate.
     -   Add an entry to changelog: "Agents server: server-level visibility, robots.txt and sitemap behaviour".
 -   You are working with the [Agents Server](apps/agents-server)
-

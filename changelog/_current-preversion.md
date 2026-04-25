@@ -198,13 +198,13 @@
     -   Added regression coverage for homepage branding navigation on desktop and mobile, plus a unit test that verifies shared links still navigate after their own click handler removes them from the tree.
 
 -   Added the new deterministic `Fractal` avatar visual alongside the existing avatar set, with layered dragon-curve geometry that changes its ribbon composition, orientation, and color interplay from the agent name, hash, and colors:
-    
+
     -   Added the new built-in `fractal` canvas renderer to the shared avatar registry without changing the existing Octopus, Octopus2, pixel-art, or Minecraft visuals.
     -   Kept the utils `/avatars` playground on the existing page while automatically exposing the new renderer in the selector, preview grid, and deterministic sample gallery through the shared avatar registry.
     -   Added regression coverage that verifies `fractal` stays registered as a supported avatar visual and remains selectable through the utils avatar playground URL state.
 
 -   Added the new deterministic `Octopus2` avatar visual alongside the existing avatar set, with a single smooth morphing blob silhouette that keeps an octopus-like form while changing its organic alien shape from the agent name, hash, colors, and animation time:
-    
+
     -   Added the new built-in `octopus2` canvas renderer to the shared avatar registry without changing the existing `Octopus`, pixel-art, or Minecraft visuals.
     -   Updated the utils `/avatars` playground so the new renderer appears in the existing selector, preview grid, and deterministic sample gallery without creating a separate page.
     -   Added regression coverage that verifies `octopus2` stays registered as a supported avatar visual and remains selectable through the utils avatar playground URL state.
@@ -992,7 +992,7 @@
 -   Logged full raw Message tool context (called + available) in the message inspector:
 
     -   Added `availableTools?: ReadonlyArray<LlmToolDefinition>` field to the `ChatMessage` type so the complete list of tools available at each model turn is stored alongside called tools.
-    -   In `runUserChatJob.ts`, computed `availableTools` by combining `preparedAgentModelRequirements.modelRequirements.tools` (agent-commitment tools: browser, calendar, team, etc.) with `runtimeTools` (attachment and progress tools) immediately after the runtime tools are created — capturing the exact tool set passed to the model.
+    -   In `runUserChatJob.ts`, computed `availableTools` by combining `preparedAgentModelRequirements.modelRequirements.tools` (agent-commitment tools: browser, calendar, team, etc.) with `runtimeTools` (attachment and progress tools) immediately after the runtime tools are created - capturing the exact tool set passed to the model.
     -   Stored `availableTools` in the initial assistant-message write and in all terminal-state persistence calls (COMPLETED, FAILED, CANCELLED) via `persistUserChatJobTerminalState`.
     -   Extended `renderAdvancedToolCallDetails` with an "Available tools" section (id `available-tools`) rendered between "Model payload" and "Full event" in the advanced view of `ChatToolCallModal`.
     -   Added `availableTools` prop to `ChatToolCallModal` and wired it from `Chat.tsx` via a `selectedMessageAvailableTools` memo that resolves the parent message of the selected tool call.
@@ -1396,7 +1396,7 @@
     -   Refined ChatGPT-like-only layout/styling tokens for the left chat tray, centered conversation column, message rows, composer, and mobile drawer/top bar, without changing `/agents/[agentName]/chat` behavior.
     -   Added a direct `ChatGPT-like` entry to the header agent view switcher so users can navigate to this view alongside other agent pages.
 
--   Fixed Jest test suite picking up `.tmp/pixel-agents-repo/webview-ui/test/dev-assets.test.ts` — added `testPathIgnorePatterns` to [jest.config.js](../jest.config.js) to exclude the `.tmp/` directory from Jest's test discovery (the file is a Node.js native test runner test, not a Jest test)
+-   Fixed Jest test suite picking up `.tmp/pixel-agents-repo/webview-ui/test/dev-assets.test.ts` - added `testPathIgnorePatterns` to [jest.config.js](../jest.config.js) to exclude the `.tmp/` directory from Jest's test discovery (the file is a Node.js native test runner test, not a Jest test)
 
 -   Enhanced the shared `Chat` component design used in Agents Server to deliver a more premium, polished conversation UI without changing chat behavior:
 
@@ -1427,9 +1427,9 @@
     -   Added `POST /agents/[agentName]/api/timeouts/actions` for timeout manager bulk actions and upgraded `/agents/[agentName]/timeouts` UI with one-click `Cancel active`, `Pause active`, and `Resume paused` controls across chats.
     -   Extended timeout list-query options with explicit paused filtering and updated timeout-related tool/chip metadata/tests to cover the new management flows.
 
--   Fixed `@promptbook/components` build failure in consuming projects caused by unresolved `leaflet` imports — removed static CSS import, load Leaflet CSS dynamically via CDN `<link>`, added `leaflet` to Rollup externals, and updated package generation script to detect dynamic `import()` references so `leaflet` is correctly listed as a dependency
+-   Fixed `@promptbook/components` build failure in consuming projects caused by unresolved `leaflet` imports - removed static CSS import, load Leaflet CSS dynamically via CDN `<link>`, added `leaflet` to Rollup externals, and updated package generation script to detect dynamic `import()` references so `leaflet` is correctly listed as a dependency
 
--   Fixed Rollup build hang for `@promptbook/pdf` (and other packages) by re-enabling the `external` dependency list in `rollup.config.js` — heavy dependencies like `markitdown-ts` were being inlined, causing Rollup to stall indefinitely
+-   Fixed Rollup build hang for `@promptbook/pdf` (and other packages) by re-enabling the `external` dependency list in `rollup.config.js` - heavy dependencies like `markitdown-ts` were being inlined, causing Rollup to stall indefinitely
 
 -   Updated README and documentation to focus on the **Agents Server** as the primary product, emphasizing persistent AI agents working on goals rather than pipelines and CLI tooling
 -   Rewrote all Paul Smith Book examples to show **goal-oriented agents** with real capabilities: added `GOAL`, `USE EMAIL`, `USE BROWSER`, `USE SEARCH ENGINE` commitments; added new `Goal` and `Use` commitment showcase sections
@@ -1439,7 +1439,7 @@
         -   `gpt-4.1`: $3.00→$2.00 input, $12.00→$8.00 output per 1M tokens
         -   `gpt-4.1-mini`: $0.80→$0.40 input, $3.20→$1.60 output per 1M tokens
         -   `gpt-4.1-nano`: $0.20→$0.10 input, $0.80→$0.40 output per 1M tokens
-        -   `o3`: 80% price cut — $15.00→$2.00 input, $60.00→$8.00 output per 1M tokens
+        -   `o3`: 80% price cut - $15.00→$2.00 input, $60.00→$8.00 output per 1M tokens
         -   `o3-pro`: $30.00→$20.00 input, $120.00→$80.00 output per 1M tokens
         -   `o4-mini`: $4.00→$1.10 input, $16.00→$4.40 output per 1M tokens
         -   `o3-mini`: $3.00→$1.10 input, $12.00→$4.40 output per 1M tokens
@@ -3007,6 +3007,7 @@
     -   Persisted profile-to-chat optimistic turn metadata across the route transition, including the client message id reused later for canonical reconciliation and failure states.
     -   Added a chat-route loading surface that renders the pending user turn right away while the standalone chat page server data is still loading.
     -   Tightened optimistic/canonical merge ordering so unresolved user bubbles stay ahead of later assistant streaming messages until the server confirms them.
+
 -   Added the new deterministic `AsciiOctopus` avatar visual alongside the existing avatar set, with an animated ASCII-art rendering that keeps the same organic alien octopus feel as `Octopus3` while varying its blob silhouette, tentacle count, face, and colors from the agent name, hash, colors, and animation time:
 
     -   Added the new built-in `ascii-octopus` canvas renderer to the shared avatar registry without changing the existing `Octopus`, `Octopus2`, `Octopus3`, pixel-art, Minecraft, or Fractal visuals.

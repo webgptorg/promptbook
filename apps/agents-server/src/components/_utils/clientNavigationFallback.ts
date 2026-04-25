@@ -65,7 +65,7 @@ export function scheduleClientNavigationFallback(
     return setTimeout(() => {
         const locationAfterPush = getCurrentRelativeLocation();
         if (locationAfterPush === locationBeforePush && locationAfterPush !== normalizedDestination) {
-            console.warn(`[${logLabel}] SPA navigation stalled — falling back to hard navigation`, {
+            console.warn(`[${logLabel}] SPA navigation stalled - falling back to hard navigation`, {
                 destination,
             });
             window.location.assign(destination);

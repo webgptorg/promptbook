@@ -5,7 +5,7 @@
 -   Add a new commitment named `USE SPAWN` that exposes a tool the LLM can call to create a new **persistent** Agents Server `Agent` entity (child agent) and provide the agent `source` (promptbook source / markdown / yaml / etc.) directly in the tool input.
 -   The spawned agent must behave exactly the same as if it was created manually in the Agents Server UI/API.
 -   The tool input must support **exactly the same options as manual agent creation** (mirror the Agents Server create-agent DTO/schema):
-    -   At minimum include `source` plus all other agent creation fields (e.g. `name`, `description`, `model`/`provider`, `isPublic`/visibility, `knowledge`, `avatar`/image settings, `memory` settings, `tags`, etc. — whatever exists today).
+    -   At minimum include `source` plus all other agent creation fields (e.g. `name`, `description`, `model`/`provider`, `isPublic`/visibility, `knowledge`, `avatar`/image settings, `memory` settings, `tags`, etc. - whatever exists today).
     -   If there is a single existing server-side type for create-agent input, reuse it end-to-end (do not duplicate types).
     -   Validate and reject unknown fields to avoid silent misconfiguration.
 -   Contract of the tool call:
@@ -16,7 +16,7 @@
 -   Security + limits (safe-by-default):
     -   Enforce size limits on `source` and any large text fields.
     -   Ensure the caller has permission to create agents (respect authn/authz and quotas).
-    -   Prevent infinite spawn loops / abuse (recursion depth, max spawned agents per parent run/user/time window — pick what fits existing platform limits).
+    -   Prevent infinite spawn loops / abuse (recursion depth, max spawned agents per parent run/user/time window - pick what fits existing platform limits).
     -   Consider rate limiting and audit logging for spawning.
 -   Make the commitment usable in both:
     -   Promptbook runtime (commitments + LLM tool calling)

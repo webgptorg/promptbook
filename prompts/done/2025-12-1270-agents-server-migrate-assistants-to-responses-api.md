@@ -600,7 +600,7 @@ store=True
 
 ### 4\. Decide when to use statefulness
 
-Some organizations—such as those with Zero Data Retention (ZDR) requirements—cannot use the Responses API in a stateful way due to compliance or data retention policies. To support these cases, OpenAI offers encrypted reasoning items, allowing you to keep your workflow stateless while still benefiting from reasoning items.
+Some organizations-such as those with Zero Data Retention (ZDR) requirements-cannot use the Responses API in a stateful way due to compliance or data retention policies. To support these cases, OpenAI offers encrypted reasoning items, allowing you to keep your workflow stateless while still benefiting from reasoning items.
 
 To disable statefulness, but still take advantage of reasoning:
 

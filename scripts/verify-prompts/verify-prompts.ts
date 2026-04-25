@@ -68,7 +68,9 @@ type NormalizedVerifyPromptsOptions = {
 /**
  * Default verification options parsed from the current process arguments.
  */
-const DEFAULT_VERIFY_PROMPTS_OPTIONS = normalizeVerifyPromptsOptions(parseVerifyPromptsCliOptions(process.argv.slice(2)));
+const DEFAULT_VERIFY_PROMPTS_OPTIONS = normalizeVerifyPromptsOptions(
+    parseVerifyPromptsCliOptions(process.argv.slice(2)),
+);
 
 /**
  * Starts the verification loop and exits when no `[ ]` prompts remain.
@@ -270,7 +272,7 @@ function matchesIgnoredPromptFile(promptFile: PromptFile, ignoreValues: Readonly
 function getPromptFileFirstLine(promptFile: PromptFile): string {
     const firstSection = promptFile.sections[0];
     const startLineIndex =
-        firstSection?.statusLineIndex !== undefined ? firstSection.statusLineIndex + 1 : (firstSection?.startLine ?? 0);
+        firstSection?.statusLineIndex !== undefined ? firstSection.statusLineIndex + 1 : firstSection?.startLine ?? 0;
 
     for (let index = startLineIndex; index < promptFile.lines.length; index += 1) {
         const line = promptFile.lines[index];
@@ -526,12 +528,12 @@ async function promptForDecision(selection: PromptSelection): Promise<PromptDeci
             message: `Is ${colors.bold(promptLabel)} resolved?`,
             choices: [
                 {
-                    title: '✅ Done — archive the prompt',
+                    title: '✅ Done - archive the prompt',
                     value: 'done',
                     // description: 'Move this file under prompts/done',
                 },
                 {
-                    title: '🛠️ Not done — add follow-up prompt',
+                    title: '🛠️ Not done - add follow-up prompt',
                     value: 'not-done',
                     // description: 'Append a Fix prompt referencing the previous section',
                 },

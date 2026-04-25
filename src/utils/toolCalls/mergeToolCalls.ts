@@ -198,7 +198,7 @@ function deduplicatePreparationToolCalls(toolCalls: Array<ToolCall>): Array<Tool
         if (lastPreparationIndex === -1) {
             lastPreparationIndex = index;
         } else {
-            // Remove earlier duplicate — keep only the last (most recent) one.
+            // Remove earlier duplicate - keep only the last (most recent) one.
             toolCalls.splice(index, 1);
         }
     }

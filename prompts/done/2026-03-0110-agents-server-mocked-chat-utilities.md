@@ -2,7 +2,7 @@
 
 [🧪💬] Mocked Chats utility for "System" -> Utilities
 
-Overview: Add an "Utilities" section under the "System" menu (visible to all logged-in users) and implement the first utility: "Mocked Chats" — a small UI for creating, editing and opening saved mocked-chat presets in a new window for recording/showcase purposes.
+Overview: Add an "Utilities" section under the "System" menu (visible to all logged-in users) and implement the first utility: "Mocked Chats" - a small UI for creating, editing and opening saved mocked-chat presets in a new window for recording/showcase purposes.
 
 -   Purpose: let any logged-in user create a deterministic, pre-sequenced chat (participants, messages, timings, colors, background) that can be opened in a new window using the existing Mocked Chat component for screen/video recording and demos. The live typing box in the opened mocked chat should append messages locally (for demo interaction) but must NOT overwrite the saved mocked preset.
 -   Availability: add a new System -> Utilities menu item (non-admins included). Utilities will be a simple index page listing available utilities (start with Mocked Chats). The Mocked Chats editor and the open chat viewer are reachable from there.
@@ -16,10 +16,10 @@ Overview: Add an "Utilities" section under the "System" menu (visible to all log
         -   Persist to the user data store under a new key namespace e.g. mockedChats.v1 (final key name to be decided).
     -   Showing & opening the mocked chat (new window)
         -   Each saved mocked chat can be opened in a new browser window/tab (target=\_blank) which renders the Mocked Chat component with the mocked chat data passed in as props.
-        -   When opened, render the Promptbook header bar but do not render the My Chats tray. Replace the left tray with a minimal "My Chats" list component that shows only mocked chats (from the user's mockedChats store) — this allows quick switching between mocked chats while recording.
+        -   When opened, render the Promptbook header bar but do not render the My Chats tray. Replace the left tray with a minimal "My Chats" list component that shows only mocked chats (from the user's mockedChats store) - this allows quick switching between mocked chats while recording.
         -   Behavior: the Mocked Chat plays the preset messages (simulated arrival by using the stored timestamp offsets). If user types in the chat input in this opened window, their input is appended to the displayed conversation but does not alter the saved mocked chat.
 -   UI/UX constraints
-    -   Keep the editor and viewer simple and predictable — low friction for recording. Follow current Promptbook styling and accessibility patterns.
+    -   Keep the editor and viewer simple and predictable - low friction for recording. Follow current Promptbook styling and accessibility patterns.
     -   The opened window must be distraction-free; include the Promptbook header bar only (logo, back, user controls), not the full site chrome or My Chats tray.
     -   Provide a clear "Open in new window" CTA in the editor and in the mocked chat list.
 -   Security & permissions
@@ -37,4 +37,3 @@ Overview: Add an "Utilities" section under the "System" menu (visible to all log
     -   Add CLI or scheduled playback for automated recordings
 -   Use existing `MockedChat` component for rendering the chat in the new window, passing the mocked chat data as props.
 -   You are working with the [Agents Server](apps/agents-server)
-

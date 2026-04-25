@@ -8,7 +8,7 @@ Overview: Create a generic "low-level" flag for commitments (decoupled from `MOD
     -   Highlight low-level commitments in BookEditor in a same way as now
     -   Do NOT include low-level commitments in autocompletion suggestions while typing commitments.
 -   Autocomplete / Suggestions:
-    -   Remove alias variants (e.g., RULES, RULE) from the suggestion list — only suggest the primary canonical commitment token.
+    -   Remove alias variants (e.g., RULES, RULE) from the suggestion list - only suggest the primary canonical commitment token.
     -   Still render aliases visually where they exist (for example as dimmed secondary text / tooltip), but they must not appear in the prefix-matching suggestions.
     -   Aliases should be lower-visibility across the UI (docs, suggestion hints), and must NOT be included in /api/docs/book.md.
 -   Search & indexing: update any server-side suggestion index to store commitments by their canonical primary variant only for suggestion purposes, while retaining aliases in metadata for backward compatibility and highlighting.

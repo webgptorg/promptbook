@@ -101,7 +101,7 @@ export function useAgentProfileChatNavigation(
         isNavigatingToChatResetTimeoutRef.current = setTimeout(() => {
             isNavigatingToChatResetTimeoutRef.current = null;
             console.warn(
-                '[AgentProfileChat] Navigation to chat stalled — resetting transitioning state so the page remains interactive',
+                '[AgentProfileChat] Navigation to chat stalled - resetting transitioning state so the page remains interactive',
             );
             setIsNavigatingToChat(false);
         }, PROFILE_CHAT_NAVIGATION_STATE_RESET_MS);

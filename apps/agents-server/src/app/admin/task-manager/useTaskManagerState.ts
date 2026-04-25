@@ -88,7 +88,7 @@ function parseSelectedNumber(value: string, fallback: number): number {
  */
 function formatDateTime(value: string | null): string {
     if (!value) {
-        return '—';
+        return '-';
     }
 
     const parsed = new Date(value);
@@ -102,7 +102,7 @@ function formatDateTime(value: string | null): string {
  */
 function formatDuration(durationMs: number | null): string {
     if (durationMs === null || !Number.isFinite(durationMs) || durationMs < 0) {
-        return '—';
+        return '-';
     }
 
     const totalSeconds = Math.floor(durationMs / 1000);
@@ -404,7 +404,9 @@ export function useTaskManagerState(): UseTaskManagerStateResult {
         isNextPageDisabled: page >= totalPages,
         isPreviousPageDisabled: page <= 1,
         isRefreshing,
-        lastRefreshedLabel: generatedAt ? `Last refreshed ${formatDateTime(generatedAt)}` : 'Waiting for first refresh…',
+        lastRefreshedLabel: generatedAt
+            ? `Last refreshed ${formatDateTime(generatedAt)}`
+            : 'Waiting for first refresh…',
         oldestQueuedAgeLabel: counters ? formatDuration(counters.oldestQueuedAgeMs) : '...',
         page,
         pageSize,

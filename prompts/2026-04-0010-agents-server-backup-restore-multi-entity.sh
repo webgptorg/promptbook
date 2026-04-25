@@ -5,7 +5,7 @@ copilot -p "$(cat <<'GITHUB_COPILOT_PROMPT'
 Enhance Agents Server backup page to allow selecting entities and exporting a single full backup file
 
 -   You are working with the [Agents Server](apps/agents-server)
--   Extend the existing “books backup” implementation used on the server backup page; do not remake it from scratch—enhance it to support backing up additional server entities.
+-   Extend the existing “books backup” implementation used on the server backup page; do not remake it from scratch-enhance it to support backing up additional server entities.
 -   UI: on the server backup page, provide a set of checkboxes (or equivalent multi-select controls) allowing the admin to choose which aspects of the server to include in the backup.
 -   Default behavior: all available aspects should be pre-checked and the download should be the “full backup” including everything the UI offers.
 -   Backup aspects to support via selection (at minimum):

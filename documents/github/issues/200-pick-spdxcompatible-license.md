@@ -39,7 +39,7 @@ Our key requirements for the license are to:
 
 ## Conclusion
 
-BUSL-1.1 aligns with our strategic objectives by protecting our intellectual property, controlling early commercial use, and providing a clear path to future monetization—all while being an SPDX-listed license.
+BUSL-1.1 aligns with our strategic objectives by protecting our intellectual property, controlling early commercial use, and providing a clear path to future monetization-all while being an SPDX-listed license.
 
 ---
 

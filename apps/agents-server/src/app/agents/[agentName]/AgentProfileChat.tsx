@@ -527,7 +527,9 @@ function PrivateModeChatPanel({ formatText, brandColorHex }: PrivateModeChatPane
                         {formatText('Private')}
                     </span>
                 </div>
-                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{formatText('This chat is private')}</p>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    {formatText('This chat is private')}
+                </p>
                 <p className="text-xs text-slate-500 dark:text-slate-300">
                     {formatText(
                         'Messages are kept local, and nothing is stored or learned while private mode is active.',
@@ -573,7 +575,9 @@ function ExistingChatsPanel({
                     <p className="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-slate-500 dark:text-slate-400">
                         {formatText('My chats')}
                     </p>
-                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{formatText('Pick up where you left off')}</p>
+                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        {formatText('Pick up where you left off')}
+                    </p>
                 </div>
                 <div className="mt-4 space-y-3 overflow-y-auto pr-1" style={{ maxHeight: `${scrollViewportHeight}px` }}>
                     {chats.map((chat) => {
@@ -584,7 +588,7 @@ function ExistingChatsPanel({
                         const previewText = hasMessageContent(chat.preview)
                             ? chat.preview
                             : formatText('No messages yet - start the conversation.');
-                        const titleWithPreview = chat.preview ? `${title} — ${chat.preview}` : title;
+                        const titleWithPreview = chat.preview ? `${title} - ${chat.preview}` : title;
                         const chatHref = resolveChatHref(chat.id);
 
                         return (
@@ -619,7 +623,9 @@ function ExistingChatsPanel({
                                         {timeLabel}
                                     </time>
                                 </div>
-                                <p className="text-[0.74rem] font-medium text-slate-500 line-clamp-2 dark:text-slate-300">{previewText}</p>
+                                <p className="text-[0.74rem] font-medium text-slate-500 line-clamp-2 dark:text-slate-300">
+                                    {previewText}
+                                </p>
                             </HeadlessLink>
                         );
                     })}

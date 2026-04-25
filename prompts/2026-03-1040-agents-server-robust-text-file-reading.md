@@ -5,7 +5,7 @@
 -   Problem: Agents can read files, but when user attaches a “text file” with uncommon extension (e.g. subtitle files like `.srt`, `.vtt`, `.ass`, or various domain-specific text formats), the system may treat it as unsupported/binary and refuse or provide garbage output.
 -   Goal: Make agents able to read arbitrary attached files as text whenever the content is textual, regardless of filename extension; also handle non‑UTF8 encodings gracefully.
 -   Non-goal: Parsing/semantic understanding of every subtitle format; we just need reliable text extraction (raw text). Format-specific parsing can be added later.
--   UX principle: "It shouldn’t matter"—user attaches a file, the agent can read it; if decoding is uncertain, the agent still gets best-effort text + a warning.
+-   UX principle: "It shouldn’t matter"-user attaches a file, the agent can read it; if decoding is uncertain, the agent still gets best-effort text + a warning.
 
 -   Implement a single, shared “decode attachment as text” pipeline:
     -   Input: `{ bytes, filename, mimeType? }`
@@ -62,4 +62,3 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
-

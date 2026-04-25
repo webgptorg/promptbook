@@ -16,11 +16,11 @@ Provide an alternate "New agent" creation experience to A/B test against the cur
 
     -   Boilerplate mode (preserve current behavior): opening "New agent" continues to open the book editor with the boilerplate source pre-filled and allows the user to edit before saving/creating the agent.
     -   Wizard/Form mode: present a lightweight multi-step form:
-        -   Step 1: Agent basic info — name (required), short description (optional), visibility (private/public/unlisted)
-        -   Step 2: Persona & traits — select from ~6-10 preset trait chips (tone, domain expertise, personality snippets) and allow minimal custom trait text
-        -   Step 3: Rules & guardrails — choose default safety rules toggles (e.g., no personal data retrieval, professional tone) and allow short custom instructions
-        -   Step 4: Upload knowledge — upload files or paste URLs (support same knowledge ingestion pipeline as book editor). Show an optional checkbox: "Open book editor after creation"
-        -   Step 5: Review & create — show selected options (no raw book content exposed), confirm creation. Creation runs in background and returns success + agent profile link.
+        -   Step 1: Agent basic info - name (required), short description (optional), visibility (private/public/unlisted)
+        -   Step 2: Persona & traits - select from ~6-10 preset trait chips (tone, domain expertise, personality snippets) and allow minimal custom trait text
+        -   Step 3: Rules & guardrails - choose default safety rules toggles (e.g., no personal data retrieval, professional tone) and allow short custom instructions
+        -   Step 4: Upload knowledge - upload files or paste URLs (support same knowledge ingestion pipeline as book editor). Show an optional checkbox: "Open book editor after creation"
+        -   Step 5: Review & create - show selected options (no raw book content exposed), confirm creation. Creation runs in background and returns success + agent profile link.
 
 -   UX constraints & guardrails:
 
@@ -127,4 +127,3 @@ CLOSED
 -   You are working with the [Agents Server](apps/agents-server) with the new agent wizard flow
 
 ![alt text](prompts/screenshots/2026-03-1380-agents-server-new-agent-wizard-4.png)
-

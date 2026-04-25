@@ -13,7 +13,7 @@ The project is a monorepo with multiple packages in `/packages` published to NPM
 
 ### Book Language & Commitments
 
-Books are agent definitions using commitments—special syntax elements defining AI agent contracts:
+Books are agent definitions using commitments-special syntax elements defining AI agent contracts:
 
 -   **Commitments**: Keywords like `PERSONA`, `RULE`, `KNOWLEDGE`, `USE BROWSER`, `USE SEARCH ENGINE` that define behavior
 -   **Parsing Flow**: `parseAgentSource()` (lightweight, synchronous) → `createAgentModelRequirements()` (async, applies commitments)
@@ -41,29 +41,29 @@ Books are agent definitions using commitments—special syntax elements defining
 
 1. **Register changes** in [changelog/\_current-preversion.md](/changelog/_current-preversion.md) FIRST
 2. **Run tests**: `npm run test` (runs all test suites)
-    - `npm run test-unit` — unit tests
-    - `npm run test-types` — TypeScript type checking
-    - `npm run test-lint` — code style
-    - `npm run test-spellcheck` — spelling
-    - `npm run test-books` — Book language validation
+    - `npm run test-unit` - unit tests
+    - `npm run test-types` - TypeScript type checking
+    - `npm run test-lint` - code style
+    - `npm run test-spellcheck` - spelling
+    - `npm run test-books` - Book language validation
 
 ### Code Style & Emoji Conventions
 
 -   Follow existing patterns in the codebase
 -   Use comments for complex logic
 -   **Emoji annotations** mark semantic intent:
-    -   `[emoji]` — connects related places across repo
-    -   `[🧠]` — decision point, needs careful thought
-    -   `[💩]` — technical debt, refactor needed
-    -   `[🐣]` — easter eggs
-    -   `[$function]` — function has side effects (not pure)
-    -   `[!!!]` (3x) — fix before pre-release
-    -   `[!!!!]` (4x+) — fix urgently
-    -   `[@@@]` — documentation needed
-    -   `[⚫]` — never publish in any package
-    -   `[🟢]` — never publish to browser packages
-    -   `[🔵]` — only for @promptbook/browser
-    -   `[🟡]` — only for @promptbook/cli
+    -   `[emoji]` - connects related places across repo
+    -   `[🧠]` - decision point, needs careful thought
+    -   `[💩]` - technical debt, refactor needed
+    -   `[🐣]` - easter eggs
+    -   `[$function]` - function has side effects (not pure)
+    -   `[!!!]` (3x) - fix before pre-release
+    -   `[!!!!]` (4x+) - fix urgently
+    -   `[@@@]` - documentation needed
+    -   `[⚫]` - never publish in any package
+    -   `[🟢]` - never publish to browser packages
+    -   `[🔵]` - only for @promptbook/browser
+    -   `[🟡]` - only for @promptbook/cli
 
 ### Generated Code
 

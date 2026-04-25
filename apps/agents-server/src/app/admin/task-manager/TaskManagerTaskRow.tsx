@@ -49,10 +49,7 @@ type TaskInfoBlockProps = {
  *
  * @private function of TaskManagerTaskRow
  */
-type TaskManagerTaskActionsProps = Pick<
-    TaskManagerTaskRowProps,
-    'busyAction' | 'onRunTaskAction' | 'task'
-> & {
+type TaskManagerTaskActionsProps = Pick<TaskManagerTaskRowProps, 'busyAction' | 'onRunTaskAction' | 'task'> & {
     isBusy: boolean;
 };
 
@@ -140,7 +137,7 @@ function formatTaskKind(kind: AdminChatTaskRecord['kind']): string {
  */
 function formatDateTime(value: string | null): string {
     if (!value) {
-        return '—';
+        return '-';
     }
 
     const parsed = new Date(value);
@@ -154,7 +151,7 @@ function formatDateTime(value: string | null): string {
  */
 function formatDuration(durationMs: number | null): string {
     if (durationMs === null || !Number.isFinite(durationMs) || durationMs < 0) {
-        return '—';
+        return '-';
     }
 
     const totalSeconds = Math.floor(durationMs / 1000);
@@ -294,7 +291,7 @@ function TaskManagerTaskActions({ busyAction, isBusy, onRunTaskAction, task }: T
 
             {!isCancelable && !isRetryable ? (
                 <span className="rounded-md border border-gray-200 bg-gray-50 px-3 py-1.5 font-medium text-gray-500">
-                    —
+                    -
                 </span>
             ) : null}
         </div>
@@ -336,10 +333,13 @@ export function TaskManagerTaskRow({
                     </div>
                     {task.recurrenceIntervalMs ? (
                         <div>
-                            Recurrence: <span className="text-gray-700">Every {formatDuration(task.recurrenceIntervalMs)}</span>
+                            Recurrence:{' '}
+                            <span className="text-gray-700">Every {formatDuration(task.recurrenceIntervalMs)}</span>
                         </div>
                     ) : null}
-                    {task.cancelRequestedAt ? <div className="font-medium text-orange-700">Cancellation requested</div> : null}
+                    {task.cancelRequestedAt ? (
+                        <div className="font-medium text-orange-700">Cancellation requested</div>
+                    ) : null}
                     {task.pausedAt ? (
                         <div className="font-medium text-orange-700">Paused {formatDateTime(task.pausedAt)}</div>
                     ) : null}
@@ -411,7 +411,7 @@ export function TaskManagerTaskRow({
                         ) : null}
                     </div>
                 ) : (
-                    '—'
+                    '-'
                 )}
             </td>
 

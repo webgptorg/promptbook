@@ -2,7 +2,7 @@
  * Regression tests for profile-page → chat-page navigation.
  *
  * Bug: clicking navigation items on the agent profile page (quick buttons,
- * "My chats" panel, send-message action, etc.) did nothing — the UI faded
+ * "My chats" panel, send-message action, etc.) did nothing - the UI faded
  * briefly then returned to the profile page without navigating.
  *
  * Root causes that these tests guard against:
@@ -90,9 +90,9 @@ describe('normalizeDestinationForLocationComparison', () => {
     });
 
     it('returns pathname+search for a full URL with query params', () => {
-        expect(
-            normalizeDestinationForLocationComparison('https://example.ptbk.io/agents/abc/chat?chat=new'),
-        ).toBe('/agents/abc/chat?chat=new');
+        expect(normalizeDestinationForLocationComparison('https://example.ptbk.io/agents/abc/chat?chat=new')).toBe(
+            '/agents/abc/chat?chat=new',
+        );
     });
 
     it('resolves a relative path against the current origin', () => {

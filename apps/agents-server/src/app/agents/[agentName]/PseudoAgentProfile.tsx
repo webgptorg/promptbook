@@ -116,7 +116,7 @@ export function PseudoAgentProfilePage({ descriptor, canonicalAgentId, canonical
                     </p>
                     <p className="mt-2 text-sm text-gray-700">
                         Every reply is generated inside the parent agent&apos;s session and is discarded the moment the
-                        agent continues—pseudo agents do not offer standalone chat history.
+                        agent continues-pseudo agents do not offer standalone chat history.
                     </p>
                 </section>
             </div>

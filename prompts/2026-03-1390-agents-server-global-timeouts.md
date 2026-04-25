@@ -10,7 +10,7 @@
     -   Provide admin-level visibility and control in the Task Manager for troubleshooting and governance.
 -   Non-goals:
     -   Cross-agent visibility (agents cannot see other agents' timeouts except admins).
-    -   Replacing underlying scheduling engine or changing global scheduling guarantees — focus is on visibility and management UX + API surface.
+    -   Replacing underlying scheduling engine or changing global scheduling guarantees - focus is on visibility and management UX + API surface.
 -   You are working with the [Agents Server](apps/agents-server)
 
 ---
@@ -72,4 +72,3 @@ Sure, I see that I have 3 active timeouts across different chats. I have cancell
 -   If you need to do the database migration, do it
 
 ![alt text](prompts/screenshots/2026-03-1390-agents-server-global-timeouts-1.png)
-

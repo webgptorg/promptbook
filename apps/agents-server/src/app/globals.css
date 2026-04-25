@@ -108,8 +108,7 @@ html.dark {
 }
 
 body {
-    background:
-        radial-gradient(circle at 12% 14%, rgba(56, 189, 248, 0.14), transparent 28%),
+    background: radial-gradient(circle at 12% 14%, rgba(56, 189, 248, 0.14), transparent 28%),
         radial-gradient(circle at 86% 10%, rgba(14, 165, 233, 0.12), transparent 24%),
         linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(244, 248, 252, 0.98));
     color: var(--foreground);
@@ -118,8 +117,7 @@ body {
 }
 
 html.dark body {
-    background:
-        radial-gradient(circle at 15% 12%, rgba(14, 165, 233, 0.16), transparent 24%),
+    background: radial-gradient(circle at 15% 12%, rgba(14, 165, 233, 0.16), transparent 24%),
         radial-gradient(circle at 82% 18%, rgba(59, 130, 246, 0.12), transparent 22%),
         linear-gradient(180deg, rgba(2, 6, 23, 0.98), rgba(6, 12, 24, 0.99));
 }
@@ -152,14 +150,12 @@ body {
 }
 
 .agents-server-route-shell {
-    background:
-        radial-gradient(circle at 14% 0%, rgba(59, 130, 246, 0.08), transparent 34%),
+    background: radial-gradient(circle at 14% 0%, rgba(59, 130, 246, 0.08), transparent 34%),
         radial-gradient(circle at 86% 2%, rgba(168, 85, 247, 0.06), transparent 28%);
 }
 
 html.dark .agents-server-route-shell {
-    background:
-        radial-gradient(circle at 16% 0%, rgba(34, 211, 238, 0.11), transparent 28%),
+    background: radial-gradient(circle at 16% 0%, rgba(34, 211, 238, 0.11), transparent 28%),
         radial-gradient(circle at 84% 4%, rgba(59, 130, 246, 0.1), transparent 26%),
         linear-gradient(180deg, rgba(2, 6, 23, 0.14), rgba(2, 6, 23, 0.32));
 }
@@ -250,10 +246,8 @@ html.dark .agents-server-route-shell {
 }
 
 html.dark .agents-graph-surface {
-    background:
-        radial-gradient(circle at 15% 15%, rgba(14, 165, 233, 0.2), transparent 45%),
-        radial-gradient(circle at 85% 85%, rgba(59, 130, 246, 0.16), transparent 48%),
-        #020617;
+    background: radial-gradient(circle at 15% 15%, rgba(14, 165, 233, 0.2), transparent 45%),
+        radial-gradient(circle at 85% 85%, rgba(59, 130, 246, 0.16), transparent 48%), #020617;
 }
 
 .agents-graph-canvas {
@@ -634,7 +628,7 @@ html.dark .agent-chat-route-surface {
     opacity: 0.88;
     transform: scale(1.01);
     filter: saturate(0.9);
-    /* Note: pointer-events intentionally omitted — keeping interactions enabled avoids
+    /* Note: pointer-events intentionally omitted - keeping interactions enabled avoids
        permanently blocking the UI when SPA navigation stalls or is aborted. */
 }
 

@@ -63,7 +63,7 @@ The default is:
 “The City Between Stones and Stars”
 
 “Prague never lets you go... this dear little mother has claws.”
-— Franz Kafka
+- Franz Kafka
 
 Beneath her bridges, the Vltava hums,
 a silver thread through labyrinthine dreams.
