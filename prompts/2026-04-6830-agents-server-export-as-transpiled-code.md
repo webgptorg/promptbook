@@ -99,11 +99,47 @@ const toolImplementations = {
 
 [ ] !
 
+[✨✫] There are some commitments which can not be transpiled, warn the user about that on the `export-as-transpiled-code` page
+
+-   Theese commitments can not be transpiled:
+    -   `OPEN` - either explicitelly or just by not using `CLOSED`
+    -   `MODEL` does not make sense to transpile, because the model is determined by transpiler
+    -   `USE LOCATION` is dependent on browser environment and can not be transpiled
+    -   `USE PRIVACY` depends more on external factors and can not be transpiled
+-   When any of theese commitments is used in the agent warning should be shown on the `export-as-transpiled-code` page, that the agent contains some functionality which can not be transpiled and exported code may not work 1:1 with the agent created in the Agents Server, and user should be informed about which functionality can not be transpiled
+-   This is transpiler-agnostic, so it should be implemented in a way that it works for every transpiler, not just for specific one
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+---
+
+[ ] !
+
 [✨✫] Add E2B transpiler
 
 -   Add transpiler to export the agent as E2B agent, read the documentation of https://e2b.dev/ and implement the transpiler to export the agent as E2B agent
 -   It should be available through `export-as-transpiled-code` page
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+---
+
+[ ] !
+
+[✨✫] The `TEAM` should be reflected as a part of the transpiled code
+
+-   When exporting agent which has `TEAM` the transpiled code should build-in the team members
+-   The exported code should be self-contained and runnable without any additional configuration or running server
+-   The team members can have another team members, bring entire team hierarchy into the transpiled code
+-   Team members can be on external federated server
+-   In the transpiled code there should be some clear way to identify the team members
+-   It should be available through `export-as-transpiled-code` page
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+    -   Use the existing mechanisms to resolve the team members and their information, do not implement new logic if it can be reused from the existing codebase
+    -   Also in the transpiled code do not duplicate same code for each team member, but export reusable code
+-   You are doing this change for every transpiler
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 
