@@ -13,7 +13,7 @@
 
 ---
 
-[ ] !
+[x] $1.42 an hour by OpenAI Codex `gpt-5.4`
 
 [✨✫] The exported transpiled code should be runnable and self-contained
 
@@ -88,3 +88,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

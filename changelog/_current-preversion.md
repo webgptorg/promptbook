@@ -1,3 +1,9 @@
+-   Made Agents Server transpiled-code exports self-contained and directly runnable, so downloaded agent harness archives now behave like small standalone projects instead of loose code files:
+
+    -   Moved transpiled export assembly into shared Agents Server export utilities that now decide which helper files belong in every export, while the ZIP route remains a thin system-level wrapper that only archives the prepared file set.
+    -   Added system-generated runtime scaffolding for runnable JavaScript exports, including `package.json` with inferred dependencies and `npm start`, a mocked `.env` file with detected environment variables and fill-in instructions, a `.gitignore`, and a short `README.md` explaining how to run the exported agent with `npm install` and `npm start`.
+    -   Expanded the transpiled export manifest and regression coverage so archives now describe their inferred runtime, bundled helper files, and required environment variables in one consistent format for current and future transpilers.
+
 -   Enhanced the Agents Server `export-as-transpiled-code` page so it now works as a fuller export workspace instead of only a code preview:
 
     -   Added a read-only Book viewer showing the stored agent source directly on the export page, together with a dedicated `Edit Book` action that jumps to the existing Book editor instead of making the export page itself editable.
