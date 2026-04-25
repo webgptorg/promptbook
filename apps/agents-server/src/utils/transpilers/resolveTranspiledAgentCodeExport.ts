@@ -2,13 +2,17 @@ import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentColle
 import { $provideExecutionToolsForServer } from '@/src/tools/$provideExecutionToolsForServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
-import { _OpenAiSdkTranspilerRegistration } from '@promptbook-local/wizard';
 import type { BookTranspiler, string_book, string_script } from '@promptbook-local/types';
+import {
+    _AnthropicClaudeSdkTranspilerRegistration,
+    _OpenAiSdkTranspilerRegistration,
+} from '@promptbook-local/wizard';
 import { $bookTranspilersRegister } from '../../../../../src/transpilers/_common/register/$bookTranspilersRegister';
 import { $sideEffect } from '../../../../../src/utils/organization/$sideEffect';
 
 // Note: Ensure supported export transpilers are registered before listing or resolving them.
 $sideEffect(_OpenAiSdkTranspilerRegistration);
+$sideEffect(_AnthropicClaudeSdkTranspilerRegistration);
 
 /**
  * Public transpiler metadata exposed to the Agents Server export page.

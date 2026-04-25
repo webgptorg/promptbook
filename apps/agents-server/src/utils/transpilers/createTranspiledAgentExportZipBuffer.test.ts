@@ -125,4 +125,53 @@ console.log(readline);`,
             'manifest.json',
         ]);
     });
+
+    it('packages Anthropic SDK exports with inferred runtime dependencies and environment variables', async () => {
+        const { filename, buffer } = await createTranspiledAgentExportZipBuffer({
+            agentName: 'Claude Agent',
+            agentSource: validateBook('Claude Agent\nGOAL Help with Anthropic SDK exports'),
+            transpiledCode: `#!/usr/bin/env node
+import * as dotenv from 'dotenv';
+import Anthropic from '@anthropic-ai/sdk';
+
+dotenv.config({ path: '.env' });
+
+const client = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_CLAUDE_API_KEY,
+});
+
+console.log(client);`,
+            transpilerName: 'anthropic-claude-sdk',
+            transpilerTitle: 'Anthropic Claude SDK',
+        });
+
+        const zip = await JSZip.loadAsync(buffer);
+        const archiveRoot = filename.replace(/\.zip$/, '');
+        const packageJson = JSON.parse(await zip.file(`${archiveRoot}/package.json`)!.async('string')) as {
+            scripts: Record<string, string>;
+            dependencies: Record<string, string>;
+        };
+        const mockEnvironmentFile = await zip.file(`${archiveRoot}/.env`)!.async('string');
+        const manifest = JSON.parse(await zip.file(`${archiveRoot}/manifest.json`)!.async('string')) as {
+            runtime: {
+                kind: string;
+                entryFile: string;
+                environmentVariables: string[];
+                dependencies?: Record<string, string>;
+            };
+        };
+
+        expect(filename).toBe('promptbook-agent-export-Claude Agent-anthropic-claude-sdk.zip');
+        expect(await zip.file(`${archiveRoot}/agent-harness.mjs`)!.async('string')).toContain(
+            "import Anthropic from '@anthropic-ai/sdk';",
+        );
+        expect(packageJson.scripts.start).toBe('node ./agent-harness.mjs');
+        expect(Object.keys(packageJson.dependencies)).toEqual(['@anthropic-ai/sdk', 'dotenv']);
+        expect(mockEnvironmentFile).toContain('ANTHROPIC_API_KEY');
+        expect(mockEnvironmentFile).toContain('ANTHROPIC_CLAUDE_API_KEY');
+        expect(manifest.runtime.kind).toBe('nodejs');
+        expect(manifest.runtime.entryFile).toBe('agent-harness.mjs');
+        expect(manifest.runtime.environmentVariables).toEqual(['ANTHROPIC_API_KEY', 'ANTHROPIC_CLAUDE_API_KEY']);
+        expect(Object.keys(manifest.runtime.dependencies || {})).toEqual(['@anthropic-ai/sdk', 'dotenv']);
+    });
 });

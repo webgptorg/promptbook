@@ -31,7 +31,7 @@
 
 ---
 
-[ ] !
+[x] by OpenAI Codex `gpt-5.4` commited manually
 
 [✨✫] Add Anthropic Claude SDK transpiler
 

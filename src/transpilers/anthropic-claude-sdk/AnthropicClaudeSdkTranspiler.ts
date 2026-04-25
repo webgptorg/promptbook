@@ -8,15 +8,29 @@ import type { BookTranspilerOptions } from '../_common/BookTranspilerOptions';
 import { prepareSdkTranspilerContext } from '../_common/prepareSdkTranspilerContext';
 
 /**
- * Transpiler to Javascript code using OpenAI SDK.
+ * Default Claude model used when the source Book does not already target Anthropic.
+ *
+ * @private used by `AnthropicClaudeSdkTranspiler`
+ */
+const DEFAULT_ANTHROPIC_MODEL_NAME = 'claude-sonnet-4-20250514';
+
+/**
+ * Default output-token budget required by Anthropic's Messages API.
+ *
+ * @private used by `AnthropicClaudeSdkTranspiler`
+ */
+const DEFAULT_ANTHROPIC_MAX_TOKENS = 8192;
+
+/**
+ * Transpiler to JavaScript code using Anthropic's Claude SDK.
  *
  * @public exported from `@promptbook/core`
  */
-export const OpenAiSdkTranspiler = {
-    name: 'openai-sdk',
-    title: 'OpenAI SDK',
+export const AnthropicClaudeSdkTranspiler = {
+    name: 'anthropic-claude-sdk',
+    title: 'Anthropic Claude SDK',
     packageName: '@promptbook/core',
-    className: 'OpenAiSdkTranspiler',
+    className: 'AnthropicClaudeSdkTranspiler',
     async transpileBook(
         book: string_book,
         tools: ExecutionTools,
@@ -34,6 +48,8 @@ export const OpenAiSdkTranspiler = {
         TODO_USE(tools);
         TODO_USE(options);
 
+        const anthropicModelName = resolveAnthropicModelName(modelRequirements.modelName);
+
         if (isKnowledgeHandledWithRetrieval) {
             return spaceTrim(
                 (block) => `
@@ -43,22 +59,18 @@ export const OpenAiSdkTranspiler = {
                     dotenv.config({ path: '.env' });
 
                     import { spaceTrim } from '@promptbook/utils';
-                    import OpenAI from 'openai';
+                    import Anthropic from '@anthropic-ai/sdk';
                     import readline from 'readline';
                     import { Document, VectorStoreIndex, SimpleDirectoryReader } from 'llamaindex';
 
                     // ---- CONFIG ----
-                    const client = new OpenAI({
-                        apiKey: process.env.OPENAI_API_KEY,
+                    const client = new Anthropic({
+                        apiKey: process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_CLAUDE_API_KEY,
                     });
 
                     // ---- KNOWLEDGE ----
-                    const knowledge = ${block(
-                        JSON.stringify(directKnowledge, null, 4) /* <- TODO: Use here Promptbook stringify */,
-                    )};
-                    const knowledgeSources = ${block(
-                        JSON.stringify(knowledgeSources, null, 4) /* <- TODO: Use here Promptbook stringify */,
-                    )};
+                    const knowledge = ${block(JSON.stringify(directKnowledge, null, 4))};
+                    const knowledgeSources = ${block(JSON.stringify(knowledgeSources, null, 4))};
                     let index;
 
                     async function setupKnowledge() {
@@ -82,15 +94,20 @@ export const OpenAiSdkTranspiler = {
                     }
 
                     // ---- TOOLS ----
-                    const tools = {
+                    const toolImplementations = {
                         ${block(
                             Object.entries(usedToolFunctions)
-                                .map(([name, impl]) => `${name}: ${impl},`)
+                                .map(([name, implementation]) => `${name}: ${implementation},`)
                                 .join('\n'),
                         )}
                     };
 
                     const toolDefinitions = ${block(JSON.stringify(modelRequirements.tools || [], null, 4))};
+                    const anthropicTools = toolDefinitions.map((toolDefinition) => ({
+                        name: toolDefinition.name,
+                        description: toolDefinition.description,
+                        input_schema: toolDefinition.parameters,
+                    }));
 
                     // ---- CLI SETUP ----
                     const rl = readline.createInterface({
@@ -98,14 +115,7 @@ export const OpenAiSdkTranspiler = {
                         output: process.stdout,
                     });
 
-                    const chatHistory = [
-                        {
-                            role: 'system',
-                            content: spaceTrim(\`
-                                ${block(modelRequirements.systemMessage.split('`').join('\\`'))}
-                            \`),
-                        },
-                    ];
+                    const chatHistory = [];
 
                     async function ask(question) {
                         let context = '';
@@ -127,63 +137,82 @@ export const OpenAiSdkTranspiler = {
                                         My question is:
                                         \${question}
                                     `),
-                                    // <- TODO: !!! Maybe block in the spaceTrim shoud do the spaceTrim automatically?
                                 )}
                             \`);
                         }
 
                         chatHistory.push({ role: 'user', content: question });
-
                         await performAiCall();
                     }
 
                     async function performAiCall() {
-                        const response = await client.chat.completions.create({
-                            model: 'gpt-4o',
+                        const response = await client.messages.create({
+                            model: '${anthropicModelName}',
+                            system: spaceTrim(\`
+                                ${block(modelRequirements.systemMessage.split('`').join('\\`'))}
+                            \`),
                             messages: chatHistory,
+                            max_tokens: ${DEFAULT_ANTHROPIC_MAX_TOKENS},
                             temperature: ${modelRequirements.temperature},
-                            ${
-                                modelRequirements.tools && modelRequirements.tools.length > 0
-                                    ? `tools: toolDefinitions.map(tool => ({ type: 'function', function: tool })),`
-                                    : ''
-                            }
+                            ${modelRequirements.tools && modelRequirements.tools.length > 0 ? `tools: anthropicTools,` : ''}
                         });
 
-                        const message = response.choices[0].message;
+                        const toolUseBlocks = response.content.filter((contentBlock) => contentBlock.type === 'tool_use');
 
-                        if (message.tool_calls && message.tool_calls.length > 0) {
-                            chatHistory.push(message);
+                        if (toolUseBlocks.length > 0) {
+                            chatHistory.push({ role: 'assistant', content: response.content });
 
-                            for (const toolCall of message.tool_calls) {
-                                const functionName = toolCall.function.name;
-                                const functionArgs = JSON.parse(toolCall.function.arguments);
+                            const toolResults = [];
+
+                            for (const toolUseBlock of toolUseBlocks) {
+                                const functionName = toolUseBlock.name;
+                                const functionArgs = toolUseBlock.input;
+                                const toolImplementation = toolImplementations[functionName];
 
                                 console.log(\`🛠️ Calling tool \${functionName}...\`);
+
                                 let result;
+                                let isError = false;
+
                                 try {
-                                    result = await tools[functionName](functionArgs);
+                                    if (!toolImplementation) {
+                                        throw new Error(\`Tool "\${functionName}" is not implemented in the exported harness.\`);
+                                    }
+
+                                    result = await toolImplementation(functionArgs);
                                 } catch (error) {
-                                    result = \`Error: \${error.message}\`;
+                                    result = \`Error: \${error instanceof Error ? error.message : String(error)}\`;
+                                    isError = true;
                                 }
 
-                                chatHistory.push({
-                                    tool_call_id: toolCall.id,
-                                    role: 'tool',
-                                    name: functionName,
+                                toolResults.push({
+                                    type: 'tool_result',
+                                    tool_use_id: toolUseBlock.id,
                                     content: typeof result === 'string' ? result : JSON.stringify(result),
+                                    ...(isError ? { is_error: true } : {}),
                                 });
                             }
+
+                            chatHistory.push({
+                                role: 'user',
+                                content: toolResults,
+                            });
 
                             await performAiCall();
                             return;
                         }
 
-                        const answer = message.content;
+                        const answer =
+                            response.content
+                                .filter((contentBlock) => contentBlock.type === 'text')
+                                .map((contentBlock) => contentBlock.text)
+                                .join('\\n\\n') || '(Claude returned no text response.)';
+
                         console.log('\\n🧠 ${
                             agentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */
                         }:', answer, '\\n');
 
-                        chatHistory.push({ role: 'assistant', content: answer });
+                        chatHistory.push({ role: 'assistant', content: response.content });
                         promptUser();
                     }
 
@@ -209,34 +238,37 @@ export const OpenAiSdkTranspiler = {
             );
         }
 
-        const source = spaceTrim(
+        return spaceTrim(
             (block) => `
-
                 #!/usr/bin/env node
 
                 import * as dotenv from 'dotenv';
-
                 dotenv.config({ path: '.env' });
 
-                import { spaceTrim } from '@promptbook/utils';
-                import OpenAI from 'openai';
+                import Anthropic from '@anthropic-ai/sdk';
                 import readline from 'readline';
+                import { spaceTrim } from '@promptbook/utils';
 
                 // ---- CONFIG ----
-                const client = new OpenAI({
-                    apiKey: process.env.OPENAI_API_KEY,
+                const client = new Anthropic({
+                    apiKey: process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_CLAUDE_API_KEY,
                 });
 
                 // ---- TOOLS ----
-                const tools = {
+                const toolImplementations = {
                     ${block(
                         Object.entries(usedToolFunctions)
-                            .map(([name, impl]) => `${name}: ${impl},`)
+                            .map(([name, implementation]) => `${name}: ${implementation},`)
                             .join('\n'),
                     )}
                 };
 
                 const toolDefinitions = ${block(JSON.stringify(modelRequirements.tools || [], null, 4))};
+                const anthropicTools = toolDefinitions.map((toolDefinition) => ({
+                    name: toolDefinition.name,
+                    description: toolDefinition.description,
+                    input_schema: toolDefinition.parameters,
+                }));
 
                 // ---- CLI SETUP ----
                 const rl = readline.createInterface({
@@ -244,14 +276,7 @@ export const OpenAiSdkTranspiler = {
                     output: process.stdout,
                 });
 
-                const chatHistory = [
-                    {
-                        role: 'system',
-                        content: spaceTrim(\`
-                            ${block(modelRequirements.systemMessage.split('`').join('\\`'))}
-                        \`),
-                    },
-                ];
+                const chatHistory = [];
 
                 async function ask(question) {
                     chatHistory.push({ role: 'user', content: question });
@@ -259,52 +284,73 @@ export const OpenAiSdkTranspiler = {
                 }
 
                 async function performAiCall() {
-                    const response = await client.chat.completions.create({
-                        model: 'gpt-4o',
+                    const response = await client.messages.create({
+                        model: '${anthropicModelName}',
+                        system: spaceTrim(\`
+                            ${block(modelRequirements.systemMessage.split('`').join('\\`'))}
+                        \`),
                         messages: chatHistory,
+                        max_tokens: ${DEFAULT_ANTHROPIC_MAX_TOKENS},
                         temperature: ${modelRequirements.temperature},
-                        ${
-                            modelRequirements.tools && modelRequirements.tools.length > 0
-                                ? `tools: toolDefinitions.map(tool => ({ type: 'function', function: tool })),`
-                                : ''
-                        }
+                        ${modelRequirements.tools && modelRequirements.tools.length > 0 ? `tools: anthropicTools,` : ''}
                     });
 
-                    const message = response.choices[0].message;
+                    const toolUseBlocks = response.content.filter((contentBlock) => contentBlock.type === 'tool_use');
 
-                    if (message.tool_calls && message.tool_calls.length > 0) {
-                        chatHistory.push(message);
+                    if (toolUseBlocks.length > 0) {
+                        chatHistory.push({ role: 'assistant', content: response.content });
 
-                        for (const toolCall of message.tool_calls) {
-                            const functionName = toolCall.function.name;
-                            const functionArgs = JSON.parse(toolCall.function.arguments);
+                        const toolResults = [];
+
+                        for (const toolUseBlock of toolUseBlocks) {
+                            const functionName = toolUseBlock.name;
+                            const functionArgs = toolUseBlock.input;
+                            const toolImplementation = toolImplementations[functionName];
 
                             console.log(\`🛠️ Calling tool \${functionName}...\`);
+
                             let result;
+                            let isError = false;
+
                             try {
-                                result = await tools[functionName](functionArgs);
+                                if (!toolImplementation) {
+                                    throw new Error(\`Tool "\${functionName}" is not implemented in the exported harness.\`);
+                                }
+
+                                result = await toolImplementation(functionArgs);
                             } catch (error) {
-                                result = \`Error: \${error.message}\`;
+                                result = \`Error: \${error instanceof Error ? error.message : String(error)}\`;
+                                isError = true;
                             }
 
-                            chatHistory.push({
-                                tool_call_id: toolCall.id,
-                                role: 'tool',
-                                name: functionName,
+                            toolResults.push({
+                                type: 'tool_result',
+                                tool_use_id: toolUseBlock.id,
                                 content: typeof result === 'string' ? result : JSON.stringify(result),
+                                ...(isError ? { is_error: true } : {}),
                             });
                         }
+
+                        chatHistory.push({
+                            role: 'user',
+                            content: toolResults,
+                        });
 
                         await performAiCall();
                         return;
                     }
 
-                    const answer = message.content;
+                    const answer =
+                        response.content
+                            .filter((contentBlock) => contentBlock.type === 'text')
+                            .map((contentBlock) => contentBlock.text)
+                            .join('\\n\\n') || '(Claude returned no text response.)';
+
                     console.log('\\n🧠 ${
                         agentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */
                     }:', answer, '\\n');
 
-                    chatHistory.push({ role: 'assistant', content: answer });
+                    chatHistory.push({ role: 'assistant', content: response.content });
                     promptUser();
                 }
 
@@ -323,10 +369,21 @@ export const OpenAiSdkTranspiler = {
                     agentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */
                 } (type 'exit' to quit)\\n");
                 promptUser();
-
             `,
         );
-
-        return source;
     },
 } as const satisfies BookTranspiler;
+
+/**
+ * Resolves a Claude model name compatible with the generated Anthropic harness.
+ *
+ * @param modelName - Model requested by the Book source.
+ * @returns Claude-compatible model name for the generated export.
+ */
+function resolveAnthropicModelName(modelName?: string): string {
+    if (typeof modelName === 'string' && modelName.trim().startsWith('claude')) {
+        return modelName.trim();
+    }
+
+    return DEFAULT_ANTHROPIC_MODEL_NAME;
+}

@@ -1,3 +1,9 @@
+-   Added an Anthropic Claude SDK transpiler to the Agents Server `export-as-transpiled-code` flow, so Claude-based runnable harnesses can now be generated and downloaded alongside the existing OpenAI export:
+
+    -   Added a new `Anthropic Claude SDK` Book transpiler that emits a standalone Node.js CLI harness built on `@anthropic-ai/sdk`, including Claude tool-use loops, Promptbook tool implementations, and the same retrieval-based knowledge scaffolding already used by the existing SDK export path.
+    -   Kept the SDK transpiler implementation DRY by extracting the shared Book-to-harness preparation logic used by both OpenAI and Anthropic SDK transpilers instead of duplicating knowledge/tool parsing.
+    -   Registered the new transpiler in the Agents Server export registry, mapped it to JavaScript harness metadata for preview/download packaging, and extended regression coverage for Anthropic ZIP exports and file metadata inference.
+
 -   Made Agents Server transpiled-code exports self-contained and directly runnable, so downloaded agent harness archives now behave like small standalone projects instead of loose code files:
 
     -   Moved transpiled export assembly into shared Agents Server export utilities that now decide which helper files belong in every export, while the ZIP route remains a thin system-level wrapper that only archives the prepared file set.

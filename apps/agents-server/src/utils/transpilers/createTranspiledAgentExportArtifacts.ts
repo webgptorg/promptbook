@@ -119,6 +119,8 @@ const BUILTIN_MODULE_NAMES = new Set(
  */
 const ENVIRONMENT_VARIABLE_HINTS: Record<string, string> = {
     OPENAI_API_KEY: 'Replace with the OpenAI API key used by the exported agent.',
+    ANTHROPIC_API_KEY: 'Replace with the Anthropic API key used by the exported agent.',
+    ANTHROPIC_CLAUDE_API_KEY: 'Optional Promptbook-compatible alias for the Anthropic API key.',
 };
 
 /**

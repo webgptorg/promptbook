@@ -27,7 +27,7 @@ export function getTranspiledCodeFileMetadata(transpilerName?: string): Transpil
         };
     }
 
-    if (transpilerName.includes('openai-sdk')) {
+    if (transpilerName.includes('openai-sdk') || transpilerName.includes('anthropic-claude-sdk')) {
         return {
             language: 'javascript',
             filename: 'agent-harness.mjs',
