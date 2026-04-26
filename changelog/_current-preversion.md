@@ -1,3 +1,9 @@
+-   Fixed the Agents Server transpiled-code export so generated SDK harnesses now emit valid `tools` / `toolImplementations` object members instead of malformed `name: async name()` entries:
+
+    -   Added a shared SDK transpiler helper that normalizes tool implementations from object methods, function declarations, and arrow functions into valid object-literal method syntax before embedding them in exported code.
+    -   Reused that helper in both the OpenAI and Anthropic SDK transpilers so the `USE TIME`, `USE SEARCH ENGINE`, `USE EMAIL`, `USE BROWSER`, and related tool exports all keep the same formatting path.
+    -   Tightened transpiler regression tests to verify the emitted harness includes the corrected `async toolName(...) {}` shape and no longer emits the broken property/value form.
+
 -   Added an Anthropic Claude SDK transpiler to the Agents Server `export-as-transpiled-code` flow, so Claude-based runnable harnesses can now be generated and downloaded alongside the existing OpenAI export:
 
     -   Added a new `Anthropic Claude SDK` Book transpiler that emits a standalone Node.js CLI harness built on `@anthropic-ai/sdk`, including Claude tool-use loops, Promptbook tool implementations, and the same retrieval-based knowledge scaffolding already used by the existing SDK export path.

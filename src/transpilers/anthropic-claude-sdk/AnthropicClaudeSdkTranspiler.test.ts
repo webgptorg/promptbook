@@ -87,7 +87,8 @@ describe('AnthropicClaudeSdkTranspiler', () => {
         const code = await AnthropicClaudeSdkTranspiler.transpileBook(agentSource, { llm }, { isVerbose: true });
 
         expect(code).toContain('const toolImplementations = {');
-        expect(code).toContain('get_current_time: async get_current_time(args)');
+        expect(code).toContain('async get_current_time(args) {');
+        expect(code).not.toContain('get_current_time: async get_current_time(args)');
         expect(code).toContain('const anthropicTools = toolDefinitions.map((toolDefinition) => ({');
         expect(code).toContain('"name": "get_current_time"');
         expect(code).toContain('input_schema: toolDefinition.parameters');

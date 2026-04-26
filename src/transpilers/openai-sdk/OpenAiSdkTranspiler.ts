@@ -5,6 +5,7 @@ import type { string_script } from '../../types/typeAliases';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { BookTranspiler } from '../_common/BookTranspiler';
 import type { BookTranspilerOptions } from '../_common/BookTranspilerOptions';
+import { formatUsedToolFunctions } from '../_common/formatUsedToolFunctions';
 import { prepareSdkTranspilerContext } from '../_common/prepareSdkTranspilerContext';
 
 /**
@@ -83,11 +84,7 @@ export const OpenAiSdkTranspiler = {
 
                     // ---- TOOLS ----
                     const tools = {
-                        ${block(
-                            Object.entries(usedToolFunctions)
-                                .map(([name, impl]) => `${name}: ${impl},`)
-                                .join('\n'),
-                        )}
+                        ${block(formatUsedToolFunctions(usedToolFunctions))}
                     };
 
                     const toolDefinitions = ${block(JSON.stringify(modelRequirements.tools || [], null, 4))};
@@ -229,11 +226,7 @@ export const OpenAiSdkTranspiler = {
 
                 // ---- TOOLS ----
                 const tools = {
-                    ${block(
-                        Object.entries(usedToolFunctions)
-                            .map(([name, impl]) => `${name}: ${impl},`)
-                            .join('\n'),
-                    )}
+                    ${block(formatUsedToolFunctions(usedToolFunctions))}
                 };
 
                 const toolDefinitions = ${block(JSON.stringify(modelRequirements.tools || [], null, 4))};

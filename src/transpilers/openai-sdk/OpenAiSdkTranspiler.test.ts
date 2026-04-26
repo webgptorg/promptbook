@@ -75,7 +75,8 @@ describe('OpenAiSdkTranspiler', () => {
         const code = await OpenAiSdkTranspiler.transpileBook(agentSource, { llm }, { isVerbose: true });
 
         expect(code).toContain('const tools = {');
-        expect(code).toContain('get_current_time: async get_current_time(args)');
+        expect(code).toContain('async get_current_time(args) {');
+        expect(code).not.toContain('get_current_time: async get_current_time(args)');
         expect(code).toContain('const toolDefinitions = [');
         expect(code).toContain('"name": "get_current_time"');
         expect(code).toContain("tools: toolDefinitions.map(tool => ({ type: 'function', function: tool }))");
