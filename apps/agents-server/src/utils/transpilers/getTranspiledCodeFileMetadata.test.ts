@@ -23,6 +23,13 @@ describe('getTranspiledCodeFileMetadata', () => {
         });
     });
 
+    it('treats E2B exports as JavaScript harnesses', () => {
+        expect(getTranspiledCodeFileMetadata('e2b')).toEqual({
+            language: 'javascript',
+            filename: 'agent-harness.mjs',
+        });
+    });
+
     it('treats OpenAI Agents SDK exports as JavaScript harnesses', () => {
         expect(getTranspiledCodeFileMetadata('openai-agents')).toEqual({
             language: 'javascript',

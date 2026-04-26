@@ -1,3 +1,9 @@
+-   Added an `E2B` transpiler to the Agents Server `export-as-transpiled-code` flow, so Promptbook agents can now be launched inside an E2B sandbox-backed runner:
+
+    -   Added a new `e2b` Book transpiler that reuses the existing OpenAI SDK harness as the inner agent loop, starts it inside an E2B sandbox, forwards sandbox environment variables and interactive stdin/stdout, and cleans up the sandbox on exit.
+    -   Registered the new transpiler in the Agents Server export registry, mapped it to JavaScript harness metadata for preview/download packaging, and extended regression coverage for export-page listing, metadata inference, and ZIP/runtime packaging.
+    -   Kept the implementation DRY by reusing the existing OpenAI SDK transpiler output instead of duplicating the agent loop logic inside the new E2B launcher.
+
 -   Added a warning banner to the Agents Server `export-as-transpiled-code` page for agent functionality that cannot be reproduced 1:1 in transpiled exports:
 
     -   Added a shared export-warning analyzer that inspects resolved Book commitments once and feeds both the export page banner and transpiled export API response without tying the logic to any specific transpiler.

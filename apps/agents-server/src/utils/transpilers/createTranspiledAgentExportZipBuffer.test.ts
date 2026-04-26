@@ -335,4 +335,65 @@ console.log(vm);`,
             'zod',
         ]);
     });
+
+    it('packages E2B exports as JavaScript harnesses with the expected sandbox scaffold', async () => {
+        const { filename, buffer } = await createTranspiledAgentExportZipBuffer({
+            agentName: 'E2B Agent',
+            agentSource: validateBook('E2B Agent\nGOAL Run inside E2B'),
+            transpiledCode: `#!/usr/bin/env node
+import * as dotenv from 'dotenv';
+import { readFile } from 'node:fs/promises';
+import { Sandbox } from 'e2b';
+import { spaceTrim } from '@promptbook/utils';
+import OpenAI from 'openai';
+
+dotenv.config({ path: '.env' });
+
+const E2B_API_KEY = process.env.E2B_API_KEY;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
+console.log(E2B_API_KEY);
+console.log(OPENAI_API_KEY);
+console.log(readFile, Sandbox, spaceTrim, OpenAI);`,
+            transpilerName: 'e2b',
+            transpilerTitle: 'E2B',
+        });
+
+        const zip = await JSZip.loadAsync(buffer);
+        const archiveRoot = filename.replace(/\.zip$/, '');
+        const manifest = JSON.parse(await zip.file(`${archiveRoot}/manifest.json`)!.async('string')) as {
+            agentName: string;
+            transpilerName: string;
+            transpilerTitle: string;
+            runtime: {
+                kind: string;
+                entryFile: string;
+                installCommand: string | null;
+                startCommand: string | null;
+                environmentVariables: string[];
+                dependencies?: Record<string, string>;
+                packageName?: string;
+            };
+            files: string[];
+        };
+        const packageJson = JSON.parse(await zip.file(`${archiveRoot}/package.json`)!.async('string')) as {
+            scripts: Record<string, string>;
+            dependencies: Record<string, string>;
+        };
+        const mockEnvironmentFile = await zip.file(`${archiveRoot}/.env`)!.async('string');
+
+        expect(filename).toBe('promptbook-agent-export-E2B Agent-e2b.zip');
+        expect(await zip.file(`${archiveRoot}/agent-harness.mjs`)!.async('string')).toContain("import { Sandbox } from 'e2b';");
+        expect(packageJson.scripts.start).toBe('node ./agent-harness.mjs');
+        expect(Object.keys(packageJson.dependencies)).toEqual(['@promptbook/utils', 'dotenv', 'e2b', 'openai']);
+        expect(mockEnvironmentFile).toContain('E2B_API_KEY');
+        expect(mockEnvironmentFile).toContain('OPENAI_API_KEY');
+        expect(manifest.agentName).toBe('E2B Agent');
+        expect(manifest.transpilerName).toBe('e2b');
+        expect(manifest.transpilerTitle).toBe('E2B');
+        expect(manifest.runtime.kind).toBe('nodejs');
+        expect(manifest.runtime.entryFile).toBe('agent-harness.mjs');
+        expect(manifest.runtime.environmentVariables).toEqual(['E2B_API_KEY', 'OPENAI_API_KEY']);
+        expect(Object.keys(manifest.runtime.dependencies || {})).toEqual(['@promptbook/utils', 'dotenv', 'e2b', 'openai']);
+    });
 });

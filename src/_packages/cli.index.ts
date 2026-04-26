@@ -36,6 +36,7 @@ import { _WebsiteScraperMetadataRegistration } from '../scrapers/website/registe
 import { _AgentOsTranspilerRegistration } from '../transpilers/agent-os/register';
 import { _AnthropicClaudeManagedTranspilerRegistration } from '../transpilers/anthropic-claude-managed/register';
 import { _AnthropicClaudeSdkTranspilerRegistration } from '../transpilers/anthropic-claude-sdk/register';
+import { _E2BTranspilerRegistration } from '../transpilers/e2b/register';
 import { _FormattedBookInMarkdownTranspilerRegistration } from '../transpilers/formatted-book-in-markdown/register';
 import { _OpenAiAgentsTranspilerRegistration } from '../transpilers/openai-agents/register';
 import { _OpenAiSdkTranspilerRegistration } from '../transpilers/openai-sdk/register';
@@ -80,6 +81,7 @@ export { _WebsiteScraperMetadataRegistration };
 export { _AgentOsTranspilerRegistration };
 export { _AnthropicClaudeManagedTranspilerRegistration };
 export { _AnthropicClaudeSdkTranspilerRegistration };
+export { _E2BTranspilerRegistration };
 export { _FormattedBookInMarkdownTranspilerRegistration };
 export { _OpenAiAgentsTranspilerRegistration };
 export { _OpenAiSdkTranspilerRegistration };

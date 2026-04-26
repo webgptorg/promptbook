@@ -31,7 +31,8 @@ export function getTranspiledCodeFileMetadata(transpilerName?: string): Transpil
         transpilerName.includes('openai-sdk') ||
         transpilerName.includes('openai-agents') ||
         transpilerName.includes('anthropic-claude') ||
-        transpilerName.includes('agent-os')
+        transpilerName.includes('agent-os') ||
+        transpilerName.includes('e2b')
     ) {
         return {
             language: 'javascript',

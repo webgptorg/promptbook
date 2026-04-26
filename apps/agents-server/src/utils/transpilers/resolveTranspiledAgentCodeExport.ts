@@ -7,6 +7,7 @@ import {
     _AnthropicClaudeManagedTranspilerRegistration,
     _AgentOsTranspilerRegistration,
     _AnthropicClaudeSdkTranspilerRegistration,
+    _E2BTranspilerRegistration,
     _OpenAiAgentsTranspilerRegistration,
     _OpenAiSdkTranspilerRegistration,
 } from '@promptbook-local/wizard';
@@ -20,6 +21,7 @@ $sideEffect(_OpenAiAgentsTranspilerRegistration);
 $sideEffect(_AnthropicClaudeSdkTranspilerRegistration);
 $sideEffect(_AnthropicClaudeManagedTranspilerRegistration);
 $sideEffect(_AgentOsTranspilerRegistration);
+$sideEffect(_E2BTranspilerRegistration);
 
 /**
  * Public transpiler metadata exposed to the Agents Server export page.

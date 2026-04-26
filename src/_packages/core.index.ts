@@ -202,6 +202,7 @@ import { $bookTranspilersRegister } from '../transpilers/_common/register/$bookT
 import { AgentOsTranspiler } from '../transpilers/agent-os/AgentOsTranspiler';
 import { AnthropicClaudeManagedTranspiler } from '../transpilers/anthropic-claude-managed/AnthropicClaudeManagedTranspiler';
 import { AnthropicClaudeSdkTranspiler } from '../transpilers/anthropic-claude-sdk/AnthropicClaudeSdkTranspiler';
+import { E2BTranspiler } from '../transpilers/e2b/E2BTranspiler';
 import { FormattedBookInMarkdownTranspiler } from '../transpilers/formatted-book-in-markdown/FormattedBookInMarkdownTranspiler';
 import { OpenAiAgentsTranspiler } from '../transpilers/openai-agents/OpenAiAgentsTranspiler';
 import { OpenAiSdkTranspiler } from '../transpilers/openai-sdk/OpenAiSdkTranspiler';
@@ -430,6 +431,7 @@ export { $bookTranspilersRegister };
 export { AgentOsTranspiler };
 export { AnthropicClaudeManagedTranspiler };
 export { AnthropicClaudeSdkTranspiler };
+export { E2BTranspiler };
 export { FormattedBookInMarkdownTranspiler };
 export { OpenAiAgentsTranspiler };
 export { OpenAiSdkTranspiler };
