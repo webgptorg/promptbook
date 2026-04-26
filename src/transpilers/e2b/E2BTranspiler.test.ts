@@ -47,4 +47,22 @@ describe('E2BTranspiler', () => {
         expect(code).toContain('index = await VectorStoreIndex.fromDocuments(documents)');
         expect(code).toContain('Sandbox.create({');
     });
+
+    it('wraps a TEAM-aware inner SDK harness in an E2B launcher', async () => {
+        const agentSource = book`
+            Team Router
+
+            PERSONA You route work to teammates
+            TEAM https://example.com/agents/alpha
+        `;
+
+        const llm = await $provideLlmToolsForTestingAndScriptsAndPlayground();
+        const code = await E2BTranspiler.transpileBook(agentSource, { llm }, { isVerbose: true });
+
+        expect(code).toContain('const AGENT_HARNESS_SOURCE =');
+        expect(code).toContain("import { RemoteAgent } from '@promptbook/core';");
+        expect(code).toContain('const PROMPTBOOK_TEAM_MEMBERS =');
+        expect(code).toContain('team_chat_alpha');
+        expect(code).toContain('createPromptbookTeamToolImplementation("team_chat_alpha")');
+    });
 });

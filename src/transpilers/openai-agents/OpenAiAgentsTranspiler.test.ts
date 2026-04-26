@@ -69,4 +69,22 @@ describe('OpenAiAgentsTranspiler', () => {
         expect(code).toContain('return stringifyResult(result);');
         expect(code).toContain("run(agent, promptText, {");
     });
+
+    it('transpiles a book with TEAM and includes the baked team scaffold', async () => {
+        const agentSource = book`
+            Team Router
+
+            PERSONA You route work to teammates
+            TEAM https://example.com/agents/alpha
+        `;
+
+        const llm = await $provideLlmToolsForTestingAndScriptsAndPlayground();
+        const code = await OpenAiAgentsTranspiler.transpileBook(agentSource, { llm }, { isVerbose: true });
+
+        expect(code).toContain("import { RemoteAgent } from '@promptbook/core';");
+        expect(code).toContain('const PROMPTBOOK_TEAM_MEMBERS =');
+        expect(code).toContain('team_chat_alpha');
+        expect(code).toContain('createPromptbookTeamToolImplementation("team_chat_alpha")');
+        expect(code).toContain('PROMPTBOOK_TOOL_IMPLEMENTATIONS');
+    });
 });

@@ -96,4 +96,22 @@ describe('AnthropicClaudeSdkTranspiler', () => {
         expect(code).toContain("type: 'tool_result'");
         expect(code).toContain('tool_use_id: toolUseBlock.id');
     });
+
+    it('transpiles a book with TEAM and includes the baked team scaffold', async () => {
+        const agentSource = book`
+            Team Router
+
+            PERSONA You route work to teammates
+            TEAM https://example.com/agents/alpha
+        `;
+
+        const llm = await $provideLlmToolsForTestingAndScriptsAndPlayground();
+        const code = await AnthropicClaudeSdkTranspiler.transpileBook(agentSource, { llm }, { isVerbose: true });
+
+        expect(code).toContain("import { RemoteAgent } from '@promptbook/core';");
+        expect(code).toContain('const PROMPTBOOK_TEAM_MEMBERS =');
+        expect(code).toContain('team_chat_alpha');
+        expect(code).toContain('createPromptbookTeamToolImplementation("team_chat_alpha")');
+        expect(code).toContain('PROMPTBOOK_TEAM_MEMBER_BY_TOOL_NAME');
+    });
 });

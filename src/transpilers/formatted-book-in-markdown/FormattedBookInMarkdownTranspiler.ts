@@ -4,6 +4,7 @@ import type { string_markdown } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type { BookTranspiler } from '../_common/BookTranspiler';
 import type { BookTranspilerOptions } from '../_common/BookTranspilerOptions';
+import { createTranspiledTeamMarkdownSection } from '../_common/TranspiledTeamMember';
 
 /**
  * Converts a book into a 1:1 formatted markdown
@@ -16,7 +17,8 @@ export const FormattedBookInMarkdownTranspiler = {
     packageName: '@promptbook/core',
     className: 'FormattedBookInMarkdownTranspiler',
     transpileBook(book: string_book, tools: ExecutionTools, options?: BookTranspilerOptions): string_markdown {
-        keepUnused(tools, options);
+        keepUnused(tools);
+        const teamHierarchy = options?.teamHierarchy || [];
 
         let lines = book.trim(/* <- Note: Not using `spaceTrim` because its not needed */).split(/\r?\n/);
 
@@ -31,6 +33,7 @@ export const FormattedBookInMarkdownTranspiler = {
             line = line?.split('RULE').join('**RULE**');
             line = line?.split('META').join('**META**');
             line = line?.split('KNOWLEDGE').join('**KNOWLEDGE**');
+            line = line?.split('TEAM').join('**TEAM**');
             line = line?.split('ACTION').join('**ACTION**');
             // <- TODO: !!! Unhardcode these commitments
 
@@ -40,6 +43,11 @@ export const FormattedBookInMarkdownTranspiler = {
         // lines = lines.map((line) => `> ${line}`);
         lines = lines.map((line) => `${line}<br/>`);
 
-        return lines.join('\n');
+        const renderedBook = lines.join('\n');
+        if (teamHierarchy.length === 0) {
+            return renderedBook;
+        }
+
+        return `${renderedBook}\n\n${createTranspiledTeamMarkdownSection(teamHierarchy)}`;
     },
 } as const satisfies BookTranspiler;

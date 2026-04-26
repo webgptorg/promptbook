@@ -8,6 +8,7 @@ import type { BookTranspilerOptions } from '../_common/BookTranspilerOptions';
 import { formatUsedToolFunctions } from '../_common/formatUsedToolFunctions';
 import { prepareSdkTranspilerContext } from '../_common/prepareSdkTranspilerContext';
 import { resolveClaudeModelName } from '../_common/resolveClaudeModelName';
+import { createTranspiledTeamSection } from '../_common/TranspiledTeamMember';
 
 /**
  * Default output-token budget required by Anthropic's Messages API.
@@ -37,13 +38,16 @@ export const AnthropicClaudeSdkTranspiler = {
             directKnowledge,
             knowledgeSources,
             usedToolFunctions,
+            toolDefinitions,
+            teamHierarchy,
             isKnowledgeHandledWithRetrieval,
-        } = await prepareSdkTranspilerContext(book);
+        } = await prepareSdkTranspilerContext(book, options);
 
         TODO_USE(tools);
         TODO_USE(options);
 
         const anthropicModelName = resolveClaudeModelName(modelRequirements.modelName);
+        const teamSection = createTranspiledTeamSection(teamHierarchy);
 
         if (isKnowledgeHandledWithRetrieval) {
             return spaceTrim(
@@ -57,8 +61,10 @@ export const AnthropicClaudeSdkTranspiler = {
                     import Anthropic from '@anthropic-ai/sdk';
                     import readline from 'readline';
                     import { Document, VectorStoreIndex, SimpleDirectoryReader } from 'llamaindex';
+                    ${teamSection.importSource ? block(teamSection.importSource) : ''}
 
                     // ---- CONFIG ----
+                    const AGENT_NAME = ${block(JSON.stringify(agentName))};
                     const client = new Anthropic({
                         apiKey: process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_CLAUDE_API_KEY,
                     });
@@ -91,14 +97,16 @@ export const AnthropicClaudeSdkTranspiler = {
                     // ---- TOOLS ----
                     const toolImplementations = {
                         ${block(formatUsedToolFunctions(usedToolFunctions))}
+                        ${block(teamSection.toolMembersSource)}
                     };
 
-                    const toolDefinitions = ${block(JSON.stringify(modelRequirements.tools || [], null, 4))};
+                    const toolDefinitions = ${block(JSON.stringify(toolDefinitions, null, 4))};
                     const anthropicTools = toolDefinitions.map((toolDefinition) => ({
                         name: toolDefinition.name,
                         description: toolDefinition.description,
                         input_schema: toolDefinition.parameters,
                     }));
+                    ${teamSection.memberDataSource ? block(teamSection.memberDataSource) : ''}
 
                     // ---- CLI SETUP ----
                     const rl = readline.createInterface({
@@ -145,7 +153,7 @@ export const AnthropicClaudeSdkTranspiler = {
                             messages: chatHistory,
                             max_tokens: ${DEFAULT_ANTHROPIC_MAX_TOKENS},
                             temperature: ${modelRequirements.temperature},
-                            ${modelRequirements.tools && modelRequirements.tools.length > 0 ? `tools: anthropicTools,` : ''}
+                            ${toolDefinitions.length > 0 ? `tools: anthropicTools,` : ''}
                         });
 
                         const toolUseBlocks = response.content.filter((contentBlock) => contentBlock.type === 'tool_use');
@@ -199,7 +207,7 @@ export const AnthropicClaudeSdkTranspiler = {
                                 .map((contentBlock) => contentBlock.text)
                                 .join('\\n\\n') || '(Claude returned no text response.)';
 
-                        console.log('\\n🧠 ${agentName}:', answer, '\\n');
+                        console.log('\\n🧠 ' + AGENT_NAME + ':', answer, '\\n');
 
                         chatHistory.push({ role: 'assistant', content: response.content });
                         promptUser();
@@ -218,7 +226,7 @@ export const AnthropicClaudeSdkTranspiler = {
 
                     (async () => {
                         await setupKnowledge();
-                        console.log("🤖 Chat with ${agentName} (type 'exit' to quit)\\n");
+                        console.log(`🤖 Chat with ${AGENT_NAME} (type 'exit' to quit)\\n`);
                         promptUser();
                     })();
                 `,
@@ -235,8 +243,10 @@ export const AnthropicClaudeSdkTranspiler = {
                 import Anthropic from '@anthropic-ai/sdk';
                 import readline from 'readline';
                 import { spaceTrim } from '@promptbook/utils';
+                ${teamSection.importSource ? block(teamSection.importSource) : ''}
 
                 // ---- CONFIG ----
+                const AGENT_NAME = ${block(JSON.stringify(agentName))};
                 const client = new Anthropic({
                     apiKey: process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_CLAUDE_API_KEY,
                 });
@@ -244,14 +254,16 @@ export const AnthropicClaudeSdkTranspiler = {
                 // ---- TOOLS ----
                 const toolImplementations = {
                     ${block(formatUsedToolFunctions(usedToolFunctions))}
+                    ${block(teamSection.toolMembersSource)}
                 };
 
-                const toolDefinitions = ${block(JSON.stringify(modelRequirements.tools || [], null, 4))};
+                const toolDefinitions = ${block(JSON.stringify(toolDefinitions, null, 4))};
                 const anthropicTools = toolDefinitions.map((toolDefinition) => ({
                     name: toolDefinition.name,
                     description: toolDefinition.description,
                     input_schema: toolDefinition.parameters,
                 }));
+                ${teamSection.memberDataSource ? block(teamSection.memberDataSource) : ''}
 
                 // ---- CLI SETUP ----
                 const rl = readline.createInterface({
@@ -275,7 +287,7 @@ export const AnthropicClaudeSdkTranspiler = {
                         messages: chatHistory,
                         max_tokens: ${DEFAULT_ANTHROPIC_MAX_TOKENS},
                         temperature: ${modelRequirements.temperature},
-                        ${modelRequirements.tools && modelRequirements.tools.length > 0 ? `tools: anthropicTools,` : ''}
+                        ${toolDefinitions.length > 0 ? `tools: anthropicTools,` : ''}
                     });
 
                     const toolUseBlocks = response.content.filter((contentBlock) => contentBlock.type === 'tool_use');
@@ -329,7 +341,7 @@ export const AnthropicClaudeSdkTranspiler = {
                             .map((contentBlock) => contentBlock.text)
                             .join('\\n\\n') || '(Claude returned no text response.)';
 
-                    console.log('\\n🧠 ${agentName}:', answer, '\\n');
+                    console.log('\\n🧠 ' + AGENT_NAME + ':', answer, '\\n');
 
                     chatHistory.push({ role: 'assistant', content: response.content });
                     promptUser();
@@ -346,7 +358,7 @@ export const AnthropicClaudeSdkTranspiler = {
                     });
                 }
 
-                console.log("🤖 Chat with ${agentName} (type 'exit' to quit)\\n");
+                console.log(`🤖 Chat with ${AGENT_NAME} (type 'exit' to quit)\\n`);
                 promptUser();
             `,
         );

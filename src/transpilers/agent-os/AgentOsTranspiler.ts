@@ -9,6 +9,7 @@ import type { BookTranspilerOptions } from '../_common/BookTranspilerOptions';
 import { formatUsedToolFunctions } from '../_common/formatUsedToolFunctions';
 import { prepareSdkTranspilerContext } from '../_common/prepareSdkTranspilerContext';
 import { createZodSchemaSource } from '../_common/createZodSchemaSource';
+import { createTranspiledTeamSection } from '../_common/TranspiledTeamMember';
 
 /**
  * Global extension directory scanned by Pi inside the VM home folder.
@@ -45,13 +46,16 @@ export const AgentOsTranspiler = {
             directKnowledge,
             knowledgeSources,
             usedToolFunctions,
+            toolDefinitions,
+            teamHierarchy,
             isKnowledgeHandledWithRetrieval,
-        } = await prepareSdkTranspilerContext(book);
+        } = await prepareSdkTranspilerContext(book, options);
 
         TODO_USE(tools);
         TODO_USE(options);
 
-        const shouldGenerateToolkit = Boolean(modelRequirements.tools && modelRequirements.tools.length > 0);
+        const shouldGenerateToolkit = toolDefinitions.length > 0;
+        const teamSection = createTranspiledTeamSection(teamHierarchy);
         const resolvedSystemMessage = resolveAgentOsSystemMessage({
             systemMessage: modelRequirements.systemMessage,
             directKnowledge,
@@ -71,6 +75,7 @@ export const AgentOsTranspiler = {
                 ${shouldGenerateToolkit ? `import { z } from 'zod';` : ''}
                 import readline from 'readline';
                 import { spaceTrim } from '@promptbook/utils';
+                ${teamSection.importSource ? block(teamSection.importSource) : ''}
                 ${
                     isKnowledgeHandledWithRetrieval
                         ? `import { Document, SimpleDirectoryReader, VectorStoreIndex } from 'llamaindex';`
@@ -83,7 +88,14 @@ export const AgentOsTranspiler = {
                 const AGENT_NAME = ${block(JSON.stringify(agentName))};
                 const PROMPT_SUFFIX = ${block(JSON.stringify(modelRequirements.promptSuffix.trim()))};
                 const SYSTEM_MESSAGE = ${block(JSON.stringify(resolvedSystemMessage))};
-                ${block(createAgentOsToolkitSection(modelRequirements.tools || [], usedToolFunctions))}
+                ${teamSection.memberDataSource ? block(teamSection.memberDataSource) : ''}
+                ${block(
+                    createAgentOsToolkitSection({
+                        toolDefinitions,
+                        usedToolFunctions,
+                        teamMembersSource: teamSection.toolMembersSource,
+                    }),
+                )}
                 ${block(createAgentOsKnowledgeSection({ directKnowledge, knowledgeSources, isKnowledgeHandledWithRetrieval }))}
 
                 /**
@@ -208,9 +220,14 @@ function createPiExtensionCode(systemMessage: string): string {
  * @private helper of `AgentOsTranspiler`
  */
 function createAgentOsToolkitSection(
-    toolDefinitions: ReadonlyArray<LlmToolDefinition>,
-    usedToolFunctions: Record<string, string>,
+    options: {
+        readonly toolDefinitions: ReadonlyArray<LlmToolDefinition>;
+        readonly usedToolFunctions: Record<string, string>;
+        readonly teamMembersSource: string;
+    },
 ): string {
+    const { toolDefinitions, usedToolFunctions, teamMembersSource } = options;
+
     if (toolDefinitions.length === 0) {
         return '';
     }
@@ -220,6 +237,7 @@ function createAgentOsToolkitSection(
             // ---- TOOLS ----
             const PROMPTBOOK_TOOL_IMPLEMENTATIONS = {
                 ${block(formatUsedToolFunctions(usedToolFunctions))}
+                ${block(teamMembersSource)}
             };
 
             const PROMPTBOOK_TOOLKIT = toolKit({

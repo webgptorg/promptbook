@@ -83,4 +83,22 @@ describe('OpenAiSdkTranspiler', () => {
         expect(code).toContain('if (message.tool_calls && message.tool_calls.length > 0)');
         expect(code).toContain('result = await tools[functionName](functionArgs)');
     });
+
+    it('transpiles a book with TEAM and includes the baked team scaffold', async () => {
+        const agentSource = book`
+            Team Router
+
+            PERSONA You route work to teammates
+            TEAM https://example.com/agents/alpha
+        `;
+
+        const llm = await $provideLlmToolsForTestingAndScriptsAndPlayground();
+        const code = await OpenAiSdkTranspiler.transpileBook(agentSource, { llm }, { isVerbose: true });
+
+        expect(code).toContain("import { RemoteAgent } from '@promptbook/core';");
+        expect(code).toContain('const PROMPTBOOK_TEAM_MEMBERS =');
+        expect(code).toContain('team_chat_alpha');
+        expect(code).toContain('createPromptbookTeamToolImplementation("team_chat_alpha")');
+        expect(code).toContain('PROMPTBOOK_TEAM_MEMBER_BY_TOOL_NAME');
+    });
 });

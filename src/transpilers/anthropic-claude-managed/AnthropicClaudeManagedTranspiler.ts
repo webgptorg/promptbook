@@ -10,6 +10,7 @@ import { createZodShapeSource } from '../_common/createZodSchemaSource';
 import { formatUsedToolFunctions } from '../_common/formatUsedToolFunctions';
 import { prepareSdkTranspilerContext } from '../_common/prepareSdkTranspilerContext';
 import { resolveClaudeModelName } from '../_common/resolveClaudeModelName';
+import { createTranspiledTeamSection } from '../_common/TranspiledTeamMember';
 
 /**
  * MCP server name used for Promptbook tool commitments in the managed Claude harness.
@@ -39,14 +40,17 @@ export const AnthropicClaudeManagedTranspiler = {
             directKnowledge,
             knowledgeSources,
             usedToolFunctions,
+            toolDefinitions,
+            teamHierarchy,
             isKnowledgeHandledWithRetrieval,
-        } = await prepareSdkTranspilerContext(book);
+        } = await prepareSdkTranspilerContext(book, options);
 
         TODO_USE(tools);
         TODO_USE(options);
 
         const anthropicModelName = resolveClaudeModelName(modelRequirements.modelName);
-        const shouldGenerateToolkit = Boolean(modelRequirements.tools && modelRequirements.tools.length > 0);
+        const shouldGenerateToolkit = toolDefinitions.length > 0;
+        const teamSection = createTranspiledTeamSection(teamHierarchy);
 
         return spaceTrim(
             (block) => `
@@ -58,6 +62,7 @@ export const AnthropicClaudeManagedTranspiler = {
                 import readline from 'readline';
                 import { spaceTrim } from '@promptbook/utils';
                 import { createSdkMcpServer, query, tool } from '@anthropic-ai/claude-agent-sdk';
+                ${teamSection.importSource ? block(teamSection.importSource) : ''}
                 ${
                     isKnowledgeHandledWithRetrieval
                         ? `import { Document, SimpleDirectoryReader, VectorStoreIndex } from 'llamaindex';`
@@ -70,6 +75,7 @@ export const AnthropicClaudeManagedTranspiler = {
                 const MODEL_NAME = ${block(JSON.stringify(anthropicModelName))};
                 const SYSTEM_MESSAGE = ${block(JSON.stringify(modelRequirements.systemMessage))};
                 const PROMPT_SUFFIX = ${block(JSON.stringify(modelRequirements.promptSuffix.trim()))};
+                ${teamSection.memberDataSource ? block(teamSection.memberDataSource) : ''}
                 ${block(
                     createManagedClaudeKnowledgeSection({
                         directKnowledge,
@@ -77,7 +83,13 @@ export const AnthropicClaudeManagedTranspiler = {
                         isKnowledgeHandledWithRetrieval,
                     }),
                 )}
-                ${block(createManagedClaudeToolkitSection(modelRequirements.tools || [], usedToolFunctions))}
+                ${block(
+                    createManagedClaudeToolkitSection({
+                        toolDefinitions,
+                        usedToolFunctions,
+                        teamMembersSource: teamSection.toolMembersSource,
+                    }),
+                )}
 
                 /**
                  * Starts the managed Claude-backed chat harness.
@@ -310,11 +322,20 @@ function createManagedClaudeKnowledgeSection(options: {
  * @private helper of `AnthropicClaudeManagedTranspiler`
  */
 function createManagedClaudeToolkitSection(
-    toolDefinitions: ReadonlyArray<LlmToolDefinition>,
-    usedToolFunctions: Record<string, string>,
+    options: {
+        readonly toolDefinitions: ReadonlyArray<LlmToolDefinition>;
+        readonly usedToolFunctions: Record<string, string>;
+        readonly teamMembersSource: string;
+    },
 ): string {
+    const { toolDefinitions, usedToolFunctions, teamMembersSource } = options;
+
     if (toolDefinitions.length === 0) {
         return spaceTrim(`
+            const PROMPTBOOK_TOOL_IMPLEMENTATIONS = {
+                ${teamMembersSource}
+            };
+
             const PROMPTBOOK_TOOL_OPTIONS = {};
         `);
     }
@@ -324,6 +345,7 @@ function createManagedClaudeToolkitSection(
             // ---- TOOLS ----
             const PROMPTBOOK_TOOL_IMPLEMENTATIONS = {
                 ${block(formatUsedToolFunctions(usedToolFunctions))}
+                ${block(teamMembersSource)}
             };
 
             ${block(createManagedClaudeToolRuntimeHelpersSection())}
