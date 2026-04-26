@@ -10,7 +10,6 @@ import { usePromptbookTheme } from '../../../../components/ThemeMode/usePromptbo
 import { downloadBlob, parseFilenameFromContentDisposition } from '../../../../utils/download/browserFileDownload';
 import { getTranspiledCodeFileMetadata } from '../../../../utils/transpilers/getTranspiledCodeFileMetadata';
 import type { TranspiledAgentExportWarning } from '../../../../utils/transpilers/createTranspiledAgentExportWarnings';
-import type { TranspiledTeamMember } from '../../../../../../../src/transpilers/_common/TranspiledTeamMember';
 import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 
 /**
@@ -35,7 +34,6 @@ type TranspilationResult = {
     readonly code: string;
     readonly transpiler: Transpiler;
     readonly warnings?: Array<TranspiledAgentExportWarning>;
-    readonly teamHierarchy?: ReadonlyArray<TranspiledTeamMember>;
 };
 
 /**
@@ -250,111 +248,6 @@ function TranspiledCodeExportWarningsBanner({ warnings }: TranspiledCodeExportWa
 }
 
 /**
- * Props for the baked TEAM hierarchy panel.
- */
-type TranspiledTeamHierarchyPanelProps = {
-    /**
-     * Recursive team tree resolved from the exported agent source.
-     */
-    readonly teamHierarchy: ReadonlyArray<TranspiledTeamMember>;
-};
-
-/**
- * Renders the baked TEAM hierarchy shown on the export page.
- */
-function TranspiledTeamHierarchyPanel({ teamHierarchy }: TranspiledTeamHierarchyPanelProps) {
-    if (teamHierarchy.length === 0) {
-        return null;
-    }
-
-    return (
-        <AgentCodePageSection
-            title="Built-in Team"
-            description="These teammates are baked into the transpiled harness together with their nested team hierarchy."
-        >
-            <TranspiledTeamHierarchyList teamMembers={teamHierarchy} />
-        </AgentCodePageSection>
-    );
-}
-
-/**
- * Props for the recursive TEAM hierarchy renderer.
- */
-type TranspiledTeamHierarchyListProps = {
-    /**
-     * Team members rendered at the current hierarchy depth.
-     */
-    readonly teamMembers: ReadonlyArray<TranspiledTeamMember>;
-};
-
-/**
- * Renders one recursive TEAM hierarchy branch.
- */
-function TranspiledTeamHierarchyList({ teamMembers }: TranspiledTeamHierarchyListProps) {
-    return (
-        <div className="space-y-3">
-            {teamMembers.map((teamMember) => (
-                <div
-                    key={`${teamMember.toolName}:${teamMember.url}`}
-                    className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950/60"
-                >
-                    <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">{teamMember.label}</h3>
-                        <code className="rounded bg-slate-200 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                            {teamMember.toolName}
-                        </code>
-                        {teamMember.pseudoAgentKind ? (
-                            <code className="rounded bg-sky-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-sky-700 dark:bg-sky-400/20 dark:text-sky-200">
-                                {teamMember.pseudoAgentKind}
-                            </code>
-                        ) : null}
-                    </div>
-
-                    <dl className="mt-3 grid gap-2 text-sm text-slate-600 dark:text-slate-400">
-                        <div>
-                            <dt className="font-medium text-slate-500 dark:text-slate-500">Agent</dt>
-                            <dd className="break-words text-slate-900 dark:text-slate-100">{teamMember.agentName}</dd>
-                        </div>
-
-                        <div>
-                            <dt className="font-medium text-slate-500 dark:text-slate-500">URL</dt>
-                            <dd className="break-all text-slate-900 dark:text-slate-100">{teamMember.url}</dd>
-                        </div>
-
-                        {teamMember.instructions.trim() ? (
-                            <div>
-                                <dt className="font-medium text-slate-500 dark:text-slate-500">TEAM instructions</dt>
-                                <dd className="whitespace-pre-wrap text-slate-900 dark:text-slate-100">
-                                    {teamMember.instructions.trim()}
-                                </dd>
-                            </div>
-                        ) : null}
-
-                        {teamMember.personaDescription?.trim() ? (
-                            <div>
-                                <dt className="font-medium text-slate-500 dark:text-slate-500">Profile</dt>
-                                <dd className="whitespace-pre-wrap text-slate-900 dark:text-slate-100">
-                                    {teamMember.personaDescription.trim()}
-                                </dd>
-                            </div>
-                        ) : null}
-                    </dl>
-
-                    {teamMember.teamMembers.length > 0 ? (
-                        <div className="mt-4 border-l-2 border-slate-200 pl-4 dark:border-slate-700">
-                            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-500">
-                                Nested team
-                            </p>
-                            <TranspiledTeamHierarchyList teamMembers={teamMember.teamMembers} />
-                        </div>
-                    ) : null}
-                </div>
-            ))}
-        </div>
-    );
-}
-
-/**
  * Handles the export-as-transpiled-code page.
  */
 export function AgentCodePageClient({
@@ -368,7 +261,6 @@ export function AgentCodePageClient({
     const [transpilers, setTranspilers] = useState<Array<Transpiler>>([]);
     const [selectedTranspilerName, setSelectedTranspilerName] = useState('');
     const [transpiledCode, setTranspiledCode] = useState('');
-    const [teamHierarchy, setTeamHierarchy] = useState<ReadonlyArray<TranspiledTeamMember>>([]);
     const [isPageLoading, setIsPageLoading] = useState(true);
     const [isTranspiling, setIsTranspiling] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
@@ -390,7 +282,6 @@ export function AgentCodePageClient({
         setDownloadErrorMessage(null);
         setAgentProfile(null);
         setTranspiledCode('');
-        setTeamHierarchy([]);
         setTranspilers([]);
         setSelectedTranspilerName('');
 
@@ -468,7 +359,6 @@ export function AgentCodePageClient({
         setTranspileErrorMessage(null);
         setDownloadErrorMessage(null);
         setTranspiledCode('');
-        setTeamHierarchy([]);
 
         void (async () => {
             try {
@@ -488,7 +378,6 @@ export function AgentCodePageClient({
                 const result = (await response.json()) as TranspilationResult;
                 if (!isDisposed) {
                     setTranspiledCode(result.code);
-                    setTeamHierarchy(result.teamHierarchy || []);
                 }
             } catch (error) {
                 if (abortController.signal.aborted || isDisposed) {
@@ -569,8 +458,6 @@ export function AgentCodePageClient({
 
                     <div className="grid gap-6 p-6">
                         <TranspiledCodeExportWarningsBanner warnings={transpilationWarnings} />
-
-                        <TranspiledTeamHierarchyPanel teamHierarchy={teamHierarchy} />
 
                         <AgentCodePageSection
                             title="Source Book"

@@ -11,11 +11,9 @@ import {
     _OpenAiAgentsTranspilerRegistration,
     _OpenAiSdkTranspilerRegistration,
 } from '@promptbook-local/wizard';
-import type { TranspiledTeamMember } from '../../../../../src/transpilers/_common/TranspiledTeamMember';
 import { $bookTranspilersRegister } from '../../../../../src/transpilers/_common/register/$bookTranspilersRegister';
 import { $sideEffect } from '../../../../../src/utils/organization/$sideEffect';
 import { createTranspiledAgentExportWarnings } from './createTranspiledAgentExportWarnings';
-import { resolveTranspiledAgentTeamHierarchy } from './resolveTranspiledAgentTeamHierarchy';
 
 // Note: Ensure supported export transpilers are registered before listing or resolving them.
 $sideEffect(_OpenAiSdkTranspilerRegistration);
@@ -53,11 +51,6 @@ export type ResolvedTranspiledAgentCodeExport = {
      * Warning list describing source capabilities that cannot be reproduced exactly by transpilers.
      */
     readonly warnings: ReturnType<typeof createTranspiledAgentExportWarnings>;
-
-    /**
-     * Full TEAM hierarchy baked into the transpiled output.
-     */
-    readonly teamHierarchy: ReadonlyArray<TranspiledTeamMember>;
 };
 
 /**
@@ -119,12 +112,7 @@ export async function resolveTranspiledAgentCodeExport(options: {
     }
 
     const tools = await $provideExecutionToolsForServer();
-    const teamHierarchy = await resolveTranspiledAgentTeamHierarchy({
-        agentSource: resolvedAgentSource,
-    });
-    const transpiledCode = await transpiler.transpileBook(resolvedAgentSource, tools, {
-        teamHierarchy,
-    });
+    const transpiledCode = await transpiler.transpileBook(resolvedAgentSource, tools);
     const warnings = createTranspiledAgentExportWarnings(resolvedAgentSource);
 
     return {
@@ -135,6 +123,5 @@ export async function resolveTranspiledAgentCodeExport(options: {
             title: transpiler.title,
         },
         warnings,
-        teamHierarchy,
     };
 }

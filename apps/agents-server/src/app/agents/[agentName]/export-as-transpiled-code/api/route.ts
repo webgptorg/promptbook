@@ -48,7 +48,6 @@ export async function POST(request: NextRequest, context: { params: Promise<{ ag
             code: exportPayload.transpiledCode,
             transpiler: exportPayload.transpiler,
             warnings: exportPayload.warnings,
-            teamHierarchy: exportPayload.teamHierarchy,
         });
     } catch (error) {
         console.error('Error transpiling code:', error);
