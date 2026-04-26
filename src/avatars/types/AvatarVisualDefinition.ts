@@ -14,7 +14,8 @@ export type AvatarVisualId =
     | 'octopus3'
     | 'ascii-octopus'
     | 'minecraft'
-    | 'fractal';
+    | 'fractal'
+    | 'orb';
 
 /**
  * Derived color palette used by avatar visuals.

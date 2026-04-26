@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { AVATAR_VISUALS, getAvatarVisualById } from './avatarVisualRegistry';
 
 describe('avatar visual registry', () => {
-    it('should include AsciiOctopus alongside the existing built-in visuals', () => {
+    it('should include Orb alongside the existing built-in visuals', () => {
         const visualIds = AVATAR_VISUALS.map((avatarVisual) => avatarVisual.id);
 
         expect(visualIds).toEqual(
@@ -14,9 +14,11 @@ describe('avatar visual registry', () => {
                 'ascii-octopus',
                 'minecraft',
                 'fractal',
+                'orb',
             ]),
         );
         expect(new Set(visualIds).size).toBe(AVATAR_VISUALS.length);
         expect(getAvatarVisualById('ascii-octopus').title).toBe('AsciiOctopus');
+        expect(getAvatarVisualById('orb').title).toBe('Orb');
     });
 });

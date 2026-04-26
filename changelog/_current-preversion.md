@@ -1,3 +1,9 @@
+-   Added a new `Orb` built-in avatar visual to the shared avatar registry and utils `/avatars` playground:
+
+    -   Implemented a seeded, smooth morphing circle-orb renderer that varies its silhouette, glow layers, and interior sheen from the agent name, hash, and colors while keeping the avatar recognizably orb-like.
+    -   Varied the orb gradients and color bands by seeded family so different agents can render as pearl-like, nebula-like, ember-like, or glacier-like orbs without replacing any of the existing visuals.
+    -   Registered `orb` alongside the current built-in visuals and extended registry / playground URL-state coverage so the existing `/avatars` page now shows it automatically without adding a separate route.
+
 -   Added an Anthropic Claude Managed transpiler to the Agents Server `export-as-transpiled-code` flow, so Claude Agent SDK-based managed harnesses can now be generated and downloaded alongside the existing SDK export:
 
     -   Added a new `Anthropic Claude Managed` Book transpiler that emits a standalone Node.js CLI harness built on `@anthropic-ai/claude-agent-sdk`, including Claude Code preset system prompts, managed session resumption, MCP tool wiring, and the same retrieval-based knowledge scaffolding already used by the existing SDK export path.

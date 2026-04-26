@@ -5,6 +5,7 @@ import { minecraftAvatarVisual } from './minecraftAvatarVisual';
 import { octopusAvatarVisual } from './octopusAvatarVisual';
 import { octopus2AvatarVisual } from './octopus2AvatarVisual';
 import { octopus3AvatarVisual } from './octopus3AvatarVisual';
+import { orbAvatarVisual } from './orbAvatarVisual';
 import { pixelArtAvatarVisual } from './pixelArtAvatarVisual';
 
 // Note: [💞] Ignore a discrepancy between file name and entity name
@@ -22,6 +23,7 @@ export const AVATAR_VISUALS: ReadonlyArray<AvatarVisualDefinition> = [
     asciiOctopusAvatarVisual,
     minecraftAvatarVisual,
     fractalAvatarVisual,
+    orbAvatarVisual,
 ];
 
 /**

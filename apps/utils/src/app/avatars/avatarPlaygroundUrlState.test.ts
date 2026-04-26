@@ -19,4 +19,10 @@ describe('avatar playground URL state', () => {
 
         expect(avatarPlaygroundState.visualId).toBe('fractal');
     });
+
+    it('should accept orb as a supported built-in visual', () => {
+        const avatarPlaygroundState = parseAvatarPlaygroundState(new URLSearchParams('visual=orb'));
+
+        expect(avatarPlaygroundState.visualId).toBe('orb');
+    });
 });
