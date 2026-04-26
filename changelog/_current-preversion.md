@@ -1,3 +1,9 @@
+-   Added an `OpenAI Agents SDK` transpiler to the Agents Server `export-as-transpiled-code` flow, so `@openai/agents`-based runnable harnesses can now be generated and downloaded alongside the existing SDK export:
+
+    -   Added a new `openai-agents` Book transpiler that emits a standalone Node.js CLI harness built on `@openai/agents`, including Promptbook function-tool wrapping, conversation resumption through `previousResponseId`, and native OpenAI vector-store RAG for knowledge commitments.
+    -   Kept the transpiler implementation DRY by reusing the shared Book-to-harness preparation helpers and the common function-tool formatting path already used by the other JavaScript transpilers.
+    -   Registered the new transpiler in the Agents Server export registry, mapped it to JavaScript harness metadata for preview/download packaging, and extended regression coverage for export-page listing, ZIP/runtime metadata, and OpenAI Agents transpiler output.
+
 -   Added a new `Orb` built-in avatar visual to the shared avatar registry and utils `/avatars` playground:
 
     -   Implemented a seeded, smooth morphing circle-orb renderer that varies its silhouette, glow layers, and interior sheen from the agent name, hash, and colors while keeping the avatar recognizably orb-like.

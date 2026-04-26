@@ -22,4 +22,11 @@ describe('getTranspiledCodeFileMetadata', () => {
             filename: 'agent-harness.mjs',
         });
     });
+
+    it('treats OpenAI Agents SDK exports as JavaScript harnesses', () => {
+        expect(getTranspiledCodeFileMetadata('openai-agents')).toEqual({
+            language: 'javascript',
+            filename: 'agent-harness.mjs',
+        });
+    });
 });

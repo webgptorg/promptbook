@@ -7,6 +7,7 @@ import {
     _AnthropicClaudeManagedTranspilerRegistration,
     _AgentOsTranspilerRegistration,
     _AnthropicClaudeSdkTranspilerRegistration,
+    _OpenAiAgentsTranspilerRegistration,
     _OpenAiSdkTranspilerRegistration,
 } from '@promptbook-local/wizard';
 import { $bookTranspilersRegister } from '../../../../../src/transpilers/_common/register/$bookTranspilersRegister';
@@ -14,6 +15,7 @@ import { $sideEffect } from '../../../../../src/utils/organization/$sideEffect';
 
 // Note: Ensure supported export transpilers are registered before listing or resolving them.
 $sideEffect(_OpenAiSdkTranspilerRegistration);
+$sideEffect(_OpenAiAgentsTranspilerRegistration);
 $sideEffect(_AnthropicClaudeSdkTranspilerRegistration);
 $sideEffect(_AnthropicClaudeManagedTranspilerRegistration);
 $sideEffect(_AgentOsTranspilerRegistration);
