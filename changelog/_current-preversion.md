@@ -1,3 +1,9 @@
+-   Added an Anthropic Claude Managed transpiler to the Agents Server `export-as-transpiled-code` flow, so Claude Agent SDK-based managed harnesses can now be generated and downloaded alongside the existing SDK export:
+
+    -   Added a new `Anthropic Claude Managed` Book transpiler that emits a standalone Node.js CLI harness built on `@anthropic-ai/claude-agent-sdk`, including Claude Code preset system prompts, managed session resumption, MCP tool wiring, and the same retrieval-based knowledge scaffolding already used by the existing SDK export path.
+    -   Kept the managed transpiler implementation DRY by reusing the shared Book-to-harness preparation helpers, the common Claude model resolver, and the shared Zod schema conversion used by the other JavaScript transpilers.
+    -   Registered the new transpiler in the Agents Server export registry, mapped it to JavaScript harness metadata for preview/download packaging, and extended regression coverage for export-page listing, ZIP/runtime metadata, and managed Claude transpiler output.
+
 -   Fixed the Agents Server transpiled-code export so generated SDK harnesses now emit valid `tools` / `toolImplementations` object members instead of malformed `name: async name()` entries:
 
     -   Added a shared SDK transpiler helper that normalizes tool implementations from object methods, function declarations, and arrow functions into valid object-literal method syntax before embedding them in exported code.

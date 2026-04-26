@@ -29,7 +29,7 @@ export function getTranspiledCodeFileMetadata(transpilerName?: string): Transpil
 
     if (
         transpilerName.includes('openai-sdk') ||
-        transpilerName.includes('anthropic-claude-sdk') ||
+        transpilerName.includes('anthropic-claude') ||
         transpilerName.includes('agent-os')
     ) {
         return {

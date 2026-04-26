@@ -7,13 +7,7 @@ import type { BookTranspiler } from '../_common/BookTranspiler';
 import type { BookTranspilerOptions } from '../_common/BookTranspilerOptions';
 import { formatUsedToolFunctions } from '../_common/formatUsedToolFunctions';
 import { prepareSdkTranspilerContext } from '../_common/prepareSdkTranspilerContext';
-
-/**
- * Default Claude model used when the source Book does not already target Anthropic.
- *
- * @private used by `AnthropicClaudeSdkTranspiler`
- */
-const DEFAULT_ANTHROPIC_MODEL_NAME = 'claude-sonnet-4-20250514';
+import { resolveClaudeModelName } from '../_common/resolveClaudeModelName';
 
 /**
  * Default output-token budget required by Anthropic's Messages API.
@@ -49,7 +43,7 @@ export const AnthropicClaudeSdkTranspiler = {
         TODO_USE(tools);
         TODO_USE(options);
 
-        const anthropicModelName = resolveAnthropicModelName(modelRequirements.modelName);
+        const anthropicModelName = resolveClaudeModelName(modelRequirements.modelName);
 
         if (isKnowledgeHandledWithRetrieval) {
             return spaceTrim(
@@ -205,9 +199,7 @@ export const AnthropicClaudeSdkTranspiler = {
                                 .map((contentBlock) => contentBlock.text)
                                 .join('\\n\\n') || '(Claude returned no text response.)';
 
-                        console.log('\\n🧠 ${
-                            agentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */
-                        }:', answer, '\\n');
+                        console.log('\\n🧠 ${agentName}:', answer, '\\n');
 
                         chatHistory.push({ role: 'assistant', content: response.content });
                         promptUser();
@@ -226,9 +218,7 @@ export const AnthropicClaudeSdkTranspiler = {
 
                     (async () => {
                         await setupKnowledge();
-                        console.log("🤖 Chat with ${
-                            agentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */
-                        } (type 'exit' to quit)\\n");
+                        console.log("🤖 Chat with ${agentName} (type 'exit' to quit)\\n");
                         promptUser();
                     })();
                 `,
@@ -339,9 +329,7 @@ export const AnthropicClaudeSdkTranspiler = {
                             .map((contentBlock) => contentBlock.text)
                             .join('\\n\\n') || '(Claude returned no text response.)';
 
-                    console.log('\\n🧠 ${
-                        agentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */
-                    }:', answer, '\\n');
+                    console.log('\\n🧠 ${agentName}:', answer, '\\n');
 
                     chatHistory.push({ role: 'assistant', content: response.content });
                     promptUser();
@@ -358,25 +346,9 @@ export const AnthropicClaudeSdkTranspiler = {
                     });
                 }
 
-                console.log("🤖 Chat with ${
-                    agentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */
-                } (type 'exit' to quit)\\n");
+                console.log("🤖 Chat with ${agentName} (type 'exit' to quit)\\n");
                 promptUser();
             `,
         );
     },
 } as const satisfies BookTranspiler;
-
-/**
- * Resolves a Claude model name compatible with the generated Anthropic harness.
- *
- * @param modelName - Model requested by the Book source.
- * @returns Claude-compatible model name for the generated export.
- */
-function resolveAnthropicModelName(modelName?: string): string {
-    if (typeof modelName === 'string' && modelName.trim().startsWith('claude')) {
-        return modelName.trim();
-    }
-
-    return DEFAULT_ANTHROPIC_MODEL_NAME;
-}

@@ -8,6 +8,7 @@ import type { BookTranspiler } from '../_common/BookTranspiler';
 import type { BookTranspilerOptions } from '../_common/BookTranspilerOptions';
 import { formatUsedToolFunctions } from '../_common/formatUsedToolFunctions';
 import { prepareSdkTranspilerContext } from '../_common/prepareSdkTranspilerContext';
+import { createZodSchemaSource } from '../_common/createZodSchemaSource';
 
 /**
  * Global extension directory scanned by Pi inside the VM home folder.
@@ -377,107 +378,3 @@ function resolveAgentOsSystemMessage(options: {
         `,
     );
 }
-
-/**
- * Formats a JSON schema fragment into a Zod expression for generated host tools.
- *
- * The exported AgentOS harness uses Zod because host tools are consumed as CLI commands with
- * generated flags, so the schema must be available as executable code.
- *
- * @param schema - JSON schema fragment compiled from the Book tool definition.
- * @returns Zod expression source.
- *
- * @private helper of `AgentOsTranspiler`
- */
-function createZodSchemaSource(schema: JsonSchemaLike): string {
-    if (Array.isArray(schema.enum) && schema.enum.length > 0) {
-        const literals = schema.enum.map((value) => `z.literal(${JSON.stringify(value)})`);
-        const enumSource = literals.length === 1 ? literals[0]! : `z.union([${literals.join(', ')}])`;
-        return appendZodDescription(enumSource, schema.description);
-    }
-
-    if (schema.type === 'object' || schema.properties) {
-        const propertyNames = Object.keys(schema.properties || {});
-        const requiredPropertyNames = new Set((schema.required || []).map((propertyName) => propertyName.trim()));
-
-        const propertySources = propertyNames.map((propertyName) => {
-            const propertySchema = schema.properties?.[propertyName] || {};
-            const propertySource = createZodSchemaSource(propertySchema);
-            const isRequired = requiredPropertyNames.has(propertyName);
-            const resolvedPropertySource = isRequired ? propertySource : `${propertySource}.optional()`;
-
-            return `${JSON.stringify(propertyName)}: ${resolvedPropertySource}`;
-        });
-
-        const objectSource = spaceTrim(
-            (block) => `
-                z.object({
-                    ${block(propertySources.join(',\n'))}
-                })${schema.additionalProperties === false ? '.strict()' : '.passthrough()'}
-            `,
-        );
-
-        return appendZodDescription(objectSource, schema.description);
-    }
-
-    if (schema.type === 'array') {
-        const itemSchema = schema.items || {};
-        return appendZodDescription(`z.array(${createZodSchemaSource(itemSchema)})`, schema.description);
-    }
-
-    if (schema.type === 'integer') {
-        return appendZodDescription('z.number().int()', schema.description);
-    }
-
-    if (schema.type === 'number') {
-        return appendZodDescription('z.number()', schema.description);
-    }
-
-    if (schema.type === 'boolean') {
-        return appendZodDescription('z.boolean()', schema.description);
-    }
-
-    if (schema.type === 'null') {
-        return appendZodDescription('z.null()', schema.description);
-    }
-
-    if (schema.type === 'string') {
-        return appendZodDescription('z.string()', schema.description);
-    }
-
-    return appendZodDescription('z.any()', schema.description);
-}
-
-/**
- * Adds a description to one Zod expression when the schema contains one.
- *
- * @param zodSource - Zod expression source.
- * @param description - Optional schema description.
- * @returns Zod expression with a trailing `.describe()` call when appropriate.
- *
- * @private helper of `AgentOsTranspiler`
- */
-function appendZodDescription(zodSource: string, description?: string): string {
-    const normalizedDescription = description?.trim();
-
-    if (!normalizedDescription) {
-        return zodSource;
-    }
-
-    return `${zodSource}.describe(${JSON.stringify(normalizedDescription)})`;
-}
-
-/**
- * Minimal JSON-schema shape used by the AgentOS host-tool generator.
- *
- * @private helper type of `AgentOsTranspiler`
- */
-type JsonSchemaLike = {
-    readonly type?: string;
-    readonly description?: string;
-    readonly properties?: Record<string, JsonSchemaLike>;
-    readonly required?: ReadonlyArray<string>;
-    readonly items?: JsonSchemaLike;
-    readonly enum?: ReadonlyArray<string | number | boolean | null>;
-    readonly additionalProperties?: boolean;
-};

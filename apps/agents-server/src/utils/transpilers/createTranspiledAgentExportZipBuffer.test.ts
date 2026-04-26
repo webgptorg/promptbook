@@ -175,6 +175,63 @@ console.log(client);`,
         expect(Object.keys(manifest.runtime.dependencies || {})).toEqual(['@anthropic-ai/sdk', 'dotenv']);
     });
 
+    it('packages Anthropic Claude Managed exports as JavaScript harnesses with inferred runtime dependencies', async () => {
+        const { filename, buffer } = await createTranspiledAgentExportZipBuffer({
+            agentName: 'Claude Managed Agent',
+            agentSource: validateBook('Claude Managed Agent\nGOAL Help with Claude Agent SDK exports'),
+            transpiledCode: `#!/usr/bin/env node
+import * as dotenv from 'dotenv';
+import { createSdkMcpServer, query, tool } from '@anthropic-ai/claude-agent-sdk';
+import { spaceTrim } from '@promptbook/utils';
+import { Document, SimpleDirectoryReader, VectorStoreIndex } from 'llamaindex';
+import { z } from 'zod';
+
+dotenv.config({ path: '.env' });
+
+console.log(createSdkMcpServer, query, tool, spaceTrim, Document, SimpleDirectoryReader, VectorStoreIndex, z);`,
+            transpilerName: 'anthropic-claude-managed',
+            transpilerTitle: 'Anthropic Claude Managed',
+        });
+
+        const zip = await JSZip.loadAsync(buffer);
+        const archiveRoot = filename.replace(/\.zip$/, '');
+        const packageJson = JSON.parse(await zip.file(`${archiveRoot}/package.json`)!.async('string')) as {
+            scripts: Record<string, string>;
+            dependencies: Record<string, string>;
+        };
+        const manifest = JSON.parse(await zip.file(`${archiveRoot}/manifest.json`)!.async('string')) as {
+            runtime: {
+                kind: string;
+                entryFile: string;
+                environmentVariables: string[];
+                dependencies?: Record<string, string>;
+            };
+        };
+
+        expect(filename).toBe('promptbook-agent-export-Claude Managed Agent-anthropic-claude-managed.zip');
+        expect(await zip.file(`${archiveRoot}/agent-harness.mjs`)!.async('string')).toContain(
+            "import { createSdkMcpServer, query, tool } from '@anthropic-ai/claude-agent-sdk';",
+        );
+        expect(packageJson.scripts.start).toBe('node ./agent-harness.mjs');
+        expect(Object.keys(packageJson.dependencies)).toEqual([
+            '@anthropic-ai/claude-agent-sdk',
+            '@promptbook/utils',
+            'dotenv',
+            'llamaindex',
+            'zod',
+        ]);
+        expect(manifest.runtime.kind).toBe('nodejs');
+        expect(manifest.runtime.entryFile).toBe('agent-harness.mjs');
+        expect(manifest.runtime.environmentVariables).toEqual([]);
+        expect(Object.keys(manifest.runtime.dependencies || {})).toEqual([
+            '@anthropic-ai/claude-agent-sdk',
+            '@promptbook/utils',
+            'dotenv',
+            'llamaindex',
+            'zod',
+        ]);
+    });
+
     it('packages AgentOS exports as JavaScript harnesses with the expected runtime scaffold', async () => {
         const { filename, buffer } = await createTranspiledAgentExportZipBuffer({
             agentName: 'AgentOS Agent',

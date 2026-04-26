@@ -34,6 +34,7 @@ import { _PdfScraperMetadataRegistration } from '../scrapers/pdf/register-metada
 import { _WebsiteScraperRegistration } from '../scrapers/website/register-constructor';
 import { _WebsiteScraperMetadataRegistration } from '../scrapers/website/register-metadata';
 import { _AgentOsTranspilerRegistration } from '../transpilers/agent-os/register';
+import { _AnthropicClaudeManagedTranspilerRegistration } from '../transpilers/anthropic-claude-managed/register';
 import { _AnthropicClaudeSdkTranspilerRegistration } from '../transpilers/anthropic-claude-sdk/register';
 import { _FormattedBookInMarkdownTranspilerRegistration } from '../transpilers/formatted-book-in-markdown/register';
 import { _OpenAiSdkTranspilerRegistration } from '../transpilers/openai-sdk/register';
@@ -76,6 +77,7 @@ export { _PdfScraperMetadataRegistration };
 export { _WebsiteScraperRegistration };
 export { _WebsiteScraperMetadataRegistration };
 export { _AgentOsTranspilerRegistration };
+export { _AnthropicClaudeManagedTranspilerRegistration };
 export { _AnthropicClaudeSdkTranspilerRegistration };
 export { _FormattedBookInMarkdownTranspilerRegistration };
 export { _OpenAiSdkTranspilerRegistration };
