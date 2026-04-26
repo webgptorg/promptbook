@@ -132,6 +132,7 @@
         "type-fest": "4.5.0",
         "userhome": "1.0.1",
         "waitasecond": "1.11.164",
+        "zod": "4.3.6",
         "typescript": "5.2.2"
     },
     "bin": {

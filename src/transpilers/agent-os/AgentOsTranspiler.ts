@@ -1,0 +1,483 @@
+import { spaceTrim } from 'spacetrim';
+import type { string_book } from '../../book-2.0/agent-source/string_book';
+import type { ExecutionTools } from '../../execution/ExecutionTools';
+import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
+import type { string_script } from '../../types/typeAliases';
+import { TODO_USE } from '../../utils/organization/TODO_USE';
+import type { BookTranspiler } from '../_common/BookTranspiler';
+import type { BookTranspilerOptions } from '../_common/BookTranspilerOptions';
+import { formatUsedToolFunctions } from '../_common/formatUsedToolFunctions';
+import { prepareSdkTranspilerContext } from '../_common/prepareSdkTranspilerContext';
+
+/**
+ * Global extension directory scanned by Pi inside the VM home folder.
+ *
+ * @private internal constant of `AgentOsTranspiler`
+ */
+const PI_EXTENSION_DIRECTORY_PATH = '/home/user/.pi/agent/extensions';
+
+/**
+ * Filename used for the generated Promptbook Pi extension.
+ *
+ * @private internal constant of `AgentOsTranspiler`
+ */
+const PI_EXTENSION_FILENAME = 'promptbook-agent.js';
+
+/**
+ * Transpiler to JavaScript code using AgentOS.
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const AgentOsTranspiler = {
+    name: 'agent-os',
+    title: 'AgentOS',
+    packageName: '@promptbook/core',
+    className: 'AgentOsTranspiler',
+    async transpileBook(
+        book: string_book,
+        tools: ExecutionTools,
+        options?: BookTranspilerOptions,
+    ): Promise<string_script> {
+        const {
+            agentName,
+            modelRequirements,
+            directKnowledge,
+            knowledgeSources,
+            usedToolFunctions,
+            isKnowledgeHandledWithRetrieval,
+        } = await prepareSdkTranspilerContext(book);
+
+        TODO_USE(tools);
+        TODO_USE(options);
+
+        const shouldGenerateToolkit = Boolean(modelRequirements.tools && modelRequirements.tools.length > 0);
+        const resolvedSystemMessage = resolveAgentOsSystemMessage({
+            systemMessage: modelRequirements.systemMessage,
+            directKnowledge,
+            isKnowledgeHandledWithRetrieval,
+        });
+
+        return spaceTrim(
+            (block) => `
+                #!/usr/bin/env node
+
+                import * as dotenv from 'dotenv';
+
+                import { AgentOs } from '@rivet-dev/agent-os-core';
+                import common from '@rivet-dev/agent-os-common';
+                import pi from '@rivet-dev/agent-os-pi';
+                ${shouldGenerateToolkit ? `import { hostTool, toolKit } from '@rivet-dev/agent-os-core';` : ''}
+                ${shouldGenerateToolkit ? `import { z } from 'zod';` : ''}
+                import readline from 'readline';
+                import { spaceTrim } from '@promptbook/utils';
+                ${
+                    isKnowledgeHandledWithRetrieval
+                        ? `import { Document, SimpleDirectoryReader, VectorStoreIndex } from 'llamaindex';`
+                        : ''
+                }
+
+                dotenv.config({ path: '.env' });
+
+                // ---- CONFIG ----
+                const AGENT_NAME = ${block(JSON.stringify(agentName))};
+                const PROMPT_SUFFIX = ${block(JSON.stringify(modelRequirements.promptSuffix.trim()))};
+                const SYSTEM_MESSAGE = ${block(JSON.stringify(resolvedSystemMessage))};
+                ${block(createAgentOsToolkitSection(modelRequirements.tools || [], usedToolFunctions))}
+                ${block(createAgentOsKnowledgeSection({ directKnowledge, knowledgeSources, isKnowledgeHandledWithRetrieval }))}
+
+                /**
+                 * Starts the AgentOS-backed chat harness.
+                 */
+                async function main() {
+                    // ---- VM ----
+                    const vm = await AgentOs.create({
+                        software: [common, pi],
+                        ${shouldGenerateToolkit ? `toolKits: [PROMPTBOOK_TOOLKIT],` : ''}
+                    });
+
+                    // Pi discovers the extension automatically after the file exists in the VM filesystem.
+                    await vm.mkdir(${block(JSON.stringify(PI_EXTENSION_DIRECTORY_PATH))}, { recursive: true });
+                    await vm.writeFile(
+                        ${block(JSON.stringify(`${PI_EXTENSION_DIRECTORY_PATH}/${PI_EXTENSION_FILENAME}`))},
+                        ${block(JSON.stringify(createPiExtensionCode(resolvedSystemMessage), null, 4))},
+                    );
+
+                    const { sessionId } = await vm.createSession('pi', {
+                        env: {
+                            ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+                            ANTHROPIC_CLAUDE_API_KEY: process.env.ANTHROPIC_CLAUDE_API_KEY,
+                        },
+                    });
+
+                    vm.onSessionEvent(sessionId, (event) => console.log(event));
+
+                    ${isKnowledgeHandledWithRetrieval ? 'await setupKnowledge();' : ''}
+
+                    // ---- CLI ----
+                    const rl = readline.createInterface({
+                        input: process.stdin,
+                        output: process.stdout,
+                    });
+
+                    async function ask(question) {
+                        let prompt = question;
+
+                        ${isKnowledgeHandledWithRetrieval ? getKnowledgePromptAugmentationCode() : ''}
+
+                        prompt = appendPromptSuffix(prompt);
+
+                        try {
+                            await vm.prompt(sessionId, prompt);
+                        } catch (error) {
+                            console.error(error);
+                        }
+
+                        promptUser();
+                    }
+
+                    function appendPromptSuffix(question) {
+                        if (!PROMPT_SUFFIX) {
+                            return question;
+                        }
+
+                        return spaceTrim(\`
+                            \${question}
+
+                            \${PROMPT_SUFFIX}
+                        \`);
+                    }
+
+                    function promptUser() {
+                        rl.question('💬 You: ', (input) => {
+                            if (input.trim().toLowerCase() === 'exit') {
+                                console.log('👋 Bye!');
+                                rl.close();
+                                return;
+                            }
+
+                            void ask(input);
+                        });
+                    }
+
+                    console.log(\`🤖 Chat with \${AGENT_NAME} (type 'exit' to quit)\\n\`);
+                    promptUser();
+                }
+
+                main().catch((error) => {
+                    console.error(error);
+                    process.exit(1);
+                });
+            `,
+        );
+    },
+} as const satisfies BookTranspiler;
+
+/**
+ * Returns the system prompt used by the generated Pi extension.
+ *
+ * The extension is intentionally tiny: it only appends Promptbook instructions to Pi's own
+ * prompt so Pi can keep its built-in behavior while still respecting the Book source.
+ *
+ * @param systemMessage - Promptbook system message compiled from the Book source.
+ * @returns CommonJS extension source.
+ *
+ * @private helper of `AgentOsTranspiler`
+ */
+function createPiExtensionCode(systemMessage: string): string {
+    return spaceTrim(
+        (block) => `
+            module.exports = function (pi) {
+                pi.on('before_agent_start', async (event) => {
+                    return {
+                        systemPrompt: event.systemPrompt + '\\n\\n' + ${block(JSON.stringify(systemMessage))},
+                    };
+                });
+            };
+        `,
+    );
+}
+
+/**
+ * Builds the top-level toolkit section used to expose Promptbook tool implementations to AgentOS.
+ *
+ * @param toolDefinitions - Tool definitions compiled from the Book source.
+ * @param usedToolFunctions - Tool function implementations extracted from commitment definitions.
+ * @returns Generated JavaScript source or an empty string when no tool is needed.
+ *
+ * @private helper of `AgentOsTranspiler`
+ */
+function createAgentOsToolkitSection(
+    toolDefinitions: ReadonlyArray<LlmToolDefinition>,
+    usedToolFunctions: Record<string, string>,
+): string {
+    if (toolDefinitions.length === 0) {
+        return '';
+    }
+
+    return spaceTrim(
+        (block) => `
+            // ---- TOOLS ----
+            const PROMPTBOOK_TOOL_IMPLEMENTATIONS = {
+                ${block(formatUsedToolFunctions(usedToolFunctions))}
+            };
+
+            const PROMPTBOOK_TOOLKIT = toolKit({
+                name: 'promptbook',
+                description: 'Promptbook tools generated from the Book source.',
+                tools: {
+                    ${block(toolDefinitions.map((toolDefinition) => createAgentOsHostToolSource(toolDefinition)).join('\n\n'))}
+                },
+            });
+        `,
+    );
+}
+
+/**
+ * Creates one AgentOS host-tool definition.
+ *
+ * @param toolDefinition - Promptbook tool definition compiled from the Book source.
+ * @returns JavaScript source for one `hostTool` entry.
+ *
+ * @private helper of `AgentOsTranspiler`
+ */
+function createAgentOsHostToolSource(toolDefinition: LlmToolDefinition): string {
+    const toolNameLiteral = JSON.stringify(toolDefinition.name);
+    const description = JSON.stringify(toolDefinition.description.trim());
+
+    return spaceTrim(
+        (block) => `
+            ${toolNameLiteral}: hostTool({
+                description: ${description},
+                inputSchema: ${block(createZodSchemaSource(toolDefinition.parameters))},
+                execute: async (input) => {
+                    const toolImplementation = PROMPTBOOK_TOOL_IMPLEMENTATIONS[${toolNameLiteral}];
+
+                    if (!toolImplementation) {
+                        throw new Error(\`Tool ${JSON.stringify(toolDefinition.name)} is not implemented in the exported harness.\`);
+                    }
+
+                    return await toolImplementation(input);
+                },
+            }),
+        `,
+    );
+}
+
+/**
+ * Creates the knowledge-handling section for the generated harness.
+ *
+ * @param options - Knowledge snippets compiled from the Book source.
+ * @returns Knowledge loading helpers or an empty string when retrieval is not needed.
+ *
+ * @private helper of `AgentOsTranspiler`
+ */
+function createAgentOsKnowledgeSection(options: {
+    readonly directKnowledge: ReadonlyArray<string>;
+    readonly knowledgeSources: ReadonlyArray<string>;
+    readonly isKnowledgeHandledWithRetrieval: boolean;
+}): string {
+    const { directKnowledge, knowledgeSources, isKnowledgeHandledWithRetrieval } = options;
+
+    if (!isKnowledgeHandledWithRetrieval) {
+        return '';
+    }
+
+    return spaceTrim(
+        (block) => `
+            // ---- KNOWLEDGE ----
+            const DIRECT_KNOWLEDGE = ${block(JSON.stringify(directKnowledge, null, 4))};
+            const KNOWLEDGE_SOURCES = ${block(JSON.stringify(knowledgeSources, null, 4))};
+            let knowledgeIndex;
+
+            /**
+             * Builds a local retrieval index from inline knowledge and external sources.
+             */
+            async function setupKnowledge() {
+                const documents = DIRECT_KNOWLEDGE.map((text) => new Document({ text }));
+
+                for (const source of KNOWLEDGE_SOURCES) {
+                    try {
+                        // Note: SimpleDirectoryReader is a bit of a misnomer, it can read single files.
+                        const reader = new SimpleDirectoryReader();
+                        const sourceDocuments = await reader.loadData(source);
+                        documents.push(...sourceDocuments);
+                    } catch (error) {
+                        console.error(\`Error loading knowledge from \${source}:\`, error);
+                    }
+                }
+
+                if (documents.length > 0) {
+                    knowledgeIndex = await VectorStoreIndex.fromDocuments(documents);
+                    console.log('🧠 Knowledge base prepared.');
+                }
+            }
+        `,
+    );
+}
+
+/**
+ * Creates the prompt augmentation block used when knowledge retrieval is enabled.
+ *
+ * @returns JavaScript source that prepends retrieved context to the current user prompt.
+ *
+ * @private helper of `AgentOsTranspiler`
+ */
+function getKnowledgePromptAugmentationCode(): string {
+    return spaceTrim(`
+        let knowledgeContext = '';
+
+        if (knowledgeIndex) {
+            const retriever = knowledgeIndex.asRetriever();
+            const relevantNodes = await retriever.retrieve(prompt);
+            knowledgeContext = relevantNodes.map((node) => node.getContent()).join('\\n\\n');
+        }
+
+        if (knowledgeContext) {
+            prompt = spaceTrim(\`
+                Here is some additional context to help you answer the question:
+                \${knowledgeContext}
+
+                ---
+
+                My question is:
+                \${prompt}
+            \`);
+        }
+    `);
+}
+
+/**
+ * Resolves the final system prompt that Pi should receive.
+ *
+ * The AgentOS extension only needs a single string, so small inline knowledge blocks are embedded
+ * directly when retrieval is not necessary.
+ *
+ * @param options - System prompt and knowledge snippets derived from the Book source.
+ * @returns Final prompt string injected into the Pi extension.
+ *
+ * @private helper of `AgentOsTranspiler`
+ */
+function resolveAgentOsSystemMessage(options: {
+    readonly systemMessage: string;
+    readonly directKnowledge: ReadonlyArray<string>;
+    readonly isKnowledgeHandledWithRetrieval: boolean;
+}): string {
+    const { systemMessage, directKnowledge, isKnowledgeHandledWithRetrieval } = options;
+
+    if (isKnowledgeHandledWithRetrieval || directKnowledge.length === 0) {
+        return systemMessage;
+    }
+
+    return spaceTrim(
+        (block) => `
+            ${systemMessage}
+
+            Direct knowledge:
+            ${block(directKnowledge.join('\n\n'))}
+        `,
+    );
+}
+
+/**
+ * Formats a JSON schema fragment into a Zod expression for generated host tools.
+ *
+ * The exported AgentOS harness uses Zod because host tools are consumed as CLI commands with
+ * generated flags, so the schema must be available as executable code.
+ *
+ * @param schema - JSON schema fragment compiled from the Book tool definition.
+ * @returns Zod expression source.
+ *
+ * @private helper of `AgentOsTranspiler`
+ */
+function createZodSchemaSource(schema: JsonSchemaLike): string {
+    if (Array.isArray(schema.enum) && schema.enum.length > 0) {
+        const literals = schema.enum.map((value) => `z.literal(${JSON.stringify(value)})`);
+        const enumSource = literals.length === 1 ? literals[0]! : `z.union([${literals.join(', ')}])`;
+        return appendZodDescription(enumSource, schema.description);
+    }
+
+    if (schema.type === 'object' || schema.properties) {
+        const propertyNames = Object.keys(schema.properties || {});
+        const requiredPropertyNames = new Set((schema.required || []).map((propertyName) => propertyName.trim()));
+
+        const propertySources = propertyNames.map((propertyName) => {
+            const propertySchema = schema.properties?.[propertyName] || {};
+            const propertySource = createZodSchemaSource(propertySchema);
+            const isRequired = requiredPropertyNames.has(propertyName);
+            const resolvedPropertySource = isRequired ? propertySource : `${propertySource}.optional()`;
+
+            return `${JSON.stringify(propertyName)}: ${resolvedPropertySource}`;
+        });
+
+        const objectSource = spaceTrim(
+            (block) => `
+                z.object({
+                    ${block(propertySources.join(',\n'))}
+                })${schema.additionalProperties === false ? '.strict()' : '.passthrough()'}
+            `,
+        );
+
+        return appendZodDescription(objectSource, schema.description);
+    }
+
+    if (schema.type === 'array') {
+        const itemSchema = schema.items || {};
+        return appendZodDescription(`z.array(${createZodSchemaSource(itemSchema)})`, schema.description);
+    }
+
+    if (schema.type === 'integer') {
+        return appendZodDescription('z.number().int()', schema.description);
+    }
+
+    if (schema.type === 'number') {
+        return appendZodDescription('z.number()', schema.description);
+    }
+
+    if (schema.type === 'boolean') {
+        return appendZodDescription('z.boolean()', schema.description);
+    }
+
+    if (schema.type === 'null') {
+        return appendZodDescription('z.null()', schema.description);
+    }
+
+    if (schema.type === 'string') {
+        return appendZodDescription('z.string()', schema.description);
+    }
+
+    return appendZodDescription('z.any()', schema.description);
+}
+
+/**
+ * Adds a description to one Zod expression when the schema contains one.
+ *
+ * @param zodSource - Zod expression source.
+ * @param description - Optional schema description.
+ * @returns Zod expression with a trailing `.describe()` call when appropriate.
+ *
+ * @private helper of `AgentOsTranspiler`
+ */
+function appendZodDescription(zodSource: string, description?: string): string {
+    const normalizedDescription = description?.trim();
+
+    if (!normalizedDescription) {
+        return zodSource;
+    }
+
+    return `${zodSource}.describe(${JSON.stringify(normalizedDescription)})`;
+}
+
+/**
+ * Minimal JSON-schema shape used by the AgentOS host-tool generator.
+ *
+ * @private helper type of `AgentOsTranspiler`
+ */
+type JsonSchemaLike = {
+    readonly type?: string;
+    readonly description?: string;
+    readonly properties?: Record<string, JsonSchemaLike>;
+    readonly required?: ReadonlyArray<string>;
+    readonly items?: JsonSchemaLike;
+    readonly enum?: ReadonlyArray<string | number | boolean | null>;
+    readonly additionalProperties?: boolean;
+};

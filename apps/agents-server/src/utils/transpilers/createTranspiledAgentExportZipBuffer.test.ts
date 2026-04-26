@@ -174,4 +174,108 @@ console.log(client);`,
         expect(manifest.runtime.environmentVariables).toEqual(['ANTHROPIC_API_KEY', 'ANTHROPIC_CLAUDE_API_KEY']);
         expect(Object.keys(manifest.runtime.dependencies || {})).toEqual(['@anthropic-ai/sdk', 'dotenv']);
     });
+
+    it('packages AgentOS exports as JavaScript harnesses with the expected runtime scaffold', async () => {
+        const { filename, buffer } = await createTranspiledAgentExportZipBuffer({
+            agentName: 'AgentOS Agent',
+            agentSource: validateBook('AgentOS Agent\nGOAL Run inside AgentOS'),
+            transpiledCode: `#!/usr/bin/env node
+import * as dotenv from 'dotenv';
+import { AgentOs, hostTool, toolKit } from '@rivet-dev/agent-os-core';
+import common from '@rivet-dev/agent-os-common';
+import pi from '@rivet-dev/agent-os-pi';
+import { Document, SimpleDirectoryReader, VectorStoreIndex } from 'llamaindex';
+import { spaceTrim } from '@promptbook/utils';
+import { z } from 'zod';
+
+dotenv.config({ path: '.env' });
+
+const vm = await AgentOs.create({
+  software: [common, pi],
+  toolKits: [
+    toolKit({
+      name: 'promptbook',
+      description: 'Promptbook tools',
+      tools: {
+        ping: hostTool({
+          description: 'Ping the runtime',
+          inputSchema: z.object({}),
+          execute: async () => 'pong',
+        }),
+      },
+    }),
+  ],
+});
+
+console.log(process.env.ANTHROPIC_API_KEY);
+console.log(process.env.ANTHROPIC_CLAUDE_API_KEY);
+console.log(spaceTrim('hello'));
+console.log(Document, SimpleDirectoryReader, VectorStoreIndex);
+console.log(vm);`,
+            transpilerName: 'agent-os',
+            transpilerTitle: 'AgentOS',
+        });
+
+        const zip = await JSZip.loadAsync(buffer);
+        const archiveRoot = filename.replace(/\.zip$/, '');
+        const manifest = JSON.parse(await zip.file(`${archiveRoot}/manifest.json`)!.async('string')) as {
+            agentName: string;
+            transpilerName: string;
+            transpilerTitle: string;
+            runtime: {
+                kind: string;
+                entryFile: string;
+                installCommand: string | null;
+                startCommand: string | null;
+                environmentVariables: string[];
+                dependencies?: Record<string, string>;
+                packageName?: string;
+            };
+            files: string[];
+        };
+        const packageJson = JSON.parse(await zip.file(`${archiveRoot}/package.json`)!.async('string')) as {
+            scripts: Record<string, string>;
+            dependencies: Record<string, string>;
+        };
+        const mockEnvironmentFile = await zip.file(`${archiveRoot}/.env`)!.async('string');
+        const readme = await zip.file(`${archiveRoot}/README.md`)!.async('string');
+
+        expect(filename).toBe('promptbook-agent-export-AgentOS Agent-agent-os.zip');
+        expect(await zip.file(`${archiveRoot}/agent-harness.mjs`)!.async('string')).toContain(
+            "import { AgentOs, hostTool, toolKit } from '@rivet-dev/agent-os-core';",
+        );
+        expect(await zip.file(`${archiveRoot}/agent-harness.mjs`)!.async('string')).toContain(
+            "import { spaceTrim } from '@promptbook/utils';",
+        );
+        expect(packageJson.scripts.start).toBe('node ./agent-harness.mjs');
+        expect(Object.keys(packageJson.dependencies)).toEqual([
+            '@promptbook/utils',
+            '@rivet-dev/agent-os-common',
+            '@rivet-dev/agent-os-core',
+            '@rivet-dev/agent-os-pi',
+            'dotenv',
+            'llamaindex',
+            'zod',
+        ]);
+        expect(mockEnvironmentFile).toContain('ANTHROPIC_API_KEY');
+        expect(mockEnvironmentFile).toContain('ANTHROPIC_CLAUDE_API_KEY');
+        expect(readme).toContain('npm install');
+        expect(readme).toContain('npm start');
+        expect(readme).toContain('agent-harness.mjs');
+        expect(manifest.agentName).toBe('AgentOS Agent');
+        expect(manifest.transpilerName).toBe('agent-os');
+        expect(manifest.transpilerTitle).toBe('AgentOS');
+        expect(manifest.runtime.kind).toBe('nodejs');
+        expect(manifest.runtime.entryFile).toBe('agent-harness.mjs');
+        expect(manifest.runtime.environmentVariables).toEqual(['ANTHROPIC_API_KEY', 'ANTHROPIC_CLAUDE_API_KEY']);
+        expect(Object.keys(manifest.runtime.dependencies || {})).toEqual([
+            '@promptbook/utils',
+            '@rivet-dev/agent-os-common',
+            '@rivet-dev/agent-os-core',
+            '@rivet-dev/agent-os-pi',
+            'dotenv',
+            'llamaindex',
+            'zod',
+        ]);
+    });
 });

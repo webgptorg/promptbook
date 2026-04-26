@@ -8,4 +8,11 @@ describe('getTranspiledCodeFileMetadata', () => {
             filename: 'agent-harness.mjs',
         });
     });
+
+    it('treats AgentOS exports as JavaScript harnesses', () => {
+        expect(getTranspiledCodeFileMetadata('agent-os')).toEqual({
+            language: 'javascript',
+            filename: 'agent-harness.mjs',
+        });
+    });
 });

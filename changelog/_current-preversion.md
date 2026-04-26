@@ -10,6 +10,12 @@
     -   Kept the SDK transpiler implementation DRY by extracting the shared Book-to-harness preparation logic used by both OpenAI and Anthropic SDK transpilers instead of duplicating knowledge/tool parsing.
     -   Registered the new transpiler in the Agents Server export registry, mapped it to JavaScript harness metadata for preview/download packaging, and extended regression coverage for Anthropic ZIP exports and file metadata inference.
 
+-   Added an AgentOS transpiler to the Agents Server `export-as-transpiled-code` flow, so Book agents can now export a runnable AgentOS harness with Pi session setup and optional host tools:
+
+    -   Added a new `AgentOS` Book transpiler that emits a standalone Node.js harness backed by `@rivet-dev/agent-os-core`, `@rivet-dev/agent-os-common`, and `@rivet-dev/agent-os-pi`, including a generated Pi extension, streamed session events, and the prompt loop used by the export page.
+    -   Mapped the export page to show AgentOS as a JavaScript harness with the `.mjs` entry filename, and reused the existing runtime packaging path so the downloaded ZIP includes the same self-contained scaffold as the other runnable exports.
+    -   Registered the new transpiler in the Agents Server export registry and covered the export-page listing plus ZIP/runtime metadata with regression tests.
+
 -   Made Agents Server transpiled-code exports self-contained and directly runnable, so downloaded agent harness archives now behave like small standalone projects instead of loose code files:
 
     -   Moved transpiled export assembly into shared Agents Server export utilities that now decide which helper files belong in every export, while the ZIP route remains a thin system-level wrapper that only archives the prepared file set.
