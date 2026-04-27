@@ -71,7 +71,34 @@
 -   The default option should be `OCTOPUS3`
 -   Implement it in a way that it can be easily extended add more avatar visuals in the future
 -   You are working with the [Agents Server](apps/agents-server) with the default avatars of the agents
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.ve
 
 ![alt text](prompts/screenshots/2026-04-6581-agent-avatars-use-2.png)
 
+---
+
+[ ] !
+
+[✨👝] Allow to set agent avatar visual throught `META AVATAR` commitment
+
+-   There are multiple avatar visuals but only used is `DEFAULT_AGENT_AVATAR_VISUAL` globally for all avatars on the entire server, but it should be possible to set the default avatar visual for each agent individually through `META AVATAR` commitment, so that we can have different avatar visuals for different agents, and we can also override the global default avatar visual for specific agents if needed
+-   `META AVATAR` commitment is case insensitive and spaces should be normalized, the `META AVATAR PIXEL_ART`, `META AVATAR PIXEL_ART`, `META AVATAR pixel art`, `META AVATAR pixel-art` should all set the same avatar visual, and the same applies for other avatar visuals as well
+-   The default option should be the value from metadata `DEFAULT_AGENT_AVATAR_VISUAL`
+-   Implement it in a way that it can be easily extended add more avatar visuals in the future
+-   You are working with the [Agents Server](apps/agents-server) with the default avatars of the agents
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.ve
+
+![alt text](prompts/screenshots/2026-04-6581-agent-avatars-use-2.png)
+
+---
+
+[ ] !
+
+[✨👝] Avatar visuals from federated servers should correspond to the federated server not the local one
+
+-   When the agent is from federated server, the avatar visual should be based on the metadata of the federated server, not the local server, so that it corresponds to the origin of the agent and it can be easily distinguished from local agents
+-   You are working with the [Agents Server](apps/agents-server) with the default avatars of the agents
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.ve
+
+![alt text](prompts/screenshots/2026-04-6581-agent-avatars-use-2.png)
+![alt text](prompts/screenshots/2026-04-6581-agent-avatars-use-3.png)
