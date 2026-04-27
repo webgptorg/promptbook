@@ -18,13 +18,13 @@ describe('AgentOsTranspiler', () => {
         expect(code).toContain("import { AgentOs } from '@rivet-dev/agent-os-core'");
         expect(code).toContain("import common from '@rivet-dev/agent-os-common'");
         expect(code).toContain("import pi from '@rivet-dev/agent-os-pi'");
-        expect(code).toContain("const vm = await AgentOs.create({");
-        expect(code).toContain("await vm.writeFile(");
-        expect(code).toContain("before_agent_start");
-        expect(code).toContain("const PROMPT_SUFFIX =");
-        expect(code).toContain("appendPromptSuffix(prompt)");
-        expect(code).toContain("await vm.prompt(sessionId, prompt)");
-        expect(code).toContain("vm.onSessionEvent(sessionId, (event) => console.log(event))");
+        expect(code).toContain('const vm = await AgentOs.create({');
+        expect(code).toContain('await vm.writeFile(');
+        expect(code).toContain('before_agent_start');
+        expect(code).toContain('const PROMPT_SUFFIX =');
+        expect(code).toContain('appendPromptSuffix(prompt)');
+        expect(code).toContain('await vm.prompt(sessionId, prompt)');
+        expect(code).toContain('vm.onSessionEvent(sessionId, (event) => console.log(event))');
         expect(code).not.toContain('PERSONA You are funny');
     });
 

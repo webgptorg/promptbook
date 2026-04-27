@@ -252,7 +252,11 @@ function createOpenAiAgentsToolSection(options: {
             };
 
             const PROMPTBOOK_FUNCTION_TOOLS = [
-                ${block(toolDefinitions.map((toolDefinition) => createOpenAiAgentsFunctionToolSource(toolDefinition)).join('\n\n'))}
+                ${block(
+                    toolDefinitions
+                        .map((toolDefinition) => createOpenAiAgentsFunctionToolSource(toolDefinition))
+                        .join('\n\n'),
+                )}
             ];
         `,
     );

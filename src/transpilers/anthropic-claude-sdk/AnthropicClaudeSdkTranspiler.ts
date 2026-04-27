@@ -145,7 +145,11 @@ export const AnthropicClaudeSdkTranspiler = {
                             messages: chatHistory,
                             max_tokens: ${DEFAULT_ANTHROPIC_MAX_TOKENS},
                             temperature: ${modelRequirements.temperature},
-                            ${modelRequirements.tools && modelRequirements.tools.length > 0 ? `tools: anthropicTools,` : ''}
+                            ${
+                                modelRequirements.tools && modelRequirements.tools.length > 0
+                                    ? `tools: anthropicTools,`
+                                    : ''
+                            }
                         });
 
                         const toolUseBlocks = response.content.filter((contentBlock) => contentBlock.type === 'tool_use');

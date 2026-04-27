@@ -84,7 +84,13 @@ export const AgentOsTranspiler = {
                 const PROMPT_SUFFIX = ${block(JSON.stringify(modelRequirements.promptSuffix.trim()))};
                 const SYSTEM_MESSAGE = ${block(JSON.stringify(resolvedSystemMessage))};
                 ${block(createAgentOsToolkitSection(modelRequirements.tools || [], usedToolFunctions))}
-                ${block(createAgentOsKnowledgeSection({ directKnowledge, knowledgeSources, isKnowledgeHandledWithRetrieval }))}
+                ${block(
+                    createAgentOsKnowledgeSection({
+                        directKnowledge,
+                        knowledgeSources,
+                        isKnowledgeHandledWithRetrieval,
+                    }),
+                )}
 
                 /**
                  * Starts the AgentOS-backed chat harness.
@@ -226,7 +232,11 @@ function createAgentOsToolkitSection(
                 name: 'promptbook',
                 description: 'Promptbook tools generated from the Book source.',
                 tools: {
-                    ${block(toolDefinitions.map((toolDefinition) => createAgentOsHostToolSource(toolDefinition)).join('\n\n'))}
+                    ${block(
+                        toolDefinitions
+                            .map((toolDefinition) => createAgentOsHostToolSource(toolDefinition))
+                            .join('\n\n'),
+                    )}
                 },
             });
         `,
@@ -254,7 +264,9 @@ function createAgentOsHostToolSource(toolDefinition: LlmToolDefinition): string 
                     const toolImplementation = PROMPTBOOK_TOOL_IMPLEMENTATIONS[${toolNameLiteral}];
 
                     if (!toolImplementation) {
-                        throw new Error(\`Tool ${JSON.stringify(toolDefinition.name)} is not implemented in the exported harness.\`);
+                        throw new Error(\`Tool ${JSON.stringify(
+                            toolDefinition.name,
+                        )} is not implemented in the exported harness.\`);
                     }
 
                     return await toolImplementation(input);

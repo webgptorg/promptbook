@@ -45,7 +45,9 @@ export const E2BTranspiler = {
                 )};
                 const SANDBOX_WORKING_DIRECTORY = '/home/user/promptbook-agent';
                 const SANDBOX_PACKAGE_JSON_PATH = ${block(JSON.stringify('/home/user/promptbook-agent/package.json'))};
-                const SANDBOX_AGENT_HARNESS_PATH = ${block(JSON.stringify('/home/user/promptbook-agent/agent-harness.mjs'))};
+                const SANDBOX_AGENT_HARNESS_PATH = ${block(
+                    JSON.stringify('/home/user/promptbook-agent/agent-harness.mjs'),
+                )};
                 let activeSandbox = null;
                 let activeCommand = null;
                 let isShuttingDown = false;

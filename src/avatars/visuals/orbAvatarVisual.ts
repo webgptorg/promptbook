@@ -133,28 +133,12 @@ export function createOrbMorphologyProfile(createRandom: (salt: string) => () =>
     return {
         family,
         baseRadiusRatio: clampNumber(0.255 + layoutRandom() * 0.055 + familyAdjustment.baseRadiusRatio, 0.22, 0.335),
-        horizontalStretch: clampNumber(
-            0.93 + layoutRandom() * 0.13 + familyAdjustment.horizontalStretch,
-            0.88,
-            1.16,
-        ),
+        horizontalStretch: clampNumber(0.93 + layoutRandom() * 0.13 + familyAdjustment.horizontalStretch, 0.88, 1.16),
         verticalStretch: clampNumber(0.91 + layoutRandom() * 0.13 + familyAdjustment.verticalStretch, 0.88, 1.15),
         wobbleAmplitude: clampNumber(0.038 + effectRandom() * 0.042 + familyAdjustment.wobbleAmplitude, 0.022, 0.12),
-        wobbleFrequencyOne: clampInteger(
-            2 + Math.floor(effectRandom() * 3) + familyAdjustment.wobbleFrequency,
-            2,
-            7,
-        ),
-        wobbleFrequencyTwo: clampInteger(
-            3 + Math.floor(layoutRandom() * 3) + familyAdjustment.wobbleFrequency,
-            3,
-            8,
-        ),
-        wobbleFrequencyThree: clampInteger(
-            5 + Math.floor(effectRandom() * 3) + familyAdjustment.wobbleFrequency,
-            4,
-            9,
-        ),
+        wobbleFrequencyOne: clampInteger(2 + Math.floor(effectRandom() * 3) + familyAdjustment.wobbleFrequency, 2, 7),
+        wobbleFrequencyTwo: clampInteger(3 + Math.floor(layoutRandom() * 3) + familyAdjustment.wobbleFrequency, 3, 8),
+        wobbleFrequencyThree: clampInteger(5 + Math.floor(effectRandom() * 3) + familyAdjustment.wobbleFrequency, 4, 9),
         ringCount: clampInteger(2 + Math.floor(effectRandom() * 3) + familyAdjustment.ringCount, 2, 5),
         sparkleCount: clampInteger(6 + Math.floor(effectRandom() * 7) + familyAdjustment.sparkleCount, 4, 16),
         haloCount: clampInteger(2 + Math.floor(layoutRandom() * 2) + familyAdjustment.haloCount, 1, 4),
@@ -176,9 +160,7 @@ export function createOrbMorphologyProfile(createRandom: (salt: string) => () =>
  *
  * @private helper of `orbAvatarVisual`
  */
-function resolveOrbFamilyAdjustment(
-    family: OrbFamily,
-): {
+function resolveOrbFamilyAdjustment(family: OrbFamily): {
     readonly baseRadiusRatio: number;
     readonly horizontalStretch: number;
     readonly verticalStretch: number;
@@ -325,20 +307,26 @@ function createOrbSilhouettePoints(options: {
     return Array.from({ length: pointCount }, (_, pointIndex) => {
         const progress = pointIndex / pointCount;
         const angle = -Math.PI / 2 + progress * Math.PI * 2;
-        const breathing = Math.sin(timeMs / (1450 / profile.pulseSpeed) + profile.bandRotation) * profile.wobbleAmplitude;
+        const breathing =
+            Math.sin(timeMs / (1450 / profile.pulseSpeed) + profile.bandRotation) * profile.wobbleAmplitude;
         const surfaceWaveOne =
-            Math.sin(angle * profile.wobbleFrequencyOne + profile.highlightAngle + timeMs / (980 / profile.pulseSpeed)) *
-            profile.wobbleAmplitude;
+            Math.sin(
+                angle * profile.wobbleFrequencyOne + profile.highlightAngle + timeMs / (980 / profile.pulseSpeed),
+            ) * profile.wobbleAmplitude;
         const surfaceWaveTwo =
             Math.cos(
-                angle * profile.wobbleFrequencyTwo -
-                    profile.bandRotation * 0.8 +
-                    timeMs / (1320 / profile.pulseSpeed),
-            ) * profile.wobbleAmplitude * 0.62;
+                angle * profile.wobbleFrequencyTwo - profile.bandRotation * 0.8 + timeMs / (1320 / profile.pulseSpeed),
+            ) *
+            profile.wobbleAmplitude *
+            0.62;
         const surfaceWaveThree =
             Math.sin(
-                angle * profile.wobbleFrequencyThree + profile.highlightAngle * 1.4 - timeMs / (1710 / profile.pulseSpeed),
-            ) * profile.wobbleAmplitude * 0.38;
+                angle * profile.wobbleFrequencyThree +
+                    profile.highlightAngle * 1.4 -
+                    timeMs / (1710 / profile.pulseSpeed),
+            ) *
+            profile.wobbleAmplitude *
+            0.38;
         const surfaceTaper = Math.sin(angle * 2 + profile.highlightAngle) * profile.wobbleAmplitude * 0.2;
         const localRadius =
             radius * (1 + breathing * 0.12 + surfaceWaveOne + surfaceWaveTwo + surfaceWaveThree + surfaceTaper);
@@ -584,8 +572,10 @@ function drawOrbSparkles(
         const sparkleAngle = sparkleRandom() * Math.PI * 2 + profile.highlightAngle * 0.4;
         const sparkleOrbitRadius = radius * (0.42 + sparkleRandom() * 0.55);
         const sparkleOrbitPulse = 0.92 + Math.sin(timeMs / (700 + sparkleIndex * 70) + profile.bandRotation) * 0.08;
-        const sparkleCenterX = centerX + Math.cos(sparkleAngle + timeMs / (4600 / profile.pulseSpeed)) * sparkleOrbitRadius;
-        const sparkleCenterY = centerY + Math.sin(sparkleAngle + timeMs / (4600 / profile.pulseSpeed)) * sparkleOrbitRadius;
+        const sparkleCenterX =
+            centerX + Math.cos(sparkleAngle + timeMs / (4600 / profile.pulseSpeed)) * sparkleOrbitRadius;
+        const sparkleCenterY =
+            centerY + Math.sin(sparkleAngle + timeMs / (4600 / profile.pulseSpeed)) * sparkleOrbitRadius;
         const sparkleRadius = size * (0.0028 + sparkleRandom() * 0.0058) * sparkleOrbitPulse;
 
         context.beginPath();
@@ -705,13 +695,7 @@ function drawOrbCore(
     context.fill();
 
     context.beginPath();
-    context.arc(
-        centerX - radius * 0.06,
-        centerY - radius * 0.07,
-        radius * 0.06,
-        0,
-        Math.PI * 2,
-    );
+    context.arc(centerX - radius * 0.06, centerY - radius * 0.07, radius * 0.06, 0, Math.PI * 2);
     context.fillStyle = `${colorSet.highlight}d6`;
     context.fill();
 }

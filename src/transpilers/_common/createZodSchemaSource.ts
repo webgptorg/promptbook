@@ -13,7 +13,9 @@ import { spaceTrim } from 'spacetrim';
  */
 export function createZodSchemaSource(schema: JsonSchemaLike): string {
     if (schema.type === 'object' || schema.properties) {
-        const objectSource = `z.object(${createZodShapeSource(schema)})${schema.additionalProperties === false ? '.strict()' : '.passthrough()'}`;
+        const objectSource = `z.object(${createZodShapeSource(schema)})${
+            schema.additionalProperties === false ? '.strict()' : '.passthrough()'
+        }`;
         return appendZodDescription(objectSource, schema.description);
     }
 

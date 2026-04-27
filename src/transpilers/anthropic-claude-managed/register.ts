@@ -12,7 +12,8 @@ import { AnthropicClaudeManagedTranspiler } from './AnthropicClaudeManagedTransp
  * @public exported from `@promptbook/wizard`
  * @public exported from `@promptbook/cli`
  */
-export const _AnthropicClaudeManagedTranspilerRegistration: Registration =
-    $bookTranspilersRegister.register(AnthropicClaudeManagedTranspiler);
+export const _AnthropicClaudeManagedTranspilerRegistration: Registration = $bookTranspilersRegister.register(
+    AnthropicClaudeManagedTranspiler,
+);
 
 // Note: [💞] Ignore a discrepancy between file name and entity name

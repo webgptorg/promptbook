@@ -67,6 +67,6 @@ describe('OpenAiAgentsTranspiler', () => {
         expect(code).toContain('tool({');
         expect(code).toContain('strict: false');
         expect(code).toContain('return stringifyResult(result);');
-        expect(code).toContain("run(agent, promptText, {");
+        expect(code).toContain('run(agent, promptText, {');
     });
 });

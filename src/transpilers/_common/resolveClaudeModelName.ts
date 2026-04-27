@@ -23,4 +23,3 @@ export function resolveClaudeModelName(modelName?: string): string {
 
     return DEFAULT_CLAUDE_MODEL_NAME;
 }
-

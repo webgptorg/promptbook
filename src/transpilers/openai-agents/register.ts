@@ -16,4 +16,3 @@ export const _OpenAiAgentsTranspilerRegistration: Registration =
     $bookTranspilersRegister.register(OpenAiAgentsTranspiler);
 
 // Note: [💞] Ignore a discrepancy between file name and entity name
-

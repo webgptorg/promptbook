@@ -66,12 +66,7 @@ function formatToolFunctionSource(toolName: string_javascript_name, toolFunction
 
     const arrowMatch = normalizedSource.match(ARROW_SOURCE_PATTERN);
     if (arrowMatch?.groups) {
-        const {
-            asyncPrefix,
-            body,
-            parenthesizedParameters,
-            singleParameter,
-        } = arrowMatch.groups as {
+        const { asyncPrefix, body, parenthesizedParameters, singleParameter } = arrowMatch.groups as {
             asyncPrefix?: string;
             body?: string;
             parenthesizedParameters?: string;

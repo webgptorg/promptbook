@@ -331,7 +331,11 @@ function createManagedClaudeToolkitSection(
             const PROMPTBOOK_MCP_SERVER = createSdkMcpServer({
                 name: ${block(JSON.stringify(PROMPTBOOK_MCP_SERVER_NAME))},
                 tools: [
-                    ${block(toolDefinitions.map((toolDefinition) => createManagedClaudeToolSource(toolDefinition)).join(',\n\n'))}
+                    ${block(
+                        toolDefinitions
+                            .map((toolDefinition) => createManagedClaudeToolSource(toolDefinition))
+                            .join(',\n\n'),
+                    )}
                 ],
             });
 
@@ -376,7 +380,9 @@ function createManagedClaudeToolSource(toolDefinition: LlmToolDefinition): strin
                     const toolImplementation = PROMPTBOOK_TOOL_IMPLEMENTATIONS[${toolNameLiteral}];
 
                     if (!toolImplementation) {
-                        throw new Error(\`Tool ${JSON.stringify(toolDefinition.name)} is not implemented in the exported harness.\`);
+                        throw new Error(\`Tool ${JSON.stringify(
+                            toolDefinition.name,
+                        )} is not implemented in the exported harness.\`);
                     }
 
                     try {
