@@ -97,7 +97,7 @@ const toolImplementations = {
 
 ---
 
-[x] ~$0.7384 42 minutes by OpenAI Codex `gpt-5.4-mini`
+[ ] !
 
 [✨✫] There are some commitments which can not be transpiled, warn the user about that on the `export-as-transpiled-code` page
 

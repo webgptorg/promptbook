@@ -1,15 +1,3 @@
--   Added an `E2B` transpiler to the Agents Server `export-as-transpiled-code` flow, so Promptbook agents can now be launched inside an E2B sandbox-backed runner:
-
-    -   Added a new `e2b` Book transpiler that reuses the existing OpenAI SDK harness as the inner agent loop, starts it inside an E2B sandbox, forwards sandbox environment variables and interactive stdin/stdout, and cleans up the sandbox on exit.
-    -   Registered the new transpiler in the Agents Server export registry, mapped it to JavaScript harness metadata for preview/download packaging, and extended regression coverage for export-page listing, metadata inference, and ZIP/runtime packaging.
-    -   Kept the implementation DRY by reusing the existing OpenAI SDK transpiler output instead of duplicating the agent loop logic inside the new E2B launcher.
-
--   Added a warning banner to the Agents Server `export-as-transpiled-code` page for agent functionality that cannot be reproduced 1:1 in transpiled exports:
-
-    -   Added a shared export-warning analyzer that inspects resolved Book commitments once and feeds both the export page banner and transpiled export API response without tying the logic to any specific transpiler.
-    -   Surfaced warnings for open/self-modifying behavior, explicit model selection, browser location access, and private-mode flows so users can see which agent features will not export exactly before downloading the generated harness.
-    -   Added regression coverage for the warning analyzer so closed agents stay warning-free while open agents and the unsupported commitment families produce the expected export warnings.
-
 -   Added an `OpenAI Agents SDK` transpiler to the Agents Server `export-as-transpiled-code` flow, so `@openai/agents`-based runnable harnesses can now be generated and downloaded alongside the existing SDK export:
 
     -   Added a new `openai-agents` Book transpiler that emits a standalone Node.js CLI harness built on `@openai/agents`, including Promptbook function-tool wrapping, conversation resumption through `previousResponseId`, and native OpenAI vector-store RAG for knowledge commitments.

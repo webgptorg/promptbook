@@ -13,7 +13,6 @@ import {
 } from '@promptbook-local/wizard';
 import { $bookTranspilersRegister } from '../../../../../src/transpilers/_common/register/$bookTranspilersRegister';
 import { $sideEffect } from '../../../../../src/utils/organization/$sideEffect';
-import { createTranspiledAgentExportWarnings } from './createTranspiledAgentExportWarnings';
 
 // Note: Ensure supported export transpilers are registered before listing or resolving them.
 $sideEffect(_OpenAiSdkTranspilerRegistration);
@@ -46,11 +45,6 @@ export type ResolvedTranspiledAgentCodeExport = {
      * Selected transpiler metadata.
      */
     readonly transpiler: ListedBookTranspiler;
-
-    /**
-     * Warning list describing source capabilities that cannot be reproduced exactly by transpilers.
-     */
-    readonly warnings: ReturnType<typeof createTranspiledAgentExportWarnings>;
 };
 
 /**
@@ -113,7 +107,6 @@ export async function resolveTranspiledAgentCodeExport(options: {
 
     const tools = await $provideExecutionToolsForServer();
     const transpiledCode = await transpiler.transpileBook(resolvedAgentSource, tools);
-    const warnings = createTranspiledAgentExportWarnings(resolvedAgentSource);
 
     return {
         agentSource,
@@ -122,6 +115,5 @@ export async function resolveTranspiledAgentCodeExport(options: {
             name: transpiler.name,
             title: transpiler.title,
         },
-        warnings,
     };
 }

@@ -2,14 +2,13 @@
 
 import { BookEditor } from '@promptbook-local/components';
 import type { AgentBasicInformation, string_book, string_url } from '@promptbook-local/types';
-import { AlertTriangleIcon, ChevronDownIcon, CodeIcon, DownloadIcon, PencilIcon } from 'lucide-react';
+import { ChevronDownIcon, CodeIcon, DownloadIcon, PencilIcon } from 'lucide-react';
 import Link from 'next/link';
 import { type ReactNode, useCallback, useEffect, useState } from 'react';
 import { MonacoEditorWithShadowDom } from '../../../../components/_utils/MonacoEditorWithShadowDom';
 import { usePromptbookTheme } from '../../../../components/ThemeMode/usePromptbookTheme';
 import { downloadBlob, parseFilenameFromContentDisposition } from '../../../../utils/download/browserFileDownload';
 import { getTranspiledCodeFileMetadata } from '../../../../utils/transpilers/getTranspiledCodeFileMetadata';
-import type { TranspiledAgentExportWarning } from '../../../../utils/transpilers/createTranspiledAgentExportWarnings';
 import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 
 /**
@@ -33,7 +32,6 @@ type TranspilerListResponse = {
 type TranspilationResult = {
     readonly code: string;
     readonly transpiler: Transpiler;
-    readonly warnings?: Array<TranspiledAgentExportWarning>;
 };
 
 /**
@@ -89,11 +87,6 @@ type AgentCodePageClientProps = {
      * Note: [👭] Using `string_url`, not `URL`, because the value crosses the server/client boundary.
      */
     readonly publicUrl: string_url;
-
-    /**
-     * Export warnings computed on the server from the resolved agent source.
-     */
-    readonly transpilationWarnings: ReadonlyArray<TranspiledAgentExportWarning>;
 };
 
 /**
@@ -187,75 +180,9 @@ function AgentCodePageSection({ title, description, actions, children }: AgentCo
 }
 
 /**
- * Props for the transpiled-code export warning banner.
- */
-type TranspiledCodeExportWarningsBannerProps = {
-    /**
-     * Warning items derived from the resolved agent source.
-     */
-    readonly warnings: ReadonlyArray<TranspiledAgentExportWarning>;
-};
-
-/**
- * Warning banner shown when the agent uses functionality that cannot be reproduced 1:1 by transpilers.
- */
-function TranspiledCodeExportWarningsBanner({ warnings }: TranspiledCodeExportWarningsBannerProps) {
-    if (warnings.length === 0) {
-        return null;
-    }
-
-    return (
-        <section
-            className="overflow-hidden rounded-2xl border border-amber-200 bg-amber-50/90 shadow-sm dark:border-amber-500/30 dark:bg-amber-500/10"
-            role="alert"
-        >
-            <div className="flex gap-4 px-5 py-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700 dark:bg-amber-400/20 dark:text-amber-100">
-                    <AlertTriangleIcon className="h-5 w-5" aria-hidden="true" />
-                </div>
-
-                <div className="min-w-0 flex-1">
-                    <h2 className="text-base font-semibold text-amber-950 dark:text-amber-50">
-                        Some agent functionality cannot be transpiled exactly
-                    </h2>
-                    <p className="mt-1 text-sm leading-6 text-amber-900/90 dark:text-amber-100/90">
-                        The exported code may not behave 1:1 with the live agent created in Agents Server.
-                    </p>
-
-                    <ul className="mt-4 space-y-3">
-                        {warnings.map((warning) => (
-                            <li
-                                key={warning.commitmentType}
-                                className="flex gap-3 rounded-xl border border-amber-200/70 bg-white/70 px-3 py-3 dark:border-amber-500/20 dark:bg-slate-950/20"
-                            >
-                                <code className="mt-0.5 shrink-0 rounded bg-amber-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-900 dark:bg-amber-400/20 dark:text-amber-50">
-                                    {warning.commitmentType}
-                                </code>
-
-                                <div className="min-w-0">
-                                    <p className="text-sm font-semibold text-amber-950 dark:text-amber-50">{warning.title}</p>
-                                    <p className="mt-1 text-sm leading-6 text-amber-900/90 dark:text-amber-100/90">
-                                        {warning.description}
-                                    </p>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            </div>
-        </section>
-    );
-}
-
-/**
  * Handles the export-as-transpiled-code page.
  */
-export function AgentCodePageClient({
-    agentName,
-    agentSource,
-    publicUrl,
-    transpilationWarnings,
-}: AgentCodePageClientProps) {
+export function AgentCodePageClient({ agentName, agentSource, publicUrl }: AgentCodePageClientProps) {
     const { promptbookTheme } = usePromptbookTheme();
     const [agentProfile, setAgentProfile] = useState<AgentBasicInformation | null>(null);
     const [transpilers, setTranspilers] = useState<Array<Transpiler>>([]);
@@ -457,8 +384,6 @@ export function AgentCodePageClient({
                     </div>
 
                     <div className="grid gap-6 p-6">
-                        <TranspiledCodeExportWarningsBanner warnings={transpilationWarnings} />
-
                         <AgentCodePageSection
                             title="Source Book"
                             description="Review the stored Book source used to create this agent. Editing stays in the dedicated Book editor."
