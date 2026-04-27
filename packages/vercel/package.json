@@ -99,5 +99,10 @@
     "typings": "./esm/src/_packages/vercel.index.d.ts",
     "peerDependencies": {
         "@promptbook/core": "0.112.0-54"
+    },
+    "dependencies": {
+        "colors": "1.4.0",
+        "crypto": "1.0.1",
+        "spacetrim": "0.11.60"
     }
 }
