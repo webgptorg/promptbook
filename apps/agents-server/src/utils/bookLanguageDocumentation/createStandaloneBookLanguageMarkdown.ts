@@ -14,7 +14,6 @@ const COMPOSITION_COMMITMENT_TYPES = new Set(['FROM', 'IMPORT', 'IMPORTS', 'TEAM
  * Commitment types that expose tools/runtime capabilities.
  */
 const TOOLING_COMMITMENT_TYPES = new Set([
-    'USE',
     'USE BROWSER',
     'USE DEEPSEARCH',
     'USE SEARCH ENGINE',

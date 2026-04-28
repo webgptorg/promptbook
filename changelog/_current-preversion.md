@@ -1,5 +1,7 @@
 -   Fixed Agents Server TEAM teammate calls so internal agent-to-agent chat requests no longer create a fresh anonymous browser user, allowing same-server private and unlisted teammates to answer when referenced by another agent.
 
+-   Removed the generic `USE` commitment from the Book commitment registry so only concrete `USE *` commitments are parsed, documented, and suggested in the Book editor.
+
 -   Added an `OpenAI Agents SDK` transpiler to the Agents Server `export-as-transpiled-code` flow, so `@openai/agents`-based runnable harnesses can now be generated and downloaded alongside the existing SDK export:
 
     -   Added a new `openai-agents` Book transpiler that emits a standalone Node.js CLI harness built on `@openai/agents`, including Promptbook function-tool wrapping, conversation resumption through `previousResponseId`, and native OpenAI vector-store RAG for knowledge commitments.

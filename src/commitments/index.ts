@@ -39,7 +39,6 @@ import { ScenarioCommitmentDefinition } from './SCENARIO/SCENARIO';
 import { StyleCommitmentDefinition } from './STYLE/STYLE';
 import { TeamCommitmentDefinition } from './TEAM/TEAM';
 import { TemplateCommitmentDefinition } from './TEMPLATE/TEMPLATE';
-import { UseCommitmentDefinition } from './USE/USE';
 import { UseBrowserCommitmentDefinition } from './USE_BROWSER/USE_BROWSER';
 import { UseCalendarCommitmentDefinition } from './USE_CALENDAR/USE_CALENDAR';
 import { UseDeepSearchCommitmentDefinition } from './USE_DEEPSEARCH/USE_DEEPSEARCH';
@@ -142,7 +141,6 @@ export const COMMITMENT_REGISTRY = [
     new UseMcpCommitmentDefinition(),
     new UsePrivacyCommitmentDefinition(),
     new UseProjectCommitmentDefinition(),
-    new UseCommitmentDefinition(),
 
     // Not yet implemented commitments (using placeholder)
     new NotYetImplementedCommitmentDefinition('EXPECT'),
