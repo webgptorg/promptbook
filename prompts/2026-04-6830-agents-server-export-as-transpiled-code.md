@@ -106,6 +106,7 @@ const toolImplementations = {
     -   `MODEL` does not make sense to transpile, because the model is determined by transpiler
     -   `USE LOCATION` is dependent on browser environment and can not be transpiled
     -   `USE PRIVACY` depends more on external factors and can not be transpiled
+-   Warn only when the agent contains the commitments which can not be transpiled
 -   When any of theese commitments is used in the agent warning should be shown on the `export-as-transpiled-code` page, that the agent contains some functionality which can not be transpiled and exported code may not work 1:1 with the agent created in the Agents Server, and user should be informed about which functionality can not be transpiled
 -   This is transpiler-agnostic, so it should be implemented in a way that it works for every transpiler, not just for specific one
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
@@ -179,9 +180,3 @@ const toolImplementations = {
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
-
-
-
-
-
