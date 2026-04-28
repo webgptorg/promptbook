@@ -5,12 +5,6 @@ import { parseAgentSourceWithCommitments } from '../../book-2.0/agent-source/par
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentDefinitions } from '../../commitments/_common/getAllCommitmentDefinitions';
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
-import type { BookTranspilerOptions } from './BookTranspilerOptions';
-import {
-    normalizeTranspiledTeamHierarchy,
-    type TranspiledTeamMember,
-    type TranspiledTeamMemberInput,
-} from './TranspiledTeamHierarchy';
 
 /**
  * Knowledge-size threshold after which SDK transpilers switch to retrieval-based scaffolding.
@@ -51,11 +45,6 @@ export type PreparedSdkTranspilerContext = {
     readonly usedToolFunctions: Record<string, string>;
 
     /**
-     * Recursive TEAM hierarchy embedded into the generated harness.
-     */
-    readonly teamHierarchy: ReadonlyArray<TranspiledTeamMember>;
-
-    /**
      * Whether the transpiler should emit the retrieval-augmented scaffold.
      */
     readonly isKnowledgeHandledWithRetrieval: boolean;
@@ -65,15 +54,10 @@ export type PreparedSdkTranspilerContext = {
  * Prepares the common parsed context reused by JavaScript SDK transpilers.
  *
  * @param book - Agent Book source being transpiled.
- * @param options - Optional transpiler options including a pre-resolved TEAM hierarchy.
  * @returns Shared transpiler context derived from the Book.
- *
  * @private shared between SDK transpilers
  */
-export async function prepareSdkTranspilerContext(
-    book: string_book,
-    options?: BookTranspilerOptions,
-): Promise<PreparedSdkTranspilerContext> {
+export async function prepareSdkTranspilerContext(book: string_book): Promise<PreparedSdkTranspilerContext> {
     const { agentName } = await parseAgentSource(book);
     const modelRequirements = await createAgentModelRequirements(book);
     const { commitments } = parseAgentSourceWithCommitments(book);
@@ -90,9 +74,6 @@ export async function prepareSdkTranspilerContext(
         directKnowledge,
         knowledgeSources,
         usedToolFunctions: resolveUsedToolFunctions(modelRequirements.tools || []),
-        teamHierarchy: normalizeTranspiledTeamHierarchy(
-            (options?.teamHierarchy || (modelRequirements._metadata?.teammates || [])) as ReadonlyArray<TranspiledTeamMemberInput>,
-        ),
         isKnowledgeHandledWithRetrieval,
     };
 }
@@ -123,10 +104,6 @@ function resolveUsedToolFunctions(tools: ReadonlyArray<LlmToolDefinition>): Reco
     const allCommitmentDefinitions = getAllCommitmentDefinitions();
 
     for (const tool of tools) {
-        if (tool.name.startsWith('team_chat_')) {
-            continue;
-        }
-
         for (const definition of allCommitmentDefinitions) {
             const toolFunctions = definition.getToolFunctions();
             if (toolFunctions[tool.name]) {
