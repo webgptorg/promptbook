@@ -1,3 +1,8 @@
+-   Added a warning banner to the Agents Server `export-as-transpiled-code` page for agents that use non-transpilable `OPEN`/default-open, `MODEL`, `USE USER LOCATION`, or `USE PRIVACY` commitments, so users are told when exported code may not match the live agent 1:1:
+
+    -   Centralized the check in a pure export-warning helper so the warning stays transpiler-agnostic and is driven by parsed agent commitments.
+    -   Rendered the warning only when the current agent actually uses one of the unsupported behaviors.
+
 -   Added optimistic homepage rendering in Agents Server so clicking the server logo from an agent page now swaps the persistent shell to the homepage loading skeleton immediately instead of waiting for the homepage data stream to finish:
 
     -   Added a shared client-side homepage optimistic-navigation wrapper in the root layout shell, driven by the existing navigation-start event, so homepage-bound clicks can render the loading skeleton before the new route finishes loading.

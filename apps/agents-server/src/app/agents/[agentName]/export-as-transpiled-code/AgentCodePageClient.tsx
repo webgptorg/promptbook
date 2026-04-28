@@ -2,13 +2,14 @@
 
 import { BookEditor } from '@promptbook-local/components';
 import type { AgentBasicInformation, string_book, string_url } from '@promptbook-local/types';
-import { ChevronDownIcon, CodeIcon, DownloadIcon, PencilIcon } from 'lucide-react';
+import { AlertTriangleIcon, ChevronDownIcon, CodeIcon, DownloadIcon, PencilIcon } from 'lucide-react';
 import Link from 'next/link';
 import { type ReactNode, useCallback, useEffect, useState } from 'react';
 import { MonacoEditorWithShadowDom } from '../../../../components/_utils/MonacoEditorWithShadowDom';
 import { usePromptbookTheme } from '../../../../components/ThemeMode/usePromptbookTheme';
 import { downloadBlob, parseFilenameFromContentDisposition } from '../../../../utils/download/browserFileDownload';
 import { getTranspiledCodeFileMetadata } from '../../../../utils/transpilers/getTranspiledCodeFileMetadata';
+import type { TranspiledAgentExportWarning } from '../../../../utils/transpilers/getTranspiledAgentExportWarnings';
 import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 
 /**
@@ -87,6 +88,11 @@ type AgentCodePageClientProps = {
      * Note: [👭] Using `string_url`, not `URL`, because the value crosses the server/client boundary.
      */
     readonly publicUrl: string_url;
+
+    /**
+     * Warnings about commitments that cannot be transpiled 1:1.
+     */
+    readonly exportWarnings: ReadonlyArray<TranspiledAgentExportWarning>;
 };
 
 /**
@@ -180,9 +186,70 @@ function AgentCodePageSection({ title, description, actions, children }: AgentCo
 }
 
 /**
+ * Props for the export warning banner.
+ */
+type TranspiledCodeExportWarningBannerProps = {
+    /**
+     * Non-transpilable commitment warnings computed for the current agent.
+     */
+    readonly warnings: ReadonlyArray<TranspiledAgentExportWarning>;
+};
+
+/**
+ * Renders a warning banner when the current agent uses commitments that cannot be exported 1:1.
+ */
+function TranspiledCodeExportWarningBanner({ warnings }: TranspiledCodeExportWarningBannerProps) {
+    if (warnings.length === 0) {
+        return null;
+    }
+
+    return (
+        <div
+            className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-950 shadow-sm dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100"
+            role="alert"
+        >
+            <div className="flex items-start gap-3">
+                <AlertTriangleIcon className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-300" />
+                <div className="min-w-0">
+                    <p className="text-sm font-semibold">
+                        Some agent functionality cannot be transpiled exactly.
+                    </p>
+                    <p className="mt-1 text-sm text-amber-900/90 dark:text-amber-100/80">
+                        The exported code may not behave 1:1 with the live agent in Agents Server.
+                    </p>
+
+                    <ul className="mt-3 space-y-3">
+                        {warnings.map((warning) => (
+                            <li key={warning.commitmentName} className="flex gap-2">
+                                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />
+                                <div className="min-w-0">
+                                    <p className="text-sm font-medium">
+                                        <code className="rounded bg-amber-100 px-1 py-0.5 font-mono text-[0.85em] text-amber-950 dark:bg-amber-900/60 dark:text-amber-100">
+                                            {warning.commitmentName}
+                                        </code>
+                                    </p>
+                                    <p className="mt-1 text-sm text-amber-900/90 dark:text-amber-100/80">
+                                        {warning.description}
+                                    </p>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+/**
  * Handles the export-as-transpiled-code page.
  */
-export function AgentCodePageClient({ agentName, agentSource, publicUrl }: AgentCodePageClientProps) {
+export function AgentCodePageClient({
+    agentName,
+    agentSource,
+    publicUrl,
+    exportWarnings,
+}: AgentCodePageClientProps) {
     const { promptbookTheme } = usePromptbookTheme();
     const [agentProfile, setAgentProfile] = useState<AgentBasicInformation | null>(null);
     const [transpilers, setTranspilers] = useState<Array<Transpiler>>([]);
@@ -430,6 +497,7 @@ export function AgentCodePageClient({ agentName, agentSource, publicUrl }: Agent
                             }
                         >
                             <div className="space-y-4">
+                                <TranspiledCodeExportWarningBanner warnings={exportWarnings} />
                                 <div>
                                     <label
                                         htmlFor="agent-code-transpiler"

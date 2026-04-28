@@ -1,7 +1,14 @@
 'use server';
 
+import type { string_book } from '@promptbook-local/types';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { $provideServer } from '@/src/tools/$provideServer';
+import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
+import {
+    getTranspiledAgentExportWarnings,
+    type TranspiledAgentExportWarning,
+} from '../../../../utils/transpilers/getTranspiledAgentExportWarnings';
 import { AgentCodePageClient } from './AgentCodePageClient';
 
 /**
@@ -12,7 +19,35 @@ export default async function AgentCodePage({ params }: { params: Promise<{ agen
     const agentName = decodeURIComponent(rawAgentName);
     const { publicUrl } = await $provideServer();
     const collection = await $provideAgentCollectionForServer();
-    const agentSource = await collection.getAgentSource(agentName);
+    let agentSource = '' as string_book;
+    let exportWarnings: Array<TranspiledAgentExportWarning> = [];
 
-    return <AgentCodePageClient agentName={agentName} publicUrl={publicUrl.href} agentSource={agentSource} />;
+    try {
+        // Prefer the resolved export source so inherited commitments are included in the warning.
+        const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
+        const resolvedAgentContext = await resolveServerAgentContext({
+            collection,
+            agentIdentifier: agentName,
+            localServerUrl: publicUrl.href,
+            fallbackResolver: baseAgentReferenceResolver,
+        });
+
+        agentSource = resolvedAgentContext.unresolvedAgentSource;
+        exportWarnings = getTranspiledAgentExportWarnings(resolvedAgentContext.resolvedAgentSource);
+    } catch (error) {
+        console.warn('Error resolving export warnings for transpiled code page:', error);
+
+        // Keep the export page functional even if the resolved-source warning path fails.
+        agentSource = await collection.getAgentSource(agentName);
+        exportWarnings = getTranspiledAgentExportWarnings(agentSource);
+    }
+
+    return (
+        <AgentCodePageClient
+            agentName={agentName}
+            publicUrl={publicUrl.href}
+            agentSource={agentSource}
+            exportWarnings={exportWarnings}
+        />
+    );
 }
