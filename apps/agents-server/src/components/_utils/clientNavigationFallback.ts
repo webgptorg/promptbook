@@ -19,10 +19,25 @@ function getCurrentRelativeLocation(): string {
 }
 
 /**
+ * Strips query-string and hash fragments from one destination string.
+ *
+ * @param destination - Raw destination string.
+ * @returns Destination without search or hash components.
+ *
+ * @private internal helper of Agents Server navigation progress
+ */
+function stripDestinationSearchAndHash(destination: string): string {
+    const queryIndex = destination.search(/[?#]/);
+    return queryIndex === -1 ? destination : destination.slice(0, queryIndex);
+}
+
+/**
  * Normalizes one destination URL into a comparable location suffix.
  *
  * @param destination - Destination URL passed to navigation helpers.
  * @returns Path + query + hash used for current-location comparison.
+ *
+ * @private internal helper of Agents Server navigation progress
  */
 export function normalizeDestinationForLocationComparison(destination: string): string {
     if (typeof window === 'undefined') {
@@ -38,6 +53,27 @@ export function normalizeDestinationForLocationComparison(destination: string): 
 }
 
 /**
+ * Normalizes one destination URL into a comparable pathname.
+ *
+ * @param destination - Destination URL passed to navigation helpers.
+ * @returns Pathname used for target-route comparisons.
+ *
+ * @private internal helper of Agents Server navigation progress
+ */
+export function normalizeDestinationForPathComparison(destination: string): string {
+    if (typeof window === 'undefined') {
+        return stripDestinationSearchAndHash(destination);
+    }
+
+    try {
+        const parsedDestination = new URL(destination, window.location.href);
+        return parsedDestination.pathname;
+    } catch {
+        return stripDestinationSearchAndHash(destination);
+    }
+}
+
+/**
  * Schedules a hard-navigation fallback for one client-side route transition.
  *
  * This keeps header links and other shared navigation affordances responsive even
@@ -46,6 +82,8 @@ export function normalizeDestinationForLocationComparison(destination: string): 
  * @param destination - Href passed to the Next.js router.
  * @param logLabel - Short diagnostic prefix used in the fallback warning.
  * @returns Timeout handle that callers may cancel when needed.
+ *
+ * @private internal helper of Agents Server navigation progress
  */
 export function scheduleClientNavigationFallback(
     destination: string,

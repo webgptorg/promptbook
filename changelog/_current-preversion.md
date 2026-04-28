@@ -1,3 +1,9 @@
+-   Added optimistic homepage rendering in Agents Server so clicking the server logo from an agent page now swaps the persistent shell to the homepage loading skeleton immediately instead of waiting for the homepage data stream to finish:
+
+    -   Added a shared client-side homepage optimistic-navigation wrapper in the root layout shell, driven by the existing navigation-start event, so homepage-bound clicks can render the loading skeleton before the new route finishes loading.
+    -   Reused the existing homepage loading skeleton instead of duplicating the loading UI, keeping the fixed header and footer shell intact while the homepage data is still streaming.
+    -   Added regression coverage for the optimistic homepage transition so the layout now keeps the agent page visible until the navigation starts and then switches to the homepage skeleton immediately.
+
 -   Fixed federated Agents Server avatar defaults so remote agents now render with the federated server's built-in avatar visual instead of the local server fallback:
 
     -   Extended the federated `/api/agents` payload with the server's resolved `DEFAULT_AGENT_AVATAR_VISUAL` metadata and propagated that visual id through the shared federated-agent loader.

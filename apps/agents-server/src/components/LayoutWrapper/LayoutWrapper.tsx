@@ -14,6 +14,7 @@ import { AsyncDialogsProvider } from '../AsyncDialogs/AsyncDialogsProvider';
 import { ChatVisualModeProvider } from '../ChatVisualMode/ChatVisualModeProvider';
 import { ClientVersionMismatchListener } from '../ClientVersion/ClientVersionMismatchListener';
 import { ChatEnterBehaviorPreferencesProvider } from '../ChatEnterBehavior/ChatEnterBehaviorPreferencesProvider';
+import { HomepageOptimisticNavigation } from '../Homepage/HomepageOptimisticNavigation';
 import { Footer, type FooterLink } from '../Footer/Footer';
 import { Header } from '../Header/Header';
 import { MobileMenuHoistingProvider } from '../Header/MobileMenuHoistingContext';
@@ -167,7 +168,11 @@ export function LayoutWrapper({
                                                                                 feedbackMode={feedbackMode}
                                                                             />
                                                                             <main className={mainClassName}>
-                                                                                {children}
+                                                                                <HomepageOptimisticNavigation
+                                                                                    pathname={pathname}
+                                                                                >
+                                                                                    {children}
+                                                                                </HomepageOptimisticNavigation>
                                                                             </main>
                                                                             {isFooterShown && !isFooterHiddenOnPage && (
                                                                                 <Footer extraLinks={footerLinks} />
