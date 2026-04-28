@@ -18,8 +18,6 @@ import {
 import { createChatHistoryRecorder } from '@/src/utils/chat/createChatHistoryRecorder';
 import { resolveMessageSuffixFromAgentSource } from '@/src/utils/chat/messageSuffix';
 import type { ResolvedCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
-import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
-import { resolveCurrentUserIdentity } from '@/src/utils/currentUserIdentity';
 import {
     resolveMetaDisclaimerMarkdownFromAgentSource,
     resolveMetaDisclaimerStatusForUser,
@@ -33,6 +31,7 @@ import { resolveUseEmailSmtpCredential } from '@/src/utils/resolveUseEmailSmtpCr
 import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithubToken';
 import { createAgentChatApiErrorResponse } from './createAgentChatApiErrorResponse';
 import { createTeamMemberFrozenChatPersistence } from './createTeamMemberFrozenChatPersistence';
+import { resolveAgentChatRequestIdentities } from './resolveAgentChatRequestIdentities';
 
 /**
  * Shared message shown when a stateless chat requires a previously accepted agent disclaimer.
@@ -143,11 +142,12 @@ export async function resolveAgentChatRouteContext(
     const calendarConnections = extractUseCalendarConnectionsFromAgentSource(agentSource);
     const useEmailConfiguration = extractUseEmailConfigurationFromAgentSource(agentSource);
     const messageSuffix = resolveMessageSuffixFromAgentSource(agentSource);
-    const [preparedAgentModelRequirements, currentUserIdentity, currentRequestIdentity] = await Promise.all([
+    const incomingParameters = normalizeAgentChatIncomingParameters(rawParameters);
+    const [preparedAgentModelRequirements, requestIdentities] = await Promise.all([
         preparedAgentModelRequirementsPromise,
-        resolveCurrentUserMemoryIdentity(),
-        resolveCurrentUserIdentity(),
+        resolveAgentChatRequestIdentities(incomingParameters),
     ]);
+    const { currentUserIdentity, currentRequestIdentity, isTeamConversation } = requestIdentities;
     const disclaimerResponse = await resolveAgentChatDisclaimerResponse({
         agentSource,
         currentUserIdentity,
@@ -167,7 +167,6 @@ export async function resolveAgentChatRouteContext(
         calendarConnections,
         useEmailConfiguration,
     });
-    const incomingParameters = normalizeAgentChatIncomingParameters(rawParameters);
     const runtimeTools = createAgentProgressTools(createChatAttachmentTools([], attachments));
     const promptParameters = composePromptParametersWithMemoryContext({
         baseParameters: incomingParameters,
@@ -202,6 +201,7 @@ export async function resolveAgentChatRouteContext(
         isPrivateModeEnabled,
         message,
         attachments,
+        isTeamConversation,
     });
     const teamMemberFrozenChatPersistence = createTeamMemberFrozenChatPersistence({
         isPrivateModeEnabled,
@@ -334,6 +334,7 @@ async function createAgentChatHistoryContext(options: {
     agentHash: string;
     currentUserIdentity: ResolvedCurrentUserMemoryIdentity | null;
     isPrivateModeEnabled: boolean;
+    isTeamConversation: boolean;
     message: string;
     attachments: ChatMessage['attachments'];
 }): Promise<AgentChatHistoryContext> {
@@ -343,6 +344,7 @@ async function createAgentChatHistoryContext(options: {
         agentHash: options.agentHash,
         source: 'AGENT_PAGE_CHAT',
         apiKey: null,
+        actorType: options.isTeamConversation ? 'TEAM_MEMBER' : undefined,
         userId: options.currentUserIdentity?.userId ?? null,
         isEnabled: !options.isPrivateModeEnabled,
     });

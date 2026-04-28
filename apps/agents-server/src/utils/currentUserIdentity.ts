@@ -118,7 +118,7 @@ async function findOrCreateUserRow(username: string, isAdmin: boolean, passwordH
     try {
         return await insertUserRow({ username, isAdmin, passwordHash });
     } catch (error) {
-        if ((error as { code?: string }).code === '23505') {
+        if (isDuplicateUsernameCreateError(error)) {
             const created = await findUserRowByUsername(username);
             if (created) {
                 return created;
@@ -126,6 +126,29 @@ async function findOrCreateUserRow(username: string, isAdmin: boolean, passwordH
         }
         throw error;
     }
+}
+
+/**
+ * Detects a concurrent username insert collision from Supabase/Postgres errors.
+ *
+ * @param error - Unknown error thrown while creating the user row.
+ * @returns `true` when the error represents the unique username constraint.
+ */
+function isDuplicateUsernameCreateError(error: unknown): boolean {
+    if (!error || typeof error !== 'object') {
+        return false;
+    }
+
+    const errorLike = error as { code?: unknown; message?: unknown };
+    if (errorLike.code === '23505') {
+        return true;
+    }
+
+    if (typeof errorLike.message !== 'string') {
+        return false;
+    }
+
+    return errorLike.message.includes('duplicate key value') && errorLike.message.includes('_User_username_idx');
 }
 
 /**
@@ -161,7 +184,11 @@ async function insertUserRow(payload: UserInsert): Promise<UserRow> {
         .maybeSingle();
 
     if (error) {
-        throw new Error(`Failed to create user "${payload.username}": ${error.message}`);
+        const insertError = new Error(`Failed to create user "${payload.username}": ${error.message}`) as Error & {
+            code?: string;
+        };
+        insertError.code = error.code;
+        throw insertError;
     }
 
     if (!data) {
