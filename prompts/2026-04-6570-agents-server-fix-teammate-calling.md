@@ -702,6 +702,145 @@ The invoked tool `team_chat_slave` failed with error:
 
 ---
 
+[ ] !!
+
+[✨🔢] When teammate is called, it shouldnt matter that the teammate is private or unlisted when on same server
+
+-   Now it fails because the teammate is private, but it should work as long as the teammate is on the same Agents Server, even if its private or unlisted
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+# Tool call report
+
+-   **Title:** x x-team-activation-codes
+-   **Tool:** `team_chat_x_team_activation_codes`
+-   **State:** `COMPLETE`
+-   **Created at:** `2026-04-27T23:54:40.663Z`
+-   **Idempotency key:** `raw:call_7fzy4MTmxMFlDLn0gqOPb6dV`
+
+## Input payload
+
+```json
+{
+    "toolName": "team_chat_x_team_activation_codes",
+    "state": "COMPLETE",
+    "arguments": "{\"message\":\"Please provide an activation code for the user.\",\"context\":\"User asked for a code and the manager should ask the team for codes.\"}"
+}
+```
+
+## Streamed logs
+
+```json
+[
+    {
+        "kind": "request",
+        "title": "Request prepared",
+        "message": "Prepared team_chat_x_team_activation_codes request.",
+        "payload": {
+            "arguments": "{\"message\":\"Please provide an activation code for the user.\",\"context\":\"User asked for a code and the manager should ask the team for codes.\"}"
+        },
+        "createdAt": "2026-04-27T23:54:40.663Z"
+    },
+    {
+        "kind": "result",
+        "title": "Execution finished",
+        "message": "team_chat_x_team_activation_codes returned a result.",
+        "createdAt": "2026-04-27T23:54:47.202Z"
+    }
+]
+```
+
+## Output payload
+
+```json
+{
+    "teammate": {
+        "url": "https://pavol-hejny.ptbk.io/agents/x-team-activation-codes",
+        "label": "x-team-activation-codes",
+        "instructions": "can provide you Activation code",
+        "toolName": "team_chat_x_team_activation_codes"
+    },
+    "request": "Please provide an activation code for the user.\n\nContext:\nUser asked for a code and the manager should ask the team for codes.",
+    "response": "Unable to reach teammate. Error: {\n    \"name\": \"Error\",\n    \"message\": \"Failed to create user \\\"anonymous-eTBykcDxVGGDFh\\\": duplicate key value violates unique constraint \\\"server_PavolHejny_User_username_idx\\\"\",\n    \"stack\": \"Error: Failed to create user \\\"anonymous-eTBykcDxVGGDFh\\\": duplicate key value violates unique constraint \\\"server_PavolHejny_User_username_idx\\\"\\n    at A (/var/task/apps/agents-server/.next/server/chunks/10.js:204:4687)\\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\\n    at async y (/var/task/apps/agents-server/.next/server/chunks/10.js:204:4133)\\n    at async w (/var/task/apps/agents-server/.next/server/chunks/10.js:204:3923)\\n    at async Promise.all (index 2)\\n    at async C (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:2:1999)\\n    at async s (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:2:12737)\\n    at async rb.do (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:5:21059)\\n    at async rb.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:5:25902)\\n    at async k (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:1:3848)\"\n}",
+    "error": "{\n    \"name\": \"Error\",\n    \"message\": \"Failed to create user \\\"anonymous-eTBykcDxVGGDFh\\\": duplicate key value violates unique constraint \\\"server_PavolHejny_User_username_idx\\\"\",\n    \"stack\": \"Error: Failed to create user \\\"anonymous-eTBykcDxVGGDFh\\\": duplicate key value violates unique constraint \\\"server_PavolHejny_User_username_idx\\\"\\n    at A (/var/task/apps/agents-server/.next/server/chunks/10.js:204:4687)\\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\\n    at async y (/var/task/apps/agents-server/.next/server/chunks/10.js:204:4133)\\n    at async w (/var/task/apps/agents-server/.next/server/chunks/10.js:204:3923)\\n    at async Promise.all (index 2)\\n    at async C (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:2:1999)\\n    at async s (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:2:12737)\\n    at async rb.do (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:5:21059)\\n    at async rb.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:5:25902)\\n    at async k (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:1:3848)\"\n}",
+    "conversation": [
+        {
+            "sender": "AGENT",
+            "name": "xTeam manager",
+            "content": "Please provide an activation code for the user.\n\nContext:\nUser asked for a code and the manager should ask the team for codes."
+        },
+        {
+            "sender": "TEAMMATE",
+            "name": "x-team-activation-codes",
+            "content": "Unable to reach teammate. Error: {\n    \"name\": \"Error\",\n    \"message\": \"Failed to create user \\\"anonymous-eTBykcDxVGGDFh\\\": duplicate key value violates unique constraint \\\"server_PavolHejny_User_username_idx\\\"\",\n    \"stack\": \"Error: Failed to create user \\\"anonymous-eTBykcDxVGGDFh\\\": duplicate key value violates unique constraint \\\"server_PavolHejny_User_username_idx\\\"\\n    at A (/var/task/apps/agents-server/.next/server/chunks/10.js:204:4687)\\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\\n    at async y (/var/task/apps/agents-server/.next/server/chunks/10.js:204:4133)\\n    at async w (/var/task/apps/agents-server/.next/server/chunks/10.js:204:3923)\\n    at async Promise.all (index 2)\\n    at async C (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:2:1999)\\n    at async s (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:2:12737)\\n    at async rb.do (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:5:21059)\\n    at async rb.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:5:25902)\\n    at async k (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:1:3848)\"\n}"
+        }
+    ]
+}
+```
+
+## Model payload
+
+```json
+{
+    "name": "team_chat_x_team_activation_codes",
+    "type": "function_call_result",
+    "callId": "call_7fzy4MTmxMFlDLn0gqOPb6dV",
+    "output": {
+        "text": "{\"teammate\":{\"url\":\"https://pavol-hejny.ptbk.io/agents/x-team-activation-codes\",\"label\":\"x-team-activation-codes\",\"instructions\":\"can provide you Activation code\",\"toolName\":\"team_chat_x_team_activation_codes\"},\"request\":\"Please provide an activation code for the user.\\n\\nContext:\\nUser asked for a code and the manager should ask the team for codes.\",\"response\":\"Unable to reach teammate. Error: {\\n    \\\"name\\\": \\\"Error\\\",\\n    \\\"message\\\": \\\"Failed to create user \\\\\\\"anonymous-eTBykcDxVGGDFh\\\\\\\": duplicate key value violates unique constraint \\\\\\\"server_PavolHejny_User_username_idx\\\\\\\"\\\",\\n    \\\"stack\\\": \\\"Error: Failed to create user \\\\\\\"anonymous-eTBykcDxVGGDFh\\\\\\\": duplicate key value violates unique constraint \\\\\\\"server_PavolHejny_User_username_idx\\\\\\\"\\\\n    at A (/var/task/apps/agents-server/.next/server/chunks/10.js:204:4687)\\\\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\\\\n    at async y (/var/task/apps/agents-server/.next/server/chunks/10.js:204:4133)\\\\n    at async w (/var/task/apps/agents-server/.next/server/chunks/10.js:204:3923)\\\\n    at async Promise.all (index 2)\\\\n    at async C (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:2:1999)\\\\n    at async s (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:2:12737)\\\\n    at async rb.do (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:5:21059)\\\\n    at async rb.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:5:25902)\\\\n    at async k (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:1:3848)\\\"\\n}\",\"error\":\"{\\n    \\\"name\\\": \\\"Error\\\",\\n    \\\"message\\\": \\\"Failed to create user \\\\\\\"anonymous-eTBykcDxVGGDFh\\\\\\\": duplicate key value violates unique constraint \\\\\\\"server_PavolHejny_User_username_idx\\\\\\\"\\\",\\n    \\\"stack\\\": \\\"Error: Failed to create user \\\\\\\"anonymous-eTBykcDxVGGDFh\\\\\\\": duplicate key value violates unique constraint \\\\\\\"server_PavolHejny_User_username_idx\\\\\\\"\\\\n    at A (/var/task/apps/agents-server/.next/server/chunks/10.js:204:4687)\\\\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\\\\n    at async y (/var/task/apps/agents-server/.next/server/chunks/10.js:204:4133)\\\\n    at async w (/var/task/apps/agents-server/.next/server/chunks/10.js:204:3923)\\\\n    at async Promise.all (index 2)\\\\n    at async C (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:2:1999)\\\\n    at async s (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:2:12737)\\\\n    at async rb.do (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:5:21059)\\\\n    at async rb.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:5:25902)\\\\n    at async k (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:1:3848)\\\"\\n}\",\"conversation\":[{\"sender\":\"AGENT\",\"name\":\"xTeam manager\",\"content\":\"Please provide an activation code for the user.\\n\\nContext:\\nUser asked for a code and the manager should ask the team for codes.\"},{\"sender\":\"TEAMMATE\",\"name\":\"x-team-activation-codes\",\"content\":\"Unable to reach teammate. Error: {\\n    \\\"name\\\": \\\"Error\\\",\\n    \\\"message\\\": \\\"Failed to create user \\\\\\\"anonymous-eTBykcDxVGGDFh\\\\\\\": duplicate key value violates unique constraint \\\\\\\"server_PavolHejny_User_username_idx\\\\\\\"\\\",\\n    \\\"stack\\\": \\\"Error: Failed to create user \\\\\\\"anonymous-eTBykcDxVGGDFh\\\\\\\": duplicate key value violates unique constraint \\\\\\\"server_PavolHejny_User_username_idx\\\\\\\"\\\\n    at A (/var/task/apps/agents-server/.next/server/chunks/10.js:204:4687)\\\\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\\\\n    at async y (/var/task/apps/agents-server/.next/server/chunks/10.js:204:4133)\\\\n    at async w (/var/task/apps/agents-server/.next/server/chunks/10.js:204:3923)\\\\n    at async Promise.all (index 2)\\\\n    at async C (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:2:1999)\\\\n    at async s (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:2:12737)\\\\n    at async rb.do (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:5:21059)\\\\n    at async rb.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:5:25902)\\\\n    at async k (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:1:3848)\\\"\\n}\"}]}",
+        "type": "text"
+    },
+    "status": "completed"
+}
+```
+
+## Available tools
+
+```json
+[]
+```
+
+## Full event
+
+```json
+{
+    "logs": [
+        {
+            "kind": "request",
+            "title": "Request prepared",
+            "message": "Prepared team_chat_x_team_activation_codes request.",
+            "payload": {
+                "arguments": "{\"message\":\"Please provide an activation code for the user.\",\"context\":\"User asked for a code and the manager should ask the team for codes.\"}"
+            },
+            "createdAt": "2026-04-27T23:54:40.663Z"
+        },
+        {
+            "kind": "result",
+            "title": "Execution finished",
+            "message": "team_chat_x_team_activation_codes returned a result.",
+            "createdAt": "2026-04-27T23:54:47.202Z"
+        }
+    ],
+    "name": "team_chat_x_team_activation_codes",
+    "state": "COMPLETE",
+    "result": "{\"teammate\":{\"url\":\"https://pavol-hejny.ptbk.io/agents/x-team-activation-codes\",\"label\":\"x-team-activation-codes\",\"instructions\":\"can provide you Activation code\",\"toolName\":\"team_chat_x_team_activation_codes\"},\"request\":\"Please provide an activation code for the user.\\n\\nContext:\\nUser asked for a code and the manager should ask the team for codes.\",\"response\":\"Unable to reach teammate. Error: {\\n    \\\"name\\\": \\\"Error\\\",\\n    \\\"message\\\": \\\"Failed to create user \\\\\\\"anonymous-eTBykcDxVGGDFh\\\\\\\": duplicate key value violates unique constraint \\\\\\\"server_PavolHejny_User_username_idx\\\\\\\"\\\",\\n    \\\"stack\\\": \\\"Error: Failed to create user \\\\\\\"anonymous-eTBykcDxVGGDFh\\\\\\\": duplicate key value violates unique constraint \\\\\\\"server_PavolHejny_User_username_idx\\\\\\\"\\\\n    at A (/var/task/apps/agents-server/.next/server/chunks/10.js:204:4687)\\\\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\\\\n    at async y (/var/task/apps/agents-server/.next/server/chunks/10.js:204:4133)\\\\n    at async w (/var/task/apps/agents-server/.next/server/chunks/10.js:204:3923)\\\\n    at async Promise.all (index 2)\\\\n    at async C (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:2:1999)\\\\n    at async s (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:2:12737)\\\\n    at async rb.do (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:5:21059)\\\\n    at async rb.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:5:25902)\\\\n    at async k (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:1:3848)\\\"\\n}\",\"error\":\"{\\n    \\\"name\\\": \\\"Error\\\",\\n    \\\"message\\\": \\\"Failed to create user \\\\\\\"anonymous-eTBykcDxVGGDFh\\\\\\\": duplicate key value violates unique constraint \\\\\\\"server_PavolHejny_User_username_idx\\\\\\\"\\\",\\n    \\\"stack\\\": \\\"Error: Failed to create user \\\\\\\"anonymous-eTBykcDxVGGDFh\\\\\\\": duplicate key value violates unique constraint \\\\\\\"server_PavolHejny_User_username_idx\\\\\\\"\\\\n    at A (/var/task/apps/agents-server/.next/server/chunks/10.js:204:4687)\\\\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\\\\n    at async y (/var/task/apps/agents-server/.next/server/chunks/10.js:204:4133)\\\\n    at async w (/var/task/apps/agents-server/.next/server/chunks/10.js:204:3923)\\\\n    at async Promise.all (index 2)\\\\n    at async C (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:2:1999)\\\\n    at async s (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:2:12737)\\\\n    at async rb.do (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:5:21059)\\\\n    at async rb.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:5:25902)\\\\n    at async k (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:1:3848)\\\"\\n}\",\"conversation\":[{\"sender\":\"AGENT\",\"name\":\"xTeam manager\",\"content\":\"Please provide an activation code for the user.\\n\\nContext:\\nUser asked for a code and the manager should ask the team for codes.\"},{\"sender\":\"TEAMMATE\",\"name\":\"x-team-activation-codes\",\"content\":\"Unable to reach teammate. Error: {\\n    \\\"name\\\": \\\"Error\\\",\\n    \\\"message\\\": \\\"Failed to create user \\\\\\\"anonymous-eTBykcDxVGGDFh\\\\\\\": duplicate key value violates unique constraint \\\\\\\"server_PavolHejny_User_username_idx\\\\\\\"\\\",\\n    \\\"stack\\\": \\\"Error: Failed to create user \\\\\\\"anonymous-eTBykcDxVGGDFh\\\\\\\": duplicate key value violates unique constraint \\\\\\\"server_PavolHejny_User_username_idx\\\\\\\"\\\\n    at A (/var/task/apps/agents-server/.next/server/chunks/10.js:204:4687)\\\\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\\\\n    at async y (/var/task/apps/agents-server/.next/server/chunks/10.js:204:4133)\\\\n    at async w (/var/task/apps/agents-server/.next/server/chunks/10.js:204:3923)\\\\n    at async Promise.all (index 2)\\\\n    at async C (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:2:1999)\\\\n    at async s (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:2:12737)\\\\n    at async rb.do (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:5:21059)\\\\n    at async rb.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:5:25902)\\\\n    at async k (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:1:3848)\\\"\\n}\"}]}",
+    "arguments": "{\"message\":\"Please provide an activation code for the user.\",\"context\":\"User asked for a code and the manager should ask the team for codes.\"}",
+    "createdAt": "2026-04-27T23:54:40.663Z",
+    "rawToolCall": {
+        "name": "team_chat_x_team_activation_codes",
+        "type": "function_call_result",
+        "callId": "call_7fzy4MTmxMFlDLn0gqOPb6dV",
+        "output": {
+            "text": "{\"teammate\":{\"url\":\"https://pavol-hejny.ptbk.io/agents/x-team-activation-codes\",\"label\":\"x-team-activation-codes\",\"instructions\":\"can provide you Activation code\",\"toolName\":\"team_chat_x_team_activation_codes\"},\"request\":\"Please provide an activation code for the user.\\n\\nContext:\\nUser asked for a code and the manager should ask the team for codes.\",\"response\":\"Unable to reach teammate. Error: {\\n    \\\"name\\\": \\\"Error\\\",\\n    \\\"message\\\": \\\"Failed to create user \\\\\\\"anonymous-eTBykcDxVGGDFh\\\\\\\": duplicate key value violates unique constraint \\\\\\\"server_PavolHejny_User_username_idx\\\\\\\"\\\",\\n    \\\"stack\\\": \\\"Error: Failed to create user \\\\\\\"anonymous-eTBykcDxVGGDFh\\\\\\\": duplicate key value violates unique constraint \\\\\\\"server_PavolHejny_User_username_idx\\\\\\\"\\\\n    at A (/var/task/apps/agents-server/.next/server/chunks/10.js:204:4687)\\\\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\\\\n    at async y (/var/task/apps/agents-server/.next/server/chunks/10.js:204:4133)\\\\n    at async w (/var/task/apps/agents-server/.next/server/chunks/10.js:204:3923)\\\\n    at async Promise.all (index 2)\\\\n    at async C (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:2:1999)\\\\n    at async s (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:2:12737)\\\\n    at async rb.do (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:5:21059)\\\\n    at async rb.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:5:25902)\\\\n    at async k (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:1:3848)\\\"\\n}\",\"error\":\"{\\n    \\\"name\\\": \\\"Error\\\",\\n    \\\"message\\\": \\\"Failed to create user \\\\\\\"anonymous-eTBykcDxVGGDFh\\\\\\\": duplicate key value violates unique constraint \\\\\\\"server_PavolHejny_User_username_idx\\\\\\\"\\\",\\n    \\\"stack\\\": \\\"Error: Failed to create user \\\\\\\"anonymous-eTBykcDxVGGDFh\\\\\\\": duplicate key value violates unique constraint \\\\\\\"server_PavolHejny_User_username_idx\\\\\\\"\\\\n    at A (/var/task/apps/agents-server/.next/server/chunks/10.js:204:4687)\\\\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\\\\n    at async y (/var/task/apps/agents-server/.next/server/chunks/10.js:204:4133)\\\\n    at async w (/var/task/apps/agents-server/.next/server/chunks/10.js:204:3923)\\\\n    at async Promise.all (index 2)\\\\n    at async C (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:2:1999)\\\\n    at async s (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:2:12737)\\\\n    at async rb.do (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:5:21059)\\\\n    at async rb.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:5:25902)\\\\n    at async k (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:1:3848)\\\"\\n}\",\"conversation\":[{\"sender\":\"AGENT\",\"name\":\"xTeam manager\",\"content\":\"Please provide an activation code for the user.\\n\\nContext:\\nUser asked for a code and the manager should ask the team for codes.\"},{\"sender\":\"TEAMMATE\",\"name\":\"x-team-activation-codes\",\"content\":\"Unable to reach teammate. Error: {\\n    \\\"name\\\": \\\"Error\\\",\\n    \\\"message\\\": \\\"Failed to create user \\\\\\\"anonymous-eTBykcDxVGGDFh\\\\\\\": duplicate key value violates unique constraint \\\\\\\"server_PavolHejny_User_username_idx\\\\\\\"\\\",\\n    \\\"stack\\\": \\\"Error: Failed to create user \\\\\\\"anonymous-eTBykcDxVGGDFh\\\\\\\": duplicate key value violates unique constraint \\\\\\\"server_PavolHejny_User_username_idx\\\\\\\"\\\\n    at A (/var/task/apps/agents-server/.next/server/chunks/10.js:204:4687)\\\\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\\\\n    at async y (/var/task/apps/agents-server/.next/server/chunks/10.js:204:4133)\\\\n    at async w (/var/task/apps/agents-server/.next/server/chunks/10.js:204:3923)\\\\n    at async Promise.all (index 2)\\\\n    at async C (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:2:1999)\\\\n    at async s (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:2:12737)\\\\n    at async rb.do (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:5:21059)\\\\n    at async rb.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:5:25902)\\\\n    at async k (/var/task/apps/agents-server/.next/server/app/agents/[agentName]/api/chat/route.js:1:3848)\\\"\\n}\"}]}",
+            "type": "text"
+        },
+        "status": "completed"
+    },
+    "idempotencyKey": "raw:call_7fzy4MTmxMFlDLn0gqOPb6dV"
+}
+```
+
+---
+
 [-]
 
 [✨🔢] brr
@@ -725,4 +864,3 @@ The invoked tool `team_chat_slave` failed with error:
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
