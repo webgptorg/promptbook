@@ -5,6 +5,12 @@ import { parseAgentSourceWithCommitments } from '../../book-2.0/agent-source/par
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentDefinitions } from '../../commitments/_common/getAllCommitmentDefinitions';
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
+import type { BookTranspilerOptions } from './BookTranspilerOptions';
+import {
+    createTranspiledTeamAwareToolFunctions,
+    createTranspiledTeamExportForContext,
+} from './createTranspiledTeamRuntimeSection';
+import type { TranspiledTeamExport } from './TranspiledTeamExport';
 
 /**
  * Knowledge-size threshold after which SDK transpilers switch to retrieval-based scaffolding.
@@ -48,18 +54,31 @@ export type PreparedSdkTranspilerContext = {
      * Whether the transpiler should emit the retrieval-augmented scaffold.
      */
     readonly isKnowledgeHandledWithRetrieval: boolean;
+
+    /**
+     * Built-in TEAM hierarchy embedded into the generated harness.
+     */
+    readonly transpiledTeam: TranspiledTeamExport | null;
 };
 
 /**
  * Prepares the common parsed context reused by JavaScript SDK transpilers.
  *
  * @param book - Agent Book source being transpiled.
+ * @param options - Optional transpiler hooks such as reference resolvers and built-in TEAM data.
  * @returns Shared transpiler context derived from the Book.
  * @private shared between SDK transpilers
  */
-export async function prepareSdkTranspilerContext(book: string_book): Promise<PreparedSdkTranspilerContext> {
+export async function prepareSdkTranspilerContext(
+    book: string_book,
+    options?: BookTranspilerOptions,
+): Promise<PreparedSdkTranspilerContext> {
     const { agentName } = await parseAgentSource(book);
-    const modelRequirements = await createAgentModelRequirements(book);
+    const modelRequirements = await createAgentModelRequirements(book, undefined, undefined, undefined, {
+        agentReferenceResolver: options?.agentReferenceResolver,
+        inlineKnowledgeSourceUploader: options?.inlineKnowledgeSourceUploader,
+        teammateProfileResolver: options?.teammateProfileResolver,
+    });
     const { commitments } = parseAgentSourceWithCommitments(book);
     const knowledgeCommitments = commitments.filter((commitment) => commitment.type === 'KNOWLEDGE');
     const knowledgeContent = knowledgeCommitments.map((commitment) => commitment.content.trim());
@@ -67,14 +86,25 @@ export async function prepareSdkTranspilerContext(book: string_book): Promise<Pr
     const knowledgeSources = knowledgeContent.filter((content) => isKnowledgeSourceUrl(content));
     const isKnowledgeHandledWithRetrieval =
         directKnowledge.join('\n').length > SDK_TRANSPILER_KNOWLEDGE_THRESHOLD || knowledgeSources.length > 0;
+    const transpiledTeam = createTranspiledTeamExportForContext({
+        agentName,
+        agentSource: book,
+        modelRequirements,
+        transpiledTeam: options?.transpiledTeam,
+    });
+    const usedToolFunctions = createTranspiledTeamAwareToolFunctions(
+        resolveUsedToolFunctions(modelRequirements.tools || []),
+        transpiledTeam,
+    );
 
     return {
         agentName,
         modelRequirements,
         directKnowledge,
         knowledgeSources,
-        usedToolFunctions: resolveUsedToolFunctions(modelRequirements.tools || []),
+        usedToolFunctions,
         isKnowledgeHandledWithRetrieval,
+        transpiledTeam,
     };
 }
 

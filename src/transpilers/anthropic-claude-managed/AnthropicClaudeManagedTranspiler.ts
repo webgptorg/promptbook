@@ -7,9 +7,11 @@ import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { BookTranspiler } from '../_common/BookTranspiler';
 import type { BookTranspilerOptions } from '../_common/BookTranspilerOptions';
 import { createZodShapeSource } from '../_common/createZodSchemaSource';
+import { createTranspiledTeamRuntimeSection } from '../_common/createTranspiledTeamRuntimeSection';
 import { formatUsedToolFunctions } from '../_common/formatUsedToolFunctions';
 import { prepareSdkTranspilerContext } from '../_common/prepareSdkTranspilerContext';
 import { resolveClaudeModelName } from '../_common/resolveClaudeModelName';
+import type { TranspiledTeamExport } from '../_common/TranspiledTeamExport';
 
 /**
  * MCP server name used for Promptbook tool commitments in the managed Claude harness.
@@ -40,10 +42,10 @@ export const AnthropicClaudeManagedTranspiler = {
             knowledgeSources,
             usedToolFunctions,
             isKnowledgeHandledWithRetrieval,
-        } = await prepareSdkTranspilerContext(book);
+            transpiledTeam,
+        } = await prepareSdkTranspilerContext(book, options);
 
         TODO_USE(tools);
-        TODO_USE(options);
 
         const anthropicModelName = resolveClaudeModelName(modelRequirements.modelName);
         const shouldGenerateToolkit = Boolean(modelRequirements.tools && modelRequirements.tools.length > 0);
@@ -77,7 +79,7 @@ export const AnthropicClaudeManagedTranspiler = {
                         isKnowledgeHandledWithRetrieval,
                     }),
                 )}
-                ${block(createManagedClaudeToolkitSection(modelRequirements.tools || [], usedToolFunctions))}
+                ${block(createManagedClaudeToolkitSection(modelRequirements.tools || [], usedToolFunctions, transpiledTeam))}
 
                 /**
                  * Starts the managed Claude-backed chat harness.
@@ -312,6 +314,7 @@ function createManagedClaudeKnowledgeSection(options: {
 function createManagedClaudeToolkitSection(
     toolDefinitions: ReadonlyArray<LlmToolDefinition>,
     usedToolFunctions: Record<string, string>,
+    transpiledTeam: TranspiledTeamExport | null,
 ): string {
     if (toolDefinitions.length === 0) {
         return spaceTrim(`
@@ -321,6 +324,8 @@ function createManagedClaudeToolkitSection(
 
     return spaceTrim(
         (block) => `
+            ${block(createTranspiledTeamRuntimeSection(transpiledTeam))}
+
             // ---- TOOLS ----
             const PROMPTBOOK_TOOL_IMPLEMENTATIONS = {
                 ${block(formatUsedToolFunctions(usedToolFunctions))}

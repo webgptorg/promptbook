@@ -5,6 +5,7 @@ import type { string_script } from '../../types/typeAliases';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { BookTranspiler } from '../_common/BookTranspiler';
 import type { BookTranspilerOptions } from '../_common/BookTranspilerOptions';
+import { createTranspiledTeamRuntimeSection } from '../_common/createTranspiledTeamRuntimeSection';
 import { formatUsedToolFunctions } from '../_common/formatUsedToolFunctions';
 import { prepareSdkTranspilerContext } from '../_common/prepareSdkTranspilerContext';
 import { resolveClaudeModelName } from '../_common/resolveClaudeModelName';
@@ -38,10 +39,10 @@ export const AnthropicClaudeSdkTranspiler = {
             knowledgeSources,
             usedToolFunctions,
             isKnowledgeHandledWithRetrieval,
-        } = await prepareSdkTranspilerContext(book);
+            transpiledTeam,
+        } = await prepareSdkTranspilerContext(book, options);
 
         TODO_USE(tools);
-        TODO_USE(options);
 
         const anthropicModelName = resolveClaudeModelName(modelRequirements.modelName);
 
@@ -87,6 +88,8 @@ export const AnthropicClaudeSdkTranspiler = {
                             console.log('🧠 Knowledge base prepared.');
                         }
                     }
+
+                    ${block(createTranspiledTeamRuntimeSection(transpiledTeam))}
 
                     // ---- TOOLS ----
                     const toolImplementations = {
@@ -244,6 +247,8 @@ export const AnthropicClaudeSdkTranspiler = {
                 const client = new Anthropic({
                     apiKey: process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_CLAUDE_API_KEY,
                 });
+
+                ${block(createTranspiledTeamRuntimeSection(transpiledTeam))}
 
                 // ---- TOOLS ----
                 const toolImplementations = {

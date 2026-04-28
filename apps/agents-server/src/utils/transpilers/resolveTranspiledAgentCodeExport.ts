@@ -13,6 +13,8 @@ import {
 } from '@promptbook-local/wizard';
 import { $bookTranspilersRegister } from '../../../../../src/transpilers/_common/register/$bookTranspilersRegister';
 import { $sideEffect } from '../../../../../src/utils/organization/$sideEffect';
+import { loadFederatedAgentImportConfiguration } from '../federatedAgentImportConfiguration';
+import { resolveTranspiledTeamExport } from './resolveTranspiledTeamExport';
 
 // Note: Ensure supported export transpilers are registered before listing or resolving them.
 $sideEffect(_OpenAiSdkTranspilerRegistration);
@@ -105,8 +107,17 @@ export async function resolveTranspiledAgentCodeExport(options: {
         return null;
     }
 
+    const transpiledTeam = await resolveTranspiledTeamExport({
+        rootAgentUrl: resolvedAgentContext.canonicalAgentUrl,
+        rootAgentSource: resolvedAgentSource,
+        agentReferenceResolver: resolvedAgentContext.scopedAgentReferenceResolver,
+        federatedAgentImportConfiguration: await loadFederatedAgentImportConfiguration(),
+    });
     const tools = await $provideExecutionToolsForServer();
-    const transpiledCode = await transpiler.transpileBook(resolvedAgentSource, tools);
+    const transpiledCode = await transpiler.transpileBook(resolvedAgentSource, tools, {
+        agentReferenceResolver: resolvedAgentContext.scopedAgentReferenceResolver,
+        transpiledTeam: transpiledTeam || undefined,
+    });
 
     return {
         agentSource,

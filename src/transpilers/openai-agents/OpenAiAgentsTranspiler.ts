@@ -7,8 +7,10 @@ import type { string_script } from '../../types/typeAliases';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { BookTranspiler } from '../_common/BookTranspiler';
 import type { BookTranspilerOptions } from '../_common/BookTranspilerOptions';
+import { createTranspiledTeamRuntimeSection } from '../_common/createTranspiledTeamRuntimeSection';
 import { formatUsedToolFunctions } from '../_common/formatUsedToolFunctions';
 import { prepareSdkTranspilerContext } from '../_common/prepareSdkTranspilerContext';
+import type { TranspiledTeamExport } from '../_common/TranspiledTeamExport';
 
 /**
  * Transpiler to JavaScript code using the OpenAI Agents SDK.
@@ -25,13 +27,12 @@ export const OpenAiAgentsTranspiler = {
         tools: ExecutionTools,
         options?: BookTranspilerOptions,
     ): Promise<string_script> {
-        const { agentName, modelRequirements, usedToolFunctions, isKnowledgeHandledWithRetrieval } =
-            await prepareSdkTranspilerContext(book);
+        const { agentName, modelRequirements, usedToolFunctions, isKnowledgeHandledWithRetrieval, transpiledTeam } =
+            await prepareSdkTranspilerContext(book, options);
         const shouldGenerateFunctionTools = Boolean(modelRequirements.tools && modelRequirements.tools.length > 0);
         const openAiAgentsImportNames = ['Agent', 'run'];
 
         TODO_USE(tools);
-        TODO_USE(options);
 
         if (shouldGenerateFunctionTools) {
             openAiAgentsImportNames.push('tool');
@@ -67,6 +68,7 @@ export const OpenAiAgentsTranspiler = {
                     createOpenAiAgentsToolSection({
                         toolDefinitions: modelRequirements.tools || [],
                         usedToolFunctions,
+                        transpiledTeam,
                     }),
                 )}
                 ${block(
@@ -233,8 +235,9 @@ export const OpenAiAgentsTranspiler = {
 function createOpenAiAgentsToolSection(options: {
     readonly toolDefinitions: ReadonlyArray<LlmToolDefinition>;
     readonly usedToolFunctions: Record<string, string>;
+    readonly transpiledTeam: TranspiledTeamExport | null;
 }): string {
-    const { toolDefinitions, usedToolFunctions } = options;
+    const { toolDefinitions, usedToolFunctions, transpiledTeam } = options;
 
     if (toolDefinitions.length === 0) {
         return spaceTrim(`
@@ -246,6 +249,8 @@ function createOpenAiAgentsToolSection(options: {
 
     return spaceTrim(
         (block) => `
+            ${block(createTranspiledTeamRuntimeSection(transpiledTeam))}
+
             // ---- TOOLS ----
             const PROMPTBOOK_TOOL_IMPLEMENTATIONS = {
                 ${block(formatUsedToolFunctions(usedToolFunctions))}

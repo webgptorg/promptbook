@@ -1,3 +1,9 @@
+-   Added built-in TEAM hierarchy support to Agents Server transpiled-code exports, so exported harnesses now include teammate metadata and sources instead of depending on a running Agents Server for `TEAM` tools:
+
+    -   Reused the existing server agent-reference resolver, inherited-source import path, and model-requirement compiler to resolve local and federated teammates recursively before transpilation.
+    -   Added a shared transpiler TEAM payload and runtime helper so every JavaScript export emits one reusable `PROMPTBOOK_TEAM_AGENTS` hierarchy block instead of duplicating tool code per teammate.
+    -   Updated transpiler coverage across OpenAI SDK, OpenAI Agents SDK, Anthropic Claude SDK, Anthropic Claude Managed, AgentOS, and E2B exports to verify TEAM hierarchy data is embedded.
+
 -   Added a warning banner to the Agents Server `export-as-transpiled-code` page for agents that use non-transpilable `OPEN`/default-open, `MODEL`, `USE USER LOCATION`, or `USE PRIVACY` commitments, so users are told when exported code may not match the live agent 1:1:
 
     -   Centralized the check in a pure export-warning helper so the warning stays transpiler-agnostic and is driven by parsed agent commitments.
