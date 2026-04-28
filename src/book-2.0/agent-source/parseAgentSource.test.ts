@@ -163,6 +163,49 @@ describe('parseAgentSource', () => {
         });
     });
 
+    it('parses META AVATAR as a normalized built-in avatar visual', () => {
+        expect(
+            parseAgentSource(
+                validateBook(
+                    spaceTrim(`
+                        AI Avatar
+                        META AVATAR PIXEL_ART
+                    `),
+                ),
+            ).meta.avatar,
+        ).toBe('pixel-art');
+        expect(
+            parseAgentSource(
+                validateBook(
+                    spaceTrim(`
+                        AI Avatar
+                        META AVATAR pixel art
+                    `),
+                ),
+            ).meta.avatar,
+        ).toBe('pixel-art');
+        expect(
+            parseAgentSource(
+                validateBook(
+                    spaceTrim(`
+                        AI Avatar
+                        META AVATAR pixel-art
+                    `),
+                ),
+            ).meta.avatar,
+        ).toBe('pixel-art');
+        expect(
+            parseAgentSource(
+                validateBook(
+                    spaceTrim(`
+                        AI Avatar
+                        META avatar Octopus 3
+                    `),
+                ),
+            ).meta.avatar,
+        ).toBe('octopus3');
+    });
+
     it('parses agent with multiple META commitments and overrides', () => {
         const agentSource = validateBook(
             spaceTrim(`

@@ -14,6 +14,7 @@ import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import type { LlmExecutionTools } from '../../../../../../../../src/execution/LlmExecutionTools';
 import { getSingleLlmExecutionTools } from '../../../../../../../../src/llm-providers/_multiple/getSingleLlmExecutionTools';
 import type { string_url } from '../../../../../../../../src/types/typeAliases';
+import { resolveAgentAvatarVisualId } from '../../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { getGeneratedImageCdnKey } from '../../../../../utils/cdn/utils/getGeneratedImageCdnKey';
 import { ensureGeneratedImage } from '../../../../../utils/imageGeneration/ensureGeneratedImage';
 import { renderAgentAvatarVisualPng } from '../../../../../utils/agentAvatars/renderAgentAvatarVisualPng';
@@ -65,7 +66,10 @@ async function resolveAgentProfileForDefaultAvatar(request: NextRequest, agentNa
  *
  * @private route helper
  */
-async function renderGeneratedDefaultAvatar(agentName: string, agentProfile: Awaited<ReturnType<typeof resolveAgentProfileForDefaultAvatar>>) {
+async function renderGeneratedDefaultAvatar(
+    agentName: string,
+    agentProfile: Awaited<ReturnType<typeof resolveAgentProfileForDefaultAvatar>>,
+) {
     const prompt = getAgentDefaultAvatarPrompt(agentProfile);
 
     // Use hash of the prompt as cache key - this ensures regeneration when prompt changes
@@ -172,16 +176,17 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         const defaultAgentAvatarVisualId = resolveDefaultAgentAvatarVisualId(
             metadata[DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY],
         );
+        const agentAvatarVisualId = resolveAgentAvatarVisualId(agentProfile, defaultAgentAvatarVisualId);
         const imageBuffer = renderAgentAvatarVisualPng(agentProfile, {
             size: DEFAULT_AGENT_AVATAR_IMAGE_SIZE,
-            visualId: defaultAgentAvatarVisualId,
+            visualId: agentAvatarVisualId,
         });
         const avatarHash = computeHash(
             JSON.stringify({
                 agentHash: agentProfile.agentHash,
                 color: agentProfile.meta.color || '',
                 image: agentProfile.meta.image || '',
-                visualId: defaultAgentAvatarVisualId,
+                visualId: agentAvatarVisualId,
             }),
         );
 

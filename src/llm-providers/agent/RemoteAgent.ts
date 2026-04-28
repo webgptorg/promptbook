@@ -39,6 +39,7 @@ type RemoteAgentProfile = {
     meta?: {
         fullname?: string;
         image?: string_url_image;
+        avatar?: AvatarVisualId;
         link?: string;
         font?: string_fonts;
         color?: string_color;
@@ -161,6 +162,7 @@ function buildRemoteAgentSource(profile: RemoteAgentProfile, meta: RemoteAgentPr
     const isMetaImageExplicit = profile.isMetaImageExplicit !== false;
     const metaLines = [
         formatMetaLine('FULLNAME', meta?.fullname),
+        formatMetaLine('AVATAR', meta?.avatar),
         formatMetaLine('IMAGE', isMetaImageExplicit ? meta?.image : undefined),
         formatMetaLine('DESCRIPTION', meta?.description),
         formatMetaLine('COLOR', meta?.color),

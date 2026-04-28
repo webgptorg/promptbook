@@ -1,6 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import { TODO_any } from '../../_packages/types.index';
 import type { ParsedCommitment } from '../../commitments/_base/ParsedCommitment';
+import { resolveAvatarVisualId } from '../../avatars/visuals/avatarVisualRegistry';
 import { parseUseProjectCommitmentContent } from '../../commitments/USE_PROJECT/projectReference';
 import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_camelCase';
 import { extractUrlsFromText } from '../../utils/validators/url/extractUrlsFromText';
@@ -156,6 +157,7 @@ const SIMPLE_CAPABILITY_BY_COMMITMENT_TYPE: Readonly<Record<string, AgentCapabil
  * @private internal utility of `parseAgentSource`
  */
 const META_COMMITMENT_APPLIERS: Readonly<Record<string, MetaCommitmentApplier | undefined>> = {
+    'META AVATAR': applyMetaAvatarContent,
     'META LINK': applyMetaLinkContent,
     'META DOMAIN': applyMetaDomainContent,
     'META IMAGE': applyMetaImageContent,
@@ -571,8 +573,28 @@ function applyGenericMetaCommitment(state: ParseAgentSourceState, content: strin
         state.links.push(metaValue);
     }
 
+    if (metaTypeRaw.toUpperCase() === 'AVATAR') {
+        applyMetaAvatarContent(state, metaValue);
+        return;
+    }
+
     const metaType = normalizeTo_camelCase(metaTypeRaw);
     state.meta[metaType] = metaValue;
+}
+
+/**
+ * Applies META AVATAR content into the canonical `meta.avatar` field.
+ *
+ * @private internal utility of `parseAgentSource`
+ */
+function applyMetaAvatarContent(state: ParseAgentSourceState, content: string): void {
+    const avatarVisualId = resolveAvatarVisualId(content);
+    if (avatarVisualId) {
+        state.meta.avatar = avatarVisualId;
+        return;
+    }
+
+    delete state.meta.avatar;
 }
 
 /**

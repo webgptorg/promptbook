@@ -2,6 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import {
     DEFAULT_AGENT_AVATAR_VISUAL_ID,
     resolveAgentAvatar,
+    resolveAgentAvatarVisualId,
     resolveAgentAvatarImageUrl,
 } from './resolveAgentAvatarImageUrl';
 
@@ -80,5 +81,26 @@ describe('resolveAgentAvatar', () => {
 
         expect(resolvedAgentAvatar?.type).toBe('visual');
         expect(resolvedAgentAvatar?.type === 'visual' ? resolvedAgentAvatar.visualId : null).toBe('octopus2');
+    });
+
+    it('prefers normalized META AVATAR over the server default visual', () => {
+        const agent = {
+            agentName: 'Assistant',
+            agentHash: 'hash-4',
+            permanentId: 'assistant-3',
+            meta: {
+                avatar: 'pixel-art',
+            },
+        } as const;
+        const resolvedAgentAvatar = resolveAgentAvatar({
+            agent: {
+                ...agent,
+                avatarVisualId: 'octopus2',
+            },
+        });
+
+        expect(resolveAgentAvatarVisualId(agent, 'octopus2')).toBe('pixel-art');
+        expect(resolvedAgentAvatar?.type).toBe('visual');
+        expect(resolvedAgentAvatar?.type === 'visual' ? resolvedAgentAvatar.visualId : null).toBe('pixel-art');
     });
 });

@@ -84,6 +84,12 @@
     -   Wired the metadata-resolved visual through the live Agents Server avatar components, the remote agent profile API payload, and the generated `/images/default-avatar.png` route, so interactive UIs and static fallback images stay aligned.
     -   Kept the change avatar-visual-agnostic by reusing one shared resolver instead of hardcoding `Octopus3` across metadata defaults, layout wiring, and avatar image generation paths.
 
+-   Added per-agent default avatar visual selection through the new `META AVATAR` commitment in Agents Server:
+
+    -   Parsed `META AVATAR` into normalized `meta.avatar` values derived from the shared built-in avatar registry, so forms like `PIXEL_ART`, `pixel art`, and `pixel-art` all resolve to the same visual.
+    -   Made `META AVATAR` override the metadata-controlled `DEFAULT_AGENT_AVATAR_VISUAL` for both live avatar components and the generated `/images/default-avatar.png` fallback route, while keeping explicit `META IMAGE` as the highest-priority image override.
+    -   Reused the shared avatar visual resolver for metadata, parser, remote profile payloads, and documentation so future built-in visuals become selectable without maintaining separate option lists.
+
 -   Suppressed default agent-profile navigation in Agents Server so generic agent clicks now open a fresh chat instead of landing on the profile page:
 
     -   Replaced shared agent entry links across homepage cards and visualizations, graph nodes, header agent navigation, search results, teammate capability chips, and directory context-menu actions with fresh-chat URLs that force `chat=new`.

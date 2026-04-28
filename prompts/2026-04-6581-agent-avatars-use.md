@@ -77,7 +77,7 @@
 
 ---
 
-[ ] !
+[x] ~$0.7120 an hour by OpenAI Codex `gpt-5.5`
 
 [✨👝] Allow to set agent avatar visual throught `META AVATAR` commitment
 
@@ -102,3 +102,4 @@
 
 ![alt text](prompts/screenshots/2026-04-6581-agent-avatars-use-2.png)
 ![alt text](prompts/screenshots/2026-04-6581-agent-avatars-use-3.png)
+

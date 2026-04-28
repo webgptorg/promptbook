@@ -26,6 +26,7 @@ import type {
     string_url_image,
 } from '../../types/typeAliases';
 import { asUpdatableSubject } from '../../types/Updatable';
+import type { AvatarVisualId } from '../../avatars/types/AvatarVisualDefinition';
 import { normalizeMessageText } from '../../utils/normalization/normalizeMessageText';
 import { getSingleLlmExecutionTools } from '../_multiple/getSingleLlmExecutionTools';
 import { AgentLlmExecutionTools } from './AgentLlmExecutionTools';
@@ -133,6 +134,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
     public meta: {
         fullname?: string;
         image?: string_url_image;
+        avatar?: AvatarVisualId;
         link?: string;
         font?: string_fonts;
         color?: string_color;

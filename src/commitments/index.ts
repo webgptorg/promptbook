@@ -20,6 +20,7 @@ import { MessageCommitmentDefinition } from './MESSAGE/MESSAGE';
 import { UserMessageCommitmentDefinition } from './MESSAGE/UserMessageCommitmentDefinition';
 import { MessageSuffixCommitmentDefinition } from './MESSAGE_SUFFIX/MESSAGE_SUFFIX';
 import { MetaCommitmentDefinition } from './META/META';
+import { MetaAvatarCommitmentDefinition } from './META_AVATAR/META_AVATAR';
 import { MetaColorCommitmentDefinition } from './META_COLOR/META_COLOR';
 import { MetaDomainCommitmentDefinition } from './META_DOMAIN/META_DOMAIN';
 import { MetaDisclaimerCommitmentDefinition } from './META_DISCLAIMER/META_DISCLAIMER';
@@ -93,6 +94,7 @@ export const COMMITMENT_REGISTRY = [
     new ActionCommitmentDefinition('ACTION'),
     new ActionCommitmentDefinition('ACTIONS'),
     new ComponentCommitmentDefinition(),
+    new MetaAvatarCommitmentDefinition(),
     new MetaImageCommitmentDefinition(),
     new MetaColorCommitmentDefinition(),
     new MetaFontCommitmentDefinition(),

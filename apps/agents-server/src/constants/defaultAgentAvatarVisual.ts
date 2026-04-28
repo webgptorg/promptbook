@@ -1,9 +1,9 @@
-import { AVATAR_VISUALS } from '../../../../src/avatars';
 import type { AvatarVisualId } from '../../../../src/avatars/types/AvatarVisualDefinition';
+import { AVATAR_VISUALS, resolveAvatarVisualId } from '../../../../src/avatars/visuals/avatarVisualRegistry';
 import { DEFAULT_AGENT_AVATAR_VISUAL_ID as SHARED_DEFAULT_AGENT_AVATAR_VISUAL_ID } from '../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 
 /**
- * Metadata key controlling the built-in avatar visual used for agents without `META IMAGE`.
+ * Metadata key controlling the built-in avatar visual used for agents without `META IMAGE` or `META AVATAR`.
  */
 export const DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY = 'DEFAULT_AGENT_AVATAR_VISUAL';
 
@@ -58,14 +58,12 @@ export const DEFAULT_AGENT_AVATAR_VISUAL_METADATA_VALUE =
 /**
  * Resolves one raw metadata value to a supported built-in avatar visual id.
  *
+ * The same separator-insensitive lookup is shared with `META AVATAR`, so both
+ * `PIXEL_ART` and `pixel art` resolve to the same built-in visual.
+ *
  * @param value - Raw metadata value stored in `Metadata`.
  * @returns Safe supported visual id.
  */
 export function resolveDefaultAgentAvatarVisualId(value: string | null | undefined): AvatarVisualId {
-    const normalizedValue = value?.trim().toUpperCase();
-    const resolvedOption = DEFAULT_AGENT_AVATAR_VISUAL_METADATA_OPTIONS.find(
-        ({ metadataValue }) => metadataValue === normalizedValue,
-    );
-
-    return resolvedOption?.visualId || SHARED_DEFAULT_AGENT_AVATAR_VISUAL_ID;
+    return resolveAvatarVisualId(value) || SHARED_DEFAULT_AGENT_AVATAR_VISUAL_ID;
 }

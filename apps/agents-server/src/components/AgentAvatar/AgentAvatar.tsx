@@ -73,10 +73,20 @@ type AgentAvatarProps = {
 
 /**
  * Renders either the explicit agent image or the shared animated default avatar visual.
+ * Agent-level `META AVATAR` values are resolved before the server-wide metadata default.
  *
  * @private shared component of Agents Server
  */
-export function AgentAvatar({ agent, baseUrl, size, surface, alt, className, imageClassName, style }: AgentAvatarProps) {
+export function AgentAvatar({
+    agent,
+    baseUrl,
+    size,
+    surface,
+    alt,
+    className,
+    imageClassName,
+    style,
+}: AgentAvatarProps) {
     const defaultAgentAvatarVisualId = useDefaultAgentAvatarVisualId();
     const resolvedAgentAvatar = resolveAgentAvatar({
         agent: {

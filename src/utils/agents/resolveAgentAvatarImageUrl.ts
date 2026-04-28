@@ -1,4 +1,5 @@
 import { createAvatarDefinitionFromAgentBasicInformation } from '../../avatars/avatarRenderingUtils';
+import { resolveAvatarVisualId } from '../../avatars/visuals/avatarVisualRegistry';
 import type { AvatarDefinition } from '../../avatars/types/AvatarDefinition';
 import type { AvatarVisualId } from '../../avatars/types/AvatarVisualDefinition';
 import { generatePlaceholderAgentProfileImageUrl } from '../../book-2.0/utils/generatePlaceholderAgentProfileImageUrl';
@@ -61,6 +62,22 @@ export type ResolvedAgentAvatar =
           readonly avatarDefinition: AvatarDefinition;
           readonly visualId: AvatarVisualId;
       };
+
+/**
+ * Resolves the avatar visual preferred by an agent, then falls back to the caller/server default.
+ *
+ * @param agent Agent metadata and optional remote-profile visual id.
+ * @param defaultAvatarVisualId Optional metadata-resolved server default.
+ * @returns Supported avatar visual id.
+ *
+ * @private shared avatar contract
+ */
+export function resolveAgentAvatarVisualId(
+    agent: ResolveAgentAvatarOptions['agent'],
+    defaultAvatarVisualId: AvatarVisualId = DEFAULT_AGENT_AVATAR_VISUAL_ID,
+): AvatarVisualId {
+    return resolveAvatarVisualId(agent.meta?.avatar) || agent.avatarVisualId || defaultAvatarVisualId;
+}
 
 /**
  * Resolve a base URL for relative images, preferring the provided base or browser location.
@@ -189,7 +206,7 @@ export function resolveAgentAvatar(options: ResolveAgentAvatarOptions): Resolved
     return {
         type: 'visual',
         avatarDefinition: createResolvedAvatarDefinition(agent),
-        visualId: agent.avatarVisualId || DEFAULT_AGENT_AVATAR_VISUAL_ID,
+        visualId: resolveAgentAvatarVisualId(agent),
     };
 }
 

@@ -42,6 +42,7 @@ const PROFILE_COMMITMENT_TYPES = new Set([
     'PERSONA',
     'PERSONAE',
     'META',
+    'META AVATAR',
     'META IMAGE',
     'META LINK',
     'META DOMAIN',
@@ -204,7 +205,7 @@ export function createStandaloneBookLanguageMarkdown(): string {
 
             ### META commitments and agent profile
 
-            \`META*\` commitments control profile data shown in UI (for example image, description, disclaimers, domain, input placeholder).  
+            \`META*\` commitments control profile data shown in UI (for example avatar visual, image, description, disclaimers, domain, input placeholder).
             They generally shape presentation/metadata rather than tool behavior.
 
             ### FROM inheritance
@@ -313,7 +314,7 @@ export function createStandaloneBookLanguageMarkdown(): string {
             4. **Add capabilities**
             Add only necessary \`USE*\` and/or \`MEMORY\` commitments.
             5. **Set profile metadata**
-            Add \`META DESCRIPTION\`, \`META IMAGE\`, \`META INPUT PLACEHOLDER\`, and disclaimers if needed.
+            Add \`META DESCRIPTION\`, \`META AVATAR\` or \`META IMAGE\`, \`META INPUT PLACEHOLDER\`, and disclaimers if needed.
             6. **Add first interaction**
             Add \`INITIAL MESSAGE\` and optionally sample \`USER MESSAGE\` / \`AGENT MESSAGE\` pairs.
             7. **Close for deterministic behavior (optional)**

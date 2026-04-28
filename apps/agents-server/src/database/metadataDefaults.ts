@@ -282,7 +282,7 @@ export const metadataDefaults = [
     {
         key: DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY,
         value: DEFAULT_AGENT_AVATAR_VISUAL_METADATA_VALUE,
-        note: `Default built-in avatar visual used for agents without \`META IMAGE\`. Allowed values: ${DEFAULT_AGENT_AVATAR_VISUAL_METADATA_VALUES.join(
+        note: `Default built-in avatar visual used for agents without \`META IMAGE\` or \`META AVATAR\`. Allowed values: ${DEFAULT_AGENT_AVATAR_VISUAL_METADATA_VALUES.join(
             ', ',
         )}.`,
         type: 'TEXT_SINGLE_LINE',

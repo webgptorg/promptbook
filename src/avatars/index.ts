@@ -2,7 +2,7 @@ export { Avatar } from './Avatar';
 export { AvatarOrImage } from './AvatarOrImage';
 export { renderAvatarVisual } from './renderAvatarVisual';
 export { createAvatarDefinitionFromAgentBasicInformation } from './avatarRenderingUtils';
-export { AVATAR_VISUALS, getAvatarVisualById } from './visuals/avatarVisualRegistry';
+export { AVATAR_VISUALS, getAvatarVisualById, resolveAvatarVisualId } from './visuals/avatarVisualRegistry';
 export type { AvatarDefinition } from './types/AvatarDefinition';
 export type {
     AvatarInteractionState,

@@ -9,6 +9,7 @@ import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext
 import { computeAgentHash } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
+import { resolveAgentAvatarVisualId } from '../../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 
 /**
@@ -58,6 +59,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         const defaultAgentAvatarVisualId = resolveDefaultAgentAvatarVisualId(
             metadata[DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY],
         );
+        const agentAvatarVisualId = resolveAgentAvatarVisualId(agentProfile, defaultAgentAvatarVisualId);
         const defaultAvatarImageUrl =
             !isMetaImageExplicit && !resolvedAgentContext.isBookScopedAgent
                 ? `/agents/${encodeURIComponent(agentName)}/images/default-avatar.png`
@@ -78,7 +80,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                     toolTitles: agentProfile.meta.toolTitles || {}, // <- [🧠] Should we have this in meta?
                     knowledgeSources: agentProfile.knowledgeSources || [], // <- [📚] Explicitly include knowledge sources for citation resolution
                     isMetaImageExplicit,
-                    avatarVisualId: isMetaImageExplicit ? undefined : defaultAgentAvatarVisualId,
+                    avatarVisualId: isMetaImageExplicit ? undefined : agentAvatarVisualId,
                 },
                 // <- TODO: [🐱‍🚀] Rename `serializeError` to `errorToJson`
                 null,

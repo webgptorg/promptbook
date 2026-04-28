@@ -7,6 +7,7 @@ import type {
     string_fonts,
     string_url_image,
 } from '../../types/typeAliases';
+import type { AvatarVisualId } from '../../avatars/types/AvatarVisualDefinition';
 
 /**
  * Unified parameter representation that supports two different notations:
@@ -128,6 +129,7 @@ export type AgentBasicInformation = {
         inputPlaceholder?: string;
         messageSuffix?: string;
         image?: string_url_image;
+        avatar?: AvatarVisualId;
         domain?: string;
         font?: string_fonts;
         color?: string_color;

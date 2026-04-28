@@ -27,6 +27,22 @@ export const AVATAR_VISUALS: ReadonlyArray<AvatarVisualDefinition> = [
 ];
 
 /**
+ * Normalizes user-facing avatar visual names so ids can be matched case-insensitively
+ * across spaces, hyphens, underscores, and future separator variants.
+ *
+ * @param value Raw avatar visual id or title.
+ * @returns Stable lookup key.
+ *
+ * @private shared registry for the avatar rendering system
+ */
+function normalizeAvatarVisualLookupKey(value: string): string {
+    return value
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '');
+}
+
+/**
  * Returns one avatar visual by its identifier.
  *
  * @param visualId Requested visual identifier.
@@ -42,4 +58,34 @@ export function getAvatarVisualById(visualId: AvatarVisualId): AvatarVisualDefin
     }
 
     return avatarVisual;
+}
+
+/**
+ * Resolves a user-facing avatar visual value to a supported built-in visual id.
+ *
+ * The lookup is derived from `AVATAR_VISUALS`, so new visuals become selectable by
+ * adding them to the registry rather than updating parser-specific option lists.
+ *
+ * @param value Raw visual id/title, for example `PIXEL_ART`, `pixel art`, or `pixel-art`.
+ * @returns Matching visual id or `null` when the value is empty/unknown.
+ *
+ * @private shared registry for the avatar rendering system
+ */
+export function resolveAvatarVisualId(value: string | null | undefined): AvatarVisualId | null {
+    if (!value) {
+        return null;
+    }
+
+    const normalizedValue = normalizeAvatarVisualLookupKey(value);
+    if (!normalizedValue) {
+        return null;
+    }
+
+    const avatarVisual = AVATAR_VISUALS.find(
+        (candidateAvatarVisual) =>
+            normalizeAvatarVisualLookupKey(candidateAvatarVisual.id) === normalizedValue ||
+            normalizeAvatarVisualLookupKey(candidateAvatarVisual.title) === normalizedValue,
+    );
+
+    return avatarVisual?.id || null;
 }
