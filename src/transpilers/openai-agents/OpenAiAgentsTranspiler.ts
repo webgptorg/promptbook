@@ -9,6 +9,7 @@ import type { BookTranspiler } from '../_common/BookTranspiler';
 import type { BookTranspilerOptions } from '../_common/BookTranspilerOptions';
 import { formatUsedToolFunctions } from '../_common/formatUsedToolFunctions';
 import { prepareSdkTranspilerContext } from '../_common/prepareSdkTranspilerContext';
+import { createTranspiledTeamHierarchyRuntimeSource } from '../_common/TranspiledTeamHierarchy';
 
 /**
  * Transpiler to JavaScript code using the OpenAI Agents SDK.
@@ -25,13 +26,13 @@ export const OpenAiAgentsTranspiler = {
         tools: ExecutionTools,
         options?: BookTranspilerOptions,
     ): Promise<string_script> {
-        const { agentName, modelRequirements, usedToolFunctions, isKnowledgeHandledWithRetrieval } =
-            await prepareSdkTranspilerContext(book);
+        const { agentName, modelRequirements, usedToolFunctions, teamHierarchy, isKnowledgeHandledWithRetrieval } =
+            await prepareSdkTranspilerContext(book, options);
         const shouldGenerateFunctionTools = Boolean(modelRequirements.tools && modelRequirements.tools.length > 0);
         const openAiAgentsImportNames = ['Agent', 'run'];
 
         TODO_USE(tools);
-        TODO_USE(options);
+        const teamRuntimeImport = teamHierarchy.length > 0 ? "import { RemoteAgent } from '@promptbook/core';" : '';
 
         if (shouldGenerateFunctionTools) {
             openAiAgentsImportNames.push('tool');
@@ -54,6 +55,7 @@ export const OpenAiAgentsTranspiler = {
                 ${isKnowledgeHandledWithRetrieval ? "import { readFile } from 'node:fs/promises';" : ''}
                 import readline from 'readline';
                 import { spaceTrim } from '@promptbook/utils';
+                ${teamRuntimeImport}
 
                 // ---- CONFIG ----
                 const AGENT_NAME = ${block(JSON.stringify(agentName))};
@@ -64,9 +66,17 @@ export const OpenAiAgentsTranspiler = {
                 let VECTOR_STORE_ID = null;
 
                 ${block(
+                    createTranspiledTeamHierarchyRuntimeSource({
+                        agentName,
+                        teamHierarchy,
+                    }),
+                )}
+                ${block(
                     createOpenAiAgentsToolSection({
                         toolDefinitions: modelRequirements.tools || [],
                         usedToolFunctions,
+                        teamToolImplementationSpread:
+                            teamHierarchy.length > 0 ? '...PROMPTBOOK_TEAM_TOOL_IMPLEMENTATIONS,' : '',
                     }),
                 )}
                 ${block(
@@ -233,8 +243,9 @@ export const OpenAiAgentsTranspiler = {
 function createOpenAiAgentsToolSection(options: {
     readonly toolDefinitions: ReadonlyArray<LlmToolDefinition>;
     readonly usedToolFunctions: Record<string, string>;
+    readonly teamToolImplementationSpread: string;
 }): string {
-    const { toolDefinitions, usedToolFunctions } = options;
+    const { toolDefinitions, usedToolFunctions, teamToolImplementationSpread } = options;
 
     if (toolDefinitions.length === 0) {
         return spaceTrim(`
@@ -249,6 +260,7 @@ function createOpenAiAgentsToolSection(options: {
             // ---- TOOLS ----
             const PROMPTBOOK_TOOL_IMPLEMENTATIONS = {
                 ${block(formatUsedToolFunctions(usedToolFunctions))}
+                ${teamToolImplementationSpread}
             };
 
             const PROMPTBOOK_FUNCTION_TOOLS = [

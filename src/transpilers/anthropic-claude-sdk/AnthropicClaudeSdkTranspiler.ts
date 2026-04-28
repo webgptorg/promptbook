@@ -8,6 +8,7 @@ import type { BookTranspilerOptions } from '../_common/BookTranspilerOptions';
 import { formatUsedToolFunctions } from '../_common/formatUsedToolFunctions';
 import { prepareSdkTranspilerContext } from '../_common/prepareSdkTranspilerContext';
 import { resolveClaudeModelName } from '../_common/resolveClaudeModelName';
+import { createTranspiledTeamHierarchyRuntimeSource } from '../_common/TranspiledTeamHierarchy';
 
 /**
  * Default output-token budget required by Anthropic's Messages API.
@@ -37,11 +38,13 @@ export const AnthropicClaudeSdkTranspiler = {
             directKnowledge,
             knowledgeSources,
             usedToolFunctions,
+            teamHierarchy,
             isKnowledgeHandledWithRetrieval,
-        } = await prepareSdkTranspilerContext(book);
+        } = await prepareSdkTranspilerContext(book, options);
 
         TODO_USE(tools);
-        TODO_USE(options);
+
+        const teamToolImplementationSpread = teamHierarchy.length > 0 ? '...PROMPTBOOK_TEAM_TOOL_IMPLEMENTATIONS,' : '';
 
         const anthropicModelName = resolveClaudeModelName(modelRequirements.modelName);
 
@@ -68,6 +71,13 @@ export const AnthropicClaudeSdkTranspiler = {
                     const knowledgeSources = ${block(JSON.stringify(knowledgeSources, null, 4))};
                     let index;
 
+                    ${block(
+                        createTranspiledTeamHierarchyRuntimeSource({
+                            agentName,
+                            teamHierarchy,
+                        }),
+                    )}
+
                     async function setupKnowledge() {
                         const documents = knowledge.map((text) => new Document({ text }));
 
@@ -91,6 +101,7 @@ export const AnthropicClaudeSdkTranspiler = {
                     // ---- TOOLS ----
                     const toolImplementations = {
                         ${block(formatUsedToolFunctions(usedToolFunctions))}
+                        ${teamToolImplementationSpread}
                     };
 
                     const toolDefinitions = ${block(JSON.stringify(modelRequirements.tools || [], null, 4))};
@@ -248,6 +259,7 @@ export const AnthropicClaudeSdkTranspiler = {
                 // ---- TOOLS ----
                 const toolImplementations = {
                     ${block(formatUsedToolFunctions(usedToolFunctions))}
+                    ${teamToolImplementationSpread}
                 };
 
                 const toolDefinitions = ${block(JSON.stringify(modelRequirements.tools || [], null, 4))};

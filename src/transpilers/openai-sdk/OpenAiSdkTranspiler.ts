@@ -7,6 +7,7 @@ import type { BookTranspiler } from '../_common/BookTranspiler';
 import type { BookTranspilerOptions } from '../_common/BookTranspilerOptions';
 import { formatUsedToolFunctions } from '../_common/formatUsedToolFunctions';
 import { prepareSdkTranspilerContext } from '../_common/prepareSdkTranspilerContext';
+import { createTranspiledTeamHierarchyRuntimeSource } from '../_common/TranspiledTeamHierarchy';
 
 /**
  * Transpiler to Javascript code using OpenAI SDK.
@@ -29,11 +30,14 @@ export const OpenAiSdkTranspiler = {
             directKnowledge,
             knowledgeSources,
             usedToolFunctions,
+            teamHierarchy,
             isKnowledgeHandledWithRetrieval,
-        } = await prepareSdkTranspilerContext(book);
+        } = await prepareSdkTranspilerContext(book, options);
 
         TODO_USE(tools);
-        TODO_USE(options);
+
+        const teamToolImplementationSpread = teamHierarchy.length > 0 ? '...PROMPTBOOK_TEAM_TOOL_IMPLEMENTATIONS,' : '';
+        const teamRuntimeImport = teamHierarchy.length > 0 ? "import { RemoteAgent } from '@promptbook/core';" : '';
 
         if (isKnowledgeHandledWithRetrieval) {
             return spaceTrim(
@@ -46,6 +50,7 @@ export const OpenAiSdkTranspiler = {
                     import { spaceTrim } from '@promptbook/utils';
                     import OpenAI from 'openai';
                     import readline from 'readline';
+                    ${teamRuntimeImport}
                     import { Document, VectorStoreIndex, SimpleDirectoryReader } from 'llamaindex';
 
                     // ---- CONFIG ----
@@ -61,6 +66,13 @@ export const OpenAiSdkTranspiler = {
                         JSON.stringify(knowledgeSources, null, 4) /* <- TODO: Use here Promptbook stringify */,
                     )};
                     let index;
+
+                    ${block(
+                        createTranspiledTeamHierarchyRuntimeSource({
+                            agentName,
+                            teamHierarchy,
+                        }),
+                    )}
 
                     async function setupKnowledge() {
                         const documents = knowledge.map((text) => new Document({ text }));
@@ -85,6 +97,7 @@ export const OpenAiSdkTranspiler = {
                     // ---- TOOLS ----
                     const tools = {
                         ${block(formatUsedToolFunctions(usedToolFunctions))}
+                        ${teamToolImplementationSpread}
                     };
 
                     const toolDefinitions = ${block(JSON.stringify(modelRequirements.tools || [], null, 4))};
@@ -218,15 +231,24 @@ export const OpenAiSdkTranspiler = {
                 import { spaceTrim } from '@promptbook/utils';
                 import OpenAI from 'openai';
                 import readline from 'readline';
+                ${teamRuntimeImport}
 
                 // ---- CONFIG ----
                 const client = new OpenAI({
                     apiKey: process.env.OPENAI_API_KEY,
                 });
 
+                ${block(
+                    createTranspiledTeamHierarchyRuntimeSource({
+                        agentName,
+                        teamHierarchy,
+                    }),
+                )}
+
                 // ---- TOOLS ----
                 const tools = {
                     ${block(formatUsedToolFunctions(usedToolFunctions))}
+                    ${teamToolImplementationSpread}
                 };
 
                 const toolDefinitions = ${block(JSON.stringify(modelRequirements.tools || [], null, 4))};

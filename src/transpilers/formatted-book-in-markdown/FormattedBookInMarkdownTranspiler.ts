@@ -4,6 +4,8 @@ import type { string_markdown } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type { BookTranspiler } from '../_common/BookTranspiler';
 import type { BookTranspilerOptions } from '../_common/BookTranspilerOptions';
+import { prepareSdkTranspilerContext } from '../_common/prepareSdkTranspilerContext';
+import { createTranspiledTeamHierarchyMarkdownSource } from '../_common/TranspiledTeamHierarchy';
 
 /**
  * Converts a book into a 1:1 formatted markdown
@@ -15,8 +17,10 @@ export const FormattedBookInMarkdownTranspiler = {
     title: 'Formatted Book in Markdown',
     packageName: '@promptbook/core',
     className: 'FormattedBookInMarkdownTranspiler',
-    transpileBook(book: string_book, tools: ExecutionTools, options?: BookTranspilerOptions): string_markdown {
-        keepUnused(tools, options);
+    async transpileBook(book: string_book, tools: ExecutionTools, options?: BookTranspilerOptions): Promise<string_markdown> {
+        keepUnused(tools);
+
+        const { teamHierarchy } = await prepareSdkTranspilerContext(book, options);
 
         let lines = book.trim(/* <- Note: Not using `spaceTrim` because its not needed */).split(/\r?\n/);
 
@@ -39,6 +43,11 @@ export const FormattedBookInMarkdownTranspiler = {
 
         // lines = lines.map((line) => `> ${line}`);
         lines = lines.map((line) => `${line}<br/>`);
+
+        const teamHierarchyMarkdown = createTranspiledTeamHierarchyMarkdownSource(teamHierarchy);
+        if (teamHierarchyMarkdown) {
+            lines.push('', teamHierarchyMarkdown);
+        }
 
         return lines.join('\n');
     },

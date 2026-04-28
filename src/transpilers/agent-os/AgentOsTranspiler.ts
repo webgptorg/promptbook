@@ -9,6 +9,7 @@ import type { BookTranspilerOptions } from '../_common/BookTranspilerOptions';
 import { formatUsedToolFunctions } from '../_common/formatUsedToolFunctions';
 import { prepareSdkTranspilerContext } from '../_common/prepareSdkTranspilerContext';
 import { createZodSchemaSource } from '../_common/createZodSchemaSource';
+import { createTranspiledTeamHierarchyRuntimeSource } from '../_common/TranspiledTeamHierarchy';
 
 /**
  * Global extension directory scanned by Pi inside the VM home folder.
@@ -45,11 +46,11 @@ export const AgentOsTranspiler = {
             directKnowledge,
             knowledgeSources,
             usedToolFunctions,
+            teamHierarchy,
             isKnowledgeHandledWithRetrieval,
-        } = await prepareSdkTranspilerContext(book);
+        } = await prepareSdkTranspilerContext(book, options);
 
         TODO_USE(tools);
-        TODO_USE(options);
 
         const shouldGenerateToolkit = Boolean(modelRequirements.tools && modelRequirements.tools.length > 0);
         const resolvedSystemMessage = resolveAgentOsSystemMessage({
@@ -57,6 +58,7 @@ export const AgentOsTranspiler = {
             directKnowledge,
             isKnowledgeHandledWithRetrieval,
         });
+        const teamToolImplementationSpread = teamHierarchy.length > 0 ? '...PROMPTBOOK_TEAM_TOOL_IMPLEMENTATIONS,' : '';
 
         return spaceTrim(
             (block) => `
@@ -83,7 +85,19 @@ export const AgentOsTranspiler = {
                 const AGENT_NAME = ${block(JSON.stringify(agentName))};
                 const PROMPT_SUFFIX = ${block(JSON.stringify(modelRequirements.promptSuffix.trim()))};
                 const SYSTEM_MESSAGE = ${block(JSON.stringify(resolvedSystemMessage))};
-                ${block(createAgentOsToolkitSection(modelRequirements.tools || [], usedToolFunctions))}
+                ${block(
+                    createTranspiledTeamHierarchyRuntimeSource({
+                        agentName,
+                        teamHierarchy,
+                    }),
+                )}
+                ${block(
+                    createAgentOsToolkitSection(
+                        modelRequirements.tools || [],
+                        usedToolFunctions,
+                        teamToolImplementationSpread,
+                    ),
+                )}
                 ${block(
                     createAgentOsKnowledgeSection({
                         directKnowledge,
@@ -216,6 +230,7 @@ function createPiExtensionCode(systemMessage: string): string {
 function createAgentOsToolkitSection(
     toolDefinitions: ReadonlyArray<LlmToolDefinition>,
     usedToolFunctions: Record<string, string>,
+    teamToolImplementationSpread: string,
 ): string {
     if (toolDefinitions.length === 0) {
         return '';
@@ -226,6 +241,7 @@ function createAgentOsToolkitSection(
             // ---- TOOLS ----
             const PROMPTBOOK_TOOL_IMPLEMENTATIONS = {
                 ${block(formatUsedToolFunctions(usedToolFunctions))}
+                ${teamToolImplementationSpread}
             };
 
             const PROMPTBOOK_TOOLKIT = toolKit({

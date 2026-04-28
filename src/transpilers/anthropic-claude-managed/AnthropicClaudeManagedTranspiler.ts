@@ -10,6 +10,7 @@ import { createZodShapeSource } from '../_common/createZodSchemaSource';
 import { formatUsedToolFunctions } from '../_common/formatUsedToolFunctions';
 import { prepareSdkTranspilerContext } from '../_common/prepareSdkTranspilerContext';
 import { resolveClaudeModelName } from '../_common/resolveClaudeModelName';
+import { createTranspiledTeamHierarchyRuntimeSource } from '../_common/TranspiledTeamHierarchy';
 
 /**
  * MCP server name used for Promptbook tool commitments in the managed Claude harness.
@@ -39,14 +40,15 @@ export const AnthropicClaudeManagedTranspiler = {
             directKnowledge,
             knowledgeSources,
             usedToolFunctions,
+            teamHierarchy,
             isKnowledgeHandledWithRetrieval,
-        } = await prepareSdkTranspilerContext(book);
+        } = await prepareSdkTranspilerContext(book, options);
 
         TODO_USE(tools);
-        TODO_USE(options);
 
         const anthropicModelName = resolveClaudeModelName(modelRequirements.modelName);
         const shouldGenerateToolkit = Boolean(modelRequirements.tools && modelRequirements.tools.length > 0);
+        const teamToolImplementationSpread = teamHierarchy.length > 0 ? '...PROMPTBOOK_TEAM_TOOL_IMPLEMENTATIONS,' : '';
 
         return spaceTrim(
             (block) => `
@@ -71,13 +73,25 @@ export const AnthropicClaudeManagedTranspiler = {
                 const SYSTEM_MESSAGE = ${block(JSON.stringify(modelRequirements.systemMessage))};
                 const PROMPT_SUFFIX = ${block(JSON.stringify(modelRequirements.promptSuffix.trim()))};
                 ${block(
+                    createTranspiledTeamHierarchyRuntimeSource({
+                        agentName,
+                        teamHierarchy,
+                    }),
+                )}
+                ${block(
                     createManagedClaudeKnowledgeSection({
                         directKnowledge,
                         knowledgeSources,
                         isKnowledgeHandledWithRetrieval,
                     }),
                 )}
-                ${block(createManagedClaudeToolkitSection(modelRequirements.tools || [], usedToolFunctions))}
+                ${block(
+                    createManagedClaudeToolkitSection(
+                        modelRequirements.tools || [],
+                        usedToolFunctions,
+                        teamToolImplementationSpread,
+                    ),
+                )}
 
                 /**
                  * Starts the managed Claude-backed chat harness.
@@ -312,6 +326,7 @@ function createManagedClaudeKnowledgeSection(options: {
 function createManagedClaudeToolkitSection(
     toolDefinitions: ReadonlyArray<LlmToolDefinition>,
     usedToolFunctions: Record<string, string>,
+    teamToolImplementationSpread: string,
 ): string {
     if (toolDefinitions.length === 0) {
         return spaceTrim(`
@@ -324,6 +339,7 @@ function createManagedClaudeToolkitSection(
             // ---- TOOLS ----
             const PROMPTBOOK_TOOL_IMPLEMENTATIONS = {
                 ${block(formatUsedToolFunctions(usedToolFunctions))}
+                ${teamToolImplementationSpread}
             };
 
             ${block(createManagedClaudeToolRuntimeHelpersSection())}
