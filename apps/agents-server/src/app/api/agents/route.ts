@@ -1,5 +1,10 @@
 import { $provideServer } from '@/src/tools/$provideServer';
+import { getMetadataMap } from '../../../database/getMetadata';
 import { NextResponse } from 'next/server';
+import {
+    DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY,
+    resolveDefaultAgentAvatarVisualId,
+} from '../../../constants/defaultAgentAvatarVisual';
 import { loadLocalOrganizationSearchDataset } from '../../../search/createDefaultServerSearchProviders/loadLocalOrganizationSearchDataset';
 import { getFederatedServers } from '../../../utils/getFederatedServers';
 
@@ -13,19 +18,26 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET() {
     try {
-        const dataset = await loadLocalOrganizationSearchDataset({ includePrivate: false });
-        const federatedServers = await getFederatedServers();
-        const { publicUrl } = await $provideServer();
+        const [dataset, federatedServers, { publicUrl }, metadata] = await Promise.all([
+            loadLocalOrganizationSearchDataset({ includePrivate: false }),
+            getFederatedServers(),
+            $provideServer(),
+            getMetadataMap([DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY]),
+        ]);
         const agentsWithUrl = dataset.agents.map((agent) => ({
             ...agent.resolvedAgentProfile,
             agentName: agent.agentName,
             permanentId: agent.permanentId || undefined,
             url: `${publicUrl.href}agents/${encodeURIComponent(agent.permanentId || agent.agentName)}`,
         }));
+        const defaultAgentAvatarVisualId = resolveDefaultAgentAvatarVisualId(
+            metadata[DEFAULT_AGENT_AVATAR_VISUAL_METADATA_KEY],
+        );
 
         const response = NextResponse.json({
             agents: agentsWithUrl,
             federatedServers,
+            defaultAgentAvatarVisualId,
         });
 
         // Add CORS headers

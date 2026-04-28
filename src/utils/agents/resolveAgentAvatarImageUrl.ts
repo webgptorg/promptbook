@@ -26,6 +26,11 @@ export type ResolveAgentAvatarOptions = {
          * Optional preferred avatar visual id coming from remote profile payloads.
          */
         readonly avatarVisualId?: AvatarVisualId;
+
+        /**
+         * Optional server-wide fallback visual id forwarded by federated server payloads.
+         */
+        readonly defaultAgentAvatarVisualId?: AvatarVisualId;
     };
     /**
      * Optional base URL used to resolve relative meta images and placeholders.
@@ -64,7 +69,8 @@ export type ResolvedAgentAvatar =
       };
 
 /**
- * Resolves the avatar visual preferred by an agent, then falls back to the caller/server default.
+ * Resolves the avatar visual preferred by an agent, then falls back to a federated server default
+ * and finally to the caller/server default.
  *
  * @param agent Agent metadata and optional remote-profile visual id.
  * @param defaultAvatarVisualId Optional metadata-resolved server default.
@@ -76,7 +82,12 @@ export function resolveAgentAvatarVisualId(
     agent: ResolveAgentAvatarOptions['agent'],
     defaultAvatarVisualId: AvatarVisualId = DEFAULT_AGENT_AVATAR_VISUAL_ID,
 ): AvatarVisualId {
-    return resolveAvatarVisualId(agent.meta?.avatar) || agent.avatarVisualId || defaultAvatarVisualId;
+    return (
+        resolveAvatarVisualId(agent.meta?.avatar) ||
+        agent.avatarVisualId ||
+        agent.defaultAgentAvatarVisualId ||
+        defaultAvatarVisualId
+    );
 }
 
 /**

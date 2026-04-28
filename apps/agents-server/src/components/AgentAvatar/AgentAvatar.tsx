@@ -22,6 +22,11 @@ type AgentAvatarAgent = Pick<AgentBasicInformation, 'agentName' | 'agentHash' | 
      * Optional built-in avatar visual preferred by the agent/profile payload.
      */
     readonly avatarVisualId?: AvatarVisualId;
+
+    /**
+     * Optional server-wide fallback visual id forwarded by federated agent payloads.
+     */
+    readonly defaultAgentAvatarVisualId?: AvatarVisualId;
 };
 
 /**
@@ -73,7 +78,8 @@ type AgentAvatarProps = {
 
 /**
  * Renders either the explicit agent image or the shared animated default avatar visual.
- * Agent-level `META AVATAR` values are resolved before the server-wide metadata default.
+ * Agent-level `META AVATAR` values are resolved before the federated server default and the
+ * local server metadata default.
  *
  * @private shared component of Agents Server
  */
@@ -87,11 +93,12 @@ export function AgentAvatar({
     imageClassName,
     style,
 }: AgentAvatarProps) {
-    const defaultAgentAvatarVisualId = useDefaultAgentAvatarVisualId();
+    const localDefaultAgentAvatarVisualId = useDefaultAgentAvatarVisualId();
     const resolvedAgentAvatar = resolveAgentAvatar({
         agent: {
             ...agent,
-            avatarVisualId: agent.avatarVisualId || defaultAgentAvatarVisualId,
+            avatarVisualId:
+                agent.avatarVisualId || agent.defaultAgentAvatarVisualId || localDefaultAgentAvatarVisualId,
         },
         baseUrl,
     });

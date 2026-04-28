@@ -1,6 +1,7 @@
 'use client';
 
 import { buildFreshAgentChatHrefFromAgentUrl } from '../../utils/agentRouting/agentRouteHrefs';
+import type { AvatarVisualId } from '../../../../../src/avatars/types/AvatarVisualDefinition';
 import type { AgentWithVisibility } from './useFederatedAgents';
 import { normalizeServerUrl } from './normalizeServerUrl';
 
@@ -9,6 +10,7 @@ import { normalizeServerUrl } from './normalizeServerUrl';
  */
 type FederatedAgentsResponse = {
     readonly agents?: ReadonlyArray<AgentWithVisibility>;
+    readonly defaultAgentAvatarVisualId?: AvatarVisualId;
 };
 
 /**
@@ -44,6 +46,7 @@ async function parseFederatedAgentsResponse(
         ...agent,
         visibility: 'PUBLIC',
         serverUrl,
+        defaultAgentAvatarVisualId: payload.defaultAgentAvatarVisualId,
         url: buildFreshAgentChatHrefFromAgentUrl(agent.url || createFederatedAgentUrl(serverUrl, agent)),
     }));
 }

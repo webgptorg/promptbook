@@ -1,3 +1,9 @@
+-   Fixed federated Agents Server avatar defaults so remote agents now render with the federated server's built-in avatar visual instead of the local server fallback:
+
+    -   Extended the federated `/api/agents` payload with the server's resolved `DEFAULT_AGENT_AVATAR_VISUAL` metadata and propagated that visual id through the shared federated-agent loader.
+    -   Updated the shared avatar resolver to honor the federated server fallback before the local server default, while keeping local agents unchanged.
+    -   Added regression coverage for the federated agent loader, the `/api/agents` payload, and the avatar resolver fallback order.
+
 -   Fixed Agents Server TEAM teammate calls so internal agent-to-agent chat requests no longer create a fresh anonymous browser user, allowing same-server private and unlisted teammates to answer when referenced by another agent.
 
 -   Removed the generic `USE` commitment from the Book commitment registry so only concrete `USE *` commitments are parsed, documented, and suggested in the Book editor.

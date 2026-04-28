@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import type { AvatarVisualId } from '../../../../../src/avatars/types/AvatarVisualDefinition';
 import type { AgentOrganizationAgent } from '../../utils/agentOrganization/types';
 import { loadFederatedServerAgents } from './loadFederatedServerAgents';
 
@@ -12,6 +13,11 @@ import { loadFederatedServerAgents } from './loadFederatedServerAgents';
 export type AgentWithVisibility = AgentOrganizationAgent & {
     serverUrl?: string;
     url?: string;
+
+    /**
+     * Server-wide default built-in visual resolved from the federated `/api/agents` payload.
+     */
+    defaultAgentAvatarVisualId?: AvatarVisualId;
 };
 
 /**

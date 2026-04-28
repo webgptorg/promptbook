@@ -1,4 +1,5 @@
 import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
+import type { AvatarVisualId } from '../../../../../src/avatars/types/AvatarVisualDefinition';
 import type { AgentVisibility } from '../../utils/agentVisibility';
 
 /**
@@ -24,6 +25,11 @@ export type AgentWithVisibility = AgentBasicInformation & {
     visibility?: AgentVisibility;
     serverUrl?: string;
     url?: string;
+
+    /**
+     * Server-wide default built-in visual resolved for federated agents.
+     */
+    defaultAgentAvatarVisualId?: AvatarVisualId;
     folderId?: number | null;
     sortOrder?: number;
 };
