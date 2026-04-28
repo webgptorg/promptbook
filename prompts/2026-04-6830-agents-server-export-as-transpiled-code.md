@@ -127,7 +127,7 @@ const toolImplementations = {
 
 ---
 
-[ ] !
+[ ] !!!!
 
 [✨✫] The `TEAM` should be reflected as a part of the transpiled code
 
@@ -180,4 +180,3 @@ const toolImplementations = {
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
