@@ -8,6 +8,13 @@
        For now there are no access levels for the agents, so all logged in users can see all private agents
     2. Unlisted - visible to everyone who has the link to the agent and also to other agents via `TEAM` commitment
     3. Public - visible to everyone
+-   When the agent is public or unlisted and its `TEAM` teammates are private or unlisted, the agent should be visible and usable to the teammates even for non-logged in users
+    -   Anonymous user: [Public agent] --talking internally with--> [Private agent] - _working_
+    -   Anonymous user: [Unlisted agent] --talking internally with--> [Private agent] - _working_
+    -   Any user: [Any agent] --talking with federated server--> [Private agent] - _403 Forbidden error_
+    -   Any user: [Any agent] --talking with federated server--> [Unlisted agent] - _working_
+    -   Any user: [Any agent] --talking with federated server--> [Public agent] - _working_
+    -   Anonymous user: [Private agent] - _403 Forbidden error_
 -   When the agent is visible, you can see its profile and chat with it.
 -   But there are also pages of the agent that should be protected for only logged in users regardless of the visibility of the agent, these are:
     -   Profile - Accessible according to the visibility of the agent

@@ -1,4 +1,4 @@
-[ ]
+[*] 
 
 [🔧🧩] Procedural deterministic pixel-art agent default images (2-stage pipeline) + still image URL
 
