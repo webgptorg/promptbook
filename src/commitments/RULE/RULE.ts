@@ -30,6 +30,13 @@ export class RuleCommitmentDefinition extends BaseCommitmentDefinition<'RULE' | 
     }
 
     /**
+     * Marks RULE as one of the priority commitments surfaced first in catalogues.
+     */
+    public override get isImportant(): boolean {
+        return true;
+    }
+
+    /**
      * Icon for this commitment.
      */
     get icon(): string {

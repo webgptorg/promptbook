@@ -39,6 +39,13 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
     }
 
     /**
+     * Marks KNOWLEDGE as one of the priority commitments surfaced first in catalogues.
+     */
+    public override get isImportant(): boolean {
+        return true;
+    }
+
+    /**
      * Icon for this commitment.
      */
     get icon(): string {

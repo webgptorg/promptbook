@@ -1,4 +1,5 @@
 import { describe, expect, it, jest } from '@jest/globals';
+import type { editor, Position } from 'monaco-editor';
 import { PROMPTBOOK_SYNTAX_COLORS } from '../../config';
 import { ensureBookEditorMonacoLanguage, ensureBookEditorMonacoLanguageForEditor } from './useBookEditorMonacoLanguage';
 
@@ -147,6 +148,37 @@ describe('ensureBookEditorMonacoLanguage', () => {
         expect(noteThemeRule?.foreground).toBe(PROMPTBOOK_SYNTAX_COLORS.NOTE_COMMITMENT.toHex());
         expect(todoThemeRule?.foreground).toBe(PROMPTBOOK_SYNTAX_COLORS.TODO_COMMITMENT_TEXT.toHex());
         expect(todoThemeRule?.background).toBe(PROMPTBOOK_SYNTAX_COLORS.TODO_COMMITMENT_BACKGROUND.toHex());
+    });
+
+    it('prioritizes important commitments in completion suggestions', () => {
+        const { monaco, spies } = createMonacoLanguageMock();
+
+        ensureBookEditorMonacoLanguage(monaco);
+
+        const completionProvider = spies.registerCompletionItemProvider.mock.calls[0]?.[1] as {
+            readonly provideCompletionItems: (
+                model: { getWordUntilPosition: (position: Position) => { startColumn: number; endColumn: number } },
+                position: Position,
+            ) => { suggestions: Array<{ label: string; sortText?: string }> };
+        };
+
+        const completionResult = completionProvider.provideCompletionItems(
+            ({
+                getWordUntilPosition: () => ({ startColumn: 1, endColumn: 1 }),
+            } as unknown) as editor.ITextModel,
+            { lineNumber: 1, column: 1 } as Position,
+        );
+
+        const suggestionLabels = completionResult.suggestions.map(({ label }) => label);
+        expect(suggestionLabels[0]).toBe('GOAL');
+        expect(suggestionLabels.indexOf('GOAL')).toBeLessThan(suggestionLabels.indexOf('RULE'));
+        expect(suggestionLabels.indexOf('RULE')).toBeLessThan(suggestionLabels.indexOf('KNOWLEDGE'));
+        expect(suggestionLabels.indexOf('KNOWLEDGE')).toBeLessThan(suggestionLabels.indexOf('TEAM'));
+        expect(
+            completionResult.suggestions.every(
+                (suggestion, index) => suggestion.sortText === index.toString().padStart(4, '0'),
+            ),
+        ).toBe(true);
     });
 
     it('accepts indented fenced-code delimiters in tokenizer rules', () => {

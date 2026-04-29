@@ -1,6 +1,7 @@
 import { COMMITMENT_REGISTRY } from '..';
 import { $deepFreeze } from '../../_packages/utils.index';
 import type { CommitmentDefinition } from '../_base/CommitmentDefinition';
+import { sortCommitmentDefinitions } from './sortCommitmentDefinitions';
 
 /**
  * Gets all available commitment definitions
@@ -10,5 +11,5 @@ import type { CommitmentDefinition } from '../_base/CommitmentDefinition';
  * @public exported from `@promptbook/core`
  */
 export function getAllCommitmentDefinitions(): ReadonlyArray<CommitmentDefinition> {
-    return $deepFreeze([...COMMITMENT_REGISTRY]);
+    return $deepFreeze(sortCommitmentDefinitions(COMMITMENT_REGISTRY));
 }

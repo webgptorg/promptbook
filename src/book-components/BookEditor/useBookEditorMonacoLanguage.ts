@@ -375,7 +375,7 @@ export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor, theme: Book
                 endColumn: word.endColumn,
             };
 
-            const suggestions = commitmentTypes.map((type) => {
+            const suggestions = commitmentTypes.map((type, index) => {
                 const definition = commitmentDefinitionByType.get(type);
                 const completionDocumentation = definition?.deprecation
                     ? `Deprecated. ${definition.deprecation.message}`
@@ -386,6 +386,7 @@ export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor, theme: Book
                     kind: monaco.languages.CompletionItemKind.Keyword,
                     insertText: type,
                     range,
+                    sortText: index.toString().padStart(4, '0'),
                     detail: definition?.deprecation ? 'Deprecated commitment' : 'Commitment',
                     documentation: {
                         value: completionDocumentation,

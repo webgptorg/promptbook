@@ -20,11 +20,13 @@ type CommitmentDeprecation = {
 };
 
 /**
- * Definition of a commitment that can be applied to agent model requirements
+ * Definition of a commitment that can be applied to agent model requirements.
  *
  * Each commitment is self-contained and manages its own logic for:
  * - Creating regex patterns for parsing
  * - Applying its effects to agent model requirements
+ *
+ * @public exported from `@promptbook/core`
  */
 export type CommitmentDefinition = {
     /**
@@ -43,6 +45,11 @@ export type CommitmentDefinition = {
      * It should be a single emoji.
      */
     readonly icon: string;
+
+    /**
+     * Whether this commitment should be prioritized in menus, documentation, and intellisense.
+     */
+    readonly isImportant: boolean;
 
     /**
      * Human-readable markdown documentation for this commitment.

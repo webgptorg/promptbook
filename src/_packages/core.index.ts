@@ -21,6 +21,7 @@ import { createPipelineCollectionFromPromise } from '../collection/pipeline-coll
 import { createPipelineCollectionFromUrl } from '../collection/pipeline-collection/constructors/createPipelineCollectionFromUrl';
 import { createPipelineSubcollection } from '../collection/pipeline-collection/constructors/createPipelineSubcollection';
 import { pipelineCollectionToJson } from '../collection/pipeline-collection/pipelineCollectionToJson';
+import type { CommitmentDefinition } from '../commitments/_base/CommitmentDefinition';
 import { createEmptyAgentModelRequirements } from '../commitments/_base/createEmptyAgentModelRequirements';
 import { createBasicAgentModelRequirements } from '../commitments/_base/createEmptyAgentModelRequirements';
 import { NotYetImplementedCommitmentDefinition } from '../commitments/_base/NotYetImplementedCommitmentDefinition';
@@ -250,6 +251,7 @@ export { createPipelineCollectionFromPromise };
 export { createPipelineCollectionFromUrl };
 export { createPipelineSubcollection };
 export { pipelineCollectionToJson };
+export type { CommitmentDefinition };
 export { createEmptyAgentModelRequirements };
 export { createBasicAgentModelRequirements };
 export { NotYetImplementedCommitmentDefinition };

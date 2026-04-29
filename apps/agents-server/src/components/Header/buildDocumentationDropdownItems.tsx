@@ -6,27 +6,9 @@ import type { SubMenuItem } from './SubMenuItem';
  * Helper type describing grouped commitments after filtering out unimplemented ones.
  */
 type DocumentationCommitmentGroup = {
-    primary: { type: string };
+    primary: { type: string; isImportant: boolean };
     aliases: string[];
 };
-
-/**
- * Commitments that stay at the top level of the Documentation dropdown.
- */
-const IMPORTANT_COMMITMENT_TYPES = [
-    'PERSONA',
-    'KNOWLEDGE',
-    'GOAL',
-    'TEAM',
-    'CLOSED',
-    'INITIAL MESSAGE',
-    'USE SEARCH ENGINE',
-] as const;
-
-/**
- * Fast lookups for commits that must stay top-level.
- */
-const IMPORTANT_COMMITMENT_TYPE_SET = new Set<string>(IMPORTANT_COMMITMENT_TYPES);
 
 /**
  * Creates a label node that reuses the existing alias styling.
@@ -70,16 +52,8 @@ export function buildDocumentationDropdownItems(
     groups: ReadonlyArray<DocumentationCommitmentGroup>,
     translate: (key: ServerTranslationKey) => string,
 ): SubMenuItem[] {
-    const commitmentByType = new Map<string, DocumentationCommitmentGroup>();
-    groups.forEach((group) => {
-        commitmentByType.set(group.primary.type, group);
-    });
-
-    const highlightedCommitments = IMPORTANT_COMMITMENT_TYPES.map((type) => commitmentByType.get(type)).filter(
-        (group): group is DocumentationCommitmentGroup => Boolean(group),
-    );
-
-    const remainingCommitments = groups.filter((group) => !IMPORTANT_COMMITMENT_TYPE_SET.has(group.primary.type));
+    const highlightedCommitments = groups.filter((group) => group.primary.isImportant);
+    const remainingCommitments = groups.filter((group) => !group.primary.isImportant);
 
     const items: SubMenuItem[] = [
         {

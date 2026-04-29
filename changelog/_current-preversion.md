@@ -1,3 +1,9 @@
+-   Made the core Book commitment catalog prioritize `GOAL`, `RULE`, `KNOWLEDGE`, and `TEAM` everywhere they are surfaced:
+
+    -   Added a shared `isImportant` flag to commitment definitions and used it to sort the commitment catalog for documentation, the Agents Server documentation menu, and Book editor intellisense.
+    -   Kept deprecated commitments at the bottom of the documentation catalog while preserving the existing grouped alias behavior.
+    -   Added regression coverage for the commitment ordering in the shared catalog, the documentation dropdown, and Monaco completion suggestions.
+
 -   Added built-in TEAM hierarchy support to Agents Server transpiled-code exports, so exported harnesses now include teammate metadata and sources instead of depending on a running Agents Server for `TEAM` tools:
 
     -   Reused the existing server agent-reference resolver, inherited-source import path, and model-requirement compiler to resolve local and federated teammates recursively before transpilation.

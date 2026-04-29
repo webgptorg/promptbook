@@ -42,6 +42,13 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
     public abstract get icon(): string;
 
     /**
+     * Whether this commitment should be prioritized in menus, documentation, and intellisense.
+     */
+    public get isImportant(): boolean {
+        return false;
+    }
+
+    /**
      * Human-readable markdown documentation for this commitment, available at runtime.
      * Must be implemented by each concrete commitment.
      */

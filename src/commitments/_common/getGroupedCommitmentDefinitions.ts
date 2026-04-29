@@ -2,6 +2,7 @@ import { COMMITMENT_REGISTRY } from '..';
 import { $deepFreeze } from '../../_packages/utils.index';
 import { CommitmentDefinition } from '../_base/CommitmentDefinition';
 import { NotYetImplementedCommitmentDefinition } from '../_base/NotYetImplementedCommitmentDefinition';
+import { sortCommitmentDefinitions } from './sortCommitmentDefinitions';
 
 /**
  * Grouped commitment definition
@@ -20,7 +21,7 @@ type GroupedCommitmentDefinition = {
 export function getGroupedCommitmentDefinitions(): ReadonlyArray<GroupedCommitmentDefinition> {
     const groupedCommitments: GroupedCommitmentDefinition[] = [];
 
-    for (const commitment of COMMITMENT_REGISTRY) {
+    for (const commitment of sortCommitmentDefinitions(COMMITMENT_REGISTRY, { isDeprecatedLast: true })) {
         const lastGroup = groupedCommitments[groupedCommitments.length - 1];
 
         // Check if we should group with the previous item
