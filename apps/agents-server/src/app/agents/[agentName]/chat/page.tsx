@@ -3,11 +3,10 @@ import type { Metadata, ResolvingMetadata } from 'next';
 import { loadChatConfiguration } from '@/src/utils/chatConfiguration';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
-import { resolveAgentVisibilityAccess } from '@/src/utils/agentAccess';
 import { peekShareTargetPayload } from '@/src/utils/shareTargetPayloads';
 import { getThinkingMessages } from '@/src/utils/thinkingMessages';
 import { headers } from 'next/headers';
-import { forbidden, notFound, redirect } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { resolveSpeechRecognitionLanguage } from '../../../../../../../src/utils/language/getBrowserPreferredSpeechRecognitionLanguage';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
@@ -99,11 +98,6 @@ export default async function AgentChatPage({
     const canonicalAgentId = routeTarget.canonicalAgentId;
     if (agentName !== canonicalAgentId) {
         redirect(buildCanonicalAgentChatPath(canonicalAgentId, currentSearchParams));
-    }
-
-    const access = await resolveAgentVisibilityAccess({ agentIdentifier: canonicalAgentId });
-    if (!access.isAllowed) {
-        forbidden();
     }
 
     const isDeletedPromise = isAgentDeleted(canonicalAgentId);

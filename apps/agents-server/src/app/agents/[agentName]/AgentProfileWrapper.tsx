@@ -53,11 +53,6 @@ type AgentProfileWrapperProps = {
     readonly isAdmin: boolean;
 
     /***
-     * Indicates if the current request belongs to a signed-in user
-     */
-    readonly isLoggedIn: boolean;
-
-    /***
      * Indicates if the agent operates in headless mode
      */
     readonly isHeadless: boolean;
@@ -82,7 +77,7 @@ type AgentProfileWrapperProps = {
  * Handles agent profile wrapper.
  */
 export function AgentProfileWrapper(props: AgentProfileWrapperProps) {
-    const { agent, agentUrl, publicUrl, agentEmail, agentName, isAdmin, isLoggedIn, isHeadless, folderContext, actions, children } =
+    const { agent, agentUrl, publicUrl, agentEmail, agentName, isAdmin, isHeadless, folderContext, actions, children } =
         props;
     const router = useRouter();
 
@@ -137,7 +132,6 @@ export function AgentProfileWrapper(props: AgentProfileWrapperProps) {
                     agentEmail={agentEmail}
                     folderContext={folderContext}
                     isAdmin={isAdmin}
-                    isLoggedIn={isLoggedIn}
                     onShowQrCode={onShowQrCode}
                     onAgentRenamed={handleAgentRenamed}
                 />

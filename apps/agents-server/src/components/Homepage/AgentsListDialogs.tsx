@@ -62,10 +62,6 @@ type AgentsListDialogsProps = {
      */
     readonly isAdmin: boolean;
     /**
-     * Whether the agent context menu should expose signed-in-only actions.
-     */
-    readonly isLoggedIn: boolean;
-    /**
      * Applies an agent rename emitted from the context menu.
      */
     readonly onAgentRenamed: (payload: AgentContextMenuRenamePayload) => void;
@@ -190,7 +186,6 @@ export function AgentsListDialogs({
     folderEditDialogMode,
     isFolderEditSubmitting,
     isAdmin,
-    isLoggedIn,
     onAgentRenamed,
     onCloseContextMenu,
     onCloseFolderContextMenu,
@@ -231,7 +226,6 @@ export function AgentsListDialogs({
                     agentEmail={contextMenuAgentEmail}
                     folderContext={contextMenuFolderContext}
                     isAdmin={isAdmin}
-                    isLoggedIn={isLoggedIn}
                     onShowQrCode={onShowQrCode}
                     onAgentRenamed={onAgentRenamed}
                     fromDirectoryListing

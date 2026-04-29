@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { $getTableName } from '../../../database/$getTableName';
 import { $provideSupabase } from '../../../database/$provideSupabase';
-import { getSignedInUserForAgentAccess } from '../../../utils/agentAccess';
+import { isUserAdmin } from '../../../utils/isUserAdmin';
 
 /**
  * Size of default page.
@@ -58,7 +58,7 @@ function parseSortOrder(value: string | null): SortOrder {
  * - sortOrder: asc | desc (default: desc)
  */
 export async function GET(request: NextRequest) {
-    if (!(await getSignedInUserForAgentAccess())) {
+    if (!(await isUserAdmin())) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -145,7 +145,7 @@ export async function GET(request: NextRequest) {
  * - agentName: name of the agent whose feedback should be removed
  */
 export async function DELETE(request: NextRequest) {
-    if (!(await getSignedInUserForAgentAccess())) {
+    if (!(await isUserAdmin())) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

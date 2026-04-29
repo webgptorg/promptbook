@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { $getTableName } from '../../../../database/$getTableName';
 import { $provideSupabase } from '../../../../database/$provideSupabase';
 import { convertToCsv } from '../../../../utils/convertToCsv';
-import { getSignedInUserForAgentAccess } from '../../../../utils/agentAccess';
+import { isUserAdmin } from '../../../../utils/isUserAdmin';
 
 /**
  * Export chat history as CSV.
@@ -11,7 +11,7 @@ import { getSignedInUserForAgentAccess } from '../../../../utils/agentAccess';
  * - agentName: filter by agent name (optional)
  */
 export async function GET(request: NextRequest) {
-    if (!(await getSignedInUserForAgentAccess())) {
+    if (!(await isUserAdmin())) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

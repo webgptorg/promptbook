@@ -15,7 +15,6 @@ import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
 import type { ChatPrompt } from '../../types/Prompt';
 import type { ToolCall } from '../../types/ToolCall';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
-import { AGENT_INTERNAL_ACCESS_HEADER, createAgentInternalAccessHeaders } from '../_common/agentInternalAccess';
 import {
     parseToolRuntimeContext,
     serializeToolRuntimeContext,
@@ -117,41 +116,6 @@ const TEAM_SYSTEM_MESSAGE_GUIDANCE_LINES = [
  * Constant for remote agents by Url.
  */
 const remoteAgentsByUrl = new Map<string, Promise<RemoteAgent>>();
-
-/**
- * Returns whether a teammate URL points to the same server origin as the running agent.
- *
- * @private
- */
-function isLocalTeammateUrl(agentUrl: string, runtimeContext: ToolRuntimeContext): boolean {
-    const serverOrigin = runtimeContext.server?.origin;
-    if (!serverOrigin) {
-        return false;
-    }
-
-    try {
-        return new URL(agentUrl).origin === new URL(serverOrigin).origin;
-    } catch {
-        return false;
-    }
-}
-
-/**
- * Builds trusted headers for same-server TEAM calls.
- *
- * @private
- */
-function createTeamTeammateRequestHeaders(
-    agentUrl: string,
-    runtimeContext: ToolRuntimeContext,
-): HeadersInit | undefined {
-    if (!isLocalTeammateUrl(agentUrl, runtimeContext)) {
-        return undefined;
-    }
-
-    const headers = createAgentInternalAccessHeaders();
-    return Object.keys(headers).length > 0 ? headers : undefined;
-}
 
 /**
  * TEAM commitment definition
@@ -559,23 +523,22 @@ function createPseudoVoidTeamToolResult(entry: TeamToolEntry, request: string): 
 /**
  * Resolves a RemoteAgent for the given teammate URL, caching the connection.
  */
-async function getRemoteTeammateAgent(agentUrl: string, headers?: HeadersInit): Promise<RemoteAgent> {
-    const cacheKey = `${agentUrl}|${new Headers(headers).get(AGENT_INTERNAL_ACCESS_HEADER) || 'public'}`;
-    const cached: Promise<RemoteAgent> | undefined = remoteAgentsByUrl.get(cacheKey);
+async function getRemoteTeammateAgent(agentUrl: string): Promise<RemoteAgent> {
+    const cached: Promise<RemoteAgent> | undefined = remoteAgentsByUrl.get(agentUrl);
     if (cached) {
         return cached;
     }
 
     const connection: Promise<RemoteAgent> = (async (): Promise<RemoteAgent> => {
         const { RemoteAgent } = await import('../../llm-providers/agent/RemoteAgent');
-        return RemoteAgent.connect({ agentUrl, headers });
+        return RemoteAgent.connect({ agentUrl });
     })();
-    remoteAgentsByUrl.set(cacheKey, connection);
+    remoteAgentsByUrl.set(agentUrl, connection);
 
     try {
         return await connection;
     } catch (error) {
-        remoteAgentsByUrl.delete(cacheKey);
+        remoteAgentsByUrl.delete(agentUrl);
         throw error;
     }
 }
@@ -610,12 +573,13 @@ function createTeamToolFunction(entry: TeamToolEntry): ToolFunction {
         let response: string = '';
         let error: string | null = null;
         let toolCalls: ReadonlyArray<ToolCall> | undefined;
-        const runtimeContext = createTeamConversationRuntimeContext(args[TOOL_RUNTIME_CONTEXT_ARGUMENT]);
 
         try {
-            const headers = createTeamTeammateRequestHeaders(entry.teammate.url, runtimeContext);
-            const remoteAgent: RemoteAgent = await getRemoteTeammateAgent(entry.teammate.url, headers);
-            const prompt: ChatPrompt = buildTeammatePrompt(request, runtimeContext);
+            const remoteAgent: RemoteAgent = await getRemoteTeammateAgent(entry.teammate.url);
+            const prompt: ChatPrompt = buildTeammatePrompt(
+                request,
+                createTeamConversationRuntimeContext(args[TOOL_RUNTIME_CONTEXT_ARGUMENT]),
+            );
             const teammateResult: PromptResult = await remoteAgent.callChatModel(prompt);
             response = teammateResult.content || '';
             toolCalls =

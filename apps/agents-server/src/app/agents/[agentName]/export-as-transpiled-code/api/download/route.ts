@@ -4,7 +4,6 @@ import {
     findBookTranspilerForExport,
     resolveTranspiledAgentCodeExport,
 } from '../../../../../../utils/transpilers/resolveTranspiledAgentCodeExport';
-import { getSignedInUserForAgentAccess } from '../../../../../../utils/agentAccess';
 
 /**
  * ZIP export generation depends on live agent state and should not be statically cached.
@@ -24,10 +23,6 @@ export const runtime = 'nodejs';
  * @returns ZIP download response or JSON error payload.
  */
 export async function GET(request: NextRequest, context: { params: Promise<{ agentName: string }> }) {
-    if (!(await getSignedInUserForAgentAccess())) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const agentName = decodeURIComponent((await context.params).agentName);
     const transpilerName = request.nextUrl.searchParams.get('transpilerName');
 

@@ -7,7 +7,6 @@ import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentColle
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { renameAgentSource } from '@/src/utils/renameAgentSource';
 import { isAgentVisibility, type AgentVisibility } from '@/src/utils/agentVisibility';
-import { getSignedInUserForAgentAccess } from '@/src/utils/agentAccess';
 import { TODO_any } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
 import { buildAgentNameOrIdFilter } from '@/src/utils/agentIdentifier';
@@ -20,10 +19,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
     const { agentName } = await params;
 
     try {
-        if (!(await getSignedInUserForAgentAccess())) {
-            return NextResponse.json({ success: false, error: 'Authentication required.' }, { status: 401 });
-        }
-
         const body = (await request.json()) as { visibility?: AgentVisibility; name?: string };
 
         if (typeof body.name === 'string') {
@@ -91,10 +86,6 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ a
     const collection = await $provideAgentCollectionForServer();
 
     try {
-        if (!(await getSignedInUserForAgentAccess())) {
-            return NextResponse.json({ success: false, error: 'Authentication required.' }, { status: 401 });
-        }
-
         const agentId = await collection.getAgentPermanentId(agentName);
         await collection.deleteAgent(agentId);
         return NextResponse.json({ success: true });

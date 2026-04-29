@@ -171,7 +171,6 @@ export async function resolveAgentChatRouteContext(
     const promptParameters = composePromptParametersWithMemoryContext({
         baseParameters: incomingParameters,
         currentUserIdentity,
-        localServerUrl,
         agentPermanentId: agentId,
         agentName: resolvedAgentName,
         isPrivateModeEnabled,

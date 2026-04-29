@@ -1,5 +1,4 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { resolveAgentVisibilityAccess } from '@/src/utils/agentAccess';
 import { loadChatConfiguration } from '@/src/utils/chatConfiguration';
 import { resolveShareTargetMessage } from '@/src/utils/shareTarget';
 import { createShareTargetAttachments, storeShareTargetPayload } from '@/src/utils/shareTargetPayloads';
@@ -20,11 +19,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
     if (!canonicalAgentId) {
         return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
-    }
-
-    const access = await resolveAgentVisibilityAccess({ agentIdentifier: canonicalAgentId, request });
-    if (!access.isAllowed) {
-        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     try {

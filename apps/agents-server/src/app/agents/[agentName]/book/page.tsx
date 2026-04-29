@@ -1,9 +1,9 @@
 'use server';
 
+import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { getSignedInUserForAgentAccess } from '@/src/utils/agentAccess';
+import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { headers } from 'next/headers';
-import { forbidden } from 'next/navigation';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { isAgentDeleted } from '../_utils';
 import { BookEditorWrapper } from './BookEditorWrapper';
@@ -28,8 +28,9 @@ export default async function AgentBookPage({ params }: { params: Promise<{ agen
         );
     }
 
-    if (!(await getSignedInUserForAgentAccess())) {
-        forbidden();
+    if (!(await isUserAdmin())) {
+        /* <- TODO: [👹] Here should be user permissions */
+        return <ForbiddenPage />;
     }
 
     const collection = await $provideAgentCollectionForServer();

@@ -1,8 +1,7 @@
 'use server';
 
-import { forbidden, notFound, redirect } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { resolveAgentRouteTarget } from '@/src/utils/agentRouting/resolveAgentRouteTarget';
-import { resolveAgentVisibilityAccess } from '@/src/utils/agentAccess';
 import { getAgentName } from '../_utils';
 import { AgentTimeoutsClient } from './AgentTimeoutsClient';
 
@@ -35,11 +34,6 @@ export default async function AgentTimeoutsPage({ params }: { params: Promise<{ 
     const canonicalAgentId = routeTarget.canonicalAgentId;
     if (agentName !== canonicalAgentId) {
         redirect(buildCanonicalAgentTimeoutsPath(canonicalAgentId));
-    }
-
-    const access = await resolveAgentVisibilityAccess({ agentIdentifier: canonicalAgentId });
-    if (!access.isAllowed) {
-        forbidden();
     }
 
     return <AgentTimeoutsClient agentName={canonicalAgentId} />;

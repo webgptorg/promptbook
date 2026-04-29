@@ -40,7 +40,6 @@ type PreparedPromptParameters = {
 export type ComposePromptParametersWithMemoryContextOptions = {
     baseParameters: Record<string, unknown>;
     currentUserIdentity: ResolvedCurrentUserMemoryIdentity | null;
-    localServerUrl?: string;
     agentPermanentId?: string;
     agentName: string;
     chatId?: string;
@@ -106,7 +105,6 @@ function createMergedRuntimeContext(
     return {
         ...existingRuntimeContext,
         memory: createMemoryRuntimeContext(options, existingRuntimeContext),
-        server: createServerRuntimeContext(options, existingRuntimeContext),
         userLocation: resolveUserLocationRuntimeContext(
             preparedPromptParameters.normalizedBaseParameters,
             existingRuntimeContext,
@@ -125,18 +123,6 @@ function createMergedRuntimeContext(
             existingRuntimeContext,
         ),
     };
-}
-
-/**
- * Resolves local server origin used to authorize same-server TEAM calls.
- */
-function createServerRuntimeContext(
-    options: ComposePromptParametersWithMemoryContextOptions,
-    existingRuntimeContext: ToolRuntimeContext,
-): ToolRuntimeContext['server'] {
-    const origin = normalizeServerOrigin(options.localServerUrl) || existingRuntimeContext.server?.origin;
-
-    return origin ? { ...(existingRuntimeContext.server || {}), origin } : existingRuntimeContext.server;
 }
 
 /**
@@ -360,21 +346,6 @@ function normalizeOptionalText(value: unknown): string | undefined {
 
     const trimmed = value.trim();
     return trimmed || undefined;
-}
-
-/**
- * Normalizes an absolute server URL to its origin.
- */
-function normalizeServerOrigin(value: unknown): string | undefined {
-    if (typeof value !== 'string') {
-        return undefined;
-    }
-
-    try {
-        return new URL(value).origin;
-    } catch {
-        return undefined;
-    }
 }
 
 /**

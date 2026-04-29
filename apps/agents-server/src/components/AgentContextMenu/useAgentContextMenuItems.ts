@@ -199,15 +199,13 @@ function createSharingMenuItems(
  */
 function createWorkspaceMenuItems(
     agentIdentifier: string,
-    agentVisibility: AgentContextMenuBaseProps['agent']['visibility'],
     editBookLink: AgentContextMenuNavigationLink,
     folderContext: AgentContextMenuBaseProps['folderContext'],
     formatText: FormatAgentContextMenuText,
-    isLoggedIn: boolean,
 ): ContextMenuItem[] {
     const menuItems: ContextMenuItem[] = [];
 
-    if (folderContext && agentVisibility === 'PUBLIC') {
+    if (folderContext) {
         menuItems.push({
             type: 'link',
             href: folderContext.href,
@@ -216,37 +214,32 @@ function createWorkspaceMenuItems(
         });
     }
 
-    menuItems.push({
-        type: 'link',
-        href: buildFreshAgentChatHref(agentIdentifier),
-        icon: MessageSquareShareIcon,
-        label: formatText('Standalone Chat'),
-    });
-
-    if (isLoggedIn) {
-        menuItems.push({
+    menuItems.push(
+        {
+            type: 'link',
+            href: buildFreshAgentChatHref(agentIdentifier),
+            icon: MessageSquareShareIcon,
+            label: formatText('Standalone Chat'),
+        },
+        {
             type: 'link',
             href: `/agents/${encodeURIComponent(agentIdentifier)}/book+chat`,
             icon: SquareSplitHorizontalIcon,
             label: formatText('Edit Book & Chat'),
-        });
-    }
-
-    menuItems.push({
-        type: 'link',
-        href: `/agents/${encodeURIComponent(agentIdentifier)}/textarea`,
-        icon: MessageSquareIcon,
-        label: formatText('Textarea Entry'),
-    });
-
-    if (isLoggedIn) {
-        menuItems.push({
+        },
+        {
+            type: 'link',
+            href: `/agents/${encodeURIComponent(agentIdentifier)}/textarea`,
+            icon: MessageSquareIcon,
+            label: formatText('Textarea Entry'),
+        },
+        {
             type: 'link',
             href: editBookLink.href,
             icon: editBookLink.icon,
             label: editBookLink.title,
-        });
-    }
+        },
+    );
 
     return menuItems;
 }
@@ -265,12 +258,7 @@ function createManagementMenuItems(
     handleCloneAgent: () => Promise<void>,
     handleDeleteAgent: () => Promise<void>,
     handleRenameAgent: () => Promise<void>,
-    isLoggedIn: boolean,
 ): ContextMenuItem[] {
-    if (!isLoggedIn) {
-        return [];
-    }
-
     return [
         {
             type: 'action',
@@ -294,27 +282,27 @@ function createManagementMenuItems(
 }
 
 /**
- * Creates the signed-in-only menu section.
+ * Creates the admin-only menu section.
  *
  * @param agentName - Current routed agent name.
  * @param formatText - Agent-aware text formatter.
  * @param handleRequestVisibilityUpdate - Visibility dialog action.
  * @param integrationLink - Generated integration link metadata.
- * @param isLoggedIn - Whether the current request belongs to a signed-in user.
+ * @param isAdmin - Whether the current user is an admin.
  * @param shouldShowVisibilityAction - Whether visibility editing is available.
  * @param usageAnalyticsHref - Usage analytics URL for the current agent.
- * @returns Signed-in-only menu items.
+ * @returns Admin-only menu items.
  */
-function createSignedInMenuItems(
+function createAdminMenuItems(
     agentName: string,
     formatText: FormatAgentContextMenuText,
     handleRequestVisibilityUpdate: () => Promise<void>,
     integrationLink: AgentContextMenuNavigationLink,
-    isLoggedIn: boolean,
+    isAdmin: boolean,
     shouldShowVisibilityAction: boolean,
     usageAnalyticsHref: string,
 ): ContextMenuItem[] {
-    if (!isLoggedIn) {
+    if (!isAdmin) {
         return [];
     }
 
@@ -391,7 +379,7 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
         agentEmail,
         permanentId,
         folderContext,
-        isLoggedIn = false,
+        isAdmin = false,
         onShowQrCode,
         installPromptEvent,
         isInstalled = false,
@@ -428,15 +416,15 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
         ),
         ...createSharingMenuItems(agentEmail, agentUrl, copyFeedback, formatText, handleCopy, onShowQrCode),
         createDividerItem(),
-        ...createWorkspaceMenuItems(agentIdentifier, props.agent.visibility, editBookLink, folderContext, formatText, isLoggedIn),
+        ...createWorkspaceMenuItems(agentIdentifier, editBookLink, folderContext, formatText),
         createDividerItem(),
-        ...createManagementMenuItems(formatText, handleCloneAgent, handleDeleteAgent, handleRenameAgent, isLoggedIn),
-        ...createSignedInMenuItems(
+        ...createManagementMenuItems(formatText, handleCloneAgent, handleDeleteAgent, handleRenameAgent),
+        ...createAdminMenuItems(
             agentName,
             formatText,
             handleRequestVisibilityUpdate,
             integrationLink,
-            isLoggedIn,
+            isAdmin,
             shouldShowVisibilityAction,
             usageAnalyticsHref,
         ),

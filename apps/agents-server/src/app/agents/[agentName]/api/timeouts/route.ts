@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import { listAgentUserChatTimeouts } from '@/src/utils/userChatTimeout';
 import type { UserChatTimeoutRecord, UserChatTimeoutStatus } from '@/src/utils/userChatTimeout';
-import { createUserChatScopeErrorResponse, resolveUserChatScope } from '../user-chats/resolveUserChatScope';
+import { resolveUserChatScope } from '../user-chats/resolveUserChatScope';
 
 /**
  * Upper bound for one agent-wide timeout listing response.
@@ -30,10 +30,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
 
     const { agentName: rawAgentName } = await params;
     const agentName = decodeURIComponent(rawAgentName);
-    const scopeResult = await resolveUserChatScope(agentName, request);
+    const scopeResult = await resolveUserChatScope(agentName);
 
     if (!scopeResult.ok) {
-        return createUserChatScopeErrorResponse(scopeResult.error);
+        if (scopeResult.error === 'UNAUTHORIZED') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
     }
 
     try {

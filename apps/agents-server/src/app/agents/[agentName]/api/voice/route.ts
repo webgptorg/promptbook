@@ -17,7 +17,6 @@ import { resolveUseCalendarGoogleToken } from '@/src/utils/resolveUseCalendarGoo
 import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithubToken';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
 import { createInlineKnowledgeSourceUploader } from '@/src/utils/knowledge/createInlineKnowledgeSourceUploader';
-import { resolveAgentVisibilityAccess } from '@/src/utils/agentAccess';
 import { Agent, computeAgentHash, createAgentModelRequirements } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
@@ -79,23 +78,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
     let { agentName } = await params;
     agentName = decodeURIComponent(agentName);
-    const localServerUrl = new URL(request.url).origin;
 
     const versionMismatchResponse = respondIfClientVersionIsOutdated(request, 'json');
     if (versionMismatchResponse) {
         return versionMismatchResponse;
-    }
-
-    const access = await resolveAgentVisibilityAccess({
-        agentIdentifier: agentName,
-        request,
-        isInternalAgentAccessAllowed: true,
-    });
-    if (!access.isAllowed) {
-        return new Response(JSON.stringify({ error: 'Forbidden' }), {
-            status: 403,
-            headers: { 'Content-Type': 'application/json' },
-        });
     }
 
     // Note: Parse FormData for audio file
@@ -120,7 +106,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const resolvedAgentContext = await resolveServerAgentContext({
             collection,
             agentIdentifier: agentName,
-            localServerUrl,
+            localServerUrl: new URL(request.url).origin,
             fallbackResolver: baseAgentReferenceResolver,
         });
         const agentPermanentId = resolvedAgentContext.parentAgentPermanentId;
@@ -183,7 +169,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const promptParameters = composePromptParametersWithMemoryContext({
             baseParameters: {},
             currentUserIdentity,
-            localServerUrl,
             agentPermanentId,
             agentName,
             isPrivateModeEnabled,

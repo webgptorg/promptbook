@@ -9,7 +9,7 @@ import {
     requestUserChatJobCancellation,
     triggerUserChatJobWorker,
 } from '@/src/utils/userChat';
-import { createUserChatScopeErrorResponse, resolveUserChatScope } from '../../../../resolveUserChatScope';
+import { resolveUserChatScope } from '../../../../resolveUserChatScope';
 
 /**
  * Requests cancellation for one queued or running durable chat job.
@@ -26,10 +26,13 @@ export async function POST(
     const agentName = decodeURIComponent(rawAgentName);
     const chatId = decodeURIComponent(rawChatId);
     const jobId = decodeURIComponent(rawJobId);
-    const scopeResult = await resolveUserChatScope(agentName, request);
+    const scopeResult = await resolveUserChatScope(agentName);
 
     if (!scopeResult.ok) {
-        return createUserChatScopeErrorResponse(scopeResult.error);
+        if (scopeResult.error === 'UNAUTHORIZED') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+        return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
     }
 
     try {

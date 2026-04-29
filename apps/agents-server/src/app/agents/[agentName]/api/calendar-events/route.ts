@@ -9,7 +9,7 @@ import type {
     CalendarProviderUpsertEventInput,
 } from '@/src/utils/calendars/providers/CalendarProvider';
 import { NextResponse } from 'next/server';
-import { createUserChatScopeErrorResponse, resolveUserChatScope } from '../user-chats/resolveUserChatScope';
+import { resolveUserChatScope } from '../user-chats/resolveUserChatScope';
 
 /**
  * Supported calendar-event API operations.
@@ -66,10 +66,14 @@ type CalendarOperationExecutionResult = {
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     const { agentName: rawAgentName } = await params;
     const agentName = decodeURIComponent(rawAgentName);
-    const scopeResult = await resolveUserChatScope(agentName, request);
+    const scopeResult = await resolveUserChatScope(agentName);
 
     if (!scopeResult.ok) {
-        return createUserChatScopeErrorResponse(scopeResult.error);
+        if (scopeResult.error === 'UNAUTHORIZED') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
     }
 
     try {
@@ -127,10 +131,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
 export async function POST(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     const { agentName: rawAgentName } = await params;
     const agentName = decodeURIComponent(rawAgentName);
-    const scopeResult = await resolveUserChatScope(agentName, request);
+    const scopeResult = await resolveUserChatScope(agentName);
 
     if (!scopeResult.ok) {
-        return createUserChatScopeErrorResponse(scopeResult.error);
+        if (scopeResult.error === 'UNAUTHORIZED') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
     }
 
     const rawBody = (await request.json().catch(() => null)) as Record<string, unknown> | null;

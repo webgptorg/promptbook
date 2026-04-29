@@ -5,14 +5,13 @@ import { $provideSupabase } from '@/src/database/$provideSupabase';
 import { getMetadata } from '@/src/database/getMetadata';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { formatAgentNamingText } from '@/src/utils/agentNaming';
-import { getSignedInUserForAgentAccess } from '@/src/utils/agentAccess';
 import { getAgentNaming } from '@/src/utils/getAgentNaming';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { BoxIcon, CodeIcon, GlobeIcon } from 'lucide-react';
 import { headers } from 'next/headers';
 import Link from 'next/link';
-import { forbidden, notFound } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { spaceTrim } from 'spacetrim';
 import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { Color } from '../../../../../../../src/utils/color/Color';
@@ -78,10 +77,6 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
     $sideEffect(headers());
 
     const agentName = await getAgentName(params);
-    if (!(await getSignedInUserForAgentAccess())) {
-        forbidden();
-    }
-
     const isAdmin = await isUserAdmin();
     const agentNaming = await getAgentNaming();
 

@@ -1,7 +1,7 @@
 import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
-import { getSignedInUserForAgentAccess } from '../../../utils/agentAccess';
 import { loadAgentOrganizationState } from '../../../utils/agentOrganization/loadAgentOrganizationState';
 import { getFolderPathSegments } from '../../../utils/agentOrganization/folderPath';
+import { isUserAdmin } from '../../../utils/isUserAdmin';
 import type {
     UsageActorType,
     UsageAgentOption,
@@ -34,8 +34,8 @@ export default async function AdminUsagePage({
 }: {
     searchParams?: Promise<AdminUsagePageSearchParams>;
 }) {
-    const signedInUser = await getSignedInUserForAgentAccess();
-    if (!signedInUser) {
+    const isAdmin = await isUserAdmin();
+    if (!isAdmin) {
         return <ForbiddenPage />;
     }
 

@@ -2,7 +2,6 @@
 
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideServer } from '@/src/tools/$provideServer';
-import { getSignedInUserForAgentAccess } from '@/src/utils/agentAccess';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { consumeAgentReferenceResolutionIssues } from '@/src/utils/agentReferenceResolver/AgentReferenceResolutionIssue';
 import { createInlineKnowledgeSourceUploader } from '@/src/utils/knowledge/createInlineKnowledgeSourceUploader';
@@ -11,7 +10,6 @@ import { CodePreview } from '@common/components/CodePreview/CodePreview';
 import { createAgentModelRequirements } from '@promptbook-local/core';
 import { FileTextIcon } from 'lucide-react';
 import { headers } from 'next/headers';
-import { forbidden } from 'next/navigation';
 import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { keepUnused } from '../../../../../../../src/utils/organization/keepUnused';
@@ -26,9 +24,6 @@ export default async function AgentSystemMessagePage({ params }: { params: Promi
 
     const { publicUrl } = await $provideServer();
     const agentName = await getAgentName(params);
-    if (!(await getSignedInUserForAgentAccess())) {
-        forbidden();
-    }
 
     const collection = await $provideAgentCollectionForServer();
     const baseAgentReferenceResolver = await $provideAgentReferenceResolver();

@@ -4,9 +4,7 @@ import type { string_book } from '@promptbook-local/types';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { $provideServer } from '@/src/tools/$provideServer';
-import { getSignedInUserForAgentAccess } from '@/src/utils/agentAccess';
 import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
-import { forbidden } from 'next/navigation';
 import {
     getTranspiledAgentExportWarnings,
     type TranspiledAgentExportWarning,
@@ -19,10 +17,6 @@ import { AgentCodePageClient } from './AgentCodePageClient';
 export default async function AgentCodePage({ params }: { params: Promise<{ agentName: string }> }) {
     const { agentName: rawAgentName } = await params;
     const agentName = decodeURIComponent(rawAgentName);
-    if (!(await getSignedInUserForAgentAccess())) {
-        forbidden();
-    }
-
     const { publicUrl } = await $provideServer();
     const collection = await $provideAgentCollectionForServer();
     let agentSource = '' as string_book;

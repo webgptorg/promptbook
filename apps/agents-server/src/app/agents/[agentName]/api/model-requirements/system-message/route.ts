@@ -1,5 +1,4 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { getSignedInUserForAgentAccess } from '@/src/utils/agentAccess';
 import { serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../../src/errors/assertsError';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
@@ -16,13 +15,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
     agentName = decodeURIComponent(agentName);
 
     try {
-        if (!(await getSignedInUserForAgentAccess())) {
-            return new Response(JSON.stringify({ error: 'Authentication required.' }), {
-                status: 401,
-                headers: { 'Content-Type': 'application/json' },
-            });
-        }
-
         const [collection, baseAgentReferenceResolver] = await Promise.all([
             $provideAgentCollectionForServer(),
             $provideAgentReferenceResolver(),

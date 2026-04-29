@@ -1,10 +1,3 @@
--   Enforced Agents Server visibility rules across agent profile, chat, source, export, and related API surfaces:
-
-    -   Private agents now return `403 Forbidden` to anonymous profile/chat-equivalent requests, while public and unlisted agents remain reachable according to their visibility.
-    -   Agent source, editing, management, history, analytics, feedback review, integrations, system message, and transpiled-code export routes now require a signed-in user instead of relying only on hidden UI actions.
-    -   Same-server `TEAM` calls now carry a scoped internal access token so agents can still reach private teammates without exposing those agents to anonymous browser requests.
-    -   Added focused regression coverage for the shared agent-visibility access helper.
-
 -   Preferred singular commitment names over plural aliases in the commitment registry and generated catalogs:
 
     -   Reordered the shared commitment registry so canonical singular keywords now appear before their plural aliases, including `RULE` before `RULES` and `LANGUAGE` before `LANGUAGES`.

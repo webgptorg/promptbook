@@ -2,7 +2,7 @@ import { listCalendarActivity, listCalendarConnections } from '@/src/utils/calen
 import { loadGoogleCalendarOAuthConfiguration } from '@/src/utils/googleCalendarOAuth';
 import { resolveUseCalendarGoogleToken } from '@/src/utils/resolveUseCalendarGoogleToken';
 import { NextResponse } from 'next/server';
-import { createUserChatScopeErrorResponse, resolveUserChatScope } from '../user-chats/resolveUserChatScope';
+import { resolveUserChatScope } from '../user-chats/resolveUserChatScope';
 
 /**
  * Lists connected calendars and recent calendar activity for one agent.
@@ -10,10 +10,14 @@ import { createUserChatScopeErrorResponse, resolveUserChatScope } from '../user-
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     const { agentName: rawAgentName } = await params;
     const agentName = decodeURIComponent(rawAgentName);
-    const scopeResult = await resolveUserChatScope(agentName, request);
+    const scopeResult = await resolveUserChatScope(agentName);
 
     if (!scopeResult.ok) {
-        return createUserChatScopeErrorResponse(scopeResult.error);
+        if (scopeResult.error === 'UNAUTHORIZED') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
     }
 
     try {
@@ -67,3 +71,4 @@ function parsePositiveInteger(rawValue: string | null): number | null {
 
     return parsedValue;
 }
+

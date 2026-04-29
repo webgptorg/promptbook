@@ -118,10 +118,6 @@ type AgentsListListViewProps = {
      */
     readonly isAdmin: boolean;
     /**
-     * Whether signed-in-only agent controls should be shown.
-     */
-    readonly isLoggedIn: boolean;
-    /**
      * Navigates to a folder scope.
      */
     readonly onNavigateToFolder: (folderId: number | null) => void;
@@ -201,7 +197,6 @@ export function AgentsListListView({
     handleRenameFolder,
     handleRequestAgentVisibilityChange,
     isAdmin,
-    isLoggedIn,
     onNavigateToFolder,
     parentFolderInfo,
     publicUrl,
@@ -260,7 +255,7 @@ export function AgentsListListView({
                                 dragId={getAgentDragId(agentIdentifier)}
                                 agentIdentifier={agentIdentifier}
                                 publicUrl={publicUrl}
-                                isLoggedIn={isLoggedIn}
+                                isAdmin={isAdmin}
                                 canOrganize={canOrganize}
                                 activeDragType={activeDragItemType}
                                 onDelete={handleDelete}

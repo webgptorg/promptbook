@@ -1,5 +1,4 @@
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
-import { resolveAgentVisibilityAccess } from '@/src/utils/agentAccess';
 import { resolveCanonicalAgentName } from '@/src/utils/resolveCanonicalAgentName';
 import { NextRequest, NextResponse } from 'next/server';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../../../../../../../src/version';
@@ -35,11 +34,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         if (!canonicalAgentName) {
             console.error('Error finding agent for feedback:', { agentName });
             return NextResponse.json({ message: 'Agent not found' }, { status: 404 });
-        }
-
-        const access = await resolveAgentVisibilityAccess({ agentIdentifier: canonicalAgentName, request });
-        if (!access.isAllowed) {
-            return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
         }
 
         const { error } = await supabase.from(await $getTableName('ChatFeedback')).insert({

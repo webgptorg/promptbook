@@ -1,5 +1,4 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { getSignedInUserForAgentAccess } from '@/src/utils/agentAccess';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import {
     parseBookScopedAgentIdentifier,
@@ -58,13 +57,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
     try {
         let { agentName } = await params;
         agentName = decodeURIComponent(agentName);
-
-        if (!(await getSignedInUserForAgentAccess())) {
-            return new Response(JSON.stringify({ error: 'Authentication required.' }), {
-                status: 401,
-                headers: { 'Content-Type': 'application/json' },
-            });
-        }
 
         const url = new URL(request.url);
         const recursionLevel = parseNumber(url.searchParams.get('recursionLevel'));
@@ -152,13 +144,6 @@ export async function PUT(request: Request, { params }: { params: Promise<{ agen
     agentName = decodeURIComponent(agentName);
 
     try {
-        if (!(await getSignedInUserForAgentAccess())) {
-            return new Response(JSON.stringify({ error: 'Authentication required.' }), {
-                status: 401,
-                headers: { 'Content-Type': 'application/json' },
-            });
-        }
-
         const collection = await $provideAgentCollectionForServer();
         if (parseBookScopedAgentIdentifier(agentName)) {
             throw new Error('Embedded in-book agents cannot be updated directly. Edit the parent agent book instead.');

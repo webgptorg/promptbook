@@ -117,9 +117,13 @@ export async function isAgentDeleted(agentName: string): Promise<boolean> {
  * Resolves the folder navigation context for the agent profile menu.
  *
  * @param agentName - Agent name or permanent id to look up.
+ * @param isAdmin - Whether the current user has admin access.
  * @returns Folder context for the agent or null when unavailable.
  */
-const getCachedAgentFolderContext = cache(async (agentName: string): Promise<AgentFolderContext | null> => {
+const getCachedAgentFolderContext = cache(async (
+    agentName: string,
+    isAdmin: boolean,
+): Promise<AgentFolderContext | null> => {
     const parsedBookScopedAgentIdentifier = parseBookScopedAgentIdentifier(agentName);
     const targetAgentIdentifier = parsedBookScopedAgentIdentifier?.parentAgentIdentifier || agentName;
     const supabase = $provideSupabaseForServer();
@@ -137,7 +141,7 @@ const getCachedAgentFolderContext = cache(async (agentName: string): Promise<Age
     }
 
     const agentRow = agentResult.data[0] as Pick<AgentRow, 'folderId' | 'visibility'>;
-    if (agentRow.visibility !== 'PUBLIC') {
+    if (!isAdmin && agentRow.visibility === 'PRIVATE') {
         return null;
     }
 
@@ -167,10 +171,14 @@ const getCachedAgentFolderContext = cache(async (agentName: string): Promise<Age
  * Resolves the folder navigation context for the agent profile menu.
  *
  * @param agentName - Agent name or permanent id to look up.
+ * @param isAdmin - Whether the current user has admin access.
  * @returns Folder context for the agent or null when unavailable.
  */
-export async function getAgentFolderContext(agentName: string): Promise<AgentFolderContext | null> {
-    return getCachedAgentFolderContext(agentName);
+export async function getAgentFolderContext(
+    agentName: string,
+    isAdmin: boolean,
+): Promise<AgentFolderContext | null> {
+    return getCachedAgentFolderContext(agentName, isAdmin);
 }
 
 /**

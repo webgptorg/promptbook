@@ -4,16 +4,11 @@ import {
     listBookTranspilersForExport,
     resolveTranspiledAgentCodeExport,
 } from '../../../../../utils/transpilers/resolveTranspiledAgentCodeExport';
-import { getSignedInUserForAgentAccess } from '../../../../../utils/agentAccess';
 
 /**
  * Lists transpilers available on the export-as-transpiled-code page.
  */
 export async function GET() {
-    if (!(await getSignedInUserForAgentAccess())) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     try {
         return NextResponse.json({ transpilers: listBookTranspilersForExport() });
     } catch (error) {
@@ -26,10 +21,6 @@ export async function GET() {
  * Generates transpiled code for the selected agent and transpiler.
  */
 export async function POST(request: NextRequest, context: { params: Promise<{ agentName: string }> }) {
-    if (!(await getSignedInUserForAgentAccess())) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const agentName = decodeURIComponent((await context.params).agentName);
 
     try {

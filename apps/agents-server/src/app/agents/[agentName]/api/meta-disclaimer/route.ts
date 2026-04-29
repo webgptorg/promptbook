@@ -5,7 +5,7 @@ import { resolveCurrentOrInternalServerOrigin } from '@/src/utils/resolveCurrent
 import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
 import type { string_book } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
-import { createUserChatScopeErrorResponse, resolveUserChatScope } from '../user-chats/resolveUserChatScope';
+import { resolveUserChatScope } from '../user-chats/resolveUserChatScope';
 
 /**
  * Resolved context needed by META DISCLAIMER API handlers.
@@ -21,14 +21,20 @@ type MetaDisclaimerRouteContext = {
  */
 async function resolveMetaDisclaimerRouteContext(
     agentIdentifier: string,
-    request: Request,
 ): Promise<{ ok: true; context: MetaDisclaimerRouteContext } | { ok: false; response: NextResponse }> {
-    const scopeResult = await resolveUserChatScope(agentIdentifier, request);
+    const scopeResult = await resolveUserChatScope(agentIdentifier);
 
     if (!scopeResult.ok) {
+        if (scopeResult.error === 'UNAUTHORIZED') {
+            return {
+                ok: false,
+                response: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+            };
+        }
+
         return {
             ok: false,
-            response: createUserChatScopeErrorResponse(scopeResult.error),
+            response: NextResponse.json({ error: 'Agent not found.' }, { status: 404 }),
         };
     }
 
@@ -62,9 +68,11 @@ async function resolveMetaDisclaimerRouteContext(
  * Returns current META DISCLAIMER status for the requesting user and agent.
  */
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
+    void request;
+
     const { agentName: rawAgentName } = await params;
     const agentName = decodeURIComponent(rawAgentName);
-    const contextResult = await resolveMetaDisclaimerRouteContext(agentName, request);
+    const contextResult = await resolveMetaDisclaimerRouteContext(agentName);
     if (!contextResult.ok) {
         return contextResult.response;
     }
@@ -89,9 +97,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
  * Stores agreement to META DISCLAIMER for the requesting user and agent.
  */
 export async function POST(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
+    void request;
+
     const { agentName: rawAgentName } = await params;
     const agentName = decodeURIComponent(rawAgentName);
-    const contextResult = await resolveMetaDisclaimerRouteContext(agentName, request);
+    const contextResult = await resolveMetaDisclaimerRouteContext(agentName);
     if (!contextResult.ok) {
         return contextResult.response;
     }

@@ -2,7 +2,6 @@ import { string_book } from '@promptbook-local/types';
 import { serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../../src/errors/assertsError';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { getSignedInUserForAgentAccess } from '@/src/utils/agentAccess';
 
 /**
  * JSON payload accepted by the history restore endpoint.
@@ -18,13 +17,6 @@ type RestoreAgentHistoryRequestBody = {
  */
 export async function GET(_request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     try {
-        if (!(await getSignedInUserForAgentAccess())) {
-            return new Response(JSON.stringify({ error: 'Authentication required.' }), {
-                status: 401,
-                headers: { 'Content-Type': 'application/json' },
-            });
-        }
-
         const { agentName: rawAgentName } = await params;
         const agentName = decodeURIComponent(rawAgentName);
         const collection = await $provideAgentCollectionForServer();
@@ -53,13 +45,6 @@ export async function GET(_request: Request, { params }: { params: Promise<{ age
  */
 export async function POST(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     try {
-        if (!(await getSignedInUserForAgentAccess())) {
-            return new Response(JSON.stringify({ error: 'Authentication required.' }), {
-                status: 401,
-                headers: { 'Content-Type': 'application/json' },
-            });
-        }
-
         const { agentName: rawAgentName } = await params;
         const agentName = decodeURIComponent(rawAgentName);
         const collection = await $provideAgentCollectionForServer();

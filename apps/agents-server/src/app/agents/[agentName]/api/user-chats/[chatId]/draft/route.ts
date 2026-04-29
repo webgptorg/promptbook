@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getUserChat, isFrozenUserChatSource, updateUserChatDraft } from '@/src/utils/userChat';
 import { UserChatScopeError } from '@/src/utils/userChat/UserChatScopeError';
-import { createUserChatScopeErrorResponse, resolveUserChatScope } from '../../resolveUserChatScope';
+import { resolveUserChatScope } from '../../resolveUserChatScope';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 
 /**
@@ -21,10 +21,13 @@ export async function PATCH(
     const { agentName: rawAgentName, chatId: rawChatId } = await params;
     const agentName = decodeURIComponent(rawAgentName);
     const chatId = decodeURIComponent(rawChatId);
-    const scopeResult = await resolveUserChatScope(agentName, request);
+    const scopeResult = await resolveUserChatScope(agentName);
 
     if (!scopeResult.ok) {
-        return createUserChatScopeErrorResponse(scopeResult.error);
+        if (scopeResult.error === 'UNAUTHORIZED') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+        return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
     }
 
     try {
