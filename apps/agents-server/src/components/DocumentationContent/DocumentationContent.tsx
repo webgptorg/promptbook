@@ -1,5 +1,9 @@
 import { MarkdownContent } from '@promptbook-local/components';
 import { OpenMojiIcon } from '../OpenMojiIcon/OpenMojiIcon';
+import {
+    formatCommitmentReplacementText,
+    getCommitmentNoticeMetadata,
+} from '../../../../../src/commitments/_common/getCommitmentNoticeMetadata';
 
 /**
  * Props for documentation content.
@@ -10,6 +14,7 @@ type DocumentationContentProps = {
         icon: string;
         description?: string;
         documentation: string;
+        isUnfinished?: boolean;
         deprecation?: {
             message: string;
             replacedBy?: ReadonlyArray<string>;
@@ -23,13 +28,11 @@ type DocumentationContentProps = {
  * Handles documentation content.
  */
 export function DocumentationContent({ primary, aliases = [], isPrintOnly = false }: DocumentationContentProps) {
-    const deprecationContent = primary.deprecation
-        ? `${primary.deprecation.message}${
-              primary.deprecation.replacedBy && primary.deprecation.replacedBy.length > 0
-                  ? ` Preferred replacement: ${primary.deprecation.replacedBy.map((type) => `\`${type}\``).join(', ')}.`
-                  : ''
-          }`
-        : null;
+    const notice = getCommitmentNoticeMetadata(primary);
+    const noticeContent =
+        notice && notice.kind === 'deprecated'
+            ? `${notice.message}${formatCommitmentReplacementText(primary.deprecation?.replacedBy)}`
+            : notice?.message || null;
 
     return (
         <div
@@ -40,7 +43,7 @@ export function DocumentationContent({ primary, aliases = [], isPrintOnly = fals
             <div
                 className={`p-8 border-b border-gray-100 bg-gray-50/50 ${
                     isPrintOnly ? 'border-none bg-white p-0 mb-4' : ''
-                } print:p-0 print:border-none print:bg-white print:mb-4`}
+                } ${notice?.kind === 'unfinished' ? 'opacity-90 print:opacity-100' : ''} print:p-0 print:border-none print:bg-white print:mb-4`}
             >
                 <div className="flex items-center gap-4 mb-4">
                     <h1 className="text-4xl font-bold text-gray-900 tracking-tight print:text-3xl">
@@ -62,17 +65,34 @@ export function DocumentationContent({ primary, aliases = [], isPrintOnly = fals
                             Deprecated
                         </span>
                     )}
+                    {!isPrintOnly && notice?.kind === 'unfinished' && (
+                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 print:hidden">
+                            {notice.badgeLabel}
+                        </span>
+                    )}
                 </div>
                 {primary.description && (
                     <p className="text-xl text-gray-600 leading-relaxed max-w-3xl print:text-lg">
                         {primary.description}
                     </p>
                 )}
-                {deprecationContent && (
-                    <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 print:border print:border-amber-200">
-                        <div className="font-semibold mb-1">Deprecated</div>
-                        <div className="prose prose-sm prose-amber max-w-none prose-p:my-0 prose-code:text-amber-900 prose-code:bg-amber-100">
-                            <MarkdownContent content={deprecationContent} />
+                {noticeContent && (
+                    <div
+                        className={`mt-4 rounded-xl border px-4 py-3 text-sm print:border ${
+                            notice?.kind === 'unfinished'
+                                ? 'border-slate-200 bg-slate-50 text-slate-700 print:border-slate-200'
+                                : 'border-amber-200 bg-amber-50 text-amber-900 print:border-amber-200'
+                        }`}
+                    >
+                        <div className="font-semibold mb-1">{notice?.detailLabel || 'Deprecated'}</div>
+                        <div
+                            className={`prose prose-sm max-w-none prose-p:my-0 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none ${
+                                notice?.kind === 'unfinished'
+                                    ? 'prose-slate prose-code:text-slate-700 prose-code:bg-slate-100'
+                                    : 'prose-amber prose-code:text-amber-900 prose-code:bg-amber-100'
+                            }`}
+                        >
+                            <MarkdownContent content={noticeContent} />
                         </div>
                     </div>
                 )}

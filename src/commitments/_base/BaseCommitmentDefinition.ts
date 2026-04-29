@@ -49,6 +49,13 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
     }
 
     /**
+     * Whether this commitment is unfinished and not ready to use.
+     */
+    public get isUnfinished(): boolean {
+        return false;
+    }
+
+    /**
      * Human-readable markdown documentation for this commitment, available at runtime.
      * Must be implemented by each concrete commitment.
      */

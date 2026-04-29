@@ -1,6 +1,10 @@
 import type { editor, Position } from 'monaco-editor';
 import { useEffect } from 'react';
 import { getAllCommitmentDefinitions } from '../../commitments/_common/getAllCommitmentDefinitions';
+import {
+    formatCommitmentReplacementText,
+    getCommitmentNoticeMetadata,
+} from '../../commitments/_common/getCommitmentNoticeMetadata';
 import { PROMPTBOOK_SYNTAX_COLORS } from '../../config';
 import { BookEditorMonacoConstants } from './BookEditorMonacoConstants';
 import { BookEditorMonacoTokenization } from './BookEditorMonacoTokenization';
@@ -377,8 +381,13 @@ export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor, theme: Book
 
             const suggestions = commitmentTypes.map((type, index) => {
                 const definition = commitmentDefinitionByType.get(type);
-                const completionDocumentation = definition?.deprecation
-                    ? `Deprecated. ${definition.deprecation.message}`
+                const notice = definition ? getCommitmentNoticeMetadata(definition) : null;
+                const completionDocumentation = notice
+                    ? `${notice.detailLabel}. ${notice.message}${
+                          notice.kind === 'deprecated'
+                              ? formatCommitmentReplacementText(definition?.deprecation?.replacedBy)
+                              : ''
+                      }`
                     : definition?.description || 'Commitment';
 
                 return {
@@ -387,7 +396,7 @@ export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor, theme: Book
                     insertText: type,
                     range,
                     sortText: index.toString().padStart(4, '0'),
-                    detail: definition?.deprecation ? 'Deprecated commitment' : 'Commitment',
+                    detail: notice?.detailLabel || 'Commitment',
                     documentation: {
                         value: completionDocumentation,
                     },

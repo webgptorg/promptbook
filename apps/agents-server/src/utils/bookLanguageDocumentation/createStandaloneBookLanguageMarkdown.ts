@@ -1,6 +1,10 @@
 import { BOOK_LANGUAGE_VERSION, getGroupedCommitmentDefinitions } from '@promptbook-local/core';
 import { spaceTrim } from 'spacetrim';
 import { NotYetImplementedCommitmentDefinition } from '../../../../../src/commitments/_base/NotYetImplementedCommitmentDefinition';
+import {
+    formatCommitmentReplacementText,
+    getCommitmentNoticeMetadata,
+} from '../../../../../src/commitments/_common/getCommitmentNoticeMetadata';
 import type { BookLanguageDocumentationExample } from './BookLanguageDocumentationExample';
 import { bookLanguageCommonPitfalls } from './bookLanguageCommonPitfalls';
 import { bookLanguageDocumentationExamples } from './bookLanguageDocumentationExamples';
@@ -374,20 +378,19 @@ export function createStandaloneBookLanguageMarkdown(): string {
  */
 function renderCommitmentCatalogSection(groupedCommitment: GroupedCommitmentDefinition): string {
     const { primary, aliases } = groupedCommitment;
+    const notice = getCommitmentNoticeMetadata(primary);
     const status =
         primary instanceof NotYetImplementedCommitmentDefinition
             ? 'Placeholder (not fully implemented)'
-            : primary.deprecation
-            ? 'Implemented (deprecated)'
+            : notice
+            ? `Implemented (${notice.detailLabel})`
             : 'Implemented';
     const aliasText = aliases.length === 0 ? 'None' : aliases.map((alias) => `\`${alias}\``).join(', ');
     const documentationWithoutLeadingHeading = removeLeadingTopLevelHeading(primary.documentation);
-    const deprecationText = primary.deprecation
-        ? `- **Deprecation:** ${primary.deprecation.message}${
-              primary.deprecation.replacedBy && primary.deprecation.replacedBy.length > 0
-                  ? ` Preferred replacement: ${primary.deprecation.replacedBy.map((type) => `\`${type}\``).join(', ')}.`
-                  : ''
-          }`
+    const noticeText = notice
+        ? notice.kind === 'deprecated'
+            ? `- **Deprecation:** ${notice.message}${formatCommitmentReplacementText(primary.deprecation?.replacedBy)}`
+            : `- **Low-level commitment:** ${notice.message}`
         : '';
 
     return spaceTrim(
@@ -399,7 +402,7 @@ function renderCommitmentCatalogSection(groupedCommitment: GroupedCommitmentDefi
             - **Semantics:** ${primary.description}
             - **Type schema (\`createTypeRegex\`):** \`${stringifyRegex(primary.createTypeRegex())}\`
             - **Block schema (\`createRegex\`):** \`${stringifyRegex(primary.createRegex())}\`
-            ${deprecationText}
+            ${noticeText}
 
             ${block(documentationWithoutLeadingHeading)}
         `,

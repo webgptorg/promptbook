@@ -62,8 +62,12 @@ describe('GET /api/agents', () => {
         loadLocalOrganizationSearchDatasetMock.mockResolvedValue({
             agents: [
                 {
+                    id: 1,
                     agentName: 'Helper',
+                    agentSource: 'Helper',
+                    folderId: null,
                     permanentId: 'helper-id',
+                    visibility: 'PUBLIC',
                     resolvedAgentProfile: {
                         agentName: 'Helper',
                         agentHash: 'helper-hash',

@@ -10,6 +10,11 @@ type CommitmentDefinitionSortOptions = {
      * When enabled, deprecated commitments are moved behind all non-deprecated commitments.
      */
     readonly isDeprecatedLast?: boolean;
+
+    /**
+     * When enabled, unfinished commitments are moved behind all other commitments.
+     */
+    readonly isUnfinishedLast?: boolean;
 };
 
 /**
@@ -30,6 +35,41 @@ const IMPORTANT_COMMITMENT_TYPE_SORT_ORDER = new Map<string, number>([
 ]);
 
 /**
+ * Sort rank used when unfinished and deprecated commitments should be grouped last.
+ *
+ * @private internal constant of commitment catalog sorting
+ */
+const COMMITMENT_STATUS_SORT_ORDER = {
+    normal: 0,
+    deprecated: 1,
+    unfinished: 2,
+} as const;
+
+/**
+ * Resolves the relative sort rank of one commitment status.
+ *
+ * @param definition - Commitment definition to rank.
+ * @param options - Sorting options.
+ * @returns Relative sort rank for the definition.
+ *
+ * @private internal helper of commitment catalog sorting
+ */
+function resolveCommitmentStatusSortRank(
+    definition: CommitmentDefinition,
+    options: CommitmentDefinitionSortOptions,
+): number {
+    if (options.isUnfinishedLast && definition.isUnfinished) {
+        return COMMITMENT_STATUS_SORT_ORDER.unfinished;
+    }
+
+    if (options.isDeprecatedLast && definition.deprecation) {
+        return COMMITMENT_STATUS_SORT_ORDER.deprecated;
+    }
+
+    return COMMITMENT_STATUS_SORT_ORDER.normal;
+}
+
+/**
  * Sorts commitment definitions so the important ones stay at the top.
  *
  * @param commitmentDefinitions - Definitions to sort.
@@ -48,15 +88,6 @@ export function sortCommitmentDefinitions<TCommitmentDefinition extends Commitme
             index,
         }))
         .sort((left, right) => {
-            if (options.isDeprecatedLast) {
-                const leftIsDeprecated = Boolean(left.definition.deprecation);
-                const rightIsDeprecated = Boolean(right.definition.deprecation);
-
-                if (leftIsDeprecated !== rightIsDeprecated) {
-                    return leftIsDeprecated ? 1 : -1;
-                }
-            }
-
             if (left.definition.isImportant !== right.definition.isImportant) {
                 return left.definition.isImportant ? -1 : 1;
             }
@@ -69,6 +100,13 @@ export function sortCommitmentDefinitions<TCommitmentDefinition extends Commitme
                 if (leftPriority !== rightPriority) {
                     return leftPriority - rightPriority;
                 }
+            }
+
+            const leftStatusSortRank = resolveCommitmentStatusSortRank(left.definition, options);
+            const rightStatusSortRank = resolveCommitmentStatusSortRank(right.definition, options);
+
+            if (leftStatusSortRank !== rightStatusSortRank) {
+                return leftStatusSortRank - rightStatusSortRank;
             }
 
             return left.index - right.index;

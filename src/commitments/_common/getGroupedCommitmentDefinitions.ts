@@ -21,7 +21,10 @@ type GroupedCommitmentDefinition = {
 export function getGroupedCommitmentDefinitions(): ReadonlyArray<GroupedCommitmentDefinition> {
     const groupedCommitments: GroupedCommitmentDefinition[] = [];
 
-    for (const commitment of sortCommitmentDefinitions(COMMITMENT_REGISTRY, { isDeprecatedLast: true })) {
+    for (const commitment of sortCommitmentDefinitions(COMMITMENT_REGISTRY, {
+        isDeprecatedLast: true,
+        isUnfinishedLast: true,
+    })) {
         const lastGroup = groupedCommitments[groupedCommitments.length - 1];
 
         // Check if we should group with the previous item

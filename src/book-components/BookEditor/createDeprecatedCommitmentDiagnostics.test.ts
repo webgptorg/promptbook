@@ -89,6 +89,30 @@ FORMAT Use markdown headings and bullet points.`),
         ]);
     });
 
+    it('creates warning diagnostics for unfinished DELETE commitments', () => {
+        const diagnostics = createDeprecatedCommitmentDiagnostics(
+            validateBook(`Prompt Surgeon
+
+DELETE Remove conflicting instructions
+REMOVE Remove conflicting tone requirements`),
+        );
+
+        expect(diagnostics).toEqual([
+            expect.objectContaining({
+                startLineNumber: 3,
+                message: '`DELETE` is unfinished and not ready to use. Be careful when using it.',
+                severity: 'warning',
+                source: 'Promptbook',
+            }),
+            expect.objectContaining({
+                startLineNumber: 4,
+                message: '`REMOVE` is unfinished and not ready to use. Be careful when using it.',
+                severity: 'warning',
+                source: 'Promptbook',
+            }),
+        ]);
+    });
+
     it('does not create warnings for WRITING SAMPLE, WRITING RULES, or RULE', () => {
         const diagnostics = createDeprecatedCommitmentDiagnostics(
             validateBook(`Copywriter

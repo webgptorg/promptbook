@@ -1,3 +1,9 @@
+-   Flagged the legacy `DELETE` / `CANCEL` / `DISCARD` / `REMOVE` commitment family as unfinished and low-level instead of deprecated:
+
+    -   Added a shared `isUnfinished` commitment flag and surfaced unfinished commitments with the same warning plumbing as deprecated ones, but with a caution message that they are not ready to use.
+    -   Kept the runtime behavior unchanged, while moving unfinished commitments to the bottom of the catalog, fading them in the Agents Server docs, and marking them as low-level in the Book editor and generated documentation.
+    -   Added regression coverage for the new notice metadata, commitment ordering, editor diagnostics, and docs/menu presentation.
+
 -   Deprecated the legacy `TEMPLATE` / `TEMPLATES` and `FORMAT` / `FORMATS` commitment families in favor of `WRITING SAMPLE` and `WRITING RULES`:
 
     -   Added deprecation metadata and migration docs to both commitments so generated Book language documentation and the Book editor now surface them as legacy aliases.

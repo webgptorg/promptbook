@@ -15,5 +15,6 @@ describe('buildDocumentationDropdownItems', () => {
         ]);
         expect(items[6]?.label).toBe('header.documentationAll');
         expect(items[6]?.items?.length).toBeGreaterThan(0);
+        expect(items[6]?.items?.[items[6]!.items!.length - 1]?.href).toBe('/docs/DELETE');
     });
 });

@@ -52,6 +52,14 @@ export type CommitmentDefinition = {
     readonly isImportant: boolean;
 
     /**
+     * Whether this commitment is unfinished and not ready to use.
+     *
+     * Unfinished commitments are surfaced with low-level caution in the UI,
+     * documentation, and editor diagnostics.
+     */
+    readonly isUnfinished: boolean;
+
+    /**
      * Human-readable markdown documentation for this commitment.
      * Should explain what the commitment does and include example usage.
      * This is available at runtime for UIs, docs, and tooling.

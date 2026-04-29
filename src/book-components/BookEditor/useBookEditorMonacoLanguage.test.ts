@@ -174,6 +174,7 @@ describe('ensureBookEditorMonacoLanguage', () => {
         expect(suggestionLabels.indexOf('GOAL')).toBeLessThan(suggestionLabels.indexOf('RULE'));
         expect(suggestionLabels.indexOf('RULE')).toBeLessThan(suggestionLabels.indexOf('KNOWLEDGE'));
         expect(suggestionLabels.indexOf('KNOWLEDGE')).toBeLessThan(suggestionLabels.indexOf('TEAM'));
+        expect(suggestionLabels[suggestionLabels.length - 1]).toBe('REMOVE');
         expect(
             completionResult.suggestions.every(
                 (suggestion, index) => suggestion.sortText === index.toString().padStart(4, '0'),

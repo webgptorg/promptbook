@@ -60,7 +60,7 @@
 
 ---
 
-[ ] !
+[x] ~$0.9946 an hour by OpenAI Codex `gpt-5.4-mini`
 
 [✨♖] Flag `DELETE` commitment as unfinished and not ready to use
 
@@ -155,6 +155,7 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [commitments](src/commitments)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
 
 
 
