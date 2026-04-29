@@ -24,6 +24,7 @@ import { resolveUseEmailSmtpCredential } from '@/src/utils/resolveUseEmailSmtpCr
 import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithubToken';
 import { Agent, computeAgentHash } from '@promptbook-local/core';
 import type { ChatMessage, ChatPrompt, LlmToolDefinition, ToolCall } from '@promptbook-local/types';
+import { resolveTeamInternalAgentAccessToken } from '../../../../../src/commitments/_common/teamInternalAgentAccess';
 import type { ChatPromptResult } from '../../../../../src/execution/PromptResult';
 import { createUserChatMessagePrompt } from './createUserChatMessagePrompt';
 import type { UserChatJobRecord } from './UserChatJobRecord';
@@ -128,6 +129,8 @@ export async function createRunUserChatJobExecutionContext(options: {
         calendarGoogleAccessToken,
         calendarConnections,
         chatAttachments: options.userMessageAttachments,
+        localServerUrl,
+        teamInternalAccessToken: resolveTeamInternalAgentAccessToken(),
     });
     const chatPrompt = createRunUserChatJobPrompt({
         resolvedAgentName,

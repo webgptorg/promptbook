@@ -2,6 +2,7 @@ import { getMetadataMap } from '@/src/database/getMetadata';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
+import { createAgentForbiddenResponse, resolveAgentAccess } from '@/src/utils/agentAccess';
 import { createChatHistoryRecorder } from '@/src/utils/chat/createChatHistoryRecorder';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
 import {
@@ -19,6 +20,7 @@ import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
 import { createInlineKnowledgeSourceUploader } from '@/src/utils/knowledge/createInlineKnowledgeSourceUploader';
 import { Agent, computeAgentHash, createAgentModelRequirements } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
+import { resolveTeamInternalAgentAccessToken } from '../../../../../../../../src/commitments/_common/teamInternalAgentAccess';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 import { respondIfClientVersionIsOutdated } from '../../../../../utils/clientVersionGuard';
@@ -43,7 +45,7 @@ export async function OPTIONS(request: Request) {
         headers: {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Headers': 'Content-Type, X-Promptbook-Team-Agent-Access-Token',
         },
     });
 }
@@ -84,6 +86,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         return versionMismatchResponse;
     }
 
+    const access = await resolveAgentAccess(agentName, { request, allowTeamInternalAccess: true });
+    if (!access.isAllowed && access.visibility !== null) {
+        return createAgentForbiddenResponse();
+    }
+
     // Note: Parse FormData for audio file
     const formData = await request.formData();
     const audioFile = formData.get('audio') as File | null;
@@ -103,10 +110,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const collection = await $provideAgentCollectionForServer();
         const currentUserIdentity = await resolveCurrentUserMemoryIdentity();
         const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
+        const localServerUrl = new URL(request.url).origin;
         const resolvedAgentContext = await resolveServerAgentContext({
             collection,
             agentIdentifier: agentName,
-            localServerUrl: new URL(request.url).origin,
+            localServerUrl,
             fallbackResolver: baseAgentReferenceResolver,
         });
         const agentPermanentId = resolvedAgentContext.parentAgentPermanentId;
@@ -178,6 +186,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             emailFromAddress: useEmailConfiguration.senderEmail,
             calendarGoogleAccessToken,
             calendarConnections,
+            localServerUrl,
+            teamInternalAccessToken: resolveTeamInternalAgentAccessToken(),
         });
         const modelRequirements = await createAgentModelRequirements(agentSource, undefined, undefined, undefined, {
             agentReferenceResolver: resolvedAgentContext.scopedAgentReferenceResolver,

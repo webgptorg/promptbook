@@ -198,6 +198,7 @@ export function Header(props: HeaderProps) {
         closeAgentViewDropdown,
         installPromptEvent,
         isAdmin,
+        isAuthenticated: Boolean(currentUser),
         isInstalled,
         navigateToHref: fallbackNavigateToHref,
         namingPlural: naming.plural,

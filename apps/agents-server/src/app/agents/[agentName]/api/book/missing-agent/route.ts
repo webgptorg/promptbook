@@ -6,7 +6,7 @@ import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $invalidateProvidedAgentReferenceResolverCache } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
-import { isUserAdmin } from '@/src/utils/isUserAdmin';
+import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { buildAgentNameOrIdFilter } from '@/src/utils/agentIdentifier';
 import { createAgentWithDefaultVisibility } from '@/src/utils/createAgentWithDefaultVisibility';
 import { resolveCurrentUserIdentity } from '@/src/utils/currentUserIdentity';
@@ -34,8 +34,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     agentName = decodeURIComponent(agentName);
 
     try {
-        if (!(await isUserAdmin())) {
-            throw new Error('You are not authorized to create agents');
+        if (!(await getCurrentUser())) {
+            return new Response(JSON.stringify({ error: 'Forbidden' }), {
+                status: 403,
+                headers: { 'Content-Type': 'application/json' },
+            });
         }
 
         const payload = (await request.json()) as ReferencedAgentCreationRequest;

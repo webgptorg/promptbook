@@ -1,4 +1,8 @@
 import { NextResponse } from 'next/server';
+import {
+    createTeamInternalAgentAccessHeaders,
+    resolveTeamInternalAgentAccessToken,
+} from '../../../../../../src/commitments/_common/teamInternalAgentAccess';
 
 import {
     resolvePlaceholderImageUrl,
@@ -35,12 +39,20 @@ function buildAgentProfileEndpoint(agentUrl: string): string {
  * @param agentUrl - Remote teammate agent URL.
  * @returns Profile metadata or `null` when fetching fails.
  */
-async function fetchAgentProfile(agentUrl: string): Promise<TeamAgentProfileResponse | null> {
+async function fetchAgentProfile(agentUrl: string, localServerUrl: string): Promise<TeamAgentProfileResponse | null> {
     try {
         const profileUrl = buildAgentProfileEndpoint(agentUrl);
+        const teamAccessHeaders = createTeamInternalAgentAccessHeaders({
+            agentUrl,
+            localServerUrl,
+            accessToken: resolveTeamInternalAgentAccessToken(),
+        });
         const response = await fetch(profileUrl, {
             method: 'GET',
-            headers: { Accept: 'application/json' },
+            headers: {
+                Accept: 'application/json',
+                ...teamAccessHeaders,
+            },
         });
 
         if (!response.ok) {
@@ -86,7 +98,7 @@ export async function GET(request: Request) {
     }
 
     const normalizedUrl = agentUrl.replace(/\/$/, '');
-    const profile = await fetchAgentProfile(normalizedUrl);
+    const profile = await fetchAgentProfile(normalizedUrl, requestUrl.origin);
 
     if (!profile) {
         return NextResponse.json({ url: normalizedUrl, error: 'Failed to load teammate profile' }, { status: 502 });

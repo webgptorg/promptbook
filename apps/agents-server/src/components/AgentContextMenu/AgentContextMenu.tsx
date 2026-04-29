@@ -88,6 +88,10 @@ export type AgentContextMenuBaseProps = {
      */
     readonly isAdmin?: boolean;
     /**
+     * Whether the current user is logged in.
+     */
+    readonly isAuthenticated?: boolean;
+    /**
      * Callback to open the QR code modal.
      */
     readonly onShowQrCode?: () => void;

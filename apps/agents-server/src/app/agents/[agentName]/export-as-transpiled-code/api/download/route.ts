@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { createTranspiledAgentExportZipBuffer } from '../../../../../../utils/transpilers/createTranspiledAgentExportZipBuffer';
 import {
     findBookTranspilerForExport,
@@ -23,6 +24,10 @@ export const runtime = 'nodejs';
  * @returns ZIP download response or JSON error payload.
  */
 export async function GET(request: NextRequest, context: { params: Promise<{ agentName: string }> }) {
+    if (!(await getCurrentUser())) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const agentName = decodeURIComponent((await context.params).agentName);
     const transpilerName = request.nextUrl.searchParams.get('transpilerName');
 

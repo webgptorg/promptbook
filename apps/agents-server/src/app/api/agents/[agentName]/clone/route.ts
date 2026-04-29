@@ -3,6 +3,7 @@ import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForSer
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { createAgentWithDefaultVisibility } from '@/src/utils/createAgentWithDefaultVisibility';
 import { resolveCurrentUserIdentity } from '@/src/utils/currentUserIdentity';
+import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { NotFoundError } from '@promptbook-local/core';
 import { TODO_any } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
@@ -55,9 +56,13 @@ async function resolveSourceAgentFolderId(agentPermanentId: string_agent_permane
 export async function POST(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     const { agentName } = await params;
     const collection = await $provideAgentCollectionForServer();
-    const currentUserIdentity = await resolveCurrentUserIdentity();
 
     try {
+        if (!(await getCurrentUser())) {
+            return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
+        }
+
+        const currentUserIdentity = await resolveCurrentUserIdentity();
         const requestBody = (await request.json().catch(() => ({}))) as { name?: unknown };
         const providedName = typeof requestBody.name === 'string' ? requestBody.name.trim() : '';
         const hasCustomName = Boolean(providedName);

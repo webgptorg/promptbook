@@ -5,6 +5,7 @@ import {
     resolveBookScopedAgentContext,
 } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
 import { loadFederatedAgentImportConfiguration } from '@/src/utils/federatedAgentImportConfiguration';
+import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { resolveInheritedAgentSource } from '@/src/utils/resolveInheritedAgentSource';
 import { padBook, validateBook } from '@promptbook-local/core';
@@ -55,6 +56,13 @@ function hasMatchingEtag(request: Request, etag: string): boolean {
  */
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     try {
+        if (!(await getCurrentUser())) {
+            return new Response(JSON.stringify({ error: 'Forbidden' }), {
+                status: 403,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+
         let { agentName } = await params;
         agentName = decodeURIComponent(agentName);
 
@@ -144,6 +152,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ agen
     agentName = decodeURIComponent(agentName);
 
     try {
+        if (!(await getCurrentUser())) {
+            return new Response(JSON.stringify({ error: 'Forbidden' }), {
+                status: 403,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+
         const collection = await $provideAgentCollectionForServer();
         if (parseBookScopedAgentIdentifier(agentName)) {
             throw new Error('Embedded in-book agents cannot be updated directly. Edit the parent agent book instead.');

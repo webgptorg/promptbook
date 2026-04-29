@@ -2,6 +2,7 @@ import type { ChatMessage } from '@promptbook-local/components';
 import { normalizeChatAttachments } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { parseBookScopedAgentIdentifier } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
+import { resolveAgentAccess, PRIVATE_AGENT_FORBIDDEN_MESSAGE } from '@/src/utils/agentAccess';
 import { resolveChatMessageContentForApiRequest } from '@/src/utils/chat/validateChatMessageContent';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
@@ -40,7 +41,7 @@ export async function OPTIONS(request: Request) {
         headers: {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Headers': 'Content-Type, X-Promptbook-Team-Agent-Access-Token',
         },
     });
 }
@@ -57,6 +58,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     const versionMismatchResponse = respondIfClientVersionIsOutdated(request, 'stream');
     if (versionMismatchResponse) {
         return versionMismatchResponse;
+    }
+
+    const access = await resolveAgentAccess(deletedCheckAgentIdentifier, {
+        request,
+        allowTeamInternalAccess: true,
+    });
+    if (!access.isAllowed && access.visibility !== null) {
+        return createAgentChatApiErrorResponse(PRIVATE_AGENT_FORBIDDEN_MESSAGE, 403, 'forbidden');
     }
 
     // Check if agent is deleted

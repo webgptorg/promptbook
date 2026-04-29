@@ -1,6 +1,8 @@
 'use server';
 
 import { $provideServer } from '@/src/tools/$provideServer';
+import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
+import { resolveAgentAccess } from '@/src/utils/agentAccess';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { isPublicAgentVisibility } from '@/src/utils/agentVisibility';
 import { getServerVisibility } from '@/src/utils/getServerVisibility';
@@ -69,6 +71,7 @@ type ResolvedAgentPageRoute =
 type AgentPageData = {
     requestHeaders: Awaited<ReturnType<typeof headers>>;
     isAdmin: boolean;
+    isAuthenticated: boolean;
     historyIdentityAvailable: boolean;
     publicUrl: Awaited<ReturnType<typeof $provideServer>>['publicUrl'];
     isFileAttachmentsEnabled: boolean;
@@ -90,6 +93,7 @@ type AgentPageViewModel = {
     agentEmail: string;
     agentName: string;
     isAdmin: boolean;
+    isAuthenticated: boolean;
     isHeadless: boolean;
     folderContext: AgentPageData['folderContext'];
     actions: React.ReactNode;
@@ -352,7 +356,7 @@ function redirectProfileRequestsToChatPage(canonicalAgentId: string, currentSear
  * @param canonicalAgentId - Canonical permanent identifier of the local agent.
  * @returns Loaded profile page dependencies.
  */
-async function loadAgentPageData(canonicalAgentId: string): Promise<AgentPageData> {
+async function loadAgentPageData(canonicalAgentId: string, isAuthenticated: boolean): Promise<AgentPageData> {
     const requestHeadersPromise = headers();
     const isAdminPromise = isUserAdmin();
     const historyIdentityAvailablePromise = ensureChatHistoryIdentity();
@@ -360,7 +364,7 @@ async function loadAgentPageData(canonicalAgentId: string): Promise<AgentPageDat
     const serverVisibilityPromise = getServerVisibility();
     const chatConfigurationPromise = loadChatConfiguration();
     const agentNamingPromise = getAgentNaming();
-    const folderContextPromise = isAdminPromise.then((isAdmin) => getAgentFolderContext(canonicalAgentId, isAdmin));
+    const folderContextPromise = getAgentFolderContext(canonicalAgentId);
     const agentProfilePromise = getAgentProfileOrNotFound(canonicalAgentId);
     const isDeletedPromise = isAgentDeleted(canonicalAgentId);
 
@@ -476,9 +480,10 @@ function createAgentPageViewModel(
         agentEmail: `${route.canonicalAgentId}@${publicUrl.hostname}`,
         agentName: route.canonicalAgentId,
         isAdmin: data.isAdmin,
+        isAuthenticated: data.isAuthenticated,
         isHeadless: route.isHeadless,
         folderContext: data.folderContext,
-        actions: createAgentPageActions(agentProfile, agentNaming, route.canonicalAgentId),
+        actions: createAgentPageActions(agentProfile, agentNaming, route.canonicalAgentId, data.isAuthenticated),
         isDeleted,
         fullname,
         inputPlaceholder,
@@ -503,7 +508,12 @@ function createAgentPageActions(
     agentProfile: AgentPageData['agentProfile'],
     agentNaming: AgentPageData['agentNaming'],
     canonicalAgentId: string,
+    isAuthenticated: boolean,
 ): React.ReactNode {
+    if (!isAuthenticated) {
+        return null;
+    }
+
     return (
         <>
             {getAgentLinks(agentProfile.permanentId || canonicalAgentId, (text) => formatAgentNamingText(text, agentNaming))
@@ -565,6 +575,7 @@ function renderAgentProfilePage(viewModel: AgentPageViewModel) {
                 agentEmail={viewModel.agentEmail}
                 agentName={viewModel.agentName}
                 isAdmin={viewModel.isAdmin}
+                isAuthenticated={viewModel.isAuthenticated}
                 isHeadless={viewModel.isHeadless}
                 folderContext={viewModel.folderContext}
                 actions={viewModel.actions}
@@ -601,7 +612,12 @@ export default async function AgentPage(props: AgentPageProps) {
         return renderPseudoAgentProfilePage(route);
     }
 
-    const pageData = await loadAgentPageData(route.canonicalAgentId);
+    const access = await resolveAgentAccess(route.canonicalAgentId);
+    if (!access.isAllowed) {
+        return <ForbiddenPage />;
+    }
+
+    const pageData = await loadAgentPageData(route.canonicalAgentId, Boolean(access.currentUser));
     return renderAgentProfilePage(createAgentPageViewModel(route, pageData));
 }
 

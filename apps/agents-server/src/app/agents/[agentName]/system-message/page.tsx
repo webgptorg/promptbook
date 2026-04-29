@@ -1,9 +1,11 @@
 'use server';
 
+import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { consumeAgentReferenceResolutionIssues } from '@/src/utils/agentReferenceResolver/AgentReferenceResolutionIssue';
+import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { createInlineKnowledgeSourceUploader } from '@/src/utils/knowledge/createInlineKnowledgeSourceUploader';
 import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
 import { CodePreview } from '@common/components/CodePreview/CodePreview';
@@ -21,6 +23,10 @@ import { SystemMessageBookEditor } from './SystemMessageBookEditor';
  */
 export default async function AgentSystemMessagePage({ params }: { params: Promise<{ agentName: string }> }) {
     $sideEffect(headers());
+
+    if (!(await getCurrentUser())) {
+        return <ForbiddenPage />;
+    }
 
     const { publicUrl } = await $provideServer();
     const agentName = await getAgentName(params);

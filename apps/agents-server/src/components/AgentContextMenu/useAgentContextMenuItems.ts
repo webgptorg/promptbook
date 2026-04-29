@@ -202,6 +202,7 @@ function createWorkspaceMenuItems(
     editBookLink: AgentContextMenuNavigationLink,
     folderContext: AgentContextMenuBaseProps['folderContext'],
     formatText: FormatAgentContextMenuText,
+    isAuthenticated: boolean,
 ): ContextMenuItem[] {
     const menuItems: ContextMenuItem[] = [];
 
@@ -223,23 +224,28 @@ function createWorkspaceMenuItems(
         },
         {
             type: 'link',
-            href: `/agents/${encodeURIComponent(agentIdentifier)}/book+chat`,
-            icon: SquareSplitHorizontalIcon,
-            label: formatText('Edit Book & Chat'),
-        },
-        {
-            type: 'link',
             href: `/agents/${encodeURIComponent(agentIdentifier)}/textarea`,
             icon: MessageSquareIcon,
             label: formatText('Textarea Entry'),
         },
-        {
-            type: 'link',
-            href: editBookLink.href,
-            icon: editBookLink.icon,
-            label: editBookLink.title,
-        },
     );
+
+    if (isAuthenticated) {
+        menuItems.push(
+            {
+                type: 'link',
+                href: `/agents/${encodeURIComponent(agentIdentifier)}/book+chat`,
+                icon: SquareSplitHorizontalIcon,
+                label: formatText('Edit Book & Chat'),
+            },
+            {
+                type: 'link',
+                href: editBookLink.href,
+                icon: editBookLink.icon,
+                label: editBookLink.title,
+            },
+        );
+    }
 
     return menuItems;
 }
@@ -258,7 +264,12 @@ function createManagementMenuItems(
     handleCloneAgent: () => Promise<void>,
     handleDeleteAgent: () => Promise<void>,
     handleRenameAgent: () => Promise<void>,
+    isAuthenticated: boolean,
 ): ContextMenuItem[] {
+    if (!isAuthenticated) {
+        return [];
+    }
+
     return [
         {
             type: 'action',
@@ -282,13 +293,13 @@ function createManagementMenuItems(
 }
 
 /**
- * Creates the admin-only menu section.
+ * Creates the logged-in-only menu section.
  *
  * @param agentName - Current routed agent name.
  * @param formatText - Agent-aware text formatter.
  * @param handleRequestVisibilityUpdate - Visibility dialog action.
  * @param integrationLink - Generated integration link metadata.
- * @param isAdmin - Whether the current user is an admin.
+ * @param isAuthenticated - Whether the current user is logged in.
  * @param shouldShowVisibilityAction - Whether visibility editing is available.
  * @param usageAnalyticsHref - Usage analytics URL for the current agent.
  * @returns Admin-only menu items.
@@ -298,15 +309,15 @@ function createAdminMenuItems(
     formatText: FormatAgentContextMenuText,
     handleRequestVisibilityUpdate: () => Promise<void>,
     integrationLink: AgentContextMenuNavigationLink,
-    isAdmin: boolean,
+    isAuthenticated: boolean,
     shouldShowVisibilityAction: boolean,
     usageAnalyticsHref: string,
 ): ContextMenuItem[] {
-    if (!isAdmin) {
+    if (!isAuthenticated) {
         return [];
     }
 
-    const menuItems: ContextMenuItem[] = [createDividerItem()];
+    const menuItems: ContextMenuItem[] = [];
 
     if (shouldShowVisibilityAction) {
         menuItems.push(
@@ -358,7 +369,6 @@ function createAdminMenuItems(
             icon: DownloadIcon,
             label: formatText('Export Agent'),
         },
-        createDividerItem(),
     );
 
     return menuItems;
@@ -380,6 +390,7 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
         permanentId,
         folderContext,
         isAdmin = false,
+        isAuthenticated: isAuthenticatedProp,
         onShowQrCode,
         installPromptEvent,
         isInstalled = false,
@@ -391,6 +402,7 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
     const { formatText } = useAgentNaming();
     const { copyFeedback, handleCopy } = useAgentContextMenuCopyFeedback();
     const agentIdentifier = permanentId || agentName;
+    const isAuthenticated = isAuthenticatedProp ?? isAdmin;
     const {
         editBookLink,
         handleCloneAgent,
@@ -403,6 +415,30 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
         shouldShowVisibilityAction,
         usageAnalyticsHref,
     } = useAgentContextMenuActions(props, formatText);
+    const workspaceMenuItems = createWorkspaceMenuItems(
+        agentIdentifier,
+        editBookLink,
+        folderContext,
+        formatText,
+        isAuthenticated,
+    );
+    const managementMenuItems = createManagementMenuItems(
+        formatText,
+        handleCloneAgent,
+        handleDeleteAgent,
+        handleRenameAgent,
+        isAuthenticated,
+    );
+    const authenticatedMenuItems = createAdminMenuItems(
+        agentName,
+        formatText,
+        handleRequestVisibilityUpdate,
+        integrationLink,
+        isAuthenticated,
+        shouldShowVisibilityAction,
+        usageAnalyticsHref,
+    );
+    const hasAuthenticatedActions = managementMenuItems.length > 0 || authenticatedMenuItems.length > 0;
 
     return [
         ...createDirectoryListingMenuItems(agentIdentifier, formatText, fromDirectoryListing),
@@ -416,17 +452,9 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
         ),
         ...createSharingMenuItems(agentEmail, agentUrl, copyFeedback, formatText, handleCopy, onShowQrCode),
         createDividerItem(),
-        ...createWorkspaceMenuItems(agentIdentifier, editBookLink, folderContext, formatText),
-        createDividerItem(),
-        ...createManagementMenuItems(formatText, handleCloneAgent, handleDeleteAgent, handleRenameAgent),
-        ...createAdminMenuItems(
-            agentName,
-            formatText,
-            handleRequestVisibilityUpdate,
-            integrationLink,
-            isAdmin,
-            shouldShowVisibilityAction,
-            usageAnalyticsHref,
-        ),
+        ...workspaceMenuItems,
+        ...(hasAuthenticatedActions ? [createDividerItem()] : []),
+        ...managementMenuItems,
+        ...authenticatedMenuItems,
     ];
 }

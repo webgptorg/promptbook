@@ -28,6 +28,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         if (scopeResult.error === 'UNAUTHORIZED') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
+        if (scopeResult.error === 'FORBIDDEN') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
         return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
     }
 
@@ -106,6 +109,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     if (!scopeResult.ok) {
         if (scopeResult.error === 'UNAUTHORIZED') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+        if (scopeResult.error === 'FORBIDDEN') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
         return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
     }

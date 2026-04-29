@@ -22,6 +22,10 @@ import {
     TOOL_RUNTIME_CONTEXT_PARAMETER,
     type ToolRuntimeContext,
 } from '../_common/toolRuntimeContext';
+import {
+    createTeamInternalAgentAccessHeaders,
+    TEAM_INTERNAL_AGENT_ACCESS_HEADER,
+} from '../_common/teamInternalAgentAccess';
 
 /**
  * Tool registration entry for a teammate.
@@ -523,22 +527,28 @@ function createPseudoVoidTeamToolResult(entry: TeamToolEntry, request: string): 
 /**
  * Resolves a RemoteAgent for the given teammate URL, caching the connection.
  */
-async function getRemoteTeammateAgent(agentUrl: string): Promise<RemoteAgent> {
-    const cached: Promise<RemoteAgent> | undefined = remoteAgentsByUrl.get(agentUrl);
+async function getRemoteTeammateAgent(agentUrl: string, runtimeContext: ToolRuntimeContext): Promise<RemoteAgent> {
+    const requestHeaders = createTeamInternalAgentAccessHeaders({
+        agentUrl,
+        localServerUrl: runtimeContext.agentsServer?.localServerUrl,
+        accessToken: runtimeContext.agentsServer?.teamInternalAccessToken,
+    });
+    const cacheKey = `${agentUrl}|${requestHeaders[TEAM_INTERNAL_AGENT_ACCESS_HEADER] || ''}`;
+    const cached: Promise<RemoteAgent> | undefined = remoteAgentsByUrl.get(cacheKey);
     if (cached) {
         return cached;
     }
 
     const connection: Promise<RemoteAgent> = (async (): Promise<RemoteAgent> => {
         const { RemoteAgent } = await import('../../llm-providers/agent/RemoteAgent');
-        return RemoteAgent.connect({ agentUrl });
+        return RemoteAgent.connect({ agentUrl, requestHeaders });
     })();
-    remoteAgentsByUrl.set(agentUrl, connection);
+    remoteAgentsByUrl.set(cacheKey, connection);
 
     try {
         return await connection;
     } catch (error) {
-        remoteAgentsByUrl.delete(agentUrl);
+        remoteAgentsByUrl.delete(cacheKey);
         throw error;
     }
 }
@@ -575,11 +585,9 @@ function createTeamToolFunction(entry: TeamToolEntry): ToolFunction {
         let toolCalls: ReadonlyArray<ToolCall> | undefined;
 
         try {
-            const remoteAgent: RemoteAgent = await getRemoteTeammateAgent(entry.teammate.url);
-            const prompt: ChatPrompt = buildTeammatePrompt(
-                request,
-                createTeamConversationRuntimeContext(args[TOOL_RUNTIME_CONTEXT_ARGUMENT]),
-            );
+            const runtimeContext = createTeamConversationRuntimeContext(args[TOOL_RUNTIME_CONTEXT_ARGUMENT]);
+            const remoteAgent: RemoteAgent = await getRemoteTeammateAgent(entry.teammate.url, runtimeContext);
+            const prompt: ChatPrompt = buildTeammatePrompt(request, runtimeContext);
             const teammateResult: PromptResult = await remoteAgent.callChatModel(prompt);
             response = teammateResult.content || '';
             toolCalls =

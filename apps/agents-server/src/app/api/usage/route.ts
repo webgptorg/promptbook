@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { isUserAdmin } from '../../../utils/isUserAdmin';
+import { getCurrentUser } from '../../../utils/getCurrentUser';
 import { getUsageAnalyticsResponse } from '../../../utils/usageAnalytics/getUsageAnalyticsResponse';
 
 /**
  * Lists aggregated usage analytics for admins.
  */
 export async function GET(request: NextRequest) {
-    if (!(await isUserAdmin())) {
+    if (!(await getCurrentUser())) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

@@ -10,6 +10,7 @@ import { isAgentVisibility, type AgentVisibility } from '@/src/utils/agentVisibi
 import { TODO_any } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
 import { buildAgentNameOrIdFilter } from '@/src/utils/agentIdentifier';
+import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
 
 /**
@@ -19,6 +20,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
     const { agentName } = await params;
 
     try {
+        if (!(await getCurrentUser())) {
+            return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
+        }
+
         const body = (await request.json()) as { visibility?: AgentVisibility; name?: string };
 
         if (typeof body.name === 'string') {
@@ -86,6 +91,10 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ a
     const collection = await $provideAgentCollectionForServer();
 
     try {
+        if (!(await getCurrentUser())) {
+            return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
+        }
+
         const agentId = await collection.getAgentPermanentId(agentName);
         await collection.deleteAgent(agentId);
         return NextResponse.json({ success: true });

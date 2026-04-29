@@ -42,6 +42,7 @@ type UseHeaderAgentMenusOptions = {
     readonly closeAgentViewDropdown: () => void;
     readonly installPromptEvent: AgentContextMenuBaseProps['installPromptEvent'];
     readonly isAdmin: boolean;
+    readonly isAuthenticated: boolean;
     readonly isInstalled: boolean;
     readonly navigateToHref: (href: string) => void;
     readonly namingPlural: string;
@@ -157,6 +158,7 @@ export function useHeaderAgentMenus({
     closeAgentViewDropdown,
     installPromptEvent,
     isAdmin,
+    isAuthenticated,
     isInstalled,
     navigateToHref,
     namingPlural,
@@ -184,6 +186,7 @@ export function useHeaderAgentMenus({
         agentEmail: activeAgentEmail,
         folderContext: activeAgentFolderContext,
         isAdmin,
+        isAuthenticated,
         onShowQrCode: handleShowAgentQrCode,
         onAgentRenamed,
         onRequestClose: closeAgentViewDropdown,

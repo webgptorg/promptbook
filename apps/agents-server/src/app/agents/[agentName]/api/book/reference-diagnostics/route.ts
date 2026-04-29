@@ -3,6 +3,7 @@ import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentColle
 import { createBookScopedAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
 import { createUnresolvedAgentReferenceDiagnostics } from '@/src/utils/agentReferenceResolver/createUnresolvedAgentReferenceDiagnostics';
 import { createAgentNameCollisionDiagnostics } from '@/src/utils/agentReferenceResolver/createAgentNameCollisionDiagnostics';
+import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { string_book } from '@promptbook-local/types';
 import { serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../../src/errors/assertsError';
@@ -18,6 +19,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     agentName = decodeURIComponent(agentName);
 
     try {
+        if (!(await getCurrentUser())) {
+            return new Response(JSON.stringify({ error: 'Forbidden' }), {
+                status: 403,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+
         const forceRefresh = isTruthySearchParam(new URL(request.url).searchParams.get('forceRefresh'));
         const agentSource = (await request.text()) as string_book;
         const collection = await $provideAgentCollectionForServer();

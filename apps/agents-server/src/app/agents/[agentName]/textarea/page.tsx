@@ -1,7 +1,9 @@
 'use server';
 
+import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import { notFound, redirect } from 'next/navigation';
 import { $provideServer } from '@/src/tools/$provideServer';
+import { resolveAgentAccess } from '@/src/utils/agentAccess';
 import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { formatAgentNamingText } from '../../../../utils/agentNaming';
 import { resolveAgentChatInputPlaceholder } from '../../../../utils/agentChatInputPlaceholder';
@@ -44,6 +46,11 @@ export default async function AgentTextareaPage({ params }: { params: Promise<{ 
     const canonicalAgentId = routeTarget.canonicalAgentId;
     if (agentName !== canonicalAgentId) {
         redirect(buildCanonicalAgentTextareaPath(canonicalAgentId));
+    }
+
+    const access = await resolveAgentAccess(canonicalAgentId);
+    if (!access.isAllowed) {
+        return <ForbiddenPage />;
     }
 
     const [{ publicUrl }, agentProfile, agentNaming] = await Promise.all([

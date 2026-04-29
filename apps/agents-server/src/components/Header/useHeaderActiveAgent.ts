@@ -232,8 +232,11 @@ export function useHeaderActiveAgent({
         [activeAgent, activeAgentNavigationId],
     );
     const activeAgentFolderContext = useMemo(
-        () => buildAgentFolderContext(activeAgentMenuAgent.folderId, agentFolderById),
-        [activeAgentMenuAgent.folderId, agentFolderById],
+        () =>
+            activeAgentMenuAgent.visibility === 'PUBLIC'
+                ? buildAgentFolderContext(activeAgentMenuAgent.folderId, agentFolderById)
+                : null,
+        [activeAgentMenuAgent.folderId, activeAgentMenuAgent.visibility, agentFolderById],
     );
     const { origin, hostname } = readWindowLocationState();
     const activeAgentAvatarUrl = useMemo(

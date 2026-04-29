@@ -1,5 +1,5 @@
 import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
-import { isUserAdmin } from '../../../utils/isUserAdmin';
+import { getCurrentUser } from '../../../utils/getCurrentUser';
 import { ChatFeedbackClient } from './ChatFeedbackClient';
 
 /**
@@ -15,9 +15,9 @@ type AdminChatFeedbackPageProps = {
  * Handles admin chat feedback page.
  */
 export default async function AdminChatFeedbackPage({ searchParams }: AdminChatFeedbackPageProps) {
-    const isAdmin = await isUserAdmin();
+    const currentUser = await getCurrentUser();
 
-    if (!isAdmin) {
+    if (!currentUser) {
         return <ForbiddenPage />;
     }
 

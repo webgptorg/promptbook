@@ -6,6 +6,7 @@ import {
     resolveCachedServerAgentContext,
     resolveCachedServerAgentModelRequirements,
 } from '@/src/utils/cachedServerAgentRuntime';
+import { getCurrentUser } from '@/src/utils/getCurrentUser';
 
 /**
  * Handles get.
@@ -15,6 +16,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
     agentName = decodeURIComponent(agentName);
 
     try {
+        if (!(await getCurrentUser())) {
+            return new Response(JSON.stringify({ error: 'Forbidden' }), {
+                status: 403,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+
         const [collection, baseAgentReferenceResolver] = await Promise.all([
             $provideAgentCollectionForServer(),
             $provideAgentReferenceResolver(),

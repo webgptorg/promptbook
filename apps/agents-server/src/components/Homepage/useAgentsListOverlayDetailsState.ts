@@ -60,7 +60,9 @@ export function useAgentsListOverlayDetailsState({
             : findFolderById(folders, overlayState.folderContextMenuState.folderId) || null;
     const contextMenuIdentifier = contextMenuAgent ? getAgentIdentifier(contextMenuAgent) : '';
     const contextMenuFolderContext =
-        contextMenuAgent === null ? null : buildAgentFolderContext(contextMenuAgent.folderId ?? null, folderById);
+        contextMenuAgent === null || contextMenuAgent.visibility !== 'PUBLIC'
+            ? null
+            : buildAgentFolderContext(contextMenuAgent.folderId ?? null, folderById);
     const contextMenuAgentUrl = contextMenuAgent ? buildAgentUrl(contextMenuIdentifier) : '';
     const contextMenuAgentEmail = contextMenuAgent ? buildAgentEmail(contextMenuIdentifier) : '';
     const qrCodeAgent = overlayState.qrCodeAgent;

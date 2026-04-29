@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import {
     findBookTranspilerForExport,
     listBookTranspilersForExport,
@@ -9,6 +10,10 @@ import {
  * Lists transpilers available on the export-as-transpiled-code page.
  */
 export async function GET() {
+    if (!(await getCurrentUser())) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     try {
         return NextResponse.json({ transpilers: listBookTranspilersForExport() });
     } catch (error) {
@@ -21,6 +26,10 @@ export async function GET() {
  * Generates transpiled code for the selected agent and transpiler.
  */
 export async function POST(request: NextRequest, context: { params: Promise<{ agentName: string }> }) {
+    if (!(await getCurrentUser())) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const agentName = decodeURIComponent((await context.params).agentName);
 
     try {

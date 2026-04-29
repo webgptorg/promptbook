@@ -2,7 +2,7 @@
 
 import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { isUserAdmin } from '@/src/utils/isUserAdmin';
+import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { headers } from 'next/headers';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { isAgentDeleted } from '../_utils';
@@ -28,8 +28,7 @@ export default async function AgentBookPage({ params }: { params: Promise<{ agen
         );
     }
 
-    if (!(await isUserAdmin())) {
-        /* <- TODO: [👹] Here should be user permissions */
+    if (!(await getCurrentUser())) {
         return <ForbiddenPage />;
     }
 

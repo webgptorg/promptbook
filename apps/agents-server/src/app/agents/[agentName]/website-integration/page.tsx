@@ -1,7 +1,9 @@
 'use server';
 
+import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { formatAgentNamingText } from '@/src/utils/agentNaming';
+import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { getAgentNaming } from '@/src/utils/getAgentNaming';
 import { PromptbookAgentIntegration } from '@promptbook-local/components';
 import { headers } from 'next/headers';
@@ -36,6 +38,11 @@ export default async function WebsiteIntegrationAgentPage({ params }: { params: 
     $sideEffect(headers());
     let { agentName } = await params;
     agentName = decodeURIComponent(agentName);
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+        return <ForbiddenPage />;
+    }
+
     const agentNaming = await getAgentNaming();
     const agentProfile = await getAgentProfile(agentName);
     const { meta } = agentProfile;

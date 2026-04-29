@@ -138,6 +138,7 @@ export function AgentsList(props: AgentsListProps) {
                 folderEditDialogMode={state.folderEditDialogMode}
                 isFolderEditSubmitting={state.isFolderEditSubmitting}
                 isAdmin={isAdmin}
+                isAuthenticated={canOrganize}
                 onAgentRenamed={state.handleContextMenuAgentRenamed}
                 onCloseContextMenu={state.handleCloseContextMenu}
                 onCloseFolderContextMenu={state.handleCloseFolderContextMenu}

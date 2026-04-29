@@ -117,6 +117,10 @@ export type ToolRuntimeContext = {
             scopes?: string[];
         }>;
     };
+    agentsServer?: {
+        localServerUrl?: string;
+        teamInternalAccessToken?: string;
+    };
     spawn?: {
         depth?: number;
         parentRunId?: string;

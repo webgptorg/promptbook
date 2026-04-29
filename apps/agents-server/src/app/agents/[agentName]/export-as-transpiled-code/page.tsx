@@ -1,9 +1,11 @@
 'use server';
 
 import type { string_book } from '@promptbook-local/types';
+import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { $provideServer } from '@/src/tools/$provideServer';
+import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
 import {
     getTranspiledAgentExportWarnings,
@@ -15,6 +17,10 @@ import { AgentCodePageClient } from './AgentCodePageClient';
  * Handles agent code page.
  */
 export default async function AgentCodePage({ params }: { params: Promise<{ agentName: string }> }) {
+    if (!(await getCurrentUser())) {
+        return <ForbiddenPage />;
+    }
+
     const { agentName: rawAgentName } = await params;
     const agentName = decodeURIComponent(rawAgentName);
     const { publicUrl } = await $provideServer();

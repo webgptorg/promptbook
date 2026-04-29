@@ -5,6 +5,7 @@ import {
 } from '@/src/constants/defaultAgentAvatarVisual';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
+import { createAgentForbiddenResponse, resolveAgentAccess } from '@/src/utils/agentAccess';
 import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
 import { computeAgentHash } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
@@ -22,7 +23,7 @@ export async function OPTIONS(request: Request) {
         headers: {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Headers': 'Content-Type, X-Promptbook-Team-Agent-Access-Token',
         },
     });
 }
@@ -31,11 +32,15 @@ export async function OPTIONS(request: Request) {
  * Handles get.
  */
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
-    keepUnused(request /* <- Note: We dont need `request` parameter */);
     let { agentName } = await params;
     agentName = decodeURIComponent(agentName);
 
     try {
+        const access = await resolveAgentAccess(agentName, { request, allowTeamInternalAccess: true });
+        if (!access.isAllowed && access.visibility !== null) {
+            return createAgentForbiddenResponse();
+        }
+
         const collection = await $provideAgentCollectionForServer();
         const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
         const resolvedAgentContext = await resolveServerAgentContext({

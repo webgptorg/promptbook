@@ -1,5 +1,7 @@
+import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { formatAgentNamingText } from '@/src/utils/agentNaming';
+import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { getAgentNaming } from '@/src/utils/getAgentNaming';
 import { HistoryIcon } from 'lucide-react';
 import { RestoreVersionButton } from './RestoreVersionButton';
@@ -20,6 +22,10 @@ export async function generateMetadata() {
  * Handles agent history page.
  */
 export default async function AgentHistoryPage({ params }: { params: Promise<{ agentName: string }> }) {
+    if (!(await getCurrentUser())) {
+        return <ForbiddenPage />;
+    }
+
     const { agentName } = await params;
     const collection = await $provideAgentCollectionForServer();
     const agentId = await collection.getAgentPermanentId(agentName);

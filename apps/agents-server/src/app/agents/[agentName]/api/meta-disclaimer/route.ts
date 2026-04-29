@@ -32,6 +32,13 @@ async function resolveMetaDisclaimerRouteContext(
             };
         }
 
+        if (scopeResult.error === 'FORBIDDEN') {
+            return {
+                ok: false,
+                response: NextResponse.json({ error: 'Forbidden' }, { status: 403 }),
+            };
+        }
+
         return {
             ok: false,
             response: NextResponse.json({ error: 'Agent not found.' }, { status: 404 }),

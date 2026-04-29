@@ -1,4 +1,5 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { canAccessAgentVisibility, resolveAgentVisibility } from '@/src/utils/agentAccess';
 import { resolveCurrentUserIdentity } from '@/src/utils/currentUserIdentity';
 import { ensureUserChatTimeoutWorkerBootstrapped } from '@/src/utils/userChatTimeout/ensureUserChatTimeoutWorkerBootstrapped';
 
@@ -14,7 +15,7 @@ export type ResolvedUserChatScope = {
 /**
  * Error variants while resolving user-chat scope.
  */
-export type UserChatScopeResolutionError = 'UNAUTHORIZED' | 'AGENT_NOT_FOUND';
+export type UserChatScopeResolutionError = 'UNAUTHORIZED' | 'FORBIDDEN' | 'AGENT_NOT_FOUND';
 
 /**
  * Resolves current authenticated user and canonical agent permanent id.
@@ -32,6 +33,15 @@ export async function resolveUserChatScope(
     try {
         const collection = await $provideAgentCollectionForServer();
         const agentPermanentId = await collection.getAgentPermanentId(agentIdentifier);
+        const visibility = await resolveAgentVisibility(agentPermanentId);
+        const isAllowed = canAccessAgentVisibility({
+            visibility,
+            currentUser: currentUserIdentity.sessionUser,
+        });
+
+        if (!isAllowed) {
+            return { ok: false, error: 'FORBIDDEN' };
+        }
 
         return {
             ok: true,

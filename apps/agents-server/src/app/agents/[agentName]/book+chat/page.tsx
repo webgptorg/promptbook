@@ -3,7 +3,7 @@
 import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import { loadChatConfiguration } from '@/src/utils/chatConfiguration';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { isUserAdmin } from '@/src/utils/isUserAdmin';
+import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { getThinkingMessages } from '@/src/utils/thinkingMessages';
 import { headers } from 'next/headers';
 import { resolveSpeechRecognitionLanguage } from '../../../../../../../src/utils/language/getBrowserPreferredSpeechRecognitionLanguage';
@@ -32,8 +32,7 @@ export default async function AgentBookAndChatPage({ params }: { params: Promise
         );
     }
 
-    if (!(await isUserAdmin())) {
-        /* <- TODO: [👹] Here should be user permissions */
+    if (!(await getCurrentUser())) {
         return <ForbiddenPage />;
     }
 

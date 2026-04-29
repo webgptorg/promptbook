@@ -3,6 +3,7 @@ import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRunt
 import type { ChatMessage, ChatPrompt } from '@promptbook-local/types';
 import { $getCurrentDate } from '@promptbook-local/utils';
 import type { NextRequest } from 'next/server';
+import { resolveTeamInternalAgentAccessToken } from '../../../../../src/commitments/_common/teamInternalAgentAccess';
 import { persistOpenAiCompatibilityFrozenChat } from './persistOpenAiCompatibilityFrozenChat';
 import type { HandleChatCompletionParsedRequest } from './parseHandleChatCompletionRequest';
 import type { HandleChatCompletionRuntime } from './resolveHandleChatCompletionRuntime';
@@ -66,6 +67,8 @@ export async function createHandleChatCompletionPromptContext(options: {
         emailFromAddress: runtime.useEmailConfiguration.senderEmail,
         calendarGoogleAccessToken: runtime.calendarGoogleAccessToken,
         calendarConnections: runtime.calendarConnections,
+        localServerUrl: runtime.localServerUrl,
+        teamInternalAccessToken: resolveTeamInternalAgentAccessToken(),
     });
     const prompt: ChatPrompt = {
         title,

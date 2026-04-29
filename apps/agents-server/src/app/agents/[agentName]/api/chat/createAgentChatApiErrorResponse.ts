@@ -1,7 +1,7 @@
 /**
  * One error kind emitted by the stateless agent chat API.
  */
-type AgentChatApiErrorType = 'invalid_request_error' | 'agent_deleted' | 'meta_disclaimer_required';
+type AgentChatApiErrorType = 'invalid_request_error' | 'agent_deleted' | 'meta_disclaimer_required' | 'forbidden';
 
 /**
  * Builds the standardized JSON error payload returned by the stateless agent chat route.
@@ -22,7 +22,7 @@ export function createAgentChatApiErrorResponse(
         }),
         {
             status,
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
         },
     );
 }

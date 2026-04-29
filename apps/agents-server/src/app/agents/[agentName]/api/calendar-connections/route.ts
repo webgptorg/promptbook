@@ -17,6 +17,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        if (scopeResult.error === 'FORBIDDEN') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
         return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
     }
 
@@ -71,4 +75,3 @@ function parsePositiveInteger(rawValue: string | null): number | null {
 
     return parsedValue;
 }
-

@@ -1,5 +1,6 @@
 import type { ChatMessage } from '@promptbook-local/components';
 import { computeAgentHash } from '@promptbook-local/core';
+import { resolveTeamInternalAgentAccessToken } from '../../../../../../../../src/commitments/_common/teamInternalAgentAccess';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
 import { createChatAttachmentTools } from '@/src/tools/createChatAttachmentTools';
@@ -181,6 +182,8 @@ export async function resolveAgentChatRouteContext(
         calendarGoogleAccessToken,
         calendarConnections,
         chatAttachments: attachments,
+        localServerUrl,
+        teamInternalAccessToken: resolveTeamInternalAgentAccessToken(),
     });
 
     // Use AgentKitCacheManager for vector store caching

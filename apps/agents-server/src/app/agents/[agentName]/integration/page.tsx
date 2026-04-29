@@ -1,10 +1,12 @@
 'use server';
 
+import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabase } from '@/src/database/$provideSupabase';
 import { getMetadata } from '@/src/database/getMetadata';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { formatAgentNamingText } from '@/src/utils/agentNaming';
+import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { getAgentNaming } from '@/src/utils/getAgentNaming';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
@@ -77,6 +79,11 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
     $sideEffect(headers());
 
     const agentName = await getAgentName(params);
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+        return <ForbiddenPage />;
+    }
+
     const isAdmin = await isUserAdmin();
     const agentNaming = await getAgentNaming();
 

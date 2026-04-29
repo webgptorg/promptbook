@@ -1,6 +1,7 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { $provideExecutionToolsForServer } from '@/src/tools/$provideExecutionToolsForServer';
+import { resolveAgentAccess } from '@/src/utils/agentAccess';
 import { createInlineKnowledgeSourceUploader } from '@/src/utils/knowledge/createInlineKnowledgeSourceUploader';
 import { resolveServerAgentContext } from '@/src/utils/resolveServerAgentContext';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -66,6 +67,10 @@ class SSENextJsTransport implements Transport {
  */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ agentName: string }> }) {
     const { agentName } = await params;
+    const access = await resolveAgentAccess(agentName, { request, allowTeamInternalAccess: true });
+    if (!access.isAllowed && access.visibility !== null) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
     // Check if agent exists
     try {

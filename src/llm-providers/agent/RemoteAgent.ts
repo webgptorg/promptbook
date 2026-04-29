@@ -206,7 +206,7 @@ export class RemoteAgent extends Agent {
     public static async connect(options: RemoteAgentOptions) {
         const agentProfileUrl = `${options.agentUrl}/api/profile`;
         const profileResponse = await fetch(agentProfileUrl, {
-            headers: attachClientVersionHeader(),
+            headers: attachClientVersionHeader(options.requestHeaders),
         });
         // <- TODO: [🐱‍🚀] What about closed-source agents?
         // <- TODO: [🐱‍🚀] Maybe use promptbookFetch
@@ -286,6 +286,7 @@ export class RemoteAgent extends Agent {
      * The source of the agent
      */
     private agentUrl: string_agent_url;
+    private requestHeaders: Record<string, string>;
     private _remoteAgentName: string_agent_name | undefined;
     private _remoteAgentHash: string_agent_hash | undefined;
     public toolTitles: Record<string, string> = {};
@@ -307,6 +308,7 @@ export class RemoteAgent extends Agent {
     private constructor(options: AgentOptions & RemoteAgentOptions) {
         super(options);
         this.agentUrl = options.agentUrl;
+        this.requestHeaders = options.requestHeaders || {};
     }
 
     public override get agentName(): string_agent_name {
@@ -356,7 +358,7 @@ export class RemoteAgent extends Agent {
 
             const response = await fetch(`${this.agentUrl}/api/voice`, {
                 method: 'POST',
-                headers: attachClientVersionHeader(),
+                headers: attachClientVersionHeader(this.requestHeaders),
                 body: formData,
             });
 
@@ -398,6 +400,7 @@ export class RemoteAgent extends Agent {
         const bookResponse = await fetch(`${this.agentUrl}/api/chat`, {
             method: 'POST',
             headers: attachClientVersionHeader({
+                ...this.requestHeaders,
                 'Content-Type': 'application/json',
             }),
             body: JSON.stringify({

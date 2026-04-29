@@ -52,6 +52,8 @@ export type ComposePromptParametersWithMemoryContextOptions = {
     calendarGoogleAccessToken?: string;
     calendarConnections?: ReadonlyArray<CalendarConnection>;
     chatAttachments?: ReadonlyArray<ChatAttachment>;
+    localServerUrl?: string;
+    teamInternalAccessToken?: string | null;
 };
 
 /**
@@ -116,6 +118,7 @@ function createMergedRuntimeContext(
         ),
         email: createEmailRuntimeContext(options, existingRuntimeContext),
         calendars: createCalendarsRuntimeContext(options, existingRuntimeContext),
+        agentsServer: createAgentsServerRuntimeContext(options, existingRuntimeContext),
         spawn: createSpawnRuntimeContext(options.agentPermanentId, existingRuntimeContext),
         chat: createChatRuntimeContext(
             options,
@@ -217,6 +220,26 @@ function createCalendarsRuntimeContext(
 
     return calendarsRuntimeContext.googleAccessToken || calendarsRuntimeContext.connections
         ? calendarsRuntimeContext
+        : undefined;
+}
+
+/**
+ * Resolves Agents Server metadata used by same-server TEAM calls.
+ */
+function createAgentsServerRuntimeContext(
+    options: ComposePromptParametersWithMemoryContextOptions,
+    existingRuntimeContext: ToolRuntimeContext,
+): ToolRuntimeContext['agentsServer'] {
+    const localServerUrl = normalizeOptionalText(options.localServerUrl);
+    const teamInternalAccessToken = normalizeOptionalText(options.teamInternalAccessToken);
+    const agentsServerRuntimeContext = {
+        ...(existingRuntimeContext.agentsServer || {}),
+        ...(localServerUrl ? { localServerUrl } : {}),
+        ...(teamInternalAccessToken ? { teamInternalAccessToken } : {}),
+    };
+
+    return agentsServerRuntimeContext.localServerUrl || agentsServerRuntimeContext.teamInternalAccessToken
+        ? agentsServerRuntimeContext
         : undefined;
 }
 

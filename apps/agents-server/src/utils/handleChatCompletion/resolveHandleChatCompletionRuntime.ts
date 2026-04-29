@@ -49,6 +49,7 @@ export type HandleChatCompletionRuntime = {
     calendarGoogleAccessToken: Awaited<ReturnType<typeof resolveUseCalendarGoogleToken>>;
     emailSmtpCredential: Awaited<ReturnType<typeof resolveUseEmailSmtpCredential>>;
     isPrivateModeEnabled: boolean;
+    localServerUrl: string;
 };
 
 /**
@@ -150,6 +151,7 @@ export async function resolveHandleChatCompletionRuntime(options: {
         calendarGoogleAccessToken,
         emailSmtpCredential,
         isPrivateModeEnabled,
+        localServerUrl,
     };
 }
 

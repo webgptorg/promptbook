@@ -26,6 +26,10 @@ export async function POST(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        if (scopeResult.error === 'FORBIDDEN') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
         return NextResponse.json({ error: 'Agent not found.' }, { status: 404 });
     }
 

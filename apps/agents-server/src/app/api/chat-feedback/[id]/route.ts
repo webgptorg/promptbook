@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { $getTableName } from '../../../../database/$getTableName';
 import { $provideSupabase } from '../../../../database/$provideSupabase';
-import { isUserAdmin } from '../../../../utils/isUserAdmin';
+import { getCurrentUser } from '../../../../utils/getCurrentUser';
 
 /**
  * Delete a single chat feedback entry by ID.
  */
 export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
-    if (!(await isUserAdmin())) {
+    if (!(await getCurrentUser())) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

@@ -1,5 +1,7 @@
 'use server';
 import type { Metadata, ResolvingMetadata } from 'next';
+import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
+import { resolveAgentAccess } from '@/src/utils/agentAccess';
 import { loadChatConfiguration } from '@/src/utils/chatConfiguration';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
@@ -98,6 +100,11 @@ export default async function AgentChatPage({
     const canonicalAgentId = routeTarget.canonicalAgentId;
     if (agentName !== canonicalAgentId) {
         redirect(buildCanonicalAgentChatPath(canonicalAgentId, currentSearchParams));
+    }
+
+    const access = await resolveAgentAccess(canonicalAgentId);
+    if (!access.isAllowed) {
+        return <ForbiddenPage />;
     }
 
     const isDeletedPromise = isAgentDeleted(canonicalAgentId);

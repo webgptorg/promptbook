@@ -1,5 +1,7 @@
 'use server';
 
+import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
+import { resolveAgentAccess } from '@/src/utils/agentAccess';
 import { notFound, redirect } from 'next/navigation';
 import { resolveAgentRouteTarget } from '@/src/utils/agentRouting/resolveAgentRouteTarget';
 import { getAgentName } from '../_utils';
@@ -34,6 +36,11 @@ export default async function AgentTimeoutsPage({ params }: { params: Promise<{ 
     const canonicalAgentId = routeTarget.canonicalAgentId;
     if (agentName !== canonicalAgentId) {
         redirect(buildCanonicalAgentTimeoutsPath(canonicalAgentId));
+    }
+
+    const access = await resolveAgentAccess(canonicalAgentId);
+    if (!access.isAllowed) {
+        return <ForbiddenPage />;
     }
 
     return <AgentTimeoutsClient agentName={canonicalAgentId} />;

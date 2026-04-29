@@ -1,3 +1,9 @@
+-   Tightened Agents Server agent visibility enforcement:
+
+    -   Added shared server-side visibility checks so private agents return forbidden responses to anonymous profile/chat/API access while unlisted agents remain usable by direct link.
+    -   Added a same-origin internal TEAM access token so public or unlisted agents can consult private local teammates without allowing federated servers to access private agents.
+    -   Hid logged-in-only agent actions from anonymous menus and protected agent source, editing, export, integration, history, analytics, feedback, and system-message routes accordingly.
+
 -   Preferred singular commitment names over plural aliases in the commitment registry and generated catalogs:
 
     -   Reordered the shared commitment registry so canonical singular keywords now appear before their plural aliases, including `RULE` before `RULES` and `LANGUAGE` before `LANGUAGES`.
