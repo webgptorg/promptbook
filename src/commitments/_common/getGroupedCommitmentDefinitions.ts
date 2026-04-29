@@ -33,8 +33,14 @@ export function getGroupedCommitmentDefinitions(): ReadonlyArray<GroupedCommitme
         if (lastGroup) {
             const lastPrimary = lastGroup.primary;
 
+            // OPEN and CLOSED are one documentation family even though they are
+            // separate runtime commitments, so they should stay grouped together.
+            if (lastPrimary.type === 'OPEN' && commitment.type === 'CLOSED') {
+                shouldGroup = true;
+            }
+
             // Case 1: Same class constructor (except NotYetImplemented)
-            if (
+            else if (
                 !(commitment instanceof NotYetImplementedCommitmentDefinition) &&
                 commitment.constructor === lastPrimary.constructor
             ) {

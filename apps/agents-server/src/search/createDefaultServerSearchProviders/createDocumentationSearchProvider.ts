@@ -41,17 +41,15 @@ export function createDocumentationSearchProvider(): ServerSearchProvider {
             }
 
             for (const commitmentGroup of groupedCommitments) {
-                const commitmentLabel = commitmentGroup.primary.type;
-                const aliases = commitmentGroup.aliases.join(' / ');
+                const commitmentTitle = [commitmentGroup.primary.type, ...commitmentGroup.aliases].join(' / ');
                 const searchText = [
-                    commitmentLabel,
-                    aliases,
+                    commitmentTitle,
                     commitmentGroup.primary.description || '',
                 ].join('\n');
                 const match = createServerSearchMatcher(context.query, [
                     {
                         text: searchText,
-                        snippetText: commitmentGroup.primary.description || aliases || commitmentLabel,
+                        snippetText: searchText,
                         weight: 2.4,
                     },
                 ]);
@@ -60,14 +58,14 @@ export function createDocumentationSearchProvider(): ServerSearchProvider {
                 }
 
                 results.push({
-                    id: `docs-${commitmentLabel}`,
+                    id: `docs-${commitmentGroup.primary.type}`,
                     providerId: 'documentation',
                     group: 'Documentation',
                     type: 'commitment-doc',
                     icon: 'documentation',
-                    title: commitmentLabel,
+                    title: commitmentTitle,
                     snippet: match.snippet,
-                    href: `/docs/${encodeURIComponent(commitmentLabel)}`,
+                    href: `/docs/${encodeURIComponent(commitmentGroup.primary.type)}`,
                     score: match.score + 14,
                 });
             }

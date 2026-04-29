@@ -8,6 +8,7 @@ import {
 import type { BookLanguageDocumentationExample } from './BookLanguageDocumentationExample';
 import { bookLanguageCommonPitfalls } from './bookLanguageCommonPitfalls';
 import { bookLanguageDocumentationExamples } from './bookLanguageDocumentationExamples';
+import { renderGroupedCommitmentDocumentationMarkdown } from './renderGroupedCommitmentDocumentationMarkdown';
 
 /**
  * Commitment types that primarily model composition of multiple agents.
@@ -386,12 +387,12 @@ function renderCommitmentCatalogSection(groupedCommitment: GroupedCommitmentDefi
             ? `Implemented (${notice.detailLabel})`
             : 'Implemented';
     const aliasText = aliases.length === 0 ? 'None' : aliases.map((alias) => `\`${alias}\``).join(', ');
-    const documentationWithoutLeadingHeading = removeLeadingTopLevelHeading(primary.documentation);
     const noticeText = notice
         ? notice.kind === 'deprecated'
             ? `- **Deprecation:** ${notice.message}${formatCommitmentReplacementText(primary.deprecation?.replacedBy)}`
             : `- **Low-level commitment:** ${notice.message}`
         : '';
+    const documentationMarkdown = renderGroupedCommitmentDocumentationMarkdown(groupedCommitment);
 
     return spaceTrim(
         (block) => `
@@ -404,7 +405,7 @@ function renderCommitmentCatalogSection(groupedCommitment: GroupedCommitmentDefi
             - **Block schema (\`createRegex\`):** \`${stringifyRegex(primary.createRegex())}\`
             ${noticeText}
 
-            ${block(documentationWithoutLeadingHeading)}
+            ${block(documentationMarkdown)}
         `,
     );
 }
@@ -455,19 +456,6 @@ function toStableAnchorId(value: string): string {
  */
 function stringifyRegex(regex: RegExp): string {
     return `/${regex.source}/${regex.flags}`;
-}
-
-/**
- * Removes only the first top-level markdown heading from a documentation block.
- *
- * Commitment docs usually start with `# COMMITMENT_NAME`; removing it keeps the
- * generated catalog hierarchy cleaner while preserving the rest of the source docs.
- *
- * @param markdown - Original markdown.
- * @returns Markdown without the first top-level heading.
- */
-function removeLeadingTopLevelHeading(markdown: string): string {
-    return markdown.replace(/^\s*#\s+[^\n]+\n*/u, '').trim();
 }
 
 /**

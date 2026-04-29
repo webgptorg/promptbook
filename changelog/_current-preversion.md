@@ -1,3 +1,9 @@
+-   Grouped `OPEN` and `CLOSED` as one documentation family across the Agents Server docs and Book language markdown:
+
+    -   Made the shared commitment grouping helper keep `OPEN` and `CLOSED` together as one catalog entry so the `/docs` pages, documentation dropdown, search results, and `/api/docs/book-language.md` now present them side by side.
+    -   Rendered both commitment docs inside the shared page/catalog output, while keeping the underlying runtime commitments unchanged.
+    -   Added regression coverage for the grouped family and the combined documentation renderer.
+
 -   Flagged the legacy `DELETE` / `CANCEL` / `DISCARD` / `REMOVE` commitment family as unfinished and low-level instead of deprecated:
 
     -   Added a shared `isUnfinished` commitment flag and surfaced unfinished commitments with the same warning plumbing as deprecated ones, but with a caution message that they are not ready to use.
